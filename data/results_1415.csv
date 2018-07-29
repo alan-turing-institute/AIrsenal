@@ -1,0 +1,381 @@
+date,home_team,away_team,home_score,away_score
+2015-05-24 00:00:00,Arsenal,West Bromwich Albion,4,1
+2015-05-24 00:00:00,Aston Villa,Burnley,0,1
+2015-05-24 00:00:00,Chelsea,Sunderland,3,1
+2015-05-24 00:00:00,Crystal Palace,Swansea City,1,0
+2015-05-24 00:00:00,Everton,Tottenham Hotspur,0,1
+2015-05-24 00:00:00,Hull City,Manchester United,0,0
+2015-05-24 00:00:00,Leicester City,Queens Park Rangers,5,1
+2015-05-24 00:00:00,Manchester City,Southampton,2,0
+2015-05-24 00:00:00,Newcastle United,West Ham United,2,0
+2015-05-24 00:00:00,Stoke City,Liverpool,6,1
+2015-05-20 00:00:00,Arsenal,Sunderland,0,0
+2015-05-18 00:00:00,West Bromwich Albion,Chelsea,3,0
+2015-05-17 00:00:00,Swansea City,Manchester City,2,4
+2015-05-17 00:00:00,Manchester United,Arsenal,1,1
+2015-05-16 00:00:00,Southampton,Aston Villa,6,1
+2015-05-16 00:00:00,Burnley,Stoke City,0,0
+2015-05-16 00:00:00,Queens Park Rangers,Newcastle United,2,1
+2015-05-16 00:00:00,Sunderland,Leicester City,0,0
+2015-05-16 00:00:00,Tottenham Hotspur,Hull City,2,0
+2015-05-16 00:00:00,West Ham United,Everton,1,2
+2015-05-16 00:00:00,Liverpool,Crystal Palace,1,3
+2015-05-11 00:00:00,Arsenal,Swansea City,0,1
+2015-05-10 00:00:00,Manchester City,Queens Park Rangers,6,0
+2015-05-10 00:00:00,Chelsea,Liverpool,1,1
+2015-05-09 00:00:00,Everton,Sunderland,0,2
+2015-05-09 00:00:00,Aston Villa,West Ham United,1,0
+2015-05-09 00:00:00,Hull City,Burnley,0,1
+2015-05-09 00:00:00,Leicester City,Southampton,2,0
+2015-05-09 00:00:00,Newcastle United,West Bromwich Albion,1,1
+2015-05-09 00:00:00,Stoke City,Tottenham Hotspur,3,0
+2015-05-09 00:00:00,Crystal Palace,Manchester United,1,2
+2015-05-04 00:00:00,Hull City,Arsenal,1,3
+2015-05-03 00:00:00,Chelsea,Crystal Palace,1,0
+2015-05-03 00:00:00,Tottenham Hotspur,Manchester City,0,1
+2015-05-02 00:00:00,Leicester City,Newcastle United,3,0
+2015-05-02 00:00:00,Aston Villa,Everton,3,2
+2015-05-02 00:00:00,Liverpool,Queens Park Rangers,2,1
+2015-05-02 00:00:00,Sunderland,Southampton,2,1
+2015-05-02 00:00:00,Swansea City,Stoke City,2,0
+2015-05-02 00:00:00,West Ham United,Burnley,1,0
+2015-05-02 00:00:00,Manchester United,West Bromwich Albion,0,1
+2015-04-29 00:00:00,Leicester City,Chelsea,1,3
+2015-04-28 00:00:00,Hull City,Liverpool,1,0
+2015-04-26 00:00:00,Everton,Manchester United,3,0
+2015-04-26 00:00:00,Arsenal,Chelsea,0,0
+2015-04-25 00:00:00,Southampton,Tottenham Hotspur,2,2
+2015-04-25 00:00:00,Burnley,Leicester City,0,1
+2015-04-25 00:00:00,Crystal Palace,Hull City,0,2
+2015-04-25 00:00:00,Newcastle United,Swansea City,2,3
+2015-04-25 00:00:00,Queens Park Rangers,West Ham United,0,0
+2015-04-25 00:00:00,Stoke City,Sunderland,1,1
+2015-04-25 00:00:00,West Bromwich Albion,Liverpool,0,0
+2015-04-25 00:00:00,Manchester City,Aston Villa,3,2
+2015-04-19 00:00:00,Manchester City,West Ham United,2,0
+2015-04-19 00:00:00,Newcastle United,Tottenham Hotspur,1,3
+2015-04-18 00:00:00,Crystal Palace,West Bromwich Albion,0,2
+2015-04-18 00:00:00,Everton,Burnley,1,0
+2015-04-18 00:00:00,Leicester City,Swansea City,2,0
+2015-04-18 00:00:00,Stoke City,Southampton,2,1
+2015-04-18 00:00:00,Chelsea,Manchester United,1,0
+2015-04-13 00:00:00,Liverpool,Newcastle United,2,0
+2015-04-12 00:00:00,Queens Park Rangers,Chelsea,0,1
+2015-04-12 00:00:00,Manchester United,Manchester City,4,2
+2015-04-11 00:00:00,Swansea City,Everton,1,1
+2015-04-11 00:00:00,Southampton,Hull City,2,0
+2015-04-11 00:00:00,Sunderland,Crystal Palace,1,4
+2015-04-11 00:00:00,Tottenham Hotspur,Aston Villa,0,1
+2015-04-11 00:00:00,West Bromwich Albion,Leicester City,2,3
+2015-04-11 00:00:00,West Ham United,Stoke City,1,1
+2015-04-11 00:00:00,Burnley,Arsenal,0,1
+2015-04-07 00:00:00,Aston Villa,Queens Park Rangers,3,3
+2015-04-06 00:00:00,Crystal Palace,Manchester City,2,1
+2015-04-05 00:00:00,Burnley,Tottenham Hotspur,0,0
+2015-04-05 00:00:00,Sunderland,Newcastle United,1,0
+2015-04-04 00:00:00,Arsenal,Liverpool,4,1
+2015-04-04 00:00:00,Everton,Southampton,1,0
+2015-04-04 00:00:00,Leicester City,West Ham United,2,1
+2015-04-04 00:00:00,Manchester United,Aston Villa,3,1
+2015-04-04 00:00:00,Swansea City,Hull City,3,1
+2015-04-04 00:00:00,West Bromwich Albion,Queens Park Rangers,1,4
+2015-04-04 00:00:00,Chelsea,Stoke City,2,1
+2015-03-22 00:00:00,Liverpool,Manchester United,1,2
+2015-03-22 00:00:00,Hull City,Chelsea,2,3
+2015-03-22 00:00:00,Queens Park Rangers,Everton,1,2
+2015-03-21 00:00:00,Manchester City,West Bromwich Albion,3,0
+2015-03-21 00:00:00,Aston Villa,Swansea City,0,1
+2015-03-21 00:00:00,Newcastle United,Arsenal,1,2
+2015-03-21 00:00:00,Southampton,Burnley,2,0
+2015-03-21 00:00:00,Stoke City,Crystal Palace,1,2
+2015-03-21 00:00:00,Tottenham Hotspur,Leicester City,4,3
+2015-03-21 00:00:00,West Ham United,Sunderland,1,0
+2015-03-16 00:00:00,Swansea City,Liverpool,0,1
+2015-03-15 00:00:00,Chelsea,Southampton,1,1
+2015-03-15 00:00:00,Everton,Newcastle United,3,0
+2015-03-15 00:00:00,Manchester United,Tottenham Hotspur,3,0
+2015-03-14 00:00:00,Crystal Palace,Queens Park Rangers,3,1
+2015-03-14 00:00:00,Arsenal,West Ham United,3,0
+2015-03-14 00:00:00,Leicester City,Hull City,0,0
+2015-03-14 00:00:00,Sunderland,Aston Villa,0,4
+2015-03-14 00:00:00,West Bromwich Albion,Stoke City,1,0
+2015-03-14 00:00:00,Burnley,Manchester City,1,0
+2015-03-07 00:00:00,Queens Park Rangers,Tottenham Hotspur,1,2
+2015-03-04 00:00:00,Manchester City,Leicester City,2,0
+2015-03-04 00:00:00,Newcastle United,Manchester United,0,1
+2015-03-04 00:00:00,Queens Park Rangers,Arsenal,1,2
+2015-03-04 00:00:00,Stoke City,Everton,2,0
+2015-03-04 00:00:00,Tottenham Hotspur,Swansea City,3,2
+2015-03-04 00:00:00,West Ham United,Chelsea,0,1
+2015-03-04 00:00:00,Liverpool,Burnley,2,0
+2015-03-03 00:00:00,Aston Villa,West Bromwich Albion,2,1
+2015-03-03 00:00:00,Hull City,Sunderland,1,1
+2015-03-03 00:00:00,Southampton,Crystal Palace,1,0
+2015-03-01 00:00:00,Liverpool,Manchester City,2,1
+2015-03-01 00:00:00,Arsenal,Everton,2,0
+2015-02-28 00:00:00,West Ham United,Crystal Palace,1,3
+2015-02-28 00:00:00,Burnley,Swansea City,0,1
+2015-02-28 00:00:00,Manchester United,Sunderland,2,0
+2015-02-28 00:00:00,Newcastle United,Aston Villa,1,0
+2015-02-28 00:00:00,Stoke City,Hull City,1,0
+2015-02-28 00:00:00,West Bromwich Albion,Southampton,1,0
+2015-02-22 00:00:00,Tottenham Hotspur,West Ham United,2,2
+2015-02-22 00:00:00,Everton,Leicester City,2,2
+2015-02-22 00:00:00,Southampton,Liverpool,0,2
+2015-02-21 00:00:00,Aston Villa,Stoke City,1,2
+2015-02-21 00:00:00,Chelsea,Burnley,1,1
+2015-02-21 00:00:00,Crystal Palace,Arsenal,1,2
+2015-02-21 00:00:00,Hull City,Queens Park Rangers,2,1
+2015-02-21 00:00:00,Sunderland,West Bromwich Albion,0,0
+2015-02-21 00:00:00,Swansea City,Manchester United,2,1
+2015-02-21 00:00:00,Manchester City,Newcastle United,5,0
+2015-02-11 00:00:00,Chelsea,Everton,1,0
+2015-02-11 00:00:00,Manchester United,Burnley,3,1
+2015-02-11 00:00:00,Southampton,West Ham United,0,0
+2015-02-11 00:00:00,Stoke City,Manchester City,1,4
+2015-02-11 00:00:00,Crystal Palace,Newcastle United,1,1
+2015-02-11 00:00:00,West Bromwich Albion,Swansea City,2,0
+2015-02-10 00:00:00,Arsenal,Leicester City,2,1
+2015-02-10 00:00:00,Hull City,Aston Villa,2,0
+2015-02-10 00:00:00,Sunderland,Queens Park Rangers,0,2
+2015-02-10 00:00:00,Liverpool,Tottenham Hotspur,3,2
+2015-02-08 00:00:00,Burnley,West Bromwich Albion,2,2
+2015-02-08 00:00:00,Newcastle United,Stoke City,1,1
+2015-02-08 00:00:00,West Ham United,Manchester United,1,1
+2015-02-07 00:00:00,Tottenham Hotspur,Arsenal,2,1
+2015-02-07 00:00:00,Aston Villa,Chelsea,1,2
+2015-02-07 00:00:00,Leicester City,Crystal Palace,0,1
+2015-02-07 00:00:00,Manchester City,Hull City,1,1
+2015-02-07 00:00:00,Queens Park Rangers,Southampton,0,1
+2015-02-07 00:00:00,Swansea City,Sunderland,1,1
+2015-02-07 00:00:00,Everton,Liverpool,0,0
+2015-02-01 00:00:00,Arsenal,Aston Villa,5,0
+2015-02-01 00:00:00,Southampton,Swansea City,0,1
+2015-01-31 00:00:00,Hull City,Newcastle United,0,3
+2015-01-31 00:00:00,Crystal Palace,Everton,0,1
+2015-01-31 00:00:00,Liverpool,West Ham United,2,0
+2015-01-31 00:00:00,Manchester United,Leicester City,3,1
+2015-01-31 00:00:00,Stoke City,Queens Park Rangers,3,1
+2015-01-31 00:00:00,Sunderland,Burnley,2,0
+2015-01-31 00:00:00,West Bromwich Albion,Tottenham Hotspur,0,3
+2015-01-31 00:00:00,Chelsea,Manchester City,1,1
+2015-01-19 00:00:00,Everton,West Bromwich Albion,0,0
+2015-01-18 00:00:00,West Ham United,Hull City,3,0
+2015-01-18 00:00:00,Manchester City,Arsenal,0,2
+2015-01-17 00:00:00,Aston Villa,Liverpool,0,2
+2015-01-17 00:00:00,Burnley,Crystal Palace,2,3
+2015-01-17 00:00:00,Leicester City,Stoke City,0,1
+2015-01-17 00:00:00,Queens Park Rangers,Manchester United,0,2
+2015-01-17 00:00:00,Swansea City,Chelsea,0,5
+2015-01-17 00:00:00,Tottenham Hotspur,Sunderland,2,1
+2015-01-17 00:00:00,Newcastle United,Southampton,1,2
+2015-01-11 00:00:00,Arsenal,Stoke City,3,0
+2015-01-11 00:00:00,Manchester United,Southampton,0,1
+2015-01-10 00:00:00,Sunderland,Liverpool,0,1
+2015-01-10 00:00:00,Burnley,Queens Park Rangers,2,1
+2015-01-10 00:00:00,Chelsea,Newcastle United,2,0
+2015-01-10 00:00:00,Everton,Manchester City,1,1
+2015-01-10 00:00:00,Leicester City,Aston Villa,1,0
+2015-01-10 00:00:00,Swansea City,West Ham United,1,1
+2015-01-10 00:00:00,West Bromwich Albion,Hull City,1,0
+2015-01-10 00:00:00,Crystal Palace,Tottenham Hotspur,2,1
+2015-01-01 00:00:00,Stoke City,Manchester United,1,1
+2015-01-01 00:00:00,Aston Villa,Crystal Palace,0,0
+2015-01-01 00:00:00,Hull City,Everton,2,0
+2015-01-01 00:00:00,Liverpool,Leicester City,2,2
+2015-01-01 00:00:00,Manchester City,Sunderland,3,2
+2015-01-01 00:00:00,Newcastle United,Burnley,3,3
+2015-01-01 00:00:00,Queens Park Rangers,Swansea City,1,1
+2015-01-01 00:00:00,Southampton,Arsenal,2,0
+2015-01-01 00:00:00,West Ham United,West Bromwich Albion,1,1
+2015-01-01 00:00:00,Tottenham Hotspur,Chelsea,5,3
+2014-12-29 00:00:00,Liverpool,Swansea City,4,1
+2014-12-28 00:00:00,Tottenham Hotspur,Manchester United,0,0
+2014-12-28 00:00:00,Southampton,Chelsea,1,1
+2014-12-28 00:00:00,Aston Villa,Sunderland,0,0
+2014-12-28 00:00:00,Hull City,Leicester City,0,1
+2014-12-28 00:00:00,Manchester City,Burnley,2,2
+2014-12-28 00:00:00,Queens Park Rangers,Crystal Palace,0,0
+2014-12-28 00:00:00,Stoke City,West Bromwich Albion,2,0
+2014-12-28 00:00:00,West Ham United,Arsenal,1,2
+2014-12-28 00:00:00,Newcastle United,Everton,3,2
+2014-12-26 00:00:00,Chelsea,West Ham United,2,0
+2014-12-26 00:00:00,Burnley,Liverpool,0,1
+2014-12-26 00:00:00,Crystal Palace,Southampton,1,3
+2014-12-26 00:00:00,Everton,Stoke City,0,1
+2014-12-26 00:00:00,Leicester City,Tottenham Hotspur,1,2
+2014-12-26 00:00:00,Manchester United,Newcastle United,3,1
+2014-12-26 00:00:00,Sunderland,Hull City,1,3
+2014-12-26 00:00:00,Swansea City,Aston Villa,1,0
+2014-12-26 00:00:00,West Bromwich Albion,Manchester City,1,3
+2014-12-26 00:00:00,Arsenal,Queens Park Rangers,2,1
+2014-12-22 00:00:00,Stoke City,Chelsea,0,2
+2014-12-21 00:00:00,Newcastle United,Sunderland,0,1
+2014-12-21 00:00:00,Liverpool,Arsenal,2,2
+2014-12-20 00:00:00,Manchester City,Crystal Palace,3,0
+2014-12-20 00:00:00,Aston Villa,Manchester United,1,1
+2014-12-20 00:00:00,Hull City,Swansea City,0,1
+2014-12-20 00:00:00,Queens Park Rangers,West Bromwich Albion,3,2
+2014-12-20 00:00:00,Southampton,Everton,3,0
+2014-12-20 00:00:00,Tottenham Hotspur,Burnley,2,1
+2014-12-20 00:00:00,West Ham United,Leicester City,2,0
+2014-12-15 00:00:00,Everton,Queens Park Rangers,3,1
+2014-12-14 00:00:00,Manchester United,Liverpool,3,0
+2014-12-14 00:00:00,Swansea City,Tottenham Hotspur,1,2
+2014-12-13 00:00:00,Burnley,Southampton,1,0
+2014-12-13 00:00:00,Chelsea,Hull City,2,0
+2014-12-13 00:00:00,Crystal Palace,Stoke City,1,1
+2014-12-13 00:00:00,Leicester City,Manchester City,0,1
+2014-12-13 00:00:00,Sunderland,West Ham United,1,1
+2014-12-13 00:00:00,West Bromwich Albion,Aston Villa,1,0
+2014-12-13 00:00:00,Arsenal,Newcastle United,4,1
+2014-12-08 00:00:00,Southampton,Manchester United,1,2
+2014-12-07 00:00:00,West Ham United,Swansea City,3,1
+2014-12-07 00:00:00,Aston Villa,Leicester City,2,1
+2014-12-06 00:00:00,Newcastle United,Chelsea,2,1
+2014-12-06 00:00:00,Hull City,West Bromwich Albion,0,0
+2014-12-06 00:00:00,Liverpool,Sunderland,0,0
+2014-12-06 00:00:00,Queens Park Rangers,Burnley,2,0
+2014-12-06 00:00:00,Stoke City,Arsenal,3,2
+2014-12-06 00:00:00,Tottenham Hotspur,Crystal Palace,0,0
+2014-12-06 00:00:00,Manchester City,Everton,1,0
+2014-12-03 00:00:00,Arsenal,Southampton,1,0
+2014-12-03 00:00:00,Chelsea,Tottenham Hotspur,3,0
+2014-12-03 00:00:00,Everton,Hull City,1,1
+2014-12-03 00:00:00,Sunderland,Manchester City,1,4
+2014-12-02 00:00:00,Burnley,Newcastle United,1,1
+2014-12-02 00:00:00,Leicester City,Liverpool,1,3
+2014-12-02 00:00:00,Manchester United,Stoke City,2,1
+2014-12-02 00:00:00,Swansea City,Queens Park Rangers,2,0
+2014-12-02 00:00:00,Crystal Palace,Aston Villa,0,1
+2014-12-02 00:00:00,West Bromwich Albion,West Ham United,1,2
+2014-11-30 00:00:00,Southampton,Manchester City,0,3
+2014-11-30 00:00:00,Tottenham Hotspur,Everton,2,1
+2014-11-29 00:00:00,West Bromwich Albion,Arsenal,0,1
+2014-11-29 00:00:00,Burnley,Aston Villa,1,1
+2014-11-29 00:00:00,Liverpool,Stoke City,1,0
+2014-11-29 00:00:00,Manchester United,Hull City,3,0
+2014-11-29 00:00:00,Queens Park Rangers,Leicester City,3,2
+2014-11-29 00:00:00,Swansea City,Crystal Palace,1,1
+2014-11-29 00:00:00,West Ham United,Newcastle United,1,0
+2014-11-29 00:00:00,Sunderland,Chelsea,0,0
+2014-11-24 00:00:00,Aston Villa,Southampton,1,1
+2014-11-23 00:00:00,Crystal Palace,Liverpool,3,1
+2014-11-23 00:00:00,Hull City,Tottenham Hotspur,1,2
+2014-11-22 00:00:00,Chelsea,West Bromwich Albion,2,0
+2014-11-22 00:00:00,Everton,West Ham United,2,1
+2014-11-22 00:00:00,Leicester City,Sunderland,0,0
+2014-11-22 00:00:00,Manchester City,Swansea City,2,1
+2014-11-22 00:00:00,Newcastle United,Queens Park Rangers,1,0
+2014-11-22 00:00:00,Stoke City,Burnley,1,2
+2014-11-22 00:00:00,Arsenal,Manchester United,1,2
+2014-11-09 00:00:00,Sunderland,Everton,1,1
+2014-11-09 00:00:00,Tottenham Hotspur,Stoke City,1,2
+2014-11-09 00:00:00,West Bromwich Albion,Newcastle United,0,2
+2014-11-09 00:00:00,Swansea City,Arsenal,2,1
+2014-11-08 00:00:00,Liverpool,Chelsea,1,2
+2014-11-08 00:00:00,Burnley,Hull City,1,0
+2014-11-08 00:00:00,Manchester United,Crystal Palace,1,0
+2014-11-08 00:00:00,Southampton,Leicester City,2,0
+2014-11-08 00:00:00,West Ham United,Aston Villa,0,0
+2014-11-08 00:00:00,Queens Park Rangers,Manchester City,2,2
+2014-11-03 00:00:00,Crystal Palace,Sunderland,1,3
+2014-11-02 00:00:00,Manchester City,Manchester United,1,0
+2014-11-02 00:00:00,Aston Villa,Tottenham Hotspur,1,2
+2014-11-01 00:00:00,Newcastle United,Liverpool,1,0
+2014-11-01 00:00:00,Arsenal,Burnley,3,0
+2014-11-01 00:00:00,Chelsea,Queens Park Rangers,2,1
+2014-11-01 00:00:00,Everton,Swansea City,0,0
+2014-11-01 00:00:00,Hull City,Southampton,0,1
+2014-11-01 00:00:00,Leicester City,West Bromwich Albion,0,1
+2014-11-01 00:00:00,Stoke City,West Ham United,2,2
+2014-10-27 00:00:00,Queens Park Rangers,Aston Villa,2,0
+2014-10-26 00:00:00,Burnley,Everton,1,3
+2014-10-26 00:00:00,Tottenham Hotspur,Newcastle United,1,2
+2014-10-26 00:00:00,Manchester United,Chelsea,1,1
+2014-10-25 00:00:00,West Ham United,Manchester City,2,1
+2014-10-25 00:00:00,Liverpool,Hull City,0,0
+2014-10-25 00:00:00,Southampton,Stoke City,1,0
+2014-10-25 00:00:00,Sunderland,Arsenal,0,2
+2014-10-25 00:00:00,West Bromwich Albion,Crystal Palace,2,2
+2014-10-25 00:00:00,Swansea City,Leicester City,2,0
+2014-10-20 00:00:00,West Bromwich Albion,Manchester United,2,2
+2014-10-19 00:00:00,Queens Park Rangers,Liverpool,2,3
+2014-10-19 00:00:00,Stoke City,Swansea City,2,1
+2014-10-18 00:00:00,Manchester City,Tottenham Hotspur,4,1
+2014-10-18 00:00:00,Arsenal,Hull City,2,2
+2014-10-18 00:00:00,Burnley,West Ham United,1,3
+2014-10-18 00:00:00,Crystal Palace,Chelsea,1,2
+2014-10-18 00:00:00,Everton,Aston Villa,3,0
+2014-10-18 00:00:00,Newcastle United,Leicester City,1,0
+2014-10-18 00:00:00,Southampton,Sunderland,8,0
+2014-10-05 00:00:00,Manchester United,Everton,2,1
+2014-10-05 00:00:00,Chelsea,Arsenal,2,0
+2014-10-05 00:00:00,Tottenham Hotspur,Southampton,1,0
+2014-10-05 00:00:00,West Ham United,Queens Park Rangers,2,0
+2014-10-04 00:00:00,Hull City,Crystal Palace,2,0
+2014-10-04 00:00:00,Leicester City,Burnley,2,2
+2014-10-04 00:00:00,Liverpool,West Bromwich Albion,2,1
+2014-10-04 00:00:00,Sunderland,Stoke City,3,1
+2014-10-04 00:00:00,Swansea City,Newcastle United,2,2
+2014-10-04 00:00:00,Aston Villa,Manchester City,0,2
+2014-09-29 00:00:00,Stoke City,Newcastle United,1,0
+2014-09-28 00:00:00,West Bromwich Albion,Burnley,4,0
+2014-09-27 00:00:00,Liverpool,Everton,1,1
+2014-09-27 00:00:00,Chelsea,Aston Villa,3,0
+2014-09-27 00:00:00,Crystal Palace,Leicester City,2,0
+2014-09-27 00:00:00,Hull City,Manchester City,2,4
+2014-09-27 00:00:00,Manchester United,West Ham United,2,1
+2014-09-27 00:00:00,Southampton,Queens Park Rangers,2,1
+2014-09-27 00:00:00,Sunderland,Swansea City,0,0
+2014-09-27 00:00:00,Arsenal,Tottenham Hotspur,1,1
+2014-09-21 00:00:00,Leicester City,Manchester United,5,3
+2014-09-21 00:00:00,Tottenham Hotspur,West Bromwich Albion,0,1
+2014-09-21 00:00:00,Everton,Crystal Palace,2,3
+2014-09-21 00:00:00,Manchester City,Chelsea,1,1
+2014-09-20 00:00:00,Queens Park Rangers,Stoke City,2,2
+2014-09-20 00:00:00,Aston Villa,Arsenal,0,3
+2014-09-20 00:00:00,Burnley,Sunderland,0,0
+2014-09-20 00:00:00,Newcastle United,Hull City,2,2
+2014-09-20 00:00:00,Swansea City,Southampton,0,1
+2014-09-20 00:00:00,West Ham United,Liverpool,3,1
+2014-09-15 00:00:00,Hull City,West Ham United,2,2
+2014-09-14 00:00:00,Manchester United,Queens Park Rangers,4,0
+2014-09-13 00:00:00,Arsenal,Manchester City,2,2
+2014-09-13 00:00:00,Chelsea,Swansea City,4,2
+2014-09-13 00:00:00,Crystal Palace,Burnley,0,0
+2014-09-13 00:00:00,Southampton,Newcastle United,4,0
+2014-09-13 00:00:00,Stoke City,Leicester City,0,1
+2014-09-13 00:00:00,Sunderland,Tottenham Hotspur,2,2
+2014-09-13 00:00:00,West Bromwich Albion,Everton,0,2
+2014-09-13 00:00:00,Liverpool,Aston Villa,0,1
+2014-08-31 00:00:00,Aston Villa,Hull City,2,1
+2014-08-31 00:00:00,Tottenham Hotspur,Liverpool,0,3
+2014-08-31 00:00:00,Leicester City,Arsenal,1,1
+2014-08-30 00:00:00,Burnley,Manchester United,0,0
+2014-08-30 00:00:00,Manchester City,Stoke City,0,1
+2014-08-30 00:00:00,Newcastle United,Crystal Palace,3,3
+2014-08-30 00:00:00,Queens Park Rangers,Sunderland,1,0
+2014-08-30 00:00:00,Swansea City,West Bromwich Albion,3,0
+2014-08-30 00:00:00,West Ham United,Southampton,1,3
+2014-08-30 00:00:00,Everton,Chelsea,3,6
+2014-08-25 00:00:00,Manchester City,Liverpool,3,1
+2014-08-24 00:00:00,Hull City,Stoke City,1,1
+2014-08-24 00:00:00,Tottenham Hotspur,Queens Park Rangers,4,0
+2014-08-24 00:00:00,Sunderland,Manchester United,1,1
+2014-08-23 00:00:00,Aston Villa,Newcastle United,0,0
+2014-08-23 00:00:00,Chelsea,Leicester City,2,0
+2014-08-23 00:00:00,Crystal Palace,West Ham United,1,3
+2014-08-23 00:00:00,Southampton,West Bromwich Albion,0,0
+2014-08-23 00:00:00,Swansea City,Burnley,1,0
+2014-08-23 00:00:00,Everton,Arsenal,2,2
+2014-08-18 00:00:00,Burnley,Chelsea,1,3
+2014-08-17 00:00:00,Liverpool,Southampton,2,1
+2014-08-17 00:00:00,Newcastle United,Manchester City,0,2
+2014-08-16 00:00:00,Manchester United,Swansea City,1,2
+2014-08-16 00:00:00,Leicester City,Everton,2,2
+2014-08-16 00:00:00,Queens Park Rangers,Hull City,0,1
+2014-08-16 00:00:00,Stoke City,Aston Villa,0,1
+2014-08-16 00:00:00,West Bromwich Albion,Sunderland,2,2
+2014-08-16 00:00:00,West Ham United,Tottenham Hotspur,0,1
+2014-08-16 00:00:00,Arsenal,Crystal Palace,2,1
