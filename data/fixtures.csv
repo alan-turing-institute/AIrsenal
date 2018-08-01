@@ -1,0 +1,191 @@
+gameweek,date,home_team,away_team
+1,2018-08-10 20:00:00,Man Utd,Leicester
+1,2018-08-11 12:30:00,Newcastle,Spurs
+1,2018-08-11 15:00:00,Bournemouth,Cardiff
+1,2018-08-11 15:00:00,Fulham,Crystal Palace
+1,2018-08-11 15:00:00,Huddersfield,Chelsea
+1,2018-08-11 15:00:00,Watford,Brighton
+1,2018-08-11 17:30:00,Wolves,Everton
+1,2018-08-12 13:30:00,Liverpool,West Ham
+1,2018-08-12 13:30:00,Southampton,Burnley
+1,2018-08-12 16:00:00,Arsenal,Man City
+2,2018-08-18 12:30:00,Cardiff,Newcastle
+2,2018-08-18 15:00:00,Burnley,Watford
+2,2018-08-18 15:00:00,Everton,Southampton
+2,2018-08-18 15:00:00,Leicester,Wolves
+2,2018-08-18 15:00:00,Spurs,Fulham
+2,2018-08-18 15:00:00,West Ham,Bournemouth
+2,2018-08-18 17:30:00,Chelsea,Arsenal
+2,2018-08-19 13:30:00,Man City,Huddersfield
+2,2018-08-19 16:00:00,Brighton,Man Utd
+2,2018-08-20 20:00:00,Crystal Palace,Liverpool
+3,2018-08-25 12:30:00,Wolves,Man City
+3,2018-08-25 15:00:00,Arsenal,West Ham
+3,2018-08-25 15:00:00,Bournemouth,Everton
+3,2018-08-25 15:00:00,Fulham,Burnley
+3,2018-08-25 15:00:00,Huddersfield,Cardiff
+3,2018-08-25 15:00:00,Southampton,Leicester
+3,2018-08-25 17:30:00,Liverpool,Brighton
+3,2018-08-26 13:30:00,Watford,Crystal Palace
+3,2018-08-26 16:00:00,Newcastle,Chelsea
+3,2018-08-27 20:00:00,Man Utd,Spurs
+4,2018-09-01 12:30:00,Leicester,Liverpool
+4,2018-09-01 15:00:00,Brighton,Fulham
+4,2018-09-01 15:00:00,Burnley,Man Utd
+4,2018-09-01 15:00:00,Chelsea,Bournemouth
+4,2018-09-01 15:00:00,Crystal Palace,Southampton
+4,2018-09-01 15:00:00,Everton,Huddersfield
+4,2018-09-01 15:00:00,West Ham,Wolves
+4,2018-09-01 17:30:00,Man City,Newcastle
+4,2018-09-02 13:30:00,Cardiff,Arsenal
+4,2018-09-02 16:00:00,Watford,Spurs
+5,2018-09-15 12:30:00,Spurs,Liverpool
+5,2018-09-15 15:00:00,Bournemouth,Leicester
+5,2018-09-15 15:00:00,Chelsea,Cardiff
+5,2018-09-15 15:00:00,Huddersfield,Crystal Palace
+5,2018-09-15 15:00:00,Man City,Fulham
+5,2018-09-15 15:00:00,Newcastle,Arsenal
+5,2018-09-15 17:30:00,Watford,Man Utd
+5,2018-09-16 13:30:00,Wolves,Burnley
+5,2018-09-16 16:00:00,Everton,West Ham
+5,2018-09-17 20:00:00,Southampton,Brighton
+6,2018-09-22 12:30:00,Fulham,Watford
+6,2018-09-22 15:00:00,Burnley,Bournemouth
+6,2018-09-22 15:00:00,Cardiff,Man City
+6,2018-09-22 15:00:00,Crystal Palace,Newcastle
+6,2018-09-22 15:00:00,Leicester,Huddersfield
+6,2018-09-22 15:00:00,Liverpool,Southampton
+6,2018-09-22 15:00:00,Man Utd,Wolves
+6,2018-09-22 17:30:00,Brighton,Spurs
+6,2018-09-23 13:30:00,West Ham,Chelsea
+6,2018-09-23 16:00:00,Arsenal,Everton
+7,2018-09-29 12:30:00,West Ham,Man Utd
+7,2018-09-29 15:00:00,Arsenal,Watford
+7,2018-09-29 15:00:00,Everton,Fulham
+7,2018-09-29 15:00:00,Huddersfield,Spurs
+7,2018-09-29 15:00:00,Man City,Brighton
+7,2018-09-29 15:00:00,Newcastle,Leicester
+7,2018-09-29 15:00:00,Wolves,Southampton
+7,2018-09-29 17:30:00,Chelsea,Liverpool
+7,2018-09-30 16:00:00,Cardiff,Burnley
+7,2018-10-01 20:00:00,Bournemouth,Crystal Palace
+8,2018-10-06 15:00:00,Brighton,West Ham
+8,2018-10-06 15:00:00,Burnley,Huddersfield
+8,2018-10-06 15:00:00,Crystal Palace,Wolves
+8,2018-10-06 15:00:00,Fulham,Arsenal
+8,2018-10-06 15:00:00,Leicester,Everton
+8,2018-10-06 15:00:00,Liverpool,Man City
+8,2018-10-06 15:00:00,Man Utd,Newcastle
+8,2018-10-06 15:00:00,Southampton,Chelsea
+8,2018-10-06 15:00:00,Spurs,Cardiff
+8,2018-10-06 15:00:00,Watford,Bournemouth
+9,2018-10-20 15:00:00,Arsenal,Leicester
+9,2018-10-20 15:00:00,Bournemouth,Southampton
+9,2018-10-20 15:00:00,Cardiff,Fulham
+9,2018-10-20 15:00:00,Chelsea,Man Utd
+9,2018-10-20 15:00:00,Everton,Crystal Palace
+9,2018-10-20 15:00:00,Huddersfield,Liverpool
+9,2018-10-20 15:00:00,Man City,Burnley
+9,2018-10-20 15:00:00,Newcastle,Brighton
+9,2018-10-20 15:00:00,West Ham,Spurs
+9,2018-10-20 15:00:00,Wolves,Watford
+10,2018-10-27 15:00:00,Brighton,Wolves
+10,2018-10-27 15:00:00,Burnley,Chelsea
+10,2018-10-27 15:00:00,Crystal Palace,Arsenal
+10,2018-10-27 15:00:00,Fulham,Bournemouth
+10,2018-10-27 15:00:00,Leicester,West Ham
+10,2018-10-27 15:00:00,Liverpool,Cardiff
+10,2018-10-27 15:00:00,Man Utd,Everton
+10,2018-10-27 15:00:00,Southampton,Newcastle
+10,2018-10-27 15:00:00,Spurs,Man City
+10,2018-10-27 15:00:00,Watford,Huddersfield
+11,2018-11-03 15:00:00,Arsenal,Liverpool
+11,2018-11-03 15:00:00,Bournemouth,Man Utd
+11,2018-11-03 15:00:00,Cardiff,Leicester
+11,2018-11-03 15:00:00,Chelsea,Crystal Palace
+11,2018-11-03 15:00:00,Everton,Brighton
+11,2018-11-03 15:00:00,Huddersfield,Fulham
+11,2018-11-03 15:00:00,Man City,Southampton
+11,2018-11-03 15:00:00,Newcastle,Watford
+11,2018-11-03 15:00:00,West Ham,Burnley
+11,2018-11-03 15:00:00,Wolves,Spurs
+12,2018-11-10 15:00:00,Arsenal,Wolves
+12,2018-11-10 15:00:00,Cardiff,Brighton
+12,2018-11-10 15:00:00,Chelsea,Everton
+12,2018-11-10 15:00:00,Crystal Palace,Spurs
+12,2018-11-10 15:00:00,Huddersfield,West Ham
+12,2018-11-10 15:00:00,Leicester,Burnley
+12,2018-11-10 15:00:00,Liverpool,Fulham
+12,2018-11-10 15:00:00,Man City,Man Utd
+12,2018-11-10 15:00:00,Newcastle,Bournemouth
+12,2018-11-10 15:00:00,Southampton,Watford
+13,2018-11-24 15:00:00,Bournemouth,Arsenal
+13,2018-11-24 15:00:00,Brighton,Leicester
+13,2018-11-24 15:00:00,Burnley,Newcastle
+13,2018-11-24 15:00:00,Everton,Cardiff
+13,2018-11-24 15:00:00,Fulham,Southampton
+13,2018-11-24 15:00:00,Man Utd,Crystal Palace
+13,2018-11-24 15:00:00,Spurs,Chelsea
+13,2018-11-24 15:00:00,Watford,Liverpool
+13,2018-11-24 15:00:00,West Ham,Man City
+13,2018-11-24 15:00:00,Wolves,Huddersfield
+14,2018-12-01 15:00:00,Arsenal,Spurs
+14,2018-12-01 15:00:00,Cardiff,Wolves
+14,2018-12-01 15:00:00,Chelsea,Fulham
+14,2018-12-01 15:00:00,Crystal Palace,Burnley
+14,2018-12-01 15:00:00,Huddersfield,Brighton
+14,2018-12-01 15:00:00,Leicester,Watford
+14,2018-12-01 15:00:00,Liverpool,Everton
+14,2018-12-01 15:00:00,Man City,Bournemouth
+14,2018-12-01 15:00:00,Newcastle,West Ham
+14,2018-12-01 15:00:00,Southampton,Man Utd
+15,2018-12-04 19:45:00,Bournemouth,Huddersfield
+15,2018-12-04 19:45:00,Brighton,Crystal Palace
+15,2018-12-04 19:45:00,Burnley,Liverpool
+15,2018-12-04 19:45:00,Fulham,Leicester
+15,2018-12-04 19:45:00,Watford,Man City
+15,2018-12-04 19:45:00,West Ham,Cardiff
+15,2018-12-04 19:45:00,Wolves,Chelsea
+15,2018-12-04 20:00:00,Man Utd,Arsenal
+15,2018-12-05 19:45:00,Everton,Newcastle
+15,2018-12-05 20:00:00,Spurs,Southampton
+16,2018-12-08 15:00:00,Arsenal,Huddersfield
+16,2018-12-08 15:00:00,Bournemouth,Liverpool
+16,2018-12-08 15:00:00,Burnley,Brighton
+16,2018-12-08 15:00:00,Cardiff,Southampton
+16,2018-12-08 15:00:00,Chelsea,Man City
+16,2018-12-08 15:00:00,Everton,Watford
+16,2018-12-08 15:00:00,Leicester,Spurs
+16,2018-12-08 15:00:00,Man Utd,Fulham
+16,2018-12-08 15:00:00,Newcastle,Wolves
+16,2018-12-08 15:00:00,West Ham,Crystal Palace
+17,2018-12-15 15:00:00,Brighton,Chelsea
+17,2018-12-15 15:00:00,Crystal Palace,Leicester
+17,2018-12-15 15:00:00,Fulham,West Ham
+17,2018-12-15 15:00:00,Huddersfield,Newcastle
+17,2018-12-15 15:00:00,Liverpool,Man Utd
+17,2018-12-15 15:00:00,Man City,Everton
+17,2018-12-15 15:00:00,Southampton,Arsenal
+17,2018-12-15 15:00:00,Spurs,Burnley
+17,2018-12-15 15:00:00,Watford,Cardiff
+17,2018-12-15 15:00:00,Wolves,Bournemouth
+18,2018-12-22 15:00:00,Arsenal,Burnley
+18,2018-12-22 15:00:00,Bournemouth,Brighton
+18,2018-12-22 15:00:00,Cardiff,Man Utd
+18,2018-12-22 15:00:00,Chelsea,Leicester
+18,2018-12-22 15:00:00,Everton,Spurs
+18,2018-12-22 15:00:00,Huddersfield,Southampton
+18,2018-12-22 15:00:00,Man City,Crystal Palace
+18,2018-12-22 15:00:00,Newcastle,Fulham
+18,2018-12-22 15:00:00,West Ham,Watford
+18,2018-12-22 15:00:00,Wolves,Liverpool
+19,2018-12-26 15:00:00,Brighton,Arsenal
+19,2018-12-26 15:00:00,Burnley,Everton
+19,2018-12-26 15:00:00,Crystal Palace,Cardiff
+19,2018-12-26 15:00:00,Fulham,Wolves
+19,2018-12-26 15:00:00,Leicester,Man City
+19,2018-12-26 15:00:00,Liverpool,Newcastle
+19,2018-12-26 15:00:00,Man Utd,Huddersfield
+19,2018-12-26 15:00:00,Southampton,West Ham
+19,2018-12-26 15:00:00,Spurs,Bournemouth
+19,2018-12-26 15:00:00,Watford,Chelsea

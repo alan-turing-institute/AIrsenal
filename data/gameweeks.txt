@@ -1,0 +1,334 @@
+Gameweek 1 - 10 Aug 19:00
+ Premier League
+Fixtures
+Next
+Friday 10 August
+Man Utd  20:00Leicester
+Saturday 11 August
+Newcastle  12:30Spurs
+Bournemouth  15:00Cardiff
+Fulham  15:00Crystal Palace
+Huddersfield  15:00Chelsea
+Watford  15:00Brighton
+Wolves  17:30Everton
+Sunday 12 August
+Liverpool  13:30West Ham
+Southampton  13:30Burnley
+Arsenal  16:00Man City
+
+Gameweek 2 - 18 Aug 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 18 August
+Cardiff  12:30Newcastle
+Burnley  15:00Watford
+Everton  15:00Southampton
+Leicester  15:00Wolves
+Spurs  15:00Fulham
+West Ham  15:00Bournemouth
+Chelsea  17:30Arsenal
+Sunday 19 August
+Man City  13:30Huddersfield
+Brighton  16:00Man Utd
+Monday 20 August
+Crystal Palace  20:00Liverpool
+
+Gameweek 3 - 25 Aug 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 25 August
+Wolves  12:30Man City
+Arsenal  15:00West Ham
+Bournemouth  15:00Everton
+Fulham  15:00Burnley
+Huddersfield  15:00Cardiff
+Southampton  15:00Leicester
+Liverpool  17:30Brighton
+Sunday 26 August
+Watford  13:30Crystal Palace
+Newcastle  16:00Chelsea
+Monday 27 August
+Man Utd  20:00Spurs
+
+Gameweek 4 - 01 Sep 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 01 September
+Leicester  12:30Liverpool
+Brighton  15:00Fulham
+Burnley  15:00Man Utd
+Chelsea  15:00Bournemouth
+Crystal Palace  15:00Southampton
+Everton  15:00Huddersfield
+West Ham  15:00Wolves
+Man City  17:30Newcastle
+Sunday 02 September
+Cardiff  13:30Arsenal
+Watford  16:00Spurs
+
+Gameweek 5 - 15 Sep 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 15 September
+Spurs  12:30Liverpool
+Bournemouth  15:00Leicester
+Chelsea  15:00Cardiff
+Huddersfield  15:00Crystal Palace
+Man City  15:00Fulham
+Newcastle  15:00Arsenal
+Watford  17:30Man Utd
+Sunday 16 September
+Wolves  13:30Burnley
+Everton  16:00West Ham
+Monday 17 September
+Southampton  20:00Brighton
+
+Gameweek 6 - 22 Sep 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 22 September
+Fulham  12:30Watford
+Burnley  15:00Bournemouth
+Cardiff  15:00Man City
+Crystal Palace  15:00Newcastle
+Leicester  15:00Huddersfield
+Liverpool  15:00Southampton
+Man Utd  15:00Wolves
+Brighton  17:30Spurs
+Sunday 23 September
+West Ham  13:30Chelsea
+Arsenal  16:00Everton
+
+Gameweek 7 - 29 Sep 11:30
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 29 September
+West Ham  12:30Man Utd
+Arsenal  15:00Watford
+Everton  15:00Fulham
+Huddersfield  15:00Spurs
+Man City  15:00Brighton
+Newcastle  15:00Leicester
+Wolves  15:00Southampton
+Chelsea  17:30Liverpool
+Sunday 30 September
+Cardiff  16:00Burnley
+Monday 01 October
+Bournemouth  20:00Crystal Palace
+
+Gameweek 8 - 06 Oct 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 06 October
+Brighton  15:00West Ham
+Burnley  15:00Huddersfield
+Crystal Palace  15:00Wolves
+Fulham  15:00Arsenal
+Leicester  15:00Everton
+Liverpool  15:00Man City
+Man Utd  15:00Newcastle
+Southampton  15:00Chelsea
+Spurs  15:00Cardiff
+Watford  15:00Bournemouth
+
+Gameweek 9 - 20 Oct 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 20 October
+Arsenal  15:00Leicester
+Bournemouth  15:00Southampton
+Cardiff  15:00Fulham
+Chelsea  15:00Man Utd
+Everton  15:00Crystal Palace
+Huddersfield  15:00Liverpool
+Man City  15:00Burnley
+Newcastle  15:00Brighton
+West Ham  15:00Spurs
+Wolves  15:00Watford
+
+Gameweek 10 - 27 Oct 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 27 October
+Brighton  15:00Wolves
+Burnley  15:00Chelsea
+Crystal Palace  15:00Arsenal
+Fulham  15:00Bournemouth
+Leicester  15:00West Ham
+Liverpool  15:00Cardiff
+Man Utd  15:00Everton
+Southampton  15:00Newcastle
+Spurs  15:00Man City
+Watford  15:00Huddersfield
+
+Gameweek 11 - 03 Nov 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 03 November
+Arsenal  15:00Liverpool
+Bournemouth  15:00Man Utd
+Cardiff  15:00Leicester
+Chelsea  15:00Crystal Palace
+Everton  15:00Brighton
+Huddersfield  15:00Fulham
+Man City  15:00Southampton
+Newcastle  15:00Watford
+West Ham  15:00Burnley
+Wolves  15:00Spurs
+
+Gameweek 12 - 10 Nov 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 10 November
+Arsenal  15:00Wolves
+Cardiff  15:00Brighton
+Chelsea  15:00Everton
+Crystal Palace  15:00Spurs
+Huddersfield  15:00West Ham
+Leicester  15:00Burnley
+Liverpool  15:00Fulham
+Man City  15:00Man Utd
+Newcastle  15:00Bournemouth
+Southampton  15:00Watford
+
+Gameweek 13 - 24 Nov 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 24 November
+Bournemouth  15:00Arsenal
+Brighton  15:00Leicester
+Burnley  15:00Newcastle
+Everton  15:00Cardiff
+Fulham  15:00Southampton
+Man Utd  15:00Crystal Palace
+Spurs  15:00Chelsea
+Watford  15:00Liverpool
+West Ham  15:00Man City
+Wolves  15:00Huddersfield
+
+Gameweek 14 - 01 Dec 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 01 December
+Arsenal  15:00Spurs
+Cardiff  15:00Wolves
+Chelsea  15:00Fulham
+Crystal Palace  15:00Burnley
+Huddersfield  15:00Brighton
+Leicester  15:00Watford
+Liverpool  15:00Everton
+Man City  15:00Bournemouth
+Newcastle  15:00West Ham
+Southampton  15:00Man Utd
+
+Gameweek 15 - 04 Dec 18:45
+ Premier League
+Fixtures
+Previous
+Next
+Tuesday 04 December
+Bournemouth  19:45Huddersfield
+Brighton  19:45Crystal Palace
+Burnley  19:45Liverpool
+Fulham  19:45Leicester
+Watford  19:45Man City
+West Ham  19:45Cardiff
+Wolves  19:45Chelsea
+Man Utd  20:00Arsenal
+Wednesday 05 December
+Everton  19:45Newcastle
+Spurs  20:00Southampton
+
+Gameweek 16 - 08 Dec 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 08 December
+Arsenal  15:00Huddersfield
+Bournemouth  15:00Liverpool
+Burnley  15:00Brighton
+Cardiff  15:00Southampton
+Chelsea  15:00Man City
+Everton  15:00Watford
+Leicester  15:00Spurs
+Man Utd  15:00Fulham
+Newcastle  15:00Wolves
+West Ham  15:00Crystal Palace
+
+Gameweek 17 - 15 Dec 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 15 December
+Brighton  15:00Chelsea
+Crystal Palace  15:00Leicester
+Fulham  15:00West Ham
+Huddersfield  15:00Newcastle
+Liverpool  15:00Man Utd
+Man City  15:00Everton
+Southampton  15:00Arsenal
+Spurs  15:00Burnley
+Watford  15:00Cardiff
+Wolves  15:00Bournemouth
+
+Gameweek 18 - 22 Dec 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Saturday 22 December
+Arsenal  15:00Burnley
+Bournemouth  15:00Brighton
+Cardiff  15:00Man Utd
+Chelsea  15:00Leicester
+Everton  15:00Spurs
+Huddersfield  15:00Southampton
+Man City  15:00Crystal Palace
+Newcastle  15:00Fulham
+West Ham  15:00Watford
+Wolves  15:00Liverpool
+
+Gameweek 19 - 26 Dec 14:00
+ Premier League
+Fixtures
+Previous
+Next
+Wednesday 26 December
+Brighton  15:00Arsenal
+Burnley  15:00Everton
+Crystal Palace  15:00Cardiff
+Fulham  15:00Wolves
+Leicester  15:00Man City
+Liverpool  15:00Newcastle
+Man Utd  15:00Huddersfield
+Southampton  15:00West Ham
+Spurs  15:00Bournemouth
+Watford  15:00Chelsea
