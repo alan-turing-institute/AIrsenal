@@ -2,26 +2,20 @@
 Class for a player in FPL
 """
 
-from .datastore import DataStore
+from .schema import Player
+from .utils import get_player_data
 
-ds = DataStore()
 
-position_map = { 1: 'keeper',
-                 2: 'defender',
-                 3: 'midfielder',
-                 4: 'forward'
-}
-
-class Player(object):
+class CandidatePlayer(object):
     """
     player class
     """
-    def __init__(self,player_id):
-        self.player_id = player_id
-        self.data = ds.get_current_player_data()[player_id]
-        self.name = "{} {}".format(self.data["first_name"],
-                                   self.data["second_name"])
-        self.cost = self.data['now_cost']
-        self.team_data = ds.get_current_team_data()[self.data['team_code']]
-        self.team = self.team_data['name']
-        self.position = position_map[self.data['element_type']]
+    def __init__(self,player):
+        """
+        initialize either by name or by ID
+        """
+        data = get_player_data(player)
+        for attribute in data.__dir__():
+            if not attribute.startswith("_"):
+                self.__setattr__(attribute, getattr(data, attribute))
+        self.is_starting = True # by default

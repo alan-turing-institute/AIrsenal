@@ -4,21 +4,21 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 
-from .player import Player
+from .player import CandidatePlayer
 
 # how many players do we need to add
-TOTAL_PER_POSITION = {"keeper": 2,
-                      "defender": 5,
-                      "midfielder": 5,
-                      "forward": 3
+TOTAL_PER_POSITION = {"GK": 2,
+                      "DEF": 5,
+                      "MID": 5,
+                      "FWD": 3
 }
 
 # min/max active players per position
 
-ACTIVE_PER_POSITION = {"keeper" : (1,1),
-                       "defender": (3,5),
-                       "midfielder": (3,5),
-                       "forward": (1,3)
+ACTIVE_PER_POSITION = {"GK" : (1,1),
+                       "DEF": (3,5),
+                       "MID": (3,5),
+                       "FWD": (1,3)
 }
 
 
@@ -34,13 +34,29 @@ class Team(object):
         self.players = []
         self.budget = 1000
         self.num_position = {
-            "keeper": 0,
-            "defender": 0,
-            "midfielder": 0,
-            "forward": 0
+            "GK": 0,
+            "DEF": 0,
+            "MID": 0,
+            "FWD": 0
         }
         self.free_subs = 0
         self.subs_this_week = 0
+
+    def __repr__(self):
+        """
+        Display the team
+        """
+        print("\n=== starting 11 ===\n")
+        for position in ["GK","DEF","MID","FWD"]:
+            print("== {}s ==\n".format(position))
+            for p in self.players:
+                if p.position == position and p.is_starting:
+                    print("{} ({})".format(p.name, p.team))
+        print("\n=== subs ===\n")
+        for p in self.players:
+            if not p.is_starting:
+                    print("{} ({})".format(p.name, p.team))
+        return ""
 
     def is_complete(self):
         """
@@ -49,11 +65,11 @@ class Team(object):
         num_players  = sum(self.num_position.values())
         return num_players == 15
 
-    def add_player(self,player_id):
+    def add_player(self,p):
         """
-        add a player.
+        add a player.  Can do it by name or by player_id
         """
-        player = Player(player_id)
+        player = CandidatePlayer(p)
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             print("Already have {} in team".format(player.name))
@@ -70,6 +86,8 @@ class Team(object):
                   .format(player.name, player.team))
             return False
         self.players.append(player)
+        self.num_position[player.position] += 1
+        self.budget -= player.current_price
         return True
 
 
@@ -110,7 +128,8 @@ class Team(object):
         """
         check we can afford the player.
         """
-        return player.cost <= self.budget
+        can_afford = player.current_price <= self.budget
+        return can_afford
 
 
     def _calc_expected_points(self, gameweek, method="EP"):
@@ -139,6 +158,6 @@ class Team(object):
         self._calc_expected_points(gameweek, method)
         total = 0.
         for player in self.players:
-            if player.is_starting():
+            if player.is_starting:
                 total += player.expected_points
         return total
