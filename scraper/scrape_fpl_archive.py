@@ -14,6 +14,7 @@ import sys
 import time
 import json
 import re
+import argparse
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -24,15 +25,70 @@ base_url = {"1617": "http://fplarchives.com/Seasons/1",
 
 browser = webdriver.Chrome()
 
-def has_next_page_link(soup):
+
+def parse_detail_page(soup):
     """
-    return True if the page has a pagination link "Next" -
-    if it doesn't we're presumably at the last page.
+    read the week-by-week player data from the parsed html
+    return a dict keyed by gameweek.
     """
-    for link in soup.find_all("a"):
-        if link.text == "Next":
-            return True
-    return False
+    player_detail = []
+    for row in soup.find_all("tr",attrs={"class":"ng-scope"}):
+        gameweek_dict = {}
+        gameweek_dict['gameweek'] = row.find("td",attrs={"data-ng-bind":"item.gameWeek"}).text
+        gameweek_dict["opponent"] = row.find("td",attrs={"data-ng-bind":"item.opponent"}).text
+        gameweek_dict["points"] = row.find("td",attrs={"data-ng-bind":"item.points"}).text
+        gameweek_dict["goals"] = row.find("td",attrs={"data-ng-bind":"item.goals"}).text
+        gameweek_dict["assists"] = row.find("td",attrs={"data-ng-bind":"item.assists"}).text
+        gameweek_dict["minutes"] = row.find("td",attrs={"data-ng-bind":"item.minutes"}).text
+        gameweek_dict["bonus"] = row.find("td",attrs={"data-ng-bind":"item.bps"}).text
+        gameweek_dict["conceded"] = row.find("td",attrs={"data-ng-bind":"item.goalsConceded"}).text
+        gameweek_dict["own_goals"] = row.find("td",attrs={"data-ng-bind":"item.ownGoals"}).text
+        player_detail.append(gameweek_dict)
+    return player_detail
+
+
+def get_detail_pages(soup, pages_to_go_forward):
+    """
+    from the (paginated) summary page, loop through the list
+    of links to player detail pages, and go to each one, call
+    the function to read it, then go back.
+    return dict of dicts, with primary key as player name
+    We need the pages_to_go_forward arg, as otherwise,
+    browser.back() goes back to the first page.
+    """
+    player_names = []
+    player_details_this_page = {}
+    for row in soup.find_all("tr",attrs={"class":"ng-scope"}):
+        if len(row.find_all("a")) != 1:
+            continue
+        player_name = row.find("a").text
+        player_names.append(player_name)
+# seems a bit crazy to loop again here, but I guess going "back" means
+# the page elements are reset
+    print("Found {} players on this page".format(len(player_names)))
+    for player in player_names:
+        print("Getting details for {}".format(player))
+        player_link = browser.find_element_by_link_text(player)
+        player_link.click()
+        while len(browser.page_source) < 20000: # wait for page to load
+            time.sleep(1)
+        time.sleep(1)
+        psource = browser.page_source
+        psoup = BeautifulSoup(psource,"lxml")
+        player_details_this_page[player] = parse_detail_page(psoup)
+        browser.back()
+        while len(browser.page_source) < 10000: # wait for page to load
+            time.sleep(1)
+        for i in range(pages_to_go_forward):
+            next_button = browser.find_element_by_link_text("Next")
+            next_button.click()
+            time.sleep(0.1)
+    print("Returning data for {} players".format(len(player_details_this_page)))
+    outfile = open("player_details_{}.json".format(pages_to_go_forward),"w")
+    outfile.write(json.dumps(player_details_this_page))
+    outfile.close()
+    return player_details_this_page
+
 
 def parse_summary_page(soup):
     """
@@ -74,13 +130,21 @@ def find_num_players(soup):
 
 
 if __name__ == "__main__":
-    season = sys.argv[-1]
+    parser = argparse.ArgumentParser(description="scrape fplarchives")
+    parser.add_argument("--season",help="season - allowed values are '1617' or '1516'",
+                        required=True)
+    parser.add_argument("--mode", help="summary or detailed",default="summary")
+    args = parser.parse_args()
+    season = args.season
     if not (season == "1516" or season == "1617"):
         raise RuntimeError("Please specify the season - 1516 or 1617")
-    summary_file = open("../data/player_summary_{}.json".format(season),"w")
-#    summary_file.write("name,team,position,points,goals,assists,minutes,reds,yellows,saves,PS,PM,bonus,CS,cost\n")
-    player_summaries = []
-    player_details = []
+    if args.mode == "summary":
+        output_file = open("player_summary_{}.json".format(season),"w")
+        player_data = []
+    else:
+        output_file = open("player_details_{}.json".format(season),"w")
+        player_data = {}
+
     # go to the starting page
     browser.get(base_url[season])
     while len(browser.page_source) < 40000: # wait for page to load
@@ -88,22 +152,23 @@ if __name__ == "__main__":
     source = browser.page_source
     soup = BeautifulSoup(source,"lxml")
     num_total_players = find_num_players(soup)
-    # go through the pagination
-    while has_next_page_link(soup):
-        player_summaries_this_page = parse_summary_page(soup)
-        player_summaries += player_summaries_this_page
+    pages_done = 0
+#    # go through the pagination
+    while len(player_data) < num_total_players:
+        if args.mode == "summary":
+            player_data_this_page = parse_summary_page(soup)
+            player_data += player_summaries_this_page
+        else:
+            player_data_this_page = get_detail_pages(soup,pages_done)
+            player_data = {**player_data, **player_data_this_page}
         next_link = browser.find_element_by_link_text("Next")
         next_link.click()
         time.sleep(1)
-        old_source = source
         source = browser.page_source
-        if len(player_summaries) == num_total_players:
-            break
         soup = BeautifulSoup(source,"lxml")
-    # now need to do the last page
-#    player_summaries_this_page = parse_summary_page(soup)
-#    player_summaries += player_summaries_this_page
+        pages_done += 1
 
-    json_string = json.dumps(player_summaries)
-    summary_file.write(json_string)#.encode("utf-8"))
-    summary_file.close()
+# write to the output
+    json_string = json.dumps(player_data)
+    output_file.write(json_string)#.encode("utf-8"))
+    output_file.close()
