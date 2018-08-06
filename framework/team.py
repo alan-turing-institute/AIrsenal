@@ -3,6 +3,7 @@ The class for an FPL team.
 Contains a set of players.
 Is able to check that it obeys all constraints.
 """
+from operator import itemgetter
 
 from .player import CandidatePlayer
 
@@ -20,6 +21,8 @@ ACTIVE_PER_POSITION = {"GK" : (1,1),
                        "MID": (3,5),
                        "FWD": (1,3)
 }
+
+FORMATIONS = [(3,4,3),(3,5,2),(4,3,3),(4,4,2),(4,5,1),(5,4,1),(5,3,2)]
 
 
 class Team(object):
@@ -48,7 +51,7 @@ class Team(object):
         """
         print("\n=== starting 11 ===\n")
         for position in ["GK","DEF","MID","FWD"]:
-            print("== {}s ==\n".format(position))
+            print("\n== {} ==\n".format(position))
             for p in self.players:
                 if p.position == position and p.is_starting:
                     print("{} ({})".format(p.name, p.team))
@@ -145,32 +148,75 @@ class Team(object):
         return can_afford
 
 
-    def _calc_expected_points(self, gameweek, method="EP"):
+    def _calc_expected_points(self, method="EP", gameweek=None):
         """
         estimate the expected points for the specified gameweek.
+        If no gameweek is specified, it will be the next fixture
         """
+        for p in self.players:
+            p.calc_expected_points(method, gameweek)
         pass
 
 
-    def optimize_subs(self,gameweek):
+    def optimize_subs(self,gameweek=None):
         """
         based on pre-calculated expected points,
         choose the best starting 11, obeying constraints.
         """
         # first order all the players by expected points
+        player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        for p in self.players:
+            player_dict[p.position].append((p,p.predicted_points))
+        for v in player_dict.values():
+            v.sort(key=itemgetter(1),reverse=True)
+    #    print(player_dict)
 
-        pass
+        # always sub the second-placed keeper
+        player_dict["GK"][1][0].is_starting=False
+        best_score = 0.
+        best_formation = None
+        for f in FORMATIONS:
+            self.apply_formation(player_dict, f)
+            score = self.total_points_for_starting_11()
+            if score > best_score:
+                best_score = score
+                best_formation = f
+        print("Best formation is {}".format(best_formation))
+        self.apply_formation(player_dict, best_formation)
+        return best_score
+
+    def apply_formation(self, player_dict,formation):
+        """
+        set players' is_starting to True or False
+        depending on specified formation in format e.g.
+        (4,4,2)
+        """
+        for i,pos in enumerate(["DEF","MID","FWD"]):
+            for index,player in enumerate(player_dict[pos]):
+                if index < formation[i]:
+                    player[0].is_starting=True
+                else:
+                    player[0].is_starting=False
 
 
-    def get_expected_points(self, gameweek, method="EP"):
+    def total_points_for_starting_11(self):
+        """
+        simple sum over starting players
+        """
+        total = 0.
+        for player in self.players:
+            if player.is_starting:
+                total += player.predicted_points
+        return total
+
+
+    def get_expected_points(self, method="EP", gameweek=None):
         """
         expected points for the starting 11.
         """
         if not self.is_complete():
             raise RuntimeError("Team is incomplete")
-        self._calc_expected_points(gameweek, method)
-        total = 0.
-        for player in self.players:
-            if player.is_starting:
-                total += player.expected_points
-        return total
+        self._calc_expected_points(method,gameweek)
+        self.optimize_subs(gameweek)
+        total_score = self.total_points_for_starting_11()
+        return total_score
