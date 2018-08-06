@@ -91,6 +91,19 @@ class Team(object):
         return True
 
 
+    def remove_player(self, player_id):
+        """
+        remove player from our list
+        """
+        for p in self.players:
+            if p.player_id == player_id:
+                self.budget += p.current_price
+                self.num_position[p.position] -= 1
+                self.players.remove(p)
+                return True
+        return False
+
+
     def check_no_duplicate_player(self,player):
         """
         Check we don't already have the player.

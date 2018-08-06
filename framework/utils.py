@@ -2,13 +2,37 @@
 Useful commands to query the db
 """
 
-from .schema import Base, Player, Match, Fixture, PlayerScore, engine
+from operator import itemgetter
+
+from .schema import Base, Player, Match, Fixture, PlayerScore, PlayerPrediction, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_
 
 Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
+
+
+def get_player_name(player_id):
+    """
+    lookup player name, for human readability
+    """
+    p = session.query(Player).filter_by(player_id=player_id).first()
+    if not p:
+        print("Unknown player_id {}".format(player_id))
+        return None
+    return p.name
+
+
+def get_player_id(player_name):
+    """
+    lookup player id, for machine readability
+    """
+    p = session.query(Player).filter_by(name=player_name).first()
+    if not p:
+        print("Unknown player_name {}".format(player_name))
+        return None
+    return p.player_id
 
 
 def get_player_data(player):
@@ -24,25 +48,27 @@ def get_player_data(player):
         return None
 
 
-def list_players(position="all", team="all", order_by="current_price"):
+def list_players(position="all", team="all", order_by="current_price", verbose=False):
     """
     print list of players, and
     return a list of player_ids
     """
-    q = session.query(Player).order_by(Player.current_price.desc())
+    q = session.query(Player)
     if team != "all":
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
-
+    if order_by == "current_price":
+        q = q.order_by(Player.current_price.desc())
     player_ids = []
     for player in q.all():
         player_ids.append(player.player_id)
-        print(player.name, player.team, player.position, player.current_price)
+        if verbose:
+            print(player.name, player.team, player.position, player.current_price)
     return player_ids
 
 
-def get_fixtures_for_player(player):
+def get_fixtures_for_player(player, verbose=False):
     """
     search for upcoming fixtures for a player, specified either by id or name.
     """
@@ -61,9 +87,10 @@ def get_fixtures_for_player(player):
                                                   .all()
     fixture_ids = []
     for fixture in fixtures:
-        print("{} vs {} gameweek {}".format(fixture.home_team,
-                                            fixture.away_team,
-                                            fixture.gameweek))
+        if verbose:
+            print("{} vs {} gameweek {}".format(fixture.home_team,
+                                                fixture.away_team,
+                                                fixture.gameweek))
         fixture_ids.append(fixture.fixture_id)
     return fixture_ids
 
@@ -100,3 +127,41 @@ def get_previous_points_for_same_fixture(player, fixture_id):
             previous_points[m[1]] = s.points
 
     return previous_points
+
+
+def get_predicted_points_for_player(player, method="EP", fixture_id=None):
+    """
+    Query the player prediction table for a given player.
+    If no fixture_id is specified, return the next fixture.
+    """
+    if isinstance(player,str):
+        player_record = session.query(Player).filter_by(name=player).first()
+        if not player_record:
+            print("Can't find player {}".format(player))
+            return {}
+        player_id = player_record.player_id
+    else:
+        player_id = player
+    pps = session.query(PlayerPrediction).filter_by(player_id=player_id,method=method)
+    if not fixture_id:
+        fixture_id = get_fixtures_for_player(player_id)[0]
+    pps.filter_by(fixture_id=fixture_id)
+    if not pps.first():
+        print("Couldnt find prediction for player {} fixture {} method {}"\
+              .format(player, fixture_id, method))
+        return 0.
+    return pps.first().predicted_points
+
+
+def get_predicted_points(position="all",team="all",method="EP"):
+    """
+    Query the player_prediction table with selections, return
+    list of tuples (player_id, predicted_points) ordered by predicted_points
+    """
+    player_ids = list_players(position, team)
+    output_list = []
+    for player_id in player_ids:
+        predicted_score = get_predicted_points_for_player(player_id)
+        output_list.append((player_id, predicted_score))
+    output_list.sort(key=itemgetter(1), reverse=True)
+    return output_list

@@ -87,6 +87,19 @@ def test_cant_exceed_budget():
 
     assert(not added_ok)
 
+def test_remove_player():
+    """
+    add a player then remove them.
+    """
+    t = Team()
+    t.add_player(1)
+    assert(len(t.players) == 1)
+    assert(t.num_position["GK"] == 1)
+    t.remove_player(1)
+    assert(len(t.players) == 0)
+    assert(t.num_position["GK"] == 0)
+    assert(t.budget == 1000)
+
 def test_empty_team():
     """
     shouldn't be able to estimate points with
