@@ -11,7 +11,7 @@ sys.path.append("..")
 
 import json
 
-from data.mappings import alternative_team_names, \
+from framework.mappings import alternative_team_names, \
     alternative_player_names, positions
 
 from sqlalchemy import create_engine, and_, or_

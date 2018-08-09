@@ -11,7 +11,7 @@ sys.path.append("..")
 
 import json
 
-from data.mappings import alternative_team_names, positions
+from framework.mappings import alternative_team_names, positions
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

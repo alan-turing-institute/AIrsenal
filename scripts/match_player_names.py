@@ -15,7 +15,7 @@ import re
 
 from fuzzywuzzy import fuzz
 
-from framework.datastore import DataStore
+from framework.data_fetcher import DataFetcher
 
 def find_best_match(fpl_players, player):
     """
@@ -36,9 +36,9 @@ def find_best_match(fpl_players, player):
 if __name__ == "__main__":
 
     # get the team names as used in FPL
-    ds = DataStore()
+    df = DataFetcher()
     playerdict = {}
-    playerdata = ds.get_current_player_data()
+    playerdata = df.get_current_player_data()
     for k in playerdata.keys():
         player_name = "{} {}".format(playerdata[k]['first_name'],
                                      playerdata[k]['second_name'])
