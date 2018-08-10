@@ -57,6 +57,7 @@ class PlayerScore(Base):
     assists = Column(Integer, nullable=False)
     bonus = Column(Integer, nullable=False)
     conceded = Column(Integer, nullable=False)
+    minutes = Column(Integer, nullable=False)
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
