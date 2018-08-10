@@ -165,3 +165,40 @@ def get_predicted_points(position="all",team="all",method="EP"):
         output_list.append((player_id, predicted_score))
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
+
+
+def get_player_history_table(position="all"):
+    """
+    Query the player_score table.
+    """
+    output_file = open("player_history_{}.csv".format(position),"w")
+    output_file.write("player_id,player_name,match_id,goals,assists,minutes,team_goals\n")
+    player_ids = list_players(position)
+    for pid in player_ids:
+        player_name = get_player_name(pid)
+        results = session.query(PlayerScore).filter_by(player_id=pid).all()
+        for row in results:
+            minutes = row.minutes
+            if minutes == 0:
+                continue
+            opponent = row.opponent
+            match_id = row.match_id
+            goals = row.goals
+            assists = row.assists
+            # find the match, in order to get team goals
+            match = session.query(Match).filter_by(match_id = row.match_id).first()
+            if match.home_team == row.opponent:
+                team_goals = match.away_score
+            elif match.away_team == row.opponent:
+                team_goals = match.home_score
+            else:
+                print("Unknown opponent!")
+                team_goals = -1
+            output_file.write("{},{},{},{},{},{},{},\n".format(pid,
+                                                             player_name,
+                                                             match_id,
+                                                             goals,
+                                                             assists,
+                                                             minutes,
+                                                             team_goals))
+    output_file.close()
