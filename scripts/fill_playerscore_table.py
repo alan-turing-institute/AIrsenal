@@ -116,5 +116,6 @@ if __name__ == "__main__":
                 ps.bonus = match['bonus']
                 ps.points = match['points']
                 ps.conceded = match['conceded']
+                ps.minutes = match['minutes']
                 session.add(ps)
     session.commit()
