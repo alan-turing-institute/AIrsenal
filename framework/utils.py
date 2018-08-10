@@ -177,10 +177,11 @@ def get_player_history_table(position="all"):
     for pid in player_ids:
         player_name = get_player_name(pid)
         results = session.query(PlayerScore).filter_by(player_id=pid).all()
+        row_count = 0
         for row in results:
             minutes = row.minutes
-            if minutes == 0:
-                continue
+#            if minutes == 0:
+#                continue
             opponent = row.opponent
             match_id = row.match_id
             goals = row.goals
@@ -194,11 +195,15 @@ def get_player_history_table(position="all"):
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            output_file.write("{},{},{},{},{},{},{},\n".format(pid,
+            output_file.write("{},{},{},{},{},{},{}\n".format(pid,
                                                              player_name,
                                                              match_id,
                                                              goals,
                                                              assists,
                                                              minutes,
                                                              team_goals))
+            row_count += 1
+        if row_count < 38*3:
+            for i in range(row_count,38*3):
+                output_file.write("{},{},0,0,0,0\n".format(pid,player_name))
     output_file.close()
