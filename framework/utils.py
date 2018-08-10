@@ -205,5 +205,5 @@ def get_player_history_table(position="all"):
             row_count += 1
         if row_count < 38*3:
             for i in range(row_count,38*3):
-                output_file.write("{},{},0,0,0,0\n".format(pid,player_name))
+                output_file.write("{},{},0,0,0,0,0\n".format(pid,player_name))
     output_file.close()
