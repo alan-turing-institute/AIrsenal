@@ -40,7 +40,7 @@ if __name__ == "__main__":
             t.remove_player(player_to_remove.player_id)
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
-                if not pp[0] in excluded_player_ids:
+                if (not pp[0] in excluded_player_ids) or random.random() < 0.3: # some chance to put player back
                     cp = CandidatePlayer(pp[0])
                     if cp.current_price >= remove_cost:
                         continue
@@ -68,3 +68,4 @@ if __name__ == "__main__":
         print("Score {}".format(score))
     print("====================================\n")
     print(best_team)
+    print(best_score)

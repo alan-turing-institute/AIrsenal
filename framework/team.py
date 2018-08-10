@@ -54,7 +54,12 @@ class Team(object):
             print("\n== {} ==\n".format(position))
             for p in self.players:
                 if p.position == position and p.is_starting:
-                    print("{} ({})".format(p.name, p.team))
+                    player_line = "{} ({})".format(p.name, p.team)
+                    if p.is_captain:
+                        player_line += "(C)"
+                    elif p.is_vice_captain:
+                        player_line += "(VC)"
+                    print(player_line)
         print("\n=== subs ===\n")
         for p in self.players:
             if not p.is_starting:
@@ -207,6 +212,8 @@ class Team(object):
         for player in self.players:
             if player.is_starting:
                 total += player.predicted_points
+                if player.is_captain:
+                    total += player.predicted_points
         return total
 
 
@@ -218,5 +225,18 @@ class Team(object):
             raise RuntimeError("Team is incomplete")
         self._calc_expected_points(method,gameweek)
         self.optimize_subs(gameweek)
+        self.pick_captains()
         total_score = self.total_points_for_starting_11()
         return total_score
+
+    def pick_captains(self):
+        """
+        pick the highest two expected points for captain and vice-captain
+        """
+        player_list = []
+        for p in self.players:
+            player_list.append((p,p.predicted_points))
+
+        player_list.sort(key=itemgetter(1),reverse=True)
+        player_list[0][0].is_captain=True
+        player_list[1][0].is_vice_captain=True

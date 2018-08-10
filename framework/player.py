@@ -19,6 +19,9 @@ class CandidatePlayer(object):
             if not attribute.startswith("_"):
                 self.__setattr__(attribute, getattr(data, attribute))
         self.is_starting = True # by default
+        self.is_captain = False # by default
+        self.is_vice_captain = False # by default
+
 
     def calc_expected_points(self, method="EP", gameweek=None):
         """
