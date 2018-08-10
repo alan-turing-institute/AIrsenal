@@ -11,20 +11,20 @@ sys.path.append("..")
 
 import json
 
-from data.mappings import alternative_team_names, positions
+from framework.mappings import alternative_team_names, positions
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from framework.schema import Player, Base, engine
-from framework.datastore import DataStore
+from framework.data_fetcher import DataFetcher
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 if __name__ == "__main__":
-    ds = DataStore()
-    pd = ds.get_current_player_data()
+    df = DataFetcher()
+    pd = df.get_current_player_data()
 
     for k,v in pd.items():
         p = Player()

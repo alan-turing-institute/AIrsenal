@@ -1,5 +1,5 @@
 """
-functions to retrieve current and historical FPL data.
+functions to retrieve current FPL data.
 """
 
 import requests
@@ -9,7 +9,7 @@ FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 
 DATA_DIR = "./data"
 
-class DataStore(object):
+class DataFetcher(object):
     """
     hold current and historic FPL data in memory,
     or retrieve it if not already cached.
