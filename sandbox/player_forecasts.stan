@@ -29,3 +29,17 @@ model {
         }
     }
 }
+generated quantities {
+    int y_rep[nplayer, nmatch, 3];
+    for (i in 1:nplayer) {
+        for (j in 1:nmatch) {
+            int goals = sum(y[i, j]);
+            if (goals > 0) {
+                y_rep[i, j] = multinomial_rng(theta_mins[i, j], goals);
+            }
+            else {
+                y_rep[i, j] = rep_array(0, 3);
+            }
+        }
+    }
+}
