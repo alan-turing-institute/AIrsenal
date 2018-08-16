@@ -134,7 +134,10 @@ def get_fixtures_for_player(player, verbose=False):
                                                   .order_by(Fixture.gameweek)\
                                                   .all()
     fixture_ids = []
+    next_gameweek = get_next_gameweek()
     for fixture in fixtures:
+        if fixture.gameweek < next_gameweek:
+            continue
         if verbose:
             print("{} vs {} gameweek {}".format(fixture.home_team,
                                                 fixture.away_team,
