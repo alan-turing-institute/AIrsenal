@@ -24,7 +24,7 @@ session = DBSession()
 
 if __name__ == "__main__":
     df = DataFetcher()
-    pd = df.get_current_player_data()
+    pd = df.get_player_summary_data()
 
     for k,v in pd.items():
         p = Player()

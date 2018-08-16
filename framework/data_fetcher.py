@@ -4,9 +4,10 @@ functions to retrieve current FPL data.
 
 import requests
 import json
+from .utils import get_gameweek_by_date
 
 FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
-
+FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
 DATA_DIR = "./data"
 
 class DataFetcher(object):
@@ -19,7 +20,7 @@ class DataFetcher(object):
         self.historic_data = {}
         self.current_player_data = None
         self.current_team_data = None
-
+        self.player_gameweek_data = {}
 
     def get_current_data(self):
         """
@@ -37,7 +38,7 @@ class DataFetcher(object):
         return self.current_data
 
 
-    def get_current_player_data(self):
+    def get_player_summary_data(self):
         """
         Use the current_data to build a dictionary, keyed by player_id
         in order to retrieve a player without having to loop through
@@ -66,10 +67,33 @@ class DataFetcher(object):
             self.current_team_data[team['code']] = team
         return self.current_team_data
 
-    def get_historic_data(self,year):
+    def get_gameweek_data_for_player(self,player_id, gameweek=None):
         """
         return cached data if available, otherwise
-        scrape it.
+        fetch it from API.
+        Return a list, as in double-gameweeks, a player can play more than
+        one match in a gameweek.
         """
-        if year in self.historic_data.keys():
-            return self.historic_data[year]
+        if not player_id in self.player_gameweek_data.keys():
+            self.player_gameweek_data[player_id] = {}
+            if (not gameweek) or (not gameweek in self.player_gameweek_data[player_id].keys()):
+
+                r = requests.get("{}/{}".format(FPL_DETAIL_URL,player_id))
+                if not r.status_code == 200:
+                    print("Error retrieving data for player {}".format(player_id))
+                    return []
+                player_detail = json.loads(r.content)
+
+                for gw in player_detail['history']:
+                    game = get_gameweek_by_date(gw['kickoff_time'])
+                    if not game in self.player_gameweek_data[player_id].keys():
+                        self.player_gameweek_data[player_id][game] = []
+                    self.player_gameweek_data[player_id][game].append(gw)
+        if gameweek:
+            if not gameweek in self.player_gameweek_data[player_id].keys():
+                print("Data not available for player {} week {}".format(
+                    player_id, gameweek))
+                return []
+            return self.player_gameweek_data[player_id][gameweek]
+        else:
+            return self.player_gameweek_data[player_id]

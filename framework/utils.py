@@ -3,7 +3,10 @@ Useful commands to query the db
 """
 
 from operator import itemgetter
+from datetime import datetime
+import dateparser
 
+from .mappings import alternative_team_names
 from .schema import Base, Player, Match, Fixture, PlayerScore, PlayerPrediction, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_
@@ -12,6 +15,51 @@ Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
 
+
+def get_next_gameweek():
+    """
+    Use the current time to figure out which gameweek we're in
+    """
+    timenow = datetime.now()
+    fixtures = session.query(Fixture).all()
+    earliest_future_gameweek = 38
+    for fixture in fixtures:
+        if dateparser.parse(fixture.date) > timenow and \
+           fixture.gameweek < earliest_future_gameweek:
+            earliest_future_gameweek = fixture.gameweek
+    ## now make sure we aren't in the middle of a gameweek
+    for fixture in fixtures:
+        if dateparser.parse(fixture.date) < timenow and \
+           fixture.gameweek == earliest_future_gameweek:
+            earliest_future_gameweek += 1
+
+    return earliest_future_gameweek
+
+
+def get_gameweek_by_date(date):
+    """
+    Use the dates of the fixtures to find the gameweek.
+    """
+    # convert date to a datetime object if it isn't already one.
+    if not isinstance(date, datetime):
+        date = dateparser.parse(date)
+    fixtures = session.query(Fixture).all()
+    for fixture in fixtures:
+        fixture_date = dateparser.parse(fixture.date)
+        if fixture_date.date() == date.date():
+            return fixture.gameweek
+    return None
+
+
+def get_team_name(team_id):
+    """
+    return 3-letter team name given a numerical id
+    """
+    for k, v in alternative_team_names.items():
+        for vv in v:
+            if str(team_id) == vv:
+                return k
+    return None
 
 def get_player_name(player_id):
     """

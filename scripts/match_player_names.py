@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # get the team names as used in FPL
     df = DataFetcher()
     playerdict = {}
-    playerdata = df.get_current_player_data()
+    playerdata = df.get_player_summary_data()
     for k in playerdata.keys():
         player_name = "{} {}".format(playerdata[k]['first_name'],
                                      playerdata[k]['second_name'])
