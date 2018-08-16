@@ -22,16 +22,19 @@ start_year_short = start_year[-2:]
 end_year_short = str(int(start_year_short)+1)
 end_year = "20" + end_year_short
 
-infilename = "data/results{}{}.txt".format(start_year_short,end_year_short)
-outfilename = "data/results_{}{}.csv".format(start_year_short,end_year_short)
+infilename = "../data/results{}{}.txt".format(start_year_short,end_year_short)
+outfilename = "../data/results_{}{}.csv".format(start_year_short,end_year_short)
 
 infile = open(infilename)
 outfile = open(outfilename,"w")
-outfile.write("date,home_team,away_team,home_score,away_score\n")
+outfile.write("date,home_team,away_team,home_score,away_score,gameweek\n")
 
 home_team = ""
 away_team = ""
 datestr = ""
+
+gameweek=1
+
 for line in infile.readlines():
     if date_regex.search(line):
         day, month = date_regex.search(line).groups()
@@ -46,11 +49,12 @@ for line in infile.readlines():
         last_line_was_score = False
     elif score_regex.search(line):
         home_score, away_score, away_team = score_regex.search(line).groups()
-        outfile.write("{},{},{},{},{}\n".format(datestr,
-                                                home_team,
-                                                away_team,
-                                                home_score,
-                                                away_score))
+        outfile.write("{},{},{},{},{},{}\n".format(datestr,
+                                                   home_team,
+                                                   away_team,
+                                                   home_score,
+                                                   away_score,
+                                                   gameweek))
     else:
         home_team = line.strip()
 
