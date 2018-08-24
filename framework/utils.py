@@ -7,13 +7,85 @@ from datetime import datetime
 import dateparser
 
 from .mappings import alternative_team_names
-from .schema import Base, Player, Match, Fixture, PlayerScore, PlayerPrediction, engine
+from .data_fetcher import DataFetcher
+from .schema import Base, Player, Match, Fixture, \
+    PlayerScore, PlayerPrediction, Transaction, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_
+
+
 
 Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
+
+df = DataFetcher() # in global scope so it can keep cached data
+
+
+def get_current_team(gameweek=None):
+    """
+    Use the transactions table to find the team as of specified gameweek,
+    then add up the values at that gameweek using the FPL API data.
+    If gameweek is None, get team for next gameweek
+    """
+    current_players = []
+    transactions = session.query(Transaction).order_by(Transaction.gameweek).all()
+    for t in transactions:
+        if gameweek and t.gameweek > gameweek:
+            break
+        if t.bought_or_sold == 1:
+            current_players.append(t.player_id)
+        else:
+            current_players.remove(t.player_id)
+    assert(len(current_players)==15)
+    return current_players
+
+def get_team_value(gameweek=None):
+    """
+    Use the transactions table to find the team as of specified gameweek,
+    then add up the values at that gameweek using the FPL API data.
+    If gameweek is None, get team for next gameweek
+    """
+    total_value = 0
+    current_players = get_current_team(gameweek)
+    for pid in current_players:
+        if gameweek:
+            total_value += df.get_gameweek_data_for_player(pid,gameweek)[0]["value"]
+        else:
+            total_value += df.get_player_summary_data()[pid]['now_cost']
+    return total_value
+
+
+def get_sell_price_for_player(player_id, gameweek=None):
+    """
+    find the price we bought the player for, and the price at the specified gameweek,
+    if the price increased in that time, we only get half the profit.
+    if gameweek is None, get price we could sell the player for now.
+    """
+    buy_price = 0
+    transactions = session.query(Transaction).filter_by(player_id=player_id)\
+                                             .order_by(Transaction.gameweek).all()
+    for t in transactions:
+        if gameweek and t.gameweek > gameweek:
+            break
+        if t.bought_or_sold == 1:
+            gw_bought = t.gameweek
+        else:
+            gw_bought = None
+    if not gw_bought:
+        print("Player {} is was not in the team at gameweek {}"\
+              .format(player_id,gameweek))
+
+    price_bought = df.get_gameweek_data_for_player(player_id, gw_bought)[0]["value"]
+    if not gameweek:  ### assume we want the current (i.e. next) gameweek
+        price_now = df.get_player_summary_data()[player_id]['now_cost']
+    else:
+        price_now = df.get_gameweek_data_for_player(player_id, gameweek)[0]["value"]
+    if price_now > price_bought:
+        value = (price_now + price_bought) // 2   # integer arithmetic, as we round down
+    else:
+        value = price_now
+    return value
 
 
 def get_next_gameweek():

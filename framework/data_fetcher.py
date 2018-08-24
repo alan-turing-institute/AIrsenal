@@ -4,7 +4,7 @@ functions to retrieve current FPL data.
 
 import requests
 import json
-from .utils import get_gameweek_by_date
+##from .utils import get_gameweek_by_date
 
 FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
@@ -84,11 +84,11 @@ class DataFetcher(object):
                     return []
                 player_detail = json.loads(r.content)
 
-                for gw in player_detail['history']:
-                    game = get_gameweek_by_date(gw['kickoff_time'])
-                    if not game in self.player_gameweek_data[player_id].keys():
-                        self.player_gameweek_data[player_id][game] = []
-                    self.player_gameweek_data[player_id][game].append(gw)
+                for game in player_detail['history']:
+                    gw = game['round']
+                    if not gw in self.player_gameweek_data[player_id].keys():
+                        self.player_gameweek_data[player_id][gw] = []
+                    self.player_gameweek_data[player_id][gw].append(game)
         if gameweek:
             if not gameweek in self.player_gameweek_data[player_id].keys():
                 print("Data not available for player {} week {}".format(

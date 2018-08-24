@@ -59,6 +59,7 @@ class PlayerScore(Base):
     conceded = Column(Integer, nullable=False)
     minutes = Column(Integer, nullable=False)
 
+
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -66,6 +67,13 @@ class PlayerPrediction(Base):
     fixture_id = Column(Integer, nullable=False)
     predicted_points = Column(Float, nullable=False)
     method = Column(String(100), nullable=False)
+
+class Transaction(Base):
+    __tablename__ = "current_team"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_id = Column(Integer, nullable=False)
+    gameweek = Column(Integer, nullable=False)
+    bought_or_sold = Column(Integer, nullable=False) # +1 for bought, -1 for sold
 
 
 engine = create_engine('sqlite:////tmp/data.db')
