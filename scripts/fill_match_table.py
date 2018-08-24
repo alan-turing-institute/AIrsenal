@@ -22,8 +22,8 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 if __name__ == "__main__":
-#    for season in ["1718","1617","1516"]:
-    for season in ["1819"]:
+    for season in ["1819","1718","1617","1516"]:
+#    for season in ["1819"]:
         input_file = open("../data/results_{}_with_gw.csv".format(season))
         for line in input_file.readlines()[1:]:
             date, home_team, away_team, home_score, away_score, gameweek = \

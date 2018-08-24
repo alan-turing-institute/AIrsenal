@@ -14,6 +14,9 @@ import os
 import re
 from datetime import datetime
 
+sys.path.append("..")
+from framework.utils import get_gameweek_by_date
+
 date_regex = re.compile("day ([\d]+)[a-z]{2}[\s]+([\w]+)")
 score_regex = re.compile("([\d])[\s]+([\d])[\s]+([\w\s]+[\w])[\s]+FT")
 
@@ -23,7 +26,7 @@ end_year_short = str(int(start_year_short)+1)
 end_year = "20" + end_year_short
 
 infilename = "../data/results{}{}.txt".format(start_year_short,end_year_short)
-outfilename = "../data/results_{}{}.csv".format(start_year_short,end_year_short)
+outfilename = "../data/results_{}{}_with_gw.csv".format(start_year_short,end_year_short)
 
 infile = open(infilename)
 outfile = open(outfilename,"w")
@@ -33,7 +36,7 @@ home_team = ""
 away_team = ""
 datestr = ""
 
-gameweek=1
+gameweek = 0
 
 for line in infile.readlines():
     if date_regex.search(line):
@@ -46,6 +49,8 @@ for line in infile.readlines():
                                  "%d %b %Y")
         datestr = str(date)
         print("Found date {}".format(date))
+        if start_year == "2018":
+            gameweek = get_gameweek_by_date(datestr)
         last_line_was_score = False
     elif score_regex.search(line):
         home_score, away_score, away_team = score_regex.search(line).groups()
