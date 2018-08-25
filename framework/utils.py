@@ -5,6 +5,7 @@ Useful commands to query the db
 from operator import itemgetter
 from datetime import datetime
 import dateparser
+import pandas as pd
 
 from .mappings import alternative_team_names
 from .data_fetcher import DataFetcher
@@ -14,12 +15,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_
 
 
-
 Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
 
-df = DataFetcher() # in global scope so it can keep cached data
+fetcher = DataFetcher() # in global scope so it can keep cached data
 
 
 def get_current_team(gameweek=None):
@@ -50,21 +50,23 @@ def get_team_value(gameweek=None):
     current_players = get_current_team(gameweek)
     for pid in current_players:
         if gameweek:
-            total_value += df.get_gameweek_data_for_player(pid,gameweek)[0]["value"]
+            total_value += fetcher.get_gameweek_data_for_player(pid,gameweek)[0]["value"]
         else:
-            total_value += df.get_player_summary_data()[pid]['now_cost']
+            total_value += fetcher.get_player_summary_data()[pid]['now_cost']
     return total_value
 
 
 def get_sell_price_for_player(player_id, gameweek=None):
     """
-    find the price we bought the player for, and the price at the specified gameweek,
+    find the price we bought the player for,
+    and the price at the specified gameweek,
     if the price increased in that time, we only get half the profit.
     if gameweek is None, get price we could sell the player for now.
     """
     buy_price = 0
-    transactions = session.query(Transaction).filter_by(player_id=player_id)\
-                                             .order_by(Transaction.gameweek).all()
+    transactions = session.query(Transaction)
+    transactions = transactions.filter_by(player_id=player_id)
+    transactions = transactions.order_by(Transaction.gameweek).all()
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
             break
@@ -75,14 +77,18 @@ def get_sell_price_for_player(player_id, gameweek=None):
     if not gw_bought:
         print("Player {} is was not in the team at gameweek {}"\
               .format(player_id,gameweek))
+    pdata_bought = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
+    ## will be a list - can be more than one match in a gw - just use the 1st.
+    price_bought = pdata_bought[0]["value"]
 
-    price_bought = df.get_gameweek_data_for_player(player_id, gw_bought)[0]["value"]
-    if not gameweek:  ### assume we want the current (i.e. next) gameweek
-        price_now = df.get_player_summary_data()[player_id]['now_cost']
+    if not gameweek:  # assume we want the current (i.e. next) gameweek
+        price_now = fetcher.get_player_summary_data()[player_id]['now_cost']
     else:
-        price_now = df.get_gameweek_data_for_player(player_id, gameweek)[0]["value"]
+        pdata_now = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
+        price_now = pdata_now[0]["value"]
+    ## take off our half of the profit - boo!
     if price_now > price_bought:
-        value = (price_now + price_bought) // 2   # integer arithmetic, as we round down
+        value = (price_now + price_bought) // 2   # round down
     else:
         value = price_now
     return value
@@ -290,43 +296,24 @@ def get_predicted_points(position="all",team="all",method="EP"):
     return output_list
 
 
-def get_player_history_table(position="all"):
+
+
+def get_expected_minutes_for_player(player_id, num_match_to_use=3):
     """
-    Query the player_score table.
+    Look back num_match_to_use matches, and take an average
+    of the number of minutes they played.
+    But first, check the current data to see if they are injured.
     """
-    output_file = open("player_history_{}.csv".format(position),"w")
-    output_file.write("player_id,player_name,match_id,goals,assists,minutes,team_goals\n")
-    player_ids = list_players(position)
-    for pid in player_ids:
-        player_name = get_player_name(pid)
-        results = session.query(PlayerScore).filter_by(player_id=pid).all()
-        row_count = 0
-        for row in results:
-            minutes = row.minutes
-#            if minutes == 0:
-#                continue
-            opponent = row.opponent
-            match_id = row.match_id
-            goals = row.goals
-            assists = row.assists
-            # find the match, in order to get team goals
-            match = session.query(Match).filter_by(match_id = row.match_id).first()
-            if match.home_team == row.opponent:
-                team_goals = match.away_score
-            elif match.away_team == row.opponent:
-                team_goals = match.home_score
-            else:
-                print("Unknown opponent!")
-                team_goals = -1
-            output_file.write("{},{},{},{},{},{},{}\n".format(pid,
-                                                             player_name,
-                                                             match_id,
-                                                             goals,
-                                                             assists,
-                                                             minutes,
-                                                             team_goals))
-            row_count += 1
-        if row_count < 38*3:
-            for i in range(row_count,38*3):
-                output_file.write("{},{},0,0,0,0,0\n".format(pid,player_name))
-    output_file.close()
+    pdata = fetcher.get_player_summary_data()[player_id]
+    if pdata['chance_of_playing_next_round'] and \
+       pdata['chance_of_playing_next_round'] < 0.75:
+        return 0
+    ## now get the playerscore rows from the db
+    rows = session.query(PlayerScore)\
+                  .filter_by(player_id=player_id).all()
+    ## for speed, we use the fact that matches from this season
+    ## are uploaded in order, so we can just take the last n
+    ## rows, no need to look up dates and sort.
+    total_mins = sum([r.minutes for r in rows[-num_match_to_use:]])
+    average = total_mins // num_match_to_use
+    return average
