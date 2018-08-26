@@ -7,7 +7,7 @@ from datetime import datetime
 import dateparser
 import pandas as pd
 
-from .mappings import alternative_team_names
+from .mappings import alternative_team_names, alternative_player_names
 from .data_fetcher import DataFetcher
 from .schema import Base, Player, Match, Fixture, \
     PlayerScore, PlayerPrediction, Transaction, engine
@@ -155,10 +155,19 @@ def get_player_id(player_name):
     lookup player id, for machine readability
     """
     p = session.query(Player).filter_by(name=player_name).first()
-    if not p:
-        print("Unknown player_name {}".format(player_name))
-        return None
-    return p.player_id
+    if p:
+        return p.player_id
+    ## not found by name in DB - try alternative names
+    for k,v in alternative_player_names.items():
+        if player_name in v:
+            p = session.query(Player).filter_by(name=k).first()
+            if p:
+                return p.player_id
+            break
+    ## still not found
+    print("Unknown player_name {}".format(player_name))
+    return None
+
 
 
 def get_player_data(player):
