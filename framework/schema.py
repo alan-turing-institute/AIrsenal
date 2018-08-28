@@ -64,12 +64,13 @@ class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_id = Column(Integer, nullable=False)
-    fixture_id = Column(Integer, nullable=False)
+    gameweek = Column(Integer, nullable=False)
     predicted_points = Column(Float, nullable=False)
     method = Column(String(100), nullable=False)
 
+
 class Transaction(Base):
-    __tablename__ = "current_team"
+    __tablename__ = "transaction"
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_id = Column(Integer, nullable=False)
     gameweek = Column(Integer, nullable=False)

@@ -1,7 +1,7 @@
 """
 Useful commands to query the db
 """
-
+import copy
 from operator import itemgetter
 from datetime import datetime
 import dateparser
@@ -202,6 +202,19 @@ def list_players(position="all", team="all", order_by="current_price", verbose=F
             print(player.name, player.team, player.position, player.current_price)
     return player_ids
 
+def get_max_matches_per_player(position="all"):
+    """
+    can be used e.g. in bpl_interface.get_player_history_df
+    to help avoid a ragged dataframe.
+    """
+    players = list_players()
+    max_matches = 0
+    for p in players:
+        num_match = len(session.query(PlayerScore).filter_by(player_id=p).all())
+        if num_match > max_matches:
+            max_matches = num_match
+    return max_matches
+
 
 def get_fixtures_for_player(player, verbose=False):
     """
@@ -267,10 +280,10 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, method="EP", fixture_id=None):
+def get_predicted_points_for_player(player, method="EP", gameweeks_ahead=1):
     """
     Query the player prediction table for a given player.
-    If no fixture_id is specified, return the next fixture.
+    Return a dictionary keyed by gameweek.
     """
     if isinstance(player,str):
         player_record = session.query(Player).filter_by(name=player).first()
@@ -281,14 +294,15 @@ def get_predicted_points_for_player(player, method="EP", fixture_id=None):
     else:
         player_id = player
     pps = session.query(PlayerPrediction).filter_by(player_id=player_id,method=method)
-    if not fixture_id:
-        fixture_id = get_fixtures_for_player(player_id)[0]
-    pps.filter_by(fixture_id=fixture_id)
-    if not pps.first():
-        print("Couldnt find prediction for player {} fixture {} method {}"\
-              .format(player, fixture_id, method))
-        return 0.
-    return pps.first().predicted_points
+    next_gw = get_next_gameweek()
+    predicted_points = {}
+    for gw in range(next_gw, next_gw+gameweeks_ahead):
+        prediction = pps.filter_by(gameweek=gw).first()
+        if not prediction:
+            predicted_points[gw] = 0.
+        else:
+            predicted_points[gw] = prediction.predicted_points
+    return predicted_points
 
 
 def get_predicted_points(position="all",team="all",method="EP"):
@@ -326,3 +340,27 @@ def get_expected_minutes_for_player(player_id, num_match_to_use=3):
     total_mins = sum([r.minutes for r in rows[-num_match_to_use:]])
     average = total_mins // num_match_to_use
     return average
+
+
+def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
+    """
+    Constraint: we want to take no more than a 4-point hit each week.
+    So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
+    the previous week, we can make 3.
+    Generate all possible sequences, for N gameweeks ahead, and return along
+    with the total points hit.
+    """
+    next_gw = get_next_gameweek()
+    strategy_list = []
+    possibilities = list(range(4)) if transfers_last_gw==0 else list(range(3))
+    strategies = [ {next_gw:i} for i in possibilities]
+
+    for gw in range(next_gw+1, next_gw+gw_ahead):
+        new_strategies = []
+        for s in strategies:
+            possibilities = list(range(4)) if s[gw-1]==0 else list(range(3))
+            ss=copy.deepcopy(s)
+            new_strategies.append([ss.update({gw:p}) for p in possibilities])
+            print("new_strategies",new_strategies)
+        strategies = new_strategies
+    return strategies
