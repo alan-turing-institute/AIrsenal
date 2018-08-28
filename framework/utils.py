@@ -349,18 +349,27 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
     the previous week, we can make 3.
     Generate all possible sequences, for N gameweeks ahead, and return along
     with the total points hit.
+    i.e. return value is a list of tuples:
+        [({gw:ntransfer, ...},points_hit), ... ]
     """
     next_gw = get_next_gameweek()
     strategy_list = []
     possibilities = list(range(4)) if transfers_last_gw==0 else list(range(3))
-    strategies = [ {next_gw:i} for i in possibilities]
+    strategies = [ ({next_gw:i},4*(max(0,i-(1+int(transfers_last_gw==0)))))\
+                    for i in possibilities]
 
     for gw in range(next_gw+1, next_gw+gw_ahead):
         new_strategies = []
         for s in strategies:
-            possibilities = list(range(4)) if s[gw-1]==0 else list(range(3))
-            ss=copy.deepcopy(s)
-            new_strategies.append([ss.update({gw:p}) for p in possibilities])
+            possibilities = list(range(4)) if s[0][gw-1]==0 else list(range(3))
+            hit_so_far = s[1]
+            for p in possibilities:
+                new_dict={}
+                for k,v in s[0].items():
+                    new_dict[k]=v
+                new_dict[gw] = p
+                new_hit = hit_so_far + 4*(max(0,p-(1+int(s[0][gw-1]==0))))
+                new_strategies.append((new_dict, new_hit))
             print("new_strategies",new_strategies)
         strategies = new_strategies
     return strategies
