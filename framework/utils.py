@@ -22,7 +22,7 @@ session = DBSession()
 fetcher = DataFetcher() # in global scope so it can keep cached data
 
 
-def get_current_team(gameweek=None):
+def get_current_players(gameweek=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
@@ -280,44 +280,33 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, method="EP", gameweeks_ahead=1):
+def get_predicted_points_for_player(player, method="AIv1"):
     """
     Query the player prediction table for a given player.
-    Return a dictionary keyed by gameweek.
+    Return a dict, keyed by gameweek.
     """
     if isinstance(player,str):
-        player_record = session.query(Player).filter_by(name=player).first()
-        if not player_record:
-            print("Can't find player {}".format(player))
-            return {}
-        player_id = player_record.player_id
+        player_id = get_player_id(player)
     else:
         player_id = player
-    pps = session.query(PlayerPrediction).filter_by(player_id=player_id,method=method)
-    next_gw = get_next_gameweek()
-    predicted_points = {}
-    for gw in range(next_gw, next_gw+gameweeks_ahead):
-        prediction = pps.filter_by(gameweek=gw).first()
-        if not prediction:
-            predicted_points[gw] = 0.
-        else:
-            predicted_points[gw] = prediction.predicted_points
-    return predicted_points
+    pps = session.query(PlayerPrediction).filter_by(player_id=player_id,
+                                                    method=method).all()
+    ppdict = {}
+    for prediction in pps:
+        ppdict[prediction.gameweek] = prediction.predicted_points
+    return ppdict
 
 
-def get_predicted_points(position="all",team="all",method="EP"):
+def get_predicted_points(gameweek, position="all",team="all",method="AIv1"):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
     """
     player_ids = list_players(position, team)
-    output_list = []
-    for player_id in player_ids:
-        predicted_score = get_predicted_points_for_player(player_id)
-        output_list.append((player_id, predicted_score))
+    output_list = [(p,get_predicted_points_for_player(p)[gameweek]) \
+                   for p in player_ids]
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
-
 
 
 
@@ -357,7 +346,6 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
     possibilities = list(range(4)) if transfers_last_gw==0 else list(range(3))
     strategies = [ ({next_gw:i},4*(max(0,i-(1+int(transfers_last_gw==0)))))\
                     for i in possibilities]
-
     for gw in range(next_gw+1, next_gw+gw_ahead):
         new_strategies = []
         for s in strategies:
@@ -370,6 +358,5 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
                 new_dict[gw] = p
                 new_hit = hit_so_far + 4*(max(0,p-(1+int(s[0][gw-1]==0))))
                 new_strategies.append((new_dict, new_hit))
-            print("new_strategies",new_strategies)
         strategies = new_strategies
     return strategies

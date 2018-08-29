@@ -21,10 +21,28 @@ class CandidatePlayer(object):
         self.is_starting = True # by default
         self.is_captain = False # by default
         self.is_vice_captain = False # by default
+        self.predicted_points = {}
+
+    def calc_predicted_points(self, method="AIv1"):
+        """
+        get expected points from the db.
+        Will be a dict of dicts, keyed by method and gameweeek
+        """
+        if not method in self.predicted_points.keys():
+            self.predicted_points[method] = get_predicted_points_for_player(
+                self.player_id,
+                method)
 
 
-    def calc_expected_points(self, method="EP", gameweek=None):
+
+    def get_predicted_points(self, gameweek, method="AIv1"):
         """
-        get expected points for specified gameweeek
+        get points for a specific gameweek
         """
-        self.predicted_points = get_predicted_points_for_player(self.player_id)
+        if not method in self.predicted_points.keys():
+            self.calc_predicted_points(method)
+        if not gameweek in self.predicted_points[method].keys():
+            print("No prediction available for {} week {}"\
+                  .format(self.data.name, gameweek))
+            return 0.
+        return self.predicted_points[method][gameweek]
