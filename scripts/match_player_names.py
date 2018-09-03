@@ -9,6 +9,7 @@ Write out a dict of the format
 """
 import os
 import sys
+
 sys.path.append("..")
 import json
 import re
@@ -16,6 +17,7 @@ import re
 from fuzzywuzzy import fuzz
 
 from framework.data_fetcher import DataFetcher
+
 
 def find_best_match(fpl_players, player):
     """
@@ -25,13 +27,14 @@ def find_best_match(fpl_players, player):
     best_ratio = 0.
     best_match = None
     for p in fpl_players:
-        if fuzz.partial_ratio(p,player) > best_ratio:
-            best_ratio = fuzz.partial_ratio(p,player)
+        if fuzz.partial_ratio(p, player) > best_ratio:
+            best_ratio = fuzz.partial_ratio(p, player)
             best_match = p
- #   print("Best match {}/{}, score {}".format(best_match,
- #                                             player,
- #                                             best_ratio))
+    #   print("Best match {}/{}, score {}".format(best_match,
+    #                                             player,
+    #                                             best_ratio))
     return best_match, best_ratio
+
 
 if __name__ == "__main__":
 
@@ -40,20 +43,21 @@ if __name__ == "__main__":
     playerdict = {}
     playerdata = df.get_player_summary_data()
     for k in playerdata.keys():
-        player_name = "{} {}".format(playerdata[k]['first_name'],
-                                     playerdata[k]['second_name'])
-        playerdict[player_name] = [playerdata[k]['web_name']]
+        player_name = "{} {}".format(
+            playerdata[k]["first_name"], playerdata[k]["second_name"]
+        )
+        playerdict[player_name] = [playerdata[k]["web_name"]]
 
     fpl_players_to_match = list(playerdict.keys())
     # get the player names from the fpl archives json
     missing = set()
     matched = set()
     history_players = set()
-    for season in ["1516","1617"]:
+    for season in ["1516", "1617"]:
         filename = "../data/player_summary_{}.json".format(season)
         player_data = json.load(open(filename))
         for p in player_data:
-            history_players.add(p['name'])
+            history_players.add(p["name"])
 
     for player in history_players:
         if player in fpl_players_to_match:
@@ -62,7 +66,7 @@ if __name__ == "__main__":
         else:
             p, score = find_best_match(fpl_players_to_match, player)
             if score > 90:
-                if "Sessegnon" in player: # false matches
+                if "Sessegnon" in player:  # false matches
                     missing.add(player)
                     continue
                 if "Eder" in player:  # and another one
@@ -81,6 +85,6 @@ if __name__ == "__main__":
     # print missing teams (should be the relegated ones
     print("Players not in this seasons FPL: {}".format(missing))
 
-    outfile = open("../data/alternative_player_names.json","w")
+    outfile = open("../data/alternative_player_names.json", "w")
     outfile.write(json.dumps(playerdict))
     outfile.close()

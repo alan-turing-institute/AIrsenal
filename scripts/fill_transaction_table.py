@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+
 sys.path.append("..")
 
 import json
@@ -21,20 +22,18 @@ def buy_player(player_id, gameweek):
     """
     add buy transactions to the db table
     """
-    t = Transaction(player_id=player_id,
-                    gameweek=gameweek,
-                    bought_or_sold=1)
+    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=1)
     session.add(t)
     pass
+
 
 def sell_player(player_id, gameweek):
     """
     add sell transactions to the db table
     """
-    t = Transaction(player_id=player_id,
-                    gameweek=gameweek,
-                    bought_or_sold=-1)
+    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=-1)
     session.add(t)
+
 
 if __name__ == "__main__":
     ###### initial team
@@ -43,15 +42,15 @@ if __name__ == "__main__":
     ## Son (367) Salah (253) D.Silva (271) Fabregas (123) Moura (370)
     ## King (45) Mousset (44) Firmino (257)
 
-    for pid in [352,24,245,113,115,140,145,367,253,271,123,370,45,44,257]:
+    for pid in [352, 24, 245, 113, 115, 140, 145, 367, 253, 271, 123, 370, 45, 44, 257]:
         buy_player(pid, 1)
 
     ##### gw 2, sold Son, bought Bernardo Silva (276)
-    sell_player(367,2)
-    buy_player(276,2)
+    sell_player(367, 2)
+    buy_player(276, 2)
 
     ##### g2 3, sold Fabregas, bought Pedro (125)
-    sell_player(123,3)
-    buy_player(125,3)
+    sell_player(123, 3)
+    buy_player(125, 3)
 
     session.commit()
