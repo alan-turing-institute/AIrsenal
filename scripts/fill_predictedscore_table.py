@@ -28,7 +28,7 @@ from framework.schema import Player, PlayerPrediction, Fixture, Base, engine
 
 from framework.data_fetcher import DataFetcher
 from framework.utils import get_fixtures_for_player, \
-    get_recent_minutes_for_player
+    get_recent_minutes_for_player, get_player_name
 from framework.bpl_interface import *
 
 DBSession = sessionmaker(bind=engine)
@@ -114,11 +114,11 @@ def get_defending_points(player_id, position,
     return defending_points
 
 
-
-
-
-def get_predicted_points(player_id, model_team,
-                         df_player,fixtures_ahead=1):
+def get_predicted_points(player_id,
+                         model_team,
+                         df_player,
+                         fixtures_ahead=1,
+                         fixures_behind=3):
     """
     Use the team-level model to get the probs of scoring or conceding
     N goals, and player-level model to get the chance of player scoring
@@ -131,22 +131,28 @@ def get_predicted_points(player_id, model_team,
     team = player.team
     position = player.position
     fixtures = get_fixtures_for_player(player_id)[0:fixtures_ahead]
-    expected_points = defaultdict(float) # default value is 0.0
+    expected_points = defaultdict(float)  # default value is 0.0
 
     for fid in fixtures:
         fixture = session.query(Fixture).filter_by(fixture_id=fid).first()
         gameweek = fixture.gameweek
         is_home = (fixture.home_team == team)
         opponent = fixture.away_team if is_home else fixture.home_team
-        print("gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home))
-        recent_minutes = get_recent_minutes_for_player(player_id)
+        print(
+            "gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home)
+        )
+        recent_minutes = get_recent_minutes_for_player(
+            player_id,
+            num_match_to_use=fixures_behind
+        )
 
         # loop over recent minutes and average
         points = sum([
             get_appearance_points(player_id, mins)
             + get_attacking_points(player_id,
                                    position,
-                                   team, opponent,
+                                   team,
+                                   opponent,
                                    is_home,
                                    mins,
                                    model_team,
