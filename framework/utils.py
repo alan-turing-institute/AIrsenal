@@ -309,11 +309,10 @@ def get_predicted_points(gameweek, position="all",team="all",method="AIv1"):
     return output_list
 
 
-
-def get_expected_minutes_for_player(player_id, num_match_to_use=3):
+def get_recent_minutes_for_player(player_id, num_match_to_use=3):
     """
-    Look back num_match_to_use matches, and take an average
-    of the number of minutes they played.
+    Look back num_match_to_use matches, and return an array
+    containing minutes played in each.
     But first, check the current data to see if they are injured.
     """
     pdata = fetcher.get_player_summary_data()[player_id]
@@ -326,9 +325,7 @@ def get_expected_minutes_for_player(player_id, num_match_to_use=3):
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
-    total_mins = sum([r.minutes for r in rows[-num_match_to_use:]])
-    average = total_mins // num_match_to_use
-    return average
+    return [r.minutes for r in rows[-num_match_to_use:]]
 
 
 def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
