@@ -237,6 +237,8 @@ class Team(object):
         """
         player_list = []
         for p in self.players:
+            p.is_captain = False
+            p.is_vice_captain = False
             player_list.append((p,p.predicted_points[method][gameweek]))
 
         player_list.sort(key=itemgetter(1),reverse=True)
