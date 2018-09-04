@@ -72,7 +72,7 @@ def get_attacking_points(
 
     # compute multinomial probabilities given time spent on pitch
     pr_score = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
-    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
+    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_assist"]
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
