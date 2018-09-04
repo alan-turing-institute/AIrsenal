@@ -118,14 +118,14 @@ def get_defending_points(
         team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
         defending_points = points_for_cs[position] * team_cs_prob
     if position == "DEF" or position == "GK":
-        ## lose 1 point per 2 goals conceded if player is on pitch for both
-        ## lets simplify, say that its only the last goal that matters, and
-        ## chance that player was on pitch for that is expected_minutes/90
+        # lose 1 point per 2 goals conceded if player is on pitch for both
+        # lets simplify, say that its only the last goal that matters, and
+        # chance that player was on pitch for that is expected_minutes/90
         for n in range(7):
             defending_points -= (
                 n
                 // 2
-                * expected_minutes
+                * minutes
                 / 90
                 * model_team.concede_n_probability(n, team, opponent, is_home)
             )
