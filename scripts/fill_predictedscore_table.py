@@ -96,7 +96,7 @@ def get_attacking_points(
         probabilities = multinomial.pmf(
             partitions, n=[ngoals]*len(partitions), p=multinom_probs
         )
-        scores = list(map(_get_partition_score, partitions))
+        scores = map(_get_partition_score, partitions)
         exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
         team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
         exp_score_given_goals.append(exp_score_inner * team_goal_prob)
