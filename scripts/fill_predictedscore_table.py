@@ -91,7 +91,7 @@ def get_attacking_points(
 
     # compute the weighted sum of terms like: points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
-    for ngoals in range(0, 11):
+    for ngoals in range(1, 11):
         partitions = _get_partitions(ngoals)
         probabilities = multinomial.pmf(
             partitions, n=[ngoals]*len(partitions), p=multinom_probs
