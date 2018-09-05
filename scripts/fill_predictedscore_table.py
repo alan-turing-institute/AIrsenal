@@ -90,7 +90,7 @@ def get_attacking_points(
                 + points_for_assist * partition[1])
 
     # compute the weighted sum of terms like: points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
-    exp_score_given_goals = []
+    exp_points = 0.0
     for ngoals in range(0, 11):
         partitions = _get_partitions(ngoals)
         probabilities = multinomial.pmf(
@@ -99,9 +99,9 @@ def get_attacking_points(
         scores = map(_get_partition_score, partitions)
         exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
         team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
-        exp_score_given_goals.append(exp_score_inner * team_goal_prob)
+        exp_points += exp_score_inner * team_goal_prob
 
-    return sum(exp_score_given_goals)
+    return exp_points
 
 
 def get_defending_points(
