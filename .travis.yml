@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.6"
+
+install:
+  - pip install --upgrade pip
+  - pip install -U -r requirements.txt
+
+script:
+  - git submodule init
+  - git submodule update
+  - pip install -U -r bpl/src/requirements.txt
+  - cd bpl/src && python setup.py develop test
+  - pytest
