@@ -7,8 +7,8 @@ install:
   - pip install -U -r requirements.txt
 
 script:
-  git submodule init
-  git submodule update
-  pip install -U bpl/src/requirements.txt
-  python bpl/src/setup.py develop test
-  pytest
+  - git submodule init
+  - git submodule update
+  - pip install -U bpl/src/requirements.txt
+  - python bpl/src/setup.py develop test
+  - pytest
