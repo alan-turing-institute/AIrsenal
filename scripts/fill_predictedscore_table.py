@@ -25,6 +25,8 @@ from framework.mappings import (
     positions,
 )
 
+from scipy.stats import multinomial
+
 from sqlalchemy import create_engine, and_, or_
 from sqlalchemy.orm import sessionmaker
 
@@ -66,27 +68,41 @@ def get_attacking_points(
     """
     if position == "GK":
         # don't bother with GKs as they barely ever get points like this
-        return 0
-    ass_points = 0.
-    goal_points = 0.
-    for ngoals in range(1, 10):
+        return 0.0
+
+    # compute multinomial probabilities given time spent on pitch
+    pr_score = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
+    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_assist"]
+    pr_neither = 1.0 - pr_score - pr_assist
+    multinom_probs = (pr_score, pr_assist, pr_neither)
+
+    def _get_partitions(n):
+        # partition n goals into possible combinations of [n_goals, n_assists, n_neither]
+        partitions = []
+        for i in range(0, n + 1):
+            for j in range(0, n - i + 1):
+                partitions.append([i, j, n - i - j])
+        return partitions
+
+    def _get_partition_score(partition):
+        # calculate the points scored for a given partition
+        return (
+            points_for_goal[position] * partition[0] + points_for_assist * partition[1]
+        )
+
+    # compute the weighted sum of terms like: points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
+    exp_points = 0.0
+    for ngoals in range(1, 11):
+        partitions = _get_partitions(ngoals)
+        probabilities = multinomial.pmf(
+            partitions, n=[ngoals] * len(partitions), p=multinom_probs
+        )
+        scores = map(_get_partition_score, partitions)
+        exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
         team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
-        ass_points += (
-            (minutes / 90.0)
-            * points_for_assist
-            * ngoals
-            * team_goal_prob
-            * df_player.loc[player_id]["pr_assist"]
-        )
-        goal_points += (
-            (minutes / 90.0)
-            * points_for_goal[position]
-            * ngoals
-            * team_goal_prob
-            * df_player.loc[player_id]["pr_score"]
-        )
-        pass
-    return ass_points + goal_points
+        exp_points += exp_score_inner * team_goal_prob
+
+    return exp_points
 
 
 def get_defending_points(
@@ -103,14 +119,14 @@ def get_defending_points(
         team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
         defending_points = points_for_cs[position] * team_cs_prob
     if position == "DEF" or position == "GK":
-        ## lose 1 point per 2 goals conceded if player is on pitch for both
-        ## lets simplify, say that its only the last goal that matters, and
-        ## chance that player was on pitch for that is expected_minutes/90
+        # lose 1 point per 2 goals conceded if player is on pitch for both
+        # lets simplify, say that its only the last goal that matters, and
+        # chance that player was on pitch for that is expected_minutes/90
         for n in range(7):
             defending_points -= (
                 n
                 // 2
-                * expected_minutes
+                * minutes
                 / 90
                 * model_team.concede_n_probability(n, team, opponent, is_home)
             )
