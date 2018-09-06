@@ -59,8 +59,17 @@ change teams)
 ```
 PlayerPrediction Table
 ======================
-player_id, fixture_id, predicted_score, method
+player_id, gameweek, predicted_score, method
 ```
 (the method column allows us to have more than one predicted score per
-player per fixture,
-and add more later, without having to add more columns)
+player per gameweek, and add more later, without having to add more columns.
+We now have a gameweek column rather than a fixture_id column - in double gameweeks
+the player can have more than one fixture in a gameweek - the score we show is the 
+sum of both.)
+
+```
+Transaction Table
+=================
+player_id, gameweek, bought_or_sold
+```
+(the bought_or_sold column can have values +1 for buying a player or -1 for selling)
