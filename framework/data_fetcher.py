@@ -5,6 +5,7 @@ and to query football-data.org to retrieve match and fixture data.
 import os
 import requests
 import json
+
 from .mappings import alternative_team_names
 
 FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"

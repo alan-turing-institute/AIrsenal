@@ -7,8 +7,8 @@ Fill the "match" table with historic results
 
 import os
 import sys
-
 sys.path.append("..")
+
 import argparse
 import json
 
@@ -83,4 +83,5 @@ if __name__ == "__main__":
         for gw in range(args.gw_start, args.gw_end):
             results = mf.get_results(gw)
             fill_table_from_list(results, gw)
+
     session.commit()

@@ -8,6 +8,7 @@ import dateparser
 import pandas as pd
 
 from .mappings import alternative_team_names, alternative_player_names
+
 from .data_fetcher import FPLDataFetcher, MatchDataFetcher
 from .schema import (
     Base,
@@ -338,6 +339,7 @@ def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
     list of gameweeks, in which case we will get the sum over all of them
     """
     player_ids = list_players(position, team)
+
     if isinstance(gameweek, int):
         output_list = [
             (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
@@ -347,14 +349,16 @@ def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
             (p, sum(get_predicted_points_for_player(p)[gw] for gw in gameweek))
             for p in player_ids
         ]
+
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
 
 
-def get_expected_minutes_for_player(player_id, num_match_to_use=3):
+def get_recent_minutes_for_player(player_id, num_match_to_use=3):
+
     """
-    Look back num_match_to_use matches, and take an average
-    of the number of minutes they played.
+    Look back num_match_to_use matches, and return an array
+    containing minutes played in each.
     But first, check the current data to see if they are injured.
     """
     pdata = fetcher.get_player_summary_data()[player_id]
@@ -368,9 +372,7 @@ def get_expected_minutes_for_player(player_id, num_match_to_use=3):
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
-    total_mins = sum([r.minutes for r in rows[-num_match_to_use:]])
-    average = total_mins // num_match_to_use
-    return average
+    return [r.minutes for r in rows[-num_match_to_use:]]
 
 
 def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):

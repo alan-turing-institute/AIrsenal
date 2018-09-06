@@ -54,6 +54,7 @@ def get_baseline_prediction(team, gw_ahead, method="AIv1"):
     return total, cum_total_per_gw
 
 
+
 def make_optimimum_substitution(team, method="AIv1", gameweek_range=None):
     """
     If we want to just make one sub, it's not unfeasible to try all
