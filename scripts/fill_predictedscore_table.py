@@ -65,8 +65,9 @@ def get_attacking_points(
     """
     use team-level and player-level models.
     """
-    if position == "GK":
+    if position == "GK" or minutes == 0.0:
         # don't bother with GKs as they barely ever get points like this
+        # if no minutes are played, can't score any points
         return 0.0
 
     # compute multinomial probabilities given time spent on pitch
@@ -110,8 +111,9 @@ def get_defending_points(
     """
     only need the team-level model
     """
-    if position == "FWD":
+    if position == "FWD" or minutes == 0.0:
         # forwards don't get defending points
+        # if no minutes are played, can't get any points
         return 0.0
     defending_points = 0
     if minutes > 60:
