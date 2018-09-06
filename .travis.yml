@@ -10,5 +10,5 @@ script:
   - git submodule init
   - git submodule update
   - pip install -U -r bpl/src/requirements.txt
-  - python bpl/src/setup.py develop test
+  - cd bpl/src && python setup.py develop test
   - pytest
