@@ -18,13 +18,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from framework.schema import Player, Base, engine
-from framework.data_fetcher import DataFetcher
+from framework.data_fetcher import FPLDataFetcher
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 if __name__ == "__main__":
-    df = DataFetcher()
+    df = FPLDataFetcher()
     pd = df.get_player_summary_data()
 
     for k, v in pd.items():

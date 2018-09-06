@@ -31,7 +31,7 @@ from sqlalchemy.orm import sessionmaker
 
 from framework.schema import Player, PlayerPrediction, Fixture, Base, engine
 
-from framework.data_fetcher import DataFetcher
+from framework.data_fetcher import FPLDataFetcher
 from framework.utils import (
     get_fixtures_for_player,
     get_recent_minutes_for_player,

@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from framework.schema import Transaction, Base, engine
-from framework.data_fetcher import DataFetcher
+from framework.data_fetcher import FPLDataFetcher
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

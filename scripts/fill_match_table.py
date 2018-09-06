@@ -18,6 +18,7 @@ from sqlalchemy.orm import sessionmaker
 from framework.mappings import alternative_team_names, positions
 from framework.schema import Match, Base, engine
 from framework.data_fetcher import MatchDataFetcher
+from framework.utils import get_next_gameweek
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -63,10 +64,10 @@ if __name__ == "__main__":
     parser.add_argument("--input_type", help="csv or api", default="csv")
     parser.add_argument("--input_file", help="input csv filename")
     parser.add_argument(
-        "--gw_start", help="if using api, which gameweeks", type=int, default=0
+        "--gw_start", help="if using api, which gameweeks", type=int, default=1
     )
     parser.add_argument(
-        "--gw_end", help="if using api, which gameweeks", type=int, default=39
+        "--gw_end", help="if using api, which gameweeks", type=int
     )
     args = parser.parse_args()
     if args.input_type == "csv":
@@ -74,13 +75,17 @@ if __name__ == "__main__":
             infile = open(input_file)
             fill_table_from_csv(infile)
         else:
-            for season in ["1819", "1718", "1617", "1516"]:
+            for season in ["1718", "1617", "1516"]:
                 infile = open("../data/results_{}_with_gw.csv".format(season))
                 fill_table_from_csv(infile, season)
     else:
         ## use the API
         mf = MatchDataFetcher()
-        for gw in range(args.gw_start, args.gw_end):
+        if not args.gw_end:
+            gw_end = get_next_gameweek()
+        else:
+            gw_end = args.gw_end
+        for gw in range(args.gw_start, gw_end):
             results = mf.get_results(gw)
             fill_table_from_list(results, gw)
 
