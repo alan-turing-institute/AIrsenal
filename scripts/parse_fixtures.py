@@ -10,7 +10,7 @@ import re
 import dateparser
 
 infile = open("../data/gameweeks.txt")
-outfile = open("../data/fixtures.csv","w")
+outfile = open("../data/fixtures.csv", "w")
 
 outfile.write("gameweek,date,home_team,away_team\n")
 
@@ -22,10 +22,10 @@ home_team = ""
 away_team = ""
 date_str = ""
 for line in infile.readlines():
-    if re.search("Gameweek ([\d]+)",line):
-        gameweek = re.search("Gameweek ([\d]+)",line).groups()[0]
+    if re.search("Gameweek ([\d]+)", line):
+        gameweek = re.search("Gameweek ([\d]+)", line).groups()[0]
         print("gameweek {}".format(gameweek))
-    elif re.search("day [\d]+ [A-Z]",line):
+    elif re.search("day [\d]+ [A-Z]", line):
         date_str = line.strip()
         date_str += " 2018 "
         print("date {}".format(date_str))
@@ -34,7 +34,7 @@ for line in infile.readlines():
         match_time = date_str + ko_time
         date = dateparser.parse(match_time)
         print("{} vs {} {}".format(home_team, away_team, match_time))
-        outfile.write("{},{},{},{}\n".format(gameweek,str(date),home_team,away_team))
+        outfile.write("{},{},{},{}\n".format(gameweek, str(date), home_team, away_team))
 
 
 outfile.close()

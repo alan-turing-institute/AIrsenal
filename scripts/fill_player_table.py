@@ -7,6 +7,7 @@ Fill the "Player" table with info from this seasons FPL
 
 import os
 import sys
+
 sys.path.append("..")
 
 import json
@@ -26,18 +27,18 @@ if __name__ == "__main__":
     df = DataFetcher()
     pd = df.get_player_summary_data()
 
-    for k,v in pd.items():
+    for k, v in pd.items():
         p = Player()
         p.player_id = k
-        name = "{} {}".format(v['first_name'],v['second_name'])
+        name = "{} {}".format(v["first_name"], v["second_name"])
         print("Adding {}".format(name))
         p.name = name
-        team_number = v['team']
+        team_number = v["team"]
         for tk, tv in alternative_team_names.items():
             if str(team_number) in tv:
                 p.team = tk
                 break
-        p.position = positions[v['element_type']]
-        p.current_price = v['now_cost']
+        p.position = positions[v["element_type"]]
+        p.current_price = v["now_cost"]
         session.add(p)
     session.commit()

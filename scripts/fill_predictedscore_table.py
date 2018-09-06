@@ -86,15 +86,16 @@ def get_attacking_points(
 
     def _get_partition_score(partition):
         # calculate the points scored for a given partition
-        return (points_for_goal[position] * partition[0]
-                + points_for_assist * partition[1])
+        return (
+            points_for_goal[position] * partition[0] + points_for_assist * partition[1]
+        )
 
     # compute the weighted sum of terms like: points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
     for ngoals in range(1, 11):
         partitions = _get_partitions(ngoals)
         probabilities = multinomial.pmf(
-            partitions, n=[ngoals]*len(partitions), p=multinom_probs
+            partitions, n=[ngoals] * len(partitions), p=multinom_probs
         )
         scores = map(_get_partition_score, partitions)
         exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
