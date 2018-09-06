@@ -1,18 +1,28 @@
 """
-functions to retrieve current FPL data.
+Classes to query the FPL API to retrieve current FPL data,
+and to query football-data.org to retrieve match and fixture data.
 """
-
+import os
 import requests
 import json
 
-##from .utils import get_gameweek_by_date
+from .mappings import alternative_team_names
+
+FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
+FOOTBALL_DATA_API_KEY = ""
+if os.path.exists("../data/FD_API_KEY"):
+    FOOTBALL_DATA_API_KEY = open("../data/FD_API_KEY").read().strip()
+elif os.path.exists("data/FD_API_KEY"):
+    FOOTBALL_DATA_API_KEY = open("data/FD_API_KEY").read().strip()
+else:
+    print("Couldn't find data/FD_API_KEY - can't use football-data.org API")
 
 FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
 DATA_DIR = "./data"
 
 
-class DataFetcher(object):
+class FPLDataFetcher(object):
     """
     hold current and historic FPL data in memory,
     or retrieve it if not already cached.
@@ -103,3 +113,84 @@ class DataFetcher(object):
             return self.player_gameweek_data[player_id][gameweek]
         else:
             return self.player_gameweek_data[player_id]
+
+
+class MatchDataFetcher(object):
+    """
+    Access the football-data.org API to get information on match results and fixtures.
+    """
+
+    def __init__(self):
+        self.data = {}
+        pass
+
+    def _get_gameweek_data(self, gameweek):
+        """
+        query the matches endpoint
+        """
+        uri = "{}/matches?matchday={}".format(FOOTBALL_DATA_URL, gameweek)
+        headers = {"X-Auth-Token": FOOTBALL_DATA_API_KEY}
+        r = requests.get(uri, headers=headers)
+        if r.status_code != 200:
+            return r
+        self.data[gameweek] = json.loads(r.content)["matches"]
+
+    def get_results(self, gameweek):
+        """
+        get results for matches that have been played.
+        Return list of tuples:
+        [(date, home_team, away_team, home_score, away_score)]
+        """
+        output_list = []
+        if not gameweek in self.data.keys():
+            self._get_gameweek_data(gameweek)
+        if not self.data[gameweek][0]["status"] == "FINISHED":
+            print("Fixtures not finished - have they been played yet?")
+            return output_list
+
+        for match in self.data[gameweek]:
+            home_team = None
+            away_team = None
+            for k, v in alternative_team_names.items():
+                if match["homeTeam"]["name"] in v:
+                    home_team = k
+                elif match["awayTeam"]["name"] in v:
+                    away_team = k
+                if home_team and away_team:
+                    break
+            output_list.append(
+                (
+                    match["utcDate"],
+                    home_team,
+                    away_team,
+                    match["score"]["fullTime"]["homeTeam"],
+                    match["score"]["fullTime"]["awayTeam"],
+                )
+            )
+        return output_list
+
+    def get_fixtures(self, gameweek):
+        """
+        get upcoming fixtures.
+        Return list of tuples:
+        [(date, home_team, away_team)]
+        """
+        output_list = []
+        if not gameweek in self.data.keys():
+            self._get_gameweek_data(gameweek)
+        if not self.data[gameweek][0]["status"] == "SCHEDULED":
+            print("Fixtures not scheduled - have they already been played?")
+            return output_list
+
+        for fixture in self.data[gameweek]:
+            home_team = None
+            away_team = None
+            for k, v in alternative_team_names:
+                if fixture["homeTeam"] in v:
+                    home_team = k
+                elif fixture["awayTeam"] in v:
+                    away_team = k
+                if home_team and away_team:
+                    break
+            output_list.append((fixture["utcDate"], home_team, away_team))
+        return output_list

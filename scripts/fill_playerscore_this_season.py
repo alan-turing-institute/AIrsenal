@@ -9,6 +9,7 @@ import sys
 
 sys.path.append("..")
 
+import argparse
 import json
 
 from framework.mappings import (
@@ -20,9 +21,13 @@ from framework.mappings import (
 from sqlalchemy import create_engine, and_, or_
 from sqlalchemy.orm import sessionmaker
 
-from framework.data_fetcher import DataFetcher
+from framework.data_fetcher import FPLDataFetcher
 from framework.schema import Player, PlayerScore, Match, Base, engine
-from framework.utils import get_player_name, get_team_name
+from framework.utils import (
+    get_player_name,
+    get_team_name,
+    get_next_gameweek
+)
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -71,9 +76,19 @@ def find_match_id(season, gameweek, played_for, opponent):
 
 if __name__ == "__main__":
 
-    fetcher = DataFetcher()
+    parser = argparse.ArgumentParser(
+        description="fetch this season's data from FPL API"
+    )
+    parser.add_argument("--gw_start", help="first gw", type=int, default=1)
+    parser.add_argument("--gw_end", help="last gw", type=int)
+    args = parser.parse_args()
+    fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     season = "1819"
+    if not args.gw_end:
+        gw_end = get_next_gameweek()
+    else:
+        gw_end = args.gw_end
 
     for player_id in input_data.keys():
         player = get_player_name(player_id)
@@ -90,6 +105,8 @@ if __name__ == "__main__":
         player_data = fetcher.get_gameweek_data_for_player(player_id)
         # now loop through all the matches that player played in
         for gameweek, matches in player_data.items():
+            if not gameweek in range(args.gw_start, gw_end):
+                continue
             for match in matches:
                 # try to find the match in the match table
                 opponent = get_team_name(match["opponent_team"])
@@ -111,4 +128,9 @@ if __name__ == "__main__":
                 ps.conceded = match["goals_conceded"]
                 ps.minutes = match["minutes"]
                 session.add(ps)
+                print(
+                    "  got {} points vs {}in gameweek {}".format(
+                        match["total_points"], opponent, gameweek
+                    )
+                )
     session.commit()

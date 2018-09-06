@@ -1,0 +1,6 @@
+black
+pandas
+sqlalchemy
+requests
+dateparser
+fuzzywuzzy
