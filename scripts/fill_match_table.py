@@ -51,7 +51,7 @@ def fill_table_from_list(input_list, gameweek):
         m.home_score = int(home_score)
         m.away_score = int(away_score)
         m.gameweek = int(gameweek)
-
+        session.add(m)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="fill table of match results")
