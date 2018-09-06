@@ -12,7 +12,6 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 
-
 class Player(Base):
     __tablename__ = "player"
     player_id = Column(Integer, primary_key=True)
@@ -21,15 +20,18 @@ class Player(Base):
     position = Column(String(100), nullable=False)
     current_price = Column(Integer, nullable=True)
     purchased_price = Column(Integer, nullable=True)
+
+
 #    scores = relationship("PlayerScore")
 #    fixtures = relationship("Fixture")
+
 
 class Match(Base):
     __tablename__ = "match"
     match_id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
-    gameweek = Column(Integer, nullable=True) # not there for 14/15 season
+    gameweek = Column(Integer, nullable=True)  # not there for 14/15 season
     home_team = Column(String(100), nullable=False)
     away_team = Column(String(100), nullable=False)
     home_score = Column(Integer, nullable=False)
@@ -74,10 +76,10 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_id = Column(Integer, nullable=False)
     gameweek = Column(Integer, nullable=False)
-    bought_or_sold = Column(Integer, nullable=False) # +1 for bought, -1 for sold
+    bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
 
 
-engine = create_engine('sqlite:////tmp/data.db')
+engine = create_engine("sqlite:////tmp/data.db")
 
 Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the

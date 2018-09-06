@@ -8,7 +8,7 @@ import json
 from .mappings import alternative_team_names
 
 FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
-FOOTBALL_DATA_API_KEY=""
+FOOTBALL_DATA_API_KEY = ""
 if os.path.exists("../data/FD_API_KEY"):
     FOOTBALL_DATA_API_KEY = open("../data/FD_API_KEY").read().strip()
 elif os.path.exists("data/FD_API_KEY"):
@@ -26,6 +26,7 @@ class FPLDataFetcher(object):
     hold current and historic FPL data in memory,
     or retrieve it if not already cached.
     """
+
     def __init__(self):
         self.current_data = None
         self.historic_data = {}
@@ -48,7 +49,6 @@ class FPLDataFetcher(object):
             self.current_data = json.loads(r.content.decode("utf-8"))
         return self.current_data
 
-
     def get_player_summary_data(self):
         """
         Use the current_data to build a dictionary, keyed by player_id
@@ -59,10 +59,9 @@ class FPLDataFetcher(object):
             return self.current_player_data
         self.current_player_data = {}
         all_data = self.get_current_data()
-        for player in all_data['elements']:
-            self.current_player_data[player['id']] = player
+        for player in all_data["elements"]:
+            self.current_player_data[player["id"]] = player
         return self.current_player_data
-
 
     def get_current_team_data(self):
         """
@@ -74,11 +73,11 @@ class FPLDataFetcher(object):
             return self.current_team_data
         self.current_team_data = {}
         all_data = self.get_current_data()
-        for team in all_data['teams']:
-            self.current_team_data[team['code']] = team
+        for team in all_data["teams"]:
+            self.current_team_data[team["code"]] = team
         return self.current_team_data
 
-    def get_gameweek_data_for_player(self,player_id, gameweek=None):
+    def get_gameweek_data_for_player(self, player_id, gameweek=None):
         """
         return cached data if available, otherwise
         fetch it from API.
@@ -87,23 +86,28 @@ class FPLDataFetcher(object):
         """
         if not player_id in self.player_gameweek_data.keys():
             self.player_gameweek_data[player_id] = {}
-            if (not gameweek) or (not gameweek in self.player_gameweek_data[player_id].keys()):
+            if (not gameweek) or (
+                not gameweek in self.player_gameweek_data[player_id].keys()
+            ):
 
-                r = requests.get("{}/{}".format(FPL_DETAIL_URL,player_id))
+                r = requests.get("{}/{}".format(FPL_DETAIL_URL, player_id))
                 if not r.status_code == 200:
                     print("Error retrieving data for player {}".format(player_id))
                     return []
                 player_detail = json.loads(r.content)
 
-                for game in player_detail['history']:
-                    gw = game['round']
+                for game in player_detail["history"]:
+                    gw = game["round"]
                     if not gw in self.player_gameweek_data[player_id].keys():
                         self.player_gameweek_data[player_id][gw] = []
                     self.player_gameweek_data[player_id][gw].append(game)
         if gameweek:
             if not gameweek in self.player_gameweek_data[player_id].keys():
-                print("Data not available for player {} week {}".format(
-                    player_id, gameweek))
+                print(
+                    "Data not available for player {} week {}".format(
+                        player_id, gameweek
+                    )
+                )
                 return []
             return self.player_gameweek_data[player_id][gameweek]
         else:
@@ -114,10 +118,10 @@ class MatchDataFetcher(object):
     """
     Access the football-data.org API to get information on match results and fixtures.
     """
+
     def __init__(self):
         self.data = {}
         pass
-
 
     def _get_gameweek_data(self, gameweek):
         """
@@ -128,8 +132,7 @@ class MatchDataFetcher(object):
         r = requests.get(uri, headers=headers)
         if r.status_code != 200:
             return r
-        self.data[gameweek] = json.loads(r.content)['matches']
-
+        self.data[gameweek] = json.loads(r.content)["matches"]
 
     def get_results(self, gameweek):
         """
@@ -140,29 +143,30 @@ class MatchDataFetcher(object):
         output_list = []
         if not gameweek in self.data.keys():
             self._get_gameweek_data(gameweek)
-        if not self.data[gameweek][0]['status'] == "FINISHED":
+        if not self.data[gameweek][0]["status"] == "FINISHED":
             print("Fixtures not finished - have they been played yet?")
             return output_list
 
         for match in self.data[gameweek]:
             home_team = None
             away_team = None
-            for k,v in alternative_team_names.items():
-                if match['homeTeam']['name'] in v:
+            for k, v in alternative_team_names.items():
+                if match["homeTeam"]["name"] in v:
                     home_team = k
-                elif match['awayTeam']['name'] in v:
+                elif match["awayTeam"]["name"] in v:
                     away_team = k
                 if home_team and away_team:
                     break
-            output_list.append((match['utcDate'],
-                                home_team,
-                                away_team,
-                                match['score']['fullTime']['homeTeam'],
-                                match['score']['fullTime']['awayTeam'])
+            output_list.append(
+                (
+                    match["utcDate"],
+                    home_team,
+                    away_team,
+                    match["score"]["fullTime"]["homeTeam"],
+                    match["score"]["fullTime"]["awayTeam"],
+                )
             )
         return output_list
-
-
 
     def get_fixtures(self, gameweek):
         """
@@ -173,21 +177,19 @@ class MatchDataFetcher(object):
         output_list = []
         if not gameweek in self.data.keys():
             self._get_gameweek_data(gameweek)
-        if not self.data[gameweek][0]['status'] == "SCHEDULED":
+        if not self.data[gameweek][0]["status"] == "SCHEDULED":
             print("Fixtures not scheduled - have they already been played?")
             return output_list
 
         for fixture in self.data[gameweek]:
             home_team = None
             away_team = None
-            for k,v in alternative_team_names:
-                if fixture['homeTeam'] in v:
+            for k, v in alternative_team_names:
+                if fixture["homeTeam"] in v:
                     home_team = k
-                elif fixture['awayTeam'] in v:
+                elif fixture["awayTeam"] in v:
                     away_team = k
                 if home_team and away_team:
                     break
-            output_list.append((fixture['utcDate'],
-                                home_team,
-                                away_team))
+            output_list.append((fixture["utcDate"], home_team, away_team))
         return output_list

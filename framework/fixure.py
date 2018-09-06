@@ -2,10 +2,12 @@
 Fixture class.
 """
 
+
 class Fixture(object):
     """
     Fixture class
     """
+
     def __init__(self):
         self.season = None
         self.home_team = None

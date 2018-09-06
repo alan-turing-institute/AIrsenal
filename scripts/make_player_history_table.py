@@ -6,6 +6,7 @@ Empirical Bayes model.
 """
 
 import sys
+
 sys.path.append("..")
 from framework.utils import *
 
@@ -14,8 +15,10 @@ def get_player_history_table(position="all"):
     """
     Query the player_score table.
     """
-    output_file = open("player_history_{}.csv".format(position),"w")
-    output_file.write("player_id,player_name,match_id,goals,assists,minutes,team_goals\n")
+    output_file = open("player_history_{}.csv".format(position), "w")
+    output_file.write(
+        "player_id,player_name,match_id,goals,assists,minutes,team_goals\n"
+    )
     player_ids = list_players(position)
     for pid in player_ids:
         player_name = get_player_name(pid)
@@ -28,7 +31,7 @@ def get_player_history_table(position="all"):
             goals = row.goals
             assists = row.assists
             # find the match, in order to get team goals
-            match = session.query(Match).filter_by(match_id = row.match_id).first()
+            match = session.query(Match).filter_by(match_id=row.match_id).first()
             if match.home_team == row.opponent:
                 team_goals = match.away_score
             elif match.away_team == row.opponent:
@@ -36,21 +39,19 @@ def get_player_history_table(position="all"):
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            output_file.write("{},{},{},{},{},{},{}\n".format(pid,
-                                                             player_name,
-                                                             match_id,
-                                                             goals,
-                                                             assists,
-                                                             minutes,
-                                                             team_goals))
+            output_file.write(
+                "{},{},{},{},{},{},{}\n".format(
+                    pid, player_name, match_id, goals, assists, minutes, team_goals
+                )
+            )
             row_count += 1
-        if row_count < 38*3:
-            for i in range(row_count,38*3):
-                output_file.write("{},{},0,0,0,0,0\n".format(pid,player_name))
+        if row_count < 38 * 3:
+            for i in range(row_count, 38 * 3):
+                output_file.write("{},{},0,0,0,0,0\n".format(pid, player_name))
     output_file.close()
 
 
 if __name__ == "__main__":
 
-    for position in ["GK","DEF","MID","FWD"]:
+    for position in ["GK", "DEF", "MID", "FWD"]:
         get_player_history_table(position)

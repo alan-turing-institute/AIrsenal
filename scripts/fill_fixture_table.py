@@ -7,6 +7,7 @@ Fill the "fixture" table with info from this seasons FPL
 
 import os
 import sys
+
 sys.path.append("..")
 
 import json
@@ -25,8 +26,7 @@ if __name__ == "__main__":
 
     input_file = open("../data/fixtures.csv")
     for line in input_file.readlines()[1:]:
-        gameweek, date, home_team, away_team = \
-                        line.strip().split(",")
+        gameweek, date, home_team, away_team = line.strip().split(",")
         print(line.strip())
         f = Fixture()
         f.gameweek = int(gameweek)

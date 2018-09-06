@@ -9,8 +9,16 @@ import pandas as pd
 
 from .mappings import alternative_team_names, alternative_player_names
 from .data_fetcher import FPLDataFetcher, MatchDataFetcher
-from .schema import Base, Player, Match, Fixture, \
-    PlayerScore, PlayerPrediction, Transaction, engine
+from .schema import (
+    Base,
+    Player,
+    Match,
+    Fixture,
+    PlayerScore,
+    PlayerPrediction,
+    Transaction,
+    engine,
+)
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, or_
 
@@ -19,7 +27,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
 
-fetcher = FPLDataFetcher() # in global scope so it can keep cached data
+fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
 def get_current_players(gameweek=None):
@@ -37,8 +45,9 @@ def get_current_players(gameweek=None):
             current_players.append(t.player_id)
         else:
             current_players.remove(t.player_id)
-    assert(len(current_players)==15)
+    assert len(current_players) == 15
     return current_players
+
 
 def get_team_value(gameweek=None):
     """
@@ -50,9 +59,11 @@ def get_team_value(gameweek=None):
     current_players = get_current_team(gameweek)
     for pid in current_players:
         if gameweek:
-            total_value += fetcher.get_gameweek_data_for_player(pid,gameweek)[0]["value"]
+            total_value += fetcher.get_gameweek_data_for_player(pid, gameweek)[0][
+                "value"
+            ]
         else:
-            total_value += fetcher.get_player_summary_data()[pid]['now_cost']
+            total_value += fetcher.get_player_summary_data()[pid]["now_cost"]
     return total_value
 
 
@@ -75,20 +86,23 @@ def get_sell_price_for_player(player_id, gameweek=None):
         else:
             gw_bought = None
     if not gw_bought:
-        print("Player {} is was not in the team at gameweek {}"\
-              .format(player_id,gameweek))
+        print(
+            "Player {} is was not in the team at gameweek {}".format(
+                player_id, gameweek
+            )
+        )
     pdata_bought = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
     ## will be a list - can be more than one match in a gw - just use the 1st.
     price_bought = pdata_bought[0]["value"]
 
     if not gameweek:  # assume we want the current (i.e. next) gameweek
-        price_now = fetcher.get_player_summary_data()[player_id]['now_cost']
+        price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
     else:
         pdata_now = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
         price_now = pdata_now[0]["value"]
     ## take off our half of the profit - boo!
     if price_now > price_bought:
-        value = (price_now + price_bought) // 2   # round down
+        value = (price_now + price_bought) // 2  # round down
     else:
         value = price_now
     return value
@@ -102,13 +116,17 @@ def get_next_gameweek():
     fixtures = session.query(Fixture).all()
     earliest_future_gameweek = 38
     for fixture in fixtures:
-        if dateparser.parse(fixture.date) > timenow and \
-           fixture.gameweek < earliest_future_gameweek:
+        if (
+            dateparser.parse(fixture.date) > timenow
+            and fixture.gameweek < earliest_future_gameweek
+        ):
             earliest_future_gameweek = fixture.gameweek
     ## now make sure we aren't in the middle of a gameweek
     for fixture in fixtures:
-        if dateparser.parse(fixture.date) < timenow and \
-           fixture.gameweek == earliest_future_gameweek:
+        if (
+            dateparser.parse(fixture.date) < timenow
+            and fixture.gameweek == earliest_future_gameweek
+        ):
             earliest_future_gameweek += 1
 
     return earliest_future_gameweek
@@ -139,6 +157,7 @@ def get_team_name(team_id):
                 return k
     return None
 
+
 def get_player_name(player_id):
     """
     lookup player name, for human readability
@@ -158,7 +177,7 @@ def get_player_id(player_name):
     if p:
         return p.player_id
     ## not found by name in DB - try alternative names
-    for k,v in alternative_player_names.items():
+    for k, v in alternative_player_names.items():
         if player_name in v:
             p = session.query(Player).filter_by(name=k).first()
             if p:
@@ -167,7 +186,6 @@ def get_player_id(player_name):
     ## still not found
     print("Unknown player_name {}".format(player_name))
     return None
-
 
 
 def get_player_data(player):
@@ -202,6 +220,7 @@ def list_players(position="all", team="all", order_by="current_price", verbose=F
             print(player.name, player.team, player.position, player.current_price)
     return player_ids
 
+
 def get_max_matches_per_player(position="all"):
     """
     can be used e.g. in bpl_interface.get_player_history_df
@@ -221,7 +240,7 @@ def get_fixtures_for_player(player, verbose=False):
     search for upcoming fixtures for a player, specified either by id or name.
     """
     player_query = session.query(Player)
-    if isinstance(player,str):
+    if isinstance(player, str):
         player_record = player_query.filter_by(name=player).first()
     else:
         player_record = player_query.filter_by(player_id=player).first()
@@ -229,19 +248,23 @@ def get_fixtures_for_player(player, verbose=False):
         print("Couldn't find {} in database".format(player))
         return []
     team = player_record.team
-    fixtures = session.query(Fixture).filter(or_ (Fixture.home_team==team,
-                                                  Fixture.away_team==team))\
-                                                  .order_by(Fixture.gameweek)\
-                                                  .all()
+    fixtures = (
+        session.query(Fixture)
+        .filter(or_(Fixture.home_team == team, Fixture.away_team == team))
+        .order_by(Fixture.gameweek)
+        .all()
+    )
     fixture_ids = []
     next_gameweek = get_next_gameweek()
     for fixture in fixtures:
         if fixture.gameweek < next_gameweek:
             continue
         if verbose:
-            print("{} vs {} gameweek {}".format(fixture.home_team,
-                                                fixture.away_team,
-                                                fixture.gameweek))
+            print(
+                "{} vs {} gameweek {}".format(
+                    fixture.home_team, fixture.away_team, fixture.gameweek
+                )
+            )
         fixture_ids.append(fixture.fixture_id)
     return fixture_ids
 
@@ -251,7 +274,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     Search the past matches for same fixture in past seasons,
     and how many points the player got.
     """
-    if isinstance(player,str):
+    if isinstance(player, str):
         player_record = session.query(Player).filter_by(name=player).first()
         if not player_record:
             print("Can't find player {}".format(player))
@@ -266,14 +289,21 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     home_team = fixture.home_team
     away_team = fixture.away_team
 
-    previous_matches = session.query(Match).filter_by(home_team=home_team)\
-                                           .filter_by(away_team=away_team)\
-                                           .order_by(Match.season).all()
-    match_ids = [(match.match_id,match.season) for match in previous_matches]
+    previous_matches = (
+        session.query(Match)
+        .filter_by(home_team=home_team)
+        .filter_by(away_team=away_team)
+        .order_by(Match.season)
+        .all()
+    )
+    match_ids = [(match.match_id, match.season) for match in previous_matches]
     previous_points = {}
     for m in match_ids:
-        scores = session.query(PlayerScore).filter_by(player_id=player_id,
-                                                      match_id = m[0]).all()
+        scores = (
+            session.query(PlayerScore)
+            .filter_by(player_id=player_id, match_id=m[0])
+            .all()
+        )
         for s in scores:
             previous_points[m[1]] = s.points
 
@@ -285,19 +315,22 @@ def get_predicted_points_for_player(player, method="AIv1"):
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
     """
-    if isinstance(player,str):
+    if isinstance(player, str):
         player_id = get_player_id(player)
     else:
         player_id = player
-    pps = session.query(PlayerPrediction).filter_by(player_id=player_id,
-                                                    method=method).all()
+    pps = (
+        session.query(PlayerPrediction)
+        .filter_by(player_id=player_id, method=method)
+        .all()
+    )
     ppdict = {}
     for prediction in pps:
         ppdict[prediction.gameweek] = prediction.predicted_points
     return ppdict
 
 
-def get_predicted_points(gameweek, position="all",team="all",method="AIv1"):
+def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -306,14 +339,16 @@ def get_predicted_points(gameweek, position="all",team="all",method="AIv1"):
     """
     player_ids = list_players(position, team)
     if isinstance(gameweek, int):
-        output_list = [(p,get_predicted_points_for_player(p)[gameweek]) \
-                       for p in player_ids]
+        output_list = [
+            (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
+        ]
     else:
-        output_list = [(p,sum(get_predicted_points_for_player(p)[gw] for gw in gameweek)) \
-                       for p in player_ids]
+        output_list = [
+            (p, sum(get_predicted_points_for_player(p)[gw] for gw in gameweek))
+            for p in player_ids
+        ]
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
-
 
 
 def get_expected_minutes_for_player(player_id, num_match_to_use=3):
@@ -323,12 +358,13 @@ def get_expected_minutes_for_player(player_id, num_match_to_use=3):
     But first, check the current data to see if they are injured.
     """
     pdata = fetcher.get_player_summary_data()[player_id]
-    if pdata['chance_of_playing_next_round'] and \
-       pdata['chance_of_playing_next_round'] < 0.75:
+    if (
+        pdata["chance_of_playing_next_round"]
+        and pdata["chance_of_playing_next_round"] < 0.75
+    ):
         return 0
     ## now get the playerscore rows from the db
-    rows = session.query(PlayerScore)\
-                  .filter_by(player_id=player_id).all()
+    rows = session.query(PlayerScore).filter_by(player_id=player_id).all()
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
@@ -349,20 +385,22 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
     """
     next_gw = get_next_gameweek()
     strategy_list = []
-    possibilities = list(range(4)) if transfers_last_gw==0 else list(range(3))
-    strategies = [ ({next_gw:i},4*(max(0,i-(1+int(transfers_last_gw==0)))))\
-                    for i in possibilities]
-    for gw in range(next_gw+1, next_gw+gw_ahead):
+    possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
+    strategies = [
+        ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
+        for i in possibilities
+    ]
+    for gw in range(next_gw + 1, next_gw + gw_ahead):
         new_strategies = []
         for s in strategies:
-            possibilities = list(range(4)) if s[0][gw-1]==0 else list(range(3))
+            possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
             hit_so_far = s[1]
             for p in possibilities:
-                new_dict={}
-                for k,v in s[0].items():
-                    new_dict[k]=v
+                new_dict = {}
+                for k, v in s[0].items():
+                    new_dict[k] = v
                 new_dict[gw] = p
-                new_hit = hit_so_far + 4*(max(0,p-(1+int(s[0][gw-1]==0))))
+                new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
                 new_strategies.append((new_dict, new_hit))
         strategies = new_strategies
     return strategies

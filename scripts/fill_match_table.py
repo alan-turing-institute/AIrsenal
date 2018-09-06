@@ -7,6 +7,7 @@ Fill the "match" table with historic results
 
 import os
 import sys
+
 sys.path.append("..")
 import argparse
 import json
@@ -21,10 +22,12 @@ from framework.data_fetcher import MatchDataFetcher
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
 def fill_table_from_csv(input_file, season):
     for line in input_file.readlines()[1:]:
-        date, home_team, away_team, home_score, away_score, gameweek = \
-                        line.strip().split(",")
+        date, home_team, away_team, home_score, away_score, gameweek = line.strip().split(
+            ","
+        )
         print(line.strip())
         m = Match()
         m.season = season
@@ -38,6 +41,7 @@ def fill_table_from_csv(input_file, season):
             elif away_team in v:
                 m.away_team = k
         session.add(m)
+
 
 def fill_table_from_list(input_list, gameweek):
     for result in input_list:
@@ -53,21 +57,24 @@ def fill_table_from_list(input_list, gameweek):
         m.gameweek = int(gameweek)
         session.add(m)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="fill table of match results")
-    parser.add_argument("--input_type",help="csv or api", default="csv")
-    parser.add_argument("--input_file",help="input csv filename")
-    parser.add_argument("--gw_start",help="if using api, which gameweeks",
-                        type=int, default=0)
-    parser.add_argument("--gw_end",help="if using api, which gameweeks",
-                        type=int, default=39)
+    parser.add_argument("--input_type", help="csv or api", default="csv")
+    parser.add_argument("--input_file", help="input csv filename")
+    parser.add_argument(
+        "--gw_start", help="if using api, which gameweeks", type=int, default=0
+    )
+    parser.add_argument(
+        "--gw_end", help="if using api, which gameweeks", type=int, default=39
+    )
     args = parser.parse_args()
     if args.input_type == "csv":
         if args.input_file:
             infile = open(input_file)
             fill_table_from_csv(infile)
         else:
-            for season in ["1819","1718","1617","1516"]:
+            for season in ["1819", "1718", "1617", "1516"]:
                 infile = open("../data/results_{}_with_gw.csv".format(season))
                 fill_table_from_csv(infile, season)
     else:
@@ -75,5 +82,5 @@ if __name__ == "__main__":
         mf = MatchDataFetcher()
         for gw in range(args.gw_start, args.gw_end):
             results = mf.get_results(gw)
-            fill_table_from_list(results,gw)
+            fill_table_from_list(results, gw)
     session.commit()
