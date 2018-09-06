@@ -20,6 +20,7 @@ FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
 DATA_DIR = "./data"
 
+
 class FPLDataFetcher(object):
     """
     hold current and historic FPL data in memory,
