@@ -4,7 +4,6 @@
 Fill the "player_prediction" table with score predictions
 Usage:
 python fill_predictedscore_table.py --weeks_ahead <nweeks> --method <some_string>
-
 The "method" string is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
@@ -32,7 +31,7 @@ from sqlalchemy.orm import sessionmaker
 
 from framework.schema import Player, PlayerPrediction, Fixture, Base, engine
 
-from framework.data_fetcher import DataFetcher
+from framework.data_fetcher import FPLDataFetcher
 from framework.utils import (
     get_fixtures_for_player,
     get_recent_minutes_for_player,

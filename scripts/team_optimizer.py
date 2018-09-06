@@ -54,6 +54,44 @@ def get_baseline_prediction(team, gw_ahead, method="AIv1"):
     return total, cum_total_per_gw
 
 
+
+def make_optimimum_substitution(team, method="AIv1", gameweek_range=None):
+    """
+    If we want to just make one sub, it's not unfeasible to try all
+    possibilities in turn.
+    We will order the list of potential subs via the sum of expected points
+    over a specified range of gameweeks.
+    """
+    if not gameweek_range:
+        gameweek_range = [get_next_gameweek()]
+    best_score = 0.
+    best_pid_out, best_pid_in = 0, 0
+    ordered_player_lists = {}
+    for pos in ["GK", "DEF", "MID", "FWD"]:
+        ordered_player_lists[pos] = get_predicted_points(
+            gameweek=gameweek_range, position=pos, method=method
+        )
+    for p_out in team.players:
+        new_team = copy.deepcopy(team)
+        position = p_out.position
+        new_team.remove_player(p_out.player_id)
+        for p_in in ordered_player_lists[position]:
+            if p_in[0] == p_out.player_id:
+                continue  # no point in adding the same player back in
+            added_ok = new_team.add_player(p_in[0])
+            if added_ok:
+                break
+        total_points = 0.
+        for gw in gameweek_range:
+            total_points += new_team.get_expected_points(gw, method)
+        if total_points > best_score:
+            best_score = total_points
+            best_pid_out = p_out.player_id
+            best_pid_in = p_in[0]
+            best_team = new_team
+    return best_team, best_pid_out, best_pid_in
+
+
 def make_random_substitutions(team, nsubs=1, method="AIv1", gameweek=None):
     """
     choose a random player to sub out, and then get the player with the best

@@ -8,7 +8,8 @@ import dateparser
 import pandas as pd
 
 from .mappings import alternative_team_names, alternative_player_names
-from .data_fetcher import DataFetcher
+
+from .data_fetcher import FPLDataFetcher, MatchDataFetcher
 from .schema import (
     Base,
     Player,
@@ -27,7 +28,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
 
-fetcher = DataFetcher()  # in global scope so it can keep cached data
+fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
 def get_current_players(gameweek=None):
@@ -334,16 +335,27 @@ def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
+    "gameweek" argument can either be a single integer for one gameweek, or a
+    list of gameweeks, in which case we will get the sum over all of them
     """
     player_ids = list_players(position, team)
-    output_list = [
-        (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
-    ]
+
+    if isinstance(gameweek, int):
+        output_list = [
+            (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
+        ]
+    else:
+        output_list = [
+            (p, sum(get_predicted_points_for_player(p)[gw] for gw in gameweek))
+            for p in player_ids
+        ]
+
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
 
 
 def get_recent_minutes_for_player(player_id, num_match_to_use=3):
+
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
