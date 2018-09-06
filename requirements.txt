@@ -4,3 +4,4 @@ sqlalchemy
 requests
 dateparser
 fuzzywuzzy
+scipy
