@@ -9,6 +9,6 @@ install:
 script:
   - git submodule init
   - git submodule update
-  - pip install -U -r bpl/src/requirements.txt
-  - cd bpl/src && python setup.py develop test
+  - pip install -U -r bpl/requirements.txt
+  - cd bpl && python setup.py develop test
   - pytest
