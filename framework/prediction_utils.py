@@ -44,14 +44,14 @@ points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
 points_for_assist = 3
 
 
-def get_appearance_points(player_id, minutes):
+def get_appearance_points(minutes):
     """
     get 1 point for appearance, 2 for >60 mins
     """
     app_points = 0.
     if minutes > 0:
         app_points = 1
-        if minutes > 60:
+        if minutes >= 60:
             app_points += 1
     return app_points
 
@@ -98,12 +98,11 @@ def get_attacking_points(
         exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
         team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
         exp_points += exp_score_inner * team_goal_prob
-
     return exp_points
 
 
 def get_defending_points(
-    player_id, position, team, opponent, is_home, minutes, model_team
+    position, team, opponent, is_home, minutes, model_team
 ):
     """
     only need the team-level model
@@ -113,7 +112,8 @@ def get_defending_points(
         # if no minutes are played, can't get any points
         return 0.0
     defending_points = 0
-    if minutes > 60:
+    if minutes >= 60:
+        # TODO - what about if the team concedes only after player comes off?
         team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
         defending_points = points_for_cs[position] * team_cs_prob
     if position == "DEF" or position == "GK":
@@ -122,10 +122,8 @@ def get_defending_points(
         # chance that player was on pitch for that is expected_minutes/90
         for n in range(7):
             defending_points -= (
-                n
-                // 2
-                * minutes
-                / 90
+                (n // 2)
+                * (minutes / 90)
                 * model_team.concede_n_probability(n, team, opponent, is_home)
             )
     return defending_points
@@ -160,7 +158,7 @@ def get_predicted_points(
         # loop over recent minutes and average
         points = sum(
             [
-                get_appearance_points(player_id, mins)
+                get_appearance_points(mins)
                 + get_attacking_points(
                     player_id,
                     position,
@@ -172,7 +170,7 @@ def get_predicted_points(
                     df_player,
                 )
                 + get_defending_points(
-                    player_id, position, team, opponent, is_home, mins, model_team
+                    position, team, opponent, is_home, mins, model_team
                 )
                 for mins in recent_minutes
             ]
