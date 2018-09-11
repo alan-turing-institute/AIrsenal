@@ -7,12 +7,48 @@ import sys
 
 sys.path.append("..")
 import random
+from datetime import datetime
 
 from .utils import *
+from .schema import TransferSuggestion
 from .team import Team, TOTAL_PER_POSITION
 from .player import CandidatePlayer
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
+
+
+def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
+    """
+    Constraint: we want to take no more than a 4-point hit each week.
+    So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
+    the previous week, we can make 3.
+    Generate all possible sequences, for N gameweeks ahead, and return along
+    with the total points hit.
+    i.e. return value is a list of tuples:
+        [({gw:ntransfer, ...},points_hit), ... ]
+    """
+    next_gw = get_next_gameweek()
+    strategy_list = []
+    possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
+    strategies = [
+        ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
+        for i in possibilities
+    ]
+    for gw in range(next_gw + 1, next_gw + gw_ahead):
+        new_strategies = []
+        for s in strategies:
+            possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
+            hit_so_far = s[1]
+            for p in possibilities:
+                new_dict = {}
+                for k, v in s[0].items():
+                    new_dict[k] = v
+                new_dict[gw] = p
+                new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
+                new_strategies.append((new_dict, new_hit))
+        strategies = new_strategies
+    return strategies
+
 
 def get_starting_team():
     """
@@ -168,6 +204,26 @@ def apply_strategy(strat, starting_team, method="AIv1", baseline_dict=None):
     return strategy_output
 
 
+def fill_suggestion_table(baseline, best_score, best_strat):
+    """
+    Fill the optimized strategy into the table
+    """
+
+    timestamp = str(datetime.now())
+    points_gain = best_score - baseline
+    for in_or_out in [("players_out",-1),("players_in",1)]:
+        for gameweek, players in best_strat[in_or_out[0]].items():
+            for player in players:
+                ts = TransferSuggestion()
+                ts.player_id = player
+                ts.in_or_out = in_or_out[1]
+                ts.gameweek = gameweek
+                ts.points_gain = points_gain
+                ts.timestamp = timestamp
+                session.add(ts)
+    session.commit()
+
+
 def optimize_transfers(num_weeks_ahead, tag, num_iterations):
     """
     Get the baseline then try many possible transfer strategies.
@@ -189,5 +245,8 @@ def optimize_transfers(num_weeks_ahead, tag, num_iterations):
             if strategy_output["total_score"] > best_score:
                 best_score = strategy_output["total_score"]
                 best_strat = strategy_output
+
+    ## put strategy into the db
+    fill_suggestion_table(baseline, best_score, best_strat)
 
     return baseline, best_score, best_strat
