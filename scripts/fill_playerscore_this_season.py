@@ -74,22 +74,10 @@ def find_match_id(season, gameweek, played_for, opponent):
     return m.first().match_id
 
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description="fetch this season's data from FPL API"
-    )
-    parser.add_argument("--gw_start", help="first gw", type=int, default=1)
-    parser.add_argument("--gw_end", help="last gw", type=int)
-    args = parser.parse_args()
+def fill_playerscore_table(gw_start, gw_end):
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     season = "1819"
-    if not args.gw_end:
-        gw_end = get_next_gameweek()
-    else:
-        gw_end = args.gw_end
-
     for player_id in input_data.keys():
         player = get_player_name(player_id)
         # find the player id in the player table.  If they're not
@@ -105,7 +93,7 @@ if __name__ == "__main__":
         player_data = fetcher.get_gameweek_data_for_player(player_id)
         # now loop through all the matches that player played in
         for gameweek, matches in player_data.items():
-            if not gameweek in range(args.gw_start, gw_end):
+            if not gameweek in range(gw_start, gw_end):
                 continue
             for match in matches:
                 # try to find the match in the match table
@@ -129,8 +117,24 @@ if __name__ == "__main__":
                 ps.minutes = match["minutes"]
                 session.add(ps)
                 print(
-                    "  got {} points vs {}in gameweek {}".format(
+                    "  got {} points vs {} in gameweek {}".format(
                         match["total_points"], opponent, gameweek
                     )
                 )
     session.commit()
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="fetch this season's data from FPL API"
+    )
+    parser.add_argument("--gw_start", help="first gw", type=int, default=1)
+    parser.add_argument("--gw_end", help="last gw", type=int)
+    args = parser.parse_args()
+
+    if not args.gw_end:
+        gw_end = get_next_gameweek()
+    else:
+        gw_end = args.gw_end
+    fill_playerscore_table(args.gw_start, gw_end)

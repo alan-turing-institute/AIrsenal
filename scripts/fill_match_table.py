@@ -42,6 +42,7 @@ def fill_table_from_csv(input_file, season):
             elif away_team in v:
                 m.away_team = k
         session.add(m)
+    session.commit()
 
 
 def fill_table_from_list(input_list, gameweek):
@@ -57,6 +58,14 @@ def fill_table_from_list(input_list, gameweek):
         m.away_score = int(away_score)
         m.gameweek = int(gameweek)
         session.add(m)
+
+
+def fill_from_api(gw_start, gw_end):
+    mf = MatchDataFetcher()
+    for gw in range(gw_start, gw_end):
+        results = mf.get_results(gw)
+        fill_table_from_list(results, gw)
+    session.commit()
 
 
 if __name__ == "__main__":
@@ -80,13 +89,9 @@ if __name__ == "__main__":
                 fill_table_from_csv(infile, season)
     else:
         ## use the API
-        mf = MatchDataFetcher()
+
         if not args.gw_end:
             gw_end = get_next_gameweek()
         else:
             gw_end = args.gw_end
-        for gw in range(args.gw_start, gw_end):
-            results = mf.get_results(gw)
-            fill_table_from_list(results, gw)
-
-    session.commit()
+        fill_from_api(args.gw_start, gw_end)

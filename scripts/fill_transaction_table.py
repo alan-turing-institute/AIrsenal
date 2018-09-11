@@ -25,7 +25,7 @@ def buy_player(player_id, gameweek):
     """
     t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=1)
     session.add(t)
-    pass
+    session.commit()
 
 
 def sell_player(player_id, gameweek):
@@ -34,6 +34,7 @@ def sell_player(player_id, gameweek):
     """
     t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=-1)
     session.add(t)
+    session.commit()
 
 
 if __name__ == "__main__":
@@ -81,5 +82,3 @@ if __name__ == "__main__":
     if 4 in range(args.gw_start, args.gw_end):
         sell_player(271, 4)
         buy_player(164, 4)
-
-    session.commit()
