@@ -79,7 +79,7 @@ def get_baseline_prediction(team, gw_ahead, method="AIv1"):
     return total, cum_total_per_gw
 
 
-def make_optimimum_substitution(team, method="AIv1", gameweek_range=None):
+def make_optimum_substitution(team, method="AIv1", gameweek_range=None):
     """
     If we want to just make one sub, it's not unfeasible to try all
     possibilities in turn.
@@ -113,24 +113,24 @@ def make_optimimum_substitution(team, method="AIv1", gameweek_range=None):
             best_pid_out = p_out.player_id
             best_pid_in = p_in[0]
             best_team = new_team
-    return best_team, best_pid_out, best_pid_in
+    return best_team, [best_pid_out], [best_pid_in]
 
 
-def make_random_substitutions(team, nsubs=1, method="AIv1", gameweek=None):
+def make_random_substitutions(team, nsubs=1, method="AIv1", gw_range=None):
     """
     choose a random player to sub out, and then get the player with the best
     expected score for the next gameweek that we can to fill their place.
     """
     new_team = copy.deepcopy(team)
-    if not gameweek:
-        gameweek = get_next_gameweek()
+    if not gw_range:
+        gw_range = [get_next_gameweek()]
     players_to_remove = []  # this is the index within the team
     removed_players = []  # this is the player_ids
     ## order the players in the team by predicted_points - least-to-most
     player_list = []
     for p in team.players:
         p.calc_predicted_points(method)
-        player_list.append((p.player_id, p.predicted_points[method][gameweek]))
+        player_list.append((p.player_id, p.predicted_points[method][gw_range[0]]))
     player_list.sort(key=itemgetter(1), reverse=False)
     while len(players_to_remove) < nsubs:
         index = int(random.triangular(0, len(player_list), 0))
@@ -147,7 +147,7 @@ def make_random_substitutions(team, nsubs=1, method="AIv1", gameweek=None):
     predicted_points = {}
     for pos in set(positions_needed):
         predicted_points[pos] = get_predicted_points(
-            position=pos, gameweek=gameweek, method=method
+            position=pos, gameweek=gw_range, method=method
         )
     complete_team = False
     added_players = []
@@ -175,6 +175,9 @@ def apply_strategy(strat, starting_team, method="AIv1", baseline_dict=None):
     """
     apply a set of substitutions over a number of gameweeks, and
     total up the score, taking into account points hits.
+    strat is a tuple, with the first element being the
+    dictionary {gw:ntransfers,...} and the second element being
+    the total points hit.
     """
     print("Trying strategy {}".format(strat))
     new_team = copy.deepcopy(starting_team)
@@ -184,13 +187,20 @@ def apply_strategy(strat, starting_team, method="AIv1", baseline_dict=None):
         "players_in": {},
         "players_out": {},
     }
-    for gw in sorted(strat[0].keys()):  # make sure we go through gameweeks in order
+    gameweeks = sorted(strat[0].keys()) # go through gameweeks in order
+    for igw,gw in enumerate(gameweeks):
+        gw_range = gameweeks[igw:] # range of gameweeks to end of window
         if strat[0][gw] == 0:  # no transfers that gameweek
             score = new_team.get_expected_points(gw)
             rp, ap = [], []
-        else:
+        elif strat[0][gw] == 1: # one transfer - choose optimum
+            new_team, rp, ap = make_optimum_substitution(
+                new_team, method, gw_range
+            )
+            score = new_team.get_expected_points(gw)
+        else: # >1 transfer, choose randomly
             new_team, rp, ap = make_random_substitutions(
-                new_team, strat[0][gw], method, gw
+                new_team, strat[0][gw], method, gw_range
             )
             score = new_team.get_expected_points(gw)
         ## if we're ever >5 points below the baseline, bail out!
