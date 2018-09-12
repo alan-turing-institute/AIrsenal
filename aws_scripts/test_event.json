@@ -37,7 +37,7 @@
 			"slots": {
 				"Topic": {
 					"name": "Topic",
-					"value": "best manager",
+					"value": "transfer",
 					"resolutions": {
 						"resolutionsPerAuthority": [
 							{
@@ -48,7 +48,7 @@
 								"values": [
 									{
 										"value": {
-											"name": "best manager",
+											"name": "transfer",
 											"id": "99e7a6474769c519e0be9dfb0e298551"
 										}
 									}
