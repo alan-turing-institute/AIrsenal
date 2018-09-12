@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 
 sys.path.append("..")
@@ -19,66 +20,77 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-def buy_player(player_id, gameweek):
+def add_transaction(player_id, gameweek, in_or_out,
+                    output_csv_filename=None):
     """
     add buy transactions to the db table
     """
-    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=1)
+    t = Transaction(player_id=player_id,
+                    gameweek=gameweek,
+                    bought_or_sold=in_or_out)
     session.add(t)
     session.commit()
+    if output_csv_filename:
+        output_csv(output_csv_filename,player_id, gameweek, in_or_out)
+
+def output_csv(output_file,player_id,gameweek,in_or_out):
+    """
+    write out to a csv file
+    """
+    if not os.path.exists(output_file):
+        outfile = open(output_file,"w")
+        outfile.write("player_id,gameweek,in_or_out\n")
+    else:
+        outfile = open(output_file,"a")
+    outfile.write("{},{},{}\n".format(player_id,gameweek,in_or_out))
+    outfile.close()
 
 
-def sell_player(player_id, gameweek):
+def sanity_check_args(args):
     """
-    add sell transactions to the db table
+    Check we have a consistent set of arguments
     """
-    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=-1)
-    session.add(t)
-    session.commit()
+    if args.input_csv and args.output_csv:
+        print("Can't set both input_csv and output_csv")
+        return False
+    if args.buy and args.sell:
+        print("Can't set buy and sell")
+        return False
+    if args.buy or args.sell:
+        if args.input_csv:
+            print("Can't set input_csv and buy or sell")
+            return False
+        if not args.output_csv:
+            print("Need to set output_csv for buy or sell")
+            return False
+        if not (args.player_id and args.gameweek):
+            print("Need to set player_id and gameweek")
+            return False
+    return True
 
 
 if __name__ == "__main__":
-    ###### initial team
-    ## Vorm (352) Begovic (24)
-    ## Alexander-Arnold (245) Azpilicueta (113) Alonso (115) Kelly (140) Wan-Bissake (145)
-    ## Son (367) Salah (253) D.Silva (271) Fabregas (123) Moura (370)
-    ## King (45) Mousset (44) Firmino (257)
-    parser = argparse.ArgumentParser(description="History of the AIrsenal")
-    parser.add_argument("--gw_start", help="start_gw", type=int, default=0)
-    parser.add_argument("--gw_end", help="end_gw", type=int, default=99)
+
+    parser = argparse.ArgumentParser(description="Players bought and sold")
+    parser.add_argument("--input_csv",help="input CSV file")
+    parser.add_argument("--output_csv",help="output CSV file")
+    parser.add_argument("--player_id",help="player ID",type=int)
+    parser.add_argument("--buy",action='store_true')
+    parser.add_argument("--sell",action='store_true')
+    parser.add_argument("--gameweek",help="next gameweek after transfer",type=int)
     args = parser.parse_args()
-
-    if 1 in range(args.gw_start, args.gw_end):
-        for pid in [
-            352,
-            24,
-            245,
-            113,
-            115,
-            140,
-            145,
-            367,
-            253,
-            271,
-            123,
-            370,
-            45,
-            44,
-            257,
-        ]:
-            buy_player(pid, 1)
-
-    ##### gw 2, sold Son, bought Bernardo Silva (276)
-    if 2 in range(args.gw_start, args.gw_end):
-        sell_player(367, 2)
-        buy_player(276, 2)
-
-    ##### gw 3, sold Fabregas, bought Pedro (125)
-    if 3 in range(args.gw_start, args.gw_end):
-        sell_player(123, 3)
-        buy_player(125, 3)
-
-    ##### gw 4, sold David Silva, bought Walcott (164)
-    if 4 in range(args.gw_start, args.gw_end):
-        sell_player(271, 4)
-        buy_player(164, 4)
+    if not sanity_check_args(args):
+        raise RuntimeError("Inconsistent set of arguments")
+    if args.output_csv:
+        outfile = args.output_csv
+    else:
+        outfile = None
+    if args.input_csv:
+        infile = open(args.input_csv)
+        for line in infile.readlines()[1:]:
+            pid,gw,in_or_out = line.strip().split(",")
+            add_transaction(pid,gw,in_or_out,outfile)
+    if args.buy:
+        add_transaction(args.player_id, args.gameweek,1,outfile)
+    if args.sell:
+        add_transaction(args.player_id, args.gameweek,-1,outfile)
