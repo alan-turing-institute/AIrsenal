@@ -40,6 +40,7 @@ class Team(object):
         self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         self.free_subs = 0
         self.subs_this_week = 0
+        self.verbose = False
 
     def __repr__(self):
         """
@@ -76,7 +77,8 @@ class Team(object):
         player = CandidatePlayer(p)
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
-            print("Already have {} in team".format(player.name))
+            if self.verbose:
+                print("Already have {} in team".format(player.name))
             return False
         if not self.check_num_in_position(player):
             print(
@@ -86,14 +88,16 @@ class Team(object):
             )
             return False
         if not self.check_cost(player):
-            print("Cannot afford player {}".format(player.name))
+            if self.verbose:
+                print("Cannot afford player {}".format(player.name))
             return False
         if not self.check_num_per_team(player):
-            print(
-                "Cannot add {} - too many players from {}".format(
-                    player.name, player.team
+            if self.verbose:
+                print(
+                    "Cannot add {} - too many players from {}".format(
+                        player.name, player.team
+                    )
                 )
-            )
             return False
         self.players.append(player)
         self.num_position[player.position] += 1
@@ -148,7 +152,7 @@ class Team(object):
         can_afford = player.current_price <= self.budget
         return can_afford
 
-    def _calc_expected_points(self, method="AIv1"):
+    def _calc_expected_points(self, method):
         """
         estimate the expected points for the specified gameweek.
         If no gameweek is specified, it will be the next fixture
@@ -181,7 +185,8 @@ class Team(object):
             if score > best_score:
                 best_score = score
                 best_formation = f
-        print("Best formation is {}".format(best_formation))
+        if self.verbose:
+            print("Best formation is {}".format(best_formation))
         self.apply_formation(player_dict, best_formation)
         return best_score
 
@@ -210,7 +215,7 @@ class Team(object):
                     total += player.predicted_points[method][gameweek]
         return total
 
-    def get_expected_points(self, gameweek, method="AIv1"):
+    def get_expected_points(self, gameweek, method):
         """
         expected points for the starting 11.
         """

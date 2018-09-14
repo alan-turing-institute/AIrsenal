@@ -310,7 +310,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, method="AIv1"):
+def get_predicted_points_for_player(player, method):
     """
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
@@ -330,7 +330,7 @@ def get_predicted_points_for_player(player, method="AIv1"):
     return ppdict
 
 
-def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
+def get_predicted_points(gameweek, method, position="all", team="all"):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -341,11 +341,11 @@ def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
 
     if isinstance(gameweek, int):
         output_list = [
-            (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
+            (p, get_predicted_points_for_player(p,method)[gameweek]) for p in player_ids
         ]
     else:
         output_list = [
-            (p, sum(get_predicted_points_for_player(p)[gw] for gw in gameweek))
+            (p, sum(get_predicted_points_for_player(p,method)[gw] for gw in gameweek))
             for p in player_ids
         ]
 
