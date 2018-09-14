@@ -17,18 +17,21 @@ import sys
 sys.path.append("..")
 import argparse
 
-from framework.optimization_utils import optimize_transfers
+from framework.optimization_utils import *
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Try some different transfer strategies")
     parser.add_argument("--weeks_ahead",help="how many weeks ahead",type=int,default=3)
-    parser.add_argument("--tag",help="tag of the prediction method",default="AIv1")
+    parser.add_argument("--tag",help="tag of the prediction method")
     parser.add_argument("--num_iterations",
                         help="how many trials to run",
                         type=int,default=100)
     args = parser.parse_args()
-    tag = args.tag
+    if args.tag:
+        tag = args.tag
+    else:
+        tag = get_latest_prediction_tag()
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
 

@@ -12,4 +12,4 @@ python fill_playerscore_this_season.py
 
 python fill_transaction_table.py
 
-python fill_predictedscore_table.py --method "AIv1"
+python fill_predictedscore_table.py --weeks_ahead 5

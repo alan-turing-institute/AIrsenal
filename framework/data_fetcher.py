@@ -31,6 +31,7 @@ class FPLDataFetcher(object):
     def __init__(self):
         self.current_data = None
         self.historic_data = {}
+        self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
         self.player_gameweek_data = {}
@@ -49,6 +50,23 @@ class FPLDataFetcher(object):
                 return None
             self.current_data = json.loads(r.content.decode("utf-8"))
         return self.current_data
+
+
+    def get_event_data(self):
+        """
+        return a dict of gameweeks - whether they are finished or not, and
+        the transfer deadline.
+        """
+        if self.current_event_data:
+            return self.current_event_data
+        self.current_event_data = {}
+        all_data = self.get_current_data()
+        for event in all_data["events"]:
+            self.current_event_data[event["id"]] = {
+                "deadline" : event["deadline_time"],
+                "is_finished" : event["finished"]
+                }
+        return self.current_event_data
 
     def get_player_summary_data(self):
         """

@@ -5,7 +5,6 @@ import copy
 from operator import itemgetter
 from datetime import datetime
 import dateparser
-import pandas as pd
 
 from .mappings import alternative_team_names, alternative_player_names
 
@@ -311,7 +310,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, method="AIv1"):
+def get_predicted_points_for_player(player, method):
     """
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
@@ -331,7 +330,7 @@ def get_predicted_points_for_player(player, method="AIv1"):
     return ppdict
 
 
-def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
+def get_predicted_points(gameweek, method, position="all", team="all"):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -342,11 +341,11 @@ def get_predicted_points(gameweek, position="all", team="all", method="AIv1"):
 
     if isinstance(gameweek, int):
         output_list = [
-            (p, get_predicted_points_for_player(p)[gameweek]) for p in player_ids
+            (p, get_predicted_points_for_player(p,method)[gameweek]) for p in player_ids
         ]
     else:
         output_list = [
-            (p, sum(get_predicted_points_for_player(p)[gw] for gw in gameweek))
+            (p, sum(get_predicted_points_for_player(p,method)[gw] for gw in gameweek))
             for p in player_ids
         ]
 
@@ -375,34 +374,25 @@ def get_recent_minutes_for_player(player_id, num_match_to_use=3):
     return [r.minutes for r in rows[-num_match_to_use:]]
 
 
-def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
+def get_last_gameweek_in_db():
     """
-    Constraint: we want to take no more than a 4-point hit each week.
-    So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
-    the previous week, we can make 3.
-    Generate all possible sequences, for N gameweeks ahead, and return along
-    with the total points hit.
-    i.e. return value is a list of tuples:
-        [({gw:ntransfer, ...},points_hit), ... ]
+    query the match table to see what was the last gameweek for which
+    we have filled the data.
     """
-    next_gw = get_next_gameweek()
-    strategy_list = []
-    possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
-    strategies = [
-        ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
-        for i in possibilities
-    ]
-    for gw in range(next_gw + 1, next_gw + gw_ahead):
-        new_strategies = []
-        for s in strategies:
-            possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
-            hit_so_far = s[1]
-            for p in possibilities:
-                new_dict = {}
-                for k, v in s[0].items():
-                    new_dict[k] = v
-                new_dict[gw] = p
-                new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
-                new_strategies.append((new_dict, new_hit))
-        strategies = new_strategies
-    return strategies
+    last_match = session.query(Match).filter_by(season="1819")\
+                                     .order_by(Match.gameweek).all()[-1]
+    return last_match.gameweek
+
+
+def get_last_finished_gameweek():
+    """
+    query the API to see what the last gameweek marked as 'finished' is.
+    """
+    event_data = fetcher.get_event_data()
+    last_finished = 0
+    for gw in sorted(event_data.keys()):
+        if event_data[gw]["is_finished"]:
+            last_finished = gw
+        else:
+            return last_finished
+    return last_finished

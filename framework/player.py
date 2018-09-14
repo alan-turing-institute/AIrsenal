@@ -24,7 +24,7 @@ class CandidatePlayer(object):
         self.is_vice_captain = False  # by default
         self.predicted_points = {}
 
-    def calc_predicted_points(self, method="AIv1"):
+    def calc_predicted_points(self, method):
         """
         get expected points from the db.
         Will be a dict of dicts, keyed by method and gameweeek
@@ -34,7 +34,7 @@ class CandidatePlayer(object):
                 self.player_id, method
             )
 
-    def get_predicted_points(self, gameweek, method="AIv1"):
+    def get_predicted_points(self, gameweek, method):
         """
         get points for a specific gameweek
         """

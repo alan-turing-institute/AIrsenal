@@ -2,6 +2,15 @@
 Interface to the SQLite db.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
+## location of sqlite file - default is /tmp/data.db, unless
+## overridden by an env var
+
+db_location = "/tmp/data.db"
+import os
+if "AIrsenalDB" in os.environ.keys():
+    db_location = os.environ["AIrsenalDB"]
+
+
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
@@ -79,7 +88,17 @@ class Transaction(Base):
     bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
 
 
-engine = create_engine("sqlite:////tmp/data.db")
+class TransferSuggestion(Base):
+    __tablename__ = "transfer_suggestion"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_id = Column(Integer, nullable=False)
+    in_or_out = Column(Integer, nullable=False) # +1 for buy, -1 for sell
+    gameweek = Column(Integer, nullable=False)
+    points_gain = Column(Float, nullable=False)
+    timestamp = Column(String(100), nullable=False) # use this to group suggestions
+
+
+engine = create_engine("sqlite:///{}".format(db_location))
 
 Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
