@@ -17,8 +17,31 @@ elif os.path.exists("data/FD_API_KEY"):
 else:
     print("Couldn't find data/FD_API_KEY - can't use football-data.org API")
 
-FPL_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
+## get the team_id for our FPL team
+if "FPL_TEAM_ID" in os.environ.keys():
+    TEAM_ID = os.environ["FPL_TEAM_ID"]
+elif os.path.exists("../data/FPL_TEAM_ID"):
+    TEAM_ID = open("../data/FPL_TEAM_ID").read().strip()
+elif os.path.exists("data/FPL_TEAM_ID"):
+    TEAM_ID = open("data/FPL_TEAM_ID").read().strip()
+else:
+    print("Couldn't find FPL_TEAM_ID - can't get team history")
+
+## get the league_id for our FPL league
+if "FPL_LEAGUE_ID" in os.environ.keys():
+    LEAGUE_ID = os.environ["FPL_LEAGUE_ID"]
+elif os.path.exists("../data/FPL_LEAGUE_ID"):
+    LEAGUE_ID = open("../data/FPL_LEAGUE_ID").read().strip()
+elif os.path.exists("data/FPL_LEAGUE_ID"):
+    LEAGUE_ID = open("data/FPL_LEAGUE_ID").read().strip()
+else:
+    print("Couldn't find FPL_LEAGUE_ID - can't get league history")
+
+
+FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
+FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history".format(TEAM_ID)
+FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(LEAGUE_ID)
 DATA_DIR = "./data"
 
 
@@ -30,26 +53,57 @@ class FPLDataFetcher(object):
 
     def __init__(self):
         self.current_data = None
-        self.historic_data = {}
+        self.historic_summary_data = {}
         self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
         self.player_gameweek_data = {}
+        self.fpl_team_data = None
+        self.fpl_league_data = None
 
-    def get_current_data(self):
+    def get_current_summary_data(self):
         """
         return cached data if present, otherwise retrieve it
         from the API.
         """
-        if self.current_data:
-            return self.current_data
+        if self.current_summary_data:
+            return self.current_summary_data
         else:
-            r = requests.get(FPL_API_URL)
+            r = requests.get(FPL_SUMMARY_API_URL)
             if not r.status_code == 200:
                 print("Unable to access FPL API")
                 return None
-            self.current_data = json.loads(r.content.decode("utf-8"))
-        return self.current_data
+            self.current_summary_data = json.loads(r.content.decode("utf-8"))
+        return self.current_summary_data
+
+    def get_fpl_team_data(self):
+        """
+        Use our team id to get history data from the FPL API.
+        """
+        if self.fpl_team_data:
+            return self.fpl_team_data
+        else:
+            r = requests.get(FPL_HISTORY_URL)
+            if not r.status_code == 200:
+                print("Unable to access FPL team history API")
+                return None
+            self.fpl_team_data = json.loads(r.content.decode("utf-8"))
+        return self.fpl_team_data
+
+
+    def get_fpl_league_data(self):
+        """
+        Use our league id to get history data from the FPL API.
+        """
+        if self.fpl_league_data:
+            return self.fpl_league_data
+        else:
+            r = requests.get(FPL_LEAGUE_URL)
+            if not r.status_code == 200:
+                print("Unable to access FPL league API")
+                return None
+            self.fpl_league_data = json.loads(r.content.decode("utf-8"))
+        return self.fpl_league_data
 
 
     def get_event_data(self):
@@ -60,7 +114,7 @@ class FPLDataFetcher(object):
         if self.current_event_data:
             return self.current_event_data
         self.current_event_data = {}
-        all_data = self.get_current_data()
+        all_data = self.get_current_summary_data()
         for event in all_data["events"]:
             self.current_event_data[event["id"]] = {
                 "deadline" : event["deadline_time"],
@@ -77,7 +131,7 @@ class FPLDataFetcher(object):
         if self.current_player_data:
             return self.current_player_data
         self.current_player_data = {}
-        all_data = self.get_current_data()
+        all_data = self.get_current_summary_data()
         for player in all_data["elements"]:
             self.current_player_data[player["id"]] = player
         return self.current_player_data
@@ -91,10 +145,11 @@ class FPLDataFetcher(object):
         if self.current_team_data:
             return self.current_team_data
         self.current_team_data = {}
-        all_data = self.get_current_data()
+        all_data = self.get_current_summary_data()
         for team in all_data["teams"]:
             self.current_team_data[team["code"]] = team
         return self.current_team_data
+
 
     def get_gameweek_data_for_player(self, player_id, gameweek=None):
         """
@@ -111,7 +166,8 @@ class FPLDataFetcher(object):
 
                 r = requests.get("{}/{}".format(FPL_DETAIL_URL, player_id))
                 if not r.status_code == 200:
-                    print("Error retrieving data for player {}".format(player_id))
+                    print("Error retrieving data for player {}"\
+                          .format(player_id))
                     return []
                 player_detail = json.loads(r.content)
 
