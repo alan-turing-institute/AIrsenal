@@ -9,8 +9,11 @@ import json
 from .mappings import alternative_team_names
 
 FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
-FOOTBALL_DATA_API_KEY = ""
-if os.path.exists("../data/FD_API_KEY"):
+
+
+if "FD_API_KEY" in os.environ.keys():
+    FOOTBALL_DATA_API_KEY = os.environ["FD_API_KEY"]
+elif os.path.exists("../data/FD_API_KEY"):
     FOOTBALL_DATA_API_KEY = open("../data/FD_API_KEY").read().strip()
 elif os.path.exists("data/FD_API_KEY"):
     FOOTBALL_DATA_API_KEY = open("data/FD_API_KEY").read().strip()

@@ -45,11 +45,12 @@ def lambda_handler(event, context):
                 elif topic == "transfer":
                     response_text = get_suggestions_string()
                 elif topic == "score" or topic == "ranking":
-                    if "Gameweek" in event["request"]["intent"]["slots"].keys():
+                    if "Gameweek" in event["request"]["intent"]["slots"].keys() \
+                       and "value" in event["request"]["intent"]["slots"]["Gameweek"].keys():
                         gameweek = event["request"]["intent"]["slots"]["Gameweek"]["value"]
                     else:
                         gameweek = None
-                    response_text = get_score_ranking_string(topic)
+                    response_text = get_score_ranking_string(topic,gameweek)
                 elif topic == "league":
                     response_text = get_league_standings_string()
                 else:
