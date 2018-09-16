@@ -1,0 +1,64 @@
+{
+	"version": "1.0",
+	"session": {
+		"new": true,
+	    "sessionId": "dummy",
+		"application": {
+			"applicationId": "dummy"
+		},
+		"user": {
+			"userId": "dummy"
+		}
+	},
+	"context": {
+		"System": {
+			"application": {
+				"applicationId": "dummy"
+			},
+			"user": {
+				"userId": "dummy"
+			},
+			"device": {
+			    "deviceId": "dummy",
+				"supportedInterfaces": {}
+			},
+			"apiEndpoint": "https://api.eu.amazonalexa.com",
+			"apiAccessToken": "dummy"
+		}
+	},
+	"request": {
+		"type": "IntentRequest",
+	    "requestId": "dummy",
+		"timestamp": "2018-09-09T15:22:44Z",
+		"locale": "en-GB",
+		"intent": {
+			"name": "Question",
+			"confirmationStatus": "NONE",
+			"slots": {
+				"Topic": {
+					"name": "Topic",
+					"value": "score",
+					"resolutions": {
+						"resolutionsPerAuthority": [
+							{
+							    "authority": "dummy",
+								"status": {
+									"code": "ER_SUCCESS_MATCH"
+								},
+								"values": [
+									{
+										"value": {
+											"name": "score",
+											"id": "dummy"
+										}
+									}
+								]
+							}
+						]
+					},
+					"confirmationStatus": "NONE"
+				}
+			}
+		}
+	}
+}
