@@ -17,15 +17,6 @@ from .player import CandidatePlayer
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
-def get_latest_prediction_tag():
-    """
-    query the predicted_score table and get the method
-    field for the last row.
-    """
-    rows = session.query(PlayerPrediction).all()
-    return rows[-1].method
-
-
 def generate_transfer_strategies(gw_ahead, transfers_last_gw=1):
     """
     Constraint: we want to take no more than a 4-point hit each week.

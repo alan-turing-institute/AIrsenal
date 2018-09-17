@@ -441,3 +441,12 @@ def get_last_finished_gameweek():
         else:
             return last_finished
     return last_finished
+
+
+def get_latest_prediction_tag():
+    """
+    query the predicted_score table and get the method
+    field for the last row.
+    """
+    rows = session.query(PlayerPrediction).all()
+    return rows[-1].method
