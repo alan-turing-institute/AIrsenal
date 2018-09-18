@@ -43,7 +43,7 @@ else:
 
 FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
-FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history".format(TEAM_ID)
+FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
 FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(LEAGUE_ID)
 DATA_DIR = "./data"
 
@@ -79,14 +79,17 @@ class FPLDataFetcher(object):
             self.current_summary_data = json.loads(r.content.decode("utf-8"))
         return self.current_summary_data
 
-    def get_fpl_team_data(self):
+    def get_fpl_team_data(self, team_id=None):
         """
         Use our team id to get history data from the FPL API.
         """
-        if self.fpl_team_data:
+        if self.fpl_team_data and not team_id:
             return self.fpl_team_data
         else:
-            r = requests.get(FPL_HISTORY_URL)
+            if not team_id:
+                team_id = TEAM_ID
+            url = FPL_HISTORY_URL.format(team_id)
+            r = requests.get(url)
             if not r.status_code == 200:
                 print("Unable to access FPL team history API")
                 return None
