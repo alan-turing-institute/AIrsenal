@@ -27,14 +27,9 @@ from .utils import (
     get_fixtures_for_player,
     get_recent_minutes_for_player,
     get_player_name,
-    list_players
+    list_players,
 )
-from .bpl_interface import (
-    get_player_model,
-    get_team_model,
-    get_result_df,
-    fit_all_data
-)
+from .bpl_interface import get_player_model, get_team_model, get_result_df, fit_all_data
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -101,9 +96,7 @@ def get_attacking_points(
     return exp_points
 
 
-def get_defending_points(
-    position, team, opponent, is_home, minutes, model_team
-):
+def get_defending_points(position, team, opponent, is_home, minutes, model_team):
     """
     only need the team-level model
     """

@@ -184,9 +184,9 @@ def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
     print("Trying strategy {}".format(strat))
     best_score = 0
     best_strategy_output = {}
-    gameweeks = sorted(strat[0].keys()) # go through gameweeks in order
+    gameweeks = sorted(strat[0].keys())  # go through gameweeks in order
     for i in range(num_iter):
-        print(" --> doing strategy {} iteration {}".format(sid,i))
+        print(" --> doing strategy {} iteration {}".format(sid, i))
         strategy_output = {
             "total_score": -1 * strat[1],  # points hit from this strategy
             "points_per_gw": {},
@@ -195,19 +195,17 @@ def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
         }
         new_team = copy.deepcopy(starting_team)
 
-        for igw,gw in enumerate(gameweeks):
-            gw_range = gameweeks[igw:] # range of gameweeks to end of window
+        for igw, gw in enumerate(gameweeks):
+            gw_range = gameweeks[igw:]  # range of gameweeks to end of window
             if strat[0][gw] == 0:  # no transfers that gameweek
                 rp, ap = [], []
-            elif strat[0][gw] == 1: # one transfer - choose optimum
-                new_team, rp, ap = make_optimum_substitution(
-                    new_team, method, gw_range
-                )
-            else: # >1 transfer, choose randomly
+            elif strat[0][gw] == 1:  # one transfer - choose optimum
+                new_team, rp, ap = make_optimum_substitution(new_team, method, gw_range)
+            else:  # >1 transfer, choose randomly
                 new_team, rp, ap = make_random_substitutions(
                     new_team, method, strat[0][gw], gw_range
                 )
-            score = new_team.get_expected_points(gw,method)
+            score = new_team.get_expected_points(gw, method)
             ## if we're ever >5 points below the baseline, bail out!
             strategy_output["total_score"] += score
             if baseline_dict and baseline_dict[gw] - strategy_output["total_score"] > 5:
@@ -230,7 +228,7 @@ def fill_suggestion_table(baseline_score, best_strat):
     timestamp = str(datetime.now())
     best_score = best_strat["total_score"]
     points_gain = best_score - baseline_score
-    for in_or_out in [("players_out",-1),("players_in",1)]:
+    for in_or_out in [("players_out", -1), ("players_in", 1)]:
         for gameweek, players in best_strat[in_or_out[0]].items():
             for player in players:
                 ts = TransferSuggestion()
@@ -250,7 +248,7 @@ def strategy_involves_2_or_more_transfers_in_gw(strategy):
     (0 or 1 transfer for each gameweek).
     """
     strat_dict = strategy[0]
-    return (2 in strat_dict.values() or 3 in strat_dict.values())
+    return 2 in strat_dict.values() or 3 in strat_dict.values()
 
 
 def make_strategy_id(strategy):
@@ -262,6 +260,7 @@ def make_strategy_id(strategy):
     for v in strategy[0].values():
         strat_id += str(v)
     return strat_id
+
 
 def optimize_transfers(num_weeks_ahead, tag, num_iterations):
     """

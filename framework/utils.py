@@ -153,10 +153,9 @@ def get_overall_points(gameweek=None):
     """
     data = fetcher.get_fpl_team_data()
     if not gameweek:
-        return data['entry']['summary_overall_points']
-    elif isinstance(gameweek,int) and \
-         gameweek <= len(data['history']):
-        return data['history'][gameweek-1]['points']
+        return data["entry"]["summary_overall_points"]
+    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+        return data["history"][gameweek - 1]["points"]
     else:
         print("Unknown gameweek")
         return 0
@@ -168,10 +167,9 @@ def get_overall_ranking(gameweek=None):
     """
     data = fetcher.get_fpl_team_data()
     if not gameweek:
-        return data['entry']['summary_overall_rank']
-    elif isinstance(gameweek,int) and \
-         gameweek <= len(data['history']):
-        return data['history'][gameweek-1]['rank']
+        return data["entry"]["summary_overall_rank"]
+    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+        return data["history"][gameweek - 1]["rank"]
     else:
         print("Unknown gameweek")
         return 0
@@ -182,13 +180,12 @@ def get_league_standings():
     Get stuff about our mini-league
     """
     data = fetcher.get_fpl_league_data()
-    team_name = data['league']['name']
+    team_name = data["league"]["name"]
     standings = []
-    for s in data['standings']['results']:
-        standings.append({'name': s['entry_name'],
-                          'manager': s['player_name'],
-                          'points': s['total']
-                          })
+    for s in data["standings"]["results"]:
+        standings.append(
+            {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}
+        )
     return team_name, standings
 
 
@@ -386,11 +383,12 @@ def get_predicted_points(gameweek, method, position="all", team="all"):
 
     if isinstance(gameweek, int):
         output_list = [
-            (p, get_predicted_points_for_player(p,method)[gameweek]) for p in player_ids
+            (p, get_predicted_points_for_player(p, method)[gameweek])
+            for p in player_ids
         ]
     else:
         output_list = [
-            (p, sum(get_predicted_points_for_player(p,method)[gw] for gw in gameweek))
+            (p, sum(get_predicted_points_for_player(p, method)[gw] for gw in gameweek))
             for p in player_ids
         ]
 
@@ -424,8 +422,9 @@ def get_last_gameweek_in_db():
     query the match table to see what was the last gameweek for which
     we have filled the data.
     """
-    last_match = session.query(Match).filter_by(season="1819")\
-                                     .order_by(Match.gameweek).all()[-1]
+    last_match = (
+        session.query(Match).filter_by(season="1819").order_by(Match.gameweek).all()[-1]
+    )
     return last_match.gameweek
 
 

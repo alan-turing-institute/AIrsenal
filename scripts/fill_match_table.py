@@ -7,6 +7,7 @@ Fill the "match" table with historic results
 
 import os
 import sys
+
 sys.path.append("..")
 
 import argparse
@@ -75,9 +76,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--gw_start", help="if using api, which gameweeks", type=int, default=1
     )
-    parser.add_argument(
-        "--gw_end", help="if using api, which gameweeks", type=int
-    )
+    parser.add_argument("--gw_end", help="if using api, which gameweeks", type=int)
     args = parser.parse_args()
     if args.input_type == "csv":
         if args.input_file:
