@@ -44,6 +44,7 @@ else:
 FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
 FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
 FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
+FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
 FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
     LEAGUE_ID
 )
@@ -62,8 +63,9 @@ class FPLDataFetcher(object):
         self.current_player_data = None
         self.current_team_data = None
         self.player_gameweek_data = {}
-        self.fpl_team_data = None
+        self.fpl_team_history_data = None
         self.fpl_league_data = None
+        self.fpl_team_data = {} # players in squad, by gameweek
 
     def get_current_summary_data(self):
         """
@@ -80,12 +82,36 @@ class FPLDataFetcher(object):
             self.current_summary_data = json.loads(r.content.decode("utf-8"))
         return self.current_summary_data
 
-    def get_fpl_team_data(self, team_id=None):
+
+    def get_fpl_team_data(self, gameweek, team_id=None):
+        """
+        Use team id to get team data from the FPL API.
+        If no team_id is specified, we assume it is 'our' team
+        $TEAM_ID, and cache the results in a dictionary.
+        """
+        if not team_id and gameweek in self.fpl_team_data.keys():
+            return self.fpl_team_data[gameweek]
+        else:
+            if not team_id:
+                team_id = TEAM_ID
+            url = FPL_TEAM_URL.format(team_id,gameweek)
+            r = requests.get(url)
+            if not r.status_code == 200:
+                print("Unable to access FPL team API")
+                return None
+            team_data = json.loads(r.content.decode("utf-8"))
+            if not team_id:
+                self.fpl_team_data[gameweek] = team_data['picks']
+        return team_data['picks']
+
+
+
+    def get_fpl_team_history_data(self, team_id=None):
         """
         Use our team id to get history data from the FPL API.
         """
-        if self.fpl_team_data and not team_id:
-            return self.fpl_team_data
+        if self.fpl_team_history_data and not team_id:
+            return self.fpl_team_history_data
         else:
             if not team_id:
                 team_id = TEAM_ID
@@ -94,8 +120,8 @@ class FPLDataFetcher(object):
             if not r.status_code == 200:
                 print("Unable to access FPL team history API")
                 return None
-            self.fpl_team_data = json.loads(r.content.decode("utf-8"))
-        return self.fpl_team_data
+            self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
+        return self.fpl_team_history_data
 
     def get_fpl_league_data(self):
         """

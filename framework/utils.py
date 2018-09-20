@@ -49,6 +49,15 @@ def get_current_players(gameweek=None):
     return current_players
 
 
+def get_players_for_gameweek(gameweek):
+    """
+    Use FPL API to get the players for a given gameweek.
+    """
+    player_data = fetcher.get_fpl_team_data(gameweek)
+    player_list = [p['element'] for p in player_data]
+    return player_list
+
+
 def get_team_value(gameweek=None):
     """
     Use the transactions table to find the team as of specified gameweek,
@@ -56,7 +65,7 @@ def get_team_value(gameweek=None):
     If gameweek is None, get team for next gameweek
     """
     total_value = 0
-    current_players = get_current_team(gameweek)
+    current_players = get_current_players(gameweek)
     for pid in current_players:
         if gameweek:
             total_value += fetcher.get_gameweek_data_for_player(pid, gameweek)[0][
