@@ -149,6 +149,7 @@ def get_predicted_points(
             player_id, num_match_to_use=fixures_behind
         )
         points = 0.
+        expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
         if not is_injured_or_suspended(player_id, gameweek):
         # now loop over recent minutes and average
