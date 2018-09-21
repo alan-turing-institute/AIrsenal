@@ -112,5 +112,5 @@ def test_empty_team():
     """
     t = Team()
     with pytest.raises(RuntimeError) as errmsg:
-        t.get_expected_points(1)
+        t.get_expected_points(1,"dummy")
     assert str(errmsg.value) == "Team is incomplete"

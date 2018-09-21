@@ -2,7 +2,7 @@
 	"version": "1.0",
 	"session": {
 		"new": true,
-	    "sessionId": "dummy",
+		"sessionId": "dummy",
 		"application": {
 			"applicationId": "dummy"
 		},
@@ -29,7 +29,7 @@
 	"request": {
 		"type": "IntentRequest",
 	    "requestId": "dummy",
-		"timestamp": "2018-09-09T15:22:44Z",
+		"timestamp": "2018-09-16T13:08:47Z",
 		"locale": "en-GB",
 		"intent": {
 			"name": "Question",
@@ -37,7 +37,7 @@
 			"slots": {
 				"Topic": {
 					"name": "Topic",
-					"value": "transfer",
+					"value": "score",
 					"resolutions": {
 						"resolutionsPerAuthority": [
 							{
@@ -48,7 +48,7 @@
 								"values": [
 									{
 										"value": {
-											"name": "transfer",
+											"name": "score",
 											"id": "dummy"
 										}
 									}
@@ -56,6 +56,11 @@
 							}
 						]
 					},
+					"confirmationStatus": "NONE"
+				},
+				"Gameweek": {
+					"name": "Gameweek",
+					"value": "2",
 					"confirmationStatus": "NONE"
 				}
 			}

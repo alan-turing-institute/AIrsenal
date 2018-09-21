@@ -23,11 +23,7 @@ from sqlalchemy.orm import sessionmaker
 
 from framework.data_fetcher import FPLDataFetcher
 from framework.schema import Player, PlayerScore, Match, Base, engine
-from framework.utils import (
-    get_player_name,
-    get_team_name,
-    get_next_gameweek
-)
+from framework.utils import get_player_name, get_team_name, get_next_gameweek
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
