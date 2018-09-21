@@ -40,6 +40,20 @@ def get_result_df():
     return df_past
 
 
+def get_ratings_df():
+    """Create a dataframe containing the fifa team ratings."""
+    df = pd.DataFrame(
+        np.array(
+            [
+                [s.team, s.att, s.mid, s.defn, s.ovr]
+                for s in session.query(FifaTeamRating).all()
+            ]
+        ),
+        columns=["team", "att", "mid", "defn", "ovr"]
+    )
+    return df
+
+
 def get_player_history_df(position="all"):
     """
     Query the player_score table to get goals/assists/minutes, and then
@@ -104,12 +118,12 @@ def get_player_history_df(position="all"):
     return df
 
 
-def get_team_model(df):
+def get_team_model(df, df_X):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    model_team = bpl.BPLModel(df)
+    model_team = bpl.BPLModel(df, X=df_X)
     model_team.fit()
     return model_team
 
