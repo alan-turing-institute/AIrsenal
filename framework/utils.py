@@ -18,6 +18,7 @@ from .schema import (
     PlayerScore,
     PlayerPrediction,
     Transaction,
+    FifaTeamRating,
     engine,
 )
 from sqlalchemy.orm import sessionmaker
