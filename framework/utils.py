@@ -5,6 +5,7 @@ import copy
 from operator import itemgetter
 from datetime import datetime
 import dateparser
+import re
 
 from .mappings import alternative_team_names, alternative_player_names
 
@@ -17,6 +18,7 @@ from .schema import (
     PlayerScore,
     PlayerPrediction,
     Transaction,
+    FifaTeamRating,
     engine,
 )
 from sqlalchemy.orm import sessionmaker
@@ -49,6 +51,15 @@ def get_current_players(gameweek=None):
     return current_players
 
 
+def get_players_for_gameweek(gameweek):
+    """
+    Use FPL API to get the players for a given gameweek.
+    """
+    player_data = fetcher.get_fpl_team_data(gameweek)
+    player_list = [p['element'] for p in player_data]
+    return player_list
+
+
 def get_team_value(gameweek=None):
     """
     Use the transactions table to find the team as of specified gameweek,
@@ -56,7 +67,7 @@ def get_team_value(gameweek=None):
     If gameweek is None, get team for next gameweek
     """
     total_value = 0
-    current_players = get_current_team(gameweek)
+    current_players = get_current_players(gameweek)
     for pid in current_players:
         if gameweek:
             total_value += fetcher.get_gameweek_data_for_player(pid, gameweek)[0][
@@ -145,6 +156,48 @@ def get_gameweek_by_date(date):
         if fixture_date.date() == date.date():
             return fixture.gameweek
     return None
+
+
+def get_overall_points(gameweek=None):
+    """
+    Get our total points
+    """
+    data = fetcher.get_fpl_team_data()
+    if not gameweek:
+        return data["entry"]["summary_overall_points"]
+    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+        return data["history"][gameweek - 1]["points"]
+    else:
+        print("Unknown gameweek")
+        return 0
+
+
+def get_overall_ranking(gameweek=None):
+    """
+    Get our total points
+    """
+    data = fetcher.get_fpl_team_data()
+    if not gameweek:
+        return data["entry"]["summary_overall_rank"]
+    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+        return data["history"][gameweek - 1]["rank"]
+    else:
+        print("Unknown gameweek")
+        return 0
+
+
+def get_league_standings():
+    """
+    Get stuff about our mini-league
+    """
+    data = fetcher.get_fpl_league_data()
+    team_name = data["league"]["name"]
+    standings = []
+    for s in data["standings"]["results"]:
+        standings.append(
+            {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}
+        )
+    return team_name, standings
 
 
 def get_team_name(team_id):
@@ -341,11 +394,12 @@ def get_predicted_points(gameweek, method, position="all", team="all"):
 
     if isinstance(gameweek, int):
         output_list = [
-            (p, get_predicted_points_for_player(p,method)[gameweek]) for p in player_ids
+            (p, get_predicted_points_for_player(p, method)[gameweek])
+            for p in player_ids
         ]
     else:
         output_list = [
-            (p, sum(get_predicted_points_for_player(p,method)[gw] for gw in gameweek))
+            (p, sum(get_predicted_points_for_player(p, method)[gw] for gw in gameweek))
             for p in player_ids
         ]
 
@@ -353,20 +407,29 @@ def get_predicted_points(gameweek, method, position="all", team="all"):
     return output_list
 
 
+def get_return_gameweek_for_player(player_id):
+    """
+    If  a player is injured and there is 'news' about them on FPL,
+    parse this string to get expected return date.
+    """
+    pdata = fetcher.get_player_summary_data()[player_id]
+    rd_rex = '(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})'
+    if 'news' in pdata.keys() and re.search(rd_rex, pdata['news']):
+        return_str = re.search(rd_rex, pdata['news']).groups()[1]+" 2018"
+        return_date = dateparser.parse(return_str)
+        return_gameweek = get_gameweek_by_date(return_date)
+        return return_gameweek
+    return None
+
+
 def get_recent_minutes_for_player(player_id, num_match_to_use=3):
 
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
-    But first, check the current data to see if they are injured.
     """
-    pdata = fetcher.get_player_summary_data()[player_id]
-    if (
-        pdata["chance_of_playing_next_round"]
-        and pdata["chance_of_playing_next_round"] < 0.75
-    ):
-        return 0
-    ## now get the playerscore rows from the db
+
+    ## get the playerscore rows from the db
     rows = session.query(PlayerScore).filter_by(player_id=player_id).all()
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
@@ -379,8 +442,9 @@ def get_last_gameweek_in_db():
     query the match table to see what was the last gameweek for which
     we have filled the data.
     """
-    last_match = session.query(Match).filter_by(season="1819")\
-                                     .order_by(Match.gameweek).all()[-1]
+    last_match = (
+        session.query(Match).filter_by(season="1819").order_by(Match.gameweek).all()[-1]
+    )
     return last_match.gameweek
 
 
@@ -396,3 +460,12 @@ def get_last_finished_gameweek():
         else:
             return last_finished
     return last_finished
+
+
+def get_latest_prediction_tag():
+    """
+    query the predicted_score table and get the method
+    field for the last row.
+    """
+    rows = session.query(PlayerPrediction).all()
+    return rows[-1].method

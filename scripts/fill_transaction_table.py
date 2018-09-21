@@ -20,29 +20,27 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-def add_transaction(player_id, gameweek, in_or_out,
-                    output_csv_filename=None):
+def add_transaction(player_id, gameweek, in_or_out, output_csv_filename=None):
     """
     add buy transactions to the db table
     """
-    t = Transaction(player_id=player_id,
-                    gameweek=gameweek,
-                    bought_or_sold=in_or_out)
+    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=in_or_out)
     session.add(t)
     session.commit()
     if output_csv_filename:
-        output_csv(output_csv_filename,player_id, gameweek, in_or_out)
+        output_csv(output_csv_filename, player_id, gameweek, in_or_out)
 
-def output_csv(output_file,player_id,gameweek,in_or_out):
+
+def output_csv(output_file, player_id, gameweek, in_or_out):
     """
     write out to a csv file
     """
     if not os.path.exists(output_file):
-        outfile = open(output_file,"w")
+        outfile = open(output_file, "w")
         outfile.write("player_id,gameweek,in_or_out\n")
     else:
-        outfile = open(output_file,"a")
-    outfile.write("{},{},{}\n".format(player_id,gameweek,in_or_out))
+        outfile = open(output_file, "a")
+    outfile.write("{},{},{}\n".format(player_id, gameweek, in_or_out))
     outfile.close()
 
 
@@ -72,12 +70,12 @@ def sanity_check_args(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Players bought and sold")
-    parser.add_argument("--input_csv",help="input CSV file")
-    parser.add_argument("--output_csv",help="output CSV file")
-    parser.add_argument("--player_id",help="player ID",type=int)
-    parser.add_argument("--buy",action='store_true')
-    parser.add_argument("--sell",action='store_true')
-    parser.add_argument("--gameweek",help="next gameweek after transfer",type=int)
+    parser.add_argument("--input_csv", help="input CSV file")
+    parser.add_argument("--output_csv", help="output CSV file")
+    parser.add_argument("--player_id", help="player ID", type=int)
+    parser.add_argument("--buy", action="store_true")
+    parser.add_argument("--sell", action="store_true")
+    parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
     args = parser.parse_args()
     if not sanity_check_args(args):
         raise RuntimeError("Inconsistent set of arguments")
@@ -88,9 +86,9 @@ if __name__ == "__main__":
     if args.input_csv:
         infile = open(args.input_csv)
         for line in infile.readlines()[1:]:
-            pid,gw,in_or_out = line.strip().split(",")
-            add_transaction(pid,gw,in_or_out,outfile)
+            pid, gw, in_or_out = line.strip().split(",")
+            add_transaction(pid, gw, in_or_out, outfile)
     if args.buy:
-        add_transaction(args.player_id, args.gameweek,1,outfile)
+        add_transaction(args.player_id, args.gameweek, 1, outfile)
     if args.sell:
-        add_transaction(args.player_id, args.gameweek,-1,outfile)
+        add_transaction(args.player_id, args.gameweek, -1, outfile)

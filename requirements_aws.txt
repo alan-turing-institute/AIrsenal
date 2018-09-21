@@ -1,0 +1,9 @@
+black
+pandas
+sqlalchemy
+requests
+dateparser
+fuzzywuzzy
+scipy
+awscli
+boto3
