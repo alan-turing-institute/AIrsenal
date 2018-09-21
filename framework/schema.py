@@ -7,9 +7,9 @@ Use SQLAlchemy to convert between DB tables and python objects.
 
 db_location = "/tmp/data.db"
 import os
+
 if "AIrsenalDB" in os.environ.keys():
     db_location = os.environ["AIrsenalDB"]
-
 
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
@@ -92,10 +92,10 @@ class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_id = Column(Integer, nullable=False)
-    in_or_out = Column(Integer, nullable=False) # +1 for buy, -1 for sell
+    in_or_out = Column(Integer, nullable=False)  # +1 for buy, -1 for sell
     gameweek = Column(Integer, nullable=False)
     points_gain = Column(Float, nullable=False)
-    timestamp = Column(String(100), nullable=False) # use this to group suggestions
+    timestamp = Column(String(100), nullable=False)  # use this to group suggestions
 
 
 class FifaTeamRating(Base):

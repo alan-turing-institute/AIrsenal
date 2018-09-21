@@ -7,11 +7,9 @@ import sys
 sys.path.append("..")
 
 import bpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pystan
-import seaborn as sns
 
 
 from framework.utils import *
