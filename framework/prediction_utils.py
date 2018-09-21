@@ -27,10 +27,17 @@ from .utils import (
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_player_name,
+    list_players
+)
+from .bpl_interface import (
+    get_player_model,
+    get_team_model,
+    get_result_df,
+    get_ratings_df,
+    fit_all_data
     list_players,
     fetcher,
 )
-from .bpl_interface import get_player_model, get_team_model, get_result_df, fit_all_data
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -203,7 +210,8 @@ def get_fitted_models():
     Retrieve match and player models, and fit player model to the playerscore data.
     """
     df_team = get_result_df()
-    model_team = get_team_model(df_team)
+    df_X = get_ratings_df()
+    model_team = get_team_model(df_team, df_X)
     model_player = get_player_model()
     print("Generating player history dataframe - slow")
     df_player, fits, reals = fit_all_data(model_player)
