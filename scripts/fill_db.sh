@@ -4,6 +4,8 @@ python fill_fixture_table.py
 ## historical matches and scores
 python fill_match_table.py --input_type csv
 python fill_playerscore_table.py
+# fifa team ratings
+python fill_fifa_ratings_table.py
 
 ## this season's results and scores
 

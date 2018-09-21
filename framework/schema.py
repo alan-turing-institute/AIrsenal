@@ -98,6 +98,15 @@ class TransferSuggestion(Base):
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
 
 
+class FifaTeamRating(Base):
+    __tablename__ = "fifa_rating"
+    team = Column(String(100), nullable=False, primary_key=True)
+    att = Column(Integer, nullable=False)
+    defn = Column(Integer, nullable=False)
+    mid = Column(Integer, nullable=False)
+    ovr = Column(Integer, nullable=False)
+
+
 engine = create_engine("sqlite:///{}".format(db_location))
 
 Base.metadata.create_all(engine)
