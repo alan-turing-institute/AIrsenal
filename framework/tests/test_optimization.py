@@ -30,6 +30,7 @@ def test_single_transfer():
     """
     pass
 
+
 def test_double_transfer():
     """
     mock squad with two players predicted low score, see if we get better players

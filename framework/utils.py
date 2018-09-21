@@ -5,6 +5,7 @@ import copy
 from operator import itemgetter
 from datetime import datetime
 import dateparser
+import re
 
 from .mappings import alternative_team_names, alternative_player_names
 
@@ -405,20 +406,29 @@ def get_predicted_points(gameweek, method, position="all", team="all"):
     return output_list
 
 
+def get_return_gameweek_for_player(player_id):
+    """
+    If  a player is injured and there is 'news' about them on FPL,
+    parse this string to get expected return date.
+    """
+    pdata = fetcher.get_player_summary_data()[player_id]
+    rd_rex = '(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})'
+    if 'news' in pdata.keys() and re.search(rd_rex, pdata['news']):
+        return_str = re.search(rd_rex, pdata['news']).groups()[1]+" 2018"
+        return_date = dateparser.parse(return_str)
+        return_gameweek = get_gameweek_by_date(return_date)
+        return return_gameweek
+    return None
+
+
 def get_recent_minutes_for_player(player_id, num_match_to_use=3):
 
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
-    But first, check the current data to see if they are injured.
     """
-    pdata = fetcher.get_player_summary_data()[player_id]
-    if (
-        pdata["chance_of_playing_next_round"]
-        and pdata["chance_of_playing_next_round"] < 0.75
-    ):
-        return 0
-    ## now get the playerscore rows from the db
+
+    ## get the playerscore rows from the db
     rows = session.query(PlayerScore).filter_by(player_id=player_id).all()
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n

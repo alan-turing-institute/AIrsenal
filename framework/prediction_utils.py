@@ -22,12 +22,13 @@ from sqlalchemy.orm import sessionmaker
 
 from .schema import Player, PlayerPrediction, Fixture, Base, engine
 
-from .data_fetcher import FPLDataFetcher
 from .utils import (
     get_fixtures_for_player,
     get_recent_minutes_for_player,
+    get_return_gameweek_for_player,
     get_player_name,
     list_players,
+    fetcher,
 )
 from .bpl_interface import get_player_model, get_team_model, get_result_df, fit_all_data
 
@@ -147,31 +148,53 @@ def get_predicted_points(
         recent_minutes = get_recent_minutes_for_player(
             player_id, num_match_to_use=fixures_behind
         )
+        points = 0.
+        # points for fixture will be zero if suspended or injured
+        if not is_injured_or_suspended(player_id, gameweek):
+        # now loop over recent minutes and average
+            points = sum(
+                [
+                    get_appearance_points(mins)
+                    + get_attacking_points(
+                        player_id,
+                        position,
+                        team,
+                        opponent,
+                        is_home,
+                        mins,
+                        model_team,
+                        df_player,
+                    )
+                    + get_defending_points(
+                        position, team, opponent, is_home, mins, model_team
+                    )
+                    for mins in recent_minutes
+                ]
+            ) / len(recent_minutes)
+            expected_points[gameweek] += points
 
-        # loop over recent minutes and average
-        points = sum(
-            [
-                get_appearance_points(mins)
-                + get_attacking_points(
-                    player_id,
-                    position,
-                    team,
-                    opponent,
-                    is_home,
-                    mins,
-                    model_team,
-                    df_player,
-                )
-                + get_defending_points(
-                    position, team, opponent, is_home, mins, model_team
-                )
-                for mins in recent_minutes
-            ]
-        ) / len(recent_minutes)
-        expected_points[gameweek] += points
         print("Expected points: {:.2f}".format(points))
 
     return expected_points
+
+
+def is_injured_or_suspended(player_id, gameweek):
+    """
+    Query the API for 'chance of playing next round', and if this
+    is <=50%, see if we can find a return date.
+    """
+    ## check if a player is injured or suspended
+    pdata = fetcher.get_player_summary_data()[player_id]
+    if (
+            "chance_of_playing_next_round" in pdata.keys() \
+            and pdata["chance_of_playing_next_round"] is not None
+            and pdata["chance_of_playing_next_round"] <= 0.5
+    ):
+        ## check if we have a return date
+        return_gameweek = get_return_gameweek_for_player(player_id)
+        if return_gameweek is None or return_gameweek > gameweek:
+            return True
+    return False
 
 
 def get_fitted_models():
