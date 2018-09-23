@@ -3,8 +3,20 @@ Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
 import pytest
+from unittest import mock
 
 from ..optimization_utils import *
+
+
+def predicted_point_mock_generator(point_dict):
+    """
+    return a function that will mock the get_predicted_points function
+    """
+
+    def mock_get_predicted_points(gameweek, method, postition, team):
+        return point_dict
+    return mock_get_predicted_points
+
 
 
 def test_subs():
