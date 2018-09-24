@@ -60,4 +60,6 @@ if __name__ == "__main__":
         )
         plt.plot(xvals, points[-1], label=th["name"])
     plt.legend(loc="best")
+    plt.xlabel("gameweek")
+    plt.ylabel(thing_to_plot)
     plt.show()
