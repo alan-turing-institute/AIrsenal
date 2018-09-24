@@ -34,9 +34,9 @@ from .bpl_interface import (
     get_team_model,
     get_result_df,
     get_ratings_df,
-    fit_all_data
+    fit_all_data,
     list_players,
-    fetcher,
+    fetcher
 )
 
 DBSession = sessionmaker(bind=engine)

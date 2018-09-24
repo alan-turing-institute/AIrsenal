@@ -70,11 +70,15 @@ class Team(object):
         num_players = sum(self.num_position.values())
         return num_players == 15
 
+
     def add_player(self, p):
         """
         add a player.  Can do it by name or by player_id
         """
-        player = CandidatePlayer(p)
+        if isinstance(p,int) or isinstance(p,str):
+            player = CandidatePlayer(p)
+        else: # already a CandidatePlayer (or an equivalent test class)
+            player = p
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
