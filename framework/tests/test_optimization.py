@@ -128,8 +128,8 @@ def test_single_transfer():
                                     113: 6, 114:3, 115:7}
                             }
     mock_pred_points= predicted_point_mock_generator(position_points_dict)
-    with mock_pred_points as get_predicted_points:
-        make_optimimum_substitution(t,"DUMMY",1)
+#    with mock_pred_points as get_predicted_points:
+#        make_optimimum_substitution(t,"DUMMY",1)
     return mock_pred_points
 
 

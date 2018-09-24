@@ -8,48 +8,6 @@ import json
 
 from .mappings import alternative_team_names
 
-FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
-
-
-if "FD_API_KEY" in os.environ.keys():
-    FOOTBALL_DATA_API_KEY = os.environ["FD_API_KEY"]
-elif os.path.exists("../data/FD_API_KEY"):
-    FOOTBALL_DATA_API_KEY = open("../data/FD_API_KEY").read().strip()
-elif os.path.exists("data/FD_API_KEY"):
-    FOOTBALL_DATA_API_KEY = open("data/FD_API_KEY").read().strip()
-else:
-    print("Couldn't find data/FD_API_KEY - can't use football-data.org API")
-
-## get the team_id for our FPL team
-if "FPL_TEAM_ID" in os.environ.keys():
-    TEAM_ID = os.environ["FPL_TEAM_ID"]
-elif os.path.exists("../data/FPL_TEAM_ID"):
-    TEAM_ID = open("../data/FPL_TEAM_ID").read().strip()
-elif os.path.exists("data/FPL_TEAM_ID"):
-    TEAM_ID = open("data/FPL_TEAM_ID").read().strip()
-else:
-    print("Couldn't find FPL_TEAM_ID - can't get team history")
-
-## get the league_id for our FPL league
-if "FPL_LEAGUE_ID" in os.environ.keys():
-    LEAGUE_ID = os.environ["FPL_LEAGUE_ID"]
-elif os.path.exists("../data/FPL_LEAGUE_ID"):
-    LEAGUE_ID = open("../data/FPL_LEAGUE_ID").read().strip()
-elif os.path.exists("data/FPL_LEAGUE_ID"):
-    LEAGUE_ID = open("data/FPL_LEAGUE_ID").read().strip()
-else:
-    print("Couldn't find FPL_LEAGUE_ID - can't get league history")
-
-
-FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
-FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
-FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
-FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
-FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
-    LEAGUE_ID
-)
-DATA_DIR = "./data"
-
 
 class FPLDataFetcher(object):
     """
@@ -66,6 +24,26 @@ class FPLDataFetcher(object):
         self.fpl_team_history_data = None
         self.fpl_league_data = None
         self.fpl_team_data = {} # players in squad, by gameweek
+        for ID in ["FPL_LEAGUE_ID",
+                   "FPL_TEAM_ID"]:
+            if ID in os.environ.keys():
+                self.__setattr__(ID, os.environ[ID])
+            elif os.path.exists("../data/{}".format(ID)):
+                self.__setattr__(ID, open("../data/{}".format(ID)).read().strip())
+            elif os.path.exists("data/{}".format(ID)):
+                self.__setattr__(ID, open("data/{}".format(ID)).read().strip())
+            else:
+                print("Couldn't find {} - some data may be unavailable".format(ID))
+                self.__setattr__(ID, "MISSING_ID")
+        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
+        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
+        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
+        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
+        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
+            self.FPL_LEAGUE_ID
+        )
+
+
 
     def get_current_summary_data(self):
         """
@@ -75,7 +53,7 @@ class FPLDataFetcher(object):
         if self.current_summary_data:
             return self.current_summary_data
         else:
-            r = requests.get(FPL_SUMMARY_API_URL)
+            r = requests.get(self.FPL_SUMMARY_API_URL)
             if not r.status_code == 200:
                 print("Unable to access FPL API")
                 return None
@@ -93,8 +71,8 @@ class FPLDataFetcher(object):
             return self.fpl_team_data[gameweek]
         else:
             if not team_id:
-                team_id = TEAM_ID
-            url = FPL_TEAM_URL.format(team_id,gameweek)
+                team_id = self.FPL_TEAM_ID
+            url = self.FPL_TEAM_URL.format(team_id,gameweek)
             r = requests.get(url)
             if not r.status_code == 200:
                 print("Unable to access FPL team API {}".format(url))
@@ -114,8 +92,8 @@ class FPLDataFetcher(object):
             return self.fpl_team_history_data
         else:
             if not team_id:
-                team_id = TEAM_ID
-            url = FPL_HISTORY_URL.format(team_id)
+                team_id = self.FPL_TEAM_ID
+            url = self.FPL_HISTORY_URL.format(team_id)
             r = requests.get(url)
             if not r.status_code == 200:
                 print("Unable to access FPL team history API")
@@ -130,7 +108,7 @@ class FPLDataFetcher(object):
         if self.fpl_league_data:
             return self.fpl_league_data
         else:
-            r = requests.get(FPL_LEAGUE_URL)
+            r = requests.get(self.FPL_LEAGUE_URL)
             if not r.status_code == 200:
                 print("Unable to access FPL league API")
                 return None
@@ -194,7 +172,7 @@ class FPLDataFetcher(object):
                 not gameweek in self.player_gameweek_data[player_id].keys()
             ):
 
-                r = requests.get("{}/{}".format(FPL_DETAIL_URL, player_id))
+                r = requests.get("{}/{}".format(self.FPL_DETAIL_URL, player_id))
                 if not r.status_code == 200:
                     print("Error retrieving data for player {}".format(player_id))
                     return []
@@ -225,14 +203,23 @@ class MatchDataFetcher(object):
 
     def __init__(self):
         self.data = {}
+        self.FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
+        if "FD_API_KEY" in os.environ.keys():
+            self.__setattr__("FOOTBALL_DATA_API_KEY", os.environ["FD_API_KEY"])
+        elif os.path.exists("../data/FD_API_KEY"):
+            self.__setattr__("FOOTBALL_DATA_API_KEY", open("../data/FD_API_KEY").read().strip())
+        elif os.path.exists("data/FD_API_KEY"):
+            self.__setattr__("FOOTBALL_DATA_API_KEY", open("data/FD_API_KEY").read().strip())
+        else:
+            print("Couldn't find FD_API_KEY - can't use football-data.org API")
         pass
 
     def _get_gameweek_data(self, gameweek):
         """
         query the matches endpoint
         """
-        uri = "{}/matches?matchday={}".format(FOOTBALL_DATA_URL, gameweek)
-        headers = {"X-Auth-Token": FOOTBALL_DATA_API_KEY}
+        uri = "{}/matches?matchday={}".format(self.FOOTBALL_DATA_URL, gameweek)
+        headers = {"X-Auth-Token": self.FOOTBALL_DATA_API_KEY}
         r = requests.get(uri, headers=headers)
         if r.status_code != 200:
             return r
@@ -288,7 +275,7 @@ class MatchDataFetcher(object):
         for fixture in self.data[gameweek]:
             home_team = None
             away_team = None
-            for k, v in alternative_team_names:
+            for k, v in alternative_team_names.items():
                 if fixture["homeTeam"] in v:
                     home_team = k
                 elif fixture["awayTeam"] in v:
