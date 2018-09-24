@@ -49,7 +49,7 @@ if __name__ == "__main__":
     team_ids = get_team_ids(league_data)
     team_histories = []
     for team_id in team_ids:
-        team_data = fetcher.get_fpl_team_data(team_id)
+        team_data = fetcher.get_fpl_team_history_data(team_id)
         team_histories.append(get_team_history(team_data))
 
     xvals = sorted(team_histories[0]["history"].keys())
