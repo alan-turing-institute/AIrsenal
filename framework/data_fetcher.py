@@ -97,7 +97,7 @@ class FPLDataFetcher(object):
             url = FPL_TEAM_URL.format(team_id,gameweek)
             r = requests.get(url)
             if not r.status_code == 200:
-                print("Unable to access FPL team API")
+                print("Unable to access FPL team API {}".format(url))
                 return None
             team_data = json.loads(r.content.decode("utf-8"))
             if not team_id:
