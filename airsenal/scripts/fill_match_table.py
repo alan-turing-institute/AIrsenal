@@ -8,18 +8,16 @@ Fill the "match" table with historic results
 import os
 import sys
 
-sys.path.append("..")
-
 import argparse
 import json
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from framework.mappings import alternative_team_names, positions
-from framework.schema import Match, Base, engine
-from framework.data_fetcher import MatchDataFetcher
-from framework.utils import get_next_gameweek
+from ..framework.mappings import alternative_team_names, positions
+from ..framework.schema import Match, Base, engine
+from ..framework.data_fetcher import MatchDataFetcher
+from ..framework.utils import get_next_gameweek
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

@@ -9,10 +9,10 @@ to the same transfer strategy.  We do this using the "timestamp".
 
 import sys
 
-sys.path.append("..")
 
-from framework.schema import TransferSuggestion
-from framework.utils import session, get_player_name
+
+from ..framework.schema import TransferSuggestion
+from ..framework.utils import session, get_player_name
 
 if __name__ == "__main__":
     all_rows = session.query(TransferSuggestion).all()

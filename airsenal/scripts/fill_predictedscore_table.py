@@ -12,11 +12,11 @@ import os
 import sys
 from uuid import uuid4
 
-sys.path.append("..")
+
 
 import argparse
 
-from framework.prediction_utils import calc_all_predicted_points, fill_table
+from ..framework.prediction_utils import calc_all_predicted_points, fill_table
 
 
 if __name__ == "__main__":

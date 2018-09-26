@@ -15,14 +15,14 @@ import os
 import sys
 import time
 
-sys.path.append("..")
+
 import json
 
 
 from multiprocessing import Process, Queue
 import argparse
 
-from framework.optimization_utils import *
+from ..framework.optimization_utils import *
 
 NUM_THREAD = 4
 OUTPUT_DIR = "../data"

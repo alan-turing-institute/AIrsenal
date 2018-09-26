@@ -14,8 +14,8 @@ import os
 import re
 from datetime import datetime
 
-sys.path.append("..")
-from framework.utils import get_gameweek_by_date
+
+from ..framework.utils import get_gameweek_by_date
 
 date_regex = re.compile("day ([\d]+)[a-z]{2}[\s]+([\w]+)")
 score_regex = re.compile("([\d])[\s]+([\d])[\s]+([\w\s]+[\w])[\s]+FT")

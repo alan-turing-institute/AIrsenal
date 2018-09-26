@@ -7,12 +7,12 @@ the last entries in the DB.
 
 import sys
 
-sys.path.append("..")
+
 
 from fill_match_table import fill_table_from_list, fill_from_api
 from fill_playerscore_this_season import fill_playerscore_table
 from fill_transaction_table import add_transaction
-from framework.utils import *
+from ..framework.utils import *
 
 if __name__ == "__main__":
     last_in_db = get_last_gameweek_in_db()

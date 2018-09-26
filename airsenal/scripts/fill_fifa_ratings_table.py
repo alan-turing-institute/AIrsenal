@@ -7,13 +7,10 @@ Fill the "fifa_ratings" table with info from FIFA 19
 
 import sys
 
-sys.path.append("..")
-
-from framework.mappings import alternative_team_names
+from ..framework.mappings import alternative_team_names
+from ..framework.schema import FifaTeamRating, Base, engine
 
 from sqlalchemy.orm import sessionmaker
-
-from framework.schema import FifaTeamRating, Base, engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

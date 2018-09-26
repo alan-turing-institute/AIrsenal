@@ -4,7 +4,7 @@ Interface to the Stan models
 import os
 import sys
 
-sys.path.append("..")
+
 
 import bpl
 import numpy as np

@@ -14,10 +14,10 @@ output for each strategy tried is going to be a dict
 import os
 import sys
 
-sys.path.append("..")
+
 import argparse
 
-from framework.optimization_utils import *
+from ..framework.optimization_utils import *
 
 if __name__ == "__main__":
 

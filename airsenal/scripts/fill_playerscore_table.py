@@ -8,20 +8,21 @@ Fill the "player_score" table with historic results
 import os
 import sys
 
-sys.path.append("..")
+
 
 import json
 
-from framework.mappings import (
+from ..framework.mappings import (
     alternative_team_names,
     alternative_player_names,
     positions,
 )
+from ..framework.schema import Player, PlayerScore, Match, Base, engine
 
 from sqlalchemy import create_engine, and_, or_
 from sqlalchemy.orm import sessionmaker
 
-from framework.schema import Player, PlayerScore, Match, Base, engine
+
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
