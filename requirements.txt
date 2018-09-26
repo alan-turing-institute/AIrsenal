@@ -5,3 +5,5 @@ requests
 dateparser
 fuzzywuzzy
 scipy
+bs4
+selenium
