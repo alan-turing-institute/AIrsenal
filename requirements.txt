@@ -7,3 +7,4 @@ fuzzywuzzy
 scipy
 bs4
 selenium
+boto3

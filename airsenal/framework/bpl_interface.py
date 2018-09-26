@@ -12,7 +12,7 @@ import pandas as pd
 import pystan
 
 
-from framework.utils import *
+from .utils import *
 
 np.random.seed(42)
 

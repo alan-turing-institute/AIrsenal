@@ -5,6 +5,7 @@ python:
 install:
   - pip install --upgrade pip
   - pip install -U -r requirements.txt
+  - python setup.py develop
 
 script:
   - git submodule init
