@@ -23,6 +23,7 @@ from sqlalchemy.orm import sessionmaker
 from .schema import Player, PlayerPrediction, Fixture, Base, engine
 
 from .utils import (
+    get_next_gameweek,
     get_fixtures_for_player,
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
@@ -245,3 +246,28 @@ def fill_table(prediction_dict, tag):
             pp.method = tag
             session.add(pp)
     session.commit()
+
+
+def fill_ep(csv_filename):
+    """
+    fill the database with FPLs ep_next prediction, and also
+    write output to a csv.
+    """
+    if not os.path.exists(csv_filename):
+        outfile = open(csv_filename,"w")
+        outfile.write("player_id,gameweek,EP\n")
+    else:
+        outfile = open(csv_filename,"a")
+
+    summary_data = fetcher.get_player_summary_data()
+    gameweek = get_next_gameweek()
+    for k,v in summary_data.items():
+        outfile.write("{},{},{}\n".format(k,gameweek,v['ep_next']))
+        pp = PlayerPrediction()
+        pp.player_id = k
+        pp.gameweek = gameweek
+        pp.predicted_points = v['ep_next']
+        pp.method="EP"
+        session.add(pp)
+    session.commit()
+    outfile.close()
