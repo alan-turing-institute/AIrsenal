@@ -3,12 +3,12 @@
 import os
 import sys
 
-sys.path.append("..")
+
 import random
 
-from framework.utils import *
-from framework.team import Team, TOTAL_PER_POSITION
-from framework.player import CandidatePlayer
+from ..framework.utils import *
+from ..framework.team import Team, TOTAL_PER_POSITION
+from ..framework.player import CandidatePlayer
 
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back

@@ -6,13 +6,13 @@ Find alternative team names for all the teams in the 2018/19 FPL.
 import os
 import sys
 
-sys.path.append("..")
+
 import json
 import re
 
 from fuzzywuzzy import fuzz
 
-from framework.data_fetcher import FPLDataFetcher
+from ..framework.data_fetcher import FPLDataFetcher
 
 
 def find_best_match(fpl_teams, team):

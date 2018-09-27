@@ -8,16 +8,13 @@ Fill the "fixture" table with info from this seasons FPL
 import os
 import sys
 
-sys.path.append("..")
-
 import json
 
-from framework.mappings import alternative_team_names
+from ..framework.mappings import alternative_team_names
+from ..framework.schema import Fixture, Base, engine
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from framework.schema import Fixture, Base, engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

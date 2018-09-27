@@ -5,11 +5,11 @@ Use the BPL models to predict scores for upcoming fixtures.
 import os
 import sys
 
-sys.path.append("..")
+
 
 from collections import defaultdict
 
-from framework.mappings import (
+from .mappings import (
     alternative_team_names,
     alternative_player_names,
     positions,

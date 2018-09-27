@@ -5,12 +5,12 @@ Plot the league
 
 import sys
 
-sys.path.append("..")
+
 
 import argparse
 import matplotlib.pyplot as plt
 
-from framework.data_fetcher import FPLDataFetcher
+from ..framework.data_fetcher import FPLDataFetcher
 
 
 def get_team_ids(league_data):

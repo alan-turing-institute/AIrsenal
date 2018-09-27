@@ -8,17 +8,14 @@ Fill the "Player" table with info from this seasons FPL
 import os
 import sys
 
-sys.path.append("..")
-
 import json
 
-from framework.mappings import alternative_team_names, positions
+from ..framework.mappings import alternative_team_names, positions
+from ..framework.schema import Player, Base, engine
+from ..framework.data_fetcher import FPLDataFetcher
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from framework.schema import Player, Base, engine
-from framework.data_fetcher import FPLDataFetcher
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

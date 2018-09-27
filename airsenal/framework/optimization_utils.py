@@ -5,7 +5,7 @@ functions to optimize the transfers for N weeks ahead
 import os
 import sys
 
-sys.path.append("..")
+
 import random
 from datetime import datetime
 

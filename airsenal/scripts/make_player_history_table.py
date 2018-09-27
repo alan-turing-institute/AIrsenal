@@ -7,8 +7,8 @@ Empirical Bayes model.
 
 import sys
 
-sys.path.append("..")
-from framework.utils import *
+
+from ..framework.utils import *
 
 
 def get_player_history_table(position="all"):

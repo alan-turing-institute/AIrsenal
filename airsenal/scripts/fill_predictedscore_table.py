@@ -12,7 +12,7 @@ import os
 import sys
 from uuid import uuid4
 
-sys.path.append("..")
+
 
 import argparse
 

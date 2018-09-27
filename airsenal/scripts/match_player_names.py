@@ -10,13 +10,13 @@ Write out a dict of the format
 import os
 import sys
 
-sys.path.append("..")
+
 import json
 import re
 
 from fuzzywuzzy import fuzz
 
-from framework.data_fetcher import FPLDataFetcher
+from ..framework.data_fetcher import FPLDataFetcher
 
 
 def find_best_match(fpl_players, player):
