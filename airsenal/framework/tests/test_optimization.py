@@ -144,7 +144,7 @@ def test_single_transfer():
     mock_pred_points= predicted_point_mock_generator(position_points_dict)
 
 
-    with mock.patch('framework.optimization_utils.get_predicted_points', side_effect=mock_pred_points):
+    with mock.patch('airsenal.framework.optimization_utils.get_predicted_points', side_effect=mock_pred_points):
         new_team, pid_out, pid_in = make_optimum_transfer(t,"DUMMY",[1])
         ## we should expect - player 115 to be transfered in, and to be captain.
     assert(pid_in[0].player_id==115)
