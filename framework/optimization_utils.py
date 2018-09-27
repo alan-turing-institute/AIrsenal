@@ -79,12 +79,12 @@ def get_baseline_prediction(gw_ahead, method):
     return total, cum_total_per_gw
 
 
-def make_optimum_substitution(team, method, gameweek_range=None):
+def make_optimum_transfer(team, method, gameweek_range=None):
     """
-    If we want to just make one sub, it's not unfeasible to try all
+    If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
-    We will order the list of potential subs via the sum of expected points
-    over a specified range of gameweeks.
+    We will order the list of potential transfers via the sum of
+    expected points over a specified range of gameweeks.
     """
     if not gameweek_range:
         gameweek_range = [get_next_gameweek()]
@@ -98,10 +98,12 @@ def make_optimum_substitution(team, method, gameweek_range=None):
     for p_out in team.players:
         new_team = copy.deepcopy(team)
         position = p_out.position
+#        print("Removing player {}".format(p_out.name))
         new_team.remove_player(p_out.player_id)
         for p_in in ordered_player_lists[position]:
             if p_in[0] == p_out.player_id:
                 continue  # no point in adding the same player back in
+#            print("Trying to add player {}".format(p_in[0]))
             added_ok = new_team.add_player(p_in[0])
             if added_ok:
                 break
@@ -116,7 +118,7 @@ def make_optimum_substitution(team, method, gameweek_range=None):
     return best_team, [best_pid_out], [best_pid_in]
 
 
-def make_random_substitutions(team, method, nsubs=1, gw_range=None):
+def make_random_transfers(team, method, nsubs=1, gw_range=None):
     """
     choose a random player to sub out, and then get the player with the best
     expected score for the next gameweek that we can to fill their place.
@@ -173,7 +175,7 @@ def make_random_substitutions(team, method, nsubs=1, gw_range=None):
 
 def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
     """
-    apply a set of substitutions over a number of gameweeks, and
+    apply a set of transfers over a number of gameweeks, and
     total up the score, taking into account points hits.
     strat is a tuple, with the first element being the
     dictionary {gw:ntransfers,...} and the second element being
@@ -200,9 +202,11 @@ def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
             if strat[0][gw] == 0:  # no transfers that gameweek
                 rp, ap = [], []
             elif strat[0][gw] == 1:  # one transfer - choose optimum
-                new_team, rp, ap = make_optimum_substitution(new_team, method, gw_range)
+                new_team, rp, ap = make_optimum_transfer(new_team,
+                                                         method,
+                                                         gw_range)
             else:  # >1 transfer, choose randomly
-                new_team, rp, ap = make_random_substitutions(
+                new_team, rp, ap = make_random_transfers(
                     new_team, method, strat[0][gw], gw_range
                 )
             score = new_team.get_expected_points(gw, method)
