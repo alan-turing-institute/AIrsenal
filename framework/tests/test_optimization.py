@@ -4,8 +4,17 @@ and checking that the optimizer finds the expected outcome.
 """
 import pytest
 from unittest import mock
+from operator import itemgetter
 
-from ..optimization_utils import *
+#from ..utils import get_predicted_points
+
+from ..optimization_utils import Team, make_optimum_transfer, get_predicted_points
+
+
+
+def mock_add_player(pid):
+    self.players += DummyPlayer(pid,"FWD",{})
+    print("Mocking add player {}".format(pid))
 
 
 class DummyPlayer(object):
@@ -64,10 +73,15 @@ def predicted_point_mock_generator(point_dict):
     def mock_get_predicted_points(gameweek, method, position, team=None):
         """
         return an ordered list in the same way as the real
-        get_predicted_points func does
+        get_predicted_points func does. EXCEPT - we return dummy players rather than just ids
+        (so the Team.add_player can add them)
         """
-        output_list = [(k,v) for k,v in point_dict[position].items()]
-        output_list.sort(key=itemgetter(1), reverse=True)
+        output_pid_list = [(k,v) for k,v in point_dict[position].items()]
+        output_pid_list.sort(key=itemgetter(1), reverse=True)
+#        return output_pid_list
+        if isinstance(gameweek, list):
+            gameweek = gameweek[0]
+        output_list = [(DummyPlayer(entry[0],position,{gameweek:entry[1]}),entry[1]) for entry in output_pid_list]
         return output_list
     return mock_get_predicted_points
 
@@ -128,9 +142,19 @@ def test_single_transfer():
                                     113: 6, 114:3, 115:7}
                             }
     mock_pred_points= predicted_point_mock_generator(position_points_dict)
-#    with mock_pred_points as get_predicted_points:
-#        make_optimimum_substitution(t,"DUMMY",1)
-    return mock_pred_points
+
+
+    with mock.patch('framework.optimization_utils.get_predicted_points', side_effect=mock_pred_points):
+        new_team, pid_out, pid_in = make_optimum_transfer(t,"DUMMY",[1])
+        ## we should expect - player 115 to be transfered in, and to be captain.
+    assert(pid_in[0].player_id==115)
+    for p in new_team.players:
+        if p.player_id == 115:
+            assert(p.is_captain==True)
+        else:
+            assert(p.is_captain==False)
+    ## expected points should be 10*2 + 7*2 = 34
+    assert(new_team.get_expected_points(1,"DUMMY")==34)
 
 
 def test_double_transfer():
