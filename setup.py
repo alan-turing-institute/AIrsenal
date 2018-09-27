@@ -15,6 +15,6 @@ setup(
     packages=["airsenal"],
     install_requires=REQUIRED_PACKAGES,
     setup_requires=REQUIRED_PACKAGES,
-    dependency_links=["git+ssh://git@github.com:anguswilliams91/bpl.git"]
+    dependency_links=["git+ssh://github.com:anguswilliams91/bpl"]
 )
 
