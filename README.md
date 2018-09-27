@@ -3,6 +3,16 @@
 
 Machine learning Fantasy Premier League team
 
+## Install
+
+To install, you will need a working C++ compiler and `pip` (>=18.0).
+If you're using anaconda, run `conda install gcc` in the same environment.
+Install the `airsenal` module from source via
+
+```bash
+pip install https://github.com/alan-turing-institute/AIrsenal/archive/master.zip --process-dependency-links
+```
+
 ## How to run
 
 After cloning this repo, you can start to populate an sqlite file with historical data with:

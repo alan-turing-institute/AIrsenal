@@ -2,7 +2,7 @@ from setuptools import setup
 
 with open("requirements.txt", "r") as f:
     REQUIRED_PACKAGES = f.read().splitlines()
-REQUIRED_PACKAGES.append("bpl")
+REQUIRED_PACKAGES.append("bpl==0.0.1")
 
 
 setup(
@@ -15,6 +15,6 @@ setup(
     packages=["airsenal"],
     install_requires=REQUIRED_PACKAGES,
     setup_requires=REQUIRED_PACKAGES,
-    dependency_links=["git+ssh://github.com:anguswilliams91/bpl"]
+    dependency_links=["git+ssh://git@github.com/anguswilliams91/bpl#egg=bpl-0.0.1"]
 )
 
