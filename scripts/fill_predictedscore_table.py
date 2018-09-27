@@ -16,7 +16,7 @@ sys.path.append("..")
 
 import argparse
 
-from framework.prediction_utils import calc_all_predicted_points, fill_table
+from framework.prediction_utils import calc_all_predicted_points, fill_table, fill_ep
 
 
 if __name__ == "__main__":
@@ -27,7 +27,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=5
     )
-
+    parser.add_argument(
+        "--ep_filename", help="csv filename for FPL expected points"
+    )
     args = parser.parse_args()
+    if args.ep_filename:
+    ## also fill the expected points from FPL for the next gameweek
+        fill_ep(args.ep_filename)
+
     prediction_dict = calc_all_predicted_points(args.weeks_ahead)
     fill_table(prediction_dict, str(uuid4()))
