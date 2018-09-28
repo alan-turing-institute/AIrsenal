@@ -13,16 +13,25 @@ Install the `airsenal` module from source via
 pip install https://github.com/alan-turing-institute/AIrsenal/archive/master.zip --process-dependency-links
 ```
 
-## How to run
+## Getting started
 
-After cloning this repo, you can start to populate an sqlite file with historical data with:
+Once you've installed the module, you will need to set three environment variables:
+
+1. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/)
+2. `FPL_TEAM_ID`: the team ID for your FPL side.
+3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for a small subset of functionality).
+
+Once this is done, run the following command
+
+```shell
+setup_airsenal_database
 ```
-cd scripts
-source fill_db.sh
-```
 
-You should get a file ```/tmp/data.db```.  This will fill the database with everything up to the present date.
+You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
 
+## Updating
+
+TODO: update this once entry points are finished.
 
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
 with more recent data, using a couple of scripts as detailed below.
@@ -41,4 +50,4 @@ python python fill_playerscore_this_season.py --gw_start <first_gameweek> --gw_e
 
 The transaction table is a bit different, as this reflects the players we are buying and selling in our own team.
 As such, you will need to edit ```scripts/fill_transaction_table.py``` yourself to fill in the player_ids of players
-transfered in or out, and then run the script with ```python fill_transaction_table.py```.
+transferred in or out, and then run the script with ```python fill_transaction_table.py```.
