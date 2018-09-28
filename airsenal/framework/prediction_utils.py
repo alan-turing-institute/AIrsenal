@@ -39,9 +39,6 @@ from .bpl_interface import (
     fetcher
 )
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
 points_for_goal = {"GK": 6, "DEF": 6, "MID": 5, "FWD": 4}
 points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
 points_for_assist = 3
@@ -232,7 +229,7 @@ def calc_all_predicted_points(weeks_ahead):
     return all_predictions
 
 
-def fill_table(prediction_dict, tag):
+def fill_table(prediction_dict, tag, session):
     """
     fill the table with the contents of prediction_dict
     """

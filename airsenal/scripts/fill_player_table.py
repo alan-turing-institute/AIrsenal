@@ -5,26 +5,17 @@ Fill the "Player" table with info from this seasons FPL
 (FPL_2017-18.json).
 """
 
-import os
-import sys
-
-import json
-
 from ..framework.mappings import alternative_team_names, positions
-from ..framework.schema import Player, Base, engine
+from ..framework.schema import Player, session_scope
 from ..framework.data_fetcher import FPLDataFetcher
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+def make_player_table(session):
+    # fill up the player table
+    data_fetcher = FPLDataFetcher()
+    player_dict = data_fetcher.get_player_summary_data()
 
-if __name__ == "__main__":
-    df = FPLDataFetcher()
-    pd = df.get_player_summary_data()
-
-    for k, v in pd.items():
+    for k, v in player_dict.items():
         p = Player()
         p.player_id = k
         name = "{} {}".format(v["first_name"], v["second_name"])
@@ -39,3 +30,8 @@ if __name__ == "__main__":
         p.current_price = v["now_cost"]
         session.add(p)
     session.commit()
+
+
+if __name__ == "__main__":
+    with session_scope() as session:
+        make_player_table(session)

@@ -7,16 +7,17 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "method" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
-
-import os
-import sys
 from uuid import uuid4
-
-
 
 import argparse
 
 from ..framework.prediction_utils import calc_all_predicted_points, fill_table
+from ..framework.schema import session_scope
+
+
+def make_predictedscore_table(session, weeks_ahead=3):
+    prediction_dict = calc_all_predicted_points(weeks_ahead)
+    fill_table(prediction_dict, str(uuid4()), session)
 
 
 if __name__ == "__main__":
@@ -29,5 +30,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    prediction_dict = calc_all_predicted_points(args.weeks_ahead)
-    fill_table(prediction_dict, str(uuid4()))
+    with session_scope() as session:
+        make_predictedscore_table(session, weeks_ahead=3)

@@ -3,33 +3,16 @@
 """
 Fill the "player_score" table with the last gameweek's results
 """
-
-import os
-import sys
-
-
-
 import argparse
-import json
-
-from ..framework.mappings import (
-    alternative_team_names,
-    alternative_player_names,
-    positions,
-)
 
 from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.schema import Player, PlayerScore, Match, Base, engine
+from ..framework.schema import PlayerScore, Match, session_scope
 from ..framework.utils import get_player_name, get_team_name, get_next_gameweek
 
 from sqlalchemy import create_engine, and_, or_
-from sqlalchemy.orm import sessionmaker
-
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
 
 
-def find_match_id(season, gameweek, played_for, opponent):
+def find_match_id(season, gameweek, played_for, opponent, session):
     """
     query the match table using 3 bits of info...
     not 100% guaranteed, as 'played_for' might be incorrect
@@ -70,7 +53,11 @@ def find_match_id(season, gameweek, played_for, opponent):
     return m.first().match_id
 
 
-def fill_playerscore_table(gw_start, gw_end):
+def fill_playerscore_table(gw_start, session, gw_end=None):
+    # fill the player score table
+    if gw_end is None:
+        gw_end = get_next_gameweek()
+
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     season = "1819"
@@ -126,11 +113,8 @@ if __name__ == "__main__":
         description="fetch this season's data from FPL API"
     )
     parser.add_argument("--gw_start", help="first gw", type=int, default=1)
-    parser.add_argument("--gw_end", help="last gw", type=int)
+    parser.add_argument("--gw_end", help="last gw", type=int, default=None)
     args = parser.parse_args()
 
-    if not args.gw_end:
-        gw_end = get_next_gameweek()
-    else:
-        gw_end = args.gw_end
-    fill_playerscore_table(args.gw_start, gw_end)
+    with session_scope() as session:
+        fill_playerscore_table(args.gw_start, session, gw_end=args.gw_end)

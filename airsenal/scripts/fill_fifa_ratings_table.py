@@ -5,19 +5,17 @@ Fill the "fifa_ratings" table with info from FIFA 19
 (fifa_team_ratings.csv).
 """
 
-import sys
+import os
 
 from ..framework.mappings import alternative_team_names
-from ..framework.schema import FifaTeamRating, Base, engine
+from ..framework.schema import FifaTeamRating, session_scope
 
-from sqlalchemy.orm import sessionmaker
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-if __name__ == "__main__":
-
-    input_file = open("../data/fifa_team_ratings.csv")
+def make_fifa_ratings_table(session):
+    # make the fifa ratings table
+    # TODO: scrape the data first rather than committing file to repo
+    input_path = os.path.join(os.path.dirname(__file__), "../data/fifa_team_ratings.csv")
+    input_file = open(input_path)
     for line in input_file.readlines()[1:]:
         team, att, mid, defn, ovr = line.strip().split(",")
         print(line.strip())
@@ -38,3 +36,10 @@ if __name__ == "__main__":
             raise ValueError("Unknown team {}.".format(team))
         session.add(r)
     session.commit()
+
+
+if __name__ == "__main__":
+    with session_scope() as session:
+        make_fifa_ratings_table(session)
+
+
