@@ -81,7 +81,7 @@ def fill_playerscore_table(gw_start, session, gw_end=None):
             for match in matches:
                 # try to find the match in the match table
                 opponent = get_team_name(match["opponent_team"])
-                match_id = find_match_id(season, gameweek, played_for, opponent)
+                match_id = find_match_id(season, gameweek, played_for, opponent, session)
                 if not match_id:
                     print(
                         "  Couldn't find match for {} in gw {}".format(player, gameweek)

@@ -128,7 +128,7 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
 
 
 def get_predicted_points(
-    player_id, model_team, df_player, fixtures_ahead=1, fixures_behind=3
+    player_id, model_team, df_player, session, fixtures_ahead=1, fixures_behind=3
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -215,7 +215,7 @@ def get_fitted_models():
     return model_team, df_player
 
 
-def calc_all_predicted_points(weeks_ahead):
+def calc_all_predicted_points(weeks_ahead, session):
     """
     Do the full prediction.
     """
@@ -224,7 +224,7 @@ def calc_all_predicted_points(weeks_ahead):
     for pos in ["GK", "DEF", "MID", "FWD"]:
         for player in list_players(position=pos):
             all_predictions[player] = get_predicted_points(
-                player, model_team, df_player, weeks_ahead
+                player, model_team, df_player, session, weeks_ahead
             )
     return all_predictions
 

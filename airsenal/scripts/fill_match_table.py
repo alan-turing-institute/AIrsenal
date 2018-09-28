@@ -54,7 +54,7 @@ def fill_from_api(gw_start, gw_end, session):
     mf = MatchDataFetcher()
     for gw in range(gw_start, gw_end):
         results = mf.get_results(gw)
-        fill_table_from_list(results, gw)
+        fill_table_from_list(results, gw, session)
     session.commit()
 
 

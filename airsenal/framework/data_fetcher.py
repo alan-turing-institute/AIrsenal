@@ -28,10 +28,11 @@ class FPLDataFetcher(object):
                    "FPL_TEAM_ID"]:
             if ID in os.environ.keys():
                 self.__setattr__(ID, os.environ[ID])
-            elif os.path.exists("../data/{}".format(ID)):
-                self.__setattr__(ID, open("../data/{}".format(ID)).read().strip())
-            elif os.path.exists("data/{}".format(ID)):
-                self.__setattr__(ID, open("data/{}".format(ID)).read().strip())
+            elif os.path.exists(os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))):
+                self.__setattr__(
+                    ID, open(
+                        os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))
+                    ).read().strip())
             else:
                 print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
@@ -206,10 +207,10 @@ class MatchDataFetcher(object):
         self.FOOTBALL_DATA_URL = "http://api.football-data.org/v2/competitions/2021"
         if "FD_API_KEY" in os.environ.keys():
             self.__setattr__("FOOTBALL_DATA_API_KEY", os.environ["FD_API_KEY"])
-        elif os.path.exists("../data/FD_API_KEY"):
-            self.__setattr__("FOOTBALL_DATA_API_KEY", open("../data/FD_API_KEY").read().strip())
-        elif os.path.exists("data/FD_API_KEY"):
-            self.__setattr__("FOOTBALL_DATA_API_KEY", open("data/FD_API_KEY").read().strip())
+        elif os.path.exists(os.path.join(os.path.dirname(__file__), "../data/FD_API_KEY")):
+            self.__setattr__("FOOTBALL_DATA_API_KEY", open(
+                os.path.join(os.path.dirname(__file__), "../data/FD_API_KEY")
+            ).read().strip())
         else:
             print("Couldn't find FD_API_KEY - can't use football-data.org API")
         pass

@@ -16,7 +16,7 @@ from ..framework.schema import session_scope
 
 
 def make_predictedscore_table(session, weeks_ahead=3):
-    prediction_dict = calc_all_predicted_points(weeks_ahead)
+    prediction_dict = calc_all_predicted_points(weeks_ahead, session)
     fill_table(prediction_dict, str(uuid4()), session)
 
 
