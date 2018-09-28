@@ -29,7 +29,7 @@ setup_airsenal_database
 
 You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
 
-## Updating
+## Updating
 
 TODO: update this once entry points are finished.
 
