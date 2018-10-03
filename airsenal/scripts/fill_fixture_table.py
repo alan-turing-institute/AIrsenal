@@ -6,22 +6,20 @@ Fill the "fixture" table with info from this seasons FPL
 """
 
 import os
-import sys
-
-import json
 
 from ..framework.mappings import alternative_team_names
-from ..framework.schema import Fixture, Base, engine
+from ..framework.schema import Fixture, session_scope
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+def get_fixture_list():
+    # TODO: get this from the footballdata API
+    input_path = os.path.join(os.path.dirname(__file__), "../data/fixtures.csv")
+    return open(input_path)
 
-if __name__ == "__main__":
 
-    input_file = open("../data/fixtures.csv")
+def make_fixture_table(session):
+    # fill the fixture table
+    input_file = get_fixture_list()
     for line in input_file.readlines()[1:]:
         gameweek, date, home_team, away_team = line.strip().split(",")
         print(line.strip())
@@ -35,3 +33,9 @@ if __name__ == "__main__":
                 f.away_team = k
         session.add(f)
     session.commit()
+
+
+if __name__ == "__main__":
+    with session_scope() as session:
+        make_fixture_table(session)
+

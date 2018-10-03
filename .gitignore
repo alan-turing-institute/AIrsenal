@@ -1,5 +1,8 @@
 # other stuff
 .idea/
+*FPL_TEAM_ID
+*FPL_LEAGUE_ID
+*FD_API_KEY
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

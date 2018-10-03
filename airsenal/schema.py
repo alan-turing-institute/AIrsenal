@@ -15,8 +15,11 @@ if "AIrsenalDB" in os.environ.keys():
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy import create_engine
+
+from contextlib import contextmanager
 
 Base = declarative_base()
 
@@ -116,3 +119,17 @@ Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
+
+@contextmanager
+def session_scope():
+    """Provide a transactional scope around a series of operations."""
+    db_session = sessionmaker(bind=engine)
+    session = db_session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()

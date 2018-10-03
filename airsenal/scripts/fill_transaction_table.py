@@ -1,25 +1,17 @@
 #!/usr/bin/env python
 
 import os
-import sys
-
-
-
 import argparse
-import json
 
-from ..framework.mappings import alternative_team_names, positions
-from ..framework.schema import Transaction, Base, engine
-from ..framework.data_fetcher import FPLDataFetcher
+from ..framework.schema import Transaction, session_scope
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from collections import namedtuple
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+TransferArgs = namedtuple("TransferArgs",
+                          ["input_csv", "output_csv", "player_id", "buy", "sell", "gameweek"])
 
 
-def add_transaction(player_id, gameweek, in_or_out, output_csv_filename=None):
+def add_transaction(player_id, gameweek, in_or_out, session, output_csv_filename=None):
     """
     add buy transactions to the db table
     """
@@ -66,16 +58,14 @@ def sanity_check_args(args):
     return True
 
 
-if __name__ == "__main__":
+def make_transaction_table(session,
+                           args=TransferArgs(os.path.join(os.path.dirname(__file__), "../data/transactions.csv"),
+                                             None,
+                                             None,
+                                             None,
+                                             None,
+                                             None)):
 
-    parser = argparse.ArgumentParser(description="Players bought and sold")
-    parser.add_argument("--input_csv", help="input CSV file")
-    parser.add_argument("--output_csv", help="output CSV file")
-    parser.add_argument("--player_id", help="player ID", type=int)
-    parser.add_argument("--buy", action="store_true")
-    parser.add_argument("--sell", action="store_true")
-    parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
-    args = parser.parse_args()
     if not sanity_check_args(args):
         raise RuntimeError("Inconsistent set of arguments")
     if args.output_csv:
@@ -86,8 +76,26 @@ if __name__ == "__main__":
         infile = open(args.input_csv)
         for line in infile.readlines()[1:]:
             pid, gw, in_or_out = line.strip().split(",")
-            add_transaction(pid, gw, in_or_out, outfile)
+            add_transaction(pid, gw, in_or_out, session, output_csv_filename=outfile)
     if args.buy:
-        add_transaction(args.player_id, args.gameweek, 1, outfile)
+        add_transaction(args.player_id, args.gameweek, 1, session, output_csv_filename=outfile)
     if args.sell:
-        add_transaction(args.player_id, args.gameweek, -1, outfile)
+        add_transaction(args.player_id, args.gameweek, -1, session, output_csv_filename=outfile)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Players bought and sold")
+    parser.add_argument("--input_csv",
+                        help="input CSV file",
+                        default=os.path.join(os.path.dirname(__file__), "../data/transactions.csv"))
+    parser.add_argument("--output_csv", help="output CSV file")
+    parser.add_argument("--player_id", help="player ID", type=int)
+    parser.add_argument("--buy", action="store_true")
+    parser.add_argument("--sell", action="store_true")
+    parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
+    args = parser.parse_args()
+
+    with session_scope() as session:
+        make_transaction_table(session, args=args)
+

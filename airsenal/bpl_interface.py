@@ -131,11 +131,9 @@ def get_player_model():
     load the player-level model, which will give the probability that
     a given player scored/assisted/did-neither when their team scores a goal.
     """
-    stan_filepath = "stan/player_forecasts.stan"
+    stan_filepath = os.path.join(os.path.dirname(__file__), "../stan/player_forecasts.stan")
     if not os.path.exists(stan_filepath):
-        stan_filepath = "../stan/player_forecasts.stan"
-        if not os.path.exists(stan_filepath):
-            raise RuntimeError("Can't find player_forecasts.stan")
+        raise RuntimeError("Can't find player_forecasts.stan")
 
     model_player = pystan.StanModel(file=stan_filepath)
     return model_player

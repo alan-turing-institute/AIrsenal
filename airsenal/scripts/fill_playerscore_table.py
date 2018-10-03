@@ -4,35 +4,20 @@
 Fill the "player_score" table with historic results
 (player_details_xxyy.json).
 """
-
-import os
-import sys
-
-
-
 import json
+import os
 
-from ..framework.mappings import (
-    alternative_team_names,
-    alternative_player_names,
-    positions,
-)
-from ..framework.schema import Player, PlayerScore, Match, Base, engine
+from ..framework.mappings import alternative_player_names
+from ..framework.schema import Player, PlayerScore, Match, session_scope
 
 from sqlalchemy import create_engine, and_, or_
-from sqlalchemy.orm import sessionmaker
 
 
-
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-
-def find_player_id(player_name):
+def find_player_id(player_name, session):
     """
     query the player table by name, return the id (or None)
     """
-    p = session.query(Player).filter_by(name=player).first()
+    p = session.query(Player).filter_by(name=player_name).first()
     if p:
         return p.player_id
     # try alternative names
@@ -45,7 +30,7 @@ def find_player_id(player_name):
     return None
 
 
-def find_match_id(season, gameweek, played_for, opponent):
+def find_match_id(season, gameweek, played_for, opponent, session):
     """
     query the match table using 3 bits of info...
     not 100% guaranteed, as 'played_for' might be incorrect
@@ -86,14 +71,16 @@ def find_match_id(season, gameweek, played_for, opponent):
     return m.first().match_id
 
 
-if __name__ == "__main__":
+def make_playerscore_table(session):
     for season in ["1718", "1617"]:  # ,"1617","1516"]:
-        input_data = json.load(open("../data/player_details_{}.json".format(season)))
-        summary_data = json.load(open("../data/player_summary_{}.json".format(season)))
+        input_path = os.path.join(os.path.dirname(__file__), "../data/player_details_{}.json".format(season))
+        summary_path = os.path.join(os.path.dirname(__file__), "../data/player_summary_{}.json".format(season))
+        input_data = json.load(open(input_path))
+        summary_data = json.load(open(summary_path))
         for player in input_data.keys():
             # find the player id in the player table.  If they're not
             # there, then we don't care (probably not a current player).
-            player_id = find_player_id(player)
+            player_id = find_player_id(player, session)
             if not player_id:
                 continue
             # need to find what team the player played for in that season
@@ -113,7 +100,7 @@ if __name__ == "__main__":
                 # try to find the match in the match table
                 gameweek = match["gameweek"]
                 opponent = match["opponent"]
-                match_id = find_match_id(season, gameweek, played_for, opponent)
+                match_id = find_match_id(season, gameweek, played_for, opponent, session)
                 if not match_id:
                     print(
                         "  Couldn't find match for {} in gw {}".format(player, gameweek)
@@ -132,3 +119,9 @@ if __name__ == "__main__":
                 ps.minutes = match["minutes"]
                 session.add(ps)
     session.commit()
+
+
+if __name__ == "__main__":
+    with session_scope() as session:
+        make_playerscore_table(session)
+
