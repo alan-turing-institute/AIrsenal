@@ -4,33 +4,20 @@
 Fill the "Player" table with info from this seasons FPL
 (FPL_2017-18.json).
 """
+import os
 
-from ..framework.mappings import alternative_team_names, positions
-from ..framework.schema import Player, session_scope
-from ..framework.data_fetcher import FPLDataFetcher
+from ..framework.history_utils import (
+    fill_player_table_from_api,
+    fill_player_table_from_file
+)
 
 
 def make_player_table(session):
-    # fill up the player table
-    data_fetcher = FPLDataFetcher()
-    player_dict = data_fetcher.get_player_summary_data()
 
-    for k, v in player_dict.items():
-        p = Player()
-        p.player_id = k
-        name = "{} {}".format(v["first_name"], v["second_name"])
-        print("Adding {}".format(name))
-        p.name = name
-        team_number = v["team"]
-        for tk, tv in alternative_team_names.items():
-            if str(team_number) in tv:
-                p.team = tk
-                break
-        p.position = positions[v["element_type"]]
-        p.current_price = v["now_cost"]
-        session.add(p)
-    session.commit()
-
+    fill_player_table_from_api(session,"1819")
+    for season in ["1718","1617","1516"]:
+        filename = os.path.join("airsenal/data","player_summary_{}.json".format(season))
+        fill_player_table_from_file(session,filename,season)
 
 if __name__ == "__main__":
     with session_scope() as session:
