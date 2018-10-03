@@ -13,8 +13,8 @@ setup(
     author="Nick Barlow and Angus Williams",
     license="MIT",
     packages=["airsenal"],
+    include_package_data=True,
     install_requires=REQUIRED_PACKAGES,
     setup_requires=REQUIRED_PACKAGES,
     dependency_links=["https://github.com/anguswilliams91/bpl/archive/v0.0.1-alpha.zip#egg=bpl-v0.0.1"]
 )
-
