@@ -59,6 +59,8 @@ class Fixture(Base):
     home_team = Column(String(100), nullable=False)
     away_team = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
+    tag = Column(String(100), nullable=False)
+
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
