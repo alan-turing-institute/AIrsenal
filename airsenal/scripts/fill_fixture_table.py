@@ -65,10 +65,18 @@ def fill_fixtures_from_api(season, session):
             elif str(away_id) in v:
                 f.away_team = k
                 found_away = True
-        if not found_home:
-            raise ValueError("Unable to find team with id {}".format(home_id))
-        if not found_away:
-            raise ValueError("Unable to find team with id {}".format(away_id))
+            if found_home and found_away:
+                break
+
+        error_str = "Can't find team(s) with id(s): {}."
+        if not found_home and found_away:
+            raise ValueError(error_str.format(home_id + ", " + away_id))
+        elif not found_home:
+            raise ValueError(error_str.format(home_id))
+        elif not found_away:
+            raise ValueError(error_str.format(away_id))
+        else:
+            pass
 
         session.add(f)
 
