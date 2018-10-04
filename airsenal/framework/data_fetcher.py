@@ -24,6 +24,7 @@ class FPLDataFetcher(object):
         self.fpl_team_history_data = None
         self.fpl_league_data = None
         self.fpl_team_data = {} # players in squad, by gameweek
+        self.fixture_data = None
         for ID in ["FPL_LEAGUE_ID",
                    "FPL_TEAM_ID"]:
             if ID in os.environ.keys():
@@ -43,6 +44,7 @@ class FPLDataFetcher(object):
         self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
             self.FPL_LEAGUE_ID
         )
+        self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/drf/fixtures/"
 
 
 
@@ -195,6 +197,16 @@ class FPLDataFetcher(object):
             return self.player_gameweek_data[player_id][gameweek]
         else:
             return self.player_gameweek_data[player_id]
+
+    def get_fixture_data(self):
+        """
+        Get the fixture list from the FPL API.
+        """
+        if not self.fixture_data:
+            self.fixture_data = requests.get(self.FPL_FIXTURE_URL).json()
+        else:
+            pass
+        return self.fixture_data
 
 
 class MatchDataFetcher(object):

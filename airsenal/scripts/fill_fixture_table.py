@@ -15,8 +15,6 @@ from ..framework.mappings import alternative_team_names
 from ..framework.schema import Fixture, session_scope
 
 
-
-
 def fill_fixtures_from_file(filename, season, session):
     """
     use the match results csv files to get a list of matches in a season,
@@ -43,42 +41,37 @@ def fill_fixtures_from_file(filename, season, session):
 
 def fill_fixtures_from_api(season, session):
     """
-    Use the football data api to get a list of matches, and the FPL
-    api to get deadlines.
+    Use the FPL API to get a list of fixures.
     """
     tag = str(uuid.uuid4())
     fetcher = FPLDataFetcher()
-    deadlines = fetcher.get_event_data()
-    mf = MatchDataFetcher()
-    all_matches = []
-    for gw in range(1,39):
-        if gw%10 == 0:
-            time.sleep(60) # can only hit API 10 times per minute
-        all_matches += mf.get_fixtures(gw)
-    ## now loop over all matches, and see what is the first deadline after
-    ## the match date
-    for match in all_matches:
-        match_time = dateparser.parse(match[0])
-        gameweek = None
-        for gw_idx in range(1,38):
-            this_deadline = dateparser.parse(deadlines[gw_idx]['deadline'])
-            next_deadline = dateparser.parse(deadlines[gw_idx+1]['deadline'])
-            if match_time > this_deadline and match_time < next_deadline:
-                gameweek = gw_idx
-                break
-        if not gameweek: # must be the last gameweek
-            gameweek = 38
-        print("match {} {} is gameweek {}".format(match[1],
-                                                  match[2],
-                                                  gameweek))
+    fixtures = fetcher.get_fixture_data()
+    for fixture in fixtures:
         f = Fixture()
-        f.date = match[0]
-        f.home_team = match[1]
-        f.away_team = match[2]
-        f.gameweek = gameweek
+
+        f.date = fixture["kickoff_time"]
+        f.gameweek = fixture["event"]
         f.season = season
         f.tag = tag
+
+        home_id = fixture["team_h"]
+        away_id = fixture["team_a"]
+        found_home = False
+        found_away = False
+        for k, v in alternative_team_names.items():
+            if str(home_id) in v:
+                f.home_team = k
+                found_home = True
+            elif str(away_id) in v:
+                f.away_team = k
+                found_away = True
+        if not found_home:
+            raise ValueError("Unable to find team with id {}".format(home_id))
+        if not found_away:
+            raise ValueError("Unable to find team with id {}".format(away_id))
+
         session.add(f)
+
     session.commit()
     return True
 
@@ -92,7 +85,7 @@ def make_fixture_table(session):
                                 "results_{}_with_gw.csv".format(season))
         fill_fixtures_from_file(filename,season,session)
     # now fill the current season from the api
-    fill_fixtures_from_api("1819",session)
+    fill_fixtures_from_api("1819", session)
 
 
 if __name__ == "__main__":
