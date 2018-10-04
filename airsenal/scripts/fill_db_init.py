@@ -16,7 +16,7 @@ def main():
     with session_scope() as session:
         make_player_table(session)
         make_fixture_table(session)
-#        make_match_table("csv", session)
+        make_match_table(session)
 #        make_playerscore_table(session)
 #        make_fifa_ratings_table(session)
 #        make_match_table("api", session, gw_start=1)

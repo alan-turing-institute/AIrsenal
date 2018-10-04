@@ -9,9 +9,23 @@ import argparse
 import os
 
 from ..framework.mappings import alternative_team_names
-from ..framework.schema import Match, session_scope
+from ..framework.schema import Match, session_scope, Fixture
 from ..framework.data_fetcher import MatchDataFetcher
-from ..framework.utils import get_next_gameweek
+from ..framework.utils import get_next_gameweek, get_latest_fixture_tag
+
+
+def _find_fixture(season,home_team,away_team,session):
+    """
+    query database to find corresponding fixture
+    """
+    tag = get_latest_fixture_tag(season)
+    f = session.query(Fixture)\
+               .filter_by(tag=tag)\
+               .filter_by(season=season)\
+               .filter_by(home_team=home_team)\
+               .filter_by(away_team=away_team)\
+               .first()
+    return f
 
 
 def fill_table_from_csv(input_file, season, session):
@@ -20,65 +34,55 @@ def fill_table_from_csv(input_file, season, session):
             ","
         )
         print(line.strip())
-        m = Match()
-        m.season = season
-        m.date = date
-        m.home_score = int(home_score)
-        m.away_score = int(away_score)
-        m.gameweek = int(gameweek)
         for k, v in alternative_team_names.items():
             if home_team in v:
-                m.home_team = k
+                home_team = k
             elif away_team in v:
-                m.away_team = k
+                away_team = k
+        ## query database to find corresponding fixture
+        tag = get_latest_fixture_tag(season)
+        f = _find_fixture(season, home_team, away_team, session)
+        m = Match()
+        m.fixture = f
+        m.home_score = int(home_score)
+        m.away_score = int(away_score)
         session.add(m)
     session.commit()
 
 
-def fill_table_from_list(input_list, gameweek, session):
+def fill_table_from_list(input_list, gameweek, season, session):
     for result in input_list:
         print(result)
         date, home_team, away_team, home_score, away_score = result
+        f = _find_fixture(season, home_team, away_team, session)
         m = Match()
-        m.season = "1819"
-        m.date = date
-        m.home_team = home_team
-        m.away_team = away_team
+        m.fixture = f
         m.home_score = int(home_score)
         m.away_score = int(away_score)
-        m.gameweek = int(gameweek)
         session.add(m)
 
 
-def fill_from_api(gw_start, gw_end, session):
+def fill_from_api(gw_start, gw_end, season, session):
     mf = MatchDataFetcher()
     for gw in range(gw_start, gw_end):
         results = mf.get_results(gw)
-        fill_table_from_list(results, gw, session)
+        fill_table_from_list(results, gw, season, session)
     session.commit()
 
 
-def make_match_table(input_type, session, gw_start=None, gw_end=None, season=None, input_file=None):
-    if input_type == "csv":
-        if input_file:
-            if season is None:
-                raise ValueError("If using a specified csv input file, you must provide a season identifier.")
-            infile = open(input_file)
-            fill_table_from_csv(infile, season, session)
-        else:
-            for season in ["1718", "1617", "1516"]:
-                inpath = os.path.join(os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season))
-                infile = open(inpath)
-                fill_table_from_csv(infile, season, session)
-    else:
-        # use the API
-        if gw_start is None:
-            raise ValueError("Must provide a starting gameweek if using the API.")
-        if not gw_end:
-            gw_end = get_next_gameweek()
-        else:
-            gw_end = gw_end
-        fill_from_api(gw_start, gw_end, session)
+def make_match_table(session):
+    """
+    past seasons - read results from csv
+    """
+    for season in ["1718", "1617", "1516"]:
+        inpath = os.path.join(os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season))
+        infile = open(inpath)
+        fill_table_from_csv(infile, season, session)
+    """
+    current season - use API
+    """
+    gw_end = get_next_gameweek()
+    fill_from_api(1, gw_end, "1819", session)
 
 
 if __name__ == "__main__":
@@ -93,10 +97,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with session_scope() as session:
-        make_match_table(args.input_type,
-                         session,
-                         gw_start=args.gw_start,
-                         gw_end=args.gw_end,
-                         season=args.season,
-                         input_file=args.input_file)
-
+        make_match_table(session)
+#        args.input_type,
+#                         session,
+#                         gw_start=args.gw_start,
+#                         gw_end=args.gw_end,
+#                         season=args.season,
+#                         input_file=args.input_file)

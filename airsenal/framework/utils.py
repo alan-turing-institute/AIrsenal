@@ -3,7 +3,7 @@ Useful commands to query the db
 """
 import copy
 from operator import itemgetter
-from datetime import datetime
+from datetime import datetime, timezone
 import dateparser
 import re
 
@@ -123,19 +123,27 @@ def get_next_gameweek():
     """
     Use the current time to figure out which gameweek we're in
     """
-    timenow = datetime.now()
+    timenow = datetime.now(timezone.utc)
+##    timenow = timenow.replace(tzinfo=None)
     fixtures = session.query(Fixture).all()
     earliest_future_gameweek = 38
     for fixture in fixtures:
+        fixture_date = dateparser.parse(fixture.date)
+        fixture_date = fixture_date.replace(tzinfo=timezone.utc)
+#        fixture_date = fixture_date.replace(tzinfo=None)
+        print("{} {} {} {}".format(timenow, fixture_date,
+                                   timenow.tzinfo, fixture_date.tzinfo))
         if (
-            dateparser.parse(fixture.date) > timenow
+            fixture_date > timenow
             and fixture.gameweek < earliest_future_gameweek
         ):
             earliest_future_gameweek = fixture.gameweek
+
     ## now make sure we aren't in the middle of a gameweek
     for fixture in fixtures:
         if (
-            dateparser.parse(fixture.date) < timenow
+            dateparser.parse(fixture.date)\
+                .replace(tzinfo=timezone.utc) < timenow
             and fixture.gameweek == earliest_future_gameweek
         ):
             earliest_future_gameweek += 1
@@ -439,4 +447,14 @@ def get_latest_prediction_tag(season="1819"):
     """
     rows = session.query(PlayerPrediction)\
                   .filter_by(season=season).all()
-    return rows[-1].method
+    return rows[-1].tag
+
+
+def get_latest_fixture_tag(season="1819"):
+    """
+    query the predicted_score table and get the method
+    field for the last row.
+    """
+    rows = session.query(Fixture)\
+                  .filter_by(season=season).all()
+    return rows[-1].tag
