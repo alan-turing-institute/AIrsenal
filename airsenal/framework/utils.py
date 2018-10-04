@@ -119,20 +119,19 @@ def get_sell_price_for_player(player_id, gameweek=None):
     return value
 
 
-def get_next_gameweek():
+def get_next_gameweek(season="1819"):
     """
     Use the current time to figure out which gameweek we're in
     """
     timenow = datetime.now(timezone.utc)
 ##    timenow = timenow.replace(tzinfo=None)
-    fixtures = session.query(Fixture).all()
+    fixtures = session.query(Fixture)\
+                      .filter_by(season=season)\
+                      .all()
     earliest_future_gameweek = 38
     for fixture in fixtures:
         fixture_date = dateparser.parse(fixture.date)
         fixture_date = fixture_date.replace(tzinfo=timezone.utc)
-#        fixture_date = fixture_date.replace(tzinfo=None)
-        print("{} {} {} {}".format(timenow, fixture_date,
-                                   timenow.tzinfo, fixture_date.tzinfo))
         if (
             fixture_date > timenow
             and fixture.gameweek < earliest_future_gameweek
