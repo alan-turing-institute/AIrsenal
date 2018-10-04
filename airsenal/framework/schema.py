@@ -42,11 +42,8 @@ class Player(Base):
 class Match(Base):
     __tablename__ = "match"
     match_id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String(100), nullable=False)
-    season = Column(String(100), nullable=False)
-    gameweek = Column(Integer, nullable=True)  # not there for 14/15 season
-    home_team = Column(String(100), nullable=False)
-    away_team = Column(String(100), nullable=False)
+    fixture = relationship("Fixture", uselist=False)
+    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
 
@@ -83,7 +80,7 @@ class PlayerPrediction(Base):
     player_id = Column(Integer, nullable=False)
     gameweek = Column(Integer, nullable=False)
     predicted_points = Column(Float, nullable=False)
-    method = Column(String(100), nullable=False)
+    tag = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
 
 class Transaction(Base):
