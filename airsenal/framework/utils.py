@@ -13,7 +13,7 @@ from .data_fetcher import FPLDataFetcher, MatchDataFetcher
 from .schema import (
     Base,
     Player,
-    Match,
+    Result,
     Fixture,
     PlayerScore,
     PlayerPrediction,
@@ -315,18 +315,18 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     away_team = fixture.away_team
 
     previous_matches = (
-        session.query(Match)
+        session.query(Fixture)
         .filter_by(home_team=home_team)
         .filter_by(away_team=away_team)
-        .order_by(Match.season)
+        .order_by(Fixture.season)
         .all()
     )
-    match_ids = [(match.match_id, match.season) for match in previous_matches]
+    fixture_ids = [(f.fixture_id, f.season) for f in previous_matches]
     previous_points = {}
-    for m in match_ids:
+    for fid in fixture_ids:
         scores = (
             session.query(PlayerScore)
-            .filter_by(player_id=player_id, match_id=m[0])
+            .filter_by(player_id=player_id, fixture_id=m[0])
             .all()
         )
         for s in scores:
@@ -416,14 +416,15 @@ def get_recent_minutes_for_player(player_id, num_match_to_use=3, season="1819"):
 
 def get_last_gameweek_in_db(season="1819"):
     """
-    query the match table to see what was the last gameweek for which
+    query the result table to see what was the last gameweek for which
     we have filled the data.
     """
-    last_match = (
-        session.query(Match).filter_by(season=season)
-        .order_by(Match.gameweek).all()[-1]
+    last_result = (
+        session.query(Fixture).filter_by(season=season)\
+        .filter(Fixture.result_id != None)\
+        .order_by(Fixture.gameweek).all()[-1]
     )
-    return last_match.gameweek
+    return last_result.gameweek
 
 
 def get_last_finished_gameweek():

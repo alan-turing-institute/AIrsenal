@@ -39,10 +39,10 @@ class Player(Base):
 #    fixtures = relationship("Fixture")
 
 
-class Match(Base):
-    __tablename__ = "match"
-    match_id = Column(Integer, primary_key=True, autoincrement=True)
-    fixture = relationship("Fixture", uselist=False)
+class Result(Base):
+    __tablename__ = "result"
+    result_id = Column(Integer, primary_key=True, autoincrement=True)
+    fixture = relationship("Fixture", uselist=False, back_populates="result")
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
@@ -57,13 +57,18 @@ class Fixture(Base):
     away_team = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
+    result = relationship("Result", uselist=False, back_populates="fixture")
 
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, nullable=False)
-    match_id = Column(Integer, nullable=False)
+    player = relationship("Player", uselist=False)
+    player_id = Column(Integer, ForeignKey('player.player_id'))
+    result = relationship("Result", uselist=False)
+    result_id = Column(Integer, ForeignKey('result.result_id'))
+    fixture = relationship("Fixture", uselist=False)
+    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     player_team = Column(String(100), nullable=False)
     opponent = Column(String(100), nullable=False)
     points = Column(Integer, nullable=False)
@@ -72,7 +77,7 @@ class PlayerScore(Base):
     bonus = Column(Integer, nullable=False)
     conceded = Column(Integer, nullable=False)
     minutes = Column(Integer, nullable=False)
-    season = Column(String(100), nullable=False)
+
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
@@ -82,6 +87,7 @@ class PlayerPrediction(Base):
     predicted_points = Column(Float, nullable=False)
     tag = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
+
 
 class Transaction(Base):
     __tablename__ = "transaction"
@@ -101,6 +107,7 @@ class TransferSuggestion(Base):
     points_gain = Column(Float, nullable=False)
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
     season = Column(String(100), nullable=False)
+
 
 class FifaTeamRating(Base):
     __tablename__ = "fifa_rating"
