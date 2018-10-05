@@ -180,7 +180,7 @@ def make_optimum_double_transfer(team, method, gameweek_range=None):
                             best_team = new_team_add_2
                         break
 
-    return best_team, [best_pid_out], [best_pid_in]
+    return best_team, best_pid_out, best_pid_in
 
 
 def make_random_transfers(team, method, nsubs=1, gw_range=None):
