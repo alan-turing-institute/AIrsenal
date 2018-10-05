@@ -124,11 +124,10 @@ def get_next_gameweek(season="1819"):
     Use the current time to figure out which gameweek we're in
     """
     timenow = datetime.now(timezone.utc)
-##    timenow = timenow.replace(tzinfo=None)
     fixtures = session.query(Fixture)\
                       .filter_by(season=season)\
                       .all()
-    earliest_future_gameweek = 38
+    earliest_future_gameweek = 39
     for fixture in fixtures:
         fixture_date = dateparser.parse(fixture.date)
         fixture_date = fixture_date.replace(tzinfo=timezone.utc)
@@ -145,6 +144,7 @@ def get_next_gameweek(season="1819"):
                 .replace(tzinfo=timezone.utc) < timenow
             and fixture.gameweek == earliest_future_gameweek
         ):
+
             earliest_future_gameweek += 1
 
     return earliest_future_gameweek
@@ -173,6 +173,35 @@ def get_team_name(team_id):
         for vv in v:
             if str(team_id) == vv:
                 return k
+    return None
+
+
+def get_player(player_name_or_id, season="1819", dbsession=None):
+    """
+    query the player table by name or id, return the player object (or None)
+    """
+    if not dbsession:
+        dbsession = session # use the one defined in this module
+    if isinstance(player_name_or_id, int):
+        filter_attr = Player.player_id
+    else:
+        filter_attr = Player.name
+    p = dbsession.query(Player)\
+                 .filter_by(season=season)\
+                 .filter(filter_attr==player_name_or_id).first()
+    if p:
+        return p
+    if isinstance(player_name_or_id, int): # didn't find by id - return None
+        return None
+    # assume we have a name, now try alternative names
+    for k, v in alternative_player_names.items():
+        if player_name_or_id in v:
+            p = dbsession.query(Player)\
+                         .filter_by(season=season)\
+                         .filter_by(name=k).first()
+            if p:
+                return p
+    # didn't find it - return None
     return None
 
 
