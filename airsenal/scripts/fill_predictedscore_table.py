@@ -4,7 +4,7 @@
 Fill the "player_prediction" table with score predictions
 Usage:
 python fill_predictedscore_table.py --weeks_ahead <nweeks>
-Generates a "method" string which is stored so it can later be used by team-optimizers to
+Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
 from uuid import uuid4

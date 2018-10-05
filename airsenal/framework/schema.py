@@ -58,7 +58,7 @@ class Fixture(Base):
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     result = relationship("Result", uselist=False, back_populates="fixture")
-
+#    result_id = Column(Integer, ForeignKey('result.result_id'))
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
@@ -82,11 +82,12 @@ class PlayerScore(Base):
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, nullable=False)
-    gameweek = Column(Integer, nullable=False)
+    player = relationship("Player", uselist=False)
+    player_id = Column(Integer, ForeignKey('player.player_id'))
+    fixture = relationship("Fixture", uselist=False)
+    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     predicted_points = Column(Float, nullable=False)
     tag = Column(String(100), nullable=False)
-    season = Column(String(100), nullable=False)
 
 
 class Transaction(Base):

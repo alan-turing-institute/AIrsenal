@@ -69,7 +69,7 @@ def get_player_history_df(position="all"):
         "team_goals",
     ]
     df = pd.DataFrame(columns=col_names)
-    player_ids = list_players(position)
+    player_ids = list_players(position,season)
     max_matches_per_player = get_max_matches_per_player(position)
     for counter, pid in enumerate(player_ids):
         player_name = get_player_name(pid)

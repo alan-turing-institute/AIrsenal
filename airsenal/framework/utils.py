@@ -279,7 +279,7 @@ def get_max_matches_per_player(position="all"):
     can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
-    players = list_players()
+    players = list_players(season=season)
     max_matches = 0
     for p in players:
         num_match = len(session.query(PlayerScore).filter_by(player_id=p).all())
@@ -288,9 +288,12 @@ def get_max_matches_per_player(position="all"):
     return max_matches
 
 
-def get_fixtures_for_player(player, season="1819", verbose=False):
+def get_fixtures_for_player(player, season="1819", gw_range=None, verbose=False):
     """
     search for upcoming fixtures for a player, specified either by id or name.
+    If gw_range not specified:
+       for current season: return fixtures from now to end of season
+       for past seasons: return all fixtures in the season
     """
     player_query = session.query(Player).filter_by(season=season)
     if isinstance(player, str):
@@ -301,8 +304,10 @@ def get_fixtures_for_player(player, season="1819", verbose=False):
         print("Couldn't find {} in database".format(player))
         return []
     team = player_record.team
+    tag = get_latest_fixture_tag(season)
     fixtures = (
         session.query(Fixture).filter_by(season=season)
+        .filter_by(tag=tag)
         .filter(or_(Fixture.home_team == team, Fixture.away_team == team))
         .order_by(Fixture.gameweek)
         .all()
@@ -310,15 +315,19 @@ def get_fixtures_for_player(player, season="1819", verbose=False):
     fixture_ids = []
     next_gameweek = get_next_gameweek()
     for fixture in fixtures:
-        if season == "1819" and fixture.gameweek < next_gameweek:
-            continue
-        if verbose:
-            print(
-                "{} vs {} gameweek {}".format(
-                    fixture.home_team, fixture.away_team, fixture.gameweek
+        if gw_range:
+            if fixture.gameweek in gw_range:
+                fixture_ids.append(fixture.fixture_id)
+        else:
+            if season == "1819" and fixture.gameweek < next_gameweek:
+                continue
+            if verbose:
+                print(
+                    "{} vs {} gameweek {}".format(
+                        fixture.home_team, fixture.away_team, fixture.gameweek
+                    )
                 )
-            )
-        fixture_ids.append(fixture.fixture_id)
+            fixture_ids.append(fixture.fixture_id)
     return fixture_ids
 
 
@@ -392,7 +401,7 @@ def get_predicted_points(gameweek, method, position="all", team="all",
     "gameweek" argument can either be a single integer for one gameweek, or a
     list of gameweeks, in which case we will get the sum over all of them
     """
-    player_ids = list_players(position, team)
+    player_ids = list_players(position, team, season=season)
 
     if isinstance(gameweek, int):
         output_list = [
@@ -424,18 +433,27 @@ def get_return_gameweek_for_player(player_id):
     return None
 
 
-def get_recent_minutes_for_player(player_id, num_match_to_use=3, season="1819"):
+def get_recent_minutes_for_player(player_id,
+                                  num_match_to_use=3,
+                                  season="1819",
+                                  last_gw=None):
 
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
+    If current_gw is not given, we take it to be the most
+    recent finished gameweek.
     """
-    ### FIXME - how to do for previous seasons
-
+    if not last_gw:
+        last_gw = get_next_gameweek(season)
+    first_gw = last_gw - num_match_to_use
     ## get the playerscore rows from the db
     rows = session.query(PlayerScore)\
-                  .filter_by(season=season)\
-                  .filter_by(player_id=player_id).all()
+                  .filter(PlayerScore.fixture.has(season=season))\
+                  .filter_by(player_id=player_id)\
+                  .filter(PlayerScore.fixture.has(Fixture.gameweek >= first_gw))\
+                  .filter(PlayerScore.fixture.has(Fixture.gameweek < last_gw))\
+                  .all()
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
@@ -449,7 +467,7 @@ def get_last_gameweek_in_db(season="1819"):
     """
     last_result = (
         session.query(Fixture).filter_by(season=season)\
-        .filter(Fixture.result_id != None)\
+        .filter(Fixture.result != None)\
         .order_by(Fixture.gameweek).all()[-1]
     )
     return last_result.gameweek

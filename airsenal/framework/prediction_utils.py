@@ -129,7 +129,8 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
 
 
 def get_predicted_points(
-    player_id, model_team, df_player, session, fixtures_ahead=1, fixures_behind=3
+        player_id, model_team, df_player, season, session
+        fixtures_ahead=1, fixures_behind=3
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -138,14 +139,18 @@ def get_predicted_points(
     """
 
     print("Getting points prediction for player {}".format(get_player_name(player_id)))
-    player = session.query(Player).filter_by(player_id=player_id).first()
+    player = session.query(Player)\
+                    .filter_by(season=season)\
+                    .filter_by(player_id=player_id).first()
     team = player.team
     position = player.position
-    fixtures = get_fixtures_for_player(player_id)[0:fixtures_ahead]
+    fixtures = get_fixtures_for_player(player_id, season)[0:fixtures_ahead]
     expected_points = defaultdict(float)  # default value is 0.0
 
     for fid in fixtures:
-        fixture = session.query(Fixture).filter_by(fixture_id=fid).first()
+        fixture = session.query(Fixture)\
+                         .filter_by(season=season)\
+                         .filter_by(fixture_id=fid).first()
         gameweek = fixture.gameweek
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
@@ -156,7 +161,7 @@ def get_predicted_points(
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
-        if not is_injured_or_suspended(player_id, gameweek):
+        if not is_injured_or_suspended(player_id, gameweek, season):
         # now loop over recent minutes and average
             points = sum(
                 [
@@ -184,11 +189,13 @@ def get_predicted_points(
     return expected_points
 
 
-def is_injured_or_suspended(player_id, gameweek):
+def is_injured_or_suspended(player_id, gameweek, season):
     """
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
     """
+    if season != "1819": # no API info for past seasons
+        return False
     ## check if a player is injured or suspended
     pdata = fetcher.get_player_summary_data()[player_id]
     if (
