@@ -26,17 +26,61 @@ Base = declarative_base()
 
 class Player(Base):
     __tablename__ = "player"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, nullable=False)
+    player_id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
+    attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
+    results = relationship("Result", uselist=True, back_populates="player")
+    fixtures = relationship("Fixture", uselist=True, back_populates="player")
+    predictions = relationship("PlayerPrediction", uselist=True, back_populates="player")
+    scores = relationship("PlayerScore", uselist=True, back_populates="player")
+
+    def team(self, season, gameweek=1):
+        """
+        in case a player changed team in a season, loop through all attributes,
+        take the largest gw_valid_from.
+        """
+        team = None
+        latest_valid_gw = 0
+        for attr in self.attributes:
+            if attr.season == season \
+               and attr.gw_valid_from <= gameweek \
+               and attr.gw_valid_from > latest_valid_gw:
+                team = attr.team
+        return team
+
+    def current_price(self, season, gameweek=1):
+        """
+        take the largest gw_valid_from.
+        """
+        current_price = None
+        latest_valid_gw = 0
+        for attr in self.attributes:
+            if attr.season == season \
+               and attr.gw_valid_from <= gameweek \
+               and attr.gw_valid_from > latest_valid_gw:
+                current_price = attr.current_price
+        return current_price
+
+    def position(self, season):
+        """
+        players can't change position within a season
+        """
+        for attr in self.attributes:
+            if attr.season == season:
+                return attr.position
+        return None
+
+
+class PlayerAttributes(Base):
+    __tablename__ = "player_attributes"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player = relationship("Player", back_populates="attributes")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
+    season = Column(String(100), nullable=False)
+    gw_valid_from = Column(Integer, nullable=False)
+    current_price = Column(String(100), nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
-    current_price = Column(Integer, nullable=True)
-    purchased_price = Column(Integer, nullable=True)
-    season = Column(String(100), nullable=False)
-
-#    scores = relationship("PlayerScore")
-#    fixtures = relationship("Fixture")
 
 
 class Result(Base):
@@ -46,7 +90,8 @@ class Result(Base):
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
-
+    player = relationship("Player", back_populates="results")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
 
 class Fixture(Base):
     __tablename__ = "fixture"
@@ -58,7 +103,9 @@ class Fixture(Base):
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     result = relationship("Result", uselist=False, back_populates="fixture")
-#    result_id = Column(Integer, ForeignKey('result.result_id'))
+    player = relationship("Player", back_populates="fixtures")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
+
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
@@ -77,6 +124,8 @@ class PlayerScore(Base):
     bonus = Column(Integer, nullable=False)
     conceded = Column(Integer, nullable=False)
     minutes = Column(Integer, nullable=False)
+    player = relationship("Player", back_populates="scores")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
 
 
 class PlayerPrediction(Base):
@@ -88,6 +137,8 @@ class PlayerPrediction(Base):
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     predicted_points = Column(Float, nullable=False)
     tag = Column(String(100), nullable=False)
+    player = relationship("Player", back_populates="predictions")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
 
 
 class Transaction(Base):

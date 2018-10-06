@@ -15,11 +15,6 @@ from ..framework.utils import get_latest_fixture_tag, get_next_gameweek, get_pla
 from ..framework.data_fetcher import FPLDataFetcher
 
 
-
-
-
-
-
 def find_fixture(season, gameweek, played_for, opponent, session):
     """
     query the fixture table using 3 bits of info...
@@ -63,29 +58,20 @@ def find_fixture(season, gameweek, played_for, opponent, session):
     return f.first()
 
 
-def fill_playerscores_from_json(summary_data, detail_data, season, session):
+def fill_playerscores_from_json(detail_data, season, session):
     for player_name in detail_data.keys():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_name, season,session)
+        player = get_player(player_name, dbsession=session)
         if not player:
             continue
-        # need to find what team the player played for in that season
-        played_for = None
-        for summary in summary_data:
-            if summary["name"] == player_name:
-                played_for = summary[
-                    "team"
-                ]  # WHAT ABOUT PLAYERS THAT MOVED MID-SEASON?
-                break
-        if not played_for:
-            print("Can't find summary data for {}".format(player))
-            continue
+
         print("Doing {} for {} season".format(player_name, season))
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
-            gameweek = fixture_data["gameweek"]
+            gameweek = int(fixture_data["gameweek"])
+            played_for = player.team(season, gameweek)
             opponent = fixture_data["opponent"]
             fixture = find_fixture(season, gameweek, played_for, opponent, session)
             if not fixture:
@@ -94,9 +80,6 @@ def fill_playerscores_from_json(summary_data, detail_data, season, session):
                 )
                 continue
             ps = PlayerScore()
-            ps.player = player
-            ps.result = fixture.result
-            ps.fixture = fixture
             ps.player_team = played_for
             ps.opponent = opponent
             ps.goals = fixture_data["goals"]
@@ -105,14 +88,18 @@ def fill_playerscores_from_json(summary_data, detail_data, season, session):
             ps.points = fixture_data["points"]
             ps.conceded = fixture_data["conceded"]
             ps.minutes = fixture_data["minutes"]
-            session.add(ps)
+            ps.player = player
+            ps.result = fixture.result
+            ps.fixture = fixture
+            player.scores.append(ps)
+         #   session.add(ps)
 
 def fill_playerscores_from_api(season, session, gw_start=1):
     gw_end = get_next_gameweek()
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():
-        player = get_player(player_id,season,session)
+        player = get_player(player_id, dbsession=session)
         # find the player in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         played_for_id = input_data[player_id]["team"]
@@ -138,9 +125,6 @@ def fill_playerscores_from_api(season, session, gw_start=1):
                     )
                     continue
                 ps = PlayerScore()
-                ps.player = player
-                ps.fixture = fixture
-                ps.result = fixture.result
                 ps.player_team = played_for
                 ps.opponent = opponent
                 ps.goals = result["goals_scored"]
@@ -149,6 +133,10 @@ def fill_playerscores_from_api(season, session, gw_start=1):
                 ps.points = result["total_points"]
                 ps.conceded = result["goals_conceded"]
                 ps.minutes = result["minutes"]
+                ps.player = player
+                ps.fixture = fixture
+                ps.result = fixture.result
+                player.scores.append(ps)
                 session.add(ps)
                 print(
                     "  got {} points vs {} in gameweek {}".format(
@@ -160,10 +148,8 @@ def make_playerscore_table(session):
     # previous seasons data from json files
     for season in ["1718", "1617"]:#, "1516"]:
         input_path = os.path.join(os.path.dirname(__file__), "../data/player_details_{}.json".format(season))
-        summary_path = os.path.join(os.path.dirname(__file__), "../data/player_summary_{}.json".format(season))
         input_data = json.load(open(input_path))
-        summary_data = json.load(open(summary_path))
-        fill_playerscores_from_json(summary_data, input_data, season, session)
+        fill_playerscores_from_json(input_data, season, session)
     # this season's data from the API
     fill_playerscores_from_api("1819",session)
 

@@ -3,7 +3,7 @@ Class for a player in FPL
 """
 
 from .schema import Player
-from .utils import get_player_data, get_predicted_points_for_player
+from .utils import get_player, get_predicted_points_for_player
 
 
 class CandidatePlayer(object):
@@ -11,14 +11,16 @@ class CandidatePlayer(object):
     player class
     """
 
-    def __init__(self, player):
+    def __init__(self, player,season="1819",gameweek=1):
         """
         initialize either by name or by ID
         """
-        data = get_player_data(player)
-        for attribute in data.__dir__():
-            if not attribute.startswith("_"):
-                self.__setattr__(attribute, getattr(data, attribute))
+        pdata = get_player(player)
+        self.player_id = pdata.player_id
+        self.name = pdata.name
+        self.team = pdata.team(season,gameweek)
+        self.position = pdata.position(season)
+        self.current_price = pdata.current_price(season,gameweek)
         self.is_starting = True  # by default
         self.is_captain = False  # by default
         self.is_vice_captain = False  # by default

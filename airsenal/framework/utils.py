@@ -13,6 +13,7 @@ from .data_fetcher import FPLDataFetcher, MatchDataFetcher
 from .schema import (
     Base,
     Player,
+    PlayerAttributes,
     Result,
     Fixture,
     PlayerScore,
@@ -176,7 +177,7 @@ def get_team_name(team_id):
     return None
 
 
-def get_player(player_name_or_id, season="1819", dbsession=None):
+def get_player(player_name_or_id, dbsession=None):
     """
     query the player table by name or id, return the player object (or None)
     """
@@ -187,7 +188,6 @@ def get_player(player_name_or_id, season="1819", dbsession=None):
     else:
         filter_attr = Player.name
     p = dbsession.query(Player)\
-                 .filter_by(season=season)\
                  .filter(filter_attr==player_name_or_id).first()
     if p:
         return p
@@ -197,7 +197,6 @@ def get_player(player_name_or_id, season="1819", dbsession=None):
     for k, v in alternative_player_names.items():
         if player_name_or_id in v:
             p = dbsession.query(Player)\
-                         .filter_by(season=season)\
                          .filter_by(name=k).first()
             if p:
                 return p
@@ -205,19 +204,18 @@ def get_player(player_name_or_id, season="1819", dbsession=None):
     return None
 
 
-def get_player_name(player_id, season="1819"):
+def get_player_name(player_id):
     """
     lookup player name, for human readability
     """
-    p = session.query(Player).filter_by(season=season)\
-                             .filter_by(player_id=player_id).first()
+    p = session.query(Player).filter_by(player_id=player_id).first()
     if not p:
         print("Unknown player_id {}".format(player_id))
         return None
     return p.name
 
 
-def get_player_id(player_name, season="1819"):
+def get_player_id(player_name):
     """
     lookup player id, for machine readability
     """
@@ -234,21 +232,6 @@ def get_player_id(player_name, season="1819"):
     ## still not found
     print("Unknown player_name {}".format(player_name))
     return None
-
-
-def get_player_data(player, season="1819"):
-    """
-    can call with either player name or player ID
-    """
-    if isinstance(player, str):
-        return session.query(Player).filter_by(season=season)\
-                                    .filter_by(name=player).first()
-    elif isinstance(player, int):
-        return session.query(Player).filter_by(season=season)\
-                                    .filter_by(player_id=player).first()
-    else:
-        print("Unknown type in get_player_data request")
-        return None
 
 
 def list_players(position="all", team="all",
