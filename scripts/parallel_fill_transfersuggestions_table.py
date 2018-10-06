@@ -24,7 +24,7 @@ import argparse
 
 from framework.optimization_utils import *
 
-NUM_THREAD = 4
+NUM_THREAD = 8
 OUTPUT_DIR = "../data"
 
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--tag", help="specify a string identifying prediction set")
     parser.add_argument(
-        "--num_iterations", help="how many trials to run", type=int, default=100
+        "--num_iterations", help="how many trials to run", type=int, default=1
     )
     args = parser.parse_args()
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         procs.append(processor)
 
     ### add strategies to the queue
-    strategies = generate_transfer_strategies(num_weeks_ahead)
+    strategies = generate_transfer_strategies(num_weeks_ahead,1,max_total_hit=4)
     for strat in strategies:
         squeue.put(strat)
     for i in range(NUM_THREAD):
