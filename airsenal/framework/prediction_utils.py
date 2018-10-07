@@ -129,7 +129,7 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
 
 
 def get_predicted_points(
-        player_id, model_team, df_player, season, session
+        player, model_team, df_player, season, tag, session,
         fixtures_ahead=1, fixures_behind=3
 ):
     """
@@ -138,13 +138,12 @@ def get_predicted_points(
     or assisting given that their team scores.
     """
 
-    print("Getting points prediction for player {}".format(get_player_name(player_id)))
-    player = session.query(Player)\
-                    .filter_by(season=season)\
-                    .filter_by(player_id=player_id).first()
-    team = player.team
-    position = player.position
-    fixtures = get_fixtures_for_player(player_id, season)[0:fixtures_ahead]
+    print("Getting points prediction for player {}".format(player.name))
+    team = player.team(season)
+    position = player.position(season)
+    fixtures = get_fixtures_for_player(player,
+                                       season,
+                                       dbsession=session)[0:fixtures_ahead]
     expected_points = defaultdict(float)  # default value is 0.0
 
     for fid in fixtures:
@@ -156,18 +155,18 @@ def get_predicted_points(
         opponent = fixture.away_team if is_home else fixture.home_team
         print("gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home))
         recent_minutes = get_recent_minutes_for_player(
-            player_id, num_match_to_use=fixures_behind
+            player, num_match_to_use=fixures_behind, season=season, dbsession=session
         )
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
-        if not is_injured_or_suspended(player_id, gameweek, season):
+        if not is_injured_or_suspended(player.player_id, gameweek, season, session):
         # now loop over recent minutes and average
             points = sum(
                 [
                     get_appearance_points(mins)
                     + get_attacking_points(
-                        player_id,
+                        player.player_id,
                         position,
                         team,
                         opponent,
@@ -182,14 +181,16 @@ def get_predicted_points(
                     for mins in recent_minutes
                 ]
             ) / len(recent_minutes)
+            # write the prediction for this fixture to the db
+            fill_prediction(player, fixture, points, tag, session)
             expected_points[gameweek] += points
-
+        # and return the per-gameweek predictions as a dict
         print("Expected points: {:.2f}".format(points))
 
     return expected_points
 
 
-def is_injured_or_suspended(player_id, gameweek, season):
+def is_injured_or_suspended(player_id, gameweek, season, session):
     """
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
@@ -204,52 +205,52 @@ def is_injured_or_suspended(player_id, gameweek, season):
             and pdata["chance_of_playing_next_round"] <= 0.5
     ):
         ## check if we have a return date
-        return_gameweek = get_return_gameweek_for_player(player_id)
+        return_gameweek = get_return_gameweek_for_player(player_id, session)
         if return_gameweek is None or return_gameweek > gameweek:
             return True
     return False
 
 
-def get_fitted_models():
+def get_fitted_models(session):
     """
     Retrieve match and player models, and fit player model to the playerscore data.
     """
-    df_team = get_result_df()
-    df_X = get_ratings_df()
+    df_team = get_result_df(session)
+    df_X = get_ratings_df(session)
     model_team = get_team_model(df_team, df_X)
     model_player = get_player_model()
     print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_all_data(model_player)
+    df_player, fits, reals = fit_all_data(model_player, session)
     return model_team, df_player
 
 
-def calc_all_predicted_points(weeks_ahead, session):
+def fill_prediction(player, fixture, points, tag, session):
+    """
+    fill one row in the player_prediction table
+    """
+    pp = PlayerPrediction()
+    pp.predicted_points = points
+    pp.tag = tag
+    pp.player = player
+    pp.fixture = fixture
+    session.add(pp)
+
+
+def calc_all_predicted_points(weeks_ahead, season, tag, session):
     """
     Do the full prediction.
     """
-    model_team, df_player = get_fitted_models()
+    model_team, df_player = get_fitted_models(session)
     all_predictions = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
-        for player in list_players(position=pos):
-            all_predictions[player] = get_predicted_points(
-                player, model_team, df_player, session, weeks_ahead
+        for player in list_players(position=pos, dbsession=session):
+            all_predictions[player.player_id] = get_predicted_points(
+                player, model_team, df_player, season, tag, session, weeks_ahead
             )
+    ## commit changes to the db
+    session.commit()
     return all_predictions
 
-
-def fill_table(prediction_dict, tag, session):
-    """
-    fill the table with the contents of prediction_dict
-    """
-    for player, player_prediction in prediction_dict.items():
-        for gw in player_prediction.keys():
-            pp = PlayerPrediction()
-            pp.player_id = player
-            pp.gameweek = gw
-            pp.predicted_points = player_prediction[gw]
-            pp.method = tag
-            session.add(pp)
-    session.commit()
 
 
 def fill_ep(csv_filename):

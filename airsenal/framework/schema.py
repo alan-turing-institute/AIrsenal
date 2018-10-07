@@ -78,7 +78,7 @@ class PlayerAttributes(Base):
     player_id = Column(Integer, ForeignKey("player.player_id"))
     season = Column(String(100), nullable=False)
     gw_valid_from = Column(Integer, nullable=False)
-    current_price = Column(String(100), nullable=False)
+    current_price = Column(Integer, nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
 
@@ -110,12 +110,6 @@ class Fixture(Base):
 class PlayerScore(Base):
     __tablename__ = "player_score"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    player = relationship("Player", uselist=False)
-    player_id = Column(Integer, ForeignKey('player.player_id'))
-    result = relationship("Result", uselist=False)
-    result_id = Column(Integer, ForeignKey('result.result_id'))
-    fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     player_team = Column(String(100), nullable=False)
     opponent = Column(String(100), nullable=False)
     points = Column(Integer, nullable=False)
@@ -126,13 +120,15 @@ class PlayerScore(Base):
     minutes = Column(Integer, nullable=False)
     player = relationship("Player", back_populates="scores")
     player_id = Column(Integer, ForeignKey("player.player_id"))
+    result = relationship("Result", uselist=False)
+    result_id = Column(Integer, ForeignKey('result.result_id'))
+    fixture = relationship("Fixture", uselist=False)
+    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
 
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    player = relationship("Player", uselist=False)
-    player_id = Column(Integer, ForeignKey('player.player_id'))
     fixture = relationship("Fixture", uselist=False)
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
     predicted_points = Column(Float, nullable=False)

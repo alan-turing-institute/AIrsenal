@@ -11,14 +11,13 @@ from uuid import uuid4
 
 import argparse
 
-from ..framework.prediction_utils import calc_all_predicted_points, fill_table
+from ..framework.prediction_utils import calc_all_predicted_points
 from ..framework.schema import session_scope
 
 
-def make_predictedscore_table(session, weeks_ahead=3):
-    prediction_dict = calc_all_predicted_points(weeks_ahead, session)
-    fill_table(prediction_dict, str(uuid4()), session)
-
+def make_predictedscore_table(session, weeks_ahead=3, season="1819"):
+    tag = str(uuid4())
+    prediction_dict = calc_all_predicted_points(weeks_ahead, season, tag,  session)
 
 
 if __name__ == "__main__":
