@@ -17,7 +17,7 @@ from .utils import *
 np.random.seed(42)
 
 
-def get_result_df():
+def get_result_df(session):
     """
     query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -25,8 +25,8 @@ def get_result_df():
     df_past = pd.DataFrame(
         np.array(
             [
-                [s.date, s.home_team, s.away_team, s.home_score, s.away_score]
-                for s in session.query(Match).all()
+                [s.fixture.date, s.fixture.home_team, s.fixture.away_team, s.home_score, s.away_score]
+                for s in session.query(Result).all()
             ]
         ),
         columns=["date", "home_team", "away_team", "home_goals", "away_goals"],
@@ -38,7 +38,7 @@ def get_result_df():
     return df_past
 
 
-def get_ratings_df():
+def get_ratings_df(session):
     """Create a dataframe containing the fifa team ratings."""
     df = pd.DataFrame(
         np.array(
@@ -52,10 +52,12 @@ def get_ratings_df():
     return df
 
 
-def get_player_history_df(position="all"):
+def get_player_history_df(position="all", season="1819", session=None):
     """
     Query the player_score table to get goals/assists/minutes, and then
     get the team_goals from the match table.
+    The 'season' argument defined the set of players that will be considered, but
+    for those players, all results will be used.
     """
 
     col_names = [
@@ -69,36 +71,41 @@ def get_player_history_df(position="all"):
         "team_goals",
     ]
     df = pd.DataFrame(columns=col_names)
-    player_ids = list_players(position,season)
-    max_matches_per_player = get_max_matches_per_player(position)
-    for counter, pid in enumerate(player_ids):
-        player_name = get_player_name(pid)
+    players = list_players(position=position,season=season,dbsession=session)
+    max_matches_per_player = get_max_matches_per_player(position, season, dbsession=session)
+    for counter, player in enumerate(players):
         print(
             "Filling history dataframe for {}: {}/{} done".format(
-                player_name, counter, len(player_ids)
+                player.name, counter, len(players)
             )
         )
-        results = session.query(PlayerScore).filter_by(player_id=pid).all()
+        results = player.scores
         row_count = 0
         for row in results:
+            match_id = row.result_id
+            if not match_id:
+                print(" Couldn't find result for {} {} {}"\
+                      .format(row.fixture.home_team,
+                              row.fixture.away_team,
+                              row.fixture.date))
+                continue
             minutes = row.minutes
             opponent = row.opponent
-            match_id = row.match_id
             goals = row.goals
             assists = row.assists
             # find the match, in order to get team goals
-            match = session.query(Match).filter_by(match_id=row.match_id).first()
-            match_date = dateparser.parse(match.date)
-            if match.home_team == row.opponent:
-                team_goals = match.away_score
-            elif match.away_team == row.opponent:
-                team_goals = match.home_score
+            match_result = row.result
+            match_date = dateparser.parse(row.fixture.date)
+            if row.fixture.home_team == row.opponent:
+                team_goals = match_result.away_score
+            elif row.fixture.away_team == row.opponent:
+                team_goals = match_result.home_score
             else:
                 print("Unknown opponent!")
                 team_goals = -1
             df.loc[len(df)] = [
-                pid,
-                player_name,
+                player.player_id,
+                player.name,
                 match_id,
                 match_date,
                 goals,
@@ -111,7 +118,7 @@ def get_player_history_df(position="all"):
         ## fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
             for i in range(row_count, max_matches_per_player):
-                df.loc[len(df)] = [pid, player_name, 0, 0, 0, 0, 0, 0]
+                df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
 
     return df
 
@@ -165,13 +172,13 @@ def get_empirical_bayes_estimates(df_emp):
     return alpha
 
 
-def process_player_data(prefix):
+def process_player_data(prefix, session):
     """
     transform the player dataframe, basically giving a list (for each player)
     of lists of minutes (for each match, and a list (for each player) of
     lists of ["goals","assists","neither"] (for each match)
     """
-    df = get_player_history_df(prefix)
+    df = get_player_history_df(prefix, session=session)
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
     alpha = get_empirical_bayes_estimates(df)
     y = df.sort_values("player_id")[["goals", "assists", "neither"]].values.reshape(
@@ -204,11 +211,11 @@ def process_player_data(prefix):
     )
 
 
-def fit_data(prefix, model):
+def fit_data(prefix, model, session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix)
+    data, names = process_player_data(prefix, session)
     fit = model.optimizing(data)
     df = (
         pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])
@@ -219,13 +226,13 @@ def fit_data(prefix, model):
     return df, fit, data
 
 
-def fit_all_data(model):
+def fit_all_data(model, session):
     df = pd.DataFrame()
     fits = []
     dfs = []
     reals = []
     for prefix in ["FWD", "MID", "DEF"]:
-        d, f, r = fit_data(prefix, model)
+        d, f, r = fit_data(prefix, model, session)
         fits.append(f)
         dfs.append(d)
         reals.append(r)
