@@ -28,7 +28,7 @@ def _find_fixture(season,home_team,away_team,session):
     return f
 
 
-def fill_table_from_csv(input_file, season, session):
+def fill_results_from_csv(input_file, season, session):
     for line in input_file.readlines()[1:]:
         date, home_team, away_team, home_score, away_score, gameweek = line.strip().split(
             ","
@@ -40,7 +40,7 @@ def fill_table_from_csv(input_file, season, session):
             elif away_team in v:
                 away_team = k
         ## query database to find corresponding fixture
-        tag = get_latest_fixture_tag(season)
+        tag = get_latest_fixture_tag(season, session)
         f = _find_fixture(season, home_team, away_team, session)
         res = Result()
         res.fixture = f
@@ -51,7 +51,7 @@ def fill_table_from_csv(input_file, season, session):
 
 
 
-def fill_from_api(gw_start, gw_end, season, session):
+def fill_results_from_api(gw_start, gw_end, season, session):
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
     for m in matches:
@@ -89,12 +89,12 @@ def make_result_table(session):
     for season in ["1718", "1617", "1516"]:
         inpath = os.path.join(os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season))
         infile = open(inpath)
-        fill_table_from_csv(infile, season, session)
+        fill_results_from_csv(infile, season, session)
     """
     current season - use API
     """
     gw_end = get_next_gameweek()
-    fill_from_api(1, gw_end, "1819", session)
+    fill_results_from_api(1, gw_end, "1819", session)
 
 
 if __name__ == "__main__":

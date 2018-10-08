@@ -94,8 +94,9 @@ def fill_playerscores_from_json(detail_data, season, session):
             player.scores.append(ps)
          #   session.add(ps)
 
-def fill_playerscores_from_api(season, session, gw_start=1):
-    gw_end = get_next_gameweek()
+def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
+    if not gw_end:
+        gw_end = get_next_gameweek(season,session)
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():

@@ -22,7 +22,7 @@ setup(
     dependency_links=["https://github.com/anguswilliams91/bpl/archive/v0.0.1-alpha.zip#egg=bpl-v0.0.1"],
     entry_points={"console_scripts": [
         "setup_airsenal_database=airsenal.scripts.fill_db_init:main",
-        "update_airsenal_database=airsenal.scripts.update_db:main",
+        "update_airsenal_database=airsenal.scripts.update_results_db:main",
         "airsenal_plot=airsenal.scripts.plot_league_standings:main"
         ],
     },

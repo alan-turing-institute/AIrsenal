@@ -9,11 +9,27 @@ get consistent sets of predictions from the database.
 """
 from uuid import uuid4
 
+from multiprocessing import Process, Queue
 import argparse
 
-from ..framework.prediction_utils import calc_all_predicted_points
+from ..framework.utils import list_players
+from ..framework.prediction_utils import get_fitted_models, get_predicted_points
 from ..framework.schema import session_scope
 
+def calc_all_predicted_points(weeks_ahead, season, tag, session):
+    """
+    Do the full prediction.
+    """
+    model_team, df_player = get_fitted_models(session)
+    all_predictions = {}
+    for pos in ["GK", "DEF", "MID", "FWD"]:
+        for player in list_players(position=pos, dbsession=session):
+            all_predictions[player.player_id] = get_predicted_points(
+                player, model_team, df_player, season, tag, session, weeks_ahead
+            )
+    ## commit changes to the db
+    session.commit()
+    return all_predictions
 
 def make_predictedscore_table(session, weeks_ahead=3, season="1819"):
     tag = str(uuid4())

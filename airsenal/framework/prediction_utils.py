@@ -242,20 +242,6 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
 
 
 
-def calc_all_predicted_points(weeks_ahead, season, tag, session):
-    """
-    Do the full prediction.
-    """
-    model_team, df_player = get_fitted_models(session)
-    all_predictions = {}
-    for pos in ["GK", "DEF", "MID", "FWD"]:
-        for player in list_players(position=pos, dbsession=session):
-            all_predictions[player.player_id] = get_predicted_points(
-                player, model_team, df_player, season, tag, session, weeks_ahead
-            )
-    ## commit changes to the db
-    session.commit()
-    return all_predictions
 
 
 

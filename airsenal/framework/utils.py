@@ -28,19 +28,21 @@ from sqlalchemy import and_, or_
 
 Base.metadata.bind = engine
 DBSession = sessionmaker()
-##session = DBSession()
+session = DBSession()
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
-def get_current_players(gameweek=None,season="1819"):
+def get_current_players(gameweek=None,season="1819", dbsession=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
     If gameweek is None, get team for next gameweek
     """
+    if not dbsession:
+        dbsession=session
     current_players = []
-    transactions = session.query(Transaction).filter_by(season=season)\
+    transactions = dbsession.query(Transaction).filter_by(season=season)\
                                              .order_by(Transaction.gameweek)\
                                              .all()
     for t in transactions:
