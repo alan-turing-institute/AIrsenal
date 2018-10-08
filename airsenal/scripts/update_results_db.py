@@ -5,6 +5,7 @@ simple script, check whether recent matches have been played since
 the last entries in the DB.
 """
 
+import os
 import sys
 
 

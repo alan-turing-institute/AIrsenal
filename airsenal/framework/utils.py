@@ -333,6 +333,15 @@ def get_fixtures_for_player(player, season="1819", gw_range=None, dbsession=None
     return fixture_ids
 
 
+def get_players_for_gameweek(gameweek):
+    """
+    Use FPL API to get the players for a given gameweek.
+    """
+    player_data = fetcher.get_fpl_team_data(gameweek)
+    player_list = [p['element'] for p in player_data]
+    return player_list
+
+
 def get_previous_points_for_same_fixture(player, fixture_id):
     """
     Search the past matches for same fixture in past seasons,
