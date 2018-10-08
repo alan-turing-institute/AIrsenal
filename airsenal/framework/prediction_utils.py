@@ -189,6 +189,19 @@ def get_predicted_points(
 
     return expected_points
 
+def get_fitted_models(session):
+    """
+    Retrieve match and player models, and fit player model to the playerscore data.
+    """
+    df_team = get_result_df(session)
+    df_X = get_ratings_df(session)
+    model_team = get_team_model(df_team, df_X)
+    model_player = get_player_model()
+    print("Generating player history dataframe - slow")
+    df_player, fits, reals = fit_all_data(model_player, session)
+    return model_team, df_player
+
+
 
 def is_injured_or_suspended(player_id, gameweek, season, session):
     """
@@ -211,29 +224,9 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     return False
 
 
-def get_fitted_models(session):
-    """
-    Retrieve match and player models, and fit player model to the playerscore data.
-    """
-    df_team = get_result_df(session)
-    df_X = get_ratings_df(session)
-    model_team = get_team_model(df_team, df_X)
-    model_player = get_player_model()
-    print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_all_data(model_player, session)
-    return model_team, df_player
 
 
-def fill_prediction(player, fixture, points, tag, session):
-    """
-    fill one row in the player_prediction table
-    """
-    pp = PlayerPrediction()
-    pp.predicted_points = points
-    pp.tag = tag
-    pp.player = player
-    pp.fixture = fixture
-    session.add(pp)
+
 
 
 def calc_all_predicted_points(weeks_ahead, season, tag, session):
