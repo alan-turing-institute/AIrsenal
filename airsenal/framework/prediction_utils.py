@@ -189,6 +189,19 @@ def get_predicted_points(
 
     return expected_points
 
+
+def fill_prediction(player, fixture, points, tag, session):
+    """
+    fill one row in the player_prediction table
+    """
+    pp = PlayerPrediction()
+    pp.predicted_points = points
+    pp.tag = tag
+    pp.player = player
+    pp.fixture = fixture
+    session.add(pp)
+
+
 def get_fitted_models(session):
     """
     Retrieve match and player models, and fit player model to the playerscore data.
