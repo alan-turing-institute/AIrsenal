@@ -3,7 +3,7 @@ pandas
 sqlalchemy
 requests
 dateparser
-fuzzywuzzy
+matplotlib
 scipy
 bs4
 selenium

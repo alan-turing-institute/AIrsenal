@@ -33,8 +33,7 @@ def get_team_history(team_data):
     return output_dict
 
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(description="plot mini-league")
     parser.add_argument(
         "--thing_to_plot",

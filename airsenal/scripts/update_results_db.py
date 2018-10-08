@@ -14,7 +14,7 @@ from fill_playerscore_this_season import fill_playerscore_table
 from fill_transaction_table import add_transaction
 from ..framework.utils import *
 
-if __name__ == "__main__":
+def main():
     last_in_db = get_last_gameweek_in_db()
     last_finished = get_last_finished_gameweek()
     if last_finished > last_in_db:
@@ -33,8 +33,8 @@ if __name__ == "__main__":
         players_out = list(set(db_players).difference(api_players))
         players_in = list(set(api_players).difference(db_players))
         for p in players_out:
-            add_transaction(p, last_finished, -1, "../data/transactions.csv")
+            add_transaction(p, last_finished, -1, os.path.join(os.path.dirname(__file__), "../data/transactions.csv")
         for p in players_in:
-            add_transaction(p, last_finished, 1, "../data/transactions.csv")
+            add_transaction(p, last_finished, 1, os.path.join(os.path.dirname(__file__), "../data/transactions.csv")
     else:
         print("Team is up-to-date")
