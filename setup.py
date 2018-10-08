@@ -21,7 +21,8 @@ setup(
     setup_requires=REQUIRED_PACKAGES,
     dependency_links=["https://github.com/anguswilliams91/bpl/archive/v0.0.1-alpha.zip#egg=bpl-v0.0.1"],
     entry_points={"console_scripts": [
-            "setup_airsenal_database=airsenal.scripts.fill_db_init:main"
+        "setup_airsenal_database=airsenal.scripts.fill_db_init:main",
+        "airsenal_plot=airsenal.scripts.plot_league_standings:main"
         ],
     },
     package_data={"airsenal": ["data/*", "stan/*"]}
