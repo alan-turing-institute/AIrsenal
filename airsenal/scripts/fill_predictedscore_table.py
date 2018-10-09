@@ -36,18 +36,23 @@ def make_predictedscore_table(session, weeks_ahead=3, season="1819"):
     prediction_dict = calc_all_predicted_points(weeks_ahead, season, tag,  session)
 
 
-if __name__ == "__main__":
+def main():
     """
     fill the player_prediction db table
     """
     parser = argparse.ArgumentParser(description="fill player predictions")
     parser.add_argument(
-        "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=5
+        "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=3
     )
     parser.add_argument(
         "--ep_filename", help="csv filename for FPL expected points"
     )
+    parser.add_argument(
+        "--season", help="season, in format e.g. '1819'",default="1819"
+    )
     args = parser.parse_args()
 
     with session_scope() as session:
-        make_predictedscore_table(session, weeks_ahead=3)
+        make_predictedscore_table(session,
+                                  weeks_ahead=args.weeks_ahead,
+                                  season=args.season)
