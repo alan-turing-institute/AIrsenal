@@ -160,7 +160,9 @@ def get_predicted_points(
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
-        if not is_injured_or_suspended(player.player_id, gameweek, season, session):
+        if is_injured_or_suspended(player.player_id, gameweek, season, session):
+            points = 0.
+        else:
         # now loop over recent minutes and average
             points = sum(
                 [
@@ -182,8 +184,8 @@ def get_predicted_points(
                 ]
             ) / len(recent_minutes)
             # write the prediction for this fixture to the db
-            fill_prediction(player, fixture, points, tag, session)
-            expected_points[gameweek] += points
+        fill_prediction(player, fixture, points, tag, session)
+        expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
         print("Expected points: {:.2f}".format(points))
 
