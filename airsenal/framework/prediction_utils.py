@@ -237,14 +237,6 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     return False
 
 
-
-
-
-
-
-
-
-
 def fill_ep(csv_filename):
     """
     fill the database with FPLs ep_next prediction, and also

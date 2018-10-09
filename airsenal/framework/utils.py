@@ -383,7 +383,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, method, season="1819", dbsession=None):
+def get_predicted_points_for_player(player, tag, season="1819", dbsession=None):
     """
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
@@ -392,20 +392,26 @@ def get_predicted_points_for_player(player, method, season="1819", dbsession=Non
         dbsession=session
     if isinstance(player, str) or isinstance(player,int):
         # we want the actual player object
-        player= get_player(player,season=season,dbsession=dbsession)
+        player= get_player(player,dbsession=dbsession)
     pps = (
         dbsession.query(PlayerPrediction)
-        .filter_by(season=season)
-        .filter_by(player_id=player_id, method=method)
+        .filter(PlayerPrediction.fixture.has(
+            Fixture.season==season) )\
+        .filter_by(player_id=player.player_id, tag=tag)
         .all()
     )
     ppdict = {}
     for prediction in pps:
-        ppdict[prediction.gameweek] = prediction.predicted_points
+        ## there is one prediction per fixture.
+        ## for double gameweeks, we need to add the two together
+        gameweek = prediction.fixture.gameweek
+        if not gameweek in ppdict.keys():
+            ppdict[gameweek] = 0
+        ppdict[gameweek] += prediction.predicted_points
     return ppdict
 
 
-def get_predicted_points(gameweek, method, position="all", team="all",
+def get_predicted_points(gameweek, tag, position="all", team="all",
                          season="1819", dbsession=None):
     """
     Query the player_prediction table with selections, return
@@ -413,17 +419,22 @@ def get_predicted_points(gameweek, method, position="all", team="all",
     "gameweek" argument can either be a single integer for one gameweek, or a
     list of gameweeks, in which case we will get the sum over all of them
     """
-    player_ids = list_players(position, team, season=season, dbsession=dbsession)
+    players = list_players(position, team, season=season, dbsession=dbsession)
 
-    if isinstance(gameweek, int):
+    if isinstance(gameweek, int):  # predictions for a single gameweek
         output_list = [
-            (p, get_predicted_points_for_player(p, method)[gameweek])
-            for p in player_ids
+            (p, get_predicted_points_for_player(p, tag=tag,
+                                                season=season,
+                                                dbsession=dbsession)[gameweek])
+            for p in players
         ]
-    else:
+    else:  # predictions for a list of gameweeks
         output_list = [
-            (p, sum(get_predicted_points_for_player(p, method)[gw] for gw in gameweek))
-            for p in player_ids
+            (p, sum(get_predicted_points_for_player(p, tag=tag,
+                                                    season=season,
+                                                    dbsession=dbsession)[gw]
+                    for gw in gameweek))
+            for p in players
         ]
 
     output_list.sort(key=itemgetter(1), reverse=True)
@@ -512,7 +523,9 @@ def get_latest_prediction_tag(season="1819",dbsession=None):
     if not dbsession:
         dbsession=session
     rows = dbsession.query(PlayerPrediction)\
-                  .filter_by(season=season).all()
+                  .filter(PlayerPrediction.fixture.has(
+                      Fixture.season==season
+                  )).all()
     return rows[-1].tag
 
 
