@@ -129,9 +129,9 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
     return defending_points
 
 
-def get_predicted_points(
+def calc_predicted_points(
         player, model_team, df_player, season, tag, session,
-        fixtures_ahead=1, fixures_behind=3
+        gw_range=None, fixures_behind=3
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -140,11 +140,16 @@ def get_predicted_points(
     """
 
     print("Getting points prediction for player {}".format(player.name))
+    if not gw_range:
+        # by default, go for next three matches
+        next_gw = get_next_gameweek(season, session)
+        gw_range = list(range(next_gw, min(next_gw+3,38))) # don't go beyond gw 38!
     team = player.team(season)
     position = player.position(season)
     fixtures = get_fixtures_for_player(player,
                                        season,
-                                       dbsession=session)[0:fixtures_ahead]
+                                       gw_range=gw_range,
+                                       dbsession=session)
     expected_points = defaultdict(float)  # default value is 0.0
 
     for fid in fixtures:
@@ -156,8 +161,12 @@ def get_predicted_points(
         opponent = fixture.away_team if is_home else fixture.home_team
         print("gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home))
         recent_minutes = get_recent_minutes_for_player(
-            player, num_match_to_use=fixures_behind, season=season, dbsession=session
+            player, num_match_to_use=fixures_behind, season=season, last_gw=gameweek-1,
+            dbsession=session
         )
+        if len(recent_minutes) == 0:
+            # e.g. for gameweek 1 - try temporary hack
+            recent_minutes=[90]
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured

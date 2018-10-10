@@ -24,7 +24,7 @@ def calc_all_predicted_points(weeks_ahead, season, tag, session):
     all_predictions = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
         for player in list_players(position=pos, dbsession=session):
-            all_predictions[player.player_id] = get_predicted_points(
+            all_predictions[player.player_id] = calc_predicted_points(
                 player, model_team, df_player, season, tag, session, weeks_ahead
             )
     ## commit changes to the db
