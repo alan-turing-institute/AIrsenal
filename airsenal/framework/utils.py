@@ -33,12 +33,30 @@ session = DBSession()
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
-def get_current_players(gameweek=None,season="1819", dbsession=None):
+def get_current_season():
+    """
+    use the current time to find what season we're in.
+    """
+    current_time = datetime.now()
+    if current_time.month > 6:
+        start_year = current_time.year
+    else:
+        start_year = current_time.year - 1
+    end_year = start_year + 1
+    return "{}{}".format(str(start_year)[2:],str(end_year)[2:])
+
+# make this a global variable in this module, import into other modules
+CURRENT_SEASON = get_current_season()
+
+
+def get_current_players(gameweek=None,season=None, dbsession=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
     If gameweek is None, get team for next gameweek
     """
+    if not season:
+        season = CURRENT_SEASON
     if not dbsession:
         dbsession=session
     current_players = []
@@ -56,16 +74,18 @@ def get_current_players(gameweek=None,season="1819", dbsession=None):
     return current_players
 
 
-def get_team_value(gameweek=None, season="1819"):
+def get_team_value(gameweek=None, season=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
     If gameweek is None, get team for next gameweek
     """
+    if not season:
+        season = CURRENT_SEASON
     total_value = 0
     current_players = get_current_players(gameweek,season)
     for pid in current_players:
-        if season=="1819":
+        if season==CURRENT_SEASON
             if gameweek:
                 total_value += fetcher.get_gameweek_data_for_player(pid,
                                                                     gameweek)[0][
@@ -122,7 +142,7 @@ def get_sell_price_for_player(player_id, gameweek=None):
     return value
 
 
-def get_next_gameweek(season="1819", dbsession=None):
+def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
     """
@@ -246,7 +266,7 @@ def get_player_id(player_name, dbsession=None):
 
 def list_players(position="all", team="all",
                  order_by="current_price",
-                 season="1819",
+                 season=CURRENT_SEASON,
                  dbsession=None,
                  verbose=False):
     """
@@ -271,7 +291,7 @@ def list_players(position="all", team="all",
     return players
 
 
-def get_max_matches_per_player(position="all",season="1819",dbsession=None):
+def get_max_matches_per_player(position="all",season=CURRENT_SEASON,dbsession=None):
     """
     can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
@@ -285,7 +305,7 @@ def get_max_matches_per_player(position="all",season="1819",dbsession=None):
     return max_matches
 
 
-def get_fixtures_for_player(player, season="1819", gw_range=None, dbsession=None,
+def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsession=None,
                             verbose=False):
     """
     search for upcoming fixtures for a player, specified either by id or name.
@@ -321,7 +341,7 @@ def get_fixtures_for_player(player, season="1819", gw_range=None, dbsession=None
             if fixture.gameweek in gw_range:
                 fixture_ids.append(fixture.fixture_id)
         else:
-            if season == "1819" and fixture.gameweek < next_gameweek:
+            if season == CURRENT_SEASON and fixture.gameweek < next_gameweek:
                 continue
             if verbose:
                 print(
@@ -383,7 +403,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
-def get_predicted_points_for_player(player, tag, season="1819", dbsession=None):
+def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsession=None):
     """
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
@@ -412,7 +432,7 @@ def get_predicted_points_for_player(player, tag, season="1819", dbsession=None):
 
 
 def get_predicted_points(gameweek, tag, position="all", team="all",
-                         season="1819", dbsession=None):
+                         season=CURRENT_SEASON, dbsession=None):
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -458,7 +478,7 @@ def get_return_gameweek_for_player(player_id, dbsession=None):
 
 def get_recent_minutes_for_player(player,
                                   num_match_to_use=3,
-                                  season="1819",
+                                  season=CURRENT_SEASON,
                                   last_gw=None,
                                   dbsession=None):
 
@@ -486,7 +506,7 @@ def get_recent_minutes_for_player(player,
     return [r.minutes for r in rows[-num_match_to_use:]]
 
 
-def get_last_gameweek_in_db(season="1819", dbsession=None):
+def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     """
     query the result table to see what was the last gameweek for which
     we have filled the data.
@@ -515,7 +535,7 @@ def get_last_finished_gameweek():
     return last_finished
 
 
-def get_latest_prediction_tag(season="1819",dbsession=None):
+def get_latest_prediction_tag(season=CURRENT_SEASON,dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
@@ -529,7 +549,7 @@ def get_latest_prediction_tag(season="1819",dbsession=None):
     return rows[-1].tag
 
 
-def get_latest_fixture_tag(season="1819",dbsession=None):
+def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
