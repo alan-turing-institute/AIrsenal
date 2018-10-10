@@ -24,34 +24,33 @@ import argparse
 
 from ..framework.optimization_utils import *
 
-NUM_THREAD = 4
 OUTPUT_DIR = "../data"
 
 
-def process_strat(queue, pid, num_iterations, method, baseline=None):
+def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, baseline=None):
     while True:
         strat = queue.get()
         if strat == "DONE":
             break
         sid = make_strategy_id(strat)
-        if not strategy_involves_2_or_more_transfers_in_gw(strat):
+        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
             num_iter = 1
         else:
             num_iter = num_iterations
         print("ID {} doing {} iterations for Strategy {}".format(pid, num_iter, strat))
-        strat_output = apply_strategy(strat, method, baseline, num_iter)
+        strat_output = apply_strategy(strat, exhaustive_double_transfer, tag, baseline, num_iter)
         with open(
-            os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(method, sid)), "w"
+            os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
         ) as outfile:
             json.dump(strat_output, outfile)
 
 
-def find_best_strat_from_json(method):
+def find_best_strat_from_json(tag):
     best_score = 0
     best_strat = None
     file_list = os.listdir(OUTPUT_DIR)
     for filename in file_list:
-        if not "strategy_{}_".format(method) in filename:
+        if not "strategy_{}_".format(tag) in filename:
             continue
         full_filename = os.path.join(OUTPUT_DIR, filename)
         with open(full_filename) as strat_file:
@@ -79,45 +78,58 @@ def main():
     parser.add_argument("--exhaustive_double_transfer",
                         help="use exhaustive search when doing 2 transfers in gameweek",
                         action="store_true")
+    parser.add_argument("--max_points_hit",
+                        help="how many points are we prepared to lose on transfers",
+                        type=int, default=4)
+    parser.add_argument("--transfers_last_gw",
+                        help="how many transfers did we make last gameweek",
+                        type=int, default=1)
+    parser.add_argument("--num_thread",
+                        help="how many threads to use",
+                        type=int, default=4)
     args = parser.parse_args()
 
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
-
+    exhaustive_double_transfer = args.exhaustive_double_transfer
+    transfers_last_gw = args.transfers_last_gw
+    max_points_hit = args.max_points_hit
     if args.tag:
-        method = args.tag
+        tag = args.tag
     else:
         ## get most recent set of predictions from DB table
-        method = get_latest_prediction_tag()
+        tag = get_latest_prediction_tag()
 
     ## first get a baseline prediction
-    baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, method)
+    baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
     ## create a queue that we will add strategies to, and some processes to take
     ## things off it
     squeue = Queue()
     procs = []
-    for i in range(NUM_THREAD):
+    for i in range(args.num_thread):
         processor = Process(
             target=process_strat,
-            args=(squeue, i, num_iterations, method, baseline_dict),
+            args=(squeue, i, num_iterations, exhaustive_double_transfer,
+                  tag, baseline_dict),
         )
         processor.daemon = True
         processor.start()
         procs.append(processor)
 
     ### add strategies to the queue
-    strategies = generate_transfer_strategies(num_weeks_ahead)
+    strategies = generate_transfer_strategies(num_weeks_ahead,
+                                              transfers_last_gw, max_points_hit)
     for strat in strategies:
         squeue.put(strat)
-    for i in range(NUM_THREAD):
+    for i in range(args.num_thread):
         squeue.put("DONE")
     ### now rejoin the main thread
     for p in procs:
         p.join()
 
     ### find the best from all the strategies tried
-    best_strategy = find_best_strat_from_json(method)
+    best_strategy = find_best_strat_from_json(tag)
 
     fill_suggestion_table(baseline_score, best_strategy)
     print("====================================\n")
