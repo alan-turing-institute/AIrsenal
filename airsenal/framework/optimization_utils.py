@@ -81,7 +81,7 @@ def get_baseline_prediction(gw_ahead, tag):
     return total, cum_total_per_gw
 
 
-def make_optimum_transfer(team, tag, gameweek_range=None, season="1819"):
+def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON):
     """
     If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
@@ -122,7 +122,7 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season="1819"):
     return best_team, [best_pid_out], [best_pid_in]
 
 
-def make_optimum_double_transfer(team, tag, gameweek_range=None, season="1819"):
+def make_optimum_double_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON):
     """
     If we want to just make two transfers, it's not unfeasible to try all
     possibilities in turn.

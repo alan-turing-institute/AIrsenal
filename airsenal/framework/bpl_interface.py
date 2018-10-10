@@ -52,7 +52,7 @@ def get_ratings_df(session):
     return df
 
 
-def get_player_history_df(position="all", season="1819", session=None):
+def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
     """
     Query the player_score table to get goals/assists/minutes, and then
     get the team_goals from the match table.

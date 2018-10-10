@@ -28,7 +28,8 @@ from .utils import (
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_player_name,
-    list_players
+    list_players,
+    CURRENT_SEASON
 )
 from .bpl_interface import (
     get_player_model,
@@ -223,7 +224,7 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
     """
-    if season != "1819": # no API info for past seasons
+    if season != CURRENT_SEASON: # no API info for past seasons
         return False
     ## check if a player is injured or suspended
     pdata = fetcher.get_player_summary_data()[player_id]

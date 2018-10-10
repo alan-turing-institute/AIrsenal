@@ -87,6 +87,9 @@ def main():
     parser.add_argument("--num_thread",
                         help="how many threads to use",
                         type=int, default=4)
+    parser.add_argument("--season",
+                        help="what season, in format e.g. '1819'",
+                        type=int, default=CURRENT_SEASON)
     args = parser.parse_args()
 
     num_weeks_ahead = args.weeks_ahead

@@ -3,7 +3,7 @@ Class for a player in FPL
 """
 
 from .schema import Player
-from .utils import get_player, get_predicted_points_for_player
+from .utils import get_player, get_predicted_points_for_player, CURRENT_SEASON
 
 
 class CandidatePlayer(object):
@@ -11,7 +11,7 @@ class CandidatePlayer(object):
     player class
     """
 
-    def __init__(self, player,season="1819",gameweek=1):
+    def __init__(self, player,season=CURRENT_SEASON,gameweek=1):
         """
         initialize either by name or by ID
         """

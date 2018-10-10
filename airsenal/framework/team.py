@@ -5,7 +5,7 @@ Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
 
-from .player import CandidatePlayer, Player
+from .player import CandidatePlayer, Player, CURRENT_SEASON
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -71,7 +71,7 @@ class Team(object):
         return num_players == 15
 
 
-    def add_player(self, p, season="1819", gameweek=1):
+    def add_player(self, p, season=CURRENT_SEASON, gameweek=1):
         """
         add a player.  Can do it by name or by player_id
         """
