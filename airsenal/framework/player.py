@@ -15,7 +15,10 @@ class CandidatePlayer(object):
         """
         initialize either by name or by ID
         """
-        pdata = get_player(player)
+        if isinstance(player, Player):
+            pdata = player
+        else:
+            pdata = get_player(player)
         self.player_id = pdata.player_id
         self.name = pdata.name
         self.team = pdata.team(season,gameweek)

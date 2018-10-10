@@ -5,7 +5,7 @@ Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
 
-from .player import CandidatePlayer
+from .player import CandidatePlayer, Player
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -71,12 +71,12 @@ class Team(object):
         return num_players == 15
 
 
-    def add_player(self, p):
+    def add_player(self, p, season="1819", gameweek=1):
         """
         add a player.  Can do it by name or by player_id
         """
-        if isinstance(p,int) or isinstance(p,str):
-            player = CandidatePlayer(p)
+        if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
+            player = CandidatePlayer(p, season, gameweek)
         else: # already a CandidatePlayer (or an equivalent test class)
             player = p
         # check if constraints are met
@@ -134,7 +134,8 @@ class Team(object):
         check we have fewer than the limit of
         num players in the chosen players position.
         """
-        return self.num_position[player.position] < TOTAL_PER_POSITION[player.position]
+        position = player.position
+        return self.num_position[position] < TOTAL_PER_POSITION[position]
 
     def check_num_per_team(self, player):
         """
@@ -142,8 +143,9 @@ class Team(object):
         team as the specified player.
         """
         num_same_team = 0
+        new_player_team = player.team
         for p in self.players:
-            if p.team == player.team:
+            if p.team == new_player_team:
                 num_same_team += 1
                 if num_same_team == 3:
                     return False
@@ -179,7 +181,9 @@ class Team(object):
             v.sort(key=itemgetter(1), reverse=True)
         #    print(player_dict)
 
-        # always sub the second-placed keeper
+
+        # always start the first-placed and sub the second-placed keeper
+        player_dict["GK"][0][0].is_starting = True
         player_dict["GK"][1][0].is_starting = False
         best_score = 0.
         best_formation = None

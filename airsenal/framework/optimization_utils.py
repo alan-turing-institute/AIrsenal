@@ -63,7 +63,7 @@ def get_starting_team():
     return t
 
 
-def get_baseline_prediction(gw_ahead, method):
+def get_baseline_prediction(gw_ahead, tag):
     """
     use current team, and count potential score
     also return a cumulative total per gw, so we can abort if it
@@ -75,13 +75,13 @@ def get_baseline_prediction(gw_ahead, method):
     next_gw = get_next_gameweek()
     gameweeks = list(range(next_gw, next_gw + gw_ahead))
     for gw in gameweeks:
-        score = team.get_expected_points(gw, method)
+        score = team.get_expected_points(gw, tag)
         cum_total_per_gw[gw] = total + score
         total += score
     return total, cum_total_per_gw
 
 
-def make_optimum_transfer(team, method, gameweek_range=None):
+def make_optimum_transfer(team, tag, gameweek_range=None, season="1819"):
     """
     If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
@@ -97,7 +97,7 @@ def make_optimum_transfer(team, method, gameweek_range=None):
     ordered_player_lists = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
         ordered_player_lists[pos] = get_predicted_points(
-            gameweek=gameweek_range, position=pos, method=method
+            gameweek=gameweek_range, position=pos, tag=tag
         )
     for p_out in team.players:
         new_team = copy.deepcopy(team)
@@ -105,7 +105,7 @@ def make_optimum_transfer(team, method, gameweek_range=None):
 #        print("Removing player {}".format(p_out.name))
         new_team.remove_player(p_out.player_id)
         for p_in in ordered_player_lists[position]:
-            if p_in[0] == p_out.player_id:
+            if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
 #            print("Trying to add player {}".format(p_in[0]))
             added_ok = new_team.add_player(p_in[0])
@@ -113,16 +113,16 @@ def make_optimum_transfer(team, method, gameweek_range=None):
                 break
         total_points = 0.
         for gw in gameweek_range:
-            total_points += new_team.get_expected_points(gw, method)
+            total_points += new_team.get_expected_points(gw, tag)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = p_out.player_id
-            best_pid_in = p_in[0]
+            best_pid_in = p_in[0].player_id
             best_team = new_team
     return best_team, [best_pid_out], [best_pid_in]
 
 
-def make_optimum_double_transfer(team, method, gameweek_range=None):
+def make_optimum_double_transfer(team, tag, gameweek_range=None, season="1819"):
     """
     If we want to just make two transfers, it's not unfeasible to try all
     possibilities in turn.
@@ -136,7 +136,7 @@ def make_optimum_double_transfer(team, method, gameweek_range=None):
     ordered_player_lists = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
         ordered_player_lists[pos] = get_predicted_points(
-            gameweek=gameweek_range, position=pos, method=method
+            gameweek=gameweek_range, position=pos, tag=tag
         )
 
     for i in range(len(team.players)-1):
@@ -158,7 +158,8 @@ def make_optimum_double_transfer(team, method, gameweek_range=None):
 
             # now loop over lists of players and add players back in
             for pin_1 in ordered_player_lists[positions_needed[0]]:
-                if pin_1[0] == pout_1.player_id or pin_1 == pout_2.player_id:
+                if pin_1[0].player_id == pout_1.player_id \
+                   or pin_1[0].player_id == pout_2.player_id:
                     continue   ## no point in adding same player back in
                 new_team_add_1 = copy.deepcopy(new_team_remove_2)
                 added_1_ok = new_team_add_1.add_player(pin_1[0])
@@ -168,26 +169,26 @@ def make_optimum_double_transfer(team, method, gameweek_range=None):
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
                     new_team_add_2 = copy.deepcopy(new_team_add_1)
                     if pin_2[0] == pin_1[0] or \
-                       pin_2[0] == pout_1.player_id or \
-                       pin_2[0] == pout_2.player_id:
+                       pin_2[0].player_id == pout_1.player_id or \
+                       pin_2[0].player_id == pout_2.player_id:
                         continue ## no point in adding same player back in
                     added_2_ok = new_team_add_2.add_player(pin_2[0])
                     if added_2_ok:
                         # calculate the score
                         total_points = 0.
                         for gw in gameweek_range:
-                            total_points += new_team_add_2.get_expected_points(gw, method)
+                            total_points += new_team_add_2.get_expected_points(gw, tag)
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id,pout_2.player_id]
-                            best_pid_in = [pin_1[0], pin_2[0]]
+                            best_pid_in = [pin_1[0].player_id, pin_2[0].player_id]
                             best_team = new_team_add_2
                         break
 
     return best_team, best_pid_out, best_pid_in
 
 
-def make_random_transfers(team, method, nsubs=1, gw_range=None):
+def make_random_transfers(team, tag, nsubs=1, gw_range=None):
     """
     choose a random player to sub out, and then get the player with the best
     expected score for the next gameweek that we can to fill their place.
@@ -200,25 +201,25 @@ def make_random_transfers(team, method, nsubs=1, gw_range=None):
     ## order the players in the team by predicted_points - least-to-most
     player_list = []
     for p in team.players:
-        p.calc_predicted_points(method)
-        player_list.append((p.player_id, p.predicted_points[method][gw_range[0]]))
+        p.calc_predicted_points(tag)
+        player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
     player_list.sort(key=itemgetter(1), reverse=False)
     while len(players_to_remove) < nsubs:
         index = int(random.triangular(0, len(player_list), 0))
         #        index = random.randint(0,len(player_list),0)
         if not index in players_to_remove:
             players_to_remove.append(index)
+
     positions_needed = []
     for p in players_to_remove:
         positions_needed.append(team.players[p].position)
         removed_players.append(team.players[p].player_id)
         new_team.remove_player(removed_players[-1])
-
     budget = new_team.budget
     predicted_points = {}
     for pos in set(positions_needed):
         predicted_points[pos] = get_predicted_points(
-            position=pos, gameweek=gw_range, method=method
+            position=pos, gameweek=gw_range, tag=tag
         )
     complete_team = False
     added_players = []
@@ -233,16 +234,18 @@ def make_random_transfers(team, method, nsubs=1, gw_range=None):
             added_ok = new_team.add_player(pid_to_add)
             if added_ok:
                 added_players.append(pid_to_add)
-
         complete_team = new_team.is_complete()
         if not complete_team:  # take those players out again.
             for ap in added_players:
-                removed_ok = new_team.remove_player(ap)
+                removed_ok = new_team.remove_player(ap.player_id)
+                if not removed_ok:
+                    print("Problem removing {}".format(ap.name))
             added_players = []
-    return new_team, removed_players, added_players
+    return new_team, removed_players, [ap.player_id for ap in added_players]
 
 
-def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
+def apply_strategy(strat, exhaustive_double_transfer,
+                   tag, baseline_dict=None, num_iter=1):
     """
     apply a set of transfers over a number of gameweeks, and
     total up the score, taking into account points hits.
@@ -271,14 +274,14 @@ def apply_strategy(strat, method, baseline_dict=None, num_iter=1):
             if strat[0][gw] == 0:  # no transfers that gameweek
                 rp, ap = [], []
             elif strat[0][gw] == 1:  # one transfer - choose optimum
-                new_team, rp, ap = make_optimum_transfer(new_team, method, gw_range)
-            elif strat[0][gw] == 2:  # two transfer - choose optimum
-                new_team, rp, ap = make_optimum_double_transfer(new_team, method, gw_range)
-            else:  # >1 transfer, choose randomly
+                new_team, rp, ap = make_optimum_transfer(new_team, tag, gw_range)
+            elif strat[0][gw] == 2 and exhaustive_double_transfer:  # two transfer - choose optimum
+                new_team, rp, ap = make_optimum_double_transfer(new_team, tag, gw_range)
+            else:  # choose randomly
                 new_team, rp, ap = make_random_transfers(
-                    new_team, method, strat[0][gw], gw_range
+                    new_team, tag, strat[0][gw], gw_range
                 )
-            score = new_team.get_expected_points(gw, method)
+            score = new_team.get_expected_points(gw, tag)
             ## if we're ever >5 points below the baseline, bail out!
             strategy_output["total_score"] += score
             if baseline_dict and baseline_dict[gw] - strategy_output["total_score"] > 5:
@@ -314,14 +317,17 @@ def fill_suggestion_table(baseline_score, best_strat):
     session.commit()
 
 
-def strategy_involves_2_or_more_transfers_in_gw(strategy):
+def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     """
     Quick function to see if we need to do multiple iterations
     for a strategy, or if the result is deterministic
     (0 or 1 transfer for each gameweek).
     """
     strat_dict = strategy[0]
-    return 2 in strat_dict.values() or 3 in strat_dict.values()
+    for v in strat_dict.values():
+        if v >= N:
+            return True
+    return False
 
 
 def make_strategy_id(strategy):
@@ -333,33 +339,3 @@ def make_strategy_id(strategy):
     for v in strategy[0].values():
         strat_id += str(v)
     return strat_id
-
-
-def optimize_transfers(num_weeks_ahead, tag, num_iterations):
-    """
-    Get the baseline then try many possible transfer strategies.
-    """
-    ## if we do nothing...
-    baseline, baseline_dict = get_baseline_prediction(num_weeks_ahead)
-    print("Baseline score for next {} gw:  {}".format(num_weeks_ahead, baseline))
-    strategies = generate_transfer_strategies(num_weeks_ahead)
-    best_score = baseline
-    best_strat = None
-    for s in strategies:
-        if not strategy_involves_2_or_more_transfers_in_gw(s):
-            num_iter = 1
-        else:
-            num_iter = num_iterations
-
-        t = get_starting_team()
-        strategy_output = apply_strategy(
-            strat=s, method=tag, baseline_dict=baseline_dict, num_iter=num_iter
-        )
-        if strategy_output["total_score"] > best_score:
-            best_score = strategy_output["total_score"]
-            best_strat = strategy_output
-
-    ## put strategy into the db
-    fill_suggestion_table(baseline, best_strat)
-
-    return baseline, best_score, best_strat
