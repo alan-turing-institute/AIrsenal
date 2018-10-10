@@ -85,7 +85,7 @@ def get_team_value(gameweek=None, season=None):
     total_value = 0
     current_players = get_current_players(gameweek,season)
     for pid in current_players:
-        if season==CURRENT_SEASON
+        if season==CURRENT_SEASON:
             if gameweek:
                 total_value += fetcher.get_gameweek_data_for_player(pid,
                                                                     gameweek)[0][
