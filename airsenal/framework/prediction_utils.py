@@ -193,7 +193,7 @@ def calc_predicted_points(
                     for mins in recent_minutes
                 ]
             ) / len(recent_minutes)
-            # write the prediction for this fixture to the db
+        # write the prediction for this fixture to the db
         fill_prediction(player, fixture, points, tag, session)
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
