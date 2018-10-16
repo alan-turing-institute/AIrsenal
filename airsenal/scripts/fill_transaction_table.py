@@ -8,30 +8,30 @@ from ..framework.schema import Transaction, session_scope
 from collections import namedtuple
 
 TransferArgs = namedtuple("TransferArgs",
-                          ["input_csv", "output_csv", "player_id", "buy", "sell", "gameweek"])
+                          ["input_csv", "output_csv", "player_id", "buy", "sell", "gameweek","tag"])
 
 
-def add_transaction(player_id, gameweek, in_or_out, season, session, output_csv_filename=None):
+def add_transaction(player_id, gameweek, in_or_out, season, tag, session, output_csv_filename=None):
     """
     add buy transactions to the db table
     """
-    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=in_or_out, season=season)
+    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=in_or_out, season=season, tag=tag)
     session.add(t)
     session.commit()
     if output_csv_filename:
-        output_csv(output_csv_filename, player_id, gameweek, in_or_out, season)
+        output_csv(output_csv_filename, player_id, gameweek, in_or_out, season, tag)
 
 
-def output_csv(output_file, player_id, gameweek, in_or_out, season):
+def output_csv(output_file, player_id, gameweek, in_or_out, season, tag):
     """
     write out to a csv file
     """
     if not os.path.exists(output_file):
         outfile = open(output_file, "w")
-        outfile.write("player_id,gameweek,in_or_out,season\n")
+        outfile.write("player_id,gameweek,in_or_out,season,tag\n")
     else:
         outfile = open(output_file, "a")
-    outfile.write("{},{},{},{}\n".format(player_id, gameweek, in_or_out, season))
+    outfile.write("{},{},{},{},{}\n".format(player_id, gameweek, in_or_out, season, tag))
     outfile.close()
 
 
@@ -65,6 +65,7 @@ def make_transaction_table(session,
                                              None,
                                              None,
                                              None,
+                                             None,
                                              None)):
 
     if not sanity_check_args(args):
@@ -76,12 +77,12 @@ def make_transaction_table(session,
     if args.input_csv:
         infile = open(args.input_csv)
         for line in infile.readlines()[1:]:
-            pid, gw, in_or_out = line.strip().split(",")
-            add_transaction(pid, gw, in_or_out, season, session, output_csv_filename=outfile)
+            pid, gw, in_or_out,tag = line.strip().split(",")
+            add_transaction(pid, gw, in_or_out, season, tag, session, output_csv_filename=outfile)
     if args.buy:
-        add_transaction(args.player_id, args.gameweek, 1, season, session, output_csv_filename=outfile)
+        add_transaction(args.player_id, args.gameweek, 1, season, args.tag, session, output_csv_filename=outfile)
     if args.sell:
-        add_transaction(args.player_id, args.gameweek, -1, season, session, output_csv_filename=outfile)
+        add_transaction(args.player_id, args.gameweek, -1, season, args.tag, session, output_csv_filename=outfile)
 
 
 if __name__ == "__main__":
