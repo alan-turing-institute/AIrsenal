@@ -11,7 +11,7 @@ import boto3
 
 
 from .utils import *
-
+from .fpl_team_utils import *
 
 def download_sqlite_file():
     """
@@ -96,8 +96,8 @@ def get_suggestions_string():
         points_gain = round(rows[0].points_gain, 1)
         output_string += " for a total gain of {} points.".format(points_gain)
         return output_string
-    except:
-        return "Problem with the query"
+    except Exception as e:
+        return "Problem with the query {}".format(e)
 
 
 def get_score_ranking_string(query, gameweek=None):
