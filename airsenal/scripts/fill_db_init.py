@@ -14,9 +14,9 @@ def main():
 
     with session_scope() as session:
         make_player_table(session)
+        make_transaction_table(session)
         make_fixture_table(session)
         make_result_table(session)
         make_playerscore_table(session)
         make_fifa_ratings_table(session)
-        make_transaction_table(session)
-        make_predictedscore_table(session, weeks_ahead=3)
+        make_predictedscore_table(session)

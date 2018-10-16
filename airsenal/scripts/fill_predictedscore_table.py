@@ -31,8 +31,11 @@ def calc_all_predicted_points(gw_range, season, tag, session):
     session.commit()
     return all_predictions
 
-def make_predictedscore_table(session, gw_range, season=CURRENT_SEASON):
+def make_predictedscore_table(session, gw_range=None, season=CURRENT_SEASON):
     tag = str(uuid4())
+    if not gw_range:
+        next_gameweek = get_next_gameweek()
+        gw_range = list(range(next_gameweek, next_gameweek+3))
     prediction_dict = calc_all_predicted_points(gw_range, season, tag,  session)
 
 
