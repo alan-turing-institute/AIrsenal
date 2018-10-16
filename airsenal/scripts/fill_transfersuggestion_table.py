@@ -91,7 +91,7 @@ def main():
                         help="what season, in format e.g. '1819'",
                         type=int, default=CURRENT_SEASON)
     args = parser.parse_args()
-
+    season = args.season
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
     exhaustive_double_transfer = args.exhaustive_double_transfer
@@ -134,7 +134,7 @@ def main():
     ### find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
-    fill_suggestion_table(baseline_score, best_strategy)
+    fill_suggestion_table(baseline_score, best_strategy, season)
     print("====================================\n")
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
