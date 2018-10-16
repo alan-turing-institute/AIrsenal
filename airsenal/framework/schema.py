@@ -144,7 +144,7 @@ class Transaction(Base):
     gameweek = Column(Integer, nullable=False)
     bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
     season = Column(String(100), nullable=False)
-
+    tag = Column(String(100), nullable=False)
 
 class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
