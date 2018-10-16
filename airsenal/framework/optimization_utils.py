@@ -297,7 +297,7 @@ def apply_strategy(strat, exhaustive_double_transfer,
     return best_strategy_output
 
 
-def fill_suggestion_table(baseline_score, best_strat):
+def fill_suggestion_table(baseline_score, best_strat, season):
     """
     Fill the optimized strategy into the table
     """
@@ -313,6 +313,7 @@ def fill_suggestion_table(baseline_score, best_strat):
                 ts.gameweek = gameweek
                 ts.points_gain = points_gain
                 ts.timestamp = timestamp
+                ts.season = season
                 session.add(ts)
     session.commit()
 
