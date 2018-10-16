@@ -158,16 +158,16 @@ class Team(object):
         can_afford = player.current_price <= self.budget
         return can_afford
 
-    def _calc_expected_points(self, method):
+    def _calc_expected_points(self, tag):
         """
         estimate the expected points for the specified gameweek.
         If no gameweek is specified, it will be the next fixture
         """
         for p in self.players:
-            p.calc_predicted_points(method)
+            p.calc_predicted_points(tag)
         pass
 
-    def optimize_subs(self, gameweek, method):
+    def optimize_subs(self, gameweek, tag):
         """
         based on pre-calculated expected points,
         choose the best starting 11, obeying constraints.
@@ -176,7 +176,7 @@ class Team(object):
         # first order all the players by expected points
         player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
         for p in self.players:
-            player_dict[p.position].append((p, p.predicted_points[method][gameweek]))
+            player_dict[p.position].append((p, p.predicted_points[tag][gameweek]))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)
         #    print(player_dict)
@@ -189,7 +189,7 @@ class Team(object):
         best_formation = None
         for f in FORMATIONS:
             self.apply_formation(player_dict, f)
-            score = self.total_points_for_starting_11(gameweek, method)
+            score = self.total_points_for_starting_11(gameweek, tag)
             if score > best_score:
                 best_score = score
                 best_formation = f
@@ -211,32 +211,32 @@ class Team(object):
                 else:
                     player[0].is_starting = False
 
-    def total_points_for_starting_11(self, gameweek, method):
+    def total_points_for_starting_11(self, gameweek, tag):
         """
         simple sum over starting players
         """
         total = 0.
         for player in self.players:
             if player.is_starting:
-                total += player.predicted_points[method][gameweek]
+                total += player.predicted_points[tag][gameweek]
                 if player.is_captain:
-                    total += player.predicted_points[method][gameweek]
+                    total += player.predicted_points[tag][gameweek]
         return total
 
-    def get_expected_points(self, gameweek, method):
+    def get_expected_points(self, gameweek, tag):
         """
         expected points for the starting 11.
         """
         if not self.is_complete():
             raise RuntimeError("Team is incomplete")
-        self._calc_expected_points(method)
+        self._calc_expected_points(tag)
 
-        self.optimize_subs(gameweek, method)
-        self.pick_captains(gameweek, method)
-        total_score = self.total_points_for_starting_11(gameweek, method)
+        self.optimize_subs(gameweek, tag)
+        self.pick_captains(gameweek, tag)
+        total_score = self.total_points_for_starting_11(gameweek, tag)
         return total_score
 
-    def pick_captains(self, gameweek, method):
+    def pick_captains(self, gameweek, tag):
         """
         pick the highest two expected points for captain and vice-captain
         """
@@ -244,7 +244,7 @@ class Team(object):
         for p in self.players:
             p.is_captain = False
             p.is_vice_captain = False
-            player_list.append((p, p.predicted_points[method][gameweek]))
+            player_list.append((p, p.predicted_points[tag][gameweek]))
 
         player_list.sort(key=itemgetter(1), reverse=True)
         player_list[0][0].is_captain = True

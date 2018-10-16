@@ -3,8 +3,8 @@
 import os
 import sys
 
-
 import random
+import argparse
 
 from ..framework.utils import *
 from ..framework.team import Team, TOTAL_PER_POSITION
@@ -13,17 +13,40 @@ from ..framework.player import CandidatePlayer
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
-num_iterations = 10
+def main():
+    parser = argparse.ArgumentParser(description="make a team from scratch")
+    parser.add_argument("--num_iterations",help="number of iterations",type=int,default=10)
+    parser.add_argument("--budget",help="budget, in 0.1 millions",type=int,default=1000)
+    parser.add_argument("--season",help="season, in format e.g. 1819")
+    parser.add_argument("--gw_start", help="gameweek to start from",type=int)
+    parser.add_argument("--num_gw", help="how many gameweeks to consider",type=int, default=5)
+    args = parser.parse_args()
+    num_iterations = args.num_iterations
+    if args.season:
+        season = args.season
+    else:
+        season = get_current_season()
+    budget = args.budget
+    if args.gw_start:
+        gw_start = args.gw_start
+    else:
+        gw_start = get_next_gameweek(season)
+    ## get predicted points
+    gw_range = list(range(gw_start, min(38,gw_start+args.num_gw)))
 
-if __name__ == "__main__":
+    tag = get_latest_prediction_tag(season)
     best_score = 0.
     best_team = None
+
     for iteration in range(num_iterations):
         predicted_points = {}
-        t = Team()
+        t = Team(budget)
         # first iteration - fill up from the front
         for pos in positions:
-            predicted_points[pos] = get_predicted_points(position=pos, method="EP")
+            predicted_points[pos] = get_predicted_points(gameweek=gw_range,
+                                                         position=pos,
+                                                         tag=tag,
+                                                         season=season)
             for pp in predicted_points[pos]:
                 t.add_player(pp[0])
                 if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
@@ -62,7 +85,9 @@ if __name__ == "__main__":
                     if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete team
-        score = t.get_expected_points()
+        score = 0.
+        for gw in gw_range:
+            score += t.get_expected_points(gw,tag)
         if score > best_score:
             best_score = score
             best_team = t
