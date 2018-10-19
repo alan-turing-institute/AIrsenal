@@ -8,7 +8,7 @@ the last entries in the DB.
 import os
 import sys
 
-
+import argparse
 
 from .fill_result_table import  fill_results_from_api
 from .fill_playerscore_table import fill_playerscores_from_api
@@ -17,7 +17,15 @@ from ..framework.utils import *
 from ..framework.schema import session_scope
 
 def main():
-    season="1819"
+
+    parser = argparse.ArgumentParser(description="fill db tables with recent scores and transactions")
+    parser.add_argument("--season",help="season, in format e.g. '1819'",default=CURRENT_SEASON)
+    parser.add_argument("--tag",help="identifying tag", default="AIrsenal1819")
+    args = parser.parse_args()
+
+    season = args.season
+    tag = args.tag
+
     with session_scope() as session:
 
         last_in_db = get_last_gameweek_in_db(season, session)
@@ -38,10 +46,10 @@ def main():
             players_out = list(set(db_players).difference(api_players))
             players_in = list(set(api_players).difference(db_players))
             for p in players_out:
-                add_transaction(p, last_finished, -1, season, session,
+                add_transaction(p, last_finished, -1, season, tag, session,
                                 os.path.join(os.path.dirname(__file__), "../data/transactions.csv"))
             for p in players_in:
-                add_transaction(p, last_finished, 1, season, session,
+                add_transaction(p, last_finished, 1, season, tag, session,
                                 os.path.join(os.path.dirname(__file__), "../data/transactions.csv"))
         else:
             print("Team is up-to-date")

@@ -57,7 +57,8 @@ def get_starting_team():
     use the transactions table in the db
     """
     team_ids = get_current_players()
-    t = Team()
+    cost_to_make_team = get_team_value()
+    t = Team(budget=cost_to_make_team)
     for pid in team_ids:
         t.add_player(pid)
     return t
