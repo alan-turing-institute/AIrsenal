@@ -4,11 +4,7 @@ python:
 
 install:
   - pip install --upgrade pip
-  - pip install -U -r requirements.txt
+  - pip install . --process-dependency-links
 
 script:
-  - git submodule init
-  - git submodule update
-  - pip install -U -r bpl/requirements.txt
-  - cd bpl && python setup.py develop test
   - pytest

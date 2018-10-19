@@ -3,5 +3,10 @@ pandas
 sqlalchemy
 requests
 dateparser
-fuzzywuzzy
+matplotlib
 scipy
+bs4
+selenium
+boto3
+pip
+pystan
