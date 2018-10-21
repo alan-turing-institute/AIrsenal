@@ -8,7 +8,7 @@ from operator import itemgetter
 
 #from ..utils import get_predicted_points
 
-from ..optimization_utils import Team, make_optimum_transfer, get_predicted_points
+from ..framework.optimization_utils import Team, make_optimum_transfer, get_predicted_points
 
 
 
@@ -70,7 +70,7 @@ def predicted_point_mock_generator(point_dict):
     {"GK" : {player_id: points, ...}, "DEF": {}, ... }
     """
 
-    def mock_get_predicted_points(gameweek, method, position, team=None):
+    def mock_get_predicted_points(gameweek, tag, position, team=None):
         """
         return an ordered list in the same way as the real
         get_predicted_points func does. EXCEPT - we return dummy players rather than just ids
@@ -147,7 +147,7 @@ def test_single_transfer():
     with mock.patch('airsenal.framework.optimization_utils.get_predicted_points', side_effect=mock_pred_points):
         new_team, pid_out, pid_in = make_optimum_transfer(t,"DUMMY",[1])
         ## we should expect - player 115 to be transfered in, and to be captain.
-    assert(pid_in[0].player_id==115)
+    assert(pid_in[0]==115)
     for p in new_team.players:
         if p.player_id == 115:
             assert(p.is_captain==True)

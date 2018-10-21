@@ -4,7 +4,7 @@ test some db access helper functions
 
 import pytest
 
-from ..utils import *
+from ..framework.utils import *
 
 
 def test_get_player_name():

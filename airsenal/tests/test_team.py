@@ -4,8 +4,8 @@ test various methods of the Team class.
 
 import pytest
 
-from ..team import Team
-from ..player import Player
+from ..framework.team import Team
+from ..framework.player import CandidatePlayer
 
 
 def test_add_player_by_id():
