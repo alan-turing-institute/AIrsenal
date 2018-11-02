@@ -66,8 +66,8 @@ def main():
     if args.weeks_ahead and not args.season==CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
+    next_gameweek = get_next_gameweek()
     if args.weeks_ahead:
-        next_gameweek = get_next_gameweek()
         gw_range = list(range(next_gameweek, next_gameweek+args.weeks_ahead))
     elif args.gameweek_start and args.gameweek_end:
         gw_range = list(range(args.gameweek_start, args.gameweek_end))
