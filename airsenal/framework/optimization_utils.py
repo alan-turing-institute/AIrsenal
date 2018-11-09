@@ -17,7 +17,7 @@ from .player import CandidatePlayer
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
-def generate_transfer_strategies(gw_ahead, transfers_last_gw=1, max_total_hit=None):
+def generate_transfer_strategies(gw_ahead, transfers_last_gw=1, max_total_hit=None, allow_wildcard=False):
     """
     Constraint: we want to take no more than a 4-point hit each week.
     So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
@@ -26,25 +26,45 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1, max_total_hit=No
     with the total points hit.
     i.e. return value is a list of tuples:
         [({gw:ntransfer, ...},points_hit), ... ]
+    If allow_wildcard is True, we allow the possibility of 0,1,'W' transfers per gw, with 'W' only allowed once.
     """
     next_gw = get_next_gameweek()
     strategy_list = []
-    possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
-    strategies = [
-        ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
-        for i in possibilities
-    ]
+    if not allow_wildcard:
+        possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
+        strategies = [
+            ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
+            for i in possibilities
+        ]
+    else:
+        possibilities = [0,1,"W"]
+        strategies = [
+            ({next_gw: i}, 0)
+            for i in possibilities
+        ]
+
     for gw in range(next_gw + 1, next_gw + gw_ahead):
         new_strategies = []
         for s in strategies:
-            possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
+            ## s is a tuple ( {gw: num_transfer, ...} , points_hit)
+            if not allow_wildcard:
+                possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
+            else:
+                already_used_wildcard = "W" in s[0].values()
+                possibilities = [0,1] if already_used_wildcard else [0,1,"W"]
             hit_so_far = s[1]
             for p in possibilities:
+                ## make a copy of the strategy up to this point, then add on the next gw
                 new_dict = {}
+                ## fill with all the gameweeks up to the one being considered
                 for k, v in s[0].items():
                     new_dict[k] = v
+                ## now fill the gw being considered
                 new_dict[gw] = p
-                new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
+                if not allow_wildcard:
+                    new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
+                else:
+                    new_hit = 0  ## never take any hit if we're doing the wildcard.
                 new_strategies.append((new_dict, new_hit))
         strategies = new_strategies
     if max_total_hit:
@@ -244,6 +264,75 @@ def make_random_transfers(team, tag, nsubs=1, gw_range=None):
     return new_team, removed_players, [ap.player_id for ap in added_players]
 
 
+def make_new_team(budget, num_iterations, tag, gw_range, season=CURRENT_SEASON, session=None):
+    """
+    Make a team from scratch, i.e. for gameweek 1, or for wildcard, or free hit.
+    """
+
+    best_score = 0.
+    best_team = None
+
+    for iteration in range(num_iterations):
+        predicted_points = {}
+        t = Team(budget)
+        # first iteration - fill up from the front
+        for pos in positions:
+            predicted_points[pos] = get_predicted_points(gameweek=gw_range,
+                                                         position=pos,
+                                                         tag=tag,
+                                                         season=season)
+            for pp in predicted_points[pos]:
+                t.add_player(pp[0])
+                if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
+                    break
+
+        # presumably we didn't get a complete team now
+        excluded_player_ids = []
+        while not t.is_complete():
+            # randomly swap out a player and replace with a cheaper one in the
+            # same position
+            player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
+            remove_cost = player_to_remove.current_price
+            remove_position = player_to_remove.position
+            t.remove_player(player_to_remove.player_id)
+            excluded_player_ids.append(player_to_remove.player_id)
+            for pp in predicted_points[player_to_remove.position]:
+                if (
+                    not pp[0] in excluded_player_ids
+                ) or random.random() < 0.3:  # some chance to put player back
+                    cp = CandidatePlayer(pp[0])
+                    if cp.current_price >= remove_cost:
+                        continue
+                    else:
+                        t.add_player(pp[0])
+            # now try again to fill up the rest of the team
+            num_missing_per_position = {}
+
+            for pos in positions:
+                num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
+                if num_missing == 0:
+                    continue
+                for pp in predicted_points[pos]:
+                    if pp[0] in excluded_player_ids:
+                        continue
+                    t.add_player(pp[0])
+                    if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
+                        break
+        # we have a complete team
+        score = 0.
+        for gw in gw_range:
+            score += t.get_expected_points(gw,tag)
+        if score > best_score:
+            best_score = score
+            best_team = t
+        print(t)
+        print("Score {}".format(score))
+    print("====================================\n")
+    print(best_team)
+    print(best_score)
+    return best_team
+
+
 def apply_strategy(strat, exhaustive_double_transfer,
                    tag, baseline_dict=None, num_iter=1):
     """
@@ -272,11 +361,16 @@ def apply_strategy(strat, exhaustive_double_transfer,
         for igw, gw in enumerate(gameweeks):
             gw_range = gameweeks[igw:]  # range of gameweeks to end of window
             if strat[0][gw] == 0:  # no transfers that gameweek
-                rp, ap = [], []
+                rp, ap = [], []  ## lists of removed-players, added-players
             elif strat[0][gw] == 1:  # one transfer - choose optimum
                 new_team, rp, ap = make_optimum_transfer(new_team, tag, gw_range)
             elif strat[0][gw] == 2 and exhaustive_double_transfer:  # two transfer - choose optimum
                 new_team, rp, ap = make_optimum_double_transfer(new_team, tag, gw_range)
+            elif strat[0][gw] == "W":   ## wildcard - a whole new team!
+                rp = [p.player_id for p in new_team.players]
+                budget = get_team_value(new_team)
+                new_team = make_new_team(budget, 100, tag, gw_range)
+                ap = [p.player_id for p in new_team.players]
             else:  # choose randomly
                 new_team, rp, ap = make_random_transfers(
                     new_team, tag, strat[0][gw], gw_range
@@ -326,7 +420,7 @@ def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     """
     strat_dict = strategy[0]
     for v in strat_dict.values():
-        if v >= N:
+        if isinstance(v,int) and v >= N:
             return True
     return False
 

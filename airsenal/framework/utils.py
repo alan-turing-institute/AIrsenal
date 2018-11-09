@@ -74,7 +74,7 @@ def get_current_players(gameweek=None,season=None, dbsession=None):
     return current_players
 
 
-def get_team_value(gameweek=None, season=None):
+def get_team_value(team=None, gameweek=None, season=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
@@ -83,8 +83,11 @@ def get_team_value(gameweek=None, season=None):
     if not season:
         season = CURRENT_SEASON
     total_value = 0
-    current_players = get_current_players(gameweek,season)
-    for pid in current_players:
+    if not team:
+        players = get_current_players(gameweek,season)
+    else:
+        players = [p.player_id for p in team.players]
+    for pid in players:
         if season==CURRENT_SEASON:
             if gameweek:
                 total_value += fetcher.get_gameweek_data_for_player(pid,
