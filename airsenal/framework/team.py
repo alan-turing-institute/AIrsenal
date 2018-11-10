@@ -71,12 +71,13 @@ class Team(object):
         return num_players == 15
 
 
-    def add_player(self, p, season=CURRENT_SEASON, gameweek=1):
+    def add_player(self, p, season=CURRENT_SEASON, gameweek=1, dbsession=None):
         """
         add a player.  Can do it by name or by player_id
         """
         if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
-            player = CandidatePlayer(p, season, gameweek)
+            player = CandidatePlayer(p, season, gameweek,
+                                     dbsession=dbsession)
         else: # already a CandidatePlayer (or an equivalent test class)
             player = p
         # check if constraints are met

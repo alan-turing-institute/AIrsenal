@@ -96,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--buy", action="store_true")
     parser.add_argument("--sell", action="store_true")
     parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
+    parser.add_argument("--tag", help="identifying tag", default="AIrsenal1819")
     parser.add_argument("--season", help="which season, in format e.g. '1819'",default="1819")
     args = parser.parse_args()
 

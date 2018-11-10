@@ -4,7 +4,7 @@ test that we get valid responses from the API.
 
 import pytest
 
-from ..data_fetcher import *
+from ..framework.data_fetcher import *
 
 
 def test_instantiate_fetchers():

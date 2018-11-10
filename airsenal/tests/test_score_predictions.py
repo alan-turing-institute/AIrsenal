@@ -6,8 +6,8 @@ import pytest
 
 import pandas as pd
 
-from ..utils import *
-from ..prediction_utils import *
+from ..framework.utils import *
+from ..framework.prediction_utils import *
 
 
 class DummyTeamModel(object):
