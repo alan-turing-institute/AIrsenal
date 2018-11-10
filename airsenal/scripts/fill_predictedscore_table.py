@@ -66,15 +66,15 @@ def main():
     if args.weeks_ahead and not args.season==CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
-    if not args.weeks_ahead and not (args.gameweek_start and args.gameweek_end):
-        print("Please specify gameweek_start and gameweek_end")
-        raise RuntimeError("Insufficient arguments")
+    next_gameweek = get_next_gameweek()
     if args.weeks_ahead:
-        next_gameweek = get_next_gameweek()
         gw_range = list(range(next_gameweek, next_gameweek+args.weeks_ahead))
-    else:
+    elif args.gameweek_start and args.gameweek_end:
         gw_range = list(range(args.gameweek_start, args.gameweek_end))
-
+    elif args.gameweek_start:  # by default go three weeks ahead
+        gw_range = list(range(args.gameweek_start, args.gameweek_start+3))
+    else:
+        gw_range = list(range(next_gameweek, next_gameweek+3))
     with session_scope() as session:
         make_predictedscore_table(session,
                                   gw_range=gw_range,

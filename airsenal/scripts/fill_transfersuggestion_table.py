@@ -78,6 +78,9 @@ def main():
     parser.add_argument("--exhaustive_double_transfer",
                         help="use exhaustive search when doing 2 transfers in gameweek",
                         action="store_true")
+    parser.add_argument("--allow_wildcard",
+                        help="include possibility of wildcarding in one of the weeks",
+                        action="store_true")
     parser.add_argument("--max_points_hit",
                         help="how many points are we prepared to lose on transfers",
                         type=int, default=4)
@@ -95,6 +98,10 @@ def main():
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
     exhaustive_double_transfer = args.exhaustive_double_transfer
+    if args.allow_wildcard:
+        wildcard = True
+    else:
+        wildcard = False
     transfers_last_gw = args.transfers_last_gw
     max_points_hit = args.max_points_hit
     if args.tag:
@@ -122,7 +129,8 @@ def main():
 
     ### add strategies to the queue
     strategies = generate_transfer_strategies(num_weeks_ahead,
-                                              transfers_last_gw, max_points_hit)
+                                              transfers_last_gw, max_points_hit,
+                                              wildcard)
     for strat in strategies:
         squeue.put(strat)
     for i in range(args.num_thread):
