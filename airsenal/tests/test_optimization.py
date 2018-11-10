@@ -8,7 +8,7 @@ from operator import itemgetter
 
 #from ..utils import get_predicted_points
 
-from ..framework.optimization_utils import Team, make_optimum_transfer, get_predicted_points
+from ..framework.optimization_utils import Team, make_optimum_transfer, make_optimum_double_transfer, get_predicted_points
 
 
 
@@ -132,13 +132,13 @@ def test_single_transfer():
     position_points_dict = {"GK": {0:2, 1:2,   # in the orig team
                                    100:0, 101: 0,
                                    200:3, 201:2},
-                            "DEF": {3: 2, 4: 2, 5:2, 6:2, 7:2,# in the orig team
+                            "DEF": {2: 2, 3: 2, 4: 2, 5:2, 6:2,# in the orig team
                                     103:0, 104:0, 105:5, 106:2, 107:2,
                                     203:0, 204:0, 205:1, 206:2, 207:2},
-                            "MID": {8:2, 9:2, 10:2, 11:2, 12:2, # in the orig team
+                            "MID": {7:2, 8:2, 9:2, 10:2, 11:2, # in the orig team
                                     108:2, 109:2, 110:3, 111:3, 112:0,
                                     208:2, 209:2, 210:3, 211:3, 212:0},
-                            "FWD": {13:2, 14:2, 15:2, # in the orig team
+                            "FWD": {12:2, 13:2, 14:2, # in the orig team
                                     113: 6, 114:3, 115:7}
                             }
     mock_pred_points= predicted_point_mock_generator(position_points_dict)
@@ -163,4 +163,32 @@ def test_double_transfer():
     transferred in.
     """
     t=generate_dummy_team()
+    position_points_dict = {"GK": {0:2, 1:2,   # in the orig team
+                                   100:0, 101: 0,
+                                   200:3, 201:7},
+                            "DEF": {2:2, 3: 2, 2: 2, 5:2, 6:2,# in the orig team
+                                    103:0, 104:0, 105:5, 106:2, 107:2,
+                                    203:0, 204:0, 205:1, 206:2, 207:2},
+                            "MID": {7:2, 8:2, 9:2, 10: 2, 11:2, # in the orig team
+                                    108:2, 109:2, 110:3, 111:3, 112:0,
+                                    208:2, 209:2, 210:3, 211:3, 212:0},
+                            "FWD": {12:2, 13:2, 14:2, # in the orig team
+                                    113: 6, 114:3, 115:8 }
+                            }
+    mock_pred_points= predicted_point_mock_generator(position_points_dict)
+
+
+    with mock.patch('airsenal.framework.optimization_utils.get_predicted_points', side_effect=mock_pred_points):
+        new_team, pid_out, pid_in = make_optimum_double_transfer(t,"DUMMY",[1])
+        ## we should expect 201 and 115 to be transferred in, and 1,15 to
+        ## be transferred out.   115 should be captain
+        assert(201 in pid_in)
+        assert(115 in pid_in)
+        print(new_team)
+        for p in new_team.players:
+            if p.player_id == 115:
+                assert(p.is_captain==True)
+            else:
+                assert(p.is_captain==False)
+
     pass
