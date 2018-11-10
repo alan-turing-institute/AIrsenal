@@ -7,7 +7,7 @@ import pytest
 
 from ..framework.schema import *
 from ..framework.mappings import *
-from .resources import *
+from .resources import dummy_players
 
 
 testengine = create_engine("sqlite:////tmp/test.db")
@@ -30,6 +30,22 @@ def test_session_scope():
     finally:
         testsession.close()
 
+
+def value_generator(index,position):
+    """
+    make up a price for a dummy player, based on index and position
+    """
+    if position=="GK":
+        value = 40 + index*random.randint(0,5)
+    elif position=="DEF":
+        value = 40 + index*random.randint(5,10)
+    elif position=="MID":
+        value = 50 + index*random.randint(10,20)
+    elif position=="FWD":
+        value = 60 + index*random.randint(15,20)
+    return value
+
+
 @pytest.fixture
 def fill_players():
     """
@@ -41,7 +57,7 @@ def fill_players():
     with test_session_scope() as ts:
         if len(ts.query(Player).all()) >0:
             return
-        for i,n in enumerate(players):
+        for i,n in enumerate(dummy_players):
             p = Player()
             p.player_id = i
             p.name = n
@@ -60,7 +76,11 @@ def fill_players():
             else:
                 pos = "FWD"
             team = team_list[i % 20]
-            current_price = random.randint(40,1200)
+            ## make the first 15 players affordable,
+            ## the next 15 almost affordable,
+            ## the next 15 mostly unaffordable,
+            ## and rest very expensive
+            current_price = value_generator(i//15,pos)
             pa = PlayerAttributes()
             pa.season = season
             pa.team = team

@@ -1,5 +1,9 @@
+"""
+A list of dummy players for use in tests.
+"""
 
-players = [
+
+dummy_players = [
     "Alice",
     "Bob",
     "Carla",
@@ -79,4 +83,3 @@ players = [
     "Yolanda",
     "Zebedee"
 ]
-    
