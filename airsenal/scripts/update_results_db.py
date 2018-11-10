@@ -18,7 +18,6 @@ from ..framework.schema import session_scope
 
 def main():
 
-
     parser = argparse.ArgumentParser(description="fill db tables with recent scores and transactions")
     parser.add_argument("--season",help="season, in format e.g. '1819'",default=CURRENT_SEASON)
     parser.add_argument("--tag",help="identifying tag", default="AIrsenal1819")
