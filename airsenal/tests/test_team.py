@@ -4,26 +4,31 @@ test various methods of the Team class.
 
 import pytest
 
+from .fixtures import test_session_scope, fill_players
+from ..framework.utils import get_player_name, get_player_id
+
 from ..framework.team import Team
 from ..framework.player import CandidatePlayer
 
 
-def test_add_player_by_id():
+def test_add_player_by_id(fill_players):
     """
     Should be able to add a player with integer argument
     """
-    t = Team()
-    added_ok = t.add_player(50)
-    assert added_ok
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = t.add_player(50,dbsession=ts)
+        assert added_ok
 
 
 def test_add_player_by_name():
     """
     Should be able to add a player with string argument
     """
-    t = Team()
-    added_ok = t.add_player("Raheem Sterling")
-    assert added_ok
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = t.add_player("Alice", dbsession=ts)
+        assert added_ok
 
 
 def test_cant_add_same_player():
@@ -43,16 +48,16 @@ def test_cant_add_too_many_per_position():
     """
     t = Team()
     # keepers
-    assert t.add_player("Jordan Pickford")
-    assert t.add_player("Claudio Bravo")
-    assert not t.add_player("Mathew Ryan")
+    assert t.add_player("Alice")
+    assert t.add_player("Bob")
+    assert not t.add_player("Pedro")
     # defenders
-    assert t.add_player("Scott Malone")
-    assert t.add_player("Winston Reid")
-    assert t.add_player("Younes Kaboul")
-    assert t.add_player("Scott Dann")
-    assert t.add_player("Mason Holgate")
-    assert not t.add_player("Lewis Dunk")
+    assert t.add_player("Carla")
+    assert t.add_player("Donald")
+    assert t.add_player("Erica")
+    assert t.add_player("Frank")
+    assert t.add_player("Gerry")
+    assert not t.add_player("Stefan")
 
 
 def test_cant_add_too_many_per_team():

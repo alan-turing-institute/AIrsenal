@@ -3,6 +3,7 @@ Fixtures to be used in AIrsenal tests.
 In particular fill a test db
 """
 import random
+import pytest
 
 from ..framework.schema import *
 from ..framework.mappings import *
@@ -29,12 +30,17 @@ def test_session_scope():
     finally:
         testsession.close()
 
-
+@pytest.fixture
 def fill_players():
     """
     fill a bunch of dummy players
     """
+    team_list = list(alternative_team_names.keys())
+    season = "1920"
+    gw_valid_from = 1
     with test_session_scope() as ts:
+        if len(ts.query(Player).all()) >0:
+            return
         for i,n in enumerate(players):
             p = Player()
             p.player_id = i
@@ -44,17 +50,7 @@ def fill_players():
                 ts.add(p)
             except:
                 print("Error adding {} {}".format(i,n))
-
-
-def fill_player_attributes():
-    """
-    fill some attributes for those players, for 1920 season.
-    """
-    team_list = list(alternative_team_names.keys())
-    season = "1920"
-    gw_valid_from = 1
-    with test_session_scope() as ts:
-        for i, p in enumerate(players):
+            ## now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"
             elif i % 15 < 7:
