@@ -86,11 +86,12 @@ class Team(object):
                 print("Already have {} in team".format(player.name))
             return False
         if not self.check_num_in_position(player):
-            print(
-                "Unable to add player {} - too many {}".format(
-                    player.name, player.position
+            if self.verbose:
+                print(
+                    "Unable to add player {} - too many {}".format(
+                        player.name, player.position
+                    )
                 )
-            )
             return False
         if not self.check_cost(player):
             if self.verbose:
@@ -177,7 +178,13 @@ class Team(object):
         # first order all the players by expected points
         player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
         for p in self.players:
-            player_dict[p.position].append((p, p.predicted_points[tag][gameweek]))
+            try:
+                points_prediction = p.predicted_points[tag][gameweek]
+
+            except(KeyError):
+                raise RuntimeError("No points prediction for gameweek {}"\
+                                   .format(gameweek))
+            player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)
         #    print(player_dict)

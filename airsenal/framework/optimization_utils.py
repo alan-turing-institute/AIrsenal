@@ -77,7 +77,7 @@ def get_starting_team():
     use the transactions table in the db
     """
     team_ids = get_current_players()
-    cost_to_make_team = get_team_value()
+    cost_to_make_team = max(get_team_value(),1000)
     t = Team(budget=cost_to_make_team)
     for pid in team_ids:
         t.add_player(pid)
@@ -102,7 +102,8 @@ def get_baseline_prediction(gw_ahead, tag):
     return total, cum_total_per_gw
 
 
-def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON):
+def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
+                          update_func_and_args=None):
     """
     If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
@@ -121,14 +122,17 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON)
             gameweek=gameweek_range, position=pos, tag=tag
         )
     for p_out in team.players:
+        if update_func_and_args:
+            ## call function to update progress bar.
+            ## this was passed as a tuple (func, increment, pid)
+            update_func_and_args[0](update_func_and_args[1],
+                                    update_func_and_args[2])
         new_team = copy.deepcopy(team)
         position = p_out.position
-#        print("Removing player {}".format(p_out.name))
         new_team.remove_player(p_out.player_id)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-#            print("Trying to add player {}".format(p_in[0]))
             added_ok = new_team.add_player(p_in[0])
             if added_ok:
                 break
@@ -143,7 +147,11 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON)
     return best_team, [best_pid_out], [best_pid_in]
 
 
-def make_optimum_double_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON):
+def make_optimum_double_transfer(team, tag,
+                                 gameweek_range=None,
+                                 season=CURRENT_SEASON,
+                                 update_func_and_args=None,
+                                 verbose=False):
     """
     If we want to just make two transfers, it's not unfeasible to try all
     possibilities in turn.
@@ -166,14 +174,17 @@ def make_optimum_double_transfer(team, tag, gameweek_range=None, season=CURRENT_
 
         new_team_remove_1 = copy.deepcopy(team)
         new_team_remove_1.remove_player(pout_1.player_id)
-#        print("Removing player 1 {}".format(pout_1.name))
         for j in range(i+1, len(team.players)):
+            if update_func_and_args:
+                ## call function to update progress bar.
+                ## this was passed as a tuple (func, increment, pid)
+                update_func_and_args[0](update_func_and_args[1],
+                                        update_func_and_args[2])
             pout_2 = team.players[j]
             new_team_remove_2 = copy.deepcopy(new_team_remove_1)
             new_team_remove_2.remove_player(pout_2.player_id)
-            print("Removing players {} {}".format(i,j))
-#            print("Removing player 2 {}".format(pout_2.name))
-#            print("==> number of players {}".format(len(new_team_remove_2.players)))
+            if verbose:
+                print("Removing players {} {}".format(i,j))
             ## what positions do we need to fill?
             positions_needed = [pout_1.position, pout_2.position]
 
@@ -186,7 +197,6 @@ def make_optimum_double_transfer(team, tag, gameweek_range=None, season=CURRENT_
                 added_1_ok = new_team_add_1.add_player(pin_1[0])
                 if not added_1_ok:
                     continue
-#                print("==> number of players ADD1{}".format(len(new_team_add_1.players)))
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
                     new_team_add_2 = copy.deepcopy(new_team_add_1)
                     if pin_2[0] == pin_1[0] or \
@@ -209,63 +219,91 @@ def make_optimum_double_transfer(team, tag, gameweek_range=None, season=CURRENT_
     return best_team, best_pid_out, best_pid_in
 
 
-def make_random_transfers(team, tag, nsubs=1, gw_range=None):
+def make_random_transfers(team, tag, nsubs=1,
+                          gw_range=None,
+                          num_iter=None,
+                          update_func_and_args=None):
     """
-    choose a random player to sub out, and then get the player with the best
-    expected score for the next gameweek that we can to fill their place.
+    choose nsubs random players to sub out, and then select players
+    using a triangular PDF to preferentially select  the replacements with
+    the best expected score to fill their place.
+    Do this num_iter times and choose the best total score over gw_range gameweeks.
     """
-    new_team = copy.deepcopy(team)
-    if not gw_range:
-        gw_range = [get_next_gameweek()]
-    players_to_remove = []  # this is the index within the team
-    removed_players = []  # this is the player_ids
-    ## order the players in the team by predicted_points - least-to-most
-    player_list = []
-    for p in team.players:
-        p.calc_predicted_points(tag)
-        player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
-    player_list.sort(key=itemgetter(1), reverse=False)
-    while len(players_to_remove) < nsubs:
-        index = int(random.triangular(0, len(player_list), 0))
-        #        index = random.randint(0,len(player_list),0)
-        if not index in players_to_remove:
-            players_to_remove.append(index)
+    best_score = 0.
+    best_team = None
+    best_pid_out = []
+    best_pid_in = []
 
-    positions_needed = []
-    for p in players_to_remove:
-        positions_needed.append(team.players[p].position)
-        removed_players.append(team.players[p].player_id)
-        new_team.remove_player(removed_players[-1])
-    budget = new_team.budget
-    predicted_points = {}
-    for pos in set(positions_needed):
-        predicted_points[pos] = get_predicted_points(
-            position=pos, gameweek=gw_range, tag=tag
-        )
-    complete_team = False
-    added_players = []
-    while not complete_team:
-        ## sample with a triangular PDF - preferentially select players near
-        ## the start
+    for i in range(num_iter):
+        if update_func_and_args:
+            ## call function to update progress bar.
+            ## this was passed as a tuple (func, increment, pid)
+            update_func_and_args[0](update_func_and_args[1],
+                                    update_func_and_args[2])
+        new_team = copy.deepcopy(team)
+        if not gw_range:
+            gw_range = [get_next_gameweek()]
+        players_to_remove = []  # this is the index within the team
+        removed_players = []  # this is the player_ids
+        ## order the players in the team by predicted_points - least-to-most
+        player_list = []
+        for p in team.players:
+            p.calc_predicted_points(tag)
+            player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
+        player_list.sort(key=itemgetter(1), reverse=False)
+        while len(players_to_remove) < nsubs:
+            index = int(random.triangular(0, len(player_list), 0))
+            if not index in players_to_remove:
+                players_to_remove.append(index)
+
+        positions_needed = []
+        for p in players_to_remove:
+            positions_needed.append(team.players[p].position)
+            removed_players.append(team.players[p].player_id)
+            new_team.remove_player(removed_players[-1])
+        budget = new_team.budget
+        predicted_points = {}
+        for pos in set(positions_needed):
+            predicted_points[pos] = get_predicted_points(
+                position=pos, gameweek=gw_range, tag=tag
+            )
+        complete_team = False
         added_players = []
-        for pos in positions_needed:
-            index = int(random.triangular(0, len(predicted_points[pos]), 0))
-            #            index = random.randint(0,len(predicted_points[pos])-1)
-            pid_to_add = predicted_points[pos][index][0]
-            added_ok = new_team.add_player(pid_to_add)
-            if added_ok:
-                added_players.append(pid_to_add)
-        complete_team = new_team.is_complete()
-        if not complete_team:  # take those players out again.
-            for ap in added_players:
-                removed_ok = new_team.remove_player(ap.player_id)
-                if not removed_ok:
-                    print("Problem removing {}".format(ap.name))
+        while not complete_team:
+            ## sample with a triangular PDF - preferentially select players near
+            ## the start
             added_players = []
-    return new_team, removed_players, [ap.player_id for ap in added_players]
+            for pos in positions_needed:
+                index = int(random.triangular(0, len(predicted_points[pos]), 0))
+                pid_to_add = predicted_points[pos][index][0]
+                added_ok = new_team.add_player(pid_to_add)
+                if added_ok:
+                    added_players.append(pid_to_add)
+            complete_team = new_team.is_complete()
+            if not complete_team:  # take those players out again.
+                for ap in added_players:
+                    removed_ok = new_team.remove_player(ap.player_id)
+                    if not removed_ok:
+                        print("Problem removing {}".format(ap.name))
+                added_players = []
+        ## calculate the score
+        total_points = 0.
+        for gw in gw_range:
+            total_points += new_team.get_expected_points(gw, tag)
+        if total_points > best_score:
+            best_score = total_points
+            best_pid_out = removed_players
+            best_pid_in = [ap.player_id for ap in added_players]
+            best_team = new_team
+        ## end of loop over n_iter
+    return best_team, best_pid_out, best_pid_in
 
 
-def make_new_team(budget, num_iterations, tag, gw_range, season=CURRENT_SEASON, session=None):
+def make_new_team(budget, num_iterations, tag,
+                  gw_range,
+                  season=CURRENT_SEASON,
+                  session=None,
+                  update_func_and_args=None):
     """
     Make a team from scratch, i.e. for gameweek 1, or for wildcard, or free hit.
     """
@@ -274,6 +312,11 @@ def make_new_team(budget, num_iterations, tag, gw_range, season=CURRENT_SEASON, 
     best_team = None
 
     for iteration in range(num_iterations):
+        if update_func_and_args:
+            ## call function to update progress bar.
+            ## this was passed as a tuple (func, increment, pid)
+            update_func_and_args[0](update_func_and_args[1],
+                                    update_func_and_args[2])
         predicted_points = {}
         t = Team(budget)
         # first iteration - fill up from the front
@@ -335,7 +378,9 @@ def make_new_team(budget, num_iterations, tag, gw_range, season=CURRENT_SEASON, 
 
 
 def apply_strategy(strat, exhaustive_double_transfer,
-                   tag, baseline_dict=None, num_iter=1):
+                   tag, baseline_dict=None, num_iter=1,
+                   update_func_and_args=None,
+                   verbose=False):
     """
     apply a set of transfers over a number of gameweeks, and
     total up the score, taking into account points hits.
@@ -345,50 +390,66 @@ def apply_strategy(strat, exhaustive_double_transfer,
     """
     sid = make_strategy_id(strat)
     starting_team = get_starting_team()
-    print("Trying strategy {}".format(strat))
+    if verbose:
+        print("Trying strategy {}".format(strat))
     best_score = 0
     best_strategy_output = {}
     gameweeks = sorted(strat[0].keys())  # go through gameweeks in order
-    for i in range(num_iter):
-        print(" --> doing strategy {} iteration {}".format(sid, i))
-        strategy_output = {
-            "total_score": -1 * strat[1],  # points hit from this strategy
-            "points_per_gw": {},
-            "players_in": {},
-            "players_out": {},
-        }
-        new_team = copy.deepcopy(starting_team)
+    if verbose:
+        print(" --> doing strategy {}".format(sid))
+    strategy_output = {
+        "total_score": -1 * strat[1],  # points hit from this strategy
+        "points_per_gw": {},
+        "players_in": {},
+        "players_out": {},
+    }
+    new_team = copy.deepcopy(starting_team)
 
-        for igw, gw in enumerate(gameweeks):
-            gw_range = gameweeks[igw:]  # range of gameweeks to end of window
-            if strat[0][gw] == 0:  # no transfers that gameweek
-                rp, ap = [], []  ## lists of removed-players, added-players
-            elif strat[0][gw] == 1:  # one transfer - choose optimum
-                new_team, rp, ap = make_optimum_transfer(new_team, tag, gw_range)
-            elif strat[0][gw] == 2 and exhaustive_double_transfer:  # two transfer - choose optimum
-                new_team, rp, ap = make_optimum_double_transfer(new_team, tag, gw_range)
-            elif strat[0][gw] == "W":   ## wildcard - a whole new team!
-                rp = [p.player_id for p in new_team.players]
-                budget = get_team_value(new_team)
-                new_team = make_new_team(budget, 100, tag, gw_range)
-                ap = [p.player_id for p in new_team.players]
-            else:  # choose randomly
-                new_team, rp, ap = make_random_transfers(
-                    new_team, tag, strat[0][gw], gw_range
-                )
-            score = new_team.get_expected_points(gw, tag)
-            ## if we're ever >5 points below the baseline, bail out!
-            strategy_output["total_score"] += score
-            if baseline_dict and baseline_dict[gw] - strategy_output["total_score"] > 5:
-                break
-            strategy_output["points_per_gw"][gw] = score
-            strategy_output["players_in"][gw] = ap
-            strategy_output["players_out"][gw] = rp
+    for igw, gw in enumerate(gameweeks):
+        gw_range = gameweeks[igw:]  # range of gameweeks to end of window
+        if strat[0][gw] == 0:  # no transfers that gameweek
+            rp, ap = [], []  ## lists of removed-players, added-players
+        elif strat[0][gw] == 1:  # one transfer - choose optimum
+            new_team, rp, ap = make_optimum_transfer(
+                new_team,
+                tag,
+                gw_range,
+                update_func_and_args=update_func_and_args
+            )
+        elif strat[0][gw] == 2 and exhaustive_double_transfer:
+            ## two transfers - choose optimum
+            new_team, rp, ap = make_optimum_double_transfer(
+                new_team,
+                tag,
+                gw_range,
+                update_func_and_args=update_func_and_args
+            )
+        elif strat[0][gw] == "W":   ## wildcard - a whole new team!
+            rp = [p.player_id for p in new_team.players]
+            budget = get_team_value(new_team)
+            new_team = make_new_team(budget, num_iter, tag, gw_range,
+                                     update_func_and_args=update_func_and_args)
+            ap = [p.player_id for p in new_team.players]
+        else:  # choose randomly
+            new_team, rp, ap = make_random_transfers(
+                new_team, tag, strat[0][gw], gw_range,
+                num_iter,
+                update_func_and_args=update_func_and_args
+            )
+        score = new_team.get_expected_points(gw, tag)
+        ## if we're ever >5 points below the baseline, bail out!
+        strategy_output["total_score"] += score
+        if baseline_dict and baseline_dict[gw] - strategy_output["total_score"] > 5:
+            break
+        strategy_output["points_per_gw"][gw] = score
+        strategy_output["players_in"][gw] = ap
+        strategy_output["players_out"][gw] = rp
         ## end of loop over gameweeks
-        if strategy_output["total_score"] > best_score:
-            best_score = strategy_output["total_score"]
-            best_strategy_output = strategy_output
-    print("Total score: {}".format(best_strategy_output["total_score"]))
+    if strategy_output["total_score"] > best_score:
+        best_score = strategy_output["total_score"]
+        best_strategy_output = strategy_output
+    if verbose:
+        print("Total score: {}".format(best_strategy_output["total_score"]))
     return best_strategy_output
 
 
