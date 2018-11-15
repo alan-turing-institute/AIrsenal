@@ -221,7 +221,7 @@ def make_optimum_double_transfer(team, tag,
 
 def make_random_transfers(team, tag, nsubs=1,
                           gw_range=None,
-                          num_iter=None,
+                          num_iter=1,
                           update_func_and_args=None):
     """
     choose nsubs random players to sub out, and then select players
@@ -433,7 +433,7 @@ def apply_strategy(strat, exhaustive_double_transfer,
         else:  # choose randomly
             new_team, rp, ap = make_random_transfers(
                 new_team, tag, strat[0][gw], gw_range,
-                num_iter,
+                num_iter=num_iter,
                 update_func_and_args=update_func_and_args
             )
         score = new_team.get_expected_points(gw, tag)

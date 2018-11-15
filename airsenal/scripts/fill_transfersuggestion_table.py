@@ -58,6 +58,7 @@ def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, b
     while True:
         strat = queue.get()
         if strat == "DONE":
+            resetter(pid,strat)
             break
         sid = make_strategy_id(strat)
         ## reset this process' progress bar, and give it the string for the
@@ -69,11 +70,10 @@ def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, b
                                           num_iterations,
                                           exhaustive_double_transfer)
         increment = 100 / num_increments
-        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
-            num_iter = 1
-        else:
-            num_iter = num_iterations
-#        print("ID {} doing {} iterations for Strategy {}".format(pid, num_iter, strat))
+#        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
+#            num_iter = 1
+#        else:
+        num_iter = num_iterations
         strat_output = apply_strategy(strat,
                                       exhaustive_double_transfer,
                                       tag,
@@ -157,7 +157,8 @@ def main():
     ## create the output directory for temporary json files
     ## giving the points prediction for each strategy
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    os.system("rm "+OUTPUT_DIR+"/*")
+    if len(os.listdir(OUTPUT_DIR)) > 0:
+        os.system("rm "+OUTPUT_DIR+"/*")
 
     ## first get a baseline prediction
     baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
@@ -179,9 +180,12 @@ def main():
 
     ## functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
-        progress_bars[index].n=0
-        progress_bars[index].desc="strategy: "+strategy_string
-        progress_bars[index].refresh()
+        if strategy_string == "DONE":
+            progress_bars[index].close()
+        else:
+            progress_bars[index].n=0
+            progress_bars[index].desc="strategy: "+strategy_string
+            progress_bars[index].refresh()
     def update_progress(increment=1, index=None):
         if index==None:
             ## outer progress bar
@@ -190,8 +194,8 @@ def main():
             total_progress.refresh()
             if nfiles == len(strategies):
                 total_progress.close()
-                for pb in progress_bars:
-                    pb.close()
+#                for pb in progress_bars:
+#                    pb.close()
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
@@ -211,14 +215,18 @@ def main():
     for i in range(args.num_thread):
         squeue.put("DONE")
     ### now rejoin the main thread
-    for p in procs:
+    for i,p in enumerate(procs):
+        progress_bars[i].close()
+        progress_bars[i] = None
         p.join()
 
     ### find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
     fill_suggestion_table(baseline_score, best_strategy, season)
-    print("\n\n\n====================================\n")
+    for i in range(len(procs)):
+        print("\n")
+    print("\n====================================\n")
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print(" best strategy")
