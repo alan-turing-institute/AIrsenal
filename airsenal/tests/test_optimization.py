@@ -190,5 +190,3 @@ def test_double_transfer():
                 assert(p.is_captain==True)
             else:
                 assert(p.is_captain==False)
-
-    pass
