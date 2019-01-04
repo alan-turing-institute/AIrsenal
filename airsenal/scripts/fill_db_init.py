@@ -19,4 +19,4 @@ def main():
         make_result_table(session)
         make_playerscore_table(session)
         make_fifa_ratings_table(session)
-        make_predictedscore_table(session)
+##        make_predictedscore_table(session)

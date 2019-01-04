@@ -20,30 +20,74 @@ import json
 
 
 from multiprocessing import Process, Queue
+from tqdm import tqdm
 import argparse
 
 from ..framework.optimization_utils import *
 
-OUTPUT_DIR = "../data"
+OUTPUT_DIR = "/tmp/airsopt"
 
+def count_increments(strategy_string, num_iterations, exhaustive_double_transfer):
+    """
+    how many steps for the progress bar for this strategy
+    """
+    total = 0
+    for s in strategy_string:
+        if s=="W":
+            ## wildcard - needs num_iterations iterations
+            total+= num_iterations
+        elif s=="1":
+            ## single transfer - 15 increments (replace each player in turn)
+            total+= 15
+        elif s=="2":
+            if exhaustive_double_transfer:
+                ## remove each pair of players - 15*7=105 combinations
+                total += 105
+            else:
+                total += num_iterations
+        elif s=="3":
+            total += num_iterations
+    ## return at least 1, to avoid ZeroDivisionError
+    return max(total,1)
 
-def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, baseline=None):
+def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, baseline=None, updater=None, resetter=None):
+    """
+    subprocess to go through a strategy and output a json file with
+    the best players in, players out, and total score.
+    """
     while True:
         strat = queue.get()
         if strat == "DONE":
+            resetter(pid,strat)
             break
         sid = make_strategy_id(strat)
-        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
-            num_iter = 1
-        else:
-            num_iter = num_iterations
-        print("ID {} doing {} iterations for Strategy {}".format(pid, num_iter, strat))
-        strat_output = apply_strategy(strat, exhaustive_double_transfer, tag, baseline, num_iter)
+        ## reset this process' progress bar, and give it the string for the
+        ## next strategy
+        resetter(pid, sid)
+
+        ## count how many incremements for this progress bar / strategy
+        num_increments = count_increments(sid,
+                                          num_iterations,
+                                          exhaustive_double_transfer)
+        increment = 100 / num_increments
+#        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
+#            num_iter = 1
+#        else:
+        num_iter = num_iterations
+        strat_output = apply_strategy(strat,
+                                      exhaustive_double_transfer,
+                                      tag,
+                                      baseline,
+                                      num_iter,
+                                      (updater,
+                                       increment,
+                                       pid))
         with open(
             os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
         ) as outfile:
             json.dump(strat_output, outfile)
-
+        ## call the function to update the main progress bar
+        updater()
 
 def find_best_strat_from_json(tag):
     best_score = 0
@@ -110,6 +154,12 @@ def main():
         ## get most recent set of predictions from DB table
         tag = get_latest_prediction_tag()
 
+    ## create the output directory for temporary json files
+    ## giving the points prediction for each strategy
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    if len(os.listdir(OUTPUT_DIR)) > 0:
+        os.system("rm "+OUTPUT_DIR+"/*")
+
     ## first get a baseline prediction
     baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
@@ -117,33 +167,66 @@ def main():
     ## things off it
     squeue = Queue()
     procs = []
+    ## create one progress bar for each thread
+    progress_bars = []
+    for i in range(args.num_thread):
+        progress_bars.append(tqdm(total=100))
+    ### generate the list of transfer strategies
+    strategies = generate_transfer_strategies(num_weeks_ahead,
+                                              transfers_last_gw, max_points_hit,
+                                              wildcard)
+    ## define overall progress bar
+    total_progress = tqdm(total=len(strategies), desc="Total progress")
+
+    ## functions to be passed to subprocess to update or reset progress bars
+    def reset_progress(index, strategy_string):
+        if strategy_string == "DONE":
+            progress_bars[index].close()
+        else:
+            progress_bars[index].n=0
+            progress_bars[index].desc="strategy: "+strategy_string
+            progress_bars[index].refresh()
+    def update_progress(increment=1, index=None):
+        if index==None:
+            ## outer progress bar
+            nfiles = len(os.listdir(OUTPUT_DIR))
+            total_progress.n = nfiles
+            total_progress.refresh()
+            if nfiles == len(strategies):
+                total_progress.close()
+#                for pb in progress_bars:
+#                    pb.close()
+        else:
+            progress_bars[index].update(increment)
+            progress_bars[index].refresh()
     for i in range(args.num_thread):
         processor = Process(
             target=process_strat,
             args=(squeue, i, num_iterations, exhaustive_double_transfer,
-                  tag, baseline_dict),
+                  tag, baseline_dict, update_progress, reset_progress),
         )
         processor.daemon = True
         processor.start()
         procs.append(processor)
 
-    ### add strategies to the queue
-    strategies = generate_transfer_strategies(num_weeks_ahead,
-                                              transfers_last_gw, max_points_hit,
-                                              wildcard)
+    ## add the strategies to the queue
     for strat in strategies:
         squeue.put(strat)
     for i in range(args.num_thread):
         squeue.put("DONE")
     ### now rejoin the main thread
-    for p in procs:
+    for i,p in enumerate(procs):
+        progress_bars[i].close()
+        progress_bars[i] = None
         p.join()
 
     ### find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
     fill_suggestion_table(baseline_score, best_strategy, season)
-    print("====================================\n")
+    for i in range(len(procs)):
+        print("\n")
+    print("\n====================================\n")
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print(" best strategy")

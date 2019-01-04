@@ -26,12 +26,13 @@ def output_csv(output_file, player_id, gameweek, in_or_out, season, tag):
     """
     write out to a csv file
     """
+    print("Writing output to {}".format(output_file))
     if not os.path.exists(output_file):
         outfile = open(output_file, "w")
         outfile.write("player_id,gameweek,in_or_out,season,tag\n")
     else:
         outfile = open(output_file, "a")
-    outfile.write("{},{},{},{},{}\n".format(player_id, gameweek, in_or_out, season, tag))
+    outfile.write("{},{},{},{}\n".format(player_id, gameweek, in_or_out, tag))
     outfile.close()
 
 
@@ -77,6 +78,7 @@ def make_transaction_table(session,
     if args.input_csv:
         infile = open(args.input_csv)
         for line in infile.readlines()[1:]:
+            print(line)
             pid, gw, in_or_out,tag = line.strip().split(",")
             add_transaction(pid, gw, in_or_out, season, tag, session, output_csv_filename=outfile)
     if args.buy:

@@ -24,7 +24,7 @@ def find_fixture(season, gameweek, played_for, opponent, session):
     That should then work, apart from double-game-weeks where 'opponent'
     will have more than one match per gameweek.
     """
-    tag = get_latest_fixture_tag(season)
+    tag = get_latest_fixture_tag(season,session)
     f = (
         session.query(Fixture)
         .filter_by(tag=tag)
