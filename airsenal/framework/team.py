@@ -71,12 +71,13 @@ class Team(object):
         return num_players == 15
 
 
-    def add_player(self, p, season=CURRENT_SEASON, gameweek=1):
+    def add_player(self, p, season=CURRENT_SEASON, gameweek=1, dbsession=None):
         """
         add a player.  Can do it by name or by player_id
         """
         if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
-            player = CandidatePlayer(p, season, gameweek)
+            player = CandidatePlayer(p, season, gameweek,
+                                     dbsession=dbsession)
         else: # already a CandidatePlayer (or an equivalent test class)
             player = p
         # check if constraints are met
@@ -85,11 +86,12 @@ class Team(object):
                 print("Already have {} in team".format(player.name))
             return False
         if not self.check_num_in_position(player):
-            print(
-                "Unable to add player {} - too many {}".format(
-                    player.name, player.position
+            if self.verbose:
+                print(
+                    "Unable to add player {} - too many {}".format(
+                        player.name, player.position
+                    )
                 )
-            )
             return False
         if not self.check_cost(player):
             if self.verbose:
@@ -176,7 +178,13 @@ class Team(object):
         # first order all the players by expected points
         player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
         for p in self.players:
-            player_dict[p.position].append((p, p.predicted_points[tag][gameweek]))
+            try:
+                points_prediction = p.predicted_points[tag][gameweek]
+
+            except(KeyError):
+                raise RuntimeError("No points prediction for gameweek {}"\
+                                   .format(gameweek))
+            player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)
         #    print(player_dict)

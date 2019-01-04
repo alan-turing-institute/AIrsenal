@@ -549,7 +549,10 @@ def get_latest_prediction_tag(season=CURRENT_SEASON,dbsession=None):
                   .filter(PlayerPrediction.fixture.has(
                       Fixture.season==season
                   )).all()
-    return rows[-1].tag
+    try:
+        return rows[-1].tag
+    except(IndexError):
+        raise RuntimeError("No predicted points in database - has the database been filled?")
 
 
 def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):

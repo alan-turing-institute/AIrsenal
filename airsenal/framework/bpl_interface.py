@@ -128,7 +128,9 @@ def get_team_model(df, df_X):
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    model_team = bpl.BPLModel(df, X=df_X)
+    ## TEMP - GET NAN ERROR IF USE DF_X
+#    model_team = bpl.BPLModel(df, X=df_X)
+    model_team = bpl.BPLModel(df, X=None)
     model_team.fit()
     return model_team
 

@@ -11,14 +11,15 @@ class CandidatePlayer(object):
     player class
     """
 
-    def __init__(self, player,season=CURRENT_SEASON,gameweek=1):
+    def __init__(self, player,season=CURRENT_SEASON,gameweek=1, dbsession=None):
         """
         initialize either by name or by ID
         """
+        self.dbsession = dbsession
         if isinstance(player, Player):
             pdata = player
         else:
-            pdata = get_player(player)
+            pdata = get_player(player, self.dbsession)
         self.player_id = pdata.player_id
         self.name = pdata.name
         self.team = pdata.team(season,gameweek)
@@ -36,7 +37,7 @@ class CandidatePlayer(object):
         """
         if not method in self.predicted_points.keys():
             self.predicted_points[method] = get_predicted_points_for_player(
-                self.player_id, method
+                self.player_id, method, dbsession=self.dbsession
             )
 
     def get_predicted_points(self, gameweek, method):

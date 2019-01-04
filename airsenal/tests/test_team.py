@@ -4,108 +4,119 @@ test various methods of the Team class.
 
 import pytest
 
-from ..team import Team
-from ..player import Player
+from .fixtures import test_session_scope, fill_players
+from ..framework.utils import get_player_name, get_player_id
 
+from ..framework.team import Team
+from ..framework.player import CandidatePlayer
 
-def test_add_player_by_id():
+TEST_SEASON="1920"
+
+def test_add_player_by_id(fill_players):
     """
     Should be able to add a player with integer argument
     """
-    t = Team()
-    added_ok = t.add_player(50)
-    assert added_ok
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = t.add_player(50,season=TEST_SEASON,dbsession=ts)
+        assert added_ok
 
 
-def test_add_player_by_name():
+def test_add_player_by_name(fill_players):
     """
     Should be able to add a player with string argument
     """
-    t = Team()
-    added_ok = t.add_player("Raheem Sterling")
-    assert added_ok
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = t.add_player("Alice",season=TEST_SEASON,
+                                dbsession=ts)
+        assert added_ok
 
 
-def test_cant_add_same_player():
+def test_cant_add_same_player(fill_players):
     """
     can't add a player thats already on the team.
     """
-    t = Team()
-    added_ok = t.add_player(1)
-    assert added_ok
-    added_ok = t.add_player(1)
-    assert not added_ok
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        assert added_ok
+        added_ok = t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        assert not added_ok
 
 
-def test_cant_add_too_many_per_position():
+def test_cant_add_too_many_per_position(fill_players):
     """
     no more than two keepers, 5 defenders, 5 midfielders, 3 forwards.
     """
-    t = Team()
-    # keepers
-    assert t.add_player("Jordan Pickford")
-    assert t.add_player("Claudio Bravo")
-    assert not t.add_player("Mathew Ryan")
-    # defenders
-    assert t.add_player("Scott Malone")
-    assert t.add_player("Winston Reid")
-    assert t.add_player("Younes Kaboul")
-    assert t.add_player("Scott Dann")
-    assert t.add_player("Mason Holgate")
-    assert not t.add_player("Lewis Dunk")
+    with test_session_scope() as ts:
+        t = Team()
+        # keepers
+        assert t.add_player("Alice",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Bob",season=TEST_SEASON,dbsession=ts)
+        assert not t.add_player("Pedro",season=TEST_SEASON,dbsession=ts)
+        # defenders
+        assert t.add_player("Carla",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Donald",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Erica",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Frank",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Gerry",season=TEST_SEASON,dbsession=ts)
+        assert not t.add_player("Stefan",season=TEST_SEASON,dbsession=ts)
 
 
-def test_cant_add_too_many_per_team():
+def test_cant_add_too_many_per_team(fill_players):
     """
     no more than three from the same team.
     """
-    t = Team()
-    assert t.add_player(1)
-    assert t.add_player(2)
-    assert t.add_player(3)
-    assert not t.add_player(4)
+    with test_session_scope() as ts:
+        t = Team()
+        assert t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        assert t.add_player(21,season=TEST_SEASON,dbsession=ts)
+        assert t.add_player(41,season=TEST_SEASON,dbsession=ts)
+        assert not t.add_player(61,season=TEST_SEASON,dbsession=ts)
 
 
 def test_cant_exceed_budget():
     """
     try and make an expensive team
     """
-    t = Team()
-    added_ok = True
-    added_ok = added_ok and t.add_player("Harry Kane")
-    added_ok = added_ok and t.add_player("Romelu Lukaku")
-    added_ok = added_ok and t.add_player("Roberto Firmino")
-    added_ok = added_ok and t.add_player("Mohamed Salah")
-    added_ok = added_ok and t.add_player("Raheem Sterling")
-    added_ok = added_ok and t.add_player("Eden Hazard")
-    added_ok = added_ok and t.add_player("Kevin De Bruyne")
-    added_ok = added_ok and t.add_player("Riyad Mahrez")
-    added_ok = added_ok and t.add_player("Marcos Alonso")
-    added_ok = added_ok and t.add_player("Chris Smalling")
-    added_ok = added_ok and t.add_player("Victor Moses")
-    added_ok = added_ok and t.add_player("Antonio Valencia")
-    added_ok = added_ok and t.add_player("Serge Aurier")
-    added_ok = added_ok and t.add_player("Hugo Lloris")
-    added_ok = added_ok and t.add_player("Petr Cech")
+    with test_session_scope() as ts:
+        t = Team()
+        added_ok = True
+        added_ok = added_ok and t.add_player(45,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(46,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(47,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(48,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(49,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(50,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(51,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(52,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(53,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(54,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(55,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(56,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(57,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(58,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(59,season=TEST_SEASON,dbsession=ts)
+        assert not added_ok
 
-    assert not added_ok
 
-
-def test_remove_player():
+def test_remove_player(fill_players):
     """
     add a player then remove them.
     """
-    t = Team()
-    t.add_player(1)
-    assert len(t.players) == 1
-    assert t.num_position["GK"] == 1
-    t.remove_player(1)
-    assert len(t.players) == 0
-    assert t.num_position["GK"] == 0
-    assert t.budget == 1000
+    with test_session_scope() as ts:
+        t = Team()
+        t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        assert len(t.players) == 1
+        assert t.num_position["GK"] == 1
+        t.remove_player(1)
+        assert len(t.players) == 0
+        assert t.num_position["GK"] == 0
+        assert t.budget == 1000
 
 
-def test_empty_team():
+def test_empty_team(fill_players):
     """
     shouldn't be able to estimate points with
     no players.

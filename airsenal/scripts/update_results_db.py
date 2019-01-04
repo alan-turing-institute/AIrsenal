@@ -7,8 +7,8 @@ the last entries in the DB.
 
 import os
 import sys
-import argparse
 
+import argparse
 
 from .fill_result_table import  fill_results_from_api
 from .fill_playerscore_table import fill_playerscores_from_api
@@ -18,8 +18,14 @@ from ..framework.schema import session_scope
 
 def main():
 
-    season=CURRENT_SEASON
-    tag = "AIrsenal"+season
+    parser = argparse.ArgumentParser(description="fill db tables with recent scores and transactions")
+    parser.add_argument("--season",help="season, in format e.g. '1819'",default=CURRENT_SEASON)
+    parser.add_argument("--tag",help="identifying tag", default="AIrsenal1819")
+    args = parser.parse_args()
+
+    season = args.season
+    tag = args.tag
+
     with session_scope() as session:
 
         last_in_db = get_last_gameweek_in_db(season, session)
