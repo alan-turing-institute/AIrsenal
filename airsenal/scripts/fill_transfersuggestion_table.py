@@ -108,6 +108,10 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
+def print_strat(strat):
+    pass
+
+
 def main():
 
     parser = argparse.ArgumentParser(

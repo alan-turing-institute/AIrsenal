@@ -157,24 +157,28 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                         .all()
     earliest_future_gameweek = 39
     for fixture in fixtures:
-        fixture_date = dateparser.parse(fixture.date)
-        fixture_date = fixture_date.replace(tzinfo=timezone.utc)
-        if (
-            fixture_date > timenow
-            and fixture.gameweek < earliest_future_gameweek
-        ):
-            earliest_future_gameweek = fixture.gameweek
-
+        try:
+            fixture_date = dateparser.parse(fixture.date)
+            fixture_date = fixture_date.replace(tzinfo=timezone.utc)
+            if (
+                    fixture_date > timenow
+                    and fixture.gameweek < earliest_future_gameweek
+            ):
+                earliest_future_gameweek = fixture.gameweek
+        except(TypeError): ## date could be null if fixture not scheduled
+            continue
     ## now make sure we aren't in the middle of a gameweek
     for fixture in fixtures:
-        if (
-            dateparser.parse(fixture.date)\
-                .replace(tzinfo=timezone.utc) < timenow
-            and fixture.gameweek == earliest_future_gameweek
-        ):
+        try:
+            if (
+                    dateparser.parse(fixture.date)\
+                    .replace(tzinfo=timezone.utc) < timenow
+                    and fixture.gameweek == earliest_future_gameweek
+            ):
 
-            earliest_future_gameweek += 1
-
+                earliest_future_gameweek += 1
+        except(TypeError):
+            continue
     return earliest_future_gameweek
 
 
@@ -189,9 +193,12 @@ def get_gameweek_by_date(date, dbsession=None):
         date = dateparser.parse(date)
     fixtures = dbsession.query(Fixture).all()
     for fixture in fixtures:
-        fixture_date = dateparser.parse(fixture.date)
-        if fixture_date.date() == date.date():
-            return fixture.gameweek
+        try:
+            fixture_date = dateparser.parse(fixture.date)
+            if fixture_date.date() == date.date():
+                return fixture.gameweek
+        except(TypeError):  # NULL date if fixture not scheduled
+            continue
     return None
 
 
@@ -340,6 +347,8 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
     fixture_ids = []
     next_gameweek = get_next_gameweek(season,dbsession)
     for fixture in fixtures:
+        if not fixture.gameweek: # fixture not scheduled yet
+            continue
         if gw_range:
             if fixture.gameweek in gw_range:
                 fixture_ids.append(fixture.fixture_id)
