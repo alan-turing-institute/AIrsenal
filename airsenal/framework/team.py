@@ -182,8 +182,8 @@ class Team(object):
                 points_prediction = p.predicted_points[tag][gameweek]
 
             except(KeyError):
-                raise RuntimeError("No points prediction for gameweek {}"\
-                                   .format(gameweek))
+                ## player does not have a game in this gameweek
+                points_prediction = 0
             player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)

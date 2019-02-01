@@ -440,6 +440,10 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
         if not gameweek in ppdict.keys():
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
+    ## we still need to fill in zero for gameweeks that they're not playing.
+    for gw in range(1,39):
+        if not gw in ppdict.keys():
+            ppdict[gw] = 0.
     return ppdict
 
 
