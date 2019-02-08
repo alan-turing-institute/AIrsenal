@@ -230,7 +230,7 @@ def main():
     ### generate the list of transfer strategies
     strategies = generate_transfer_strategies(num_weeks_ahead,
                                               num_free_transfers, max_points_hit,
-                                              wildcard)
+                                              wildcard,free_hit)
     ## define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")
 

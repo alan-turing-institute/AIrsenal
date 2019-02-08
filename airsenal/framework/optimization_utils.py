@@ -17,7 +17,8 @@ from .player import CandidatePlayer
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
-def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None, allow_wildcard=False):
+def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None,
+                                 allow_wildcard=False, allow_free_hit=False):
     """
     Constraint: we want to take no more than a 4-point hit each week.
     So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
@@ -30,14 +31,18 @@ def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None,
     """
     next_gw = get_next_gameweek()
     strategy_list = []
-    if not allow_wildcard:
+    if (not allow_wildcard) and (not allow_free_hit) :
         possibilities = list(range(4)) if free_transfers > 1 else list(range(3))
         strategies = [
             ({next_gw: i}, 4 * (max(0, i - (1 + int(free_transfers > 1)))))
             for i in possibilities
         ]
-    else:
-        possibilities = [0,1,"W"]
+    else :
+        possibilities = [0,1]
+        if allow_wildcard:
+            possibilities.append("W")
+        if allow_free_hit:
+            possibilities.append("F")
         strategies = [
             ({next_gw: i}, 0)
             for i in possibilities
@@ -47,11 +52,16 @@ def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None,
         new_strategies = []
         for s in strategies:
             ## s is a tuple ( {gw: num_transfer, ...} , points_hit)
-            if not allow_wildcard:
+            if (not allow_wildcard) and (not allow_free_hit):
                 possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
             else:
                 already_used_wildcard = "W" in s[0].values()
-                possibilities = [0,1] if already_used_wildcard else [0,1,"W"]
+                already_used_free_hit = "F" in s[0].values()
+                possibilities = [0,1]
+                if not already_used_wildcard:
+                    possibilities.append("W")
+                if not already_used_free_hit:
+                    possibilities.append("F")
             hit_so_far = s[1]
             for p in possibilities:
                 ## make a copy of the strategy up to this point, then add on the next gw
@@ -61,10 +71,10 @@ def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None,
                     new_dict[k] = v
                 ## now fill the gw being considered
                 new_dict[gw] = p
-                if not allow_wildcard:
+                if (not allow_wildcard) and (not allow_free_hit):
                     new_hit = hit_so_far + 4 * (max(0, p - (1 + int(s[0][gw - 1] == 0))))
                 else:
-                    new_hit = 0  ## never take any hit if we're doing the wildcard.
+                    new_hit = 0  ## never take any hit if we're doing the wildcard or free hit.
                 new_strategies.append((new_dict, new_hit))
         strategies = new_strategies
     if max_total_hit:
