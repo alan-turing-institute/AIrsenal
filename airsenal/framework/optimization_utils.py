@@ -17,7 +17,7 @@ from .player import CandidatePlayer
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
-def generate_transfer_strategies(gw_ahead, transfers_last_gw=1, max_total_hit=None, allow_wildcard=False):
+def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None, allow_wildcard=False):
     """
     Constraint: we want to take no more than a 4-point hit each week.
     So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
@@ -31,9 +31,9 @@ def generate_transfer_strategies(gw_ahead, transfers_last_gw=1, max_total_hit=No
     next_gw = get_next_gameweek()
     strategy_list = []
     if not allow_wildcard:
-        possibilities = list(range(4)) if transfers_last_gw == 0 else list(range(3))
+        possibilities = list(range(4)) if free_transfers > 1 else list(range(3))
         strategies = [
-            ({next_gw: i}, 4 * (max(0, i - (1 + int(transfers_last_gw == 0)))))
+            ({next_gw: i}, 4 * (max(0, i - (1 + int(free_transfers > 1)))))
             for i in possibilities
         ]
     else:
@@ -380,6 +380,7 @@ def make_new_team(budget, num_iterations, tag,
 def apply_strategy(strat, exhaustive_double_transfer,
                    tag, baseline_dict=None, num_iter=1,
                    update_func_and_args=None,
+                   budget=None,
                    verbose=False):
     """
     apply a set of transfers over a number of gameweeks, and
@@ -390,6 +391,10 @@ def apply_strategy(strat, exhaustive_double_transfer,
     """
     sid = make_strategy_id(strat)
     starting_team = get_starting_team()
+    if not budget:
+        starting_team.budget = 1000 - get_team_value(starting_team)
+    else:
+        starting_team.budget = budget
     if verbose:
         print("Trying strategy {}".format(strat))
     best_score = 0
