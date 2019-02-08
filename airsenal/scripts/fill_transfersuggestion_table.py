@@ -109,7 +109,47 @@ def find_best_strat_from_json(tag):
 
 
 def print_strat(strat):
+    """
+    nicely formated printout as output of optimization.
+    """
+
+    gameweeks_as_str = strat['points_per_gw'].keys()
+    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    print(" ===============================================")
+    print(" ========= Optimum strategy ====================")
+    print(" ===============================================")
+    for gw in gameweeks_as_int:
+        print("\n =========== Gameweek {} ================\n".format(gw))
+        print("Players in:\t\t\tPlayers out:")
+        print("-----------\t\t\t------------")
+        for i in range(len(strat['players_in'][str(gw)])):
+            pin = get_player_name(strat['players_in'][str(gw)][i])
+            pout = get_player_name(strat['players_out'][str(gw)][i])
+            if len(pin) < 20:
+                subs = "{}\t\t\t{}".format(pin,pout)
+            else:
+                subs = "{}\t\t{}".format(pin,pout)
+            print(subs)
+    print("\n==========================")
+    print(" Total score: {} \n".format(int(strat['total_score'])))
     pass
+
+
+def print_team_for_next_gw(strat):
+    """
+    Display the team (inc. subs and captain) for the next gameweek
+    """
+    t = get_starting_team()
+    gameweeks_as_str = strat['points_per_gw'].keys()
+    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    next_gw = gameweeks_as_int[0]
+    for pidout in strat['players_out'][str(next_gw)]:
+        t.remove_player(pidout)
+    for pidin in strat['players_in'][str(next_gw)]:
+        t.add_player(pidin)
+    tag = get_latest_prediction_tag()
+    expected_points = t.get_expected_points(next_gw,tag)
+    print(t)
 
 
 def main():
@@ -129,6 +169,9 @@ def main():
                         action="store_true")
     parser.add_argument("--allow_wildcard",
                         help="include possibility of wildcarding in one of the weeks",
+                        action="store_true")
+    parser.add_argument("--allow_free_hit",
+                        help="include possibility of playing free hit in one of the weeks",
                         action="store_true")
     parser.add_argument("--max_points_hit",
                         help="how many points are we prepared to lose on transfers",
@@ -154,6 +197,10 @@ def main():
         wildcard = True
     else:
         wildcard = False
+    if args.allow_free_hit:
+        free_hit = True
+    else:
+        free_hit = False
     num_free_transfers = args.num_free_transfers
     budget =  args.bank
     max_points_hit = args.max_points_hit
@@ -238,5 +285,5 @@ def main():
     print("\n====================================\n")
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
-    print(" best strategy")
-    print(best_strategy)
+    print_strat(best_strategy)
+    print_team_for_next_gw(best_strategy)
