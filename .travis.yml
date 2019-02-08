@@ -4,7 +4,7 @@ python:
 
 install:
   - pip install --upgrade pip
-  - pip install . --process-dependency-links
+  - pip install .
 
 script:
   - pytest
