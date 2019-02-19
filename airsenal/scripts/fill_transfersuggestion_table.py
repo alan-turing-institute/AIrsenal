@@ -27,7 +27,7 @@ from ..framework.optimization_utils import *
 
 OUTPUT_DIR = "/tmp/airsopt"
 
-def count_increments(strategy_string, num_iterations, exhaustive_double_transfer):
+def count_increments(strategy_string, num_iterations):
     """
     how many steps for the progress bar for this strategy
     """
@@ -40,17 +40,15 @@ def count_increments(strategy_string, num_iterations, exhaustive_double_transfer
             ## single transfer - 15 increments (replace each player in turn)
             total+= 15
         elif s=="2":
-            if exhaustive_double_transfer:
-                ## remove each pair of players - 15*7=105 combinations
-                total += 105
-            else:
-                total += num_iterations
+            ## remove each pair of players - 15*7=105 combinations
+            total += 105
         elif s=="3":
             total += num_iterations
     ## return at least 1, to avoid ZeroDivisionError
     return max(total,1)
 
-def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, baseline=None, updater=None, resetter=None, budget=None):
+def process_strat(queue, pid, num_iterations, tag,
+                  baseline=None, updater=None, resetter=None, budget=None):
     """
     subprocess to go through a strategy and output a json file with
     the best players in, players out, and total score.
@@ -67,15 +65,10 @@ def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, b
 
         ## count how many incremements for this progress bar / strategy
         num_increments = count_increments(sid,
-                                          num_iterations,
-                                          exhaustive_double_transfer)
+                                          num_iterations)
         increment = 100 / num_increments
-#        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
-#            num_iter = 1
-#        else:
         num_iter = num_iterations
         strat_output = apply_strategy(strat,
-                                      exhaustive_double_transfer,
                                       tag,
                                       baseline,
                                       num_iter,
@@ -164,9 +157,6 @@ def main():
     parser.add_argument(
         "--num_iterations", help="how many trials to run", type=int, default=100
     )
-    parser.add_argument("--exhaustive_double_transfer",
-                        help="use exhaustive search when doing 2 transfers in gameweek",
-                        action="store_true")
     parser.add_argument("--allow_wildcard",
                         help="include possibility of wildcarding in one of the weeks",
                         action="store_true")
@@ -192,7 +182,6 @@ def main():
     season = args.season
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
-    exhaustive_double_transfer = args.exhaustive_double_transfer
     if args.allow_wildcard:
         wildcard = True
     else:
@@ -258,8 +247,8 @@ def main():
     for i in range(args.num_thread):
         processor = Process(
             target=process_strat,
-            args=(squeue, i, num_iterations, exhaustive_double_transfer,
-                  tag, baseline_dict, update_progress, reset_progress, budget),
+            args=(squeue, i, num_iterations, tag,
+                  baseline_dict, update_progress, reset_progress, budget),
         )
         processor.daemon = True
         processor.start()

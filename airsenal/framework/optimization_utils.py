@@ -387,8 +387,8 @@ def make_new_team(budget, num_iterations, tag,
     return best_team
 
 
-def apply_strategy(strat, exhaustive_double_transfer,
-                   tag, baseline_dict=None, num_iter=1,
+def apply_strategy(strat, tag,
+                   baseline_dict=None, num_iter=1,
                    update_func_and_args=None,
                    budget=None,
                    verbose=False):
@@ -431,7 +431,7 @@ def apply_strategy(strat, exhaustive_double_transfer,
                 gw_range,
                 update_func_and_args=update_func_and_args
             )
-        elif strat[0][gw] == 2 and exhaustive_double_transfer:
+        elif strat[0][gw] == 2:
             ## two transfers - choose optimum
             new_team, rp, ap = make_optimum_double_transfer(
                 new_team,
