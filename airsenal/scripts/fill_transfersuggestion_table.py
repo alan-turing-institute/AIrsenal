@@ -33,8 +33,8 @@ def count_increments(strategy_string, num_iterations):
     """
     total = 0
     for s in strategy_string:
-        if s=="W":
-            ## wildcard - needs num_iterations iterations
+        if s=="W" or s=="F":
+            ## wildcard or free hit - needs num_iterations iterations
             total+= num_iterations
         elif s=="1":
             ## single transfer - 15 increments (replace each player in turn)
@@ -113,6 +113,7 @@ def print_strat(strat):
     print(" ===============================================")
     for gw in gameweeks_as_int:
         print("\n =========== Gameweek {} ================\n".format(gw))
+        print("Cards played:  {}\n".format(strat['cards_played'][str(gw)]))
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat['players_in'][str(gw)])):
