@@ -4,6 +4,7 @@ python:
 
 install:
   - pip install --upgrade pip
+  - pip install https://github.com/anguswilliams91/bpl/archive/master.zip
   - pip install .
 
 script:
