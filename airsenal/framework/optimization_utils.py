@@ -91,11 +91,15 @@ def get_starting_team():
     """
     use the transactions table in the db
     """
-    team_ids = get_current_players()
-    cost_to_make_team = max(get_team_value(),1000)
-    t = Team(budget=cost_to_make_team)
-    for pid in team_ids:
-        t.add_player(pid)
+    t = Team()
+    transactions = session.query(Transaction).all()
+    for trans in transactions:
+        if trans.bought_or_sold == -1:
+            t.remove_player(trans.player_id, price=trans.price)
+        else:
+            ## within an individual transfer we can violate the budget and team constraints,
+            ## as long as the final team for that gameweek obeys them
+            t.add_player(trans.player_id, price=trans.price, check_budget=False, check_team=False)
     return t
 
 
@@ -396,7 +400,6 @@ def make_new_team(budget, num_iterations, tag,
 def apply_strategy(strat, tag,
                    baseline_dict=None, num_iter=1,
                    update_func_and_args=None,
-                   budget=None,
                    verbose=False):
     """
     apply a set of transfers over a number of gameweeks, and
@@ -407,10 +410,6 @@ def apply_strategy(strat, tag,
     """
     sid = make_strategy_id(strat)
     starting_team = get_starting_team()
-    if not budget:
-        starting_team.budget = 1000 - get_team_value(starting_team)
-    else:
-        starting_team.budget = budget
     if verbose:
         print("Trying strategy {}".format(strat))
     best_score = 0
@@ -458,7 +457,7 @@ def apply_strategy(strat, tag,
             )
         elif strat[0][gw] == "W":   ## wildcard - a whole new team!
             rp = [p.player_id for p in new_team.players]
-            budget = get_team_value(new_team)
+            budget = new_team.budget + get_team_value(new_team)
             new_team = make_new_team(budget, num_iter, tag, gw_range,
                                      update_func_and_args=update_func_and_args)
             ap = [p.player_id for p in new_team.players]
@@ -468,7 +467,7 @@ def apply_strategy(strat, tag,
             team_before_free_hit = copy.deepcopy(new_team)
             ## now make a new team for this gw, as is done for wildcard
             rp = [p.player_id for p in new_team.players]
-            budget = get_team_value(new_team)
+            budget = new_team.budget + get_team_value(new_team)
             new_team = make_new_team(budget, num_iter, tag, gw_range,
                                      update_func_and_args=update_func_and_args)
             ap = [p.player_id for p in new_team.players]

@@ -147,6 +147,7 @@ class Transaction(Base):
     tag = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
 
+
 class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
     id = Column(Integer, primary_key=True, autoincrement=True)
