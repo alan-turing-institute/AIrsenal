@@ -41,6 +41,7 @@ class FPLDataFetcher(object):
         self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
         self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
         self.FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
+        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/drf/entry/{}/transfers"
         self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
             self.FPL_LEAGUE_ID
         )
