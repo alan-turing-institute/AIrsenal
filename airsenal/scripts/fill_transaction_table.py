@@ -4,98 +4,57 @@ import os
 import argparse
 
 from ..framework.schema import Transaction, session_scope
-
-from collections import namedtuple
-
-TransferArgs = namedtuple("TransferArgs",
-                          ["input_csv", "output_csv", "player_id", "buy", "sell", "gameweek","tag"])
+from ..framework.utils import get_players_for_gameweek, fetcher
 
 
-def add_transaction(player_id, gameweek, in_or_out, season, tag, session, output_csv_filename=None):
+
+def add_transaction(player_id, gameweek, in_or_out, price, season, tag, session):
     """
-    add buy transactions to the db table
+    add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
     """
-    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=in_or_out, season=season, tag=tag)
+    t = Transaction(player_id=player_id, gameweek=gameweek, bought_or_sold=in_or_out, price=price, season=season, tag=tag)
     session.add(t)
     session.commit()
-    if output_csv_filename:
-        output_csv(output_csv_filename, player_id, gameweek, in_or_out, season, tag)
 
 
-def output_csv(output_file, player_id, gameweek, in_or_out, season, tag):
+def fill_initial_team(session, season="1819", tag="AIrsenal1819"):
     """
-    write out to a csv file
+    Fill the Transactions table in the database with the initial 15 players, and their costs,
+    getting the information from the team history API endpoint (for the list of players in our team)
+    and the player history API endpoint (for their price in gw1).
     """
-    print("Writing output to {}".format(output_file))
-    if not os.path.exists(output_file):
-        outfile = open(output_file, "w")
-        outfile.write("player_id,gameweek,in_or_out,season,tag\n")
-    else:
-        outfile = open(output_file, "a")
-    outfile.write("{},{},{},{}\n".format(player_id, gameweek, in_or_out, tag))
-    outfile.close()
+    api_players = get_players_for_gameweek(1)
+    for pid in api_players:
+        gw1_data = fetcher.get_gameweek_data_for_player(pid,1)
+        price = gw1_data[0]['value']
+        add_transaction(pid, 1, 1, price, season, tag, session)
 
 
-def sanity_check_args(args):
+def update_team(session, season="1819", tag="AIrsenal1819"):
     """
-    Check we have a consistent set of arguments
+    Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
+    the transfers API endpoint which has the correct buy and sell prices.
     """
-    if args.input_csv and args.output_csv:
-        print("Can't set both input_csv and output_csv")
-        return False
-    if args.buy and args.sell:
-        print("Can't set buy and sell")
-        return False
-    if args.buy or args.sell:
-        if args.input_csv:
-            print("Can't set input_csv and buy or sell")
-            return False
-        if not args.output_csv:
-            print("Need to set output_csv for buy or sell")
-            return False
-        if not (args.player_id and args.gameweek):
-            print("Need to set player_id and gameweek")
-            return False
-    return True
+    transfers = fetcher.get_fpl_transfer_data()
+    for transfer in transfers:
+        gameweek = transfer['event']
+        pid_out = transfer['element_out']
+        price_out = transfer['element_out_cost']
+        add_transaction(pid_out, gameweek, -1, price_out, season, tag, session)
+        pid_in = transfer['element_in']
+        price_in = transfer['element_in_cost']
+        add_transaction(pid_in, gameweek, 1, price_in, season, tag, session)
+        pass
 
-
-def make_transaction_table(session,
-                           season="1819",
-                           args=TransferArgs(os.path.join(os.path.dirname(__file__), "../data/transactions.csv"),
-                                             None,
-                                             None,
-                                             None,
-                                             None,
-                                             None,
-                                             None)):
-
-    if not sanity_check_args(args):
-        raise RuntimeError("Inconsistent set of arguments")
-    if args.output_csv:
-        outfile = args.output_csv
-    else:
-        outfile = None
-    if args.input_csv:
-        infile = open(args.input_csv)
-        for line in infile.readlines()[1:]:
-            pid, gw, in_or_out,tag = line.strip().split(",")
-            add_transaction(pid, gw, in_or_out, season, tag, session, output_csv_filename=outfile)
-    if args.buy:
-        add_transaction(args.player_id, args.gameweek, 1, season, args.tag, session, output_csv_filename=outfile)
-    if args.sell:
-        add_transaction(args.player_id, args.gameweek, -1, season, args.tag, session, output_csv_filename=outfile)
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Players bought and sold")
-    parser.add_argument("--input_csv",
-                        help="input CSV file",
-                        default=os.path.join(os.path.dirname(__file__), "../data/transactions.csv"))
-    parser.add_argument("--output_csv", help="output CSV file")
     parser.add_argument("--player_id", help="player ID", type=int)
     parser.add_argument("--buy", action="store_true")
     parser.add_argument("--sell", action="store_true")
+    parser.add_argument("--price", type=int, help="price in 0.1Millions")
     parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
     parser.add_argument("--tag", help="identifying tag", default="AIrsenal1819")
     parser.add_argument("--season", help="which season, in format e.g. '1819'",default="1819")

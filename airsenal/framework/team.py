@@ -71,15 +71,27 @@ class Team(object):
         return num_players == 15
 
 
-    def add_player(self, p, season=CURRENT_SEASON, gameweek=1, dbsession=None):
+    def add_player(self, p,
+                   price=None,
+                   season=CURRENT_SEASON,
+                   gameweek=1,
+                   check_budget=True,
+                   check_team=True,
+                   dbsession=None):
         """
-        add a player.  Can do it by name or by player_id
+        Add a player.  Can do it by name or by player_id.
+        If no price is specified, CandidatePlayer constructor will use the
+        current price as found in DB, but if one is specified, we override
+        with that value.
         """
         if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
             player = CandidatePlayer(p, season, gameweek,
                                      dbsession=dbsession)
         else: # already a CandidatePlayer (or an equivalent test class)
             player = p
+        # set the price if one was specified.
+        if price:
+            player.current_price = price
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
@@ -93,11 +105,11 @@ class Team(object):
                     )
                 )
             return False
-        if not self.check_cost(player):
+        if check_budget and not self.check_cost(player):
             if self.verbose:
                 print("Cannot afford player {}".format(player.name))
             return False
-        if not self.check_num_per_team(player):
+        if check_team and not self.check_num_per_team(player):
             if self.verbose:
                 print(
                     "Cannot add {} - too many players from {}".format(
@@ -110,17 +122,24 @@ class Team(object):
         self.budget -= player.current_price
         return True
 
-    def remove_player(self, player_id):
+
+    def remove_player(self, player_id, price=None):
         """
-        remove player from our list
+        Remove player from our list.
+        If a price is specified, we use that, otherwise we
+        use the player's current price from the DB.
         """
         for p in self.players:
             if p.player_id == player_id:
-                self.budget += p.current_price
+                if price:
+                    self.budget += price
+                else:
+                    self.budget += p.current_price
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
+
 
     def check_no_duplicate_player(self, player):
         """
@@ -130,6 +149,7 @@ class Team(object):
             if p.player_id == player.player_id:
                 return False
         return True
+
 
     def check_num_in_position(self, player):
         """

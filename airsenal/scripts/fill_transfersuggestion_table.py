@@ -27,30 +27,28 @@ from ..framework.optimization_utils import *
 
 OUTPUT_DIR = "/tmp/airsopt"
 
-def count_increments(strategy_string, num_iterations, exhaustive_double_transfer):
+def count_increments(strategy_string, num_iterations):
     """
     how many steps for the progress bar for this strategy
     """
     total = 0
     for s in strategy_string:
-        if s=="W":
-            ## wildcard - needs num_iterations iterations
+        if s=="W" or s=="F":
+            ## wildcard or free hit - needs num_iterations iterations
             total+= num_iterations
         elif s=="1":
             ## single transfer - 15 increments (replace each player in turn)
             total+= 15
         elif s=="2":
-            if exhaustive_double_transfer:
-                ## remove each pair of players - 15*7=105 combinations
-                total += 105
-            else:
-                total += num_iterations
+            ## remove each pair of players - 15*7=105 combinations
+            total += 105
         elif s=="3":
             total += num_iterations
     ## return at least 1, to avoid ZeroDivisionError
     return max(total,1)
 
-def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, baseline=None, updater=None, resetter=None, budget=None):
+def process_strat(queue, pid, num_iterations, tag,
+                  baseline=None, updater=None, resetter=None, budget=None):
     """
     subprocess to go through a strategy and output a json file with
     the best players in, players out, and total score.
@@ -67,15 +65,10 @@ def process_strat(queue, pid, num_iterations, exhaustive_double_transfer, tag, b
 
         ## count how many incremements for this progress bar / strategy
         num_increments = count_increments(sid,
-                                          num_iterations,
-                                          exhaustive_double_transfer)
+                                          num_iterations)
         increment = 100 / num_increments
-#        if (not strategy_involves_N_or_more_transfers_in_gw(strat,3)) or exhaustive_double_transfer:
-#            num_iter = 1
-#        else:
         num_iter = num_iterations
         strat_output = apply_strategy(strat,
-                                      exhaustive_double_transfer,
                                       tag,
                                       baseline,
                                       num_iter,
@@ -109,7 +102,48 @@ def find_best_strat_from_json(tag):
 
 
 def print_strat(strat):
+    """
+    nicely formated printout as output of optimization.
+    """
+
+    gameweeks_as_str = strat['points_per_gw'].keys()
+    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    print(" ===============================================")
+    print(" ========= Optimum strategy ====================")
+    print(" ===============================================")
+    for gw in gameweeks_as_int:
+        print("\n =========== Gameweek {} ================\n".format(gw))
+        print("Cards played:  {}\n".format(strat['cards_played'][str(gw)]))
+        print("Players in:\t\t\tPlayers out:")
+        print("-----------\t\t\t------------")
+        for i in range(len(strat['players_in'][str(gw)])):
+            pin = get_player_name(strat['players_in'][str(gw)][i])
+            pout = get_player_name(strat['players_out'][str(gw)][i])
+            if len(pin) < 20:
+                subs = "{}\t\t\t{}".format(pin,pout)
+            else:
+                subs = "{}\t\t{}".format(pin,pout)
+            print(subs)
+    print("\n==========================")
+    print(" Total score: {} \n".format(int(strat['total_score'])))
     pass
+
+
+def print_team_for_next_gw(strat):
+    """
+    Display the team (inc. subs and captain) for the next gameweek
+    """
+    t = get_starting_team()
+    gameweeks_as_str = strat['points_per_gw'].keys()
+    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    next_gw = gameweeks_as_int[0]
+    for pidout in strat['players_out'][str(next_gw)]:
+        t.remove_player(pidout)
+    for pidin in strat['players_in'][str(next_gw)]:
+        t.add_player(pidin)
+    tag = get_latest_prediction_tag()
+    expected_points = t.get_expected_points(next_gw,tag)
+    print(t)
 
 
 def main():
@@ -124,11 +158,11 @@ def main():
     parser.add_argument(
         "--num_iterations", help="how many trials to run", type=int, default=100
     )
-    parser.add_argument("--exhaustive_double_transfer",
-                        help="use exhaustive search when doing 2 transfers in gameweek",
-                        action="store_true")
     parser.add_argument("--allow_wildcard",
                         help="include possibility of wildcarding in one of the weeks",
+                        action="store_true")
+    parser.add_argument("--allow_free_hit",
+                        help="include possibility of playing free hit in one of the weeks",
                         action="store_true")
     parser.add_argument("--max_points_hit",
                         help="how many points are we prepared to lose on transfers",
@@ -149,11 +183,14 @@ def main():
     season = args.season
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
-    exhaustive_double_transfer = args.exhaustive_double_transfer
     if args.allow_wildcard:
         wildcard = True
     else:
         wildcard = False
+    if args.allow_free_hit:
+        free_hit = True
+    else:
+        free_hit = False
     num_free_transfers = args.num_free_transfers
     budget =  args.bank
     max_points_hit = args.max_points_hit
@@ -183,7 +220,7 @@ def main():
     ### generate the list of transfer strategies
     strategies = generate_transfer_strategies(num_weeks_ahead,
                                               num_free_transfers, max_points_hit,
-                                              wildcard)
+                                              wildcard,free_hit)
     ## define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")
 
@@ -211,8 +248,8 @@ def main():
     for i in range(args.num_thread):
         processor = Process(
             target=process_strat,
-            args=(squeue, i, num_iterations, exhaustive_double_transfer,
-                  tag, baseline_dict, update_progress, reset_progress, budget),
+            args=(squeue, i, num_iterations, tag,
+                  baseline_dict, update_progress, reset_progress, budget),
         )
         processor.daemon = True
         processor.start()
@@ -238,5 +275,5 @@ def main():
     print("\n====================================\n")
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
-    print(" best strategy")
-    print(best_strategy)
+    print_strat(best_strategy)
+    print_team_for_next_gw(best_strategy)

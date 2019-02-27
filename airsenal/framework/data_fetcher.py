@@ -22,6 +22,7 @@ class FPLDataFetcher(object):
         self.current_team_data = None
         self.player_gameweek_data = {}
         self.fpl_team_history_data = None
+        self.fpl_transfer_history_data = None
         self.fpl_league_data = None
         self.fpl_team_data = {} # players in squad, by gameweek
         self.fixture_data = None
@@ -41,6 +42,7 @@ class FPLDataFetcher(object):
         self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
         self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
         self.FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
+        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/drf/entry/{}/transfers"
         self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
             self.FPL_LEAGUE_ID
         )
@@ -86,7 +88,6 @@ class FPLDataFetcher(object):
         return team_data['picks']
 
 
-
     def get_fpl_team_history_data(self, team_id=None):
         """
         Use our team id to get history data from the FPL API.
@@ -103,6 +104,24 @@ class FPLDataFetcher(object):
                 return None
             self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_team_history_data
+
+
+    def get_fpl_transfer_data(self):
+        """
+        Get our transfer history from the FPL API.
+        """
+        ## return cached value if we already retrieved it.
+        if self.fpl_transfer_history_data:
+            return self.fpl_transfer_history_data
+        ## or get it from the API.
+        url = self.FPL_TEAM_TRANSFER_URL.format(self.FPL_TEAM_ID)
+        r=requests.get(url)
+        if not r.status_code == 200:
+            print("Unable to access FPL transfer history API")
+            return None
+        self.fpl_transfer_history_data = json.loads(r.content.decode("utf-8"))['history']
+        return self.fpl_transfer_history_data
+
 
     def get_fpl_league_data(self):
         """

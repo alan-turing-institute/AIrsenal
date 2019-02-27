@@ -145,6 +145,8 @@ class Transaction(Base):
     bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
+    price = Column(Integer, nullable=False)
+
 
 class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
