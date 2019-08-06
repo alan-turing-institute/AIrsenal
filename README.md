@@ -21,7 +21,7 @@ pip install .
 
 ## Getting started
 
-Once you've installed the module, you will need to set three environment variables:
+Once you've installed the module, you will need to set three environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
 
 1. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/)
 2. `FPL_TEAM_ID`: the team ID for your FPL side.
