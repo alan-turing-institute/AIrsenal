@@ -5,17 +5,23 @@ Machine learning Fantasy Premier League team
 
 ## Install
 
-To install, you will need a working C++ compiler and `pip` (>=18.0).
-If you're using anaconda, run `conda install gcc` in the same environment.
-Install the `airsenal` module from source via
-
-```bash
-pip install https://github.com/alan-turing-institute/AIrsenal/archive/master.zip --process-dependency-links
+It is recommended that you use a conda or virtualenv environment to install and run AIrsenal.  
+The Stan model used to predict team and player scores is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
+An example setup could be:
 ```
+conda create -n airsenalenv python=3.7
+conda activate airsenalenv
+conda install -c psi4 gcc-5
+pip install https://github.com/anguswilliams91/bpl/archive/master.zip
+git clone https://github.com/alan-turing-institute/AIrsenal.git
+cd AIrsenal
+pip install .
+```
+
 
 ## Getting started
 
-Once you've installed the module, you will need to set three environment variables:
+Once you've installed the module, you will need to set three environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
 
 1. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/)
 2. `FPL_TEAM_ID`: the team ID for your FPL side.
