@@ -31,7 +31,7 @@ alternative_team_names = {
     "SWA": ["Swansea City"],
     "STK": ["Stoke City", "Stoke"],
     "MID": ["Middlesbrough"],
-    "HUL": ["Hull City"],
+    "HUL": ["Hull","Hull City"],
     "QPR": ["Queens Park Rangers"],
     "CAR": ["Cardiff", "Cardiff City", "Cardiff City FC"],
     "FUL": ["Fulham", "Fulham FC"],
