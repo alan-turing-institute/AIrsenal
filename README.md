@@ -9,7 +9,7 @@ It is recommended that you use a conda or virtualenv environment to install and 
 The Stan model used to predict team and player scores is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
 An example setup could be:
 ```
-conda create -n airsenalenv python=3.7
+conda create -n airsenalenv python=3.7 pystan=2.18.0.0
 conda activate airsenalenv
 conda install -c psi4 gcc-5
 pip install https://github.com/anguswilliams91/bpl/archive/master.zip
