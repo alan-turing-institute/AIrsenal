@@ -11,7 +11,8 @@ import os
 from ..framework.mappings import alternative_team_names
 from ..framework.schema import Result, session_scope, Fixture
 from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.utils import get_next_gameweek, get_latest_fixture_tag
+from ..framework.utils import get_next_gameweek, get_latest_fixture_tag, \
+    get_past_seasons, CURRENT_SEASON
 
 
 def _find_fixture(season,home_team,away_team,session):
@@ -86,7 +87,7 @@ def make_result_table(session):
     """
     past seasons - read results from csv
     """
-    for season in ["1718", "1617", "1516"]:
+    for season in get_past_seasons(3):
         inpath = os.path.join(os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season))
         infile = open(inpath)
         fill_results_from_csv(infile, season, session)
@@ -94,7 +95,7 @@ def make_result_table(session):
     current season - use API
     """
     gw_end = get_next_gameweek()
-    fill_results_from_api(1, gw_end, "1819", session)
+    fill_results_from_api(1, gw_end, CURRENT_SEASON, session)
 
 
 if __name__ == "__main__":
@@ -110,9 +111,3 @@ if __name__ == "__main__":
 
     with session_scope() as session:
         make_result_table(session)
-#        args.input_type,
-#                         session,
-#                         gw_start=args.gw_start,
-#                         gw_end=args.gw_end,
-#                         season=args.season,
-#                         input_file=args.input_file)

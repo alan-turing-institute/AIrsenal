@@ -13,7 +13,7 @@ import uuid
 from ..framework.data_fetcher import FPLDataFetcher, MatchDataFetcher
 from ..framework.mappings import alternative_team_names
 from ..framework.schema import Fixture, session_scope
-
+from ..framework.utils import CURRENT_SEASON, get_past_seasons
 
 def fill_fixtures_from_file(filename, season, session):
     """
@@ -86,14 +86,14 @@ def fill_fixtures_from_api(season, session):
 
 def make_fixture_table(session):
     # fill the fixture table for past seasons
-    for season in ["1516","1617","1718"]:
+    for season in get_past_seasons(3):
         filename = os.path.join(os.path.dirname(__file__),
                                 "..",
                                 "data",
                                 "results_{}_with_gw.csv".format(season))
         fill_fixtures_from_file(filename,season,session)
     # now fill the current season from the api
-    fill_fixtures_from_api("1819", session)
+    fill_fixtures_from_api(CURRENT_SEASON, session)
 
 
 if __name__ == "__main__":

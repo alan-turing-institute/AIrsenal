@@ -20,7 +20,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="fill db tables with recent scores and transactions")
     parser.add_argument("--season",help="season, in format e.g. '1819'",default=CURRENT_SEASON)
-    parser.add_argument("--tag",help="identifying tag", default="AIrsenal1819")
+    parser.add_argument("--tag",help="identifying tag", default="AIrsenal"+CURRENT_SEASON)
     args = parser.parse_args()
 
     season = args.season

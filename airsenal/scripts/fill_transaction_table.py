@@ -4,7 +4,8 @@ import os
 import argparse
 
 from ..framework.schema import Transaction, session_scope
-from ..framework.utils import get_players_for_gameweek, fetcher
+from ..framework.utils import get_players_for_gameweek, fetcher, \
+    get_past_seasons, CURRENT_SEASON
 
 
 
@@ -17,7 +18,7 @@ def add_transaction(player_id, gameweek, in_or_out, price, season, tag, session)
     session.commit()
 
 
-def fill_initial_team(session, season="1819", tag="AIrsenal1819"):
+def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEASON):
     """
     Fill the Transactions table in the database with the initial 15 players, and their costs,
     getting the information from the team history API endpoint (for the list of players in our team)
@@ -30,7 +31,7 @@ def fill_initial_team(session, season="1819", tag="AIrsenal1819"):
         add_transaction(pid, 1, 1, price, season, tag, session)
 
 
-def update_team(session, season="1819", tag="AIrsenal1819"):
+def update_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEASON):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
     the transfers API endpoint which has the correct buy and sell prices.
@@ -56,8 +57,8 @@ if __name__ == "__main__":
     parser.add_argument("--sell", action="store_true")
     parser.add_argument("--price", type=int, help="price in 0.1Millions")
     parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
-    parser.add_argument("--tag", help="identifying tag", default="AIrsenal1819")
-    parser.add_argument("--season", help="which season, in format e.g. '1819'",default="1819")
+    parser.add_argument("--tag", help="identifying tag", default="AIrsenal"+CURRENT_SEASON)
+    parser.add_argument("--season", help="which season, in format e.g. '1819'",default=CURRENT_SEASON)
     args = parser.parse_args()
 
     with session_scope() as session:

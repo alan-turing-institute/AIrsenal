@@ -57,7 +57,7 @@ def main():
         "--ep_filename", help="csv filename for FPL expected points"
     )
     parser.add_argument(
-        "--season", help="season, in format e.g. '1819'",default="1819"
+        "--season", help="season, in format e.g. '1819'",default=CURRENT_SEASON
     )
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
