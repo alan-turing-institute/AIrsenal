@@ -30,6 +30,14 @@ def num_players_in_table(session):
     return len(players)
 
 
+def max_id_in_table(session):
+    """
+    Return the maximum ID in the player table
+    """
+
+    return session.query(Player).order_by(desc('player_id')).first().player_id
+
+
 def fill_player_table_from_file(filename, season, session):
     """
     use json file
@@ -43,7 +51,7 @@ def fill_player_table_from_file(filename, season, session):
         if not p:
             new_entry = True
             p = Player()
-            p.player_id = num_players_in_table(session) + 1 # next id sequentially
+            p.player_id = max_id_in_table(session) + 1 # next id sequentially
             p.name = name
         pa = PlayerAttributes()
         pa.team = jp['team']
