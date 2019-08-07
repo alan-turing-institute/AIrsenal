@@ -4,6 +4,7 @@ Usage example:
 python make_results_csv.py --start_year 2018 --output_dir ./airsenal/data/
 """
 
+import os
 import sys
 import argparse
 from airsenal.framework.data_fetcher import MatchDataFetcher
