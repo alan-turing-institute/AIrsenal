@@ -7,6 +7,7 @@ import os
 import sys
 
 import json
+from sqlalchemy import desc
 
 from ..framework.mappings import alternative_team_names, positions
 from ..framework.schema import Player, PlayerAttributes, Base, engine
