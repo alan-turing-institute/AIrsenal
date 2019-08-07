@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 """
-Fill the "Player" table with info from this seasons FPL
-(FPL_2017-18.json).
+Fill the "Player" table with info from this and past seasonss FPL
 """
 import os
 import sys
@@ -12,7 +11,7 @@ import json
 from ..framework.mappings import alternative_team_names, positions
 from ..framework.schema import Player, PlayerAttributes, Base, engine
 from ..framework.data_fetcher import FPLDataFetcher
-
+from ..framework.utils import CURRENT_SEASON, get_past_seasons
 
 def find_player_in_table(name, session):
     """
@@ -101,8 +100,8 @@ def fill_player_table_from_api(season, session):
 
 def make_player_table(session):
 
-    fill_player_table_from_api("1819",session)
-    for season in ["1718","1617","1516"]:
+    fill_player_table_from_api(CURRENT_SEASON,session)
+    for season in get_past_seasons(3):
         filename = os.path.join( os.path.join(os.path.dirname(__file__),
                                               "..",
                                               "data",
