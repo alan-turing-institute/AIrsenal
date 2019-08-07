@@ -5,6 +5,7 @@ and to query football-data.org to retrieve match and fixture data.
 import os
 import requests
 import json
+import time
 
 from .mappings import alternative_team_names
 
@@ -38,15 +39,15 @@ class FPLDataFetcher(object):
             else:
                 print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/drf/bootstrap-static"
-        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/drf/element-summary"
-        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/drf/entry/{}/history"
-        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/drf/entry/{}/event/{}/picks"
-        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/drf/entry/{}/transfers"
-        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/drf/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
+        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static"
+        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary"
+        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history"
+        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks"
+        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers"
+        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
             self.FPL_LEAGUE_ID
         )
-        self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/drf/fixtures/"
+        self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
 
 
 
@@ -246,18 +247,38 @@ class MatchDataFetcher(object):
             print("Couldn't find FD_API_KEY - can't use football-data.org API")
         pass
 
-    def _get_gameweek_data(self, gameweek):
+
+    def _make_request(self, url, headers):
+        """
+        API rate limit means we sometimes have to wait.
+        """
+        status_code = 0
+        content = {}
+        while not status_code == 200:
+            r = requests.get(url, headers=headers)
+            status_code = r.status_code
+            content = json.loads(r.content)
+            if (status_code != 200):
+                if 'request limit' in content['message']:
+                    time.sleep(61)
+                else:
+                    raise RuntimeError("Unable to make request {} {}".format(status_code, content))
+        return content
+
+
+    def _get_gameweek_data(self, gameweek, season):
         """
         query the matches endpoint
         """
-        uri = "{}/matches?matchday={}".format(self.FOOTBALL_DATA_URL, gameweek)
+        print("Getting gameweek data for {}".format(gameweek))
+        uri = "{}/matches?matchday={}&season={}".format(self.FOOTBALL_DATA_URL, gameweek, season)
         headers = {"X-Auth-Token": self.FOOTBALL_DATA_API_KEY}
-        r = requests.get(uri, headers=headers)
-        if r.status_code != 200:
-            return r
-        self.data[gameweek] = json.loads(r.content)["matches"]
+        request_data = self._make_request(uri, headers)
+        self.data[gameweek] = request_data["matches"]
 
-    def get_results(self, gameweek):
+
+
+    def get_results(self, gameweek, season="2019"):
         """
         get results for matches that have been played.
         Return list of tuples:
@@ -265,10 +286,11 @@ class MatchDataFetcher(object):
         """
         output_list = []
         if not gameweek in self.data.keys():
-            self._get_gameweek_data(gameweek)
-        if not self.data[gameweek][0]["status"] == "FINISHED":
-            print("Fixtures not finished - have they been played yet?")
-            return output_list
+            self._get_gameweek_data(gameweek, season)
+            time.sleep(1)
+#        if not self.data[gameweek][0]["status"] == "FINISHED":
+#            print("Fixtures not finished - have they been played yet?")
+#            return output_list
 
         for match in self.data[gameweek]:
             home_team = None
