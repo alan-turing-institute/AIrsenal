@@ -20,14 +20,14 @@ alternative_team_names = {
     "MUN": ["12", "Manchester United", "Man Utd", "Manchester United FC", "Manchester Utd"],
     "NEW": ["13", "Newcastle United", "Newcastle", "Newcastle United FC", "Newcastle Utd"],
     "NOR": ["14", "Norwich City","Norwich"],
-    "SHU": ["15", "Sheffield United"],
+    "SHU": ["15", "Sheffield United","Sheffield Utd"],
     "SOU": ["16", "Southampton", "Southampton FC"],
     "TOT": ["17", "Tottenham Hotspur", "Spurs", "Tottenham Hotspur FC"],
     "WAT": ["18", "Watford", "Watford FC"],
     "WHU": ["19", "West Ham United", "West Ham", "West Ham United FC"],
     "WOL": ["20", "Wolves", "Wolverhampton Wanderers", "Wolverhampton Wanderers FC"],
     "SUN": ["Sunderland"],
-    "WBA": ["West Bromwich Albion"],
+    "WBA": ["West Bromwich Albion","West Brom"],
     "SWA": ["Swansea City"],
     "STK": ["Stoke City", "Stoke"],
     "MID": ["Middlesbrough"],
@@ -36,6 +36,9 @@ alternative_team_names = {
     "CAR": ["Cardiff", "Cardiff City", "Cardiff City FC"],
     "FUL": ["Fulham", "Fulham FC"],
     "HUD": ["Huddersfield Town", "Huddersfield", "Huddersfield Town AFC"],
+    "NOT": ["Nottingham Forest", "Nott'm Forest"],
+    "DER": ["Derby","Derby County"],
+    "LEE": ["Leeds","Leeds United","Leeds Utd"]
 }
 
 alternative_player_names = {
