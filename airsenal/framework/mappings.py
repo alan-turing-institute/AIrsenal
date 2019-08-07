@@ -7,7 +7,7 @@ positions = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
 
 alternative_team_names = {
     "ARS": ["1", "Arsenal", "Arsenal FC"],
-    "AVL": ["2", "Bournemouth", "AFC Bournemouth"],
+    "AVL": ["2", "Aston Villa","Aston Villa FC"],
     "BOU": ["3", "Bournemouth", "AFC Bournemouth"],
     "BHA": ["4", "Brighton and Hove Albion", "Brighton", "Brighton & Hove Albion FC"],
     "BUR": ["5", "Burnley", "Burnley FC"],
@@ -19,7 +19,7 @@ alternative_team_names = {
     "MCI": ["11", "Manchester City", "Man City", "Manchester City FC"],
     "MUN": ["12", "Manchester United", "Man Utd", "Manchester United FC", "Manchester Utd"],
     "NEW": ["13", "Newcastle United", "Newcastle", "Newcastle United FC", "Newcastle Utd"],
-    "NOR": ["14", "Norwich City"],
+    "NOR": ["14", "Norwich City","Norwich"],
     "SHU": ["15", "Sheffield United"],
     "SOU": ["16", "Southampton", "Southampton FC"],
     "TOT": ["17", "Tottenham Hotspur", "Spurs", "Tottenham Hotspur FC"],
@@ -30,7 +30,6 @@ alternative_team_names = {
     "WBA": ["West Bromwich Albion"],
     "SWA": ["Swansea City"],
     "STK": ["Stoke City", "Stoke"],
-    "AVL": ["Aston Villa"],
     "MID": ["Middlesbrough"],
     "HUL": ["Hull City"],
     "QPR": ["Queens Park Rangers"],
