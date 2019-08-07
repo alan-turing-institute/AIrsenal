@@ -48,6 +48,19 @@ def get_current_season():
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
+def get_past_seasons(num_seasons):
+    """
+    Go back num_seasons from the current one
+    """
+    start_year = int(CURRENT_SEASON[:2])
+    end_year = int(CURRENT_SEASON[2:])
+    seasons = []
+    for i in range(1,num_seasons+1):
+        new_start_year = start_year - i
+        new_end_year = end_year - i
+        seasons.append("{}{}".format(new_start_year,new_end_year))
+    return seasons
+
 
 def get_current_players(gameweek=None,season=None, dbsession=None):
     """
