@@ -313,7 +313,7 @@ class MatchDataFetcher(object):
             )
         return output_list
 
-    def get_fixtures(self, gameweek):
+    def get_fixtures(self, gameweek, season="2019"):
         """
         get upcoming fixtures.
         Return list of tuples:
@@ -321,7 +321,7 @@ class MatchDataFetcher(object):
         """
         output_list = []
         if not gameweek in self.data.keys():
-            self._get_gameweek_data(gameweek)
+            self._get_gameweek_data(gameweek,season)
         if not self.data[gameweek][0]["status"] == "SCHEDULED":
             print("Fixtures not scheduled - have they already been played?")
             return output_list
