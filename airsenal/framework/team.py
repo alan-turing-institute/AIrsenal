@@ -194,7 +194,6 @@ class Team(object):
         based on pre-calculated expected points,
         choose the best starting 11, obeying constraints.
         """
-
         # first order all the players by expected points
         player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
         for p in self.players:
@@ -207,7 +206,6 @@ class Team(object):
             player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)
-        #    print(player_dict)
 
 
         # always start the first-placed and sub the second-placed keeper
@@ -232,6 +230,7 @@ class Team(object):
         depending on specified formation in format e.g.
         (4,4,2)
         """
+        print("Trying formation {}".format(formation))
         for i, pos in enumerate(["DEF", "MID", "FWD"]):
             for index, player in enumerate(player_dict[pos]):
                 if index < formation[i]:

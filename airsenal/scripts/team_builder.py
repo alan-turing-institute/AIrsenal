@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--budget",help="budget, in 0.1 millions",type=int,default=1000)
     parser.add_argument("--season",help="season, in format e.g. 1819")
     parser.add_argument("--gw_start", help="gameweek to start from",type=int)
-    parser.add_argument("--num_gw", help="how many gameweeks to consider",type=int, default=5)
+    parser.add_argument("--num_gw", help="how many gameweeks to consider",type=int, default=3)
     args = parser.parse_args()
     num_iterations = args.num_iterations
     if args.season:
@@ -34,4 +34,6 @@ def main():
     ## get predicted points
     gw_range = list(range(gw_start, min(38,gw_start+args.num_gw)))
     tag = get_latest_prediction_tag(season)
-    best_team = make_new_team(1000,num_iterations, tag, gw_range, season)
+    best_team = make_new_team(args.budget, num_iterations, tag, gw_range, season)
+    best_team.get_expected_points(gw_start, tag)
+    print(best_team)
