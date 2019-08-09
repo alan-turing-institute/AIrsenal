@@ -216,7 +216,7 @@ class Team(object):
         for f in FORMATIONS:
             self.apply_formation(player_dict, f)
             score = self.total_points_for_starting_11(gameweek, tag)
-            if score > best_score:
+            if score >= best_score:
                 best_score = score
                 best_formation = f
         if self.verbose:
