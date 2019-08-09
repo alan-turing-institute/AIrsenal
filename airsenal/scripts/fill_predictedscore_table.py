@@ -20,7 +20,7 @@ def calc_all_predicted_points(gw_range, season, tag, session):
     """
     Do the full prediction.
     """
-    model_team, df_player = get_fitted_models(session)
+    model_team, df_player = get_fitted_models(season, session)
     all_predictions = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
         for player in list_players(position=pos, dbsession=session):

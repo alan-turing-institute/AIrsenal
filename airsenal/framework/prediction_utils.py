@@ -214,7 +214,7 @@ def fill_prediction(player, fixture, points, tag, session):
     session.add(pp)
 
 
-def get_fitted_models(session):
+def get_fitted_models(season, session):
     """
     Retrieve match and player models, and fit player model to the playerscore data.
     """
@@ -223,7 +223,7 @@ def get_fitted_models(session):
     model_team = get_team_model(df_team, df_X)
     model_player = get_player_model()
     print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_all_data(model_player, session)
+    df_player, fits, reals = fit_all_data(model_player, season, session)
     return model_team, df_player
 
 
