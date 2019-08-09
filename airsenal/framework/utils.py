@@ -540,7 +540,17 @@ def estimate_minutes_from_prev_season(player, season=CURRENT_SEASON, dbsession=N
                     .filter(PlayerScore.fixture.has(season=previous_season))\
                     .all()
     if len(player_scores) == 0:
-        return [45]
+        # Crude scaling based on player price vs teammates in his position
+        teammates = list_players(position=player.position(season),
+                                 team=player.team(season),
+                                 season=season,
+                                 dbsession=dbsession)
+
+        team_prices = [pl.current_price(season) for pl in teammates]
+        player_price = player.current_price(season)
+        ratio = player_price/max(team_prices)
+
+        return [60*(ratio**2)]
     else:
         average_mins = calc_average_minutes(player_scores)
         return [average_mins]
