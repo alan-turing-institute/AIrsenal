@@ -230,7 +230,6 @@ class Team(object):
         depending on specified formation in format e.g.
         (4,4,2)
         """
-        print("Trying formation {}".format(formation))
         for i, pos in enumerate(["DEF", "MID", "FWD"]):
             for index, player in enumerate(player_dict[pos]):
                 if index < formation[i]:
