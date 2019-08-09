@@ -48,6 +48,10 @@ def get_current_season():
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
+# TODO make this a database table so we can look at past seasons
+CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
+
+
 def get_past_seasons(num_seasons):
     """
     Go back num_seasons from the current one

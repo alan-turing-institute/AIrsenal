@@ -123,14 +123,26 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
     return df
 
 
-def get_team_model(df, df_X):
+def get_team_model(df, df_X, teams=CURRENT_TEAMS):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
     model_team = bpl.BPLModel(df, X=df_X)
-#    model_team = bpl.BPLModel(df, X=None)
+
     model_team.fit()
+    # check if each team is known to the model, and if not, add it using FIFA rankings
+    for team in teams:
+        if not team in model_team.team_indices.keys():
+            try:
+                strvals = df_X.loc[(df_X["team"]==team),["att","mid","defn","ovr"]].values
+                intvals = [int(v) for v in strvals[0]]
+                model_team.add_new_team(team, intvals)
+                print("Adding new team {} with covariates".format(team))
+            except:
+                model_team.add_new_team(team)
+                print("Adding new team {} without covariates".format(team))
+
     return model_team
 
 
