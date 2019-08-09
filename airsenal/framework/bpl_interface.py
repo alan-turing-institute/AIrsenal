@@ -170,17 +170,19 @@ def get_empirical_bayes_estimates(df_emp):
         * (total_minutes / minutes)
     )
     alpha = np.array([a0, a1, a2])
+    print("Alpha is {}".format(alpha))
     return alpha
 
 
-def process_player_data(prefix, session):
+def process_player_data(prefix, season=CURRENT_SEASON, session=session):
     """
     transform the player dataframe, basically giving a list (for each player)
     of lists of minutes (for each match, and a list (for each player) of
     lists of ["goals","assists","neither"] (for each match)
     """
-    df = get_player_history_df(prefix, session=session)
+    df = get_player_history_df(prefix, season=season, session=session)
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
+    df.loc[(df["neither"]<0),["neither","team_goals","goals","assists"]]=[0.,0.,0.,0.]
     alpha = get_empirical_bayes_estimates(df)
     y = df.sort_values("player_id")[["goals", "assists", "neither"]].values.reshape(
         (
@@ -212,11 +214,11 @@ def process_player_data(prefix, session):
     )
 
 
-def fit_data(prefix, model, session):
+def fit_data(prefix, model, season, session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix, session)
+    data, names = process_player_data(prefix, season, session)
     fit = model.optimizing(data)
     df = (
         pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])
@@ -227,13 +229,13 @@ def fit_data(prefix, model, session):
     return df, fit, data
 
 
-def fit_all_data(model, session):
+def fit_all_data(model, season, session):
     df = pd.DataFrame()
     fits = []
     dfs = []
     reals = []
     for prefix in ["FWD", "MID", "DEF"]:
-        d, f, r = fit_data(prefix, model, session)
+        d, f, r = fit_data(prefix, model, season, session)
         fits.append(f)
         dfs.append(d)
         reals.append(r)
