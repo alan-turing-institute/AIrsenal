@@ -77,7 +77,7 @@ def process_file(path, teams_dict):
 if __name__ == '__main__':
     sub_dirs = glob(data_dir + '/*/')
     teams_dict = get_teams_dict_from_raw()
-
+    print(teams_dict)
     output = {path_to_key(directory):
               process_file(os.path.join(directory, file_name), teams_dict)
               for directory in sub_dirs}
