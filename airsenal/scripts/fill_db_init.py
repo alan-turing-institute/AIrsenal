@@ -14,7 +14,7 @@ def main():
 
     with session_scope() as session:
         make_player_table(session)
-       ## fill_initial_team(session)
+        fill_initial_team(session)
         make_fixture_table(session)
         make_result_table(session)
         make_playerscore_table(session)
