@@ -34,7 +34,8 @@ def get_result_df(session):
     df_past["home_goals"] = df_past["home_goals"].astype(int)
     df_past["away_goals"] = df_past["away_goals"].astype(int)
     df_past["date"] = pd.to_datetime(df_past["date"])
-    df_past = df_past[df_past["date"] > pd.to_datetime("2016-08-01")]
+
+    #df_past = df_past[df_past["date"] > pd.to_datetime("2016-08-01")]
     return df_past
 
 
