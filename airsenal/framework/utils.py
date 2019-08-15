@@ -51,18 +51,27 @@ CURRENT_SEASON = get_current_season()
 # TODO make this a database table so we can look at past seasons
 CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
 
+def get_previous_season(season):
+    """
+    Convert string e.g. '1819' into one for previous season, i.e. '1718'
+    """
+    start_year = int(season[:2])
+    end_year = int(season[2:])
+    prev_start_year = start_year - 1
+    prev_end_year = end_year - 1
+    prev_season = "{}{}".format(prev_start_year, prev_end_year)
+    return prev_season
+
 
 def get_past_seasons(num_seasons):
     """
     Go back num_seasons from the current one
     """
-    start_year = int(CURRENT_SEASON[:2])
-    end_year = int(CURRENT_SEASON[2:])
+    season = CURRENT_SEASON
     seasons = []
-    for i in range(1,num_seasons+1):
-        new_start_year = start_year - i
-        new_end_year = end_year - i
-        seasons.append("{}{}".format(new_start_year,new_end_year))
+    for i in range(num_seasons):
+        season = get_previous_season(season)
+        seasons.append(season)
     return seasons
 
 
@@ -507,6 +516,44 @@ def get_return_gameweek_for_player(player_id, dbsession=None):
         return_gameweek = get_gameweek_by_date(return_date,dbsession=dbsession)
         return return_gameweek
     return None
+
+
+def calc_average_minutes(player_scores):
+    """
+    Simple average of minutes played for a list of PlayerScore objects.
+    """
+    total = 0.
+    for ps in player_scores:
+        total += ps.minutes
+    return total / len(player_scores)
+
+
+def estimate_minutes_from_prev_season(player, season=CURRENT_SEASON, dbsession=None):
+    """
+    take average of minutes from previous season if any, or else return [60]
+    """
+    if not dbsession:
+        dbsession=session
+    previous_season = get_previous_season(season)
+    player_scores = dbsession.query(PlayerScore)\
+                    .filter_by(player_id=player.player_id)\
+                    .filter(PlayerScore.fixture.has(season=previous_season))\
+                    .all()
+    if len(player_scores) == 0:
+        # Crude scaling based on player price vs teammates in his position
+        teammates = list_players(position=player.position(season),
+                                 team=player.team(season),
+                                 season=season,
+                                 dbsession=dbsession)
+
+        team_prices = [pl.current_price(season) for pl in teammates]
+        player_price = player.current_price(season)
+        ratio = player_price/max(team_prices)
+
+        return [60*(ratio**2)]
+    else:
+        average_mins = calc_average_minutes(player_scores)
+        return [average_mins]
 
 
 def get_recent_minutes_for_player(player,

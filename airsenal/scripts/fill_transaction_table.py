@@ -5,7 +5,7 @@ import argparse
 
 from ..framework.schema import Transaction, session_scope
 from ..framework.utils import get_players_for_gameweek, fetcher, \
-    get_past_seasons, CURRENT_SEASON
+    get_past_seasons, get_next_gameweek, CURRENT_SEASON
 
 
 
@@ -24,6 +24,9 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEA
     getting the information from the team history API endpoint (for the list of players in our team)
     and the player history API endpoint (for their price in gw1).
     """
+    if get_next_gameweek() == 1:
+        ### Season hasn't started yet - there won't be a team in the DB
+        return True
     api_players = get_players_for_gameweek(1)
     for pid in api_players:
         gw1_data = fetcher.get_gameweek_data_for_player(pid,1)

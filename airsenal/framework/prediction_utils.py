@@ -25,6 +25,7 @@ from .schema import Player, PlayerPrediction, Fixture, Base, engine
 from .utils import (
     get_next_gameweek,
     get_fixtures_for_player,
+    estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_player_name,
@@ -166,7 +167,9 @@ def calc_predicted_points(
         )
         if len(recent_minutes) == 0:
             # e.g. for gameweek 1 - try temporary hack
-            recent_minutes=[90]
+            recent_minutes = estimate_minutes_from_prev_season(
+                player, season=season, dbsession=session
+            )
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
@@ -240,7 +243,7 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     if (
             "chance_of_playing_next_round" in pdata.keys() \
             and pdata["chance_of_playing_next_round"] is not None
-            and pdata["chance_of_playing_next_round"] <= 0.5
+            and pdata["chance_of_playing_next_round"] <= 0.75
     ):
         ## check if we have a return date
         return_gameweek = get_return_gameweek_for_player(player_id, session)
