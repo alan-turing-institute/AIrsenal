@@ -16,9 +16,9 @@ from ..framework.utils import list_players, get_next_gameweek, CURRENT_SEASON
 from ..framework.prediction_utils import get_fitted_models, calc_predicted_points
 from ..framework.schema import session_scope
 
-def calc_all_predicted_points(gw_range, season, tag, session):
+def calc_all_predicted_points(pos, gw_range, season, tag, session):
     """
-    Do the full prediction.
+    Do the full prediction for players.
     """
     model_team, df_player = get_fitted_models(season, session)
     all_predictions = {}
@@ -30,6 +30,12 @@ def calc_all_predicted_points(gw_range, season, tag, session):
     ## commit changes to the db
     session.commit()
     return all_predictions
+
+def calc_predicted_points_for_pos(pos, team_model, season, tag, session):
+    """
+
+
+
 
 def make_predictedscore_table(session, gw_range=None, season=CURRENT_SEASON):
     tag = str(uuid4())
