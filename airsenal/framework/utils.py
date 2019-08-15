@@ -577,8 +577,8 @@ def get_recent_minutes_for_player(player,
     rows = dbsession.query(PlayerScore)\
                   .filter(PlayerScore.fixture.has(season=season))\
                   .filter_by(player_id=player.player_id)\
-                  .filter(PlayerScore.fixture.has(Fixture.gameweek >= first_gw))\
-                  .filter(PlayerScore.fixture.has(Fixture.gameweek < last_gw))\
+                  .filter(PlayerScore.fixture.has(Fixture.gameweek > first_gw))\
+                  .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))\
                   .all()
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
