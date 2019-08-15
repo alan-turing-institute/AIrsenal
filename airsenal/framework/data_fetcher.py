@@ -39,11 +39,11 @@ class FPLDataFetcher(object):
             else:
                 print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static"
-        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary"
-        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history"
-        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks"
-        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers"
+        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
+        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary/{}/"
+        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history/"
+        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
+        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers/"
         self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
             self.FPL_LEAGUE_ID
         )
@@ -195,7 +195,7 @@ class FPLDataFetcher(object):
                 not gameweek in self.player_gameweek_data[player_id].keys()
             ):
 
-                r = requests.get("{}/{}".format(self.FPL_DETAIL_URL, player_id))
+                r = requests.get(self.FPL_DETAIL_URL.format(player_id))
                 if not r.status_code == 200:
                     print("Error retrieving data for player {}".format(player_id))
                     return []
