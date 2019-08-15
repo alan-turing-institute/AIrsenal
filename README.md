@@ -22,11 +22,13 @@ pip install .
 
 ## Getting started
 
-Once you've installed the module, you will need to set three environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
+Once you've installed the module, you will need to set five environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
 
 1. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/) (this is only needed for filling past seasons results if not already present as a csv file in the ```data/``` directory.)
 2. `FPL_TEAM_ID`: the team ID for your FPL side.
 3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for a small subset of functionality).
+4. `FPL_LOGIN`: your FPL login, usually email (this is only required to get league standings)
+5. `FPL_PASSWORD`: your FPL password (this is only required to get league standings)
 
 Once this is done, run the following command
 
