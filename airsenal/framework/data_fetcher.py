@@ -28,7 +28,9 @@ class FPLDataFetcher(object):
         self.fpl_team_data = {} # players in squad, by gameweek
         self.fixture_data = None
         for ID in ["FPL_LEAGUE_ID",
-                   "FPL_TEAM_ID"]:
+                   "FPL_TEAM_ID",
+                   "FPL_LOGIN",
+                   "FPL_PASSWORD"]:
             if ID in os.environ.keys():
                 self.__setattr__(ID, os.environ[ID])
             elif os.path.exists(os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))):
@@ -39,12 +41,12 @@ class FPLDataFetcher(object):
             else:
                 print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static"
-        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary"
-        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history"
-        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks"
-        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers"
-        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic-standings/{}?phase=1&le-page=1&ls-page=1".format(
+        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
+        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary/{}/"
+        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history/"
+        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
+        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers/"
+        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1".format(
             self.FPL_LEAGUE_ID
         )
         self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
@@ -131,7 +133,11 @@ class FPLDataFetcher(object):
         if self.fpl_league_data:
             return self.fpl_league_data
         else:
-            r = requests.get(self.FPL_LEAGUE_URL)
+            headers = {"login": self.FPL_LOGIN,
+                       "password": self.FPL_PASSWORD,
+                       "app": "plfpl-web",
+                       "redirect_uri": "https://fantasy.premierleague.com/"}
+            r = requests.get(self.FPL_LEAGUE_URL, headers=headers)
             if not r.status_code == 200:
                 print("Unable to access FPL league API")
                 return None
@@ -195,7 +201,7 @@ class FPLDataFetcher(object):
                 not gameweek in self.player_gameweek_data[player_id].keys()
             ):
 
-                r = requests.get("{}/{}".format(self.FPL_DETAIL_URL, player_id))
+                r = requests.get(self.FPL_DETAIL_URL.format(player_id))
                 if not r.status_code == 200:
                     print("Error retrieving data for player {}".format(player_id))
                     return []
