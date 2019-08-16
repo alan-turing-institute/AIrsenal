@@ -13,28 +13,42 @@ from multiprocessing import Process, Queue
 import argparse
 
 from ..framework.utils import list_players, get_next_gameweek, CURRENT_SEASON
-from ..framework.prediction_utils import get_fitted_models, calc_predicted_points
+from ..framework.prediction_utils import get_fitted_team_model, get_fitted_player_mode, \
+    get_player_model, calc_predicted_points
 from ..framework.schema import session_scope
+
+
+def calc_predicted_points_for_pos(pos, team_model, player_model, season, tag, session):
+    """
+    Calculate points predictions for all players in a given position and
+    put into the DB
+    """
+    df_player = get_fitted_player_model(player_model, position, season, session)
+    predictions = {}
+    for player in list_players(position=pos, dbsession=session):
+        predictions[player.player_id] = calc_predicted_points(
+            player, model_team, df_player, season, tag, session, gw_range
+        )
+    ## commit changes to the db
+    session.commit()
+    return predictions
+
 
 def calc_all_predicted_points(pos, gw_range, season, tag, session):
     """
     Do the full prediction for players.
     """
-    model_team, df_player = get_fitted_models(season, session)
+    model_team = get_fitted_team_model(season, session)
+    model_player = get_player_model()
     all_predictions = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
-        for player in list_players(position=pos, dbsession=session):
-            all_predictions[player.player_id] = calc_predicted_points(
-                player, model_team, df_player, season, tag, session, gw_range
-            )
-    ## commit changes to the db
-    session.commit()
+        all_predictions[pos] = calc_predicted_points_for_pos(pos,
+                                                             model_team,
+                                                             model_player,
+                                                             season,
+                                                             tag,
+                                                             session)
     return all_predictions
-
-def calc_predicted_points_for_pos(pos, team_model, season, tag, session):
-    """
-
-
 
 
 def make_predictedscore_table(session, gw_range=None, season=CURRENT_SEASON):
