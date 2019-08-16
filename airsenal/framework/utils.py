@@ -583,7 +583,15 @@ def get_recent_minutes_for_player(player,
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
-    return [r.minutes for r in rows[-num_match_to_use:]]
+    minutes = [r.minutes for r in rows[-num_match_to_use:]]
+    
+    # if going back num_matches_to_use from last_gw takes us before the start
+    # of the season, also include a minutes estimate using last season's data
+    if first_gw < 0 or len(minutes) == 0:
+        minutes = (minutes +
+                   estimate_minutes_from_prev_season(player, season, dbsession))
+        
+    return minutes
 
 
 def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
