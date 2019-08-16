@@ -30,33 +30,90 @@ from .utils import (
     get_return_gameweek_for_player,
     get_player_name,
     list_players,
+    fetcher,
     CURRENT_SEASON
 )
 from .bpl_interface import (
-    get_player_model,
-    get_team_model,
-    get_result_df,
-    get_ratings_df,
-    fit_all_data,
-    list_players,
-    fetcher
+    get_fitted_team_model
+)
+from .FPL_scoring_rules import (
+    points_for_goal,
+    points_for_assist,
+    points_for_cs,
+    get_appearance_points
 )
 
-points_for_goal = {"GK": 6, "DEF": 6, "MID": 5, "FWD": 4}
-points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
-points_for_assist = 3
 
+def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
+    """
+    Query the player_score table to get goals/assists/minutes, and then
+    get the team_goals from the match table.
+    The 'season' argument defined the set of players that will be considered, but
+    for those players, all results will be used.
+    """
 
-def get_appearance_points(minutes):
-    """
-    get 1 point for appearance, 2 for >60 mins
-    """
-    app_points = 0.
-    if minutes > 0:
-        app_points = 1
-        if minutes >= 60:
-            app_points += 1
-    return app_points
+    col_names = [
+        "player_id",
+        "player_name",
+        "match_id",
+        "date",
+        "goals",
+        "assists",
+        "minutes",
+        "team_goals",
+    ]
+    df = pd.DataFrame(columns=col_names)
+    players = list_players(position=position,season=season,dbsession=session)
+    max_matches_per_player = get_max_matches_per_player(position, season, dbsession=session)
+    for counter, player in enumerate(players):
+        print(
+            "Filling history dataframe for {}: {}/{} done".format(
+                player.name, counter, len(players)
+            )
+        )
+        results = player.scores
+        row_count = 0
+        for row in results:
+            match_id = row.result_id
+            if not match_id:
+                print(" Couldn't find result for {} {} {}"\
+                      .format(row.fixture.home_team,
+                              row.fixture.away_team,
+                              row.fixture.date))
+                continue
+            minutes = row.minutes
+            opponent = row.opponent
+            goals = row.goals
+            assists = row.assists
+            # find the match, in order to get team goals
+            match_result = row.result
+            match_date = dateparser.parse(row.fixture.date)
+            if row.fixture.home_team == row.opponent:
+                team_goals = match_result.away_score
+            elif row.fixture.away_team == row.opponent:
+                team_goals = match_result.home_score
+            else:
+                print("Unknown opponent!")
+                team_goals = -1
+            df.loc[len(df)] = [
+                player.player_id,
+                player.name,
+                match_id,
+                match_date,
+                goals,
+                assists,
+                minutes,
+                team_goals,
+            ]
+            row_count += 1
+
+        ## fill blank rows so they are all the same size
+        if row_count < max_matches_per_player:
+            for i in range(row_count, max_matches_per_player):
+                df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
+
+    return df
+
 
 
 def get_attacking_points(
@@ -217,25 +274,24 @@ def fill_prediction(player, fixture, points, tag, session):
     session.add(pp)
 
 
-def get_fitted_team_model(season, session):
+def get_fitted_player_model(player_model, position, season, session):
     """
-    get the fitted team model using the past results and the FIFA rankings
+    Get the fitted player model for a given position
     """
-    df_team = get_result_df(session)
-    df_X = get_ratings_df(session)
-    model_team = get_team_model(df_team, df_X)
-    return model_team
-
-def get_fitted_models(season, session):
-    """
-    Retrieve match and player models, and fit player model to the playerscore data.
-    """
-    model_team = get_fited_team_model(season, session)
-    model_player = get_player_model()
     print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_all_data(model_player, season, session)
-    return model_team, df_player
+    df_player, fits, reals = fit_player_data(player_model, position, season, session)
+    return df_player
 
+
+#def get_fitted_models(season, session):
+#    """
+#    Retrieve match and player models, and fit player model to the playerscore data.
+#    """
+#    model_team = get_fited_team_model(season, session)
+#    model_player = get_player_model()
+#    print("Generating player history dataframe - slow")
+#    df_player, fits, reals = fit_all_player_data(model_player, season, session)
+#    return model_team, df_player
 
 
 def is_injured_or_suspended(player_id, gameweek, season, session):
@@ -282,3 +338,117 @@ def fill_ep(csv_filename):
         session.add(pp)
     session.commit()
     outfile.close()
+
+
+def get_player_model():
+    """
+    load the player-level model, which will give the probability that
+    a given player scored/assisted/did-neither when their team scores a goal.
+    """
+    stan_filepath = os.path.join(os.path.dirname(__file__), "../stan/player_forecasts.stan")
+    if not os.path.exists(stan_filepath):
+        raise RuntimeError("Can't find player_forecasts.stan")
+
+    model_player = pystan.StanModel(file=stan_filepath)
+    return model_player
+
+
+def get_empirical_bayes_estimates(df_emp):
+    """
+    Get starting values for the model based on averaging goals/assists/neither
+    over all players in that postition
+    """
+    # still not sure about this...
+    df = df_emp.copy()
+    df = df[df["match_id"] != 0]
+    goals = df["goals"].sum()
+    assists = df["assists"].sum()
+    neither = df["neither"].sum()
+    minutes = df["minutes"].sum()
+    team = df["team_goals"].sum()
+    total_minutes = 90 * len(df)
+    neff = df.groupby("player_name").count()["goals"].mean()
+    a0 = neff * (goals / team) * (total_minutes / minutes)
+    a1 = neff * (assists / team) * (total_minutes / minutes)
+    a2 = (
+        neff
+        * ((neither / team) - (total_minutes - minutes) / total_minutes)
+        * (total_minutes / minutes)
+    )
+    alpha = np.array([a0, a1, a2])
+    print("Alpha is {}".format(alpha))
+    return alpha
+
+
+def process_player_data(prefix, season=CURRENT_SEASON, session=session):
+    """
+    transform the player dataframe, basically giving a list (for each player)
+    of lists of minutes (for each match, and a list (for each player) of
+    lists of ["goals","assists","neither"] (for each match)
+    """
+    df = get_player_history_df(prefix, season=season, session=session)
+    df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
+    df.loc[(df["neither"]<0),["neither","team_goals","goals","assists"]]=[0.,0.,0.,0.]
+    alpha = get_empirical_bayes_estimates(df)
+    y = df.sort_values("player_id")[["goals", "assists", "neither"]].values.reshape(
+        (
+            df["player_id"].nunique(),
+            df.groupby("player_id").count().iloc[0]["player_name"],
+            3,
+        )
+    )
+
+    minutes = df.sort_values("player_id")["minutes"].values.reshape(
+        (
+            df["player_id"].nunique(),
+            df.groupby("player_id").count().iloc[0]["player_name"],
+        )
+    )
+
+    nplayer = df["player_id"].nunique()
+    nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
+    player_ids = np.sort(df["player_id"].unique())
+    return (
+        dict(
+            nplayer=nplayer,
+            nmatch=nmatch,
+            minutes=minutes.astype("int64"),
+            y=y.astype("int64"),
+            alpha=alpha,
+        ),
+        player_ids,
+    )
+
+
+def fit_player_data(prefix, model, season, session):
+    """
+    fit the data for a particular position (FWD, MID, DEF)
+    """
+    data, names = process_player_data(prefix, season, session)
+    fit = model.optimizing(data)
+    df = (
+        pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])
+        .set_index(names)
+        .reset_index()
+    )
+    df["pos"] = prefix
+    df = df.rename(columns={"index": "player_id"})
+    .sort_values("player_id")
+    .set_index("player_id")
+    return df, fit, data
+
+
+def fit_all_player_data(model, season, session):
+    df = pd.DataFrame()
+    fits = []
+    dfs = []
+    reals = []
+    for prefix in ["FWD", "MID", "DEF"]:
+        d, f, r = fit_data(prefix, model, season, session)
+        fits.append(f)
+        dfs.append(d)
+        reals.append(r)
+    df = (
+        pd.concat(dfs)
+    )
+    return df, fits, reals
