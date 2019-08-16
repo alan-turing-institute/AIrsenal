@@ -13,28 +13,30 @@ from multiprocessing import Process, Queue
 import argparse
 
 from ..framework.utils import list_players, get_next_gameweek, CURRENT_SEASON
-from ..framework.prediction_utils import get_fitted_team_model, get_fitted_player_mode, \
+from ..framework.prediction_utils import get_fitted_team_model, get_fitted_player_model, \
     get_player_model, calc_predicted_points
 from ..framework.schema import session_scope
 
 
-def calc_predicted_points_for_pos(pos, team_model, player_model, season, tag, session):
+def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, season, tag, session):
     """
     Calculate points predictions for all players in a given position and
     put into the DB
     """
-    df_player = get_fitted_player_model(player_model, position, season, session)
     predictions = {}
+    df_player = None
+    if pos != "GK": # don't calculate attacking points for keepers.
+        df_player = get_fitted_player_model(player_model, pos, season, session)
     for player in list_players(position=pos, dbsession=session):
         predictions[player.player_id] = calc_predicted_points(
-            player, model_team, df_player, season, tag, session, gw_range
+            player, team_model, df_player, season, tag, session, gw_range
         )
     ## commit changes to the db
     session.commit()
     return predictions
 
 
-def calc_all_predicted_points(pos, gw_range, season, tag, session):
+def calc_all_predicted_points(gw_range, season, tag, session):
     """
     Do the full prediction for players.
     """
@@ -43,6 +45,7 @@ def calc_all_predicted_points(pos, gw_range, season, tag, session):
     all_predictions = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
         all_predictions[pos] = calc_predicted_points_for_pos(pos,
+                                                             gw_range,
                                                              model_team,
                                                              model_player,
                                                              season,

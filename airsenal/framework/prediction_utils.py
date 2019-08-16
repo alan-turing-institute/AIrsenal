@@ -5,9 +5,11 @@ Use the BPL models to predict scores for upcoming fixtures.
 import os
 import sys
 
-
-
 from collections import defaultdict
+import dateparser
+import pandas as pd
+import numpy as np
+import pystan
 
 from .mappings import (
     alternative_team_names,
@@ -28,9 +30,11 @@ from .utils import (
     estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
+    get_max_matches_per_player,
     get_player_name,
     list_players,
     fetcher,
+    session,
     CURRENT_SEASON
 )
 from .bpl_interface import (
@@ -42,6 +46,8 @@ from .FPL_scoring_rules import (
     points_for_cs,
     get_appearance_points
 )
+
+np.random.seed(42)
 
 
 def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
@@ -420,7 +426,7 @@ def process_player_data(prefix, season=CURRENT_SEASON, session=session):
     )
 
 
-def fit_player_data(prefix, model, season, session):
+def fit_player_data(model, prefix, season, session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
@@ -432,9 +438,11 @@ def fit_player_data(prefix, model, season, session):
         .reset_index()
     )
     df["pos"] = prefix
-    df = df.rename(columns={"index": "player_id"})
-    .sort_values("player_id")
-    .set_index("player_id")
+    df = (
+        df.rename(columns={"index": "player_id"})
+        .sort_values("player_id")
+        .set_index("player_id")
+    )
     return df, fit, data
 
 
