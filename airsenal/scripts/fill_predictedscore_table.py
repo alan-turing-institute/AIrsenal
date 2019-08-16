@@ -19,29 +19,44 @@ from ..framework.prediction_utils import get_fitted_team_model, get_fitted_playe
 from ..framework.schema import session_scope
 
 
-def calc_predicted_points_for_pos(queue, gw_range, team_model, player_model, season, tag, session):
+def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, season, tag, session):
     """
     Calculate points predictions for all players in a given position and
     put into the DB
     """
+    print("Processing {}".format(pos))
+
+    predictions = {}
+    df_player = None
+    if pos != "GK": # don't calculate attacking points for keepers.
+        df_player = get_fitted_player_model(player_model, pos, season, session)
+    for player in list_players(position=pos, dbsession=session):
+        predictions[player.player_id] = calc_predicted_points(
+            player, team_model, df_player, season, tag, session, gw_range
+        )
+    ## commit changes to the db
+    session.commit()
+    return predictions
+
+
+def allocate_predictions(queue, gw_range, team_model, player_model, season, tag, session):
+    """
+    Take positions off the queue and call function to calculate predictions
+    """
     while True:
         pos = queue.get()
-        print("Processing {}".format(pos))
         if pos == "DONE":
             print("Finished processing {}".format(pos))
             break
-        predictions = {}
-        df_player = None
-        if pos != "GK": # don't calculate attacking points for keepers.
-            df_player = get_fitted_player_model(player_model, pos, season, session)
-        for player in list_players(position=pos, dbsession=session):
-            predictions[player.player_id] = calc_predicted_points(
-                player, team_model, df_player, season, tag, session, gw_range
-            )
-        ## commit changes to the db
-        session.commit()
-##    return predictions
-
+        predictions = calc_predicted_points_for_pos(
+            pos,
+            gw_range,
+            team_model,
+            player_model,
+            season,
+            tag,
+            session
+        )
 
 def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     """
@@ -54,7 +69,7 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     procs = []
     for i in range(num_thread):
         processor = Process(
-            target=calc_predicted_points_for_pos,
+            target=allocate_predictions,
             args=(queue, gw_range, model_team, model_player, season, tag, session)
         )
         processor.daemon = True
