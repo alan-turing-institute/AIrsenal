@@ -151,7 +151,23 @@ def calc_predicted_points(
                                        season,
                                        gw_range=gw_range,
                                        dbsession=session)
-    expected_points = defaultdict(float)  # default value is 0.0
+    
+    # use same recent_minutes from previous gameweeks for all predictions
+    recent_minutes = get_recent_minutes_for_player(
+        player, num_match_to_use=fixures_behind,
+        season=season, last_gw=min(gw_range)-1,
+        dbsession=session
+    )
+    if len(recent_minutes) == 0:
+        # e.g. for gameweek 1
+        # this should now be dealt with in get_recent_minutes_for_player, so
+        # throw error if not.
+        # recent_minutes = estimate_minutes_from_prev_season(
+        #    player, season=season, dbsession=session
+        # )
+        raise ValueError('Recent minutes is empty.')
+           
+    expected_points = defaultdict(float)  # default value is 0.
 
     for fid in fixtures:
         fixture = session.query(Fixture)\
@@ -161,15 +177,6 @@ def calc_predicted_points(
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
         print("gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home))
-        recent_minutes = get_recent_minutes_for_player(
-            player, num_match_to_use=fixures_behind, season=season, last_gw=gameweek-1,
-            dbsession=session
-        )
-        if len(recent_minutes) == 0:
-            # e.g. for gameweek 1 - try temporary hack
-            recent_minutes = estimate_minutes_from_prev_season(
-                player, season=season, dbsession=session
-            )
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
