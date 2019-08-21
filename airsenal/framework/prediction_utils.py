@@ -215,7 +215,7 @@ def calc_predicted_points(
                                        gw_range=gw_range,
                                        dbsession=session)
     expected_points = defaultdict(float)  # default value is 0.0
-
+    predictions = []
     for fid in fixtures:
         fixture = session.query(Fixture)\
                          .filter_by(season=season)\
@@ -259,16 +259,16 @@ def calc_predicted_points(
                     for mins in recent_minutes
                 ]
             ) / len(recent_minutes)
-        # write the prediction for this fixture to the db
-        fill_prediction(player, fixture, points, tag, session)
+        # create the PlayerPrediction for this player+fixture
+        predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
         print("Expected points: {:.2f}".format(points))
 
-    return expected_points
+    return predictions
 
 
-def fill_prediction(player, fixture, points, tag, session):
+def make_prediction(player, fixture, points, tag):
     """
     fill one row in the player_prediction table
     """
@@ -277,7 +277,8 @@ def fill_prediction(player, fixture, points, tag, session):
     pp.tag = tag
     pp.player = player
     pp.fixture = fixture
-    session.add(pp)
+    return pp
+#    session.add(pp)
 
 
 def get_fitted_player_model(player_model, position, season, session):

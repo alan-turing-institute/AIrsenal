@@ -7,6 +7,7 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
+import time
 from uuid import uuid4
 
 from multiprocessing import Process, Queue
@@ -24,18 +25,16 @@ def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, seaso
     Calculate points predictions for all players in a given position and
     put into the DB
     """
-    print("Processing {}".format(pos))
-
     predictions = {}
     df_player = None
     if pos != "GK": # don't calculate attacking points for keepers.
         df_player = get_fitted_player_model(player_model, pos, season, session)
     for player in list_players(position=pos, dbsession=session):
+        print("Doing player {}".format(player.name))
         predictions[player.player_id] = calc_predicted_points(
             player, team_model, df_player, season, tag, session, gw_range
         )
-    ## commit changes to the db
-    session.commit()
+
     return predictions
 
 
@@ -57,6 +56,11 @@ def allocate_predictions(queue, gw_range, team_model, player_model, season, tag,
             tag,
             session
         )
+        for k, v in predictions.items():
+            for playerprediction in v:
+                session.add(playerprediction)
+        session.commit()
+        print("Finished adding predictions to db for {}".format(pos))
 
 def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     """
@@ -82,14 +86,10 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     for i in range(num_thread):
         queue.put("DONE")
 
- #       all_predictions[pos] = calc_predicted_points_for_pos(pos,
- #                                                            gw_range,
- #                                                            model_team,
- #                                                            model_player,
- #                                                            season,
- #                                                            tag,
- #                                                            session)
-  #  return all_predictions
+    for i,p in enumerate(procs):
+        p.join()
+
+
 
 
 def make_predictedscore_table(session, gw_range=None, season=CURRENT_SEASON, num_thread=4):
