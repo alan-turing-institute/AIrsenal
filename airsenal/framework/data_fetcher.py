@@ -122,7 +122,7 @@ class FPLDataFetcher(object):
         if not r.status_code == 200:
             print("Unable to access FPL transfer history API")
             return None
-        self.fpl_transfer_history_data = json.loads(r.content.decode("utf-8"))['history']
+        self.fpl_transfer_history_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_transfer_history_data
 
 
