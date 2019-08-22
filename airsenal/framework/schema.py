@@ -178,7 +178,7 @@ Base.metadata.bind = engine
 @contextmanager
 def session_scope():
     """Provide a transactional scope around a series of operations."""
-    db_session = sessionmaker(bind=engine)
+    db_session = sessionmaker(bind=engine, autoflush=False)
     session = db_session()
     try:
         yield session
