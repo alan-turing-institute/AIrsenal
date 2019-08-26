@@ -43,15 +43,18 @@ def fill_player_table_from_file(filename, season, session):
     use json file
     """
     jplayers = json.load(open(filename))
+    n_new_players = 0
     for i, jp in enumerate(jplayers):
         new_entry = False
         name = jp['name']
         print("{} adding {}".format(season, name))
         p = find_player_in_table(name, session)
         if not p:
+            print('new player')
+            n_new_players += 1
             new_entry = True
             p = Player()
-            p.player_id = max_id_in_table(session) + 1 # next id sequentially
+            p.player_id = max_id_in_table(session) + n_new_players # next id sequentially
             p.name = name
         pa = PlayerAttributes()
         pa.team = jp['team']
