@@ -203,7 +203,8 @@ def calc_predicted_points(
     or assisting given that their team scores.
     """
 
-    print("Getting points prediction for player {}".format(player.name))
+    message = "Points prediction for player {}".format(player.name)
+    
     if not gw_range:
         # by default, go for next three matches
         next_gw = get_next_gameweek(season, session)
@@ -241,7 +242,7 @@ def calc_predicted_points(
         gameweek = fixture.gameweek
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
-        print("gameweek: {} vs {} home? {}".format(gameweek, opponent, is_home))
+        message += "\ngameweek: {} vs {} home? {}".format(gameweek, opponent, is_home)
         points = 0.
         expected_points[gameweek] = points
         # points for fixture will be zero if suspended or injured
@@ -272,8 +273,9 @@ def calc_predicted_points(
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
-        print("Expected points: {:.2f}".format(points))
-
+        message += "\nExpected points: {:.2f}".format(points)
+    
+    print(message)
     return predictions
 
 

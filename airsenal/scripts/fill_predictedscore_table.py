@@ -27,10 +27,9 @@ def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, seaso
     """
     predictions = {}
     df_player = None
-    if pos != "GK": # don't calculate attacking points for keepers.
+    if pos != "GK":  # don't calculate attacking points for keepers.
         df_player = get_fitted_player_model(player_model, pos, season, session)
     for player in list_players(position=pos, dbsession=session):
-        print("Doing player {}".format(player.name))
         predictions[player.player_id] = calc_predicted_points(
             player, team_model, df_player, season, tag, session, gw_range
         )
