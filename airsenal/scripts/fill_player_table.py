@@ -50,7 +50,6 @@ def fill_player_table_from_file(filename, season, session):
         print("{} adding {}".format(season, name))
         p = find_player_in_table(name, session)
         if not p:
-            print('new player')
             n_new_players += 1
             new_entry = True
             p = Player()
