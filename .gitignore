@@ -3,6 +3,8 @@
 *FPL_TEAM_ID
 *FPL_LEAGUE_ID
 *FD_API_KEY
+*FPL_LOGIN
+*FPL_PASSWORD
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

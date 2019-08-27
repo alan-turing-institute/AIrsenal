@@ -10,4 +10,4 @@ bs4
 selenium
 boto3
 pip
-pystan
+bpl==0.0.4
