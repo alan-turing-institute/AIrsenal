@@ -44,9 +44,9 @@ model {
 
     to_vector(a_std) ~ normal(0, 1);
     to_vector(b_std) ~ normal(0, 1);
-    sigma_ar ~ normal(0, 5);
-    sigma ~ normal(0, 5);
-    mu_b ~ normal(0, 5);
+    sigma_ar ~ normal(0, 0.1);
+    sigma ~ normal(0, 1);
+    mu_b ~ normal(0, 1);
     gamma ~ normal(1.4, 0.3);
 
     home_goals ~ poisson_log(home_rate);
