@@ -10,7 +10,7 @@ import os
 from sqlalchemy import create_engine, and_, or_
 
 from ..framework.mappings import alternative_player_names
-from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
+from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope, PLAYERSCORE_EXTENDED_FEATS
 from ..framework.utils import get_latest_fixture_tag, get_next_gameweek, get_player, get_team_name, \
     get_past_seasons, CURRENT_SEASON
 from ..framework.data_fetcher import FPLDataFetcher
@@ -92,8 +92,14 @@ def fill_playerscores_from_json(detail_data, season, session):
             ps.player = player
             ps.result = fixture.result
             ps.fixture = fixture
+            
+            # extended features
+            for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
+                try:
+                    ps.__setattr__(feat, result[feat])
+            
             player.scores.append(ps)
-         #   session.add(ps)
+            session.add(ps)
 
 def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     if not gw_end:
@@ -138,6 +144,12 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 ps.player = player
                 ps.fixture = fixture
                 ps.result = fixture.result
+                
+                # extended features
+                for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
+                    try:
+                        ps.__setattr__(feat, result[feat])
+                            
                 player.scores.append(ps)
                 session.add(ps)
                 print(
