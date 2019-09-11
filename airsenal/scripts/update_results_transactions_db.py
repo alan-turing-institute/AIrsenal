@@ -2,7 +2,8 @@
 
 """
 simple script, check whether recent matches have been played since
-the last entries in the DB.
+the last entries in the DB, and update the transactions table with players
+bought or sold.
 """
 
 import os
@@ -12,7 +13,7 @@ import argparse
 
 from .fill_result_table import  fill_results_from_api
 from .fill_playerscore_table import fill_playerscores_from_api
-from .fill_transaction_table import update_team
+from ..framework.transaction_utils import update_team
 from ..framework.utils import *
 from ..framework.schema import session_scope
 
@@ -43,7 +44,7 @@ def main():
         db_players = sorted(get_current_players(season=season,dbsession=session))
         api_players = sorted(get_players_for_gameweek(last_finished))
         if db_players != api_players:
-            update_team(season=season, session=session)
+            update_team(season=season, session=session, verbose=True)
         else:
             print("Team is up-to-date")
 
