@@ -16,11 +16,6 @@ data_dir = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/players'\
 # file of interest present in every sub_directory in data_dir
 file_name = 'gw.csv'
 
-# raw file - used to generate dictionary that converts opponent ids into
-# short 3 letter team names
-raw_path = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/raw.json'\
-           .format(season_longname)
-
 # teams path - to get mapping of ids to team names
 team_path = '../data/teams_{}.csv'.format(season_shortname)
 
@@ -83,14 +78,16 @@ def process_file(path, teams_dict):
     
     # want everything in output to be strings
     df = df.applymap(str)
-    
+
     # return json like dictionary
     return df.to_dict(orient='records')
     
 
 if __name__ == '__main__':
     sub_dirs = glob(data_dir + '/*/')
+    
     teams_dict = get_teams_dict()
+    
     output = {path_to_key(directory):
               process_file(os.path.join(directory, file_name), teams_dict)
               for directory in sub_dirs}
