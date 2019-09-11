@@ -2,15 +2,7 @@
 Interface to the SQLite db.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-## location of sqlite file - default is /tmp/data.db, unless
-## overridden by an env var
-
-db_location = "/tmp/data.db"
 import os
-
-if "AIrsenalDB" in os.environ.keys():
-    db_location = os.environ["AIrsenalDB"]
-
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,6 +12,56 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, desc
 
 from contextlib import contextmanager
+
+# location of sqlite file - default is /tmp/data.db, unless
+# overridden by an env var
+db_location = "/tmp/data.db"
+
+if "AIrsenalDB" in os.environ.keys():
+    db_location = os.environ["AIrsenalDB"]
+
+PLAYERSCORE_EXTENDED_FEATS = {
+    "attempted_passes": Integer,
+    "big_chances_created": Integer,
+    "big_chances_missed": Integer,
+    "bps": Integer,
+    "clean_sheets": Integer,
+    "clearances_blocks_interceptions": Integer,
+    "completed_passes": Integer,
+    "creativity": Float,
+    "dribbles": Integer,
+    "ea_index": Integer,
+    "errors_leading_to_goal": Integer,
+    "errors_leading_to_goal_attempt": Integer,
+    "fouls": Integer,
+    "goals_conceded": Integer,
+    "goals_scored": Integer,
+    "ict_index": Float,
+    "influence": Float,
+    "key_passes": Integer,
+    "minutes": Integer,
+    "offside": Integer,
+    "open_play_crosses": Integer,
+    "own_goals": Integer,
+    "penalties_conceded": Integer,
+    "penalties_missed": Integer,
+    "penalties_saved": Integer,
+    "recoveries": Integer,
+    "red_cards": Integer,
+    "saves": Integer,
+    "selected": Integer,
+    "tackled": Integer,
+    "tackles": Integer,
+    "target_missed": Integer,
+    "threat": Float,
+    "transfers_balance": Integer,
+    "transfers_in": Integer,
+    "transfers_out": Integer,
+    "value": Integer,
+    "winning_goals": Integer,
+    "yellow_cards": Integer
+}
+
 
 Base = declarative_base()
 
@@ -93,6 +135,7 @@ class Result(Base):
     player = relationship("Player", back_populates="results")
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
+
 class Fixture(Base):
     __tablename__ = "fixture"
     fixture_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -109,6 +152,7 @@ class Fixture(Base):
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
+    
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_team = Column(String(100), nullable=False)
     opponent = Column(String(100), nullable=False)
@@ -124,6 +168,12 @@ class PlayerScore(Base):
     result_id = Column(Integer, ForeignKey('result.result_id'))
     fixture = relationship("Fixture", uselist=False)
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+   
+    def __init__(self):
+        # construct attributes for extended features
+        for feat_name, feat_type in PLAYERSCORE_EXTENDED_FEATS.items():
+            self.__setattr__(feat_name,
+                             Column(feat_type, nullable=False))
 
 
 class PlayerPrediction(Base):
