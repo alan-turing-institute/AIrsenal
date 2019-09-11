@@ -97,6 +97,8 @@ def fill_playerscores_from_json(detail_data, season, session):
             for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
                 try:
                     ps.__setattr__(feat, result[feat])
+                except:
+                    pass
             
             player.scores.append(ps)
             session.add(ps)
@@ -149,6 +151,9 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
                     try:
                         ps.__setattr__(feat, result[feat])
+                    except:
+                        pass
+                
                             
                 player.scores.append(ps)
                 session.add(ps)
