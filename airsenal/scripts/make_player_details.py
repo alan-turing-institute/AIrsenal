@@ -3,22 +3,33 @@ import os
 import re
 import json
 import pandas as pd
+from airsenal.framework.schema import PLAYERSCORE_EXTENDED_FEATS
+
+season_longname = '2016-17'
+season_shortname = '1617'
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
-data_dir = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/2018-19/players'
+data_dir = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/players'\
+           .format(season_longname)
 
 # file of interest present in every sub_directory in data_dir
 file_name = 'gw.csv'
 
 # raw file - used to generate dictionary that converts opponent ids into
 # short 3 letter team names
-raw_path = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/2018-19/raw.json'
+raw_path = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/raw.json'\
+           .format(season_longname)
+
+# teams path - to get mapping of ids to team names
+team_path = '../data/teams_{}.csv'.format(season_shortname)
 
 # where to save output
-save_name = '../data/player_details_1819.json'
+save_name = '../data/player_details_{}.json'.format(season_shortname)
 
 # dictionary of key in input file to key in output file
+
+# Core features (used in model)
 key_dict = {
     'round': 'gameweek',
     'total_points': 'points',
@@ -30,6 +41,10 @@ key_dict = {
     'minutes': 'minutes',
     'opponent_team': 'opponent'  # id in input, 3 letters in output!!!
 }
+# Additional features (may be used in future)
+additional_features = PLAYERSCORE_EXTENDED_FEATS.keys()
+for feat in additional_features:
+    key_dict[feat] = feat
 
 
 def path_to_key(path):
@@ -48,11 +63,10 @@ def path_to_key(path):
     return key
 
 
-def get_teams_dict_from_raw():
-    with open(raw_path, 'r') as f:
-        raw = json.load(f)
+def get_teams_dict():    
+    teams_df = pd.read_csv(team_path)
 
-    return {x['id']: x['short_name'] for x in raw['teams']}
+    return {row['team_id']: row['name'] for _, row in teams_df.iterrows()}
 
 
 def process_file(path, teams_dict):
@@ -76,8 +90,7 @@ def process_file(path, teams_dict):
 
 if __name__ == '__main__':
     sub_dirs = glob(data_dir + '/*/')
-    teams_dict = get_teams_dict_from_raw()
-    print(teams_dict)
+    teams_dict = get_teams_dict()
     output = {path_to_key(directory):
               process_file(os.path.join(directory, file_name), teams_dict)
               for directory in sub_dirs}
