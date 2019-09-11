@@ -77,7 +77,8 @@ def fill_playerscores_from_json(detail_data, season, session):
             fixture = find_fixture(season, gameweek, played_for, opponent, session)
             if not fixture:
                 print(
-                    "  Couldn't find result for {} in gw {}".format(player_name, gameweek)
+                    "  Couldn't find result for {} in gw {}".format(player_name,
+                                                                    gameweek)
                 )
                 continue
             ps = PlayerScore()
@@ -102,6 +103,7 @@ def fill_playerscores_from_json(detail_data, season, session):
             
             player.scores.append(ps)
             session.add(ps)
+
 
 def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     if not gw_end:
@@ -153,8 +155,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                         ps.__setattr__(feat, result[feat])
                     except:
                         pass
-                
-                            
+                                          
                 player.scores.append(ps)
                 session.add(ps)
                 print(
@@ -162,6 +163,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                         result["total_points"], opponent, gameweek
                     )
                 )
+
 
 def make_playerscore_table(session):
     # previous seasons data from json files
