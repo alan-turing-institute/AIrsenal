@@ -332,7 +332,8 @@ def make_new_team(budget, num_iterations, tag,
     best_team = None
 
     for iteration in range(num_iterations):
-        print("Choosing new team: iteration {}".format(iteration))
+        if verbose:
+            print("Choosing new team: iteration {}".format(iteration))
         if update_func_and_args:
             ## call function to update progress bar.
             ## this was passed as a tuple (func, increment, pid)
