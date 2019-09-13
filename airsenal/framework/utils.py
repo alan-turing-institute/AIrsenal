@@ -20,6 +20,7 @@ from .schema import (
     PlayerPrediction,
     Transaction,
     FifaTeamRating,
+    Team,
     engine,
 )
 from sqlalchemy.orm import sessionmaker
@@ -228,15 +229,31 @@ def get_gameweek_by_date(date, dbsession=None):
     return None
 
 
-def get_team_name(team_id):
+def get_team_name(team_id, season=CURRENT_SEASON, dbsession=None):
     """
-    return 3-letter team name given a numerical id
+    return 3-letter team name given a numerical id.
+    These ids are based on alphabetical order of all teams in that season,
+    so can vary from season to season.
     """
-    for k, v in alternative_team_names.items():
-        for vv in v:
-            if str(team_id) == vv:
-                return k
-    return None
+    if not dbsession:
+        dbsession = session
+    team = dbsession.query(Team).filter_by(season=season, team_id=team_id).first()
+    if team:
+        return team.name
+    else:
+        print("Unknown team_id {} for {} season".format(team_id, season))
+        return None
+
+
+def get_teams_for_season(season, dbsession=None):
+    """
+    Query the Team table and get a list of teams for a given
+    season.
+    """
+    if not dbsession:
+        dbsession = session
+    teams = dbsession.query(Team).filter_by(season=season).all()
+    return [t.name for t in teams]
 
 
 def get_player(player_name_or_id, dbsession=None):
@@ -584,13 +601,13 @@ def get_recent_minutes_for_player(player,
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
     minutes = [r.minutes for r in rows[-num_match_to_use:]]
-    
+
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
     if first_gw < 0 or len(minutes) == 0:
         minutes = (minutes +
                    estimate_minutes_from_prev_season(player, season, dbsession))
-        
+
     return minutes
 
 
