@@ -204,7 +204,7 @@ def calc_predicted_points(
     """
 
     message = "Points prediction for player {}".format(player.name)
-    
+
     if not gw_range:
         # by default, go for next three matches
         next_gw = get_next_gameweek(season, session)
@@ -274,7 +274,7 @@ def calc_predicted_points(
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
         message += "\nExpected points: {:.2f}".format(points)
-    
+
     print(message)
     return predictions
 
@@ -324,7 +324,7 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     if (
             "chance_of_playing_next_round" in pdata.keys() \
             and pdata["chance_of_playing_next_round"] is not None
-            and pdata["chance_of_playing_next_round"] <= 0.75
+            and pdata["chance_of_playing_next_round"] <= 50
     ):
         ## check if we have a return date
         return_gameweek = get_return_gameweek_for_player(player_id, session)
