@@ -168,6 +168,15 @@ class FifaTeamRating(Base):
     ovr = Column(Integer, nullable=False)
 
 
+class Team(Base):
+    __tablename__="team"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(3), nullable=False)
+    full_name = Column(String(100), nullable=False)
+    season = Column(String(4), nullable=False)
+    team_id = Column(Integer, nullable=False) # the season-dependent team ID (from alphabetical order)
+
+
 engine = create_engine("sqlite:///{}".format(db_location))
 
 Base.metadata.create_all(engine)

@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+"""
+Functions to help fill the Transaction table, where players are bought and sold,
+hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment variable,
+or a file named FPL_TEAM_ID in airsenal/data/
+"""
 
 import os
-import argparse
 
-from ..framework.schema import Transaction, session_scope
-from ..framework.utils import get_players_for_gameweek, fetcher, \
+from .schema import Transaction, session_scope
+from .utils import get_players_for_gameweek, fetcher, \
     get_past_seasons, get_next_gameweek, CURRENT_SEASON
 
 
@@ -34,7 +37,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEA
         add_transaction(pid, 1, 1, price, season, tag, session)
 
 
-def update_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEASON):
+def update_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEASON, verbose=True):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
     the transfers API endpoint which has the correct buy and sell prices.
@@ -44,25 +47,14 @@ def update_team(session, season=CURRENT_SEASON, tag="AIrsenal"+CURRENT_SEASON):
         gameweek = transfer['event']
         pid_out = transfer['element_out']
         price_out = transfer['element_out_cost']
+        if verbose:
+            print("Adding transaction: gameweek: {} removing player {} for {}"\
+                  .format(gameweek, pid_out, price_out))
         add_transaction(pid_out, gameweek, -1, price_out, season, tag, session)
         pid_in = transfer['element_in']
         price_in = transfer['element_in_cost']
+        if verbose:
+            print("Adding transaction: gameweek: {} adding player {} for {}"\
+                  .format(gameweek, pid_in, price_in))
         add_transaction(pid_in, gameweek, 1, price_in, season, tag, session)
         pass
-
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description="Players bought and sold")
-    parser.add_argument("--player_id", help="player ID", type=int)
-    parser.add_argument("--buy", action="store_true")
-    parser.add_argument("--sell", action="store_true")
-    parser.add_argument("--price", type=int, help="price in 0.1Millions")
-    parser.add_argument("--gameweek", help="next gameweek after transfer", type=int)
-    parser.add_argument("--tag", help="identifying tag", default="AIrsenal"+CURRENT_SEASON)
-    parser.add_argument("--season", help="which season, in format e.g. '1819'",default=CURRENT_SEASON)
-    args = parser.parse_args()
-
-    with session_scope() as session:
-        make_transaction_table(session, args=args)
