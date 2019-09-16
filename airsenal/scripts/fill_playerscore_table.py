@@ -10,7 +10,7 @@ import os
 from sqlalchemy import create_engine, and_, or_
 
 from ..framework.mappings import alternative_player_names
-from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope, PLAYERSCORE_EXTENDED_FEATS
+from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
 from ..framework.utils import get_latest_fixture_tag, get_next_gameweek, get_player, get_team_name, \
     get_past_seasons, CURRENT_SEASON
 from ..framework.data_fetcher import FPLDataFetcher
@@ -93,9 +93,23 @@ def fill_playerscores_from_json(detail_data, season, session):
             ps.player = player
             ps.result = fixture.result
             ps.fixture = fixture
-
+           
             # extended features
-            for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
+            # get features excluding the core ones already populated above
+            extended_feats = [col for col in ps.__table__.columns.keys()
+                              if col not in ["id"
+                                             "player_team",
+                                             "opponent",
+                                             "goals",
+                                             "assists",
+                                             "bonus",
+                                             "points",
+                                             "conceded",
+                                             "minutes",
+                                             "player_id",
+                                             "result_id",
+                                             "fixture_id"]]
+            for feat in extended_feats:
                 try:
                     ps.__setattr__(feat, result[feat])
                 except:
@@ -103,6 +117,7 @@ def fill_playerscores_from_json(detail_data, season, session):
 
             player.scores.append(ps)
             session.add(ps)
+
 
 def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     if not gw_end:
@@ -149,7 +164,21 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 ps.result = fixture.result
 
                 # extended features
-                for feat in PLAYERSCORE_EXTENDED_FEATS.keys():
+                # get features excluding the core ones already populated above
+                extended_feats = [col for col in ps.__table__.columns.keys()
+                                if col not in ["id"
+                                                "player_team",
+                                                "opponent",
+                                                "goals",
+                                                "assists",
+                                                "bonus",
+                                                "points",
+                                                "conceded",
+                                                "minutes",
+                                                "player_id",
+                                                "result_id",
+                                                "fixture_id"]]
+                for feat in extended_feats:
                     try:
                         ps.__setattr__(feat, result[feat])
                     except:

@@ -20,45 +20,6 @@ db_location = "/tmp/data.db"
 if "AIrsenalDB" in os.environ.keys():
     db_location = os.environ["AIrsenalDB"]
 
-PLAYERSCORE_EXTENDED_FEATS = {
-    "attempted_passes": Integer,
-    "big_chances_created": Integer,
-    "big_chances_missed": Integer,
-    "bps": Integer,
-    "clean_sheets": Integer,
-    "clearances_blocks_interceptions": Integer,
-    "completed_passes": Integer,
-    "creativity": Float,
-    "dribbles": Integer,
-    "ea_index": Integer,
-    "errors_leading_to_goal": Integer,
-    "errors_leading_to_goal_attempt": Integer,
-    "fouls": Integer,
-    "ict_index": Float,
-    "influence": Float,
-    "key_passes": Integer,
-    "offside": Integer,
-    "open_play_crosses": Integer,
-    "penalties_conceded": Integer,
-    "penalties_missed": Integer,
-    "penalties_saved": Integer,
-    "recoveries": Integer,
-    "red_cards": Integer,
-    "saves": Integer,
-    "selected": Integer,
-    "tackled": Integer,
-    "tackles": Integer,
-    "target_missed": Integer,
-    "threat": Float,
-    "transfers_balance": Integer,
-    "transfers_in": Integer,
-    "transfers_out": Integer,
-    "value": Integer,
-    "winning_goals": Integer,
-    "yellow_cards": Integer
-}
-
-
 Base = declarative_base()
 
 
@@ -164,12 +125,44 @@ class PlayerScore(Base):
     result_id = Column(Integer, ForeignKey('result.result_id'))
     fixture = relationship("Fixture", uselist=False)
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
-   
-    def __init__(self):
-        # construct attributes for extended features
-        for feat_name, feat_type in PLAYERSCORE_EXTENDED_FEATS.items():
-            self.__setattr__(feat_name,
-                             Column(feat_type, nullable=False))
+
+    # extended features
+    attempted_passes = Column(Integer, nullable=True)
+    big_chances_created = Column(Integer, nullable=True)
+    big_chances_missed = Column(Integer, nullable=True)
+    bps = Column(Integer, nullable=True)
+    clean_sheets = Column(Integer, nullable=True)
+    clearances_blocks_interceptions = Column(Integer, nullable=True)
+    completed_passes = Column(Integer, nullable=True)
+    creativity = Column(Float, nullable=True)
+    dribbles = Column(Integer, nullable=True)
+    ea_index = Column(Integer, nullable=True)
+    errors_leading_to_goal = Column(Integer, nullable=True)
+    errors_leading_to_goal_attempt = Column(Integer, nullable=True)
+    fouls = Column(Integer, nullable=True)
+    ict_index = Column(Float, nullable=True)
+    influence = Column(Float, nullable=True)
+    key_passes = Column(Integer, nullable=True)
+    offside = Column(Integer, nullable=True)
+    open_play_crosses = Column(Integer, nullable=True)
+    own_goals = Column(Integer, nullable=True)
+    penalties_conceded = Column(Integer, nullable=True)
+    penalties_missed = Column(Integer, nullable=True)
+    penalties_saved = Column(Integer, nullable=True)
+    recoveries = Column(Integer, nullable=True)
+    red_cards = Column(Integer, nullable=True)
+    saves = Column(Integer, nullable=True)
+    selected = Column(Integer, nullable=True)
+    tackled = Column(Integer, nullable=True)
+    tackles = Column(Integer, nullable=True)
+    target_missed = Column(Integer, nullable=True)
+    threat = Column(Float, nullable=True)
+    transfers_balance = Column(Integer, nullable=True)
+    transfers_in = Column(Integer, nullable=True)
+    transfers_out = Column(Integer, nullable=True)
+    value = Column(Integer, nullable=True)
+    winning_goals = Column(Integer, nullable=True)
+    yellow_cards = Column(Integer, nullable=True)
 
 
 class PlayerPrediction(Base):

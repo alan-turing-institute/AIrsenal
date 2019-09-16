@@ -3,10 +3,10 @@ import os
 import re
 import json
 import pandas as pd
-from airsenal.framework.schema import PLAYERSCORE_EXTENDED_FEATS
+from airsenal.framework.schema import PlayerScore
 
-season_longname = '2016-17'
-season_shortname = '1617'
+season_longname = '2018-19'
+season_shortname = '1819'
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
@@ -32,13 +32,26 @@ key_dict = {
     'assists': 'assists',
     'goals_conceded': 'conceded',
     'bonus': 'bonus',
-    'own_goals': 'own_goals',
     'minutes': 'minutes',
     'opponent_team': 'opponent'  # id in input, 3 letters in output!!!
 }
 # Additional features (may be used in future)
-additional_features = PLAYERSCORE_EXTENDED_FEATS.keys()
-for feat in additional_features:
+# get features excluding the core ones already defined above
+ps = PlayerScore()
+extended_feats = [col for col in ps.__table__.columns.keys()
+                  if col not in ["id",
+                                 "player_team",
+                                 "opponent",
+                                 "goals",
+                                 "assists",
+                                 "bonus",
+                                 "points",
+                                 "conceded",
+                                 "minutes",
+                                 "player_id",
+                                 "result_id",
+                                 "fixture_id"]]
+for feat in extended_feats:
     key_dict[feat] = feat
 
 
@@ -58,7 +71,7 @@ def path_to_key(path):
     return key
 
 
-def get_teams_dict():    
+def get_teams_dict(): 
     teams_df = pd.read_csv(team_path)
 
     return {row['team_id']: row['name'] for _, row in teams_df.iterrows()}
