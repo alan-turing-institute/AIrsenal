@@ -25,7 +25,7 @@ def find_fixture(season, gameweek, played_for, opponent, session):
     That should then work, apart from double-game-weeks where 'opponent'
     will have more than one match per gameweek.
     """
-    tag = get_latest_fixture_tag(season,session)
+    tag = get_latest_fixture_tag(season, session)
     f = (
         session.query(Fixture)
         .filter_by(tag=tag)
@@ -97,7 +97,7 @@ def fill_playerscores_from_json(detail_data, season, session):
             # extended features
             # get features excluding the core ones already populated above
             extended_feats = [col for col in ps.__table__.columns.keys()
-                              if col not in ["id"
+                              if col not in ["id",
                                              "player_team",
                                              "opponent",
                                              "goals",
@@ -166,7 +166,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 # extended features
                 # get features excluding the core ones already populated above
                 extended_feats = [col for col in ps.__table__.columns.keys()
-                                if col not in ["id"
+                                if col not in ["id",
                                                 "player_team",
                                                 "opponent",
                                                 "goals",
