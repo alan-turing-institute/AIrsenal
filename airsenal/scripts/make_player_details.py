@@ -5,8 +5,8 @@ import json
 import pandas as pd
 from airsenal.framework.schema import PlayerScore
 
-season_longname = '2018-19'
-season_shortname = '1819'
+season_longname = '2016-17'
+season_shortname = '1617'
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
@@ -55,23 +55,7 @@ for feat in extended_feats:
     key_dict[feat] = feat
 
 
-def path_to_key(path):
-    """function to take a sub directory path into a key for output json
-    i.e. player name from directory path
-    """
-    # get directory name from full path
-    dir_name = os.path.basename(os.path.dirname(path))
-
-    # strip everything after final underscore (should be player number)
-    key = re.sub('_[^_]+$', '', dir_name)
-
-    # replace remaining underscores with spaces
-    key = key.replace('_', ' ')
-
-    return key
-
-
-def get_teams_dict(): 
+def get_teams_dict():
     teams_df = pd.read_csv(team_path)
 
     return {row['team_id']: row['name'] for _, row in teams_df.iterrows()}
@@ -81,8 +65,14 @@ def process_file(path, teams_dict):
     """function to load and process one of the files
     """
     # load columns of interest from input file
-    df = pd.read_csv(path, usecols=key_dict.keys())
+    df = pd.read_csv(path)
 
+    # player id
+    key = str(df['element'][0])
+    
+    # extract columns of interest
+    df = df[key_dict.keys()]
+    
     # rename columns to desired output names
     df.rename(columns=key_dict, inplace=True)
     
@@ -91,9 +81,9 @@ def process_file(path, teams_dict):
     
     # want everything in output to be strings
     df = df.applymap(str)
-
+    
     # return json like dictionary
-    return df.to_dict(orient='records')
+    return key, df.to_dict(orient='records')
     
 
 if __name__ == '__main__':
@@ -101,9 +91,12 @@ if __name__ == '__main__':
     
     teams_dict = get_teams_dict()
     
-    output = {path_to_key(directory):
-              process_file(os.path.join(directory, file_name), teams_dict)
-              for directory in sub_dirs}
-
+    output = {}
+    for directory in sub_dirs:
+        print(directory)
+        key, player_dict = process_file(os.path.join(directory, file_name),
+                                        teams_dict)
+        output[key] = player_dict
+    
     with open(save_name, 'w') as f:
         json.dump(output, f)
