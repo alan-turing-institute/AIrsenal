@@ -77,12 +77,12 @@ def fill_playerscores_from_json(detail_data, season, session):
             gameweek = int(fixture_data["gameweek"])
             played_for = player.team(season, gameweek)
             if not played_for:
-                print("Cant find team for {} {} in gw {} season {}".format(
-                            player.player_id,
-                            player.name,
-                            gameweek,
-                            season)
-                      )
+                # print("Cant find team for {} {} in gw {} season {}".format(
+                #            player.player_id,
+                #            player.name,
+                #            gameweek,
+                #            season)
+                #      )
                 continue
             opponent = fixture_data["opponent"]
             fixture = find_fixture(season, gameweek, played_for, opponent, session)

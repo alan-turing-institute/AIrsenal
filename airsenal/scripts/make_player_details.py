@@ -5,8 +5,8 @@ import json
 import pandas as pd
 from airsenal.framework.schema import PlayerScore
 
-season_longname = '2018-19'
-season_shortname = '1819'
+season_longname = '2016-17'
+season_shortname = '1617'
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
@@ -55,6 +55,20 @@ key_dict = {
 }
 
 
+def path_to_name(path):
+    """function to take a sub directory path into a key for output json
+    i.e. player name from directory path
+    """
+    # get directory name from full path
+    dir_name = os.path.basename(os.path.dirname(path))
+    
+    # replace _ with spaces, plus exclude anything that's numeric
+    # (some seasons have player id in directory name, we just want name)
+    name = " ".join([x for x in dir_name.split("_") if not x.isdigit()])
+
+    return name
+
+
 def get_teams_dict():
     teams_df = pd.read_csv(team_path)
 
@@ -67,23 +81,20 @@ def process_file(path, teams_dict):
     # load columns of interest from input file
     df = pd.read_csv(path)
 
-    # player id
-    key = str(df['element'][0])
-    
     # extract columns of interest
     df = df[key_dict.keys()]
     
     # rename columns to desired output names
     df.rename(columns=key_dict, inplace=True)
     
-    # renane opponent ids with short names
+    # rename opponent ids with short names
     df['opponent'].replace(teams_dict, inplace=True)
     
     # want everything in output to be strings
     df = df.applymap(str)
     
     # return json like dictionary
-    return key, df.to_dict(orient='records')
+    return df.to_dict(orient='records')
     
 
 if __name__ == '__main__':
@@ -93,10 +104,12 @@ if __name__ == '__main__':
     
     output = {}
     for directory in sub_dirs:
-        print(directory)
-        key, player_dict = process_file(os.path.join(directory, file_name),
-                                        teams_dict)
-        output[key] = player_dict
+        name = path_to_name(directory)
+        print('Doing', name)
+        player_dict = process_file(os.path.join(directory, file_name),
+                                   teams_dict)
+        output[name] = player_dict
     
+    print('Saving JSON')
     with open(save_name, 'w') as f:
         json.dump(output, f)
