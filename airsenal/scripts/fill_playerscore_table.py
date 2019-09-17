@@ -67,30 +67,22 @@ def fill_playerscores_from_json(detail_data, season, session):
         if not player:
             print("Couldn't find player {}".format(player_name))
             continue
-        
-        print("Doing {} {} for {} season".format(player.player_id,
-                                                 player.name,
-                                                 season))
+
+        print("Doing {} for {} season".format(player.name,
+                                              season))
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
             gameweek = int(fixture_data["gameweek"])
             played_for = player.team(season, gameweek)
             if not played_for:
-                # print("Cant find team for {} {} in gw {} season {}".format(
-                #            player.player_id,
-                #            player.name,
-                #            gameweek,
-                #            season)
-                #      )
                 continue
             opponent = fixture_data["opponent"]
             fixture = find_fixture(season, gameweek, played_for, opponent, session)
             if not fixture:
                 print(
-                    "  Couldn't find result for {} {} in gw {}".format(player.player_id,
-                                                                       player.name,
-                                                                       gameweek)
+                    "  Couldn't find result for {} in gw {}".format(player.name,
+                                                                    gameweek)
                 )
                 continue
             ps = PlayerScore()
@@ -123,7 +115,7 @@ def fill_playerscores_from_json(detail_data, season, session):
                                              "fixture_id"]]
             for feat in extended_feats:
                 try:
-                    ps.__setattr__(feat, result[feat])
+                    ps.__setattr__(feat, fixture_data[feat])
                 except:
                     pass
 
