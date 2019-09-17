@@ -5,8 +5,8 @@ import json
 import pandas as pd
 from airsenal.framework.schema import PlayerScore
 
-season_longname = '2016-17'
-season_shortname = '1617'
+season_longname = '2018-19'
+season_shortname = '1819'
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
@@ -33,26 +33,26 @@ key_dict = {
     'goals_conceded': 'conceded',
     'bonus': 'bonus',
     'minutes': 'minutes',
-    'opponent_team': 'opponent'  # id in input, 3 letters in output!!!
+    'opponent_team': 'opponent',  # id in input, 3 letters in output!!!
+    # extended features
+    'clean_sheets': 'clean_sheets',
+    'own_goals': 'own_goals',
+    'penalties_saved': 'penalties_saved',
+    'penalties_missed': 'penalties_missed',
+    'yellow_cards': 'yellow_cards',
+    'red_cards': 'red_cards',
+    'saves': 'saves',
+    'bps': 'bps',
+    'influence': 'influence',
+    'creativity': 'creativity',
+    'threat': 'threat',
+    'ict_index': 'ict_index',
+    'value': 'value',
+    'transfers_balance': 'transfers_balance',
+    'selected': 'selected',
+    'transfers_in': 'transfers_in',
+    'transfers_out': 'transfers_out'
 }
-# Additional features (may be used in future)
-# get features excluding the core ones already defined above
-ps = PlayerScore()
-extended_feats = [col for col in ps.__table__.columns.keys()
-                  if col not in ["id",
-                                 "player_team",
-                                 "opponent",
-                                 "goals",
-                                 "assists",
-                                 "bonus",
-                                 "points",
-                                 "conceded",
-                                 "minutes",
-                                 "player_id",
-                                 "result_id",
-                                 "fixture_id"]]
-for feat in extended_feats:
-    key_dict[feat] = feat
 
 
 def get_teams_dict():
