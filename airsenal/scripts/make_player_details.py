@@ -4,27 +4,24 @@ import re
 import json
 import pandas as pd
 from airsenal.framework.schema import PlayerScore
-
-season_longname = '2016-17'
-season_shortname = '1617'
+from airsenal.framework.utils import get_past_seasons
 
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
-data_dir = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/players'\
-           .format(season_longname)
-
+DATA_DIR = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/players'
+           
 # file of interest present in every sub_directory in data_dir
-file_name = 'gw.csv'
+FILE_NAME = 'gw.csv'
 
 # teams path - to get mapping of ids to team names
-team_path = '../data/teams_{}.csv'.format(season_shortname)
+TEAM_PATH = '../data/teams_{}.csv'
 
 # where to save output
-save_name = '../data/player_details_{}.json'.format(season_shortname)
+SAVE_NAME = '../data/player_details_{}.json'
 
 # dictionary of key in input file to key in output file
 
-# Core features (used in model)
+# Features to extract {name in files: name in database}
 key_dict = {
     'round': 'gameweek',
     'total_points': 'points',
@@ -69,16 +66,23 @@ def path_to_name(path):
     return name
 
 
-def get_teams_dict():
-    teams_df = pd.read_csv(team_path)
+def get_long_season_name(short_name):
+    """convert short season name of format 1718 to long name like 2017-18.
+    Past generations: sorry this doesn't work for 1999 and earlier!
+    Future generations: sorry this doesn't work for the 2100s onwards!
+    """
+    return '20' + short_name[:2] + '-' + short_name[2:]
 
+
+def get_teams_dict(season):
+    teams_df = pd.read_csv(TEAM_PATH.format(season))
     return {row['team_id']: row['name'] for _, row in teams_df.iterrows()}
 
 
 def process_file(path, teams_dict):
-    """function to load and process one of the files
+    """function to load and process one of the player score files
     """
-    # load columns of interest from input file
+    # load input file
     df = pd.read_csv(path)
 
     # extract columns of interest
@@ -95,21 +99,33 @@ def process_file(path, teams_dict):
     
     # return json like dictionary
     return df.to_dict(orient='records')
-    
 
+
+def make_player_details(seasons=get_past_seasons(3)):
+    """generate player details json files"""
+    if isinstance(seasons, str):
+        seasons = [seasons]
+        
+    for season in seasons:
+        season_longname = get_long_season_name(season)
+        print('SEASON', season_longname)
+        
+        sub_dirs = glob(DATA_DIR.format(season_longname) + '/*/')
+        
+        teams_dict = get_teams_dict(season)
+        
+        output = {}
+        for directory in sub_dirs:
+            name = path_to_name(directory)
+            print('Doing', name)
+            player_dict = process_file(os.path.join(directory, FILE_NAME),
+                                       teams_dict)
+            output[name] = player_dict
+        
+        print('Saving JSON')
+        with open(SAVE_NAME.format(season), 'w') as f:
+            json.dump(output, f)
+
+    
 if __name__ == '__main__':
-    sub_dirs = glob(data_dir + '/*/')
-    
-    teams_dict = get_teams_dict()
-    
-    output = {}
-    for directory in sub_dirs:
-        name = path_to_name(directory)
-        print('Doing', name)
-        player_dict = process_file(os.path.join(directory, file_name),
-                                   teams_dict)
-        output[name] = player_dict
-    
-    print('Saving JSON')
-    with open(save_name, 'w') as f:
-        json.dump(output, f)
+    make_player_details()
