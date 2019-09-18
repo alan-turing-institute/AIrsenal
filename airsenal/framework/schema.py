@@ -1,16 +1,7 @@
 """
-Interface to the SQLite db.
+Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-## location of sqlite file - default is /tmp/data.db, unless
-## overridden by an env var
-
-db_location = "/tmp/data.db"
-import os
-
-if "AIrsenalDB" in os.environ.keys():
-    db_location = os.environ["AIrsenalDB"]
-
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,6 +11,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, desc
 
 from contextlib import contextmanager
+
+from .db_config import DB_CONNECTION_STRING
 
 Base = declarative_base()
 
@@ -177,7 +170,13 @@ class Team(Base):
     team_id = Column(Integer, nullable=False) # the season-dependent team ID (from alphabetical order)
 
 
-engine = create_engine("sqlite:///{}".format(db_location))
+class SessionTeam(Base):
+    __tablename__="session"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), nullable=False)
+    player_id = Column(Integer, nullable=False)
+
+engine = create_engine(DB_CONNECTION_STRING)
 
 Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
