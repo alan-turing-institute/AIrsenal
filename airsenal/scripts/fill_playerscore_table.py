@@ -25,7 +25,7 @@ def find_fixture(season, gameweek, played_for, opponent, session):
     That should then work, apart from double-game-weeks where 'opponent'
     will have more than one match per gameweek.
     """
-    tag = get_latest_fixture_tag(season,session)
+    tag = get_latest_fixture_tag(season, session)
     f = (
         session.query(Fixture)
         .filter_by(tag=tag)
@@ -65,19 +65,24 @@ def fill_playerscores_from_json(detail_data, season, session):
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=session)
         if not player:
+            print("Couldn't find player {}".format(player_name))
             continue
 
-        print("Doing {} for {} season".format(player_name, season))
+        print("Doing {} for {} season".format(player.name,
+                                              season))
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
             gameweek = int(fixture_data["gameweek"])
             played_for = player.team(season, gameweek)
+            if not played_for:
+                continue
             opponent = fixture_data["opponent"]
             fixture = find_fixture(season, gameweek, played_for, opponent, session)
             if not fixture:
                 print(
-                    "  Couldn't find result for {} in gw {}".format(player_name, gameweek)
+                    "  Couldn't find result for {} in gw {}".format(player.name,
+                                                                    gameweek)
                 )
                 continue
             ps = PlayerScore()
@@ -92,12 +97,35 @@ def fill_playerscores_from_json(detail_data, season, session):
             ps.player = player
             ps.result = fixture.result
             ps.fixture = fixture
+           
+            # extended features
+            # get features excluding the core ones already populated above
+            extended_feats = [col for col in ps.__table__.columns.keys()
+                              if col not in ["id",
+                                             "player_team",
+                                             "opponent",
+                                             "goals",
+                                             "assists",
+                                             "bonus",
+                                             "points",
+                                             "conceded",
+                                             "minutes",
+                                             "player_id",
+                                             "result_id",
+                                             "fixture_id"]]
+            for feat in extended_feats:
+                try:
+                    ps.__setattr__(feat, fixture_data[feat])
+                except:
+                    pass
+
             player.scores.append(ps)
-         #   session.add(ps)
+            session.add(ps)
+
 
 def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     if not gw_end:
-        gw_end = get_next_gameweek(season,session)
+        gw_end = get_next_gameweek(season, session)
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():
@@ -138,6 +166,28 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 ps.player = player
                 ps.fixture = fixture
                 ps.result = fixture.result
+
+                # extended features
+                # get features excluding the core ones already populated above
+                extended_feats = [col for col in ps.__table__.columns.keys()
+                                  if col not in ["id",
+                                                 "player_team",
+                                                 "opponent",
+                                                 "goals",
+                                                 "assists",
+                                                 "bonus",
+                                                 "points",
+                                                 "conceded",
+                                                 "minutes",
+                                                 "player_id",
+                                                 "result_id",
+                                                 "fixture_id"]]
+                for feat in extended_feats:
+                    try:
+                        ps.__setattr__(feat, result[feat])
+                    except:
+                        pass
+
                 player.scores.append(ps)
                 session.add(ps)
                 print(
@@ -145,6 +195,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                         result["total_points"], opponent, gameweek
                     )
                 )
+
 
 def make_playerscore_table(session):
     # previous seasons data from json files

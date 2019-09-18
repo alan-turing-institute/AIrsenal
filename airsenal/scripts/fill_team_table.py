@@ -13,7 +13,7 @@ from sqlalchemy import desc
 from ..framework.schema import Team
 from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.utils import CURRENT_SEASON, get_past_seasons
-
+from ..framework.schema import session_scope
 
 
 def fill_team_table_from_file(filename, session):
@@ -29,6 +29,7 @@ def fill_team_table_from_file(filename, session):
             continue
         t = Team()
         t.name, t.full_name, t.season, t.team_id = line.strip().split(",")
+        print(t.name, t.full_name, t.season, t.team_id)
         session.add(t)
     session.commit()
 
@@ -43,7 +44,7 @@ def make_team_table(session):
                                               "data",
                                               "teams_{}.csv"\
                                               .format(season)))
-        fill_team_table_from_file(filename,session)
+        fill_team_table_from_file(filename, session)
 
 
 

@@ -2,15 +2,7 @@
 Interface to the SQLite db.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-## location of sqlite file - default is /tmp/data.db, unless
-## overridden by an env var
-
-db_location = "/tmp/data.db"
 import os
-
-if "AIrsenalDB" in os.environ.keys():
-    db_location = os.environ["AIrsenalDB"]
-
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,6 +12,13 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, desc
 
 from contextlib import contextmanager
+
+# location of sqlite file - default is /tmp/data.db, unless
+# overridden by an env var
+db_location = "/tmp/data.db"
+
+if "AIrsenalDB" in os.environ.keys():
+    db_location = os.environ["AIrsenalDB"]
 
 Base = declarative_base()
 
@@ -93,6 +92,7 @@ class Result(Base):
     player = relationship("Player", back_populates="results")
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
+
 class Fixture(Base):
     __tablename__ = "fixture"
     fixture_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -109,6 +109,7 @@ class Fixture(Base):
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
+    
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_team = Column(String(100), nullable=False)
     opponent = Column(String(100), nullable=False)
@@ -124,6 +125,25 @@ class PlayerScore(Base):
     result_id = Column(Integer, ForeignKey('result.result_id'))
     fixture = relationship("Fixture", uselist=False)
     fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+
+    # extended features
+    clean_sheets = Column(Integer, nullable=True)
+    own_goals = Column(Integer, nullable=True)
+    penalties_saved = Column(Integer, nullable=True)
+    penalties_missed = Column(Integer, nullable=True)
+    yellow_cards = Column(Integer, nullable=True)
+    red_cards = Column(Integer, nullable=True)
+    saves = Column(Integer, nullable=True)
+    bps = Column(Integer, nullable=True)
+    influence = Column(Float, nullable=True)
+    creativity = Column(Float, nullable=True)
+    threat = Column(Float, nullable=True)
+    ict_index = Column(Float, nullable=True)
+    value = Column(Integer, nullable=True)
+    transfers_balance = Column(Integer, nullable=True)
+    selected = Column(Integer, nullable=True)
+    transfers_in = Column(Integer, nullable=True)
+    transfers_out = Column(Integer, nullable=True)
 
 
 class PlayerPrediction(Base):
