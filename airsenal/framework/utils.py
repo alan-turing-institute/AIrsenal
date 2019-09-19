@@ -52,6 +52,7 @@ CURRENT_SEASON = get_current_season()
 # TODO make this a database table so we can look at past seasons
 CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
 
+
 def get_previous_season(season):
     """
     Convert string e.g. '1819' into one for previous season, i.e. '1718'
