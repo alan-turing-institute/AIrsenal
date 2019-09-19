@@ -85,17 +85,17 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                     + sum([score.own_goals for score in home_scores])
 
                 assert home_goals == result[0].home_score, \
-                    """{} {} {} - {} {}:
-                    Home team player scores sum to {} but {} goals in result"""\
-                    .format(season,
+                    """{} GW{} {} {} - {} {}:
+                Player scores sum to {} but {} goals in result for home team"""\
+                    .format(season, fixture.gameweek,
                             fixture.home_team, result[0].home_score,
                             result[0].away_score, fixture.away_team,
                             home_goals, result[0].home_score)
                          
                 assert away_goals == result[0].away_score, \
-                    """{}: {} {}-{} {}:
-                    Away team player scores sum to {} but {} goals in result"""\
-                    .format(season,
+                    """{}: GW{} {} {}-{} {}:
+                Player scores sum to {} but {} goals in result for away team"""\
+                    .format(season, fixture.gameweek,
                             fixture.home_team, result[0].home_score,
                             result[0].away_score, fixture.away_team,
                             away_goals, result[0].away_score)
