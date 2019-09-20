@@ -414,6 +414,13 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
     return fixture_ids
 
 
+def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
+    fixtures = dbsession.query(Fixture)\
+                        .filter_by(season=season)\
+                        .all()
+    return fixtures
+
+
 def get_players_for_gameweek(gameweek):
     """
     Use FPL API to get the players for a given gameweek.
