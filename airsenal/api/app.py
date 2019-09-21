@@ -16,24 +16,22 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.framework.utils import CURRENT_SEASON, list_players, get_last_finished_gameweek, fetcher
-#from airsenal.framework.data_fetcher import
+from airsenal.framework.api_utils import *
 from airsenal.framework.schema import SessionTeam, engine
 
 from exceptions import ApiException
 
-dbsession = scoped_session(sessionmaker(bind=engine))
 
-
-
-
-def create_response(orig_response):
+def get_session_id():
     """
-    Add headers to the response
+    Get the ID from the flask_session Session instance if
+    it exists, otherwise just get a default string, which
+    will enable us to test some functionality just via python requests.
     """
-    response = jsonify(orig_response)
-    response.headers.add('Access-Control-Allow-Headers',
-                         "Origin, X-Requested-With, Content-Type, Accept, x-auth")
-    return response
+    if "key" in session.keys():
+        return session["key"]
+    else:
+        return "DEFAULT_SESSION_ID"
 
 
 ## Use a flask blueprint rather than creating the app directly
@@ -57,11 +55,8 @@ def get_player_list(team, pos):
     """
     return a list of all players in that team and/or position
     """
-    return create_response(["{} ({})".format(p.name,
-                                     p.team(CURRENT_SEASON)) \
-                    for p in list_players(position=pos,
-                                          team=team)]
-    )
+    return create_response(list_players_teams_prices(position=pos,
+                                                     team=team))
 
 
 @blueprint.route("/new")
@@ -73,14 +68,16 @@ def set_session_key():
 
 @blueprint.route("/team/new")
 def reset_team():
-    dbsession.query(SessionTeam).filter_by(session_id = session['key']).delete()
+    dbsession.query(SessionTeam).filter_by(session_id=get_session_id()).delete()
+    sb = SessionBudget(session_id=get_session_id(), budget=1000)
+    dbsession.add(sb)
     dbsession.commit()
     return create_response("OK")
 
 
 @blueprint.route("/team/add/<player_id>")
 def add_player(player_id):
-    st = SessionTeam(session_id=session['key'],player_id=player_id)
+    st = SessionTeam(session_id=get_session_id(), player_id=player_id)
     dbsession.add(st)
     dbsession.commit()
     return create_response("OK")
@@ -88,7 +85,8 @@ def add_player(player_id):
 
 @blueprint.route("/team/remove/<player_id>")
 def remove_player(player_id):
-    st = dbsession.query(SessionTeam).filter_by(session_id=session['key'],player_id=player_id).delete()
+    st = dbsession.query(SessionTeam).filter_by(session_id=get_session_id(),
+                                                player_id=player_id).delete()
     dbsession.commit()
     return create_response("OK")
 
@@ -106,7 +104,23 @@ def fill_team_from_team_id(team_id):
     player_ids = [p['element'] for p in players]
     for pid in player_ids:
         add_player(pid)
+    team_history = fetcher.get_fpl_team_history_data()['current']
+    index = get_last_finished_gameweek() - 1 # as gameweek starts counting from 1 but list index starts at 0
+    budget = team_history[index]['value']
+    set_session_budget(budget)
     return create_response(player_ids)
+
+
+@blueprint.route("/budget", methods=["GET","POST"])
+def session_budget():
+
+    if request.method == 'POST':
+        data = json.loads(request.data.decode("utf-8"))
+        budget = data["budget"]
+        set_session_budget(session['key'], budget)
+        return create_response("OK")
+    else:
+        return create_response(get_session_budget(session['key']))
 
 
 ###########################################

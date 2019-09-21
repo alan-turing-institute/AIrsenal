@@ -39,7 +39,9 @@ class Player(Base):
                and attr.gw_valid_from <= gameweek \
                and attr.gw_valid_from > latest_valid_gw:
                 team = attr.team
+                latest_valid_gw = attr.gw_valid_from
         return team
+
 
     def current_price(self, season, gameweek=1):
         """
@@ -52,7 +54,9 @@ class Player(Base):
                and attr.gw_valid_from <= gameweek \
                and attr.gw_valid_from > latest_valid_gw:
                 current_price = attr.current_price
+                latest_valid_gw = attr.gw_valid_from
         return current_price
+
 
     def position(self, season):
         """
@@ -171,10 +175,18 @@ class Team(Base):
 
 
 class SessionTeam(Base):
-    __tablename__="session"
+    __tablename__="sessionteam"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)
     player_id = Column(Integer, nullable=False)
+
+
+class SessionBudget(Base):
+    __tablename__="sessionbudget"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), nullable=False)
+    budget = Column(Integer, nullable=False)
+
 
 engine = create_engine(DB_CONNECTION_STRING)
 
