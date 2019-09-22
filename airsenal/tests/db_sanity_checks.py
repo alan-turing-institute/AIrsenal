@@ -210,11 +210,15 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                             away_goals, result.away_score)
     print("OK!")
 
-                   
+
+def run_all_checks(seasons=CHECK_SEASONS):
+    season_num_teams(seasons)
+    season_num_new_teams(seasons)
+    season_num_fixtures(seasons)
+    fixture_player_teams(seasons)
+    fixture_num_players(seasons)
+    fixture_num_goals(seasons)
+
+
 if __name__ == '__main__':
-    season_num_teams()
-    season_num_new_teams()
-    season_num_fixtures()
-    fixture_player_teams()
-    fixture_num_players()
-    fixture_num_goals()
+    run_all_checks()
