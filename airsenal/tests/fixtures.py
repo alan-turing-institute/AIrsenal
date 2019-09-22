@@ -9,6 +9,7 @@ from ..framework.schema import *
 from ..framework.mappings import *
 from .resources import dummy_players
 
+API_SESSION_ID = "TESTSESSION"
 
 testengine = create_engine("sqlite:////tmp/test.db")
 
@@ -90,3 +91,4 @@ def fill_players():
             player = ts.query(Player).filter_by(player_id=i).first()
             pa.player = player
             ts.add(pa)
+        ts.commit()

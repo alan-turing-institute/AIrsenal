@@ -2,6 +2,8 @@
 
 """
 API for calling airsenal functions.
+HTTP requests to the endpoints defined here will give rise
+to calls to functions in api_utils.py
 """
 
 import os
@@ -47,7 +49,7 @@ def handle_exception(error):
 
 @blueprint.teardown_request
 def remove_session(ex=None):
-    dbsession.remove()
+    remove_db_session()
 
 
 @blueprint.route("/players/<team>/<pos>", methods=["GET"])
@@ -61,6 +63,9 @@ def get_player_list(team, pos):
 
 @blueprint.route("/new")
 def set_session_key():
+    """
+    Create a new and unique session ID
+    """
     key = str(uuid4())
     session['key'] = key
     return create_response(key)
@@ -68,59 +73,47 @@ def set_session_key():
 
 @blueprint.route("/team/new")
 def reset_team():
-    dbsession.query(SessionTeam).filter_by(session_id=get_session_id()).delete()
-    sb = SessionBudget(session_id=get_session_id(), budget=1000)
-    dbsession.add(sb)
-    dbsession.commit()
+    """
+    Remove all players from the DB table with this session_id and
+    reset the budget to 100M
+    """
+    reset_session_team(get_session_id())
     return create_response("OK")
 
 
 @blueprint.route("/team/add/<player_id>")
 def add_player(player_id):
-    st = SessionTeam(session_id=get_session_id(), player_id=player_id)
-    dbsession.add(st)
-    dbsession.commit()
-    return create_response("OK")
+    added_ok = add_session_player(player_id, session_id=get_session_id())
+    return create_response(added_ok)
 
 
 @blueprint.route("/team/remove/<player_id>")
 def remove_player(player_id):
-    st = dbsession.query(SessionTeam).filter_by(session_id=get_session_id(),
-                                                player_id=player_id).delete()
-    dbsession.commit()
-    return create_response("OK")
+    removed_ok = remove_seession_player(player_id, session_id=get_session_id())
+    return create_response(removed_ok)
 
 
 @blueprint.route("/team/list",methods=["GET"])
 def list_session_players():
-    players = dbsession.query(SessionTeam).filter_by(session_id=session['key']).all()
-    player_list = [p.player_id for p in players]
+    player_list = get_session_players(session_id=get_session_id())
     return create_response(player_list)
 
 
 @blueprint.route("/team/fill/<team_id>")
 def fill_team_from_team_id(team_id):
-    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)
-    player_ids = [p['element'] for p in players]
-    for pid in player_ids:
-        add_player(pid)
-    team_history = fetcher.get_fpl_team_history_data()['current']
-    index = get_last_finished_gameweek() - 1 # as gameweek starts counting from 1 but list index starts at 0
-    budget = team_history[index]['value']
-    set_session_budget(budget)
+    filled_ok = fill_session_team(team_id=team_id,session_id=get_session_id())
     return create_response(player_ids)
 
 
 @blueprint.route("/budget", methods=["GET","POST"])
 def session_budget():
-
     if request.method == 'POST':
         data = json.loads(request.data.decode("utf-8"))
         budget = data["budget"]
-        set_session_budget(session['key'], budget)
+        set_session_budget(budget, get_session_id())
         return create_response("OK")
     else:
-        return create_response(get_session_budget(session['key']))
+        return create_response(get_session_budget(get_session_id()))
 
 
 ###########################################
