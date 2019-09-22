@@ -415,10 +415,27 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
 
 
 def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
+    """Return all fixtures for a season."""
     fixtures = dbsession.query(Fixture)\
                         .filter_by(season=season)\
                         .all()
     return fixtures
+
+
+def get_result_for_fixture(fixture, dbsession=session):
+    """Get result for a fixture."""
+    result = session.query(Result)\
+                    .filter_by(fixture=fixture)\
+                    .all()
+    return result
+
+
+def get_player_scores_for_fixture(fixture, dbsession=session):
+    """Get player scores for a fixture."""
+    player_scores = session.query(PlayerScore)\
+                           .filter_by(fixture=fixture)\
+                           .all()
+    return player_scores
 
 
 def get_players_for_gameweek(gameweek):
