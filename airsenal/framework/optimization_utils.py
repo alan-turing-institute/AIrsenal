@@ -93,7 +93,7 @@ def get_starting_team():
     """
     t = Team()
     transactions = session.query(Transaction)\
-                          .order_by(Transaction.gameweek, Transaction.id)\
+                          .order_by(Transaction.id)\
                           .all()
     for trans in transactions:
         if trans.bought_or_sold == -1:
