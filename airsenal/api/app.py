@@ -89,7 +89,7 @@ def add_player(player_id):
 
 @blueprint.route("/team/remove/<player_id>")
 def remove_player(player_id):
-    removed_ok = remove_seession_player(player_id, session_id=get_session_id())
+    removed_ok = remove_session_player(player_id, session_id=get_session_id())
     return create_response(removed_ok)
 
 
@@ -98,10 +98,21 @@ def list_session_players():
     player_list = get_session_players(session_id=get_session_id())
     return create_response(player_list)
 
+@blueprint.route("/team/pred",methods=["GET"])
+def list_session_predictions():
+    pred_dict = get_session_predictions(session_id=get_session_id())
+    return create_response(pred_dict)
+
+
+@blueprint.route("/team/validate",methods=["GET"])
+def validate_session_players():
+    valid = validate_session_squad(session_id=get_session_id())
+    return create_response(valid)
+
 
 @blueprint.route("/team/fill/<team_id>")
 def fill_team_from_team_id(team_id):
-    filled_ok = fill_session_team(team_id=team_id,session_id=get_session_id())
+    player_ids = fill_session_team(team_id=team_id,session_id=get_session_id())
     return create_response(player_ids)
 
 

@@ -8,7 +8,17 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from flask import jsonify
 
-from airsenal.framework.utils import CURRENT_SEASON, list_players, get_last_finished_gameweek, fetcher
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    fetcher,
+    list_players,
+    get_last_finished_gameweek,
+    get_latest_prediction_tag,
+    get_next_gameweek,
+    get_predicted_points_for_player.
+    get_next_fixture_for_player
+)
+
 from airsenal.framework.team import Team
 from airsenal.framework.schema import SessionTeam, SessionBudget, engine
 
@@ -40,6 +50,7 @@ def reset_session_team(session_id, dbsession=DBSESSION):
     dbsession.commit()
     # now remove the budget, and make a new one
     dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
+    dbsession.commit()
     sb = SessionBudget(session_id=session_id, budget=1000)
     dbsession.add(sb)
     dbsession.commit()
@@ -64,6 +75,7 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     Remove row from SessionTeam table.
     """
     pids = get_session_players(session_id, dbsession)
+    player_id = int(player_id)
     if player_id not in pids: # player not there
         return False
     st = dbsession.query(SessionTeam).filter_by(session_id=session_id,
@@ -93,7 +105,8 @@ def get_session_budget(session_id, dbsession=DBSESSION):
 
     sb = dbsession.query(SessionBudget).filter_by(session_id=session_id).all()
     if len(sb) !=1:
-        raise RuntimeError("More than one SessionBudget for session key {}".format(session_id))
+        raise RuntimeError("{}  SessionBudgets for session key {}"\
+                           .format(len(sb),session_id))
     return sb[0].budget
 
 
@@ -141,13 +154,57 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
     return True
 
 
-def fill_session_team(team_id, session_id):
+def fill_session_team(team_id, session_id, dbsession=DBSESSION):
+    """
+    Use the FPL API to get list of players in an FPL squad with id=team_id,
+    then fill the session team with these players.
+    """
+    # first reset the team
+    reset_session_team(session_id, dbsession)
+    # now query the API
     players = fetcher.get_fpl_team_data(get_last_finished_gameweek(),
                                         team_id)
     player_ids = [p['element'] for p in players]
     for pid in player_ids:
-        add_player(pid)
+        add_session_player(pid, session_id, dbsession)
     team_history = fetcher.get_fpl_team_history_data()['current']
     index = get_last_finished_gameweek() - 1 # as gameweek starts counting from 1 but list index starts at 0
     budget = team_history[index]['value']
     set_session_budget(budget, session_id)
+    return player_ids
+
+
+def get_session_predictions(session_id, dbsession=DBSESSION):
+    """
+    Query the fixture and predictedscore table for players in our session squad
+    """
+    players = get_session_players(session_id, dbsession)
+    pred_tag = get_latest_prediction_tag()
+    gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+    pred_scores = {}
+    for pid in players:
+
+        pred_scores[pid] = {
+            "predicted_score": get_predicted_points_for_player(pid,
+                                                               pred_tag,
+                                                               CURRENT_SEASON,
+                                                               dbsession)[gw],
+            "fixture": get_next_fixture_for_player(pid,CURRENT_SEASON,dbsession)
+            }
+    return pred_scores
+
+
+def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
+    """
+    Use our predicted playerscores to suggest the best transfers.
+    """
+    if not validate_session_squad(session_id, dbsession):
+        raise RuntimeError("Cannot suggest transfer without complete squad")
+    budget = get_session_budget(session_id, dbsession)
+    players = get_session_players(session_id, dbsession)
+    t = Team(budget)
+    for p in players:
+        added_ok = t.add_player(p)
+        if not added_ok:
+            raise RuntimeError("Cannot add player {}".format(p))
+    pred_tag = get_latest_prediction_tag()

@@ -408,6 +408,33 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
     return fixture_ids
 
 
+def get_next_fixture_for_player(player, season=CURRENT_SEASON, dbsession=None):
+    """
+    Get a players next fixture as a string, for easy displaying
+    """
+    if not dbsession:
+        dbsession=session
+    # given a player name or id, convert to player object
+    if isinstance(player, str) or isinstance(player, int):
+        player = get_player(player)
+    team = player.team(season)
+    fixtures_for_player = get_fixtures_for_player(player,
+                                                  season,
+                                                  [get_next_gameweek()],
+                                                  dbsession)
+    output_string = ""
+    for fid in fixtures_for_player:
+        is_home = False
+        fixture = dbsession.query(Fixture).filter_by(fixture_id=fid).first()
+        if fixture.home_team == team:
+            is_home = True
+            output_string += fixture.away_team + " (h)"
+        else:
+            output_string += fixture.home_team + " (a)"
+        output_string += ", "
+    return output_string[:-2]
+
+
 def get_players_for_gameweek(gameweek):
     """
     Use FPL API to get the players for a given gameweek.
