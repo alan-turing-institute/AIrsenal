@@ -15,7 +15,7 @@ from airsenal.framework.utils import (
     get_last_finished_gameweek,
     get_latest_prediction_tag,
     get_next_gameweek,
-    get_predicted_points_for_player.
+    get_predicted_points_for_player,
     get_next_fixture_for_player
 )
 
