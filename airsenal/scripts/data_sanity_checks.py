@@ -262,6 +262,118 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
+def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
+    """Check number of assists is less than or equal to number of goals
+    for home and away team in each fixture.
+    Less than or equal to as some goals do not result in an assist being
+    awarded.
+    
+    Keyword Arguments:
+        seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
+        session {SQLAlchemy session} -- DB session (default:
+        airsenal.framework.schema.session)
+    """
+    print("Checking no. assists less than or equal to no. goals...\n")
+    n_error = 0
+    
+    for season in seasons:
+        fixtures = get_fixtures_for_season(season=season)
+                        
+        for fixture in fixtures:
+            result = get_result_for_fixture(fixture)
+
+            if result:
+                result = result[0]
+                home_scores = session.query(PlayerScore)\
+                                     .filter_by(fixture=fixture,
+                                                player_team=fixture.home_team)\
+                                     .all()
+ 
+                away_scores = session.query(PlayerScore)\
+                                     .filter_by(fixture=fixture,
+                                                player_team=fixture.away_team)\
+                                     .all()
+                
+                home_assists = sum([score.assists for score in home_scores])
+                away_assists = sum([score.assists for score in away_scores])
+
+                if home_assists > result.home_score:
+                    n_error += 1
+                    print(
+                     "{}: Player assists sum to {} but {} goals in result for home team"
+                     .format(fixture_string(fixture, result),
+                             home_assists, result.home_score)
+                    )
+                       
+                if away_assists > result.away_score:
+                    n_error += 1
+                    print(
+                     "{}: Player assists sum to {} but {} goals in result for away team"
+                     .format(fixture_string(fixture, result),
+                             away_assists, result.away_score)
+                    )
+
+    print("\n", result_string(n_error))
+    return n_error
+
+
+def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
+    """Check number of goals concdeded equals goals scored by opposition if 
+    player played whole match (90 minutes).
+    NB: only checks max of player conceded values to avoid potential issues
+    with substitutes and goals in stoppage time.
+    
+    Keyword Arguments:
+        seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
+        session {SQLAlchemy session} -- DB session (default:
+        airsenal.framework.schema.session)
+    """
+    print("Checking no. assists less than or equal to no. goals...\n")
+    n_error = 0
+    
+    for season in seasons:
+        fixtures = get_fixtures_for_season(season=season)
+                        
+        for fixture in fixtures:
+            result = get_result_for_fixture(fixture)
+
+            if result:
+                result = result[0]
+                home_scores = session.query(PlayerScore)\
+                                     .filter_by(fixture=fixture,
+                                                player_team=fixture.home_team,
+                                                minutes=90)\
+                                     .all()
+ 
+                away_scores = session.query(PlayerScore)\
+                                     .filter_by(fixture=fixture,
+                                                player_team=fixture.away_team,
+                                                minutes=90)\
+                                     .all()
+                
+                home_conceded = max([score.conceded for score in home_scores])
+                away_conceded = max([score.conceded for score in away_scores])
+
+                if home_conceded != result.away_score:
+                    n_error += 1
+                    print(
+                     "{}: Player conceded {} but {} goals in result for home team"
+                     .format(fixture_string(fixture, result),
+                             home_conceded, result.away_score)
+                    )
+                       
+                if away_conceded != result.home_score:
+                    n_error += 1
+                    print(
+                     "{}: Player conceded {} but {} goals in result for away team"
+                     .format(fixture_string(fixture, result),
+                             away_conceded, result.home_score)
+                    )
+
+    print("\n", result_string(n_error))
+    return n_error
+
+
 def run_all_checks(seasons=CHECK_SEASONS):
     print("Running checks for seasons:", seasons)
     print(SEPARATOR)
@@ -271,7 +383,9 @@ def run_all_checks(seasons=CHECK_SEASONS):
                  "season_num_fixtures": season_num_fixtures,
                  "fixture_player_teams": fixture_player_teams,
                  "fixture_num_players": fixture_num_players,
-                 "fixture_num_goals": fixture_num_goals}
+                 "fixture_num_goals": fixture_num_goals,
+                 "fixture_num_assists": fixture_num_assists,
+                 "fixture_num_conceded": fixture_num_conceded}
     results = dict()
     
     for name, fn in functions.items():
