@@ -92,7 +92,9 @@ def get_starting_team():
     use the transactions table in the db
     """
     t = Team()
-    transactions = session.query(Transaction).all()
+    transactions = session.query(Transaction)\
+                          .order_by(Transaction.id)\
+                          .all()
     for trans in transactions:
         if trans.bought_or_sold == -1:
             t.remove_player(trans.player_id, price=trans.price)

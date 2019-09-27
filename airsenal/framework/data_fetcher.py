@@ -118,11 +118,17 @@ class FPLDataFetcher(object):
             return self.fpl_transfer_history_data
         ## or get it from the API.
         url = self.FPL_TEAM_TRANSFER_URL.format(self.FPL_TEAM_ID)
-        r=requests.get(url)
+        r = requests.get(url)
         if not r.status_code == 200:
             print("Unable to access FPL transfer history API")
             return None
-        self.fpl_transfer_history_data = json.loads(r.content.decode("utf-8"))
+        # get transfer history from api and reverse order so that
+        # oldest transfers at start of list and newest at end.
+        self.fpl_transfer_history_data = list(
+            reversed(
+                json.loads(r.content.decode("utf-8"))
+                )
+            )
         return self.fpl_transfer_history_data
 
 
