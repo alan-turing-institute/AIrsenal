@@ -21,7 +21,10 @@ from airsenal.framework.utils import (
 
 from airsenal.framework.team import Team
 from airsenal.framework.schema import SessionTeam, SessionBudget, engine
-
+from airsenal.framework.optimization_utils import (
+    make_optimum_transfer,
+    make_optimum_double_transfer
+)
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 
@@ -174,9 +177,29 @@ def fill_session_team(team_id, session_id, dbsession=DBSESSION):
     return player_ids
 
 
+def get_session_prediction(player_id, session_id,
+                           gw=None, pred_tag=None,
+                           dbsession=DBSESSION):
+    """
+    Query the fixture and predictedscore tables for a specified player
+    """
+    if not gw:
+        gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+    if not pred_tag:
+        pred_tag = get_latest_prediction_tag()
+    return_dict = {
+        "predicted_score": get_predicted_points_for_player(pid,
+                                                           pred_tag,
+                                                           CURRENT_SEASON,
+                                                           dbsession)[gw],
+        "fixture": get_next_fixture_for_player(pid,CURRENT_SEASON,dbsession)
+    }
+    return return_dict
+
 def get_session_predictions(session_id, dbsession=DBSESSION):
     """
-    Query the fixture and predictedscore table for players in our session squad
+    Query the fixture and predictedscore tables for all
+    players in our session squad
     """
     players = get_session_players(session_id, dbsession)
     pred_tag = get_latest_prediction_tag()
@@ -184,13 +207,10 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pred_scores = {}
     for pid in players:
 
-        pred_scores[pid] = {
-            "predicted_score": get_predicted_points_for_player(pid,
-                                                               pred_tag,
-                                                               CURRENT_SEASON,
-                                                               dbsession)[gw],
-            "fixture": get_next_fixture_for_player(pid,CURRENT_SEASON,dbsession)
-            }
+        pred_scores[pid] = get_session_prediction(pid,
+                                                  session_id,
+                                                  gw, pred_tag,
+                                                  dbsession)
     return pred_scores
 
 
@@ -198,8 +218,12 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     """
     Use our predicted playerscores to suggest the best transfers.
     """
+    n_transfer = int(n_transfer)
+    if not n_transfer in range(1,3):
+        raise RuntimeError("Need to choose 1 or 2 transfers")
     if not validate_session_squad(session_id, dbsession):
         raise RuntimeError("Cannot suggest transfer without complete squad")
+
     budget = get_session_budget(session_id, dbsession)
     players = get_session_players(session_id, dbsession)
     t = Team(budget)
@@ -208,3 +232,12 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         if not added_ok:
             raise RuntimeError("Cannot add player {}".format(p))
     pred_tag = get_latest_prediction_tag()
+    gw=get_next_gameweek(CURRENT_SEASON, dbsession)
+    if n_transfer == 1:
+        new_team, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
+    elif n_transfer == 2:
+        new_team, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
+    return {
+        "transfers_out": pid_out,
+        "transfers_in": pid_in
+    }

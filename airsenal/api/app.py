@@ -116,6 +116,13 @@ def fill_team_from_team_id(team_id):
     return create_response(player_ids)
 
 
+@blueprint.route("/team/optimize/<n_transfers>")
+def get_optimum_transfers(n_transfers):
+    transfers = best_transfer_suggestions(n_transfers,
+                                          session_id=get_session_id())
+    return create_response(transfers)
+
+
 @blueprint.route("/budget", methods=["GET","POST"])
 def session_budget():
     if request.method == 'POST':
