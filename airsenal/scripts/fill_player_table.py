@@ -103,14 +103,14 @@ def fill_player_table_from_api(season, session):
 
 def make_player_table(session):
 
-    fill_player_table_from_api(CURRENT_SEASON,session)
+    fill_player_table_from_api(CURRENT_SEASON, session)
     for season in get_past_seasons(3):
         filename = os.path.join( os.path.join(os.path.dirname(__file__),
                                               "..",
                                               "data",
                                               "player_summary_{}.json"\
                                               .format(season)))
-        fill_player_table_from_file(filename,season,session)
+        fill_player_table_from_file(filename, season, session)
 
 
 

@@ -262,6 +262,11 @@ def get_player(player_name_or_id, dbsession=None):
     """
     if not dbsession:
         dbsession = session # use the one defined in this module
+    
+    # if an id has been passed as a string, convert it to an integer
+    if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
+        player_name_or_id = int(player_name_or_id)
+
     if isinstance(player_name_or_id, int):
         filter_attr = Player.player_id
     else:
