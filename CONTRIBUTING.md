@@ -31,12 +31,9 @@ The list of labels for current issues includes:
 
 - [![good-first-issue](https://img.shields.io/badge/-good%20first%20issue-1b3487.svg)][labels-firstissue] _These issues are particularly appropriate if it is your first contribution to AIrsenal, or to GitHub overall._
 
-  If you're not sure about how to go about contributing, these are good places to start. You'll be mentored through the process by the maintainers team.
-  If you're a seasoned contributor, please select a different issue to work from and keep these available for the newer and potentially more anxious team members.
-
 - [![Enhancement](https://img.shields.io/badge/-enhancement-84b6eb.svg)][labels-enhancement] _These issues are suggesting new features that can be added to the project._
 
-  If you want to ask for something new, please try to make sure that your request is distinct from any others that are already in the queue (or part of AIrsenal.
+  If you want to ask for something new, please try to make sure that your request is distinct from any others that are already in the queue (or part of AIrsenal).
   If you find one that's similar but there are subtle differences please reference the other enhancement in your issue.
 
 - [![Bug](https://img.shields.io/badge/-bug-d73a4a.svg)][labels-bug] _These issues are reporting a problem or a mistake in the project._
@@ -45,7 +42,6 @@ The list of labels for current issues includes:
   If you know how to fix the bug, please open an issue first and then submit a pull request.
 
 - [![project-management](https://img.shields.io/badge/-project%20management-bfd86c.svg)][labels-project-management] _We like to model best practice, so AIrsenal itself is managed through these issues.
-  These issues help us to coordinate some logistics._
 
 ## Making a change with a pull request
 
@@ -91,8 +87,7 @@ This allows everyone to see what is currently being worked on.
 It also provides you, the contributor, feedback in real time from both the community and the continuous integration as you make commits (which will help prevent stuff from breaking).
 
 When you are ready to submit a pull request, make sure the contents of the pull request body do the following:
-
-- Describe the problem you're trying to fix in the pull request, reference any related issue and use fixes/close to automatically close them, if pertinent.
+- Describe the problem you're trying to fix in the pull request, reference any related issues and use keywords fixes/close to automatically close them, if pertinent.
 - List changes proposed in the pull request.
 - Describe what the reviewer should concentrate their feedback on.
 
