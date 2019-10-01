@@ -14,9 +14,9 @@ Don't let trying to be perfect get in the way of being good - exciting ideas are
 - [Where to start: issues](#where-to-start-issues)
 - [Making a change with a pull request](#making-a-change-with-a-pull-request)
   - [1. Comment on an existing issue or open a new issue referencing your addition](#1-comment-on-an-existing-issue-or-open-a-new-issue-referencing-your-addition)
-  - [2. Fork the AIrsenal repository to your profile](#2-forkgithub-fork-the-AIrsenal-repositoryAIrsenal-repo-to-your-profile)
+  - [2. Fork the AIrsenal repository to your profile](#2-fork-the-airsenal-repository-to-your-profile)
   - [3. Make the changes you've discussed](#3-make-the-changes-youve-discussed)
-  - [4. Submit a pull request](#4-submit-a-pull-requestgithub-pullrequest)
+  - [4. Submit a pull request](#4-submit-a-pull-request)
 - [Style guide](#style-guide)
 
 ## Where to start: issues
