@@ -1,10 +1,13 @@
 # Contributing to AIrsenal
 
 **Welcome to the AIrsenal repository!**
+We're excited you're here and want to contribute.
 
 We hope that these guidelines make it as easy as possible to get involved.
+If you have any questions that aren't discussed below, please let us know by opening an [issue](https://github.com/alan-turing-institute/AIrsenal/issues).
+
 We welcome all contributions from documentation to testing to writing code.
-Don't let trying to be perfect get in the way of being good - exciting ideas are more important than perfect pull requests!
+Don't let trying to be perfect get in the way of being good - exciting ideas are more important than perfect pull requests.
 
 ## Table of contents
 
@@ -14,8 +17,13 @@ Don't let trying to be perfect get in the way of being good - exciting ideas are
   - [2. Fork the AIrsenal repository to your profile](#2-forkgithub-fork-the-AIrsenal-repositoryAIrsenal-repo-to-your-profile)
   - [3. Make the changes you've discussed](#3-make-the-changes-youve-discussed)
   - [4. Submit a pull request](#4-submit-a-pull-requestgithub-pullrequest)
+- [Style guide](#style-guide)
 
 ## Where to start: issues
+
+* **Issues** are individual pieces of work that need to be completed to move the project forwards.
+A general guideline: if you find yourself tempted to write a great big issue that
+is difficult to describe as one unit of work, please consider splitting it into two or more issues.
 
 Before you open a new issue, please check if any of our [open issues](https://github.com/alan-turing-institute/AIrsenal/issues) covers your idea already.
 
@@ -112,6 +120,12 @@ You can view the log or rerun the checks if you have write access to the repo by
 
 GitHub has a [nice introduction][github-flow] to the pull request workflow, but please get in touch if you have any questions.
 
+## Style Guide
+
+Docstrings should follow [numpydoc][link_numpydoc] convention.
+We encourage extensive documentation.
+
+The python code itself should follow [PEP8][link_pep8] convention whenever possible, with at most about 500 lines of code (not including docstrings) per script.
 
 ---
 
@@ -134,3 +148,5 @@ _These Contributing Guidelines have been adapted from the [Contributing Guidelin
 [labels-helpwanted]: https://github.com/alan-turing-institute/AIrsenal/labels/help%20wanted
 [labels-project-management]: https://github.com/alan-turing-institute/AIrsenal/labels/project%20management
 [labels-question]: https://github.com/alan-turing-institute/AIrsenal/labels/question
+[link_numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html
+[link_pep8]: https://www.python.org/dev/peps/pep-0008/
