@@ -57,8 +57,10 @@ def get_player_list(team, pos):
     """
     return a list of all players in that team and/or position
     """
-    return create_response(list_players_teams_prices(position=pos,
-                                                     team=team))
+    player_list = [(p.player_id,p.name) for p in list_players(position=pos,
+                                                              team=team)]
+    return create_response(player_list)
+
 
 
 @blueprint.route("/new")
@@ -79,6 +81,13 @@ def reset_team():
     """
     reset_session_team(get_session_id())
     return create_response("OK")
+
+
+@blueprint.route("/player/<player_id>")
+def get_player_info(player_id):
+    player_info = combine_player_info(player_id)
+    return create_response(player_info)
+
 
 
 @blueprint.route("/team/add/<player_id>")

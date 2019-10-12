@@ -235,10 +235,7 @@ def calc_predicted_points(
     expected_points = defaultdict(float)  # default value is 0.
     predictions = [] # list that will hold PlayerPrediction objects
 
-    for fid in fixtures:
-        fixture = session.query(Fixture)\
-                         .filter_by(season=season)\
-                         .filter_by(fixture_id=fid).first()
+    for fixture in fixtures:
         gameweek = fixture.gameweek
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
