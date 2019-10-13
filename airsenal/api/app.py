@@ -89,7 +89,6 @@ def get_player_info(player_id):
     return create_response(player_info)
 
 
-
 @blueprint.route("/team/add/<player_id>")
 def add_player(player_id):
     added_ok = add_session_player(player_id, session_id=get_session_id())
