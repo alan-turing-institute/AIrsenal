@@ -83,11 +83,17 @@ def reset_team():
 
 @blueprint.route("/team/add/<player_id>")
 def add_player(player_id):
+    """
+    Add a selected player to this session's squad.
+    """
     added_ok = add_session_player(player_id, session_id=get_session_id())
     return create_response(added_ok)
 
 
 @blueprint.route("/team/remove/<player_id>")
+    """
+    Remove selected player to this session's squad.
+    """
 def remove_player(player_id):
     removed_ok = remove_session_player(player_id, session_id=get_session_id())
     return create_response(removed_ok)
@@ -95,10 +101,16 @@ def remove_player(player_id):
 
 @blueprint.route("/team/list",methods=["GET"])
 def list_session_players():
+    """
+    List all players currently in this session's squad.
+    """
     player_list = get_session_players(session_id=get_session_id())
     return create_response(player_list)
 
 @blueprint.route("/team/pred",methods=["GET"])
+    """
+    Get predicted points for all players in this sessions squad
+    """
 def list_session_predictions():
     pred_dict = get_session_predictions(session_id=get_session_id())
     return create_response(pred_dict)
