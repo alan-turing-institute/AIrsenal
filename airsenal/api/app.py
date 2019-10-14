@@ -58,7 +58,7 @@ def get_player_list(team, pos):
     """
     Return a list of all players in that team and/or position
     """
-    player_list = [{"id": p.player_id, "name": p.name}) \
+    player_list = [{"id": p.player_id, "name": p.name} \
         for p in list_players(position=pos,team=team)]
     return create_response(player_list)
 
@@ -104,10 +104,10 @@ def add_player(player_id):
 
 
 @blueprint.route("/team/remove/<player_id>")
+def remove_player(player_id):
     """
     Remove selected player to this session's squad.
     """
-def remove_player(player_id):
     removed_ok = remove_session_player(player_id, session_id=get_session_id())
     return create_response(removed_ok)
 
@@ -122,10 +122,10 @@ def list_session_players():
 
 
 @blueprint.route("/team/pred",methods=["GET"])
+def list_session_predictions():
     """
     Get predicted points for all players in this sessions squad
     """
-def list_session_predictions():
     pred_dict = get_session_predictions(session_id=get_session_id())
     return create_response(pred_dict)
 
