@@ -17,7 +17,8 @@ from uuid import uuid4
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
-from airsenal.framework.utils import CURRENT_SEASON, list_players, get_last_finished_gameweek, fetcher
+from airsenal.framework.utils import CURRENT_SEASON, list_players, \
+    get_last_finished_gameweek, fetcher
 from airsenal.framework.api_utils import *
 from airsenal.framework.schema import SessionTeam, engine
 
@@ -55,10 +56,10 @@ def remove_session(ex=None):
 @blueprint.route("/players/<team>/<pos>", methods=["GET"])
 def get_player_list(team, pos):
     """
-    return a list of all players in that team and/or position
+    Return a list of all players in that team and/or position
     """
-    player_list = [(p.player_id,p.name) for p in list_players(position=pos,
-                                                              team=team)]
+    player_list = [{"id": p.player_id, "name": p.name}) \
+        for p in list_players(position=pos,team=team)]
     return create_response(player_list)
 
 
@@ -85,6 +86,10 @@ def reset_team():
 
 @blueprint.route("/player/<player_id>")
 def get_player_info(player_id):
+    """
+    Return a dict containing player's name, team, recent points,
+    and upcoming fixtures and predictions.
+    """
     player_info = combine_player_info(player_id)
     return create_response(player_info)
 
@@ -115,6 +120,7 @@ def list_session_players():
     player_list = get_session_players(session_id=get_session_id())
     return create_response(player_list)
 
+
 @blueprint.route("/team/pred",methods=["GET"])
     """
     Get predicted points for all players in this sessions squad
@@ -126,18 +132,27 @@ def list_session_predictions():
 
 @blueprint.route("/team/validate",methods=["GET"])
 def validate_session_players():
+    """
+    Check that the squad has 15 players, and obeys constraints.
+    """
     valid = validate_session_squad(session_id=get_session_id())
     return create_response(valid)
 
 
 @blueprint.route("/team/fill/<team_id>")
 def fill_team_from_team_id(team_id):
+    """
+    Use the ID of a team in the FPL API to fill a squad for this session.
+    """
     player_ids = fill_session_team(team_id=team_id,session_id=get_session_id())
     return create_response(player_ids)
 
 
 @blueprint.route("/team/optimize/<n_transfers>")
 def get_optimum_transfers(n_transfers):
+    """
+    Find the best n_transfers transfers for the next gameweek.
+    """
     transfers = best_transfer_suggestions(n_transfers,
                                           session_id=get_session_id())
     return create_response(transfers)
@@ -145,6 +160,9 @@ def get_optimum_transfers(n_transfers):
 
 @blueprint.route("/budget", methods=["GET","POST"])
 def session_budget():
+    """
+    Set or get the budget for this team.
+    """
     if request.method == 'POST':
         data = json.loads(request.data.decode("utf-8"))
         budget = data["budget"]
