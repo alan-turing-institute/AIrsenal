@@ -16,7 +16,10 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_predicted_points_for_player,
-    get_next_fixture_for_player
+    get_fixtures_for_player,
+    get_next_fixture_for_player,
+    get_player,
+    get_recent_scores_for_player
 )
 
 from airsenal.framework.team import Team
@@ -58,6 +61,43 @@ def reset_session_team(session_id, dbsession=DBSESSION):
     dbsession.add(sb)
     dbsession.commit()
     return True
+
+
+
+def combine_player_info(player_id, dbsession=DBSESSION):
+    """
+    Get player's name, club, recent scores, upcoming fixtures, and 
+    upcoming predictions if available
+    """
+    info_dict = {"player_id": player_id}
+    p = get_player(player_id, dbsession=dbsession)
+    info_dict["player_name"] = p.name
+    team = p.team(CURRENT_SEASON)
+    info_dict["team"] = team
+    ## get recent scores for the player
+    rs = get_recent_scores_for_player(p, dbsession=dbsession)
+    recent_scores = []
+    for k,v in rs.items():
+        recent_scores.append({"gameweek": k,
+                              "score": v})
+    info_dict["recent_scores"] = recent_scores
+    ## get upcoming fixtures
+    fixtures = get_fixtures_for_player(p, dbsession=dbsession)[:3]
+    info_dict["fixtures"] = []
+    for f in fixtures:
+        home_or_away = "home" if f.home_team==team else "away"
+        opponent = f.away_team if home_or_away=="home" else f.home_team
+        info_dict["fixtures"].append({"gameweek": f.gameweek,
+                                      "opponent": opponent,
+                                      "home_or_away": home_or_away})
+    try:
+        tag = get_latest_prediction_tag()
+        predicted_points = get_predicted_points_for_player(p,tag)
+        info_dict["predictions"] = predicted_points
+    except(RuntimeError):
+        pass
+    return info_dict
+        
 
 
 def add_session_player(player_id, session_id, dbsession=DBSESSION):

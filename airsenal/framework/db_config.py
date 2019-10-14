@@ -17,5 +17,5 @@ if "AIrsenalDBFile" in os.environ.keys():
     DB_CONNECTION_STRING = "sqlite:///{}".format(os.environ["AIrsenalDBFile"])
 
 ## location of postgres server
-if "AIrsenalDBURI" in os.environ.keys():
-    DB_CONNECTION_STRING = "postgres://{}/airsenal?check_same_thread=False".format(os.environ["AIrsenalDBURI"])
+if "AIrsenalDBUri" in os.environ.keys():
+    DB_CONNECTION_STRING = "postgres://{}/airsenal?check_same_thread=False".format(os.environ["AIrsenalDBUri"])
