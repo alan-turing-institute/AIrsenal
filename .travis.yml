@@ -3,6 +3,14 @@ python:
   - "3.6"
   - "3.7"
 
+matrix:
+  include:
+  - os: linux
+  - os: osx
+    language: minimal
+  - os: windows
+    language: minimal
+
 install:
   - pip install --upgrade pip
   - pip install .
