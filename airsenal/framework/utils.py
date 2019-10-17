@@ -386,21 +386,21 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
         return []
     team = player_record.team(season)
     tag = get_latest_fixture_tag(season,dbsession)
-    fixtures = (
+    fixture_rows = (
         dbsession.query(Fixture).filter_by(season=season)
         .filter_by(tag=tag)
         .filter(or_(Fixture.home_team == team, Fixture.away_team == team))
         .order_by(Fixture.gameweek)
         .all()
     )
-    fixture_ids = []
+    fixtures = []
     next_gameweek = get_next_gameweek(season,dbsession)
-    for fixture in fixtures:
+    for fixture in fixture_rows:
         if not fixture.gameweek: # fixture not scheduled yet
             continue
         if gw_range:
             if fixture.gameweek in gw_range:
-                fixture_ids.append(fixture.fixture_id)
+                fixtures.append(fixture)
         else:
             if season == CURRENT_SEASON and fixture.gameweek < next_gameweek:
                 continue
@@ -410,8 +410,34 @@ def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsess
                         fixture.home_team, fixture.away_team, fixture.gameweek
                     )
                 )
-            fixture_ids.append(fixture.fixture_id)
-    return fixture_ids
+            fixtures.append(fixture)
+    return fixtures
+
+
+def get_next_fixture_for_player(player, season=CURRENT_SEASON, dbsession=None):
+    """
+    Get a players next fixture as a string, for easy displaying
+    """
+    if not dbsession:
+        dbsession=session
+    # given a player name or id, convert to player object
+    if isinstance(player, str) or isinstance(player, int):
+        player = get_player(player)
+    team = player.team(season)
+    fixtures_for_player = get_fixtures_for_player(player,
+                                                  season,
+                                                  [get_next_gameweek()],
+                                                  dbsession)
+    output_string = ""
+    for fixture in fixtures_for_player:
+        is_home = False
+        if fixture.home_team == team:
+            is_home = True
+            output_string += fixture.away_team + " (h)"
+        else:
+            output_string += fixture.home_team + " (a)"
+        output_string += ", "
+    return output_string[:-2]
 
 
 def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
@@ -603,17 +629,14 @@ def estimate_minutes_from_prev_season(player, season=CURRENT_SEASON, dbsession=N
         return [average_mins]
 
 
-def get_recent_minutes_for_player(player,
-                                  num_match_to_use=3,
-                                  season=CURRENT_SEASON,
-                                  last_gw=None,
-                                  dbsession=None):
-
+def get_recent_playerscore_rows(player,
+                                num_match_to_use=3,
+                                season=CURRENT_SEASON,
+                                last_gw=None,
+                                dbsession=None):
     """
-    Look back num_match_to_use matches, and return an array
-    containing minutes played in each.
-    If current_gw is not given, we take it to be the most
-    recent finished gameweek.
+    Query the playerscore table in the database to retrieve 
+    the last num_match_to_use rows for this player.
     """
     if not dbsession:
         dbsession=session
@@ -630,10 +653,58 @@ def get_recent_minutes_for_player(player,
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
     ## rows, no need to look up dates and sort.
-    minutes = [r.minutes for r in rows[-num_match_to_use:]]
+    return rows[-num_match_to_use:]
+
+
+def get_recent_scores_for_player(player,
+                                 num_match_to_use=3,
+                                 season=CURRENT_SEASON,
+                                 last_gw=None,
+                                 dbsession=None):
+    """
+    Look num_match_to_use matches back, and return the 
+    FPL points for this player for each of these matches.
+    Return a dict {gameweek: score, }
+    """
+    if not last_gw:
+        last_gw = get_next_gameweek(season, dbsession=dbsession)
+    first_gw = last_gw - num_match_to_use
+    playerscores = get_recent_playerscore_rows(player,
+                                               num_match_to_use,
+                                               season,
+                                               last_gw,
+                                               dbsession)
+    
+    points = {}
+    for i , ps in enumerate(playerscores):
+        points[range(first_gw, last_gw)[i]] = ps.points
+    return points
+
+
+def get_recent_minutes_for_player(player,
+                                  num_match_to_use=3,
+                                  season=CURRENT_SEASON,
+                                  last_gw=None,
+                                  dbsession=None):
+
+    """
+    Look back num_match_to_use matches, and return an array
+    containing minutes played in each.
+    If current_gw is not given, we take it to be the most
+    recent finished gameweek.
+    """
+    playerscores = get_recent_playerscore_rows(player,
+                                               num_match_to_use,
+                                               season,
+                                               last_gw,
+                                               dbsession)    
+    minutes = [r.minutes for r in playerscores]
 
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
+    if not last_gw:
+        last_gw = get_next_gameweek(season, dbsession=dbsession)
+    first_gw = last_gw - num_match_to_use
     if first_gw < 0 or len(minutes) == 0:
         minutes = (minutes +
                    estimate_minutes_from_prev_season(player, season, dbsession))

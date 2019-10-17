@@ -1,5 +1,5 @@
 """
-Interface to the SQLite db.
+Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
 import os
@@ -8,17 +8,11 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy import create_engine, desc
-
 from contextlib import contextmanager
 
-# location of sqlite file - default is /tmp/data.db, unless
-# overridden by an env var
-db_location = "/tmp/data.db"
+from .db_config import DB_CONNECTION_STRING
 
-if "AIrsenalDB" in os.environ.keys():
-    db_location = os.environ["AIrsenalDB"]
 
 Base = declarative_base()
 
@@ -45,7 +39,9 @@ class Player(Base):
                and attr.gw_valid_from <= gameweek \
                and attr.gw_valid_from > latest_valid_gw:
                 team = attr.team
+                latest_valid_gw = attr.gw_valid_from
         return team
+
 
     def current_price(self, season, gameweek=1):
         """
@@ -58,7 +54,9 @@ class Player(Base):
                and attr.gw_valid_from <= gameweek \
                and attr.gw_valid_from > latest_valid_gw:
                 current_price = attr.current_price
+                latest_valid_gw = attr.gw_valid_from
         return current_price
+
 
     def position(self, season):
         """
@@ -109,7 +107,7 @@ class Fixture(Base):
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_team = Column(String(100), nullable=False)
     opponent = Column(String(100), nullable=False)
@@ -197,7 +195,21 @@ class Team(Base):
     team_id = Column(Integer, nullable=False) # the season-dependent team ID (from alphabetical order)
 
 
-engine = create_engine("sqlite:///{}".format(db_location))
+class SessionTeam(Base):
+    __tablename__="sessionteam"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), nullable=False)
+    player_id = Column(Integer, nullable=False)
+
+
+class SessionBudget(Base):
+    __tablename__="sessionbudget"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), nullable=False)
+    budget = Column(Integer, nullable=False)
+
+
+engine = create_engine(DB_CONNECTION_STRING)
 
 Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
