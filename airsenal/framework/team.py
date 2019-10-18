@@ -4,8 +4,10 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
+from math import floor
 
 from .player import CandidatePlayer, Player, CURRENT_SEASON
+from .utils import get_player
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -127,19 +129,45 @@ class Team(object):
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
-        use the player's current price from the DB.
+        calculate the player's sale price based on his price in the
+        team vs. his current price from in the DB.
         """
         for p in self.players:
             if p.player_id == player_id:
                 if price:
                     self.budget += price
                 else:
-                    self.budget += p.current_price
+                    self.budget += self.get_sale_price(p.player_id)
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
 
+    def get_sale_price(self, player_id):
+        """Get the sale price for a player based on difference between
+        player's team price (player's cost when purchased from the transaction
+        table) and the player's current price (from the players table).
+        """
+        # current price for the player in the database players table
+        current_price = get_player(player_id).current_price(CURRENT_SEASON)
+        
+        # price for the player in the team, which originated from transaction
+        # data.
+        for p in self.players:
+            if p.player_id == player_id:
+                purchase_price = p.current_price
+
+                if current_price > purchase_price:
+                    # only get to keep half of a price gain, rounded down
+                    profit = floor(0.5 * (current_price - purchase_price))
+                    return purchase_price + profit
+                else:
+                    # if players price has decreased we just get the current
+                    # price back
+                    return current_price
+        
+        # player not in the team
+        return False     
 
     def check_no_duplicate_player(self, player):
         """
