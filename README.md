@@ -25,6 +25,7 @@ If you are having problems with your installation you may need to install the co
 conda install -c psi4 gcc-5
 pip install --force-reinstall .
 ```
+Alternatively, you can look at the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html
 
 ## Getting started
 
