@@ -16,8 +16,8 @@ With anaconda installed, run these commands in a terminal to create a new conda 
 conda create -n airsenalenv python=3.7
 conda activate airsenalenv
 git clone https://github.com/alan-turing-institute/AIrsenal.git
-git checkout fix/update-requirements
 cd AIrsenal
+git checkout fix/update-requirements
 pip install .
 ```
 
