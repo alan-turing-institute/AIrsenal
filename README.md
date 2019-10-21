@@ -20,7 +20,7 @@ pip install .
 ```
 
 The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
-If you are having problems with your installation you may need to explicitly install this compiler, for example by running these commands from the `AIrsenal` directory with your virtual environment activated:
+If you are having problems with your installation you may need to install the compiler separately, for example by running these commands from the `AIrsenal` directory with your virtual environment activated:
 ```
 conda install -c psi4 gcc-5
 pip install --force-reinstall .
