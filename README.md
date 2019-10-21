@@ -10,17 +10,21 @@ We welcome contributions and comments - if you'd like to join the AIrsenal commu
 ## Install
 
 It is recommended that you use a conda or virtualenv environment to install and run AIrsenal.  
-The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
 An example setup could be:
 ```
 conda create -n airsenalenv python=3.7
 conda activate airsenalenv
-conda install -c psi4 gcc-5 # necessary if you don't have an up-to-date C++ compiler on your system 
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 pip install .
 ```
 
+The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
+If you are having problems with your installation you may need to explicitly install this compiler, for example by running these commands from the `AIrsenal` directory with your virtual environment activated:
+```
+conda install -c psi4 gcc-5
+pip install --force-reinstall .
+```
 
 ## Getting started
 
