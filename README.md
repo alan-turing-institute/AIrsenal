@@ -7,28 +7,34 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
+## Pre-requisites
+
+The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler. To test you have gcc installed in your system run the following command in a terminal:
+```
+gcc --version
+```
+
+If this successfully returns version information you can continue with the AIrsenal installation process. If not you will need to install `gcc`. Common ways to do this include:
+* **Mac OSX:** `brew install gcc`
+* **Linux (Ubuntu):** `apt-get install build-essential`
+* **Windows:** [MinGW](http://www.mingw.org/wiki/Getting_Started)
+
+Alternatively, please refer to the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html.
+
+
 ## Install
 
 We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/
 
-With anaconda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
+With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
 ```
-conda create -n airsenalenv python=3.7
+conda create -n airsenalenv python=3.7 pystan
 conda activate airsenalenv
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 git checkout fix/update-requirements
 pip install .
 ```
-
-### C++ compiler
-
-The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler. `conda` should take care of this for you, but if you are having problems with your installation you may need to install the compiler separately, for example by running these commands from the `AIrsenal` directory with your virtual environment activated:
-```
-conda install -c psi4 gcc-5
-pip install --force-reinstall .
-```
-Alternatively, or if you're not using `conda`, you can look at the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html.
 
 ## Getting started
 
