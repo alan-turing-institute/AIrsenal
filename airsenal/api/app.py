@@ -17,7 +17,7 @@ from uuid import uuid4
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
-from airsenal.framework.utils import CURRENT_SEASON, list_players, \
+from airsenal.framework.utils import CURRENT_SEASON, \
     get_last_finished_gameweek, fetcher
 from airsenal.framework.api_utils import *
 from airsenal.framework.schema import SessionTeam, engine
@@ -53,15 +53,23 @@ def remove_session(ex=None):
     remove_db_session()
 
 
+@blueprint.route("/teams", methods=["GET"])
+def get_team_list():
+    """
+    Return a list of all teams for the current season
+    """
+    team_list = list_teams_for_api()
+    return create_response(team_list)
+
+
 @blueprint.route("/players/<team>/<pos>", methods=["GET"])
 def get_player_list(team, pos):
     """
     Return a list of all players in that team and/or position
     """
     player_list = [{"id": p.player_id, "name": p.name} \
-        for p in list_players(position=pos,team=team)]
+        for p in list_players_for_api(position=pos,team=team)]
     return create_response(player_list)
-
 
 
 @blueprint.route("/new")

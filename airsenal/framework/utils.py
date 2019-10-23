@@ -262,7 +262,7 @@ def get_player(player_name_or_id, dbsession=None):
     """
     if not dbsession:
         dbsession = session # use the one defined in this module
-    
+
     # if an id has been passed as a string, convert it to an integer
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
         player_name_or_id = int(player_name_or_id)
@@ -320,6 +320,19 @@ def get_player_id(player_name, dbsession=None):
     ## still not found
     print("Unknown player_name {}".format(player_name))
     return None
+
+
+def list_teams(season=CURRENT_SEASON,
+               dbsession=None):
+    """
+    Print all teams from current season.
+    """
+    if not dbsession:
+        dbsession = session
+    rows = dbsession.query(Team)\
+                 .filter_by(season=season) .all()
+    return [{"name": row.name, "full_name": row.full_name} \
+            for row in rows]
 
 
 def list_players(position="all", team="all",
@@ -610,7 +623,7 @@ def get_recent_playerscore_rows(player,
                                 last_gw=None,
                                 dbsession=None):
     """
-    Query the playerscore table in the database to retrieve 
+    Query the playerscore table in the database to retrieve
     the last num_match_to_use rows for this player.
     """
     if not dbsession:
@@ -637,7 +650,7 @@ def get_recent_scores_for_player(player,
                                  last_gw=None,
                                  dbsession=None):
     """
-    Look num_match_to_use matches back, and return the 
+    Look num_match_to_use matches back, and return the
     FPL points for this player for each of these matches.
     Return a dict {gameweek: score, }
     """
@@ -649,7 +662,7 @@ def get_recent_scores_for_player(player,
                                                season,
                                                last_gw,
                                                dbsession)
-    
+
     points = {}
     for i , ps in enumerate(playerscores):
         points[range(first_gw, last_gw)[i]] = ps.points
@@ -672,7 +685,7 @@ def get_recent_minutes_for_player(player,
                                                num_match_to_use,
                                                season,
                                                last_gw,
-                                               dbsession)    
+                                               dbsession)
     minutes = [r.minutes for r in playerscores]
 
     # if going back num_matches_to_use from last_gw takes us before the start
