@@ -12,6 +12,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
     list_players,
+    list_teams,
     get_last_finished_gameweek,
     get_latest_prediction_tag,
     get_next_gameweek,
@@ -63,10 +64,27 @@ def reset_session_team(session_id, dbsession=DBSESSION):
     return True
 
 
+def list_players_for_api(team, position, dbsession=DBSESSION):
+    """
+    List players.  Just pass on to utils.list_players but
+    specify the dbsession.
+    """
+    return list_players(team=team, position=position, dbsession=dbsession)
+
+
+def list_teams_for_api(dbsession=DBSESSION):
+    """
+    List teams.  Just pass on to utils.list_teams but
+    specify the season and  dbsession.
+    """
+    all_teams = [{"name": "all", "full_name": "all"}]
+    all_teams += list_teams(season=CURRENT_SEASON, dbsession=dbsession)
+    return all_teams
+
 
 def combine_player_info(player_id, dbsession=DBSESSION):
     """
-    Get player's name, club, recent scores, upcoming fixtures, and 
+    Get player's name, club, recent scores, upcoming fixtures, and
     upcoming predictions if available
     """
     info_dict = {"player_id": player_id}
@@ -97,7 +115,7 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     except(RuntimeError):
         pass
     return info_dict
-        
+
 
 
 def add_session_player(player_id, session_id, dbsession=DBSESSION):
