@@ -101,24 +101,3 @@ def test_get_detailed_player_data():
     data = fetcher.get_gameweek_data_for_player(1)
     assert(isinstance(data,dict))
     assert(len(data)>0)
-
-
-
-def test_get_results():
-    """
-    test the matchdatafetcher
-    """
-    fetcher = MatchDataFetcher()
-    data = fetcher.get_results(1)
-    assert(isinstance(data,list))
-    assert(len(data)==10)
-
-
-def test_get_fixtures():
-    """
-    get fixtures from matchdatafetcher
-    """
-    fetcher = MatchDataFetcher()
-    data = fetcher.get_fixtures(38)
-    assert isinstance(data, list)
-    assert(len(data)==10)
