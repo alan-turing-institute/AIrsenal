@@ -7,32 +7,49 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
+## Pre-requisites
+
+The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler. To test you have gcc installed in your system run the following command in a terminal:
+```
+gcc --version
+```
+
+If this successfully returns version information you can continue with the AIrsenal installation process. If not you will need to install `gcc`. Common ways to do this include:
+* **Mac OSX:** `brew install gcc`
+* **Linux (Ubuntu):** `apt-get install build-essential`
+* **Windows:** [MinGW](http://www.mingw.org/wiki/Getting_Started)
+
+Alternatively, please refer to the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html.
+
+
 ## Install
 
-It is recommended that you use a conda or virtualenv environment to install and run AIrsenal.  
-The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler.
-An example setup could be:
+We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/
+
+With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
 ```
-conda create -n airsenalenv python=3.7
+conda create -n airsenalenv python=3.7 pystan
 conda activate airsenalenv
-conda install -c psi4 gcc-5 # necessary if you don't have an up-to-date C++ compiler on your system 
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
+git checkout fix/update-requirements
 pip install .
 ```
 
-
 ## Getting started
 
-Once you've installed the module, you will need to set five environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
+Once you've installed the module, you will need to set some environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
 
-1. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/) (this is only needed for filling past seasons results if not already present as a csv file in the ```data/``` directory.)
-2. `FPL_TEAM_ID`: the team ID for your FPL side.
-3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for a small subset of functionality).
-4. `FPL_LOGIN`: your FPL login, usually email (this is only required to get league standings)
-5. `FPL_PASSWORD`: your FPL password (this is only required to get league standings)
+**Required:**
+1. `FPL_TEAM_ID`: the team ID for your FPL side.
 
-Once this is done, run the following command
+**Optional:**
+2. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/) (this is only needed for filling past seasons results if not already present as a csv file in the ```data/``` directory.)
+3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
+4. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings).
+5. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
+
+Once this is done, run the following command:
 
 ```shell
 setup_airsenal_database

@@ -6,9 +6,6 @@ requests
 dateparser
 matplotlib
 scipy
-bs4
-selenium
-boto3
 pip
 pystan>=2.14
 bpl==0.0.4
