@@ -243,9 +243,18 @@ def calc_predicted_points(
         message += "\ngameweek: {} vs {}  {}".format(gameweek, opponent, home_or_away)
         points = 0.
         expected_points[gameweek] = points
-        # points for fixture will be zero if suspended or injured
-        if is_injured_or_suspended(player.player_id, gameweek, season, session):
+
+        if sum(recent_minutes) == 0:
+            # 'recent_minutes' contains the number of minutes that player played
+            # for in the past few matches. If these are all zero, we will for sure
+            # predict zero points for this player, so we don't need to call all the
+            # functions to calculate appearance points, defending points, attacking points.
             points = 0.
+
+        elif is_injured_or_suspended(player.player_id, gameweek, season, session):
+            # Points for fixture will be zero if suspended or injured
+            points = 0.
+
         else:
         # now loop over recent minutes and average
             points = sum(
