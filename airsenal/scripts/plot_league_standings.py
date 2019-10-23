@@ -20,11 +20,17 @@ def get_team_ids(league_data):
     return team_ids
 
 
+def get_team_names(league_data):
+    team_names = []
+    for team in league_data["standings"]["results"]:
+        team_names.append(team["entry_name"])
+    return team_names
+
+
 def get_team_history(team_data):
     output_dict = {}
-    output_dict["name"] = team_data["entry"]["name"]
     output_dict["history"] = {}
-    for gw in team_data["history"]:
+    for gw in team_data["current"]:
         output_dict["history"][gw["event"]] = {}
         output_dict["history"][gw["event"]]["points"] = gw["points"]
         output_dict["history"][gw["event"]]["total_points"] = gw["total_points"]
@@ -46,10 +52,13 @@ def main():
     fetcher = FPLDataFetcher()
     league_data = fetcher.get_fpl_league_data()
     team_ids = get_team_ids(league_data)
+    team_names = get_team_names(league_data)
     team_histories = []
-    for team_id in team_ids:
+    for i, team_id in enumerate(team_ids):
         team_data = fetcher.get_fpl_team_history_data(team_id)
-        team_histories.append(get_team_history(team_data))
+        history_dict = get_team_history(team_data)
+        history_dict["name"] = team_names[i]
+        team_histories.append(history_dict)
 
     xvals = sorted(team_histories[0]["history"].keys())
     points = []
