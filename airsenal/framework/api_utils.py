@@ -24,7 +24,7 @@ from airsenal.framework.utils import (
 )
 
 from airsenal.framework.team import Team
-from airsenal.framework.schema import SessionTeam, SessionBudget, engine
+from airsenal.framework.schema import SessionTeam, SessionBudget, engine, Player
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
     make_optimum_double_transfer
@@ -193,7 +193,8 @@ def get_session_players(session_id, dbsession=DBSESSION):
     """
     players = dbsession.query(SessionTeam)\
                        .filter_by(session_id=session_id).all()
-    player_list = [p.player_id for p in players]
+    player_list = [{"id": p.player_id, "name": dbsession.query(Player)\
+                   .filter_by(player_id=p.player_id).first().name} for p in players]
     return player_list
 
 
