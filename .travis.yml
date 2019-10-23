@@ -26,7 +26,7 @@ jobs:
 
 install:
   - pip3 install --upgrade pip
-  - pip install .
+  - pip3 install .
 
 script:
   - pytest
