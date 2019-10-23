@@ -31,6 +31,7 @@ def get_session_id():
     it exists, otherwise just get a default string, which
     will enable us to test some functionality just via python requests.
     """
+    print("Session keys {}".format(session.keys()))
     if "key" in session.keys():
         return session["key"]
     else:

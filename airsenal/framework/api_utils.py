@@ -109,8 +109,9 @@ def combine_player_info(player_id, dbsession=DBSESSION):
                                       "opponent": opponent,
                                       "home_or_away": home_or_away})
     try:
-        tag = get_latest_prediction_tag()
-        predicted_points = get_predicted_points_for_player(p,tag)
+        tag = get_latest_prediction_tag(dbsession=dbsession)
+        predicted_points = get_predicted_points_for_player(p,tag,
+                                                           dbsession=dbsession)
         info_dict["predictions"] = predicted_points
     except(RuntimeError):
         pass
