@@ -9,7 +9,7 @@ import re
 
 from .mappings import alternative_team_names, alternative_player_names
 
-from .data_fetcher import FPLDataFetcher, MatchDataFetcher
+from .data_fetcher import FPLDataFetcher
 from .schema import (
     Base,
     Player,

@@ -14,8 +14,6 @@ def test_instantiate_fetchers():
     """
     fpl = FPLDataFetcher()
     assert(fpl)
-    fd = MatchDataFetcher()
-    assert(fd)
 
 
 def test_get_summary_data():

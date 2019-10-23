@@ -10,7 +10,7 @@ import dateparser
 import time
 import uuid
 
-from ..framework.data_fetcher import FPLDataFetcher, MatchDataFetcher
+from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.mappings import alternative_team_names
 from ..framework.schema import Fixture, session_scope
 from ..framework.utils import CURRENT_SEASON, get_past_seasons
