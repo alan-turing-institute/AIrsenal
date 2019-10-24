@@ -57,6 +57,12 @@ setup_airsenal_database
 
 You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
 
+You can run sanity checks on the data using the following command:
+
+```
+check_airsenal_data
+```
+
 ## Updating, running predictions and optimization.
 
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
@@ -76,8 +82,3 @@ Finally, we need to run the optimizer to pick the best transfer strategy over th
 run_airsenal_optimization --weeks_ahead 3
 ```
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
-
-
-
-
-

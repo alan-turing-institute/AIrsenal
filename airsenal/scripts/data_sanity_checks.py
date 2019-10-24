@@ -328,7 +328,7 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking no. assists less than or equal to no. goals...\n")
+    print("Checking no. goals conceded matches goals scored by opponent...\n")
     n_error = 0
     
     for season in seasons:
