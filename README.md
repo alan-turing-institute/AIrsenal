@@ -38,7 +38,8 @@ pip install .
 ```
 
 **Windows:**
-Based on the pystan instructions here: https://pystan.readthedocs.io/en/latest/windows.html
+
+If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
 ```
 conda create -n airsenalenv python=3.7 pystan
 conda activate airsenalenv
