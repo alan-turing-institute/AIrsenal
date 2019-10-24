@@ -17,7 +17,7 @@ gcc --version
 If this successfully returns version information you can continue with the AIrsenal installation process. If not you will need to install `gcc`. Common ways to do this include:
 * **Mac OSX:** `brew install gcc`
 * **Linux (Ubuntu):** `apt-get install build-essential`
-* **Windows:** [MinGW](http://www.mingw.org/wiki/Getting_Started)
+* **Windows:** We recommend using conda and following the windows-specific instructions below. Alternativley, have a look at [MinGW](http://www.mingw.org/wiki/Getting_Started) to get a working compiler.
 
 Alternatively, please refer to the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html.
 
@@ -27,12 +27,25 @@ Alternatively, please refer to the Cython installation pre-requirements for opti
 We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/
 
 With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
+
+**Linux and Mac OS X:**
 ```
 conda create -n airsenalenv python=3.7 pystan
 conda activate airsenalenv
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
-git checkout fix/update-requirements
+pip install .
+```
+
+**Windows:**
+Based on the pystan instructions here: https://pystan.readthedocs.io/en/latest/windows.html
+```
+conda create -n airsenalenv python=3.7 pystan
+conda activate airsenalenv
+conda install libpython m2w64-toolchain -c msys2
+conda install numpy cython pystan -c conda-forge
+git clone https://github.com/alan-turing-institute/AIrsenal.git
+cd AIrsenal
 pip install .
 ```
 
