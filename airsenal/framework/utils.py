@@ -143,13 +143,14 @@ def get_sell_price_for_player(player_id, gameweek=None):
     transactions = session.query(Transaction)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
+    
+    gw_bought = None
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
             break
         if t.bought_or_sold == 1:
             gw_bought = t.gameweek
-        else:
-            gw_bought = None
+
     if not gw_bought:
         print(
             "Player {} is was not in the team at gameweek {}".format(
