@@ -4,8 +4,10 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
+from math import floor
 
 from .player import CandidatePlayer, Player, CURRENT_SEASON
+from .utils import get_player, get_sell_price_for_player
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -122,24 +124,23 @@ class Team(object):
         self.budget -= player.current_price
         return True
 
-
     def remove_player(self, player_id, price=None):
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
-        use the player's current price from the DB.
+        calculate the player's sale price based on his price in the
+        team vs. his current price from in the DB.
         """
         for p in self.players:
             if p.player_id == player_id:
                 if price:
                     self.budget += price
                 else:
-                    self.budget += p.current_price
+                    self.budget += get_sell_price_for_player(p.player_id)
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
-
 
     def check_no_duplicate_player(self, player):
         """
