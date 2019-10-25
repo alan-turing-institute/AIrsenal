@@ -41,7 +41,7 @@ pip install .
 
 If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
 ```
-conda create -n airsenalenv python=3.7 pystan
+conda create -n airsenalenv python=3.7
 conda activate airsenalenv
 conda install libpython m2w64-toolchain -c msys2
 conda install numpy cython pystan -c conda-forge
