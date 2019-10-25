@@ -12,6 +12,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
     list_players,
+    list_teams,
     get_last_finished_gameweek,
     get_latest_prediction_tag,
     get_next_gameweek,
@@ -23,7 +24,7 @@ from airsenal.framework.utils import (
 )
 
 from airsenal.framework.team import Team
-from airsenal.framework.schema import SessionTeam, SessionBudget, engine
+from airsenal.framework.schema import SessionTeam, SessionBudget, engine, Player
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
     make_optimum_double_transfer
@@ -63,10 +64,27 @@ def reset_session_team(session_id, dbsession=DBSESSION):
     return True
 
 
+def list_players_for_api(team, position, dbsession=DBSESSION):
+    """
+    List players.  Just pass on to utils.list_players but
+    specify the dbsession.
+    """
+    return list_players(team=team, position=position, dbsession=dbsession)
+
+
+def list_teams_for_api(dbsession=DBSESSION):
+    """
+    List teams.  Just pass on to utils.list_teams but
+    specify the season and  dbsession.
+    """
+    all_teams = [{"name": "all", "full_name": "all"}]
+    all_teams += list_teams(season=CURRENT_SEASON, dbsession=dbsession)
+    return all_teams
+
 
 def combine_player_info(player_id, dbsession=DBSESSION):
     """
-    Get player's name, club, recent scores, upcoming fixtures, and 
+    Get player's name, club, recent scores, upcoming fixtures, and
     upcoming predictions if available
     """
     info_dict = {"player_id": player_id}
@@ -91,13 +109,14 @@ def combine_player_info(player_id, dbsession=DBSESSION):
                                       "opponent": opponent,
                                       "home_or_away": home_or_away})
     try:
-        tag = get_latest_prediction_tag()
-        predicted_points = get_predicted_points_for_player(p,tag)
+        tag = get_latest_prediction_tag(dbsession=dbsession)
+        predicted_points = get_predicted_points_for_player(p,tag,
+                                                           dbsession=dbsession)
         info_dict["predictions"] = predicted_points
     except(RuntimeError):
         pass
     return info_dict
-        
+
 
 
 def add_session_player(player_id, session_id, dbsession=DBSESSION):
@@ -175,7 +194,8 @@ def get_session_players(session_id, dbsession=DBSESSION):
     """
     players = dbsession.query(SessionTeam)\
                        .filter_by(session_id=session_id).all()
-    player_list = [p.player_id for p in players]
+    player_list = [{"id": p.player_id, "name": dbsession.query(Player)\
+                   .filter_by(player_id=p.player_id).first().name} for p in players]
     return player_list
 
 
