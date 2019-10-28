@@ -32,30 +32,30 @@ def test_list_all_players(fill_players):
         assert(re.search("[a-zA-Z\s]+\([A-Z]{3}\)\: [\d\.]+",first_player))
 
 
-def test_add_player():
+def test_add_player(fill_players):
     with test_session_scope() as ts:
         assert(reset_session_team(session_id=API_SESSION_ID, dbsession=ts))
-        assert(add_session_player(123, API_SESSION_ID, ts))
+        assert(add_session_player(12, API_SESSION_ID, ts))
         players = get_session_players(API_SESSION_ID, ts)
         assert(len(players)==1)
-        assert(players[0]==123)
+        assert(players[0]["id"]==12)
 
 
-def test_cant_add_same_player_twice():
+def test_cant_add_same_player_twice(fill_players):
     with test_session_scope() as ts:
         assert(reset_session_team(session_id=API_SESSION_ID, dbsession=ts))
-        assert(add_session_player(123, API_SESSION_ID, ts))
-        assert(not add_session_player(123, API_SESSION_ID, ts))
+        assert(add_session_player(33, API_SESSION_ID, ts))
+        assert(not add_session_player(33, API_SESSION_ID, ts))
         players = get_session_players(API_SESSION_ID, ts)
         assert(len(players)==1)
-        assert(players[0]==123)
+        assert(players[0]["id"]==33)
 
 
-def test_remove_player():
+def test_remove_player(fill_players):
     with test_session_scope() as ts:
         assert(reset_session_team(session_id=API_SESSION_ID, dbsession=ts))
-        assert(add_session_player(123, API_SESSION_ID, ts))
-        assert(remove_session_player(123, API_SESSION_ID, ts))
+        assert(add_session_player(12, API_SESSION_ID, ts))
+        assert(remove_session_player(12, API_SESSION_ID, ts))
         players = get_session_players(API_SESSION_ID, ts)
         assert(len(players)==0)
 
@@ -73,19 +73,12 @@ def test_set__get_budget():
         assert(get_session_budget(API_SESSION_ID, ts)==500)
 
 
-def test_fill_from_team_id():
-    with test_session_scope() as ts:
-        fill_session_team(3111007, API_SESSION_ID, ts)
-        session_players = get_session_players(API_SESSION_ID, ts)
-        assert(len(session_players)==15)
-
-
-def test_invalid_session_squad():
+def test_invalid_session_squad(fill_players):
     with test_session_scope() as ts:
         reset_session_team(session_id=API_SESSION_ID, dbsession=ts)
         assert(not validate_session_squad(API_SESSION_ID, ts))
         # add one player - check it is still invalid
-        assert(add_session_player(123, API_SESSION_ID, ts))
+        assert(add_session_player(5, API_SESSION_ID, ts))
         assert(not validate_session_squad(API_SESSION_ID, ts))
 
 
