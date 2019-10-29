@@ -39,6 +39,7 @@ class DummyPlayer(object):
     def calc_predicted_points(self,dummy):
         pass
 
+
 def generate_dummy_team(player_points_dict=None):
     """
     Fill a team up with dummy players.

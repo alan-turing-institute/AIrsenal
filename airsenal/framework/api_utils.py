@@ -118,12 +118,11 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     return info_dict
 
 
-
 def add_session_player(player_id, session_id, dbsession=DBSESSION):
     """
     Add a row in the SessionTeam table.
     """
-    pids = get_session_players(session_id, dbsession)
+    pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     if player_id in pids: # don't add the same player twice!
         return False
     st = SessionTeam(session_id=session_id, player_id=player_id)
@@ -136,7 +135,7 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     """
     Remove row from SessionTeam table.
     """
-    pids = get_session_players(session_id, dbsession)
+    pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     player_id = int(player_id)
     if player_id not in pids: # player not there
         return False
@@ -211,7 +210,7 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
         return False
     t = Team(budget)
     for p in players:
-        added_ok = t.add_player(p)
+        added_ok = t.add_player(p["id"])
         if not added_ok:
             return False
     return True
@@ -261,7 +260,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     Query the fixture and predictedscore tables for all
     players in our session squad
     """
-    players = get_session_players(session_id, dbsession)
+    pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     pred_tag = get_latest_prediction_tag()
     gw = get_next_gameweek(CURRENT_SEASON, dbsession)
     pred_scores = {}
@@ -285,7 +284,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         raise RuntimeError("Cannot suggest transfer without complete squad")
 
     budget = get_session_budget(session_id, dbsession)
-    players = get_session_players(session_id, dbsession)
+    players = [p["id"] for p in get_session_players(session_id, dbsession)]
     t = Team(budget)
     for p in players:
         added_ok = t.add_player(p)
