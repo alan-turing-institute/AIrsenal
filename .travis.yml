@@ -21,6 +21,7 @@ jobs:
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
         - choco install miniconda3 --params="'/AddToPath:1'"
+        - export PATH=c:/tools/miniconda3:$PATH
         - conda install libpython m2w64-toolchain -c msys2
         - conda install numpy cython -c conda-forge
         - conda install pystan -c conda-forge
