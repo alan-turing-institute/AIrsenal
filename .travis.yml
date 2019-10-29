@@ -4,10 +4,16 @@ jobs:
   include:
     - name: "Python 3.7.4 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
+      install:
+        - pip install --upgrade pip
+        - pip install .
     
     - name: "Python 3.6 on Xenial Linux"
       python: 3.6           # this works for Linux but is ignored on macOS or Windows
-    
+      install:
+        - pip install --upgrade pip
+        - pip install .
+
     - name: "Python 3.7.4 on macOS"
       os: osx
       osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
@@ -15,7 +21,9 @@ jobs:
       before_install:
         - brew update
         - brew install gcc
-        - alias pip=pip3 # make pip run pip3
+      install:
+        - pip3 install --upgrade pip
+        - pip3 install .
       
     - name: "Miniconda3 Python 3.7 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
@@ -37,10 +45,9 @@ jobs:
         - conda install libpython m2w64-toolchain -c msys2
         - conda install numpy cython -c conda-forge
         - conda install pystan -c conda-forge
-
-install:
-  - pip install --upgrade pip
-  - pip install .
+      install:
+        - pip install --upgrade pip
+        - pip install .
 
 script:
   - pytest
