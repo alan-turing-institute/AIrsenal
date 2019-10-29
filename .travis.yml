@@ -21,6 +21,7 @@ jobs:
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
+        - choco install sqlite
         # conda installation and path setup
         # based on: https://github.com/trichter/conda4travis
         - export MINICONDA=/c/miniconda
