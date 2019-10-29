@@ -46,17 +46,17 @@ def test_get_team_history_data():
     assert(isinstance(data,dict))
     assert(len(data)>0)
 
-@pytest.mark.skipif(get_next_gameweek()==1,
-                    reason="No league data before start of season")
-def test_get_league_data():
-    """
-    gameweek history for our mini-league
-    """
-    fetcher = FPLDataFetcher()
-    if fetcher.FPL_LOGIN != "MISSING_ID":
-        data = fetcher.get_fpl_league_data()
-        assert(isinstance(data,dict))
-        assert(len(data)>0)
+#@pytest.mark.skipif(get_next_gameweek()==1,
+#                    reason="No league data before start of season")
+#def test_get_league_data():
+#    """
+#    gameweek history for our mini-league
+#    """
+#    fetcher = FPLDataFetcher()
+#    if fetcher.FPL_LOGIN != "MISSING_ID":
+#        data = fetcher.get_fpl_league_data()
+#        assert(isinstance(data,dict))
+#        assert(len(data)>0)
 
 
 def test_get_event_data():
