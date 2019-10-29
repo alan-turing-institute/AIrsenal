@@ -15,11 +15,19 @@ jobs:
       before_install:
         - brew update
         - brew install gcc
-    
+      
+    - name: "Miniconda Python 3 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install miniconda3 --params="'/AddToPath:1'"
+        - conda install libpython m2w64-toolchain -c msys2
+        - conda install numpy cython -c conda-forge
+        - conda install pystan -c conda-forge
+
 install:
   - pip3 install --upgrade pip
   - pip3 install .
 
 script:
   - pytest
-
