@@ -8,6 +8,7 @@
 # AIrsenal database files
 airsenal/data/data.db
 airsenal/data/test.db
+airsenal/data/airsopt/
 
 # other stuff
 .idea/
