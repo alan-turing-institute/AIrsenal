@@ -24,8 +24,9 @@ from tqdm import tqdm
 import argparse
 
 from ..framework.optimization_utils import *
+from .. import AIRSENAL_HOME
 
-OUTPUT_DIR = "/tmp/airsopt"
+OUTPUT_DIR = AIRSENAL_HOME + "/data/airsopt"
 
 def count_increments(strategy_string, num_iterations):
     """

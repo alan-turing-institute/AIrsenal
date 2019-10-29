@@ -1,4 +1,8 @@
 """
 ___init__.py for airsenal
 """
-pass
+
+import os
+
+# Directory where airsenal is installed
+AIRSENAL_HOME = os.path.dirname(__file__)

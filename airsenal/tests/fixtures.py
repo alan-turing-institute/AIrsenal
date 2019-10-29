@@ -8,10 +8,11 @@ import pytest
 from ..framework.schema import *
 from ..framework.mappings import *
 from .resources import dummy_players
+from .. import AIRSENAL_HOME
 
 API_SESSION_ID = "TESTSESSION"
 
-testengine = create_engine("sqlite:////tmp/test.db")
+testengine = create_engine("sqlite:///{}/data/test.db".format(AIRSENAL_HOME))
 
 Base.metadata.create_all(testengine)
 
