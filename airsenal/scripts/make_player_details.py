@@ -1,3 +1,8 @@
+"""
+Generate player details json files from a locally cloned copy of the
+https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
+
+"""
 from glob import glob
 import os
 import re
@@ -6,22 +11,29 @@ import pandas as pd
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import get_past_seasons
 
+# directory of this script
+SCRIPT_DIR = os.path.dirname(__file__)
+
 # players directory for season of interest from this git repo:
 # https://github.com/vaastav/Fantasy-Premier-League
-DATA_DIR = '/Users/jroberts/GitHub/Fantasy-Premier-League/data/{}/players'
-           
-# file of interest present in every sub_directory in data_dir
+# repo is assumed to be cloned locally in same directory as parent AIrsenal
+# directory.
+# {} will be formatted with season of interest
+DATA_DIR = os.path.join(SCRIPT_DIR,
+                        '../../../Fantasy-Premier-League/data/{}/players')
+
+# file of interest present in every sub_directory in DATA_DIR
 FILE_NAME = 'gw.csv'
 
 # teams path - to get mapping of ids to team names
-TEAM_PATH = '../data/teams_{}.csv'
+# {} will be formatted with season of interest
+TEAM_PATH = os.path.join(SCRIPT_DIR, '../data/teams_{}.csv')
 
 # where to save output
-SAVE_NAME = '../data/player_details_{}.json'
+# {} will be formatted with season of interest
+SAVE_NAME = os.path.join(SCRIPT_DIR, '../data/player_details_{}.json')
 
-# dictionary of key in input file to key in output file
-
-# Features to extract {name in files: name in database}
+# Dictionary of features to extract {name in files: name in database}
 key_dict = {
     'round': 'gameweek',
     'total_points': 'points',
