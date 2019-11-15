@@ -157,5 +157,5 @@ def main():
         
         # print players with top predicted points
         get_top_predicted_points(gameweek=gw_range, tag=tag,
-                                 season=args.season, dbsession=session)
-
+                                 season=args.season, dbsession=session,
+                                 per_position=True, n_players=5)
