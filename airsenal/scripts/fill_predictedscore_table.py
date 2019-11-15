@@ -14,9 +14,20 @@ from multiprocessing import Process, Queue
 from tqdm import tqdm
 import argparse
 
-from ..framework.utils import list_players, get_next_gameweek, CURRENT_SEASON
-from ..framework.prediction_utils import get_fitted_team_model, get_fitted_player_model, \
-    get_player_model, calc_predicted_points
+from ..framework.utils import (
+    list_players,
+    get_next_gameweek,
+    CURRENT_SEASON,
+    get_top_predicted_points
+)
+
+from ..framework.prediction_utils import (
+    get_fitted_team_model,
+    get_fitted_player_model,
+    get_player_model,
+    calc_predicted_points
+)
+
 from ..framework.schema import session_scope
 
 
@@ -61,6 +72,7 @@ def allocate_predictions(queue, gw_range, team_model, player_model, season, tag,
         session.commit()
         print("Finished adding predictions to db for {}".format(pos))
 
+
 def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     """
     Do the full prediction for players.
@@ -89,14 +101,13 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
         p.join()
 
 
-
-
 def make_predictedscore_table(session, gw_range=None, season=CURRENT_SEASON, num_thread=4):
     tag = str(uuid4())
     if not gw_range:
         next_gameweek = get_next_gameweek()
         gw_range = list(range(next_gameweek, next_gameweek+3))
-    prediction_dict = calc_all_predicted_points(gw_range, season, tag,  session)
+    calc_all_predicted_points(gw_range, season, tag,  session)
+    return tag
 
 
 def main():
@@ -126,7 +137,7 @@ def main():
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
         print("Please specify either gameweek_start and gameweek_end, OR weeks_ahead")
         raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead and not args.season==CURRENT_SEASON:
+    if args.weeks_ahead and not args.season == CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
     next_gameweek = get_next_gameweek()
@@ -139,8 +150,12 @@ def main():
     else:
         gw_range = list(range(next_gameweek, next_gameweek+3))
     with session_scope() as session:
-        make_predictedscore_table(session,
-                                  gw_range=gw_range,
-                                  season=args.season,
-                                  num_thread = args.num_thread
-        )
+        tag = make_predictedscore_table(session,
+                                        gw_range=gw_range,
+                                        season=args.season,
+                                        num_thread=args.num_thread)
+        
+        # print players with top predicted points
+        get_top_predicted_points(gameweek=gw_range, tag=tag,
+                                 season=args.season, dbsession=session)
+
