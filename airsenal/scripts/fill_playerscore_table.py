@@ -74,7 +74,10 @@ def fill_playerscores_from_json(detail_data, season, session):
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
             gameweek = int(fixture_data["gameweek"])
-            played_for = player.team(season, gameweek)
+            if "played_for" in fixture_data.keys():
+                played_for = fixture_data["played_for"]
+            else:
+                played_for = player.team(season, gameweek)
             if not played_for:
                 continue
             opponent = fixture_data["opponent"]
