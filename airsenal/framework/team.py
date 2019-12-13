@@ -44,6 +44,8 @@ class Team(object):
         self.free_subs = 0
         self.subs_this_week = 0
         self.verbose = False
+        self.fetcher = FPLDataFetcher()
+
 
     def __repr__(self):
         """
@@ -154,7 +156,7 @@ class Team(object):
         if use_api:
             try:
                 # first try getting the price for the player from the API
-                price_now = FPLDataFetcher().get_player_summary_data()[player_id]["now_cost"]
+                price_now = self.fetcher.get_player_summary_data()[player_id]["now_cost"]
             except:
                 price_now = None
             
