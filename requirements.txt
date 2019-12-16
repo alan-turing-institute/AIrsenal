@@ -1,9 +1,9 @@
 tqdm==v4.29.1
-black --no-binary=regex
+black
 pandas
 sqlalchemy
 requests
-dateparser --no-binary=regex
+dateparser
 matplotlib
 scipy
 pip
