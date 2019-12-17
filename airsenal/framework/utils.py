@@ -603,6 +603,56 @@ def get_predicted_points(gameweek, tag, position="all", team="all",
     return output_list
 
 
+def get_top_predicted_points(gameweek=None, tag=None,
+                             position="all", team="all",
+                             n_players=10, per_position=False,
+                             season=CURRENT_SEASON, dbsession=None):
+    """Print players with the top predicted points.
+
+    
+    Keyword Arguments:
+        gameweek {int or list} -- Single gameweek or list of gameweeks in which
+        case returned totals are sums across all gameweeks (default: next
+        gameweek).
+        tag {str} -- Prediction tag to query (default: latest prediction tag)
+        position {str} -- Player position to query (default: {"all"})
+        per_position {boolean} -- If True print top n_players players for
+        each position separately (default: {False})
+        team {str} -- Team to query (default: {"all"})
+        n_players {int} -- Number of players to return (default: {10})
+        season {str} -- Season to query (default: {CURRENT_SEASON})
+        dbsession {SQLAlchemy session} -- Database session (default: {None})
+    """
+    if not tag:
+        tag = get_latest_prediction_tag()
+    if not gameweek:
+        gameweek = get_next_gameweek()
+    
+    print("="*50)
+    print("PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players,
+                                                                gameweek))
+    print("="*50)
+    
+    if not per_position:
+        pts = get_predicted_points(gameweek, tag, position=position, team=team,
+                                season=season, dbsession=dbsession)
+        pts = sorted(pts, key=lambda x: x[1], reverse=True)
+    
+        for i, p in enumerate(pts[:n_players]):
+            print("{}. {}, {:.2f}pts".format(i+1, p[0].name, p[1]))
+            
+    else:
+        for position in ["GK", "DEF", "MID", "FWD"]:
+            pts = get_predicted_points(gameweek, tag, position=position,
+                                       team=team, season=season,
+                                       dbsession=dbsession)
+            pts = sorted(pts, key=lambda x: x[1], reverse=True)
+            print("{}:".format(position))
+            for i, p in enumerate(pts[:n_players]):
+                print("{}. {}, {:.2f}pts".format(i+1, p[0].name, p[1]))
+            print("-"*25)
+
+
 def get_return_gameweek_for_player(player_id, dbsession=None):
     """
     If  a player is injured and there is 'news' about them on FPL,
