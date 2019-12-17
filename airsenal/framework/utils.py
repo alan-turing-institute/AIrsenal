@@ -143,7 +143,7 @@ def get_sell_price_for_player(player_id, gameweek=None):
     transactions = session.query(Transaction)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
-    
+
     gw_bought = None
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
@@ -460,6 +460,19 @@ def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
                         .filter_by(season=season)\
                         .all()
     return fixtures
+
+
+def get_fixtures_for_gameweek(gameweek,
+                              season=CURRENT_SEASON,
+                              dbsession=session):
+    """
+    Get a list of fixtures for the specified gameweek
+    """
+    fixtures = dbsession.query(Fixture)\
+                        .filter_by(season=season)\
+                        .filter_by(gameweek=gameweek)\
+                        .all()
+    return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
 
 def get_result_for_fixture(fixture, dbsession=session):
