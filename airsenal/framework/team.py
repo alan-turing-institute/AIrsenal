@@ -7,8 +7,7 @@ from operator import itemgetter
 from math import floor
 
 from .player import CandidatePlayer, Player, CURRENT_SEASON
-from .utils import get_player, get_next_gameweek
-from .data_fetcher import FPLDataFetcher
+from .utils import get_player, get_next_gameweek, fetcher
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -154,7 +153,7 @@ class Team(object):
         if use_api:
             try:
                 # first try getting the price for the player from the API
-                price_now = FPLDataFetcher().get_player_summary_data()[player_id]["now_cost"]
+                price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
             except:
                 price_now = None
             
