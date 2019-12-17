@@ -132,9 +132,12 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():
-        player = get_player(player_id, dbsession=session)
         # find the player in the player table.  If they're not
         # there, then we don't care (probably not a current player).
+        player = get_player(player_id, dbsession=session)
+
+        # TODO remove this and replace with method in loop below, i.e. don't
+        # rely on played_for being correct in DB.
         played_for_id = input_data[player_id]["team"]
         played_for = get_team_name(played_for_id)
 
@@ -151,7 +154,11 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
             for result in results:
                 # try to find the match in the match table
                 opponent = get_team_name(result["opponent_team"])
+                
+                # TODO: Get fixture/played_for from opponent, was_home and kickoff_time
+                # can use approach from make_player_details.get_played_for_from_results                
                 fixture = find_fixture(season, gameweek, played_for, opponent, session)
+                 
                 if not fixture:
                     print(
                         "  Couldn't find match for {} in gw {}".format(player.name, gameweek)
