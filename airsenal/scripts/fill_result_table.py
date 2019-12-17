@@ -59,6 +59,8 @@ def fill_results_from_api(gw_start, gw_end, season, session):
         if not m['finished']:
             continue
         gameweek = m['event']
+        if gameweek < gw_start or gameweek > gw_end:
+            continue
         home_id = m['team_h']
         away_id = m['team_a']
         home_team = None
