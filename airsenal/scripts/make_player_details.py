@@ -45,6 +45,8 @@ RESULTS_PATH = os.path.join(SCRIPT_DIR, '../data/results_{}_with_gw.csv')
 # where to save output
 # {} will be formatted with season of interest
 SAVE_NAME = os.path.join(SCRIPT_DIR, '../data/player_details_{}.json')
+# player summary file - to get player's position for a season
+SUMMARY_PATH = os.path.join(SCRIPT_DIR, "../data/player_summary_{}.json")
 
 # Dictionary of features to extract {name in files: name in database}
 key_dict = {
@@ -103,6 +105,13 @@ def get_teams_dict(season):
     return {row['team_id']: row['name'] for _, row in teams_df.iterrows()}
 
 
+def get_positions_df(season):
+    summary_df = pd.read_json(SUMMARY_PATH.format(season))
+    summary_df.set_index("name", inplace=True)
+    positions = summary_df["position"]
+    return positions
+        
+       
 def get_fixtures_df(season):
     """Load fixture info (which teams played in which matches), either
     from vaastav/Fantasy-Premier-League repo or AIrsenal data depending
@@ -218,7 +227,7 @@ def process_file(path, teams_dict, fixtures_df, got_fixtures):
     # rename team ids with short names
     df['opponent'].replace(teams_dict, inplace=True)
     df['played_for'].replace(teams_dict, inplace=True)
-    
+
     # want everything in output to be strings
     df = df.applymap(str)
     
@@ -236,6 +245,7 @@ def make_player_details(seasons=get_past_seasons(3)):
         print('SEASON', season_longname)
                 
         teams_dict = get_teams_dict(season)
+        positions_df = get_positions_df(season)
         fixtures_df, got_fixtures = get_fixtures_df(season)
         
         # names of all player directories for this season
@@ -246,7 +256,15 @@ def make_player_details(seasons=get_past_seasons(3)):
             name = path_to_name(directory)
             print('Doing', name)
             player_dict = process_file(os.path.join(directory, PLAYERS_FILE),
-                                       teams_dict, fixtures_df, got_fixtures)
+                                       teams_dict,
+                                       fixtures_df, got_fixtures)
+            
+            # get player position
+            if name in positions_df.index:
+                player_dict["position"] = positions_df.loc[name]
+            else:
+                raise NotImplementedError("could not find "+name+" in index, implement checking mappings")
+                
             output[name] = player_dict
         
         print('Saving JSON')
