@@ -246,6 +246,7 @@ def make_player_details(seasons=get_past_seasons(3)):
                 
         teams_dict = get_teams_dict(season)
         positions_df = get_positions_df(season)
+        
         fixtures_df, got_fixtures = get_fixtures_df(season)
         
         # names of all player directories for this season
@@ -261,7 +262,8 @@ def make_player_details(seasons=get_past_seasons(3)):
             
             # get player position
             if name in positions_df.index:
-                player_dict["position"] = positions_df.loc[name]
+                for fixture in player_dict:
+                    fixture["position"] = positions_df.loc[name]
             else:
                 raise NotImplementedError("could not find "+name+" in index, implement checking mappings")
                 
