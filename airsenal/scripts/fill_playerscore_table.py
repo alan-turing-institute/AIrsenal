@@ -68,8 +68,8 @@ def fill_playerscores_from_json(detail_data, season, session):
             print("Couldn't find player {}".format(player_name))
             continue
 
-        print("Doing {} for {} season".format(player.name,
-                                              season))
+        print("SCORES {} for {} season".format(player.name,
+                                               season))
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table

@@ -46,6 +46,7 @@ def get_current_season():
     end_year = start_year + 1
     return "{}{}".format(str(start_year)[2:],str(end_year)[2:])
 
+
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
@@ -263,7 +264,7 @@ def get_player(player_name_or_id, dbsession=None):
     query the player table by name or id, return the player object (or None)
     """
     if not dbsession:
-        dbsession = session # use the one defined in this module
+        dbsession = session  # use the one defined in this module
 
     # if an id has been passed as a string, convert it to an integer
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
@@ -377,6 +378,36 @@ def get_max_matches_per_player(position="all",season=CURRENT_SEASON,dbsession=No
             max_matches = num_match
     return max_matches
 
+
+def get_player_attributes(player_name_or_id,
+                          season=CURRENT_SEASON,
+                          gameweek=1,
+                          dbsession=None):
+    """Get a player's attributes for a given gameweek in a given season.
+    """
+    
+    if not dbsession:
+        dbsession = session
+        
+    if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
+        player_id = int(player_name_or_id)
+    elif isinstance(player_name_or_id, int):
+        player_id = player_name_or_id
+    elif isinstance(player_name_or_id, str) :
+        player = get_player(player_name_or_id)
+        if player:
+            player_id = player.player_id
+        else:
+            return None
+
+    rows = dbsession.query(PlayerAttributes)\
+                    .filter_by(season=season)\
+                    .filter_by(gameweek=gameweek)\
+                    .filter_by(player_id=player_id)\
+                    .all()
+    
+    return rows
+    
 
 def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsession=None,
                             verbose=False):

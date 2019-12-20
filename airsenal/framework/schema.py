@@ -33,30 +33,22 @@ class Player(Base):
         take the largest gw_valid_from.
         """
         team = None
-        latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
+            if attr.season == season and attr.gameweek == gameweek:
                 team = attr.team
-                latest_valid_gw = attr.gw_valid_from
+                break
         return team
-
 
     def current_price(self, season, gameweek=1):
         """
         take the largest gw_valid_from.
         """
         current_price = None
-        latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
+            if attr.season == season and attr.gameweek == gameweek:
                 current_price = attr.current_price
-                latest_valid_gw = attr.gw_valid_from
+                break
         return current_price
-
 
     def position(self, season):
         """
@@ -74,8 +66,8 @@ class PlayerAttributes(Base):
     player = relationship("Player", back_populates="attributes")
     player_id = Column(Integer, ForeignKey("player.player_id"))
     season = Column(String(100), nullable=False)
-    gw_valid_from = Column(Integer, nullable=False)
-    current_price = Column(Integer, nullable=False)
+    gameweek = Column(Integer, nullable=False)
+    price = Column(Integer, nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
 
