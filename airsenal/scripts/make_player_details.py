@@ -11,7 +11,8 @@ import pandas as pd
 
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import get_past_seasons
-from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.mappings import (alternative_team_names,
+                                         alternative_player_names)
 
 # directory of this script
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -32,6 +33,8 @@ PLAYERS_DIR = os.path.join(REPO_DIR, 'players')
 PLAYERS_FILE = 'gw.csv'
 # Path to fixtures files
 FIXTURES_PATH = os.path.join(REPO_DIR, 'fixtures.csv')
+# Path to raw player summary data
+RAW_PATH = os.path.join(REPO_DIR, 'players_raw.csv')
 
 # ------------------------------------
 # AIrsenal Files
@@ -106,9 +109,21 @@ def get_teams_dict(season):
 
 
 def get_positions_df(season):
-    summary_df = pd.read_json(SUMMARY_PATH.format(season))
-    summary_df.set_index("name", inplace=True)
-    positions = summary_df["position"]
+    """
+    Get dataframe of player names and their positions for the given season,
+    using the players_raw file from the FPL results repo.
+    """
+    season_longname = get_long_season_name(season)
+    raw_df = pd.read_csv(RAW_PATH.format(season_longname))
+    
+    raw_df["name"] = raw_df["first_name"] + " " + raw_df["second_name"]
+    
+    positions_dict = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
+    raw_df["position"] = raw_df["element_type"].replace(positions_dict)
+    
+    raw_df.set_index("name", inplace=True)
+    positions = raw_df["position"]
+    
     return positions
         
        
@@ -242,7 +257,7 @@ def make_player_details(seasons=get_past_seasons(3)):
         
     for season in seasons:
         season_longname = get_long_season_name(season)
-        print('SEASON', season_longname)
+        print('-------- SEASON', season_longname, '--------')
                 
         teams_dict = get_teams_dict(season)
         positions_df = get_positions_df(season)
@@ -256,17 +271,32 @@ def make_player_details(seasons=get_past_seasons(3)):
         for directory in sub_dirs:
             name = path_to_name(directory)
             print('Doing', name)
+            
             player_dict = process_file(os.path.join(directory, PLAYERS_FILE),
                                        teams_dict,
                                        fixtures_df, got_fixtures)
             
             # get player position
             if name in positions_df.index:
-                for fixture in player_dict:
-                    fixture["position"] = positions_df.loc[name]
+                position = str(positions_df.loc[name])
             else:
-                raise NotImplementedError("could not find "+name+" in index, implement checking mappings")
-                
+                position = "NA"
+                for k, v in alternative_player_names.items():
+                    if name == k or name in v:
+                        if k in positions_df.index:
+                            position = str(positions_df.loc[k])
+                        else:
+                            for alt_name in v:
+                                if alt_name in positions_df.index:
+                                    position = str(positions_df.loc[alt_name])
+                                    break
+                        print("found", position, "via alternative name")
+                        break
+            if position == "NA":
+                print("!!!FAILED!!! Could not find position for", name)
+            for fixture in player_dict:
+                fixture["position"] = position  
+                               
             output[name] = player_dict
         
         print('Saving JSON')
