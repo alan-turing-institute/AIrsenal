@@ -39,8 +39,7 @@ def fill_attributes_table_from_file(detail_data, season, session):
             print("Couldn't find player {}".format(player_name))
             continue
 
-        print("ATTRIBUTES {} for {} season".format(player.name,
-                                                   season))
+        print("ATTRIBUTES {} {}".format(season, player.name))
         # now loop through all the fixtures that player played in
         # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).

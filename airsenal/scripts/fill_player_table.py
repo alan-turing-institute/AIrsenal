@@ -49,7 +49,7 @@ def fill_player_table_from_file(filename, season, session):
     for i, jp in enumerate(jplayers):
         new_entry = False
         name = jp['name']
-        print("{} adding {}".format(season, name))
+        print("PLAYER {} {}".format(season, name))
         p = find_player_in_table(name, session)
         if not p:
             n_new_players += 1
@@ -77,7 +77,7 @@ def fill_player_table_from_api(season, session):
         second_name = v["second_name"]#.encode("utf-8")
         name = "{} {}".format(first_name, second_name)
 
-        print("{} adding {}".format(season, name))
+        print("PLAYER {} {}".format(season, name))
         p.name = name
         session.add(p)
     session.commit()
