@@ -60,6 +60,11 @@ def fill_attributes_table_from_file(detail_data, season, session):
                 pa.price = int(fixture_data["value"])
                 pa.team = fixture_data["played_for"]
                 pa.position = fixture_data["position"]
+                
+                pa.transfers_balance = int(fixture_data["transfers_balance"])
+                pa.selected = int(fixture_data["selected"])
+                pa.transfers_in = int(fixture_data["transfers_in"])
+                pa.transfers_out = int(fixture_data["transfers_out"])
 
                 player.attributes.append(pa)
                 session.add(pa)

@@ -51,7 +51,6 @@ def fill_results_from_csv(input_file, season, session):
     session.commit()
 
 
-
 def fill_results_from_api(gw_start, gw_end, season, session):
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()

@@ -70,6 +70,11 @@ class PlayerAttributes(Base):
     price = Column(Integer, nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
+    
+    transfers_balance = Column(Integer, nullable=True)
+    selected = Column(Integer, nullable=True)
+    transfers_in = Column(Integer, nullable=True)
+    transfers_out = Column(Integer, nullable=True)
 
 
 class Result(Base):
@@ -129,11 +134,6 @@ class PlayerScore(Base):
     creativity = Column(Float, nullable=True)
     threat = Column(Float, nullable=True)
     ict_index = Column(Float, nullable=True)
-    value = Column(Integer, nullable=True)
-    transfers_balance = Column(Integer, nullable=True)
-    selected = Column(Integer, nullable=True)
-    transfers_in = Column(Integer, nullable=True)
-    transfers_out = Column(Integer, nullable=True)
 
 
 class PlayerPrediction(Base):
