@@ -12,7 +12,8 @@ import pandas as pd
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import get_past_seasons
 from airsenal.framework.mappings import (alternative_team_names,
-                                         alternative_player_names)
+                                         alternative_player_names,
+                                         positions)
 
 # directory of this script
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -118,13 +119,13 @@ def get_positions_df(season):
     
     raw_df["name"] = raw_df["first_name"] + " " + raw_df["second_name"]
     
-    positions_dict = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
-    raw_df["position"] = raw_df["element_type"].replace(positions_dict)
+    # replace element type codes with position strings
+    raw_df["position"] = raw_df["element_type"].replace(positions)
     
     raw_df.set_index("name", inplace=True)
-    positions = raw_df["position"]
+    positions_df = raw_df["position"]
     
-    return positions
+    return positions_df
         
        
 def get_fixtures_df(season):

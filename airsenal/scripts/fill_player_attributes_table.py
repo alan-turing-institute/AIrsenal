@@ -7,7 +7,7 @@ import os
 import sys
 import json
 
-from ..framework.mappings import alternative_player_names
+from ..framework.mappings import alternative_player_names, positions
 
 from ..framework.schema import (Player,
                                 PlayerAttributes,
@@ -21,7 +21,8 @@ from ..framework.utils import (get_latest_fixture_tag,
                                get_team_name,
                                get_past_seasons,
                                CURRENT_SEASON,
-                               get_player_attributes)
+                               get_player_attributes,
+                               get_player_team_from_fixture)
 
 from ..framework.data_fetcher import FPLDataFetcher
 
@@ -59,22 +60,69 @@ def fill_attributes_table_from_file(detail_data, season, session):
                 pa.gameweek = gameweek
                 pa.price = int(fixture_data["value"])
                 pa.team = fixture_data["played_for"]
-                pa.position = fixture_data["position"]
-                
+                pa.position = fixture_data["position"]               
                 pa.transfers_balance = int(fixture_data["transfers_balance"])
                 pa.selected = int(fixture_data["selected"])
                 pa.transfers_in = int(fixture_data["transfers_in"])
                 pa.transfers_out = int(fixture_data["transfers_out"])
-
                 player.attributes.append(pa)
                 session.add(pa)
 
 
-def fill_attributes_table_from_api(season, session):
+def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
     """
-    use the FPL API
+    use the FPL API to get player attributes info for the current season
     """
-    raise NotImplementedError()
+
+    if not gw_end:
+        gw_end = get_next_gameweek(season, session)
+    
+    fetcher = FPLDataFetcher()
+    input_data = fetcher.get_player_summary_data()
+    
+    for player_id in input_data.keys():
+        # find the player in the player table.  If they're not
+        # there, then we don't care (probably not a current player).
+        player = get_player(player_id, dbsession=session)
+        print("ATTRIBUTES {} {}".format(season, player.name))
+        
+        # position does not change during season, use summary data
+        position = positions[input_data[player_id]["element_type"]]
+        
+        player_data = fetcher.get_gameweek_data_for_player(player_id)
+        # now loop through all the matches that player played in
+        for gameweek, data in player_data.items():
+            if gameweek not in range(gw_start, gw_end):
+                continue
+            
+            for result in data:
+                # determine the team the player played for in this fixture
+                opponent_id = result["opponent_team"]
+                was_home = result["was_home"]
+                kickoff_time = result["kickoff_time"]
+                team = get_player_team_from_fixture(gameweek,
+                                                    opponent_id,
+                                                    was_home,
+                                                    kickoff_time,
+                                                    season=season,
+                                                    dbsession=session)
+                
+                pa = PlayerAttributes()   
+                pa.player = player
+                pa.player_id = player.player_id
+                pa.season = season
+                pa.gameweek = gameweek
+                pa.price = int(result["value"])
+                pa.team = team
+                pa.position = position                               
+                pa.transfers_balance = int(result["transfers_balance"])
+                pa.selected = int(result["selected"])
+                pa.transfers_in = int(result["transfers_in"])
+                pa.transfers_out = int(result["transfers_out"])
+                player.attributes.append(pa)
+                session.add(pa)
+                               
+                break  # done this gameweek now
 
 
 def fill_missing_attributes(start_season, start_gameweek,
@@ -83,7 +131,7 @@ def fill_missing_attributes(start_season, start_gameweek,
     has gaps due to blank gameweeks. Fill them with the most recent available
     information before the blank.
     """
-    raise NotImplementedError()
+    #raise NotImplementedError()
 
 
 def make_attributes_table(session):

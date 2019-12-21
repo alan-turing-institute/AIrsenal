@@ -866,7 +866,7 @@ def get_latest_prediction_tag(season=CURRENT_SEASON,dbsession=None):
         raise RuntimeError("No predicted points in database - has the database been filled?")
 
 
-def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):
+def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
@@ -874,5 +874,41 @@ def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):
     if not dbsession:
         dbsession=session
     rows = dbsession.query(Fixture)\
-                  .filter_by(season=season).all()
+                    .filter_by(season=season).all()
     return rows[-1].tag
+
+
+def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
+                                 season=CURRENT_SEASON, dbsession=None):
+    """Get the team a player played for given the gameweek, opponent, time and
+    whether they were home or away.
+    """
+    if not dbsession:
+        dbsession = session
+
+    opponent = get_team_name(opponent_id, season=season, dbsession=dbsession)
+    if not opponent:
+        raise ValueError("No team with id {} in {} season"
+                         .format(opponent_id, season))
+
+    query = dbsession.query(Fixture)\
+                     .filter_by(gameweek=gameweek)\
+                     .filter_by(season=season)
+    if was_home:
+        fixtures = query.filter_by(away_team=opponent).all()
+    else:
+        fixtures = query.filter_by(home_team=opponent).all()
+
+    if not fixtures or len(fixtures) == 0:
+        raise ValueError("No fixture with season={}, gw={}, opponent={}, was_home={}"
+                         .format(season, gameweek, opponent, was_home))
+        
+    if len(fixtures) == 1:
+        fixture = fixtures[0]        
+    else:
+        raise NotImplementedError("select fixture using kickoff time")
+    
+    if was_home:
+        return fixture.home_team
+    else:
+        return fixture.away_team

@@ -35,7 +35,6 @@ def main():
         ## need to update
             next_gw = get_next_gameweek()
             fill_results_from_api(last_in_db + 1, next_gw, season, session)
-
             fill_playerscores_from_api(season, session, last_in_db + 1, next_gw)
         else:
             print("Matches and player-scores already up-to-date")
