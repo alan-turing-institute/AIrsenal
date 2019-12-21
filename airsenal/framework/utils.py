@@ -900,14 +900,31 @@ def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
         fixtures = query.filter_by(home_team=opponent).all()
 
     if not fixtures or len(fixtures) == 0:
-        raise ValueError("No fixture with season={}, gw={}, opponent={}, was_home={}"
-                         .format(season, gameweek, opponent, was_home))
+        raise ValueError("No fixture with season={}, gw={}, opponent={}"
+                         .format(season, gameweek, opponent))
         
     if len(fixtures) == 1:
         fixture = fixtures[0]        
     else:
-        raise NotImplementedError("select fixture using kickoff time")
-    
+        # opponent played multiple games in the gameweek, determine the
+        # fixture of interest using the kickoff time,
+        kickoff_date = dateparser.parse(kickoff_time)
+        kickoff_date = kickoff_date.replace(tzinfo=timezone.utc)
+        kickoff_date = kickoff_date.date()
+        
+        fixture = None
+        for f in fixtures:
+            f_date = dateparser.parse(f.date)
+            f_date = f_date.replace(tzinfo=timezone.utc)
+            f_date = f_date.date()
+            if f_date == kickoff_date:
+                fixture = f
+                break
+        
+        if not fixture:
+            raise ValueError("No fixture with season={}, gw={}, opponent={}, kickoff_time={}"
+                                .format(season, gameweek, opponent, kickoff_time))
+       
     if was_home:
         return fixture.home_team
     else:
