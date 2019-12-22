@@ -65,7 +65,6 @@ def fill_attributes_table_from_file(detail_data, season, session):
                 pa.selected = int(fixture_data["selected"])
                 pa.transfers_in = int(fixture_data["transfers_in"])
                 pa.transfers_out = int(fixture_data["transfers_out"])
-                player.attributes.append(pa)
                 session.add(pa)
 
 
@@ -117,7 +116,6 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
         pa.transfers_in = int(p_summary["transfers_in_event"])
         pa.transfers_out = int(p_summary["transfers_out_event"])
         pa.transfers_balance = pa.transfers_in - pa.transfers_out
-        player.attributes.append(pa)
         
         if not update:
             # only need to add to the session for new entries, if we're doing
@@ -154,7 +152,6 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                 pa.selected = int(result["selected"])
                 pa.transfers_in = int(result["transfers_in"])
                 pa.transfers_out = int(result["transfers_out"])
-                player.attributes.append(pa)
                 session.add(pa)
                                
                 break  # done this gameweek now

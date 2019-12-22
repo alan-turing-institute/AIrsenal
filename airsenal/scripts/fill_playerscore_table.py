@@ -121,7 +121,6 @@ def fill_playerscores_from_json(detail_data, season, session):
                 except KeyError:
                     pass
 
-            player.scores.append(ps)
             session.add(ps)
 
 
@@ -197,7 +196,6 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                     except KeyError:
                         pass
 
-                player.scores.append(ps)
                 session.add(ps)
                 print(
                     "  got {} points vs {} in gameweek {}".format(
