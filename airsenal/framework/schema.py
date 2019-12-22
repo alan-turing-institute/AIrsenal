@@ -46,7 +46,7 @@ class Player(Base):
         current_price = None
         for attr in self.attributes:
             if attr.season == season and attr.gameweek == gameweek:
-                current_price = attr.current_price
+                current_price = attr.price
                 break
         return current_price
 

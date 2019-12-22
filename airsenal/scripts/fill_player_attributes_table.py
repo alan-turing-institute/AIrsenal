@@ -73,24 +73,59 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
     """
     use the FPL API to get player attributes info for the current season
     """
-
+    next_gw = get_next_gameweek(season, session)
     if not gw_end:
-        gw_end = get_next_gameweek(season, session)
+        gw_end = next_gw
     
     fetcher = FPLDataFetcher()
-    input_data = fetcher.get_player_summary_data()
     
+    # needed for selected by calculation from percentage below
+    n_players = fetcher.get_current_summary_data()["total_players"]
+    
+    input_data = fetcher.get_player_summary_data()
+
     for player_id in input_data.keys():
-        # find the player in the player table.  If they're not
-        # there, then we don't care (probably not a current player).
+        # find the player in the player table
         player = get_player(player_id, dbsession=session)
         print("ATTRIBUTES {} {}".format(season, player.name))
+                
+        # First update the current gameweek using the summary data
+        p_summary = input_data[player_id]
+        position = positions[p_summary["element_type"]]
         
-        # position does not change during season, use summary data
-        position = positions[input_data[player_id]["element_type"]]
+        pa = get_player_attributes(player.player_id,
+                                   season=season,
+                                   gameweek=next_gw,
+                                   dbsession=session)
+        if pa:
+            # found pre-existing attributes for this gameweek
+            update = True
+        else:
+            # no attributes for this gameweek for this player yet
+            pa = PlayerAttributes()
+            update = False
         
+        pa.season = season
+        pa.gameweek = next_gw
+        pa.price = int(p_summary["now_cost"])
+        pa.team = get_team_name(p_summary["team"],
+                                season=season,
+                                dbsession=session)
+        pa.position = positions[p_summary["element_type"]]
+        pa.selected = int(float(p_summary["selected_by_percent"])
+                          * n_players / 100)
+        pa.transfers_in = int(p_summary["transfers_in_event"])
+        pa.transfers_out = int(p_summary["transfers_out_event"])
+        pa.transfers_balance = pa.transfers_in - pa.transfers_out
+        player.attributes.append(pa)
+        
+        if not update:
+            # only need to add to the session for new entries, if we're doing
+            # an update the final session.commit() is enough
+            session.add(pa)
+               
+        # now get data for previous gameweeks
         player_data = fetcher.get_gameweek_data_for_player(player_id)
-        # now loop through all the matches that player played in
         for gameweek, data in player_data.items():
             if gameweek not in range(gw_start, gw_end):
                 continue
@@ -114,7 +149,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                 pa.gameweek = gameweek
                 pa.price = int(result["value"])
                 pa.team = team
-                pa.position = position                               
+                pa.position = position  # does not change during season
                 pa.transfers_balance = int(result["transfers_balance"])
                 pa.selected = int(result["selected"])
                 pa.transfers_in = int(result["transfers_in"])

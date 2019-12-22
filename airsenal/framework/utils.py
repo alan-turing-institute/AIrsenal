@@ -400,13 +400,13 @@ def get_player_attributes(player_name_or_id,
         else:
             return None
 
-    rows = dbsession.query(PlayerAttributes)\
+    attr = dbsession.query(PlayerAttributes)\
                     .filter_by(season=season)\
                     .filter_by(gameweek=gameweek)\
                     .filter_by(player_id=player_id)\
-                    .all()
+                    .first()
     
-    return rows
+    return attr
     
 
 def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsession=None,
