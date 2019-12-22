@@ -129,6 +129,17 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                 continue
             
             for result in data:
+                # check whether there are pre-existing attributes to update
+                pa = get_player_attributes(player.player_id,
+                                           season=season,
+                                           gameweek=next_gw,
+                                           dbsession=session)
+                if pa:
+                    update = True
+                else:
+                    pa = PlayerAttributes()
+                    update = False
+                
                 # determine the team the player played for in this fixture
                 opponent_id = result["opponent_team"]
                 was_home = result["was_home"]
@@ -140,7 +151,6 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                                                     season=season,
                                                     dbsession=session)
                 
-                pa = PlayerAttributes()   
                 pa.player = player
                 pa.player_id = player.player_id
                 pa.season = season
@@ -152,7 +162,10 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                 pa.selected = int(result["selected"])
                 pa.transfers_in = int(result["transfers_in"])
                 pa.transfers_out = int(result["transfers_out"])
-                session.add(pa)
+                
+                if update:
+                    # don't need to add to session if updating pre-existing row
+                    session.add(pa)
                                
                 break  # done this gameweek now
 
