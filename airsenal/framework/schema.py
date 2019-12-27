@@ -29,8 +29,7 @@ class Player(Base):
 
     def team(self, season, gameweek=1):
         """
-        in case a player changed team in a season, loop through all attributes,
-        take the largest gw_valid_from.
+        get player's team for given season and gameweek
         """
         team = None
         for attr in self.attributes:
@@ -41,7 +40,7 @@ class Player(Base):
 
     def current_price(self, season, gameweek=1):
         """
-        take the largest gw_valid_from.
+        get player's price for given season and gameweek
         """
         current_price = None
         for attr in self.attributes:
@@ -52,7 +51,7 @@ class Player(Base):
 
     def position(self, season):
         """
-        players can't change position within a season
+        get player's position for given season
         """
         for attr in self.attributes:
             if attr.season == season:
