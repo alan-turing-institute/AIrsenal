@@ -648,8 +648,18 @@ def get_return_gameweek_for_player(player_id, dbsession=None):
     pdata = fetcher.get_player_summary_data()[player_id]
     rd_rex = '(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})'
     if 'news' in pdata.keys() and re.search(rd_rex, pdata['news']):
-        return_str = re.search(rd_rex, pdata['news']).groups()[1]+" 2018"
-        return_date = dateparser.parse(return_str)
+        
+        return_str = re.search(rd_rex, pdata['news']).groups()[1]
+        # return_str should be a day and month string (without year)
+    
+        # create a date in the future from the day and month string
+        return_date = dateparser.parse(return_str,
+                                       settings={"PREFER_DATES_FROM": "future"}) 
+
+        if not return_date:
+            raise ValueError("Failed to parse date from string '{}'"
+                             .format(return_date))
+
         return_gameweek = get_gameweek_by_date(return_date,dbsession=dbsession)
         return return_gameweek
     return None
