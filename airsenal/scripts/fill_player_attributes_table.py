@@ -104,6 +104,8 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
             pa = PlayerAttributes()
             update = False
         
+        pa.player = player
+        pa.player_id = player.player_id
         pa.season = season
         pa.gameweek = next_gw
         pa.price = int(p_summary["now_cost"])
