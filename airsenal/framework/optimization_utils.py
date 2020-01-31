@@ -158,6 +158,7 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
             if added_ok:
                 break
         total_points = 0.
+        
         for gw in gameweek_range:
             total_points += new_team.get_expected_points(gw, tag)
         if total_points > best_score:

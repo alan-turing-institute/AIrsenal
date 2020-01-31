@@ -46,6 +46,7 @@ def get_current_season():
     end_year = start_year + 1
     return "{}{}".format(str(start_year)[2:],str(end_year)[2:])
 
+
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
@@ -263,7 +264,7 @@ def get_player(player_name_or_id, dbsession=None):
     query the player table by name or id, return the player object (or None)
     """
     if not dbsession:
-        dbsession = session # use the one defined in this module
+        dbsession = session  # use the one defined in this module
 
     # if an id has been passed as a string, convert it to an integer
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
@@ -377,6 +378,36 @@ def get_max_matches_per_player(position="all",season=CURRENT_SEASON,dbsession=No
             max_matches = num_match
     return max_matches
 
+
+def get_player_attributes(player_name_or_id,
+                          season=CURRENT_SEASON,
+                          gameweek=1,
+                          dbsession=None):
+    """Get a player's attributes for a given gameweek in a given season.
+    """
+    
+    if not dbsession:
+        dbsession = session
+        
+    if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
+        player_id = int(player_name_or_id)
+    elif isinstance(player_name_or_id, int):
+        player_id = player_name_or_id
+    elif isinstance(player_name_or_id, str) :
+        player = get_player(player_name_or_id)
+        if player:
+            player_id = player.player_id
+        else:
+            return None
+
+    attr = dbsession.query(PlayerAttributes)\
+                    .filter_by(season=season)\
+                    .filter_by(gameweek=gameweek)\
+                    .filter_by(player_id=player_id)\
+                    .first()
+    
+    return attr
+    
 
 def get_fixtures_for_player(player, season=CURRENT_SEASON, gw_range=None, dbsession=None,
                             verbose=False):
@@ -835,7 +866,7 @@ def get_latest_prediction_tag(season=CURRENT_SEASON,dbsession=None):
         raise RuntimeError("No predicted points in database - has the database been filled?")
 
 
-def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):
+def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
@@ -843,5 +874,58 @@ def get_latest_fixture_tag(season=CURRENT_SEASON,dbsession=None):
     if not dbsession:
         dbsession=session
     rows = dbsession.query(Fixture)\
-                  .filter_by(season=season).all()
+                    .filter_by(season=season).all()
     return rows[-1].tag
+
+
+def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
+                                 season=CURRENT_SEASON, dbsession=None):
+    """Get the team a player played for given the gameweek, opponent, time and
+    whether they were home or away.
+    """
+    if not dbsession:
+        dbsession = session
+
+    opponent = get_team_name(opponent_id, season=season, dbsession=dbsession)
+    if not opponent:
+        raise ValueError("No team with id {} in {} season"
+                         .format(opponent_id, season))
+
+    query = dbsession.query(Fixture)\
+                     .filter_by(gameweek=gameweek)\
+                     .filter_by(season=season)
+    if was_home:
+        fixtures = query.filter_by(away_team=opponent).all()
+    else:
+        fixtures = query.filter_by(home_team=opponent).all()
+
+    if not fixtures or len(fixtures) == 0:
+        raise ValueError("No fixture with season={}, gw={}, opponent={}"
+                         .format(season, gameweek, opponent))
+        
+    if len(fixtures) == 1:
+        fixture = fixtures[0]        
+    else:
+        # opponent played multiple games in the gameweek, determine the
+        # fixture of interest using the kickoff time,
+        kickoff_date = dateparser.parse(kickoff_time)
+        kickoff_date = kickoff_date.replace(tzinfo=timezone.utc)
+        kickoff_date = kickoff_date.date()
+        
+        fixture = None
+        for f in fixtures:
+            f_date = dateparser.parse(f.date)
+            f_date = f_date.replace(tzinfo=timezone.utc)
+            f_date = f_date.date()
+            if f_date == kickoff_date:
+                fixture = f
+                break
+        
+        if not fixture:
+            raise ValueError("No fixture with season={}, gw={}, opponent={}, kickoff_time={}"
+                                .format(season, gameweek, opponent, kickoff_time))
+       
+    if was_home:
+        return fixture.home_team
+    else:
+        return fixture.away_team

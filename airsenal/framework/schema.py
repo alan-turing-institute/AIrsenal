@@ -29,38 +29,29 @@ class Player(Base):
 
     def team(self, season, gameweek=1):
         """
-        in case a player changed team in a season, loop through all attributes,
-        take the largest gw_valid_from.
+        get player's team for given season and gameweek
         """
         team = None
-        latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
+            if attr.season == season and attr.gameweek == gameweek:
                 team = attr.team
-                latest_valid_gw = attr.gw_valid_from
+                break
         return team
-
 
     def current_price(self, season, gameweek=1):
         """
-        take the largest gw_valid_from.
+        get player's price for given season and gameweek
         """
         current_price = None
-        latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
-                current_price = attr.current_price
-                latest_valid_gw = attr.gw_valid_from
+            if attr.season == season and attr.gameweek == gameweek:
+                current_price = attr.price
+                break
         return current_price
-
 
     def position(self, season):
         """
-        players can't change position within a season
+        get player's position for given season
         """
         for attr in self.attributes:
             if attr.season == season:
@@ -74,10 +65,15 @@ class PlayerAttributes(Base):
     player = relationship("Player", back_populates="attributes")
     player_id = Column(Integer, ForeignKey("player.player_id"))
     season = Column(String(100), nullable=False)
-    gw_valid_from = Column(Integer, nullable=False)
-    current_price = Column(Integer, nullable=False)
+    gameweek = Column(Integer, nullable=False)
+    price = Column(Integer, nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
+    
+    transfers_balance = Column(Integer, nullable=True)
+    selected = Column(Integer, nullable=True)
+    transfers_in = Column(Integer, nullable=True)
+    transfers_out = Column(Integer, nullable=True)
 
 
 class Result(Base):
@@ -137,11 +133,6 @@ class PlayerScore(Base):
     creativity = Column(Float, nullable=True)
     threat = Column(Float, nullable=True)
     ict_index = Column(Float, nullable=True)
-    value = Column(Integer, nullable=True)
-    transfers_balance = Column(Integer, nullable=True)
-    selected = Column(Integer, nullable=True)
-    transfers_in = Column(Integer, nullable=True)
-    transfers_out = Column(Integer, nullable=True)
 
 
 class PlayerPrediction(Base):

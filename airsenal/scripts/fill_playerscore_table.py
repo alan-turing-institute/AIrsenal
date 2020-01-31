@@ -68,8 +68,7 @@ def fill_playerscores_from_json(detail_data, season, session):
             print("Couldn't find player {}".format(player_name))
             continue
 
-        print("Doing {} for {} season".format(player.name,
-                                              season))
+        print("SCORES {} {}".format(season, player.name))
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
@@ -119,10 +118,9 @@ def fill_playerscores_from_json(detail_data, season, session):
             for feat in extended_feats:
                 try:
                     ps.__setattr__(feat, fixture_data[feat])
-                except:
+                except KeyError:
                     pass
 
-            player.scores.append(ps)
             session.add(ps)
 
 
@@ -145,7 +143,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
             print("Cant find team for {}".format(player_id))
             continue
 
-        print("Doing {} for {} season".format(player.name, season))
+        print("SCORES {} {}".format(season, player.name))
         player_data = fetcher.get_gameweek_data_for_player(player_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
@@ -195,10 +193,9 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
                 for feat in extended_feats:
                     try:
                         ps.__setattr__(feat, result[feat])
-                    except:
+                    except KeyError:
                         pass
 
-                player.scores.append(ps)
                 session.add(ps)
                 print(
                     "  got {} points vs {} in gameweek {}".format(
