@@ -139,11 +139,16 @@ class FPLDataFetcher(object):
         if self.fpl_league_data:
             return self.fpl_league_data
         else:
+            session = requests.session()
+            url = 'https://users.premierleague.com/accounts/login/'
+
             headers = {"login": self.FPL_LOGIN,
                        "password": self.FPL_PASSWORD,
                        "app": "plfpl-web",
-                       "redirect_uri": "https://fantasy.premierleague.com/"}
-            r = requests.get(self.FPL_LEAGUE_URL, headers=headers)
+                       "redirect_uri": "https://fantasy.premierleague.com/a/login"}
+            session.post(url, data=headers)
+
+            r = session.get(self.FPL_LEAGUE_URL, headers=headers)
             if not r.status_code == 200:
                 print("Unable to access FPL league API")
                 return None

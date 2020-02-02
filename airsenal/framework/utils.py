@@ -590,6 +590,56 @@ def get_predicted_points(gameweek, tag, position="all", team="all",
     return output_list
 
 
+def get_top_predicted_points(gameweek=None, tag=None,
+                             position="all", team="all",
+                             n_players=10, per_position=False,
+                             season=CURRENT_SEASON, dbsession=None):
+    """Print players with the top predicted points.
+
+    
+    Keyword Arguments:
+        gameweek {int or list} -- Single gameweek or list of gameweeks in which
+        case returned totals are sums across all gameweeks (default: next
+        gameweek).
+        tag {str} -- Prediction tag to query (default: latest prediction tag)
+        position {str} -- Player position to query (default: {"all"})
+        per_position {boolean} -- If True print top n_players players for
+        each position separately (default: {False})
+        team {str} -- Team to query (default: {"all"})
+        n_players {int} -- Number of players to return (default: {10})
+        season {str} -- Season to query (default: {CURRENT_SEASON})
+        dbsession {SQLAlchemy session} -- Database session (default: {None})
+    """
+    if not tag:
+        tag = get_latest_prediction_tag()
+    if not gameweek:
+        gameweek = get_next_gameweek()
+    
+    print("="*50)
+    print("PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players,
+                                                                gameweek))
+    print("="*50)
+    
+    if not per_position:
+        pts = get_predicted_points(gameweek, tag, position=position, team=team,
+                                season=season, dbsession=dbsession)
+        pts = sorted(pts, key=lambda x: x[1], reverse=True)
+    
+        for i, p in enumerate(pts[:n_players]):
+            print("{}. {}, {:.2f}pts".format(i+1, p[0].name, p[1]))
+            
+    else:
+        for position in ["GK", "DEF", "MID", "FWD"]:
+            pts = get_predicted_points(gameweek, tag, position=position,
+                                       team=team, season=season,
+                                       dbsession=dbsession)
+            pts = sorted(pts, key=lambda x: x[1], reverse=True)
+            print("{}:".format(position))
+            for i, p in enumerate(pts[:n_players]):
+                print("{}. {}, {:.2f}pts".format(i+1, p[0].name, p[1]))
+            print("-"*25)
+
+
 def get_return_gameweek_for_player(player_id, dbsession=None):
     """
     If  a player is injured and there is 'news' about them on FPL,
@@ -598,8 +648,18 @@ def get_return_gameweek_for_player(player_id, dbsession=None):
     pdata = fetcher.get_player_summary_data()[player_id]
     rd_rex = '(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})'
     if 'news' in pdata.keys() and re.search(rd_rex, pdata['news']):
-        return_str = re.search(rd_rex, pdata['news']).groups()[1]+" 2018"
-        return_date = dateparser.parse(return_str)
+        
+        return_str = re.search(rd_rex, pdata['news']).groups()[1]
+        # return_str should be a day and month string (without year)
+    
+        # create a date in the future from the day and month string
+        return_date = dateparser.parse(return_str,
+                                       settings={"PREFER_DATES_FROM": "future"}) 
+
+        if not return_date:
+            raise ValueError("Failed to parse date from string '{}'"
+                             .format(return_date))
+
         return_gameweek = get_gameweek_by_date(return_date,dbsession=dbsession)
         return return_gameweek
     return None

@@ -58,9 +58,13 @@ Once you've installed the module, you will need to set some environment variable
 1. `FPL_TEAM_ID`: the team ID for your FPL side.
 
 **Optional:**
+
 2. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/) (this is only needed for filling past seasons results if not already present as a csv file in the ```data/``` directory.)
+
 3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
+
 4. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings).
+
 5. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
 
 Once this is done, run the following command:
