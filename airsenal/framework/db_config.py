@@ -7,7 +7,7 @@ from .. import TMPDIR
 
 ## Default connection string points to a local sqlite file in
 ## airsenal/data/data.db
-DB_CONNECTION_STRING = "sqlite:///{}/data/data.db".format(TMPDIR)
+DB_CONNECTION_STRING = "sqlite:///{}/data.db".format(TMPDIR)
 
 ## Check that we're not trying to set location for both sqlite and postgres
 if "AIrsenalDBFile" in os.environ.keys() and \
