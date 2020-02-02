@@ -11,7 +11,8 @@ import sys
 
 import argparse
 
-from .fill_result_table import  fill_results_from_api
+from .fill_player_attributes_table import fill_attributes_table_from_api
+from .fill_result_table import fill_results_from_api
 from .fill_playerscore_table import fill_playerscores_from_api
 from ..framework.transaction_utils import update_team
 from ..framework.utils import *
@@ -31,9 +32,16 @@ def main():
 
         last_in_db = get_last_gameweek_in_db(season, session)
         last_finished = get_last_finished_gameweek()
+        next_gw = get_next_gameweek()
+
+        print("NOT IMPLEMENTED: Updating players table")
+
+        print("Updating attributes")
+        fill_attributes_table_from_api(season, session,
+                                       gw_start=last_in_db, gw_end=next_gw)
+        
         if last_finished > last_in_db:
         ## need to update
-            next_gw = get_next_gameweek()
             fill_results_from_api(last_in_db + 1, next_gw, season, session)
             fill_playerscores_from_api(season, session, last_in_db + 1, next_gw)
         else:

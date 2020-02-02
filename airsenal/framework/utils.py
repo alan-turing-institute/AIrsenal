@@ -342,7 +342,8 @@ def list_players(position="all", team="all",
                  order_by="current_price",
                  season=CURRENT_SEASON,
                  dbsession=None,
-                 verbose=False):
+                 verbose=False,
+                 gameweek=1):
     """
     print list of players, and
     return a list of player_ids
@@ -350,18 +351,18 @@ def list_players(position="all", team="all",
     if not dbsession:
         dbsession = session
     q = dbsession.query(PlayerAttributes)\
-                 .filter_by(season=season)
+                 .filter_by(season=season, gameweek=gameweek)
     if team != "all":
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
     if order_by == "current_price":
-        q = q.order_by(PlayerAttributes.current_price.desc())
+        q = q.order_by(PlayerAttributes.price.desc())
     players = []
     for p in q.all():
         players.append(p.player)
         if verbose:
-            print(p.player.name, p.team, p.position, p.current_price)
+            print(p.player.name, p.team, p.position, p.price)
     return players
 
 
