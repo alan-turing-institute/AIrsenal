@@ -5,11 +5,6 @@
 *FPL_LOGIN
 *FPL_PASSWORD
 
-# AIrsenal database files
-airsenal/data/data.db
-airsenal/data/test.db
-airsenal/data/airsopt/
-
 # other stuff
 .idea/
 .DS_Store
