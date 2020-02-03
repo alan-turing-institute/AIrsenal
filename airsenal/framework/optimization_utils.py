@@ -255,7 +255,7 @@ def make_random_transfers(team, tag, nsubs=1,
     best_team = None
     best_pid_out = []
     best_pid_in = []
-
+    max_tries = 100
     for i in range(num_iter):
         if update_func_and_args:
             ## call function to update progress bar.
@@ -291,6 +291,7 @@ def make_random_transfers(team, tag, nsubs=1,
             )
         complete_team = False
         added_players = []
+        attempt = 0
         while not complete_team:
             ## sample with a triangular PDF - preferentially select players near
             ## the start
@@ -302,12 +303,19 @@ def make_random_transfers(team, tag, nsubs=1,
                 if added_ok:
                     added_players.append(pid_to_add)
             complete_team = new_team.is_complete()
-            if not complete_team:  # take those players out again.
+            if not complete_team:
+                # try to avoid getting stuck in a loop
+                attempt += 1
+                if attempt > max_tries:
+                    new_team = copy.deepcopy(team)
+                    break
+                # take those players out again.
                 for ap in added_players:
                     removed_ok = new_team.remove_player(ap.player_id)
                     if not removed_ok:
                         print("Problem removing {}".format(ap.name))
                 added_players = []
+
         ## calculate the score
         total_points = 0.
         for gw in gw_range:
