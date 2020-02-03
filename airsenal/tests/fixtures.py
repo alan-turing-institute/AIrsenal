@@ -86,7 +86,7 @@ def fill_players():
             pa.season = season
             pa.team = team
             pa.gameweek = gameweek
-            pa.current_price = price
+            pa.price = price
             pa.position = pos
             player = ts.query(Player).filter_by(player_id=i).first()
             pa.player = player
