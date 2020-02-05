@@ -174,7 +174,6 @@ class Team(object):
                       player.name)
                 price_now = price_bought
         
-        
         if price_now > price_bought:
             price_sell = (price_now + price_bought) // 2
         else:
