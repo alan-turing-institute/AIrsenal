@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, and_, or_
 
 from ..framework.mappings import alternative_player_names
 from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
-from ..framework.utils import get_latest_fixture_tag, get_next_gameweek, get_player, get_team_name, \
+from ..framework.utils import get_latest_fixture_tag, NEXT_GAMEWEEK, get_player, get_team_name, \
     get_past_seasons, CURRENT_SEASON
 from ..framework.data_fetcher import FPLDataFetcher
 
@@ -126,7 +126,7 @@ def fill_playerscores_from_json(detail_data, season, session):
 
 def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
     if not gw_end:
-        gw_end = get_next_gameweek(season, session)
+        gw_end = NEXT_GAMEWEEK
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():

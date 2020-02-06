@@ -15,7 +15,7 @@ from airsenal.framework.utils import (
     list_teams,
     get_last_finished_gameweek,
     get_latest_prediction_tag,
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     get_predicted_points_for_player,
     get_fixtures_for_player,
     get_next_fixture_for_player,
@@ -243,7 +243,7 @@ def get_session_prediction(player_id, session_id,
     Query the fixture and predictedscore tables for a specified player
     """
     if not gw:
-        gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+        gw = NEXT_GAMEWEEK
     if not pred_tag:
         pred_tag = get_latest_prediction_tag()
     return_dict = {
@@ -262,7 +262,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     """
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     pred_tag = get_latest_prediction_tag()
-    gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+    gw = NEXT_GAMEWEEK
     pred_scores = {}
     for pid in players:
 
@@ -291,7 +291,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         if not added_ok:
             raise RuntimeError("Cannot add player {}".format(p))
     pred_tag = get_latest_prediction_tag()
-    gw=get_next_gameweek(CURRENT_SEASON, dbsession)
+    gw=NEXT_GAMEWEEK
     if n_transfer == 1:
         new_team, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
     elif n_transfer == 2:

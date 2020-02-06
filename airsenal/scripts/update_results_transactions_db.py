@@ -32,18 +32,17 @@ def main():
 
         last_in_db = get_last_gameweek_in_db(season, session)
         last_finished = get_last_finished_gameweek()
-        next_gw = get_next_gameweek()
 
         print("NOT IMPLEMENTED: Updating players table")
 
         print("Updating attributes")
         fill_attributes_table_from_api(season, session,
-                                       gw_start=last_in_db, gw_end=next_gw)
+                                       gw_start=last_in_db, gw_end=NEXT_GAMEWEEK)
         
         if last_finished > last_in_db:
         ## need to update
-            fill_results_from_api(last_in_db + 1, next_gw, season, session)
-            fill_playerscores_from_api(season, session, last_in_db + 1, next_gw)
+            fill_results_from_api(last_in_db + 1, NEXT_GAMEWEEK, season, session)
+            fill_playerscores_from_api(season, session, last_in_db + 1, NEXT_GAMEWEEK)
         else:
             print("Matches and player-scores already up-to-date")
         ## now check transfers

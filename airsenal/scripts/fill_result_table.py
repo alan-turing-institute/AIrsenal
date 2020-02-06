@@ -11,7 +11,7 @@ import os
 from ..framework.mappings import alternative_team_names
 from ..framework.schema import Result, session_scope, Fixture
 from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.utils import get_next_gameweek, get_latest_fixture_tag, \
+from ..framework.utils import NEXT_GAMEWEEK, get_latest_fixture_tag, \
     get_past_seasons, CURRENT_SEASON
 
 
@@ -95,7 +95,7 @@ def make_result_table(session):
     """
     current season - use API
     """
-    gw_end = get_next_gameweek()
+    gw_end = NEXT_GAMEWEEK
     fill_results_from_api(1, gw_end, CURRENT_SEASON, session)
 
 

@@ -16,7 +16,7 @@ from ..framework.schema import (Player,
                                 session_scope)
 
 from ..framework.utils import (get_latest_fixture_tag,
-                               get_next_gameweek,
+                               NEXT_GAMEWEEK,
                                get_player,
                                get_team_name,
                                get_past_seasons,
@@ -72,7 +72,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
     """
     use the FPL API to get player attributes info for the current season
     """
-    next_gw = get_next_gameweek(season, session)
+    next_gw = NEXT_GAMEWEEK
     if not gw_end:
         gw_end = next_gw
     
@@ -209,7 +209,7 @@ def make_attributes_table(session):
     fill_missing_attributes(start_season=seasons[-1],
                             start_gameweek=1,
                             end_season=CURRENT_SEASON,
-                            end_gameweek=get_next_gameweek())
+                            end_gameweek=NEXT_GAMEWEEK)
 
 
 if __name__ == "__main__":

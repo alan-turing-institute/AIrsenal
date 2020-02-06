@@ -25,7 +25,7 @@ from sqlalchemy.orm import sessionmaker
 from .schema import Player, PlayerPrediction, Fixture, Base, engine
 
 from .utils import (
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     get_fixtures_for_player,
     estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
@@ -207,8 +207,7 @@ def calc_predicted_points(
 
     if not gw_range:
         # by default, go for next three matches
-        next_gw = get_next_gameweek(season, session)
-        gw_range = list(range(next_gw, min(next_gw+3,38))) # don't go beyond gw 38!
+        gw_range = list(range(NEXT_GAMEWEEK, min(next_gw+3,38))) # don't go beyond gw 38!
     team = player.team(season)
     position = player.position(season)
     fixtures = get_fixtures_for_player(player,
@@ -346,15 +345,15 @@ def fill_ep(csv_filename):
     write output to a csv.
     """
     if not os.path.exists(csv_filename):
-        outfile = open(csv_filename,"w")
+        outfile = open(csv_filename, "w")
         outfile.write("player_id,gameweek,EP\n")
     else:
-        outfile = open(csv_filename,"a")
+        outfile = open(csv_filename, "a")
 
     summary_data = fetcher.get_player_summary_data()
-    gameweek = get_next_gameweek()
-    for k,v in summary_data.items():
-        outfile.write("{},{},{}\n".format(k,gameweek,v['ep_next']))
+    gameweek = NEXT_GAMEWEEK
+    for k, v in summary_data.items():
+        outfile.write("{},{},{}\n".format(k, gameweek, v['ep_next']))
         pp = PlayerPrediction()
         pp.player_id = k
         pp.gameweek = gameweek

@@ -33,7 +33,7 @@ def generate_transfer_strategies(gw_ahead, free_transfers=1, max_total_hit=None,
     We also don't allow "F" then "W" in consecutive gameweeks, as this is redundant with "W" then "F".
 
     """
-    next_gw = get_next_gameweek()
+    next_gw = NEXT_GAMEWEEK
     strategy_list = []
     if not (allow_wildcard or allow_free_hit) :
         possibilities = list(range(4)) if free_transfers > 1 else list(range(3))
@@ -114,7 +114,7 @@ def get_baseline_prediction(gw_ahead, tag):
     team = get_starting_team()
     total = 0.0
     cum_total_per_gw = {}
-    next_gw = get_next_gameweek()
+    next_gw = NEXT_GAMEWEEK
     gameweeks = list(range(next_gw, next_gw + gw_ahead))
     for gw in gameweeks:
         score = team.get_expected_points(gw, tag)
@@ -134,7 +134,7 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
     expected points over a specified range of gameweeks.
     """
     if not gameweek_range:
-        gameweek_range = [get_next_gameweek()]
+        gameweek_range = [NEXT_GAMEWEEK]
     best_score = 0.
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
@@ -181,7 +181,7 @@ def make_optimum_double_transfer(team, tag,
     over a specified range of gameweeks.
     """
     if not gameweek_range:
-        gameweek_range = [get_next_gameweek()]
+        gameweek_range = [NEXT_GAMEWEEK]
     best_score = 0.
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
@@ -264,7 +264,7 @@ def make_random_transfers(team, tag, nsubs=1,
                                     update_func_and_args[2])
         new_team = copy.deepcopy(team)
         if not gw_range:
-            gw_range = [get_next_gameweek()]
+            gw_range = [NEXT_GAMEWEEK]
         players_to_remove = []  # this is the index within the team
         removed_players = []  # this is the player_ids
         ## order the players in the team by predicted_points - least-to-most

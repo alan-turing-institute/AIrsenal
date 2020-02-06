@@ -7,7 +7,7 @@ from operator import itemgetter
 from math import floor
 
 from .player import CandidatePlayer, Player, CURRENT_SEASON
-from .utils import get_player, get_next_gameweek, fetcher
+from .utils import get_player, NEXT_GAMEWEEK, fetcher
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -165,7 +165,7 @@ class Team(object):
                       player.player_id,
                       player.name)
                 price_now = player_db.current_price(CURRENT_SEASON,
-                                                    gameweek=get_next_gameweek())
+                                                    gameweek=NEXT_GAMEWEEK)
             else:
                 # if all else fails just use the purchase price as the sale
                 # price for this player.

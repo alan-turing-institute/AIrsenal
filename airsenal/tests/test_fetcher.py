@@ -4,7 +4,7 @@ test that we get valid responses from the API.
 
 import pytest
 
-from ..framework.utils import get_next_gameweek
+from ..framework.utils import NEXT_GAMEWEEK
 from ..framework.data_fetcher import *
 
 
@@ -25,7 +25,7 @@ def test_get_summary_data():
     assert(isinstance(data,dict))
     assert(len(data)>0)
 
-@pytest.mark.skipif(get_next_gameweek()==1,
+@pytest.mark.skipif(NEXT_GAMEWEEK==1,
                     reason="No team data before start of season")
 def test_get_team_data():
     """
@@ -46,7 +46,7 @@ def test_get_team_history_data():
     assert(isinstance(data,dict))
     assert(len(data)>0)
 
-#@pytest.mark.skipif(get_next_gameweek()==1,
+#@pytest.mark.skipif(NEXT_GAMEWEEK==1,
 #                    reason="No league data before start of season")
 #def test_get_league_data():
 #    """
@@ -88,7 +88,7 @@ def test_get_current_team_data():
     assert(isinstance(data,dict))
     assert(len(data)>0)
 
-@pytest.mark.skipif(get_next_gameweek()==1,
+@pytest.mark.skipif(NEXT_GAMEWEEK==1,
                     reason="No data yet for gameweek 1")
 def test_get_detailed_player_data():
     """
