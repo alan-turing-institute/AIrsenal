@@ -164,8 +164,7 @@ class Team(object):
                 print("Using database price as sale price for",
                       player.player_id,
                       player.name)
-                price_now = player_db.current_price(CURRENT_SEASON,
-                                                    gameweek=NEXT_GAMEWEEK)
+                price_now = player_db.price(CURRENT_SEASON, NEXT_GAMEWEEK)
             else:
                 # if all else fails just use the purchase price as the sale
                 # price for this player.

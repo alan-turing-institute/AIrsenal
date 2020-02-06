@@ -343,11 +343,11 @@ def list_teams(season=CURRENT_SEASON,
 
 
 def list_players(position="all", team="all",
-                 order_by="current_price",
+                 order_by="price",
                  season=CURRENT_SEASON,
                  dbsession=None,
                  verbose=False,
-                 gameweek=1):
+                 gameweek=NEXT_GAMEWEEK):
     """
     print list of players, and
     return a list of player_ids
@@ -360,7 +360,7 @@ def list_players(position="all", team="all",
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
-    if order_by == "current_price":
+    if order_by == "price":
         q = q.order_by(PlayerAttributes.price.desc())
     players = []
     for p in q.all():
@@ -743,8 +743,8 @@ def estimate_minutes_from_prev_season(player, season=CURRENT_SEASON,
                                  season=season,
                                  dbsession=dbsession)
 
-        team_prices = [pl.current_price(season, gameweek) for pl in teammates]
-        player_price = player.current_price(season, gameweek)
+        team_prices = [pl.price(season, gameweek) for pl in teammates]
+        player_price = player.price(season, gameweek)
         ratio = player_price/max(team_prices)
 
         return [60*(ratio**2)]

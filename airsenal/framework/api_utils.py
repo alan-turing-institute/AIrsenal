@@ -152,7 +152,7 @@ def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION):
     """
     return ["{} ({}): {}".format(p.name,
                                  p.team(CURRENT_SEASON, NEXT_GAMEWEEK),
-                                 p.current_price(CURRENT_SEASON, NEXT_GAMEWEEK)) \
+                                 p.price(CURRENT_SEASON, NEXT_GAMEWEEK)) \
      for p in list_players(position=position,
                            team=team,
                            dbsession=dbsession)]

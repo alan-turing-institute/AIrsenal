@@ -67,7 +67,7 @@ class Player(Base):
         else:
             return team_after
 
-    def current_price(self, season, gameweek):
+    def price(self, season, gameweek):
         """
         get player's price for given season and gameweek
         If data not available for specified gameweek but data is available for
