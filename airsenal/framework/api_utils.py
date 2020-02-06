@@ -146,7 +146,8 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     return True
 
 
-def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION):
+def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION,
+                              gameweek=NEXT_GAMEWEEK):
     """
     Return a list of players, each with their current team and price
     """
@@ -155,7 +156,8 @@ def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION):
                                  p.price(CURRENT_SEASON, NEXT_GAMEWEEK)) \
      for p in list_players(position=position,
                            team=team,
-                           dbsession=dbsession)]
+                           dbsession=dbsession,
+                           gameweek=gameweek)]
 
 
 def get_session_budget(session_id, dbsession=DBSESSION):

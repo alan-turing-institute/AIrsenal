@@ -24,7 +24,7 @@ def test_reset_session_team():
 def test_list_all_players(fill_players):
     with test_session_scope() as ts:
 
-        player_list = list_players_teams_prices(dbsession=ts)
+        player_list = list_players_teams_prices(dbsession=ts, gameweek=1)
         assert(isinstance(player_list, list))
         assert(len(player_list) > 0)
         first_player = player_list[0]
