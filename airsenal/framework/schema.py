@@ -13,7 +13,6 @@ from contextlib import contextmanager
 
 from .db_config import DB_CONNECTION_STRING
 
-
 Base = declarative_base()
 
 
@@ -42,13 +41,56 @@ class Player(Base):
         """
         get player's price for given season and gameweek
         """
-        current_price = None
+        
+        gw_before = 0
+        gw_after = 39
+        price_before = None
+        price_after = None
+        
         for attr in self.attributes:
-            if attr.season == season and attr.gameweek == gameweek:
-                current_price = attr.price
-                break
-        return current_price
-
+            if attr.season != season:
+                # immediately skip attributes that don't match season
+                continue
+            
+            if attr.gameweek == gameweek:
+                # found the gameweek of interest, return price immediately
+                return attr.price
+            
+            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+                # update last available price before specified gameweek
+                gw_before = attr.gameweek
+                price_before = attr.price
+            
+            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
+                # update next available price after specified gameweek
+                gw_after = attr.gameweek
+                price_after = attr.price
+                
+        # ran through all attributes without finding gameweek, return an
+        # appropriate estimate
+        if not price_before and not price_after:
+            # no prices found for this player in this season
+            print("No price found for", self.name, "in", season, "season.")
+            return None
+        
+        elif not price_after:
+            # no price after requested gameweek, so use nearest available
+            # price before
+            return price_before
+        
+        elif not price_before:
+            # no price before requested gameweek, so use nearest available
+            # price after
+            return price_after
+            
+        else:
+            # found a price before and after the requested gameweek,
+            # interpolate between the two
+            gradient = (price_after - price_before) / (gw_after - gw_before)
+            intercept = price_before - gradient * gw_before
+            price = gradient * gameweek + intercept
+            return round(price)
+    
     def position(self, season):
         """
         get player's position for given season
