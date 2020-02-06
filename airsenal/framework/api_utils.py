@@ -90,7 +90,7 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     info_dict = {"player_id": player_id}
     p = get_player(player_id, dbsession=dbsession)
     info_dict["player_name"] = p.name
-    team = p.team(CURRENT_SEASON)
+    team = p.team(CURRENT_SEASON, NEXT_GAMEWEEK)
     info_dict["team"] = team
     ## get recent scores for the player
     rs = get_recent_scores_for_player(p, dbsession=dbsession)
@@ -151,8 +151,8 @@ def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION):
     Return a list of players, each with their current team and price
     """
     return ["{} ({}): {}".format(p.name,
-                                 p.team(CURRENT_SEASON),
-                                 p.current_price(CURRENT_SEASON)) \
+                                 p.team(CURRENT_SEASON, NEXT_GAMEWEEK),
+                                 p.current_price(CURRENT_SEASO, NEXT_GAMEWEEK)) \
      for p in list_players(position=position,
                            team=team,
                            dbsession=dbsession)]

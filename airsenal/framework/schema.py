@@ -26,41 +26,69 @@ class Player(Base):
     predictions = relationship("PlayerPrediction", uselist=True, back_populates="player")
     scores = relationship("PlayerScore", uselist=True, back_populates="player")
 
-    def team(self, season, gameweek=1):
+    def team(self, season, gameweek):
         """
-        get player's team for given season and gameweek
+        Get player's team for given season and gameweek.
+        If data not available for specified gameweek but data is available for
+        at least one gameweek in specified season, return a best guess value
+        based on data nearest to specified gameweek.
         """
-        team = None
+        gw_before = 0
+        gw_after = 39
+        team_before = None
+        team_after = None
+        
         for attr in self.attributes:
-            if attr.season == season and attr.gameweek == gameweek:
-                team = attr.team
-                break
-        return team
+            if attr.season != season:
+                continue
+            
+            if attr.gameweek == gameweek:
+                return attr.team
+            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+                # update last available team before specified gameweek
+                gw_before = attr.gameweek
+                team_before = attr.team
+            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
+                # update next available team after specified gameweek
+                gw_after = attr.gameweek
+                team_after = attr.team
+                
+        # ran through all attributes without finding gameweek, return an
+        # appropriate estimate
+        if not team_before and not team_after:
+            print("No team found for", self.name, "in", season, "season.")
+            return None
+        elif not team_after:
+            return team_before
+        elif not team_before:
+            return team_after
+        elif (gw_after - gameweek) >= (gameweek - gw_before):
+            return team_before
+        else:
+            return team_after
 
-    def current_price(self, season, gameweek=1):
+    def current_price(self, season, gameweek):
         """
         get player's price for given season and gameweek
-        """
-        
+        If data not available for specified gameweek but data is available for
+        at least one gameweek in specified season, return a best guess value
+        based on data nearest to specified gameweek.
+        """       
         gw_before = 0
         gw_after = 39
         price_before = None
         price_after = None
-        
+                
         for attr in self.attributes:
             if attr.season != season:
-                # immediately skip attributes that don't match season
                 continue
             
             if attr.gameweek == gameweek:
-                # found the gameweek of interest, return price immediately
                 return attr.price
-            
             elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
                 # update last available price before specified gameweek
                 gw_before = attr.gameweek
                 price_before = attr.price
-            
             elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
                 # update next available price after specified gameweek
                 gw_after = attr.gameweek
@@ -69,20 +97,12 @@ class Player(Base):
         # ran through all attributes without finding gameweek, return an
         # appropriate estimate
         if not price_before and not price_after:
-            # no prices found for this player in this season
             print("No price found for", self.name, "in", season, "season.")
             return None
-        
         elif not price_after:
-            # no price after requested gameweek, so use nearest available
-            # price before
             return price_before
-        
         elif not price_before:
-            # no price before requested gameweek, so use nearest available
-            # price after
             return price_after
-            
         else:
             # found a price before and after the requested gameweek,
             # interpolate between the two
