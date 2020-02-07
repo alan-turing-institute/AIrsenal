@@ -177,16 +177,6 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
                 break  # done this gameweek now
 
 
-def fill_missing_attributes(start_season, start_gameweek,
-                            end_season, end_gameweek):
-    """Player details files only contain info when a player had a fixture, so
-    has gaps due to blank gameweeks. Fill them with the most recent available
-    information before the blank.
-    """
-    print("NOT IMPLEMENTED: Attributes for players with blank gameweeks in previous seasons")
-    #raise NotImplementedError()
-
-
 def make_attributes_table(session):
     """Create the player attributes table using the previous 3 seasons (from 
     player details JSON files) and the current season (from API)
@@ -205,11 +195,6 @@ def make_attributes_table(session):
     fill_attributes_table_from_api(CURRENT_SEASON, session)
 
     session.commit()
-    
-    fill_missing_attributes(start_season=seasons[-1],
-                            start_gameweek=1,
-                            end_season=CURRENT_SEASON,
-                            end_gameweek=NEXT_GAMEWEEK)
 
 
 if __name__ == "__main__":
