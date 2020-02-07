@@ -354,8 +354,49 @@ def list_players(position="all", team="all",
     """
     if not dbsession:
         dbsession = session
+    
+    # if trying to get players from the future, return current players
+    if season == CURRENT_SEASON and gameweek > NEXT_GAMEWEEK:
+        gameweek = NEXT_GAMEWEEK
+    
+    gameweeks = [gameweek]
+   
+    # check if the team (or all teams) play in the specified gameweek, if not
+    # attributes might be missing
+    fixtures = get_fixtures_for_gameweek(gameweek,
+                                         season=season,
+                                         dbsession=dbsession)
+    teams_with_fixture = [t for fixture in fixtures for t in fixture]
+    teams_with_fixture = set(teams_with_fixture)
+    
+    if ((team == 'all' and len(teams_with_fixture) < 20) or
+        (team != 'all' and team not in teams_with_fixture)):
+        # check neighbouring gameweeks to get all 20 teams/specified team
+        gws_to_try = [gameweek-1, gameweek+1, gameweek-2, gameweek+2]
+        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw < 39]
+        
+        for gw in gws_to_try:
+            fixtures = get_fixtures_for_gameweek(gw,
+                                                 season=season,
+                                                 dbsession=dbsession)
+            new_teams = [t for fixture in fixtures for t in fixture]
+            
+            if (team == 'all' and
+               any([t not in teams_with_fixture for t in new_teams])):
+                # this gameweek has some teams we haven't seen before
+                gameweeks.append(gw)
+                [teams_with_fixture.add(t) for t in new_teams]
+                if len(teams_with_fixture) == 20:
+                    break
+            
+            elif (team != 'all' and team in new_teams):
+                # this gameweek has the team we're looking for
+                gameweeks.append(gw)
+                break
+        
     q = dbsession.query(PlayerAttributes)\
-                 .filter_by(season=season, gameweek=gameweek)
+                 .filter_by(season=season)\
+                 .filter(PlayerAttributes.gameweek.in_(gameweeks))
     if team != "all":
         q = q.filter_by(team=team)
     if position != "all":
@@ -364,7 +405,10 @@ def list_players(position="all", team="all",
         q = q.order_by(PlayerAttributes.price.desc())
     players = []
     for p in q.all():
-        players.append(p.player)
+        if p.player not in players:
+            # might have queried multiple gameweeks with same player returned
+            # multiple times - only add if it's a new player
+            players.append(p.player)
         if verbose:
             print(p.player.name, p.team, p.position, p.price)
     return players
@@ -920,7 +964,7 @@ def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
                          .format(season, gameweek, opponent))
         
     if len(fixtures) == 1:
-        fixture = fixtures[0]        
+        fixture = fixtures[0]
     else:
         # opponent played multiple games in the gameweek, determine the
         # fixture of interest using the kickoff time,
