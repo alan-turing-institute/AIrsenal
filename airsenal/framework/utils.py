@@ -430,7 +430,7 @@ def get_max_matches_per_player(position="all",season=CURRENT_SEASON,dbsession=No
 
 def get_player_attributes(player_name_or_id,
                           season=CURRENT_SEASON,
-                          gameweek=1,
+                          gameweek=NEXT_GAMEWEEK,
                           dbsession=None):
     """Get a player's attributes for a given gameweek in a given season.
     """
