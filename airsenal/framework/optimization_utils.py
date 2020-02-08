@@ -154,7 +154,8 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
                                     update_func_and_args[2])
         new_team = copy.deepcopy(team)
         position = p_out.position
-        new_team.remove_player(p_out.player_id)
+        new_team.remove_player(p_out.player_id,
+                               season=season, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
@@ -202,7 +203,8 @@ def make_optimum_double_transfer(team, tag,
         pout_1 = team.players[i]
 
         new_team_remove_1 = copy.deepcopy(team)
-        new_team_remove_1.remove_player(pout_1.player_id)
+        new_team_remove_1.remove_player(pout_1.player_id,
+                                        season=season, gameweek=transfer_gw)
         for j in range(i+1, len(team.players)):
             if update_func_and_args:
                 ## call function to update progress bar.
@@ -211,7 +213,8 @@ def make_optimum_double_transfer(team, tag,
                                         update_func_and_args[2])
             pout_2 = team.players[j]
             new_team_remove_2 = copy.deepcopy(new_team_remove_1)
-            new_team_remove_2.remove_player(pout_2.player_id)
+            new_team_remove_2.remove_player(pout_2.player_id,
+                                        season=season, gameweek=transfer_gw)
             if verbose:
                 print("Removing players {} {}".format(i,j))
             ## what positions do we need to fill?
@@ -294,7 +297,8 @@ def make_random_transfers(team, tag, nsubs=1,
         for p in players_to_remove:
             positions_needed.append(team.players[p].position)
             removed_players.append(team.players[p].player_id)
-            new_team.remove_player(removed_players[-1])
+            new_team.remove_player(removed_players[-1],
+                                   season=season, gameweek=transfer_gw)
         budget = new_team.budget
         predicted_points = {}
         for pos in set(positions_needed):
@@ -324,7 +328,9 @@ def make_random_transfers(team, tag, nsubs=1,
                     break
                 # take those players out again.
                 for ap in added_players:
-                    removed_ok = new_team.remove_player(ap.player_id)
+                    removed_ok = new_team.remove_player(ap.player_id,
+                                                        season=season,
+                                                        gameweek=transfer_gw)
                     if not removed_ok:
                         print("Problem removing {}".format(ap.name))
                 added_players = []
@@ -384,7 +390,8 @@ def make_new_team(budget, num_iterations, tag,
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
             remove_cost = player_to_remove.current_price
             remove_position = player_to_remove.position
-            t.remove_player(player_to_remove.player_id)
+            t.remove_player(player_to_remove.player_id,
+                            season=season, gameweek=transfer_gw)
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (

@@ -6,8 +6,8 @@ Is able to check that it obeys all constraints.
 from operator import itemgetter
 from math import floor
 
-from .player import CandidatePlayer, Player, CURRENT_SEASON
-from .utils import get_player, NEXT_GAMEWEEK, fetcher
+from .player import CandidatePlayer, Player
+from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -123,7 +123,8 @@ class Team(object):
         self.budget -= player.current_price
         return True
 
-    def remove_player(self, player_id, price=None, use_api=True):
+    def remove_player(self, player_id, price=None, use_api=True,
+                      season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
@@ -136,34 +137,39 @@ class Team(object):
                 if price:
                     self.budget += price
                 else:
-                    self.budget += self.get_sell_price_for_player(p, use_api=use_api)
+                    self.budget += self.get_sell_price_for_player(p,
+                                                                  use_api=use_api,
+                                                                  season=season,
+                                                                  gameweek=gameweek)
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
 
-    def get_sell_price_for_player(self, player, use_api=True):
+    def get_sell_price_for_player(self, player, use_api=True,
+                                  season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
         price_bought = player.current_price
         player_id = player.player_id
-              
-        if use_api:
+        
+        price_now = None
+        if use_api and season == CURRENT_SEASON and gameweek == NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
                 price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
             except:
-                price_now = None
+                pass
             
-        if not use_api or not price_now:
+        if not price_now:
             player_db = get_player(player_id)
             
             if player_db:
                 print("Using database price as sale price for",
                       player.player_id,
                       player.name)
-                price_now = player_db.price(CURRENT_SEASON, NEXT_GAMEWEEK)
+                price_now = player_db.price(season, gameweek)
             else:
                 # if all else fails just use the purchase price as the sale
                 # price for this player.
