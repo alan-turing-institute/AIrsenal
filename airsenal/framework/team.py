@@ -155,7 +155,7 @@ class Team(object):
         player_id = player.player_id
         
         price_now = None
-        if use_api and season == CURRENT_SEASON and gameweek == NEXT_GAMEWEEK:
+        if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
                 price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
