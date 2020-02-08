@@ -59,6 +59,6 @@ rm /tmp/data.db
 # Run full AIrsenal pipeline
 # with default arguments but on all cores
 setup_airsenal_database
-update_airsenal_database
+update_airsenal_database --noattr
 run_airsenal_predictions --num_thread $NCPU --weeks_ahead $WEEKS_AHEAD
 run_airsenal_optimization --num_thread $NCPU --weeks_ahead $WEEKS_AHEAD --bank $BANK --num_free_transfers $NUM_FREE_TRANSFERS
