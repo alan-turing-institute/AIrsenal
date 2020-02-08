@@ -68,14 +68,11 @@ def fill_attributes_table_from_file(detail_data, season, session):
                 session.add(pa)
 
 
-def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
+def fill_attributes_table_from_api(season, session, gw_start=1,
+                                   gw_end=NEXT_GAMEWEEK):
     """
     use the FPL API to get player attributes info for the current season
     """
-    next_gw = NEXT_GAMEWEEK
-    if not gw_end:
-        gw_end = next_gw
-    
     fetcher = FPLDataFetcher()
     
     # needed for selected by calculation from percentage below
@@ -99,7 +96,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
         
         pa = get_player_attributes(player.player_id,
                                    season=season,
-                                   gameweek=next_gw,
+                                   gameweek=NEXT_GAMEWEEK,
                                    dbsession=session)
         if pa:
             # found pre-existing attributes for this gameweek
@@ -112,7 +109,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=None):
         pa.player = player
         pa.player_id = player.player_id
         pa.season = season
-        pa.gameweek = next_gw
+        pa.gameweek = NEXT_GAMEWEEK
         pa.price = int(p_summary["now_cost"])
         pa.team = get_team_name(p_summary["team"],
                                 season=season,

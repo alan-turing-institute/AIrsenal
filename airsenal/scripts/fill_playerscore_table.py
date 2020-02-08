@@ -9,54 +9,25 @@ import os
 
 from sqlalchemy import create_engine, and_, or_
 
-from ..framework.mappings import alternative_player_names
-from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
-from ..framework.utils import get_latest_fixture_tag, NEXT_GAMEWEEK, get_player, get_team_name, \
-    get_past_seasons, CURRENT_SEASON
 from ..framework.data_fetcher import FPLDataFetcher
-
-
-def find_fixture(season, gameweek, played_for, opponent, session):
-    """
-    query the fixture table using 3 bits of info...
-    not 100% guaranteed, as 'played_for' might be incorrect
-    if a player moved partway through the season.  First try
-    to match all three bits of info.  If that fails, ignore the played_for.
-    That should then work, apart from double-game-weeks where 'opponent'
-    will have more than one match per gameweek.
-    """
-    tag = get_latest_fixture_tag(season, session)
-    f = (
-        session.query(Fixture)
-        .filter_by(tag=tag)
-        .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
-        .filter(
-            or_(
-                and_(Fixture.home_team == opponent, Fixture.away_team == played_for),
-                and_(Fixture.away_team == opponent, Fixture.home_team == played_for),
-            )
-        )
-    )
-    if f.first():
-        return f.first()
-    # now try again without the played_for information (player might have moved)
-    f = (
-        session.query(Fixture)
-        .filter_by(tag=tag)
-        .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
-        .filter(or_(Fixture.home_team == opponent, Fixture.away_team == opponent))
-    )
-
-    if not f.first():
-        print(
-            "Couldn't find a fixture between {} and {} in gameweek {}".format(
-                played_for, opponent, gameweek
-            )
-        )
-        return None
-    return f.first()
+from ..framework.mappings import alternative_player_names
+from ..framework.schema import (
+    Player,
+    PlayerScore,
+    Result,
+    Fixture,
+    session_scope
+)
+from ..framework.utils import (
+    get_latest_fixture_tag,
+    NEXT_GAMEWEEK,
+    get_player,
+    get_team_name,
+    get_past_seasons,
+    CURRENT_SEASON,
+    find_fixture,
+    get_player_team_from_fixture
+)
 
 
 def fill_playerscores_from_json(detail_data, season, session):
@@ -80,7 +51,13 @@ def fill_playerscores_from_json(detail_data, season, session):
             if not played_for:
                 continue
             opponent = fixture_data["opponent"]
-            fixture = find_fixture(season, gameweek, played_for, opponent, session)
+            
+            # Note: this will fail if two teams play each other twice in a
+            # double gameweek. Add kickoff_time and was_home to
+            # player_details files to prevent this.            
+            fixture = find_fixture(gameweek, played_for, other_team=opponent,
+                                   season=season, dbsession=session)
+                        
             if not fixture:
                 print(
                     "  Couldn't find result for {} in gw {}".format(player.name,
@@ -124,44 +101,42 @@ def fill_playerscores_from_json(detail_data, season, session):
             session.add(ps)
 
 
-def fill_playerscores_from_api(season, session, gw_start=1, gw_end=None):
-    if not gw_end:
-        gw_end = NEXT_GAMEWEEK
+def fill_playerscores_from_api(season, session, gw_start=1,
+                               gw_end=NEXT_GAMEWEEK):
+
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():
         # find the player in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_id, dbsession=session)
-
-        # TODO remove this and replace with method in loop below, i.e. don't
-        # rely on played_for being correct in DB.
-        played_for_id = input_data[player_id]["team"]
-        played_for = get_team_name(played_for_id)
-
-        if not played_for:
-            print("Cant find team for {}".format(player_id))
-            continue
-
+        if not player:
+            print("No player with id {}".format(player_id))
+        
         print("SCORES {} {}".format(season, player.name))
         player_data = fetcher.get_gameweek_data_for_player(player_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
-            if not gameweek in range(gw_start, gw_end):
+            if gameweek not in range(gw_start, gw_end):
                 continue
             for result in results:
                 # try to find the match in the match table
                 opponent = get_team_name(result["opponent_team"])
-                
-                # TODO: Get fixture/played_for from opponent, was_home and kickoff_time
-                # can use approach from make_player_details.get_played_for_from_results                
-                fixture = find_fixture(season, gameweek, played_for, opponent, session)
+                                
+                played_for, fixture = get_player_team_from_fixture(gameweek,
+                                                                   opponent,
+                                                                   player_at_home=result["was_home"],
+                                                                   kickoff_time=result["kickoff_time"],
+                                                                   season=season,
+                                                                   dbsession=session,
+                                                                   return_fixture=True)
                  
-                if not fixture:
+                if not fixture or not played_for:
                     print(
                         "  Couldn't find match for {} in gw {}".format(player.name, gameweek)
                     )
                     continue
+                
                 ps = PlayerScore()
                 ps.player_team = played_for
                 ps.opponent = opponent

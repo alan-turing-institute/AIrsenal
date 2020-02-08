@@ -50,7 +50,8 @@ from .FPL_scoring_rules import (
 np.random.seed(42)
 
 
-def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
+def get_player_history_df(position="all", season=CURRENT_SEASON, session=None,
+                          gameweek=NEXT_GAMEWEEK):
     """
     Query the player_score table to get goals/assists/minutes, and then
     get the team_goals from the match table.
@@ -69,7 +70,8 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
         "team_goals",
     ]
     df = pd.DataFrame(columns=col_names)
-    players = list_players(position=position,season=season,dbsession=session)
+    players = list_players(position=position, season=season, dbsession=session,
+                           gameweek=gameweek)
     max_matches_per_player = get_max_matches_per_player(position, season, dbsession=session)
     for counter, player in enumerate(players):
         print(
@@ -119,7 +121,6 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
                 df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
 
     return df
-
 
 
 def get_attacking_points(

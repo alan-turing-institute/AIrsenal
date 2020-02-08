@@ -938,41 +938,68 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     return rows[-1].tag
 
 
-def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
-                                 season=CURRENT_SEASON, dbsession=None):
-    """Get the team a player played for given the gameweek, opponent, time and
-    whether they were home or away.
+def find_fixture(gameweek, team, was_home=None,
+                 other_team=None, kickoff_time=None,
+                 season=CURRENT_SEASON, dbsession=session):
+    """Get a fixture given a gameweek, team and optionally whether
+    the team was at home or away, the kickoff time and the other team in the
+    fixture.
     """
-    if not dbsession:
-        dbsession = session
-
-    opponent = get_team_name(opponent_id, season=season, dbsession=dbsession)
-    if not opponent:
+    fixture = None
+    
+    if not isinstance(team, str):
+        team_name = get_team_name(team, season=season, dbsession=dbsession)
+    else:
+        team_name = team
+        
+    if not team_name:
         raise ValueError("No team with id {} in {} season"
-                         .format(opponent_id, season))
+                         .format(team, season))
+        
+    if other_team and not isinstance(other_team, str):
+        other_team_name = get_team_name(other_team, season=season,
+                                        dbsession=dbsession)
+    else:
+        other_team_name = other_team
 
     query = dbsession.query(Fixture)\
                      .filter_by(gameweek=gameweek)\
                      .filter_by(season=season)
-    if was_home:
-        fixtures = query.filter_by(away_team=opponent).all()
+    if was_home is True:
+        query = query.filter_by(home_team=team_name)
+    elif was_home is False:
+        query = query.filter_by(away_team=team_name)
+    elif was_home is None:
+        query = query.filter(or_(Fixture.away_team == team_name,
+                                    Fixture.home_team == team_name))
     else:
-        fixtures = query.filter_by(home_team=opponent).all()
-
+        raise ValueError("was_home must be True, False or None")
+       
+    if other_team_name:
+        if was_home is True:
+            query = query.filter_by(away_team=other_team_name)
+        elif was_home is False:
+            query = query.filter_by(home_team=other_team_name)
+        elif was_home is None:
+            query = query.filter(or_(Fixture.away_team == other_team_name,
+                                        Fixture.home_team == other_team_name))
+    
+    fixtures = query.all()
+    
     if not fixtures or len(fixtures) == 0:
-        raise ValueError("No fixture with season={}, gw={}, opponent={}"
-                         .format(season, gameweek, opponent))
+        raise ValueError("No fixture with season={}, gw={}, team_name={}, was_home={}, other_team_name={}"
+                         .format(season, gameweek, team_name, was_home,
+                                 other_team_name))
         
     if len(fixtures) == 1:
         fixture = fixtures[0]
-    else:
-        # opponent played multiple games in the gameweek, determine the
+    elif kickoff_time:
+        # team played multiple games in the gameweek, determine the
         # fixture of interest using the kickoff time,
         kickoff_date = dateparser.parse(kickoff_time)
         kickoff_date = kickoff_date.replace(tzinfo=timezone.utc)
         kickoff_date = kickoff_date.date()
         
-        fixture = None
         for f in fixtures:
             f_date = dateparser.parse(f.date)
             f_date = f_date.replace(tzinfo=timezone.utc)
@@ -981,11 +1008,54 @@ def get_player_team_from_fixture(gameweek, opponent_id, was_home, kickoff_time,
                 fixture = f
                 break
         
-        if not fixture:
-            raise ValueError("No fixture with season={}, gw={}, opponent={}, kickoff_time={}"
-                                .format(season, gameweek, opponent, kickoff_time))
+    if not fixture:
+        raise ValueError("No unique fixture with season={}, gw={}, team_name={}, was_home={}, kickoff_time={}"
+                         .format(season, gameweek, team_name, was_home, kickoff_time))
        
-    if was_home:
-        return fixture.home_team
+    return fixture
+
+
+def get_player_team_from_fixture(gameweek, opponent, player_at_home=None,
+                                 kickoff_time=None, season=CURRENT_SEASON,
+                                 dbsession=session, return_fixture=False):
+    """Get the team a player played for given the gameweek, opponent, time and
+    whether they were home or away.
+    
+    If return_fixture is True, return a tuple of (team_name, fixture)
+    """
+
+    if player_at_home is True:
+        opponent_was_home = False
+    elif player_at_home is False:
+        opponent_was_home = True
+    elif player_at_home is None:
+        opponent_was_home = None
+    
+    fixture = find_fixture(gameweek, opponent, was_home=opponent_was_home,
+                           kickoff_time=kickoff_time, season=season,
+                           dbsession=dbsession)
+    
+    player_team = None
+  
+    if player_at_home is not None:
+        if player_at_home:
+            player_team = fixture.home_team
+        else:
+            player_team = fixture.away_team
+    
     else:
-        return fixture.away_team
+        if not isinstance(opponent, str):
+            opponent_name = get_team_name(opponent, season=season,
+                                          dbsession=dbsession)
+
+        if fixture.home_team == opponent_name:
+            player_team = fixture.away_team
+        elif fixture.away_team == opponent_name:
+            player_team = fixture.home_team
+        else:
+            raise ValueError("Opponent {} not in fixture".format(opponent_name))
+        
+    if return_fixture:
+        return (player_team, fixture)
+    else:
+        return player_team
