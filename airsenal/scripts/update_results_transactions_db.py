@@ -23,21 +23,26 @@ def main():
     parser = argparse.ArgumentParser(description="fill db tables with recent scores and transactions")
     parser.add_argument("--season",help="season, in format e.g. '1819'",default=CURRENT_SEASON)
     parser.add_argument("--tag",help="identifying tag", default="AIrsenal"+CURRENT_SEASON)
+    parser.add_argument("--noattr", help="don't update player attributes", action="store_true")
+
     args = parser.parse_args()
 
     season = args.season
     tag = args.tag
+    do_attributes = not args.noattr
 
     with session_scope() as session:
 
         last_in_db = get_last_gameweek_in_db(season, session)
         last_finished = get_last_finished_gameweek()
 
-        print("NOT IMPLEMENTED: Updating players table")
-
-        print("Updating attributes")
-        fill_attributes_table_from_api(season, session,
-                                       gw_start=last_in_db, gw_end=NEXT_GAMEWEEK)
+        # TODO update players table
+        
+        if do_attributes:
+            print("Updating attributes")
+            fill_attributes_table_from_api(season, session,
+                                           gw_start=last_in_db,
+                                           gw_end=NEXT_GAMEWEEK)
         
         if last_finished > last_in_db:
         ## need to update
