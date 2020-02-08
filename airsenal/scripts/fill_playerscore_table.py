@@ -50,12 +50,18 @@ def fill_playerscores_from_json(detail_data, season, session):
                 played_for = player.team(season, gameweek)
             if not played_for:
                 continue
-            opponent = fixture_data["opponent"]
             
-            # Note: this will fail if two teams play each other twice in a
-            # double gameweek. Add kickoff_time and was_home to
-            # player_details files to prevent this.            
-            fixture = find_fixture(gameweek, played_for, other_team=opponent,
+            if fixture_data["was_home"] == "True":
+                was_home = True
+            elif fixture_data["was_home"] == "False":
+                was_home = False
+            else:
+                was_home = None
+                                   
+            fixture = find_fixture(gameweek, played_for,
+                                   other_team=fixture_data["opponent"],
+                                   was_home=was_home,
+                                   kickoff_time=fixture_data["kickoff_time"],
                                    season=season, dbsession=session)
                         
             if not fixture:
@@ -66,7 +72,7 @@ def fill_playerscores_from_json(detail_data, season, session):
                 continue
             ps = PlayerScore()
             ps.player_team = played_for
-            ps.opponent = opponent
+            ps.opponent = fixture_data["opponent"]
             ps.goals = fixture_data["goals"]
             ps.assists = fixture_data["assists"]
             ps.bonus = fixture_data["bonus"]

@@ -81,7 +81,10 @@ key_dict = {
     'transfers_out': 'transfers_out',
     # attributes
     'value': 'value',
-    'played_for': 'played_for'
+    'played_for': 'played_for',
+    # needed to determine fixture if two teams play each other twice same gw
+    'kickoff_time': 'kickoff_time',
+    'was_home': 'was_home'
 }
 
 
