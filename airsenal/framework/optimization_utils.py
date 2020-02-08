@@ -101,7 +101,9 @@ def get_starting_team():
         else:
             ## within an individual transfer we can violate the budget and team constraints,
             ## as long as the final team for that gameweek obeys them
-            t.add_player(trans.player_id, price=trans.price, check_budget=False, check_team=False)
+            t.add_player(trans.player_id, price=trans.price,
+                         season=trans.season, gameweek=trans.gameweek,
+                         check_budget=False, check_team=False)
     return t
 
 
@@ -135,6 +137,8 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        
+    transfer_gw = min(gameweek_range)  # the week we're making the transfer    
     best_score = 0.
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
@@ -154,7 +158,8 @@ def make_optimum_transfer(team, tag, gameweek_range=None, season=CURRENT_SEASON,
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-            added_ok = new_team.add_player(p_in[0])
+            added_ok = new_team.add_player(p_in[0], season=season,
+                                           gameweek=transfer_gw)
             if added_ok:
                 break
         total_points = 0.
@@ -182,6 +187,8 @@ def make_optimum_double_transfer(team, tag,
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        
+    transfer_gw = min(gameweek_range)  # the week we're making the transfer    
     best_score = 0.
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
@@ -216,7 +223,8 @@ def make_optimum_double_transfer(team, tag,
                    or pin_1[0].player_id == pout_2.player_id:
                     continue   ## no point in adding same player back in
                 new_team_add_1 = copy.deepcopy(new_team_remove_2)
-                added_1_ok = new_team_add_1.add_player(pin_1[0])
+                added_1_ok = new_team_add_1.add_player(pin_1[0], season=season,
+                                                       gameweek=transfer_gw)
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
@@ -225,7 +233,8 @@ def make_optimum_double_transfer(team, tag,
                        pin_2[0].player_id == pout_1.player_id or \
                        pin_2[0].player_id == pout_2.player_id:
                         continue ## no point in adding same player back in
-                    added_2_ok = new_team_add_2.add_player(pin_2[0])
+                    added_2_ok = new_team_add_2.add_player(pin_2[0], season=season,
+                                                           gameweek=transfer_gw)
                     if added_2_ok:
                         # calculate the score
                         total_points = 0.
@@ -244,7 +253,8 @@ def make_optimum_double_transfer(team, tag,
 def make_random_transfers(team, tag, nsubs=1,
                           gw_range=None,
                           num_iter=1,
-                          update_func_and_args=None):
+                          update_func_and_args=None,
+                          season=CURRENT_SEASON):
     """
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select  the replacements with
@@ -265,6 +275,8 @@ def make_random_transfers(team, tag, nsubs=1,
         new_team = copy.deepcopy(team)
         if not gw_range:
             gw_range = [NEXT_GAMEWEEK]
+        
+        transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove = []  # this is the index within the team
         removed_players = []  # this is the player_ids
         ## order the players in the team by predicted_points - least-to-most
@@ -299,7 +311,8 @@ def make_random_transfers(team, tag, nsubs=1,
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
                 pid_to_add = predicted_points[pos][index][0]
-                added_ok = new_team.add_player(pid_to_add)
+                added_ok = new_team.add_player(pid_to_add, season=season,
+                                               gameweek=transfer_gw)
                 if added_ok:
                     added_players.append(pid_to_add)
             complete_team = new_team.is_complete()
@@ -338,7 +351,7 @@ def make_new_team(budget, num_iterations, tag,
     """
     Make a team from scratch, i.e. for gameweek 1, or for wildcard, or free hit.
     """
-
+    transfer_gw = min(gw_range)  # the gw we're making the new team
     best_score = 0.
     best_team = None
 
@@ -359,7 +372,7 @@ def make_new_team(budget, num_iterations, tag,
                                                          tag=tag,
                                                          season=season)
             for pp in predicted_points[pos]:
-                t.add_player(pp[0])
+                t.add_player(pp[0], season=season, gameweek=transfer_gw)
                 if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                     break
 
@@ -381,7 +394,8 @@ def make_new_team(budget, num_iterations, tag,
                     if cp.current_price >= remove_cost:
                         continue
                     else:
-                        t.add_player(pp[0])
+                        t.add_player(pp[0], season=season,
+                                     gameweek=transfer_gw)
             # now try again to fill up the rest of the team
             num_missing_per_position = {}
 
@@ -392,7 +406,8 @@ def make_new_team(budget, num_iterations, tag,
                 for pp in predicted_points[pos]:
                     if pp[0] in excluded_player_ids:
                         continue
-                    t.add_player(pp[0])
+                    t.add_player(pp[0], season=season,
+                                 gameweek=transfer_gw)
                     if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete team

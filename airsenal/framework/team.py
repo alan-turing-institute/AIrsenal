@@ -72,11 +72,10 @@ class Team(object):
         num_players = sum(self.num_position.values())
         return num_players == 15
 
-
     def add_player(self, p,
                    price=None,
                    season=CURRENT_SEASON,
-                   gameweek=1,
+                   gameweek=NEXT_GAMEWEEK,
                    check_budget=True,
                    check_team=True,
                    dbsession=None):

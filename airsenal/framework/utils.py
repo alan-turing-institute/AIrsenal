@@ -909,7 +909,7 @@ def get_last_finished_gameweek():
     return last_finished
 
 
-def get_latest_prediction_tag(season=CURRENT_SEASON,dbsession=None):
+def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
