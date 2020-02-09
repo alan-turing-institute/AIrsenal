@@ -86,13 +86,11 @@ class Team(object):
         with that value.
         """
         if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
-            player = CandidatePlayer(p, season, gameweek,
-                                     dbsession=dbsession)
+            player = CandidatePlayer(p, season=season, gameweek=gameweek,
+                                     purchase_price=price, dbsession=dbsession)
         else: # already a CandidatePlayer (or an equivalent test class)
             player = p
-        # set the price if one was specified.
-        if price:
-            player.purchase_price = price
+
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
@@ -137,52 +135,14 @@ class Team(object):
                 if price:
                     self.budget += price
                 else:
-                    self.budget += self.get_sell_price_for_player(p,
-                                                                  use_api=use_api,
-                                                                  season=season,
-                                                                  gameweek=gameweek)
+                    self.budget += p.sale_price(use_api=use_api,
+                                                season=season,
+                                                gameweek=gameweek)
+                
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
-
-    def get_sell_price_for_player(self, player, use_api=False,
-                                  season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
-        """Get sale price for player (a player in self.players) in the current
-        gameweek of the current season.
-        """
-        price_bought = player.purchase_price
-        player_id = player.player_id
-        
-        price_now = None
-        if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
-            try:
-                # first try getting the price for the player from the API
-                price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
-            except:
-                pass
-            
-        if not price_now:
-            player_db = get_player(player_id)
-            
-            if player_db:
-                #print("Using database price as sale price for",
-                #      player.player_id,
-                #      player.name)
-                price_now = player_db.price(season, gameweek)
-            else:
-                # if all else fails just use the purchase price as the sale
-                # price for this player.
-                print("Using purchase price as sale price for",
-                      player.player_id,
-                      player.name)
-                price_now = price_bought
-        
-        if price_now > price_bought:
-            price_sell = (price_now + price_bought) // 2
-        else:
-            price_sell = price_now
-        return price_sell
 
     def check_no_duplicate_player(self, player):
         """
@@ -192,7 +152,6 @@ class Team(object):
             if p.player_id == player.player_id:
                 return False
         return True
-
 
     def check_num_in_position(self, player):
         """
