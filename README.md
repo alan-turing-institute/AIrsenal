@@ -39,7 +39,7 @@ pip install .
 
 **Windows:**
 
-_Windows is not fully supported. Adding the line `git checkout fix/128-travis-windows` after the `git clone` statement below should let you install the module successfully, but there are still compatibility issues with `run_airsenal_optimization`, see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)_
+_Windows is not fully supported. Adding the line `git checkout fix/128-travis-windows` after the `git clone` statement below should let you install the module successfully, but there are still compatibility issues, see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)_
 
 If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
 ```
