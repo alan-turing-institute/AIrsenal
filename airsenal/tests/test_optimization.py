@@ -30,7 +30,7 @@ class DummyPlayer(object):
         self.name = "player_{}".format(player_id)
         self.position = position
         self.team = "DUMMY_TEAM_{}".format(player_id)
-        self.current_price = 0
+        self.purchase_price = 0
         self.is_starting = True
         self.is_captain = False
         self.is_vice_captain = False

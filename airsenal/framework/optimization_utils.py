@@ -388,7 +388,7 @@ def make_new_team(budget, num_iterations, tag,
             # randomly swap out a player and replace with a cheaper one in the
             # same position
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
-            remove_cost = player_to_remove.current_price
+            remove_cost = player_to_remove.purchase_price
             remove_position = player_to_remove.position
             t.remove_player(player_to_remove.player_id,
                             season=season, gameweek=transfer_gw)
@@ -397,8 +397,9 @@ def make_new_team(budget, num_iterations, tag,
                 if (
                     not pp[0] in excluded_player_ids
                 ) or random.random() < 0.3:  # some chance to put player back
-                    cp = CandidatePlayer(pp[0])
-                    if cp.current_price >= remove_cost:
+                    cp = CandidatePlayer(pp[0], gameweek=transfer_gw,
+                                         season=season)
+                    if cp.purchase_price >= remove_cost:
                         continue
                     else:
                         t.add_player(pp[0], season=season,

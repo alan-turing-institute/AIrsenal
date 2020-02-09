@@ -92,7 +92,7 @@ class Team(object):
             player = p
         # set the price if one was specified.
         if price:
-            player.current_price = price
+            player.purchase_price = price
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
@@ -120,10 +120,10 @@ class Team(object):
             return False
         self.players.append(player)
         self.num_position[player.position] += 1
-        self.budget -= player.current_price
+        self.budget -= player.purchase_price
         return True
 
-    def remove_player(self, player_id, price=None, use_api=True,
+    def remove_player(self, player_id, price=None, use_api=False,
                       season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
         """
         Remove player from our list.
@@ -146,12 +146,12 @@ class Team(object):
                 return True
         return False
 
-    def get_sell_price_for_player(self, player, use_api=True,
+    def get_sell_price_for_player(self, player, use_api=False,
                                   season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-        price_bought = player.current_price
+        price_bought = player.purchase_price
         player_id = player.player_id
         
         price_now = None
@@ -166,9 +166,9 @@ class Team(object):
             player_db = get_player(player_id)
             
             if player_db:
-                print("Using database price as sale price for",
-                      player.player_id,
-                      player.name)
+                #print("Using database price as sale price for",
+                #      player.player_id,
+                #      player.name)
                 price_now = player_db.price(season, gameweek)
             else:
                 # if all else fails just use the purchase price as the sale
@@ -220,7 +220,7 @@ class Team(object):
         """
         check we can afford the player.
         """
-        can_afford = player.current_price <= self.budget
+        can_afford = player.purchase_price <= self.budget
         return can_afford
 
     def _calc_expected_points(self, tag):

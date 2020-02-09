@@ -25,7 +25,7 @@ class CandidatePlayer(object):
         self.name = pdata.name
         self.team = pdata.team(season, gameweek)
         self.position = pdata.position(season)
-        self.current_price = pdata.price(season, gameweek)
+        self.purchase_price = pdata.price(season, gameweek)
         self.is_starting = True  # by default
         self.is_captain = False  # by default
         self.is_vice_captain = False  # by default
