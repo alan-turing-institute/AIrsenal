@@ -38,9 +38,6 @@ class DummyPlayer(object):
 
     def calc_predicted_points(self,dummy):
         pass
-    
-    def sale_price(self, use_api=None, season=None, gameweek=None):
-        return self.purchase_price
 
 
 def generate_dummy_team(player_points_dict=None):
