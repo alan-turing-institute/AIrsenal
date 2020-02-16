@@ -264,11 +264,11 @@ class Team(object):
         if self.verbose:
             print("Best formation is {}".format(best_formation))
         self.apply_formation(player_dict, best_formation)
-        self.order_substitutes(player_dict, gameweek, tag)
+        self.order_substitutes(gameweek, tag)
 
         return best_score
 
-    def order_substitutes(self, player_dict, gameweek, tag):
+    def order_substitutes(self, gameweek, tag):
         # order substitutes by expected points (descending)
         subs = [p for p in self.players if not p.is_starting]
         
