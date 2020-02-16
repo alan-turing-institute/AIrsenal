@@ -9,13 +9,12 @@ import numpy as np
 import pandas as pd
 import pystan
 
-
 from .utils import *
 
 np.random.seed(42)
 
 
-def get_result_df(session):
+def get_result_df(session, season, gameweek):
     """
     query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -25,6 +24,10 @@ def get_result_df(session):
             [
                 [s.fixture.date, s.fixture.home_team, s.fixture.away_team, s.home_score, s.away_score]
                 for s in session.query(Result).all()
+                if not is_future_gameweek(s.fixture.season,
+                                          s.fixture.gameweek,
+                                          current_season=season,
+                                          next_gameweek=gameweek)
             ]
         ),
         columns=["date", "home_team", "away_team", "home_goals", "away_goals"],
@@ -72,11 +75,11 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     return model_team
 
 
-def get_fitted_team_model(season, session):
+def get_fitted_team_model(season, session, gameweek):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
-    df_team = get_result_df(session)
+    df_team = get_result_df(session, season, gameweek)
     df_X = get_ratings_df(session)
     model_team = create_and_fit_team_model(df_team, df_X)
     return model_team

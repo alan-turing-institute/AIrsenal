@@ -40,7 +40,8 @@ def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, seaso
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
         df_player = get_fitted_player_model(player_model, pos, season, session)
-    for player in list_players(position=pos, dbsession=session):
+    for player in list_players(position=pos, dbsession=session,
+                               season=season, gameweek=min(gw_range)):
         predictions[player.player_id] = calc_predicted_points(
             player, team_model, df_player, season, tag, session, gw_range
         )
@@ -77,7 +78,7 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     """
     Do the full prediction for players.
     """
-    model_team = get_fitted_team_model(season, session)
+    model_team = get_fitted_team_model(season, session, gameweek=min(gw_range))
     model_player = get_player_model()
     all_predictions = {}
     queue = Queue()

@@ -35,7 +35,8 @@ from .utils import (
     list_players,
     fetcher,
     session,
-    CURRENT_SEASON
+    CURRENT_SEASON,
+    is_future_gameweek
 )
 from .bpl_interface import (
     get_fitted_team_model
@@ -72,7 +73,10 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None,
     df = pd.DataFrame(columns=col_names)
     players = list_players(position=position, season=season, dbsession=session,
                            gameweek=gameweek)
-    max_matches_per_player = get_max_matches_per_player(position, season, dbsession=session)
+    max_matches_per_player = get_max_matches_per_player(position,
+                                                        season=season,
+                                                        dbsession=session, 
+                                                        gameweek=gameweek)
     for counter, player in enumerate(players):
         print(
             "Filling history dataframe for {}: {}/{} done".format(
@@ -82,6 +86,12 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None,
         results = player.scores
         row_count = 0
         for row in results:
+            if is_future_gameweek(row.fixture.season,
+                                  row.fixture.gameweek,
+                                  current_season=season,
+                                  next_gameweek=gameweek):
+                continue
+            
             match_id = row.result_id
             if not match_id:
                 print(" Couldn't find result for {} {} {}"\

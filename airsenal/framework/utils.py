@@ -414,17 +414,45 @@ def list_players(position="all", team="all",
     return players
 
 
-def get_max_matches_per_player(position="all",season=CURRENT_SEASON,dbsession=None):
+def is_future_gameweek(season, gameweek,
+                       current_season=CURRENT_SEASON,
+                       next_gameweek=NEXT_GAMEWEEK):
+    """Return True is season and gameweek refers to a gameweek that is after
+    (or the same) as current_season and next_gameweek"""
+    if season == current_season:
+        if gameweek < next_gameweek:
+            return False
+        else:
+            return True
+        
+    elif int(season) > int(current_season):
+        return True
+    
+    else:
+        return False
+    
+    
+def get_max_matches_per_player(position="all", season=CURRENT_SEASON,
+                               dbsession=None, gameweek=NEXT_GAMEWEEK):
     """
     can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
-    players = list_players(position=position,season=season, dbsession=dbsession)
+    players = list_players(position=position, season=season,
+                           dbsession=dbsession, gameweek=gameweek)
     max_matches = 0
     for p in players:
-        num_match = len(p.scores)
+        num_match = 0
+        for score in p.scores:
+            if not is_future_gameweek(score.fixture.season,
+                                      score.fixture.gameweek,
+                                      current_season=season,
+                                      next_gameweek=gameweek):
+                num_match += 1
+        
         if num_match > max_matches:
             max_matches = num_match
+
     return max_matches
 
 
