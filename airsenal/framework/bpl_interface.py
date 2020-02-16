@@ -23,7 +23,13 @@ def get_result_df(session):
     df_past = pd.DataFrame(
         np.array(
             [
-                [s.fixture.date, s.fixture.home_team, s.fixture.away_team, s.home_score, s.away_score]
+                [
+                    s.fixture.date,
+                    s.fixture.home_team,
+                    s.fixture.away_team,
+                    s.home_score,
+                    s.away_score,
+                ]
                 for s in session.query(Result).all()
             ]
         ),
@@ -44,7 +50,7 @@ def get_ratings_df(session):
                 for s in session.query(FifaTeamRating).all()
             ]
         ),
-        columns=["team", "att", "mid", "defn", "ovr"]
+        columns=["team", "att", "mid", "defn", "ovr"],
     )
     return df
 
@@ -61,7 +67,9 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     for team in teams:
         if not team in model_team.team_indices.keys():
             try:
-                strvals = df_X.loc[(df_X["team"]==team),["att","mid","defn","ovr"]].values
+                strvals = df_X.loc[
+                    (df_X["team"] == team), ["att", "mid", "defn", "ovr"]
+                ].values
                 intvals = [int(v) for v in strvals[0]]
                 model_team.add_new_team(team, intvals)
                 print("Adding new team {} with covariates".format(team))
