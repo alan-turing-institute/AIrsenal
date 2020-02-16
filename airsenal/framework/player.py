@@ -29,6 +29,7 @@ class CandidatePlayer(object):
         self.is_captain = False  # by default
         self.is_vice_captain = False  # by default
         self.predicted_points = {}
+        self.sub_position = None
 
     def calc_predicted_points(self, method):
         """

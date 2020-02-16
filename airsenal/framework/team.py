@@ -60,8 +60,10 @@ class Team(object):
                         player_line += "(VC)"
                     print(player_line)
         print("\n=== subs ===\n")
-        for p in self.players:
-            if not p.is_starting:
+
+        subs = [p for p in self.players if not p.is_starting]
+        subs.sort(key=lambda p: p.sub_position)
+        for p in subs:
                 print("{} ({})".format(p.name, p.team))
         return ""
 
@@ -262,7 +264,27 @@ class Team(object):
         if self.verbose:
             print("Best formation is {}".format(best_formation))
         self.apply_formation(player_dict, best_formation)
+        self.order_substitutes(player_dict, gameweek, tag)
+
         return best_score
+
+    def order_substitutes(self, player_dict, gameweek, tag):
+        # order substitutes by expected points (descending)
+        subs = [p for p in self.players if not p.is_starting]
+        
+        points = []
+        for player in subs:
+            try:
+                points.append(player.predicted_points[tag][gameweek])
+            except ValueError:
+                points.append(0)
+
+        # sort the players by points (descending)
+        sorted_subs = [player for points, player in sorted(zip(points, subs), reverse=True)]
+
+        # set the sub position attribute for the players
+        for i, player in enumerate(sorted_subs):
+            player.sub_position = i
 
     def apply_formation(self, player_dict, formation):
         """
