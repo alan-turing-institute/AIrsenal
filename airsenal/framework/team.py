@@ -6,6 +6,8 @@ Is able to check that it obeys all constraints.
 from operator import itemgetter
 from math import floor
 
+import numpy as np
+
 from .player import CandidatePlayer, Player, CURRENT_SEASON
 from .utils import get_player, get_next_gameweek, fetcher
 
@@ -280,11 +282,9 @@ class Team(object):
                 points.append(0)
 
         # sort the players by points (descending)
-        sorted_subs = [player for points, player in sorted(zip(points, subs), reverse=True)]
-
-        # set the sub position attribute for the players
-        for i, player in enumerate(sorted_subs):
-            player.sub_position = i
+        ordered_sub_inds = reversed(np.argsort(points))
+        for sub_position, sub_ind in enumerate(ordered_sub_inds):
+            subs[sub_ind].sub_position = sub_position
 
     def apply_formation(self, player_dict, formation):
         """

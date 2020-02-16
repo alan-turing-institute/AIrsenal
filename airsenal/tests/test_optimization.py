@@ -35,6 +35,7 @@ class DummyPlayer(object):
         self.is_captain = False
         self.is_vice_captain = False
         self.predicted_points = {"DUMMY": points_dict}
+        self.sub_position = None
 
     def calc_predicted_points(self,dummy):
         pass
