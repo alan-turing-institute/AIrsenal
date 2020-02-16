@@ -125,3 +125,37 @@ def test_empty_team(fill_players):
     with pytest.raises(RuntimeError) as errmsg:
         t.get_expected_points(1,"dummy")
     assert str(errmsg.value) == "Team is incomplete"
+
+
+def test_order_substitutes():
+    t = Team()
+
+    class MockPlayer:
+
+        def __init__(self, points, is_starting, name, team):
+            self.predicted_points = {0: {0: points}}
+            self.is_starting = is_starting
+            self.name = name
+            self.team = team
+            self.sub_position = None
+    
+    players = [
+        MockPlayer(10, False, "a", "A"),
+        MockPlayer(9, False, "b", "B"),
+        MockPlayer(8, False, "c", "C"),
+        MockPlayer(11, True, "d", "D")
+    ]
+
+    t.players = players
+    t.order_substitutes(0, 0)
+
+    expected_sub_positions = [0, 1, 2, None]
+    for player, sub_position in zip(players, expected_sub_positions):
+        assert player.sub_position == sub_position
+
+    # test the logic that's use in __repr__ as well
+    subs = [p for p in t.players if not p.is_starting]
+    subs.sort(key=lambda p: p.sub_position)
+    expected_names = ["a", "b", "c"]
+    for player, expected_name in zip(subs, expected_names):
+        assert player.name == expected_name
