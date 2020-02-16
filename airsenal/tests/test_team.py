@@ -152,3 +152,10 @@ def test_order_substitutes():
     expected_sub_positions = [0, 1, 2, None]
     for player, sub_position in zip(players, expected_sub_positions):
         assert player.sub_position == sub_position
+
+    # test the logic that's use in __repr__ as well
+    subs = [p for p in t.players if not p.is_starting]
+    subs.sort(key=lambda p: p.sub_position)
+    expected_names = ["a", "b", "c"]
+    for player, expected_name in zip(subs, expected_names):
+        assert player.name == expected_name
