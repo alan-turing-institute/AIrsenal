@@ -232,7 +232,9 @@ class TransferSuggestion(Base):
 
 class FifaTeamRating(Base):
     __tablename__ = "fifa_rating"
-    team = Column(String(100), nullable=False, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    season = Column(String(100), nullable=False)
+    team = Column(String(100), nullable=False)
     att = Column(Integer, nullable=False)
     defn = Column(Integer, nullable=False)
     mid = Column(Integer, nullable=False)

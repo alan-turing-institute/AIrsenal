@@ -38,17 +38,24 @@ def get_result_df(session, season, gameweek):
     return df_past
 
 
-def get_ratings_df(session):
+def get_ratings_df(session, season):
     """Create a dataframe containing the fifa team ratings."""
+    
+    ratings = session.query(FifaTeamRating).filter_by(season=season).all()
+    
+    if len(ratings) == 0:
+        raise ValueError("No FIFA ratings found for season {}".format(season))
+    
     df = pd.DataFrame(
         np.array(
             [
                 [s.team, s.att, s.mid, s.defn, s.ovr]
-                for s in session.query(FifaTeamRating).all()
+                for s in ratings
             ]
         ),
         columns=["team", "att", "mid", "defn", "ovr"]
     )
+    
     return df
 
 
@@ -80,6 +87,6 @@ def get_fitted_team_model(season, session, gameweek):
     get the fitted team model using the past results and the FIFA rankings
     """
     df_team = get_result_df(session, season, gameweek)
-    df_X = get_ratings_df(session)
+    df_X = get_ratings_df(session, season)
     model_team = create_and_fit_team_model(df_team, df_X)
     return model_team
