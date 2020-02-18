@@ -91,10 +91,6 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
 
-# TODO make this a database table so we can look at past seasons
-CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
-
-
 def get_previous_season(season):
     """
     Convert string e.g. '1819' into one for previous season, i.e. '1718'
@@ -261,6 +257,10 @@ def get_teams_for_season(season, dbsession=None):
         dbsession = session
     teams = dbsession.query(Team).filter_by(season=season).all()
     return [t.name for t in teams]
+
+
+# global variable for the module
+CURRENT_TEAMS = get_teams_for_season(CURRENT_SEASON)
 
 
 def get_player(player_name_or_id, dbsession=None):
