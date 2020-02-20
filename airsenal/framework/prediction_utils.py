@@ -50,7 +50,7 @@ from .FPL_scoring_rules import (
 np.random.seed(42)
 
 
-def get_player_history_df(position="all", season=CURRENT_SEASON, session=None,
+def get_player_history_df(position="all", season=CURRENT_SEASON, session=session,
                           gameweek=NEXT_GAMEWEEK):
     """
     Query the player_score table to get goals/assists/minutes, and then

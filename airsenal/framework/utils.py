@@ -62,29 +62,47 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                         .filter_by(season=season)\
                         .all()
     earliest_future_gameweek = 39
-    for fixture in fixtures:
-        try:
-            fixture_date = dateparser.parse(fixture.date)
-            fixture_date = fixture_date.replace(tzinfo=timezone.utc)
-            if (
-                    fixture_date > timenow
-                    and fixture.gameweek < earliest_future_gameweek
-            ):
-                earliest_future_gameweek = fixture.gameweek
-        except(TypeError): ## date could be null if fixture not scheduled
-            continue
-    ## now make sure we aren't in the middle of a gameweek
-    for fixture in fixtures:
-        try:
-            if (
-                    dateparser.parse(fixture.date)\
-                    .replace(tzinfo=timezone.utc) < timenow
-                    and fixture.gameweek == earliest_future_gameweek
-            ):
+    
+    if len(fixtures) > 0:    
+        for fixture in fixtures:
+            try:
+                fixture_date = dateparser.parse(fixture.date)
+                fixture_date = fixture_date.replace(tzinfo=timezone.utc)
+                if (
+                        fixture_date > timenow
+                        and fixture.gameweek < earliest_future_gameweek
+                ):
+                    earliest_future_gameweek = fixture.gameweek
+            except(TypeError): ## date could be null if fixture not scheduled
+                continue
+        ## now make sure we aren't in the middle of a gameweek
+        for fixture in fixtures:
+            try:
+                if (
+                        dateparser.parse(fixture.date)\
+                        .replace(tzinfo=timezone.utc) < timenow
+                        and fixture.gameweek == earliest_future_gameweek
+                ):
 
+                    earliest_future_gameweek += 1
+            except(TypeError):
+                continue
+            
+    else:
+        # got no fixtures from database, maybe we're filling it for the first
+        # time - get next gameweek from API instead
+        fixture_data = fetcher.get_fixture_data()
+        for fixture in fixture_data:
+            if (fixture["finished"] is False and fixture["event"]
+                and fixture["event"] < earliest_future_gameweek):
+                earliest_future_gameweek = fixture["event"]
+        # check whether we're mid-gameweek
+        for fixture in fixture_data:
+            if (fixture["finished"] is True
+                and fixture["event"] == earliest_future_gameweek):
                 earliest_future_gameweek += 1
-        except(TypeError):
-            continue
+                break
+    
     return earliest_future_gameweek
 
 
@@ -360,7 +378,7 @@ def list_players(position="all", team="all",
         gameweek = NEXT_GAMEWEEK
     
     gameweeks = [gameweek]
-   
+    print("gameweeks", gameweeks)
     # check if the team (or all teams) play in the specified gameweek, if not
     # attributes might be missing
     fixtures = get_fixtures_for_gameweek(gameweek,
