@@ -378,7 +378,6 @@ def list_players(position="all", team="all",
         gameweek = NEXT_GAMEWEEK
     
     gameweeks = [gameweek]
-    print("gameweeks", gameweeks)
     # check if the team (or all teams) play in the specified gameweek, if not
     # attributes might be missing
     fixtures = get_fixtures_for_gameweek(gameweek,
