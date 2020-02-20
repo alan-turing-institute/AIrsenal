@@ -5,6 +5,7 @@ Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
 from math import floor
+import numpy as np
 
 from .player import CandidatePlayer, Player
 from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
@@ -60,8 +61,10 @@ class Team(object):
                         player_line += "(VC)"
                     print(player_line)
         print("\n=== subs ===\n")
-        for p in self.players:
-            if not p.is_starting:
+
+        subs = [p for p in self.players if not p.is_starting]
+        subs.sort(key=lambda p: p.sub_position)
+        for p in subs:
                 print("{} ({})".format(p.name, p.team))
         return ""
 
@@ -265,7 +268,25 @@ class Team(object):
         if self.verbose:
             print("Best formation is {}".format(best_formation))
         self.apply_formation(player_dict, best_formation)
+        self.order_substitutes(gameweek, tag)
+
         return best_score
+
+    def order_substitutes(self, gameweek, tag):
+        # order substitutes by expected points (descending)
+        subs = [p for p in self.players if not p.is_starting]
+        
+        points = []
+        for player in subs:
+            try:
+                points.append(player.predicted_points[tag][gameweek])
+            except ValueError:
+                points.append(0)
+
+        # sort the players by points (descending)
+        ordered_sub_inds = reversed(np.argsort(points))
+        for sub_position, sub_ind in enumerate(ordered_sub_inds):
+            subs[sub_ind].sub_position = sub_position
 
     def apply_formation(self, player_dict, formation):
         """
