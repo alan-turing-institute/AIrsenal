@@ -63,7 +63,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                         .all()
     earliest_future_gameweek = 39
     
-    if len(fixtures) > 0:    
+    if len(fixtures) > 0:
         for fixture in fixtures:
             try:
                 fixture_date = dateparser.parse(fixture.date)
@@ -437,7 +437,10 @@ def is_future_gameweek(season, gameweek,
     """Return True is season and gameweek refers to a gameweek that is after
     (or the same) as current_season and next_gameweek"""
     if season == current_season:
-        if gameweek < next_gameweek:
+        if gameweek is None:
+            # gameweek probably missing as match has been postponed/rescheduled
+            return True
+        elif gameweek < next_gameweek:
             return False
         else:
             return True

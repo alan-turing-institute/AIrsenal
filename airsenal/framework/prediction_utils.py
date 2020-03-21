@@ -218,7 +218,7 @@ def calc_predicted_points(
 
     if not gw_range:
         # by default, go for next three matches
-        gw_range = list(range(NEXT_GAMEWEEK, min(next_gw+3,38))) # don't go beyond gw 38!
+        gw_range = list(range(NEXT_GAMEWEEK, min(next_gw+3, 38))) # don't go beyond gw 38!
     team = player.team(season, gw_range[0])  # assume player stays with same team from first gameweek in range
     position = player.position(season)
     fixtures = get_fixtures_for_player(player,
@@ -309,12 +309,13 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-def get_fitted_player_model(player_model, position, season, session):
+def get_fitted_player_model(player_model, position, season, session, gameweek):
     """
     Get the fitted player model for a given position
     """
     print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_player_data(player_model, position, season, session)
+    df_player, fits, reals = fit_player_data(player_model, position, season,
+                                             session, gameweek)
     return df_player
 
 
@@ -415,13 +416,15 @@ def get_empirical_bayes_estimates(df_emp):
     return alpha
 
 
-def process_player_data(prefix, season=CURRENT_SEASON, session=session):
+def process_player_data(prefix, season=CURRENT_SEASON, session=session,
+                        gameweek=NEXT_GAMEWEEK):
     """
     transform the player dataframe, basically giving a list (for each player)
     of lists of minutes (for each match, and a list (for each player) of
     lists of ["goals","assists","neither"] (for each match)
     """
-    df = get_player_history_df(prefix, season=season, session=session)
+    df = get_player_history_df(prefix, season=season, session=session,
+                               gameweek=gameweek)
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
     df.loc[(df["neither"]<0),["neither","team_goals","goals","assists"]]=[0.,0.,0.,0.]
     alpha = get_empirical_bayes_estimates(df)
@@ -455,11 +458,11 @@ def process_player_data(prefix, season=CURRENT_SEASON, session=session):
     )
 
 
-def fit_player_data(model, prefix, season, session):
+def fit_player_data(model, prefix, season, session, gameweek):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix, season, session)
+    data, names = process_player_data(prefix, season, session, gameweek)
     fit = model.optimizing(data)
     df = (
         pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])

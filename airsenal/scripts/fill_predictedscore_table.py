@@ -39,7 +39,8 @@ def calc_predicted_points_for_pos(pos, gw_range, team_model, player_model, seaso
     predictions = {}
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = get_fitted_player_model(player_model, pos, season, session)
+        df_player = get_fitted_player_model(player_model, pos, season, session,
+                                            min(gw_range))
     for player in list_players(position=pos, dbsession=session,
                                season=season, gameweek=min(gw_range)):
         predictions[player.player_id] = calc_predicted_points(
