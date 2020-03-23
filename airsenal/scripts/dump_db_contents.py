@@ -5,7 +5,7 @@ Script to dump the database contents.
 import csv
 import os
 
-from airsenal.framework.utils import *
+from ..framework.utils import *
 
 
 def main():
