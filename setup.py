@@ -24,7 +24,8 @@ setup(
         "run_airsenal_predictions=airsenal.scripts.fill_predictedscore_table:main",
         "run_airsenal_optimization=airsenal.scripts.fill_transfersuggestion_table:main",
         "airsenal_make_team=airsenal.scripts.team_builder:main",
-        "check_airsenal_data=airsenal.scripts.data_sanity_checks:run_all_checks"
+        "check_airsenal_data=airsenal.scripts.data_sanity_checks:run_all_checks",
+        "dump_db_contents=airsenal.scripts.dump_db_contents:main"
         ],
     },
     package_data={"airsenal": ["data/*", "stan/*"]}
