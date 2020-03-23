@@ -59,7 +59,7 @@ def main():
             row = {}
             for field in fixture:
                 if isinstance(fixture[field], str) or isinstance(fixture[field], int) or \
-                    isinstance(fixture[field], float):
+                        isinstance(fixture[field], float):
                     row[field] = fixture[field]
             writer.writerow(row)
     print(" ==== dumped Fixture database === ")
@@ -77,7 +77,7 @@ def main():
             row = {}
             for field in result:
                 if isinstance(result[field], str) or isinstance(result[field], int) or \
-                    isinstance(result[field], float):
+                        isinstance(result[field], float):
                     row[field] = result[field]
             writer.writerow(row)
     print(" ==== dumped Result database === ")
@@ -94,7 +94,7 @@ def main():
             row = {}
             for field in team:
                 if isinstance(team[field], str) or isinstance(team[field], int) or \
-                    isinstance(team[field], float):
+                        isinstance(team[field], float):
                     row[field] = team[field]
             writer.writerow(row)
     print(" ==== dumped Team database === ")
