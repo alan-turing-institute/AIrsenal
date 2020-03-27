@@ -4,31 +4,27 @@ Functions used by the AIrsenal API
 """
 
 from uuid import uuid4
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
-from flask import jsonify
 
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    fetcher,
-    list_players,
-    list_teams,
-    get_last_finished_gameweek,
-    get_latest_prediction_tag,
-    get_next_gameweek,
-    get_predicted_points_for_player,
-    get_fixtures_for_player,
-    get_next_fixture_for_player,
-    get_player,
-    get_recent_scores_for_player
-)
+from pandas import DataFrame
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-from airsenal.framework.team import Team
-from airsenal.framework.schema import SessionTeam, SessionBudget, engine, Player
+from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
-    make_optimum_transfer,
-    make_optimum_double_transfer
-)
+    make_optimum_double_transfer, make_optimum_transfer)
+from airsenal.framework.schema import (Player, SessionBudget, SessionTeam,
+                                       engine)
+from airsenal.framework.team import Team
+from airsenal.framework.utils import (CURRENT_SEASON, fetcher,
+                                      get_fixtures_for_player,
+                                      get_fixtures_for_season,
+                                      get_last_finished_gameweek,
+                                      get_latest_prediction_tag,
+                                      get_next_fixture_for_player,
+                                      get_next_gameweek, get_player,
+                                      get_predicted_points_for_player,
+                                      get_recent_scores_for_player,
+                                      list_players, list_teams)
+from flask import jsonify
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 
@@ -300,3 +296,23 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         "transfers_out": pid_out,
         "transfers_in": pid_in
     }
+
+
+def fixture_probabilities(gameweek, season=CURRENT_SEASON):
+    """
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row 
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability, 
+    draw_probability, away_win_probability.
+    """
+    model_team = get_fitted_team_model(season, DBSESSION)
+    fixture_probabilities_list = []
+    fixture_id_list = []
+    for fixture in get_fixtures_for_season():
+        if fixture.gameweek == gameweek:
+            probabilities = model_team.overall_probabilities(
+                fixture.home_team, fixture.away_team)
+            fixture_probabilities_list.append(
+                [fixture.fixture_id, fixture.home_team, fixture.away_team, probabilities[0], probabilities[1], probabilities[2]])
+            fixture_id_list.append(fixture.fixture_id)
+    return DataFrame(fixture_probabilities_list, columns=['fixture_id', 'home_team',
+                                                          'away_team', 'home_win_probability', 'draw_probability', 'away_win_probability'], index=fixture_id_list)
