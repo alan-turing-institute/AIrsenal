@@ -298,13 +298,13 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     }
 
 
-def fixture_probabilities(gameweek, season=CURRENT_SEASON):
+def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=DBSESSION):
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row 
     for each fixture and columns being fixture_id, home_team, away_team, home_win_probability, 
     draw_probability, away_win_probability.
     """
-    model_team = get_fitted_team_model(season, DBSESSION)
+    model_team = get_fitted_team_model(season, dbsession)
     fixture_probabilities_list = []
     fixture_id_list = []
     for fixture in get_fixtures_for_season():
