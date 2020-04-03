@@ -20,7 +20,7 @@ class DummyTeamModel(object):
         self.score_prob_dict = score_prob_dict
 
     def score_n_probability(self, n, team, opp, is_home):
-        total_prob = 0.
+        total_prob = 0.0
         for score, prob in self.score_prob_dict.items():
             s = score[0] if is_home else score[1]
             if s == n:
@@ -28,7 +28,7 @@ class DummyTeamModel(object):
         return total_prob
 
     def concede_n_probability(self, n, team, opp, is_home):
-        total_prob = 0.
+        total_prob = 0.0
         for score, prob in self.score_prob_dict.items():
             s = score[1] if is_home else score[0]
             if s == n:
@@ -127,8 +127,8 @@ def test_defending_points_concede_0_to_4():
     )
     assert get_defending_points("FWD", "dummy", "dummy", True, 90, tm) == 0
     assert get_defending_points("MID", "dummy", "dummy", True, 90, tm) == 0.2
-    assert round(get_defending_points("DEF", "dummy", "dummy", True, 90, tm), 2) == 0.
-    assert round(get_defending_points("GK", "dummy", "dummy", True, 90, tm), 2) == 0.
+    assert round(get_defending_points("DEF", "dummy", "dummy", True, 90, tm), 2) == 0.0
+    assert round(get_defending_points("GK", "dummy", "dummy", True, 90, tm), 2) == 0.0
     ## TODO - how many points do we expect for < 90 mins?
     ## Current calculation only awards clean sheet points for team conceding 0,
     ## but we should allow for possibility that team concedes first goal after
@@ -139,8 +139,8 @@ def test_attacking_points_0_0():
     """
     For 0-0 no-one should get any attacking points.
     """
-    tm = DummyTeamModel({(0, 0): 1.})
-    pm = generate_player_df(1., 0.)
+    tm = DummyTeamModel({(0, 0): 1.0})
+    pm = generate_player_df(1.0, 0.0)
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 90, tm, pm) == 0
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 90, tm, pm) == 0
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 90, tm, pm) == 0
@@ -152,8 +152,8 @@ def test_attacking_points_1_0_top_scorer():
     If team scores, and pr_score is 1, should get 4 points for FWD,
     5 for MID, 6 for DEF.  We don't consider possibility of GK scoring.
     """
-    tm = DummyTeamModel({(1, 0): 1.})
-    pm = generate_player_df(1., 0.)  # certain to score if team scores
+    tm = DummyTeamModel({(1, 0): 1.0})
+    pm = generate_player_df(1.0, 0.0)  # certain to score if team scores
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 90, tm, pm) == 4
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 90, tm, pm) == 5
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 90, tm, pm) == 6
@@ -168,8 +168,8 @@ def test_attacking_points_1_0_top_assister():
     """
     FWD, MID, DEF all get 3 points for an assist.
     """
-    tm = DummyTeamModel({(1, 0): 1.})
-    pm = generate_player_df(0., 1.)  # certain to assist if team scores
+    tm = DummyTeamModel({(1, 0): 1.0})
+    pm = generate_player_df(0.0, 1.0)  # certain to assist if team scores
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 90, tm, pm) == 3
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 90, tm, pm) == 3
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 90, tm, pm) == 3

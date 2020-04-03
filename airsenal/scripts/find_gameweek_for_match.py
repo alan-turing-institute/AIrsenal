@@ -18,21 +18,20 @@ score files, rather than relying on the approach used here.
 
 
 def get_gameweek_deadlines(fpl_file_path):
-    with open(fpl_file_path, 'r') as f:
+    with open(fpl_file_path, "r") as f:
         fpl_json = json.load(f)
 
-    deadlines = pd.Series({e["id"]: e["deadline_time"]
-                          for e in fpl_json["events"]})
-    
+    deadlines = pd.Series({e["id"]: e["deadline_time"] for e in fpl_json["events"]})
+
     deadlines = pd.to_datetime(deadlines).dt.date
     deadlines.sort_index(inplace=True)
-    
+
     return deadlines
 
 
 def get_gameweek_from_date(date, deadlines):
     date = pd.to_datetime(date, dayfirst=True).date()
-    
+
     gw = deadlines[date >= deadlines]
     print("GW{} (deadline {})".format(gw.index[-1], gw.values[-1]))
     return gw.index[-1]
@@ -40,18 +39,18 @@ def get_gameweek_from_date(date, deadlines):
 
 if __name__ == "__main__":
     season = sys.argv[-1]
-    
+
     results_file = open("../data/results_{}.csv".format(season))
     output_file = open("../data/results_{}_with_gw.csv".format(season), "w")
     fpl_file_path = "../data/FPL_{}.json".format(season)
-    
+
     deadlines = get_gameweek_deadlines(fpl_file_path)
-    
+
     for linecount, line in enumerate(results_file.readlines()):
         if linecount == 0:
             output_file.write(line.strip() + ",gameweek\n")
             continue
-        
+
         date, home_team, away_team = line.split(",")[:3]
         print(date, home_team, away_team)
         gameweek = get_gameweek_from_date(date, deadlines)

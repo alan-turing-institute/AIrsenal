@@ -10,7 +10,8 @@ from ..framework.utils import get_player_name, get_player_id
 from ..framework.team import Team
 from ..framework.player import CandidatePlayer
 
-TEST_SEASON="1920"
+TEST_SEASON = "1920"
+
 
 def test_add_player_by_id(fill_players):
     """
@@ -18,7 +19,7 @@ def test_add_player_by_id(fill_players):
     """
     with test_session_scope() as ts:
         t = Team()
-        added_ok = t.add_player(50,season=TEST_SEASON,dbsession=ts)
+        added_ok = t.add_player(50, season=TEST_SEASON, dbsession=ts)
         assert added_ok
 
 
@@ -28,8 +29,7 @@ def test_add_player_by_name(fill_players):
     """
     with test_session_scope() as ts:
         t = Team()
-        added_ok = t.add_player("Alice",season=TEST_SEASON,
-                                dbsession=ts)
+        added_ok = t.add_player("Alice", season=TEST_SEASON, dbsession=ts)
         assert added_ok
 
 
@@ -39,9 +39,9 @@ def test_cant_add_same_player(fill_players):
     """
     with test_session_scope() as ts:
         t = Team()
-        added_ok = t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        added_ok = t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert added_ok
-        added_ok = t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        added_ok = t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert not added_ok
 
 
@@ -52,16 +52,16 @@ def test_cant_add_too_many_per_position(fill_players):
     with test_session_scope() as ts:
         t = Team()
         # keepers
-        assert t.add_player("Alice",season=TEST_SEASON,dbsession=ts)
-        assert t.add_player("Bob",season=TEST_SEASON,dbsession=ts)
-        assert not t.add_player("Pedro",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Alice", season=TEST_SEASON, dbsession=ts)
+        assert t.add_player("Bob", season=TEST_SEASON, dbsession=ts)
+        assert not t.add_player("Pedro", season=TEST_SEASON, dbsession=ts)
         # defenders
-        assert t.add_player("Carla",season=TEST_SEASON,dbsession=ts)
-        assert t.add_player("Donald",season=TEST_SEASON,dbsession=ts)
-        assert t.add_player("Erica",season=TEST_SEASON,dbsession=ts)
-        assert t.add_player("Frank",season=TEST_SEASON,dbsession=ts)
-        assert t.add_player("Gerry",season=TEST_SEASON,dbsession=ts)
-        assert not t.add_player("Stefan",season=TEST_SEASON,dbsession=ts)
+        assert t.add_player("Carla", season=TEST_SEASON, dbsession=ts)
+        assert t.add_player("Donald", season=TEST_SEASON, dbsession=ts)
+        assert t.add_player("Erica", season=TEST_SEASON, dbsession=ts)
+        assert t.add_player("Frank", season=TEST_SEASON, dbsession=ts)
+        assert t.add_player("Gerry", season=TEST_SEASON, dbsession=ts)
+        assert not t.add_player("Stefan", season=TEST_SEASON, dbsession=ts)
 
 
 def test_cant_add_too_many_per_team(fill_players):
@@ -70,10 +70,10 @@ def test_cant_add_too_many_per_team(fill_players):
     """
     with test_session_scope() as ts:
         t = Team()
-        assert t.add_player(1,season=TEST_SEASON,dbsession=ts)
-        assert t.add_player(21,season=TEST_SEASON,dbsession=ts)
-        assert t.add_player(41,season=TEST_SEASON,dbsession=ts)
-        assert not t.add_player(61,season=TEST_SEASON,dbsession=ts)
+        assert t.add_player(1, season=TEST_SEASON, dbsession=ts)
+        assert t.add_player(21, season=TEST_SEASON, dbsession=ts)
+        assert t.add_player(41, season=TEST_SEASON, dbsession=ts)
+        assert not t.add_player(61, season=TEST_SEASON, dbsession=ts)
 
 
 def test_cant_exceed_budget():
@@ -83,21 +83,21 @@ def test_cant_exceed_budget():
     with test_session_scope() as ts:
         t = Team()
         added_ok = True
-        added_ok = added_ok and t.add_player(45,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(46,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(47,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(48,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(49,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(50,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(51,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(52,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(53,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(54,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(55,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(56,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(57,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(58,season=TEST_SEASON,dbsession=ts)
-        added_ok = added_ok and t.add_player(59,season=TEST_SEASON,dbsession=ts)
+        added_ok = added_ok and t.add_player(45, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(46, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(47, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(48, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(49, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(50, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(51, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(52, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(53, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(54, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(55, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(56, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(57, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(58, season=TEST_SEASON, dbsession=ts)
+        added_ok = added_ok and t.add_player(59, season=TEST_SEASON, dbsession=ts)
         assert not added_ok
 
 
@@ -107,7 +107,7 @@ def test_remove_player(fill_players):
     """
     with test_session_scope() as ts:
         t = Team()
-        t.add_player(1,season=TEST_SEASON,dbsession=ts)
+        t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert len(t.players) == 1
         assert t.num_position["GK"] == 1
         t.remove_player(1, use_api=False)
@@ -123,7 +123,7 @@ def test_empty_team(fill_players):
     """
     t = Team()
     with pytest.raises(RuntimeError) as errmsg:
-        t.get_expected_points(1,"dummy")
+        t.get_expected_points(1, "dummy")
     assert str(errmsg.value) == "Team is incomplete"
 
 
@@ -131,19 +131,18 @@ def test_order_substitutes():
     t = Team()
 
     class MockPlayer:
-
         def __init__(self, points, is_starting, name, team):
             self.predicted_points = {0: {0: points}}
             self.is_starting = is_starting
             self.name = name
             self.team = team
             self.sub_position = None
-    
+
     players = [
         MockPlayer(10, False, "a", "A"),
         MockPlayer(9, False, "b", "B"),
         MockPlayer(8, False, "c", "C"),
-        MockPlayer(11, True, "d", "D")
+        MockPlayer(11, True, "d", "D"),
     ]
 
     t.players = players
