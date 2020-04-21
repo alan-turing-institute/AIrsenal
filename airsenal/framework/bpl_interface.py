@@ -22,12 +22,20 @@ def get_result_df(session, season, gameweek):
     df_past = pd.DataFrame(
         np.array(
             [
-                [s.fixture.date, s.fixture.home_team, s.fixture.away_team, s.home_score, s.away_score]
+                [
+                    s.fixture.date,
+                    s.fixture.home_team,
+                    s.fixture.away_team,
+                    s.home_score,
+                    s.away_score,
+                ]
                 for s in session.query(Result).all()
-                if not is_future_gameweek(s.fixture.season,
-                                          s.fixture.gameweek,
-                                          current_season=season,
-                                          next_gameweek=gameweek)
+                if not is_future_gameweek(
+                    s.fixture.season,
+                    s.fixture.gameweek,
+                    current_season=season,
+                    next_gameweek=gameweek,
+                )
             ]
         ),
         columns=["date", "home_team", "away_team", "home_goals", "away_goals"],
@@ -40,22 +48,17 @@ def get_result_df(session, season, gameweek):
 
 def get_ratings_df(session, season):
     """Create a dataframe containing the fifa team ratings."""
-    
+
     ratings = session.query(FifaTeamRating).filter_by(season=season).all()
-    
+
     if len(ratings) == 0:
         raise ValueError("No FIFA ratings found for season {}".format(season))
-    
+
     df = pd.DataFrame(
-        np.array(
-            [
-                [s.team, s.att, s.mid, s.defn, s.ovr]
-                for s in ratings
-            ]
-        ),
-        columns=["team", "att", "mid", "defn", "ovr"]
+        np.array([[s.team, s.att, s.mid, s.defn, s.ovr] for s in ratings]),
+        columns=["team", "att", "mid", "defn", "ovr"],
     )
-    
+
     return df
 
 
@@ -71,7 +74,9 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     for team in teams:
         if not team in model_team.team_indices.keys():
             try:
-                strvals = df_X.loc[(df_X["team"]==team),["att","mid","defn","ovr"]].values
+                strvals = df_X.loc[
+                    (df_X["team"] == team), ["att", "mid", "defn", "ovr"]
+                ].values
                 intvals = [int(v) for v in strvals[0]]
                 model_team.add_new_team(team, intvals)
                 print("Adding new team {} with covariates".format(team))

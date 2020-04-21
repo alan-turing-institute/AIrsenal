@@ -24,7 +24,7 @@ def find_best_match(fpl_players, player):
     use fuzzy matching to see if we can match
     names
     """
-    best_ratio = 0.
+    best_ratio = 0.0
     best_match = None
     for p in fpl_players:
         if fuzz.partial_ratio(p, player) > best_ratio:

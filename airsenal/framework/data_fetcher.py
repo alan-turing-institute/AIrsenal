@@ -25,33 +25,42 @@ class FPLDataFetcher(object):
         self.fpl_team_history_data = None
         self.fpl_transfer_history_data = None
         self.fpl_league_data = None
-        self.fpl_team_data = {} # players in squad, by gameweek
+        self.fpl_team_data = {}  # players in squad, by gameweek
         self.fixture_data = None
-        for ID in ["FPL_LEAGUE_ID",
-                   "FPL_TEAM_ID",
-                   "FPL_LOGIN",
-                   "FPL_PASSWORD"]:
+        for ID in ["FPL_LEAGUE_ID", "FPL_TEAM_ID", "FPL_LOGIN", "FPL_PASSWORD"]:
             if ID in os.environ.keys():
                 self.__setattr__(ID, os.environ[ID])
-            elif os.path.exists(os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))):
+            elif os.path.exists(
+                os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))
+            ):
                 self.__setattr__(
-                    ID, open(
+                    ID,
+                    open(
                         os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))
-                    ).read().strip())
+                    )
+                    .read()
+                    .strip(),
+                )
             else:
                 print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
-        self.FPL_DETAIL_URL = "https://fantasy.premierleague.com/api/element-summary/{}/"
+        self.FPL_SUMMARY_API_URL = (
+            "https://fantasy.premierleague.com/api/bootstrap-static/"
+        )
+        self.FPL_DETAIL_URL = (
+            "https://fantasy.premierleague.com/api/element-summary/{}/"
+        )
         self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history/"
-        self.FPL_TEAM_URL = "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
-        self.FPL_TEAM_TRANSFER_URL = "https://fantasy.premierleague.com/api/entry/{}/transfers/"
+        self.FPL_TEAM_URL = (
+            "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
+        )
+        self.FPL_TEAM_TRANSFER_URL = (
+            "https://fantasy.premierleague.com/api/entry/{}/transfers/"
+        )
         self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1".format(
             self.FPL_LEAGUE_ID
         )
         self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
-
-
 
     def get_current_summary_data(self):
         """
@@ -68,7 +77,6 @@ class FPLDataFetcher(object):
             self.current_summary_data = json.loads(r.content.decode("utf-8"))
         return self.current_summary_data
 
-
     def get_fpl_team_data(self, gameweek, team_id=None):
         """
         Use team id to get team data from the FPL API.
@@ -80,16 +88,15 @@ class FPLDataFetcher(object):
         else:
             if not team_id:
                 team_id = self.FPL_TEAM_ID
-            url = self.FPL_TEAM_URL.format(team_id,gameweek)
+            url = self.FPL_TEAM_URL.format(team_id, gameweek)
             r = requests.get(url)
             if not r.status_code == 200:
                 print("Unable to access FPL team API {}".format(url))
                 return None
             team_data = json.loads(r.content.decode("utf-8"))
             if not team_id:
-                self.fpl_team_data[gameweek] = team_data['picks']
-        return team_data['picks']
-
+                self.fpl_team_data[gameweek] = team_data["picks"]
+        return team_data["picks"]
 
     def get_fpl_team_history_data(self, team_id=None):
         """
@@ -108,7 +115,6 @@ class FPLDataFetcher(object):
             self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_team_history_data
 
-
     def get_fpl_transfer_data(self):
         """
         Get our transfer history from the FPL API.
@@ -125,12 +131,9 @@ class FPLDataFetcher(object):
         # get transfer history from api and reverse order so that
         # oldest transfers at start of list and newest at end.
         self.fpl_transfer_history_data = list(
-            reversed(
-                json.loads(r.content.decode("utf-8"))
-                )
-            )
+            reversed(json.loads(r.content.decode("utf-8")))
+        )
         return self.fpl_transfer_history_data
-
 
     def get_fpl_league_data(self):
         """
@@ -140,12 +143,14 @@ class FPLDataFetcher(object):
             return self.fpl_league_data
         else:
             session = requests.session()
-            url = 'https://users.premierleague.com/accounts/login/'
+            url = "https://users.premierleague.com/accounts/login/"
 
-            headers = {"login": self.FPL_LOGIN,
-                       "password": self.FPL_PASSWORD,
-                       "app": "plfpl-web",
-                       "redirect_uri": "https://fantasy.premierleague.com/a/login"}
+            headers = {
+                "login": self.FPL_LOGIN,
+                "password": self.FPL_PASSWORD,
+                "app": "plfpl-web",
+                "redirect_uri": "https://fantasy.premierleague.com/a/login",
+            }
             session.post(url, data=headers)
 
             r = session.get(self.FPL_LEAGUE_URL, headers=headers)

@@ -65,7 +65,7 @@ class Team(object):
         subs = [p for p in self.players if not p.is_starting]
         subs.sort(key=lambda p: p.sub_position)
         for p in subs:
-                print("{} ({})".format(p.name, p.team))
+            print("{} ({})".format(p.name, p.team))
         return ""
 
     def is_complete(self):
@@ -75,23 +75,25 @@ class Team(object):
         num_players = sum(self.num_position.values())
         return num_players == 15
 
-    def add_player(self, p,
-                   price=None,
-                   season=CURRENT_SEASON,
-                   gameweek=NEXT_GAMEWEEK,
-                   check_budget=True,
-                   check_team=True,
-                   dbsession=None):
+    def add_player(
+        self,
+        p,
+        price=None,
+        season=CURRENT_SEASON,
+        gameweek=NEXT_GAMEWEEK,
+        check_budget=True,
+        check_team=True,
+        dbsession=None,
+    ):
         """
         Add a player.  Can do it by name or by player_id.
         If no price is specified, CandidatePlayer constructor will use the
         current price as found in DB, but if one is specified, we override
         with that value.
         """
-        if isinstance(p,int) or isinstance(p,str) or isinstance(p, Player):
-            player = CandidatePlayer(p, season, gameweek,
-                                     dbsession=dbsession)
-        else: # already a CandidatePlayer (or an equivalent test class)
+        if isinstance(p, int) or isinstance(p, str) or isinstance(p, Player):
+            player = CandidatePlayer(p, season, gameweek, dbsession=dbsession)
+        else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
         # set the price if one was specified.
         if price:
@@ -126,8 +128,14 @@ class Team(object):
         self.budget -= player.purchase_price
         return True
 
-    def remove_player(self, player_id, price=None, use_api=False,
-                      season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
+    def remove_player(
+        self,
+        player_id,
+        price=None,
+        use_api=False,
+        season=CURRENT_SEASON,
+        gameweek=NEXT_GAMEWEEK,
+    ):
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
@@ -140,23 +148,23 @@ class Team(object):
                 if price:
                     self.budget += price
                 else:
-                    self.budget += self.get_sell_price_for_player(p,
-                                                                  use_api=use_api,
-                                                                  season=season,
-                                                                  gameweek=gameweek)
+                    self.budget += self.get_sell_price_for_player(
+                        p, use_api=use_api, season=season, gameweek=gameweek
+                    )
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
 
-    def get_sell_price_for_player(self, player, use_api=False,
-                                  season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK):
+    def get_sell_price_for_player(
+        self, player, use_api=False, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK
+    ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
         price_bought = player.purchase_price
         player_id = player.player_id
-        
+
         price_now = None
         if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
@@ -164,23 +172,25 @@ class Team(object):
                 price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
             except:
                 pass
-            
+
         if not price_now:
             player_db = get_player(player_id)
-            
+
             if player_db:
-                #print("Using database price as sale price for",
+                # print("Using database price as sale price for",
                 #      player.player_id,
                 #      player.name)
                 price_now = player_db.price(season, gameweek)
             else:
                 # if all else fails just use the purchase price as the sale
                 # price for this player.
-                print("Using purchase price as sale price for",
-                      player.player_id,
-                      player.name)
+                print(
+                    "Using purchase price as sale price for",
+                    player.player_id,
+                    player.name,
+                )
                 price_now = price_bought
-        
+
         if price_now > price_bought:
             price_sell = (price_now + price_bought) // 2
         else:
@@ -195,7 +205,6 @@ class Team(object):
             if p.player_id == player.player_id:
                 return False
         return True
-
 
     def check_num_in_position(self, player):
         """
@@ -246,18 +255,17 @@ class Team(object):
             try:
                 points_prediction = p.predicted_points[tag][gameweek]
 
-            except(KeyError):
+            except (KeyError):
                 ## player does not have a game in this gameweek
                 points_prediction = 0
             player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():
             v.sort(key=itemgetter(1), reverse=True)
 
-
         # always start the first-placed and sub the second-placed keeper
         player_dict["GK"][0][0].is_starting = True
         player_dict["GK"][1][0].is_starting = False
-        best_score = 0.
+        best_score = 0.0
         best_formation = None
         for f in FORMATIONS:
             self.apply_formation(player_dict, f)
@@ -275,7 +283,7 @@ class Team(object):
     def order_substitutes(self, gameweek, tag):
         # order substitutes by expected points (descending)
         subs = [p for p in self.players if not p.is_starting]
-        
+
         points = []
         for player in subs:
             try:
@@ -305,7 +313,7 @@ class Team(object):
         """
         simple sum over starting players
         """
-        total = 0.
+        total = 0.0
         for player in self.players:
             if player.is_starting:
                 total += player.predicted_points[tag][gameweek]

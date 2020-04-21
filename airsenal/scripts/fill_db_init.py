@@ -23,5 +23,5 @@ def main():
         make_player_table(session)
         make_attributes_table(session)
         make_playerscore_table(session)
-        
+
         fill_initial_team(session)

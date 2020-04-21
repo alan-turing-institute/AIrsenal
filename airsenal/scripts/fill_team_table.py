@@ -39,14 +39,12 @@ def make_team_table(session):
     seasons = [CURRENT_SEASON]
     seasons += get_past_seasons(4)
     for season in seasons:
-        filename = os.path.join( os.path.join(os.path.dirname(__file__),
-                                              "..",
-                                              "data",
-                                              "teams_{}.csv"\
-                                              .format(season)))
+        filename = os.path.join(
+            os.path.join(
+                os.path.dirname(__file__), "..", "data", "teams_{}.csv".format(season)
+            )
+        )
         fill_team_table_from_file(filename, session)
-
-
 
 
 if __name__ == "__main__":

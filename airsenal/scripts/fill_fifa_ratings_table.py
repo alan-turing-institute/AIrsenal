@@ -15,20 +15,21 @@ from ..framework.utils import CURRENT_SEASON, get_past_seasons
 def make_fifa_ratings_table(session):
     # make the fifa ratings table
     # TODO: scrape the data first rather than committing file to repo
-    
+
     seasons = get_past_seasons(3)
     seasons.append(CURRENT_SEASON)
-    
+
     for season in seasons:
         print("FIFA RATINGS {}".format(season))
-        input_path = os.path.join(os.path.dirname(__file__),
-                                "../data/fifa_team_ratings_{}.csv".format(season))
+        input_path = os.path.join(
+            os.path.dirname(__file__), "../data/fifa_team_ratings_{}.csv".format(season)
+        )
         try:
             input_file = open(input_path)
         except FileNotFoundError:
             print("!!! No FIFA ratings file found for {}".format(season))
             continue
-        
+
         for line in input_file.readlines()[1:]:
             team, att, mid, defn, ovr = line.strip().split(",")
             r = FifaTeamRating()
@@ -48,12 +49,10 @@ def make_fifa_ratings_table(session):
             if not team_is_known:
                 raise ValueError("Unknown team {}.".format(team))
             session.add(r)
-    
+
     session.commit()
 
 
 if __name__ == "__main__":
     with session_scope() as session:
         make_fifa_ratings_table(session)
-
-
