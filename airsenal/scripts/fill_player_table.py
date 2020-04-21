@@ -16,6 +16,7 @@ from ..framework.utils import CURRENT_SEASON, get_past_seasons
 from ..framework.mappings import alternative_player_names
 
 
+
 def find_player_in_table(name, session):
     """
     see if we already have the player
@@ -59,7 +60,6 @@ def fill_player_table_from_file(filename, season, session):
                 max_id_in_table(session) + n_new_players
             )  # next id sequentially
             p.name = name
-
         if new_entry:
             session.add(p)
     session.commit()
