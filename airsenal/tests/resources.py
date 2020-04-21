@@ -81,5 +81,5 @@ dummy_players = [
     "Waynetta",
     "Xavi",
     "Yolanda",
-    "Zebedee"
+    "Zebedee",
 ]

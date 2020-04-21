@@ -23,7 +23,9 @@ class Player(Base):
     attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
     results = relationship("Result", uselist=True, back_populates="player")
     fixtures = relationship("Fixture", uselist=True, back_populates="player")
-    predictions = relationship("PlayerPrediction", uselist=True, back_populates="player")
+    predictions = relationship(
+        "PlayerPrediction", uselist=True, back_populates="player"
+    )
     scores = relationship("PlayerScore", uselist=True, back_populates="player")
 
     def team(self, season, gameweek):
@@ -37,11 +39,11 @@ class Player(Base):
         gw_after = 39
         team_before = None
         team_after = None
-        
+
         for attr in self.attributes:
             if attr.season != season:
                 continue
-            
+
             if attr.gameweek == gameweek:
                 return attr.team
             elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
@@ -52,7 +54,7 @@ class Player(Base):
                 # update next available team after specified gameweek
                 gw_after = attr.gameweek
                 team_after = attr.team
-                
+
         # ran through all attributes without finding gameweek, return an
         # appropriate estimate
         if not team_before and not team_after:
@@ -73,16 +75,16 @@ class Player(Base):
         If data not available for specified gameweek but data is available for
         at least one gameweek in specified season, return a best guess value
         based on data nearest to specified gameweek.
-        """       
+        """
         gw_before = 0
         gw_after = 39
         price_before = None
         price_after = None
-                
+
         for attr in self.attributes:
             if attr.season != season:
                 continue
-            
+
             if attr.gameweek == gameweek:
                 return attr.price
             elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
@@ -93,7 +95,7 @@ class Player(Base):
                 # update next available price after specified gameweek
                 gw_after = attr.gameweek
                 price_after = attr.price
-                
+
         # ran through all attributes without finding gameweek, return an
         # appropriate estimate
         if not price_before and not price_after:
@@ -110,7 +112,7 @@ class Player(Base):
             intercept = price_before - gradient * gw_before
             price = gradient * gameweek + intercept
             return round(price)
-    
+
     def position(self, season):
         """
         get player's position for given season
@@ -131,7 +133,7 @@ class PlayerAttributes(Base):
     price = Column(Integer, nullable=False)
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
-    
+
     transfers_balance = Column(Integer, nullable=True)
     selected = Column(Integer, nullable=True)
     transfers_in = Column(Integer, nullable=True)
@@ -142,7 +144,7 @@ class Result(Base):
     __tablename__ = "result"
     result_id = Column(Integer, primary_key=True, autoincrement=True)
     fixture = relationship("Fixture", uselist=False, back_populates="result")
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
     player = relationship("Player", back_populates="results")
@@ -152,8 +154,8 @@ class Result(Base):
 class Fixture(Base):
     __tablename__ = "fixture"
     fixture_id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String(100), nullable=True) ### In case fixture not yet scheduled!
-    gameweek = Column(Integer, nullable=True) ### In case fixture not yet scheduled!
+    date = Column(String(100), nullable=True)  ### In case fixture not yet scheduled!
+    gameweek = Column(Integer, nullable=True)  ### In case fixture not yet scheduled!
     home_team = Column(String(100), nullable=False)
     away_team = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
@@ -178,9 +180,9 @@ class PlayerScore(Base):
     player = relationship("Player", back_populates="scores")
     player_id = Column(Integer, ForeignKey("player.player_id"))
     result = relationship("Result", uselist=False)
-    result_id = Column(Integer, ForeignKey('result.result_id'))
+    result_id = Column(Integer, ForeignKey("result.result_id"))
     fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
 
     # extended features
     clean_sheets = Column(Integer, nullable=True)
@@ -201,7 +203,7 @@ class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
     fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
     predicted_points = Column(Float, nullable=False)
     tag = Column(String(100), nullable=False)
     player = relationship("Player", back_populates="predictions")
@@ -240,23 +242,25 @@ class FifaTeamRating(Base):
 
 
 class Team(Base):
-    __tablename__="team"
+    __tablename__ = "team"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(3), nullable=False)
     full_name = Column(String(100), nullable=False)
     season = Column(String(4), nullable=False)
-    team_id = Column(Integer, nullable=False) # the season-dependent team ID (from alphabetical order)
+    team_id = Column(
+        Integer, nullable=False
+    )  # the season-dependent team ID (from alphabetical order)
 
 
 class SessionTeam(Base):
-    __tablename__="sessionteam"
+    __tablename__ = "sessionteam"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)
     player_id = Column(Integer, nullable=False)
 
 
 class SessionBudget(Base):
-    __tablename__="sessionbudget"
+    __tablename__ = "sessionbudget"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)
     budget = Column(Integer, nullable=False)
@@ -268,6 +272,7 @@ Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
+
 
 @contextmanager
 def session_scope():

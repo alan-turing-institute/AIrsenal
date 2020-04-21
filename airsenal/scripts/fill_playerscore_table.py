@@ -11,13 +11,7 @@ from sqlalchemy import create_engine, and_, or_
 
 from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.mappings import alternative_player_names
-from ..framework.schema import (
-    Player,
-    PlayerScore,
-    Result,
-    Fixture,
-    session_scope
-)
+from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
 from ..framework.utils import (
     get_latest_fixture_tag,
     NEXT_GAMEWEEK,
@@ -26,7 +20,7 @@ from ..framework.utils import (
     get_past_seasons,
     CURRENT_SEASON,
     find_fixture,
-    get_player_team_from_fixture
+    get_player_team_from_fixture,
 )
 
 
@@ -50,24 +44,29 @@ def fill_playerscores_from_json(detail_data, season, session):
                 played_for = player.team(season, gameweek)
             if not played_for:
                 continue
-            
+
             if fixture_data["was_home"] == "True":
                 was_home = True
             elif fixture_data["was_home"] == "False":
                 was_home = False
             else:
                 was_home = None
-                                   
-            fixture = find_fixture(gameweek, played_for,
-                                   other_team=fixture_data["opponent"],
-                                   was_home=was_home,
-                                   kickoff_time=fixture_data["kickoff_time"],
-                                   season=season, dbsession=session)
-                        
+
+            fixture = find_fixture(
+                gameweek,
+                played_for,
+                other_team=fixture_data["opponent"],
+                was_home=was_home,
+                kickoff_time=fixture_data["kickoff_time"],
+                season=season,
+                dbsession=session,
+            )
+
             if not fixture:
                 print(
-                    "  Couldn't find result for {} in gw {}".format(player.name,
-                                                                    gameweek)
+                    "  Couldn't find result for {} in gw {}".format(
+                        player.name, gameweek
+                    )
                 )
                 continue
             ps = PlayerScore()
@@ -82,22 +81,28 @@ def fill_playerscores_from_json(detail_data, season, session):
             ps.player = player
             ps.result = fixture.result
             ps.fixture = fixture
-           
+
             # extended features
             # get features excluding the core ones already populated above
-            extended_feats = [col for col in ps.__table__.columns.keys()
-                              if col not in ["id",
-                                             "player_team",
-                                             "opponent",
-                                             "goals",
-                                             "assists",
-                                             "bonus",
-                                             "points",
-                                             "conceded",
-                                             "minutes",
-                                             "player_id",
-                                             "result_id",
-                                             "fixture_id"]]
+            extended_feats = [
+                col
+                for col in ps.__table__.columns.keys()
+                if col
+                not in [
+                    "id",
+                    "player_team",
+                    "opponent",
+                    "goals",
+                    "assists",
+                    "bonus",
+                    "points",
+                    "conceded",
+                    "minutes",
+                    "player_id",
+                    "result_id",
+                    "fixture_id",
+                ]
+            ]
             for feat in extended_feats:
                 try:
                     ps.__setattr__(feat, fixture_data[feat])
@@ -107,8 +112,7 @@ def fill_playerscores_from_json(detail_data, season, session):
             session.add(ps)
 
 
-def fill_playerscores_from_api(season, session, gw_start=1,
-                               gw_end=NEXT_GAMEWEEK):
+def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK):
 
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
@@ -118,7 +122,7 @@ def fill_playerscores_from_api(season, session, gw_start=1,
         player = get_player(player_id, dbsession=session)
         if not player:
             print("No player with id {}".format(player_id))
-        
+
         print("SCORES {} {}".format(season, player.name))
         player_data = fetcher.get_gameweek_data_for_player(player_id)
         # now loop through all the matches that player played in
@@ -128,21 +132,25 @@ def fill_playerscores_from_api(season, session, gw_start=1,
             for result in results:
                 # try to find the match in the match table
                 opponent = get_team_name(result["opponent_team"])
-                                
-                played_for, fixture = get_player_team_from_fixture(gameweek,
-                                                                   opponent,
-                                                                   player_at_home=result["was_home"],
-                                                                   kickoff_time=result["kickoff_time"],
-                                                                   season=season,
-                                                                   dbsession=session,
-                                                                   return_fixture=True)
-                 
+
+                played_for, fixture = get_player_team_from_fixture(
+                    gameweek,
+                    opponent,
+                    player_at_home=result["was_home"],
+                    kickoff_time=result["kickoff_time"],
+                    season=season,
+                    dbsession=session,
+                    return_fixture=True,
+                )
+
                 if not fixture or not played_for:
                     print(
-                        "  Couldn't find match for {} in gw {}".format(player.name, gameweek)
+                        "  Couldn't find match for {} in gw {}".format(
+                            player.name, gameweek
+                        )
                     )
                     continue
-                
+
                 ps = PlayerScore()
                 ps.player_team = played_for
                 ps.opponent = opponent
@@ -158,19 +166,25 @@ def fill_playerscores_from_api(season, session, gw_start=1,
 
                 # extended features
                 # get features excluding the core ones already populated above
-                extended_feats = [col for col in ps.__table__.columns.keys()
-                                  if col not in ["id",
-                                                 "player_team",
-                                                 "opponent",
-                                                 "goals",
-                                                 "assists",
-                                                 "bonus",
-                                                 "points",
-                                                 "conceded",
-                                                 "minutes",
-                                                 "player_id",
-                                                 "result_id",
-                                                 "fixture_id"]]
+                extended_feats = [
+                    col
+                    for col in ps.__table__.columns.keys()
+                    if col
+                    not in [
+                        "id",
+                        "player_team",
+                        "opponent",
+                        "goals",
+                        "assists",
+                        "bonus",
+                        "points",
+                        "conceded",
+                        "minutes",
+                        "player_id",
+                        "result_id",
+                        "fixture_id",
+                    ]
+                ]
                 for feat in extended_feats:
                     try:
                         ps.__setattr__(feat, result[feat])
@@ -188,7 +202,9 @@ def fill_playerscores_from_api(season, session, gw_start=1,
 def make_playerscore_table(session):
     # previous seasons data from json files
     for season in get_past_seasons(3):
-        input_path = os.path.join(os.path.dirname(__file__), "../data/player_details_{}.json".format(season))
+        input_path = os.path.join(
+            os.path.dirname(__file__), "../data/player_details_{}.json".format(season)
+        )
         input_data = json.load(open(input_path))
         fill_playerscores_from_json(input_data, season, session)
     # this season's data from the API
