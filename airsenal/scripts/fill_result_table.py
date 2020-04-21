@@ -37,9 +37,14 @@ def _find_fixture(season, home_team, away_team, session):
 
 def fill_results_from_csv(input_file, season, session):
     for line in input_file.readlines()[1:]:
-        date, home_team, away_team, home_score, away_score, gameweek = line.strip().split(
-            ","
-        )
+        (
+            date,
+            home_team,
+            away_team,
+            home_score,
+            away_score,
+            gameweek,
+        ) = line.strip().split(",")
         print(line.strip())
         for k, v in alternative_team_names.items():
             if home_team in v:
