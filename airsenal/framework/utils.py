@@ -438,7 +438,7 @@ def list_players(
             #  multiple times - only add if it's a new player
             players.append(p.player)
             prices.append(p.price)
-            if verbose and len(gameweeks) == 1:
+            if verbose and (len(gameweeks) == 1 or order_by != "price"):
                 print(p.player.name, p.team, p.position, p.price)
     if len(gameweeks) > 1 and order_by == "price":
         # Query sorted by gameweek first, so need to do a final sort here to
