@@ -24,7 +24,7 @@ from .schema import (
     engine,
 )
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, case
 
 
 Base.metadata.bind = engine
@@ -422,16 +422,32 @@ def list_players(
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
+    if len(gameweeks) > 1:
+        #  Sort query results by order of gameweeks - i.e. make sure the input
+        # query gameweek comes first.
+        _whens = {gw: i for i, gw in enumerate(gameweeks)}
+        sort_order = case(value=PlayerAttributes.gameweek, whens=_whens)
+        q = q.order_by(sort_order)
     if order_by == "price":
         q = q.order_by(PlayerAttributes.price.desc())
     players = []
+    prices = []
     for p in q.all():
         if p.player not in players:
             # might have queried multiple gameweeks with same player returned
             #  multiple times - only add if it's a new player
             players.append(p.player)
+            prices.append(p.price)
+            if verbose and len(gameweeks) == 1:
+                print(p.player.name, p.team, p.position, p.price)
+    if len(gameweeks) > 1 and order_by == "price":
+        # Query sorted by gameweek first, so need to do a final sort here to
+        # get final price order if more than one gameweek queried.
+        sort_players = sorted(zip(prices, players), reverse=True, key=lambda p: p[0])
         if verbose:
-            print(p.player.name, p.team, p.position, p.price)
+            for p in sort_players:
+                print(p[1].name, p[0])
+        players = [p for _, p in sort_players]
     return players
 
 

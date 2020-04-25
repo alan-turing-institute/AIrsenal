@@ -16,7 +16,6 @@ from ..framework.utils import CURRENT_SEASON, get_past_seasons
 from ..framework.mappings import alternative_player_names
 
 
-
 def find_player_in_table(name, session):
     """
     see if we already have the player
