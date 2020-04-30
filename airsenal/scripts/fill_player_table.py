@@ -14,6 +14,7 @@ from ..framework.schema import Player, PlayerAttributes, Base, engine
 from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.utils import CURRENT_SEASON, get_past_seasons
 
+
 def find_player_in_table(name, session):
     """
     see if we already have the player
@@ -35,7 +36,7 @@ def max_id_in_table(session):
     Return the maximum ID in the player table
     """
 
-    return session.query(Player).order_by(desc('player_id')).first().player_id
+    return session.query(Player).order_by(desc("player_id")).first().player_id
 
 
 def fill_player_table_from_file(filename, season, session):
@@ -46,21 +47,23 @@ def fill_player_table_from_file(filename, season, session):
     n_new_players = 0
     for i, jp in enumerate(jplayers):
         new_entry = False
-        name = jp['name']
+        name = jp["name"]
         print("{} adding {}".format(season, name))
         p = find_player_in_table(name, session)
         if not p:
             n_new_players += 1
             new_entry = True
             p = Player()
-            p.player_id = max_id_in_table(session) + n_new_players # next id sequentially
+            p.player_id = (
+                max_id_in_table(session) + n_new_players
+            )  # next id sequentially
             p.name = name
         pa = PlayerAttributes()
-        pa.team = jp['team']
-        pa.position = jp['position']
-        pa.current_price = float(jp['cost'][1:])*10
+        pa.team = jp["team"]
+        pa.position = jp["position"]
+        pa.current_price = float(jp["cost"][1:]) * 10
         pa.season = season
-        pa.gw_valid_from = 1 ### could potentially be superseded!
+        pa.gw_valid_from = 1  ### could potentially be superseded!
         p.attributes
         p.attributes.append(pa)
         session.add(pa)
@@ -79,9 +82,9 @@ def fill_player_table_from_api(season, session):
     for k, v in pd.items():
         p = Player()
         p.player_id = k
-        first_name = v["first_name"]#.encode("utf-8")
-        second_name = v["second_name"]#.encode("utf-8")
-        name = "{} {}".format(first_name,second_name)
+        first_name = v["first_name"]  # .encode("utf-8")
+        second_name = v["second_name"]  # .encode("utf-8")
+        name = "{} {}".format(first_name, second_name)
 
         print("{} adding {}".format(season, name))
         p.name = name
@@ -94,7 +97,7 @@ def fill_player_table_from_api(season, session):
         pa.position = positions[v["element_type"]]
         pa.current_price = v["now_cost"]
         pa.season = season
-        pa.gw_valid_from = 1 ### could potentially be superseded!
+        pa.gw_valid_from = 1  ### could potentially be superseded!
         p.attributes.append(pa)
         session.add(pa)
         session.add(p)
@@ -105,14 +108,15 @@ def make_player_table(session):
 
     fill_player_table_from_api(CURRENT_SEASON, session)
     for season in get_past_seasons(3):
-        filename = os.path.join( os.path.join(os.path.dirname(__file__),
-                                              "..",
-                                              "data",
-                                              "player_summary_{}.json"\
-                                              .format(season)))
+        filename = os.path.join(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "data",
+                "player_summary_{}.json".format(season),
+            )
+        )
         fill_player_table_from_file(filename, season, session)
-
-
 
 
 if __name__ == "__main__":

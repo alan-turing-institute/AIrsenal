@@ -35,16 +35,14 @@ from .utils import (
     list_players,
     fetcher,
     session,
-    CURRENT_SEASON
+    CURRENT_SEASON,
 )
-from .bpl_interface import (
-    get_fitted_team_model
-)
+from .bpl_interface import get_fitted_team_model
 from .FPL_scoring_rules import (
     points_for_goal,
     points_for_assist,
     points_for_cs,
-    get_appearance_points
+    get_appearance_points,
 )
 
 np.random.seed(42)
@@ -69,8 +67,10 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
         "team_goals",
     ]
     df = pd.DataFrame(columns=col_names)
-    players = list_players(position=position,season=season,dbsession=session)
-    max_matches_per_player = get_max_matches_per_player(position, season, dbsession=session)
+    players = list_players(position=position, season=season, dbsession=session)
+    max_matches_per_player = get_max_matches_per_player(
+        position, season, dbsession=session
+    )
     for counter, player in enumerate(players):
         print(
             "Filling history dataframe for {}: {}/{} done".format(
@@ -82,10 +82,11 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
         for row in results:
             match_id = row.result_id
             if not match_id:
-                print(" Couldn't find result for {} {} {}"\
-                      .format(row.fixture.home_team,
-                              row.fixture.away_team,
-                              row.fixture.date))
+                print(
+                    " Couldn't find result for {} {} {}".format(
+                        row.fixture.home_team, row.fixture.away_team, row.fixture.date
+                    )
+                )
                 continue
             minutes = row.minutes
             opponent = row.opponent
@@ -119,7 +120,6 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
                 df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
 
     return df
-
 
 
 def get_attacking_points(
@@ -194,8 +194,7 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
 
 
 def calc_predicted_points(
-        player, model_team, df_player, season, tag, session,
-        gw_range=None, fixures_behind=3
+    player, model_team, df_player, season, tag, session, gw_range=None, fixures_behind=3
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -208,20 +207,20 @@ def calc_predicted_points(
     if not gw_range:
         # by default, go for next three matches
         next_gw = get_next_gameweek(season, session)
-        gw_range = list(range(next_gw, min(next_gw+3,38))) # don't go beyond gw 38!
+        gw_range = list(range(next_gw, min(next_gw + 3, 38)))  # don't go beyond gw 38!
     team = player.team(season)
     position = player.position(season)
-    fixtures = get_fixtures_for_player(player,
-                                       season,
-                                       gw_range=gw_range,
-                                       dbsession=session)
-
+    fixtures = get_fixtures_for_player(
+        player, season, gw_range=gw_range, dbsession=session
+    )
 
     # use same recent_minutes from previous gameweeks for all predictions
     recent_minutes = get_recent_minutes_for_player(
-        player, num_match_to_use=fixures_behind,
-        season=season, last_gw=min(gw_range)-1,
-        dbsession=session
+        player,
+        num_match_to_use=fixures_behind,
+        season=season,
+        last_gw=min(gw_range) - 1,
+        dbsession=session,
     )
     if len(recent_minutes) == 0:
         # e.g. for gameweek 1
@@ -230,10 +229,10 @@ def calc_predicted_points(
         # recent_minutes = estimate_minutes_from_prev_season(
         #    player, season=season, dbsession=session
         # )
-        raise ValueError('Recent minutes is empty.')
+        raise ValueError("Recent minutes is empty.")
 
     expected_points = defaultdict(float)  # default value is 0.
-    predictions = [] # list that will hold PlayerPrediction objects
+    predictions = []  # list that will hold PlayerPrediction objects
 
     for fixture in fixtures:
         gameweek = fixture.gameweek
@@ -241,7 +240,7 @@ def calc_predicted_points(
         opponent = fixture.away_team if is_home else fixture.home_team
         home_or_away = "at home" if is_home else "away"
         message += "\ngameweek: {} vs {}  {}".format(gameweek, opponent, home_or_away)
-        points = 0.
+        points = 0.0
         expected_points[gameweek] = points
 
         if sum(recent_minutes) == 0:
@@ -249,14 +248,14 @@ def calc_predicted_points(
             # for in the past few matches. If these are all zero, we will for sure
             # predict zero points for this player, so we don't need to call all the
             # functions to calculate appearance points, defending points, attacking points.
-            points = 0.
+            points = 0.0
 
         elif is_injured_or_suspended(player.player_id, gameweek, season, session):
             # Points for fixture will be zero if suspended or injured
-            points = 0.
+            points = 0.0
 
         else:
-        # now loop over recent minutes and average
+            # now loop over recent minutes and average
             points = sum(
                 [
                     get_appearance_points(mins)
@@ -296,6 +295,8 @@ def make_prediction(player, fixture, points, tag):
     pp.player = player
     pp.fixture = fixture
     return pp
+
+
 #    session.add(pp)
 
 
@@ -308,7 +309,7 @@ def get_fitted_player_model(player_model, position, season, session):
     return df_player
 
 
-#def get_fitted_models(season, session):
+# def get_fitted_models(season, session):
 #    """
 #    Retrieve match and player models, and fit player model to the playerscore data.
 #    """
@@ -324,14 +325,14 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
     """
-    if season != CURRENT_SEASON: # no API info for past seasons
+    if season != CURRENT_SEASON:  # no API info for past seasons
         return False
     ## check if a player is injured or suspended
     pdata = fetcher.get_player_summary_data()[player_id]
     if (
-            "chance_of_playing_next_round" in pdata.keys() \
-            and pdata["chance_of_playing_next_round"] is not None
-            and pdata["chance_of_playing_next_round"] <= 50
+        "chance_of_playing_next_round" in pdata.keys()
+        and pdata["chance_of_playing_next_round"] is not None
+        and pdata["chance_of_playing_next_round"] <= 50
     ):
         ## check if we have a return date
         return_gameweek = get_return_gameweek_for_player(player_id, session)
@@ -346,20 +347,20 @@ def fill_ep(csv_filename):
     write output to a csv.
     """
     if not os.path.exists(csv_filename):
-        outfile = open(csv_filename,"w")
+        outfile = open(csv_filename, "w")
         outfile.write("player_id,gameweek,EP\n")
     else:
-        outfile = open(csv_filename,"a")
+        outfile = open(csv_filename, "a")
 
     summary_data = fetcher.get_player_summary_data()
     gameweek = get_next_gameweek()
-    for k,v in summary_data.items():
-        outfile.write("{},{},{}\n".format(k,gameweek,v['ep_next']))
+    for k, v in summary_data.items():
+        outfile.write("{},{},{}\n".format(k, gameweek, v["ep_next"]))
         pp = PlayerPrediction()
         pp.player_id = k
         pp.gameweek = gameweek
-        pp.predicted_points = v['ep_next']
-        pp.method="EP"
+        pp.predicted_points = v["ep_next"]
+        pp.method = "EP"
         session.add(pp)
     session.commit()
     outfile.close()
@@ -370,7 +371,9 @@ def get_player_model():
     load the player-level model, which will give the probability that
     a given player scored/assisted/did-neither when their team scores a goal.
     """
-    stan_filepath = os.path.join(os.path.dirname(__file__), "../stan/player_forecasts.stan")
+    stan_filepath = os.path.join(
+        os.path.dirname(__file__), "../stan/player_forecasts.stan"
+    )
     if not os.path.exists(stan_filepath):
         raise RuntimeError("Can't find player_forecasts.stan")
 
@@ -413,7 +416,12 @@ def process_player_data(prefix, season=CURRENT_SEASON, session=session):
     """
     df = get_player_history_df(prefix, season=season, session=session)
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
-    df.loc[(df["neither"]<0),["neither","team_goals","goals","assists"]]=[0.,0.,0.,0.]
+    df.loc[(df["neither"] < 0), ["neither", "team_goals", "goals", "assists"]] = [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+    ]
     alpha = get_empirical_bayes_estimates(df)
     y = df.sort_values("player_id")[["goals", "assists", "neither"]].values.reshape(
         (
@@ -475,7 +483,5 @@ def fit_all_player_data(model, season, session):
         fits.append(f)
         dfs.append(d)
         reals.append(r)
-    df = (
-        pd.concat(dfs)
-    )
+    df = pd.concat(dfs)
     return df, fits, reals

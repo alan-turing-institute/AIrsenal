@@ -24,7 +24,9 @@ class Player(Base):
     attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
     results = relationship("Result", uselist=True, back_populates="player")
     fixtures = relationship("Fixture", uselist=True, back_populates="player")
-    predictions = relationship("PlayerPrediction", uselist=True, back_populates="player")
+    predictions = relationship(
+        "PlayerPrediction", uselist=True, back_populates="player"
+    )
     scores = relationship("PlayerScore", uselist=True, back_populates="player")
 
     def team(self, season, gameweek=1):
@@ -35,13 +37,14 @@ class Player(Base):
         team = None
         latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
+            if (
+                attr.season == season
+                and attr.gw_valid_from <= gameweek
+                and attr.gw_valid_from > latest_valid_gw
+            ):
                 team = attr.team
                 latest_valid_gw = attr.gw_valid_from
         return team
-
 
     def current_price(self, season, gameweek=1):
         """
@@ -50,13 +53,14 @@ class Player(Base):
         current_price = None
         latest_valid_gw = 0
         for attr in self.attributes:
-            if attr.season == season \
-               and attr.gw_valid_from <= gameweek \
-               and attr.gw_valid_from > latest_valid_gw:
+            if (
+                attr.season == season
+                and attr.gw_valid_from <= gameweek
+                and attr.gw_valid_from > latest_valid_gw
+            ):
                 current_price = attr.current_price
                 latest_valid_gw = attr.gw_valid_from
         return current_price
-
 
     def position(self, season):
         """
@@ -84,7 +88,7 @@ class Result(Base):
     __tablename__ = "result"
     result_id = Column(Integer, primary_key=True, autoincrement=True)
     fixture = relationship("Fixture", uselist=False, back_populates="result")
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
     home_score = Column(Integer, nullable=False)
     away_score = Column(Integer, nullable=False)
     player = relationship("Player", back_populates="results")
@@ -94,8 +98,8 @@ class Result(Base):
 class Fixture(Base):
     __tablename__ = "fixture"
     fixture_id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String(100), nullable=True) ### In case fixture not yet scheduled!
-    gameweek = Column(Integer, nullable=True) ### In case fixture not yet scheduled!
+    date = Column(String(100), nullable=True)  ### In case fixture not yet scheduled!
+    gameweek = Column(Integer, nullable=True)  ### In case fixture not yet scheduled!
     home_team = Column(String(100), nullable=False)
     away_team = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
@@ -120,9 +124,9 @@ class PlayerScore(Base):
     player = relationship("Player", back_populates="scores")
     player_id = Column(Integer, ForeignKey("player.player_id"))
     result = relationship("Result", uselist=False)
-    result_id = Column(Integer, ForeignKey('result.result_id'))
+    result_id = Column(Integer, ForeignKey("result.result_id"))
     fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
 
     # extended features
     clean_sheets = Column(Integer, nullable=True)
@@ -148,7 +152,7 @@ class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id = Column(Integer, primary_key=True, autoincrement=True)
     fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey('fixture.fixture_id'))
+    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
     predicted_points = Column(Float, nullable=False)
     tag = Column(String(100), nullable=False)
     player = relationship("Player", back_populates="predictions")
@@ -187,23 +191,25 @@ class FifaTeamRating(Base):
 
 
 class Team(Base):
-    __tablename__="team"
+    __tablename__ = "team"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(3), nullable=False)
     full_name = Column(String(100), nullable=False)
     season = Column(String(4), nullable=False)
-    team_id = Column(Integer, nullable=False) # the season-dependent team ID (from alphabetical order)
+    team_id = Column(
+        Integer, nullable=False
+    )  # the season-dependent team ID (from alphabetical order)
 
 
 class SessionTeam(Base):
-    __tablename__="sessionteam"
+    __tablename__ = "sessionteam"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)
     player_id = Column(Integer, nullable=False)
 
 
 class SessionBudget(Base):
-    __tablename__="sessionbudget"
+    __tablename__ = "sessionbudget"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)
     budget = Column(Integer, nullable=False)
@@ -215,6 +221,7 @@ Base.metadata.create_all(engine)
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
+
 
 @contextmanager
 def session_scope():

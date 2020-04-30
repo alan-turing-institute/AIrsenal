@@ -10,7 +10,6 @@ to the same transfer strategy.  We do this using the "timestamp".
 import sys
 
 
-
 from ..framework.schema import TransferSuggestion
 from ..framework.utils import session, get_player_name
 

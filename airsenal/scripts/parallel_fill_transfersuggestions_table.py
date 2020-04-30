@@ -104,7 +104,7 @@ if __name__ == "__main__":
         procs.append(processor)
 
     ### add strategies to the queue
-    strategies = generate_transfer_strategies(num_weeks_ahead,1,max_total_hit=4)
+    strategies = generate_transfer_strategies(num_weeks_ahead, 1, max_total_hit=4)
     for strat in strategies:
         squeue.put(strat)
     for i in range(NUM_THREAD):

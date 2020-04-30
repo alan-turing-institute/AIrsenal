@@ -17,6 +17,7 @@ Base.metadata.create_all(testengine)
 
 Base.metadata.bind = testengine
 
+
 @contextmanager
 def test_session_scope():
     """Provide a transactional scope around a series of operations."""
@@ -32,18 +33,18 @@ def test_session_scope():
         testsession.close()
 
 
-def value_generator(index,position):
+def value_generator(index, position):
     """
     make up a price for a dummy player, based on index and position
     """
-    if position=="GK":
-        value = 40 + index*random.randint(0,5)
-    elif position=="DEF":
-        value = 40 + index*random.randint(5,10)
-    elif position=="MID":
-        value = 50 + index*random.randint(10,20)
-    elif position=="FWD":
-        value = 60 + index*random.randint(15,20)
+    if position == "GK":
+        value = 40 + index * random.randint(0, 5)
+    elif position == "DEF":
+        value = 40 + index * random.randint(5, 10)
+    elif position == "MID":
+        value = 50 + index * random.randint(10, 20)
+    elif position == "FWD":
+        value = 60 + index * random.randint(15, 20)
     return value
 
 
@@ -56,23 +57,23 @@ def fill_players():
     season = "1920"
     gw_valid_from = 1
     with test_session_scope() as ts:
-        if len(ts.query(Player).all()) >0:
+        if len(ts.query(Player).all()) > 0:
             return
-        for i,n in enumerate(dummy_players):
+        for i, n in enumerate(dummy_players):
             p = Player()
             p.player_id = i
             p.name = n
-            print("Filling {} {}".format(i,n))
+            print("Filling {} {}".format(i, n))
             try:
                 ts.add(p)
             except:
-                print("Error adding {} {}".format(i,n))
+                print("Error adding {} {}".format(i, n))
             ## now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"
             elif i % 15 < 7:
                 pos = "DEF"
-            elif i% 15 < 12:
+            elif i % 15 < 12:
                 pos = "MID"
             else:
                 pos = "FWD"
@@ -81,7 +82,7 @@ def fill_players():
             ## the next 15 almost affordable,
             ## the next 15 mostly unaffordable,
             ## and rest very expensive
-            current_price = value_generator(i//15,pos)
+            current_price = value_generator(i // 15, pos)
             pa = PlayerAttributes()
             pa.season = season
             pa.team = team
