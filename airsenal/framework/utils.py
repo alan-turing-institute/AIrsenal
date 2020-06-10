@@ -168,35 +168,19 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
     return current_players
 
 
-def get_team_value(team=None, gameweek=None, season=None):
+def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
     If gameweek is None, get team for next gameweek
     """
-    if not season:
-        season = CURRENT_SEASON
-    total_value = 0
-    if not team:
-        players = get_current_players(gameweek, season)
-    else:
-        players = [p.player_id for p in team.players]
-    for pid in players:
-        if season == CURRENT_SEASON:
-            if gameweek:
-                total_value += fetcher.get_gameweek_data_for_player(pid, gameweek)[0][
-                    "value"
-                ]
-            else:
-                total_value += fetcher.get_player_summary_data()[pid]["now_cost"]
-        else:
-            player = (
-                session.query(Player)
-                .filter_by(season=season)
-                .filter_by(player_id=pid)
-                .first()
-            )
-            total_value += player.cost
+    total_value = team.budget  # initialise total to amount in the bank
+    
+    for p in team.players:
+        total_value += team.get_sell_price_for_player(
+            p, use_api=use_api, season=season, gameweek=gameweek
+        )
+
     return total_value
 
 
