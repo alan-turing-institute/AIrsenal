@@ -24,7 +24,7 @@ from .schema import (
     engine,
 )
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_, case
+from sqlalchemy import and_, or_, case, func
 
 
 Base.metadata.bind = engine
@@ -51,6 +51,18 @@ def get_current_season():
 CURRENT_SEASON = get_current_season()
 
 
+def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
+    """
+    Return the maximum gameweek number across all scheduled fixtures. This shuold
+    generally be 38, but may be different in the case of major disruptino (e.g.
+    Covid-19)
+    """
+    max_gw = (
+        dbsession.query(func.max(Fixture.gameweek)).filter_by(season=season).first()[0]
+    )
+    return max_gw
+
+
 def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
@@ -59,7 +71,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     timenow = datetime.now(timezone.utc)
     fixtures = dbsession.query(Fixture).filter_by(season=season).all()
-    earliest_future_gameweek = 39
+    earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
 
     if len(fixtures) > 0:
         for fixture in fixtures:
@@ -379,7 +391,8 @@ def list_players(
     ):
         # check neighbouring gameweeks to get all 20 teams/specified team
         gws_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
-        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw < 39]
+        max_gw = get_max_gameweek(season, dbsession)
+        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
 
         for gw in gws_to_try:
             fixtures = get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
@@ -662,7 +675,8 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
     ## we still need to fill in zero for gameweeks that they're not playing.
-    for gw in range(1, 39):
+    max_gw = get_max_gameweek(season, dbsession)
+    for gw in range(1, max_gw + 1):
         if not gw in ppdict.keys():
             ppdict[gw] = 0.0
     return ppdict
