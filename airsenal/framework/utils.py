@@ -39,7 +39,7 @@ def get_current_season():
     use the current time to find what season we're in.
     """
     current_time = datetime.now()
-    if current_time.month > 6:
+    if current_time.month > 7:
         start_year = current_time.year
     else:
         start_year = current_time.year - 1
@@ -919,7 +919,6 @@ def get_recent_scores_for_player(
 def get_recent_minutes_for_player(
     player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):
-
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
