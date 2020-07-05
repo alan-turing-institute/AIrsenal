@@ -320,7 +320,7 @@ class Team(object):
                 if player.is_captain:
                     total += player.predicted_points[tag][gameweek]
         return total
-    
+
     def total_points_for_subs(self, gameweek, tag):
         total = 0.0
         for player in self.players:
@@ -339,12 +339,12 @@ class Team(object):
 
         self.optimize_subs(gameweek, tag)
         self.pick_captains(gameweek, tag)
-        
+
         total_score = self.total_points_for_starting_11(gameweek, tag)
-        
+
         if bench_boost:
             total_score += self.total_points_for_subs(gameweek, tag)
-        
+
         return total_score
 
     def pick_captains(self, gameweek, tag):

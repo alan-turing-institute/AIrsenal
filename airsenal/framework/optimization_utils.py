@@ -23,43 +23,60 @@ def generate_transfer_strategies(
     max_total_hit=None,
     allow_wildcard=False,
     allow_free_hit=False,
+    next_gw=NEXT_GAMEWEEK,
 ):
     """
-    Constraint: we want to take no more than a 4-point hit each week.
-    So, for each gameweek, we can make 0, 1, or 2 changes, or, if we made 0
-    the previous week, we can make 3.
-    Generate all possible sequences, for N gameweeks ahead, and return along
-    with the total points hit.
-    i.e. return value is a list of tuples:
-        [({gw:ntransfer, ...},points_hit), ... ]
-
-    If allow_wildcard OR allow_free_hit is True, we allow the possibility of 0,1,'W'/'F' transfers per gw,
-    with each of 'W'/'F' only allowed once.
-    We also don't allow "F" then "W" in consecutive gameweeks, as this is redundant with "W" then "F".
-
+    Generate possible transfer and chip strategies for gw_ahead gameweeks ahead,
+    subject to:
+    * Make a maximum of 3 transfers each gameweek.
+    * If a chip is player (allow_wildcard or allow_free_hit is True), only allow 0, 1,
+    "W" or "F" transfers per gameweek.
+    * Each of "W" and "F" only allowed once. Also don't allow "F" immediately followed
+    by "W" (redundant with "W" then "F").
+    * Spend a max of max_total_hit points on transfers across whole period.
+    • Start with free_transfers free transfers.
+    
+    Return all possible transfer sequences along with the total points hit and the
+    number of free transfers available for the next gameweek, i.e. return value is a
+    list of tuples:
+        [({gw:ntransfer, ...},points_hit, free_transfers), ... ]
     """
-    next_gw = NEXT_GAMEWEEK
-    strategy_list = []
+
+    # if not using a chip, consider strategies taking up to 3 transfers each week
     if not (allow_wildcard or allow_free_hit):
-        possibilities = list(range(4)) if free_transfers > 1 else list(range(3))
-        strategies = [
-            ({next_gw: i}, 4 * (max(0, i - (1 + int(free_transfers > 1)))))
-            for i in possibilities
-        ]
+        possibilities = list(range(4))
+    # if using a chip, only consider strategies taking up to 1 transfer (or a chip)
     else:
         possibilities = [0, 1]
         if allow_wildcard:
             possibilities.append("W")
         if allow_free_hit:
             possibilities.append("F")
-        strategies = [({next_gw: i}, 0) for i in possibilities]
 
+    # first week strategies
+    strategies = []
+    for n_transfers in possibilities:
+        strat = {next_gw: n_transfers}
+        if n_transfers in ["W", "F"]:
+            hit_so_far = 0
+            new_free_transfers = 1
+        else:
+            hit_so_far = 4 * max(0, n_transfers - free_transfers)
+            new_free_transfers = 2 if n_transfers < free_transfers else 1
+        # only keep strategies that don'txceed max_total_hit
+        if not max_total_hit or hit_so_far <= max_total_hit:
+            strategies.append((strat, hit_so_far, new_free_transfers))
+
+    # subsequent weeks strategies
     for gw in range(next_gw + 1, next_gw + gw_ahead):
         new_strategies = []
         for s in strategies:
-            ## s is a tuple ( {gw: num_transfer, ...} , points_hit)
+            # s is a tuple ( {gw: num_transfer, ...} , points_hit, free_transfers)
+            hit_so_far = s[1]
+            free_transfers = s[2]
+
             if (not allow_wildcard) and (not allow_free_hit):
-                possibilities = list(range(4)) if s[0][gw - 1] == 0 else list(range(3))
+                possibilities = list(range(4))
             else:
                 already_used_wildcard = "W" in s[0].values()
                 already_used_free_hit = "F" in s[0].values()
@@ -72,27 +89,27 @@ def generate_transfer_strategies(
                     possibilities.append("W")
                 if allow_free_hit and not already_used_free_hit:
                     possibilities.append("F")
-            hit_so_far = s[1]
-            for p in possibilities:
-                ## make a copy of the strategy up to this point, then add on the next gw
-                new_dict = {}
-                ## fill with all the gameweeks up to the one being considered
-                for k, v in s[0].items():
-                    new_dict[k] = v
-                ## now fill the gw being considered
-                new_dict[gw] = p
-                if (not allow_wildcard) and (not allow_free_hit):
-                    new_hit = hit_so_far + 4 * (
-                        max(0, p - (1 + int(s[0][gw - 1] == 0)))
-                    )
+
+            for n_transfers in possibilities:
+                # make a copy of the strategy up to this point, then add on this gw
+                new_dict = {k: v for k, v in s[0].items()}
+                new_dict[gw] = n_transfers
+
+                # determine total pts hit, and free transfers for the following gw
+                if n_transfers in ["W", "F"]:
+                    # no hit if using wildcard/free hit, plus lose any saved free transfers
+                    new_hit = hit_so_far
+                    new_free_transfers = 1
                 else:
-                    new_hit = (
-                        0
-                    )  ## never take any hit if we're doing the wildcard or free hit.
-                new_strategies.append((new_dict, new_hit))
+                    new_hit = hit_so_far + 4 * max(n_transfers - free_transfers, 0)
+                    new_free_transfers = 2 if n_transfers < free_transfers else 1
+
+                # only keep strategies that don't exceed max_total_hit, if given
+                if not max_total_hit or new_hit <= max_total_hit:
+                    new_strategies.append((new_dict, new_hit, new_free_transfers))
+
         strategies = new_strategies
-    if max_total_hit:
-        strategies = [s for s in strategies if s[1] <= max_total_hit]
+
     return strategies
 
 

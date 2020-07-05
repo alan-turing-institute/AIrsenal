@@ -63,7 +63,7 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     if max_gw is None:
         # TODO Tests fail without this as tests don't populate fixture table in db
         max_gw = 100
-    
+
     return max_gw
 
 
@@ -191,7 +191,7 @@ def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=
     If gameweek is None, get team for next gameweek
     """
     total_value = team.budget  # initialise total to amount in the bank
-    
+
     for p in team.players:
         total_value += team.get_sell_price_for_player(
             p, use_api=use_api, season=season, gameweek=gameweek
@@ -875,10 +875,12 @@ def get_recent_playerscore_rows(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     # If asking for gameweeks without results in DB, revert to most recent results.
-    last_available_gameweek = get_last_gameweek_in_db(season=season, dbsession=dbsession)
+    last_available_gameweek = get_last_gameweek_in_db(
+        season=season, dbsession=dbsession
+    )
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
-    
+
     first_gw = last_gw - num_match_to_use
     ## get the playerscore rows from the db
     rows = (
