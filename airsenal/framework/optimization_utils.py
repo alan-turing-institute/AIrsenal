@@ -22,6 +22,7 @@ def generate_transfer_strategies(
     max_total_hit=None,
     allow_wildcard=False,
     allow_free_hit=False,
+    allow_bench_boost=False,
     next_gw=NEXT_GAMEWEEK,
 ):
     """
@@ -42,7 +43,7 @@ def generate_transfer_strategies(
     """
 
     # if not using a chip, consider strategies taking up to 3 transfers each week
-    if not (allow_wildcard or allow_free_hit):
+    if not (allow_wildcard or allow_free_hit or allow_bench_boost):
         possibilities = list(range(4))
     # if using a chip, only consider strategies taking up to 1 transfer (or a chip)
     else:
@@ -51,6 +52,10 @@ def generate_transfer_strategies(
             possibilities.append("W")
         if allow_free_hit:
             possibilities.append("F")
+        if allow_bench_boost:
+            # bench boost and no or one transfer
+            possibilities.append("B0")
+            possibilities.append("B1")
 
     # first week strategies
     strategies = []
@@ -60,8 +65,11 @@ def generate_transfer_strategies(
             hit_so_far = 0
             new_free_transfers = 1
         else:
+            if n_transfers in ["B0", "B1"]:
+                n_transfers = int(n_transfers[1])
             hit_so_far = 4 * max(0, n_transfers - free_transfers)
             new_free_transfers = 2 if n_transfers < free_transfers else 1
+        
         # only keep strategies that don'txceed max_total_hit
         if not max_total_hit or hit_so_far <= max_total_hit:
             strategies.append((strat, hit_so_far, new_free_transfers))
@@ -74,11 +82,13 @@ def generate_transfer_strategies(
             hit_so_far = s[1]
             free_transfers = s[2]
 
-            if (not allow_wildcard) and (not allow_free_hit):
+            if (not allow_wildcard) and (not allow_free_hit) and (not allow_bench_boost):
                 possibilities = list(range(4))
             else:
                 already_used_wildcard = "W" in s[0].values()
                 already_used_free_hit = "F" in s[0].values()
+                already_used_bench_boost = "B0" in s[0].values() or "B1" in s[0].values()
+                
                 possibilities = [0, 1]
                 if (
                     allow_wildcard
@@ -88,6 +98,9 @@ def generate_transfer_strategies(
                     possibilities.append("W")
                 if allow_free_hit and not already_used_free_hit:
                     possibilities.append("F")
+                if allow_bench_boost and not already_used_bench_boost:
+                    possibilities.append("B0")
+                    possibilities.append("B1")
 
             for n_transfers in possibilities:
                 # make a copy of the strategy up to this point, then add on this gw
@@ -100,6 +113,8 @@ def generate_transfer_strategies(
                     new_hit = hit_so_far
                     new_free_transfers = 1
                 else:
+                    if n_transfers in ["B0", "B1"]:
+                        n_transfers = int(n_transfers[1])
                     new_hit = hit_so_far + 4 * max(n_transfers - free_transfers, 0)
                     new_free_transfers = 2 if n_transfers < free_transfers else 1
 
