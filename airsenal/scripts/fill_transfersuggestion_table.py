@@ -45,6 +45,10 @@ def count_increments(strategy_string, num_iterations):
             total += 105
         elif s == "3":
             total += num_iterations
+        elif s == "B":
+            # for bench boost only number of transfers matters, which is given in next
+            # character
+            continue
     ## return at least 1, to avoid ZeroDivisionError
     return max(total, 1)
 
