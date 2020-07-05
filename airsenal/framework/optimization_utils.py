@@ -69,7 +69,7 @@ def generate_transfer_strategies(
                 n_transfers = int(n_transfers[1])
             hit_so_far = 4 * max(0, n_transfers - free_transfers)
             new_free_transfers = 2 if n_transfers < free_transfers else 1
-        
+
         # only keep strategies that don'txceed max_total_hit
         if not max_total_hit or hit_so_far <= max_total_hit:
             strategies.append((strat, hit_so_far, new_free_transfers))
@@ -82,13 +82,19 @@ def generate_transfer_strategies(
             hit_so_far = s[1]
             free_transfers = s[2]
 
-            if (not allow_wildcard) and (not allow_free_hit) and (not allow_bench_boost):
+            if (
+                (not allow_wildcard)
+                and (not allow_free_hit)
+                and (not allow_bench_boost)
+            ):
                 possibilities = list(range(4))
             else:
                 already_used_wildcard = "W" in s[0].values()
                 already_used_free_hit = "F" in s[0].values()
-                already_used_bench_boost = "B0" in s[0].values() or "B1" in s[0].values()
-                
+                already_used_bench_boost = (
+                    "B0" in s[0].values() or "B1" in s[0].values()
+                )
+
                 possibilities = [0, 1]
                 if (
                     allow_wildcard
@@ -169,7 +175,12 @@ def get_baseline_prediction(gw_ahead, tag):
 
 
 def make_optimum_transfer(
-    team, tag, gameweek_range=None, season=CURRENT_SEASON, update_func_and_args=None, bench_boost_gw=None,
+    team,
+    tag,
+    gameweek_range=None,
+    season=CURRENT_SEASON,
+    update_func_and_args=None,
+    bench_boost_gw=None,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -299,9 +310,13 @@ def make_optimum_double_transfer(
                         total_points = 0.0
                         for gw in gameweek_range:
                             if gw == bench_boost_gw:
-                                total_points += new_team_add_2.get_expected_points(gw, tag, bench_boost=True)
+                                total_points += new_team_add_2.get_expected_points(
+                                    gw, tag, bench_boost=True
+                                )
                             else:
-                                total_points += new_team_add_2.get_expected_points(gw, tag, bench_boost=False)
+                                total_points += new_team_add_2.get_expected_points(
+                                    gw, tag, bench_boost=False
+                                )
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]
@@ -536,12 +551,12 @@ def apply_strategy(
     team_before_free_hit = None
 
     # determine if bench boost used in this strategy
-    bench_boost_gw = None    
+    bench_boost_gw = None
     for gw, n_transfers in strat.items():
         if n_transfers in ["B0", "B1"]:
             bench_boost_gw = gw
             break
-    
+
     for igw, gw in enumerate(gameweeks):
         ## how many gameweeks ahead should we look at for the purpose of estimating points?
         gw_range = gameweeks[igw:]  # range of gameweeks to end of window
@@ -555,15 +570,23 @@ def apply_strategy(
         ## process this gameweek
         if strat[0][gw] == 0:  # no transfers that gameweek
             rp, ap = [], []  ## lists of removed-players, added-players
-        
+
         elif strat[0][gw] == 1:  # one transfer - choose optimum
             new_team, rp, ap = make_optimum_transfer(
-                new_team, tag, gw_range, update_func_and_args=update_func_and_args, bench_boost_gw=bench_boost_gw,
+                new_team,
+                tag,
+                gw_range,
+                update_func_and_args=update_func_and_args,
+                bench_boost_gw=bench_boost_gw,
             )
         elif strat[0][gw] == 2:
             ## two transfers - choose optimum
             new_team, rp, ap = make_optimum_double_transfer(
-                new_team, tag, gw_range, update_func_and_args=update_func_and_args, bench_boost_gw=bench_boost_gw,
+                new_team,
+                tag,
+                gw_range,
+                update_func_and_args=update_func_and_args,
+                bench_boost_gw=bench_boost_gw,
             )
         elif strat[0][gw] == "W":  ## wildcard - a whole new team!
             rp = [p.player_id for p in new_team.players]
@@ -593,13 +616,17 @@ def apply_strategy(
                 bench_boost_gw=bench_boost_gw,
             )
             ap = [p.player_id for p in new_team.players]
-            
+
         elif strat[0][gw] == "B0":  # bench boost and no transfer
             rp, ap = [], []  ## lists of removed-players, added-players
- 
+
         elif strat[0][gw] == "B1":  # bench boost and one transfer
             new_team, rp, ap = make_optimum_transfer(
-                new_team, tag, gw_range, update_func_and_args=update_func_and_args, bench_boost_gw=bench_boost_gw
+                new_team,
+                tag,
+                gw_range,
+                update_func_and_args=update_func_and_args,
+                bench_boost_gw=bench_boost_gw,
             )
 
         else:  # choose randomly
@@ -612,7 +639,7 @@ def apply_strategy(
                 update_func_and_args=update_func_and_args,
                 bench_boost_gw=bench_boost_gw,
             )
-        
+
         if gw == bench_boost_gw:
             score = new_team.get_expected_points(gw, tag, bench_boost=True)
         else:

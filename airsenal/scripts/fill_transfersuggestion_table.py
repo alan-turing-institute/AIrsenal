@@ -178,6 +178,11 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--allow_bench_boost",
+        help="include possibility of playing bench boost in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
         "--max_points_hit",
         help="how many points are we prepared to lose on transfers",
         type=int,
@@ -216,6 +221,10 @@ def main():
         free_hit = True
     else:
         free_hit = False
+    if args.allow_bench_boost:
+        bench_boost = True
+    else:
+        bench_boost = False
     num_free_transfers = args.num_free_transfers
     budget = args.bank
     max_points_hit = args.max_points_hit
@@ -244,7 +253,12 @@ def main():
         progress_bars.append(tqdm(total=100))
     ### generate the list of transfer strategies
     strategies = generate_transfer_strategies(
-        num_weeks_ahead, num_free_transfers, max_points_hit, wildcard, free_hit
+        num_weeks_ahead,
+        num_free_transfers,
+        max_points_hit,
+        wildcard,
+        free_hit,
+        bench_boost,
     )
     ## define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")
