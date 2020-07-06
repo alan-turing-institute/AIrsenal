@@ -24,8 +24,9 @@ from tqdm import tqdm
 import argparse
 
 from ..framework.optimization_utils import *
+from .. import TMPDIR
 
-OUTPUT_DIR = "/tmp/airsopt"
+OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
 def count_increments(strategy_string, num_iterations):
