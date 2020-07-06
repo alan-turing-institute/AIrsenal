@@ -19,7 +19,7 @@ def get_appearance_points(minutes):
     """
     get points for being on the pitch at all, and more for being on for most of the match.
     """
-    app_points = 0.
+    app_points = 0.0
     if minutes > 0:
         app_points = 1
         if minutes >= 60:

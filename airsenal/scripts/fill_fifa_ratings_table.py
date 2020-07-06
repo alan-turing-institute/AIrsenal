@@ -11,11 +11,13 @@ from ..framework.mappings import alternative_team_names
 from ..framework.schema import FifaTeamRating, session_scope
 from ..framework.utils import CURRENT_SEASON
 
+
 def make_fifa_ratings_table(session, season=CURRENT_SEASON):
     # make the fifa ratings table
     # TODO: scrape the data first rather than committing file to repo
-    input_path = os.path.join(os.path.dirname(__file__),
-                              "../data/fifa_team_ratings_{}.csv".format(season))
+    input_path = os.path.join(
+        os.path.dirname(__file__), "../data/fifa_team_ratings_{}.csv".format(season)
+    )
     input_file = open(input_path)
     for line in input_file.readlines()[1:]:
         team, att, mid, defn, ovr = line.strip().split(",")
@@ -42,5 +44,3 @@ def make_fifa_ratings_table(session, season=CURRENT_SEASON):
 if __name__ == "__main__":
     with session_scope() as session:
         make_fifa_ratings_table(session)
-
-

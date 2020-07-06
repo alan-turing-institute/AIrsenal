@@ -4,6 +4,7 @@ Functions to get data on specified FPL teams and leagues
 
 from .utils import fetcher
 
+
 def get_overall_points(gameweek=None):
     """
     Get our total points
