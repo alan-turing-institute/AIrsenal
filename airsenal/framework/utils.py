@@ -4,7 +4,7 @@ Useful commands to query the db
 import copy
 from operator import itemgetter
 from datetime import datetime, timezone
-from pandas import DataFrame
+import pandas as pd
 import dateparser
 import re
 
