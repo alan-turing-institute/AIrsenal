@@ -16,7 +16,7 @@ import argparse
 
 from ..framework.utils import (
     list_players,
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_top_predicted_points,
 )
@@ -103,8 +103,7 @@ def make_predictedscore_table(
 ):
     tag = str(uuid4())
     if not gw_range:
-        next_gameweek = get_next_gameweek()
-        gw_range = list(range(next_gameweek, next_gameweek + 3))
+        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
     calc_all_predicted_points(gw_range, season, tag, session)
     return tag
 
@@ -131,15 +130,14 @@ def main():
     if args.weeks_ahead and not args.season == CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
-    next_gameweek = get_next_gameweek()
     if args.weeks_ahead:
-        gw_range = list(range(next_gameweek, next_gameweek + args.weeks_ahead))
+        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + args.weeks_ahead))
     elif args.gameweek_start and args.gameweek_end:
         gw_range = list(range(args.gameweek_start, args.gameweek_end))
     elif args.gameweek_start:  # by default go three weeks ahead
         gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
-        gw_range = list(range(next_gameweek, next_gameweek + 3))
+        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
     with session_scope() as session:
         tag = make_predictedscore_table(
             session, gw_range=gw_range, season=args.season, num_thread=args.num_thread

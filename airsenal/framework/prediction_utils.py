@@ -11,11 +11,7 @@ import pandas as pd
 import numpy as np
 import pystan
 
-from .mappings import (
-    alternative_team_names,
-    alternative_player_names,
-    positions,
-)
+from .mappings import alternative_team_names, alternative_player_names, positions
 
 from scipy.stats import multinomial
 
@@ -25,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 from .schema import Player, PlayerPrediction, Fixture, Base, engine
 
 from .utils import (
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     get_fixtures_for_player,
     estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
@@ -48,7 +44,9 @@ from .FPL_scoring_rules import (
 np.random.seed(42)
 
 
-def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
+def get_player_history_df(
+    position="all", season=CURRENT_SEASON, session=session, gameweek=NEXT_GAMEWEEK
+):
     """
     Query the player_score table to get goals/assists/minutes, and then
     get the team_goals from the match table.
@@ -67,7 +65,9 @@ def get_player_history_df(position="all", season=CURRENT_SEASON, session=None):
         "team_goals",
     ]
     df = pd.DataFrame(columns=col_names)
-    players = list_players(position=position, season=season, dbsession=session)
+    players = list_players(
+        position=position, season=season, dbsession=session, gameweek=gameweek
+    )
     max_matches_per_player = get_max_matches_per_player(
         position, season, dbsession=session
     )
@@ -206,9 +206,12 @@ def calc_predicted_points(
 
     if not gw_range:
         # by default, go for next three matches
-        next_gw = get_next_gameweek(season, session)
-        gw_range = list(range(next_gw, min(next_gw + 3, 38)))  # don't go beyond gw 38!
-    team = player.team(season)
+        gw_range = list(
+            range(NEXT_GAMEWEEK, min(next_gw + 3, 38))
+        )  # don't go beyond gw 38!
+    team = player.team(
+        season, gw_range[0]
+    )  # assume player stays with same team from first gameweek in range
     position = player.position(season)
     fixtures = get_fixtures_for_player(
         player, season, gw_range=gw_range, dbsession=session
@@ -353,7 +356,7 @@ def fill_ep(csv_filename):
         outfile = open(csv_filename, "a")
 
     summary_data = fetcher.get_player_summary_data()
-    gameweek = get_next_gameweek()
+    gameweek = NEXT_GAMEWEEK
     for k, v in summary_data.items():
         outfile.write("{},{},{}\n".format(k, gameweek, v["ep_next"]))
         pp = PlayerPrediction()

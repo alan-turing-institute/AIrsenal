@@ -37,7 +37,7 @@ def main():
     if args.gw_start:
         gw_start = args.gw_start
     else:
-        gw_start = get_next_gameweek(season)
+        gw_start = NEXT_GAMEWEEK
     ## get predicted points
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
