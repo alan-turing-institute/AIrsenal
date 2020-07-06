@@ -14,7 +14,7 @@ from airsenal.framework.utils import (
     list_teams,
     get_last_finished_gameweek,
     get_latest_prediction_tag,
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     get_predicted_points_for_player,
     get_fixtures_for_player,
     get_next_fixture_for_player,
@@ -90,7 +90,7 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     info_dict = {"player_id": player_id}
     p = get_player(player_id, dbsession=dbsession)
     info_dict["player_name"] = p.name
-    team = p.team(CURRENT_SEASON)
+    team = p.team(CURRENT_SEASON, NEXT_GAMEWEEK)
     info_dict["team"] = team
     ## get recent scores for the player
     rs = get_recent_scores_for_player(p, dbsession=dbsession)
@@ -146,15 +146,21 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     return True
 
 
-def list_players_teams_prices(position="all", team="all", dbsession=DBSESSION):
+def list_players_teams_prices(
+    position="all", team="all", dbsession=DBSESSION, gameweek=NEXT_GAMEWEEK
+):
     """
     Return a list of players, each with their current team and price
     """
     return [
         "{} ({}): {}".format(
-            p.name, p.team(CURRENT_SEASON), p.current_price(CURRENT_SEASON)
+            p.name,
+            p.team(CURRENT_SEASON, NEXT_GAMEWEEK),
+            p.price(CURRENT_SEASON, NEXT_GAMEWEEK),
         )
-        for p in list_players(position=position, team=team, dbsession=dbsession)
+        for p in list_players(
+            position=position, team=team, dbsession=dbsession, gameweek=gameweek
+        )
     ]
 
 
@@ -253,7 +259,7 @@ def get_session_prediction(
     Query the fixture and predictedscore tables for a specified player
     """
     if not gw:
-        gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+        gw = NEXT_GAMEWEEK
     if not pred_tag:
         pred_tag = get_latest_prediction_tag()
     return_dict = {
@@ -272,7 +278,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     """
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     pred_tag = get_latest_prediction_tag()
-    gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+    gw = NEXT_GAMEWEEK
     pred_scores = {}
     for pid in players:
 
@@ -300,7 +306,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         if not added_ok:
             raise RuntimeError("Cannot add player {}".format(p))
     pred_tag = get_latest_prediction_tag()
-    gw = get_next_gameweek(CURRENT_SEASON, dbsession)
+    gw = NEXT_GAMEWEEK
     if n_transfer == 1:
         new_team, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
     elif n_transfer == 2:

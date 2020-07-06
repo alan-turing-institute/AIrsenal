@@ -4,18 +4,46 @@ jobs:
   include:
     - name: "Python 3.7.4 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
+      install:
+        - pip3 install --upgrade pip
+        - pip3 install .
     
     - name: "Python 3.6 on Xenial Linux"
       python: 3.6           # this works for Linux but is ignored on macOS or Windows
+      install:
+        - pip3 install --upgrade pip
+        - pip3 install .
     
     - name: "Python 3.7.4 on macOS"
       os: osx
       osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
       language: shell       # 'language: python' is an error on Travis CI macOS
-    
-install:
-  - pip3 install --upgrade pip
-  - pip3 install .
+      install:
+        - pip3 install --upgrade pip
+        - pip3 install .
+
+    - name: "Miniconda3 Python 3.7 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        # conda installation and path setup
+        # based on: https://github.com/trichter/conda4travis
+        - export MINICONDA=/c/miniconda
+        - MINICONDA_WIN=$(cygpath --windows $MINICONDA)
+        - choco install miniconda3 --params="'/AddToPath:0 /D:$MINICONDA_WIN'"
+        - source $MINICONDA/Scripts/activate
+        - source $MINICONDA/etc/profile.d/conda.sh
+        - conda config --set always_yes yes
+        # gcc and pystan setup
+        # based on: https://pystan.readthedocs.io/en/latest/windows.html
+        - conda create -n test_env python=3.7
+        - conda activate test_env
+        - conda install libpython m2w64-toolchain -c msys2
+        - conda install numpy cython -c conda-forge
+        - conda install pystan -c conda-forge
+      install:
+        - pip install --upgrade pip
+        - pip install .
 
 script:
   - pytest

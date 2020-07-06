@@ -8,10 +8,11 @@ import pytest
 from ..framework.schema import *
 from ..framework.mappings import *
 from .resources import dummy_players
+from .. import TMPDIR
 
 API_SESSION_ID = "TESTSESSION"
 
-testengine = create_engine("sqlite:////tmp/test.db")
+testengine = create_engine("sqlite:///{}/test.db".format(TMPDIR))
 
 Base.metadata.create_all(testengine)
 
@@ -55,7 +56,7 @@ def fill_players():
     """
     team_list = list(alternative_team_names.keys())
     season = "1920"
-    gw_valid_from = 1
+    gameweek = 1
     with test_session_scope() as ts:
         if len(ts.query(Player).all()) > 0:
             return
@@ -82,12 +83,12 @@ def fill_players():
             ## the next 15 almost affordable,
             ## the next 15 mostly unaffordable,
             ## and rest very expensive
-            current_price = value_generator(i // 15, pos)
+            price = value_generator(i // 15, pos)
             pa = PlayerAttributes()
             pa.season = season
             pa.team = team
-            pa.gw_valid_from = gw_valid_from
-            pa.current_price = current_price
+            pa.gameweek = gameweek
+            pa.price = price
             pa.position = pos
             player = ts.query(Player).filter_by(player_id=i).first()
             pa.player = player

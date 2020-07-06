@@ -13,6 +13,7 @@ from ..framework.mappings import alternative_team_names, positions
 from ..framework.schema import Player, PlayerAttributes, Base, engine
 from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.utils import CURRENT_SEASON, get_past_seasons
+from ..framework.mappings import alternative_player_names
 
 
 def find_player_in_table(name, session):
@@ -48,7 +49,7 @@ def fill_player_table_from_file(filename, season, session):
     for i, jp in enumerate(jplayers):
         new_entry = False
         name = jp["name"]
-        print("{} adding {}".format(season, name))
+        print("PLAYER {} {}".format(season, name))
         p = find_player_in_table(name, session)
         if not p:
             n_new_players += 1
@@ -58,15 +59,6 @@ def fill_player_table_from_file(filename, season, session):
                 max_id_in_table(session) + n_new_players
             )  # next id sequentially
             p.name = name
-        pa = PlayerAttributes()
-        pa.team = jp["team"]
-        pa.position = jp["position"]
-        pa.current_price = float(jp["cost"][1:]) * 10
-        pa.season = season
-        pa.gw_valid_from = 1  ### could potentially be superseded!
-        p.attributes
-        p.attributes.append(pa)
-        session.add(pa)
         if new_entry:
             session.add(p)
     session.commit()
@@ -86,20 +78,8 @@ def fill_player_table_from_api(season, session):
         second_name = v["second_name"]  # .encode("utf-8")
         name = "{} {}".format(first_name, second_name)
 
-        print("{} adding {}".format(season, name))
+        print("PLAYER {} {}".format(season, name))
         p.name = name
-        pa = PlayerAttributes()
-        team_number = v["team"]
-        for tk, tv in alternative_team_names.items():
-            if str(team_number) in tv:
-                pa.team = tk
-                break
-        pa.position = positions[v["element_type"]]
-        pa.current_price = v["now_cost"]
-        pa.season = season
-        pa.gw_valid_from = 1  ### could potentially be superseded!
-        p.attributes.append(pa)
-        session.add(pa)
         session.add(p)
     session.commit()
 

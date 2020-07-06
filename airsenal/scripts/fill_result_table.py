@@ -12,7 +12,7 @@ from ..framework.mappings import alternative_team_names
 from ..framework.schema import Result, session_scope, Fixture
 from ..framework.data_fetcher import FPLDataFetcher
 from ..framework.utils import (
-    get_next_gameweek,
+    NEXT_GAMEWEEK,
     get_latest_fixture_tag,
     get_past_seasons,
     CURRENT_SEASON,
@@ -69,6 +69,8 @@ def fill_results_from_api(gw_start, gw_end, season, session):
         if not m["finished"]:
             continue
         gameweek = m["event"]
+        if gameweek < gw_start or gameweek > gw_end:
+            continue
         home_id = m["team_h"]
         away_id = m["team_a"]
         home_team = None
@@ -106,7 +108,7 @@ def make_result_table(session):
     """
     current season - use API
     """
-    gw_end = get_next_gameweek()
+    gw_end = NEXT_GAMEWEEK
     fill_results_from_api(1, gw_end, CURRENT_SEASON, session)
 
 

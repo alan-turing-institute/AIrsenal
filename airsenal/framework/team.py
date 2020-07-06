@@ -5,11 +5,10 @@ Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
 from math import floor
-
 import numpy as np
 
-from .player import CandidatePlayer, Player, CURRENT_SEASON
-from .utils import get_player, get_next_gameweek, fetcher
+from .player import CandidatePlayer, Player
+from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -81,7 +80,7 @@ class Team(object):
         p,
         price=None,
         season=CURRENT_SEASON,
-        gameweek=1,
+        gameweek=NEXT_GAMEWEEK,
         check_budget=True,
         check_team=True,
         dbsession=None,
@@ -98,7 +97,7 @@ class Team(object):
             player = p
         # set the price if one was specified.
         if price:
-            player.current_price = price
+            player.purchase_price = price
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
@@ -126,10 +125,17 @@ class Team(object):
             return False
         self.players.append(player)
         self.num_position[player.position] += 1
-        self.budget -= player.current_price
+        self.budget -= player.purchase_price
         return True
 
-    def remove_player(self, player_id, price=None, use_api=True):
+    def remove_player(
+        self,
+        player_id,
+        price=None,
+        use_api=False,
+        season=CURRENT_SEASON,
+        gameweek=NEXT_GAMEWEEK,
+    ):
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
@@ -142,38 +148,39 @@ class Team(object):
                 if price:
                     self.budget += price
                 else:
-                    self.budget += self.get_sell_price_for_player(p, use_api=use_api)
+                    self.budget += self.get_sell_price_for_player(
+                        p, use_api=use_api, season=season, gameweek=gameweek
+                    )
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
                 return True
         return False
 
-    def get_sell_price_for_player(self, player, use_api=True):
+    def get_sell_price_for_player(
+        self, player, use_api=False, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK
+    ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-        price_bought = player.current_price
+        price_bought = player.purchase_price
         player_id = player.player_id
 
-        if use_api:
+        price_now = None
+        if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
                 price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
             except:
-                price_now = None
+                pass
 
-        if not use_api or not price_now:
+        if not price_now:
             player_db = get_player(player_id)
 
             if player_db:
-                print(
-                    "Using database price as sale price for",
-                    player.player_id,
-                    player.name,
-                )
-                price_now = player_db.current_price(
-                    CURRENT_SEASON, gameweek=get_next_gameweek()
-                )
+                # print("Using database price as sale price for",
+                #      player.player_id,
+                #      player.name)
+                price_now = player_db.price(season, gameweek)
             else:
                 # if all else fails just use the purchase price as the sale
                 # price for this player.
@@ -225,7 +232,7 @@ class Team(object):
         """
         check we can afford the player.
         """
-        can_afford = player.current_price <= self.budget
+        can_afford = player.purchase_price <= self.budget
         return can_afford
 
     def _calc_expected_points(self, tag):
