@@ -864,5 +864,5 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
             fixture_probabilities_list.append(
                 [fixture.fixture_id, fixture.home_team, fixture.away_team, probabilities[0], probabilities[1], probabilities[2]])
             fixture_id_list.append(fixture.fixture_id)
-    return DataFrame(fixture_probabilities_list, columns=['fixture_id', 'home_team',
+    return pd.DataFrame(fixture_probabilities_list, columns=['fixture_id', 'home_team',
                                                           'away_team', 'home_win_probability', 'draw_probability', 'away_win_probability'], index=fixture_id_list)
