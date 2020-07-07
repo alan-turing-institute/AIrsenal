@@ -309,7 +309,7 @@ class Team(object):
                 else:
                     player[0].is_starting = False
 
-    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False): 
+    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
         """
         simple sum over starting players
         """
