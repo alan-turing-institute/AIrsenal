@@ -64,7 +64,7 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     if max_gw is None:
         # TODO Tests fail without this as tests don't populate fixture table in db
         max_gw = 100
-    
+
     return max_gw
 
 
@@ -195,7 +195,7 @@ def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=
     If gameweek is None, get team for next gameweek
     """
     total_value = team.budget  # initialise total to amount in the bank
-    
+
     for p in team.players:
         total_value += team.get_sell_price_for_player(
             p, use_api=use_api, season=season, gameweek=gameweek
@@ -741,7 +741,7 @@ def get_top_predicted_points(
 ):
     """Print players with the top predicted points.
 
-    
+
     Keyword Arguments:
         gameweek {int or list} -- Single gameweek or list of gameweeks in which
         case returned totals are sums across all gameweeks (default: next
@@ -882,7 +882,7 @@ def get_recent_playerscore_rows(
     last_available_gameweek = get_last_gameweek_in_db(season=season, dbsession=dbsession)
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
-    
+
     first_gw = last_gw - num_match_to_use
     ## get the playerscore rows from the db
     rows = (
@@ -1008,20 +1008,27 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
 
 def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row 
-    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability, 
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
     draw_probability, away_win_probability.
     """
     model_team = get_fitted_team_model(season, dbsession)
     fixture_probabilities_list = []
     fixture_id_list = []
-    for fixture in get_fixtures_for_season():
-        if fixture.gameweek == gameweek:
-            probabilities = model_team.overall_probabilities(
-                fixture.home_team, fixture.away_team)
-            fixture_probabilities_list.append(
-                [fixture.fixture_id, fixture.home_team, fixture.away_team, probabilities[0], probabilities[1], probabilities[2]])
-            fixture_id_list.append(fixture.fixture_id)
+    for fixture in get_fixtures_for_gameweek(gameweek,
+                                             season=season,
+                                             dbsession=dbsession):
+        probabilities = model_team.overall_probabilities(
+            fixture.home_team, fixture.away_team)
+        fixture_probabilities_list.append(
+            [fixture.fixture_id,
+             fixture.home_team,
+             fixture.away_team,
+             probabilities[0],
+             probabilities[1],
+             probabilities[2]]
+        )
+        fixture_id_list.append(fixture.fixture_id)
     return pd.DataFrame(fixture_probabilities_list, columns=['fixture_id', 'home_team',
                                                           'away_team', 'home_win_probability', 'draw_probability', 'away_win_probability'], index=fixture_id_list)
 
@@ -1127,7 +1134,7 @@ def get_player_team_from_fixture(
 ):
     """Get the team a player played for given the gameweek, opponent, time and
     whether they were home or away.
-    
+
     If return_fixture is True, return a tuple of (team_name, fixture)
     """
 
