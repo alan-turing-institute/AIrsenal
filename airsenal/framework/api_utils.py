@@ -22,6 +22,12 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
+from airsenal.framework.schema import (
+    engine,
+    SessionTeam,
+    SessionBudget
+)
+
 from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
