@@ -25,8 +25,11 @@ from airsenal.framework.utils import (
 from airsenal.framework.schema import (
     engine,
     SessionTeam,
-    SessionBudget
+    SessionBudget,
+    Player
 )
+
+from airsenal.framework.team import Team
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
