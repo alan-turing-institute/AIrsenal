@@ -552,7 +552,7 @@ def apply_strategy(
 
     # determine if bench boost used in this strategy
     bench_boost_gw = None
-    for gw, n_transfers in strat.items():
+    for gw, n_transfers in strat[0].items():
         if n_transfers in ["B0", "B1"]:
             bench_boost_gw = gw
             break
@@ -651,8 +651,9 @@ def apply_strategy(
             break
         strategy_output["points_per_gw"][gw] = score
         ## record whether we're playing a chip this gameweek
+        # only first character to remove number transfers in case of bench boost ("B" not "B0")
         strategy_output["cards_played"][gw] = (
-            strat[0][gw] if isinstance(strat[0][gw], str) else None
+            strat[0][gw][0] if isinstance(strat[0][gw], str) else None
         )
         strategy_output["players_in"][gw] = ap
         strategy_output["players_out"][gw] = rp
