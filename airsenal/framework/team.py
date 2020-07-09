@@ -309,7 +309,7 @@ class Team(object):
                 else:
                     player[0].is_starting = False
 
-    def total_points_for_starting_11(self, gameweek, tag):
+    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
         """
         simple sum over starting players
         """
@@ -319,6 +319,9 @@ class Team(object):
                 total += player.predicted_points[tag][gameweek]
                 if player.is_captain:
                     total += player.predicted_points[tag][gameweek]
+                    if triple_captain:
+                        total += player.predicted_points[tag][gameweek]
+
         return total
 
     def total_points_for_subs(self, gameweek, tag):
@@ -329,7 +332,9 @@ class Team(object):
 
         return total
 
-    def get_expected_points(self, gameweek, tag, bench_boost=False):
+    def get_expected_points(
+        self, gameweek, tag, bench_boost=False, triple_captain=False
+    ):
         """
         expected points for the starting 11.
         """
@@ -340,7 +345,9 @@ class Team(object):
         self.optimize_subs(gameweek, tag)
         self.pick_captains(gameweek, tag)
 
-        total_score = self.total_points_for_starting_11(gameweek, tag)
+        total_score = self.total_points_for_starting_11(
+            gameweek, tag, triple_captain=triple_captain
+        )
 
         if bench_boost:
             total_score += self.total_points_for_subs(gameweek, tag)
