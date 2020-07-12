@@ -106,10 +106,7 @@ def generate_transfer_strategies(
                 )
 
                 possibilities = [0, 1]
-                if (
-                    allow_wildcard
-                    and (not already_used_wildcard)
-                ):
+                if allow_wildcard and not already_used_wildcard:
                     possibilities.append("W")
                 if allow_free_hit and not already_used_free_hit:
                     possibilities.append("F")
