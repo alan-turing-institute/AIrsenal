@@ -32,8 +32,7 @@ def generate_transfer_strategies(
     * Make a maximum of 3 transfers each gameweek.
     * If a chip is played only allow 0 or 1 transfers to be played or/in combination
       with a chip.
-    * Each chip only allowed once. Also don't allow "F" immediately followed
-      by "W" (redundant with "W" then "F").
+    * Each chip only allowed once.
     * Spend a max of max_total_hit points on transfers across whole period.
     • Start with free_transfers free transfers.
     
@@ -110,7 +109,6 @@ def generate_transfer_strategies(
                 if (
                     allow_wildcard
                     and (not already_used_wildcard)
-                    and (not s[0][gw - 1] == "F")
                 ):
                     possibilities.append("W")
                 if allow_free_hit and not already_used_free_hit:
