@@ -158,3 +158,54 @@ def test_order_substitutes():
     expected_names = ["a", "b", "c"]
     for player, expected_name in zip(subs, expected_names):
         assert player.name == expected_name
+
+
+def test_get_expected_points():
+    t = Team()
+
+    class MockPlayer:
+        def __init__(
+            self, name, team, position, points, is_starting, is_captain, is_vice_captain
+        ):
+            self.name = name
+            self.team = team
+            self.position = position
+            self.predicted_points = {0: {0: points}}
+            self.is_starting = is_starting
+            self.sub_position = None
+            self.is_captain = is_captain
+            self.is_vice_captain = is_vice_captain
+
+        def calc_predicted_points(self, tag):
+            pass
+
+    # 3 pts captain (x2 = 6pts, or x3 = 9pts for TC)
+    # 2 pts starters
+    # 1 pt subs
+    players = [
+        MockPlayer("a", "A", "GK", 2, True, False, False),
+        MockPlayer("b", "B", "GK", 1, False, False, False),  # sub 1
+        MockPlayer("c", "C", "DEF", 2, True, False, False),
+        MockPlayer("d", "D", "DEF", 2, True, False, False),
+        MockPlayer("e", "E", "DEF", 2, True, False, False),
+        MockPlayer("f", "F", "DEF", 1, False, False, False),  # sub 2
+        MockPlayer("g", "G", "DEF", 1, False, False, False),  # sub 3
+        MockPlayer("h", "H", "MID", 2, True, False, False),
+        MockPlayer("i", "I", "MID", 2, True, False, False),
+        MockPlayer("j", "J", "MID", 2, True, False, False),
+        MockPlayer("k", "K", "MID", 2, True, False, False),
+        MockPlayer("l", "L", "MID", 1, False, False, False),  # sub 4
+        MockPlayer("m", "M", "FWD", 3, True, True, False),  # captain
+        MockPlayer("n", "N", "FWD", 2, True, False, True),  # vice-captain
+        MockPlayer("o", "O", "FWD", 2, True, False, False),
+    ]
+
+    t.players = players
+    t.num_position = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
+
+    # no chips
+    assert t.get_expected_points(0, 0) == 26
+    # bench boost
+    assert t.get_expected_points(0, 0, bench_boost=True) == 30
+    # triple captain
+    assert t.get_expected_points(0, 0, triple_captain=True) == 29

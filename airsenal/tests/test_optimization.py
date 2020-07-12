@@ -262,12 +262,7 @@ def test_double_transfer():
 def test_generate_transfer_strategies():
     # 1 week, no chips
     actual_strats = generate_transfer_strategies(
-        1,
-        free_transfers=1,
-        max_total_hit=None,
-        allow_wildcard=False,
-        allow_free_hit=False,
-        next_gw=1,
+        1, free_transfers=1, max_total_hit=None, next_gw=1
     )
     exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 1), ({1: 2}, 4, 1), ({1: 3}, 8, 1)]
     assert actual_strats == exp_strats
@@ -279,43 +274,39 @@ def test_generate_transfer_strategies():
         max_total_hit=None,
         allow_wildcard=True,
         allow_free_hit=True,
+        allow_bench_boost=True,
+        allow_triple_captain=True,
         next_gw=1,
     )
-    exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 1), ({1: "W"}, 0, 1), ({1: "F"}, 0, 1)]
+    exp_strats = [
+        ({1: 0}, 0, 2),
+        ({1: 1}, 0, 1),
+        ({1: "W"}, 0, 1),
+        ({1: "F"}, 0, 1),
+        ({1: "B0"}, 0, 2),
+        ({1: "B1"}, 0, 1),
+        ({1: "T0"}, 0, 2),
+        ({1: "T1"}, 0, 1),
+    ]
     assert actual_strats == exp_strats
 
     # 1 week, 1 free transfer, no more than 4pt hit
     actual_strats = generate_transfer_strategies(
-        1,
-        free_transfers=1,
-        max_total_hit=4,
-        allow_wildcard=False,
-        allow_free_hit=False,
-        next_gw=1,
+        1, free_transfers=1, max_total_hit=4, next_gw=1
     )
     exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 1), ({1: 2}, 4, 1)]
     assert actual_strats == exp_strats
 
     # 1 week, 2 free transfers, no more than 4pt hit
     actual_strats = generate_transfer_strategies(
-        1,
-        free_transfers=2,
-        max_total_hit=4,
-        allow_wildcard=False,
-        allow_free_hit=False,
-        next_gw=1,
+        1, free_transfers=2, max_total_hit=4, next_gw=1
     )
     exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 2), ({1: 2}, 0, 1), ({1: 3}, 4, 1)]
     assert actual_strats == exp_strats
 
     # 2 weeks, no chips, max 4pt hit
     actual_strats = generate_transfer_strategies(
-        2,
-        free_transfers=1,
-        max_total_hit=4,
-        allow_wildcard=False,
-        allow_free_hit=False,
-        next_gw=1,
+        2, free_transfers=1, max_total_hit=4, next_gw=1
     )
     exp_strats = [
         ({1: 0, 2: 0}, 0, 2),
@@ -330,7 +321,7 @@ def test_generate_transfer_strategies():
     ]
     assert actual_strats == exp_strats
 
-    # 2 weeks, all possible chips
+    # 2 weeks, wildcard or free hit
     actual_strats = generate_transfer_strategies(
         2,
         free_transfers=1,
@@ -353,5 +344,46 @@ def test_generate_transfer_strategies():
         ({1: "W", 2: "F"}, 0, 1),
         ({1: "F", 2: 0}, 0, 2),
         ({1: "F", 2: 1}, 0, 1),
+        ({1: "F", 2: "W"}, 0, 1),
+    ]
+    assert actual_strats == exp_strats
+
+    # 2 weeks, bench boost
+    actual_strats = generate_transfer_strategies(
+        2, free_transfers=1, max_total_hit=None, allow_bench_boost=True, next_gw=1
+    )
+    exp_strats = [
+        ({1: 0, 2: 0}, 0, 2),
+        ({1: 0, 2: 1}, 0, 2),
+        ({1: 0, 2: "B0"}, 0, 2),
+        ({1: 0, 2: "B1"}, 0, 2),
+        ({1: 1, 2: 0}, 0, 2),
+        ({1: 1, 2: 1}, 0, 1),
+        ({1: 1, 2: "B0"}, 0, 2),
+        ({1: 1, 2: "B1"}, 0, 1),
+        ({1: "B0", 2: 0}, 0, 2),
+        ({1: "B0", 2: 1}, 0, 2),
+        ({1: "B1", 2: 0}, 0, 2),
+        ({1: "B1", 2: 1}, 0, 1),
+    ]
+    assert actual_strats == exp_strats
+
+    # 2 weeks, triple captain
+    actual_strats = generate_transfer_strategies(
+        2, free_transfers=1, max_total_hit=None, allow_triple_captain=True, next_gw=1
+    )
+    exp_strats = [
+        ({1: 0, 2: 0}, 0, 2),
+        ({1: 0, 2: 1}, 0, 2),
+        ({1: 0, 2: "T0"}, 0, 2),
+        ({1: 0, 2: "T1"}, 0, 2),
+        ({1: 1, 2: 0}, 0, 2),
+        ({1: 1, 2: 1}, 0, 1),
+        ({1: 1, 2: "T0"}, 0, 2),
+        ({1: 1, 2: "T1"}, 0, 1),
+        ({1: "T0", 2: 0}, 0, 2),
+        ({1: "T0", 2: 1}, 0, 2),
+        ({1: "T1", 2: 0}, 0, 2),
+        ({1: "T1", 2: 1}, 0, 1),
     ]
     assert actual_strats == exp_strats
