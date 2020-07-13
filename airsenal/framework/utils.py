@@ -879,7 +879,9 @@ def get_recent_playerscore_rows(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     # If asking for gameweeks without results in DB, revert to most recent results.
-    last_available_gameweek = get_last_gameweek_in_db(season=season, dbsession=dbsession)
+    last_available_gameweek = get_last_gameweek_in_db(
+        season=season, dbsession=dbsession
+    )
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 
