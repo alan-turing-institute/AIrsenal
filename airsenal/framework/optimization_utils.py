@@ -24,6 +24,7 @@ def generate_transfer_strategies(
     allow_free_hit=False,
     allow_bench_boost=False,
     allow_triple_captain=False,
+    allow_unused_transfers=True,
     next_gw=NEXT_GAMEWEEK,
 ):
     """
@@ -76,8 +77,13 @@ def generate_transfer_strategies(
             hit_so_far = 4 * max(0, n_transfers - free_transfers)
             new_free_transfers = 2 if n_transfers < free_transfers else 1
 
-        # only keep strategies that don'txceed max_total_hit
-        if not max_total_hit or hit_so_far <= max_total_hit:
+        # only keep strategies that:
+        # - don't exceed max_total_hit, if given
+        # - don't leave transfers unused, if allow_unused_transfers is True
+        # baseline of no transfers added back in at end if removed by this
+        if (max_total_hit is None or hit_so_far <= max_total_hit) and not (
+            not allow_unused_transfers and free_transfers == 2 and n_transfers == 0
+        ):
             strategies.append((strat, hit_so_far, new_free_transfers))
 
     # subsequent weeks strategies
@@ -133,11 +139,23 @@ def generate_transfer_strategies(
                     new_hit = hit_so_far + 4 * max(n_transfers - free_transfers, 0)
                     new_free_transfers = 2 if n_transfers < free_transfers else 1
 
-                # only keep strategies that don't exceed max_total_hit, if given
-                if not max_total_hit or new_hit <= max_total_hit:
+                # only keep strategies that:
+                # - don't exceed max_total_hit, if given
+                # - don't leave transfers unused, if allow_unused_transfers is True
+                if (max_total_hit is None or new_hit <= max_total_hit) and not (
+                    not allow_unused_transfers
+                    and free_transfers == 2
+                    and n_transfers == 0
+                ):
                     new_strategies.append((new_dict, new_hit, new_free_transfers))
 
         strategies = new_strategies
+
+    # if allow_unused_transfers is False baseline of no transfers will be removed above,
+    # add it back in here.
+    if not allow_unused_transfers:
+        baseline_dict = ({gw: 0 for gw in range(next_gw, next_gw + gw_ahead)}, 0, 2)
+        strategies.insert(0, baseline_dict)
 
     return strategies
 

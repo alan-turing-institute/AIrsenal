@@ -189,6 +189,11 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--no_unused_transfers",
+        help="don't consider strategies that waste free transfers",
+        action="store_true",
+    )
+    parser.add_argument(
         "--max_points_hit",
         help="how many points are we prepared to lose on transfers",
         type=int,
@@ -223,6 +228,7 @@ def main():
     allow_free_hit = args.allow_free_hit
     allow_bench_boost = args.allow_bench_boost
     allow_triple_captain = args.allow_triple_captain
+    allow_unused_transfers = not args.no_unused_transfers
     num_free_transfers = args.num_free_transfers
     budget = args.bank
     max_points_hit = args.max_points_hit
@@ -258,6 +264,7 @@ def main():
         allow_free_hit=allow_free_hit,
         allow_bench_boost=allow_bench_boost,
         allow_triple_captain=allow_triple_captain,
+        allow_unused_transfers=allow_unused_transfers,
     )
     ## define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")
