@@ -764,7 +764,5 @@ def make_strategy_id(strategy):
     Return a string that will identify a strategy - just concatenate
     the numbers of transfers per gameweek.
     """
-    strat_id = ""
-    for v in strategy[0].values():
-        strat_id += str(v)
+    strat_id = ",".join([str(nt) for nt in strategy[0].values()])
     return strat_id
