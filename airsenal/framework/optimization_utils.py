@@ -661,7 +661,7 @@ def apply_strategy(
                 budget,
                 num_iter,
                 tag,
-                gw_range,
+                [gw],  # free hit should be optimised for this gameweek only
                 update_func_and_args=update_func_and_args,
                 bench_boost_gw=bench_boost_gw,
                 triple_captain_gw=triple_captain_gw,
