@@ -191,7 +191,8 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
 def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False):
     """
     Use the transactions table to find the team as of specified gameweek,
-    then add up the values at that gameweek using the FPL API data.
+    then add up the values at that gameweek (using the FPL API if set), plus the
+    amount in the bank.
     If gameweek is None, get team for next gameweek
     """
     total_value = team.budget  # initialise total to amount in the bank

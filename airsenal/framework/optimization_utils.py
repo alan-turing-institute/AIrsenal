@@ -639,7 +639,7 @@ def apply_strategy(
             )
         elif strat[0][gw] == "W":  ## wildcard - a whole new team!
             rp = [p.player_id for p in new_team.players]
-            budget = new_team.budget + get_team_value(new_team)
+            budget = get_team_value(new_team)
             new_team = make_new_team(
                 budget,
                 num_iter,
@@ -656,7 +656,7 @@ def apply_strategy(
             team_before_free_hit = copy.deepcopy(new_team)
             ## now make a new team for this gw, as is done for wildcard
             rp = [p.player_id for p in new_team.players]
-            budget = new_team.budget + get_team_value(new_team)
+            budget = get_team_value(new_team)
             new_team = make_new_team(
                 budget,
                 num_iter,
