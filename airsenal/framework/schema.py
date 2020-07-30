@@ -36,7 +36,7 @@ class Player(Base):
         based on data nearest to specified gameweek.
         """
         gw_before = 0
-        gw_after = 39
+        gw_after = 100
         team_before = None
         team_after = None
 
@@ -77,7 +77,7 @@ class Player(Base):
         based on data nearest to specified gameweek.
         """
         gw_before = 0
-        gw_after = 39
+        gw_after = 100
         price_before = None
         price_after = None
 

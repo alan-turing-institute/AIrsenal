@@ -3,9 +3,9 @@ Functions used by the AIrsenal API
 """
 
 from uuid import uuid4
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
-from flask import jsonify
+
+from pandas import DataFrame
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -22,8 +22,11 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
+from airsenal.framework.schema import engine, SessionTeam, SessionBudget, Player
+
 from airsenal.framework.team import Team
-from airsenal.framework.schema import SessionTeam, SessionBudget, engine, Player
+
+from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
     make_optimum_double_transfer,

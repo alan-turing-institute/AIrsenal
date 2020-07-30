@@ -24,8 +24,9 @@ from tqdm import tqdm
 import argparse
 
 from ..framework.optimization_utils import *
+from .. import TMPDIR
 
-OUTPUT_DIR = "/tmp/airsopt"
+OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
 def count_increments(strategy_string, num_iterations):
@@ -45,6 +46,10 @@ def count_increments(strategy_string, num_iterations):
             total += 105
         elif s == "3":
             total += num_iterations
+        elif s in ["B", "T"]:
+            # for bench boost/triple captain only number of transfers matters, which
+            # is given in next character
+            continue
     ## return at least 1, to avoid ZeroDivisionError
     return max(total, 1)
 
@@ -174,6 +179,21 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--allow_bench_boost",
+        help="include possibility of playing bench boost in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--allow_triple_captain",
+        help="include possibility of playing triple captain in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no_unused_transfers",
+        help="don't consider strategies that waste free transfers",
+        action="store_true",
+    )
+    parser.add_argument(
         "--max_points_hit",
         help="how many points are we prepared to lose on transfers",
         type=int,
@@ -204,14 +224,11 @@ def main():
     season = args.season
     num_weeks_ahead = args.weeks_ahead
     num_iterations = args.num_iterations
-    if args.allow_wildcard:
-        wildcard = True
-    else:
-        wildcard = False
-    if args.allow_free_hit:
-        free_hit = True
-    else:
-        free_hit = False
+    allow_wildcard = args.allow_wildcard
+    allow_free_hit = args.allow_free_hit
+    allow_bench_boost = args.allow_bench_boost
+    allow_triple_captain = args.allow_triple_captain
+    allow_unused_transfers = not args.no_unused_transfers
     num_free_transfers = args.num_free_transfers
     budget = args.bank
     max_points_hit = args.max_points_hit
@@ -240,7 +257,14 @@ def main():
         progress_bars.append(tqdm(total=100))
     ### generate the list of transfer strategies
     strategies = generate_transfer_strategies(
-        num_weeks_ahead, num_free_transfers, max_points_hit, wildcard, free_hit
+        num_weeks_ahead,
+        free_transfers=num_free_transfers,
+        max_total_hit=max_points_hit,
+        allow_wildcard=allow_wildcard,
+        allow_free_hit=allow_free_hit,
+        allow_bench_boost=allow_bench_boost,
+        allow_triple_captain=allow_triple_captain,
+        allow_unused_transfers=allow_unused_transfers,
     )
     ## define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")

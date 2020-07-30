@@ -4,6 +4,7 @@ Useful commands to query the db
 import copy
 from operator import itemgetter
 from datetime import datetime, timezone
+import pandas as pd
 import dateparser
 import re
 
@@ -24,7 +25,7 @@ from .schema import (
     engine,
 )
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, case, func
 
 
 Base.metadata.bind = engine
@@ -39,7 +40,7 @@ def get_current_season():
     use the current time to find what season we're in.
     """
     current_time = datetime.now()
-    if current_time.month > 6:
+    if current_time.month > 7:
         start_year = current_time.year
     else:
         start_year = current_time.year - 1
@@ -51,6 +52,22 @@ def get_current_season():
 CURRENT_SEASON = get_current_season()
 
 
+def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
+    """
+    Return the maximum gameweek number across all scheduled fixtures. This shuold
+    generally be 38, but may be different in the case of major disruptino (e.g.
+    Covid-19)
+    """
+    max_gw = (
+        dbsession.query(func.max(Fixture.gameweek)).filter_by(season=season).first()[0]
+    )
+    if max_gw is None:
+        # TODO Tests fail without this as tests don't populate fixture table in db
+        max_gw = 100
+
+    return max_gw
+
+
 def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
@@ -59,7 +76,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     timenow = datetime.now(timezone.utc)
     fixtures = dbsession.query(Fixture).filter_by(season=season).all()
-    earliest_future_gameweek = 39
+    earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
 
     if len(fixtures) > 0:
         for fixture in fixtures:
@@ -111,6 +128,9 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
+
+
+from .bpl_interface import get_fitted_team_model
 
 
 def get_previous_season(season):
@@ -165,35 +185,20 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
     return current_players
 
 
-def get_team_value(team=None, gameweek=None, season=None):
+def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False):
     """
     Use the transactions table to find the team as of specified gameweek,
-    then add up the values at that gameweek using the FPL API data.
+    then add up the values at that gameweek (using the FPL API if set), plus the
+    amount in the bank.
     If gameweek is None, get team for next gameweek
     """
-    if not season:
-        season = CURRENT_SEASON
-    total_value = 0
-    if not team:
-        players = get_current_players(gameweek, season)
-    else:
-        players = [p.player_id for p in team.players]
-    for pid in players:
-        if season == CURRENT_SEASON:
-            if gameweek:
-                total_value += fetcher.get_gameweek_data_for_player(pid, gameweek)[0][
-                    "value"
-                ]
-            else:
-                total_value += fetcher.get_player_summary_data()[pid]["now_cost"]
-        else:
-            player = (
-                session.query(Player)
-                .filter_by(season=season)
-                .filter_by(player_id=pid)
-                .first()
-            )
-            total_value += player.cost
+    total_value = team.budget  # initialise total to amount in the bank
+
+    for p in team.players:
+        total_value += team.get_sell_price_for_player(
+            p, use_api=use_api, season=season, gameweek=gameweek
+        )
+
     return total_value
 
 
@@ -396,7 +401,8 @@ def list_players(
     ):
         # check neighbouring gameweeks to get all 20 teams/specified team
         gws_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
-        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw < 39]
+        max_gw = get_max_gameweek(season, dbsession)
+        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
 
         for gw in gws_to_try:
             fixtures = get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
@@ -423,16 +429,32 @@ def list_players(
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
+    if len(gameweeks) > 1:
+        #  Sort query results by order of gameweeks - i.e. make sure the input
+        # query gameweek comes first.
+        _whens = {gw: i for i, gw in enumerate(gameweeks)}
+        sort_order = case(value=PlayerAttributes.gameweek, whens=_whens)
+        q = q.order_by(sort_order)
     if order_by == "price":
         q = q.order_by(PlayerAttributes.price.desc())
     players = []
+    prices = []
     for p in q.all():
         if p.player not in players:
             # might have queried multiple gameweeks with same player returned
             #  multiple times - only add if it's a new player
             players.append(p.player)
+            prices.append(p.price)
+            if verbose and (len(gameweeks) == 1 or order_by != "price"):
+                print(p.player.name, p.team, p.position, p.price)
+    if len(gameweeks) > 1 and order_by == "price":
+        # Query sorted by gameweek first, so need to do a final sort here to
+        # get final price order if more than one gameweek queried.
+        sort_players = sorted(zip(prices, players), reverse=True, key=lambda p: p[0])
         if verbose:
-            print(p.player.name, p.team, p.position, p.price)
+            for p in sort_players:
+                print(p[1].name, p[0])
+        players = [p for _, p in sort_players]
     return players
 
 
@@ -698,7 +720,8 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
     ## we still need to fill in zero for gameweeks that they're not playing.
-    for gw in range(1, 39):
+    max_gw = get_max_gameweek(season, dbsession)
+    for gw in range(1, max_gw + 1):
         if not gw in ppdict.keys():
             ppdict[gw] = 0.0
     return ppdict
@@ -755,7 +778,7 @@ def get_top_predicted_points(
 ):
     """Print players with the top predicted points.
 
-    
+
     Keyword Arguments:
         gameweek {int or list} -- Single gameweek or list of gameweeks in which
         case returned totals are sums across all gameweeks (default: next
@@ -889,8 +912,16 @@ def get_recent_playerscore_rows(
     """
     if not dbsession:
         dbsession = session
+
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
+    # If asking for gameweeks without results in DB, revert to most recent results.
+    last_available_gameweek = get_last_gameweek_in_db(
+        season=season, dbsession=dbsession
+    )
+    if last_gw > last_available_gameweek:
+        last_gw = last_available_gameweek
+
     first_gw = last_gw - num_match_to_use
     ## get the playerscore rows from the db
     rows = (
@@ -931,7 +962,6 @@ def get_recent_scores_for_player(
 def get_recent_minutes_for_player(
     player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):
-
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
@@ -1014,6 +1044,46 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     rows = dbsession.query(Fixture).filter_by(season=season).all()
     return rows[-1].tag
+
+
+def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
+    """
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
+    draw_probability, away_win_probability.
+    """
+    model_team = get_fitted_team_model(season, dbsession)
+    fixture_probabilities_list = []
+    fixture_id_list = []
+    for fixture in get_fixtures_for_gameweek(
+        gameweek, season=season, dbsession=dbsession
+    ):
+        probabilities = model_team.overall_probabilities(
+            fixture.home_team, fixture.away_team
+        )
+        fixture_probabilities_list.append(
+            [
+                fixture.fixture_id,
+                fixture.home_team,
+                fixture.away_team,
+                probabilities[0],
+                probabilities[1],
+                probabilities[2],
+            ]
+        )
+        fixture_id_list.append(fixture.fixture_id)
+    return pd.DataFrame(
+        fixture_probabilities_list,
+        columns=[
+            "fixture_id",
+            "home_team",
+            "away_team",
+            "home_win_probability",
+            "draw_probability",
+            "away_win_probability",
+        ],
+        index=fixture_id_list,
+    )
 
 
 def find_fixture(
@@ -1118,7 +1188,7 @@ def get_player_team_from_fixture(
 ):
     """Get the team a player played for given the gameweek, opponent, time and
     whether they were home or away.
-    
+
     If return_fixture is True, return a tuple of (team_name, fixture)
     """
 

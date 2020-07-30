@@ -17,7 +17,12 @@ from uuid import uuid4
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
-from airsenal.framework.utils import CURRENT_SEASON, get_last_finished_gameweek, fetcher
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    get_last_finished_gameweek,
+    fetcher,
+    fixture_probabilities,
+)
 from airsenal.framework.api_utils import *
 from airsenal.framework.schema import SessionTeam, engine
 

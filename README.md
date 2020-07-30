@@ -39,7 +39,7 @@ pip install .
 
 **Windows:**
 
-_Windows is not fully supported. Adding the line `git checkout fix/128-travis-windows` after the `cd AIrsenal` statement below should let you install the module successfully, but there are still compatibility issues (see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)). You may have more success trying to run AIrsenal on the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) instead._
+_Windows is not fully supported. You should be able to install the module but there are still compatibility issues (see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)). You may have more success trying to run AIrsenal on the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) instead._
 
 If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
 ```
@@ -72,7 +72,7 @@ Once you've installed the module, you will need to set some environment variable
 Once this is done, run the following command:
 
 ```shell
-setup_airsenal_database
+airsenal_setup_initial_db
 ```
 
 You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
@@ -80,7 +80,7 @@ You should get a file ```/tmp/data.db```.  This will fill the database with all 
 You can run sanity checks on the data using the following command:
 
 ```
-check_airsenal_data
+airsenal_check_data
 ```
 
 ## Updating, running predictions and optimization.
@@ -88,17 +88,17 @@ check_airsenal_data
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
 with more recent data, using the command
 ```shell
-update_airsenal_database
+airsenal_update_db
 ```
 
 The next step is to use the team- and player-level Stan models to predict the expected points for all players for the next fixtures.  This is done using the command
 ```shell
-run_airsenal_predictions --weeks_ahead 3
+airsenal_run_prediction --weeks_ahead 3
 ```
 (we normally look 3 weeks ahead, as this is an achievable horizon to run the optimization over, but also because things like form and injuries can change a lot in 3 weeks!)
 
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 ```shell
-run_airsenal_optimization --weeks_ahead 3
+airsenal_run_optimization --weeks_ahead 3
 ```
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
