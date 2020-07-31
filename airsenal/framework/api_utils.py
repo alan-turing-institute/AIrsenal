@@ -26,11 +26,12 @@ from airsenal.framework.schema import engine, SessionTeam, SessionBudget, Player
 
 from airsenal.framework.team import Team
 
-from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
     make_optimum_double_transfer,
 )
+
+from .bpl_interface import get_fitted_team_model
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 
@@ -316,3 +317,43 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     elif n_transfer == 2:
         new_team, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
     return {"transfers_out": pid_out, "transfers_in": pid_in}
+
+
+def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
+    """
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
+    draw_probability, away_win_probability.
+    """
+    model_team = get_fitted_team_model(season, dbsession)
+    fixture_probabilities_list = []
+    fixture_id_list = []
+    for fixture in get_fixtures_for_gameweek(
+        gameweek, season=season, dbsession=dbsession
+    ):
+        probabilities = model_team.overall_probabilities(
+            fixture.home_team, fixture.away_team
+        )
+        fixture_probabilities_list.append(
+            [
+                fixture.fixture_id,
+                fixture.home_team,
+                fixture.away_team,
+                probabilities[0],
+                probabilities[1],
+                probabilities[2],
+            ]
+        )
+        fixture_id_list.append(fixture.fixture_id)
+    return pd.DataFrame(
+        fixture_probabilities_list,
+        columns=[
+            "fixture_id",
+            "home_team",
+            "away_team",
+            "home_win_probability",
+            "draw_probability",
+            "away_win_probability",
+        ],
+        index=fixture_id_list,
+    )
