@@ -42,8 +42,8 @@ jobs:
         - conda install numpy cython -c conda-forge
         - conda install pystan -c conda-forge
       install:
-        - pip install --upgrade pip
-        - pip install .
+        - python -m pip install --upgrade pip
+        - python -m pip install .
 
 script:
   - pytest
