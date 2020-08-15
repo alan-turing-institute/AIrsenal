@@ -1,3 +1,6 @@
+"""
+Make player summary files from FPL season data json
+"""
 import json
 
 from airsenal.framework.utils import get_past_seasons
