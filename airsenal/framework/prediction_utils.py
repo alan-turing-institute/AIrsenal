@@ -194,7 +194,14 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
 
 
 def calc_predicted_points(
-    player, model_team, df_player, season, tag, session, gw_range=None, fixtures_behind=3
+    player,
+    model_team,
+    df_player,
+    season,
+    tag,
+    session,
+    gw_range=None,
+    fixtures_behind=3,
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
