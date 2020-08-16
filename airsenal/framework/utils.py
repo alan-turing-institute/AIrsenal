@@ -834,7 +834,7 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-    player, season=CURRENT_SEASON, dbsession=None, gameweek=38
+    player, season=CURRENT_SEASON, dbsession=None, gameweek=NEXT_GAMEWEEK
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -842,26 +842,22 @@ def estimate_minutes_from_prev_season(
     if not dbsession:
         dbsession = session
     previous_season = get_previous_season(season)
+    
+    # Only consider minutes the player played with his current team in the previous
+    # season.
+    current_team = player.team(season, gameweek)
+    
     player_scores = (
         dbsession.query(PlayerScore)
         .filter_by(player_id=player.player_id)
         .filter(PlayerScore.fixture.has(season=previous_season))
+        .filter_by(player_team=current_team)
         .all()
     )
+    
     if len(player_scores) == 0:
-        # Crude scaling based on player price vs teammates in his position
-        teammates = list_players(
-            position=player.position(season),
-            team=player.team(season, gameweek),
-            season=season,
-            dbsession=dbsession,
-        )
-
-        team_prices = [pl.price(season, gameweek) for pl in teammates]
-        player_price = player.price(season, gameweek)
-        ratio = player_price / max(team_prices)
-
-        return [60 * (ratio ** 2)]
+        # If this player didn't play for his current team last season, return 0 minutes
+        return [0]
     else:
         average_mins = calc_average_minutes(player_scores)
         return [average_mins]
