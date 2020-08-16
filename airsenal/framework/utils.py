@@ -107,6 +107,12 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         # got no fixtures from database, maybe we're filling it for the first
         # time - get next gameweek from API instead
         fixture_data = fetcher.get_fixture_data()
+
+        if len(fixture_data) == 0:
+            # if no fixtures scheduled assume this is start of season before
+            # fixtures have been announced
+            return 1
+
         for fixture in fixture_data:
             if (
                 fixture["finished"] is False
@@ -842,11 +848,11 @@ def estimate_minutes_from_prev_season(
     if not dbsession:
         dbsession = session
     previous_season = get_previous_season(season)
-    
+
     # Only consider minutes the player played with his current team in the previous
     # season.
     current_team = player.team(season, gameweek)
-    
+
     player_scores = (
         dbsession.query(PlayerScore)
         .filter_by(player_id=player.player_id)
@@ -854,7 +860,7 @@ def estimate_minutes_from_prev_season(
         .filter_by(player_team=current_team)
         .all()
     )
-    
+
     if len(player_scores) == 0:
         # If this player didn't play for his current team last season, return 0 minutes
         return [0]
