@@ -64,19 +64,63 @@ Note we don't currently have a way to update the list of currently active _playe
 
 ## Player Points Predictions
 
-Player points predictions are generated from three components:
+Player points predictions are generated from three main components:
 1. A team-level model to predict final score probabilities for each match.
-2. The number of minutes the player has played in recent matches (by default the last 3)
-3. A player-level model to predict the probability that a player scores or assists each goal his team scores.
+2. A player-level model to predict the probability that a player scores or assists each goal his team scores.
+3. The number of minutes the player has played in recent matches (by default the last 3)
 
-Team Model
+### Team Model
 
-Player Model
+### Player Model
+
+### How Predicted Points are Calculated
+
+First:
+- Fit the team and player models.
+- Predict the probability of each number of goals scored and conceded for each team in each fixture in the gameweek to consider, using the team model.
+- Get the number of minutes each player played in the last three fixtures.
+
+Then calculate the different points contributions below for each of the number of minutes played in the last 3 fixtures (e.g. if a player played 0 mins, 70 mins and 90 mins in the last 3 games, we make 3 predictions for the next match assuming he will play 0 mins, 70 mins oor 90 mins). For both attacking and defending points, the probability of to scoring, assisting, or conceding a goal is weighted by the number of minutes (fraction of the match) the player is estimated to play.
+
+**Appearance Points:**
+As per the FPL rules, 0pts if player doesn't play, 1pt for less 60 minutes, and 2pts for 60 minutes or more.
+
+See `get_appearance_points` in `airsenal.framework.FPL_scoring_rules`.
+
+**Attacking Points (Goals Scored):**
+The following is done in `get_attacking_points()` in `airsenal.framework.prediction_utils`:
+
+- probability team scores that number of goals
+- possible permutations of number of goals and assists for the player given the team scores tbat many goals
+- probability of each permutation of goals and assists using trinomial player model (probability player scores, assists or not involved in a goal)
+- FPL points of each permutation given number of points for a goal and assist for player's position.
+- multiply probabilities and pts totals
+
+We always assume zero attacking points for goalkeepers (and don't perform the calculation above).
+
+**Defending Points (Goals Conceded):**
+The following is done in `get_defending_points()` in `airsenal.framework.prediction_utils`:
+- Calculate clean sheet points for each player (assuming player expected to play 60 mins):
+    - For goalkeepers & defenders: 4pts x probability their team concedes zero goals.
+    - For midfielders: 1pt x probability their team concedes zero goals.
+- Calculate points lost due to goals conceded for each player:
+    - For goalkeepers & defenders: -P(2 or 3 goals conceded) - P(4 or 5 goals conceded) etc.
+
+Convert to FPL points
+
+Double and blank gameeweeks
+
+We currently don't have predictions for the points contribution from bonus points, save points, yellow and red cards, own goals, or penalty misses and saves.
+
+### Running Points Predictions
+
 
 ## Creating a Team for the Start of the Season
 
 
-## Transfer Optimisation
+## Transfer & Squad Optimisation
+
+Starting XI, captain & subs
 
 Chips
 
