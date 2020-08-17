@@ -2,7 +2,7 @@ Note that running any of the commands mentioned below assume you have AIrsenal i
 
 ## Database
 
-The database is filled with data from the previous three FPL seasons (stored in the repo at `airsenal/data`), as well as data from the current season (obtained from the FPL API). The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It contains the following tables:
+The database is filled with data from the previous three FPL seasons (stored in the repo at `airsenal/data`), as well as data from the current season (obtained from the FPL API). A lot of the historic FPL data has been compiled with the help of the [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) repo. The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It has the following tables:
 
 **_Tables with Football Club Data:_**
 - **Team:** Name (short and full) and FPL ID for each team in each of the last three (and current) premier league seasons.
@@ -19,7 +19,7 @@ The database is filled with data from the previous three FPL seasons (stored in 
 
 - **PlayerAttributes:** Attributes for each player in every gameweek of each season. The main attributes are FPL price, FPL position, and the team the player plays for. 
 
-- **PlayerScore:** Stats for each player in each match. These include points scored, goals scored and condeded, assists, bonus points, minutes played and a few others. Only contains that stats available from the FPL API, we don't currently have other stats (like xG).
+- **PlayerScore:** Stats for each player in each match. These include points scored, goals scored and condeded, assists, bonus points, minutes played and a few others. Only contains the stats available from the FPL API, we don't currently have other stats (like xG).
 
 **_Tables with FPL Squad Data:_**
 
@@ -59,9 +59,26 @@ You should always run `update_airsenal_database --noattr` after an initial datab
 
 Note we don't currently have a way to update the list of currently active _players_ (only their attributes). This unfortunately means that if a new player is added to the game the whole database needs to be recreated. It's therefore best to follow the initial database setup steps above at the start of every gameweek. 
 
+### Data Sanity Checks
+
+
 ## Player Points Predictions
 
+Player points predictions are generated from three components:
+1. A team-level model to predict final score probabilities for each match.
+2. The number of minutes the player has played in recent matches (by default the last 3)
+3. A player-level model to predict the probability that a player scores or assists each goal his team scores.
+
+Team Model
+
+Player Model
+
+## Creating a Team for the Start of the Season
+
+
 ## Transfer Optimisation
+
+Chips
 
 ---
 # Old notes
