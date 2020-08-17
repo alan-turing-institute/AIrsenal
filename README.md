@@ -52,6 +52,8 @@ cd AIrsenal
 pip install .
 ```
 
+AIrsenal is under regular development both to fix problems that come up and add new functionality. If you find a bug or have ideas for improvements or new features
+
 ## Getting started
 
 Once you've installed the module, you will need to set some environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
@@ -102,3 +104,22 @@ Finally, we need to run the optimizer to pick the best transfer strategy over th
 airsenal_run_optimization --weeks_ahead 3
 ```
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
+
+## Issues and Development
+
+AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
+
+You may also like to try the development version of AIrsenal, which has the latest fixes and features. To do this checkout the `develop` branch of the repo before the `pip install .` step of the installation instructions above by running the following command:
+```
+git checkout develop
+```
+
+Also, if you wish to make changes to AIrsenal yourself it may be helpful to install AIrsenal in editable mode by adding the `-e` flag to `pip`:
+```
+pip install -e .
+```
+
+## Contributing
+
+We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
+
