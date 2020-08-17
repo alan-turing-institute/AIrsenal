@@ -43,6 +43,9 @@ def main():
     with session_scope() as session:
 
         last_in_db = get_last_gameweek_in_db(season, session)
+        if not last_in_db:
+            # no results in database for this season yet
+            last_in_db = 0
         last_finished = get_last_finished_gameweek()
 
         # TODO update players table
