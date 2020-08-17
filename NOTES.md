@@ -7,11 +7,12 @@ The database is filled with data from the previous three FPL seasons (stored in 
 **_Tables with Football Club Data:_**
 - **Team:**
 
-- **FifaTeamRating:**
-
 - **Fixture:** 
 
 - **Result:**
+
+- **FifaTeamRating:**
+
   
 **_Tables with Player Data:_**
 - **Player:** Name and ID for each player (for all football players that have been in the FPL game at some point in the last 3 seasons). The ID is the same as the FPL player ID for players active in the current season.
@@ -34,7 +35,7 @@ The database also contains information about the user's current FPL squad and AI
 
 The database schema is defined using `sqlalchemy` in `airsenal.framework.schema.py`.
 
-### Initial Database Setup
+### Initial Database Setup
 To setup the AIrsenal database:
 1. Remove any pre-existing database:
   `rm /tmp/data.db`
@@ -47,6 +48,9 @@ This runs the function `main()` in `airsenal.scripts.fill_db_init`, which calls 
 ### Updating the Database
 
 
+## Player Points Predictions
+
+## Transfer Optimisation
 
 ---
 # Old notes
