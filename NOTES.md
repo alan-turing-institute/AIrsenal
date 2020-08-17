@@ -1,3 +1,56 @@
+Note that running any of the commands mentioned below assume you have AIrsenal installed and its environment activated (if it was installed in a virtual environment).
+
+## Database
+
+The database is filled with data from the previous three FPL seasons (stored in the repo at `airsenal/data`), as well as data from the current season (obtained from the FPL API). It contains the following tables:
+
+**_Tables with Football Club Data:_**
+- **Team:**
+
+- **FifaTeamRating:**
+
+- **Fixture:** 
+
+- **Result:**
+  
+**_Tables with Player Data:_**
+- **Player:** Name and ID for each player (for all football players that have been in the FPL game at some point in the last 3 seasons). The ID is the same as the FPL player ID for players active in the current season.
+
+- **PlayerAttributes:** Attributes for each player in every gameweek of each season. The main attributes are FPL price, FPL position, and the team the player plays for. 
+
+- **PlayerScore:**
+
+**_Tables with FPL Squad Data:_**
+
+- **Transsction:**
+
+**_Tables with AIrsenal Data:_**
+
+- **PlayerPrediction:**
+
+- **TransferSuggestion:**
+
+The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations
+
+The database schema is defined using `sqlalchemy` in `airsenal.framework.schema.py`.
+
+### Initial Database Setup
+To setup the AIrsenal database:
+1. Remove any pre-existing database:
+  `rm /tmp/data.db`
+2. Run  `airsenal_setup_initial_db`
+(previously `setup_airsenal_database`)
+3. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
+
+This runs the function `main()` in `airsenal.scripts.fill_db_init`, which calls functions in other scripts to fill the individual tables from the data files and API.
+
+### Updating the Database
+
+
+
+---
+# Old notes
+
 ## Data wrangling
 
 Different aspects of the data come from different sources:
