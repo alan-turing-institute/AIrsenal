@@ -885,6 +885,10 @@ def get_recent_playerscore_rows(
     last_available_gameweek = get_last_gameweek_in_db(
         season=season, dbsession=dbsession
     )
+    if not last_available_gameweek:
+        # e.g. before this season has started
+        return None
+    
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 
@@ -915,9 +919,12 @@ def get_recent_scores_for_player(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
+
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
+    if not playerscores:  # e.g. start of season
+        return None
 
     points = {}
     for i, ps in enumerate(playerscores):
@@ -937,7 +944,11 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
-    minutes = [r.minutes for r in playerscores]
+    if playerscores:
+        minutes = [r.minutes for r in playerscores]
+    else:
+        # got no playerscores, e.g. start of season
+        minutes = []
 
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
@@ -961,10 +972,13 @@ def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
         dbsession.query(Fixture)
         .filter_by(season=season)
         .filter(Fixture.result != None)
-        .order_by(Fixture.gameweek)
-        .all()[-1]
+        .order_by(Fixture.gameweek.desc())
+        .first()
     )
-    return last_result.gameweek
+    if last_result:
+        return last_result.gameweek
+    else:
+        return None
 
 
 def get_last_finished_gameweek():
