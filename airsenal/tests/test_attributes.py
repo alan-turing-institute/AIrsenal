@@ -88,7 +88,7 @@ def test_get_position():
     price = 50
     pos_dict = {"1819": "MID", "1920": "FWD"}  # season: position
     team = "TST"
-    
+
     player = Player()
     player.player_id = player_id
     player.name = "Test Player"

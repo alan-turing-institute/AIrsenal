@@ -107,6 +107,12 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         # got no fixtures from database, maybe we're filling it for the first
         # time - get next gameweek from API instead
         fixture_data = fetcher.get_fixture_data()
+
+        if len(fixture_data) == 0:
+            # if no fixtures scheduled assume this is start of season before
+            # fixtures have been announced
+            return 1
+
         for fixture in fixture_data:
             if (
                 fixture["finished"] is False
@@ -191,7 +197,8 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
 def get_team_value(team, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False):
     """
     Use the transactions table to find the team as of specified gameweek,
-    then add up the values at that gameweek using the FPL API data.
+    then add up the values at that gameweek (using the FPL API if set), plus the
+    amount in the bank.
     If gameweek is None, get team for next gameweek
     """
     total_value = team.budget  # initialise total to amount in the bank
@@ -833,7 +840,7 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-    player, season=CURRENT_SEASON, dbsession=None, gameweek=38
+    player, season=CURRENT_SEASON, dbsession=None, gameweek=NEXT_GAMEWEEK
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -841,26 +848,22 @@ def estimate_minutes_from_prev_season(
     if not dbsession:
         dbsession = session
     previous_season = get_previous_season(season)
+
+    # Only consider minutes the player played with his current team in the previous
+    # season.
+    current_team = player.team(season, gameweek)
+
     player_scores = (
         dbsession.query(PlayerScore)
         .filter_by(player_id=player.player_id)
         .filter(PlayerScore.fixture.has(season=previous_season))
+        .filter_by(player_team=current_team)
         .all()
     )
+
     if len(player_scores) == 0:
-        # Crude scaling based on player price vs teammates in his position
-        teammates = list_players(
-            position=player.position(season),
-            team=player.team(season, gameweek),
-            season=season,
-            dbsession=dbsession,
-        )
-
-        team_prices = [pl.price(season, gameweek) for pl in teammates]
-        player_price = player.price(season, gameweek)
-        ratio = player_price / max(team_prices)
-
-        return [60 * (ratio ** 2)]
+        # If this player didn't play for his current team last season, return 0 minutes
+        return [0]
     else:
         average_mins = calc_average_minutes(player_scores)
         return [average_mins]
@@ -879,7 +882,13 @@ def get_recent_playerscore_rows(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     # If asking for gameweeks without results in DB, revert to most recent results.
-    last_available_gameweek = get_last_gameweek_in_db(season=season, dbsession=dbsession)
+    last_available_gameweek = get_last_gameweek_in_db(
+        season=season, dbsession=dbsession
+    )
+    if not last_available_gameweek:
+        # e.g. before this season has started
+        return None
+    
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 
@@ -910,9 +919,12 @@ def get_recent_scores_for_player(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
+
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
+    if not playerscores:  # e.g. start of season
+        return None
 
     points = {}
     for i, ps in enumerate(playerscores):
@@ -932,7 +944,11 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
-    minutes = [r.minutes for r in playerscores]
+    if playerscores:
+        minutes = [r.minutes for r in playerscores]
+    else:
+        # got no playerscores, e.g. start of season
+        minutes = []
 
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
@@ -956,10 +972,13 @@ def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
         dbsession.query(Fixture)
         .filter_by(season=season)
         .filter(Fixture.result != None)
-        .order_by(Fixture.gameweek)
-        .all()[-1]
+        .order_by(Fixture.gameweek.desc())
+        .first()
     )
-    return last_result.gameweek
+    if last_result:
+        return last_result.gameweek
+    else:
+        return None
 
 
 def get_last_finished_gameweek():
@@ -1006,6 +1025,7 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     rows = dbsession.query(Fixture).filter_by(season=season).all()
     return rows[-1].tag
 
+
 def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
@@ -1015,22 +1035,36 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     model_team = get_fitted_team_model(season, dbsession)
     fixture_probabilities_list = []
     fixture_id_list = []
-    for fixture in get_fixtures_for_gameweek(gameweek,
-                                             season=season,
-                                             dbsession=dbsession):
+    for fixture in get_fixtures_for_gameweek(
+        gameweek, season=season, dbsession=dbsession
+    ):
         probabilities = model_team.overall_probabilities(
-            fixture.home_team, fixture.away_team)
+            fixture.home_team, fixture.away_team
+        )
         fixture_probabilities_list.append(
-            [fixture.fixture_id,
-             fixture.home_team,
-             fixture.away_team,
-             probabilities[0],
-             probabilities[1],
-             probabilities[2]]
+            [
+                fixture.fixture_id,
+                fixture.home_team,
+                fixture.away_team,
+                probabilities[0],
+                probabilities[1],
+                probabilities[2],
+            ]
         )
         fixture_id_list.append(fixture.fixture_id)
-    return pd.DataFrame(fixture_probabilities_list, columns=['fixture_id', 'home_team',
-                                                          'away_team', 'home_win_probability', 'draw_probability', 'away_win_probability'], index=fixture_id_list)
+    return pd.DataFrame(
+        fixture_probabilities_list,
+        columns=[
+            "fixture_id",
+            "home_team",
+            "away_team",
+            "home_win_probability",
+            "draw_probability",
+            "away_win_probability",
+        ],
+        index=fixture_id_list,
+    )
+
 
 def find_fixture(
     gameweek,

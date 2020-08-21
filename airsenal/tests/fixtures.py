@@ -55,7 +55,7 @@ def fill_players():
     fill a bunch of dummy players
     """
     team_list = list(alternative_team_names.keys())
-    season = "1920"
+    season = "2021"
     gameweek = 1
     with test_session_scope() as ts:
         if len(ts.query(Player).all()) > 0:

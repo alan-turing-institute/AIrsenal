@@ -16,14 +16,14 @@ setup(
     install_requires=REQUIRED_PACKAGES,
 
     entry_points={"console_scripts": [
-        "setup_airsenal_database=airsenal.scripts.fill_db_init:main",
-        "update_airsenal_database=airsenal.scripts.update_results_transactions_db:main",
+        "airsenal_setup_initial_db=airsenal.scripts.fill_db_init:main",
+        "airsenal_update_db=airsenal.scripts.update_results_transactions_db:main",
         "airsenal_plot=airsenal.scripts.plot_league_standings:main",
-        "run_airsenal_predictions=airsenal.scripts.fill_predictedscore_table:main",
-        "run_airsenal_optimization=airsenal.scripts.fill_transfersuggestion_table:main",
+        "airsenal_run_prediction=airsenal.scripts.fill_predictedscore_table:main",
+        "airsenal_run_optimization=airsenal.scripts.fill_transfersuggestion_table:main",
         "airsenal_make_team=airsenal.scripts.team_builder:main",
-        "check_airsenal_data=airsenal.scripts.data_sanity_checks:run_all_checks",
-        "dump_db_contents=airsenal.scripts.dump_db_contents:main"
+        "airsenal_check_data=airsenal.scripts.data_sanity_checks:run_all_checks",
+        "airsenal_dump_db=airsenal.scripts.dump_db_contents:main"
         ],
 
     },

@@ -22,12 +22,7 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
-from airsenal.framework.schema import (
-    engine,
-    SessionTeam,
-    SessionBudget,
-    Player
-)
+from airsenal.framework.schema import engine, SessionTeam, SessionBudget, Player
 
 from airsenal.framework.team import Team
 
@@ -320,7 +315,4 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         new_team, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
     elif n_transfer == 2:
         new_team, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
-    return {
-        "transfers_out": pid_out,
-        "transfers_in": pid_in
-    }
+    return {"transfers_out": pid_out, "transfers_in": pid_in}

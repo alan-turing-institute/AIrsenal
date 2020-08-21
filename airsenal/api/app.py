@@ -21,7 +21,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_last_finished_gameweek,
     fetcher,
-    fixture_probabilities
+    fixture_probabilities,
 )
 from airsenal.framework.api_utils import *
 from airsenal.framework.schema import SessionTeam, engine
