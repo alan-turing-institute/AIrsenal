@@ -52,7 +52,7 @@ def update_database():
     """
     Update database
     """
-    os.system('airsenal_update_db')
+    os.system('airsenal_update_db --noattr')
 
 
 def run_prediction(num_thread, weeks_ahead):
