@@ -32,7 +32,7 @@ def clean_database():
     """
     Clean up database
     """
-    file_path = '/tmp/data.db'
+    file_path = "{}/data.db".format(TMPDIR)
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
