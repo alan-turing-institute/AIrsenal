@@ -2,7 +2,7 @@ import sys
 import os
 import click
 import multiprocessing
-
+from airsenal import TMPDIR
 
 @click.command("airsenal_run_pipeline")
 @click.option('--num_thread', type=int, default=None, help='No. of threads to use for pipeline run')
