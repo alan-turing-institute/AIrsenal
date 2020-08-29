@@ -5,6 +5,7 @@ import multiprocessing
 import click
 
 from airsenal import TMPDIR
+from airsenal.framework.utils import NEXT_GAMEWEEK
 
 
 @click.command("airsenal_run_pipeline")
@@ -13,6 +14,12 @@ from airsenal import TMPDIR
     type=int,
     default=None,
     help="No. of threads to use for pipeline run",
+)
+@click.option(
+    "--num_iterations",
+    type=int,
+    default=10,
+    help="No. of iterations for generating initial squad (start of season only)",
 )
 @click.option(
     "--weeks_ahead", type=int, default=3, help="No of weeks to use for pipeline run"
@@ -24,7 +31,9 @@ from airsenal import TMPDIR
     default=1,
     help="Number of free transfer for pipeline run",
 )
-def airsenal_run_pipeline(num_thread, weeks_ahead, bank, num_free_transfers):
+def airsenal_run_pipeline(
+    num_thread, num_iterations, weeks_ahead, bank, num_free_transfers
+):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     click.echo("Cleaning database..")
@@ -38,9 +47,14 @@ def airsenal_run_pipeline(num_thread, weeks_ahead, bank, num_free_transfers):
     click.echo("Running prediction..")
     run_prediction(num_thread, weeks_ahead)
     click.echo("Prediction complete..")
-    click.echo("Running optimization..")
-    run_optimization(num_thread, weeks_ahead, bank, num_free_transfers)
-    click.echo("Optimization complete..")
+    if NEXT_GAMEWEEK == 1:
+        click.echo("Generating a squad..")
+        run_make_team(num_iterations, weeks_ahead)
+        click.echo("Optimization complete..")
+    else:
+        click.echo("Running optimization..")
+        run_optimization(num_thread, weeks_ahead, bank, num_free_transfers)
+        click.echo("Optimization complete..")
 
 
 def clean_database():
@@ -76,6 +90,16 @@ def run_prediction(num_thread, weeks_ahead):
     """
     cmd = "airsenal_run_prediction --num_thread {} --weeks_ahead {}".format(
         num_thread, weeks_ahead
+    )
+    os.system(cmd)
+
+
+def run_make_team(num_iterations, weeks_ahead):
+    """
+    Run optimization
+    """
+    cmd = "airsenal_make_team --num_iterations {} --num_gw {}".format(
+        num_iterations, weeks_ahead
     )
     os.system(cmd)
 
