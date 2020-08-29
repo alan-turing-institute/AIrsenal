@@ -221,13 +221,17 @@ def main():
         type=int,
         default=CURRENT_SEASON,
     )
-    
+
     if NEXT_GAMEWEEK == 1:
-        print(("This function suggests transfers to make from "
-               "an existing squad and can't be used before "
-               "the season has started.\n"
-               "Use 'airsenal_make_team' to generate a "
-               "starting squad instead."))
+        print(
+            (
+                "This function suggests transfers to make from "
+                "an existing squad and can't be used before "
+                "the season has started.\n"
+                "Use 'airsenal_make_team' to generate a "
+                "starting squad instead."
+            )
+        )
         return
 
     args = parser.parse_args()

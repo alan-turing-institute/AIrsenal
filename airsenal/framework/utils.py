@@ -888,7 +888,7 @@ def get_recent_playerscore_rows(
     if not last_available_gameweek:
         # e.g. before this season has started
         return None
-    
+
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 

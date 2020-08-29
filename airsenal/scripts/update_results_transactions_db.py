@@ -49,7 +49,7 @@ def main():
         last_finished = get_last_finished_gameweek()
 
         # TODO update players table
-        # TODO update fixtures table (e.g. in case of rescheduling)? 
+        # TODO update fixtures table (e.g. in case of rescheduling)?
 
         if do_attributes:
             print("Updating attributes")
@@ -61,7 +61,9 @@ def main():
             if last_finished > last_in_db:
                 ## need to update
                 fill_results_from_api(last_in_db + 1, NEXT_GAMEWEEK, season, session)
-                fill_playerscores_from_api(season, session, last_in_db + 1, NEXT_GAMEWEEK)
+                fill_playerscores_from_api(
+                    season, session, last_in_db + 1, NEXT_GAMEWEEK
+                )
             else:
                 print("Matches and player-scores already up-to-date")
             ## now check transfers
