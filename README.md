@@ -105,6 +105,13 @@ airsenal_run_optimization --weeks_ahead 3
 ```
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
 
+Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
+```shell
+airsenal_make_team --num_gw 3
+```
+
+Run any of the commands above with the `--help` flag to see additional options (to allow wildcards or other chips to be used, for example).
+
 ## Issues and Development
 
 AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
