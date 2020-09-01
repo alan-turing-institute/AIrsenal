@@ -743,6 +743,7 @@ def get_top_predicted_points(
     team="all",
     n_players=10,
     per_position=False,
+    max_price=None,
     season=CURRENT_SEASON,
     dbsession=None,
 ):
@@ -767,6 +768,12 @@ def get_top_predicted_points(
     if not gameweek:
         gameweek = NEXT_GAMEWEEK
 
+    if isinstance(gameweek, list) or isinstance(gameweek, tuple):
+        # for determining position, team and price below
+        first_gw = gameweek[0]
+    else:
+        first_gw = gameweek
+
     print("=" * 50)
     print("PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek))
     print("=" * 50)
@@ -780,10 +787,23 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
+        
+        if max_price is not None:
+            pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
+        
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
-
+        
         for i, p in enumerate(pts[:n_players]):
-            print("{}. {}, {:.2f}pts".format(i + 1, p[0].name, p[1]))
+            print(
+                "{}. {}, {:.2f}pts (£{}m, {}, {})".format(
+                    i + 1,
+                    p[0].name,
+                    p[1],
+                    p[0].price(season, first_gw) / 10,
+                    p[0].position(season),
+                    p[0].team(season, first_gw),
+                )
+            )
 
     else:
         for position in ["GK", "DEF", "MID", "FWD"]:
@@ -795,10 +815,22 @@ def get_top_predicted_points(
                 season=season,
                 dbsession=dbsession,
             )
+            if max_price is not None:
+                pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
+            
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
             print("{}:".format(position))
+
             for i, p in enumerate(pts[:n_players]):
-                print("{}. {}, {:.2f}pts".format(i + 1, p[0].name, p[1]))
+                print(
+                    "{}. {}, {:.2f}pts (£{}m, {})".format(
+                        i + 1,
+                        p[0].name,
+                        p[1],
+                        p[0].price(season, first_gw) / 10,
+                        p[0].team(season, first_gw),
+                    )
+                )
             print("-" * 25)
 
 
