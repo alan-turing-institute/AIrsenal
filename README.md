@@ -52,11 +52,9 @@ cd AIrsenal
 pip install .
 ```
 
-AIrsenal is under regular development both to fix problems that come up and add new functionality. If you find a bug or have ideas for improvements or new features
+## Configuration
 
-## Getting started
-
-Once you've installed the module, you will need to set some environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
+Once you've installed the module, you will need to set the following parameters:
 
 **Required:**
 1. `FPL_TEAM_ID`: the team ID for your FPL side.
@@ -71,13 +69,21 @@ Once you've installed the module, you will need to set some environment variable
 
 5. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
 
-Once this is done, run the following command:
+The values for these should be defined either in environment variables with the names given above, or as files in the `airsenal/data` directory with the names given above. For example, to set your team ID you can create the file `airsenal/data/FPL_TEAM_ID` (with no file extension) and its contents should be your team ID and nothing else. So the contents of the file would just be something like:
+```
+1234567
+```
+Where `1234567` is your team ID.
+
+## Creating the database
+
+Once the module has been installed and your team ID configured, run the following command to create the AIrsenal database:
 
 ```shell
 airsenal_setup_initial_db
 ```
-
-You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
+This will fill the database with data from the last 3 seasons, as well as all available fixtures and results for the current season.
+On Linux/Mac you should get a file ```/tmp/data.db``` containing the database (on Windows you will get a `data.db` file in a the temporary directory returned by the python [tempfile module](https://docs.python.org/3/library/tempfile.html) on your system).   
 
 You can run sanity checks on the data using the following command:
 
