@@ -1043,7 +1043,10 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
         return rows[-1].tag
     except (IndexError):
         raise RuntimeError(
-            "No predicted points in database - has the database been filled?"
+            "No predicted points in database - has the database been filled?\n"
+            "To calculate points predictions (and fill the database) use "
+            "'airsenal_run_prediction'. This should be done before using "
+            "'airsenal_make_team' or 'airsenal_run_optimization'."
         )
 
 
