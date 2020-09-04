@@ -75,7 +75,9 @@ The values for these should be defined either in environment variables with the 
 ```
 Where `1234567` is your team ID.
 
-## Creating the database
+## Getting Started
+
+### 1. Creating the database
 
 Once the module has been installed and your team ID configured, run the following command to create the AIrsenal database:
 
@@ -91,7 +93,7 @@ You can run sanity checks on the data using the following command:
 airsenal_check_data
 ```
 
-## Updating and Running Predictions
+### 2. Updating and Running Predictions
 
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
 with more recent data, using the command
@@ -107,7 +109,7 @@ airsenal_run_prediction --weeks_ahead 3
 
 Predicted points must be generated before running the transfer or squad optimization (see below).
 
-## Transfer or Squad Optimization
+### 3. Transfer or Squad Optimization
 
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 ```shell
