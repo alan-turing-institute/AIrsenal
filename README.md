@@ -91,7 +91,7 @@ You can run sanity checks on the data using the following command:
 airsenal_check_data
 ```
 
-## Updating, running predictions and optimization.
+## Updating and Running Predictions
 
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
 with more recent data, using the command
@@ -105,6 +105,10 @@ airsenal_run_prediction --weeks_ahead 3
 ```
 (we normally look 3 weeks ahead, as this is an achievable horizon to run the optimization over, but also because things like form and injuries can change a lot in 3 weeks!)
 
+Predicted points must be generated before running the transfer or squad optimization (see below).
+
+## Transfer or Squad Optimization
+
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 ```shell
 airsenal_run_optimization --weeks_ahead 3
@@ -115,8 +119,9 @@ Note that `airsenal_run_optimization` should only be used for transfer suggestio
 ```shell
 airsenal_make_team --num_gw 3
 ```
+This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
-Run any of the commands above with the `--help` flag to see additional options (to allow wildcards or other chips to be used, for example).
+Run any AIrsenal commands with the `--help` flag to see additional options (to allow wildcards or other chips to be used, for example).
 
 ## Issues and Development
 
