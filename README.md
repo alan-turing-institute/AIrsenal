@@ -125,7 +125,7 @@ airsenal_make_team --num_gw 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
-### Run the Full AIrsenal Pipeling
+### Run the Full AIrsenal Pipeline
 
 Instead of running the commands above individaully you can use:
 ```shell
