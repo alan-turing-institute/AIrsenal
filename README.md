@@ -77,6 +77,8 @@ Where `1234567` is your team ID.
 
 ## Getting Started
 
+Note: Most the commands below can be run with the `--help` flag to see additional options and information.
+
 ### 1. Creating the database
 
 Once the module has been installed and your team ID configured, run the following command to create the AIrsenal database:
@@ -123,7 +125,13 @@ airsenal_make_team --num_gw 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
-Run any AIrsenal commands with the `--help` flag to see additional options (to allow wildcards or other chips to be used, for example).
+### Run the Full AIrsenal Pipeling
+
+Instead of running the commands above individaully you can use:
+```shell
+airsenal_run_pipeline
+```
+This will delete and recreate the database and then run the points predictions and transfer optimization.
 
 ## Issues and Development
 
