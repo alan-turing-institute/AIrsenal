@@ -37,6 +37,7 @@ def test_get_team_data():
     assert len(data) == 15
 
 
+@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No team data before start of season")
 def test_get_team_history_data():
     """
     gameweek history for our team id
