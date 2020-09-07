@@ -24,6 +24,7 @@ from tqdm import tqdm
 import argparse
 
 from ..framework.optimization_utils import *
+from ..framework.utils import NEXT_GAMEWEEK
 from .. import TMPDIR
 
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
@@ -220,6 +221,19 @@ def main():
         type=int,
         default=CURRENT_SEASON,
     )
+
+    if NEXT_GAMEWEEK == 1:
+        print(
+            (
+                "This function suggests transfers to make from "
+                "an existing squad and can't be used before "
+                "the season has started.\n"
+                "Use 'airsenal_make_team' to generate a "
+                "starting squad instead."
+            )
+        )
+        return
+
     args = parser.parse_args()
     season = args.season
     num_weeks_ahead = args.weeks_ahead

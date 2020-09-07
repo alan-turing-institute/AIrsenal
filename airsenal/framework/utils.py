@@ -107,6 +107,12 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         # got no fixtures from database, maybe we're filling it for the first
         # time - get next gameweek from API instead
         fixture_data = fetcher.get_fixture_data()
+
+        if len(fixture_data) == 0:
+            # if no fixtures scheduled assume this is start of season before
+            # fixtures have been announced
+            return 1
+
         for fixture in fixture_data:
             if (
                 fixture["finished"] is False
@@ -737,6 +743,7 @@ def get_top_predicted_points(
     team="all",
     n_players=10,
     per_position=False,
+    max_price=None,
     season=CURRENT_SEASON,
     dbsession=None,
 ):
@@ -761,6 +768,12 @@ def get_top_predicted_points(
     if not gameweek:
         gameweek = NEXT_GAMEWEEK
 
+    if isinstance(gameweek, list) or isinstance(gameweek, tuple):
+        # for determining position, team and price below
+        first_gw = gameweek[0]
+    else:
+        first_gw = gameweek
+
     print("=" * 50)
     print("PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek))
     print("=" * 50)
@@ -774,10 +787,23 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
+        
+        if max_price is not None:
+            pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
+        
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
-
+        
         for i, p in enumerate(pts[:n_players]):
-            print("{}. {}, {:.2f}pts".format(i + 1, p[0].name, p[1]))
+            print(
+                "{}. {}, {:.2f}pts (£{}m, {}, {})".format(
+                    i + 1,
+                    p[0].name,
+                    p[1],
+                    p[0].price(season, first_gw) / 10,
+                    p[0].position(season),
+                    p[0].team(season, first_gw),
+                )
+            )
 
     else:
         for position in ["GK", "DEF", "MID", "FWD"]:
@@ -789,10 +815,22 @@ def get_top_predicted_points(
                 season=season,
                 dbsession=dbsession,
             )
+            if max_price is not None:
+                pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
+            
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
             print("{}:".format(position))
+
             for i, p in enumerate(pts[:n_players]):
-                print("{}. {}, {:.2f}pts".format(i + 1, p[0].name, p[1]))
+                print(
+                    "{}. {}, {:.2f}pts (£{}m, {})".format(
+                        i + 1,
+                        p[0].name,
+                        p[1],
+                        p[0].price(season, first_gw) / 10,
+                        p[0].team(season, first_gw),
+                    )
+                )
             print("-" * 25)
 
 
@@ -834,7 +872,7 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-    player, season=CURRENT_SEASON, dbsession=None, gameweek=38
+    player, season=CURRENT_SEASON, dbsession=None, gameweek=NEXT_GAMEWEEK
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -842,26 +880,22 @@ def estimate_minutes_from_prev_season(
     if not dbsession:
         dbsession = session
     previous_season = get_previous_season(season)
+
+    # Only consider minutes the player played with his current team in the previous
+    # season.
+    current_team = player.team(season, gameweek)
+
     player_scores = (
         dbsession.query(PlayerScore)
         .filter_by(player_id=player.player_id)
         .filter(PlayerScore.fixture.has(season=previous_season))
+        .filter_by(player_team=current_team)
         .all()
     )
+
     if len(player_scores) == 0:
-        # Crude scaling based on player price vs teammates in his position
-        teammates = list_players(
-            position=player.position(season),
-            team=player.team(season, gameweek),
-            season=season,
-            dbsession=dbsession,
-        )
-
-        team_prices = [pl.price(season, gameweek) for pl in teammates]
-        player_price = player.price(season, gameweek)
-        ratio = player_price / max(team_prices)
-
-        return [60 * (ratio ** 2)]
+        # If this player didn't play for his current team last season, return 0 minutes
+        return [0]
     else:
         average_mins = calc_average_minutes(player_scores)
         return [average_mins]
@@ -883,6 +917,10 @@ def get_recent_playerscore_rows(
     last_available_gameweek = get_last_gameweek_in_db(
         season=season, dbsession=dbsession
     )
+    if not last_available_gameweek:
+        # e.g. before this season has started
+        return None
+
     if last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 
@@ -913,9 +951,12 @@ def get_recent_scores_for_player(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
+
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
+    if not playerscores:  # e.g. start of season
+        return None
 
     points = {}
     for i, ps in enumerate(playerscores):
@@ -935,7 +976,11 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
-    minutes = [r.minutes for r in playerscores]
+    if playerscores:
+        minutes = [r.minutes for r in playerscores]
+    else:
+        # got no playerscores, e.g. start of season
+        minutes = []
 
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
@@ -959,10 +1004,13 @@ def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
         dbsession.query(Fixture)
         .filter_by(season=season)
         .filter(Fixture.result != None)
-        .order_by(Fixture.gameweek)
-        .all()[-1]
+        .order_by(Fixture.gameweek.desc())
+        .first()
     )
-    return last_result.gameweek
+    if last_result:
+        return last_result.gameweek
+    else:
+        return None
 
 
 def get_last_finished_gameweek():
@@ -995,7 +1043,10 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
         return rows[-1].tag
     except (IndexError):
         raise RuntimeError(
-            "No predicted points in database - has the database been filled?"
+            "No predicted points in database - has the database been filled?\n"
+            "To calculate points predictions (and fill the database) use "
+            "'airsenal_run_prediction'. This should be done before using "
+            "'airsenal_make_team' or 'airsenal_run_optimization'."
         )
 
 
