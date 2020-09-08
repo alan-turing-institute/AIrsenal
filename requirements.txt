@@ -13,4 +13,6 @@ bpl==0.0.4
 flask
 flask_cors
 flask_session
-Click==7.0
+jupyter
+seaborn
+click==7.1.2

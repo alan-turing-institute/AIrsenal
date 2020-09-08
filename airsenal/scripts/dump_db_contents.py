@@ -34,10 +34,14 @@ def main():
         "id",
         "player_id",
         "season",
-        "gw_valid_from",
-        "current_price",
+        "gameweek",
+        "price",
         "team",
         "position",
+        "transfers_balance",
+        "selected",
+        "transfers_in",
+        "transfers_out"
     ]
     output_path = os.path.join(
         os.path.dirname(__file__), "../data/player_attributes.csv"
