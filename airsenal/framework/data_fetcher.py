@@ -178,7 +178,7 @@ class FPLDataFetcher(object):
 
     def get_player_summary_data(self):
         """
-        Use the current_data to build a dictionary, keyed by player_id
+        Use the current_data to build a dictionary, keyed by player_api_id
         in order to retrieve a player without having to loop through
         a whole list.
         """
@@ -204,41 +204,41 @@ class FPLDataFetcher(object):
             self.current_team_data[team["code"]] = team
         return self.current_team_data
 
-    def get_gameweek_data_for_player(self, player_id, gameweek=None):
+    def get_gameweek_data_for_player(self, player_api_id, gameweek=None):
         """
         return cached data if available, otherwise
         fetch it from API.
         Return a list, as in double-gameweeks, a player can play more than
         one match in a gameweek.
         """
-        if not player_id in self.player_gameweek_data.keys():
-            self.player_gameweek_data[player_id] = {}
+        if not player_api_id in self.player_gameweek_data.keys():
+            self.player_gameweek_data[player_api_id] = {}
             if (not gameweek) or (
-                not gameweek in self.player_gameweek_data[player_id].keys()
+                not gameweek in self.player_gameweek_data[player_api_id].keys()
             ):
 
-                r = requests.get(self.FPL_DETAIL_URL.format(player_id))
+                r = requests.get(self.FPL_DETAIL_URL.format(player_api_id))
                 if not r.status_code == 200:
-                    print("Error retrieving data for player {}".format(player_id))
+                    print("Error retrieving data for player {}".format(player_api_id))
                     return []
                 player_detail = json.loads(r.content)
 
                 for game in player_detail["history"]:
                     gw = game["round"]
-                    if not gw in self.player_gameweek_data[player_id].keys():
-                        self.player_gameweek_data[player_id][gw] = []
-                    self.player_gameweek_data[player_id][gw].append(game)
+                    if not gw in self.player_gameweek_data[player_api_id].keys():
+                        self.player_gameweek_data[player_api_id][gw] = []
+                    self.player_gameweek_data[player_api_id][gw].append(game)
         if gameweek:
-            if not gameweek in self.player_gameweek_data[player_id].keys():
+            if not gameweek in self.player_gameweek_data[player_api_id].keys():
                 print(
                     "Data not available for player {} week {}".format(
-                        player_id, gameweek
+                        player_api_id, gameweek
                     )
                 )
                 return []
-            return self.player_gameweek_data[player_id][gameweek]
+            return self.player_gameweek_data[player_api_id][gameweek]
         else:
-            return self.player_gameweek_data[player_id]
+            return self.player_gameweek_data[player_api_id]
 
     def get_fixture_data(self):
         """

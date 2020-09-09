@@ -236,14 +236,17 @@ def get_sell_price_for_player(player_id, gameweek=None):
                 player_id, gameweek
             )
         )
-    pdata_bought = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
+    # to query the API we need to use the fpl_api_id for the player rather than player_id
+    player_api_id = get_player(player_id).fpl_api_id
+
+    pdata_bought = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
     ## will be a list - can be more than one match in a gw - just use the 1st.
     price_bought = pdata_bought[0]["value"]
 
     if not gameweek:  # assume we want the current (i.e. next) gameweek
-        price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
+        price_now = fetcher.get_player_summary_data()[player_api_id]["now_cost"]
     else:
-        pdata_now = fetcher.get_gameweek_data_for_player(player_id, gw_bought)
+        pdata_now = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
         price_now = pdata_now[0]["value"]
     ## take off our half of the profit - boo!
     if price_now > price_bought:
@@ -302,7 +305,12 @@ def get_teams_for_season(season, dbsession=None):
 
 def get_player(player_name_or_id, dbsession=None):
     """
-    query the player table by name or id, return the player object (or None)
+    query the player table by name or id, return the player object (or None).
+    NOTE the player_id that can be passed as an argument here is NOT
+    guaranteed to be the id for that player in the FPL API.  The one here
+    is the entry (primary key) in our database.
+    Use the function get_player_from_api_id() to find the player corresponding
+    to the FPL API ID.
     """
     if not dbsession:
         dbsession = session  # use the one defined in this module
@@ -328,6 +336,20 @@ def get_player(player_name_or_id, dbsession=None):
                 return p
     # didn't find it - return None
     return None
+
+
+def get_player_from_api_id(api_id, dbsession=None):
+    """
+    Query the database and return the player with the corresponding attribute fpl_api_id
+    """
+    if not dbsession:
+        dbsession = session  # use the one defined in this module
+    p = dbsession.query(Player).filter_by(fpl_api_id=api_id).first()
+    if p:
+        return p
+    else:
+        print("Unable to find player with fpl_api_id {}".format(api_id))
+        return None
 
 
 def get_player_name(player_id, dbsession=None):
@@ -620,7 +642,10 @@ def get_players_for_gameweek(gameweek):
     Use FPL API to get the players for a given gameweek.
     """
     player_data = fetcher.get_fpl_team_data(gameweek)
-    player_list = [p["element"] for p in player_data]
+    player_api_id_list = [p["element"] for p in player_data]
+    player_list = [get_player_from_api_id(api_id).player_id \
+                   for api_id in player_api_id_list\
+                   if get_player_from_api_id(api_id)]
     return player_list
 
 
@@ -787,12 +812,12 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
-        
+
         if max_price is not None:
             pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
-        
+
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
-        
+
         for i, p in enumerate(pts[:n_players]):
             print(
                 "{}. {}, {:.2f}pts (£{}m, {}, {})".format(
@@ -817,7 +842,7 @@ def get_top_predicted_points(
             )
             if max_price is not None:
                 pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
-            
+
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
             print("{}:".format(position))
 
@@ -834,12 +859,12 @@ def get_top_predicted_points(
             print("-" * 25)
 
 
-def get_return_gameweek_for_player(player_id, dbsession=None):
+def get_return_gameweek_for_player(player_api_id, dbsession=None):
     """
     If  a player is injured and there is 'news' about them on FPL,
     parse this string to get expected return date.
     """
-    pdata = fetcher.get_player_summary_data()[player_id]
+    pdata = fetcher.get_player_summary_data()[player_api_id]
     rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
     if "news" in pdata.keys() and re.search(rd_rex, pdata["news"]):
 
