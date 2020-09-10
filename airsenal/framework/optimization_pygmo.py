@@ -204,7 +204,8 @@ class OptTeam:
 
 
 def make_new_team(
-    gw_range, tag,
+    gw_range,
+    tag,
     budget=1000,
     players_per_position=TOTAL_PER_POSITION,
     season=CURRENT_SEASON,
@@ -239,7 +240,7 @@ def make_new_team(
     pop = pg.population(prob=prob, size=population_size)
 
     # solve problem
-    pop = algo.evolve(pop)        
+    pop = algo.evolve(pop)
     print("Best score:", -pop.champion_f[0], "pts")
 
     # construct optimal team
@@ -249,7 +250,7 @@ def make_new_team(
             opt_team.players[int(idx)].position(CURRENT_SEASON),
             opt_team.players[int(idx)].name,
             opt_team.players[int(idx)].team(CURRENT_SEASON, 1),
-            opt_team.players[int(idx)].price(CURRENT_SEASON, 1)/10,
+            opt_team.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
         )
         team.add_player(
             opt_team.players[int(idx)].player_id,
@@ -265,7 +266,7 @@ def make_new_team(
                     opt_team.gw_range, opt_team.tag, pos, price=opt_team.dummy_sub_cost
                 )
                 team.add_player(dp)
-                print(dp.position, dp.name, dp.purchase_price/10)
+                print(dp.position, dp.name, dp.purchase_price / 10)
 
     print(f"£{team.budget/10}m in the bank")
 
