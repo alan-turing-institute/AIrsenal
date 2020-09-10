@@ -59,12 +59,15 @@ class OptTeam:
         triple_captain_gw=None,
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
+        sub_weights={"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)},
+        gw_weight="linear",
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
+        self.gw_weight = self._get_gw_weight(gw_weight)
 
         self.tag = tag
         self.positions = ["GK", "DEF", "MID", "FWD"]
@@ -75,6 +78,7 @@ class OptTeam:
         )  # no. players each position that won't be optimised (just filled with dummies)
         self.dummy_sub_cost = dummy_sub_cost
         self.budget = budget
+        self.sub_weights = sub_weights
 
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
@@ -110,13 +114,23 @@ class OptTeam:
 
         #  Calc expected points for all gameweeks
         score = 0.0
-        for gw in self.gw_range:
+        for i, gw in enumerate(self.gw_range):
+            gw_weight = self.gw_weight[i]
             if gw == self.bench_boost_gw:
-                score += team.get_expected_points(gw, self.tag, bench_boost=True)
+                score += gw_weight * team.get_expected_points(
+                    gw, self.tag, bench_boost=True
+                )
             elif gw == self.triple_captain_gw:
-                score += team.get_expected_points(gw, self.tag, triple_captain=True)
+                score += gw_weight * team.get_expected_points(
+                    gw, self.tag, triple_captain=True
+                )
             else:
-                score += team.get_expected_points(gw, self.tag)
+                score += gw_weight * team.get_expected_points(gw, self.tag)
+
+            if gw != self.bench_boost_gw:
+                score += gw_weight * team.total_points_for_subs(
+                    gw, self.tag, sub_weights=self.sub_weights
+                )
 
         return [-score]
 
@@ -202,6 +216,16 @@ class OptTeam:
             )
         return dummy_per_position
 
+    def _get_gw_weight(self, weight_type):
+        if weight_type == "constant":
+            return [1] * len(self.gw_range)
+        elif weight_type == "linear":
+            return [
+                (15 - i) / 15 if i < 15 else 1 / 15 for i in range(len(self.gw_range))
+            ]
+        else:
+            raise ValueError("weight_type must be 'linear' or 'constant'.")
+
 
 def make_new_team(
     gw_range,
@@ -212,8 +236,12 @@ def make_new_team(
     verbose=1,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    remove_zero=True,  # don't consider players with predicted pts of zero
+    sub_weights={"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    dummy_sub_cost=45,
     uda=pg.sga(gen=100),
     population_size=100,
+    gw_weight="linear",
 ):
     # Build problem
     opt_team = OptTeam(
@@ -221,11 +249,13 @@ def make_new_team(
         tag,
         budget=budget,
         players_per_position=players_per_position,
-        dummy_sub_cost=45,
+        dummy_sub_cost=dummy_sub_cost,
         season=season,
         bench_boost_gw=bench_boost_gw,
         triple_captain_gw=triple_captain_gw,
-        remove_zero=True,  # don't consider players with predicted pts of zero
+        remove_zero=remove_zero,  # don't consider players with predicted pts of zero
+        sub_weights=sub_weights,
+        gw_weight=gw_weight,
     )
 
     prob = pg.problem(opt_team)
