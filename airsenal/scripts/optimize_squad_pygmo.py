@@ -61,6 +61,6 @@ team = make_new_team(
 )
 
 print("=" * 10)
-pts = team.get_expected_points(gw_range, tag)
+pts = team.get_expected_points(gw_range[0], tag)
 print(f"GW{gw_range[0]}: {pts:.0f} pts")
 print(team)
