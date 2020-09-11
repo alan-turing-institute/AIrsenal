@@ -8,5 +8,4 @@ dependencies:
   - pystan
   - pygmo
   - pip:
-    - -r requirements.txt
     - .
