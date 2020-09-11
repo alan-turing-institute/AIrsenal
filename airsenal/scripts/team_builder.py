@@ -100,7 +100,7 @@ def main():
             sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
         else:
             sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-        
+
         best_team = make_new_team(
             gw_range,
             tag,
