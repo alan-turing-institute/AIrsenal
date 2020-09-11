@@ -872,11 +872,11 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-        player,
-        season=CURRENT_SEASON,
-        dbsession=None,
-        gameweek=NEXT_GAMEWEEK,
-        n_games_to_use=10
+    player,
+    season=CURRENT_SEASON,
+    dbsession=None,
+    gameweek=NEXT_GAMEWEEK,
+    n_games_to_use=10,
 ):
     """
     take average of minutes from previous season if any, or else return [60]

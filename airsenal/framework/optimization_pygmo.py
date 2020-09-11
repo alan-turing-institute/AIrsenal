@@ -15,14 +15,13 @@ from .team import Team, TOTAL_PER_POSITION
 
 
 class DummyPlayer:
-    """
-    To fill squads with placeholders (if not optimising full squad)
-    """
+    """To fill squads with placeholders (if not optimising full squad)."""
 
-    def __init__(self, gw_range, tag, position, price=45, team="XYZ", pts=0):
+    def __init__(self, gw_range, tag, position, price=45, pts=0):
         self.name = "DUMMY"
         self.position = position
         self.purchase_price = price
+        # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
         self.predicted_points = {tag: {gw: self.pts for gw in gw_range}}
@@ -34,20 +33,53 @@ class DummyPlayer:
 
     def calc_predicted_points(self, method):
         """
-        get expected points from the db.
-        Will be a dict of dicts, keyed by method and gameweeek
+        Needed for compatibility with Team/other Player classes
         """
         pass
 
     def get_predicted_points(self, gameweek, method):
         """
-        get points for a specific gameweek
+        Get points for a specific gameweek - 
         """
         return self.pts
 
 
-# PyGMO User Defined Problem
-class OptTeam:
+class TeamOpt:
+    """Pygmo user defined problem class for optimising a full squad
+    
+    Parameters
+    ----------
+    gw_range : list
+        Gameweeks to optimize squad for
+    tag : str
+        Points prediction tag to use
+    budget : int, optional
+        Total budget for squad times 10,  by default 1000
+    players_per_position : dict
+        No. of players to optimize in each position, by default
+        airsenal.framework.team.TOTAL_PER_POSITION
+    season : str
+        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+    bench_boost_gw : int
+        Gameweek to play benfh boost, by default None
+    triple_captain_gw : int
+        Gameweek to play triple captaiin, by default None,
+    remove_zero : bool
+        If True don't consider players with predicted pts of zero, by default True
+    sub_weights : dict
+        Weighting to give to substitutes in optimization, by default
+        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    dummy_sub_cost : int, optional
+        If not optimizing a full squad the price of each player that is not being
+        optimized. For example, if you are optimizing 12 out of 15 players, the
+        effective budget for optimizinig the squad will be
+        budget - (15 -12) * dummy_sub_cost, by default 45
+    gw_weight_type : str, optional
+        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
+        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
+        equally,  by default "linear"
+    """
+
     def __init__(
         self,
         gw_range,
@@ -60,14 +92,14 @@ class OptTeam:
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
         sub_weights={"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)},
-        gw_weight="linear",
+        gw_weight_type="linear",
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
-        self.gw_weight = self._get_gw_weight(gw_weight)
+        self.gw_weight = self._get_gw_weight(gw_weight_type)
 
         self.tag = tag
         self.positions = ["GK", "DEF", "MID", "FWD"]
@@ -86,9 +118,10 @@ class OptTeam:
         self.n_available_players = len(self.players)
 
     def fitness(self, player_ids):
-        """
-        PyGMO required function.
-        The objective function to minimise. And constraints to evaluate.
+        """PyGMO required function. The objective function to minimise.
+        In this case:
+            - 0 if the proposed team isn't valid
+            - weghted sum of gameweek points otherwise
         """
         # Make team from player IDs
         team = Team(budget=self.budget)
@@ -108,11 +141,13 @@ class OptTeam:
                     )
                     team.add_player(dp)
 
-        # Check team is valid
+        # Check team is valid, if not return fitness of zero
         if not team.is_complete():
             return [0]
 
         #  Calc expected points for all gameweeks
+        # - weight each gw points by its gw_weight
+        # - weight each sub by their sub_weight
         score = 0.0
         for i, gw in enumerate(self.gw_range):
             gw_weight = self.gw_weight[i]
@@ -135,10 +170,7 @@ class OptTeam:
         return [-score]
 
     def get_bounds(self):
-        """
-        PyGMO required function.
-        Defines min and max value for each parameter.
-        """
+        """PyGMO required function. Defines min and max value for each parameter."""
         # use previously calculated position index ranges to set the bounds
         # to force all attempted solutions to contain the correct number of
         # players for each position.
@@ -151,28 +183,26 @@ class OptTeam:
         return (low_bounds, high_bounds)
 
     def get_nec(self):
-        """PyGMO function.
-        Defines number of equality constraints."""
+        """PyGMO function. Defines number of equality constraints."""
         return 0
 
     def get_nix(self):
-        """
-        PyGMO function.
-        Number of integer dimensions.
+        """PyGMO function. Number of integer dimensions.
         """
         return self.n_opt_players
 
     def gradient(self, x):
+        """PyGMO function - estimate gradient
+        """
         return pg.estimate_gradient_h(lambda x: self.fitness(x), x)
 
     def _get_player_list(self):
-        """
-        Get list of active players at the start of the gameweek range,
+        """Get list of active players at the start of the gameweek range,
         and the id range of players for each position.
         """
         players = []
         change_idx = [0]
-        # build players list by position (e.g. all GK, then all DEF etc.)
+        # build players list by position (i.e. all GK, then all DEF etc.)
         for pos in self.positions:
             players += list_players(
                 position=pos, season=self.season, gameweek=self.start_gw
@@ -187,7 +217,11 @@ class OptTeam:
         return players, position_idx
 
     def _remove_zero_pts(self):
+        """Exclude players with zero predicted points.
+        """
         players = []
+        # change_idx stores the indices of where the player positions change in the new
+        # player list
         change_idx = [0]
         last_pos = self.positions[0]
         for p in self.players:
@@ -209,6 +243,9 @@ class OptTeam:
         self.position_idx = position_idx
 
     def _get_dummy_per_position(self):
+        """No. of dummy players per position needed to complete the squad (if not
+        optimising the full squad)
+        """
         dummy_per_position = {}
         for pos in self.positions:
             dummy_per_position[pos] = (
@@ -217,6 +254,10 @@ class OptTeam:
         return dummy_per_position
 
     def _get_gw_weight(self, weight_type):
+        """Weight for each gameweek. If weight_type is 'constant' treat all gameweeks
+        equally. If it is 'linear' reduce by 1/15 each week (e.g. GW1 15/15, GW2 14/15,
+        GW3 13/15,... GW15 1/15)
+        """
         if weight_type == "constant":
             return [1] * len(self.gw_range)
         elif weight_type == "linear":
@@ -241,10 +282,56 @@ def make_new_team(
     dummy_sub_cost=45,
     uda=pg.sga(gen=100),
     population_size=100,
-    gw_weight="linear",
+    gw_weight_type="linear",
 ):
+    """Optimize a full initial squad using any PyGMO-compatible algorithm.
+
+    Parameters
+    ----------
+    gw_range : list
+        Gameweeks to optimize squad for
+    tag : str
+        Points prediction tag to use
+    budget : int, optional
+        Total budget for squad times 10,  by default 1000
+    players_per_position : dict
+        No. of players to optimize in each position, by default
+        airsenal.framework.team.TOTAL_PER_POSITION
+    season : str
+        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+    verbose : int
+        Verbosity of optimization algorithm, by default 1
+    bench_boost_gw : int
+        Gameweek to play benfh boost, by default None
+    triple_captain_gw : int
+        Gameweek to play triple captaiin, by default None,
+    remove_zero : bool
+        If True don't consider players with predicted pts of zero, by default True
+    sub_weights : dict
+        Weighting to give to substitutes in optimization, by default
+        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    dummy_sub_cost : int, optional
+        If not optimizing a full squad the price of each player that is not being
+        optimized. For example, if you are optimizing 12 out of 15 players, the
+        effective budget for optimizinig the squad will be
+        budget - (15 -12) * dummy_sub_cost, by default 45
+    uda : class, optional
+        PyGMO compatible algorithm class, by default pg.sga(gen=100)
+    population_size : int, optional
+        Number of candidate solutions in each generation of the optimization,
+        by default 100
+    gw_weight_type : str, optional
+        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
+        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
+        equally,  by default "linear"
+
+    Returns
+    -------
+    airsenal.framework.team.Team
+        The optimized team
+    """
     # Build problem
-    opt_team = OptTeam(
+    opt_team = TeamOpt(
         gw_range,
         tag,
         budget=budget,
@@ -255,16 +342,14 @@ def make_new_team(
         triple_captain_gw=triple_captain_gw,
         remove_zero=remove_zero,  # don't consider players with predicted pts of zero
         sub_weights=sub_weights,
-        gw_weight=gw_weight,
+        gw_weight_type=gw_weight_type,
     )
 
     prob = pg.problem(opt_team)
-    print(prob)
 
     # Create algorithm to solve problem with
     algo = pg.algorithm(uda=uda)
     algo.set_verbosity(verbose)
-    print(algo)
 
     # population of problems
     pop = pg.population(prob=prob, size=population_size)
@@ -299,10 +384,5 @@ def make_new_team(
                 print(dp.position, dp.name, dp.purchase_price / 10)
 
     print(f"£{team.budget/10}m in the bank")
-
-    print("=" * 10)
-    pts = team.get_expected_points(opt_team.gw_range[0], opt_team.tag)
-    print(f"GW{opt_team.gw_range[0]}: {pts:.0f} pts")
-    print(team)
 
     return team
