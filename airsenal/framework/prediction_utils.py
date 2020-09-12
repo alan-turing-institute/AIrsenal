@@ -495,3 +495,21 @@ def fit_all_player_data(model, season, session):
         reals.append(r)
     df = pd.concat(dfs)
     return df, fits, reals
+
+
+def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10):
+    def get_bonus_df(min_minutes, max_minutes):
+        query = session.query(PlayerScore).filter(PlayerScore.minutes <= max_minutes).filter(PlayerScore.minutes >= min_minutes)
+        df = pd.read_sql(query.statement, engine)
+    
+        keep_player_ids = df.groupby("player_id").bonus.count() >= min_matches
+        keep_player_ids = keep_player_ids[keep_player_ids == True].index
+        df = df[df.player_id.isin(keep_player_ids)]
+
+        avg_bonus = df.groupby("player_id").bonus.mean()
+        return avg_bonus
+    
+    df_more60 = get_bonus_df(60, 90)
+    df_less60 = get_bonus_df(1, 59)
+
+    
