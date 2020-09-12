@@ -15,12 +15,12 @@ SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print stateme
 
 def fixture_string(fixture, result=None):
     """Get a string with basic info about a fixture.
-    
+
     Arguments:
         fixture {SQLAlchemy class object} -- fixture from the database.
         result {SQLAlchemy class object} -- result from the database. If given
         returned string contains the match score.
-    
+
     Returns:
         [string] -- formatted string with id, season, gameweek, home team and
         away team.
@@ -49,7 +49,7 @@ def fixture_string(fixture, result=None):
 
 def result_string(n_error):
     """make string representing check result
-    
+
     Arguments:
         n_error {int} -- number of errors encountered during check
     """
@@ -62,7 +62,7 @@ def result_string(n_error):
 
 def season_num_teams(seasons=CHECK_SEASONS):
     """Check whether each season has 20 teams.
-    
+
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
@@ -82,7 +82,7 @@ def season_num_teams(seasons=CHECK_SEASONS):
 
 def season_num_new_teams(seasons=CHECK_SEASONS):
     """Check each season has 3 new teams.
-    
+
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
@@ -106,7 +106,7 @@ def season_num_new_teams(seasons=CHECK_SEASONS):
 
 def season_num_fixtures(seasons=CHECK_SEASONS, session=session):
     """Check each season has 380 fixtures.
-    
+
     Keyword Arguments:
         seasons {list} -- seasons to check (default: CHECK_SEASONS)
         session {SQLAlchemy session} -- DB session (default:
@@ -132,7 +132,7 @@ def season_num_fixtures(seasons=CHECK_SEASONS, session=session):
 def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
     """Check players who played in a match are labelled as playing for either
     the home team or the away team.
-    
+
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:
@@ -168,7 +168,7 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
 def fixture_num_players(seasons=CHECK_SEASONS, session=session):
     """Check each fixture has between 11 and 14 players  with at least 1 minute
     in player_scores.
-    
+
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:
@@ -221,7 +221,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
 
 def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
     """Check individual player goals sum to match result for each fixture.
-    
+
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:
@@ -287,7 +287,7 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
     for home and away team in each fixture.
     Less than or equal to as some goals do not result in an assist being
     awarded.
-    
+
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:
@@ -344,11 +344,11 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
 
 
 def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
-    """Check number of goals concdeded equals goals scored by opposition if 
+    """Check number of goals concdeded equals goals scored by opposition if
     player played whole match (90 minutes).
     NB: only checks max of player conceded values to avoid potential issues
     with substitutes and goals in stoppage time.
-    
+
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:

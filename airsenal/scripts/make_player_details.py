@@ -226,8 +226,7 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
 
 
 def process_file(path, teams_dict, fixtures_df, got_fixtures):
-    """function to load and process one of the player score files
-    """
+    """function to load and process one of the player score files"""
     # load input file
     df = pd.read_csv(path)
 

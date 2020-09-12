@@ -18,7 +18,7 @@ from scipy.stats import multinomial
 from sqlalchemy import create_engine, and_, or_
 from sqlalchemy.orm import sessionmaker
 
-from .schema import Player, PlayerPrediction, Fixture, Base, engine
+from .schema import Player, PlayerPrediction, PlayerScore, Fixture, Base, engine
 
 from .utils import (
     NEXT_GAMEWEEK,
@@ -193,6 +193,25 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
     return defending_points
 
 
+def get_bonus_points(player_id, minutes, df_bonus):
+    """
+    df_bonus : list containing df of average bonus pts scored when playing at least
+    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index.
+    """
+    if minutes >= 60:
+        if player_id in df_bonus[0].index:
+            return df_bonus[0].loc[player_id]
+        else:
+            return 0
+    elif minutes >= 30:
+        if player_id in df_bonus[1].index:
+            return df_bonus[1].loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
 def calc_predicted_points(
     player,
     model_team,
@@ -200,6 +219,7 @@ def calc_predicted_points(
     season,
     tag,
     session,
+    df_bonus,
     gw_range=None,
     fixtures_behind=3,
 ):
@@ -266,25 +286,29 @@ def calc_predicted_points(
 
         else:
             # now loop over recent minutes and average
-            points = sum(
-                [
-                    get_appearance_points(mins)
-                    + get_attacking_points(
-                        player.player_id,
-                        position,
-                        team,
-                        opponent,
-                        is_home,
-                        mins,
-                        model_team,
-                        df_player,
-                    )
-                    + get_defending_points(
-                        position, team, opponent, is_home, mins, model_team
-                    )
-                    for mins in recent_minutes
-                ]
-            ) / len(recent_minutes)
+            points = (
+                sum(
+                    [
+                        get_appearance_points(mins)
+                        + get_attacking_points(
+                            player.player_id,
+                            position,
+                            team,
+                            opponent,
+                            is_home,
+                            mins,
+                            model_team,
+                            df_player,
+                        )
+                        + get_defending_points(
+                            position, team, opponent, is_home, mins, model_team
+                        )
+                        + get_bonus_points(player.player_id, mins, df_bonus)
+                        for mins in recent_minutes
+                    ]
+                )
+                / len(recent_minutes)
+            )
         # create the PlayerPrediction for this player+fixture
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
@@ -499,17 +523,23 @@ def fit_all_player_data(model, season, session):
 
 def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10):
     def get_bonus_df(min_minutes, max_minutes):
-        query = session.query(PlayerScore).filter(PlayerScore.minutes <= max_minutes).filter(PlayerScore.minutes >= min_minutes)
+        query = (
+            session.query(PlayerScore)
+            .filter(PlayerScore.minutes <= max_minutes)
+            .filter(PlayerScore.minutes >= min_minutes)
+        )
+        # TODO filter on gw and season
         df = pd.read_sql(query.statement, engine)
-    
-        keep_player_ids = df.groupby("player_id").bonus.count() >= min_matches
-        keep_player_ids = keep_player_ids[keep_player_ids == True].index
-        df = df[df.player_id.isin(keep_player_ids)]
+        
+        match_counts = df.groupby("player_id").bonus.count()
+        match_counts[match_counts < min_matches] = min_matches
 
-        avg_bonus = df.groupby("player_id").bonus.mean()
+        sum_bonus = df.groupby("player_id").bonus.sum()
+        
+        avg_bonus = sum_bonus / match_counts
         return avg_bonus
-    
-    df_more60 = get_bonus_df(60, 90)
-    df_less60 = get_bonus_df(1, 59)
 
-    
+    df_90= get_bonus_df(60, 90)
+    df_60 = get_bonus_df(30, 59)
+
+    return (df_90, df_60)

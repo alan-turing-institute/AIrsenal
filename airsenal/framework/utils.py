@@ -480,8 +480,7 @@ def get_max_matches_per_player(position="all", season=CURRENT_SEASON, dbsession=
 def get_player_attributes(
     player_name_or_id, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
 ):
-    """Get a player's attributes for a given gameweek in a given season.
-    """
+    """Get a player's attributes for a given gameweek in a given season."""
 
     if not dbsession:
         dbsession = session
@@ -872,11 +871,11 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-        player,
-        season=CURRENT_SEASON,
-        dbsession=None,
-        gameweek=NEXT_GAMEWEEK,
-        n_games_to_use=10
+    player,
+    season=CURRENT_SEASON,
+    dbsession=None,
+    gameweek=NEXT_GAMEWEEK,
+    n_games_to_use=10,
 ):
     """
     take average of minutes from previous season if any, or else return [60]
