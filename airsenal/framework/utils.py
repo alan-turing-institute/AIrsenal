@@ -183,6 +183,9 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
         .order_by(Transaction.gameweek)
         .all()
     )
+    if len(transactions) == 0:
+        # not updated the transactions table yet
+        return []
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
             break
