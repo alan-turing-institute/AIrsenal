@@ -215,7 +215,7 @@ def calc_predicted_points(
     if not gw_range:
         # by default, go for next three matches
         gw_range = list(
-            range(NEXT_GAMEWEEK, min(next_gw + 3, 38))
+            range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38))
         )  # don't go beyond gw 38!
     team = player.team(
         season, gw_range[0]
@@ -268,7 +268,7 @@ def calc_predicted_points(
         else:
             # now loop over recent minutes and average
             points = sum(
-                [
+               [
                     get_appearance_points(mins)
                     + get_attacking_points(
                         player.player_id,
