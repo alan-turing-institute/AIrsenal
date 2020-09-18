@@ -10,6 +10,7 @@ from .schema import Transaction, session_scope
 from .utils import (
     get_players_for_gameweek,
     fetcher,
+    get_player,
     get_player_from_api_id,
     get_past_seasons,
     NEXT_GAMEWEEK,
