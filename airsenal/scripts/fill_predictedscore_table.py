@@ -150,7 +150,7 @@ def main():
         gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    num_thread = args.num_thread else None
+    num_thread = args.num_thread if args.num_thread else None
     with session_scope() as session:
         tag = make_predictedscore_table(
             session, gw_range=gw_range, season=args.season, num_thread=num_thread
