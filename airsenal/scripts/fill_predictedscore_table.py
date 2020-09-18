@@ -78,6 +78,7 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     model_team = get_fitted_team_model(season, session)
     model_player = get_player_model()
     all_predictions = {}
+    print("Num thread is {}".format(num_thread))
     if num_thread:
         queue = Queue()
         procs = []
