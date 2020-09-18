@@ -85,7 +85,16 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     for i in range(num_thread):
         processor = Process(
             target=allocate_predictions,
-            args=(queue, gw_range, model_team, model_player, season, tag, session, df_bonus),
+            args=(
+                queue,
+                gw_range,
+                model_team,
+                model_player,
+                season,
+                tag,
+                session,
+                df_bonus,
+            ),
         )
         processor.daemon = True
         processor.start()

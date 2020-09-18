@@ -530,16 +530,16 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
         )
         # TODO filter on gw and season
         df = pd.read_sql(query.statement, engine)
-        
+
         match_counts = df.groupby("player_id").bonus.count()
         match_counts[match_counts < min_matches] = min_matches
 
         sum_bonus = df.groupby("player_id").bonus.sum()
-        
+
         avg_bonus = sum_bonus / match_counts
         return avg_bonus
 
-    df_90= get_bonus_df(60, 90)
+    df_90 = get_bonus_df(60, 90)
     df_60 = get_bonus_df(30, 59)
 
     return (df_90, df_60)
