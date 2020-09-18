@@ -102,7 +102,7 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
         # single threaded
         for pos in ["GK", "DEF", "MID", "FWD"]:
             predictions = calc_predicted_points_for_pos(
-                pos, gw_range, team_model, player_model, season, tag, session
+                pos, gw_range, model_team, model_player, season, tag, session
             )
         for k, v in predictions.items():
             for playerprediction in v:
@@ -134,7 +134,7 @@ def main():
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
     parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over", default=4
+        "--num_thread", help="number of threads to parallelise over"
     )
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
