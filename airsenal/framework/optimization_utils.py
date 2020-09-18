@@ -36,7 +36,7 @@ def generate_transfer_strategies(
     * Each chip only allowed once.
     * Spend a max of max_total_hit points on transfers across whole period.
     • Start with free_transfers free transfers.
-    
+
     Return all possible transfer sequences along with the total points hit and the
     number of free transfers available for the next gameweek, i.e. return value is a
     list of tuples:

@@ -223,7 +223,9 @@ class FPLDataFetcher(object):
                     try:
                         r = requests.get(self.FPL_DETAIL_URL.format(player_id))
                         if not r.status_code == 200:
-                            print("Error retrieving data for player {}".format(player_id))
+                            print(
+                                "Error retrieving data for player {}".format(player_id)
+                            )
                             return []
                         player_detail = json.loads(r.content)
                         got_data = True
