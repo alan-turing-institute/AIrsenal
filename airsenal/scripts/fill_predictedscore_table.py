@@ -134,7 +134,7 @@ def main():
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
     parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over"
+        "--num_thread", help="number of threads to parallelise over", type=int
     )
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
