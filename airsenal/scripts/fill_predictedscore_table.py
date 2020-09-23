@@ -104,9 +104,9 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
             predictions = calc_predicted_points_for_pos(
                 pos, gw_range, model_team, model_player, season, tag, session
             )
-        for k, v in predictions.items():
-            for playerprediction in v:
-                session.add(playerprediction)
+            for k, v in predictions.items():
+                for playerprediction in v:
+                    session.add(playerprediction)
         session.commit()
         print("Finished adding predictions to db for {}".format(pos))
 
