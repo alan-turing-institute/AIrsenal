@@ -5,12 +5,12 @@ test various methods of the Team class.
 import pytest
 
 from .fixtures import test_session_scope, fill_players
-from ..framework.utils import get_player_name, get_player_id
+from ..framework.utils import get_player_name, get_player_id, CURRENT_SEASON
 
 from ..framework.team import Team
 from ..framework.player import CandidatePlayer
 
-TEST_SEASON = "2021"
+TEST_SEASON = CURRENT_SEASON
 
 
 def test_add_player_by_id(fill_players):
