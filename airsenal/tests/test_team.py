@@ -9,8 +9,9 @@ from ..framework.utils import get_player_name, get_player_id
 
 from ..framework.team import Team
 from ..framework.player import CandidatePlayer
+from ..framework.utils import CURRENT_SEASON
 
-TEST_SEASON = "2021"
+TEST_SEASON = CURRENT_SEASON
 
 
 def test_add_player_by_id(fill_players):
