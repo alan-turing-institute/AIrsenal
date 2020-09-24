@@ -78,24 +78,37 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     model_team = get_fitted_team_model(season, session)
     model_player = get_player_model()
     all_predictions = {}
-    queue = Queue()
-    procs = []
-    for i in range(num_thread):
-        processor = Process(
-            target=allocate_predictions,
-            args=(queue, gw_range, model_team, model_player, season, tag, session),
-        )
-        processor.daemon = True
-        processor.start()
-        procs.append(processor)
+    print("Num thread is {}".format(num_thread))
+    if num_thread:
+        queue = Queue()
+        procs = []
+        for i in range(num_thread):
+            processor = Process(
+                target=allocate_predictions,
+                args=(queue, gw_range, model_team, model_player, season, tag, session),
+            )
+            processor.daemon = True
+            processor.start()
+            procs.append(processor)
 
-    for pos in ["GK", "DEF", "MID", "FWD"]:
-        queue.put(pos)
-    for i in range(num_thread):
-        queue.put("DONE")
+        for pos in ["GK", "DEF", "MID", "FWD"]:
+            queue.put(pos)
+        for i in range(num_thread):
+            queue.put("DONE")
 
-    for i, p in enumerate(procs):
-        p.join()
+        for i, p in enumerate(procs):
+            p.join()
+    else:
+        # single threaded
+        for pos in ["GK", "DEF", "MID", "FWD"]:
+            predictions = calc_predicted_points_for_pos(
+                pos, gw_range, model_team, model_player, season, tag, session
+            )
+            for k, v in predictions.items():
+                for playerprediction in v:
+                    session.add(playerprediction)
+        session.commit()
+        print("Finished adding predictions to db for {}".format(pos))
 
 
 def make_predictedscore_table(
@@ -104,7 +117,7 @@ def make_predictedscore_table(
     tag = str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    calc_all_predicted_points(gw_range, season, tag, session)
+    calc_all_predicted_points(gw_range, season, tag, session, num_thread)
     return tag
 
 
@@ -121,7 +134,7 @@ def main():
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
     parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over", default=4
+        "--num_thread", help="number of threads to parallelise over", type=int
     )
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
@@ -138,9 +151,10 @@ def main():
         gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
+    num_thread = args.num_thread if args.num_thread else None
     with session_scope() as session:
         tag = make_predictedscore_table(
-            session, gw_range=gw_range, season=args.season, num_thread=args.num_thread
+            session, gw_range=gw_range, season=args.season, num_thread=num_thread
         )
 
         # print players with top predicted points
