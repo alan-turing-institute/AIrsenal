@@ -14,6 +14,8 @@ points_for_red_card = -3
 
 points_for_own_goal = -2
 
+saves_for_point = 3
+
 
 def get_appearance_points(minutes):
     """

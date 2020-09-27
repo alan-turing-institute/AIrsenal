@@ -27,13 +27,24 @@ from ..framework.prediction_utils import (
     get_player_model,
     calc_predicted_points,
     fit_bonus_points,
+    fit_save_points,
+    fit_card_points,
 )
 
 from ..framework.schema import session_scope
 
 
 def calc_predicted_points_for_pos(
-    pos, gw_range, team_model, player_model, season, tag, session, df_bonus
+    pos,
+    gw_range,
+    team_model,
+    player_model,
+    season,
+    tag,
+    session,
+    df_bonus,
+    df_saves,
+    df_cards,
 ):
     """
     Calculate points predictions for all players in a given position and
@@ -45,14 +56,32 @@ def calc_predicted_points_for_pos(
         df_player = get_fitted_player_model(player_model, pos, season, session)
     for player in list_players(position=pos, dbsession=session):
         predictions[player.player_id] = calc_predicted_points(
-            player, team_model, df_player, season, tag, session, df_bonus, gw_range
+            player,
+            team_model,
+            df_player,
+            season,
+            tag,
+            session,
+            df_bonus,
+            df_saves,
+            df_cards,
+            gw_range,
         )
 
     return predictions
 
 
 def allocate_predictions(
-    queue, gw_range, team_model, player_model, season, tag, session, df_bonus
+    queue,
+    gw_range,
+    team_model,
+    player_model,
+    season,
+    tag,
+    session,
+    df_bonus,
+    df_saves,
+    df_cards,
 ):
     """
     Take positions off the queue and call function to calculate predictions
@@ -63,7 +92,16 @@ def allocate_predictions(
             print("Finished processing {}".format(pos))
             break
         predictions = calc_predicted_points_for_pos(
-            pos, gw_range, team_model, player_model, season, tag, session, df_bonus
+            pos,
+            gw_range,
+            team_model,
+            player_model,
+            season,
+            tag,
+            session,
+            df_bonus,
+            df_saves,
+            df_cards,
         )
         for k, v in predictions.items():
             for playerprediction in v:
@@ -79,6 +117,8 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     model_team = get_fitted_team_model(season, session)
     model_player = get_player_model()
     df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
+    df_saves = fit_save_points(gameweek=gw_range[0], season=season)
+    df_cards = fit_card_points(gameweek=gw_range[0], season=season)
     all_predictions = {}
     print("Num thread is {}".format(num_thread))
     if num_thread:
@@ -96,6 +136,8 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
                     tag,
                     session,
                     df_bonus,
+                    df_saves,
+                    df_cards,
                 ),
             )
             processor.daemon = True
@@ -121,6 +163,8 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
                 tag,
                 session,
                 df_bonus,
+                df_saves,
+                df_cards,
             )
             for k, v in predictions.items():
                 for playerprediction in v:

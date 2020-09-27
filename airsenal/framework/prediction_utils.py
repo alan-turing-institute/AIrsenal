@@ -39,6 +39,9 @@ from .FPL_scoring_rules import (
     points_for_assist,
     points_for_cs,
     get_appearance_points,
+    saves_for_point,
+    points_for_yellow_card,
+    points_for_red_card,
 )
 
 np.random.seed(42)
@@ -212,6 +215,28 @@ def get_bonus_points(player_id, minutes, df_bonus):
         return 0
 
 
+def get_save_points(position, player_id, minutes, df_saves):
+    if position != "GK":
+        return 0
+    if minutes >= 60:
+        if player_id in df_saves.index:
+            return df_saves.loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
+def get_card_points(player_id, minutes, df_cards):
+    if minutes >= 1:
+        if player_id in df_cards.index:
+            return df_cards.loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
 def calc_predicted_points(
     player,
     model_team,
@@ -220,6 +245,7 @@ def calc_predicted_points(
     tag,
     session,
     df_bonus,
+    df_saves,
     gw_range=None,
     fixtures_behind=3,
 ):
@@ -304,6 +330,8 @@ def calc_predicted_points(
                             position, team, opponent, is_home, mins, model_team
                         )
                         + get_bonus_points(player.player_id, mins, df_bonus)
+                        + get_save_points(position, player.player_id, mins, df_saves)
+                        + get_card_points(player.player_id, mins, df_cards)
                         for mins in recent_minutes
                     ]
                 )
@@ -543,3 +571,49 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
     df_60 = get_bonus_df(30, 59)
 
     return (df_90, df_60)
+
+
+def fit_save_points(gameweek, season, min_matches=10, min_minutes=90):
+    goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
+    goalkeepers = [gk.player_id for gk in goalkeepers]
+
+    query = (
+        session.query(PlayerScore)
+        .join(Player)
+        .filter(Player.player_id.in_(goalkeepers))
+        .filter(PlayerScore.minutes >= min_minutes)
+    )
+    # TODO filter on gw and season
+    df = pd.read_sql(query.statement, engine)
+
+    #  1pt per 3 saves
+    df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
+
+    match_counts = df.groupby("player_id").save_pts.count()
+    match_counts[match_counts < min_matches] = min_matches
+
+    sum_saves = df.groupby("player_id").save_pts.sum()
+
+    avg_saves = sum_saves / match_counts
+    return avg_saves
+
+
+def fit_card_points(
+    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=1
+):
+    query = session.query(PlayerScore).filter(PlayerScore.minutes >= min_minutes)
+    # TODO filter on gw and season
+    # TODO: different values for different minutes (remember minutes < 90 for red cards though)
+    df = pd.read_sql(query.statement, engine)
+
+    df["card_pts"] = (
+        points_for_yellow_card * df["yellow_cards"]
+        + points_for_red_card * df["red_cards"]
+    )
+    match_counts = df.groupby("player_id").card_pts.count()
+    match_counts[match_counts < min_matches] = min_matches
+
+    sum_cards = df.groupby("player_id").card_pts.sum()
+    avg_cards = sum_cards / match_counts
+
+    return avg_cards
