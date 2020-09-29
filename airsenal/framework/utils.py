@@ -2,6 +2,7 @@
 Useful commands to query the db
 """
 import copy
+from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone
 from typing import TypeVar
@@ -668,6 +669,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
+@lru_cache(maxsize=4096)
 def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsession=None):
     """
     Query the player prediction table for a given player.
