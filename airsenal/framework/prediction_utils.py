@@ -246,6 +246,7 @@ def calc_predicted_points(
     session,
     df_bonus,
     df_saves,
+    df_cards,
     gw_range=None,
     fixtures_behind=3,
 ):
