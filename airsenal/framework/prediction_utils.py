@@ -574,7 +574,9 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
     return (df_90, df_60)
 
 
-def fit_save_points(gameweek, season, min_matches=10, min_minutes=90):
+def fit_save_points(
+    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=90
+):
     goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
     goalkeepers = [gk.player_id for gk in goalkeepers]
 
