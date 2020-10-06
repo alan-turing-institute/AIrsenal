@@ -2,12 +2,14 @@
 Useful commands to query the db
 """
 import copy
+from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone
+from typing import TypeVar
 import pandas as pd
 import dateparser
 import re
-
+from pickle import loads, dumps
 from .mappings import alternative_team_names, alternative_player_names
 
 from .data_fetcher import FPLDataFetcher
@@ -667,6 +669,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     return previous_points
 
 
+@lru_cache(maxsize=4096)
 def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsession=None):
     """
     Query the player prediction table for a given player.
@@ -1255,3 +1258,9 @@ def get_player_team_from_fixture(
         return (player_team, fixture)
     else:
         return player_team
+
+
+T = TypeVar("T")
+def fastcopy(obj: T) -> T:
+    """ faster replacement for copy.deepcopy()"""
+    return loads(dumps(obj, -1))
