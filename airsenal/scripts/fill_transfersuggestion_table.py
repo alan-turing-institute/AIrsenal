@@ -232,9 +232,8 @@ def main():
     )
     parser.add_argument(
         "--profile",
-        help="profile strategy execution",
-        type=bool,
-        default=False,
+        help="For developers: Profile strategy execution time",
+        action="store_true",
     )
 
     if NEXT_GAMEWEEK == 1:
