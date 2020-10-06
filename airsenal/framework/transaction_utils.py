@@ -47,7 +47,20 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
         gw1_data = fetcher.get_gameweek_data_for_player(player_api_id, 1)
-        price = gw1_data[0]["value"]
+        if len(gw1_data) == 0:
+            # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
+            # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
+            # API using current price and total price change.
+            print(
+                "Using current data to determine starting price for player {}".format(
+                    pid
+                )
+            )
+            pdata = fetcher.get_player_summary_data()[pid]
+            price = pdata["now_cost"] - pdata["cost_change_event"]
+        else:
+            price = gw1_data[0]["value"]
+
         add_transaction(pid, 1, 1, price, season, tag, session)
 
 
