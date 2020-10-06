@@ -144,7 +144,7 @@ def print_team_for_next_gw(strat):
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_team()
+    t = get_starting_squad()
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
