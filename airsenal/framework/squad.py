@@ -14,7 +14,6 @@ from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
 
 # min/max active players per position
-
 ACTIVE_PER_POSITION = {"GK": (1, 1), "DEF": (3, 5), "MID": (3, 5), "FWD": (1, 3)}
 
 FORMATIONS = [
@@ -324,11 +323,23 @@ class Squad(object):
 
         return total
 
-    def total_points_for_subs(self, gameweek, tag):
-        total = 0.0
-        for player in self.players:
-            if not player.is_starting:
-                total += player.predicted_points[tag][gameweek]
+    def total_points_for_subs(
+        self, gameweek, tag, sub_weights={"GK": 1, "Outfield": (1, 1, 1)}
+    ):
+
+        outfield_subs = [
+            p for p in self.players if (not p.is_starting) and (p.position != "GK")
+        ]
+        outfield_subs = sorted(outfield_subs, key=lambda p: p.sub_position)
+
+        gk_sub = [
+            p for p in self.players if (not p.is_starting) and (p.position == "GK")
+        ][0]
+
+        total = sub_weights["GK"] * gk_sub.predicted_points[tag][gameweek]
+
+        for i, player in enumerate(outfield_subs):
+            total += sub_weights["Outfield"][i] * player.predicted_points[tag][gameweek]
 
         return total
 
