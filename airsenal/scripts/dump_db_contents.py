@@ -41,7 +41,7 @@ def main():
         "transfers_balance",
         "selected",
         "transfers_in",
-        "transfers_out"
+        "transfers_out",
     ]
     output_path = os.path.join(
         os.path.dirname(__file__), "../data/player_attributes.csv"

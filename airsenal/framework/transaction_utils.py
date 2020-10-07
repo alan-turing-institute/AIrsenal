@@ -13,6 +13,7 @@ from .utils import (
     get_past_seasons,
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
+    get_player,
 )
 
 
@@ -38,13 +39,27 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
     getting the information from the team history API endpoint (for the list of players in our team)
     and the player history API endpoint (for their price in gw1).
     """
+    print("SQUAD Getting selected players for gameweek 1...")
     if NEXT_GAMEWEEK == 1:
         ### Season hasn't started yet - there won't be a team in the DB
         return True
     api_players = get_players_for_gameweek(1)
     for pid in api_players:
         gw1_data = fetcher.get_gameweek_data_for_player(pid, 1)
-        price = gw1_data[0]["value"]
+        if len(gw1_data) == 0:
+            # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
+            # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
+            # API using current price and total price change.
+            print(
+                "Using current data to determine starting price for player {}".format(
+                    pid
+                )
+            )
+            pdata = fetcher.get_player_summary_data()[pid]
+            price = pdata["now_cost"] - pdata["cost_change_start"]
+        else:
+            price = gw1_data[0]["value"]
+
         add_transaction(pid, 1, 1, price, season, tag, session)
 
 

@@ -30,11 +30,10 @@ With conda installed, run these commands in a terminal to create a new conda env
 
 **Linux and Mac OS X:**
 ```
-conda create -n airsenalenv python=3.7 pystan
-conda activate airsenalenv
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
-pip install .
+conda env create
+conda activate airsenalenv
 ```
 
 **Windows:**
@@ -52,9 +51,19 @@ cd AIrsenal
 pip install .
 ```
 
-## Getting started
+**Use AIrsenal without conda**
 
-Once you've installed the module, you will need to set some environment variables (or alternatively you can put the values into files in the ```airsenal/data/``` directory, e.g. ```airsenal/data/FPL_TEAM_ID```:
+To use AIrsenal without conda:
+```
+git clone https://github.com/alan-turing-institute/AIrsenal.git
+cd AIrsenal
+pip install .
+```
+AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only available when using conda. However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
+
+## Configuration
+
+Once you've installed the module, you will need to set the following parameters:
 
 **Required:**
 1. `FPL_TEAM_ID`: the team ID for your FPL side.
@@ -69,13 +78,31 @@ Once you've installed the module, you will need to set some environment variable
 
 5. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
 
-Once this is done, run the following command:
+The values for these should be defined either in environment variables with the names given above, or as files in the `airsenal/data` directory with the names given above. For example, to set your team ID you can create the file `airsenal/data/FPL_TEAM_ID` (with no file extension) and its contents should be your team ID and nothing else. So the contents of the file would just be something like:
+```
+1234567
+```
+Where `1234567` is your team ID.
+
+## Getting Started
+
+If you installed AIrsenal with conda, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To activate the environment use:
+```shell
+conda activate airsenalenv
+```
+
+
+Note: Most the commands below can be run with the `--help` flag to see additional options and information.
+
+### 1. Creating the database
+
+Once the module has been installed and your team ID configured, run the following command to create the AIrsenal database:
 
 ```shell
 airsenal_setup_initial_db
 ```
-
-You should get a file ```/tmp/data.db```.  This will fill the database with all that is needed up to the present day.
+This will fill the database with data from the last 3 seasons, as well as all available fixtures and results for the current season.
+On Linux/Mac you should get a file ```/tmp/data.db``` containing the database (on Windows you will get a `data.db` file in a the temporary directory returned by the python [tempfile module](https://docs.python.org/3/library/tempfile.html) on your system).   
 
 You can run sanity checks on the data using the following command:
 
@@ -83,7 +110,7 @@ You can run sanity checks on the data using the following command:
 airsenal_check_data
 ```
 
-## Updating, running predictions and optimization.
+### 2. Updating and Running Predictions
 
 To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
 with more recent data, using the command
@@ -97,8 +124,45 @@ airsenal_run_prediction --weeks_ahead 3
 ```
 (we normally look 3 weeks ahead, as this is an achievable horizon to run the optimization over, but also because things like form and injuries can change a lot in 3 weeks!)
 
+Predicted points must be generated before running the transfer or squad optimization (see below).
+
+### 3. Transfer or Squad Optimization
+
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 ```shell
 airsenal_run_optimization --weeks_ahead 3
 ```
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
+
+Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
+```shell
+airsenal_make_team --num_gw 3
+```
+This can also be used during the season to generate a full new squad (e.g. for wildcards).
+
+### Run the Full AIrsenal Pipeline
+
+Instead of running the commands above individaully you can use:
+```shell
+airsenal_run_pipeline
+```
+This will delete and recreate the database and then run the points predictions and transfer optimization.
+
+## Issues and Development
+
+AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
+
+You may also like to try the development version of AIrsenal, which has the latest fixes and features. To do this checkout the `develop` branch of the repo before the `pip install .` step of the installation instructions above by running the following command:
+```
+git checkout develop
+```
+
+Also, if you wish to make changes to AIrsenal yourself it may be helpful to install AIrsenal in editable mode by adding the `-e` flag to `pip`:
+```
+pip install -e .
+```
+
+## Contributing
+
+We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
+

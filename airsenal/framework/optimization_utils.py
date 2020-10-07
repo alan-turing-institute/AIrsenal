@@ -36,7 +36,7 @@ def generate_transfer_strategies(
     * Each chip only allowed once.
     * Spend a max of max_total_hit points on transfers across whole period.
     • Start with free_transfers free transfers.
-    
+
     Return all possible transfer sequences along with the total points hit and the
     number of free transfers available for the next gameweek, i.e. return value is a
     list of tuples:
@@ -234,7 +234,7 @@ def make_optimum_transfer(
             ## call function to update progress bar.
             ## this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-        new_team = copy.deepcopy(team)
+        new_team = fastcopy(team)
         position = p_out.position
         new_team.remove_player(p_out.player_id, season=season, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
@@ -293,7 +293,7 @@ def make_optimum_double_transfer(
         positions_needed = []
         pout_1 = team.players[i]
 
-        new_team_remove_1 = copy.deepcopy(team)
+        new_team_remove_1 = fastcopy(team)
         new_team_remove_1.remove_player(
             pout_1.player_id, season=season, gameweek=transfer_gw
         )
@@ -305,7 +305,7 @@ def make_optimum_double_transfer(
                     update_func_and_args[1], update_func_and_args[2]
                 )
             pout_2 = team.players[j]
-            new_team_remove_2 = copy.deepcopy(new_team_remove_1)
+            new_team_remove_2 = fastcopy(new_team_remove_1)
             new_team_remove_2.remove_player(
                 pout_2.player_id, season=season, gameweek=transfer_gw
             )
@@ -321,14 +321,14 @@ def make_optimum_double_transfer(
                     or pin_1[0].player_id == pout_2.player_id
                 ):
                     continue  ## no point in adding same player back in
-                new_team_add_1 = copy.deepcopy(new_team_remove_2)
+                new_team_add_1 = fastcopy(new_team_remove_2)
                 added_1_ok = new_team_add_1.add_player(
                     pin_1[0], season=season, gameweek=transfer_gw
                 )
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
-                    new_team_add_2 = copy.deepcopy(new_team_add_1)
+                    new_team_add_2 = fastcopy(new_team_add_1)
                     if (
                         pin_2[0] == pin_1[0]
                         or pin_2[0].player_id == pout_1.player_id
@@ -391,7 +391,7 @@ def make_random_transfers(
             ## call function to update progress bar.
             ## this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-        new_team = copy.deepcopy(team)
+        new_team = fastcopy(team)
         if not gw_range:
             gw_range = [NEXT_GAMEWEEK]
 
@@ -442,7 +442,7 @@ def make_random_transfers(
                 # try to avoid getting stuck in a loop
                 attempt += 1
                 if attempt > max_tries:
-                    new_team = copy.deepcopy(team)
+                    new_team = fastcopy(team)
                     break
                 # take those players out again.
                 for ap in added_players:
@@ -591,7 +591,7 @@ def apply_strategy(
         "players_out": {},
         "cards_played": {},
     }
-    new_team = copy.deepcopy(starting_team)
+    new_team = fastcopy(starting_team)
     ## If we use "free hit" card, we need to remember the team from the week before it
     team_before_free_hit = None
 
@@ -611,7 +611,7 @@ def apply_strategy(
         ## if we used a free hit in the previous gw, we will have stored the previous team, so
         ## we go back to that one now.
         if team_before_free_hit:
-            new_team = copy.deepcopy(team_before_free_hit)
+            new_team = fastcopy(team_before_free_hit)
             team_before_free_hit = None
 
         ## process this gameweek
@@ -653,7 +653,7 @@ def apply_strategy(
 
         elif strat[0][gw] == "F":  ## free hit - a whole new team!
             ## remember the starting team (so we can revert to it later)
-            team_before_free_hit = copy.deepcopy(new_team)
+            team_before_free_hit = fastcopy(new_team)
             ## now make a new team for this gw, as is done for wildcard
             rp = [p.player_id for p in new_team.players]
             budget = get_team_value(new_team)

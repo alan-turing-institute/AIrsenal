@@ -216,13 +216,26 @@ class FPLDataFetcher(object):
             if (not gameweek) or (
                 not gameweek in self.player_gameweek_data[player_id].keys()
             ):
-
-                r = requests.get(self.FPL_DETAIL_URL.format(player_id))
-                if not r.status_code == 200:
-                    print("Error retrieving data for player {}".format(player_id))
+                got_data = False
+                n_tries = 0
+                player_detail = {}
+                while (not got_data) and n_tries < 3:
+                    try:
+                        r = requests.get(self.FPL_DETAIL_URL.format(player_id))
+                        if not r.status_code == 200:
+                            print(
+                                "Error retrieving data for player {}".format(player_id)
+                            )
+                            return []
+                        player_detail = json.loads(r.content)
+                        got_data = True
+                    except requests.exceptions.ConnectionError:
+                        print("connection error, retrying {}".format(n_tries))
+                        time.sleep(1)
+                        n_tries += 1
+                if not player_detail:
+                    print("Unable to get player_detail data for {}".format(player_id))
                     return []
-                player_detail = json.loads(r.content)
-
                 for game in player_detail["history"]:
                     gw = game["round"]
                     if not gw in self.player_gameweek_data[player_id].keys():

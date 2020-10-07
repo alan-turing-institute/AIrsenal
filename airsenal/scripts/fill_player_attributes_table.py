@@ -171,7 +171,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
 
 
 def make_attributes_table(session):
-    """Create the player attributes table using the previous 3 seasons (from 
+    """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
     seasons = get_past_seasons(3)
