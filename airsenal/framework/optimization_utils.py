@@ -234,7 +234,8 @@ def make_optimum_transfer(
             ## call function to update progress bar.
             ## this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-        new_squad = copy.deepcopy(squad)
+
+        new_squad = fastcopy(squad)
         position = p_out.position
         new_squad.remove_player(p_out.player_id, season=season, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
@@ -293,8 +294,9 @@ def make_optimum_double_transfer(
         positions_needed = []
         pout_1 = squad.players[i]
 
-        new_squad_remove_1 = copy.deepcopy(squad)
+        new_squad_remove_1 = fastcopy(squad)
         new_squad_remove_1.remove_player(
+
             pout_1.player_id, season=season, gameweek=transfer_gw
         )
         for j in range(i + 1, len(squad.players)):
@@ -304,8 +306,9 @@ def make_optimum_double_transfer(
                 update_func_and_args[0](
                     update_func_and_args[1], update_func_and_args[2]
                 )
+
             pout_2 = squad.players[j]
-            new_squad_remove_2 = copy.deepcopy(new_squad_remove_1)
+            new_squad_remove_2 = fastcopy(new_squad_remove_1)
             new_squad_remove_2.remove_player(
                 pout_2.player_id, season=season, gameweek=transfer_gw
             )
@@ -321,14 +324,14 @@ def make_optimum_double_transfer(
                     or pin_1[0].player_id == pout_2.player_id
                 ):
                     continue  ## no point in adding same player back in
-                new_squad_add_1 = copy.deepcopy(new_squad_remove_2)
+                new_squad_add_1 = fastcopy(new_squad_remove_2)
                 added_1_ok = new_squad_add_1.add_player(
                     pin_1[0], season=season, gameweek=transfer_gw
                 )
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
-                    new_squad_add_2 = copy.deepcopy(new_squad_add_1)
+                    new_squad_add_2 = fastcopy(new_squad_add_1)
                     if (
                         pin_2[0] == pin_1[0]
                         or pin_2[0].player_id == pout_1.player_id
@@ -391,7 +394,9 @@ def make_random_transfers(
             ## call function to update progress bar.
             ## this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-        new_squad = copy.deepcopy(squad)
+
+        new_squad = fastcopy(squad)
+
         if not gw_range:
             gw_range = [NEXT_GAMEWEEK]
 
@@ -442,7 +447,7 @@ def make_random_transfers(
                 # try to avoid getting stuck in a loop
                 attempt += 1
                 if attempt > max_tries:
-                    new_squad = copy.deepcopy(squad)
+                    new_squad = fastcopy(squad)
                     break
                 # take those players out again.
                 for ap in added_players:
@@ -591,8 +596,8 @@ def apply_strategy(
         "players_out": {},
         "cards_played": {},
     }
-    new_squad = copy.deepcopy(starting_squad)
-    ## If we use "free hit" card, we need to remember the squad from the week before it
+    new_squad = fastcopy(starting_squad)
+    ## If we use "free hit" card, we need to remember the team from the week before it
     squad_before_free_hit = None
 
     # determine if bench boost or triple captain used in this strategy
@@ -610,8 +615,9 @@ def apply_strategy(
 
         ## if we used a free hit in the previous gw, we will have stored the previous squad, so
         ## we go back to that one now.
+
         if squad_before_free_hit:
-            new_squad = copy.deepcopy(squad_before_free_hit)
+            new_squad = fastcopy(squad_before_free_hit)
             squad_before_free_hit = None
 
         ## process this gameweek
@@ -649,14 +655,15 @@ def apply_strategy(
                 bench_boost_gw=bench_boost_gw,
                 triple_captain_gw=triple_captain_gw,
             )
+
             ap = [p.player_id for p in new_squad.players]
 
         elif strat[0][gw] == "F":  ## free hit - a whole new squad!
-            ## remember the starting squad (so we can revert to it later)
-            squad_before_free_hit = copy.deepcopy(new_squad)
+            ## remember the starting team (so we can revert to it later)
+            squad_before_free_hit = fastcopy(new_squad)
             ## now make a new squad for this gw, as is done for wildcard
             rp = [p.player_id for p in new_squad.players]
-            budget = get_squad_value(new_squad)
+            budget = get_squad_value(new_team)
             new_squad = make_new_squad(
                 budget,
                 num_iter,

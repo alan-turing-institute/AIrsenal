@@ -61,7 +61,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
                 )
             )
             pdata = fetcher.get_player_summary_data()[player_api_id]
-            price = pdata["now_cost"] - pdata["cost_change_event"]
+            price = pdata["now_cost"] - pdata["cost_change_start"]
         else:
             price = gw1_data[0]["value"]
 
