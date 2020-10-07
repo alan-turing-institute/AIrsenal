@@ -124,7 +124,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK
             print("No player with id {}".format(player_id))
 
         print("SCORES {} {}".format(season, player.name))
-        player_data = fetcher.get_gameweek_data_for_player(player_id)
+        player_data = fetcher.get_gameweek_data_for_player(player.fpl_api_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
             if gameweek not in range(gw_start, gw_end):
