@@ -221,10 +221,18 @@ class FPLDataFetcher(object):
                 player_detail = {}
                 while (not got_data) and n_tries < 3:
                     try:
+<<<<<<< .merge_file_RGlwVT
 
                         r = requests.get(self.FPL_DETAIL_URL.format(player_api_id))
                         if not r.status_code == 200:
                             print("Error retrieving data for player {}".format(player_api_id))
+=======
+                        r = requests.get(self.FPL_DETAIL_URL.format(player_id))
+                        if not r.status_code == 200:
+                            print(
+                                "Error retrieving data for player {}".format(player_id)
+                            )
+>>>>>>> .merge_file_bbyOxp
                             return []
                         player_detail = json.loads(r.content)
                         got_data = True

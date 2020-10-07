@@ -267,7 +267,6 @@ def calc_predicted_points(
 
         else:
             # now loop over recent minutes and average
-
             points = (
                 sum(
                     [
