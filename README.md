@@ -148,6 +148,24 @@ airsenal_run_pipeline
 ```
 This will delete and recreate the database and then run the points predictions and transfer optimization.
 
+## Docker
+
+Build the docker-image:
+```shell
+docker image -t airsenal .
+```
+
+Create a volume for data persistance:
+```shell
+docker volume create airsenal_data
+```
+
+Run commands with your configuration as environment variables, eg:
+```shell
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+```
+```airsenal_run_pipeline``` is the default command.
+
 ## Issues and Development
 
 AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
