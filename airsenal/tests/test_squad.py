@@ -9,8 +9,9 @@ from ..framework.utils import get_player_name, get_player_id
 
 from ..framework.squad import Squad
 from ..framework.player import CandidatePlayer
+from ..framework.utils import CURRENT_SEASON
 
-TEST_SEASON = "2021"
+TEST_SEASON = CURRENT_SEASON
 
 
 def test_add_player_by_id(fill_players):
@@ -64,9 +65,9 @@ def test_cant_add_too_many_per_position(fill_players):
         assert not t.add_player("Stefan", season=TEST_SEASON, dbsession=ts)
 
 
-def test_cant_add_too_many_per_team(fill_players):
+def test_cant_add_too_many_per_squad(fill_players):
     """
-    no more than three from the same team.
+    no more than three from the same squad.
     """
     with test_session_scope() as ts:
         t = Squad()
@@ -131,11 +132,11 @@ def test_order_substitutes():
     t = Squad()
 
     class MockPlayer:
-        def __init__(self, points, is_starting, name, team):
+        def __init__(self, points, is_starting, name, squad):
             self.predicted_points = {0: {0: points}}
             self.is_starting = is_starting
             self.name = name
-            self.team = team
+            self.squad = squad
             self.sub_position = None
 
     players = [
@@ -165,10 +166,10 @@ def test_get_expected_points():
 
     class MockPlayer:
         def __init__(
-            self, name, team, position, points, is_starting, is_captain, is_vice_captain
+            self, name, squad, position, points, is_starting, is_captain, is_vice_captain
         ):
             self.name = name
-            self.team = team
+            self.squad = squad
             self.position = position
             self.predicted_points = {0: {0: points}}
             self.is_starting = is_starting
