@@ -125,6 +125,7 @@ def get_player_history_df(
 
     df = pd.concat(df_list)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df.reset_index(drop=True, inplace=True)
     
     return df
 
