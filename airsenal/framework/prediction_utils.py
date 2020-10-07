@@ -267,25 +267,29 @@ def calc_predicted_points(
 
         else:
             # now loop over recent minutes and average
-            points = sum(
-               [
-                    get_appearance_points(mins)
-                    + get_attacking_points(
-                        player.player_id,
-                        position,
-                        team,
-                        opponent,
-                        is_home,
-                        mins,
-                        model_team,
-                        df_player,
-                    )
-                    + get_defending_points(
-                        position, team, opponent, is_home, mins, model_team
-                    )
-                    for mins in recent_minutes
-                ]
-            ) / len(recent_minutes)
+
+            points = (
+                sum(
+                    [
+                        get_appearance_points(mins)
+                        + get_attacking_points(
+                            player.player_id,
+                            position,
+                            team,
+                            opponent,
+                            is_home,
+                            mins,
+                            model_team,
+                            df_player,
+                        )
+                        + get_defending_points(
+                            position, team, opponent, is_home, mins, model_team
+                        )
+                        for mins in recent_minutes
+                    ]
+                )
+                / len(recent_minutes)
+            )
         # create the PlayerPrediction for this player+fixture
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points

@@ -8,6 +8,7 @@ import pytest
 from ..framework.schema import *
 from ..framework.mappings import *
 from .resources import dummy_players
+from ..framework.utils import CURRENT_SEASON
 from .. import TMPDIR
 
 API_SESSION_ID = "TESTSESSION"
@@ -55,7 +56,7 @@ def fill_players():
     fill a bunch of dummy players
     """
     team_list = list(alternative_team_names.keys())
-    season = "2021"
+    season = CURRENT_SEASON
     gameweek = 1
     with test_session_scope() as ts:
         if len(ts.query(Player).all()) > 0:

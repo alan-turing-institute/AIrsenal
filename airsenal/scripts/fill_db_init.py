@@ -25,3 +25,5 @@ def main():
         make_playerscore_table(session)
 
         fill_initial_team(session)
+
+        print("DONE!")
