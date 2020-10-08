@@ -65,7 +65,7 @@ def get_player_history_df(
         "minutes",
         "team_goals",
     ]
-    df = pd.DataFrame(columns=col_names)
+    player_data = []
     players = list_players(
         position=position, season=season, dbsession=session, gameweek=gameweek
     )
@@ -95,7 +95,7 @@ def get_player_history_df(
             assists = row.assists
             # find the match, in order to get team goals
             match_result = row.result
-            match_date = dateparser.parse(row.fixture.date)
+            match_date = row.fixture.date
             if row.fixture.home_team == row.opponent:
                 team_goals = match_result.away_score
             elif row.fixture.away_team == row.opponent:
@@ -103,7 +103,7 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            df.loc[len(df)] = [
+            player_data.append([
                 player.player_id,
                 player.name,
                 match_id,
@@ -112,14 +112,19 @@ def get_player_history_df(
                 assists,
                 minutes,
                 team_goals,
-            ]
+            ])
             row_count += 1
 
         ## fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
-            for i in range(row_count, max_matches_per_player):
-                df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
+            player_data += [[
+                player.player_id, player.name, 0, 0, 0, 0, 0, 0
+            ]] * (max_matches_per_player - row_count)
 
+    df = pd.DataFrame(player_data, columns=col_names)
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df.reset_index(drop=True, inplace=True)
+    
     return df
 
 
