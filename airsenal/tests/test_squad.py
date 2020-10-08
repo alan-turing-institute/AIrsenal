@@ -7,7 +7,7 @@ import pytest
 from .fixtures import test_session_scope, fill_players
 from ..framework.utils import get_player_name, get_player_id
 
-from ..framework.team import Team
+from ..framework.squad import Squad
 from ..framework.player import CandidatePlayer
 from ..framework.utils import CURRENT_SEASON
 
@@ -19,7 +19,7 @@ def test_add_player_by_id(fill_players):
     Should be able to add a player with integer argument
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         added_ok = t.add_player(50, season=TEST_SEASON, dbsession=ts)
         assert added_ok
 
@@ -29,17 +29,17 @@ def test_add_player_by_name(fill_players):
     Should be able to add a player with string argument
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         added_ok = t.add_player("Alice", season=TEST_SEASON, dbsession=ts)
         assert added_ok
 
 
 def test_cant_add_same_player(fill_players):
     """
-    can't add a player thats already on the team.
+    can't add a player thats already on the squad.
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         added_ok = t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert added_ok
         added_ok = t.add_player(1, season=TEST_SEASON, dbsession=ts)
@@ -51,7 +51,7 @@ def test_cant_add_too_many_per_position(fill_players):
     no more than two keepers, 5 defenders, 5 midfielders, 3 forwards.
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         # keepers
         assert t.add_player("Alice", season=TEST_SEASON, dbsession=ts)
         assert t.add_player("Bob", season=TEST_SEASON, dbsession=ts)
@@ -65,12 +65,12 @@ def test_cant_add_too_many_per_position(fill_players):
         assert not t.add_player("Stefan", season=TEST_SEASON, dbsession=ts)
 
 
-def test_cant_add_too_many_per_team(fill_players):
+def test_cant_add_too_many_per_squad(fill_players):
     """
-    no more than three from the same team.
+    no more than three from the same squad.
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         assert t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert t.add_player(21, season=TEST_SEASON, dbsession=ts)
         assert t.add_player(41, season=TEST_SEASON, dbsession=ts)
@@ -79,10 +79,10 @@ def test_cant_add_too_many_per_team(fill_players):
 
 def test_cant_exceed_budget():
     """
-    try and make an expensive team
+    try and make an expensive squad
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         added_ok = True
         added_ok = added_ok and t.add_player(45, season=TEST_SEASON, dbsession=ts)
         added_ok = added_ok and t.add_player(46, season=TEST_SEASON, dbsession=ts)
@@ -107,7 +107,7 @@ def test_remove_player(fill_players):
     add a player then remove them.
     """
     with test_session_scope() as ts:
-        t = Team()
+        t = Squad()
         t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert len(t.players) == 1
         assert t.num_position["GK"] == 1
@@ -117,26 +117,26 @@ def test_remove_player(fill_players):
         assert t.budget == 1000
 
 
-def test_empty_team(fill_players):
+def test_empty_squad(fill_players):
     """
     shouldn't be able to estimate points with
     no players.
     """
-    t = Team()
+    t = Squad()
     with pytest.raises(RuntimeError) as errmsg:
         t.get_expected_points(1, "dummy")
-    assert str(errmsg.value) == "Team is incomplete"
+    assert str(errmsg.value) == "Squad is incomplete"
 
 
 def test_order_substitutes():
-    t = Team()
+    t = Squad()
 
     class MockPlayer:
-        def __init__(self, points, is_starting, name, team):
+        def __init__(self, points, is_starting, name, squad):
             self.predicted_points = {0: {0: points}}
             self.is_starting = is_starting
             self.name = name
-            self.team = team
+            self.squad = squad
             self.sub_position = None
 
     players = [
@@ -162,14 +162,14 @@ def test_order_substitutes():
 
 
 def test_get_expected_points():
-    t = Team()
+    t = Squad()
 
     class MockPlayer:
         def __init__(
-            self, name, team, position, points, is_starting, is_captain, is_vice_captain
+            self, name, squad, position, points, is_starting, is_captain, is_vice_captain
         ):
             self.name = name
-            self.team = team
+            self.squad = squad
             self.position = position
             self.predicted_points = {0: {0: points}}
             self.is_starting = is_starting
