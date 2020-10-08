@@ -57,7 +57,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
             # API using current price and total price change.
             print(
                 "Using current data to determine starting price for player {}".format(
-                    pid
+                    player_api_id
                 )
             )
             pdata = fetcher.get_player_summary_data()[player_api_id]
