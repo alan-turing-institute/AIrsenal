@@ -160,6 +160,54 @@ def generate_transfer_strategies(
     return strategies
 
 
+def calc_points_hit(num_transfers, free_transfers):
+    """
+    Current rules say we lose 4 points for every transfer beyond
+    the number of free transfers we have.
+    Num transfers can be an integer, or "W", "F", "Bx", or "Tx"
+    (wildcard, free hit, bench-boost or triple-caption).
+    For Bx and Tx the "x" corresponds to the number of transfers
+    in addition to the card being played.
+    """
+    if num_transfers == "W" or num_transfers == "F":
+        return 0
+    elif isinstance(num_transfers, int):
+        return max(0, 4*(num_transfers - free_transfers))
+    elif  (num_transfers.startswith("B") \
+           or num_transfers.startswith("T")) and len(num_transfers)==2:
+        num_transfers = int(num_transfers[-1])
+        return max(0, 4*(num_transfers - free_transfers))
+    else:
+        raise RuntimeError("Unexpected argument for num_transfers {}"\
+                           .format(num_transfers))
+
+
+def calc_free_transfers(num_transfers, prev_free_transfers):
+    """
+    We get one extra free transfer per week, unless we use a wildcard or
+    free hit, but we can't have more than 2.  So we should only be able
+    to return 1 or 2.
+    """
+    if num_transfers == "W" or num_transfers == "F":
+        return 1
+    elif isinstance(num_transfers, int):
+        return max(
+            1,
+            min(2, 1+prev_free_transfers - num_transfers)
+        )
+    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) \
+         and len(num_transfers) == 2:
+        # take the 'x' out of Bx or Tx
+        num_transfers = int(num_transfers[-1])
+        return max(
+            1,
+            min(2, 1+prev_free_transfers - num_transfers)
+        )
+    else:
+        raise RuntimeError("Unexpected argument for num_transfers {}"\
+                           .format(num_transfers))
+
+
 def get_starting_squad():
     """
     use the transactions table in the db
@@ -201,7 +249,7 @@ def get_baseline_prediction(gw_ahead, tag):
     return total, cum_total_per_gw
 
 
-def make_optimum_transfer(
+def make_optimum_single_transfer(
     squad,
     tag,
     gameweek_range=None,
@@ -222,7 +270,7 @@ def make_optimum_transfer(
         gameweek_range = [NEXT_GAMEWEEK]
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
-    best_score = 0.0
+    best_score = -1.
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
@@ -476,6 +524,58 @@ def make_random_transfers(
             best_squad = new_squad
         ## end of loop over n_iter
     return best_squad, best_pid_out, best_pid_in
+
+
+def make_best_transfers(
+    num_transfers,
+    squad,
+    tag,
+    gameweeks,
+    season):
+    """
+    Return a new team and a dictionary {"in": [player_ids],
+                                        "out":[player_ids]}
+    """
+    transfer_dict = {}
+    if num_transfers == 0:
+        transfer_dict = {"in":[], "out": []}
+    elif num_transfers == 1:
+        squad, players_out, players_in = make_optimum_single_transfer(
+            squad,
+            tag,
+            gameweeks,
+            season)
+
+        transfer_dict = {"in": players_in,
+                         "out": players_out}
+    elif num_transfers == 2:
+        squad, players_out, players_in = make_optimum_double_transfer(
+            squad,
+            tag,
+            gameweeks,
+            season)
+        transfer_dict = {"in": players_in,
+                         "out": players_out}
+
+    elif num_transfers == "W":
+        players_out = [p.player_id for p in squad.players]
+        budget = get_squad_value(new_squad)
+        new_squad = make_new_squad(
+            budget,
+            num_iter,
+            tag,
+            gameweeks
+        )
+        players_in = [p.player_id for p in new_squad.players]
+        transfer_dict = {"in": players_in,
+                         "out": players_out}
+
+    elif num_transfers == "F":
+        #IMPLEMENT_ME
+        pass
+    points = squad.get_expected_points(gameweeks[0], tag)
+
+    return squad, transfer_dict, points
 
 
 def make_new_squad(
