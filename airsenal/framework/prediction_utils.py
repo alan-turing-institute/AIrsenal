@@ -64,7 +64,7 @@ def get_player_history_df(
         "minutes",
         "team_goals",
     ]
-    df_list = []
+    player_data = []
     players = list_players(
         position=position, season=season, dbsession=session, gameweek=gameweek
     )
@@ -79,7 +79,6 @@ def get_player_history_df(
         )
         results = player.scores
         row_count = 0
-        player_data = []
         for row in results:
             match_id = row.result_id
             if not match_id:
@@ -121,9 +120,7 @@ def get_player_history_df(
                 player.player_id, player.name, 0, 0, 0, 0, 0, 0
             ]] * (max_matches_per_player - row_count)
 
-        df_list.append(pd.DataFrame(player_data, columns=col_names))
-
-    df = pd.concat(df_list)
+    df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df.reset_index(drop=True, inplace=True)
     
