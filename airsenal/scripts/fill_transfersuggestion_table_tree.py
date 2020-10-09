@@ -73,21 +73,6 @@ def count_increments(strategy_string, num_iterations):
     return max(total,1)
 
 
-def get_best_transfers(team, num_transfers, gameweek, season, pred_tag,
-                       updater, resetter):
-    # dummy function for now
-    for i in range(50):
-        time.sleep(0.1)
-#        updater.
-    print("Getting best {} transfers".format(num_transfers))
-    points = random.randint(40,50)
-    dummy_transfer_dict = {"in":[],"out":[]}
-    for i in range(num_transfers):
-        dummy_transfer_dict["in"].append(random.randint(0,200))
-        dummy_transfer_dict["out"].append(random.randint(0,200))
-    return team, dummy_transfer_dict, points
-
-
 def get_leaf_node_count(week, max_week, can_play_wildcard, can_play_free_hit):
     week += 1
     if week == max_week:
@@ -155,7 +140,7 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
         # now assume we have set of parameters to do an optimization
         # from the queue.
 
-        num_transfers, free_transfers, team, strat_dict, sid = status
+        num_transfers, free_transfers, squad, strat_dict, sid = status
 
         # sid (status id) is just a string e.g. "002" representing how many
         # transfers to be made in each gameweek.
@@ -182,11 +167,11 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
             # next gameweek:
             gw = gameweeks[0]
             if num_transfers > 0:
-                team, transfers, points = make_best_transfers(num_transfers,
-                                                             team,
-                                                             pred_tag,
-                                                             gameweeks,
-                                                             season)
+                squad, transfers, points = make_best_transfers(num_transfers,
+                                                               squad,
+                                                               pred_tag,
+                                                               gameweeks,
+                                                               season)
 
                 points += calc_points_hit(num_transfers, free_transfers)
                 strat_dict["players_in"][gw] = transfers["in"]
@@ -196,7 +181,7 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
                 strat_dict["players_in"][gw] = []
                 strat_dict["players_out"][gw] = []
                 strat_dict["cards_played"][gw] = []
-                points = team.get_expected_points(gw, pred_tag)
+                points = squad.get_expected_points(gw, pred_tag)
 
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
             strat_dict["total_score"] += points
@@ -216,45 +201,7 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
         else:
             # add children to the queue
             for num_transfers in range(3):
-                queue.put((num_transfers, free_transfers, team, strat_dict, sid))
-
-
-
-def process_strat(queue, pid, num_iterations, tag,
-                  baseline=None, updater=None, resetter=None, budget=None):
-    """
-    subprocess to go through a strategy and output a json file with
-    the best players in, players out, and total score.
-    """
-    while True:
-        strat = queue.get()
-        if strat == "DONE":
-            resetter(pid,strat)
-            break
-        sid = make_strategy_id(strat)
-        ## reset this process' progress bar, and give it the string for the
-        ## next strategy
-        resetter(pid, sid)
-
-        ## count how many incremements for this progress bar / strategy
-        num_increments = count_increments(sid,
-                                          num_iterations)
-        increment = 100 / num_increments
-        num_iter = num_iterations
-        strat_output = apply_strategy(strat,
-                                      tag,
-                                      baseline,
-                                      num_iter,
-                                      (updater,
-                                       increment,
-                                       pid),
-                                      budget)
-        with open(
-            os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
-        ) as outfile:
-            json.dump(strat_output, outfile)
-        ## call the function to update the main progress bar
-        updater()
+                queue.put((num_transfers, free_transfers, squad, strat_dict, sid))
 
 
 def find_best_strat_from_json(tag):
@@ -460,9 +407,13 @@ def sanity_check_args(args):
     return True
 
 
-def get_args():
+
+
+
+
+def main():
     """
-    Use argparse to process command-line arguments.
+    The main function, to be used as entrypoint.
     """
     parser = argparse.ArgumentParser(
         description="Try some different transfer strategies"
@@ -499,18 +450,10 @@ def get_args():
                         help="how many threads to use",
                         type=int, default=4)
     parser.add_argument("--season",
-                        help="what season, in format e.g. '1819'",
-                        type=int, default=CURRENT_SEASON)
+                        help="what season, in format e.g. '2021'",
+                        type=str, default=CURRENT_SEASON)
     args = parser.parse_args()
-    return args
 
-
-def main():
-    """
-    The main function, to be used as entrypoint.
-    """
-
-    args = get_args()
     args_ok = sanity_check_args(args)
     season = args.season
     if args.weeks_ahead:

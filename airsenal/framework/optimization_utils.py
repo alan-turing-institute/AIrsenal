@@ -531,7 +531,8 @@ def make_best_transfers(
     squad,
     tag,
     gameweeks,
-    season):
+    season,
+    update_func_and_args=None):
     """
     Return a new team and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
@@ -544,7 +545,9 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
-            season)
+            season,
+            update_func_and_args=update_func_and_args
+        )
 
         transfer_dict = {"in": players_in,
                          "out": players_out}
@@ -553,7 +556,9 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
-            season)
+            season,
+            update_func_and_args=update_func_and_args
+        )
         transfer_dict = {"in": players_in,
                          "out": players_out}
 
@@ -564,7 +569,8 @@ def make_best_transfers(
             budget,
             num_iter,
             tag,
-            gameweeks
+            gameweeks,
+            update_func_and_args=update_func_and_args
         )
         players_in = [p.player_id for p in new_squad.players]
         transfer_dict = {"in": players_in,
@@ -725,7 +731,7 @@ def apply_strategy(
             rp, ap = [], []  ## lists of removed-players, added-players
 
         elif strat[0][gw] == 1:  # one transfer - choose optimum
-            new_squad, rp, ap = make_optimum_transfer(
+            new_squad, rp, ap = make_optimum_single_transfer(
                 new_squad,
                 tag,
                 gw_range,

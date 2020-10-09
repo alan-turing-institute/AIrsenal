@@ -163,12 +163,12 @@ class Squad(object):
         """
         price_bought = player.purchase_price
         player_id = player.player_id
-
         price_now = None
         if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
-                price_now = fetcher.get_player_summary_data()[player_id]["now_cost"]
+                player_db = get_player(player_id)
+                price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id]["now_cost"]
             except:
                 pass
 
@@ -176,19 +176,16 @@ class Squad(object):
             player_db = get_player(player_id)
 
             if player_db:
-                # print("Using database price as sale price for",
-                #      player.player_id,
-                #      player.name)
                 price_now = player_db.price(season, gameweek)
-            else:
-                # if all else fails just use the purchase price as the sale
-                # price for this player.
-                print(
-                    "Using purchase price as sale price for",
-                    player.player_id,
-                    player.name,
-                )
-                price_now = price_bought
+        if not price_now:
+            # if all else fails just use the purchase price as the sale
+            # price for this player.
+            print(
+                "Using purchase price as sale price for",
+                player.player_id,
+                player.name,
+            )
+            price_now = price_bought
 
         if price_now > price_bought:
             price_sell = (price_now + price_bought) // 2
