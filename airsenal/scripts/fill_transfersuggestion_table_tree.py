@@ -52,62 +52,61 @@ else:
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
-def count_increments(strategy_string, num_iterations):
+def get_num_increments(num_transfers, num_iterations=100):
     """
     how many steps for the progress bar for this strategy
     """
-    total = 0
-    for s in strategy_string:
-        if s=="W" or s=="F":
-            ## wildcard or free hit - needs num_iterations iterations
-            total+= num_iterations
-        elif s=="1":
-            ## single transfer - 15 increments (replace each player in turn)
-            total+= 15
-        elif s=="2":
-            ## remove each pair of players - 15*7=105 combinations
-            total += 105
-        elif s=="3":
-            total += num_iterations
-    ## return at least 1, to avoid ZeroDivisionError
-    return max(total,1)
+    if isinstance(num_transfers, str) and \
+       (num_transfers.startswith("B") or num_transfers.startswith("T")) and \
+       len(num_transfers)==2:
+        num_transfers = int(num_transfers[1])
+
+    if num_transfers=="W" or num_transfers=="F" or \
+       (isinstance(num_transfers, int) and num_transfers > 2):
+        ## wildcard or free hit or >2 - needs num_iterations iterations
+        return num_iterations
+
+    elif num_transfers==1:
+        ## single transfer - 15 increments (replace each player in turn)
+        return 15
+    elif num_transfers==2:
+        ## remove each pair of players - 15*7=105 combinations
+        return 105
+    else:
+        print("Unrecognized num_transfers: {}".format(num_transfers))
+        return 1
 
 
-def get_leaf_node_count(week, max_week, can_play_wildcard, can_play_free_hit):
+def count_expected_outputs(week, max_week, can_play_wildcard, can_play_free_hit):
     week += 1
     if week == max_week:
         return 3 + int(can_play_wildcard) + int(can_play_free_hit)
+    total = 0
     for _ in range(3):
-        total += get_leaf_node_count(week, max_week, can_play_wildcard, can_play_free_hit)
+        total += count_expected_outputs(week, max_week, can_play_wildcard, can_play_free_hit)
     if can_play_wildcard:
-        total += get_leaf_node_count(week, max_week, False, can_play_free_hit)
+        total += count_expected_outputs(week, max_week, False, can_play_free_hit)
     if can_play_free_hit:
-        total += get_leaf_node_count(week, max_week, can_play_wildcard, False)
+        total += count_expected_outputs(week, max_week, can_play_wildcard, False)
     return total
 
 
 def is_finished(num_gameweeks, wildcard=False, free_hit=False, bench_boost=False, triple_captain=False):
     """
-    We expected pow(3,num_gameweeks) json files in the output dir.
-    Return True if they are all there, False otherwise.
+    Count the number of json files in the output directory, and see if the number
+    matches the final expected number, calculated based on number of gameweeks,
+    and cards played
+    Return True if output files are all there, False otherwise.
     """
-    possibilities_per_gameweek = 3
-    if wildcard:
-        possibilities_per_gameweek += 1
-    if free_hit:
-        possibilities_per_gameweek += 1
-    if bench_boost:
-        possibilities_per_gameweek += 3 # bench_boost plus zero, one or two transfers
-
-    num_expected = pow(possibilities_per_gameweek, num_gameweeks)
+    final_expected_num = count_expected_outputs(0,num_gameweeks, wildcard, free_hit)
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
-    if json_count == num_expected:
+    if json_count == final_expected_num:
         return True
     return False
 
 
-def optimize(queue, pid, gameweek_range, season, pred_tag):
+def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resetter=None):
     """
     Queue is the multiprocessing queue,
     pid is the Process that will execute this func,
@@ -127,11 +126,9 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
     """
     while True:
         if queue.qsize() > 0:
-            print("PID {} - {} items on queue".format(queue.qsize(), pid))
             status = queue.get()
         else:
             if is_finished(len(gameweek_range)):
-                print("All jobs done: process {} exiting.".format(pid))
                 break
             else:
                 time.sleep(5)
@@ -157,7 +154,7 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
             strat_dict["cards_played"] = {}
         else:
             sid = sid + str(num_transfers)
-            print("Process {} doing strategy {}".format(pid, sid))
+            resetter(pid, sid)
 
             # work out what gameweek we're in and how far down the tree we are.
             depth = len(strat_dict["points_per_gw"])
@@ -167,11 +164,16 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
             # next gameweek:
             gw = gameweeks[0]
             if num_transfers > 0:
-                squad, transfers, points = make_best_transfers(num_transfers,
-                                                               squad,
-                                                               pred_tag,
-                                                               gameweeks,
-                                                               season)
+                num_increments_for_updater = get_num_increments(num_transfers)
+                increment = 100 / num_increments_for_updater
+                squad, transfers, points = make_best_transfers(
+                    num_transfers,
+                    squad,
+                    pred_tag,
+                    gameweeks,
+                    season,
+                    (updater,increment,pid)
+                )
 
                 points += calc_points_hit(num_transfers, free_transfers)
                 strat_dict["players_in"][gw] = transfers["in"]
@@ -189,15 +191,16 @@ def optimize(queue, pid, gameweek_range, season, pred_tag):
 
             depth += 1
         if depth >= len(gameweek_range):
-            print("Process {} Finished {}: {}".format(pid,
-                                                      sid,
-                                                      strat_dict["total_score"]))
+#            print("Process {} Finished {}: {}".format(pid,
+#                                                      sid,
+#                                                      strat_dict["total_score"]))
             with open(
                     os.path.join(OUTPUT_DIR,
                                  "strategy_{}_{}.json".format(pred_tag, sid)),
                     "w") as outfile:
                 json.dump(strat_dict, outfile)
-
+            # call function to update the main progress bar
+            updater()
         else:
             # add children to the queue
             for num_transfers in range(3):
@@ -313,7 +316,7 @@ def run_optimization(gameweeks,
     ## first get a baseline prediction
     #baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
-    ## create a queue that we will add strategies to, and some processes to take
+    ## create a queue that we will add nodes to, and some processes to take
     ## things off it
     squeue = CustomQueue()
     procs = []
@@ -325,13 +328,8 @@ def run_optimization(gameweeks,
     ## number of nodes in tree will be 3^num_weeks unless we allow
     ## wildcard or free hit, in which case it'll be 4^num_weeks
     num_weeks = len(gameweeks)
-    if not (wildcard or free_hit):
-        total_nodes = pow(3, num_weeks)
-    elif (wildcard and free_hit):
-        total_nodes = pow(5,num_weeks)
-    else:
-        total_nodes = pow(4,num_weeks)
-    total_progress = tqdm(total=total_nodes, desc="Total progress")
+    expected_num = count_expected_outputs(0, num_weeks, wildcard, free_hit)
+    total_progress = tqdm(total=expected_num, desc="Total progress")
 
 
     ## functions to be passed to subprocess to update or reset progress bars
@@ -350,24 +348,26 @@ def run_optimization(gameweeks,
             nfiles = len(os.listdir(OUTPUT_DIR))
             total_progress.n = nfiles
             total_progress.refresh()
-            if nfiles == len(strategies):
+            if nfiles == expected_num:
                 total_progress.close()
                 for pb in progress_bars:
                     pb.close()
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
-    ## target function for process needs to know:
-    ## num_transfers
-    ## current_team (list of player_ids)
-    ## transfer_dict {"gw":<gw>,"in":[],"out":[]}
-    ## total_score
-    ## num_free_transfers
-    ## budget
+
+    ## Add Processes to run the the target 'optimize' function.
+    ## This target function needs to know:
+    ##  num_transfers
+    ##  current_team (list of player_ids)
+    ##  transfer_dict {"gw":<gw>,"in":[],"out":[]}
+    ##  total_score
+    ##  num_free_transfers
+    ##  budget
     for i in range(num_thread):
         processor = Process(
             target=optimize,
-            args=(squeue, i, gameweeks, season, tag)
+            args=(squeue, i, gameweeks, season, tag, update_progress, reset_progress)
         )
         processor.daemon = True
         processor.start()

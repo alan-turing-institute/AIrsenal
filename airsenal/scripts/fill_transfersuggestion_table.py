@@ -227,7 +227,7 @@ def main():
     parser.add_argument(
         "--season",
         help="what season, in format e.g. '1819'",
-        type=int,
+        type=str,
         default=CURRENT_SEASON,
     )
     parser.add_argument(
