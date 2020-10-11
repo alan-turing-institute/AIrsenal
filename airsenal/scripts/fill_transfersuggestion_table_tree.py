@@ -41,7 +41,8 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_player_name,
     get_latest_prediction_tag,
-    get_next_gameweek
+    get_next_gameweek,
+    get_free_transfers,
 )
 
 if os.name == "posix":
@@ -77,28 +78,65 @@ def get_num_increments(num_transfers, num_iterations=100):
         return 1
 
 
-def count_expected_outputs(week, max_week, can_play_wildcard, can_play_free_hit):
+def count_expected_outputs(week,
+                           max_week,
+                           can_play_wildcard,
+                           can_play_free_hit,
+                           can_play_triple_captain,
+                           can_play_bench_boost):
+    """
+    Recursive function to calculate how many leaf nodes we will expect.
+    If we only allow 0,1,2 transfers per week, this will just be pos(3,num_weeks).
+    However, if we allow wildcard or free hit, these give an extra possibility each
+    for the week they are played.
+    If we allow triple captain or bench boost, these can be played along with 0, 1, 2
+    transfers, so give an extra 3 possibilities for the week they are played.
+    """
     week += 1
     if week == max_week:
-        return 3 + int(can_play_wildcard) + int(can_play_free_hit)
+        return 3 \
+            + int(can_play_wildcard) \
+            + int(can_play_free_hit)  \
+            + 3*int(can_play_triple_captain) \
+            + 3*int(can_play_bench_boost)
     total = 0
     for _ in range(3):
-        total += count_expected_outputs(week, max_week, can_play_wildcard, can_play_free_hit)
+        total += count_expected_outputs(week, max_week,
+                                        can_play_wildcard, can_play_free_hit,
+                                        can_play_triple_captain, can_play_bench_boost)
+        if can_play_triple_captain:
+            total += count_expected_outputs(week, max_week,
+                                            can_play_wildcard, can_play_free_hit,
+                                            False, can_play_bench_boost)
+        if can_play_bench_boost:
+            total += count_expected_outputs(week, max_week,
+                                            can_play_wildcard, can_play_free_hit,
+                                            can_play_triple_captain, False)
     if can_play_wildcard:
-        total += count_expected_outputs(week, max_week, False, can_play_free_hit)
+        total += count_expected_outputs(week, max_week,
+                                        False, can_play_free_hit,
+                                        can_play_triple_captain, can_play_bench_boost)
     if can_play_free_hit:
-        total += count_expected_outputs(week, max_week, can_play_wildcard, False)
+        total += count_expected_outputs(week, max_week,
+                                        can_play_wildcard, False,
+                                        can_play_triple_captain, can_play_bench_boost)
     return total
 
 
-def is_finished(num_gameweeks, wildcard=False, free_hit=False, bench_boost=False, triple_captain=False):
+def is_finished(num_gameweeks,
+                wildcard=False,
+                free_hit=False,
+                triple_captain=False,
+                bench_boost=False):
     """
     Count the number of json files in the output directory, and see if the number
     matches the final expected number, calculated based on number of gameweeks,
     and cards played
     Return True if output files are all there, False otherwise.
     """
-    final_expected_num = count_expected_outputs(0,num_gameweeks, wildcard, free_hit)
+    final_expected_num = count_expected_outputs(0,num_gameweeks,
+                                                wildcard, free_hit,
+                                                triple_captain, bench_boost)
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
     if json_count == final_expected_num:
@@ -106,7 +144,8 @@ def is_finished(num_gameweeks, wildcard=False, free_hit=False, bench_boost=False
     return False
 
 
-def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resetter=None):
+def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
+             updater=None, resetter=None):
     """
     Queue is the multiprocessing queue,
     pid is the Process that will execute this func,
@@ -138,13 +177,16 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
         # from the queue.
 
         num_transfers, free_transfers, squad, strat_dict, sid = status
+        # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
+        # OR 'B0', 'B1', or 'B2' (the latter six represent triple captain or
+        # bench boost along with 0, 1, or 2 transfers).
 
-        # sid (status id) is just a string e.g. "002" representing how many
+        # sid (status id) is just a string e.g. "0-0-2" representing how many
         # transfers to be made in each gameweek.
-        # Only exception is the root node, where sid is "STARTING" - this
+        # Only exception is the root node, where sid is "starting" - this
         # node only exists to add children to the queue.
 
-        if sid == "STARTING":
+        if sid == "starting":
             sid = ""
             depth = 0
             strat_dict["total_score"] = 0
@@ -153,7 +195,9 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
             strat_dict["players_out"] = {}
             strat_dict["cards_played"] = {}
         else:
-            sid = sid + str(num_transfers)
+            if len(sid) > 0:
+                sid += "-"
+            sid += str(num_transfers)
             resetter(pid, sid)
 
             # work out what gameweek we're in and how far down the tree we are.
@@ -163,7 +207,18 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
             gameweeks = gameweek_range[depth:]
             # next gameweek:
             gw = gameweeks[0]
-            if num_transfers > 0:
+            # if we're doing 0 transfers (including with a Triple Captain or Bench Boost):
+            if (isinstance(num_transfers, int) and num_transfers == 0) or \
+               (isinstance(num_transfers, str) and (num_transfers.startswith("T") or \
+                                                    num_transfers.startswith("B")) and \
+                int(num_transfers[-1]) == 0):
+                # no transfers
+                strat_dict["players_in"][gw] = []
+                strat_dict["players_out"][gw] = []
+                strat_dict["cards_played"][gw] = []
+                points = squad.get_expected_points(gw, pred_tag)
+            else:
+
                 num_increments_for_updater = get_num_increments(num_transfers)
                 increment = 100 / num_increments_for_updater
                 squad, transfers, points = make_best_transfers(
@@ -175,15 +230,9 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
                     (updater,increment,pid)
                 )
 
-                points += calc_points_hit(num_transfers, free_transfers)
+                points -= calc_points_hit(num_transfers, free_transfers)
                 strat_dict["players_in"][gw] = transfers["in"]
                 strat_dict["players_out"][gw] = transfers["out"]
-            else:
-                # no transfers
-                strat_dict["players_in"][gw] = []
-                strat_dict["players_out"][gw] = []
-                strat_dict["cards_played"][gw] = []
-                points = squad.get_expected_points(gw, pred_tag)
 
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
             strat_dict["total_score"] += points
@@ -191,9 +240,6 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
 
             depth += 1
         if depth >= len(gameweek_range):
-#            print("Process {} Finished {}: {}".format(pid,
-#                                                      sid,
-#                                                      strat_dict["total_score"]))
             with open(
                     os.path.join(OUTPUT_DIR,
                                  "strategy_{}_{}.json".format(pred_tag, sid)),
@@ -205,6 +251,17 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, updater=None, resette
             # add children to the queue
             for num_transfers in range(3):
                 queue.put((num_transfers, free_transfers, squad, strat_dict, sid))
+                if "triple_captain" in cards_allowed and not "T" in sid:
+                    queue.put(("T{}".format(num_transfers),
+                               free_transfers, squad, strat_dict, sid))
+                if "bench_boost" in cards_allowed and not "B" in sid:
+                    queue.put(("B{}".format(num_transfers),
+                               free_transfers, squad, strat_dict, sid))
+            if "wildcard" in cards_allowed and not "W" in sid:
+                queue.put(("W", free_transfers, squad, strat_dict, sid))
+            if "free_hit" in cards_allowed and not "F" in sid:
+                queue.put(("F", free_transfers, squad, strat_dict, sid))
+
 
 
 def find_best_strat_from_json(tag):
@@ -246,7 +303,6 @@ def find_baseline_score_from_json(tag, num_gameweeks):
             strat = json.load(inputfile)
             score = strat["total_score"]
             return score
-
 
 
 def print_strat(strat):
@@ -300,9 +356,9 @@ def run_optimization(gameweeks,
                      season=CURRENT_SEASON,
                      wildcard=False,
                      free_hit=False,
-                     num_free_transfers=1,
-                     bank=0,
-                     max_points_hit=4,
+                     triple_captain=False,
+                     bench_boost=False,
+                     num_free_transfers=None,
                      num_thread=4):
     """
     This is the actual main function that sets up the multiprocessing
@@ -325,10 +381,17 @@ def run_optimization(gameweeks,
     for i in range(num_thread):
         progress_bars.append(tqdm(total=100))
 
-    ## number of nodes in tree will be 3^num_weeks unless we allow
-    ## wildcard or free hit, in which case it'll be 4^num_weeks
+    ## number of nodes in tree will be something like 3^num_weeks unless we allow
+    ## a "card" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
-    expected_num = count_expected_outputs(0, num_weeks, wildcard, free_hit)
+    expected_num = count_expected_outputs(
+        0,
+        num_weeks,
+        wildcard,
+        free_hit,
+        triple_captain,
+        bench_boost
+    )
     total_progress = tqdm(total=expected_num, desc="Total progress")
 
 
@@ -364,17 +427,28 @@ def run_optimization(gameweeks,
     ##  total_score
     ##  num_free_transfers
     ##  budget
+    cards = []
+    if wildcard:
+        cards.append("wildcard")
+    if free_hit:
+        cards.append("free_hit")
+    if triple_captain:
+        cards.append("triple_captain")
+    if bench_boost:
+        cards.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
             target=optimize,
-            args=(squeue, i, gameweeks, season, tag, update_progress, reset_progress)
+            args=(squeue, i, gameweeks, season, tag, cards, update_progress, reset_progress)
         )
         processor.daemon = True
         processor.start()
         procs.append(processor)
     ## add starting node to the queue
     starting_squad = get_starting_squad()
-    squeue.put((0,0,starting_squad, {}, "STARTING"))
+    if not num_free_transfers:
+        num_free_transfers = get_free_transfers(gameweeks[0])
+    squeue.put((0, num_free_transfers, starting_squad, {}, "starting"))
 
     for i,p in enumerate(procs):
         progress_bars[i].close()
@@ -404,11 +478,9 @@ def sanity_check_args(args):
     elif (args.gw_start and not args.gw_end) or \
          (args.gw_end and not args.gw_start):
         raise RuntimeError("Need to specify both gw_start and gw_end")
+    if (args.num_free_transfers and not args.num_free_transfers in range(1,3)):
+        raise RuntimeError("Number of free transfers must be 1 or 2")
     return True
-
-
-
-
 
 
 def main():
@@ -437,15 +509,15 @@ def main():
     parser.add_argument("--allow_free_hit",
                         help="include possibility of playing free hit in one of the weeks",
                         action="store_true")
-    parser.add_argument("--max_points_hit",
-                        help="how many points are we prepared to lose on transfers",
-                        type=int, default=4)
+    parser.add_argument("--allow_triple_captain",
+                        help="include possibility of playing triple captain in one of the weeks",
+                        action="store_true")
+    parser.add_argument("--allow_bench_boost",
+                        help="include possibility of playing bench boost in one of the weeks",
+                        action="store_true")
     parser.add_argument("--num_free_transfers",
                         help="how many free transfers do we have",
-                        type=int, default=1)
-    parser.add_argument("--bank",
-                        help="how much money do we have in the bank (multiplied by 10)?",
-                        type=int, default=0)
+                        type=int)
     parser.add_argument("--num_thread",
                         help="how many threads to use",
                         type=int, default=4)
@@ -470,9 +542,18 @@ def main():
         free_hit = True
     else:
         free_hit = False
-    num_free_transfers = args.num_free_transfers
-    bank = args.bank
-    max_points_hit = args.max_points_hit
+    if args.allow_triple_captain:
+        triple_captain = True
+    else:
+        triple_captain = False
+    if args.allow_bench_boost:
+        bench_boost = True
+    else:
+        bench_boost = False
+    if args.num_free_transfers:
+        num_free_transfers = args.num_free_transfers
+    else:
+        num_free_transfers = None
     if args.tag:
         tag = args.tag
     else:
@@ -484,7 +565,7 @@ def main():
                      season,
                      wildcard,
                      free_hit,
+                     triple_captain,
+                     bench_boost,
                      num_free_transfers,
-                     bank,
-                     max_points_hit,
                      num_thread)
