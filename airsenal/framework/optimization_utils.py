@@ -532,6 +532,7 @@ def make_best_transfers(
     tag,
     gameweeks,
     season,
+    num_iter=100,
     update_func_and_args=None):
     """
     Return a new team and a dictionary {"in": [player_ids],
@@ -562,9 +563,9 @@ def make_best_transfers(
         transfer_dict = {"in": players_in,
                          "out": players_out}
 
-    elif num_transfers == "W":
+    elif num_transfers == "W" or num_transfers == "F":
         players_out = [p.player_id for p in squad.players]
-        budget = get_squad_value(new_squad)
+        budget = get_squad_value(squad)
         new_squad = make_new_squad(
             budget,
             num_iter,
@@ -576,9 +577,15 @@ def make_best_transfers(
         transfer_dict = {"in": players_in,
                          "out": players_out}
 
-    elif num_transfers == "F":
+    elif isinstance(num_transfers, str) and num_transfers == "F":
         #IMPLEMENT_ME
         pass
+    elif isinstance(num_transfers, str) and num_transfers == "B":
+        #IMPLEMENT_ME
+        pass
+    else:
+        raise RuntimeError("Unrecognized value for num_transfers: {}".format(num_transfers))
+
     points = squad.get_expected_points(gameweeks[0], tag)
 
     return squad, transfer_dict, points

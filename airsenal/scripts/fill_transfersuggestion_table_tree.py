@@ -167,7 +167,12 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
         if queue.qsize() > 0:
             status = queue.get()
         else:
-            if is_finished(len(gameweek_range)):
+            if is_finished(len(gameweek_range),
+                           ("wildcard" in cards_allowed),
+                           ("free_hit" in cards_allowed),
+                           ("triple_captain" in cards_allowed),
+                           ("bench_boost" in cards_allowed)
+            ):
                 break
             else:
                 time.sleep(5)
@@ -194,6 +199,7 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
             strat_dict["cards_played"] = {}
+            new_squad = squad
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -215,24 +221,42 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
                 # no transfers
                 strat_dict["players_in"][gw] = []
                 strat_dict["players_out"][gw] = []
-                strat_dict["cards_played"][gw] = []
+                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
+                    strat_dict["cards_played"][gw] = "triple_captain"
+                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
+                    strat_dict["cards_played"][gw] = "bench_boost"
+                else:
+                    strat_dict["cards_played"][gw] = None
                 points = squad.get_expected_points(gw, pred_tag)
+                new_squad = squad
             else:
 
                 num_increments_for_updater = get_num_increments(num_transfers)
                 increment = 100 / num_increments_for_updater
-                squad, transfers, points = make_best_transfers(
+                num_iterations = 100
+                new_squad, transfers, points = make_best_transfers(
                     num_transfers,
                     squad,
                     pred_tag,
                     gameweeks,
                     season,
+                    num_iterations,
                     (updater,increment,pid)
                 )
 
                 points -= calc_points_hit(num_transfers, free_transfers)
                 strat_dict["players_in"][gw] = transfers["in"]
                 strat_dict["players_out"][gw] = transfers["out"]
+                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
+                    strat_dict["cards_played"][gw] = "triple_captain"
+                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
+                    strat_dict["cards_played"][gw] = "bench_boost"
+                elif num_transfers == "W":
+                    strat_dict["cards_played"][gw] = "wildcard"
+                elif num_transfers == "F":
+                    strat_dict["cards_played"][gw] = "free_hit"
+                else:
+                    strat_dict["cards_played"][gw] = None
 
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
             strat_dict["total_score"] += points
@@ -250,15 +274,16 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
         else:
             # add children to the queue
             for num_transfers in range(3):
-                queue.put((num_transfers, free_transfers, squad, strat_dict, sid))
+                queue.put((num_transfers, free_transfers, new_squad, strat_dict, sid))
                 if "triple_captain" in cards_allowed and not "T" in sid:
                     queue.put(("T{}".format(num_transfers),
-                               free_transfers, squad, strat_dict, sid))
+                               free_transfers, new_squad, strat_dict, sid))
                 if "bench_boost" in cards_allowed and not "B" in sid:
                     queue.put(("B{}".format(num_transfers),
-                               free_transfers, squad, strat_dict, sid))
+                               free_transfers, new_squad, strat_dict, sid))
             if "wildcard" in cards_allowed and not "W" in sid:
-                queue.put(("W", free_transfers, squad, strat_dict, sid))
+                queue.put(("W", free_transfers, new_squad, strat_dict, sid))
+            # If we're playing "free_hit", put the old squad onto the queue
             if "free_hit" in cards_allowed and not "F" in sid:
                 queue.put(("F", free_transfers, squad, strat_dict, sid))
 
@@ -292,7 +317,8 @@ def find_baseline_score_from_json(tag, num_gameweeks):
     The baseline score is the one where we make 0 transfers
     for all gameweeks.
     """
-    zeros = "0"*num_gameweeks
+    # the strategy string we're looking for will be something like '0-0-0'.
+    zeros = ("0-"*num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json"\
                             .format(tag, zeros))
     if not os.path.exists(filename):
@@ -317,7 +343,7 @@ def print_strat(strat):
     print(" ===============================================")
     for gw in gameweeks_as_int:
         print("\n =========== Gameweek {} ================\n".format(gw))
-       # print("Cards played:  {}\n".format(strat['cards_played'][str(gw)]))
+        print("Cards played:  {}\n".format(strat['cards_played'][str(gw)]))
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat['players_in'][str(gw)])):
