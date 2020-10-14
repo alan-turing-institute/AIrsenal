@@ -20,8 +20,9 @@ import shutil
 import sys
 import time
 import random
-
 import json
+
+import cProfile
 
 
 from multiprocessing import Process
@@ -144,8 +145,8 @@ def is_finished(num_gameweeks,
     return False
 
 
-def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
-             updater=None, resetter=None):
+def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed=[], num_iterations=100,
+             updater=None, resetter=None, profile=False):
     """
     Queue is the multiprocessing queue,
     pid is the Process that will execute this func,
@@ -180,6 +181,11 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
 
         # now assume we have set of parameters to do an optimization
         # from the queue.
+
+        # turn on the profiler if requested
+        if profile:
+            profiler = cProfile.Profile()
+            profiler.enable()
 
         num_transfers, free_transfers, squad, strat_dict, sid = status
         # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
@@ -231,9 +237,8 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
                 new_squad = squad
             else:
 
-                num_increments_for_updater = get_num_increments(num_transfers)
+                num_increments_for_updater = get_num_increments(num_transfers, num_iterations)
                 increment = 100 / num_increments_for_updater
-                num_iterations = 100
                 new_squad, transfers, points = make_best_transfers(
                     num_transfers,
                     squad,
@@ -271,6 +276,10 @@ def optimize(queue, pid, gameweek_range, season, pred_tag, cards_allowed = [],
                 json.dump(strat_dict, outfile)
             # call function to update the main progress bar
             updater()
+
+            if profile:
+                profiler.dump_stats(f"process_strat_{pred_tag}_{sid}.pstat")
+
         else:
             # add children to the queue
             for num_transfers in range(3):
@@ -385,7 +394,9 @@ def run_optimization(gameweeks,
                      triple_captain=False,
                      bench_boost=False,
                      num_free_transfers=None,
-                     num_thread=4):
+                     num_iterations=100,
+                     num_thread=4,
+                     profile=False):
     """
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
@@ -465,7 +476,8 @@ def run_optimization(gameweeks,
     for i in range(num_thread):
         processor = Process(
             target=optimize,
-            args=(squeue, i, gameweeks, season, tag, cards, update_progress, reset_progress)
+            args=(squeue, i, gameweeks, season, tag, cards, num_iterations,
+                  update_progress, reset_progress, profile)
         )
         processor.daemon = True
         processor.start()
@@ -544,12 +556,18 @@ def main():
     parser.add_argument("--num_free_transfers",
                         help="how many free transfers do we have",
                         type=int)
+    parser.add_argument("--num_iterations",
+                        help="how many iterations to use for Wildcard/Free Hit optimization",
+                        type=int, default=100)
     parser.add_argument("--num_thread",
                         help="how many threads to use",
                         type=int, default=4)
     parser.add_argument("--season",
                         help="what season, in format e.g. '2021'",
                         type=str, default=CURRENT_SEASON)
+    parser.add_argument("--profile",
+                        help="For developers: Profile strategy execution time",
+                        action="store_true")
     args = parser.parse_args()
 
     args_ok = sanity_check_args(args)
@@ -579,13 +597,15 @@ def main():
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:
-        num_free_transfers = None
+        num_free_transfers = None # will work it out in run_optimization
     if args.tag:
         tag = args.tag
     else:
         ## get most recent set of predictions from DB table
         tag = get_latest_prediction_tag()
     num_thread = args.num_thread
+    profile = args.profile if args.profile else False
+
     run_optimization(gameweeks,
                      tag,
                      season,
