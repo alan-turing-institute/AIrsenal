@@ -30,11 +30,10 @@ With conda installed, run these commands in a terminal to create a new conda env
 
 **Linux and Mac OS X:**
 ```
-conda create -n airsenalenv python=3.7 pystan
-conda activate airsenalenv
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
-pip install .
+conda env create
+conda activate airsenalenv
 ```
 
 **Windows:**
@@ -51,6 +50,16 @@ git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 pip install .
 ```
+
+**Use AIrsenal without conda**
+
+To use AIrsenal without conda:
+```
+git clone https://github.com/alan-turing-institute/AIrsenal.git
+cd AIrsenal
+pip install .
+```
+AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only available when using conda. However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
 
 ## Configuration
 
@@ -76,6 +85,12 @@ The values for these should be defined either in environment variables with the 
 Where `1234567` is your team ID.
 
 ## Getting Started
+
+If you installed AIrsenal with conda, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To activate the environment use:
+```shell
+conda activate airsenalenv
+```
+
 
 Note: Most the commands below can be run with the `--help` flag to see additional options and information.
 
@@ -132,6 +147,24 @@ Instead of running the commands above individaully you can use:
 airsenal_run_pipeline
 ```
 This will delete and recreate the database and then run the points predictions and transfer optimization.
+
+## Docker
+
+Build the docker-image:
+```shell
+docker image -t airsenal .
+```
+
+Create a volume for data persistance:
+```shell
+docker volume create airsenal_data
+```
+
+Run commands with your configuration as environment variables, eg:
+```shell
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+```
+```airsenal_run_pipeline``` is the default command.
 
 ## Issues and Development
 
