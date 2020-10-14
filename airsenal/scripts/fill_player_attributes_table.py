@@ -82,7 +82,9 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=session)
         if not player:
-            print("ATTRIBUTES {} No player found with id {}".format(season, player_api_id))
+            print(
+                "ATTRIBUTES {} No player found with id {}".format(season, player_api_id)
+            )
             continue
 
         print("ATTRIBUTES {} {}".format(season, player.name))

@@ -39,14 +39,14 @@ class DummyPlayer:
 
     def get_predicted_points(self, gameweek, method):
         """
-        Get points for a specific gameweek - 
+        Get points for a specific gameweek -
         """
         return self.pts
 
 
 class TeamOpt:
     """Pygmo user defined problem class for optimising a full squad
-    
+
     Parameters
     ----------
     gw_range : list
@@ -187,13 +187,11 @@ class TeamOpt:
         return 0
 
     def get_nix(self):
-        """PyGMO function. Number of integer dimensions.
-        """
+        """PyGMO function. Number of integer dimensions."""
         return self.n_opt_players
 
     def gradient(self, x):
-        """PyGMO function - estimate gradient
-        """
+        """PyGMO function - estimate gradient"""
         return pg.estimate_gradient_h(lambda x: self.fitness(x), x)
 
     def _get_player_list(self):
@@ -217,8 +215,7 @@ class TeamOpt:
         return players, position_idx
 
     def _remove_zero_pts(self):
-        """Exclude players with zero predicted points.
-        """
+        """Exclude players with zero predicted points."""
         players = []
         # change_idx stores the indices of where the player positions change in the new
         # player list
