@@ -316,9 +316,9 @@ def make_optimum_double_transfer(
     gameweek_range=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
-    verbose=False,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    verbose=False,
 ):
     """
     If we want to just make two transfers, it's not unfeasible to try all
@@ -539,25 +539,43 @@ def make_best_transfers(
                                         "out":[player_ids]}
     """
     transfer_dict = {}
+    # deal with triple_captain or free_hit
+    triple_captain_gw=None
+    bench_boost_gw=None
+    if isinstance(num_transfers, str) and num_transfers.startswith("T"):
+        num_transfers = int(num_transfers[1])
+        triple_captain_gw = gameweeks[0]
+    elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
+        num_transfers = int(num_transfers[1])
+        bench_boost_gw = gameweeks[0]
+
     if num_transfers == 0:
+        # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with card)
         transfer_dict = {"in":[], "out": []}
+
     elif num_transfers == 1:
+        # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
         squad, players_out, players_in = make_optimum_single_transfer(
             squad,
             tag,
             gameweeks,
             season,
+            triple_captain_gw=triple_captain_gw,
+            bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args
         )
 
         transfer_dict = {"in": players_in,
                          "out": players_out}
     elif num_transfers == 2:
+        # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with card)
         squad, players_out, players_in = make_optimum_double_transfer(
             squad,
             tag,
             gameweeks,
             season,
+            triple_captain_gw=triple_captain_gw,
+            bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args
         )
         transfer_dict = {"in": players_in,
@@ -566,6 +584,9 @@ def make_best_transfers(
     elif num_transfers == "W" or num_transfers == "F":
         players_out = [p.player_id for p in squad.players]
         budget = get_squad_value(squad)
+        if num_transfers == "F":
+            # for free hit, only use one week to optimize
+            gameweeks = [gameweeks[0]]
         new_squad = make_new_squad(
             budget,
             num_iter,
@@ -577,16 +598,14 @@ def make_best_transfers(
         transfer_dict = {"in": players_in,
                          "out": players_out}
 
-    elif isinstance(num_transfers, str) and num_transfers == "F":
-        #IMPLEMENT_ME
-        pass
-    elif isinstance(num_transfers, str) and num_transfers == "B":
-        #IMPLEMENT_ME
-        pass
     else:
         raise RuntimeError("Unrecognized value for num_transfers: {}".format(num_transfers))
 
-    points = squad.get_expected_points(gameweeks[0], tag)
+    # get the expected points total for next gameweek
+    points = squad.get_expected_points(gameweeks[0], tag,
+                                       triple_captain=(triple_captain_gw != None),
+                                       bench_boost=(bench_boost_gw != None)
+    )
 
     return squad, transfer_dict, points
 
