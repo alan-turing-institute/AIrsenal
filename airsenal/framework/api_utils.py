@@ -28,7 +28,7 @@ from airsenal.framework.squad import Squad
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
-    make_optimum_transfer,
+    make_optimum_single_transfer,
     make_optimum_double_transfer,
 )
 
@@ -312,7 +312,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     if n_transfer == 1:
-        new_squad, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
+        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
     elif n_transfer == 2:
         new_squad, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
     return {"transfers_out": pid_out, "transfers_in": pid_in}

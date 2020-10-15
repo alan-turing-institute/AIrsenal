@@ -10,7 +10,7 @@ from operator import itemgetter
 
 from ..framework.optimization_utils import (
     Squad,
-    make_optimum_transfer,
+    make_optimum_single_transfer,
     make_optimum_double_transfer,
     get_predicted_points,
     generate_transfer_strategies,
@@ -185,7 +185,7 @@ def test_single_transfer():
         "airsenal.framework.optimization_utils.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_squad, pid_out, pid_in = make_optimum_transfer(t, "DUMMY", [1])
+        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
         ## we should expect - player 115 to be transfered in, and to be captain.
     assert pid_in[0] == 115
     for p in new_squad.players:
