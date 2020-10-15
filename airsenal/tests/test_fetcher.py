@@ -32,7 +32,7 @@ def test_get_team_data():
     should give current list of players in our team
     """
     fetcher = FPLDataFetcher()
-    data = fetcher.get_fpl_team_data(1)
+    data = fetcher.get_fpl_team_data(1)["picks"]
     assert isinstance(data, list)
     assert len(data) == 15
 

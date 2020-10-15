@@ -28,6 +28,7 @@ from .utils import (
     get_return_gameweek_for_player,
     get_max_matches_per_player,
     get_player_name,
+    get_player_from_api_id,
     list_players,
     fetcher,
     session,
@@ -67,7 +68,7 @@ def get_player_history_df(
         "minutes",
         "team_goals",
     ]
-    df = pd.DataFrame(columns=col_names)
+    player_data = []
     players = list_players(
         position=position, season=season, dbsession=session, gameweek=gameweek
     )
@@ -97,7 +98,7 @@ def get_player_history_df(
             assists = row.assists
             # find the match, in order to get team goals
             match_result = row.result
-            match_date = dateparser.parse(row.fixture.date)
+            match_date = row.fixture.date
             if row.fixture.home_team == row.opponent:
                 team_goals = match_result.away_score
             elif row.fixture.away_team == row.opponent:
@@ -105,22 +106,29 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            df.loc[len(df)] = [
-                player.player_id,
-                player.name,
-                match_id,
-                match_date,
-                goals,
-                assists,
-                minutes,
-                team_goals,
-            ]
+            player_data.append(
+                [
+                    player.player_id,
+                    player.name,
+                    match_id,
+                    match_date,
+                    goals,
+                    assists,
+                    minutes,
+                    team_goals,
+                ]
+            )
             row_count += 1
 
         ## fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
-            for i in range(row_count, max_matches_per_player):
-                df.loc[len(df)] = [player.player_id, player.name, 0, 0, 0, 0, 0, 0]
+            player_data += [[player.player_id, player.name, 0, 0, 0, 0, 0, 0]] * (
+                max_matches_per_player - row_count
+            )
+
+    df = pd.DataFrame(player_data, columns=col_names)
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df.reset_index(drop=True, inplace=True)
 
     return df
 
@@ -261,7 +269,7 @@ def calc_predicted_points(
     if not gw_range:
         # by default, go for next three matches
         gw_range = list(
-            range(NEXT_GAMEWEEK, min(next_gw + 3, 38))
+            range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38))
         )  # don't go beyond gw 38!
     team = player.team(
         season, gw_range[0]
@@ -307,7 +315,7 @@ def calc_predicted_points(
             # functions to calculate appearance points, defending points, attacking points.
             points = 0.0
 
-        elif is_injured_or_suspended(player.player_id, gameweek, season, session):
+        elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, session):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
 
@@ -383,7 +391,7 @@ def get_fitted_player_model(player_model, position, season, session):
 #    return model_team, df_player
 
 
-def is_injured_or_suspended(player_id, gameweek, season, session):
+def is_injured_or_suspended(player_api_id, gameweek, season, session):
     """
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
@@ -391,14 +399,14 @@ def is_injured_or_suspended(player_id, gameweek, season, session):
     if season != CURRENT_SEASON:  # no API info for past seasons
         return False
     ## check if a player is injured or suspended
-    pdata = fetcher.get_player_summary_data()[player_id]
+    pdata = fetcher.get_player_summary_data()[player_api_id]
     if (
         "chance_of_playing_next_round" in pdata.keys()
         and pdata["chance_of_playing_next_round"] is not None
         and pdata["chance_of_playing_next_round"] <= 50
     ):
         ## check if we have a return date
-        return_gameweek = get_return_gameweek_for_player(player_id, session)
+        return_gameweek = get_return_gameweek_for_player(player_api_id, session)
         if return_gameweek is None or return_gameweek > gameweek:
             return True
     return False
@@ -418,9 +426,11 @@ def fill_ep(csv_filename):
     summary_data = fetcher.get_player_summary_data()
     gameweek = NEXT_GAMEWEEK
     for k, v in summary_data.items():
-        outfile.write("{},{},{}\n".format(k, gameweek, v["ep_next"]))
+        player = get_player_from_api_id(k)
+        player_id = player.player_id
+        outfile.write("{},{},{}\n".format(player_id, gameweek, v["ep_next"]))
         pp = PlayerPrediction()
-        pp.player_id = k
+        pp.player_id = player_id
         pp.gameweek = gameweek
         pp.predicted_points = v["ep_next"]
         pp.method = "EP"

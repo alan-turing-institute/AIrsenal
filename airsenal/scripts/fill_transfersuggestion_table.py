@@ -10,7 +10,7 @@ output for each strategy tried is going to be a dict
 "players_bought" : {<gw>: [], ...}
 }
 """
-
+import cProfile
 import os
 import sys
 import time
@@ -64,6 +64,7 @@ def process_strat(
     updater=None,
     resetter=None,
     budget=None,
+    profile=False,
 ):
     """
     subprocess to go through a strategy and output a json file with
@@ -74,6 +75,11 @@ def process_strat(
         if strat == "DONE":
             resetter(pid, strat)
             break
+
+        if profile:
+            profiler = cProfile.Profile()
+            profiler.enable()
+
         sid = make_strategy_id(strat)
         ## reset this process' progress bar, and give it the string for the
         ## next strategy
@@ -92,6 +98,9 @@ def process_strat(
             json.dump(strat_output, outfile)
         ## call the function to update the main progress bar
         updater()
+
+        if profile:
+            profiler.dump_stats(f"process_strat_{tag}_{sid}.pstat")
 
 
 def find_best_strat_from_json(tag):
@@ -144,7 +153,7 @@ def print_team_for_next_gw(strat):
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_team()
+    t = get_starting_squad()
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
@@ -220,6 +229,11 @@ def main():
         help="what season, in format e.g. '1819'",
         type=int,
         default=CURRENT_SEASON,
+    )
+    parser.add_argument(
+        "--profile",
+        help="For developers: Profile strategy execution time",
+        action="store_true",
     )
 
     if NEXT_GAMEWEEK == 1:
@@ -318,6 +332,7 @@ def main():
                 update_progress,
                 reset_progress,
                 budget,
+                args.profile,
             ),
         )
         processor.daemon = True

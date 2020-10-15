@@ -18,7 +18,8 @@ Base = declarative_base()
 
 class Player(Base):
     __tablename__ = "player"
-    player_id = Column(Integer, primary_key=True, nullable=False)
+    player_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    fpl_api_id = Column(Integer, nullable=True)
     name = Column(String(100), nullable=False)
     attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
     results = relationship("Result", uselist=True, back_populates="player")
@@ -219,6 +220,7 @@ class Transaction(Base):
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
+    free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
 
 
 class TransferSuggestion(Base):
@@ -252,7 +254,7 @@ class Team(Base):
     )  # the season-dependent team ID (from alphabetical order)
 
 
-class SessionTeam(Base):
+class SessionSquad(Base):
     __tablename__ = "sessionteam"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False)

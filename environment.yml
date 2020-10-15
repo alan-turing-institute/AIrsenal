@@ -1,0 +1,11 @@
+name: airsenalenv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - pip
+  - pystan
+  - pygmo
+  - pip:
+    - .

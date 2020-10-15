@@ -64,6 +64,7 @@ def fill_players():
         for i, n in enumerate(dummy_players):
             p = Player()
             p.player_id = i
+            p.fpl_api_id = i
             p.name = n
             print("Filling {} {}".format(i, n))
             try:

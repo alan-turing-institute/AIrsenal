@@ -9,7 +9,7 @@ from operator import itemgetter
 # from ..utils import get_predicted_points
 
 from ..framework.optimization_utils import (
-    Team,
+    Squad,
     make_optimum_transfer,
     make_optimum_double_transfer,
     get_predicted_points,
@@ -24,15 +24,16 @@ def mock_add_player(pid):
 
 class DummyPlayer(object):
     """
-    fake player that we can add to a team, giving a specified expected score.
+    fake player that we can add to a squad, giving a specified expected score.
     """
 
     def __init__(self, player_id, position, points_dict):
         """
-        we generate team to avoid >3-players-per-team problem,
+        we generate squad to avoid >3-players-per-team problem,
         and set price to 0 to avoid overrunning budget.
         """
         self.player_id = player_id
+        self.fpl_api_id = player_id
         self.name = "player_{}".format(player_id)
         self.position = position
         self.team = "DUMMY_TEAM_{}".format(player_id)
@@ -47,9 +48,9 @@ class DummyPlayer(object):
         pass
 
 
-def generate_dummy_team(player_points_dict=None):
+def generate_dummy_squad(player_points_dict=None):
     """
-    Fill a team up with dummy players.
+    Fill a squad up with dummy players.
     player_points_dict is a dictionary
     { player_id: { gw: points,...} ,...}
     """
@@ -57,7 +58,7 @@ def generate_dummy_team(player_points_dict=None):
         player_points_dict = {}
         for i in range(15):
             player_points_dict[i] = {1: 2}  # 2 points per game
-    t = Team()
+    t = Squad()
     for i in range(15):
         if i < 2:
             position = "GK"
@@ -82,7 +83,7 @@ def predicted_point_mock_generator(point_dict):
         """
         return an ordered list in the same way as the real
         get_predicted_points func does. EXCEPT - we return dummy players rather than just ids
-        (so the Team.add_player can add them)
+        (so the Squad.add_player can add them)
         """
         output_pid_list = [(k, v) for k, v in point_dict[position].items()]
         output_pid_list.sort(key=itemgetter(1), reverse=True)
@@ -123,7 +124,7 @@ def test_subs():
     ## should get 4,4,2, with players 0,4,9,12 on the bench,
     ## captain player 11, vice-captain player 14
     ## should have 29 points (9*2 + 3 + (2*4) )
-    t = generate_dummy_team(points_dict)
+    t = generate_dummy_squad(points_dict)
     ep = t.get_expected_points(1, "DUMMY")
     assert ep == 29
     assert t.players[0].is_starting == False
@@ -139,15 +140,15 @@ def test_single_transfer():
     mock squad with all players predicted 2 points, and potential transfers
     with higher scores, check we get the best transfer.
     """
-    t = generate_dummy_team()
+    t = generate_dummy_squad()
     position_points_dict = {
-        "GK": {0: 2, 1: 2, 100: 0, 101: 0, 200: 3, 201: 2},  # in the orig team
+        "GK": {0: 2, 1: 2, 100: 0, 101: 0, 200: 3, 201: 2},  # in the orig squad
         "DEF": {
             2: 2,
             3: 2,
             4: 2,
             5: 2,
-            6: 2,  # in the orig team
+            6: 2,  # in the orig squad
             103: 0,
             104: 0,
             105: 5,
@@ -164,7 +165,7 @@ def test_single_transfer():
             8: 2,
             9: 2,
             10: 2,
-            11: 2,  # in the orig team
+            11: 2,  # in the orig squad
             108: 2,
             109: 2,
             110: 3,
@@ -176,7 +177,7 @@ def test_single_transfer():
             211: 3,
             212: 0,
         },
-        "FWD": {12: 2, 13: 2, 14: 2, 113: 6, 114: 3, 115: 7},  # in the orig team
+        "FWD": {12: 2, 13: 2, 14: 2, 113: 6, 114: 3, 115: 7},  # in the orig squad
     }
     mock_pred_points = predicted_point_mock_generator(position_points_dict)
 
@@ -184,16 +185,16 @@ def test_single_transfer():
         "airsenal.framework.optimization_utils.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_team, pid_out, pid_in = make_optimum_transfer(t, "DUMMY", [1])
+        new_squad, pid_out, pid_in = make_optimum_transfer(t, "DUMMY", [1])
         ## we should expect - player 115 to be transfered in, and to be captain.
     assert pid_in[0] == 115
-    for p in new_team.players:
+    for p in new_squad.players:
         if p.player_id == 115:
             assert p.is_captain == True
         else:
             assert p.is_captain == False
     ## expected points should be 10*2 + 7*2 = 34
-    assert new_team.get_expected_points(1, "DUMMY") == 34
+    assert new_squad.get_expected_points(1, "DUMMY") == 34
 
 
 def test_double_transfer():
@@ -201,15 +202,15 @@ def test_double_transfer():
     mock squad with two players predicted low score, see if we get better players
     transferred in.
     """
-    t = generate_dummy_team()
+    t = generate_dummy_squad()
     position_points_dict = {
-        "GK": {0: 2, 1: 2, 100: 0, 101: 0, 200: 3, 201: 7},  # in the orig team
+        "GK": {0: 2, 1: 2, 100: 0, 101: 0, 200: 3, 201: 7},  # in the orig squad
         "DEF": {
             2: 2,
             3: 2,
             2: 2,
             5: 2,
-            6: 2,  # in the orig team
+            6: 2,  # in the orig squad
             103: 0,
             104: 0,
             105: 5,
@@ -226,7 +227,7 @@ def test_double_transfer():
             8: 2,
             9: 2,
             10: 2,
-            11: 2,  # in the orig team
+            11: 2,  # in the orig squad
             108: 2,
             109: 2,
             110: 3,
@@ -238,7 +239,7 @@ def test_double_transfer():
             211: 3,
             212: 0,
         },
-        "FWD": {12: 2, 13: 2, 14: 2, 113: 6, 114: 3, 115: 8},  # in the orig team
+        "FWD": {12: 2, 13: 2, 14: 2, 113: 6, 114: 3, 115: 8},  # in the orig squad
     }
     mock_pred_points = predicted_point_mock_generator(position_points_dict)
 
@@ -246,13 +247,13 @@ def test_double_transfer():
         "airsenal.framework.optimization_utils.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_team, pid_out, pid_in = make_optimum_double_transfer(t, "DUMMY", [1])
+        new_squad, pid_out, pid_in = make_optimum_double_transfer(t, "DUMMY", [1])
         ## we should expect 201 and 115 to be transferred in, and 1,15 to
         ## be transferred out.   115 should be captain
         assert 201 in pid_in
         assert 115 in pid_in
-        print(new_team)
-        for p in new_team.players:
+        print(new_squad)
+        for p in new_squad.players:
             if p.player_id == 115:
                 assert p.is_captain == True
             else:
