@@ -538,9 +538,6 @@ def main():
         "--gw_end", help="last gameweek to consider", type=int
     )
     parser.add_argument("--tag", help="specify a string identifying prediction set")
-    parser.add_argument(
-        "--num_iterations", help="how many trials to run", type=int, default=100
-    )
     parser.add_argument("--allow_wildcard",
                         help="include possibility of wildcarding in one of the weeks",
                         action="store_true")
@@ -614,4 +611,5 @@ def main():
                      triple_captain,
                      bench_boost,
                      num_free_transfers,
+                     num_iterations,
                      num_thread)
