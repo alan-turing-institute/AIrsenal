@@ -755,7 +755,6 @@ def apply_strategy(
         ## process this gameweek
         if strat[0][gw] == 0:  # no transfers that gameweek
             rp, ap = [], []  ## lists of removed-players, added-players
-
         elif strat[0][gw] == 1:  # one transfer - choose optimum
             new_squad, rp, ap = make_optimum_single_transfer(
                 new_squad,
@@ -814,7 +813,7 @@ def apply_strategy(
             "B1",
             "T1",
         ]:  # bench boost/triple captain and one transfer
-            new_squad, rp, ap = make_optimum_transfer(
+            new_squad, rp, ap = make_optimum_single_transfer(
                 new_squad,
                 tag,
                 gw_range,
@@ -834,7 +833,6 @@ def apply_strategy(
                 bench_boost_gw=bench_boost_gw,
                 triple_captain_gw=triple_captain_gw,
             )
-
         if gw == bench_boost_gw:
             score = new_squad.get_expected_points(gw, tag, bench_boost=True)
         elif gw == triple_captain_gw:
