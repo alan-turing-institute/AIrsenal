@@ -1,7 +1,7 @@
 """
 Useful commands to query the db
 """
-import copy
+
 from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone
@@ -10,7 +10,7 @@ import pandas as pd
 import dateparser
 import re
 from pickle import loads, dumps
-from .mappings import alternative_team_names, alternative_player_names
+from .mappings import alternative_player_names
 
 from .data_fetcher import FPLDataFetcher
 from .schema import (
@@ -22,12 +22,11 @@ from .schema import (
     PlayerScore,
     PlayerPrediction,
     Transaction,
-    FifaTeamRating,
     Team,
     engine,
 )
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_, case, func, desc
+from sqlalchemy import or_, case, func, desc
 
 
 Base.metadata.bind = engine
@@ -685,11 +684,11 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     for fid in fixture_ids:
         scores = (
             session.query(PlayerScore)
-            .filter_by(player_id=player_id, fixture_id=m[0])
+            .filter_by(player_id=player_id, fixture_id=fid[0])
             .all()
         )
         for s in scores:
-            previous_points[m[1]] = s.points
+            previous_points[fid[1]] = s.points
 
     return previous_points
 
