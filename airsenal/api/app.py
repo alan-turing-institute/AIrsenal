@@ -5,28 +5,32 @@ API for calling airsenal functions.
 HTTP requests to the endpoints defined here will give rise
 to calls to functions in api_utils.py
 """
+from uuid import uuid4
 
-import os
-import sys
-from flask import Blueprint, Flask, Response, session, request, jsonify
+from flask import Blueprint, Flask, session, request, jsonify
 from flask_cors import CORS
 from flask_session import Session
-import requests
+
 import json
-from uuid import uuid4
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
 
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_last_finished_gameweek,
-    fetcher,
-    fixture_probabilities,
+from airsenal.api.exceptions import ApiException
+
+from airsenal.framework.api_utils import (
+    remove_db_session,
+    list_teams_for_api,
+    create_response,
+    list_players_for_api,
+    add_session_player,
+    combine_player_info,
+    remove_session_player,
+    get_session_players,
+    get_session_predictions,
+    validate_session_squad,
+    fill_session_squad,
+    best_transfer_suggestions,
+    set_session_budget,
+    get_session_budget
 )
-from airsenal.framework.api_utils import *
-from airsenal.framework.schema import SessionTeam, engine
-
-from exceptions import ApiException
 
 
 def get_session_id():
@@ -89,6 +93,10 @@ def set_session_key():
     key = str(uuid4())
     session["key"] = key
     return create_response(key)
+
+
+def reset_session_team(param):
+    pass
 
 
 @blueprint.route("/team/new")
@@ -161,7 +169,7 @@ def fill_team_from_team_id(team_id):
     """
     Use the ID of a team in the FPL API to fill a squad for this session.
     """
-    player_ids = fill_session_team(team_id=team_id, session_id=get_session_id())
+    player_ids = fill_session_squad(team_id=team_id, session_id=get_session_id())
     return create_response(player_ids)
 
 
@@ -202,6 +210,5 @@ def create_app(name=__name__):
 
 
 if __name__ == "__main__":
-
     app = create_app()
     app.run(host="0.0.0.0", port=5002, debug=True)
