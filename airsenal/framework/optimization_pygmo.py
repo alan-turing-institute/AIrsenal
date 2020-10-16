@@ -1,17 +1,14 @@
 import pygmo as pg
 
-import numpy as np
-import pandas as pd
 import uuid
 
-from .utils import (
-    NEXT_GAMEWEEK,
+from airsenal.framework.schema import Team
+from airsenal.framework.squad import TOTAL_PER_POSITION
+from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
-    get_latest_prediction_tag,
     get_predicted_points_for_player,
 )
-from .team import Team, TOTAL_PER_POSITION
 
 
 class DummyPlayer:
