@@ -667,7 +667,6 @@ def apply_strategy(
             ## remember the starting team (so we can revert to it later)
             squad_before_free_hit = fastcopy(new_squad)
             ## now make a new squad for this gw, as is done for wildcard
-
             new_team = [p.player_id for p in new_squad.players]
             budget = get_team_value(new_team)
             new_squad = make_new_squad(
