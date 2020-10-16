@@ -1,16 +1,14 @@
 """
 Interface to the Stan models
 """
-import os
-import sys
+
 
 import bpl
 import numpy as np
 import pandas as pd
-import pystan
 
-
-from .utils import *
+from airsenal.framework.schema import Result, FifaTeamRating
+from airsenal.framework.utils import CURRENT_TEAMS
 
 np.random.seed(42)
 

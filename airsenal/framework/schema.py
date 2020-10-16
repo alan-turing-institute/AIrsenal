@@ -8,10 +8,10 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine
 from contextlib import contextmanager
 
-from .db_config import DB_CONNECTION_STRING
+from airsenal.framework.db_config import DB_CONNECTION_STRING
 
 Base = declarative_base()
 
