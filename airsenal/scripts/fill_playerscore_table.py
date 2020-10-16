@@ -7,13 +7,9 @@ Fill the "player_score" table with historic results
 import json
 import os
 
-from sqlalchemy import create_engine, and_, or_
-
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.mappings import alternative_player_names
-from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
-from ..framework.utils import (
-    get_latest_fixture_tag,
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.schema import PlayerScore, session_scope
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_player,
     get_team_name,

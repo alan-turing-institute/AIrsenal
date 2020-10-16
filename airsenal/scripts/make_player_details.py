@@ -5,11 +5,9 @@ https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
 from glob import glob
 import os
-import re
 import json
 import pandas as pd
 
-from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import get_past_seasons
 from airsenal.framework.mappings import (
     alternative_team_names,

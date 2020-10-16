@@ -204,7 +204,7 @@ if __name__ == "__main__":
     while len(player_data) < num_total_players:
         if args.mode == "summary":
             player_data_this_page = parse_summary_page(soup)
-            player_data += player_summaries_this_page
+            player_data += player_data_this_page
         else:
             player_data_this_page = get_detail_pages(soup, pages_done)
             player_data = {**player_data, **player_data_this_page}
