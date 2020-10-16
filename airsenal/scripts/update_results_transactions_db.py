@@ -5,18 +5,21 @@ simple script, check whether recent matches have been played since
 the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
-
-import os
-import sys
-
 import argparse
 
-from .fill_player_attributes_table import fill_attributes_table_from_api
-from .fill_result_table import fill_results_from_api
-from .fill_playerscore_table import fill_playerscores_from_api
-from ..framework.transaction_utils import update_team
-from ..framework.utils import *
-from ..framework.schema import session_scope
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    get_last_gameweek_in_db,
+    get_last_finished_gameweek,
+    NEXT_GAMEWEEK,
+    get_current_players,
+    get_players_for_gameweek
+)
+from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
+from airsenal.scripts.fill_result_table import fill_results_from_api
+from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
+from airsenal.framework.transaction_utils import update_team
+from airsenal.framework.schema import session_scope
 
 
 def main():
@@ -59,14 +62,14 @@ def main():
 
         if NEXT_GAMEWEEK != 1:
             if last_finished > last_in_db:
-                ## need to update
+                # need to update
                 fill_results_from_api(last_in_db + 1, NEXT_GAMEWEEK, season, session)
                 fill_playerscores_from_api(
                     season, session, last_in_db + 1, NEXT_GAMEWEEK
                 )
             else:
                 print("Matches and player-scores already up-to-date")
-            ## now check transfers
+            # now check transfers
             print("Checking team")
             db_players = sorted(get_current_players(season=season, dbsession=session))
             api_players = sorted(get_players_for_gameweek(last_finished))

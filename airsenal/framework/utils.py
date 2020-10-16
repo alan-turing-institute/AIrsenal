@@ -10,10 +10,10 @@ import pandas as pd
 import dateparser
 import re
 from pickle import loads, dumps
-from .mappings import alternative_player_names
+from airsenal.framework.mappings import alternative_player_names
 
-from .data_fetcher import FPLDataFetcher
-from .schema import (
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.schema import (
     Base,
     Player,
     PlayerAttributes,
@@ -140,7 +140,7 @@ NEXT_GAMEWEEK = get_next_gameweek()
 CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
 
 
-from .bpl_interface import get_fitted_team_model
+from airsenal.framework.bpl_interface import get_fitted_team_model
 
 
 def get_previous_season(season):

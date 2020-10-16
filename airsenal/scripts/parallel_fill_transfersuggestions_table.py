@@ -12,17 +12,14 @@ output for each strategy tried is going to be a dict
 """
 
 import os
-import sys
-import time
-
-
 import json
-
 
 from multiprocessing import Process, Queue
 import argparse
 
-from ..framework.optimization_utils import *
+from airsenal.framework.optimization_utils import make_strategy_id, apply_strategy, get_baseline_prediction, \
+    generate_transfer_strategies, fill_suggestion_table
+from airsenal.framework.utils import get_latest_prediction_tag
 
 NUM_THREAD = 8
 OUTPUT_DIR = "../data"
@@ -84,14 +81,14 @@ if __name__ == "__main__":
     if args.tag:
         method = args.tag
     else:
-        ## get most recent set of predictions from DB table
+        # get most recent set of predictions from DB table
         method = get_latest_prediction_tag()
 
-    ## first get a baseline prediction
+    # first get a baseline prediction
     baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, method)
 
-    ## create a queue that we will add strategies to, and some processes to take
-    ## things off it
+    # create a queue that we will add strategies to, and some processes to take
+    # things off it
     squeue = Queue()
     procs = []
     for i in range(NUM_THREAD):
@@ -103,17 +100,17 @@ if __name__ == "__main__":
         processor.start()
         procs.append(processor)
 
-    ### add strategies to the queue
+    # add strategies to the queue
     strategies = generate_transfer_strategies(num_weeks_ahead, 1, max_total_hit=4)
     for strat in strategies:
         squeue.put(strat)
     for i in range(NUM_THREAD):
         squeue.put("DONE")
-    ### now rejoin the main thread
+    # now rejoin the main thread
     for p in procs:
         p.join()
 
-    ### find the best from all the strategies tried
+    # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(method)
 
     fill_suggestion_table(baseline_score, best_strategy)

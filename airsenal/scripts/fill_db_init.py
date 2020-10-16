@@ -1,15 +1,14 @@
 """Script to fill the database after install."""
-from .fill_team_table import make_team_table
-from .fill_player_table import make_player_table
-from .fill_player_attributes_table import make_attributes_table
-from .fill_fixture_table import make_fixture_table
-from .fill_result_table import make_result_table
-from .fill_playerscore_table import make_playerscore_table
-from .fill_fifa_ratings_table import make_fifa_ratings_table
-from .fill_predictedscore_table import make_predictedscore_table
+from airsenal.scripts.fill_team_table import make_team_table
+from airsenal.scripts.fill_player_table import make_player_table
+from airsenal.scripts.fill_player_attributes_table import make_attributes_table
+from airsenal.scripts.fill_fixture_table import make_fixture_table
+from airsenal.scripts.fill_result_table import make_result_table
+from airsenal.scripts.fill_playerscore_table import make_playerscore_table
+from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 
-from ..framework.transaction_utils import fill_initial_team
-from ..framework.schema import session_scope
+from airsenal.framework.transaction_utils import fill_initial_team
+from airsenal.framework.schema import session_scope
 
 
 def main():

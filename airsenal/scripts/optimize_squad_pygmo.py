@@ -1,7 +1,7 @@
 import pygmo as pg
 
 from airsenal.framework.optimization_pygmo import make_new_team
-from airsenal.framework.team import TOTAL_PER_POSITION
+from airsenal.framework.squad import TOTAL_PER_POSITION
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     CURRENT_SEASON,

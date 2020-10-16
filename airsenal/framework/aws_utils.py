@@ -64,7 +64,7 @@ def get_suggestions_string():
 
     time.sleep(1)
     try:
-        from .schema import Player, TransferSuggestion, Base, engine
+        from airsenal.framework.schema import Player, TransferSuggestion, Base, engine
 
         Base.metadata.bind = engine
         DBSession = sessionmaker()
