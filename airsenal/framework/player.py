@@ -2,8 +2,8 @@
 Class for a player in FPL
 """
 
-from .schema import Player
-from .utils import (
+from airsenal.framework.schema import Player
+from airsenal.framework.utils import (
     get_player,
     get_predicted_points_for_player,
     CURRENT_SEASON,

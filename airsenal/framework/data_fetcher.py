@@ -7,8 +7,6 @@ import requests
 import json
 import time
 
-from .mappings import alternative_team_names
-
 
 class FPLDataFetcher(object):
     """

@@ -6,14 +6,13 @@ Fill the "fixture" table with info from this seasons FPL
 """
 
 import os
-import dateparser
-import time
+
 import uuid
 
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.mappings import alternative_team_names
-from ..framework.schema import Fixture, session_scope
-from ..framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.schema import Fixture, session_scope
+from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
 def fill_fixtures_from_file(filename, season, session):

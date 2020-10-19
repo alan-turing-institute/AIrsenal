@@ -5,7 +5,17 @@ Script to dump the database contents.
 import csv
 import os
 
-from ..framework.utils import *
+from airsenal.framework.schema import (
+    Player,
+    PlayerAttributes,
+    Fixture,
+    Result,
+    Team,
+    FifaTeamRating,
+    Transaction,
+    PlayerScore
+)
+from airsenal.framework.utils import session
 
 
 def main():

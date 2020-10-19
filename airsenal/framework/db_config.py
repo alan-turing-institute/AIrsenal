@@ -3,10 +3,11 @@ Database can be either an sqlite file or a postgress server
 """
 
 import os
-from .. import TMPDIR
+from airsenal import TMPDIR
 
 ## Default connection string points to a local sqlite file in
 ## airsenal/data/data.db
+
 DB_CONNECTION_STRING = "sqlite:///{}/data.db".format(TMPDIR)
 
 ## Check that we're not trying to set location for both sqlite and postgres
