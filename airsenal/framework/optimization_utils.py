@@ -170,7 +170,10 @@ def get_starting_squad():
     use the transactions table in the db
     """
     s = Squad()
-    transactions = session.query(Transaction).order_by(Transaction.id).all()
+    # Don't include free hit transfers as they only apply for the week the chip is activated
+    transactions = (
+        session.query(Transaction).order_by(Transaction.id).filter_by(free_hit=0).all()
+    )
     for trans in transactions:
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
@@ -246,7 +249,9 @@ def make_optimum_transfer(
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-            added_ok = new_squad.add_player(p_in[0], season=season, gameweek=transfer_gw)
+            added_ok = new_squad.add_player(
+                p_in[0], season=season, gameweek=transfer_gw
+            )
             if added_ok:
                 break
         total_points = 0.0
@@ -301,7 +306,6 @@ def make_optimum_double_transfer(
 
         new_squad_remove_1 = fastcopy(squad)
         new_squad_remove_1.remove_player(
-
             pout_1.player_id, season=season, gameweek=transfer_gw
         )
         for j in range(i + 1, len(squad.players)):

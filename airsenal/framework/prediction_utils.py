@@ -94,28 +94,30 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            player_data.append([
-                player.player_id,
-                player.name,
-                match_id,
-                match_date,
-                goals,
-                assists,
-                minutes,
-                team_goals,
-            ])
+            player_data.append(
+                [
+                    player.player_id,
+                    player.name,
+                    match_id,
+                    match_date,
+                    goals,
+                    assists,
+                    minutes,
+                    team_goals,
+                ]
+            )
             row_count += 1
 
         ## fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
-            player_data += [[
-                player.player_id, player.name, 0, 0, 0, 0, 0, 0
-            ]] * (max_matches_per_player - row_count)
+            player_data += [[player.player_id, player.name, 0, 0, 0, 0, 0, 0]] * (
+                max_matches_per_player - row_count
+            )
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df.reset_index(drop=True, inplace=True)
-    
+
     return df
 
 

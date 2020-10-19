@@ -220,6 +220,7 @@ class Transaction(Base):
     season = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
+    free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
 
 
 class TransferSuggestion(Base):

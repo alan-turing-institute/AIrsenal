@@ -98,7 +98,7 @@ def run_make_team(num_iterations, weeks_ahead):
     """
     Run optimization
     """
-    cmd = "airsenal_make_team --num_iterations {} --num_gw {}".format(
+    cmd = "airsenal_make_squad --num_iterations {} --num_gw {}".format(
         num_iterations, weeks_ahead
     )
     os.system(cmd)

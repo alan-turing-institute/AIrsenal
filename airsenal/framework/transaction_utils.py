@@ -15,7 +15,17 @@ from airsenal.framework.utils import (
 )
 
 
-def add_transaction(player_id, gameweek, in_or_out, price, season, tag, session):
+def free_hit_used_in_gameweek(gameweek):
+    """Use FPL API to determine whether a chip was played in the given gameweek"""
+    if fetcher.get_fpl_team_data(gameweek)["active_chip"] == "freehit":
+        return 1
+    else:
+        return 0
+
+
+def add_transaction(
+    player_id, gameweek, in_or_out, price, season, tag, free_hit, session
+):
     """
     add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
     """
@@ -26,6 +36,7 @@ def add_transaction(player_id, gameweek, in_or_out, price, season, tag, session)
         price=price,
         season=season,
         tag=tag,
+        free_hit=free_hit,
     )
     session.add(t)
     session.commit()
@@ -42,6 +53,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
         ### Season hasn't started yet - there won't be a team in the DB
         return True
 
+    free_hit = free_hit_used_in_gameweek(1)
     init_players = get_players_for_gameweek(1)
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
@@ -61,7 +73,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
         else:
             price = gw1_data[0]["value"]
 
-        add_transaction(pid, 1, 1, price, season, tag, session)
+        add_transaction(pid, 1, 1, price, season, tag, free_hit, session)
 
 
 def update_team(
@@ -83,7 +95,10 @@ def update_team(
                     gameweek, pid_out, price_out
                 )
             )
-        add_transaction(pid_out, gameweek, -1, price_out, season, tag, session)
+        free_hit = free_hit_used_in_gameweek(gameweek)
+        add_transaction(
+            pid_out, gameweek, -1, price_out, season, tag, free_hit, session
+        )
         api_pid_in = transfer["element_in"]
         pid_in = get_player_from_api_id(api_pid_in).player_id
         price_in = transfer["element_in_cost"]
@@ -93,5 +108,5 @@ def update_team(
                     gameweek, pid_in, price_in
                 )
             )
-        add_transaction(pid_in, gameweek, 1, price_in, season, tag, session)
+        add_transaction(pid_in, gameweek, 1, price_in, season, tag, free_hit, session)
         pass

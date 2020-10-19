@@ -244,7 +244,7 @@ def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
     # first reset the squad
     reset_session_squad(session_id, dbsession)
     # now query the API
-    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)
+    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)["picks"]
     player_ids = [p["element"] for p in players]
     for pid in player_ids:
         add_session_player(pid, session_id, dbsession)
