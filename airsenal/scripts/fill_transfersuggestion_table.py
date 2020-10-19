@@ -242,7 +242,7 @@ def main():
                 "This function suggests transfers to make from "
                 "an existing squad and can't be used before "
                 "the season has started.\n"
-                "Use 'airsenal_make_team' to generate a "
+                "Use 'airsenal_make_squad' to generate a "
                 "starting squad instead."
             )
         )

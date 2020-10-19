@@ -11,7 +11,7 @@ from .utils import (
     get_latest_prediction_tag,
     get_predicted_points_for_player,
 )
-from .team import Team, TOTAL_PER_POSITION
+from .squad import Squad, TOTAL_PER_POSITION
 
 
 class DummyPlayer:
@@ -33,7 +33,7 @@ class DummyPlayer:
 
     def calc_predicted_points(self, method):
         """
-        Needed for compatibility with Team/other Player classes
+        Needed for compatibility with Squad/other Player classes
         """
         pass
 
@@ -44,7 +44,7 @@ class DummyPlayer:
         return self.pts
 
 
-class TeamOpt:
+class SquadOpt:
     """Pygmo user defined problem class for optimising a full squad
 
     Parameters
@@ -57,7 +57,7 @@ class TeamOpt:
         Total budget for squad times 10,  by default 1000
     players_per_position : dict
         No. of players to optimize in each position, by default
-        airsenal.framework.team.TOTAL_PER_POSITION
+        airsenal.framework.squad.TOTAL_PER_POSITION
     season : str
         Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
     bench_boost_gw : int
@@ -120,13 +120,13 @@ class TeamOpt:
     def fitness(self, player_ids):
         """PyGMO required function. The objective function to minimise.
         In this case:
-            - 0 if the proposed team isn't valid
+            - 0 if the proposed squad isn't valid
             - weghted sum of gameweek points otherwise
         """
-        # Make team from player IDs
-        team = Team(budget=self.budget)
+        # Make squad from player IDs
+        squad = Squad(budget=self.budget)
         for idx in player_ids:
-            team.add_player(
+            squad.add_player(
                 self.players[int(idx)].player_id,
                 season=self.season,
                 gameweek=self.start_gw,
@@ -139,10 +139,10 @@ class TeamOpt:
                     dp = DummyPlayer(
                         self.gw_range, self.tag, pos, price=self.dummy_sub_cost
                     )
-                    team.add_player(dp)
+                    squad.add_player(dp)
 
-        # Check team is valid, if not return fitness of zero
-        if not team.is_complete():
+        # Check squad is valid, if not return fitness of zero
+        if not squad.is_complete():
             return [0]
 
         #  Calc expected points for all gameweeks
@@ -152,18 +152,18 @@ class TeamOpt:
         for i, gw in enumerate(self.gw_range):
             gw_weight = self.gw_weight[i]
             if gw == self.bench_boost_gw:
-                score += gw_weight * team.get_expected_points(
+                score += gw_weight * squad.get_expected_points(
                     gw, self.tag, bench_boost=True
                 )
             elif gw == self.triple_captain_gw:
-                score += gw_weight * team.get_expected_points(
+                score += gw_weight * squad.get_expected_points(
                     gw, self.tag, triple_captain=True
                 )
             else:
-                score += gw_weight * team.get_expected_points(gw, self.tag)
+                score += gw_weight * squad.get_expected_points(gw, self.tag)
 
             if gw != self.bench_boost_gw:
-                score += gw_weight * team.total_points_for_subs(
+                score += gw_weight * squad.total_points_for_subs(
                     gw, self.tag, sub_weights=self.sub_weights
                 )
 
@@ -265,7 +265,7 @@ class TeamOpt:
             raise ValueError("weight_type must be 'linear' or 'constant'.")
 
 
-def make_new_team(
+def make_new_squad(
     gw_range,
     tag,
     budget=1000,
@@ -293,7 +293,7 @@ def make_new_team(
         Total budget for squad times 10,  by default 1000
     players_per_position : dict
         No. of players to optimize in each position, by default
-        airsenal.framework.team.TOTAL_PER_POSITION
+        airsenal.framework.squad.TOTAL_PER_POSITION
     season : str
         Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
     verbose : int
@@ -324,11 +324,11 @@ def make_new_team(
 
     Returns
     -------
-    airsenal.framework.team.Team
-        The optimized team
+    airsenal.framework.squad.Squad
+        The optimized squad
     """
     # Build problem
-    opt_team = TeamOpt(
+    opt_squad = SquadOpt(
         gw_range,
         tag,
         budget=budget,
@@ -342,7 +342,7 @@ def make_new_team(
         gw_weight_type=gw_weight_type,
     )
 
-    prob = pg.problem(opt_team)
+    prob = pg.problem(opt_squad)
 
     # Create algorithm to solve problem with
     algo = pg.algorithm(uda=uda)
@@ -355,31 +355,31 @@ def make_new_team(
     pop = algo.evolve(pop)
     print("Best score:", -pop.champion_f[0], "pts")
 
-    # construct optimal team
-    team = Team(budget=opt_team.budget)
+    # construct optimal squad
+    squad = Squad(budget=opt_squad.budget)
     for idx in pop.champion_x:
         print(
-            opt_team.players[int(idx)].position(CURRENT_SEASON),
-            opt_team.players[int(idx)].name,
-            opt_team.players[int(idx)].team(CURRENT_SEASON, 1),
-            opt_team.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
+            opt_squad.players[int(idx)].position(CURRENT_SEASON),
+            opt_squad.players[int(idx)].name,
+            opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
+            opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
         )
-        team.add_player(
-            opt_team.players[int(idx)].player_id,
-            season=opt_team.season,
-            gameweek=opt_team.start_gw,
+        squad.add_player(
+            opt_squad.players[int(idx)].player_id,
+            season=opt_squad.season,
+            gameweek=opt_squad.start_gw,
         )
 
     # fill empty slots with dummy players (if chosen not to optimise full squad)
-    for pos in opt_team.positions:
-        if opt_team.dummy_per_position[pos] > 0:
-            for i in range(opt_team.dummy_per_position[pos]):
+    for pos in opt_squad.positions:
+        if opt_squad.dummy_per_position[pos] > 0:
+            for _ in range(opt_squad.dummy_per_position[pos]):
                 dp = DummyPlayer(
-                    opt_team.gw_range, opt_team.tag, pos, price=opt_team.dummy_sub_cost
+                    opt_squad.gw_range, opt_squad.tag, pos, price=opt_squad.dummy_sub_cost
                 )
-                team.add_player(dp)
+                squad.add_player(dp)
                 print(dp.position, dp.name, dp.purchase_price / 10)
 
-    print(f"£{team.budget/10}m in the bank")
+    print(f"£{squad.budget/10}m in the bank")
 
-    return team
+    return squad
