@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from airsenal.framework.schema import Result, FifaTeamRating
-from airsenal.framework.utils import CURRENT_TEAMS
+from airsenal.framework.season import CURRENT_TEAMS
 
 np.random.seed(42)
 

@@ -25,32 +25,17 @@ from airsenal.framework.schema import (
     Team,
     engine,
 )
+from airsenal.framework.season import CURRENT_SEASON
+from airsenal.framework.bpl_interface import get_fitted_team_model
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import or_, case, func, desc
-
 
 Base.metadata.bind = engine
 DBSession = sessionmaker()
 session = DBSession()
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
-
-
-def get_current_season():
-    """
-    use the current time to find what season we're in.
-    """
-    current_time = datetime.now()
-    if current_time.month > 7:
-        start_year = current_time.year
-    else:
-        start_year = current_time.year - 1
-    end_year = start_year + 1
-    return "{}{}".format(str(start_year)[2:], str(end_year)[2:])
-
-
-# make this a global variable in this module, import into other modules
-CURRENT_SEASON = get_current_season()
 
 
 def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
@@ -85,8 +70,8 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                 fixture_date = dateparser.parse(fixture.date)
                 fixture_date = fixture_date.replace(tzinfo=timezone.utc)
                 if (
-                    fixture_date > timenow
-                    and fixture.gameweek < earliest_future_gameweek
+                        fixture_date > timenow
+                        and fixture.gameweek < earliest_future_gameweek
                 ):
                     earliest_future_gameweek = fixture.gameweek
             except (TypeError):  ## date could be null if fixture not scheduled
@@ -95,11 +80,10 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
         for fixture in fixtures:
             try:
                 if (
-                    dateparser.parse(fixture.date).replace(tzinfo=timezone.utc)
-                    < timenow
-                    and fixture.gameweek == earliest_future_gameweek
+                        dateparser.parse(fixture.date).replace(tzinfo=timezone.utc)
+                        < timenow
+                        and fixture.gameweek == earliest_future_gameweek
                 ):
-
                     earliest_future_gameweek += 1
             except (TypeError):
                 continue
@@ -116,16 +100,16 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
         for fixture in fixture_data:
             if (
-                fixture["finished"] is False
-                and fixture["event"]
-                and fixture["event"] < earliest_future_gameweek
+                    fixture["finished"] is False
+                    and fixture["event"]
+                    and fixture["event"] < earliest_future_gameweek
             ):
                 earliest_future_gameweek = fixture["event"]
         # check whether we're mid-gameweek
         for fixture in fixture_data:
             if (
-                fixture["finished"] is True
-                and fixture["event"] == earliest_future_gameweek
+                    fixture["finished"] is True
+                    and fixture["event"] == earliest_future_gameweek
             ):
                 earliest_future_gameweek += 1
                 break
@@ -135,12 +119,6 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
-
-# TODO make this a database table so we can look at past seasons
-CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
-
-
-from airsenal.framework.bpl_interface import get_fitted_team_model
 
 
 def get_previous_season(season):
@@ -180,9 +158,9 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
     current_players = []
     transactions = (
         dbsession.query(Transaction)
-        .filter_by(season=season)
-        .order_by(Transaction.gameweek)
-        .all()
+            .filter_by(season=season)
+            .order_by(Transaction.gameweek)
+            .all()
     )
     if len(transactions) == 0:
         #  not updated the transactions table yet
@@ -401,13 +379,13 @@ def list_teams(season=CURRENT_SEASON, dbsession=None):
 
 
 def list_players(
-    position="all",
-    team="all",
-    order_by="price",
-    season=CURRENT_SEASON,
-    dbsession=None,
-    verbose=False,
-    gameweek=NEXT_GAMEWEEK,
+        position="all",
+        team="all",
+        order_by="price",
+        season=CURRENT_SEASON,
+        dbsession=None,
+        verbose=False,
+        gameweek=NEXT_GAMEWEEK,
 ):
     """
     print list of players, and
@@ -428,7 +406,7 @@ def list_players(
     teams_with_fixture = set(teams_with_fixture)
 
     if (team == "all" and len(teams_with_fixture) < 20) or (
-        team != "all" and team not in teams_with_fixture
+            team != "all" and team not in teams_with_fixture
     ):
         # check neighbouring gameweeks to get all 20 teams/specified team
         gws_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
@@ -453,8 +431,8 @@ def list_players(
 
     q = (
         dbsession.query(PlayerAttributes)
-        .filter_by(season=season)
-        .filter(PlayerAttributes.gameweek.in_(gameweeks))
+            .filter_by(season=season)
+            .filter(PlayerAttributes.gameweek.in_(gameweeks))
     )
     if team != "all":
         q = q.filter_by(team=team)
@@ -504,7 +482,7 @@ def get_max_matches_per_player(position="all", season=CURRENT_SEASON, dbsession=
 
 
 def get_player_attributes(
-    player_name_or_id, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
+        player_name_or_id, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
 ):
     """Get a player's attributes for a given gameweek in a given season."""
 
@@ -524,17 +502,17 @@ def get_player_attributes(
 
     attr = (
         dbsession.query(PlayerAttributes)
-        .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
-        .filter_by(player_id=player_id)
-        .first()
+            .filter_by(season=season)
+            .filter_by(gameweek=gameweek)
+            .filter_by(player_id=player_id)
+            .first()
     )
 
     return attr
 
 
 def get_fixtures_for_player(
-    player, season=CURRENT_SEASON, gw_range=None, dbsession=None, verbose=False
+        player, season=CURRENT_SEASON, gw_range=None, dbsession=None, verbose=False
 ):
     """
     search for upcoming fixtures for a player, specified either by id or name.
@@ -558,11 +536,11 @@ def get_fixtures_for_player(
     tag = get_latest_fixture_tag(season, dbsession)
     fixture_rows = (
         dbsession.query(Fixture)
-        .filter_by(season=season)
-        .filter_by(tag=tag)
-        .filter(or_(Fixture.home_team == team, Fixture.away_team == team))
-        .order_by(Fixture.gameweek)
-        .all()
+            .filter_by(season=season)
+            .filter_by(tag=tag)
+            .filter(or_(Fixture.home_team == team, Fixture.away_team == team))
+            .order_by(Fixture.gameweek)
+            .all()
     )
     fixtures = []
     for fixture in fixture_rows:
@@ -585,7 +563,7 @@ def get_fixtures_for_player(
 
 
 def get_next_fixture_for_player(
-    player, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
+        player, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
 ):
     """
     Get a players next fixture as a string, for easy displaying
@@ -621,9 +599,9 @@ def get_fixtures_for_gameweek(gameweek, season=CURRENT_SEASON, dbsession=session
     """
     fixtures = (
         dbsession.query(Fixture)
-        .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
-        .all()
+            .filter_by(season=season)
+            .filter_by(gameweek=gameweek)
+            .all()
     )
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
@@ -676,18 +654,18 @@ def get_previous_points_for_same_fixture(player, fixture_id):
 
     previous_matches = (
         session.query(Fixture)
-        .filter_by(home_team=home_team)
-        .filter_by(away_team=away_team)
-        .order_by(Fixture.season)
-        .all()
+            .filter_by(home_team=home_team)
+            .filter_by(away_team=away_team)
+            .order_by(Fixture.season)
+            .all()
     )
     fixture_ids = [(f.fixture_id, f.season) for f in previous_matches]
     previous_points = {}
     for fid in fixture_ids:
         scores = (
             session.query(PlayerScore)
-            .filter_by(player_id=player_id, fixture_id=fid[0])
-            .all()
+                .filter_by(player_id=player_id, fixture_id=fid[0])
+                .all()
         )
         for s in scores:
             previous_points[fid[1]] = s.points
@@ -708,9 +686,9 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
         player = get_player(player, dbsession=dbsession)
     pps = (
         dbsession.query(PlayerPrediction)
-        .filter(PlayerPrediction.fixture.has(Fixture.season == season))
-        .filter_by(player_id=player.player_id, tag=tag)
-        .all()
+            .filter(PlayerPrediction.fixture.has(Fixture.season == season))
+            .filter_by(player_id=player.player_id, tag=tag)
+            .all()
     )
     ppdict = {}
     for prediction in pps:
@@ -729,7 +707,7 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
 
 
 def get_predicted_points(
-    gameweek, tag, position="all", team="all", season=CURRENT_SEASON, dbsession=None
+        gameweek, tag, position="all", team="all", season=CURRENT_SEASON, dbsession=None
 ):
     """
     Query the player_prediction table with selections, return
@@ -768,15 +746,15 @@ def get_predicted_points(
 
 
 def get_top_predicted_points(
-    gameweek=None,
-    tag=None,
-    position="all",
-    team="all",
-    n_players=10,
-    per_position=False,
-    max_price=None,
-    season=CURRENT_SEASON,
-    dbsession=None,
+        gameweek=None,
+        tag=None,
+        position="all",
+        team="all",
+        n_players=10,
+        per_position=False,
+        max_price=None,
+        season=CURRENT_SEASON,
+        dbsession=None,
 ):
     """Print players with the top predicted points.
 
@@ -903,11 +881,11 @@ def calc_average_minutes(player_scores):
 
 
 def estimate_minutes_from_prev_season(
-    player,
-    season=CURRENT_SEASON,
-    dbsession=None,
-    gameweek=NEXT_GAMEWEEK,
-    n_games_to_use=10,
+        player,
+        season=CURRENT_SEASON,
+        dbsession=None,
+        gameweek=NEXT_GAMEWEEK,
+        n_games_to_use=10,
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -922,13 +900,13 @@ def estimate_minutes_from_prev_season(
 
     player_scores = (
         dbsession.query(PlayerScore)
-        .filter_by(player_id=player.player_id)
-        .filter(PlayerScore.fixture.has(season=previous_season))
-        .filter_by(player_team=current_team)
-        .join(Fixture, PlayerScore.fixture)
-        .order_by(desc(Fixture.gameweek))
-        .limit(n_games_to_use)
-        .all()
+            .filter_by(player_id=player.player_id)
+            .filter(PlayerScore.fixture.has(season=previous_season))
+            .filter_by(player_team=current_team)
+            .join(Fixture, PlayerScore.fixture)
+            .order_by(desc(Fixture.gameweek))
+            .limit(n_games_to_use)
+            .all()
     )
 
     if len(player_scores) == 0:
@@ -940,7 +918,7 @@ def estimate_minutes_from_prev_season(
 
 
 def get_recent_playerscore_rows(
-    player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
+        player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):
     """
     Query the playerscore table in the database to retrieve
@@ -966,11 +944,11 @@ def get_recent_playerscore_rows(
     ## get the playerscore rows from the db
     rows = (
         dbsession.query(PlayerScore)
-        .filter(PlayerScore.fixture.has(season=season))
-        .filter_by(player_id=player.player_id)
-        .filter(PlayerScore.fixture.has(Fixture.gameweek > first_gw))
-        .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
-        .all()
+            .filter(PlayerScore.fixture.has(season=season))
+            .filter_by(player_id=player.player_id)
+            .filter(PlayerScore.fixture.has(Fixture.gameweek > first_gw))
+            .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
+            .all()
     )
     ## for speed, we use the fact that matches from this season
     ## are uploaded in order, so we can just take the last n
@@ -979,7 +957,7 @@ def get_recent_playerscore_rows(
 
 
 def get_recent_scores_for_player(
-    player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
+        player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):
     """
     Look num_match_to_use matches back, and return the
@@ -1003,7 +981,7 @@ def get_recent_scores_for_player(
 
 
 def get_recent_minutes_for_player(
-    player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
+        player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):
     """
     Look back num_match_to_use matches, and return an array
@@ -1040,10 +1018,10 @@ def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     last_result = (
         dbsession.query(Fixture)
-        .filter_by(season=season)
-        .filter(Fixture.result != None)
-        .order_by(Fixture.gameweek.desc())
-        .first()
+            .filter_by(season=season)
+            .filter(Fixture.result != None)
+            .order_by(Fixture.gameweek.desc())
+            .first()
     )
     if last_result:
         return last_result.gameweek
@@ -1074,8 +1052,8 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     rows = (
         dbsession.query(PlayerPrediction)
-        .filter(PlayerPrediction.fixture.has(Fixture.season == season))
-        .all()
+            .filter(PlayerPrediction.fixture.has(Fixture.season == season))
+            .all()
     )
     try:
         return rows[-1].tag
@@ -1109,7 +1087,7 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     fixture_probabilities_list = []
     fixture_id_list = []
     for fixture in get_fixtures_for_gameweek(
-        gameweek, season=season, dbsession=dbsession
+            gameweek, season=season, dbsession=dbsession
     ):
         probabilities = model_team.overall_probabilities(
             fixture.home_team, fixture.away_team
@@ -1140,13 +1118,13 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
 
 
 def find_fixture(
-    gameweek,
-    team,
-    was_home=None,
-    other_team=None,
-    kickoff_time=None,
-    season=CURRENT_SEASON,
-    dbsession=session,
+        gameweek,
+        team,
+        was_home=None,
+        other_team=None,
+        kickoff_time=None,
+        season=CURRENT_SEASON,
+        dbsession=session,
 ):
     """Get a fixture given a gameweek, team and optionally whether
     the team was at home or away, the kickoff time and the other team in the
@@ -1231,13 +1209,13 @@ def find_fixture(
 
 
 def get_player_team_from_fixture(
-    gameweek,
-    opponent,
-    player_at_home=None,
-    kickoff_time=None,
-    season=CURRENT_SEASON,
-    dbsession=session,
-    return_fixture=False,
+        gameweek,
+        opponent,
+        player_at_home=None,
+        kickoff_time=None,
+        season=CURRENT_SEASON,
+        dbsession=session,
+        return_fixture=False,
 ):
     """Get the team a player played for given the gameweek, opponent, time and
     whether they were home or away.
