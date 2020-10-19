@@ -47,9 +47,9 @@ def fill_player_table_from_file(filename, season, session):
             n_new_players += 1
             new_entry = True
             p = Player()
-#            p.player_id = (
-#                max_id_in_table(session) + n_new_players
-#            )  # next id sequentially
+            #            p.player_id = (
+            #                max_id_in_table(session) + n_new_players
+            #            )  # next id sequentially
             p.name = name
         if new_entry:
             session.add(p)
