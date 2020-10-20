@@ -6,6 +6,7 @@ Season details
 from datetime import datetime
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
+
 def get_current_season():
     """
     use the current time to find what season we're in.

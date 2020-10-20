@@ -19,12 +19,7 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
-from airsenal.framework.schema import (
-    engine,
-    SessionSquad,
-    SessionBudget,
-    Player
-)
+from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Player
 
 from airsenal.framework.squad import Squad
 

@@ -200,9 +200,9 @@ def get_bonus_points(player_id, minutes, df_bonus):
     Returns expected bonus points scored by player_id when playing minutes minutes.
 
     df_bonus : list containing df of average bonus pts scored when playing at least
-    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index 
+    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index
     (as calculated by fit_bonus_points()).
-        
+
     NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
     must be changed together.
     """
@@ -223,7 +223,7 @@ def get_bonus_points(player_id, minutes, df_bonus):
 def get_save_points(position, player_id, minutes, df_saves):
     """Returns average save points scored by player_id when playing minutes minutes (or
     zero if this player's position is not GK).
-    
+
     df_saves - as calculated by fit_save_points()
     """
     if position != "GK":
@@ -240,7 +240,7 @@ def get_save_points(position, player_id, minutes, df_saves):
 def get_card_points(player_id, minutes, df_cards):
     """Returns average points lost by player_id due to yellow and red cards in matches
     they played at least 1 minute.
-    
+
     df_cards - as calculated by fit_card_points().
     """
     if minutes >= 1:
@@ -572,13 +572,14 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
     between 60 and 90 minutes, and matches they play between 30 and 59 minutes.
     Mean is calculated as sum of all bonus points divided by either the number of
     maches the player has played in or min_matches, whichever is greater.
-    
+
     Returns tuple of dataframes - first index bonus points for 60 to 90 mins, second
     index bonus points for 30 to 59 mins.
 
     NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
     must be changed together.
     """
+
     def get_bonus_df(min_minutes, max_minutes):
         query = (
             session.query(PlayerScore)
@@ -609,7 +610,7 @@ def fit_save_points(
     played at least min_minutes in.
     Mean is calculated as sum of all save points divided by either the number of
     matches the player has played in or min_matches, whichever is greater.
-    
+
     Returns pandas series index by player ID, values average save points.
     """
     goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
@@ -643,7 +644,7 @@ def fit_card_points(
     for each player.
     Mean is calculated as sum of all card points divided by either the number of
     matches the player has played in or min_matches, whichever is greater.
-    
+
     Returns pandas series index by player ID, values average card points.
     """
     query = session.query(PlayerScore).filter(PlayerScore.minutes >= min_minutes)
