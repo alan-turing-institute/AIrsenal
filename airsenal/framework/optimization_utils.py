@@ -2,30 +2,35 @@
 functions to optimize the transfers for N weeks ahead
 """
 
-import os
-import sys
-
 import random
 from datetime import datetime
+from operator import itemgetter
 
-from .utils import *
-from .schema import TransferSuggestion, PlayerPrediction
-from .squad import Squad, TOTAL_PER_POSITION
-from .player import CandidatePlayer
+from airsenal.framework.schema import TransferSuggestion, Transaction
+from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
+from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.utils import (
+    session,
+    NEXT_GAMEWEEK,
+    CURRENT_SEASON,
+    get_predicted_points,
+    fastcopy,
+    get_team_value
+)
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
 def generate_transfer_strategies(
-    gw_ahead,
-    free_transfers=1,
-    max_total_hit=None,
-    allow_wildcard=False,
-    allow_free_hit=False,
-    allow_bench_boost=False,
-    allow_triple_captain=False,
-    allow_unused_transfers=True,
-    next_gw=NEXT_GAMEWEEK,
+        gw_ahead,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_wildcard=False,
+        allow_free_hit=False,
+        allow_bench_boost=False,
+        allow_triple_captain=False,
+        allow_unused_transfers=True,
+        next_gw=NEXT_GAMEWEEK,
 ):
     """
     Generate possible transfer and chip strategies for gw_ahead gameweeks ahead,
@@ -45,7 +50,7 @@ def generate_transfer_strategies(
 
     # if not using a chip, consider strategies taking up to 3 transfers each week
     if not (
-        allow_wildcard or allow_free_hit or allow_bench_boost or allow_triple_captain
+            allow_wildcard or allow_free_hit or allow_bench_boost or allow_triple_captain
     ):
         possibilities = list(range(4))
     # if using a chip, only consider strategies taking up to 1 transfer (or a chip)
@@ -82,7 +87,7 @@ def generate_transfer_strategies(
         # - don't leave transfers unused, if allow_unused_transfers is True
         # baseline of no transfers added back in at end if removed by this
         if (max_total_hit is None or hit_so_far <= max_total_hit) and not (
-            not allow_unused_transfers and free_transfers == 2 and n_transfers == 0
+                not allow_unused_transfers and free_transfers == 2 and n_transfers == 0
         ):
             strategies.append((strat, hit_so_far, new_free_transfers))
 
@@ -95,20 +100,20 @@ def generate_transfer_strategies(
             free_transfers = s[2]
 
             if not (
-                allow_wildcard
-                or allow_free_hit
-                or allow_bench_boost
-                or allow_triple_captain
+                    allow_wildcard
+                    or allow_free_hit
+                    or allow_bench_boost
+                    or allow_triple_captain
             ):
                 possibilities = list(range(4))
             else:
                 already_used_wildcard = "W" in s[0].values()
                 already_used_free_hit = "F" in s[0].values()
                 already_used_bench_boost = (
-                    "B0" in s[0].values() or "B1" in s[0].values()
+                        "B0" in s[0].values() or "B1" in s[0].values()
                 )
                 already_used_triple_captain = (
-                    "T0" in s[0].values() or "T1" in s[0].values()
+                        "T0" in s[0].values() or "T1" in s[0].values()
                 )
 
                 possibilities = [0, 1]
@@ -143,9 +148,9 @@ def generate_transfer_strategies(
                 # - don't exceed max_total_hit, if given
                 # - don't leave transfers unused, if allow_unused_transfers is True
                 if (max_total_hit is None or new_hit <= max_total_hit) and not (
-                    not allow_unused_transfers
-                    and free_transfers == 2
-                    and n_transfers == 0
+                        not allow_unused_transfers
+                        and free_transfers == 2
+                        and n_transfers == 0
                 ):
                     new_strategies.append((new_dict, new_hit, new_free_transfers))
 
@@ -205,13 +210,13 @@ def get_baseline_prediction(gw_ahead, tag):
 
 
 def make_optimum_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
+        squad,
+        tag,
+        gameweek_range=None,
+        season=CURRENT_SEASON,
+        update_func_and_args=None,
+        bench_boost_gw=None,
+        triple_captain_gw=None,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -268,14 +273,14 @@ def make_optimum_transfer(
 
 
 def make_optimum_double_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    verbose=False,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
+        squad,
+        tag,
+        gameweek_range=None,
+        season=CURRENT_SEASON,
+        update_func_and_args=None,
+        verbose=False,
+        bench_boost_gw=None,
+        triple_captain_gw=None,
 ):
     """
     If we want to just make two transfers, it's not unfeasible to try all
@@ -324,8 +329,8 @@ def make_optimum_double_transfer(
             # now loop over lists of players and add players back in
             for pin_1 in ordered_player_lists[positions_needed[0]]:
                 if (
-                    pin_1[0].player_id == pout_1.player_id
-                    or pin_1[0].player_id == pout_2.player_id
+                        pin_1[0].player_id == pout_1.player_id
+                        or pin_1[0].player_id == pout_2.player_id
                 ):
                     continue  ## no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
@@ -337,9 +342,9 @@ def make_optimum_double_transfer(
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
                     new_squad_add_2 = fastcopy(new_squad_add_1)
                     if (
-                        pin_2[0] == pin_1[0]
-                        or pin_2[0].player_id == pout_1.player_id
-                        or pin_2[0].player_id == pout_2.player_id
+                            pin_2[0] == pin_1[0]
+                            or pin_2[0].player_id == pout_1.player_id
+                            or pin_2[0].player_id == pout_2.player_id
                     ):
                         continue  ## no point in adding same player back in
                     added_2_ok = new_squad_add_2.add_player(
@@ -372,15 +377,15 @@ def make_optimum_double_transfer(
 
 
 def make_random_transfers(
-    squad,
-    tag,
-    nsubs=1,
-    gw_range=None,
-    num_iter=1,
-    update_func_and_args=None,
-    season=CURRENT_SEASON,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
+        squad,
+        tag,
+        nsubs=1,
+        gw_range=None,
+        num_iter=1,
+        update_func_and_args=None,
+        season=CURRENT_SEASON,
+        bench_boost_gw=None,
+        triple_captain_gw=None,
 ):
     """
     choose nsubs random players to sub out, and then select players
@@ -483,16 +488,16 @@ def make_random_transfers(
 
 
 def make_new_squad(
-    budget,
-    num_iterations,
-    tag,
-    gw_range,
-    season=CURRENT_SEASON,
-    session=None,
-    update_func_and_args=None,
-    verbose=False,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
+        budget,
+        num_iterations,
+        tag,
+        gw_range,
+        season=CURRENT_SEASON,
+        session=None,
+        update_func_and_args=None,
+        verbose=False,
+        bench_boost_gw=None,
+        triple_captain_gw=None,
 ):
     """
     Make a squad from scratch, i.e. for gameweek 1, or for wildcard, or free hit.
@@ -534,7 +539,7 @@ def make_new_squad(
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (
-                    not pp[0] in excluded_player_ids
+                        not pp[0] in excluded_player_ids
                 ) or random.random() < 0.3:  # some chance to put player back
                     cp = CandidatePlayer(pp[0], gameweek=transfer_gw, season=season)
                     if cp.purchase_price >= remove_cost:
@@ -575,7 +580,7 @@ def make_new_squad(
 
 
 def apply_strategy(
-    strat, tag, baseline_dict=None, num_iter=1, update_func_and_args=None, verbose=False
+        strat, tag, baseline_dict=None, num_iter=1, update_func_and_args=None, verbose=False
 ):
     """
     apply a set of transfers over a number of gameweeks, and
@@ -649,7 +654,7 @@ def apply_strategy(
             )
         elif strat[0][gw] == "W":  ## wildcard - a whole new squad!
             rp = [p.player_id for p in new_squad.players]
-            budget = get_squad_value(new_squad)
+            budget = get_team_value(new_squad)
             new_squad = make_new_squad(
                 budget,
                 num_iter,
@@ -666,8 +671,8 @@ def apply_strategy(
             ## remember the starting team (so we can revert to it later)
             squad_before_free_hit = fastcopy(new_squad)
             ## now make a new squad for this gw, as is done for wildcard
-            rp = [p.player_id for p in new_squad.players]
-            budget = get_squad_value(new_team)
+            new_team = [p.player_id for p in new_squad.players]
+            budget = get_team_value(new_team)
             new_squad = make_new_squad(
                 budget,
                 num_iter,

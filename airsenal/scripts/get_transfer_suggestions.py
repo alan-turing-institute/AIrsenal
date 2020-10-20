@@ -7,11 +7,8 @@ therefore need to group together all the rows that correspond
 to the same transfer strategy.  We do this using the "timestamp".
 """
 
-import sys
-
-
-from ..framework.schema import TransferSuggestion
-from ..framework.utils import session, get_player_name
+from airsenal.framework.schema import TransferSuggestion
+from airsenal.framework.utils import session, get_player_name
 
 if __name__ == "__main__":
     all_rows = session.query(TransferSuggestion).all()

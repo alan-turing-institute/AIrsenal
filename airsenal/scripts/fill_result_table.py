@@ -8,10 +8,10 @@ Fill the "result" table with historic results
 import argparse
 import os
 
-from ..framework.mappings import alternative_team_names
-from ..framework.schema import Result, session_scope, Fixture
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.utils import (
+from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.schema import Result, session_scope, Fixture
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_fixture_tag,
     get_past_seasons,

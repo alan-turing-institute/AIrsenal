@@ -3,39 +3,30 @@ Use the BPL models to predict scores for upcoming fixtures.
 """
 
 import os
-import sys
 
 from collections import defaultdict
-import dateparser
 import pandas as pd
 import numpy as np
 import pystan
 
-from .mappings import alternative_team_names, alternative_player_names, positions
-
 from scipy.stats import multinomial
 
-from sqlalchemy import create_engine, and_, or_
-from sqlalchemy.orm import sessionmaker
+from airsenal.framework.schema import Player, PlayerPrediction, PlayerScore, engine
 
-from .schema import Player, PlayerPrediction, PlayerScore, Fixture, Base, engine
-
-from .utils import (
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_fixtures_for_player,
-    estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_max_matches_per_player,
-    get_player_name,
     get_player_from_api_id,
     list_players,
     fetcher,
     session,
     CURRENT_SEASON,
 )
-from .bpl_interface import get_fitted_team_model
-from .FPL_scoring_rules import (
+
+from airsenal.framework.FPL_scoring_rules import (
     points_for_goal,
     points_for_assist,
     points_for_cs,
