@@ -60,7 +60,6 @@ def process_strat(
         baseline=None,
         updater=None,
         resetter=None,
-        budget=None,
         profile=False,
 ):
     """
@@ -87,7 +86,7 @@ def process_strat(
         increment = 100 / num_increments
         num_iter = num_iterations
         strat_output = apply_strategy(
-            strat, tag, baseline, num_iter, (updater, increment, pid), budget
+            strat, tag, baseline, num_iter, (updater, increment, pid)
         )
         with open(
                 os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
@@ -212,12 +211,6 @@ def main():
         default=1,
     )
     parser.add_argument(
-        "--bank",
-        help="how much money do we have in the bank (multiplied by 10)?",
-        type=int,
-        default=0,
-    )
-    parser.add_argument(
         "--num_thread", help="how many threads to use", type=int, default=4
     )
     parser.add_argument(
@@ -254,7 +247,6 @@ def main():
     allow_triple_captain = args.allow_triple_captain
     allow_unused_transfers = not args.no_unused_transfers
     num_free_transfers = args.num_free_transfers
-    budget = args.bank
     max_points_hit = args.max_points_hit
     if args.tag:
         tag = args.tag
@@ -327,7 +319,6 @@ def main():
                 baseline_dict,
                 update_progress,
                 reset_progress,
-                budget,
                 args.profile,
             ),
         )
