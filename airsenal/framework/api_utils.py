@@ -33,7 +33,6 @@ from airsenal.framework.optimization_utils import (
     make_optimum_double_transfer,
 )
 
-from .bpl_interface import get_fitted_team_model
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 
