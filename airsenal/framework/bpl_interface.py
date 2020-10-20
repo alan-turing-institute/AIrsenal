@@ -8,7 +8,11 @@ import numpy as np
 import pandas as pd
 
 from airsenal.framework.schema import Result, FifaTeamRating
-from airsenal.framework.utils import CURRENT_TEAMS, get_fixtures_for_gameweek, get_teams_for_season
+from airsenal.framework.utils import (
+    CURRENT_TEAMS,
+    get_fixtures_for_gameweek,
+    get_teams_for_season,
+)
 from airsenal.framework.season import CURRENT_SEASON
 
 
@@ -109,7 +113,7 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     fixture_probabilities_list = []
     fixture_id_list = []
     for fixture in get_fixtures_for_gameweek(
-            gameweek, season=season, dbsession=dbsession
+        gameweek, season=season, dbsession=dbsession
     ):
         probabilities = model_team.overall_probabilities(
             fixture.home_team, fixture.away_team

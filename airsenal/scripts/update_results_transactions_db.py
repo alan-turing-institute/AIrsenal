@@ -13,7 +13,7 @@ from airsenal.framework.utils import (
     get_last_finished_gameweek,
     NEXT_GAMEWEEK,
     get_current_players,
-    get_players_for_gameweek
+    get_players_for_gameweek,
 )
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
