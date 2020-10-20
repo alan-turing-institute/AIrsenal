@@ -2,15 +2,13 @@ import pygmo as pg
 
 import uuid
 
-from airsenal.framework.schema import Team
-from airsenal.framework.squad import TOTAL_PER_POSITION
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
     get_predicted_points_for_player,
 )
 
-from .squad import Squad, TOTAL_PER_POSITION
+from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
 
 class DummyPlayer:
     """To fill squads with placeholders (if not optimising full squad)."""
