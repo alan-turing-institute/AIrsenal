@@ -1,10 +1,7 @@
 """
 Functions used by the AIrsenal API
 """
-
-from uuid import uuid4
-
-from pandas import DataFrame
+from flask import jsonify
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from airsenal.framework.utils import (
@@ -22,9 +19,14 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
-from airsenal.framework.schema import engine, SessionTeam, SessionBudget, Player
+from airsenal.framework.schema import (
+    engine,
+    SessionSquad,
+    SessionBudget,
+    Player
+)
 
-from airsenal.framework.team import Team
+from airsenal.framework.squad import Squad
 
 from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
@@ -52,13 +54,13 @@ def create_response(orig_response, dbsession=DBSESSION):
     return response
 
 
-def reset_session_team(session_id, dbsession=DBSESSION):
+def reset_session_squad(session_id, dbsession=DBSESSION):
     """
     remove any rows with the given session ID and add a new budget of
     100M
     """
     # remove all players with this session id
-    dbsession.query(SessionTeam).filter_by(session_id=session_id).delete()
+    dbsession.query(SessionSquad).filter_by(session_id=session_id).delete()
     dbsession.commit()
     # now remove the budget, and make a new one
     dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
@@ -123,12 +125,12 @@ def combine_player_info(player_id, dbsession=DBSESSION):
 
 def add_session_player(player_id, session_id, dbsession=DBSESSION):
     """
-    Add a row in the SessionTeam table.
+    Add a row in the SessionSquad table.
     """
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     if player_id in pids:  # don't add the same player twice!
         return False
-    st = SessionTeam(session_id=session_id, player_id=player_id)
+    st = SessionSquad(session_id=session_id, player_id=player_id)
     dbsession.add(st)
     dbsession.commit()
     return True
@@ -136,14 +138,14 @@ def add_session_player(player_id, session_id, dbsession=DBSESSION):
 
 def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     """
-    Remove row from SessionTeam table.
+    Remove row from SessionSquad table.
     """
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     player_id = int(player_id)
     if player_id not in pids:  # player not there
         return False
     st = (
-        dbsession.query(SessionTeam)
+        dbsession.query(SessionSquad)
         .filter_by(session_id=session_id, player_id=player_id)
         .delete()
     )
@@ -204,7 +206,7 @@ def get_session_players(session_id, dbsession=DBSESSION):
     """
     query the dbsession for the list of players with the requested player_id
     """
-    players = dbsession.query(SessionTeam).filter_by(session_id=session_id).all()
+    players = dbsession.query(SessionSquad).filter_by(session_id=session_id).all()
     player_list = [
         {
             "id": p.player_id,
@@ -228,7 +230,7 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
     players = get_session_players(session_id, dbsession)
     if len(players) != 15:
         return False
-    t = Team(budget)
+    t = Squad(budget)
     for p in players:
         added_ok = t.add_player(p["id"])
         if not added_ok:
@@ -236,15 +238,15 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
     return True
 
 
-def fill_session_team(team_id, session_id, dbsession=DBSESSION):
+def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
     """
     Use the FPL API to get list of players in an FPL squad with id=team_id,
-    then fill the session team with these players.
+    then fill the session squad with these players.
     """
-    # first reset the team
-    reset_session_team(session_id, dbsession)
+    # first reset the squad
+    reset_session_squad(session_id, dbsession)
     # now query the API
-    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)
+    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)["picks"]
     player_ids = [p["element"] for p in players]
     for pid in player_ids:
         add_session_player(pid, session_id, dbsession)
@@ -269,9 +271,9 @@ def get_session_prediction(
         pred_tag = get_latest_prediction_tag()
     return_dict = {
         "predicted_score": get_predicted_points_for_player(
-            pid, pred_tag, CURRENT_SEASON, dbsession
+            player_id, pred_tag, CURRENT_SEASON, dbsession
         )[gw],
-        "fixture": get_next_fixture_for_player(pid, CURRENT_SEASON, dbsession),
+        "fixture": get_next_fixture_for_player(player_id, CURRENT_SEASON, dbsession),
     }
     return return_dict
 
@@ -285,7 +287,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     pred_scores = {}
-    for pid in players:
+    for pid in pids:
 
         pred_scores[pid] = get_session_prediction(
             pid, session_id, gw, pred_tag, dbsession
@@ -305,7 +307,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
 
     budget = get_session_budget(session_id, dbsession)
     players = [p["id"] for p in get_session_players(session_id, dbsession)]
-    t = Team(budget)
+    t = Squad(budget)
     for p in players:
         added_ok = t.add_player(p)
         if not added_ok:
@@ -313,9 +315,9 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     if n_transfer == 1:
-        new_team, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
+        new_squad, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
     elif n_transfer == 2:
-        new_team, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
+        new_squad, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
     return {"transfers_out": pid_out, "transfers_in": pid_in}
 
 

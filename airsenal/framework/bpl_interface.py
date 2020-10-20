@@ -1,15 +1,16 @@
 """
 Interface to the Stan models
 """
-import os
-import sys
+
 
 import bpl
 import numpy as np
 import pandas as pd
-import pystan
 
-from .utils import *
+from airsenal.framework.schema import Result, FifaTeamRating
+from airsenal.framework.utils import CURRENT_TEAMS, get_fixtures_for_gameweek, get_teams_for_season
+from airsenal.framework.season import CURRENT_SEASON
+
 
 np.random.seed(42)
 
@@ -96,3 +97,43 @@ def get_fitted_team_model(season, session, gameweek):
     teams = get_teams_for_season(season, dbsession=session)
     model_team = create_and_fit_team_model(df_team, df_X, teams=teams)
     return model_team
+
+
+def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
+    """
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
+    draw_probability, away_win_probability.
+    """
+    model_team = get_fitted_team_model(season, dbsession, gameweek)
+    fixture_probabilities_list = []
+    fixture_id_list = []
+    for fixture in get_fixtures_for_gameweek(
+            gameweek, season=season, dbsession=dbsession
+    ):
+        probabilities = model_team.overall_probabilities(
+            fixture.home_team, fixture.away_team
+        )
+        fixture_probabilities_list.append(
+            [
+                fixture.fixture_id,
+                fixture.home_team,
+                fixture.away_team,
+                probabilities[0],
+                probabilities[1],
+                probabilities[2],
+            ]
+        )
+        fixture_id_list.append(fixture.fixture_id)
+    return pd.DataFrame(
+        fixture_probabilities_list,
+        columns=[
+            "fixture_id",
+            "home_team",
+            "away_team",
+            "home_win_probability",
+            "draw_probability",
+            "away_win_probability",
+        ],
+        index=fixture_id_list,
+    )

@@ -7,9 +7,9 @@ Fill the "fifa_ratings" table with info from FIFA 19
 
 import os
 
-from ..framework.mappings import alternative_team_names
-from ..framework.schema import FifaTeamRating, session_scope
-from ..framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.schema import FifaTeamRating, session_scope
+from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
 def make_fifa_ratings_table(session):

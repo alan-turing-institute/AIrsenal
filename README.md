@@ -136,7 +136,7 @@ This will take a while, but should eventually provide a printout of the optimal 
 
 Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 ```shell
-airsenal_make_team --num_gw 3
+airsenal_make_squad --num_gw 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
@@ -147,6 +147,24 @@ Instead of running the commands above individaully you can use:
 airsenal_run_pipeline
 ```
 This will delete and recreate the database and then run the points predictions and transfer optimization.
+
+## Docker
+
+Build the docker-image:
+```shell
+docker image -t airsenal .
+```
+
+Create a volume for data persistance:
+```shell
+docker volume create airsenal_data
+```
+
+Run commands with your configuration as environment variables, eg:
+```shell
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+```
+```airsenal_run_pipeline``` is the default command.
 
 ## Issues and Development
 

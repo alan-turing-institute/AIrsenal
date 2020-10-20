@@ -1,14 +1,18 @@
 """
-The class for an FPL team.
+The class for an FPL squad.
 Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
-from math import floor
 import numpy as np
 
-from .player import CandidatePlayer, Player
-from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
+from airsenal.framework.player import CandidatePlayer, Player
+from airsenal.framework.utils import (
+    get_player,
+    NEXT_GAMEWEEK,
+    CURRENT_SEASON,
+    fetcher
+)
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -27,9 +31,9 @@ FORMATIONS = [
 ]
 
 
-class Team(object):
+class Squad(object):
     """
-    Team class.
+    Squad class.  Contains 15 players
     """
 
     def __init__(self, budget=1000):
@@ -46,7 +50,7 @@ class Team(object):
 
     def __repr__(self):
         """
-        Display the team
+        Display the squad
         """
         print("\n=== starting 11 ===\n")
         for position in ["GK", "DEF", "MID", "FWD"]:
@@ -350,7 +354,7 @@ class Team(object):
         expected points for the starting 11.
         """
         if not self.is_complete():
-            raise RuntimeError("Team is incomplete")
+            raise RuntimeError("Squad is incomplete")
         self._calc_expected_points(tag)
 
         self.optimize_subs(gameweek, tag)

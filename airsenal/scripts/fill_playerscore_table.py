@@ -7,13 +7,9 @@ Fill the "player_score" table with historic results
 import json
 import os
 
-from sqlalchemy import create_engine, and_, or_
-
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.mappings import alternative_player_names
-from ..framework.schema import Player, PlayerScore, Result, Fixture, session_scope
-from ..framework.utils import (
-    get_latest_fixture_tag,
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.schema import PlayerScore, session_scope
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_player,
     get_team_name,
@@ -124,7 +120,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK
             print("No player with id {}".format(player_id))
 
         print("SCORES {} {}".format(season, player.name))
-        player_data = fetcher.get_gameweek_data_for_player(player_id)
+        player_data = fetcher.get_gameweek_data_for_player(player.fpl_api_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
             if gameweek not in range(gw_start, gw_end):

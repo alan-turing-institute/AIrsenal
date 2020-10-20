@@ -8,11 +8,10 @@ import sys
 
 
 import json
-import re
 
 from fuzzywuzzy import fuzz
 
-from ..framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def find_best_match(fpl_teams, team):

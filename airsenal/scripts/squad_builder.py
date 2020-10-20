@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 
-import os
-import sys
-
-import random
 import argparse
+import pygmo as pg
 
-from ..framework.utils import *
-from ..framework.team import Team, TOTAL_PER_POSITION
-from ..framework.player import CandidatePlayer
+from airsenal.framework.utils import (
+    get_current_season,
+    NEXT_GAMEWEEK,
+    get_latest_prediction_tag
+)
+from airsenal.framework.optimization_utils import make_new_squad
+
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
 def main():
-    parser = argparse.ArgumentParser(description="make a team from scratch")
+    parser = argparse.ArgumentParser(description="Make a squad from scratch")
     # General parameters
     parser.add_argument(
         "--budget", help="budget, in 0.1 millions", type=int, default=1000
@@ -77,19 +78,15 @@ def main():
         gw_start = args.gw_start
     else:
         gw_start = NEXT_GAMEWEEK
-
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
 
     if args.algorithm == "normal":
-        from ..framework.optimization_utils import make_new_team
 
         num_iterations = args.num_iterations
-        best_team = make_new_team(args.budget, num_iterations, tag, gw_range, season)
+        best_squad = make_new_squad(args.budget, num_iterations, tag, gw_range, season)
 
     elif args.algorithm == "genetic":
-        import pygmo as pg
-        from ..framework.optimization_pygmo import make_new_team
 
         num_generations = args.num_generations
         population_size = args.population_size
@@ -101,7 +98,7 @@ def main():
         else:
             sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
 
-        best_team = make_new_team(
+        best_squad = make_new_squad(
             gw_range,
             tag,
             budget=budget,
@@ -115,8 +112,9 @@ def main():
     else:
         raise ValueError("'algorithm' must be 'normal' or 'genetic'")
 
-    points = best_team.get_expected_points(gw_start, tag)
+    points = best_squad.get_expected_points(gw_start, tag)
+
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))
     print("---------------------")
-    print(best_team)
+    print(best_squad)

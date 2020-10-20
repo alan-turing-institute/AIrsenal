@@ -4,17 +4,16 @@
 Fill the "Player" table with info from this and past seasonss FPL
 """
 import os
-import sys
+
 import json
 
-from ..framework.mappings import alternative_player_names, positions
+from airsenal.framework.mappings import positions
+from airsenal.framework.schema import PlayerAttributes, session_scope
 
-from ..framework.schema import Player, PlayerAttributes, Result, Fixture, session_scope
-
-from ..framework.utils import (
-    get_latest_fixture_tag,
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_player,
+    get_player_from_api_id,
     get_team_name,
     get_past_seasons,
     CURRENT_SEASON,
@@ -22,7 +21,7 @@ from ..framework.utils import (
     get_player_team_from_fixture,
 )
 
-from ..framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def fill_attributes_table_from_file(detail_data, season, session):
@@ -77,17 +76,19 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
 
     input_data = fetcher.get_player_summary_data()
 
-    for player_id in input_data.keys():
+    for player_api_id in input_data.keys():
         # find the player in the player table
-        player = get_player(player_id, dbsession=session)
+        player = get_player_from_api_id(player_api_id, dbsession=session)
         if not player:
-            print("ATTRIBUTES {} No player found with id {}".format(season, player_id))
+            print(
+                "ATTRIBUTES {} No player found with id {}".format(season, player_api_id)
+            )
             continue
 
         print("ATTRIBUTES {} {}".format(season, player.name))
 
         # First update the current gameweek using the summary data
-        p_summary = input_data[player_id]
+        p_summary = input_data[player_api_id]
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
@@ -119,7 +120,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
             session.add(pa)
 
         # now get data for previous gameweeks
-        player_data = fetcher.get_gameweek_data_for_player(player_id)
+        player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         for gameweek, data in player_data.items():
             if gameweek not in range(gw_start, gw_end):
                 continue
