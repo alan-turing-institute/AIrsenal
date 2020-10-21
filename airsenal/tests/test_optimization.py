@@ -13,12 +13,6 @@ from airsenal.framework.optimization_utils import (
     generate_transfer_strategies,
 )
 
-
-def mock_add_player(pid):
-    self.players += DummyPlayer(pid, "FWD", {})
-    print("Mocking add player {}".format(pid))
-
-
 class DummyPlayer(object):
     """
     fake player that we can add to a squad, giving a specified expected score.
