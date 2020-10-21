@@ -31,7 +31,7 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
     help="Number of free transfer for pipeline run",
 )
 def airsenal_run_pipeline(
-    num_thread, num_iterations, weeks_ahead, bank, num_free_transfers
+    num_thread, num_iterations, weeks_ahead, num_free_transfers
 ):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
