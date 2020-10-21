@@ -2,25 +2,16 @@
 Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
-import pytest
 from unittest import mock
 from operator import itemgetter
 
-# from ..utils import get_predicted_points
 
-from ..framework.optimization_utils import (
+from airsenal.framework.optimization_utils import (
     Squad,
     make_optimum_transfer,
     make_optimum_double_transfer,
-    get_predicted_points,
     generate_transfer_strategies,
 )
-
-
-def mock_add_player(pid):
-    self.players += DummyPlayer(pid, "FWD", {})
-    print("Mocking add player {}".format(pid))
-
 
 class DummyPlayer(object):
     """

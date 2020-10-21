@@ -1,15 +1,16 @@
-"""
-Fixtures to be used in AIrsenal tests.
-In particular fill a test db
-"""
 import random
+from contextlib import contextmanager
+
 import pytest
 
-from ..framework.schema import *
-from ..framework.mappings import *
-from .resources import dummy_players
-from ..framework.utils import CURRENT_SEASON
-from .. import TMPDIR
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from airsenal.framework.mappings import alternative_team_names
+from airsenal.tests.resources import dummy_players
+from airsenal.framework.schema import Base, Player, PlayerAttributes
+from airsenal.framework.utils import CURRENT_SEASON
+from airsenal import TMPDIR
 
 API_SESSION_ID = "TESTSESSION"
 
@@ -50,7 +51,7 @@ def value_generator(index, position):
     return value
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fill_players():
     """
     fill a bunch of dummy players
@@ -71,7 +72,7 @@ def fill_players():
                 ts.add(p)
             except:
                 print("Error adding {} {}".format(i, n))
-            ## now fill player_attributes
+            # now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"
             elif i % 15 < 7:
@@ -81,10 +82,10 @@ def fill_players():
             else:
                 pos = "FWD"
             team = team_list[i % 20]
-            ## make the first 15 players affordable,
-            ## the next 15 almost affordable,
-            ## the next 15 mostly unaffordable,
-            ## and rest very expensive
+            # make the first 15 players affordable,
+            # the next 15 almost affordable,
+            # the next 15 mostly unaffordable,
+            # and rest very expensive
             price = value_generator(i // 15, pos)
             pa = PlayerAttributes()
             pa.season = season

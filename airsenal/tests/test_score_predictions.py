@@ -2,12 +2,8 @@
 test the score-calculating functions
 """
 
-import pytest
 
-import pandas as pd
-
-from ..framework.utils import *
-from ..framework.prediction_utils import *
+from airsenal.framework.prediction_utils import *
 
 
 class DummyTeamModel(object):
