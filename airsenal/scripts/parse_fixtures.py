@@ -5,7 +5,6 @@ quick'n'dirty script to parse text cut'n'pasted off the FPL site,
 and put into a csv file.  Needs 'dateparser' package.
 """
 
-import os
 import re
 import dateparser
 

@@ -3,39 +3,30 @@ Use the BPL models to predict scores for upcoming fixtures.
 """
 
 import os
-import sys
 
 from collections import defaultdict
-import dateparser
 import pandas as pd
 import numpy as np
 import pystan
 
-from .mappings import alternative_team_names, alternative_player_names, positions
-
 from scipy.stats import multinomial
 
-from sqlalchemy import create_engine, and_, or_
-from sqlalchemy.orm import sessionmaker
+from airsenal.framework.schema import PlayerPrediction
 
-from .schema import Player, PlayerPrediction, Fixture, Base, engine
-
-from .utils import (
+from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_fixtures_for_player,
-    estimate_minutes_from_prev_season,
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_max_matches_per_player,
-    get_player_name,
     get_player_from_api_id,
     list_players,
     fetcher,
     session,
     CURRENT_SEASON,
 )
-from .bpl_interface import get_fitted_team_model
-from .FPL_scoring_rules import (
+
+from airsenal.framework.FPL_scoring_rules import (
     points_for_goal,
     points_for_assist,
     points_for_cs,
@@ -103,28 +94,30 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            player_data.append([
-                player.player_id,
-                player.name,
-                match_id,
-                match_date,
-                goals,
-                assists,
-                minutes,
-                team_goals,
-            ])
+            player_data.append(
+                [
+                    player.player_id,
+                    player.name,
+                    match_id,
+                    match_date,
+                    goals,
+                    assists,
+                    minutes,
+                    team_goals,
+                ]
+            )
             row_count += 1
 
         ## fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
-            player_data += [[
-                player.player_id, player.name, 0, 0, 0, 0, 0, 0
-            ]] * (max_matches_per_player - row_count)
+            player_data += [[player.player_id, player.name, 0, 0, 0, 0, 0, 0]] * (
+                max_matches_per_player - row_count
+            )
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df.reset_index(drop=True, inplace=True)
-    
+
     return df
 
 

@@ -1,10 +1,7 @@
 """
 Functions used by the AIrsenal API
 """
-
-from uuid import uuid4
-
-from pandas import DataFrame
+from flask import jsonify
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from airsenal.framework.utils import (
@@ -22,11 +19,15 @@ from airsenal.framework.utils import (
     get_recent_scores_for_player,
 )
 
-from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Player
+from airsenal.framework.schema import (
+    engine,
+    SessionSquad,
+    SessionBudget,
+    Player
+)
 
 from airsenal.framework.squad import Squad
 
-from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
     make_optimum_single_transfer,
     make_optimum_double_transfer,
@@ -243,7 +244,7 @@ def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
     # first reset the squad
     reset_session_squad(session_id, dbsession)
     # now query the API
-    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)
+    players = fetcher.get_fpl_team_data(get_last_finished_gameweek(), team_id)["picks"]
     player_ids = [p["element"] for p in players]
     for pid in player_ids:
         add_session_player(pid, session_id, dbsession)
@@ -268,9 +269,9 @@ def get_session_prediction(
         pred_tag = get_latest_prediction_tag()
     return_dict = {
         "predicted_score": get_predicted_points_for_player(
-            pid, pred_tag, CURRENT_SEASON, dbsession
+            player_id, pred_tag, CURRENT_SEASON, dbsession
         )[gw],
-        "fixture": get_next_fixture_for_player(pid, CURRENT_SEASON, dbsession),
+        "fixture": get_next_fixture_for_player(player_id, CURRENT_SEASON, dbsession),
     }
     return return_dict
 
@@ -284,7 +285,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     pred_scores = {}
-    for pid in players:
+    for pid in pids:
 
         pred_scores[pid] = get_session_prediction(
             pid, session_id, gw, pred_tag, dbsession

@@ -166,7 +166,14 @@ def test_get_expected_points():
 
     class MockPlayer:
         def __init__(
-            self, name, squad, position, points, is_starting, is_captain, is_vice_captain
+            self,
+            name,
+            squad,
+            position,
+            points,
+            is_starting,
+            is_captain,
+            is_vice_captain,
         ):
             self.name = name
             self.squad = squad

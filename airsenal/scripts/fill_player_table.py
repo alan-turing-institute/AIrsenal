@@ -4,16 +4,11 @@
 Fill the "Player" table with info from this and past seasonss FPL
 """
 import os
-import sys
-
 import json
-from sqlalchemy import desc
 
-from ..framework.mappings import alternative_team_names, positions
-from ..framework.schema import Player, PlayerAttributes, Base, engine
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.utils import CURRENT_SEASON, get_past_seasons
-from ..framework.mappings import alternative_player_names
+from airsenal.framework.schema import Player, session_scope
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
 def find_player_in_table(name, session):
@@ -47,9 +42,9 @@ def fill_player_table_from_file(filename, season, session):
             n_new_players += 1
             new_entry = True
             p = Player()
-#            p.player_id = (
-#                max_id_in_table(session) + n_new_players
-#            )  # next id sequentially
+            #            p.player_id = (
+            #                max_id_in_table(session) + n_new_players
+            #            )  # next id sequentially
             p.name = name
         if new_entry:
             session.add(p)

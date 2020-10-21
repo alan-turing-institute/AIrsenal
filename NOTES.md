@@ -158,7 +158,7 @@ Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the co
 
 ## Creating a Team for the Start of the Season
 
-Run `airsenal_make_team` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.scripts.team_builder`.
+Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.scripts.team_builder`.
 
 ## Transfer & Squad Optimisation
 

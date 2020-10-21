@@ -12,20 +12,17 @@ output for each strategy tried is going to be a dict
 """
 import cProfile
 import os
-import sys
-import time
-
 
 import json
-
 
 from multiprocessing import Process, Queue
 from tqdm import tqdm
 import argparse
 
-from ..framework.optimization_utils import *
-from ..framework.utils import NEXT_GAMEWEEK
-from .. import TMPDIR
+from airsenal.framework.optimization_utils import make_strategy_id, apply_strategy, get_starting_squad, \
+    get_baseline_prediction, generate_transfer_strategies, fill_suggestion_table
+from airsenal.framework.utils import NEXT_GAMEWEEK, get_player_name, get_latest_prediction_tag, CURRENT_SEASON
+from airsenal import TMPDIR
 
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
@@ -37,13 +34,13 @@ def count_increments(strategy_string, num_iterations):
     total = 0
     for s in strategy_string:
         if s == "W" or s == "F":
-            ## wildcard or free hit - needs num_iterations iterations
+            # wildcard or free hit - needs num_iterations iterations
             total += num_iterations
         elif s == "1":
-            ## single transfer - 15 increments (replace each player in turn)
+            # single transfer - 15 increments (replace each player in turn)
             total += 15
         elif s == "2":
-            ## remove each pair of players - 15*7=105 combinations
+            # remove each pair of players - 15*7=105 combinations
             total += 105
         elif s == "3":
             total += num_iterations
@@ -51,20 +48,19 @@ def count_increments(strategy_string, num_iterations):
             # for bench boost/triple captain only number of transfers matters, which
             # is given in next character
             continue
-    ## return at least 1, to avoid ZeroDivisionError
+    # return at least 1, to avoid ZeroDivisionError
     return max(total, 1)
 
 
 def process_strat(
-    queue,
-    pid,
-    num_iterations,
-    tag,
-    baseline=None,
-    updater=None,
-    resetter=None,
-    budget=None,
-    profile=False,
+        queue,
+        pid,
+        num_iterations,
+        tag,
+        baseline=None,
+        updater=None,
+        resetter=None,
+        profile=False,
 ):
     """
     subprocess to go through a strategy and output a json file with
@@ -81,22 +77,22 @@ def process_strat(
             profiler.enable()
 
         sid = make_strategy_id(strat)
-        ## reset this process' progress bar, and give it the string for the
-        ## next strategy
+        # reset this process' progress bar, and give it the string for the
+        # next strategy
         resetter(pid, sid)
 
-        ## count how many incremements for this progress bar / strategy
+        # count how many incremements for this progress bar / strategy
         num_increments = count_increments(sid, num_iterations)
         increment = 100 / num_increments
         num_iter = num_iterations
         strat_output = apply_strategy(
-            strat, tag, baseline, num_iter, (updater, increment, pid), budget
+            strat, tag, baseline, num_iter, (updater, increment, pid)
         )
         with open(
-            os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
+                os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
         ) as outfile:
             json.dump(strat_output, outfile)
-        ## call the function to update the main progress bar
+        # call the function to update the main progress bar
         updater()
 
         if profile:
@@ -116,7 +112,7 @@ def find_best_strat_from_json(tag):
             if strat["total_score"] > best_score:
                 best_score = strat["total_score"]
                 best_strat = strat
-        ## cleanup
+        # cleanup
         os.remove(full_filename)
     return best_strat
 
@@ -167,7 +163,6 @@ def print_team_for_next_gw(strat):
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         description="Try some different transfer strategies"
     )
@@ -216,12 +211,6 @@ def main():
         default=1,
     )
     parser.add_argument(
-        "--bank",
-        help="how much money do we have in the bank (multiplied by 10)?",
-        type=int,
-        default=0,
-    )
-    parser.add_argument(
         "--num_thread", help="how many threads to use", type=int, default=4
     )
     parser.add_argument(
@@ -242,7 +231,7 @@ def main():
                 "This function suggests transfers to make from "
                 "an existing squad and can't be used before "
                 "the season has started.\n"
-                "Use 'airsenal_make_team' to generate a "
+                "Use 'airsenal_make_squad' to generate a "
                 "starting squad instead."
             )
         )
@@ -258,32 +247,31 @@ def main():
     allow_triple_captain = args.allow_triple_captain
     allow_unused_transfers = not args.no_unused_transfers
     num_free_transfers = args.num_free_transfers
-    budget = args.bank
     max_points_hit = args.max_points_hit
     if args.tag:
         tag = args.tag
     else:
-        ## get most recent set of predictions from DB table
+        # get most recent set of predictions from DB table
         tag = get_latest_prediction_tag()
 
-    ## create the output directory for temporary json files
-    ## giving the points prediction for each strategy
+    # create the output directory for temporary json files
+    # giving the points prediction for each strategy
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     if len(os.listdir(OUTPUT_DIR)) > 0:
         os.system("rm " + OUTPUT_DIR + "/*")
 
-    ## first get a baseline prediction
+    # first get a baseline prediction
     baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
-    ## create a queue that we will add strategies to, and some processes to take
-    ## things off it
+    # create a queue that we will add strategies to, and some processes to take
+    # things off it
     squeue = Queue()
     procs = []
-    ## create one progress bar for each thread
+    # create one progress bar for each thread
     progress_bars = []
     for i in range(args.num_thread):
         progress_bars.append(tqdm(total=100))
-    ### generate the list of transfer strategies
+    # generate the list of transfer strategies
     strategies = generate_transfer_strategies(
         num_weeks_ahead,
         free_transfers=num_free_transfers,
@@ -294,10 +282,10 @@ def main():
         allow_triple_captain=allow_triple_captain,
         allow_unused_transfers=allow_unused_transfers,
     )
-    ## define overall progress bar
+    # define overall progress bar
     total_progress = tqdm(total=len(strategies), desc="Total progress")
 
-    ## functions to be passed to subprocess to update or reset progress bars
+    # functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
         if strategy_string == "DONE":
             progress_bars[index].close()
@@ -307,8 +295,8 @@ def main():
             progress_bars[index].refresh()
 
     def update_progress(increment=1, index=None):
-        if index == None:
-            ## outer progress bar
+        if index is None:
+            # outer progress bar
             nfiles = len(os.listdir(OUTPUT_DIR))
             total_progress.n = nfiles
             total_progress.refresh()
@@ -331,7 +319,6 @@ def main():
                 baseline_dict,
                 update_progress,
                 reset_progress,
-                budget,
                 args.profile,
             ),
         )
@@ -339,18 +326,18 @@ def main():
         processor.start()
         procs.append(processor)
 
-    ## add the strategies to the queue
+    # add the strategies to the queue
     for strat in strategies:
         squeue.put(strat)
     for i in range(args.num_thread):
         squeue.put("DONE")
-    ### now rejoin the main thread
+    # now rejoin the main thread
     for i, p in enumerate(procs):
         progress_bars[i].close()
         progress_bars[i] = None
         p.join()
 
-    ### find the best from all the strategies tried
+    # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
     fill_suggestion_table(baseline_score, best_strategy, season)

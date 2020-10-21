@@ -7,8 +7,6 @@ import requests
 import json
 import time
 
-from .mappings import alternative_team_names
-
 
 class FPLDataFetcher(object):
     """
@@ -95,8 +93,8 @@ class FPLDataFetcher(object):
                 return None
             team_data = json.loads(r.content.decode("utf-8"))
             if not team_id:
-                self.fpl_team_data[gameweek] = team_data["picks"]
-        return team_data["picks"]
+                self.fpl_team_data[gameweek] = team_data
+        return team_data
 
     def get_fpl_team_history_data(self, team_id=None):
         """
@@ -223,7 +221,11 @@ class FPLDataFetcher(object):
                     try:
                         r = requests.get(self.FPL_DETAIL_URL.format(player_api_id))
                         if not r.status_code == 200:
-                            print("Error retrieving data for player {}".format(player_api_id))
+                            print(
+                                "Error retrieving data for player {}".format(
+                                    player_api_id
+                                )
+                            )
                             return []
                         player_detail = json.loads(r.content)
                         got_data = True
@@ -232,7 +234,9 @@ class FPLDataFetcher(object):
                         time.sleep(1)
                         n_tries += 1
                 if not player_detail:
-                    print("Unable to get player_detail data for {}".format(player_api_id))
+                    print(
+                        "Unable to get player_detail data for {}".format(player_api_id)
+                    )
                     return []
                 for game in player_detail["history"]:
                     gw = game["round"]

@@ -4,11 +4,15 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
-from math import floor
 import numpy as np
 
-from .player import CandidatePlayer, Player
-from .utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
+from airsenal.framework.player import CandidatePlayer, Player
+from airsenal.framework.utils import (
+    get_player,
+    NEXT_GAMEWEEK,
+    CURRENT_SEASON,
+    fetcher
+)
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
