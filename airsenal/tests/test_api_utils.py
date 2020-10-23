@@ -2,12 +2,20 @@
 test that functions supporting our API work.
 """
 
-import pytest
-import requests
 import re
 
-from ..framework.api_utils import *
-from .fixtures import test_session_scope, fill_players, API_SESSION_ID
+from airsenal.framework.api_utils import (
+    reset_session_squad,
+    get_session_budget,
+    add_session_player,
+    get_session_players,
+    set_session_budget,
+    validate_session_squad,
+    remove_session_player,
+    list_players_teams_prices
+)
+from airsenal.framework.schema import SessionSquad, SessionBudget
+from airsenal.conftest import test_session_scope, API_SESSION_ID
 
 
 def test_reset_session_squad():
