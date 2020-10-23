@@ -19,9 +19,20 @@ from multiprocessing import Process, Queue
 from tqdm import tqdm
 import argparse
 
-from airsenal.framework.optimization_utils import make_strategy_id, apply_strategy, get_starting_squad, \
-    get_baseline_prediction, generate_transfer_strategies, fill_suggestion_table
-from airsenal.framework.utils import NEXT_GAMEWEEK, get_player_name, get_latest_prediction_tag, CURRENT_SEASON
+from airsenal.framework.optimization_utils import (
+    make_strategy_id,
+    apply_strategy,
+    get_starting_squad,
+    get_baseline_prediction,
+    generate_transfer_strategies,
+    fill_suggestion_table,
+)
+from airsenal.framework.utils import (
+    NEXT_GAMEWEEK,
+    get_player_name,
+    get_latest_prediction_tag,
+    CURRENT_SEASON,
+)
 from airsenal import TMPDIR
 
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
@@ -53,14 +64,14 @@ def count_increments(strategy_string, num_iterations):
 
 
 def process_strat(
-        queue,
-        pid,
-        num_iterations,
-        tag,
-        baseline=None,
-        updater=None,
-        resetter=None,
-        profile=False,
+    queue,
+    pid,
+    num_iterations,
+    tag,
+    baseline=None,
+    updater=None,
+    resetter=None,
+    profile=False,
 ):
     """
     subprocess to go through a strategy and output a json file with
@@ -89,7 +100,7 @@ def process_strat(
             strat, tag, baseline, num_iter, (updater, increment, pid)
         )
         with open(
-                os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
+            os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, sid)), "w"
         ) as outfile:
             json.dump(strat_output, outfile)
         # call the function to update the main progress bar

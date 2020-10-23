@@ -7,12 +7,7 @@ from operator import itemgetter
 import numpy as np
 
 from airsenal.framework.player import CandidatePlayer, Player
-from airsenal.framework.utils import (
-    get_player,
-    NEXT_GAMEWEEK,
-    CURRENT_SEASON,
-    fetcher
-)
+from airsenal.framework.utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
