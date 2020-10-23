@@ -4,8 +4,8 @@ test that we get valid responses from the API.
 
 import pytest
 
-from ..framework.utils import NEXT_GAMEWEEK
-from ..framework.data_fetcher import *
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.utils import NEXT_GAMEWEEK
 
 
 def test_instantiate_fetchers():

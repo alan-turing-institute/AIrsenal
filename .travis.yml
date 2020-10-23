@@ -1,5 +1,9 @@
 language: python            # this works for Linux but is an error on macOS or Windows
 
+env:
+  global:
+    - FPL_TEAM_ID=208595      # AIrsenal's ID need to change it every year
+
 jobs:
   include:
     - name: "Python 3.7.4 on Xenial Linux"
