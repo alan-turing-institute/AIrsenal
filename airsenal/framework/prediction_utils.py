@@ -328,31 +328,35 @@ def calc_predicted_points(
 
         else:
             # now loop over recent minutes and average
-            points = (
-                sum(
-                    [
-                        get_appearance_points(mins)
-                        + get_attacking_points(
-                            player.player_id,
-                            position,
-                            team,
-                            opponent,
-                            is_home,
-                            mins,
-                            model_team,
-                            df_player,
-                        )
-                        + get_defending_points(
-                            position, team, opponent, is_home, mins, model_team
-                        )
-                        + get_bonus_points(player.player_id, mins, df_bonus)
-                        + get_save_points(position, player.player_id, mins, df_saves)
-                        + get_card_points(player.player_id, mins, df_cards)
-                        for mins in recent_minutes
-                    ]
+            points = 0
+            for mins in recent_minutes:
+                points += (
+                    get_appearance_points(mins)
+                    + get_attacking_points(
+                        player.player_id,
+                        position,
+                        team,
+                        opponent,
+                        is_home,
+                        mins,
+                        model_team,
+                        df_player,
+                    )
+                    + get_defending_points(
+                        position, team, opponent, is_home, mins, model_team
+                    )
                 )
-                / len(recent_minutes)
-            )
+                if df_bonus is not None:
+                    points += get_bonus_points(player.player_id, mins, df_bonus)
+                if df_cards is not None:
+                    points += get_card_points(player.player_id, mins, df_cards)
+                if df_saves is not None:
+                    points += get_save_points(
+                        position, player.player_id, mins, df_saves
+                    )
+
+            points = points / len(recent_minutes)
+
         # create the PlayerPrediction for this player+fixture
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points

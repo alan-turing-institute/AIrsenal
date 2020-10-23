@@ -108,15 +108,34 @@ def allocate_predictions(
         print("Finished adding predictions to db for {}".format(pos))
 
 
-def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
+def calc_all_predicted_points(
+    gw_range,
+    season,
+    tag,
+    session,
+    num_thread=4,
+    include_bonus=True,
+    include_cards=True,
+    include_saves=True,
+):
     """
     Do the full prediction for players.
     """
     model_team = get_fitted_team_model(season, session)
     model_player = get_player_model()
-    df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
-    df_saves = fit_save_points(gameweek=gw_range[0], season=season)
-    df_cards = fit_card_points(gameweek=gw_range[0], season=season)
+    if include_bonus:
+        df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
+    else:
+        df_bonus = None
+    if include_saves:
+        df_saves = fit_save_points(gameweek=gw_range[0], season=season)
+    else:
+        df_saves = None
+    if include_cards:
+        df_cards = fit_card_points(gameweek=gw_range[0], season=season)
+    else:
+        df_cards = None
+
     all_predictions = {}
     print("Num thread is {}".format(num_thread))
     if num_thread:
@@ -172,12 +191,27 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
 
 
 def make_predictedscore_table(
-    session, gw_range=None, season=CURRENT_SEASON, num_thread=4
+    session,
+    gw_range=None,
+    season=CURRENT_SEASON,
+    num_thread=4,
+    include_bonus=True,
+    include_cards=True,
+    include_saves=True,
 ):
     tag = str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    calc_all_predicted_points(gw_range, season, tag, session, num_thread)
+    calc_all_predicted_points(
+        gw_range,
+        season,
+        tag,
+        session,
+        num_thread,
+        include_bonus=include_bonus,
+        include_cards=include_cards,
+        include_saves=include_saves,
+    )
     return tag
 
 
@@ -196,6 +230,22 @@ def main():
     parser.add_argument(
         "--num_thread", help="number of threads to parallelise over", type=int
     )
+    parser.add_argument(
+        "--no_bonus",
+        help="don't include bonus points",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no_cards",
+        help="don't include points lost to yellow and red cards",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no_saves",
+        help="don't include save points for goalkeepers",
+        action="store_true",
+    )
+    
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
         print("Please specify either gameweek_start and gameweek_end, OR weeks_ahead")
@@ -212,9 +262,19 @@ def main():
     else:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
     num_thread = args.num_thread if args.num_thread else None
+    include_bonus = not args.no_bonus
+    include_cards = not args.no_cards
+    include_saves = not args.no_saves
+    
     with session_scope() as session:
         tag = make_predictedscore_table(
-            session, gw_range=gw_range, season=args.season, num_thread=num_thread
+            session,
+            gw_range=gw_range,
+            season=args.season,
+            num_thread=num_thread,
+            include_bonus=include_bonus,
+            include_cards=include_cards,
+            include_saves=include_saves,
         )
 
         # print players with top predicted points
