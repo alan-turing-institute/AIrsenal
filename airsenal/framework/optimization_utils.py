@@ -15,7 +15,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_predicted_points,
     fastcopy,
-    get_team_value,
+    get_squad_value,
 )
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
@@ -226,8 +226,8 @@ def get_starting_squad():
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
         else:
-            ## within an individual transfer we can violate the budget and team constraints,
-            ## as long as the final team for that gameweek obeys them
+            ## within an individual transfer we can violate the budget and squad constraints,
+            ## as long as the final squad for that gameweek obeys them
             s.add_player(
                 trans.player_id,
                 price=trans.price,
@@ -257,7 +257,7 @@ def get_baseline_prediction(gw_ahead, tag):
     return total, cum_total_per_gw
 
 
-def make_optimum_transfer(
+def make_optimum_single_transfer(
     squad,
     tag,
     gameweek_range=None,
@@ -326,7 +326,6 @@ def make_optimum_double_transfer(
     gameweek_range=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
-    verbose=False,
     bench_boost_gw=None,
     triple_captain_gw=None,
     verbose=False
@@ -545,7 +544,7 @@ def make_best_transfers(
     num_iter=100,
     update_func_and_args=None):
     """
-    Return a new team and a dictionary {"in": [player_ids],
+    Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
     """
     transfer_dict = {}
@@ -739,7 +738,7 @@ def apply_strategy(
         "cards_played": {},
     }
     new_squad = fastcopy(starting_squad)
-    ## If we use "free hit" card, we need to remember the team from the week before it
+    ## If we use "free hit" card, we need to remember the squad from the week before it
     squad_before_free_hit = None
 
     # determine if bench boost or triple captain used in this strategy
@@ -786,7 +785,7 @@ def apply_strategy(
             )
         elif strat[0][gw] == "W":  ## wildcard - a whole new squad!
             rp = [p.player_id for p in new_squad.players]
-            budget = get_team_value(new_squad)
+            budget = get_squad_value(new_squad)
             new_squad = make_new_squad(
                 budget,
                 num_iter,
@@ -800,11 +799,11 @@ def apply_strategy(
             ap = [p.player_id for p in new_squad.players]
 
         elif strat[0][gw] == "F":  ## free hit - a whole new squad!
-            ## remember the starting team (so we can revert to it later)
+            ## remember the starting squad (so we can revert to it later)
             squad_before_free_hit = fastcopy(new_squad)
             ## now make a new squad for this gw, as is done for wildcard
-            new_team = [p.player_id for p in new_squad.players]
-            budget = get_team_value(new_team)
+            new_squad = [p.player_id for p in new_squad.players]
+            budget = get_squad_value(new_squad)
             new_squad = make_new_squad(
                 budget,
                 num_iter,
