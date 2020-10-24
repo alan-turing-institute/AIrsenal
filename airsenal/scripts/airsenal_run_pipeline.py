@@ -24,7 +24,6 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
 @click.option(
     "--weeks_ahead", type=int, default=3, help="No of weeks to use for pipeline run"
 )
-@click.option("--bank", type=int, default=0, help="Amount in Bank for pipeline run")
 @click.option(
     "--num_free_transfers",
     type=int,
@@ -32,7 +31,7 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
     help="Number of free transfer for pipeline run",
 )
 def airsenal_run_pipeline(
-    num_thread, num_iterations, weeks_ahead, bank, num_free_transfers
+    num_thread, num_iterations, weeks_ahead, num_free_transfers
 ):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
@@ -53,7 +52,7 @@ def airsenal_run_pipeline(
         click.echo("Optimization complete..")
     else:
         click.echo("Running optimization..")
-        run_optimization(num_thread, weeks_ahead, bank, num_free_transfers)
+        run_optimization(num_thread, weeks_ahead, num_free_transfers)
         click.echo("Optimization complete..")
 
 
@@ -104,12 +103,12 @@ def run_make_team(num_iterations, weeks_ahead):
     os.system(cmd)
 
 
-def run_optimization(num_thread, weeks_ahead, bank, num_free_transfers):
+def run_optimization(num_thread, weeks_ahead, num_free_transfers):
     """
     Run optimization
     """
-    cmd = "airsenal_run_optimization --num_thread {} --weeks_ahead {} --bank {} --num_free_transfers {}".format(
-        num_thread, weeks_ahead, bank, num_free_transfers
+    cmd = "airsenal_run_optimization --num_thread {} --weeks_ahead {} --num_free_transfers {}".format(
+        num_thread, weeks_ahead, num_free_transfers
     )
     os.system(cmd)
 

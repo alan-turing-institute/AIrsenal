@@ -2,10 +2,8 @@
 test some db access helper functions
 """
 
-import pytest
-
-from .fixtures import test_session_scope, fill_players
-from ..framework.utils import get_player_name, get_player_id
+from airsenal.conftest import test_session_scope
+from airsenal.framework.utils import get_player_name, get_player_id
 
 
 def test_get_player_name(fill_players):
