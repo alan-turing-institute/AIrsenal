@@ -7,6 +7,8 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
+import pickle
+import pkg_resources
 import time
 from uuid import uuid4
 
@@ -76,7 +78,13 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
     Do the full prediction for players.
     """
     model_team = get_fitted_team_model(season, session)
-    model_player = get_player_model()
+
+    model_file = pkg_resources.resource_filename(
+        "airsenal", "stan_model/player_forecasts.pkl"
+    )
+    with open(model_file, "rb") as f:
+        model_player = pickle.load(f)
+
     all_predictions = {}
     print("Num thread is {}".format(num_thread))
     if num_thread:

@@ -1,1 +1,2 @@
 include airsenal/data/*.json
+include airsenal/stan/player_forecasts.stan
