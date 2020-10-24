@@ -13,24 +13,23 @@ import time
 from uuid import uuid4
 
 from multiprocessing import Process, Queue
-from tqdm import tqdm
 import argparse
 
-from ..framework.utils import (
+from airsenal.framework.bpl_interface import get_fitted_team_model
+from airsenal.framework.utils import (
     list_players,
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_top_predicted_points,
 )
 
-from ..framework.prediction_utils import (
-    get_fitted_team_model,
+from airsenal.framework.prediction_utils import (
     get_fitted_player_model,
     get_player_model,
     calc_predicted_points,
 )
 
-from ..framework.schema import session_scope
+from airsenal.framework.schema import session_scope
 
 
 def calc_predicted_points_for_pos(
