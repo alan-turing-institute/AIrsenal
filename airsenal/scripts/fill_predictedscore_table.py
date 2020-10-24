@@ -114,9 +114,10 @@ def calc_all_predicted_points(gw_range, season, tag, session, num_thread=4):
 
 
 def make_predictedscore_table(
-    session, gw_range=None, season=CURRENT_SEASON, num_thread=4
+    session, gw_range=None, season=CURRENT_SEASON, num_thread=4, tag_prefix=None
 ):
-    tag = str(uuid4())
+    tag = tag_prefix if tag_prefix else ""
+    tag += str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
     calc_all_predicted_points(gw_range, season, tag, session, num_thread)
