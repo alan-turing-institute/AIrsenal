@@ -12,7 +12,7 @@ setup(
     author="Nick Barlow, Angus Williams, Jack Roberts",
     license="MIT",
     include_package_data=True,
-    packages=["airsenal", "airsenal.framework", "airsenal.scripts"],
+    packages=["airsenal", "airsenal.framework", "airsenal.scripts", "airsenal.api"],
     install_requires=REQUIRED_PACKAGES,
     entry_points={
         "console_scripts": [
