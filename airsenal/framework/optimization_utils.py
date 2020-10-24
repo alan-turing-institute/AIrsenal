@@ -912,3 +912,73 @@ def make_strategy_id(strategy):
     """
     strat_id = ",".join([str(nt) for nt in strategy[0].values()])
     return strat_id
+
+
+def get_num_increments(num_transfers, num_iterations=100):
+    """
+    how many steps for the progress bar for this strategy
+    """
+    if isinstance(num_transfers, str) and \
+       (num_transfers.startswith("B") or num_transfers.startswith("T")) and \
+       len(num_transfers)==2:
+        num_transfers = int(num_transfers[1])
+
+    if num_transfers=="W" or num_transfers=="F" or \
+       (isinstance(num_transfers, int) and num_transfers > 2):
+        ## wildcard or free hit or >2 - needs num_iterations iterations
+        return num_iterations
+
+    elif num_transfers==1:
+        ## single transfer - 15 increments (replace each player in turn)
+        return 15
+    elif num_transfers==2:
+        ## remove each pair of players - 15*7=105 combinations
+        return 105
+    else:
+        print("Unrecognized num_transfers: {}".format(num_transfers))
+        return 1
+
+
+def count_expected_outputs(week,
+                           max_week,
+                           can_play_wildcard,
+                           can_play_free_hit,
+                           can_play_triple_captain,
+                           can_play_bench_boost):
+    """
+    Recursive function to calculate how many leaf nodes we will expect.
+    If we only allow 0,1,2 transfers per week, this will just be pos(3,num_weeks).
+    However, if we allow wildcard or free hit, these give an extra possibility each
+    for the week they are played.
+    If we allow triple captain or bench boost, these can be played along with 0, 1, 2
+    transfers, so give an extra 3 possibilities for the week they are played.
+    """
+    week += 1
+    if week == max_week:
+        return 3 \
+            + int(can_play_wildcard) \
+            + int(can_play_free_hit)  \
+            + 3*int(can_play_triple_captain) \
+            + 3*int(can_play_bench_boost)
+    total = 0
+    for _ in range(3):
+        total += count_expected_outputs(week, max_week,
+                                        can_play_wildcard, can_play_free_hit,
+                                        can_play_triple_captain, can_play_bench_boost)
+        if can_play_triple_captain:
+            total += count_expected_outputs(week, max_week,
+                                            can_play_wildcard, can_play_free_hit,
+                                            False, can_play_bench_boost)
+        if can_play_bench_boost:
+            total += count_expected_outputs(week, max_week,
+                                            can_play_wildcard, can_play_free_hit,
+                                            can_play_triple_captain, False)
+    if can_play_wildcard:
+        total += count_expected_outputs(week, max_week,
+                                        False, can_play_free_hit,
+                                        can_play_triple_captain, can_play_bench_boost)
+    if can_play_free_hit:
+        total += count_expected_outputs(week, max_week,
+                                        can_play_wildcard, False,
+                                        can_play_triple_captain, can_play_bench_boost)
+    return total
