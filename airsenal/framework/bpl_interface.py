@@ -12,6 +12,7 @@ from airsenal.framework.utils import (
     CURRENT_TEAMS,
     get_fixtures_for_gameweek,
     get_teams_for_season,
+    is_future_gameweek
 )
 from airsenal.framework.season import CURRENT_SEASON
 
