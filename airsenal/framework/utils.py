@@ -1080,7 +1080,9 @@ def get_last_finished_gameweek():
     return last_finished
 
 
-def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
+def get_latest_prediction_tag(season=CURRENT_SEASON,
+                              dbsession=None,
+                              tag_prefix=""):
     """
     query the predicted_score table and get the method
     field for the last row.
@@ -1092,15 +1094,16 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
         .filter(PlayerPrediction.fixture.has(Fixture.season == season))
         .all()
     )
-    try:
-        return rows[-1].tag
-    except (IndexError):
+    if len(rows) == 0:
         raise RuntimeError(
             "No predicted points in database - has the database been filled?\n"
             "To calculate points predictions (and fill the database) use "
             "'airsenal_run_prediction'. This should be done before using "
             "'airsenal_make_squad' or 'airsenal_run_optimization'."
         )
+    if tag_prefix:
+        rows = [r for r in rows if r.tag.startswith(tag_prefix)]
+    return rows[-1].tag
 
 
 def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
