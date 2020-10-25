@@ -95,11 +95,13 @@ def fill_results_from_api(gw_start, gw_end, season, session):
     session.commit()
 
 
-def make_result_table(session):
+def make_result_table(session, seasons=[]):
     """
     past seasons - read results from csv
     """
-    for season in get_past_seasons(3):
+    if not seasons:
+        seasons = get_past_seasons(3)
+    for season in seasons:
         inpath = os.path.join(
             os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season)
         )

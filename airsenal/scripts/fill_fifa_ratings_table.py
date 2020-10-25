@@ -12,12 +12,13 @@ from airsenal.framework.schema import FifaTeamRating, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
-def make_fifa_ratings_table(session):
+def make_fifa_ratings_table(session, seasons=[]):
     # make the fifa ratings table
     # TODO: scrape the data first rather than committing file to repo
 
-    seasons = get_past_seasons(3)
-    seasons.append(CURRENT_SEASON)
+    if not seasons:
+        seasons = get_past_seasons(3)
+        seasons.append(CURRENT_SEASON)
 
     for season in seasons:
         print("FIFA RATINGS {}".format(season))

@@ -29,10 +29,15 @@ def fill_team_table_from_file(filename, session):
     session.commit()
 
 
-def make_team_table(session):
+def make_team_table(session, seasons=[]):
+    """
+    Fill the db table containing the list of teams in the
+    league for each season.
+    """
 
-    seasons = [CURRENT_SEASON]
-    seasons += get_past_seasons(4)
+    if not seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(4)
     for season in seasons:
         filename = os.path.join(
             os.path.join(

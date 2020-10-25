@@ -71,10 +71,16 @@ def fill_player_table_from_api(season, session):
     session.commit()
 
 
-def make_player_table(session):
+def make_player_table(session, seasons=[]):
 
-    fill_player_table_from_api(CURRENT_SEASON, session)
-    for season in get_past_seasons(3):
+    if not seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    if CURRENT_SEASON in seasons:
+        fill_player_table_from_api(CURRENT_SEASON, session)
+    for season in seasons:
+        if season == CURRENT_SEASON:
+            continue
         filename = os.path.join(
             os.path.join(
                 os.path.dirname(__file__),
