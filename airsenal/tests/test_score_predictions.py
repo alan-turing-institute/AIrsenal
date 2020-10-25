@@ -4,7 +4,8 @@ test the score-calculating functions
 
 
 from airsenal.framework.prediction_utils import *
-
+from airsenal.conftest import test_past_data_session_scope
+from airsenal.framework.schema import PlayerScore
 
 class DummyTeamModel(object):
     """
@@ -174,3 +175,10 @@ def test_attacking_points_1_0_top_assister():
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 45, tm, pm) == 1.5
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 45, tm, pm) == 1.5
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 45, tm, pm) == 1.5
+
+
+
+def test_newtest():
+    with test_past_data_session_scope() as ts:
+        rows = ts.query(PlayerScore).all()
+        assert len(rows) > 0
