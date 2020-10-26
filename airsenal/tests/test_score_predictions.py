@@ -2,10 +2,26 @@
 test the score-calculating functions
 """
 
+import pandas as pd
+import pystan
 
-from airsenal.framework.prediction_utils import *
+from airsenal.framework.FPL_scoring_rules import (
+    get_appearance_points,
+)
+from airsenal.framework.prediction_utils import (
+    get_defending_points,
+    get_attacking_points,
+    get_player_history_df,
+    get_player_model,
+    get_fitted_player_model
+)
+
 from airsenal.conftest import test_past_data_session_scope
-from airsenal.framework.schema import PlayerScore
+from airsenal.framework.schema import (
+    PlayerScore,
+    Result,
+    Fixture
+)
 
 class DummyTeamModel(object):
     """
@@ -177,8 +193,32 @@ def test_attacking_points_1_0_top_assister():
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 45, tm, pm) == 1.5
 
 
-
-def test_newtest():
+def test_get_player_history_df():
+    """
+    test that we only consider gameweeks up to the specified gameweek
+    (gw 12 in 1819 season).
+    """
     with test_past_data_session_scope() as ts:
-        rows = ts.query(PlayerScore).all()
-        assert len(rows) > 0
+        df = get_player_history_df(season="1819", session=ts, gameweek=12)
+        result_ids = df.match_id.unique()
+        for result_id in result_ids:
+            if result_id == 0:
+                continue
+            fixture_id = ts.query(Result).\
+                filter_by(result_id=int(result_id)).\
+                first().fixture_id
+            fixture = ts.query(Fixture).\
+                filter_by(fixture_id=fixture_id).\
+                first()
+            assert fixture.season == "1718" or fixture.season == "1819"
+            if fixture.season == "1819":
+                assert fixture.gameweek < 12
+
+
+def test_get_fitted_player_model():
+    pm = get_player_model()
+    assert isinstance(pm, pystan.model.StanModel)
+    with test_past_data_session_scope() as ts:
+        fpm = get_fitted_player_model(pm, "FWD", "1819", ts, 12)
+        assert isinstance(fpm, pd.DataFrame)
+        assert len(fpm) > 0
