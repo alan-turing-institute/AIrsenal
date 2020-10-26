@@ -1,4 +1,4 @@
-tqdm==v4.29.1
+tqdm>=v4.29.1
 black
 pandas
 sqlalchemy
@@ -9,10 +9,10 @@ scipy
 pip
 pystan>=2.14
 pytest
-bpl==0.0.4
+bpl>=0.1.0
 flask
 flask_cors
 flask_session
 jupyter
 seaborn
-click==7.1.2
+click>=7.1.2

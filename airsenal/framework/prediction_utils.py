@@ -487,6 +487,7 @@ def fit_player_data(model, prefix, season, session, gameweek):
     fit the data for a particular position (FWD, MID, DEF)
     """
     data, names = process_player_data(prefix, season, session, gameweek)
+    print("Fitting player model for", prefix, "...")
     fit = model.optimizing(data)
     df = (
         pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])

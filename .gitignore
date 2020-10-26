@@ -5,6 +5,9 @@
 *FPL_LOGIN
 *FPL_PASSWORD
 
+# compiled stan models
+stan_model/
+
 # other stuff
 .idea/
 .DS_Store
