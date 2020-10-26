@@ -11,10 +11,9 @@ from airsenal.framework.schema import Result, FifaTeamRating
 from airsenal.framework.utils import (
     CURRENT_TEAMS,
     get_fixtures_for_gameweek,
-    get_teams_for_season,
     is_future_gameweek
 )
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 
 
 np.random.seed(42)
@@ -52,10 +51,10 @@ def get_result_df(session, season, gameweek):
     return df_past
 
 
-def get_ratings_df(session, season):
+def get_ratings_df(season, dbsession):
     """Create a dataframe containing the fifa team ratings."""
 
-    ratings = session.query(FifaTeamRating).filter_by(season=season).all()
+    ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
 
     if len(ratings) == 0:
         raise ValueError("No FIFA ratings found for season {}".format(season))

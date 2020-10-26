@@ -9,11 +9,11 @@ from typing import TypeVar
 import dateparser
 import re
 from pickle import loads, dumps
-from airsenal.framework.mappings import alternative_player_names
+from sqlalchemy import or_, case, func, desc
 
+from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import (
-    Base,
     Player,
     PlayerAttributes,
     Result,
@@ -22,16 +22,8 @@ from airsenal.framework.schema import (
     PlayerPrediction,
     Transaction,
     Team,
-    engine,
 )
-from airsenal.framework.season import CURRENT_SEASON
-
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import or_, case, func, desc
-
-Base.metadata.bind = engine
-DBSession = sessionmaker()
-session = DBSession()
+from airsenal.framework.season import CURRENT_SEASON, CURRENT_TEAMS, session
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
@@ -272,21 +264,6 @@ def get_team_name(team_id, season=CURRENT_SEASON, dbsession=None):
         return None
 
 
-def get_teams_for_season(season, dbsession=None):
-    """
-    Query the Team table and get a list of teams for a given
-    season.
-    """
-    if not dbsession:
-        dbsession = session
-    teams = dbsession.query(Team).filter_by(season=season).all()
-    return [t.name for t in teams]
-
-
-# global variable for the module
-CURRENT_TEAMS = get_teams_for_season(CURRENT_SEASON)
-
-
 def get_player(player_name_or_id, dbsession=None):
     """
     query the player table by name or id, return the player object (or None).
@@ -385,9 +362,9 @@ def list_players(
     team="all",
     order_by="price",
     season=CURRENT_SEASON,
+    gameweek=NEXT_GAMEWEEK,
     dbsession=None,
     verbose=False,
-    gameweek=NEXT_GAMEWEEK,
 ):
     """
     print list of players, and
@@ -491,14 +468,14 @@ def is_future_gameweek(
 
 
 def get_max_matches_per_player(
-    position="all", season=CURRENT_SEASON, dbsession=None, gameweek=NEXT_GAMEWEEK
+        position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
 ):
     """
     can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
     players = list_players(
-        position=position, season=season, dbsession=dbsession, gameweek=gameweek
+        position=position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     max_matches = 0
     for p in players:
@@ -920,9 +897,9 @@ def calc_average_minutes(player_scores):
 def estimate_minutes_from_prev_season(
     player,
     season=CURRENT_SEASON,
-    dbsession=None,
     gameweek=NEXT_GAMEWEEK,
     n_games_to_use=10,
+    dbsession=None
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -1041,7 +1018,7 @@ def get_recent_minutes_for_player(
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
     if first_gw < 0 or len(minutes) == 0:
-        minutes = minutes + estimate_minutes_from_prev_season(player, season, dbsession)
+        minutes = minutes + estimate_minutes_from_prev_season(player, season, dbsession=dbsession)
 
     return minutes
 
@@ -1081,8 +1058,8 @@ def get_last_finished_gameweek():
 
 
 def get_latest_prediction_tag(season=CURRENT_SEASON,
-                              dbsession=None,
-                              tag_prefix=""):
+                              tag_prefix="",
+                              dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
