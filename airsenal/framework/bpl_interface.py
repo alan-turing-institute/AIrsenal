@@ -82,6 +82,7 @@ def get_fitted_team_model(season, session):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
+    print("Fitting team model...")
     df_team = get_result_df(session)
     df_X = get_ratings_df(session)
     model_team = create_and_fit_team_model(df_team, df_X)
