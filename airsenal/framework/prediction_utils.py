@@ -38,7 +38,7 @@ np.random.seed(42)
 
 
 def get_player_history_df(
-    position="all", season=CURRENT_SEASON, session=session, gameweek=NEXT_GAMEWEEK
+        position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
 ):
     """
     Query the player_score table to get goals/assists/minutes, and then
@@ -59,10 +59,10 @@ def get_player_history_df(
     ]
     player_data = []
     players = list_players(
-        position=position, season=season, dbsession=session, gameweek=gameweek
+        position=position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     max_matches_per_player = get_max_matches_per_player(
-        position, season=season, dbsession=session, gameweek=gameweek
+        position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     for counter, player in enumerate(players):
         print(
@@ -201,15 +201,15 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
     return defending_points
 
 
-def calc_predicted_points(
+def calc_predicted_points_for_player(
     player,
     model_team,
     df_player,
     season,
     tag,
-    session,
     gw_range=None,
     fixtures_behind=3,
+    dbsession=session
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -229,7 +229,7 @@ def calc_predicted_points(
     )  # assume player stays with same team from first gameweek in range
     position = player.position(season)
     fixtures = get_fixtures_for_player(
-        player, season, gw_range=gw_range, dbsession=session
+        player, season, gw_range=gw_range, dbsession=dbsession
     )
 
     # use same recent_minutes from previous gameweeks for all predictions
@@ -238,7 +238,7 @@ def calc_predicted_points(
         num_match_to_use=fixtures_behind,
         season=season,
         last_gw=min(gw_range) - 1,
-        dbsession=session,
+        dbsession=dbsession,
     )
     if len(recent_minutes) == 0:
         # e.g. for gameweek 1
@@ -268,7 +268,7 @@ def calc_predicted_points(
             # functions to calculate appearance points, defending points, attacking points.
             points = 0.0
 
-        elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, session):
+        elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, dbsession):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
 
@@ -306,6 +306,29 @@ def calc_predicted_points(
     return predictions
 
 
+def calc_predicted_points_for_pos(
+    pos, gw_range, team_model, player_model, season, tag, dbsession=session
+):
+    """
+    Calculate points predictions for all players in a given position and
+    put into the DB
+    """
+    predictions = {}
+    df_player = None
+    if pos != "GK":  # don't calculate attacking points for keepers.
+        df_player = get_fitted_player_model(
+            player_model, pos, season, min(gw_range), dbsession
+        )
+    for player in list_players(
+        position=pos, dbsession=session, season=season, gameweek=min(gw_range)
+    ):
+        predictions[player.player_id] = calc_predicted_points_for_player(
+            player, team_model, df_player, season, tag, gw_range, dbsession=dbsession
+        )
+
+    return predictions
+
+
 def make_prediction(player, fixture, points, tag):
     """
     fill one row in the player_prediction table
@@ -321,29 +344,18 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-def get_fitted_player_model(player_model, position, season, session, gameweek):
+def get_fitted_player_model(player_model, position, season, gameweek, dbsession=session):
     """
     Get the fitted player model for a given position
     """
     print("Generating player history dataframe - slow")
     df_player, fits, reals = fit_player_data(
-        player_model, position, season, session, gameweek
+        player_model, position, season, gameweek, dbsession
     )
     return df_player
 
 
-# def get_fitted_models(season, session):
-#    """
-#    Retrieve match and player models, and fit player model to the playerscore data.
-#    """
-#    model_team = get_fited_team_model(season, session)
-#    model_player = get_player_model()
-#    print("Generating player history dataframe - slow")
-#    df_player, fits, reals = fit_all_player_data(model_player, season, session)
-#    return model_team, df_player
-
-
-def is_injured_or_suspended(player_api_id, gameweek, season, session):
+def is_injured_or_suspended(player_api_id, gameweek, season, dbsession=session):
     """
     Query the API for 'chance of playing next round', and if this
     is <=50%, see if we can find a return date.
@@ -358,13 +370,13 @@ def is_injured_or_suspended(player_api_id, gameweek, season, session):
         and pdata["chance_of_playing_next_round"] <= 50
     ):
         ## check if we have a return date
-        return_gameweek = get_return_gameweek_for_player(player_api_id, session)
+        return_gameweek = get_return_gameweek_for_player(player_api_id, dbsession)
         if return_gameweek is None or return_gameweek > gameweek:
             return True
     return False
 
 
-def fill_ep(csv_filename):
+def fill_ep(csv_filename, dbsession=session):
     """
     fill the database with FPLs ep_next prediction, and also
     write output to a csv.
@@ -386,8 +398,8 @@ def fill_ep(csv_filename):
         pp.gameweek = gameweek
         pp.predicted_points = v["ep_next"]
         pp.method = "EP"
-        session.add(pp)
-    session.commit()
+        dbsession.add(pp)
+    dbsession.commit()
     outfile.close()
 
 
@@ -435,7 +447,7 @@ def get_empirical_bayes_estimates(df_emp):
 
 
 def process_player_data(
-    prefix, season=CURRENT_SEASON, session=session, gameweek=NEXT_GAMEWEEK
+        prefix, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
 ):
     """
     transform the player dataframe, basically giving a list (for each player)
@@ -443,7 +455,7 @@ def process_player_data(
     lists of ["goals","assists","neither"] (for each match)
     """
     df = get_player_history_df(
-        prefix, season=season, session=session, gameweek=gameweek
+        prefix, season=season, gameweek=gameweek, dbsession=dbsession
     )
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
     df.loc[(df["neither"] < 0), ["neither", "team_goals", "goals", "assists"]] = [
@@ -483,11 +495,11 @@ def process_player_data(
     )
 
 
-def fit_player_data(model, prefix, season, session, gameweek):
+def fit_player_data(model, prefix, season, gameweek, dbsession=session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix, season, session, gameweek)
+    data, names = process_player_data(prefix, season, gameweek, dbsession)
     print("Fitting player model for", prefix, "...")
     fit = model.optimizing(data)
     df = (
@@ -504,13 +516,13 @@ def fit_player_data(model, prefix, season, session, gameweek):
     return df, fit, data
 
 
-def fit_all_player_data(model, season, session):
+def fit_all_player_data(model, season, gameweek, dbsession=session):
     df = pd.DataFrame()
     fits = []
     dfs = []
     reals = []
     for prefix in ["FWD", "MID", "DEF"]:
-        d, f, r = fit_data(prefix, model, season, session)
+        d, f, r = fit_player_data(model, prefix, season, gameweek, dbsession)
         fits.append(f)
         dfs.append(d)
         reals.append(r)

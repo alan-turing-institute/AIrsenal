@@ -23,35 +23,11 @@ from airsenal.framework.utils import (
 )
 
 from airsenal.framework.prediction_utils import (
-    get_fitted_player_model,
-    get_player_model,
-    calc_predicted_points,
+    calc_predicted_points_for_player,
+    calc_predicted_points_for_pos
 )
 
 from airsenal.framework.schema import session_scope
-
-
-def calc_predicted_points_for_pos(
-    pos, gw_range, team_model, player_model, season, tag, session
-):
-    """
-    Calculate points predictions for all players in a given position and
-    put into the DB
-    """
-    predictions = {}
-    df_player = None
-    if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = get_fitted_player_model(
-            player_model, pos, season, session, min(gw_range)
-        )
-    for player in list_players(
-        position=pos, dbsession=session, season=season, gameweek=min(gw_range)
-    ):
-        predictions[player.player_id] = calc_predicted_points(
-            player, team_model, df_player, season, tag, session, gw_range
-        )
-
-    return predictions
 
 
 def allocate_predictions(

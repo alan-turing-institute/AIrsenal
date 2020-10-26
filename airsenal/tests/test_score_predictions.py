@@ -199,7 +199,8 @@ def test_get_player_history_df():
     (gw 12 in 1819 season).
     """
     with test_past_data_session_scope() as ts:
-        df = get_player_history_df(season="1819", session=ts, gameweek=12)
+        df = get_player_history_df(season="1819", gameweek=12, dbsession=ts)
+        assert len(df) > 0
         result_ids = df.match_id.unique()
         for result_id in result_ids:
             if result_id == 0:
@@ -219,6 +220,6 @@ def test_get_fitted_player_model():
     pm = get_player_model()
     assert isinstance(pm, pystan.model.StanModel)
     with test_past_data_session_scope() as ts:
-        fpm = get_fitted_player_model(pm, "FWD", "1819", ts, 12)
+        fpm = get_fitted_player_model(pm, "FWD", "1819", 12, ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
