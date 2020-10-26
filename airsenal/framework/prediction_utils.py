@@ -397,10 +397,11 @@ def get_player_model():
     a given player scored/assisted/did-neither when their team scores a goal.
     """
     stan_filepath = os.path.join(
-        os.path.dirname(__file__), "../stan/player_forecasts.stan"
+        os.path.dirname(__file__), "../../stan/player_forecasts.stan"
     )
     if not os.path.exists(stan_filepath):
-        raise RuntimeError("Can't find player_forecasts.stan")
+        raise RuntimeError("Can't find player_forecasts.stan at {}".\
+                           format(stan_filepath))
 
     model_player = pystan.StanModel(file=stan_filepath)
     return model_player
