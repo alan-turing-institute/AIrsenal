@@ -277,12 +277,15 @@ Base.metadata.create_all(engine)
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
 
+DBSession = sessionmaker(bind=engine, autoflush=False)
+# global database session used by default throughout the package
+session = DBSession()
+
 
 @contextmanager
 def session_scope():
     """Provide a transactional scope around a series of operations."""
-    db_session = sessionmaker(bind=engine, autoflush=False)
-    session = db_session()
+    session = DBSession()
     try:
         yield session
         session.commit()

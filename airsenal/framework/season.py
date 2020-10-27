@@ -5,13 +5,7 @@ Season details
 """
 from datetime import datetime
 
-from sqlalchemy.orm import sessionmaker
-
-from airsenal.framework.schema import Base, Team, engine
-
-Base.metadata.bind = engine
-DBSession = sessionmaker()
-session = DBSession()
+from airsenal.framework.schema import Team, session
 
 
 def get_current_season():

@@ -22,8 +22,9 @@ from airsenal.framework.schema import (
     PlayerPrediction,
     Transaction,
     Team,
+    session,
 )
-from airsenal.framework.season import CURRENT_SEASON, CURRENT_TEAMS, session
+from airsenal.framework.season import CURRENT_SEASON, CURRENT_TEAMS
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 

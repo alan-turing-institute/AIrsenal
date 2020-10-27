@@ -226,7 +226,7 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
         return False
     t = Squad(budget)
     for p in players:
-        added_ok = t.add_player(p["id"])
+        added_ok = t.add_player(p["id"], dbsession=dbsession)
         if not added_ok:
             return False
     return True
