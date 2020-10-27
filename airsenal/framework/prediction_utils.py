@@ -11,7 +11,7 @@ import pystan
 
 from scipy.stats import multinomial
 
-from airsenal.framework.schema import PlayerPrediction
+from airsenal.framework.schema import Player, PlayerPrediction, PlayerScore, engine
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -32,6 +32,9 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_assist,
     points_for_cs,
     get_appearance_points,
+    saves_for_point,
+    points_for_yellow_card,
+    points_for_red_card,
 )
 
 np.random.seed(42)
@@ -201,10 +204,70 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
     return defending_points
 
 
+def get_bonus_points(player_id, minutes, df_bonus):
+    """
+    Returns expected bonus points scored by player_id when playing minutes minutes.
+
+    df_bonus : list containing df of average bonus pts scored when playing at least
+    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index
+    (as calculated by fit_bonus_points()).
+
+    NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
+    must be changed together.
+    """
+    if minutes >= 60:
+        if player_id in df_bonus[0].index:
+            return df_bonus[0].loc[player_id]
+        else:
+            return 0
+    elif minutes >= 30:
+        if player_id in df_bonus[1].index:
+            return df_bonus[1].loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
+def get_save_points(position, player_id, minutes, df_saves):
+    """Returns average save points scored by player_id when playing minutes minutes (or
+    zero if this player's position is not GK).
+
+    df_saves - as calculated by fit_save_points()
+    """
+    if position != "GK":
+        return 0
+    if minutes >= 60:
+        if player_id in df_saves.index:
+            return df_saves.loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
+def get_card_points(player_id, minutes, df_cards):
+    """Returns average points lost by player_id due to yellow and red cards in matches
+    they played at least 1 minute.
+
+    df_cards - as calculated by fit_card_points().
+    """
+    if minutes >= 1:
+        if player_id in df_cards.index:
+            return df_cards.loc[player_id]
+        else:
+            return 0
+    else:
+        return 0
+
+
 def calc_predicted_points_for_player(
     player,
     model_team,
     df_player,
+    df_bonus,
+    df_saves,
+    df_cards,
     season,
     tag,
     gw_range=None,
@@ -274,28 +337,35 @@ def calc_predicted_points_for_player(
 
         else:
             # now loop over recent minutes and average
-            points = (
-                sum(
-                    [
-                        get_appearance_points(mins)
-                        + get_attacking_points(
-                            player.player_id,
-                            position,
-                            team,
-                            opponent,
-                            is_home,
-                            mins,
-                            model_team,
-                            df_player,
-                        )
-                        + get_defending_points(
-                            position, team, opponent, is_home, mins, model_team
-                        )
-                        for mins in recent_minutes
-                    ]
+            points = 0
+            for mins in recent_minutes:
+                points += (
+                    get_appearance_points(mins)
+                    + get_attacking_points(
+                        player.player_id,
+                        position,
+                        team,
+                        opponent,
+                        is_home,
+                        mins,
+                        model_team,
+                        df_player,
+                    )
+                    + get_defending_points(
+                        position, team, opponent, is_home, mins, model_team
+                    )
                 )
-                / len(recent_minutes)
-            )
+                if df_bonus is not None:
+                    points += get_bonus_points(player.player_id, mins, df_bonus)
+                if df_cards is not None:
+                    points += get_card_points(player.player_id, mins, df_cards)
+                if df_saves is not None:
+                    points += get_save_points(
+                        position, player.player_id, mins, df_saves
+                    )
+
+            points = points / len(recent_minutes)
+
         # create the PlayerPrediction for this player+fixture
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
@@ -528,3 +598,101 @@ def fit_all_player_data(model, season, gameweek, dbsession=session):
         reals.append(r)
     df = pd.concat(dfs)
     return df, fits, reals
+
+
+def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10):
+    """Calculate the average bonus points scored by each player for matches they play
+    between 60 and 90 minutes, and matches they play between 30 and 59 minutes.
+    Mean is calculated as sum of all bonus points divided by either the number of
+    maches the player has played in or min_matches, whichever is greater.
+
+    Returns tuple of dataframes - first index bonus points for 60 to 90 mins, second
+    index bonus points for 30 to 59 mins.
+
+    NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
+    must be changed together.
+    """
+
+    def get_bonus_df(min_minutes, max_minutes):
+        query = (
+            session.query(PlayerScore)
+            .filter(PlayerScore.minutes <= max_minutes)
+            .filter(PlayerScore.minutes >= min_minutes)
+        )
+        # TODO filter on gw and season
+        df = pd.read_sql(query.statement, engine)
+
+        match_counts = df.groupby("player_id").bonus.count()
+        match_counts[match_counts < min_matches] = min_matches
+
+        sum_bonus = df.groupby("player_id").bonus.sum()
+
+        avg_bonus = sum_bonus / match_counts
+        return avg_bonus
+
+    df_90 = get_bonus_df(60, 90)
+    df_60 = get_bonus_df(30, 59)
+
+    return (df_90, df_60)
+
+
+def fit_save_points(
+    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=90
+):
+    """Calculate the average save points scored by each goalkeeper for matches they
+    played at least min_minutes in.
+    Mean is calculated as sum of all save points divided by either the number of
+    matches the player has played in or min_matches, whichever is greater.
+
+    Returns pandas series index by player ID, values average save points.
+    """
+    goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
+    goalkeepers = [gk.player_id for gk in goalkeepers]
+
+    query = (
+        session.query(PlayerScore)
+        .join(Player)
+        .filter(Player.player_id.in_(goalkeepers))
+        .filter(PlayerScore.minutes >= min_minutes)
+    )
+    # TODO filter on gw and season
+    df = pd.read_sql(query.statement, engine)
+
+    #  1pt per 3 saves
+    df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
+
+    match_counts = df.groupby("player_id").save_pts.count()
+    match_counts[match_counts < min_matches] = min_matches
+
+    sum_saves = df.groupby("player_id").save_pts.sum()
+
+    avg_saves = sum_saves / match_counts
+    return avg_saves
+
+
+def fit_card_points(
+    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=1
+):
+    """Calculate the average points per match lost to yellow or red cards
+    for each player.
+    Mean is calculated as sum of all card points divided by either the number of
+    matches the player has played in or min_matches, whichever is greater.
+
+    Returns pandas series index by player ID, values average card points.
+    """
+    query = session.query(PlayerScore).filter(PlayerScore.minutes >= min_minutes)
+    # TODO filter on gw and season
+    # TODO: different values for different minutes (remember minutes < 90 for red cards though)
+    df = pd.read_sql(query.statement, engine)
+
+    df["card_pts"] = (
+        points_for_yellow_card * df["yellow_cards"]
+        + points_for_red_card * df["red_cards"]
+    )
+    match_counts = df.groupby("player_id").card_pts.count()
+    match_counts[match_counts < min_matches] = min_matches
+
+    sum_cards = df.groupby("player_id").card_pts.sum()
+    avg_cards = sum_cards / match_counts
+
+    return avg_cards

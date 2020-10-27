@@ -13,6 +13,7 @@ from airsenal.framework.optimization_utils import (
     generate_transfer_strategies,
 )
 
+
 class DummyPlayer(object):
     """
     fake player that we can add to a squad, giving a specified expected score.
