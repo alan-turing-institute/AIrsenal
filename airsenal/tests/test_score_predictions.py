@@ -240,7 +240,7 @@ def test_get_result_df():
         assert len(df) > 0
 
 
-def test_get_ratings)df():
+def test_get_ratings_df():
     with test_past_data_session_scope() as ts:
         df = get_ratings_df("1819", ts)
         assert isinstance(df, pd.DataFrame)
