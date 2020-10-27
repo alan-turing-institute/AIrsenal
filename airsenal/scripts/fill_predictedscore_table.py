@@ -7,9 +7,9 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
+from uuid import uuid4
 import pickle
 import pkg_resources
-from uuid import uuid4
 
 from multiprocessing import Process, Queue
 import argparse
@@ -24,47 +24,13 @@ from airsenal.framework.utils import (
 
 from airsenal.framework.prediction_utils import (
     calc_predicted_points_for_player,
-    calc_predicted_points_for_pos
+    calc_predicted_points_for_pos,
+    fit_bonus_points,
+    fit_save_points,
+    fit_card_points
 )
 
 from airsenal.framework.schema import session_scope
-
-
-def calc_predicted_points_for_pos(
-    pos,
-    gw_range,
-    team_model,
-    player_model,
-    season,
-    tag,
-    session,
-    df_bonus,
-    df_saves,
-    df_cards,
-):
-    """
-    Calculate points predictions for all players in a given position and
-    put into the DB
-    """
-    predictions = {}
-    df_player = None
-    if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = get_fitted_player_model(player_model, pos, season, session)
-    for player in list_players(position=pos, dbsession=session):
-        predictions[player.player_id] = calc_predicted_points(
-            player,
-            team_model,
-            df_player,
-            season,
-            tag,
-            session,
-            df_bonus,
-            df_saves,
-            df_cards,
-            gw_range,
-        )
-
-    return predictions
 
 
 def allocate_predictions(
@@ -72,12 +38,12 @@ def allocate_predictions(
     gw_range,
     team_model,
     player_model,
-    season,
-    tag,
-    session,
     df_bonus,
     df_saves,
     df_cards,
+    season,
+    tag,
+    dbsession,
 ):
     """
     Take positions off the queue and call function to calculate predictions
@@ -88,44 +54,46 @@ def allocate_predictions(
             print("Finished processing {}".format(pos))
             break
         predictions = calc_predicted_points_for_pos(
-            pos,
-            gw_range,
-            team_model,
-            player_model,
-            season,
-            tag,
-            session,
-            df_bonus,
-            df_saves,
-            df_cards,
+            pos=pos,
+            team_model=team_model,
+            player_model=player_model,
+            df_bonus=df_bonus,
+            df_saves=df_saves,
+            df_cards=df_cards,
+            season=season,
+            gw_range=gw_range,
+            tag=tag,
+            dbsession=dbsession,
         )
         for k, v in predictions.items():
             for playerprediction in v:
-                session.add(playerprediction)
-        session.commit()
+                dbsession.add(playerprediction)
+        dbsession.commit()
         print("Finished adding predictions to db for {}".format(pos))
 
 
 def calc_all_predicted_points(
     gw_range,
     season,
-    tag,
-    session,
-    num_thread=4,
     include_bonus=True,
     include_cards=True,
     include_saves=True,
+    num_thread=4,
+    tag="",
+    dbsession=None,
 ):
     """
     Do the full prediction for players.
     """
-    model_team = get_fitted_team_model(season, session, gameweek=min(gw_range))
-
+    model_team = get_fitted_team_model(season, gameweek=min(gw_range), dbsession=dbsession)
     model_file = pkg_resources.resource_filename(
         "airsenal", "stan_model/player_forecasts.pkl"
     )
+    print("Loading pre-compiled player model from {}".format(model_file))
     with open(model_file, "rb") as f:
         model_player = pickle.load(f)
+
+#    model_player = get_player_model()
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
@@ -141,7 +109,6 @@ def calc_all_predicted_points(
         df_cards = None
 
     all_predictions = {}
-    print("Num thread is {}".format(num_thread))
     if num_thread:
         queue = Queue()
         procs = []
@@ -153,12 +120,12 @@ def calc_all_predicted_points(
                     gw_range,
                     model_team,
                     model_player,
-                    season,
-                    tag,
-                    session,
                     df_bonus,
                     df_saves,
                     df_cards,
+                    season,
+                    tag,
+                    dbsession,
                 ),
             )
             processor.daemon = True
@@ -176,26 +143,25 @@ def calc_all_predicted_points(
         # single threaded
         for pos in ["GK", "DEF", "MID", "FWD"]:
             predictions = calc_predicted_points_for_pos(
-                pos,
-                gw_range,
-                model_team,
-                model_player,
-                season,
-                tag,
-                session,
-                df_bonus,
-                df_saves,
-                df_cards,
+                pos=pos,
+                team_model=model_team,
+                player_model=model_player,
+                df_bonus=df_bonus,
+                df_saves=df_saves,
+                df_cards=df_cards,
+                season=season,
+                gw_range=gw_range,
+                tag=tag,
+                dbsession=dbsession,
             )
             for k, v in predictions.items():
                 for playerprediction in v:
-                    session.add(playerprediction)
-        session.commit()
+                    dbsession.add(playerprediction)
+        dbsession.commit()
         print("Finished adding predictions to db for {}".format(pos))
 
 
 def make_predictedscore_table(
-    session,
     gw_range=None,
     season=CURRENT_SEASON,
     num_thread=4,
@@ -275,13 +241,13 @@ def main():
 
     with session_scope() as session:
         tag = make_predictedscore_table(
-            session,
             gw_range=gw_range,
             season=args.season,
             num_thread=num_thread,
             include_bonus=include_bonus,
             include_cards=include_cards,
             include_saves=include_saves,
+            dbsession=session,
         )
 
         # print players with top predicted points

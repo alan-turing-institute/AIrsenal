@@ -1100,7 +1100,7 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
     draw_probability, away_win_probability.
     """
-    model_team = get_fitted_team_model(season, dbsession)
+    model_team = get_fitted_team_model(season, gameweek, dbsession)
     fixture_probabilities_list = []
     fixture_id_list = []
     for fixture in get_fixtures_for_gameweek(

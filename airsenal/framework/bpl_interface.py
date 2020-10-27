@@ -19,7 +19,7 @@ from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 np.random.seed(42)
 
 
-def get_result_df(session, season, gameweek):
+def get_result_df(season, gameweek, dbsession):
     """
     query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -34,7 +34,7 @@ def get_result_df(session, season, gameweek):
                     s.home_score,
                     s.away_score,
                 ]
-                for s in session.query(Result).all()
+                for s in dbsession.query(Result).all()
                 if not is_future_gameweek(
                     s.fixture.season,
                     s.fixture.gameweek,
@@ -92,54 +92,14 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     return model_team
 
 
-def get_fitted_team_model(season, session, gameweek):
+def get_fitted_team_model(season, gameweek, dbsession):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
     print("Fitting team model...")
-    df_team = get_result_df(session, season, gameweek)
-    df_X = get_ratings_df(season, dbsession=session)
-    teams = get_teams_for_season(season, dbsession=session)
+    df_team = get_result_df(season, gameweek, dbsession)
+    df_X = get_ratings_df(season, dbsession=dbsession)
+    teams = get_teams_for_season(season, dbsession=dbsession)
     model_team = create_and_fit_team_model(df_team, df_X, teams=teams)
 
     return model_team
-
-
-def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
-    """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
-    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
-    draw_probability, away_win_probability.
-    """
-    model_team = get_fitted_team_model(season, dbsession, gameweek)
-    fixture_probabilities_list = []
-    fixture_id_list = []
-    for fixture in get_fixtures_for_gameweek(
-        gameweek, season=season, dbsession=dbsession
-    ):
-        probabilities = model_team.overall_probabilities(
-            fixture.home_team, fixture.away_team
-        )
-        fixture_probabilities_list.append(
-            [
-                fixture.fixture_id,
-                fixture.home_team,
-                fixture.away_team,
-                probabilities[0],
-                probabilities[1],
-                probabilities[2],
-            ]
-        )
-        fixture_id_list.append(fixture.fixture_id)
-    return pd.DataFrame(
-        fixture_probabilities_list,
-        columns=[
-            "fixture_id",
-            "home_team",
-            "away_team",
-            "home_win_probability",
-            "draw_probability",
-            "away_win_probability",
-        ],
-        index=fixture_id_list,
-    )

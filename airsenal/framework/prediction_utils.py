@@ -3,7 +3,8 @@ Use the BPL models to predict scores for upcoming fixtures.
 """
 
 import os
-
+import pickle
+import pkg_resources
 from collections import defaultdict
 import pandas as pd
 import numpy as np
@@ -263,15 +264,15 @@ def get_card_points(player_id, minutes, df_cards):
 
 def calc_predicted_points_for_player(
     player,
-    model_team,
+    team_model,
     df_player,
     df_bonus,
     df_saves,
     df_cards,
     season,
-    tag,
     gw_range=None,
     fixtures_behind=3,
+    tag="",
     dbsession=session
 ):
     """
@@ -348,11 +349,11 @@ def calc_predicted_points_for_player(
                         opponent,
                         is_home,
                         mins,
-                        model_team,
+                        team_model,
                         df_player,
                     )
                     + get_defending_points(
-                        position, team, opponent, is_home, mins, model_team
+                        position, team, opponent, is_home, mins, team_model
                     )
                 )
                 if df_bonus is not None:
@@ -377,7 +378,16 @@ def calc_predicted_points_for_player(
 
 
 def calc_predicted_points_for_pos(
-    pos, gw_range, team_model, player_model, season, tag, dbsession=session
+    pos,
+    team_model,
+    player_model,
+    df_bonus,
+    df_saves,
+    df_cards,
+    season,
+    gw_range,
+    tag,
+    dbsession=session
 ):
     """
     Calculate points predictions for all players in a given position and
@@ -390,10 +400,19 @@ def calc_predicted_points_for_pos(
             player_model, pos, season, min(gw_range), dbsession
         )
     for player in list_players(
-        position=pos, dbsession=session, season=season, gameweek=min(gw_range)
+            position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
     ):
         predictions[player.player_id] = calc_predicted_points_for_player(
-            player, team_model, df_player, season, tag, gw_range, dbsession=dbsession
+            player=player,
+            team_model=team_model,
+            df_player=df_player,
+            df_bonus=df_bonus,
+            df_saves=df_saves,
+            df_cards=df_cards,
+            season=season,
+            gw_range=gw_range,
+            tag=tag,
+            dbsession=dbsession
         )
 
     return predictions
@@ -478,14 +497,11 @@ def get_player_model():
     load the player-level model, which will give the probability that
     a given player scored/assisted/did-neither when their team scores a goal.
     """
-    stan_filepath = os.path.join(
-        os.path.dirname(__file__), "../../stan/player_forecasts.stan"
+    model_file = pkg_resources.resource_filename(
+        "airsenal", "stan_model/player_forecasts.pkl"
     )
-    if not os.path.exists(stan_filepath):
-        raise RuntimeError("Can't find player_forecasts.stan at {}".\
-                           format(stan_filepath))
-
-    model_player = pystan.StanModel(file=stan_filepath)
+    with open(model_file, "rb") as f:
+        model_player = pickle.load(f)
     return model_player
 
 

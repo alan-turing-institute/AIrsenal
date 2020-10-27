@@ -36,7 +36,7 @@ class DevCmd(develop):
 def compile_stan_models(target_dir, model_dir=MODEL_DIR):
     """Pre-compile the stan models that are used by the module."""
     from pystan import StanModel
-
+    print("Compiling Stan player model, and putting pickle in {}".format(target_dir))
     sm = StanModel(file=os.path.join(model_dir, "player_forecasts.stan"))
     with open(os.path.join(target_dir, "player_forecasts.pkl"), "wb") as f_stan:
         pickle.dump(sm, f_stan, protocol=pickle.HIGHEST_PROTOCOL)
