@@ -5,6 +5,8 @@ test the score-calculating functions
 import pandas as pd
 import pystan
 
+import bpl
+
 from airsenal.framework.FPL_scoring_rules import (
     get_appearance_points,
 )
@@ -14,6 +16,12 @@ from airsenal.framework.prediction_utils import (
     get_player_history_df,
     get_player_model,
     get_fitted_player_model
+)
+from airsenal.framework.bpl_interface import (
+    get_result_df,
+    get_ratings_df,
+    get_fitted_team_model,
+    fixture_probabilities
 )
 
 from airsenal.conftest import test_past_data_session_scope
@@ -223,3 +231,30 @@ def test_get_fitted_player_model():
         fpm = get_fitted_player_model(pm, "FWD", "1819", 12, ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
+
+
+def test_get_result_df():
+    with test_past_data_session_scope() as ts:
+        df = get_result_df("1819", 10, ts)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) > 0
+
+
+def test_get_ratings)df():
+    with test_past_data_session_scope() as ts:
+        df = get_ratings_df("1819", ts)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 20
+
+
+def test_get_fitted_team_model():
+    with test_past_data_session_scope() as ts:
+        model_team = get_fitted_team_model("1819", 10, ts)
+        assert isinstance(model_team, bpl.models.BPLModel)
+
+
+def test_fixture_probabilities():
+    with test_past_data_session_scope() as ts:
+        df = fixture_probabilities(20,"1819", ts)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 10
