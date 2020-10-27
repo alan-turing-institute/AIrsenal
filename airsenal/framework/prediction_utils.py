@@ -497,18 +497,30 @@ def get_player_model():
     load the player-level model, which will give the probability that
     a given player scored/assisted/did-neither when their team scores a goal.
     """
-    model_file = pkg_resources.resource_filename(
-        "airsenal", "stan_model/player_forecasts.pkl"
+    ## old method - compile model at runtime
+    stan_filepath = os.path.join(
+        os.path.dirname(__file__), "../../stan/player_forecasts.stan"
     )
-    with open(model_file, "rb") as f:
-        model_player = pickle.load(f)
+    if not os.path.exists(stan_filepath):
+        raise RuntimeError("Can't find player_forecasts.stan")
+
+    model_player = pystan.StanModel(file=stan_filepath)
     return model_player
+
+    # new method - get pre-compiled pickle, BUT - how to ensure it looks
+    # in site-packages rather than local directory?
+#    model_file = pkg_resources.resource_filename(
+#        "airsenal", "stan_model/player_forecasts.pkl"
+#    )
+#    with open(model_file, "rb") as f:
+#        model_player = pickle.load(f)
+#    return model_player
 
 
 def get_empirical_bayes_estimates(df_emp):
     """
     Get starting values for the model based on averaging goals/assists/neither
-    over all players in that postition
+    over all players in that position
     """
     # still not sure about this...
     df = df_emp.copy()
