@@ -244,7 +244,7 @@ def test_get_ratings_df():
     with test_past_data_session_scope() as ts:
         df = get_ratings_df("1819", ts)
         assert isinstance(df, pd.DataFrame)
-        assert len(df) == 20
+        assert len(df) >= 20
 
 
 def test_get_fitted_team_model():
