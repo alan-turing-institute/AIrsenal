@@ -16,11 +16,11 @@ def rerun_predictions(season, gw_start, gw_end, weeks_ahead=3, num_thread=4):
         for gw in range(gw_start, gw_end+1):
             print("======== Running predictions for {} week {} ======".format(season, gw))
             tag_prefix = season+"_"+str(gw)+"_"
-            tag = make_predictedscore_table(session,
-                                            range(gw, gw+weeks_ahead),
-                                            season,
+            tag = make_predictedscore_table(gw_range=range(gw, gw+weeks_ahead),
+                                            season=season,
                                             num_thread=num_thread,
-                                            tag_prefix=tag_prefix)
+                                            tag_prefix=tag_prefix,
+                                            dbsession=session)
 
 
 def main():
