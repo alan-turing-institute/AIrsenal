@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from airsenal.framework.fpl_team_utils import (
     get_league_standings,
     get_overall_ranking,
-    get_overall_points
+    get_overall_points,
 )
 
 

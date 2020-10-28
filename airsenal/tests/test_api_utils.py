@@ -12,7 +12,7 @@ from airsenal.framework.api_utils import (
     set_session_budget,
     validate_session_squad,
     remove_session_player,
-    list_players_teams_prices
+    list_players_teams_prices,
 )
 from airsenal.framework.schema import SessionSquad, SessionBudget
 from airsenal.conftest import test_session_scope, API_SESSION_ID

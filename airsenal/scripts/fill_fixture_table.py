@@ -84,9 +84,11 @@ def fill_fixtures_from_api(season, session):
     return True
 
 
-def make_fixture_table(session):
+def make_fixture_table(session, seasons=[]):
     # fill the fixture table for past seasons
-    for season in get_past_seasons(3):
+    if not seasons:
+        seasons = get_past_seasons(3)
+    for season in seasons:
         filename = os.path.join(
             os.path.dirname(__file__),
             "..",

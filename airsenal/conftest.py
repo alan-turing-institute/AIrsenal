@@ -1,3 +1,4 @@
+import os
 import random
 from contextlib import contextmanager
 
@@ -14,17 +15,37 @@ from airsenal import TMPDIR
 
 API_SESSION_ID = "TESTSESSION"
 
-testengine = create_engine("sqlite:///{}/test.db".format(TMPDIR))
+testengine_dummy = create_engine("sqlite:///{}/test.db".format(TMPDIR))
+#testengine_past = create_engine("sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db")
+#    .format(os.path.dirname(__file__)))
 
-Base.metadata.create_all(testengine)
+testengine_past = create_engine("sqlite:///{}/tests/testdata/testdata_1718_1819.db"\
+    .format(os.path.dirname(__file__)))
 
-Base.metadata.bind = testengine
+Base.metadata.create_all(testengine_dummy)
+
+Base.metadata.bind = testengine_dummy
 
 
 @contextmanager
 def test_session_scope():
     """Provide a transactional scope around a series of operations."""
-    db_session = sessionmaker(bind=testengine)
+    db_session = sessionmaker(bind=testengine_dummy)
+    testsession = db_session()
+    try:
+        yield testsession
+        testsession.commit()
+    except:
+        testsession.rollback()
+        raise
+    finally:
+        testsession.close()
+
+
+@contextmanager
+def test_past_data_session_scope():
+    """Provide a transactional scope around a series of operations."""
+    db_session = sessionmaker(bind=testengine_past)
     testsession = db_session()
     try:
         yield testsession

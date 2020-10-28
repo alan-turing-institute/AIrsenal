@@ -13,7 +13,7 @@ from airsenal.framework.schema import (
     Team,
     FifaTeamRating,
     Transaction,
-    PlayerScore
+    PlayerScore,
 )
 from airsenal.framework.utils import session
 

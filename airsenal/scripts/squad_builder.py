@@ -6,7 +6,7 @@ import pygmo as pg
 from airsenal.framework.utils import (
     get_current_season,
     NEXT_GAMEWEEK,
-    get_latest_prediction_tag
+    get_latest_prediction_tag,
 )
 from airsenal.framework.optimization_utils import make_new_squad
 
