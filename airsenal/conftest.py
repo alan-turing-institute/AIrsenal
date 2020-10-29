@@ -16,11 +16,14 @@ from airsenal import TMPDIR
 API_SESSION_ID = "TESTSESSION"
 
 testengine_dummy = create_engine("sqlite:///{}/test.db".format(TMPDIR))
-#testengine_past = create_engine("sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db")
+# testengine_past = create_engine("sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db")
 #    .format(os.path.dirname(__file__)))
 
-testengine_past = create_engine("sqlite:///{}/tests/testdata/testdata_1718_1819.db"\
-    .format(os.path.dirname(__file__)))
+testengine_past = create_engine(
+    "sqlite:///{}/tests/testdata/testdata_1718_1819.db".format(
+        os.path.dirname(__file__)
+    )
+)
 
 Base.metadata.create_all(testengine_dummy)
 

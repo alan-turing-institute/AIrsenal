@@ -469,7 +469,7 @@ def is_future_gameweek(
 
 
 def get_max_matches_per_player(
-        position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
+    position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
 ):
     """
     can be used e.g. in bpl_interface.get_player_history_df
@@ -900,7 +900,7 @@ def estimate_minutes_from_prev_season(
     season=CURRENT_SEASON,
     gameweek=NEXT_GAMEWEEK,
     n_games_to_use=10,
-    dbsession=None
+    dbsession=None,
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -1019,7 +1019,9 @@ def get_recent_minutes_for_player(
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
     if first_gw < 0 or len(minutes) == 0:
-        minutes = minutes + estimate_minutes_from_prev_season(player, season, dbsession=dbsession)
+        minutes = minutes + estimate_minutes_from_prev_season(
+            player, season, dbsession=dbsession
+        )
 
     return minutes
 
@@ -1058,9 +1060,7 @@ def get_last_finished_gameweek():
     return last_finished
 
 
-def get_latest_prediction_tag(season=CURRENT_SEASON,
-                              tag_prefix="",
-                              dbsession=None):
+def get_latest_prediction_tag(season=CURRENT_SEASON, tag_prefix="", dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.

@@ -36,6 +36,7 @@ class DevCmd(develop):
 def compile_stan_models(target_dir, model_dir=MODEL_DIR):
     """Pre-compile the stan models that are used by the module."""
     from pystan import StanModel
+
     print("Compiling Stan player model, and putting pickle in {}".format(target_dir))
     sm = StanModel(file=os.path.join(model_dir, "player_forecasts.stan"))
     with open(os.path.join(target_dir, "player_forecasts.pkl"), "wb") as f_stan:
@@ -63,7 +64,7 @@ setup(
             "airsenal_check_data=airsenal.scripts.data_sanity_checks:run_all_checks",
             "airsenal_dump_db=airsenal.scripts.dump_db_contents:main",
             "airsenal_run_pipeline=airsenal.scripts.airsenal_run_pipeline:airsenal_run_pipeline",
-            "airsenal_replay_season=airsenal.scripts.replay_season:main"
+            "airsenal_replay_season=airsenal.scripts.replay_season:main",
         ]
     },
     package_data={"airsenal": ["data/*"]},

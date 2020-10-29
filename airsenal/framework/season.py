@@ -20,8 +20,10 @@ def get_current_season():
     end_year = start_year + 1
     return "{}{}".format(str(start_year)[2:], str(end_year)[2:])
 
+
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
+
 
 def get_teams_for_season(season, dbsession):
     """
@@ -30,6 +32,7 @@ def get_teams_for_season(season, dbsession):
     """
     teams = dbsession.query(Team).filter_by(season=season).all()
     return [t.name for t in teams]
+
 
 # global variable for the module
 CURRENT_TEAMS = get_teams_for_season(CURRENT_SEASON, session)
