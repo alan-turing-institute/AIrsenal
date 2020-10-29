@@ -22,6 +22,8 @@ from airsenal.framework.prediction_utils import (
     fit_bonus_points,
     fit_card_points,
     fit_save_points,
+    get_player_scores,
+    mean_group_min_count,
 )
 from airsenal.framework.bpl_interface import (
     get_result_df,
@@ -305,6 +307,52 @@ def test_fixture_probabilities():
         df = fixture_probabilities(20, "1819", ts)
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
+
+
+def test_get_player_scores():
+    """Test utility function used by fit bonus, save and card points to get player
+    scores rows filtered by season, gameweek and minutese played values"""
+    with test_past_data_session_scope() as ts:
+        df = get_player_scores(season="1819", gameweek=12, dbsession=ts)
+        # check type and columns
+        assert len(df) > 0
+        assert isinstance(df, pd.DataFrame)
+        req_cols = [
+            "player_id",
+            "minutes",
+            "saves",
+            "bonus",
+            "yellow_cards",
+            "red_cards",
+        ]
+        for col in req_cols:
+            assert col in df.columns
+        # test player scores correctly filtered by gameweek and season
+        for _, row in df.iterrows():
+            assert row["season"] == "1718" or row["season"] == "1819"
+            if row["season"] == "1819":
+                assert row["gameweek"] < 12
+        # test filtering on min minutes
+        df = get_player_scores(season="1819", gameweek=12, min_minutes=10, dbsession=ts)
+        assert len(df) > 0
+        assert all(df["minutes"] >= 10)
+        # test filtering on max minutes
+        df = get_player_scores(season="1819", gameweek=12, max_minutes=10, dbsession=ts)
+        assert len(df) > 0
+        assert all(df["minutes"] <= 10)
+
+
+def test_mean_group_min_count():
+    """Test mean for groups in df, normalising by a minimum valuee"""
+    df = pd.DataFrame({"idx": [1, 1, 1, 1, 2, 2], "value": [1, 1, 1, 1, 2, 2]})
+
+    mean_1 = mean_group_min_count(df, "idx", "value", min_count=1)
+    assert mean_1.loc[1] == 1
+    assert mean_1.loc[2] == 2
+
+    mean_4 = mean_group_min_count(df, "idx", "value", min_count=4)
+    assert mean_4.loc[1] == 1
+    assert mean_4.loc[2] == 1
 
 
 def test_fit_bonus():
