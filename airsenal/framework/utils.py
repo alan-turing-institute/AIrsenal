@@ -6,15 +6,14 @@ from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone
 from typing import TypeVar
-import pandas as pd
 import dateparser
 import re
 from pickle import loads, dumps
-from airsenal.framework.mappings import alternative_player_names
+from sqlalchemy import or_, case, func, desc
 
+from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import (
-    Base,
     Player,
     PlayerAttributes,
     Result,
@@ -23,17 +22,9 @@ from airsenal.framework.schema import (
     PlayerPrediction,
     Transaction,
     Team,
-    engine,
+    session,
 )
-from airsenal.framework.season import CURRENT_SEASON
-from airsenal.framework.bpl_interface import get_fitted_team_model
-
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import or_, case, func, desc
-
-Base.metadata.bind = engine
-DBSession = sessionmaker()
-session = DBSession()
+from airsenal.framework.season import CURRENT_SEASON, CURRENT_TEAMS
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
@@ -314,17 +305,6 @@ def get_team_name(team_id, season=CURRENT_SEASON, dbsession=None):
         return None
 
 
-def get_teams_for_season(season, dbsession=None):
-    """
-    Query the Team table and get a list of teams for a given
-    season.
-    """
-    if not dbsession:
-        dbsession = session
-    teams = dbsession.query(Team).filter_by(season=season).all()
-    return [t.name for t in teams]
-
-
 def get_player(player_name_or_id, dbsession=None):
     """
     query the player table by name or id, return the player object (or None).
@@ -423,9 +403,9 @@ def list_players(
     team="all",
     order_by="price",
     season=CURRENT_SEASON,
+    gameweek=NEXT_GAMEWEEK,
     dbsession=None,
     verbose=False,
-    gameweek=NEXT_GAMEWEEK,
 ):
     """
     print list of players, and
@@ -507,17 +487,52 @@ def list_players(
     return players
 
 
-def get_max_matches_per_player(position="all", season=CURRENT_SEASON, dbsession=None):
+def is_future_gameweek(
+    season, gameweek, current_season=CURRENT_SEASON, next_gameweek=NEXT_GAMEWEEK
+):
+    """Return True is season and gameweek refers to a gameweek that is after
+    (or the same) as current_season and next_gameweek"""
+    if season == current_season:
+        if gameweek is None:
+            # gameweek probably missing as match has been postponed/rescheduled
+            return True
+        elif gameweek < next_gameweek:
+            return False
+        else:
+            return True
+
+    elif int(season) > int(current_season):
+        return True
+
+    else:
+        return False
+
+
+def get_max_matches_per_player(
+        position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
+):
     """
     can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
-    players = list_players(position=position, season=season, dbsession=dbsession)
+    players = list_players(
+        position=position, season=season, gameweek=gameweek, dbsession=dbsession
+    )
     max_matches = 0
     for p in players:
-        num_match = len(p.scores)
+        num_match = 0
+        for score in p.scores:
+            if not is_future_gameweek(
+                score.fixture.season,
+                score.fixture.gameweek,
+                current_season=season,
+                next_gameweek=gameweek,
+            ):
+                num_match += 1
+
         if num_match > max_matches:
             max_matches = num_match
+
     return max_matches
 
 
@@ -923,9 +938,9 @@ def calc_average_minutes(player_scores):
 def estimate_minutes_from_prev_season(
     player,
     season=CURRENT_SEASON,
-    dbsession=None,
     gameweek=NEXT_GAMEWEEK,
     n_games_to_use=10,
+    dbsession=None
 ):
     """
     take average of minutes from previous season if any, or else return [60]
@@ -1044,7 +1059,7 @@ def get_recent_minutes_for_player(
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
     if first_gw < 0 or len(minutes) == 0:
-        minutes = minutes + estimate_minutes_from_prev_season(player, season, dbsession)
+        minutes = minutes + estimate_minutes_from_prev_season(player, season, dbsession=dbsession)
 
     return minutes
 
@@ -1083,7 +1098,9 @@ def get_last_finished_gameweek():
     return last_finished
 
 
-def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
+def get_latest_prediction_tag(season=CURRENT_SEASON,
+                              tag_prefix="",
+                              dbsession=None):
     """
     query the predicted_score table and get the method
     field for the last row.
@@ -1095,15 +1112,16 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, dbsession=None):
         .filter(PlayerPrediction.fixture.has(Fixture.season == season))
         .all()
     )
-    try:
-        return rows[-1].tag
-    except (IndexError):
+    if len(rows) == 0:
         raise RuntimeError(
             "No predicted points in database - has the database been filled?\n"
             "To calculate points predictions (and fill the database) use "
             "'airsenal_run_prediction'. This should be done before using "
             "'airsenal_make_squad' or 'airsenal_run_optimization'."
         )
+    if tag_prefix:
+        rows = [r for r in rows if r.tag.startswith(tag_prefix)]
+    return rows[-1].tag
 
 
 def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
@@ -1115,46 +1133,6 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
         dbsession = session
     rows = dbsession.query(Fixture).filter_by(season=season).all()
     return rows[-1].tag
-
-
-def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
-    """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
-    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
-    draw_probability, away_win_probability.
-    """
-    model_team = get_fitted_team_model(season, dbsession)
-    fixture_probabilities_list = []
-    fixture_id_list = []
-    for fixture in get_fixtures_for_gameweek(
-        gameweek, season=season, dbsession=dbsession
-    ):
-        probabilities = model_team.overall_probabilities(
-            fixture.home_team, fixture.away_team
-        )
-        fixture_probabilities_list.append(
-            [
-                fixture.fixture_id,
-                fixture.home_team,
-                fixture.away_team,
-                probabilities[0],
-                probabilities[1],
-                probabilities[2],
-            ]
-        )
-        fixture_id_list.append(fixture.fixture_id)
-    return pd.DataFrame(
-        fixture_probabilities_list,
-        columns=[
-            "fixture_id",
-            "home_team",
-            "away_team",
-            "home_win_probability",
-            "draw_probability",
-            "away_win_probability",
-        ],
-        index=fixture_id_list,
-    )
 
 
 def find_fixture(

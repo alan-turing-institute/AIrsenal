@@ -8,12 +8,18 @@ import numpy as np
 import pandas as pd
 
 from airsenal.framework.schema import Result, FifaTeamRating
-from airsenal.framework.season import CURRENT_TEAMS
+from airsenal.framework.utils import (
+    CURRENT_TEAMS,
+    get_fixtures_for_gameweek,
+    is_future_gameweek
+)
+from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
+
 
 np.random.seed(42)
 
 
-def get_result_df(session):
+def get_result_df(season, gameweek, dbsession):
     """
     query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -28,7 +34,13 @@ def get_result_df(session):
                     s.home_score,
                     s.away_score,
                 ]
-                for s in session.query(Result).all()
+                for s in dbsession.query(Result).all()
+                if not is_future_gameweek(
+                    s.fixture.season,
+                    s.fixture.gameweek,
+                    current_season=season,
+                    next_gameweek=gameweek,
+                )
             ]
         ),
         columns=["date", "home_team", "away_team", "home_goals", "away_goals"],
@@ -39,17 +51,19 @@ def get_result_df(session):
     return df_past
 
 
-def get_ratings_df(session):
+def get_ratings_df(season, dbsession):
     """Create a dataframe containing the fifa team ratings."""
+
+    ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
+
+    if len(ratings) == 0:
+        raise ValueError("No FIFA ratings found for season {}".format(season))
+
     df = pd.DataFrame(
-        np.array(
-            [
-                [s.team, s.att, s.mid, s.defn, s.ovr]
-                for s in session.query(FifaTeamRating).all()
-            ]
-        ),
+        np.array([[s.team, s.att, s.mid, s.defn, s.ovr] for s in ratings]),
         columns=["team", "att", "mid", "defn", "ovr"],
     )
+
     return df
 
 
@@ -78,11 +92,54 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     return model_team
 
 
-def get_fitted_team_model(season, session):
+def get_fitted_team_model(season, gameweek, dbsession):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
-    df_team = get_result_df(session)
-    df_X = get_ratings_df(session)
-    model_team = create_and_fit_team_model(df_team, df_X)
+    print("Fitting team model...")
+    df_team = get_result_df(season, gameweek, dbsession)
+    df_X = get_ratings_df(season, dbsession=dbsession)
+    teams = get_teams_for_season(season, dbsession=dbsession)
+    model_team = create_and_fit_team_model(df_team, df_X, teams=teams)
+
     return model_team
+
+
+def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
+    """
+    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
+    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
+    draw_probability, away_win_probability.
+    """
+    model_team = get_fitted_team_model(season, gameweek, dbsession)
+    fixture_probabilities_list = []
+    fixture_id_list = []
+    for i, fixture in enumerate(get_fixtures_for_gameweek(
+        gameweek, season=season, dbsession=dbsession
+    )):
+        probabilities = model_team.overall_probabilities(
+            fixture[0], fixture[1]
+        )
+        fixture_probabilities_list.append(
+            [
+                i,
+                fixture[0],
+                fixture[1],
+                probabilities[0],
+                probabilities[1],
+                probabilities[2],
+            ]
+        )
+        fixture_id_list.append(i)
+    return pd.DataFrame(
+        fixture_probabilities_list,
+        columns=[
+            "fixture_id",
+            "home_team",
+            "away_team",
+            "home_win_probability",
+            "draw_probability",
+            "away_win_probability",
+        ],
+        index=fixture_id_list,
+    )

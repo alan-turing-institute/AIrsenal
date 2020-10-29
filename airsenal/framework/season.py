@@ -4,7 +4,8 @@ Season details
 
 """
 from datetime import datetime
-from airsenal.framework.data_fetcher import FPLDataFetcher
+
+from airsenal.framework.schema import Team, session
 
 
 def get_current_season():
@@ -19,11 +20,16 @@ def get_current_season():
     end_year = start_year + 1
     return "{}{}".format(str(start_year)[2:], str(end_year)[2:])
 
-
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
+def get_teams_for_season(season, dbsession):
+    """
+    Query the Team table and get a list of teams for a given
+    season.
+    """
+    teams = dbsession.query(Team).filter_by(season=season).all()
+    return [t.name for t in teams]
 
-fetcher = FPLDataFetcher()
-# TODO make this a database table so we can look at past seasons
-CURRENT_TEAMS = [t["short_name"] for t in fetcher.get_current_team_data().values()]
+# global variable for the module
+CURRENT_TEAMS = get_teams_for_season(CURRENT_SEASON, session)

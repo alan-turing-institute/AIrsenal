@@ -236,7 +236,9 @@ class TransferSuggestion(Base):
 
 class FifaTeamRating(Base):
     __tablename__ = "fifa_rating"
-    team = Column(String(100), nullable=False, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    season = Column(String(4), nullable=False)
+    team = Column(String(100), nullable=False)
     att = Column(Integer, nullable=False)
     defn = Column(Integer, nullable=False)
     mid = Column(Integer, nullable=False)
@@ -275,12 +277,15 @@ Base.metadata.create_all(engine)
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
 
+DBSession = sessionmaker(bind=engine, autoflush=False)
+# global database session used by default throughout the package
+session = DBSession()
+
 
 @contextmanager
 def session_scope():
     """Provide a transactional scope around a series of operations."""
-    db_session = sessionmaker(bind=engine, autoflush=False)
-    session = db_session()
+    session = DBSession()
     try:
         yield session
         session.commit()

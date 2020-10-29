@@ -109,7 +109,7 @@ def test_remove_player(fill_players):
         t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert len(t.players) == 1
         assert t.num_position["GK"] == 1
-        t.remove_player(1, use_api=False)
+        t.remove_player(1, season=TEST_SEASON, use_api=False, dbsession=ts)
         assert len(t.players) == 0
         assert t.num_position["GK"] == 0
         assert t.budget == 1000
