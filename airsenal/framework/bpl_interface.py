@@ -11,7 +11,7 @@ from airsenal.framework.schema import Result, FifaTeamRating
 from airsenal.framework.utils import (
     CURRENT_TEAMS,
     get_fixtures_for_gameweek,
-    is_future_gameweek
+    is_future_gameweek,
 )
 from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 
@@ -114,12 +114,10 @@ def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     model_team = get_fitted_team_model(season, gameweek, dbsession)
     fixture_probabilities_list = []
     fixture_id_list = []
-    for i, fixture in enumerate(get_fixtures_for_gameweek(
-        gameweek, season=season, dbsession=dbsession
-    )):
-        probabilities = model_team.overall_probabilities(
-            fixture[0], fixture[1]
-        )
+    for i, fixture in enumerate(
+        get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    ):
+        probabilities = model_team.overall_probabilities(fixture[0], fixture[1])
         fixture_probabilities_list.append(
             [
                 i,

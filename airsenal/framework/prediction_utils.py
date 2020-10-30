@@ -6,13 +6,14 @@ import os
 import pickle
 import pkg_resources
 from collections import defaultdict
+from functools import partial
 import pandas as pd
 import numpy as np
 import pystan
 
 from scipy.stats import multinomial
 
-from airsenal.framework.schema import Player, PlayerPrediction, PlayerScore, engine
+from airsenal.framework.schema import Player, PlayerPrediction, PlayerScore, Fixture
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -42,7 +43,7 @@ np.random.seed(42)
 
 
 def get_player_history_df(
-        position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
+    position="all", season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
 ):
     """
     Query the player_score table to get goals/assists/minutes, and then
@@ -253,7 +254,7 @@ def get_card_points(player_id, minutes, df_cards):
 
     df_cards - as calculated by fit_card_points().
     """
-    if minutes >= 1:
+    if minutes >= 30:
         if player_id in df_cards.index:
             return df_cards.loc[player_id]
         else:
@@ -273,7 +274,7 @@ def calc_predicted_points_for_player(
     gw_range=None,
     fixtures_behind=3,
     tag="",
-    dbsession=session
+    dbsession=session,
 ):
     """
     Use the team-level model to get the probs of scoring or conceding
@@ -387,7 +388,7 @@ def calc_predicted_points_for_pos(
     season,
     gw_range,
     tag,
-    dbsession=session
+    dbsession=session,
 ):
     """
     Calculate points predictions for all players in a given position and
@@ -400,7 +401,7 @@ def calc_predicted_points_for_pos(
             player_model, pos, season, min(gw_range), dbsession
         )
     for player in list_players(
-            position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
+        position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
     ):
         predictions[player.player_id] = calc_predicted_points_for_player(
             player=player,
@@ -412,7 +413,7 @@ def calc_predicted_points_for_pos(
             season=season,
             gw_range=gw_range,
             tag=tag,
-            dbsession=dbsession
+            dbsession=dbsession,
         )
 
     return predictions
@@ -433,7 +434,9 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-def get_fitted_player_model(player_model, position, season, gameweek, dbsession=session):
+def get_fitted_player_model(
+    player_model, position, season, gameweek, dbsession=session
+):
     """
     Get the fitted player model for a given position
     """
@@ -509,6 +512,8 @@ def get_player_model():
 
     # new method - get pre-compiled pickle, BUT - how to ensure it looks
     # in site-packages rather than local directory?
+
+
 #    model_file = pkg_resources.resource_filename(
 #        "airsenal", "stan_model/player_forecasts.pkl"
 #    )
@@ -545,7 +550,7 @@ def get_empirical_bayes_estimates(df_emp):
 
 
 def process_player_data(
-        prefix, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
+    prefix, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
 ):
     """
     transform the player dataframe, basically giving a list (for each player)
@@ -628,7 +633,40 @@ def fit_all_player_data(model, season, gameweek, dbsession=session):
     return df, fits, reals
 
 
-def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10):
+def get_player_scores(
+    season, gameweek, min_minutes=0, max_minutes=90, dbsession=session
+):
+    """Utility function to get player scores rows up to (or the same as) season and
+    gameweek as a dataframe"""
+
+    query = (
+        dbsession.query(PlayerScore, Fixture.season, Fixture.gameweek)
+        .filter(PlayerScore.minutes >= min_minutes)
+        .filter(PlayerScore.minutes <= max_minutes)
+        .join(Fixture)
+    )
+    df = pd.read_sql(query.statement, dbsession.bind)
+
+    is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
+    exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
+    df = df[~exclude]
+    return df
+
+
+def mean_group_min_count(df, group_col, mean_col, min_count=10):
+    """Calculate mean of column col in df, grouped by group_col,  but normalising the
+    sum by either the actual number of rows in the group or min_count, whichever is
+    larger
+    """
+    counts = df.groupby(group_col)[mean_col].count()
+    counts[counts < min_count] = min_count
+    sums = df.groupby(group_col)[mean_col].sum()
+    return sums / counts
+
+
+def fit_bonus_points(
+    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, dbsession=session
+):
     """Calculate the average bonus points scored by each player for matches they play
     between 60 and 90 minutes, and matches they play between 30 and 59 minutes.
     Mean is calculated as sum of all bonus points divided by either the number of
@@ -642,21 +680,14 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
     """
 
     def get_bonus_df(min_minutes, max_minutes):
-        query = (
-            session.query(PlayerScore)
-            .filter(PlayerScore.minutes <= max_minutes)
-            .filter(PlayerScore.minutes >= min_minutes)
+        df = get_player_scores(
+            season,
+            gameweek,
+            min_minutes=min_minutes,
+            max_minutes=max_minutes,
+            dbsession=dbsession,
         )
-        # TODO filter on gw and season
-        df = pd.read_sql(query.statement, engine)
-
-        match_counts = df.groupby("player_id").bonus.count()
-        match_counts[match_counts < min_matches] = min_matches
-
-        sum_bonus = df.groupby("player_id").bonus.sum()
-
-        avg_bonus = sum_bonus / match_counts
-        return avg_bonus
+        return mean_group_min_count(df, "player_id", "bonus", min_count=min_matches)
 
     df_90 = get_bonus_df(60, 90)
     df_60 = get_bonus_df(30, 59)
@@ -665,7 +696,11 @@ def fit_bonus_points(gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=
 
 
 def fit_save_points(
-    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=90
+    gameweek=NEXT_GAMEWEEK,
+    season=CURRENT_SEASON,
+    min_matches=10,
+    min_minutes=90,
+    dbsession=session,
 ):
     """Calculate the average save points scored by each goalkeeper for matches they
     played at least min_minutes in.
@@ -674,32 +709,26 @@ def fit_save_points(
 
     Returns pandas series index by player ID, values average save points.
     """
+    df = get_player_scores(
+        season, gameweek, min_minutes=min_minutes, dbsession=dbsession
+    )
+
     goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
     goalkeepers = [gk.player_id for gk in goalkeepers]
-
-    query = (
-        session.query(PlayerScore)
-        .join(Player)
-        .filter(Player.player_id.in_(goalkeepers))
-        .filter(PlayerScore.minutes >= min_minutes)
-    )
-    # TODO filter on gw and season
-    df = pd.read_sql(query.statement, engine)
+    df = df[df["player_id"].isin(goalkeepers)]
 
     #  1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
 
-    match_counts = df.groupby("player_id").save_pts.count()
-    match_counts[match_counts < min_matches] = min_matches
-
-    sum_saves = df.groupby("player_id").save_pts.sum()
-
-    avg_saves = sum_saves / match_counts
-    return avg_saves
+    return mean_group_min_count(df, "player_id", "save_pts", min_count=min_matches)
 
 
 def fit_card_points(
-    gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, min_matches=10, min_minutes=1
+    gameweek=NEXT_GAMEWEEK,
+    season=CURRENT_SEASON,
+    min_matches=10,
+    min_minutes=1,
+    dbsession=session,
 ):
     """Calculate the average points per match lost to yellow or red cards
     for each player.
@@ -708,19 +737,15 @@ def fit_card_points(
 
     Returns pandas series index by player ID, values average card points.
     """
-    query = session.query(PlayerScore).filter(PlayerScore.minutes >= min_minutes)
-    # TODO filter on gw and season
-    # TODO: different values for different minutes (remember minutes < 90 for red cards though)
-    df = pd.read_sql(query.statement, engine)
+    df = get_player_scores(
+        season, gameweek, min_minutes=min_minutes, dbsession=dbsession
+    )
 
+    # TODO: different values for different minutes (remember minutes < 90 for red cards
+    # though)
     df["card_pts"] = (
         points_for_yellow_card * df["yellow_cards"]
         + points_for_red_card * df["red_cards"]
     )
-    match_counts = df.groupby("player_id").card_pts.count()
-    match_counts[match_counts < min_matches] = min_matches
 
-    sum_cards = df.groupby("player_id").card_pts.sum()
-    avg_cards = sum_cards / match_counts
-
-    return avg_cards
+    return mean_group_min_count(df, "player_id", "card_pts", min_count=min_matches)

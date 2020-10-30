@@ -27,7 +27,7 @@ from airsenal.framework.prediction_utils import (
     calc_predicted_points_for_pos,
     fit_bonus_points,
     fit_save_points,
-    fit_card_points
+    fit_card_points,
 )
 
 from airsenal.framework.schema import session_scope
@@ -85,7 +85,9 @@ def calc_all_predicted_points(
     """
     Do the full prediction for players.
     """
-    model_team = get_fitted_team_model(season, gameweek=min(gw_range), dbsession=dbsession)
+    model_team = get_fitted_team_model(
+        season, gameweek=min(gw_range), dbsession=dbsession
+    )
     model_file = pkg_resources.resource_filename(
         "airsenal", "stan_model/player_forecasts.pkl"
     )
@@ -93,7 +95,7 @@ def calc_all_predicted_points(
     with open(model_file, "rb") as f:
         model_player = pickle.load(f)
 
-#    model_player = get_player_model()
+    #    model_player = get_player_model()
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
@@ -169,7 +171,7 @@ def make_predictedscore_table(
     include_cards=True,
     include_saves=True,
     tag_prefix=None,
-    dbsession=None
+    dbsession=None,
 ):
     tag = tag_prefix if tag_prefix else ""
     tag += str(uuid4())
@@ -183,7 +185,7 @@ def make_predictedscore_table(
         include_saves=include_saves,
         num_thread=num_thread,
         tag=tag,
-        dbsession=dbsession
+        dbsession=dbsession,
     )
     return tag
 

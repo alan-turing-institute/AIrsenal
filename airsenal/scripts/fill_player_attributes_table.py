@@ -180,7 +180,7 @@ def make_attributes_table(session, seasons=[]):
         seasons.append(CURRENT_SEASON)
 
     for season in seasons:
-        if season==CURRENT_SEASON:
+        if season == CURRENT_SEASON:
             continue
         input_path = os.path.join(
             os.path.dirname(__file__), "../data/player_details_{}.json".format(season)
