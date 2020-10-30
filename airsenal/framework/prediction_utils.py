@@ -713,7 +713,9 @@ def fit_save_points(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
 
-    goalkeepers = list_players(position="GK", gameweek=gameweek, season=season)
+    goalkeepers = list_players(
+        position="GK", gameweek=gameweek, season=season, dbsession=dbsession
+    )
     goalkeepers = [gk.player_id for gk in goalkeepers]
     df = df[df["player_id"].isin(goalkeepers)]
 
