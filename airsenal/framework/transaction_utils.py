@@ -17,7 +17,9 @@ from airsenal.framework.utils import (
 
 def free_hit_used_in_gameweek(gameweek):
     """Use FPL API to determine whether a chip was played in the given gameweek"""
-    if fetcher.get_fpl_team_data(gameweek)["active_chip"] == "freehit":
+    fpl_team_data = fetcher.get_fpl_team_data(gameweek)
+    if fpl_team_data and "active_chip" in fpl_team_data.keys() \
+       and fpl_team_data["active_chip"] == "freehit":
         return 1
     else:
         return 0
