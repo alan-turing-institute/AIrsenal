@@ -11,6 +11,7 @@ from airsenal.framework.optimization_utils import (
     make_optimum_transfer,
     make_optimum_double_transfer,
     generate_transfer_strategies,
+    get_discount_factor
 )
 
 
@@ -409,3 +410,17 @@ def test_generate_transfer_strategies():
         ({1: 2, 2: 1, 3: 1}, 4, 1),
     ]
     assert actual_strats == exp_strats
+
+def test_get_discount_factor():
+    """
+    Discount factor discounts future gameweek score predictions based on the number of gameweeks ahead.
+    It uses two discount types based on a discount of 14/15, exponential ({14/15}^{weeks ahead}) and constant (1-{14/15}*weeks ahead)
+    """
+
+    assert get_discount_factor(1,4) == (14/15)**(4-1)
+    assert get_discount_factor(1,4, 'constant') == np.maximum(1-(14/15)*(4-1), 0)
+    assert get_discount_factor(1,4, 'const') == np.maximum(1-(14/15)*(4-1), 0)
+    assert get_discount_factor(1,1, 'const') == 1
+    assert get_discount_factor(1,1, 'exp') == 1
+
+
