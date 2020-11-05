@@ -4,11 +4,10 @@ import argparse
 import pygmo as pg
 
 from airsenal.framework.utils import (
-    get_current_season,
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
 )
-from airsenal.framework.optimization_utils import make_new_squad
+from airsenal.framework.season import get_current_season
 
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
@@ -82,11 +81,13 @@ def main():
     tag = get_latest_prediction_tag(season)
 
     if args.algorithm == "normal":
+        from airsenal.framework.optimization_utils import make_new_squad
 
         num_iterations = args.num_iterations
         best_squad = make_new_squad(args.budget, num_iterations, tag, gw_range, season)
 
     elif args.algorithm == "genetic":
+        from airsenal.framework.optimization_pygmo import make_new_squad
 
         num_generations = args.num_generations
         population_size = args.population_size

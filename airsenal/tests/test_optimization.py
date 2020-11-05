@@ -8,7 +8,7 @@ from operator import itemgetter
 
 from airsenal.framework.optimization_utils import (
     Squad,
-    make_optimum_transfer,
+    make_optimum_single_transfer,
     make_optimum_double_transfer,
     generate_transfer_strategies,
     get_discount_factor
@@ -178,7 +178,7 @@ def test_single_transfer():
         "airsenal.framework.optimization_utils.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_squad, pid_out, pid_in = make_optimum_transfer(t, "DUMMY", [1])
+        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
         ## we should expect - player 115 to be transfered in, and to be captain.
     assert pid_in[0] == 115
     for p in new_squad.players:
@@ -251,7 +251,6 @@ def test_double_transfer():
                 assert p.is_captain == True
             else:
                 assert p.is_captain == False
-
 
 def test_generate_transfer_strategies():
     # 1 week, no chips
@@ -422,5 +421,4 @@ def test_get_discount_factor():
     assert get_discount_factor(1,20, 'const') == 0
     assert get_discount_factor(1,1, 'const') == 1
     assert get_discount_factor(1,1, 'exp') == 1
-
 

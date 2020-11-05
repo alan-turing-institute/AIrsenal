@@ -17,7 +17,9 @@ from airsenal.framework.utils import (
 
 def free_hit_used_in_gameweek(gameweek):
     """Use FPL API to determine whether a chip was played in the given gameweek"""
-    if fetcher.get_fpl_team_data(gameweek)["active_chip"] == "freehit":
+    fpl_team_data = fetcher.get_fpl_team_data(gameweek)
+    if fpl_team_data and "active_chip" in fpl_team_data.keys() \
+       and fpl_team_data["active_chip"] == "freehit":
         return 1
     else:
         return 0
@@ -48,18 +50,22 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
     getting the information from the team history API endpoint (for the list of players in our team)
     and the player history API endpoint (for their price in gw1).
     """
-    print("SQUAD Getting selected players for gameweek 1...")
+    print("Getting selected players in squad {} for first gameweek...".format(fetcher.FPL_TEAM_ID))
     if NEXT_GAMEWEEK == 1:
         ### Season hasn't started yet - there won't be a team in the DB
         return True
 
-    free_hit = free_hit_used_in_gameweek(1)
-    init_players = get_players_for_gameweek(1)
+    init_players = []
+    starting_gw = 0
+    while len(init_players) == 0:
+        starting_gw += 1
+        init_players = get_players_for_gameweek(starting_gw)
+        free_hit = free_hit_used_in_gameweek(starting_gw)
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
-        gw1_data = fetcher.get_gameweek_data_for_player(player_api_id, 1)
+        first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
 
-        if len(gw1_data) == 0:
+        if len(first_gw_data) == 0:
             # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
             # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
             # API using current price and total price change.
@@ -71,7 +77,7 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
             pdata = fetcher.get_player_summary_data()[player_api_id]
             price = pdata["now_cost"] - pdata["cost_change_start"]
         else:
-            price = gw1_data[0]["value"]
+            price = first_gw_data[0]["value"]
 
         add_transaction(pid, 1, 1, price, season, tag, free_hit, session)
 
