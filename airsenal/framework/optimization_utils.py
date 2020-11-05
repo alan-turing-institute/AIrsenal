@@ -207,7 +207,7 @@ def get_discount_factor(next_gw, pred_gw, discount_type = 'exp', discount = 14/1
     if discount_type in ['exp']:
         score = discount**n_ahead
     elif discount_type in ['const','constant']:
-        score = np.maximum(1-(1-discount)*n_ahead, 0)
+        score = max(1-(1-discount)*n_ahead, 0)
    
     return score 
 
