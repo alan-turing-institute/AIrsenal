@@ -190,25 +190,24 @@ def get_starting_squad():
             )
     return s
 
-def get_discount_factor(next_gw, pred_gw, discount_type = 'exp'):
+def get_discount_factor(next_gw, pred_gw, discount_type = 'exp', discount = 14/15):
 
     """
     given the next gw and a predicted gw,
     retrieve discount factor.
     either 
     exp: discount**n_ahead (discount reduces each gameweek)
-    const: 1-discount*n_ahead (constant discount each gameweek)
+    const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to zero at gw 15 with default discount)
     """
     allowed_types = ['exp','const','constant']
     if discount_type not in allowed_types: raise Exception("unrecognised discount type, should be exp or const")
 
-    discount = 14/15
     n_ahead = pred_gw - next_gw
 
     if discount_type in ['exp']:
         score = discount**n_ahead
     elif discount_type in ['const','constant']:
-        score = np.maximum(1-discount*n_ahead,0)
+        score = np.maximum(1-(1-discount)*n_ahead, 0)
    
     return score 
 
