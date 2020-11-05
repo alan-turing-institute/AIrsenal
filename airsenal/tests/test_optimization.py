@@ -418,8 +418,8 @@ def test_get_discount_factor():
     """
 
     assert get_discount_factor(1,4) == (14/15)**(4-1)
-    assert get_discount_factor(1,4, 'constant') == np.maximum(1-(14/15)*(4-1), 0)
-    assert get_discount_factor(1,4, 'const') == np.maximum(1-(14/15)*(4-1), 0)
+    assert get_discount_factor(1,4, 'constant') == 1- ((1/15)*(4-1))
+    assert get_discount_factor(1,20, 'const') == 0
     assert get_discount_factor(1,1, 'const') == 1
     assert get_discount_factor(1,1, 'exp') == 1
 
