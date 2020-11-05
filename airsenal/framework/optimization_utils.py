@@ -94,6 +94,26 @@ def get_starting_squad():
             )
     return s
 
+def get_discount_factor(next_gw, pred_gw, discount_type = 'exp', discount = 14/15):
+
+    """
+    given the next gw and a predicted gw,
+    retrieve discount factor.
+    either 
+    exp: discount**n_ahead (discount reduces each gameweek)
+    const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to zero at gw 15 with default discount)
+    """
+    allowed_types = ['exp','const','constant']
+    if discount_type not in allowed_types: raise Exception("unrecognised discount type, should be exp or const")
+
+    n_ahead = pred_gw - next_gw
+
+    if discount_type in ['exp']:
+        score = discount**n_ahead
+    elif discount_type in ['const','constant']:
+        score = max(1-(1-discount)*n_ahead, 0)
+   
+    return score 
 
 def get_baseline_prediction(gw_ahead, tag):
     """
@@ -107,7 +127,7 @@ def get_baseline_prediction(gw_ahead, tag):
     next_gw = NEXT_GAMEWEEK
     gameweeks = list(range(next_gw, next_gw + gw_ahead))
     for gw in gameweeks:
-        score = squad.get_expected_points(gw, tag)
+        score = squad.get_expected_points(gw, tag) * get_discount_factor(next_gw, gw)
         cum_total_per_gw[gw] = total + score
         total += score
     return total, cum_total_per_gw
@@ -161,13 +181,13 @@ def make_optimum_single_transfer(
         total_points = 0.0
         for gw in gameweek_range:
             if gw == bench_boost_gw:
-                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True)
+                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gameweek_range[0], gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                )
+                ) * get_discount_factor(gameweek_range[0], gw)
             else:
-                total_points += new_squad.get_expected_points(gw, tag)
+                total_points += new_squad.get_expected_points(gw, tag) * get_discount_factor(gameweek_range[0], gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = p_out.player_id
@@ -261,15 +281,15 @@ def make_optimum_double_transfer(
                             if gw == bench_boost_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, bench_boost=True
-                                )
+                                ) * get_discount_factor(gameweek_range[0], gw)
                             elif gw == triple_captain_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, triple_captain=True
-                                )
+                                ) * get_discount_factor(gameweek_range[0], gw)
                             else:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag
-                                )
+                                ) * get_discount_factor(gameweek_range[0], gw)
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]
@@ -375,13 +395,13 @@ def make_random_transfers(
         total_points = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
-                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True)
+                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                )
+                ) * get_discount_factor(gw_range[0], gw)
             else:
-                total_points += new_squad.get_expected_points(gw, tag)
+                total_points += new_squad.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = removed_players
@@ -551,11 +571,11 @@ def make_new_squad(
         score = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
-                score += t.get_expected_points(gw, tag, bench_boost=True)
+                score += t.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
             elif gw == triple_captain_gw:
-                score += t.get_expected_points(gw, tag, triple_captain=True)
+                score += t.get_expected_points(gw, tag, triple_captain=True) * get_discount_factor(gw_range[0], gw)
             else:
-                score += t.get_expected_points(gw, tag)
+                score += t.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
         if score > best_score:
             best_score = score
             best_squad = t
@@ -699,11 +719,11 @@ def apply_strategy(
                 triple_captain_gw=triple_captain_gw,
             )
         if gw == bench_boost_gw:
-            score = new_squad.get_expected_points(gw, tag, bench_boost=True)
+            score = new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
         elif gw == triple_captain_gw:
-            score = new_squad.get_expected_points(gw, tag, triple_captain=True)
+            score = new_squad.get_expected_points(gw, tag, triple_captain=True) * get_discount_factor(gw_range[0], gw)
         else:
-            score = new_squad.get_expected_points(gw, tag)
+            score = new_squad.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
 
         ## if we're ever >5 points below the baseline, bail out!
         strategy_output["total_score"] += score
