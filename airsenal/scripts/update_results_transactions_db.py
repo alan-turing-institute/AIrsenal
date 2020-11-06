@@ -21,7 +21,7 @@ from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_
 from airsenal.scripts.fill_result_table import fill_results_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.framework.transaction_utils import update_squad
-from airsenal.framework.schema import session_scope
+from airsenal.framework.schema import Player, session_scope
 
 
 def update_transactions(season, dbsession):
@@ -53,6 +53,13 @@ def update_results(season, do_attributes, dbsession):
         # no results in database for this season yet
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
+    
+    if do_attributes:
+        print("Updating attributes table ...")
+        fill_attributes_table_from_api(
+            season, dbsession, gw_start=last_in_db, gw_end=NEXT_GAMEWEEK
+        )
+
     if NEXT_GAMEWEEK != 1:
         if last_finished > last_in_db:
             # need to update
@@ -60,13 +67,8 @@ def update_results(season, do_attributes, dbsession):
             fill_results_from_api(last_in_db + 1, NEXT_GAMEWEEK, season, dbsession=dbsession)
             print("Updating playerscores table ...")
             fill_playerscores_from_api(
-                season, session, last_in_db + 1, NEXT_GAMEWEEK
+                season, dbsession, last_in_db + 1, NEXT_GAMEWEEK
             )
-            if do_attributes:
-                print("Updating attributes table ...")
-                fill_attributes_table_from_api(
-                    season, session, gw_start=last_in_db, gw_end=NEXT_GAMEWEEK
-                )
         else:
             print("Matches and player-scores already up-to-date")
     else:
@@ -83,6 +85,7 @@ def update_players(season, dbsession):
                                    season=season, dbsession=dbsession)
     player_data_from_api = fetcher.get_player_summary_data()
     players_from_api = list(player_data_from_api.keys())
+
     if len(players_from_db) == len(players_from_api):
         print("Player table already up-to-date.")
         return 0
