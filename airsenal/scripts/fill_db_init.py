@@ -7,7 +7,7 @@ from airsenal.scripts.fill_result_table import make_result_table
 from airsenal.scripts.fill_playerscore_table import make_playerscore_table
 from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 
-from airsenal.framework.transaction_utils import fill_initial_team
+from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.schema import session_scope
 
 
@@ -23,6 +23,6 @@ def main():
         make_attributes_table(session)
         make_playerscore_table(session)
 
-        fill_initial_team(session)
+        fill_initial_squad(dbsession=session)
 
         print("DONE!")

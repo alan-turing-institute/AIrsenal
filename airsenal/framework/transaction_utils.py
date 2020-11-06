@@ -12,6 +12,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_player,
+    session
 )
 
 
@@ -44,7 +45,7 @@ def add_transaction(
     session.commit()
 
 
-def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON):
+def fill_initial_squad(season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session):
     """
     Fill the Transactions table in the database with the initial 15 players, and their costs,
     getting the information from the team history API endpoint (for the list of players in our team)
@@ -79,11 +80,11 @@ def fill_initial_team(session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_S
         else:
             price = first_gw_data[0]["value"]
 
-        add_transaction(pid, 1, 1, price, season, tag, free_hit, session)
+        add_transaction(pid, 1, 1, price, season, tag, free_hit, dbsession)
 
 
-def update_team(
-    session, season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, verbose=True
+def update_squad(
+        season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session,verbose=True
 ):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
@@ -103,7 +104,7 @@ def update_team(
             )
         free_hit = free_hit_used_in_gameweek(gameweek)
         add_transaction(
-            pid_out, gameweek, -1, price_out, season, tag, free_hit, session
+            pid_out, gameweek, -1, price_out, season, tag, free_hit, dbsession
         )
         api_pid_in = transfer["element_in"]
         pid_in = get_player_from_api_id(api_pid_in).player_id
