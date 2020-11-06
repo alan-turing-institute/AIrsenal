@@ -20,7 +20,7 @@ from airsenal.framework.utils import (
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
-from airsenal.framework.transaction_utils import update_team
+from airsenal.framework.transaction_utils import update_squad
 from airsenal.framework.schema import session_scope
 
 
@@ -35,7 +35,7 @@ def update_transactions(season, dbsession):
         db_players = sorted(get_current_players(season=season, dbsession=dbsession))
         api_players = sorted(get_players_for_gameweek(last_finished))
         if db_players != api_players:
-            update_team(season=season, dbsession=dbsession, verbose=True)
+            update_squad(season=season, dbsession=dbsession, verbose=True)
         else:
             print("Team is up-to-date")
     else:
