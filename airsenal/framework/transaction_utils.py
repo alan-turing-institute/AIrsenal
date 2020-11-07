@@ -12,15 +12,18 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_player,
-    session
+    session,
 )
 
 
 def free_hit_used_in_gameweek(gameweek):
     """Use FPL API to determine whether a chip was played in the given gameweek"""
     fpl_team_data = fetcher.get_fpl_team_data(gameweek)
-    if fpl_team_data and "active_chip" in fpl_team_data.keys() \
-       and fpl_team_data["active_chip"] == "freehit":
+    if (
+        fpl_team_data
+        and "active_chip" in fpl_team_data.keys()
+        and fpl_team_data["active_chip"] == "freehit"
+    ):
         return 1
     else:
         return 0
@@ -45,13 +48,19 @@ def add_transaction(
     session.commit()
 
 
-def fill_initial_squad(season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session):
+def fill_initial_squad(
+    season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session
+):
     """
     Fill the Transactions table in the database with the initial 15 players, and their costs,
     getting the information from the team history API endpoint (for the list of players in our team)
     and the player history API endpoint (for their price in gw1).
     """
-    print("Getting selected players in squad {} for first gameweek...".format(fetcher.FPL_TEAM_ID))
+    print(
+        "Getting selected players in squad {} for first gameweek...".format(
+            fetcher.FPL_TEAM_ID
+        )
+    )
     if NEXT_GAMEWEEK == 1:
         ### Season hasn't started yet - there won't be a team in the DB
         return True
@@ -84,7 +93,10 @@ def fill_initial_squad(season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, d
 
 
 def update_squad(
-        season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session,verbose=True
+    season=CURRENT_SEASON,
+    tag="AIrsenal" + CURRENT_SEASON,
+    dbsession=session,
+    verbose=True,
 ):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using

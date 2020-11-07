@@ -15,7 +15,7 @@ from airsenal.framework.utils import (
     get_current_players,
     get_players_for_gameweek,
     list_players,
-    fetcher
+    fetcher,
 )
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
@@ -53,22 +53,25 @@ def update_results(season, do_attributes, dbsession):
         # no results in database for this season yet
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
-    
+
     if do_attributes:
         print("Updating attributes table ...")
         fill_attributes_table_from_api(
-            season=season, gw_start=last_in_db, gw_end=NEXT_GAMEWEEK, dbsession=dbsession,
+            season=season,
+            gw_start=last_in_db,
+            gw_end=NEXT_GAMEWEEK,
+            dbsession=dbsession,
         )
 
     if NEXT_GAMEWEEK != 1:
         if last_finished > last_in_db:
             # need to update
             print("Updating results table ...")
-            fill_results_from_api(last_in_db + 1, NEXT_GAMEWEEK, season, dbsession=dbsession)
-            print("Updating playerscores table ...")
-            fill_playerscores_from_api(
-                season, dbsession, last_in_db + 1, NEXT_GAMEWEEK
+            fill_results_from_api(
+                last_in_db + 1, NEXT_GAMEWEEK, season, dbsession=dbsession
             )
+            print("Updating playerscores table ...")
+            fill_playerscores_from_api(season, dbsession, last_in_db + 1, NEXT_GAMEWEEK)
         else:
             print("Matches and player-scores already up-to-date")
     else:
@@ -81,8 +84,9 @@ def update_players(season, dbsession):
     See if any new players have been added to FPL since we last filled the 'player'
     table in the db.  If so, add them.
     """
-    players_from_db = list_players(position="all", team="all",
-                                   season=season, dbsession=dbsession)
+    players_from_db = list_players(
+        position="all", team="all", season=season, dbsession=dbsession
+    )
     player_data_from_api = fetcher.get_player_summary_data()
     players_from_api = list(player_data_from_api.keys())
 
@@ -90,7 +94,9 @@ def update_players(season, dbsession):
         print("Player table already up-to-date.")
         return 0
     elif len(players_from_db) > len(players_from_api):
-        raise RuntimeError("Something strange has happened - more players in DB than API")
+        raise RuntimeError(
+            "Something strange has happened - more players in DB than API"
+        )
     else:
         # find the new player(s) from the API
         api_ids_from_db = [p.fpl_api_id for p in players_from_db]
@@ -136,6 +142,7 @@ def main():
         update_results(season, do_attributes, session)
         # update our squad
         update_transactions(season, session)
+
 
 # TODO update fixtures table (e.g. in case of rescheduling)?
 

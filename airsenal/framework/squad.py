@@ -177,7 +177,9 @@ class Squad(object):
             try:
                 # first try getting the price for the player from the API
                 player_db = get_player(player_id)
-                price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id]["now_cost"]
+                price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id][
+                    "now_cost"
+                ]
             except:
                 pass
 

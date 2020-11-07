@@ -167,7 +167,9 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
     return current_players
 
 
-def get_squad_value(squad, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False):
+def get_squad_value(
+    squad, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False
+):
     """
     Use the transactions table to find the squad as of specified gameweek,
     then add up the values at that gameweek (using the FPL API if set), plus the
@@ -240,7 +242,7 @@ def get_bank(gameweek=None, fpl_team_id=None):
     if "current" in data.keys() and len(data["current"]) > 0:
         if gameweek and isinstance(gameweek, int):
             for gw in data["current"]:
-                if gw["event"] == gameweek - 1: # value after previous gameweek
+                if gw["event"] == gameweek - 1:  # value after previous gameweek
                     return gw["bank"]
         # otherwise, return the most recent value
         return data["current"][-1]["bank"]
@@ -685,7 +687,7 @@ def get_players_for_gameweek(gameweek):
             for api_id in player_api_id_list
             if get_player_from_api_id(api_id)
         ]
-    except(TypeError):
+    except (TypeError):
         return []
     return player_list
 

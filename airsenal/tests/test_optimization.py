@@ -10,7 +10,7 @@ from airsenal.framework.optimization_utils import (
     Squad,
     make_optimum_single_transfer,
     make_optimum_double_transfer,
-    get_discount_factor
+    get_discount_factor,
 )
 
 
@@ -258,9 +258,8 @@ def test_get_discount_factor():
     It uses two discount types based on a discount of 14/15, exponential ({14/15}^{weeks ahead}) and constant (1-{14/15}*weeks ahead)
     """
 
-    assert get_discount_factor(1,4) == (14/15)**(4-1)
-    assert get_discount_factor(1,4, 'constant') == 1- ((1/15)*(4-1))
-    assert get_discount_factor(1,20, 'const') == 0
-    assert get_discount_factor(1,1, 'const') == 1
-    assert get_discount_factor(1,1, 'exp') == 1
-
+    assert get_discount_factor(1, 4) == (14 / 15) ** (4 - 1)
+    assert get_discount_factor(1, 4, "constant") == 1 - ((1 / 15) * (4 - 1))
+    assert get_discount_factor(1, 20, "const") == 0
+    assert get_discount_factor(1, 1, "const") == 1
+    assert get_discount_factor(1, 1, "exp") == 1

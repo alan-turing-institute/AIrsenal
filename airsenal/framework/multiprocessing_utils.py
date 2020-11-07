@@ -31,7 +31,7 @@ class SharedCounter(object):
     """
 
     def __init__(self, n=0):
-        self.count = multiprocessing.Value('i', n)
+        self.count = multiprocessing.Value("i", n)
 
     def increment(self, n=1):
         """ Increment the counter by n (default = 1) """

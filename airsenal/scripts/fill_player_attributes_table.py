@@ -65,7 +65,9 @@ def fill_attributes_table_from_file(detail_data, season, dbsession=session):
                 dbsession.add(pa)
 
 
-def fill_attributes_table_from_api(season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session):
+def fill_attributes_table_from_api(
+    season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session
+):
     """
     use the FPL API to get player attributes info for the current season
     """
@@ -188,7 +190,9 @@ def make_attributes_table(seasons=[], dbsession=session):
         with open(input_path, "r") as f:
             input_data = json.load(f)
 
-        fill_attributes_table_from_file(detail_data=input_data, season=season, dbsession=dbsession)
+        fill_attributes_table_from_file(
+            detail_data=input_data, season=season, dbsession=dbsession
+        )
 
     # this season's data from the API
     if CURRENT_SEASON in seasons:

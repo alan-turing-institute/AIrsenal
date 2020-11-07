@@ -38,7 +38,7 @@ from airsenal.framework.optimization_utils import (
     fill_suggestion_table,
     make_best_transfers,
     get_num_increments,
-    count_expected_outputs
+    count_expected_outputs,
 )
 
 from airsenal.framework.utils import (
@@ -57,20 +57,22 @@ else:
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
-def is_finished(num_gameweeks,
-                wildcard=False,
-                free_hit=False,
-                triple_captain=False,
-                bench_boost=False):
+def is_finished(
+    num_gameweeks,
+    wildcard=False,
+    free_hit=False,
+    triple_captain=False,
+    bench_boost=False,
+):
     """
     Count the number of json files in the output directory, and see if the number
     matches the final expected number, calculated based on number of gameweeks,
     and cards played
     Return True if output files are all there, False otherwise.
     """
-    final_expected_num = count_expected_outputs(0,num_gameweeks,
-                                                wildcard, free_hit,
-                                                triple_captain, bench_boost)
+    final_expected_num = count_expected_outputs(
+        0, num_gameweeks, wildcard, free_hit, triple_captain, bench_boost
+    )
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
     if json_count == final_expected_num:
@@ -79,15 +81,16 @@ def is_finished(num_gameweeks,
 
 
 def optimize(
-        queue,
-        pid,
-        gameweek_range,
-        season,
-        pred_tag,
-        cards_allowed=[],
-        num_iterations=100,
-        updater=None, resetter=None,
-        profile=False
+    queue,
+    pid,
+    gameweek_range,
+    season,
+    pred_tag,
+    cards_allowed=[],
+    num_iterations=100,
+    updater=None,
+    resetter=None,
+    profile=False,
 ):
     """
     Queue is the multiprocessing queue,
@@ -110,11 +113,12 @@ def optimize(
         if queue.qsize() > 0:
             status = queue.get()
         else:
-            if is_finished(len(gameweek_range),
-                           ("wildcard" in cards_allowed),
-                           ("free_hit" in cards_allowed),
-                           ("triple_captain" in cards_allowed),
-                           ("bench_boost" in cards_allowed)
+            if is_finished(
+                len(gameweek_range),
+                ("wildcard" in cards_allowed),
+                ("free_hit" in cards_allowed),
+                ("triple_captain" in cards_allowed),
+                ("bench_boost" in cards_allowed),
             ):
                 break
             else:
@@ -162,10 +166,11 @@ def optimize(
             # next gameweek:
             gw = gameweeks[0]
             # if we're doing 0 transfers (including with a Triple Captain or Bench Boost):
-            if (isinstance(num_transfers, int) and num_transfers == 0) or \
-               (isinstance(num_transfers, str) and (num_transfers.startswith("T") or \
-                                                    num_transfers.startswith("B")) and \
-                int(num_transfers[-1]) == 0):
+            if (isinstance(num_transfers, int) and num_transfers == 0) or (
+                isinstance(num_transfers, str)
+                and (num_transfers.startswith("T") or num_transfers.startswith("B"))
+                and int(num_transfers[-1]) == 0
+            ):
                 # no transfers
                 strat_dict["players_in"][gw] = []
                 strat_dict["players_out"][gw] = []
@@ -179,7 +184,9 @@ def optimize(
                 new_squad = squad
             else:
 
-                num_increments_for_updater = get_num_increments(num_transfers, num_iterations)
+                num_increments_for_updater = get_num_increments(
+                    num_transfers, num_iterations
+                )
                 increment = 100 / num_increments_for_updater
                 new_squad, transfers, points = make_best_transfers(
                     num_transfers,
@@ -188,7 +195,7 @@ def optimize(
                     gameweeks,
                     season,
                     num_iterations,
-                    (updater,increment,pid)
+                    (updater, increment, pid),
                 )
 
                 points -= calc_points_hit(num_transfers, free_transfers)
@@ -212,9 +219,9 @@ def optimize(
             depth += 1
         if depth >= len(gameweek_range):
             with open(
-                    os.path.join(OUTPUT_DIR,
-                                 "strategy_{}_{}.json".format(pred_tag, sid)),
-                    "w") as outfile:
+                os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(pred_tag, sid)),
+                "w",
+            ) as outfile:
                 json.dump(strat_dict, outfile)
             # call function to update the main progress bar
             updater()
@@ -227,17 +234,30 @@ def optimize(
             for num_transfers in range(3):
                 queue.put((num_transfers, free_transfers, new_squad, strat_dict, sid))
                 if "triple_captain" in cards_allowed and not "T" in sid:
-                    queue.put(("T{}".format(num_transfers),
-                               free_transfers, new_squad, strat_dict, sid))
+                    queue.put(
+                        (
+                            "T{}".format(num_transfers),
+                            free_transfers,
+                            new_squad,
+                            strat_dict,
+                            sid,
+                        )
+                    )
                 if "bench_boost" in cards_allowed and not "B" in sid:
-                    queue.put(("B{}".format(num_transfers),
-                               free_transfers, new_squad, strat_dict, sid))
+                    queue.put(
+                        (
+                            "B{}".format(num_transfers),
+                            free_transfers,
+                            new_squad,
+                            strat_dict,
+                            sid,
+                        )
+                    )
             if "wildcard" in cards_allowed and not "W" in sid:
                 queue.put(("W", free_transfers, new_squad, strat_dict, sid))
             # If we're playing "free_hit", put the old squad onto the queue
             if "free_hit" in cards_allowed and not "F" in sid:
                 queue.put(("F", free_transfers, squad, strat_dict, sid))
-
 
 
 def find_best_strat_from_json(tag):
@@ -269,12 +289,11 @@ def find_baseline_score_from_json(tag, num_gameweeks):
     for all gameweeks.
     """
     # the strategy string we're looking for will be something like '0-0-0'.
-    zeros = ("0-"*num_gameweeks)[:-1]
-    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json"\
-                            .format(tag, zeros))
+    zeros = ("0-" * num_gameweeks)[:-1]
+    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
     if not os.path.exists(filename):
         print("Couldn't find {}".format(filename))
-        return 0.
+        return 0.0
     else:
         with open(filename) as inputfile:
             strat = json.load(inputfile)
@@ -287,26 +306,26 @@ def print_strat(strat):
     nicely formated printout as output of optimization.
     """
 
-    gameweeks_as_str = strat['points_per_gw'].keys()
-    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    gameweeks_as_str = strat["points_per_gw"].keys()
+    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     print(" ===============================================")
     print(" ========= Optimum strategy ====================")
     print(" ===============================================")
     for gw in gameweeks_as_int:
         print("\n =========== Gameweek {} ================\n".format(gw))
-        print("Cards played:  {}\n".format(strat['cards_played'][str(gw)]))
+        print("Cards played:  {}\n".format(strat["cards_played"][str(gw)]))
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
-        for i in range(len(strat['players_in'][str(gw)])):
-            pin = get_player_name(strat['players_in'][str(gw)][i])
-            pout = get_player_name(strat['players_out'][str(gw)][i])
+        for i in range(len(strat["players_in"][str(gw)])):
+            pin = get_player_name(strat["players_in"][str(gw)][i])
+            pout = get_player_name(strat["players_out"][str(gw)][i])
             if len(pin) < 20:
-                subs = "{}\t\t\t{}".format(pin,pout)
+                subs = "{}\t\t\t{}".format(pin, pout)
             else:
-                subs = "{}\t\t{}".format(pin,pout)
+                subs = "{}\t\t{}".format(pin, pout)
             print(subs)
     print("\n==========================")
-    print(" Total score: {} \n".format(int(strat['total_score'])))
+    print(" Total score: {} \n".format(int(strat["total_score"])))
     pass
 
 
@@ -315,30 +334,31 @@ def print_team_for_next_gw(strat):
     Display the team (inc. subs and captain) for the next gameweek
     """
     t = get_starting_squad()
-    gameweeks_as_str = strat['points_per_gw'].keys()
-    gameweeks_as_int = sorted([ int(gw) for gw in gameweeks_as_str])
+    gameweeks_as_str = strat["points_per_gw"].keys()
+    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
-    for pidout in strat['players_out'][str(next_gw)]:
+    for pidout in strat["players_out"][str(next_gw)]:
         t.remove_player(pidout)
-    for pidin in strat['players_in'][str(next_gw)]:
+    for pidin in strat["players_in"][str(next_gw)]:
         t.add_player(pidin)
     tag = get_latest_prediction_tag()
-    expected_points = t.get_expected_points(next_gw,tag)
+    expected_points = t.get_expected_points(next_gw, tag)
     print(t)
 
 
-
-def run_optimization(gameweeks,
-                     tag,
-                     season=CURRENT_SEASON,
-                     wildcard=False,
-                     free_hit=False,
-                     triple_captain=False,
-                     bench_boost=False,
-                     num_free_transfers=None,
-                     num_iterations=100,
-                     num_thread=4,
-                     profile=False):
+def run_optimization(
+    gameweeks,
+    tag,
+    season=CURRENT_SEASON,
+    wildcard=False,
+    free_hit=False,
+    triple_captain=False,
+    bench_boost=False,
+    num_free_transfers=None,
+    num_iterations=100,
+    num_thread=4,
+    profile=False,
+):
     """
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
@@ -352,7 +372,7 @@ def run_optimization(gameweeks,
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     ## first get a baseline prediction
-    #baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
+    # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
     ## create a queue that we will add nodes to, and some processes to take
     ## things off it
@@ -367,28 +387,21 @@ def run_optimization(gameweeks,
     ## a "card" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
     expected_num = count_expected_outputs(
-        0,
-        num_weeks,
-        wildcard,
-        free_hit,
-        triple_captain,
-        bench_boost
+        0, num_weeks, wildcard, free_hit, triple_captain, bench_boost
     )
     total_progress = tqdm(total=expected_num, desc="Total progress")
-
 
     ## functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
         if strategy_string == "DONE":
             progress_bars[index].close()
         else:
-            progress_bars[index].n=0
-            progress_bars[index].desc="strategy: "+strategy_string
+            progress_bars[index].n = 0
+            progress_bars[index].desc = "strategy: " + strategy_string
             progress_bars[index].refresh()
 
-
     def update_progress(increment=1, index=None):
-        if index==None:
+        if index == None:
             ## outer progress bar
             nfiles = len(os.listdir(OUTPUT_DIR))
             total_progress.n = nfiles
@@ -421,8 +434,18 @@ def run_optimization(gameweeks,
     for i in range(num_thread):
         processor = Process(
             target=optimize,
-            args=(squeue, i, gameweeks, season, tag, cards, num_iterations,
-                  update_progress, reset_progress, profile)
+            args=(
+                squeue,
+                i,
+                gameweeks,
+                season,
+                tag,
+                cards,
+                num_iterations,
+                update_progress,
+                reset_progress,
+                profile,
+            ),
         )
         processor.daemon = True
         processor.start()
@@ -431,7 +454,7 @@ def run_optimization(gameweeks,
     starting_squad = get_starting_squad()
     squeue.put((0, num_free_transfers, starting_squad, {}, "starting"))
 
-    for i,p in enumerate(procs):
+    for i, p in enumerate(procs):
         progress_bars[i].close()
         progress_bars[i] = None
         p.join()
@@ -456,10 +479,9 @@ def sanity_check_args(args):
     """
     if args.weeks_ahead and (args.gw_start or args.gw_end):
         raise RuntimeError("Please only specify weeks_ahead OR gw_start/end")
-    elif (args.gw_start and not args.gw_end) or \
-         (args.gw_end and not args.gw_start):
+    elif (args.gw_start and not args.gw_end) or (args.gw_end and not args.gw_start):
         raise RuntimeError("Need to specify both gw_start and gw_end")
-    if (args.num_free_transfers and not args.num_free_transfers in range(1,3)):
+    if args.num_free_transfers and not args.num_free_transfers in range(1, 3):
         raise RuntimeError("Number of free transfers must be 1 or 2")
     return True
 
@@ -471,50 +493,61 @@ def main():
     parser = argparse.ArgumentParser(
         description="Try some different transfer strategies"
     )
-    parser.add_argument(
-        "--weeks_ahead", help="how many weeks ahead", type=int
-    )
-    parser.add_argument(
-        "--gw_start", help="first gameweek to consider", type=int
-    )
-    parser.add_argument(
-        "--gw_end", help="last gameweek to consider", type=int
-    )
+    parser.add_argument("--weeks_ahead", help="how many weeks ahead", type=int)
+    parser.add_argument("--gw_start", help="first gameweek to consider", type=int)
+    parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
     parser.add_argument("--tag", help="specify a string identifying prediction set")
-    parser.add_argument("--allow_wildcard",
-                        help="include possibility of wildcarding in one of the weeks",
-                        action="store_true")
-    parser.add_argument("--allow_free_hit",
-                        help="include possibility of playing free hit in one of the weeks",
-                        action="store_true")
-    parser.add_argument("--allow_triple_captain",
-                        help="include possibility of playing triple captain in one of the weeks",
-                        action="store_true")
-    parser.add_argument("--allow_bench_boost",
-                        help="include possibility of playing bench boost in one of the weeks",
-                        action="store_true")
-    parser.add_argument("--num_free_transfers",
-                        help="how many free transfers do we have",
-                        type=int)
-    parser.add_argument("--num_iterations",
-                        help="how many iterations to use for Wildcard/Free Hit optimization",
-                        type=int, default=100)
-    parser.add_argument("--num_thread",
-                        help="how many threads to use",
-                        type=int, default=4)
-    parser.add_argument("--season",
-                        help="what season, in format e.g. '2021'",
-                        type=str, default=CURRENT_SEASON)
-    parser.add_argument("--profile",
-                        help="For developers: Profile strategy execution time",
-                        action="store_true")
+    parser.add_argument(
+        "--allow_wildcard",
+        help="include possibility of wildcarding in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--allow_free_hit",
+        help="include possibility of playing free hit in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--allow_triple_captain",
+        help="include possibility of playing triple captain in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--allow_bench_boost",
+        help="include possibility of playing bench boost in one of the weeks",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--num_free_transfers", help="how many free transfers do we have", type=int
+    )
+    parser.add_argument(
+        "--num_iterations",
+        help="how many iterations to use for Wildcard/Free Hit optimization",
+        type=int,
+        default=100,
+    )
+    parser.add_argument(
+        "--num_thread", help="how many threads to use", type=int, default=4
+    )
+    parser.add_argument(
+        "--season",
+        help="what season, in format e.g. '2021'",
+        type=str,
+        default=CURRENT_SEASON,
+    )
+    parser.add_argument(
+        "--profile",
+        help="For developers: Profile strategy execution time",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     args_ok = sanity_check_args(args)
     season = args.season
     if args.weeks_ahead:
-        gameweeks = list(range(get_next_gameweek(),
-                               get_next_gameweek()+args.weeks_ahead))
+        gameweeks = list(
+            range(get_next_gameweek(), get_next_gameweek() + args.weeks_ahead)
+        )
     else:
         gameweeks = list(range(args.gw_start, args.gw_end))
     num_iterations = args.num_iterations
@@ -537,7 +570,7 @@ def main():
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:
-        num_free_transfers = None # will work it out in run_optimization
+        num_free_transfers = None  # will work it out in run_optimization
     if args.tag:
         tag = args.tag
     else:
@@ -546,13 +579,15 @@ def main():
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
 
-    run_optimization(gameweeks,
-                     tag,
-                     season,
-                     wildcard,
-                     free_hit,
-                     triple_captain,
-                     bench_boost,
-                     num_free_transfers,
-                     num_iterations,
-                     num_thread)
+    run_optimization(
+        gameweeks,
+        tag,
+        season,
+        wildcard,
+        free_hit,
+        triple_captain,
+        bench_boost,
+        num_free_transfers,
+        num_iterations,
+        num_thread,
+    )

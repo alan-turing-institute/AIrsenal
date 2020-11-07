@@ -33,14 +33,16 @@ def calc_points_hit(num_transfers, free_transfers):
     if num_transfers == "W" or num_transfers == "F":
         return 0
     elif isinstance(num_transfers, int):
-        return max(0, 4*(num_transfers - free_transfers))
-    elif  (num_transfers.startswith("B") \
-           or num_transfers.startswith("T")) and len(num_transfers)==2:
+        return max(0, 4 * (num_transfers - free_transfers))
+    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) and len(
+        num_transfers
+    ) == 2:
         num_transfers = int(num_transfers[-1])
-        return max(0, 4*(num_transfers - free_transfers))
+        return max(0, 4 * (num_transfers - free_transfers))
     else:
-        raise RuntimeError("Unexpected argument for num_transfers {}"\
-                           .format(num_transfers))
+        raise RuntimeError(
+            "Unexpected argument for num_transfers {}".format(num_transfers)
+        )
 
 
 def calc_free_transfers(num_transfers, prev_free_transfers):
@@ -52,21 +54,17 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
     if num_transfers == "W" or num_transfers == "F":
         return 1
     elif isinstance(num_transfers, int):
-        return max(
-            1,
-            min(2, 1+prev_free_transfers - num_transfers)
-        )
-    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) \
-         and len(num_transfers) == 2:
+        return max(1, min(2, 1 + prev_free_transfers - num_transfers))
+    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) and len(
+        num_transfers
+    ) == 2:
         # take the 'x' out of Bx or Tx
         num_transfers = int(num_transfers[-1])
-        return max(
-            1,
-            min(2, 1+prev_free_transfers - num_transfers)
-        )
+        return max(1, min(2, 1 + prev_free_transfers - num_transfers))
     else:
-        raise RuntimeError("Unexpected argument for num_transfers {}"\
-                           .format(num_transfers))
+        raise RuntimeError(
+            "Unexpected argument for num_transfers {}".format(num_transfers)
+        )
 
 
 def get_starting_squad():
@@ -94,26 +92,29 @@ def get_starting_squad():
             )
     return s
 
-def get_discount_factor(next_gw, pred_gw, discount_type = 'exp', discount = 14/15):
+
+def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
 
     """
     given the next gw and a predicted gw,
     retrieve discount factor.
-    either 
+    either
     exp: discount**n_ahead (discount reduces each gameweek)
     const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to zero at gw 15 with default discount)
     """
-    allowed_types = ['exp','const','constant']
-    if discount_type not in allowed_types: raise Exception("unrecognised discount type, should be exp or const")
+    allowed_types = ["exp", "const", "constant"]
+    if discount_type not in allowed_types:
+        raise Exception("unrecognised discount type, should be exp or const")
 
     n_ahead = pred_gw - next_gw
 
-    if discount_type in ['exp']:
-        score = discount**n_ahead
-    elif discount_type in ['const','constant']:
-        score = max(1-(1-discount)*n_ahead, 0)
-   
-    return score 
+    if discount_type in ["exp"]:
+        score = discount ** n_ahead
+    elif discount_type in ["const", "constant"]:
+        score = max(1 - (1 - discount) * n_ahead, 0)
+
+    return score
+
 
 def get_baseline_prediction(gw_ahead, tag):
     """
@@ -154,7 +155,7 @@ def make_optimum_single_transfer(
         gameweek_range = [NEXT_GAMEWEEK]
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
-    best_score = -1.
+    best_score = -1.0
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
     for pos in ["GK", "DEF", "MID", "FWD"]:
@@ -181,13 +182,17 @@ def make_optimum_single_transfer(
         total_points = 0.0
         for gw in gameweek_range:
             if gw == bench_boost_gw:
-                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gameweek_range[0], gw)
+                total_points += new_squad.get_expected_points(
+                    gw, tag, bench_boost=True
+                ) * get_discount_factor(gameweek_range[0], gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
                 ) * get_discount_factor(gameweek_range[0], gw)
             else:
-                total_points += new_squad.get_expected_points(gw, tag) * get_discount_factor(gameweek_range[0], gw)
+                total_points += new_squad.get_expected_points(
+                    gw, tag
+                ) * get_discount_factor(gameweek_range[0], gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = p_out.player_id
@@ -204,7 +209,7 @@ def make_optimum_double_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    verbose=False
+    verbose=False,
 ):
     """
     If we want to just make two transfers, it's not unfeasible to try all
@@ -395,13 +400,17 @@ def make_random_transfers(
         total_points = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
-                total_points += new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
+                total_points += new_squad.get_expected_points(
+                    gw, tag, bench_boost=True
+                ) * get_discount_factor(gw_range[0], gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
                 ) * get_discount_factor(gw_range[0], gw)
             else:
-                total_points += new_squad.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
+                total_points += new_squad.get_expected_points(
+                    gw, tag
+                ) * get_discount_factor(gw_range[0], gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = removed_players
@@ -418,15 +427,16 @@ def make_best_transfers(
     gameweeks,
     season,
     num_iter=100,
-    update_func_and_args=None):
+    update_func_and_args=None,
+):
     """
     Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
     """
     transfer_dict = {}
     # deal with triple_captain or free_hit
-    triple_captain_gw=None
-    bench_boost_gw=None
+    triple_captain_gw = None
+    bench_boost_gw = None
     if isinstance(num_transfers, str) and num_transfers.startswith("T"):
         num_transfers = int(num_transfers[1])
         triple_captain_gw = gameweeks[0]
@@ -436,7 +446,7 @@ def make_best_transfers(
 
     if num_transfers == 0:
         # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with card)
-        transfer_dict = {"in":[], "out": []}
+        transfer_dict = {"in": [], "out": []}
 
     elif num_transfers == 1:
         # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
@@ -447,11 +457,10 @@ def make_best_transfers(
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args
+            update_func_and_args=update_func_and_args,
         )
 
-        transfer_dict = {"in": players_in,
-                         "out": players_out}
+        transfer_dict = {"in": players_in, "out": players_out}
     elif num_transfers == 2:
         # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with card)
         squad, players_out, players_in = make_optimum_double_transfer(
@@ -461,10 +470,9 @@ def make_best_transfers(
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args
+            update_func_and_args=update_func_and_args,
         )
-        transfer_dict = {"in": players_in,
-                         "out": players_out}
+        transfer_dict = {"in": players_in, "out": players_out}
 
     elif num_transfers == "W" or num_transfers == "F":
         players_out = [p.player_id for p in squad.players]
@@ -473,23 +481,22 @@ def make_best_transfers(
             # for free hit, only use one week to optimize
             gameweeks = [gameweeks[0]]
         new_squad = make_new_squad(
-            budget,
-            num_iter,
-            tag,
-            gameweeks,
-            update_func_and_args=update_func_and_args
+            budget, num_iter, tag, gameweeks, update_func_and_args=update_func_and_args
         )
         players_in = [p.player_id for p in new_squad.players]
-        transfer_dict = {"in": players_in,
-                         "out": players_out}
+        transfer_dict = {"in": players_in, "out": players_out}
 
     else:
-        raise RuntimeError("Unrecognized value for num_transfers: {}".format(num_transfers))
+        raise RuntimeError(
+            "Unrecognized value for num_transfers: {}".format(num_transfers)
+        )
 
     # get the expected points total for next gameweek
-    points = squad.get_expected_points(gameweeks[0], tag,
-                                       triple_captain=(triple_captain_gw != None),
-                                       bench_boost=(bench_boost_gw != None)
+    points = squad.get_expected_points(
+        gameweeks[0],
+        tag,
+        triple_captain=(triple_captain_gw != None),
+        bench_boost=(bench_boost_gw != None),
     )
 
     return squad, transfer_dict, points
@@ -571,11 +578,17 @@ def make_new_squad(
         score = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
-                score += t.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
+                score += t.get_expected_points(
+                    gw, tag, bench_boost=True
+                ) * get_discount_factor(gw_range[0], gw)
             elif gw == triple_captain_gw:
-                score += t.get_expected_points(gw, tag, triple_captain=True) * get_discount_factor(gw_range[0], gw)
+                score += t.get_expected_points(
+                    gw, tag, triple_captain=True
+                ) * get_discount_factor(gw_range[0], gw)
             else:
-                score += t.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
+                score += t.get_expected_points(gw, tag) * get_discount_factor(
+                    gw_range[0], gw
+                )
         if score > best_score:
             best_score = score
             best_squad = t
@@ -719,11 +732,17 @@ def apply_strategy(
                 triple_captain_gw=triple_captain_gw,
             )
         if gw == bench_boost_gw:
-            score = new_squad.get_expected_points(gw, tag, bench_boost=True) * get_discount_factor(gw_range[0], gw)
+            score = new_squad.get_expected_points(
+                gw, tag, bench_boost=True
+            ) * get_discount_factor(gw_range[0], gw)
         elif gw == triple_captain_gw:
-            score = new_squad.get_expected_points(gw, tag, triple_captain=True) * get_discount_factor(gw_range[0], gw)
+            score = new_squad.get_expected_points(
+                gw, tag, triple_captain=True
+            ) * get_discount_factor(gw_range[0], gw)
         else:
-            score = new_squad.get_expected_points(gw, tag) * get_discount_factor(gw_range[0], gw)
+            score = new_squad.get_expected_points(gw, tag) * get_discount_factor(
+                gw_range[0], gw
+            )
 
         ## if we're ever >5 points below the baseline, bail out!
         strategy_output["total_score"] += score
@@ -794,20 +813,25 @@ def get_num_increments(num_transfers, num_iterations=100):
     """
     how many steps for the progress bar for this strategy
     """
-    if isinstance(num_transfers, str) and \
-       (num_transfers.startswith("B") or num_transfers.startswith("T")) and \
-       len(num_transfers)==2:
+    if (
+        isinstance(num_transfers, str)
+        and (num_transfers.startswith("B") or num_transfers.startswith("T"))
+        and len(num_transfers) == 2
+    ):
         num_transfers = int(num_transfers[1])
 
-    if num_transfers=="W" or num_transfers=="F" or \
-       (isinstance(num_transfers, int) and num_transfers > 2):
+    if (
+        num_transfers == "W"
+        or num_transfers == "F"
+        or (isinstance(num_transfers, int) and num_transfers > 2)
+    ):
         ## wildcard or free hit or >2 - needs num_iterations iterations
         return num_iterations
 
-    elif num_transfers==1:
+    elif num_transfers == 1:
         ## single transfer - 15 increments (replace each player in turn)
         return 15
-    elif num_transfers==2:
+    elif num_transfers == 2:
         ## remove each pair of players - 15*7=105 combinations
         return 105
     else:
@@ -815,12 +839,14 @@ def get_num_increments(num_transfers, num_iterations=100):
         return 1
 
 
-def count_expected_outputs(week,
-                           max_week,
-                           can_play_wildcard,
-                           can_play_free_hit,
-                           can_play_triple_captain,
-                           can_play_bench_boost):
+def count_expected_outputs(
+    week,
+    max_week,
+    can_play_wildcard,
+    can_play_free_hit,
+    can_play_triple_captain,
+    can_play_bench_boost,
+):
     """
     Recursive function to calculate how many leaf nodes we will expect.
     If we only allow 0,1,2 transfers per week, this will just be pos(3,num_weeks).
@@ -831,30 +857,57 @@ def count_expected_outputs(week,
     """
     week += 1
     if week == max_week:
-        return 3 \
-            + int(can_play_wildcard) \
-            + int(can_play_free_hit)  \
-            + 3*int(can_play_triple_captain) \
-            + 3*int(can_play_bench_boost)
+        return (
+            3
+            + int(can_play_wildcard)
+            + int(can_play_free_hit)
+            + 3 * int(can_play_triple_captain)
+            + 3 * int(can_play_bench_boost)
+        )
     total = 0
     for _ in range(3):
-        total += count_expected_outputs(week, max_week,
-                                        can_play_wildcard, can_play_free_hit,
-                                        can_play_triple_captain, can_play_bench_boost)
+        total += count_expected_outputs(
+            week,
+            max_week,
+            can_play_wildcard,
+            can_play_free_hit,
+            can_play_triple_captain,
+            can_play_bench_boost,
+        )
         if can_play_triple_captain:
-            total += count_expected_outputs(week, max_week,
-                                            can_play_wildcard, can_play_free_hit,
-                                            False, can_play_bench_boost)
+            total += count_expected_outputs(
+                week,
+                max_week,
+                can_play_wildcard,
+                can_play_free_hit,
+                False,
+                can_play_bench_boost,
+            )
         if can_play_bench_boost:
-            total += count_expected_outputs(week, max_week,
-                                            can_play_wildcard, can_play_free_hit,
-                                            can_play_triple_captain, False)
+            total += count_expected_outputs(
+                week,
+                max_week,
+                can_play_wildcard,
+                can_play_free_hit,
+                can_play_triple_captain,
+                False,
+            )
     if can_play_wildcard:
-        total += count_expected_outputs(week, max_week,
-                                        False, can_play_free_hit,
-                                        can_play_triple_captain, can_play_bench_boost)
+        total += count_expected_outputs(
+            week,
+            max_week,
+            False,
+            can_play_free_hit,
+            can_play_triple_captain,
+            can_play_bench_boost,
+        )
     if can_play_free_hit:
-        total += count_expected_outputs(week, max_week,
-                                        can_play_wildcard, False,
-                                        can_play_triple_captain, can_play_bench_boost)
+        total += count_expected_outputs(
+            week,
+            max_week,
+            can_play_wildcard,
+            False,
+            can_play_triple_captain,
+            can_play_bench_boost,
+        )
     return total
