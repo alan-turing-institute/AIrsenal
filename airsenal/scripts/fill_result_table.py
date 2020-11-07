@@ -9,7 +9,7 @@ import argparse
 import os
 
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.schema import Result, session_scope, Fixture
+from airsenal.framework.schema import Result, session_scope, Fixture, session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -95,7 +95,7 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
     dbsession.commit()
 
 
-def make_result_table(dbsession, seasons=[]):
+def make_result_table(seasons=[], dbsession=session):
     """
     past seasons - read results from csv
     """
@@ -131,4 +131,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with session_scope() as dbsession:
-        make_result_table(dbsession)
+        make_result_table(dbsession=dbsession)

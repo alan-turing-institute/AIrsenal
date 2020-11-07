@@ -6,7 +6,7 @@ Fill the "Player" table with info from this and past seasonss FPL
 import os
 import json
 
-from airsenal.framework.schema import Player, session_scope
+from airsenal.framework.schema import Player, session_scope, session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
@@ -71,7 +71,7 @@ def fill_player_table_from_api(season, session):
     session.commit()
 
 
-def make_player_table(session, seasons=[]):
+def make_player_table(seasons=[], dbsession=session):
 
     if not seasons:
         seasons = [CURRENT_SEASON]
@@ -94,4 +94,4 @@ def make_player_table(session, seasons=[]):
 
 if __name__ == "__main__":
     with session_scope() as session:
-        make_player_table(session)
+        make_player_table(dbsession=session)

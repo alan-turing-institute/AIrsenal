@@ -14,14 +14,14 @@ from airsenal.framework.schema import session_scope
 def main():
 
     with session_scope() as session:
-        make_team_table(session)
-        make_fixture_table(session)
-        make_result_table(session)
-        make_fifa_ratings_table(session)
+        make_team_table(dbsession=session)
+        make_fixture_table(dbsession=session)
+        make_result_table(dbsession=session)
+        make_fifa_ratings_table(dbsession=session)
 
-        make_player_table(session)
-        make_attributes_table(session)
-        make_playerscore_table(session)
+        make_player_table(dbsession=session)
+        make_attributes_table(dbsession=session)
+        make_playerscore_table(dbsession=session)
 
         fill_initial_squad(dbsession=session)
 

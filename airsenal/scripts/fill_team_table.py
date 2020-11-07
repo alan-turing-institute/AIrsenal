@@ -8,10 +8,10 @@ import os
 
 from airsenal.framework.schema import Team
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
-from airsenal.framework.schema import session_scope
+from airsenal.framework.schema import session_scope, session
 
 
-def fill_team_table_from_file(filename, session):
+def fill_team_table_from_file(filename, dbsession=session):
     """
     use csv file
     """
@@ -25,11 +25,11 @@ def fill_team_table_from_file(filename, session):
         t = Team()
         t.name, t.full_name, t.season, t.team_id = line.strip().split(",")
         print(t.name, t.full_name, t.season, t.team_id)
-        session.add(t)
-    session.commit()
+        dbsession.add(t)
+    dbsession.commit()
 
 
-def make_team_table(session, seasons=[]):
+def make_team_table(seasons=[], dbsession=session):
     """
     Fill the db table containing the list of teams in the
     league for each season.
@@ -44,9 +44,9 @@ def make_team_table(session, seasons=[]):
                 os.path.dirname(__file__), "..", "data", "teams_{}.csv".format(season)
             )
         )
-        fill_team_table_from_file(filename, session)
+        fill_team_table_from_file(filename, dbsession=dbsession)
 
 
 if __name__ == "__main__":
     with session_scope() as session:
-        make_team_table(session)
+        make_team_table(dbsession=session)

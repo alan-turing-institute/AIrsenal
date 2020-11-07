@@ -81,7 +81,7 @@ def update_players(season, dbsession):
     See if any new players have been added to FPL since we last filled the 'player'
     table in the db.  If so, add them.
     """
-    players_from_db = list_players(position="all",team="all",
+    players_from_db = list_players(position="all", team="all",
                                    season=season, dbsession=dbsession)
     player_data_from_api = fetcher.get_player_summary_data()
     players_from_api = list(player_data_from_api.keys())
@@ -138,7 +138,6 @@ def main():
         update_transactions(season, session)
 
 # TODO update fixtures table (e.g. in case of rescheduling)?
-
 
 
 if __name__ == "__main__":
