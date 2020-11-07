@@ -57,7 +57,7 @@ def update_results(season, do_attributes, dbsession):
     if do_attributes:
         print("Updating attributes table ...")
         fill_attributes_table_from_api(
-            season, dbsession, gw_start=last_in_db, gw_end=NEXT_GAMEWEEK
+            season=season, gw_start=last_in_db, gw_end=NEXT_GAMEWEEK, dbsession=dbsession,
         )
 
     if NEXT_GAMEWEEK != 1:

@@ -8,7 +8,7 @@ import os
 import json
 
 from airsenal.framework.mappings import positions
-from airsenal.framework.schema import PlayerAttributes, session_scope
+from airsenal.framework.schema import PlayerAttributes, session_scope, session
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -24,7 +24,7 @@ from airsenal.framework.utils import (
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def fill_attributes_table_from_file(detail_data, season, dbsession):
+def fill_attributes_table_from_file(detail_data, season, dbsession=session):
     """Fill player attributes table for previous season using data from
     player detail JSON files.
     """
@@ -65,7 +65,7 @@ def fill_attributes_table_from_file(detail_data, season, dbsession):
                 dbsession.add(pa)
 
 
-def fill_attributes_table_from_api(season, dbsession, gw_start=1, gw_end=NEXT_GAMEWEEK):
+def fill_attributes_table_from_api(season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session):
     """
     use the FPL API to get player attributes info for the current season
     """
@@ -171,7 +171,7 @@ def fill_attributes_table_from_api(season, dbsession, gw_start=1, gw_end=NEXT_GA
                 break  # done this gameweek now
 
 
-def make_attributes_table(dbsession, seasons=[]):
+def make_attributes_table(seasons=[], dbsession=session):
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
@@ -188,15 +188,15 @@ def make_attributes_table(dbsession, seasons=[]):
         with open(input_path, "r") as f:
             input_data = json.load(f)
 
-        fill_attributes_table_from_file(input_data, season, dbsession)
+        fill_attributes_table_from_file(detail_data=input_data, season=season, dbsession=dbsession)
 
     # this season's data from the API
     if CURRENT_SEASON in seasons:
-        fill_attributes_table_from_api(CURRENT_SEASON, dbsession)
+        fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
 
     dbsession.commit()
 
 
 if __name__ == "__main__":
     with session_scope() as dbsession:
-        make_attributes_table(dbsession)
+        make_attributes_table(dbsession=dbsession)
