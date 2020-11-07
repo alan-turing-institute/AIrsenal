@@ -31,9 +31,9 @@ def update_transactions(season, dbsession):
 
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
-        last_finished = get_last_finished_gameweek()
+        current_gameweek = NEXT_GAMEWEEK - 1
         db_players = sorted(get_current_players(season=season, dbsession=dbsession))
-        api_players = sorted(get_players_for_gameweek(last_finished))
+        api_players = sorted(get_players_for_gameweek(current_gameweek))
         if db_players != api_players:
             update_squad(season=season, dbsession=dbsession, verbose=True)
         else:
