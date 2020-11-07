@@ -8,7 +8,7 @@ import os
 import json
 
 from airsenal.framework.mappings import positions
-from airsenal.framework.schema import PlayerAttributes, session_scope
+from airsenal.framework.schema import PlayerAttributes, session_scope, session
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -24,7 +24,7 @@ from airsenal.framework.utils import (
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def fill_attributes_table_from_file(detail_data, season, session):
+def fill_attributes_table_from_file(detail_data, season, dbsession=session):
     """Fill player attributes table for previous season using data from
     player detail JSON files.
     """
@@ -32,7 +32,7 @@ def fill_attributes_table_from_file(detail_data, season, session):
     for player_name in detail_data.keys():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_name, dbsession=session)
+        player = get_player(player_name, dbsession=dbsession)
         if not player:
             print("Couldn't find player {}".format(player_name))
             continue
@@ -62,10 +62,10 @@ def fill_attributes_table_from_file(detail_data, season, session):
                 pa.selected = int(fixture_data["selected"])
                 pa.transfers_in = int(fixture_data["transfers_in"])
                 pa.transfers_out = int(fixture_data["transfers_out"])
-                session.add(pa)
+                dbsession.add(pa)
 
 
-def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK):
+def fill_attributes_table_from_api(season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session):
     """
     use the FPL API to get player attributes info for the current season
     """
@@ -78,7 +78,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
 
     for player_api_id in input_data.keys():
         # find the player in the player table
-        player = get_player_from_api_id(player_api_id, dbsession=session)
+        player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
             print(
                 "ATTRIBUTES {} No player found with id {}".format(season, player_api_id)
@@ -92,7 +92,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
-            player.player_id, season=season, gameweek=NEXT_GAMEWEEK, dbsession=session
+            player.player_id, season=season, gameweek=NEXT_GAMEWEEK, dbsession=dbsession
         )
         if pa:
             # found pre-existing attributes for this gameweek
@@ -107,7 +107,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
         pa.season = season
         pa.gameweek = NEXT_GAMEWEEK
         pa.price = int(p_summary["now_cost"])
-        pa.team = get_team_name(p_summary["team"], season=season, dbsession=session)
+        pa.team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
         pa.position = positions[p_summary["element_type"]]
         pa.selected = int(float(p_summary["selected_by_percent"]) * n_players / 100)
         pa.transfers_in = int(p_summary["transfers_in_event"])
@@ -115,9 +115,9 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
         pa.transfers_balance = pa.transfers_in - pa.transfers_out
 
         if not update:
-            # only need to add to the session for new entries, if we're doing
-            #  an update the final session.commit() is enough
-            session.add(pa)
+            # only need to add to the dbsession for new entries, if we're doing
+            #  an update the final dbsession.commit() is enough
+            dbsession.add(pa)
 
         # now get data for previous gameweeks
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
@@ -131,7 +131,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
                     player.player_id,
                     season=season,
                     gameweek=gameweek,
-                    dbsession=session,
+                    dbsession=dbsession,
                 )
                 if pa:
                     update = True
@@ -149,7 +149,7 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
                     was_home,
                     kickoff_time,
                     season=season,
-                    dbsession=session,
+                    dbsession=dbsession,
                 )
 
                 pa.player = player
@@ -165,13 +165,13 @@ def fill_attributes_table_from_api(season, session, gw_start=1, gw_end=NEXT_GAME
                 pa.transfers_out = int(result["transfers_out"])
 
                 if update:
-                    # don't need to add to session if updating pre-existing row
-                    session.add(pa)
+                    # don't need to add to dbsession if updating pre-existing row
+                    dbsession.add(pa)
 
                 break  # done this gameweek now
 
 
-def make_attributes_table(session, seasons=[]):
+def make_attributes_table(seasons=[], dbsession=session):
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
@@ -188,15 +188,15 @@ def make_attributes_table(session, seasons=[]):
         with open(input_path, "r") as f:
             input_data = json.load(f)
 
-        fill_attributes_table_from_file(input_data, season, session)
+        fill_attributes_table_from_file(detail_data=input_data, season=season, dbsession=dbsession)
 
     # this season's data from the API
     if CURRENT_SEASON in seasons:
-        fill_attributes_table_from_api(CURRENT_SEASON, session)
+        fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
 
-    session.commit()
+    dbsession.commit()
 
 
 if __name__ == "__main__":
-    with session_scope() as session:
-        make_attributes_table(session)
+    with session_scope() as dbsession:
+        make_attributes_table(dbsession=dbsession)

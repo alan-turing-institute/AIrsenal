@@ -8,7 +8,7 @@ import json
 import os
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.schema import PlayerScore, session_scope
+from airsenal.framework.schema import PlayerScore, session_scope, session
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_player,
@@ -20,11 +20,11 @@ from airsenal.framework.utils import (
 )
 
 
-def fill_playerscores_from_json(detail_data, season, session):
+def fill_playerscores_from_json(detail_data, season, dbsession=session):
     for player_name in detail_data.keys():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_name, dbsession=session)
+        player = get_player(player_name, dbsession=dbsession)
         if not player:
             print("Couldn't find player {}".format(player_name))
             continue
@@ -55,7 +55,7 @@ def fill_playerscores_from_json(detail_data, season, session):
                 was_home=was_home,
                 kickoff_time=fixture_data["kickoff_time"],
                 season=season,
-                dbsession=session,
+                dbsession=dbsession,
             )
 
             if not fixture:
@@ -105,17 +105,17 @@ def fill_playerscores_from_json(detail_data, season, session):
                 except KeyError:
                     pass
 
-            session.add(ps)
+            dbsession.add(ps)
 
 
-def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK):
+def fill_playerscores_from_api(season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session):
 
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_id in input_data.keys():
         # find the player in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_id, dbsession=session)
+        player = get_player(player_id, dbsession=dbsession)
         if not player:
             print("No player with id {}".format(player_id))
 
@@ -135,7 +135,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK
                     player_at_home=result["was_home"],
                     kickoff_time=result["kickoff_time"],
                     season=season,
-                    dbsession=session,
+                    dbsession=dbsession,
                     return_fixture=True,
                 )
 
@@ -187,7 +187,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK
                     except KeyError:
                         pass
 
-                session.add(ps)
+                dbsession.add(ps)
                 print(
                     "  got {} points vs {} in gameweek {}".format(
                         result["total_points"], opponent, gameweek
@@ -195,7 +195,7 @@ def fill_playerscores_from_api(season, session, gw_start=1, gw_end=NEXT_GAMEWEEK
                 )
 
 
-def make_playerscore_table(session, seasons=[]):
+def make_playerscore_table(seasons=[], dbsession=session):
     # previous seasons data from json files
     if not seasons:
         seasons = get_past_seasons(3)
@@ -207,14 +207,14 @@ def make_playerscore_table(session, seasons=[]):
             os.path.dirname(__file__), "../data/player_details_{}.json".format(season)
         )
         input_data = json.load(open(input_path))
-        fill_playerscores_from_json(input_data, season, session)
+        fill_playerscores_from_json(input_data, season, dbsession=dbsession)
     # this season's data from the API
     if CURRENT_SEASON in seasons:
-        fill_playerscores_from_api(CURRENT_SEASON, session)
+        fill_playerscores_from_api(CURRENT_SEASON, dbsession=dbsession)
 
-    session.commit()
+    dbsession.commit()
 
 
 if __name__ == "__main__":
     with session_scope() as session:
-        make_playerscore_table(session)
+        make_playerscore_table(dbsession=session)

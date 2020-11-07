@@ -9,7 +9,7 @@ import argparse
 import os
 
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.schema import Result, session_scope, Fixture
+from airsenal.framework.schema import Result, session_scope, Fixture, session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -19,13 +19,13 @@ from airsenal.framework.utils import (
 )
 
 
-def _find_fixture(season, home_team, away_team, session):
+def _find_fixture(season, home_team, away_team, dbsession):
     """
     query database to find corresponding fixture
     """
     tag = get_latest_fixture_tag(season)
     f = (
-        session.query(Fixture)
+        dbsession.query(Fixture)
         .filter_by(tag=tag)
         .filter_by(season=season)
         .filter_by(home_team=home_team)
@@ -35,7 +35,7 @@ def _find_fixture(season, home_team, away_team, session):
     return f
 
 
-def fill_results_from_csv(input_file, season, session):
+def fill_results_from_csv(input_file, season, dbsession):
     for line in input_file.readlines()[1:]:
         (
             date,
@@ -52,17 +52,17 @@ def fill_results_from_csv(input_file, season, session):
             elif away_team in v:
                 away_team = k
         ## query database to find corresponding fixture
-        tag = get_latest_fixture_tag(season, session)
-        f = _find_fixture(season, home_team, away_team, session)
+        tag = get_latest_fixture_tag(season, dbsession)
+        f = _find_fixture(season, home_team, away_team, dbsession)
         res = Result()
         res.fixture = f
         res.home_score = int(home_score)
         res.away_score = int(away_score)
-        session.add(res)
-    session.commit()
+        dbsession.add(res)
+    dbsession.commit()
 
 
-def fill_results_from_api(gw_start, gw_end, season, session):
+def fill_results_from_api(gw_start, gw_end, season, dbsession):
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
     for m in matches:
@@ -86,16 +86,16 @@ def fill_results_from_api(gw_start, gw_end, season, session):
             raise ValueError("Unable to find team with id {}".format(away_id))
         home_score = m["team_h_score"]
         away_score = m["team_a_score"]
-        f = _find_fixture(season, home_team, away_team, session)
+        f = _find_fixture(season, home_team, away_team, dbsession)
         res = Result()
         res.fixture = f
         res.home_score = int(home_score)
         res.away_score = int(away_score)
-        session.add(res)
-    session.commit()
+        dbsession.add(res)
+    dbsession.commit()
 
 
-def make_result_table(session, seasons=[]):
+def make_result_table(seasons=[], dbsession=session):
     """
     past seasons - read results from csv
     """
@@ -106,12 +106,12 @@ def make_result_table(session, seasons=[]):
             os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season)
         )
         infile = open(inpath)
-        fill_results_from_csv(infile, season, session)
+        fill_results_from_csv(infile, season, dbsession)
     """
     current season - use API
     """
     gw_end = NEXT_GAMEWEEK
-    fill_results_from_api(1, gw_end, CURRENT_SEASON, session)
+    fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
 
 
 if __name__ == "__main__":
@@ -130,5 +130,5 @@ if __name__ == "__main__":
     parser.add_argument("--gw_end", help="if using api, which gameweeks", type=int)
     args = parser.parse_args()
 
-    with session_scope() as session:
-        make_result_table(session)
+    with session_scope() as dbsession:
+        make_result_table(dbsession=dbsession)
