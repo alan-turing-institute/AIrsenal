@@ -56,7 +56,7 @@ setup(
     entry_points={
         "console_scripts": [
             "airsenal_setup_initial_db=airsenal.scripts.fill_db_init:main",
-            "airsenal_update_db=airsenal.scripts.update_results_transactions_db:main",
+            "airsenal_update_db=airsenal.scripts.update_db:main",
             "airsenal_plot=airsenal.scripts.plot_league_standings:main",
             "airsenal_run_prediction=airsenal.scripts.fill_predictedscore_table:main",
             "airsenal_run_optimization=airsenal.scripts.fill_transfersuggestion_table:main",

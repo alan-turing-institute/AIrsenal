@@ -16,6 +16,7 @@ from airsenal.framework.utils import (
     get_players_for_gameweek,
     list_players,
     fetcher,
+    get_player,
 )
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
@@ -43,7 +44,7 @@ def update_transactions(season, dbsession):
     return True
 
 
-def update_results(season, do_attributes, dbsession):
+def update_results(season, dbsession):
     """
     If the last gameweek in the db is earlier than the last finished gameweek,
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
@@ -53,15 +54,6 @@ def update_results(season, do_attributes, dbsession):
         # no results in database for this season yet
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
-
-    if do_attributes:
-        print("Updating attributes table ...")
-        fill_attributes_table_from_api(
-            season=season,
-            gw_start=last_in_db,
-            gw_end=NEXT_GAMEWEEK,
-            dbsession=dbsession,
-        )
 
     if NEXT_GAMEWEEK != 1:
         if last_finished > last_in_db:
@@ -102,16 +94,44 @@ def update_players(season, dbsession):
         api_ids_from_db = [p.fpl_api_id for p in players_from_db]
         new_players = [p for p in players_from_api if p not in api_ids_from_db]
         for player_api_id in new_players:
-            p = Player()
-            p.fpl_api_id = player_api_id
             first_name = player_data_from_api[player_api_id]["first_name"]
             second_name = player_data_from_api[player_api_id]["second_name"]
             name = "{} {}".format(first_name, second_name)
             print("Adding player {}".format(name))
+            # check whether we alreeady have this player in the database -
+            # if yes update that player's data, if no create a new player
+            p = get_player(name, dbsession=dbsession)
+            if p is None:
+                p = Player()
+                update = False
+            else:
+                update = True
+            p.fpl_api_id = player_api_id
             p.name = name
-            dbsession.add(p)
+            if not update:
+                dbsession.add(p)
         dbsession.commit()
         return len(new_players)
+
+
+def update_attributes(season, dbsession):
+    """Update player attributes table
+    """
+    # update from, and including, the last gameweek we have results for in the
+    # database (including that gameweek as player prices etc. can change after
+    # matches have finished but before the next gameweek deadline)
+    last_in_db = get_last_gameweek_in_db(season, dbsession=dbsession)
+    if not last_in_db:
+        # no results in database for this season yet
+        last_in_db = 0
+
+    print("Updating attributes table ...")
+    fill_attributes_table_from_api(
+        season=season,
+        gw_start=last_in_db,
+        gw_end=NEXT_GAMEWEEK,
+        dbsession=dbsession,
+    )
 
 
 def main():
@@ -135,11 +155,16 @@ def main():
         # see if any new players have been added
         num_new_players = update_players(season, session)
 
+        # update player attributes (if requested)
         if not do_attributes and num_new_players > 0:
             print("New players added - enforcing update of attributes table")
             do_attributes = True
-        # update the results, playerscores and possibly playerattributes tables
-        update_results(season, do_attributes, session)
+
+        if do_attributes:
+            update_attributes(season, session)
+
+        # update results and playerscores
+        update_results(season, session)
         # update our squad
         update_transactions(season, session)
 
