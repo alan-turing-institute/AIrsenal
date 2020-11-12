@@ -9,7 +9,7 @@ scipy
 pip
 pystan>=2.14
 pytest
-bpl>=0.1.0
+bpl==0.0.4
 flask
 flask_cors
 flask_session
