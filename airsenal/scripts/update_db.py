@@ -115,8 +115,7 @@ def update_players(season, dbsession):
 
 
 def update_attributes(season, dbsession):
-    """Update player attributes table
-    """
+    """Update player attributes table"""
     # update from, and including, the last gameweek we have results for in the
     # database (including that gameweek as player prices etc. can change after
     # matches have finished but before the next gameweek deadline)

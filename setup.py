@@ -1,14 +1,21 @@
 import os.path
 import pickle
+import re
 
 from setuptools import setup
 from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
 
-with open("requirements.txt", "r") as f:
+SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Get package version from airsenal/__init__.py
+with open(os.path.join(SETUP_DIR, "airsenal", "__init__.py")) as f:
+    VERSION = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
+
+# Get dependencies from requirements.txt
+with open(os.path.join(SETUP_DIR, "requirements.txt"), "r") as f:
     REQUIRED_PACKAGES = f.read().splitlines()
 
-SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(SETUP_DIR, "stan")
 MODEL_TARGET_DIR = os.path.join("airsenal", "stan_model")
 
@@ -45,7 +52,7 @@ def compile_stan_models(target_dir, model_dir=MODEL_DIR):
 
 setup(
     name="airsenal",
-    version="0.1.0",
+    version=VERSION,
     description="An automatic Fantasy Premier League manager.",
     url="https://github.com/alan-turing-institute/AIrsenal",
     author="Nick Barlow, Angus Williams, Jack Roberts",
