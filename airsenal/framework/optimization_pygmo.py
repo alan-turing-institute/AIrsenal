@@ -1,17 +1,14 @@
 import pygmo as pg
 
-import numpy as np
-import pandas as pd
 import uuid
 
-from .utils import (
-    NEXT_GAMEWEEK,
+from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
-    get_latest_prediction_tag,
     get_predicted_points_for_player,
 )
-from .squad import Squad, TOTAL_PER_POSITION
+
+from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
 
 
 class DummyPlayer:
@@ -375,7 +372,10 @@ def make_new_squad(
         if opt_squad.dummy_per_position[pos] > 0:
             for _ in range(opt_squad.dummy_per_position[pos]):
                 dp = DummyPlayer(
-                    opt_squad.gw_range, opt_squad.tag, pos, price=opt_squad.dummy_sub_cost
+                    opt_squad.gw_range,
+                    opt_squad.tag,
+                    pos,
+                    price=opt_squad.dummy_sub_cost,
                 )
                 squad.add_player(dp)
                 print(dp.position, dp.name, dp.purchase_price / 10)

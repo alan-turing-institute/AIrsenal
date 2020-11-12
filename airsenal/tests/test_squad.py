@@ -4,12 +4,10 @@ test various methods of the Team class.
 
 import pytest
 
-from .fixtures import test_session_scope, fill_players
-from ..framework.utils import get_player_name, get_player_id
+from airsenal.conftest import test_session_scope
 
-from ..framework.squad import Squad
-from ..framework.player import CandidatePlayer
-from ..framework.utils import CURRENT_SEASON
+from airsenal.framework.squad import Squad
+from airsenal.framework.utils import CURRENT_SEASON
 
 TEST_SEASON = CURRENT_SEASON
 
@@ -111,7 +109,7 @@ def test_remove_player(fill_players):
         t.add_player(1, season=TEST_SEASON, dbsession=ts)
         assert len(t.players) == 1
         assert t.num_position["GK"] == 1
-        t.remove_player(1, use_api=False)
+        t.remove_player(1, season=TEST_SEASON, use_api=False, dbsession=ts)
         assert len(t.players) == 0
         assert t.num_position["GK"] == 0
         assert t.budget == 1000

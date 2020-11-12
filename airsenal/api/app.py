@@ -29,7 +29,7 @@ from airsenal.framework.api_utils import (
     fill_session_squad,
     best_transfer_suggestions,
     set_session_budget,
-    get_session_budget
+    get_session_budget,
 )
 
 

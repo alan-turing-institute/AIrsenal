@@ -7,7 +7,7 @@ from airsenal.framework.utils import (
     get_result_for_fixture,
     get_player_scores_for_fixture,
 )
-from airsenal.framework.schema import Fixture, Result, PlayerScore
+from airsenal.framework.schema import PlayerScore
 
 CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements

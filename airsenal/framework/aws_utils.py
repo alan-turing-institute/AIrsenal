@@ -3,15 +3,16 @@ Useful functions for constructing Alexa responses.
 """
 
 import os
-import sys
 import time
 
-from sqlalchemy.orm import sessionmaker
 import boto3
+from sqlalchemy.orm import sessionmaker
 
-
-from .utils import *
-from .fpl_team_utils import *
+from airsenal.framework.fpl_team_utils import (
+    get_league_standings,
+    get_overall_ranking,
+    get_overall_points,
+)
 
 
 def download_sqlite_file():
@@ -63,7 +64,7 @@ def get_suggestions_string():
 
     time.sleep(1)
     try:
-        from .schema import Player, TransferSuggestion, Base, engine
+        from airsenal.framework.schema import Player, TransferSuggestion, Base, engine
 
         Base.metadata.bind = engine
         DBSession = sessionmaker()

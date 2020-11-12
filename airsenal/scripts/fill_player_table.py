@@ -4,16 +4,11 @@
 Fill the "Player" table with info from this and past seasonss FPL
 """
 import os
-import sys
-
 import json
-from sqlalchemy import desc
 
-from ..framework.mappings import alternative_team_names, positions
-from ..framework.schema import Player, PlayerAttributes, Base, engine
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.utils import CURRENT_SEASON, get_past_seasons
-from ..framework.mappings import alternative_player_names
+from airsenal.framework.schema import Player, session_scope, session
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
 def find_player_in_table(name, session):
@@ -76,10 +71,16 @@ def fill_player_table_from_api(season, session):
     session.commit()
 
 
-def make_player_table(session):
+def make_player_table(seasons=[], dbsession=session):
 
-    fill_player_table_from_api(CURRENT_SEASON, session)
-    for season in get_past_seasons(3):
+    if not seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    if CURRENT_SEASON in seasons:
+        fill_player_table_from_api(CURRENT_SEASON, session)
+    for season in seasons:
+        if season == CURRENT_SEASON:
+            continue
         filename = os.path.join(
             os.path.join(
                 os.path.dirname(__file__),
@@ -93,4 +94,4 @@ def make_player_table(session):
 
 if __name__ == "__main__":
     with session_scope() as session:
-        make_player_table(session)
+        make_player_table(dbsession=session)

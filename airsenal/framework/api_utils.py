@@ -1,10 +1,7 @@
 """
 Functions used by the AIrsenal API
 """
-
-from uuid import uuid4
-
-from pandas import DataFrame
+from flask import jsonify
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from airsenal.framework.utils import (
@@ -26,11 +23,11 @@ from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Playe
 
 from airsenal.framework.squad import Squad
 
-from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.optimization_utils import (
-    make_optimum_transfer,
+    make_optimum_single_transfer,
     make_optimum_double_transfer,
 )
+
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 
@@ -229,7 +226,7 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
         return False
     t = Squad(budget)
     for p in players:
-        added_ok = t.add_player(p["id"])
+        added_ok = t.add_player(p["id"], dbsession=dbsession)
         if not added_ok:
             return False
     return True
@@ -268,9 +265,9 @@ def get_session_prediction(
         pred_tag = get_latest_prediction_tag()
     return_dict = {
         "predicted_score": get_predicted_points_for_player(
-            pid, pred_tag, CURRENT_SEASON, dbsession
+            player_id, pred_tag, CURRENT_SEASON, dbsession
         )[gw],
-        "fixture": get_next_fixture_for_player(pid, CURRENT_SEASON, dbsession),
+        "fixture": get_next_fixture_for_player(player_id, CURRENT_SEASON, dbsession),
     }
     return return_dict
 
@@ -284,7 +281,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     pred_scores = {}
-    for pid in players:
+    for pid in pids:
 
         pred_scores[pid] = get_session_prediction(
             pid, session_id, gw, pred_tag, dbsession
@@ -312,7 +309,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
     if n_transfer == 1:
-        new_squad, pid_out, pid_in = make_optimum_transfer(t, pred_tag)
+        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
     elif n_transfer == 2:
         new_squad, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
     return {"transfers_out": pid_out, "transfers_in": pid_in}

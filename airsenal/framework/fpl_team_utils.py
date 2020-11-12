@@ -2,7 +2,7 @@
 Functions to get data on specified FPL teams and leagues
 """
 
-from .utils import fetcher
+from airsenal.framework.utils import fetcher
 
 
 def get_overall_points(gameweek=None):

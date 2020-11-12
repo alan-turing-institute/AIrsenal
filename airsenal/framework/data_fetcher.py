@@ -6,8 +6,7 @@ import os
 import requests
 import json
 import time
-
-from .mappings import alternative_team_names
+import getpass
 
 
 class FPLDataFetcher(object):
@@ -31,18 +30,19 @@ class FPLDataFetcher(object):
             if ID in os.environ.keys():
                 self.__setattr__(ID, os.environ[ID])
             elif os.path.exists(
-                os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))
+                os.path.join(os.path.dirname(__file__), "..", "data", "{}".format(ID))
             ):
                 self.__setattr__(
                     ID,
                     open(
-                        os.path.join(os.path.dirname(__file__), "../data/{}".format(ID))
+                        os.path.join(
+                            os.path.dirname(__file__), "..", "data", "{}".format(ID)
+                        )
                     )
                     .read()
                     .strip(),
                 )
             else:
-                print("Couldn't find {} - some data may be unavailable".format(ID))
                 self.__setattr__(ID, "MISSING_ID")
         self.FPL_SUMMARY_API_URL = (
             "https://fantasy.premierleague.com/api/bootstrap-static/"
@@ -61,6 +61,34 @@ class FPLDataFetcher(object):
             self.FPL_LEAGUE_ID
         )
         self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
+
+    def get_fpl_credentials(self):
+        """
+        If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
+        airsenal/data or as environment variables, prompt the user for them.
+        """
+        print(
+            """
+            Accessing FPL mini-league data requires the login (email address) and password for your FPL account.
+            """
+        )
+        self.FPL_LOGIN = input("Please enter FPL login: ")
+        self.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
+        data_loc = os.path.join(os.path.dirname(__file__), "..", "data")
+        store_credentials = ""
+        while not (
+            store_credentials.lower() == "y" or store_credentials.lower() == "n"
+        ):
+            store_credentials = input(
+                "\nWould you like to store these credentials in {} so that you won't be prompted for them again? (y/n): ".format(
+                    data_loc
+                )
+            )
+        if store_credentials.lower() == "y":
+            with open(os.path.join(data_loc, "FPL_LOGIN"), "w") as login_file:
+                login_file.write(self.FPL_LOGIN)
+            with open(os.path.join(data_loc, "FPL_PASSWORD"), "w") as passwd_file:
+                passwd_file.write(self.FPL_PASSWORD)
 
     def get_current_summary_data(self):
         """
@@ -144,7 +172,15 @@ class FPLDataFetcher(object):
         else:
             session = requests.session()
             url = "https://users.premierleague.com/accounts/login/"
-
+            print("FPL credentials {} {}".format(self.FPL_LOGIN, self.FPL_PASSWORD))
+            if (
+                (not self.FPL_LOGIN)
+                or (not self.FPL_PASSWORD)
+                or self.FPL_LOGIN == "MISSING_ID"
+                or self.FPL_PASSWORD == "MISSING_ID"
+            ):
+                # prompt the user for credentials
+                self.get_fpl_credentials()
             headers = {
                 "login": self.FPL_LOGIN,
                 "password": self.FPL_PASSWORD,

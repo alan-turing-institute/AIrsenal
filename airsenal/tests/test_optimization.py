@@ -2,24 +2,16 @@
 Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
-import pytest
 from unittest import mock
 from operator import itemgetter
 
-# from ..utils import get_predicted_points
 
-from ..framework.optimization_utils import (
+from airsenal.framework.optimization_utils import (
     Squad,
-    make_optimum_transfer,
+    make_optimum_single_transfer,
     make_optimum_double_transfer,
-    get_predicted_points,
-    generate_transfer_strategies,
+    get_discount_factor,
 )
-
-
-def mock_add_player(pid):
-    self.players += DummyPlayer(pid, "FWD", {})
-    print("Mocking add player {}".format(pid))
 
 
 class DummyPlayer(object):
@@ -185,7 +177,7 @@ def test_single_transfer():
         "airsenal.framework.optimization_utils.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_squad, pid_out, pid_in = make_optimum_transfer(t, "DUMMY", [1])
+        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
         ## we should expect - player 115 to be transfered in, and to be captain.
     assert pid_in[0] == 115
     for p in new_squad.players:
@@ -260,160 +252,14 @@ def test_double_transfer():
                 assert p.is_captain == False
 
 
-def test_generate_transfer_strategies():
-    # 1 week, no chips
-    actual_strats = generate_transfer_strategies(
-        1, free_transfers=1, max_total_hit=None, next_gw=1
-    )
-    exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 1), ({1: 2}, 4, 1), ({1: 3}, 8, 1)]
-    assert actual_strats == exp_strats
+def test_get_discount_factor():
+    """
+    Discount factor discounts future gameweek score predictions based on the number of gameweeks ahead.
+    It uses two discount types based on a discount of 14/15, exponential ({14/15}^{weeks ahead}) and constant (1-{14/15}*weeks ahead)
+    """
 
-    # 1 week, all possible chips
-    actual_strats = generate_transfer_strategies(
-        1,
-        free_transfers=1,
-        max_total_hit=None,
-        allow_wildcard=True,
-        allow_free_hit=True,
-        allow_bench_boost=True,
-        allow_triple_captain=True,
-        next_gw=1,
-    )
-    exp_strats = [
-        ({1: 0}, 0, 2),
-        ({1: 1}, 0, 1),
-        ({1: "W"}, 0, 1),
-        ({1: "F"}, 0, 1),
-        ({1: "B0"}, 0, 2),
-        ({1: "B1"}, 0, 1),
-        ({1: "T0"}, 0, 2),
-        ({1: "T1"}, 0, 1),
-    ]
-    assert actual_strats == exp_strats
-
-    # 1 week, 1 free transfer, no more than 4pt hit
-    actual_strats = generate_transfer_strategies(
-        1, free_transfers=1, max_total_hit=4, next_gw=1
-    )
-    exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 1), ({1: 2}, 4, 1)]
-    assert actual_strats == exp_strats
-
-    # 1 week, 2 free transfers, no more than 4pt hit
-    actual_strats = generate_transfer_strategies(
-        1, free_transfers=2, max_total_hit=4, next_gw=1
-    )
-    exp_strats = [({1: 0}, 0, 2), ({1: 1}, 0, 2), ({1: 2}, 0, 1), ({1: 3}, 4, 1)]
-    assert actual_strats == exp_strats
-
-    # 2 weeks, no chips, max 4pt hit
-    actual_strats = generate_transfer_strategies(
-        2, free_transfers=1, max_total_hit=4, next_gw=1
-    )
-    exp_strats = [
-        ({1: 0, 2: 0}, 0, 2),
-        ({1: 0, 2: 1}, 0, 2),
-        ({1: 0, 2: 2}, 0, 1),
-        ({1: 0, 2: 3}, 4, 1),
-        ({1: 1, 2: 0}, 0, 2),
-        ({1: 1, 2: 1}, 0, 1),
-        ({1: 1, 2: 2}, 4, 1),
-        ({1: 2, 2: 0}, 4, 2),
-        ({1: 2, 2: 1}, 4, 1),
-    ]
-    assert actual_strats == exp_strats
-
-    # 2 weeks, wildcard or free hit
-    actual_strats = generate_transfer_strategies(
-        2,
-        free_transfers=1,
-        max_total_hit=None,
-        allow_wildcard=True,
-        allow_free_hit=True,
-        next_gw=1,
-    )
-    exp_strats = [
-        ({1: 0, 2: 0}, 0, 2),
-        ({1: 0, 2: 1}, 0, 2),
-        ({1: 0, 2: "W"}, 0, 1),
-        ({1: 0, 2: "F"}, 0, 1),
-        ({1: 1, 2: 0}, 0, 2),
-        ({1: 1, 2: 1}, 0, 1),
-        ({1: 1, 2: "W"}, 0, 1),
-        ({1: 1, 2: "F"}, 0, 1),
-        ({1: "W", 2: 0}, 0, 2),
-        ({1: "W", 2: 1}, 0, 1),
-        ({1: "W", 2: "F"}, 0, 1),
-        ({1: "F", 2: 0}, 0, 2),
-        ({1: "F", 2: 1}, 0, 1),
-        ({1: "F", 2: "W"}, 0, 1),
-    ]
-    assert actual_strats == exp_strats
-
-    # 2 weeks, bench boost
-    actual_strats = generate_transfer_strategies(
-        2, free_transfers=1, max_total_hit=None, allow_bench_boost=True, next_gw=1
-    )
-    exp_strats = [
-        ({1: 0, 2: 0}, 0, 2),
-        ({1: 0, 2: 1}, 0, 2),
-        ({1: 0, 2: "B0"}, 0, 2),
-        ({1: 0, 2: "B1"}, 0, 2),
-        ({1: 1, 2: 0}, 0, 2),
-        ({1: 1, 2: 1}, 0, 1),
-        ({1: 1, 2: "B0"}, 0, 2),
-        ({1: 1, 2: "B1"}, 0, 1),
-        ({1: "B0", 2: 0}, 0, 2),
-        ({1: "B0", 2: 1}, 0, 2),
-        ({1: "B1", 2: 0}, 0, 2),
-        ({1: "B1", 2: 1}, 0, 1),
-    ]
-    assert actual_strats == exp_strats
-
-    # 2 weeks, triple captain
-    actual_strats = generate_transfer_strategies(
-        2, free_transfers=1, max_total_hit=None, allow_triple_captain=True, next_gw=1
-    )
-    exp_strats = [
-        ({1: 0, 2: 0}, 0, 2),
-        ({1: 0, 2: 1}, 0, 2),
-        ({1: 0, 2: "T0"}, 0, 2),
-        ({1: 0, 2: "T1"}, 0, 2),
-        ({1: 1, 2: 0}, 0, 2),
-        ({1: 1, 2: 1}, 0, 1),
-        ({1: 1, 2: "T0"}, 0, 2),
-        ({1: 1, 2: "T1"}, 0, 1),
-        ({1: "T0", 2: 0}, 0, 2),
-        ({1: "T0", 2: 1}, 0, 2),
-        ({1: "T1", 2: 0}, 0, 2),
-        ({1: "T1", 2: 1}, 0, 1),
-    ]
-    assert actual_strats == exp_strats
-
-    # 3 weeks, 4pts max hit, no unused transfers
-    actual_strats = generate_transfer_strategies(
-        3, free_transfers=1, max_total_hit=4, allow_unused_transfers=False, next_gw=1
-    )
-    exp_strats = [
-        ({1: 0, 2: 0, 3: 0}, 0, 2),
-        ({1: 0, 2: 1, 3: 1}, 0, 2),
-        ({1: 0, 2: 1, 3: 2}, 0, 1),
-        ({1: 0, 2: 1, 3: 3}, 4, 1),
-        ({1: 0, 2: 2, 3: 0}, 0, 2),
-        ({1: 0, 2: 2, 3: 1}, 0, 1),
-        ({1: 0, 2: 2, 3: 2}, 4, 1),
-        ({1: 0, 2: 3, 3: 0}, 4, 2),
-        ({1: 0, 2: 3, 3: 1}, 4, 1),
-        ({1: 1, 2: 0, 3: 1}, 0, 2),
-        ({1: 1, 2: 0, 3: 2}, 0, 1),
-        ({1: 1, 2: 0, 3: 3}, 4, 1),
-        ({1: 1, 2: 1, 3: 0}, 0, 2),
-        ({1: 1, 2: 1, 3: 1}, 0, 1),
-        ({1: 1, 2: 1, 3: 2}, 4, 1),
-        ({1: 1, 2: 2, 3: 0}, 4, 2),
-        ({1: 1, 2: 2, 3: 1}, 4, 1),
-        ({1: 2, 2: 0, 3: 1}, 4, 2),
-        ({1: 2, 2: 0, 3: 2}, 4, 1),
-        ({1: 2, 2: 1, 3: 0}, 4, 2),
-        ({1: 2, 2: 1, 3: 1}, 4, 1),
-    ]
-    assert actual_strats == exp_strats
+    assert get_discount_factor(1, 4) == (14 / 15) ** (4 - 1)
+    assert get_discount_factor(1, 4, "constant") == 1 - ((1 / 15) * (4 - 1))
+    assert get_discount_factor(1, 20, "const") == 0
+    assert get_discount_factor(1, 1, "const") == 1
+    assert get_discount_factor(1, 1, "exp") == 1

@@ -6,17 +6,16 @@ Fill the "fixture" table with info from this seasons FPL
 """
 
 import os
-import dateparser
-import time
+
 import uuid
 
-from ..framework.data_fetcher import FPLDataFetcher
-from ..framework.mappings import alternative_team_names
-from ..framework.schema import Fixture, session_scope
-from ..framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.schema import Fixture, session_scope, session
+from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
-def fill_fixtures_from_file(filename, season, session):
+def fill_fixtures_from_file(filename, season, dbsession=session):
     """
     use the match results csv files to get a list of matches in a season,
     """
@@ -36,11 +35,11 @@ def fill_fixtures_from_file(filename, season, session):
         print(" ==> Filling fixture {} {}".format(f.home_team, f.away_team))
         f.season = season
         f.tag = "latest"  # not really needed for past seasons
-        session.add(f)
-    session.commit()
+        dbsession.add(f)
+    dbsession.commit()
 
 
-def fill_fixtures_from_api(season, session):
+def fill_fixtures_from_api(season, dbsession=session):
     """
     Use the FPL API to get a list of fixures.
     """
@@ -79,26 +78,28 @@ def fill_fixtures_from_api(season, session):
         else:
             pass
 
-        session.add(f)
+        dbsession.add(f)
 
-    session.commit()
+    dbsession.commit()
     return True
 
 
-def make_fixture_table(session):
+def make_fixture_table(seasons=[], dbsession=session):
     # fill the fixture table for past seasons
-    for season in get_past_seasons(3):
+    if not seasons:
+        seasons = get_past_seasons(3)
+    for season in seasons:
         filename = os.path.join(
             os.path.dirname(__file__),
             "..",
             "data",
             "results_{}_with_gw.csv".format(season),
         )
-        fill_fixtures_from_file(filename, season, session)
+        fill_fixtures_from_file(filename, season, dbsession=dbsession)
     # now fill the current season from the api
-    fill_fixtures_from_api(CURRENT_SEASON, session)
+    fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)
 
 
 if __name__ == "__main__":
     with session_scope() as session:
-        make_fixture_table(session)
+        make_fixture_table(dbsession=session)
