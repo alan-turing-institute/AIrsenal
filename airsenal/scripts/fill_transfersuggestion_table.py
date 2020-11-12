@@ -278,8 +278,7 @@ def find_best_strat_from_json(tag):
             if strat["total_score"] > best_score:
                 best_score = strat["total_score"]
                 best_strat = strat
-        ## cleanup
-        os.remove(full_filename)
+
     return best_strat
 
 
@@ -471,6 +470,8 @@ def run_optimization(
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
     print_team_for_next_gw(best_strategy)
+    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+    return
 
 
 def sanity_check_args(args):

@@ -12,6 +12,7 @@ from airsenal.framework.schema import PlayerScore, session_scope, session
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_player,
+    get_player_from_api_id,
     get_team_name,
     get_past_seasons,
     CURRENT_SEASON,
@@ -114,15 +115,15 @@ def fill_playerscores_from_api(
 
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
-    for player_id in input_data.keys():
+    for player_api_id in input_data.keys():
         # find the player in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_id, dbsession=dbsession)
+        player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
-            print("No player with id {}".format(player_id))
-
+            print("No player with API id {}".format(player_api_id))
+        player_id = player.player_id
         print("SCORES {} {}".format(season, player.name))
-        player_data = fetcher.get_gameweek_data_for_player(player.fpl_api_id)
+        player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
             if gameweek not in range(gw_start, gw_end):
