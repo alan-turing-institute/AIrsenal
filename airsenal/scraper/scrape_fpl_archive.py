@@ -10,7 +10,6 @@ brew cask install chromedriver
 pip install bs4
 """
 
-import sys
 import time
 import json
 import re

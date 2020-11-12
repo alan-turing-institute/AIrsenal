@@ -2,7 +2,8 @@
 
 """
 usage:
-python fill_transfersuggestsions_table.py --weeks_ahead <num_weeks_ahead> --num_iterations <num_iterations>
+python fill_transfersuggestsions_table.py --weeks_ahead <num_weeks_ahead>
+                                          --num_iterations <num_iterations>
 output for each strategy tried is going to be a dict
 { "total_points": <float>,
 "points_per_gw": {<gw>: <float>, ...},
@@ -17,11 +18,8 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 import os
 import shutil
-import sys
 import time
-import random
 import json
-import tempfile
 
 import cProfile
 
@@ -165,7 +163,7 @@ def optimize(
             gameweeks = gameweek_range[depth:]
             # next gameweek:
             gw = gameweeks[0]
-            # if we're doing 0 transfers (including with a Triple Captain or Bench Boost):
+            # if we're doing 0 transfers (including with Triple Captain or Bench Boost)
             if (isinstance(num_transfers, int) and num_transfers == 0) or (
                 isinstance(num_transfers, str)
                 and (num_transfers.startswith("T") or num_transfers.startswith("B"))
@@ -233,7 +231,7 @@ def optimize(
             # add children to the queue
             for num_transfers in range(3):
                 queue.put((num_transfers, free_transfers, new_squad, strat_dict, sid))
-                if "triple_captain" in cards_allowed and not "T" in sid:
+                if "triple_captain" in cards_allowed and "T" not in sid:
                     queue.put(
                         (
                             "T{}".format(num_transfers),
@@ -243,7 +241,7 @@ def optimize(
                             sid,
                         )
                     )
-                if "bench_boost" in cards_allowed and not "B" in sid:
+                if "bench_boost" in cards_allowed and "B" not in sid:
                     queue.put(
                         (
                             "B{}".format(num_transfers),
@@ -253,10 +251,10 @@ def optimize(
                             sid,
                         )
                     )
-            if "wildcard" in cards_allowed and not "W" in sid:
+            if "wildcard" in cards_allowed and "W" not in sid:
                 queue.put(("W", free_transfers, new_squad, strat_dict, sid))
             # If we're playing "free_hit", put the old squad onto the queue
-            if "free_hit" in cards_allowed and not "F" in sid:
+            if "free_hit" in cards_allowed and "F" not in sid:
                 queue.put(("F", free_transfers, squad, strat_dict, sid))
 
 
@@ -341,7 +339,7 @@ def print_team_for_next_gw(strat):
     for pidin in strat["players_in"][str(next_gw)]:
         t.add_player(pidin)
     tag = get_latest_prediction_tag()
-    expected_points = t.get_expected_points(next_gw, tag)
+    t.get_expected_points(next_gw, tag)
     print(t)
 
 
@@ -363,34 +361,34 @@ def run_optimization(
     and calls the optimize function for every num_transfers/gameweek
     combination, to find the best strategy.
     """
-    ## How many free transfers are we starting with?
+    # How many free transfers are we starting with?
     if not num_free_transfers:
         num_free_transfers = get_free_transfers(gameweeks[0])
-    ## create the output directory for temporary json files
-    ## giving the points prediction for each strategy
+    # create the output directory for temporary json files
+    # giving the points prediction for each strategy
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    ## first get a baseline prediction
+    # first get a baseline prediction
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
-    ## create a queue that we will add nodes to, and some processes to take
-    ## things off it
+    # create a queue that we will add nodes to, and some processes to take
+    # things off it
     squeue = CustomQueue()
     procs = []
-    ## create one progress bar for each thread
+    # create one progress bar for each thread
     progress_bars = []
     for i in range(num_thread):
         progress_bars.append(tqdm(total=100))
 
-    ## number of nodes in tree will be something like 3^num_weeks unless we allow
-    ## a "card" such as wildcard or free hit, in which case it gets complicated
+    # number of nodes in tree will be something like 3^num_weeks unless we allow
+    # a "card" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
     expected_num = count_expected_outputs(
         0, num_weeks, wildcard, free_hit, triple_captain, bench_boost
     )
     total_progress = tqdm(total=expected_num, desc="Total progress")
 
-    ## functions to be passed to subprocess to update or reset progress bars
+    # functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
         if strategy_string == "DONE":
             progress_bars[index].close()
@@ -400,8 +398,8 @@ def run_optimization(
             progress_bars[index].refresh()
 
     def update_progress(increment=1, index=None):
-        if index == None:
-            ## outer progress bar
+        if index is None:
+            # outer progress bar
             nfiles = len(os.listdir(OUTPUT_DIR))
             total_progress.n = nfiles
             total_progress.refresh()
@@ -413,14 +411,14 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    ## Add Processes to run the the target 'optimize' function.
-    ## This target function needs to know:
-    ##  num_transfers
-    ##  current_team (list of player_ids)
-    ##  transfer_dict {"gw":<gw>,"in":[],"out":[]}
-    ##  total_score
-    ##  num_free_transfers
-    ##  budget
+    # Add Processes to run the the target 'optimize' function.
+    # This target function needs to know:
+    #  num_transfers
+    #  current_team (list of player_ids)
+    #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
+    #  total_score
+    #  num_free_transfers
+    #  budget
     cards = []
     if wildcard:
         cards.append("wildcard")
@@ -449,7 +447,7 @@ def run_optimization(
         processor.daemon = True
         processor.start()
         procs.append(processor)
-    ## add starting node to the queue
+    # add starting node to the queue
     starting_squad = get_starting_squad()
     squeue.put((0, num_free_transfers, starting_squad, {}, "starting"))
 
@@ -458,7 +456,7 @@ def run_optimization(
         progress_bars[i] = None
         p.join()
 
-    ### find the best from all the strategies tried
+    ## find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
@@ -482,7 +480,7 @@ def sanity_check_args(args):
         raise RuntimeError("Please only specify weeks_ahead OR gw_start/end")
     elif (args.gw_start and not args.gw_end) or (args.gw_end and not args.gw_start):
         raise RuntimeError("Need to specify both gw_start and gw_end")
-    if args.num_free_transfers and not args.num_free_transfers in range(1, 3):
+    if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
         raise RuntimeError("Number of free transfers must be 1 or 2")
     return True
 
@@ -543,7 +541,7 @@ def main():
     )
     args = parser.parse_args()
 
-    args_ok = sanity_check_args(args)
+    sanity_check_args(args)
     season = args.season
     if args.weeks_ahead:
         gameweeks = list(
@@ -575,7 +573,7 @@ def main():
     if args.tag:
         tag = args.tag
     else:
-        ## get most recent set of predictions from DB table
+        # get most recent set of predictions from DB table
         tag = get_latest_prediction_tag()
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
@@ -591,4 +589,5 @@ def main():
         num_free_transfers,
         num_iterations,
         num_thread,
+        profile,
     )

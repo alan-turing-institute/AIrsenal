@@ -192,9 +192,7 @@ class Squad(object):
             # if all else fails just use the purchase price as the sale
             # price for this player.
             print(
-                "Using purchase price as sale price for",
-                player.player_id,
-                player.name,
+                "Using purchase price as sale price for", player.player_id, player.name,
             )
             price_now = price_bought
 
