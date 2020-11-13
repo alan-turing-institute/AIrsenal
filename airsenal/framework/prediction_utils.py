@@ -122,7 +122,7 @@ def get_player_history_df(
             )
             row_count += 1
 
-        ## fill blank rows so they are all the same size
+        # fill blank rows so they are all the same size
         if row_count < max_matches_per_player:
             player_data += [[player.player_id, player.name, 0, 0, 0, 0, 0, 0]] * (
                 max_matches_per_player - row_count
@@ -454,14 +454,14 @@ def is_injured_or_suspended(player_api_id, gameweek, season, dbsession=session):
     """
     if season != CURRENT_SEASON:  # no API info for past seasons
         return False
-    ## check if a player is injured or suspended
+    # check if a player is injured or suspended
     pdata = fetcher.get_player_summary_data()[player_api_id]
     if (
         "chance_of_playing_next_round" in pdata.keys()
         and pdata["chance_of_playing_next_round"] is not None
         and pdata["chance_of_playing_next_round"] <= 50
     ):
-        ## check if we have a return date
+        # check if we have a return date
         return_gameweek = get_return_gameweek_for_player(player_api_id, dbsession)
         if return_gameweek is None or return_gameweek > gameweek:
             return True
@@ -500,7 +500,7 @@ def get_player_model():
     load the player-level model, which will give the probability that
     a given player scored/assisted/did-neither when their team scores a goal.
     """
-    ## old method - compile model at runtime
+    # old method - compile model at runtime
     stan_filepath = os.path.join(
         os.path.dirname(__file__), "../../stan/player_forecasts.stan"
     )

@@ -62,7 +62,7 @@ def fill_initial_squad(
         )
     )
     if NEXT_GAMEWEEK == 1:
-        ### Season hasn't started yet - there won't be a team in the DB
+        # Season hasn't started yet - there won't be a team in the DB
         return True
 
     init_players = []

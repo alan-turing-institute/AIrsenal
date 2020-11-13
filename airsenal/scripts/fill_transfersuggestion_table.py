@@ -456,7 +456,7 @@ def run_optimization(
         progress_bars[i] = None
         p.join()
 
-    ## find the best from all the strategies tried
+    # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)

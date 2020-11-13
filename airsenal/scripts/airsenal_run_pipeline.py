@@ -106,7 +106,8 @@ def run_optimization(num_thread, weeks_ahead, num_free_transfers):
     Run optimization
     """
     cmd = (
-        "airsenal_run_optimization --num_thread {} --weeks_ahead {} --num_free_transfers {}"
+        "airsenal_run_optimization --num_thread {} --weeks_ahead {}  "
+        "--num_free_transfers {}"
     ).format(num_thread, weeks_ahead, num_free_transfers)
     os.system(cmd)
 

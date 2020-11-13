@@ -85,7 +85,7 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
                 intvals = [int(v) for v in strvals[0]]
                 model_team.add_new_team(team, intvals)
                 print("Adding new team {} with covariates".format(team))
-            except:
+            except Exception:
                 model_team.add_new_team(team)
                 print("Adding new team {} without covariates".format(team))
 

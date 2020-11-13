@@ -16,8 +16,9 @@ from airsenal import TMPDIR
 API_SESSION_ID = "TESTSESSION"
 
 testengine_dummy = create_engine("sqlite:///{}/test.db".format(TMPDIR))
-# testengine_past = create_engine("sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db")
-#    .format(os.path.dirname(__file__)))
+# testengine_past = create_engine(
+#    "sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db"
+# ).format(os.path.dirname(__file__)))
 
 testengine_past = create_engine(
     "sqlite:///{}/tests/testdata/testdata_1718_1819.db".format(
@@ -38,7 +39,7 @@ def test_session_scope():
     try:
         yield testsession
         testsession.commit()
-    except:
+    except Exception:
         testsession.rollback()
         raise
     finally:
@@ -53,7 +54,7 @@ def test_past_data_session_scope():
     try:
         yield testsession
         testsession.commit()
-    except:
+    except Exception:
         testsession.rollback()
         raise
     finally:
@@ -94,7 +95,7 @@ def fill_players():
             print("Filling {} {}".format(i, n))
             try:
                 ts.add(p)
-            except:
+            except Exception:
                 print("Error adding {} {}".format(i, n))
             # now fill player_attributes
             if i % 15 < 2:

@@ -46,8 +46,8 @@ def get_session_id():
         return "DEFAULT_SESSION_ID"
 
 
-## Use a flask blueprint rather than creating the app directly
-## so that we can also make a test app
+# Use a flask blueprint rather than creating the app directly
+# so that we can also make a test app
 
 blueprint = Blueprint("airsenal", __name__)
 
@@ -194,9 +194,6 @@ def session_budget():
         return create_response("OK")
     else:
         return create_response(get_session_budget(get_session_id()))
-
-
-###########################################
 
 
 def create_app(name=__name__):

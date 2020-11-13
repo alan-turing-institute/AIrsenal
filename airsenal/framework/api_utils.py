@@ -93,13 +93,13 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     info_dict["player_name"] = p.name
     team = p.team(CURRENT_SEASON, NEXT_GAMEWEEK)
     info_dict["team"] = team
-    ## get recent scores for the player
+    # get recent scores for the player
     rs = get_recent_scores_for_player(p, dbsession=dbsession)
     recent_scores = []
     for k, v in rs.items():
         recent_scores.append({"gameweek": k, "score": v})
     info_dict["recent_scores"] = recent_scores
-    ## get upcoming fixtures
+    # get upcoming fixtures
     fixtures = get_fixtures_for_player(p, dbsession=dbsession)[:3]
     info_dict["fixtures"] = []
     for f in fixtures:

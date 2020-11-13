@@ -147,10 +147,10 @@ class FPLDataFetcher(object):
         """
         Get our transfer history from the FPL API.
         """
-        ## return cached value if we already retrieved it.
+        # return cached value if we already retrieved it.
         if self.fpl_transfer_history_data:
             return self.fpl_transfer_history_data
-        ## or get it from the API.
+        # or get it from the API.
         url = self.FPL_TEAM_TRANSFER_URL.format(self.FPL_TEAM_ID)
         r = requests.get(url)
         if not r.status_code == 200:

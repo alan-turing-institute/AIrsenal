@@ -65,9 +65,9 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                     and fixture.gameweek < earliest_future_gameweek
                 ):
                     earliest_future_gameweek = fixture.gameweek
-            except (TypeError):  ## date could be null if fixture not scheduled
+            except (TypeError):  # date could be null if fixture not scheduled
                 continue
-        ## now make sure we aren't in the middle of a gameweek
+        # now make sure we aren't in the middle of a gameweek
         for fixture in fixtures:
             try:
                 if (
@@ -215,7 +215,7 @@ def get_sell_price_for_player(player_id, gameweek=None):
     player_api_id = get_player(player_id).fpl_api_id
 
     pdata_bought = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
-    ## will be a list - can be more than one match in a gw - just use the 1st.
+    # will be a list - can be more than one match in a gw - just use the 1st.
     price_bought = pdata_bought[0]["value"]
 
     if not gameweek:  # assume we want the current (i.e. next) gameweek
@@ -223,7 +223,7 @@ def get_sell_price_for_player(player_id, gameweek=None):
     else:
         pdata_now = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
         price_now = pdata_now[0]["value"]
-    ## take off our half of the profit - boo!
+    # take off our half of the profit - boo!
     if price_now > price_bought:
         value = (price_now + price_bought) // 2  # round down
     else:
@@ -378,14 +378,14 @@ def get_player_id(player_name, dbsession=None):
     p = dbsession.query(Player).filter_by(name=player_name).first()
     if p:
         return p.player_id
-    ## not found by name in DB - try alternative names
+    # not found by name in DB - try alternative names
     for k, v in alternative_player_names.items():
         if player_name in v:
             p = session.query(Player).filter_by(name=k).first()
             if p:
                 return p.player_id
             break
-    ## still not found
+    # still not found
     print("Unknown player_name {}".format(player_name))
     return None
 
@@ -752,13 +752,13 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
     )
     ppdict = {}
     for prediction in pps:
-        ## there is one prediction per fixture.
-        ## for double gameweeks, we need to add the two together
+        # there is one prediction per fixture.
+        # for double gameweeks, we need to add the two together
         gameweek = prediction.fixture.gameweek
         if not gameweek in ppdict.keys():
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
-    ## we still need to fill in zero for gameweeks that they're not playing.
+    # we still need to fill in zero for gameweeks that they're not playing.
     max_gw = get_max_gameweek(season, dbsession)
     for gw in range(1, max_gw + 1):
         if not gw in ppdict.keys():
@@ -1001,7 +1001,7 @@ def get_recent_playerscore_rows(
         last_gw = last_available_gameweek
 
     first_gw = last_gw - num_match_to_use
-    ## get the playerscore rows from the db
+    # get the playerscore rows from the db
     rows = (
         dbsession.query(PlayerScore)
         .filter(PlayerScore.fixture.has(season=season))
@@ -1010,9 +1010,9 @@ def get_recent_playerscore_rows(
         .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
         .all()
     )
-    ## for speed, we use the fact that matches from this season
-    ## are uploaded in order, so we can just take the last n
-    ## rows, no need to look up dates and sort.
+    # for speed, we use the fact that matches from this season
+    # are uploaded in order, so we can just take the last n
+    # rows, no need to look up dates and sort.
     return rows[-num_match_to_use:]
 
 
