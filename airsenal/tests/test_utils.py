@@ -3,7 +3,8 @@ test some db access helper functions
 """
 
 from airsenal.conftest import test_session_scope
-from airsenal.framework.utils import get_player_name, get_player_id
+from airsenal.framework.utils import get_player_name, get_player_id, get_player
+from airsenal.framework.schema import Player
 
 
 def test_get_player_name(fill_players):
@@ -22,7 +23,7 @@ def test_get_player_id(fill_players):
         assert get_player_id("Bob", tsession) == 1
 
 
-def get_player(fill_players):
+def test_get_player(fill_players):
     """
     test we can get a player object from either a name or an id
     """

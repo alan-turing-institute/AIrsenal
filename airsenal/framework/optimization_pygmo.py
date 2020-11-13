@@ -102,9 +102,8 @@ class SquadOpt:
         self.positions = ["GK", "DEF", "MID", "FWD"]
         self.players_per_position = players_per_position
         self.n_opt_players = sum(self.players_per_position.values())
-        self.dummy_per_position = (
-            self._get_dummy_per_position()
-        )  # no. players each position that won't be optimised (just filled with dummies)
+        # no. players each position that won't be optimised (just filled with dummies)
+        self.dummy_per_position = self._get_dummy_per_position()
         self.dummy_sub_cost = dummy_sub_cost
         self.budget = budget
         self.sub_weights = sub_weights

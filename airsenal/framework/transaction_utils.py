@@ -1,7 +1,7 @@
 """
 Functions to help fill the Transaction table, where players are bought and sold,
-hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment variable,
-or a file named FPL_TEAM_ID in airsenal/data/
+hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment
+variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
 from airsenal.framework.schema import Transaction
@@ -52,9 +52,9 @@ def fill_initial_squad(
     season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session
 ):
     """
-    Fill the Transactions table in the database with the initial 15 players, and their costs,
-    getting the information from the team history API endpoint (for the list of players in our team)
-    and the player history API endpoint (for their price in gw1).
+    Fill the Transactions table in the database with the initial 15 players, and their
+    costs, getting the information from the team history API endpoint (for the list of
+    players in our team) and the player history API endpoint (for their price in gw1).
     """
     print(
         "Getting selected players in squad {} for first gameweek...".format(
@@ -62,7 +62,7 @@ def fill_initial_squad(
         )
     )
     if NEXT_GAMEWEEK == 1:
-        ### Season hasn't started yet - there won't be a team in the DB
+        # Season hasn't started yet - there won't be a team in the DB
         return True
 
     init_players = []
@@ -99,8 +99,8 @@ def update_squad(
     verbose=True,
 ):
     """
-    Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
-    the transfers API endpoint which has the correct buy and sell prices.
+    Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
+    using the transfers API endpoint which has the correct buy and sell prices.
     """
     transfers = fetcher.get_fpl_transfer_data()
     for transfer in transfers:

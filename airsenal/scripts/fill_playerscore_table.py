@@ -121,7 +121,6 @@ def fill_playerscores_from_api(
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
             print("No player with API id {}".format(player_api_id))
-        player_id = player.player_id
         print("SCORES {} {}".format(season, player.name))
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in

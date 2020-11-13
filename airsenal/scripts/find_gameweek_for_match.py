@@ -11,7 +11,7 @@ at gameweek dates in FPL_xxyy.json file.
 
 !!! WARNING !!! FPL_xxyy.json file must be the latest available version as
 deadlines can change during the season. Using an out of date version can
-therefore lead to matches being assigned to wrong gameweek. 
+therefore lead to matches being assigned to wrong gameweek.
 It may also be more robust to fix previous version of this file using player
 score files, rather than relying on the approach used here.
 """

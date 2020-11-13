@@ -30,7 +30,7 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
     default=1,
     help="Number of free transfer for pipeline run",
 )
-def airsenal_run_pipeline(num_thread, num_iterations, weeks_ahead, num_free_transfers):
+def run_pipeline(num_thread, num_iterations, weeks_ahead, num_free_transfers):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     click.echo("Cleaning database..")
@@ -105,9 +105,10 @@ def run_optimization(num_thread, weeks_ahead, num_free_transfers):
     """
     Run optimization
     """
-    cmd = "airsenal_run_optimization --num_thread {} --weeks_ahead {} --num_free_transfers {}".format(
-        num_thread, weeks_ahead, num_free_transfers
-    )
+    cmd = (
+        "airsenal_run_optimization --num_thread {} --weeks_ahead {}  "
+        "--num_free_transfers {}"
+    ).format(num_thread, weeks_ahead, num_free_transfers)
     os.system(cmd)
 
 

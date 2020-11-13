@@ -72,7 +72,8 @@ def get_starting_squad():
     use the transactions table in the db
     """
     s = Squad()
-    # Don't include free hit transfers as they only apply for the week the chip is activated
+    # Don't include free hit transfers as they only apply for the week the
+    # chip is activated
     transactions = (
         session.query(Transaction).order_by(Transaction.id).filter_by(free_hit=0).all()
     )
@@ -80,8 +81,8 @@ def get_starting_squad():
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
         else:
-            ## within an individual transfer we can violate the budget and squad constraints,
-            ## as long as the final squad for that gameweek obeys them
+            # within an individual transfer we can violate the budget and squad
+            # constraints, as long as the final squad for that gameweek obeys them
             s.add_player(
                 trans.player_id,
                 price=trans.price,
@@ -94,13 +95,11 @@ def get_starting_squad():
 
 
 def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
-
     """
-    given the next gw and a predicted gw,
-    retrieve discount factor.
-    either
-    exp: discount**n_ahead (discount reduces each gameweek)
-    const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to zero at gw 15 with default discount)
+    given the next gw and a predicted gw, retrieve discount factor. Either:
+        - exp: discount**n_ahead (discount reduces each gameweek)
+        - const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to
+          zero at gw 15 with default discount)
     """
     allowed_types = ["exp", "const", "constant"]
     if discount_type not in allowed_types:
@@ -164,8 +163,8 @@ def make_optimum_single_transfer(
         )
     for p_out in squad.players:
         if update_func_and_args:
-            ## call function to update progress bar.
-            ## this was passed as a tuple (func, increment, pid)
+            # call function to update progress bar.
+            # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
         new_squad = fastcopy(squad)
@@ -239,8 +238,8 @@ def make_optimum_double_transfer(
         )
         for j in range(i + 1, len(squad.players)):
             if update_func_and_args:
-                ## call function to update progress bar.
-                ## this was passed as a tuple (func, increment, pid)
+                # call function to update progress bar.
+                # this was passed as a tuple (func, increment, pid)
                 update_func_and_args[0](
                     update_func_and_args[1], update_func_and_args[2]
                 )
@@ -252,7 +251,7 @@ def make_optimum_double_transfer(
             )
             if verbose:
                 print("Removing players {} {}".format(i, j))
-            ## what positions do we need to fill?
+            # what positions do we need to fill?
             positions_needed = [pout_1.position, pout_2.position]
 
             # now loop over lists of players and add players back in
@@ -261,7 +260,7 @@ def make_optimum_double_transfer(
                     pin_1[0].player_id == pout_1.player_id
                     or pin_1[0].player_id == pout_2.player_id
                 ):
-                    continue  ## no point in adding same player back in
+                    continue  # no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
                 added_1_ok = new_squad_add_1.add_player(
                     pin_1[0], season=season, gameweek=transfer_gw
@@ -275,7 +274,7 @@ def make_optimum_double_transfer(
                         or pin_2[0].player_id == pout_1.player_id
                         or pin_2[0].player_id == pout_2.player_id
                     ):
-                        continue  ## no point in adding same player back in
+                        continue  # no point in adding same player back in
                     added_2_ok = new_squad_add_2.add_player(
                         pin_2[0], season=season, gameweek=transfer_gw
                     )
@@ -329,8 +328,8 @@ def make_random_transfers(
     max_tries = 100
     for i in range(num_iter):
         if update_func_and_args:
-            ## call function to update progress bar.
-            ## this was passed as a tuple (func, increment, pid)
+            # call function to update progress bar.
+            # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
         new_squad = fastcopy(squad)
@@ -341,7 +340,7 @@ def make_random_transfers(
         transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove = []  # this is the index within the squad
         removed_players = []  # this is the player_ids
-        ## order the players in the squad by predicted_points - least-to-most
+        # order the players in the squad by predicted_points - least-to-most
         player_list = []
         for p in squad.players:
             p.calc_predicted_points(tag)
@@ -349,7 +348,7 @@ def make_random_transfers(
         player_list.sort(key=itemgetter(1), reverse=False)
         while len(players_to_remove) < nsubs:
             index = int(random.triangular(0, len(player_list), 0))
-            if not index in players_to_remove:
+            if index not in players_to_remove:
                 players_to_remove.append(index)
 
         positions_needed = []
@@ -359,7 +358,6 @@ def make_random_transfers(
             new_squad.remove_player(
                 removed_players[-1], season=season, gameweek=transfer_gw
             )
-        budget = new_squad.budget
         predicted_points = {}
         for pos in set(positions_needed):
             predicted_points[pos] = get_predicted_points(
@@ -369,8 +367,8 @@ def make_random_transfers(
         added_players = []
         attempt = 0
         while not complete_squad:
-            ## sample with a triangular PDF - preferentially select players near
-            ## the start
+            # sample with a triangular PDF - preferentially select players near
+            # the start
             added_players = []
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
@@ -396,7 +394,7 @@ def make_random_transfers(
                         print("Problem removing {}".format(ap.name))
                 added_players = []
 
-        ## calculate the score
+        # calculate the score
         total_points = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
@@ -416,7 +414,7 @@ def make_random_transfers(
             best_pid_out = removed_players
             best_pid_in = [ap.player_id for ap in added_players]
             best_squad = new_squad
-        ## end of loop over n_iter
+        # end of loop over n_iter
     return best_squad, best_pid_out, best_pid_in
 
 
@@ -495,8 +493,8 @@ def make_best_transfers(
     points = squad.get_expected_points(
         gameweeks[0],
         tag,
-        triple_captain=(triple_captain_gw != None),
-        bench_boost=(bench_boost_gw != None),
+        triple_captain=(triple_captain_gw is not None),
+        bench_boost=(bench_boost_gw is not None),
     )
 
     return squad, transfer_dict, points
@@ -525,8 +523,8 @@ def make_new_squad(
         if verbose:
             print("Choosing new squad: iteration {}".format(iteration))
         if update_func_and_args:
-            ## call function to update progress bar.
-            ## this was passed as a tuple (func, increment, pid)
+            # call function to update progress bar.
+            # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
         predicted_points = {}
         t = Squad(budget)
@@ -547,7 +545,6 @@ def make_new_squad(
             # same position
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            remove_position = player_to_remove.position
             t.remove_player(
                 player_to_remove.player_id, season=season, gameweek=transfer_gw
             )
@@ -562,8 +559,6 @@ def make_new_squad(
                     else:
                         t.add_player(pp[0], season=season, gameweek=transfer_gw)
             # now try again to fill up the rest of the squad
-            num_missing_per_position = {}
-
             for pos in positions:
                 num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
                 if num_missing == 0:
@@ -627,7 +622,7 @@ def apply_strategy(
         "cards_played": {},
     }
     new_squad = fastcopy(starting_squad)
-    ## If we use "free hit" card, we need to remember the squad from the week before it
+    # If we use "free hit" card, we need to remember the squad from the week before it
     squad_before_free_hit = None
 
     # determine if bench boost or triple captain used in this strategy
@@ -640,19 +635,18 @@ def apply_strategy(
             triple_captain_gw = gw
 
     for igw, gw in enumerate(gameweeks):
-        ## how many gameweeks ahead should we look at for the purpose of estimating points?
+        # how many gameweeks ahead should we look at for estimating points?
         gw_range = gameweeks[igw:]  # range of gameweeks to end of window
 
-        ## if we used a free hit in the previous gw, we will have stored the previous squad, so
-        ## we go back to that one now.
-
+        # if we used a free hit in the previous gw, we will have stored the previous
+        # squad, so we go back to that one now.
         if squad_before_free_hit:
             new_squad = fastcopy(squad_before_free_hit)
             squad_before_free_hit = None
 
-        ## process this gameweek
+        # process this gameweek
         if strat[0][gw] == 0:  # no transfers that gameweek
-            rp, ap = [], []  ## lists of removed-players, added-players
+            rp, ap = [], []  # lists of removed-players, added-players
         elif strat[0][gw] == 1:  # one transfer - choose optimum
             new_squad, rp, ap = make_optimum_single_transfer(
                 new_squad,
@@ -663,7 +657,7 @@ def apply_strategy(
                 triple_captain_gw=triple_captain_gw,
             )
         elif strat[0][gw] == 2:
-            ## two transfers - choose optimum
+            # two transfers - choose optimum
             new_squad, rp, ap = make_optimum_double_transfer(
                 new_squad,
                 tag,
@@ -672,7 +666,7 @@ def apply_strategy(
                 bench_boost_gw=bench_boost_gw,
                 triple_captain_gw=triple_captain_gw,
             )
-        elif strat[0][gw] == "W":  ## wildcard - a whole new squad!
+        elif strat[0][gw] == "W":  # wildcard - a whole new squad!
             rp = [p.player_id for p in new_squad.players]
             budget = get_squad_value(new_squad)
             new_squad = make_new_squad(
@@ -687,10 +681,10 @@ def apply_strategy(
 
             ap = [p.player_id for p in new_squad.players]
 
-        elif strat[0][gw] == "F":  ## free hit - a whole new squad!
-            ## remember the starting squad (so we can revert to it later)
+        elif strat[0][gw] == "F":  # free hit - a whole new squad!
+            # remember the starting squad (so we can revert to it later)
             squad_before_free_hit = fastcopy(new_squad)
-            ## now make a new squad for this gw, as is done for wildcard
+            # now make a new squad for this gw, as is done for wildcard
             new_squad = [p.player_id for p in new_squad.players]
             budget = get_squad_value(new_squad)
             new_squad = make_new_squad(
@@ -705,7 +699,7 @@ def apply_strategy(
             ap = [p.player_id for p in new_squad.players]
 
         elif strat[0][gw] in ["B0", "T0"]:  # bench boost/triple captain and no transfer
-            rp, ap = [], []  ## lists of removed-players, added-players
+            rp, ap = [], []  # lists of removed-players, added-players
 
         elif strat[0][gw] in [
             "B1",
@@ -744,7 +738,7 @@ def apply_strategy(
                 gw_range[0], gw
             )
 
-        ## if we're ever >5 points below the baseline, bail out!
+        # if we're ever >5 points below the baseline, bail out!
         strategy_output["total_score"] += score
         if baseline_dict and baseline_dict[gw] - strategy_output["total_score"] > 5:
             break
@@ -757,7 +751,7 @@ def apply_strategy(
         )
         strategy_output["players_in"][gw] = ap
         strategy_output["players_out"][gw] = rp
-        ## end of loop over gameweeks
+        # end of loop over gameweeks
     if strategy_output["total_score"] > best_score:
         best_score = strategy_output["total_score"]
         best_strategy_output = strategy_output
@@ -825,14 +819,14 @@ def get_num_increments(num_transfers, num_iterations=100):
         or num_transfers == "F"
         or (isinstance(num_transfers, int) and num_transfers > 2)
     ):
-        ## wildcard or free hit or >2 - needs num_iterations iterations
+        # wildcard or free hit or >2 - needs num_iterations iterations
         return num_iterations
 
     elif num_transfers == 1:
-        ## single transfer - 15 increments (replace each player in turn)
+        # single transfer - 15 increments (replace each player in turn)
         return 15
     elif num_transfers == 2:
-        ## remove each pair of players - 15*7=105 combinations
+        # remove each pair of players - 15*7=105 combinations
         return 105
     else:
         print("Unrecognized num_transfers: {}".format(num_transfers))

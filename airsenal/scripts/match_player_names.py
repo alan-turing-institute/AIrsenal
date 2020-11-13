@@ -7,9 +7,6 @@ Write out a dict of the format
 ...
 }
 """
-import os
-import sys
-
 
 import json
 

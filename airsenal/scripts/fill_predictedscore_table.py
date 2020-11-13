@@ -16,14 +16,12 @@ import argparse
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.utils import (
-    list_players,
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_top_predicted_points,
 )
 
 from airsenal.framework.prediction_utils import (
-    calc_predicted_points_for_player,
     calc_predicted_points_for_pos,
     fit_bonus_points,
     fit_save_points,
@@ -110,7 +108,6 @@ def calc_all_predicted_points(
     else:
         df_cards = None
 
-    all_predictions = {}
     if num_thread:
         queue = Queue()
         procs = []
