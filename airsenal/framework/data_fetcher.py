@@ -8,6 +8,8 @@ import json
 import time
 import getpass
 
+API_HOME = "https://fantasy.premierleague.com/api"
+
 
 class FPLDataFetcher(object):
     """
@@ -44,23 +46,15 @@ class FPLDataFetcher(object):
                 )
             else:
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = (
-            "https://fantasy.premierleague.com/api/bootstrap-static/"
-        )
-        self.FPL_DETAIL_URL = (
-            "https://fantasy.premierleague.com/api/element-summary/{}/"
-        )
-        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history/"
-        self.FPL_TEAM_URL = (
-            "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
-        )
-        self.FPL_TEAM_TRANSFER_URL = (
-            "https://fantasy.premierleague.com/api/entry/{}/transfers/"
-        )
-        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1".format(
-            self.FPL_LEAGUE_ID
-        )
-        self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
+        self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
+        self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
+        self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
+        self.FPL_TEAM_URL = API_HOME + "/entry/{}/event/{}/picks/"
+        self.FPL_TEAM_TRANSFER_URL = API_HOME + "/entry/{}/transfers/"
+        self.FPL_LEAGUE_URL = API_HOME + (
+            "/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1"
+        ).format(self.FPL_LEAGUE_ID)
+        self.FPL_FIXTURE_URL = API_HOME + "/fixtures/"
 
     def get_fpl_credentials(self):
         """
@@ -81,8 +75,10 @@ class FPLDataFetcher(object):
             store_credentials.lower() == "y" or store_credentials.lower() == "n"
         ):
             store_credentials = input(
-                "\nWould you like to store these credentials in {}".format(data_loc)
-                " so that you won't be prompted for them again? (y/n): "
+                (
+                    "\nWould you like to store these credentials in {}"
+                    " so that you won't be prompted for them again? (y/n): "
+                ).format(data_loc)
             )
         if store_credentials.lower() == "y":
             with open(os.path.join(data_loc, "FPL_LOGIN"), "w") as login_file:
