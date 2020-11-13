@@ -24,7 +24,7 @@ from airsenal.framework.schema import (
     Team,
     session,
 )
-from airsenal.framework.season import CURRENT_SEASON, CURRENT_TEAMS
+from airsenal.framework.season import CURRENT_SEASON
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
@@ -193,7 +193,6 @@ def get_sell_price_for_player(player_id, gameweek=None):
     if the price increased in that time, we only get half the profit.
     if gameweek is None, get price we could sell the player for now.
     """
-    buy_price = 0
     transactions = session.query(Transaction)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
@@ -211,7 +210,7 @@ def get_sell_price_for_player(player_id, gameweek=None):
                 player_id, gameweek
             )
         )
-    # to query the API we need to use the fpl_api_id for the player rather than player_id
+    # to query the API we need to use fpl_api_id for the player rather than player_id
     player_api_id = get_player(player_id).fpl_api_id
 
     pdata_bought = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
@@ -252,7 +251,7 @@ def get_bank(gameweek=None, fpl_team_id=None):
 
 def get_free_transfers(gameweek=None, fpl_team_id=None):
     """
-    Work out how many free transfers this FPL team should have before specified gameweek.
+    Work out how many free transfers this FPL team should have before specified gameweek
     If gameweek is not provided, give the most recent value
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
@@ -265,7 +264,8 @@ def get_free_transfers(gameweek=None, fpl_team_id=None):
                 num_free_transfers += 1
             if gw["event_transfers"] == 2:
                 num_free_transfers = 1
-            # if gameweek was specified, and we reached the previous one, break out of loop.
+            # if gameweek was specified, and we reached the previous one,
+            # break out of loop.
             if gameweek and gw["event"] == gameweek - 1:
                 break
     return num_free_transfers
@@ -634,9 +634,7 @@ def get_next_fixture_for_player(
     fixtures_for_player = get_fixtures_for_player(player, season, [gameweek], dbsession)
     output_string = ""
     for fixture in fixtures_for_player:
-        is_home = False
         if fixture.home_team == team:
-            is_home = True
             output_string += fixture.away_team + " (h)"
         else:
             output_string += fixture.home_team + " (a)"
@@ -755,13 +753,13 @@ def get_predicted_points_for_player(player, tag, season=CURRENT_SEASON, dbsessio
         # there is one prediction per fixture.
         # for double gameweeks, we need to add the two together
         gameweek = prediction.fixture.gameweek
-        if not gameweek in ppdict.keys():
+        if gameweek not in ppdict.keys():
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
     # we still need to fill in zero for gameweeks that they're not playing.
     max_gw = get_max_gameweek(season, dbsession)
     for gw in range(1, max_gw + 1):
-        if not gw in ppdict.keys():
+        if gw not in ppdict.keys():
             ppdict[gw] = 0.0
     return ppdict
 
@@ -1081,7 +1079,7 @@ def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     last_result = (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter(Fixture.result != None)
+        .filter(Fixture.result is not None)
         .order_by(Fixture.gameweek.desc())
         .first()
     )
@@ -1199,9 +1197,10 @@ def find_fixture(
 
     if not fixtures or len(fixtures) == 0:
         raise ValueError(
-            "No fixture with season={}, gw={}, team_name={}, was_home={}, other_team_name={}".format(
-                season, gameweek, team_name, was_home, other_team_name
-            )
+            (
+                "No fixture with season={}, gw={}, team_name={}, was_home={}, "
+                "other_team_name={}"
+            ).format(season, gameweek, team_name, was_home, other_team_name)
         )
 
     if len(fixtures) == 1:
@@ -1223,9 +1222,10 @@ def find_fixture(
 
     if not fixture:
         raise ValueError(
-            "No unique fixture with season={}, gw={}, team_name={}, was_home={}, kickoff_time={}".format(
-                season, gameweek, team_name, was_home, kickoff_time
-            )
+            (
+                "No unique fixture with season={}, gw={}, team_name={}, was_home={}, "
+                "kickoff_time={}"
+            ).format(season, gameweek, team_name, was_home, kickoff_time)
         )
 
     return fixture

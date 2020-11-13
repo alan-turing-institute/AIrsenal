@@ -3,8 +3,6 @@ Use the BPL models to predict scores for upcoming fixtures.
 """
 
 import os
-import pickle
-import pkg_resources
 from collections import defaultdict
 from functools import partial
 import pandas as pd
@@ -13,7 +11,7 @@ import pystan
 
 from scipy.stats import multinomial
 
-from airsenal.framework.schema import Player, PlayerPrediction, PlayerScore, Fixture
+from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -95,7 +93,6 @@ def get_player_history_df(
                 )
                 continue
             minutes = row.minutes
-            opponent = row.opponent
             goals = row.goals
             assists = row.assists
             # find the match, in order to get team goals
@@ -153,7 +150,8 @@ def get_attacking_points(
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
     def _get_partitions(n):
-        # partition n goals into possible combinations of [n_goals, n_assists, n_neither]
+        # partition n goals into possible combinations of
+        # [n_goals, n_assists, n_neither]
         partitions = []
         for i in range(0, n + 1):
             for j in range(0, n - i + 1):
@@ -166,7 +164,8 @@ def get_attacking_points(
             points_for_goal[position] * partition[0] + points_for_assist * partition[1]
         )
 
-    # compute the weighted sum of terms like: points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
+    # compute the weighted sum of terms like:
+    #   points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
     for ngoals in range(1, 11):
         partitions = _get_partitions(ngoals)
@@ -327,10 +326,10 @@ def calc_predicted_points_for_player(
         expected_points[gameweek] = points
 
         if sum(recent_minutes) == 0:
-            # 'recent_minutes' contains the number of minutes that player played
-            # for in the past few matches. If these are all zero, we will for sure
-            # predict zero points for this player, so we don't need to call all the
-            # functions to calculate appearance points, defending points, attacking points.
+            # 'recent_minutes' contains the number of minutes that player played for
+            # in the past few matches. If these are all zero, we will for sure predict
+            # zero points for this player, so we don't need to call all the functions to
+            # calculate appearance points, defending points, attacking points.
             points = 0.0
 
         elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, dbsession):

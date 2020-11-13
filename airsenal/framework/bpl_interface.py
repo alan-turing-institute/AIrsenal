@@ -77,7 +77,7 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     model_team.fit()
     # check if each team is known to the model, and if not, add it using FIFA rankings
     for team in teams:
-        if not team in model_team.team_indices.keys():
+        if team not in model_team.team_indices.keys():
             try:
                 strvals = df_X.loc[
                     (df_X["team"] == team), ["att", "mid", "defn", "ovr"]
@@ -107,9 +107,9 @@ def get_fitted_team_model(season, gameweek, dbsession):
 
 def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
-    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
-    draw_probability, away_win_probability.
+    Returns probabilities for all fixtures in a given gameweek and season, as a data
+    frame with a row for each fixture and columns being fixture_id, home_team,
+    away_team, home_win_probability, draw_probability, away_win_probability.
     """
     model_team = get_fitted_team_model(season, gameweek, dbsession)
     fixture_probabilities_list = []
