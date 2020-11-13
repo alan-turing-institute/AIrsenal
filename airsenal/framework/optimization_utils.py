@@ -72,7 +72,8 @@ def get_starting_squad():
     use the transactions table in the db
     """
     s = Squad()
-    # Don't include free hit transfers as they only apply for the week the chip is activated
+    # Don't include free hit transfers as they only apply for the week the
+    # chip is activated
     transactions = (
         session.query(Transaction).order_by(Transaction.id).filter_by(free_hit=0).all()
     )
@@ -80,8 +81,8 @@ def get_starting_squad():
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
         else:
-            # within an individual transfer we can violate the budget and squad constraints,
-            # as long as the final squad for that gameweek obeys them
+            # within an individual transfer we can violate the budget and squad
+            # constraints, as long as the final squad for that gameweek obeys them
             s.add_player(
                 trans.player_id,
                 price=trans.price,
@@ -94,13 +95,11 @@ def get_starting_squad():
 
 
 def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
-
     """
-    given the next gw and a predicted gw,
-    retrieve discount factor.
-    either
-    exp: discount**n_ahead (discount reduces each gameweek)
-    const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to zero at gw 15 with default discount)
+    given the next gw and a predicted gw, retrieve discount factor. Either:
+        - exp: discount**n_ahead (discount reduces each gameweek)
+        - const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to
+          zero at gw 15 with default discount)
     """
     allowed_types = ["exp", "const", "constant"]
     if discount_type not in allowed_types:
@@ -349,7 +348,7 @@ def make_random_transfers(
         player_list.sort(key=itemgetter(1), reverse=False)
         while len(players_to_remove) < nsubs:
             index = int(random.triangular(0, len(player_list), 0))
-            if not index in players_to_remove:
+            if index not in players_to_remove:
                 players_to_remove.append(index)
 
         positions_needed = []
@@ -359,7 +358,6 @@ def make_random_transfers(
             new_squad.remove_player(
                 removed_players[-1], season=season, gameweek=transfer_gw
             )
-        budget = new_squad.budget
         predicted_points = {}
         for pos in set(positions_needed):
             predicted_points[pos] = get_predicted_points(
@@ -495,8 +493,8 @@ def make_best_transfers(
     points = squad.get_expected_points(
         gameweeks[0],
         tag,
-        triple_captain=(triple_captain_gw != None),
-        bench_boost=(bench_boost_gw != None),
+        triple_captain=(triple_captain_gw is not None),
+        bench_boost=(bench_boost_gw is not None),
     )
 
     return squad, transfer_dict, points
@@ -547,7 +545,6 @@ def make_new_squad(
             # same position
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            remove_position = player_to_remove.position
             t.remove_player(
                 player_to_remove.player_id, season=season, gameweek=transfer_gw
             )
@@ -562,8 +559,6 @@ def make_new_squad(
                     else:
                         t.add_player(pp[0], season=season, gameweek=transfer_gw)
             # now try again to fill up the rest of the squad
-            num_missing_per_position = {}
-
             for pos in positions:
                 num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
                 if num_missing == 0:
@@ -640,12 +635,11 @@ def apply_strategy(
             triple_captain_gw = gw
 
     for igw, gw in enumerate(gameweeks):
-        # how many gameweeks ahead should we look at for the purpose of estimating points?
+        # how many gameweeks ahead should we look at for estimating points?
         gw_range = gameweeks[igw:]  # range of gameweeks to end of window
 
-        # if we used a free hit in the previous gw, we will have stored the previous squad, so
-        # we go back to that one now.
-
+        # if we used a free hit in the previous gw, we will have stored the previous
+        # squad, so we go back to that one now.
         if squad_before_free_hit:
             new_squad = fastcopy(squad_before_free_hit)
             squad_before_free_hit = None

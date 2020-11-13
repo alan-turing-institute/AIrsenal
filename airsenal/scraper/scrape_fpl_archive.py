@@ -168,7 +168,7 @@ def find_num_players(soup):
     Should be a bit of text on the page saying how many players in total.
     """
     for span in soup.find_all("span", attrs={"class": "items ng-binding"}):
-        match = re.search("([\d]+) items total", span.text)
+        match = re.search(r"([\d]+) items total", span.text)
         if match:
             return int(match.groups()[0])
     return 0
