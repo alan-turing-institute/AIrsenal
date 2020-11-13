@@ -203,7 +203,9 @@ def main():
         "--num_thread", help="number of threads to parallelise over", type=int
     )
     parser.add_argument(
-        "--no_bonus", help="don't include bonus points", action="store_true",
+        "--no_bonus",
+        help="don't include bonus points",
+        action="store_true",
     )
     parser.add_argument(
         "--no_cards",

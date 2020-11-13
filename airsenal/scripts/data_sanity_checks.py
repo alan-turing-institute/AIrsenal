@@ -156,7 +156,9 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
                     msg = (
                         "{}: {} in player_scores but labelled as playing for {}."
                     ).format(
-                        fixture_string(fixture), score.player.name, score.player_team,
+                        fixture_string(fixture),
+                        score.player.name,
+                        score.player_team,
                     )
                     print(msg)
 
@@ -263,7 +265,9 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                         "{}: Player scores sum to {} but {} goals in result "
                         "for home team"
                     ).format(
-                        fixture_string(fixture, result), home_goals, result.home_score,
+                        fixture_string(fixture, result),
+                        home_goals,
+                        result.home_score,
                     )
                     print(msg)
 
@@ -273,7 +277,9 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                         "{}: Player scores sum to {} but {} goals in result "
                         "for away team"
                     ).format(
-                        fixture_string(fixture, result), away_goals, result.away_score,
+                        fixture_string(fixture, result),
+                        away_goals,
+                        result.away_score,
                     )
                     print(msg)
 

@@ -69,7 +69,8 @@ class FPLDataFetcher(object):
         """
         print(
             """
-            Accessing FPL mini-league data requires the login (email address) and password for your FPL account.
+            Accessing FPL mini-league data requires the login (email address) and
+            password for your FPL account.
             """
         )
         self.FPL_LOGIN = input("Please enter FPL login: ")
@@ -80,9 +81,8 @@ class FPLDataFetcher(object):
             store_credentials.lower() == "y" or store_credentials.lower() == "n"
         ):
             store_credentials = input(
-                "\nWould you like to store these credentials in {} so that you won't be prompted for them again? (y/n): ".format(
-                    data_loc
-                )
+                "\nWould you like to store these credentials in {}".format(data_loc)
+                " so that you won't be prompted for them again? (y/n): "
             )
         if store_credentials.lower() == "y":
             with open(os.path.join(data_loc, "FPL_LOGIN"), "w") as login_file:
@@ -247,10 +247,10 @@ class FPLDataFetcher(object):
         Return a list, as in double-gameweeks, a player can play more than
         one match in a gameweek.
         """
-        if not player_api_id in self.player_gameweek_data.keys():
+        if player_api_id not in self.player_gameweek_data.keys():
             self.player_gameweek_data[player_api_id] = {}
             if (not gameweek) or (
-                not gameweek in self.player_gameweek_data[player_api_id].keys()
+                gameweek not in self.player_gameweek_data[player_api_id].keys()
             ):
                 got_data = False
                 n_tries = 0
@@ -278,11 +278,11 @@ class FPLDataFetcher(object):
                     return []
                 for game in player_detail["history"]:
                     gw = game["round"]
-                    if not gw in self.player_gameweek_data[player_api_id].keys():
+                    if gw not in self.player_gameweek_data[player_api_id].keys():
                         self.player_gameweek_data[player_api_id][gw] = []
                     self.player_gameweek_data[player_api_id][gw].append(game)
         if gameweek:
-            if not gameweek in self.player_gameweek_data[player_api_id].keys():
+            if gameweek not in self.player_gameweek_data[player_api_id].keys():
                 print(
                     "Data not available for player {} week {}".format(
                         player_api_id, gameweek

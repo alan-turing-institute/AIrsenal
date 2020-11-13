@@ -138,7 +138,7 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     player_id = int(player_id)
     if player_id not in pids:  # player not there
         return False
-    st = (
+    (
         dbsession.query(SessionSquad)
         .filter_by(session_id=session_id, player_id=player_id)
         .delete()
@@ -185,9 +185,7 @@ def set_session_budget(budget, session_id, dbsession=DBSESSION):
     then enter a new row
     """
     print("Deleting old budget")
-    old_budget = (
-        dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
-    )
+    dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
     dbsession.commit()
     print("Setting budget for {} to {}".format(session_id, budget))
     sb = SessionBudget(session_id=session_id, budget=budget)
@@ -294,7 +292,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     Use our predicted playerscores to suggest the best transfers.
     """
     n_transfer = int(n_transfer)
-    if not n_transfer in range(1, 3):
+    if n_transfer not in range(1, 3):
         raise RuntimeError("Need to choose 1 or 2 transfers")
     if not validate_session_squad(session_id, dbsession):
         raise RuntimeError("Cannot suggest transfer without complete squad")
@@ -307,9 +305,8 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
         if not added_ok:
             raise RuntimeError("Cannot add player {}".format(p))
     pred_tag = get_latest_prediction_tag()
-    gw = NEXT_GAMEWEEK
     if n_transfer == 1:
-        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
+        _, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
     elif n_transfer == 2:
-        new_squad, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
+        _, pid_out, pid_in = make_optimum_double_transfer(t, pred_tag)
     return {"transfers_out": pid_out, "transfers_in": pid_in}
