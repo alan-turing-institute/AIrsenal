@@ -1,5 +1,6 @@
 tqdm>=v4.29.1
 black
+flake8
 pandas
 sqlalchemy
 requests

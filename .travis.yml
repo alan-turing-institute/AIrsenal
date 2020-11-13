@@ -51,3 +51,4 @@ jobs:
 
 script:
   - pytest
+  - flake8
