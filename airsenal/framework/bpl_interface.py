@@ -9,12 +9,14 @@ import pandas as pd
 
 from airsenal.framework.schema import Result, FifaTeamRating
 from airsenal.framework.utils import (
-    CURRENT_TEAMS,
     get_fixtures_for_gameweek,
     is_future_gameweek,
 )
-from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
-
+from airsenal.framework.season import (
+    CURRENT_SEASON,
+    CURRENT_TEAMS,
+    get_teams_for_season,
+)
 
 np.random.seed(42)
 
