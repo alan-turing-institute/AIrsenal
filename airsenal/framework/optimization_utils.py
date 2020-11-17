@@ -444,11 +444,12 @@ def make_best_transfers(
 
     if num_transfers == 0:
         # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with card)
+        new_squad = squad
         transfer_dict = {"in": [], "out": []}
 
     elif num_transfers == 1:
         # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
-        squad, players_out, players_in = make_optimum_single_transfer(
+        new_squad, players_out, players_in = make_optimum_single_transfer(
             squad,
             tag,
             gameweeks,
@@ -461,7 +462,7 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
     elif num_transfers == 2:
         # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with card)
-        squad, players_out, players_in = make_optimum_double_transfer(
+        new_squad, players_out, players_in = make_optimum_double_transfer(
             squad,
             tag,
             gameweeks,
@@ -490,14 +491,18 @@ def make_best_transfers(
         )
 
     # get the expected points total for next gameweek
-    points = squad.get_expected_points(
+    points = new_squad.get_expected_points(
         gameweeks[0],
         tag,
         triple_captain=(triple_captain_gw is not None),
         bench_boost=(bench_boost_gw is not None),
     )
 
-    return squad, transfer_dict, points
+    if num_transfers == "F":
+        # Free Hit changes don't apply to next gameweek, so return the original squad
+        return squad, transfer_dict, points
+    else:
+        return new_squad, transfer_dict, points
 
 
 def make_new_squad(
