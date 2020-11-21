@@ -161,27 +161,42 @@ def optimize(
 
             # gameweeks from this point in strategy to end of window
             gameweeks = gameweek_range[depth:]
+
             # next gameweek:
             gw = gameweeks[0]
+
+            # check whether we're playing a chip this gameweek
+            bench_boost = False
+            triple_captain = False
+            if isinstance(num_transfers, str):
+                chip = True
+                if num_transfers.startswith("T"):
+                    triple_captain = True
+                    strat_dict["cards_played"][gw] = "triple_captain"
+                elif num_transfers.startswith("B"):
+                    bench_boost = True
+                    strat_dict["cards_played"][gw] = "bench_boost"
+                elif num_transfers == "W":
+                    strat_dict["cards_played"][gw] = "wildcard"
+                elif num_transfers == "F":
+                    strat_dict["cards_played"][gw] = "free_hit"
+            else:
+                chip = False
+                strat_dict["cards_played"][gw] = None
+
             # if we're doing 0 transfers (including with Triple Captain or Bench Boost)
-            if (isinstance(num_transfers, int) and num_transfers == 0) or (
-                isinstance(num_transfers, str)
-                and (num_transfers.startswith("T") or num_transfers.startswith("B"))
-                and int(num_transfers[-1]) == 0
+            if (not chip and num_transfers == 0) or (
+                (triple_captain or bench_boost) and int(num_transfers[-1]) == 0
             ):
                 # no transfers
                 strat_dict["players_in"][gw] = []
                 strat_dict["players_out"][gw] = []
-                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
-                    strat_dict["cards_played"][gw] = "triple_captain"
-                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
-                    strat_dict["cards_played"][gw] = "bench_boost"
-                else:
-                    strat_dict["cards_played"][gw] = None
-                points = squad.get_expected_points(gw, pred_tag)
+                points = squad.get_expected_points(
+                    gw, pred_tag, bench_boost=bench_boost, triple_captain=triple_captain
+                )
                 new_squad = squad
-            else:
 
+            else:
                 num_increments_for_updater = get_num_increments(
                     num_transfers, num_iterations
                 )
@@ -199,16 +214,6 @@ def optimize(
                 points -= calc_points_hit(num_transfers, free_transfers)
                 strat_dict["players_in"][gw] = transfers["in"]
                 strat_dict["players_out"][gw] = transfers["out"]
-                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
-                    strat_dict["cards_played"][gw] = "triple_captain"
-                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
-                    strat_dict["cards_played"][gw] = "bench_boost"
-                elif num_transfers == "W":
-                    strat_dict["cards_played"][gw] = "wildcard"
-                elif num_transfers == "F":
-                    strat_dict["cards_played"][gw] = "free_hit"
-                else:
-                    strat_dict["cards_played"][gw] = None
 
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
             strat_dict["total_score"] += points
