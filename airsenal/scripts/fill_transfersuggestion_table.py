@@ -166,60 +166,44 @@ def optimize(
             gw = gameweeks[0]
 
             # check whether we're playing a chip this gameweek
-            bench_boost = False
-            triple_captain = False
             if isinstance(num_transfers, str):
-                chip = True
                 if num_transfers.startswith("T"):
-                    triple_captain = True
                     strat_dict["cards_played"][gw] = "triple_captain"
                 elif num_transfers.startswith("B"):
-                    bench_boost = True
                     strat_dict["cards_played"][gw] = "bench_boost"
                 elif num_transfers == "W":
                     strat_dict["cards_played"][gw] = "wildcard"
                 elif num_transfers == "F":
                     strat_dict["cards_played"][gw] = "free_hit"
             else:
-                chip = False
                 strat_dict["cards_played"][gw] = None
 
-            # if we're doing 0 transfers (including with Triple Captain or Bench Boost)
-            if (not chip and num_transfers == 0) or (
-                (triple_captain or bench_boost) and int(num_transfers[-1]) == 0
-            ):
-                # no transfers
-                strat_dict["players_in"][gw] = []
-                strat_dict["players_out"][gw] = []
-                points = squad.get_expected_points(
-                    gw, pred_tag, bench_boost=bench_boost, triple_captain=triple_captain
-                )
-                new_squad = squad
+            # calculate best transfers to make this gameweek (to maximise points across
+            # remaining gameweeks)
+            num_increments_for_updater = get_num_increments(
+                num_transfers, num_iterations
+            )
+            increment = 100 / num_increments_for_updater
+            new_squad, transfers, points = make_best_transfers(
+                num_transfers,
+                squad,
+                pred_tag,
+                gameweeks,
+                season,
+                num_iterations,
+                (updater, increment, pid),
+            )
 
-            else:
-                num_increments_for_updater = get_num_increments(
-                    num_transfers, num_iterations
-                )
-                increment = 100 / num_increments_for_updater
-                new_squad, transfers, points = make_best_transfers(
-                    num_transfers,
-                    squad,
-                    pred_tag,
-                    gameweeks,
-                    season,
-                    num_iterations,
-                    (updater, increment, pid),
-                )
-
-                points -= calc_points_hit(num_transfers, free_transfers)
-                strat_dict["players_in"][gw] = transfers["in"]
-                strat_dict["players_out"][gw] = transfers["out"]
-
-            free_transfers = calc_free_transfers(num_transfers, free_transfers)
+            points -= calc_points_hit(num_transfers, free_transfers)
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 
+            strat_dict["players_in"][gw] = transfers["in"]
+            strat_dict["players_out"][gw] = transfers["out"]
+            free_transfers = calc_free_transfers(num_transfers, free_transfers)
+
             depth += 1
+
         if depth >= len(gameweek_range):
             with open(
                 os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(pred_tag, sid)),
