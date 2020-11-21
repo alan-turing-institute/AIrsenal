@@ -449,9 +449,7 @@ def make_best_transfers(
         if update_func_and_args:
             # call function to update progress bar.
             # this was passed as a tuple (func, increment, pid)
-            update_func_and_args[0](
-                update_func_and_args[1], update_func_and_args[2]
-            )
+            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
     elif num_transfers == 1:
         # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
