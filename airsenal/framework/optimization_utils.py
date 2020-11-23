@@ -446,6 +446,10 @@ def make_best_transfers(
         # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with card)
         new_squad = squad
         transfer_dict = {"in": [], "out": []}
+        if update_func_and_args:
+            # call function to update progress bar.
+            # this was passed as a tuple (func, increment, pid)
+            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
     elif num_transfers == 1:
         # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
@@ -458,8 +462,8 @@ def make_best_transfers(
             bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args,
         )
-
         transfer_dict = {"in": players_in, "out": players_out}
+
     elif num_transfers == 2:
         # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with card)
         new_squad, players_out, players_in = make_optimum_double_transfer(
@@ -661,6 +665,9 @@ def get_num_increments(num_transfers, num_iterations=100):
     ):
         # wildcard or free hit or >2 - needs num_iterations iterations
         return num_iterations
+
+    elif num_transfers == 0:
+        return 1
 
     elif num_transfers == 1:
         # single transfer - 15 increments (replace each player in turn)
