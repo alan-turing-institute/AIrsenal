@@ -161,60 +161,49 @@ def optimize(
 
             # gameweeks from this point in strategy to end of window
             gameweeks = gameweek_range[depth:]
+
             # next gameweek:
             gw = gameweeks[0]
-            # if we're doing 0 transfers (including with Triple Captain or Bench Boost)
-            if (isinstance(num_transfers, int) and num_transfers == 0) or (
-                isinstance(num_transfers, str)
-                and (num_transfers.startswith("T") or num_transfers.startswith("B"))
-                and int(num_transfers[-1]) == 0
-            ):
-                # no transfers
-                strat_dict["players_in"][gw] = []
-                strat_dict["players_out"][gw] = []
-                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
-                    strat_dict["cards_played"][gw] = "triple_captain"
-                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
-                    strat_dict["cards_played"][gw] = "bench_boost"
-                else:
-                    strat_dict["cards_played"][gw] = None
-                points = squad.get_expected_points(gw, pred_tag)
-                new_squad = squad
-            else:
 
-                num_increments_for_updater = get_num_increments(
-                    num_transfers, num_iterations
-                )
-                increment = 100 / num_increments_for_updater
-                new_squad, transfers, points = make_best_transfers(
-                    num_transfers,
-                    squad,
-                    pred_tag,
-                    gameweeks,
-                    season,
-                    num_iterations,
-                    (updater, increment, pid),
-                )
-
-                points -= calc_points_hit(num_transfers, free_transfers)
-                strat_dict["players_in"][gw] = transfers["in"]
-                strat_dict["players_out"][gw] = transfers["out"]
-                if isinstance(num_transfers, str) and num_transfers.startswith("T"):
+            # check whether we're playing a chip this gameweek
+            if isinstance(num_transfers, str):
+                if num_transfers.startswith("T"):
                     strat_dict["cards_played"][gw] = "triple_captain"
-                elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
+                elif num_transfers.startswith("B"):
                     strat_dict["cards_played"][gw] = "bench_boost"
                 elif num_transfers == "W":
                     strat_dict["cards_played"][gw] = "wildcard"
                 elif num_transfers == "F":
                     strat_dict["cards_played"][gw] = "free_hit"
-                else:
-                    strat_dict["cards_played"][gw] = None
+            else:
+                strat_dict["cards_played"][gw] = None
 
-            free_transfers = calc_free_transfers(num_transfers, free_transfers)
+            # calculate best transfers to make this gameweek (to maximise points across
+            # remaining gameweeks)
+            num_increments_for_updater = get_num_increments(
+                num_transfers, num_iterations
+            )
+            increment = 100 / num_increments_for_updater
+            new_squad, transfers, points = make_best_transfers(
+                num_transfers,
+                squad,
+                pred_tag,
+                gameweeks,
+                season,
+                num_iterations,
+                (updater, increment, pid),
+            )
+
+            points -= calc_points_hit(num_transfers, free_transfers)
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 
+            strat_dict["players_in"][gw] = transfers["in"]
+            strat_dict["players_out"][gw] = transfers["out"]
+            free_transfers = calc_free_transfers(num_transfers, free_transfers)
+
             depth += 1
+
         if depth >= len(gameweek_range):
             with open(
                 os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(pred_tag, sid)),
