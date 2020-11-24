@@ -347,10 +347,10 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
-    wildcard=False,
-    free_hit=False,
-    triple_captain=False,
-    bench_boost=False,
+    wildcard_week=-1,
+    free_hit_week=-1,
+    triple_captain_week=-1,
+    bench_boost_week=-1,
     num_free_transfers=None,
     num_iterations=100,
     num_thread=4,
@@ -360,6 +360,9 @@ def run_optimization(
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
     combination, to find the best strategy.
+    The card-related variables e.g. wildcard_week are -1 if that card
+    is not to be played, 0 for 'play it any week', or the gw in which
+    it should be played.
     """
     # How many free transfers are we starting with?
     if not num_free_transfers:
@@ -420,13 +423,13 @@ def run_optimization(
     #  num_free_transfers
     #  budget
     cards = []
-    if wildcard:
+    if wildcard_week==0:
         cards.append("wildcard")
-    if free_hit:
+    if free_hit_week==0:
         cards.append("free_hit")
-    if triple_captain:
+    if triple_captain_week=0:
         cards.append("triple_captain")
-    if bench_boost:
+    if bench_boost_week=0:
         cards.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
@@ -497,24 +500,26 @@ def main():
     parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
     parser.add_argument("--tag", help="specify a string identifying prediction set")
     parser.add_argument(
-        "--allow_wildcard",
-        help="include possibility of wildcarding in one of the weeks",
-        action="store_true",
+        "--wildcard_week",
+        help="play wildcard in the specified week. Choose 0 for 'any week'.",
+        type=int,
     )
     parser.add_argument(
-        "--allow_free_hit",
-        help="include possibility of playing free hit in one of the weeks",
-        action="store_true",
+        "--free_hit_week",
+        help="play free hit in the specified week. Choose 0 for 'any week'.",
+        type=int,
     )
     parser.add_argument(
-        "--allow_triple_captain",
-        help="include possibility of playing triple captain in one of the weeks",
-        action="store_true",
+        "--triple_captain_week",
+        help="play triple captain in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1
     )
     parser.add_argument(
-        "--allow_bench_boost",
-        help="include possibility of playing bench boost in one of the weeks",
-        action="store_true",
+        "--bench_boost_week",
+        help="play wildcard in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1
     )
     parser.add_argument(
         "--num_free_transfers", help="how many free transfers do we have", type=int
@@ -550,22 +555,7 @@ def main():
     else:
         gameweeks = list(range(args.gw_start, args.gw_end))
     num_iterations = args.num_iterations
-    if args.allow_wildcard:
-        wildcard = True
-    else:
-        wildcard = False
-    if args.allow_free_hit:
-        free_hit = True
-    else:
-        free_hit = False
-    if args.allow_triple_captain:
-        triple_captain = True
-    else:
-        triple_captain = False
-    if args.allow_bench_boost:
-        bench_boost = True
-    else:
-        bench_boost = False
+
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:
@@ -577,15 +567,19 @@ def main():
         tag = get_latest_prediction_tag()
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
+    wildcard_week = args.wildcard_week
+    free_hit_week = args.free_hit_week
+    triple_captain_week = args.triple_captain_week
+    bench_boost_week = args.bench_boost_week
 
     run_optimization(
         gameweeks,
         tag,
         season,
-        wildcard,
-        free_hit,
-        triple_captain,
-        bench_boost,
+        wildcard_week,
+        free_hit_week,
+        triple_captain_week,
+        bench_boost_week,
         num_free_transfers,
         num_iterations,
         num_thread,
