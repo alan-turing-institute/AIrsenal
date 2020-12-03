@@ -131,7 +131,7 @@ def optimize(
             profiler = cProfile.Profile()
             profiler.enable()
 
-        num_transfers, free_transfers, squad, strat_dict, sid = status
+        num_transfers, free_transfers, hit_so_far, squad, strat_dict, sid = status
         # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
         # OR 'B0', 'B1', or 'B2' (the latter six represent triple captain or
         # bench boost along with 0, 1, or 2 transfers).
@@ -218,33 +218,23 @@ def optimize(
 
         else:
             # add children to the queue
-            for num_transfers in range(3):
-                queue.put((num_transfers, free_transfers, new_squad, strat_dict, sid))
-                if "triple_captain" in cards_allowed and "T" not in sid:
-                    queue.put(
-                        (
-                            "T{}".format(num_transfers),
-                            free_transfers,
-                            new_squad,
-                            strat_dict,
-                            sid,
-                        )
-                    )
-                if "bench_boost" in cards_allowed and "B" not in sid:
-                    queue.put(
-                        (
-                            "B{}".format(num_transfers),
-                            free_transfers,
-                            new_squad,
-                            strat_dict,
-                            sid,
-                        )
-                    )
-            if "wildcard" in cards_allowed and "W" not in sid:
-                queue.put(("W", free_transfers, new_squad, strat_dict, sid))
-            # If we're playing "free_hit", put the old squad onto the queue
-            if "free_hit" in cards_allowed and "F" not in sid:
-                queue.put(("F", free_transfers, squad, strat_dict, sid))
+            strategies = next_week_transfers(
+                (free_transfers, hit_so_far, strat_dict),
+                max_total_hit=max_total_hit,
+                allow_wildcard="wildcard" in cards_allowed,
+                allow_free_hit="free_hit" in cards_allowed,
+                allow_bench_boost="bench_boost" in cards_allowed,
+                allow_triple_captain="triple_captain" in cards_allowed,
+                allow_unused_transfers=allow_unused_transfers,
+                max_transfers=max_transfers,
+            )
+            
+            for strat in strategies:
+                # strat: (num_transfers, free_transfers, hit_so_far)
+                num_transfers, free_transfers, hit_so_far = strat
+                
+                queue.put((num_transfers, free_transfers, hit_so_far, new_squad, strat_dict, sid))
+
 
 
 def find_best_strat_from_json(tag):
