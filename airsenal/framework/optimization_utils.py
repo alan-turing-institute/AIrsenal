@@ -693,7 +693,7 @@ def next_week_transfers(
 ):
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or card played) in the following gameweek.
-    
+
     strat is a tuple (free_transfers, hit_so_far, strat_dict)
     strat_dict must have key key cards_played, which is a dict indexed by gameweek with
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
@@ -701,10 +701,7 @@ def next_week_transfers(
     ft_available, hit_so_far, strat_dict = strat
     card_history = strat_dict["cards_played"]
 
-    if (
-        not allow_unused_transfers
-        and ft_available == 2
-    ):
+    if not allow_unused_transfers and ft_available == 2:
         # Force at least 1 free transfer.
         # NOTE: This will exclude the baseline strategy when allow_unused_transfers
         # is False. Re-add it outside this function in that case.
@@ -722,8 +719,12 @@ def next_week_transfers(
     if len(card_history) > 0:
         allow_wildcard = allow_wildcard and "wildcard" not in card_history.values()
         allow_free_hit = allow_free_hit and "free_hit" not in card_history.values()
-        allow_bench_boost = allow_bench_boost and "bench_boost" not in card_history.values()
-        allow_triple_captain = allow_triple_captain and "triple_captain" not in card_history.values()
+        allow_bench_boost = (
+            allow_bench_boost and "bench_boost" not in card_history.values()
+        )
+        allow_triple_captain = (
+            allow_triple_captain and "triple_captain" not in card_history.values()
+        )
 
     new_transfers = [nt for nt in ft_choices]  # make a copy
     if allow_wildcard:
@@ -738,9 +739,7 @@ def next_week_transfers(
     new_points_hits = [
         hit_so_far + calc_points_hit(nt, ft_available) for nt in new_transfers
     ]
-    new_ft_available = [
-        calc_free_transfers(nt, ft_available) for nt in new_transfers
-    ]
+    new_ft_available = [calc_free_transfers(nt, ft_available) for nt in new_transfers]
 
     # return list of (num_transfers, free_transfers, hit_so_far) tuples for each new
     # strategy
@@ -828,7 +827,9 @@ def count_expected_outputs(
 
     # if allow_unused_transfers is False baseline of no transfers will be removed above,
     # add it back in here, apart from edge cases where it's already included.
-    if not allow_unused_transfers and (gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == 2)):
+    if not allow_unused_transfers and (
+        gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == 2)
+    ):
         baseline_strat_dict = {
             "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
             "cards_played": {},
