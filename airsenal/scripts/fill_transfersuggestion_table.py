@@ -260,6 +260,21 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
+def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
+    """When strategies with unused transfers are excluded the baseline strategy will
+    normally not be part of the tree. In that case save it first with this function.
+    """
+    # TODO: Discount factor, use season argument
+    score = 0
+    for gw in gameweeks:
+        score += squad.get_expected_points(gw, tag)
+    num_gameweeks = len(gameweeks)
+    zeros = ("0-" * num_gameweeks)[:-1]
+    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
+    with open(filename, "w") as f:
+        json.dump({"total_score": score}, f)
+
+
 def find_baseline_score_from_json(tag, num_gameweeks):
     """
     The baseline score is the one where we make 0 transfers
@@ -403,6 +418,16 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
+    starting_squad = get_starting_squad()
+
+    if not allow_unused_transfers and (
+        num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
+    ):
+        # if we are excluding unused transfers the tree may not include the baseline
+        # strategy. In those cases quickly calculate and save it here first.
+        save_baseline_score(starting_squad, gameweeks, tag, season=season)
+        update_progress()
+
     # Add Processes to run the the target 'optimize' function.
     # This target function needs to know:
     #  num_transfers
@@ -444,7 +469,6 @@ def run_optimization(
         processor.start()
         procs.append(processor)
     # add starting node to the queue
-    starting_squad = get_starting_squad()
     squeue.put((0, num_free_transfers, 0, starting_squad, {}, "starting"))
 
     for i, p in enumerate(procs):
