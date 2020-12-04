@@ -416,9 +416,9 @@ def run_optimization(
         cards.append("wildcard")
     if free_hit_week==0:
         cards.append("free_hit")
-    if triple_captain_week=0:
+    if triple_captain_week==0:
         cards.append("triple_captain")
-    if bench_boost_week=0:
+    if bench_boost_week==0:
         cards.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
