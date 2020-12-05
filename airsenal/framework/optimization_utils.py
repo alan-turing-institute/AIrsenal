@@ -759,18 +759,16 @@ def count_expected_outputs(
     max_transfers=2,
 ):
     """
-    Generate possible transfer and chip strategies for gw_ahead gameweeks ahead,
-    subject to:
-    * Make a maximum of 3 transfers each gameweek.
-    * If a chip is played only allow 0 or 1 transfers to be played or/in combination
-      with a chip.
+    Count the number of possible transfer and chip strategies for gw_ahead gameweeks
+    ahead, subject to:
+    * Start with free_transfers free transfers.
+    * Spend a max of max_total_hit points on transfers across whole period
+    (None for no limit)
+    * Allow playing the chips which have their allow_xxx argument set True
+    * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
+    are available), if allow_unused_transfers is False.
+    * Make a maximum of max_transfers transfers each gameweek.
     * Each chip only allowed once.
-    * Spend a max of max_total_hit points on transfers across whole period.
-    • Start with free_transfers free transfers.
-    Return all possible transfer sequences along with the total points hit and the
-    number of free transfers available for the next gameweek, i.e. return value is a
-    list of tuples:
-        [({gw:ntransfer, ...},points_hit, free_transfers), ... ]
     """
 
     init_strat_dict = {
