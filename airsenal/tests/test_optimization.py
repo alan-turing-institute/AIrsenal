@@ -12,6 +12,7 @@ from airsenal.framework.optimization_utils import (
     make_optimum_double_transfer,
     get_discount_factor,
     next_week_transfers,
+    count_expected_outputs,
 )
 
 
@@ -367,3 +368,100 @@ def test_next_week_transfers():
     )
     expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4)]
     assert actual == expected
+
+
+def test_count_expected_outputs():
+    # No constraints or chips, expect 3**num_gameweeks strategies
+    count = count_expected_outputs(
+        3,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_wildcard=False,
+        allow_free_hit=False,
+        allow_bench_boost=False,
+        allow_triple_captain=False,
+        allow_unused_transfers=True,
+        next_gw=1,
+        max_transfers=2,
+    )
+    assert count == 3 ** 3
+
+    # Max hit 0
+    # Include:
+    # (0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 0), (0, 1, 1), (0, 1, 2),
+    # (0, 2, 0), (0, 2, 1), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 0), (1, 1, 1)
+    # Exclude:
+    # (0, 2, 2), (1, 1, 2), (1, 2, 0), (1, 2, 1), (1, 2, 2), (2, 0, 0), (2, 0, 1),
+    # (2, 0, 2), (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 2, 0), (2, 2, 1), (2, 2, 2)
+    count = count_expected_outputs(
+        3,
+        free_transfers=1,
+        max_total_hit=0,
+        allow_wildcard=False,
+        allow_free_hit=False,
+        allow_bench_boost=False,
+        allow_triple_captain=False,
+        allow_unused_transfers=True,
+        next_gw=1,
+        max_transfers=2,
+    )
+    assert count == 13
+
+    # Start with 2 FT and no unused
+    # Include:
+    # (0, 0, 0), (1, 1, 1), (1, 1, 2), (1, 2, 0), (1, 2, 1), (1, 2, 2), (2, 0, 1),
+    # (2, 0, 2), (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 2, 0), (2, 2, 1), (2, 2, 2)
+    # Exclude:
+    # (0, 0, 1), (0, 0, 2), (0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 2, 0), (0, 2, 1),
+    # (0, 2, 2), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 0), (2, 0, 0)
+    count = count_expected_outputs(
+        3,
+        free_transfers=2,
+        max_total_hit=None,
+        allow_wildcard=False,
+        allow_free_hit=False,
+        allow_bench_boost=False,
+        allow_triple_captain=False,
+        allow_unused_transfers=False,
+        next_gw=1,
+        max_transfers=2,
+    )
+    assert count == 14
+
+    # Wildcard, 2 weeks, no constraints
+    # Strategies:
+    # (0, 0), (0, 1), (0, 2), (0, 'W'), (1, 0), (1, 1), (1, 2), (1, 'W'), (2, 0),
+    # (2, 1), (2, 2), (2, 'W'), ('W', 0), ('W', 1), ('W', 2)
+    count = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_wildcard=True,
+        allow_free_hit=False,
+        allow_bench_boost=False,
+        allow_triple_captain=False,
+        allow_unused_transfers=True,
+        next_gw=1,
+        max_transfers=2,
+    )
+    assert count == 15
+
+    # Bench boost, 2 weeks, no constraints
+    # Strategies:
+    # (0, 0), (0, 1), (0, 2), (0, 'B0'), (0, 'B1'), (0, 'B2'), (1, 0), (1, 1), (1, 2),
+    # (1, 'B0'), (1, 'B1'), (1, 'B2'), (2, 0), (2, 1), (2, 2), (2, 'B0'), (2, 'B1'),
+    # (2, 'B2'), ('B0', 0), ('B0', 1), ('B0', 2), ('B1', 0), ('B1', 1), ('B1', 2),
+    # ('B2', 0), ('B2', 1), ('B2', 2),
+    count = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_wildcard=False,
+        allow_free_hit=False,
+        allow_bench_boost=True,
+        allow_triple_captain=False,
+        allow_unused_transfers=True,
+        next_gw=1,
+        max_transfers=2,
+    )
+    assert count == 27
