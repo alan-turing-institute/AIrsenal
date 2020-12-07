@@ -17,6 +17,7 @@ from airsenal.framework.utils import (
     fastcopy,
     get_squad_value,
 )
+from copy import deepcopy
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -680,75 +681,158 @@ def get_num_increments(num_transfers, num_iterations=100):
         return 1
 
 
+def next_week_transfers(
+    strat,
+    max_total_hit=None,
+    allow_wildcard=False,
+    allow_free_hit=False,
+    allow_bench_boost=False,
+    allow_triple_captain=False,
+    allow_unused_transfers=True,
+    max_transfers=2,
+):
+    """Given a previous strategy and some optimisation constraints, determine the valid
+    options for the number of transfers (or card played) in the following gameweek.
+
+    strat is a tuple (free_transfers, hit_so_far, strat_dict)
+    strat_dict must have key key cards_played, which is a dict indexed by gameweek with
+    possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
+    """
+    ft_available, hit_so_far, strat_dict = strat
+    card_history = strat_dict["cards_played"]
+
+    if not allow_unused_transfers and ft_available == 2:
+        # Force at least 1 free transfer.
+        # NOTE: This will exclude the baseline strategy when allow_unused_transfers
+        # is False. Re-add it outside this function in that case.
+        ft_choices = list(range(1, max_transfers + 1))
+    else:
+        ft_choices = list(range(max_transfers + 1))
+
+    if max_total_hit is not None:
+        ft_choices = [
+            nt
+            for nt in ft_choices
+            if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
+        ]
+
+    if len(card_history) > 0:
+        allow_wildcard = allow_wildcard and "wildcard" not in card_history.values()
+        allow_free_hit = allow_free_hit and "free_hit" not in card_history.values()
+        allow_bench_boost = (
+            allow_bench_boost and "bench_boost" not in card_history.values()
+        )
+        allow_triple_captain = (
+            allow_triple_captain and "triple_captain" not in card_history.values()
+        )
+
+    new_transfers = [nt for nt in ft_choices]  # make a copy
+    if allow_wildcard:
+        new_transfers.append("W")
+    if allow_free_hit:
+        new_transfers.append("F")
+    if allow_bench_boost:
+        new_transfers += [f"B{nt}" for nt in ft_choices]
+    if allow_triple_captain:
+        new_transfers += [f"T{nt}" for nt in ft_choices]
+
+    new_points_hits = [
+        hit_so_far + calc_points_hit(nt, ft_available) for nt in new_transfers
+    ]
+    new_ft_available = [calc_free_transfers(nt, ft_available) for nt in new_transfers]
+
+    # return list of (num_transfers, free_transfers, hit_so_far) tuples for each new
+    # strategy
+    return list(zip(new_transfers, new_ft_available, new_points_hits))
+
+
 def count_expected_outputs(
-    week,
-    max_week,
-    can_play_wildcard,
-    can_play_free_hit,
-    can_play_triple_captain,
-    can_play_bench_boost,
+    gw_ahead,
+    free_transfers=1,
+    max_total_hit=None,
+    allow_wildcard=False,
+    allow_free_hit=False,
+    allow_bench_boost=False,
+    allow_triple_captain=False,
+    allow_unused_transfers=True,
+    next_gw=NEXT_GAMEWEEK,
+    max_transfers=2,
 ):
     """
-    Recursive function to calculate how many leaf nodes we will expect.
-    If we only allow 0,1,2 transfers per week, this will just be pos(3,num_weeks).
-    However, if we allow wildcard or free hit, these give an extra possibility each
-    for the week they are played.
-    If we allow triple captain or bench boost, these can be played along with 0, 1, 2
-    transfers, so give an extra 3 possibilities for the week they are played.
+    Count the number of possible transfer and chip strategies for gw_ahead gameweeks
+    ahead, subject to:
+    * Start with free_transfers free transfers.
+    * Spend a max of max_total_hit points on transfers across whole period
+    (None for no limit)
+    * Allow playing the chips which have their allow_xxx argument set True
+    * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
+    are available), if allow_unused_transfers is False.
+    * Make a maximum of max_transfers transfers each gameweek.
+    * Each chip only allowed once.
     """
-    week += 1
-    if week == max_week:
-        return (
-            3
-            + int(can_play_wildcard)
-            + int(can_play_free_hit)
-            + 3 * int(can_play_triple_captain)
-            + 3 * int(can_play_bench_boost)
-        )
-    total = 0
-    for _ in range(3):
-        total += count_expected_outputs(
-            week,
-            max_week,
-            can_play_wildcard,
-            can_play_free_hit,
-            can_play_triple_captain,
-            can_play_bench_boost,
-        )
-        if can_play_triple_captain:
-            total += count_expected_outputs(
-                week,
-                max_week,
-                can_play_wildcard,
-                can_play_free_hit,
-                False,
-                can_play_bench_boost,
+
+    init_strat_dict = {
+        "players_in": {},
+        "cards_played": {},
+    }
+    init_free_transfers = free_transfers  # used below for baseline strategy logic
+    strategies = [(init_free_transfers, 0, init_strat_dict)]
+
+    for gw in range(next_gw, next_gw + gw_ahead):
+        new_strategies = []
+        for s in strategies:
+            free_transfers = s[0]
+
+            possibilities = next_week_transfers(
+                s,
+                max_total_hit=max_total_hit,
+                allow_wildcard=allow_wildcard,
+                allow_free_hit=allow_free_hit,
+                allow_bench_boost=allow_bench_boost,
+                allow_triple_captain=allow_triple_captain,
+                allow_unused_transfers=allow_unused_transfers,
+                max_transfers=max_transfers,
             )
-        if can_play_bench_boost:
-            total += count_expected_outputs(
-                week,
-                max_week,
-                can_play_wildcard,
-                can_play_free_hit,
-                can_play_triple_captain,
-                False,
-            )
-    if can_play_wildcard:
-        total += count_expected_outputs(
-            week,
-            max_week,
-            False,
-            can_play_free_hit,
-            can_play_triple_captain,
-            can_play_bench_boost,
-        )
-    if can_play_free_hit:
-        total += count_expected_outputs(
-            week,
-            max_week,
-            can_play_wildcard,
-            False,
-            can_play_triple_captain,
-            can_play_bench_boost,
-        )
-    return total
+
+            for n_transfers, new_free_transfers, new_hit in possibilities:
+                # make a copy of the strategy up to this point, then add on this gw
+                new_dict = deepcopy(s[2])
+
+                # update dummy strat dict
+                if n_transfers == "W":
+                    # add dummy values to transfer dict for 15 possible transfers
+                    new_dict["players_in"][gw] = [1] * 15
+                    new_dict["cards_played"][gw] = "wildcard"
+                elif n_transfers == "F":
+                    # add dummy values to transfer dict for 15 possible transfers
+                    new_dict["players_in"][gw] = [1] * 15
+                    new_dict["cards_played"][gw] = "free_hit"
+                else:
+                    if isinstance(n_transfers, str) and (
+                        n_transfers.startswith("T") or n_transfers.startswith("B")
+                    ):
+                        if n_transfers[0] == "T":
+                            new_dict["cards_played"][gw] = "triple_captain"
+                        elif n_transfers[0] == "B":
+                            new_dict["cards_played"][gw] = "bench_boost"
+                        n_transfers = int(n_transfers[1])
+                    # add dummy values to transfer dict for n_transfers transfers
+                    new_dict["players_in"][gw] = [1] * n_transfers
+
+                new_strategies.append((new_free_transfers, new_hit, new_dict))
+
+        strategies = new_strategies
+
+    # if allow_unused_transfers is False baseline of no transfers will be removed above,
+    # add it back in here, apart from edge cases where it's already included.
+    if not allow_unused_transfers and (
+        gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == 2)
+    ):
+        baseline_strat_dict = {
+            "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
+            "cards_played": {},
+        }
+        baseline_dict = (2, 0, baseline_strat_dict)
+        strategies.insert(0, baseline_dict)
+
+    return len(strategies)

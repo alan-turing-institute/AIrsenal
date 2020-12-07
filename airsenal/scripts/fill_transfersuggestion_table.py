@@ -37,6 +37,7 @@ from airsenal.framework.optimization_utils import (
     make_best_transfers,
     get_num_increments,
     count_expected_outputs,
+    next_week_transfers,
 )
 
 from airsenal.framework.utils import (
@@ -55,22 +56,15 @@ else:
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
-def is_finished(
-    num_gameweeks,
-    wildcard=False,
-    free_hit=False,
-    triple_captain=False,
-    bench_boost=False,
-):
+def is_finished(final_expected_num):
     """
     Count the number of json files in the output directory, and see if the number
-    matches the final expected number, calculated based on number of gameweeks,
-    and cards played
+    matches the final expected number, which should be pre-calculated by the
+    count_expected_points function based on the number of weeks optimising for, cards
+    available and other constraints.
     Return True if output files are all there, False otherwise.
     """
-    final_expected_num = count_expected_outputs(
-        0, num_gameweeks, wildcard, free_hit, triple_captain, bench_boost
-    )
+
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
     if json_count == final_expected_num:
@@ -81,10 +75,14 @@ def is_finished(
 def optimize(
     queue,
     pid,
+    num_expected_outputs,
     gameweek_range,
     season,
     pred_tag,
     cards_allowed=[],
+    max_total_hit=None,
+    allow_unused_transfers=True,
+    max_transfers=2,
     num_iterations=100,
     updater=None,
     resetter=None,
@@ -102,6 +100,7 @@ def optimize(
     (
      num_transfers,
      free_transfers,
+     hit_so_far,
      current_team,
      strat_dict,
      strat_id
@@ -111,13 +110,7 @@ def optimize(
         if queue.qsize() > 0:
             status = queue.get()
         else:
-            if is_finished(
-                len(gameweek_range),
-                ("wildcard" in cards_allowed),
-                ("free_hit" in cards_allowed),
-                ("triple_captain" in cards_allowed),
-                ("bench_boost" in cards_allowed),
-            ):
+            if is_finished(num_expected_outputs):
                 break
             else:
                 time.sleep(5)
@@ -131,7 +124,7 @@ def optimize(
             profiler = cProfile.Profile()
             profiler.enable()
 
-        num_transfers, free_transfers, squad, strat_dict, sid = status
+        num_transfers, free_transfers, hit_so_far, squad, strat_dict, sid = status
         # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
         # OR 'B0', 'B1', or 'B2' (the latter six represent triple captain or
         # bench boost along with 0, 1, or 2 transfers).
@@ -218,33 +211,31 @@ def optimize(
 
         else:
             # add children to the queue
-            for num_transfers in range(3):
-                queue.put((num_transfers, free_transfers, new_squad, strat_dict, sid))
-                if "triple_captain" in cards_allowed and "T" not in sid:
-                    queue.put(
-                        (
-                            "T{}".format(num_transfers),
-                            free_transfers,
-                            new_squad,
-                            strat_dict,
-                            sid,
-                        )
+            strategies = next_week_transfers(
+                (free_transfers, hit_so_far, strat_dict),
+                max_total_hit=max_total_hit,
+                allow_wildcard="wildcard" in cards_allowed,
+                allow_free_hit="free_hit" in cards_allowed,
+                allow_bench_boost="bench_boost" in cards_allowed,
+                allow_triple_captain="triple_captain" in cards_allowed,
+                allow_unused_transfers=allow_unused_transfers,
+                max_transfers=max_transfers,
+            )
+
+            for strat in strategies:
+                # strat: (num_transfers, free_transfers, hit_so_far)
+                num_transfers, free_transfers, hit_so_far = strat
+
+                queue.put(
+                    (
+                        num_transfers,
+                        free_transfers,
+                        hit_so_far,
+                        new_squad,
+                        strat_dict,
+                        sid,
                     )
-                if "bench_boost" in cards_allowed and "B" not in sid:
-                    queue.put(
-                        (
-                            "B{}".format(num_transfers),
-                            free_transfers,
-                            new_squad,
-                            strat_dict,
-                            sid,
-                        )
-                    )
-            if "wildcard" in cards_allowed and "W" not in sid:
-                queue.put(("W", free_transfers, new_squad, strat_dict, sid))
-            # If we're playing "free_hit", put the old squad onto the queue
-            if "free_hit" in cards_allowed and "F" not in sid:
-                queue.put(("F", free_transfers, squad, strat_dict, sid))
+                )
 
 
 def find_best_strat_from_json(tag):
@@ -267,6 +258,21 @@ def find_best_strat_from_json(tag):
                 best_strat = strat
 
     return best_strat
+
+
+def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
+    """When strategies with unused transfers are excluded the baseline strategy will
+    normally not be part of the tree. In that case save it first with this function.
+    """
+    # TODO: Discount factor, use season argument
+    score = 0
+    for gw in gameweeks:
+        score += squad.get_expected_points(gw, tag)
+    num_gameweeks = len(gameweeks)
+    zeros = ("0-" * num_gameweeks)[:-1]
+    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
+    with open(filename, "w") as f:
+        json.dump({"total_score": score}, f)
 
 
 def find_baseline_score_from_json(tag, num_gameweeks):
@@ -341,6 +347,9 @@ def run_optimization(
     triple_captain=False,
     bench_boost=False,
     num_free_transfers=None,
+    max_total_hit=None,
+    allow_unused_transfers=True,
+    max_transfers=2,
     num_iterations=100,
     num_thread=4,
     profile=False,
@@ -372,10 +381,19 @@ def run_optimization(
     # number of nodes in tree will be something like 3^num_weeks unless we allow
     # a "card" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
-    expected_num = count_expected_outputs(
-        0, num_weeks, wildcard, free_hit, triple_captain, bench_boost
+    num_expected_outputs = count_expected_outputs(
+        num_weeks,
+        free_transfers=num_free_transfers,
+        max_total_hit=max_total_hit,
+        allow_wildcard=wildcard,
+        allow_free_hit=free_hit,
+        allow_bench_boost=bench_boost,
+        allow_triple_captain=triple_captain,
+        allow_unused_transfers=allow_unused_transfers,
+        next_gw=1,
+        max_transfers=max_transfers,
     )
-    total_progress = tqdm(total=expected_num, desc="Total progress")
+    total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 
     # functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
@@ -392,13 +410,23 @@ def run_optimization(
             nfiles = len(os.listdir(OUTPUT_DIR))
             total_progress.n = nfiles
             total_progress.refresh()
-            if nfiles == expected_num:
+            if nfiles == num_expected_outputs:
                 total_progress.close()
                 for pb in progress_bars:
                     pb.close()
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
+
+    starting_squad = get_starting_squad()
+
+    if not allow_unused_transfers and (
+        num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
+    ):
+        # if we are excluding unused transfers the tree may not include the baseline
+        # strategy. In those cases quickly calculate and save it here first.
+        save_baseline_score(starting_squad, gameweeks, tag, season=season)
+        update_progress()
 
     # Add Processes to run the the target 'optimize' function.
     # This target function needs to know:
@@ -423,10 +451,14 @@ def run_optimization(
             args=(
                 squeue,
                 i,
+                num_expected_outputs,
                 gameweeks,
                 season,
                 tag,
                 cards,
+                max_total_hit,
+                allow_unused_transfers,
+                max_transfers,
                 num_iterations,
                 update_progress,
                 reset_progress,
@@ -437,8 +469,7 @@ def run_optimization(
         processor.start()
         procs.append(processor)
     # add starting node to the queue
-    starting_squad = get_starting_squad()
-    squeue.put((0, num_free_transfers, starting_squad, {}, "starting"))
+    squeue.put((0, num_free_transfers, 0, starting_squad, {}, "starting"))
 
     for i, p in enumerate(procs):
         progress_bars[i].close()
@@ -509,6 +540,17 @@ def main():
         "--num_free_transfers", help="how many free transfers do we have", type=int
     )
     parser.add_argument(
+        "--max_hit",
+        help="maximum number of points to spend on additional transfers",
+        type=int,
+        default=8,
+    )
+    parser.add_argument(
+        "--allow_unused",
+        help="if set, include strategies that waste free transfers",
+        action="store_true",
+    )
+    parser.add_argument(
         "--num_iterations",
         help="how many iterations to use for Wildcard/Free Hit optimization",
         type=int,
@@ -564,6 +606,8 @@ def main():
     else:
         # get most recent set of predictions from DB table
         tag = get_latest_prediction_tag()
+    max_total_hit = args.max_hit
+    allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
 
@@ -576,6 +620,9 @@ def main():
         triple_captain,
         bench_boost,
         num_free_transfers,
+        max_total_hit,
+        allow_unused_transfers,
+        2,
         num_iterations,
         num_thread,
         profile,
