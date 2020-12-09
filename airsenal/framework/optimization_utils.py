@@ -684,12 +684,9 @@ def get_num_increments(num_transfers, num_iterations=100):
 def next_week_transfers(
     strat,
     max_total_hit=None,
-    allow_wildcard=False,
-    allow_free_hit=False,
-    allow_bench_boost=False,
-    allow_triple_captain=False,
     allow_unused_transfers=True,
     max_transfers=2,
+    cards={"cards_allowed":[],"card_to_play":None}
 ):
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or card played) in the following gameweek.
@@ -717,13 +714,17 @@ def next_week_transfers(
         ]
 
     if len(card_history) > 0:
-        allow_wildcard = allow_wildcard and "wildcard" not in card_history.values()
-        allow_free_hit = allow_free_hit and "free_hit" not in card_history.values()
+        allow_wildcard = "wildcard" in cards["cards_allowed"] \
+            and "wildcard" not in card_history.values()
+        allow_free_hit = "free_hit" in cards["cards_allowed"] \
+            and "free_hit" not in card_history.values()
         allow_bench_boost = (
-            allow_bench_boost and "bench_boost" not in card_history.values()
+            "bench_boost" in  cards["cards_allowed"] \
+            and "bench_boost" not in card_history.values()
         )
         allow_triple_captain = (
-            allow_triple_captain and "triple_captain" not in card_history.values()
+            "triple_captain" in cards["cards_allowed"] \
+            and "triple_captain" not in card_history.values()
         )
 
     new_transfers = [nt for nt in ft_choices]  # make a copy
@@ -748,14 +749,11 @@ def next_week_transfers(
 
 def count_expected_outputs(
     gw_ahead,
+    next_gw=NEXT_GAMEWEEK,
     free_transfers=1,
     max_total_hit=None,
-    allow_wildcard=False,
-    allow_free_hit=False,
-    allow_bench_boost=False,
-    allow_triple_captain=False,
+    card_gw_dict={},
     allow_unused_transfers=True,
-    next_gw=NEXT_GAMEWEEK,
     max_transfers=2,
 ):
     """

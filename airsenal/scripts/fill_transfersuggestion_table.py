@@ -79,7 +79,8 @@ def optimize(
     gameweek_range,
     season,
     pred_tag,
-    cards_allowed=[],
+    cards_possible=[],
+    cards_definite={},
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
@@ -214,10 +215,10 @@ def optimize(
             strategies = next_week_transfers(
                 (free_transfers, hit_so_far, strat_dict),
                 max_total_hit=max_total_hit,
-                allow_wildcard="wildcard" in cards_allowed,
-                allow_free_hit="free_hit" in cards_allowed,
-                allow_bench_boost="bench_boost" in cards_allowed,
-                allow_triple_captain="triple_captain" in cards_allowed,
+                allow_wildcard="wildcard" in cards_possible,
+                allow_free_hit="free_hit" in cards_possible,
+                allow_bench_boost="bench_boost" in cards_possible,
+                allow_triple_captain="triple_captain" in cards_possible,
                 allow_unused_transfers=allow_unused_transfers,
                 max_transfers=max_transfers,
             )
@@ -342,10 +343,7 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
-    wildcard_week=-1,
-    free_hit_week=-1,
-    triple_captain_week=-1,
-    bench_boost_week=-1,
+        card_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
     allow_unused_transfers=True,
@@ -372,6 +370,10 @@ def run_optimization(
     # first get a baseline prediction
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
+    # Get a dict of what cards we definitely or possibly will play
+    # in each gw
+    card_gw_dict = construct_card_dict(gameweeks, card_gameweeks)
+
     # create a queue that we will add nodes to, and some processes to take
     # things off it
     squeue = CustomQueue()
@@ -388,10 +390,7 @@ def run_optimization(
         num_weeks,
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
-        allow_wildcard=wildcard,
-        allow_free_hit=free_hit,
-        allow_bench_boost=bench_boost,
-        allow_triple_captain=triple_captain,
+        card_gw_dict=card_gw_dict,
         allow_unused_transfers=allow_unused_transfers,
         next_gw=1,
         max_transfers=max_transfers,
@@ -439,15 +438,15 @@ def run_optimization(
     #  total_score
     #  num_free_transfers
     #  budget
-    cards = []
+    cards = {"possible":{}, "definite": {}}
     if wildcard_week==0:
-        cards.append("wildcard")
+        cards_possible.append("wildcard")
     if free_hit_week==0:
-        cards.append("free_hit")
+        cards_possible.append("free_hit")
     if triple_captain_week==0:
-        cards.append("triple_captain")
+        cards_possible.append("triple_captain")
     if bench_boost_week==0:
-        cards.append("bench_boost")
+        cards_possible.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
             target=optimize,
@@ -458,7 +457,7 @@ def run_optimization(
                 gameweeks,
                 season,
                 tag,
-                cards,
+                cards_possible,
                 max_total_hit,
                 allow_unused_transfers,
                 max_transfers,
@@ -493,6 +492,35 @@ def run_optimization(
     print_team_for_next_gw(best_strategy)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return
+
+
+def construct_card_dict(gameweeks, card_gameweeks):
+    """
+    Given a dict of form {<card_name>: <card_gw>,...}
+    where <card_name> is e.g. 'wildcard', and <card_gw> is -1 if card
+    is not to be played, 0 if it is to be considered any week, or gw
+    if it is definitely to be played that gw, return a dict
+    { <gw>: {"card_to_play": [<card_name>],
+             "cards_allowed": [<card_name>,...]},...}
+    """
+    card_dict = {}
+    # first fill in any allowed cards
+    for gw in gameweeks:
+        card_dict[gw] = {"card_to_play":None,"cards_allowed":[]}
+        for k,v in card_gameweeks.items():
+            if int(v) == 0:
+                card_dict[gw]["cards_allowed"].append(k)
+    # now go through again, for any definite ones, and remove
+    # other allowed cards from those gameweeks
+    for k,v in card_gameweeks.items():
+        if v > 0 and v in gameweeks: #v is the gameweek
+            # check we're not trying to play 2 cards
+            if card_dict[v]["card_to_play"] is not None:
+                raise RuntimeError("Cannot play {} and {} in the same week"\
+                                   .format(card_dict[v]["card_to_play"], k))
+            card_dict[v]["card_to_play"] = k
+            card_dict[v]["cards_allowed"] = []
+    return card_dict
 
 
 def sanity_check_args(args):
@@ -600,19 +628,17 @@ def main():
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
-    wildcard_week = args.wildcard_week
-    free_hit_week = args.free_hit_week
-    triple_captain_week = args.triple_captain_week
-    bench_boost_week = args.bench_boost_week
+    card_gameweeks = {}
+    card_gameweeks["wildcard"] = args.wildcard_week
+    card_gameweeks["free_hit"] = args.free_hit_week
+    card_gameweeks["triple_captain"] = args.triple_captain_week
+    card_gameweeks["bench_boost"] = args.bench_boost_week
 
     run_optimization(
         gameweeks,
         tag,
         season,
-        wildcard_week,
-        free_hit_week,
-        triple_captain_week,
-        bench_boost_week,
+        card_gameweeks,
         num_free_transfers,
         max_total_hit,
         allow_unused_transfers,
