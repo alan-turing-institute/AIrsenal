@@ -42,6 +42,7 @@ from airsenal.framework.optimization_utils import (
 
 from airsenal.framework.utils import (
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
     get_player_name,
     get_latest_prediction_tag,
     get_next_gameweek,
@@ -79,8 +80,7 @@ def optimize(
     gameweek_range,
     season,
     pred_tag,
-    cards_possible=[],
-    cards_definite={},
+    cards_gw_dict,
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
@@ -135,6 +135,7 @@ def optimize(
         # Only exception is the root node, where sid is "starting" - this
         # node only exists to add children to the queue.
 
+
         if sid == "starting":
             sid = ""
             depth = 0
@@ -144,6 +145,7 @@ def optimize(
             strat_dict["players_out"] = {}
             strat_dict["cards_played"] = {}
             new_squad = squad
+            gw = gameweek_range[0]-1
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -156,7 +158,7 @@ def optimize(
             # gameweeks from this point in strategy to end of window
             gameweeks = gameweek_range[depth:]
 
-            # next gameweek:
+            # upcoming gameweek:
             gw = gameweeks[0]
 
             # check whether we're playing a chip this gameweek
@@ -215,12 +217,9 @@ def optimize(
             strategies = next_week_transfers(
                 (free_transfers, hit_so_far, strat_dict),
                 max_total_hit=max_total_hit,
-                allow_wildcard="wildcard" in cards_possible,
-                allow_free_hit="free_hit" in cards_possible,
-                allow_bench_boost="bench_boost" in cards_possible,
-                allow_triple_captain="triple_captain" in cards_possible,
                 allow_unused_transfers=allow_unused_transfers,
                 max_transfers=max_transfers,
+                cards=cards_gw_dict[gw+1],
             )
 
             for strat in strategies:
@@ -343,7 +342,7 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
-        card_gameweeks={},
+    card_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
     allow_unused_transfers=True,
@@ -388,14 +387,15 @@ def run_optimization(
     num_weeks = len(gameweeks)
     num_expected_outputs = count_expected_outputs(
         num_weeks,
+        next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
-        card_gw_dict=card_gw_dict,
         allow_unused_transfers=allow_unused_transfers,
-        next_gw=1,
         max_transfers=max_transfers,
+        card_gw_dict=card_gw_dict,
     )
-    total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
+    print("num_expected outputs: {}".format(num_expected_outputs))
+    total_progress = tqdm(total=num_expected_outputs[0], desc="Total progress")
 
     # functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):
@@ -438,15 +438,6 @@ def run_optimization(
     #  total_score
     #  num_free_transfers
     #  budget
-    cards = {"possible":{}, "definite": {}}
-    if wildcard_week==0:
-        cards_possible.append("wildcard")
-    if free_hit_week==0:
-        cards_possible.append("free_hit")
-    if triple_captain_week==0:
-        cards_possible.append("triple_captain")
-    if bench_boost_week==0:
-        cards_possible.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
             target=optimize,
@@ -457,7 +448,7 @@ def run_optimization(
                 gameweeks,
                 season,
                 tag,
-                cards_possible,
+                card_gw_dict,
                 max_total_hit,
                 allow_unused_transfers,
                 max_transfers,
@@ -503,6 +494,7 @@ def construct_card_dict(gameweeks, card_gameweeks):
     { <gw>: {"card_to_play": [<card_name>],
              "cards_allowed": [<card_name>,...]},...}
     """
+    print("arguments for construct_card_dict: {} {}".format(gameweeks, card_gameweeks))
     card_dict = {}
     # first fill in any allowed cards
     for gw in gameweeks:
@@ -551,11 +543,13 @@ def main():
         "--wildcard_week",
         help="play wildcard in the specified week. Choose 0 for 'any week'.",
         type=int,
+        default=-1
     )
     parser.add_argument(
         "--free_hit_week",
         help="play free hit in the specified week. Choose 0 for 'any week'.",
         type=int,
+        default=-1
     )
     parser.add_argument(
         "--triple_captain_week",
