@@ -10,8 +10,25 @@ from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.schema import session_scope
 
+import sys
+
+
+def parse_args():
+
+    args = sys.argv[1:]
+    
+    if (len(args) > 0):
+        if (len(args) == 2) and (args[0] == "-TEAMID"): 
+            return args[1]
+        else: 
+            raise SystemExit("Accepted command line arguments: -TEAMID <FPL_TEAM_ID>")
+    else:
+        return None            
+
 
 def main():
+    
+    team_id = parse_args()
 
     with session_scope() as session:
         make_team_table(dbsession=session)
