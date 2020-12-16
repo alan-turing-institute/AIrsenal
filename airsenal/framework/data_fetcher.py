@@ -17,7 +17,7 @@ class FPLDataFetcher(object):
     or retrieve it if not already cached.
     """
 
-    def __init__(self):
+    def __init__(self, fpl_team_id = None):
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
@@ -46,6 +46,7 @@ class FPLDataFetcher(object):
                 )
             else:
                 self.__setattr__(ID, "MISSING_ID")
+        if fpl_team_id != None: self.FPL_TEAM_ID = fpl_team_id #update entry with command line arg
         self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
         self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"

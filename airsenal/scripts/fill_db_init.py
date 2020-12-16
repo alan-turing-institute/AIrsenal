@@ -11,24 +11,18 @@ from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.schema import session_scope
 
 import sys
-
-
-def parse_args():
-
-    args = sys.argv[1:]
-    
-    if (len(args) > 0):
-        if (len(args) == 2) and (args[0] == "-TEAMID"): 
-            return args[1]
-        else: 
-            raise SystemExit("Accepted command line arguments: -TEAMID <FPL_TEAM_ID>")
-    else:
-        return None            
-
+import argparse
 
 def main():
     
-    team_id = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Customise fpl team id"
+    )
+    parser.add_argument(
+        "--fpl_team_id", help="specify fpl team id", nargs=1,required=False
+    )
+
+    args = parser.parse_args()
 
     with session_scope() as session:
         make_team_table(dbsession=session)
@@ -40,6 +34,6 @@ def main():
         make_attributes_table(dbsession=session)
         make_playerscore_table(dbsession=session)
 
-        fill_initial_squad(dbsession=session)
+        fill_initial_squad(dbsession=session, fpl_team_id=args.fpl_team_id)
 
         print("DONE!")

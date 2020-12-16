@@ -46,6 +46,7 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_free_transfers,
+    fetcher
 )
 
 if os.name == "posix":
@@ -570,8 +571,13 @@ def main():
         help="For developers: Profile strategy execution time",
         action="store_true",
     )
+     parser.add_argument(
+        "--fpl_team_id", help="specify fpl team id", nargs=1,required=False, default=None
+    )
     args = parser.parse_args()
 
+    if args.fpl_team_id != None: fetcher.FPL_TEAM_ID = args.fpl_team_id
+    
     sanity_check_args(args)
     season = args.season
     if args.weeks_ahead:
