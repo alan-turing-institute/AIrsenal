@@ -16,6 +16,7 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
+
 def free_hit_used_in_gameweek(gameweek):
     """Use FPL API to determine whether a chip was played in the given gameweek"""
     fpl_team_data = fetcher.get_fpl_team_data(gameweek)
@@ -49,7 +50,10 @@ def add_transaction(
 
 
 def fill_initial_squad(
-    season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session, fpl_team_id = None
+    season=CURRENT_SEASON,
+    tag="AIrsenal" + CURRENT_SEASON,
+    dbsession=session,
+    fpl_team_id=None,
 ):
     """
     Fill the Transactions table in the database with the initial 15 players, and their
@@ -57,7 +61,8 @@ def fill_initial_squad(
     players in our team) and the player history API endpoint (for their price in gw1).
     """
 
-    if fpl_team_id != None: fetcher = FPLDataFetcher(fpl_team_id)
+    if fpl_team_id is not None:
+        fetcher = FPLDataFetcher(fpl_team_id)
 
     print(
         "Getting selected players in squad {} for first gameweek...".format(

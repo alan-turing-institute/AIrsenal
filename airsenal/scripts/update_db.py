@@ -145,14 +145,19 @@ def main():
         "--noattr", help="don't update player attributes", action="store_true"
     )
     parser.add_argument(
-        "--fpl_team_id", help="specify fpl team id", nargs=1,required=False, default=None
+        "--fpl_team_id",
+        help="specify fpl team id",
+        nargs=1,
+        required=False,
+        default=None,
     )
 
     args = parser.parse_args()
 
     season = args.season
     do_attributes = not args.noattr
-    if args.fpl_team_id != None: fetcher.FPL_TEAM_ID = args.fpl_team_id
+    if args.fpl_team_id is not None:
+        fetcher.FPL_TEAM_ID = args.fpl_team_id
 
     with session_scope() as session:
         # see if any new players have been added

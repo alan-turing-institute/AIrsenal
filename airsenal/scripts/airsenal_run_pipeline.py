@@ -35,9 +35,11 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
     nargs=1,
     required=False,
     default=None,
-    help="fpl team id for pipeline run"
+    help="fpl team id for pipeline run",
 )
-def run_pipeline(num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id):
+def run_pipeline(
+    num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id
+):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     click.echo("Cleaning database..")
@@ -74,14 +76,14 @@ def clean_database():
         sys.exit(1)
 
 
-def setup_database(fpl_team_id = None):
+def setup_database(fpl_team_id=None):
     """
     Set up database
     """
     os.system("airsenal_setup_initial_db --fpl_team_id {}".format(fpl_team_id))
 
 
-def update_database(fpl_team_id = None):
+def update_database(fpl_team_id=None):
     """
     Update database
     """
