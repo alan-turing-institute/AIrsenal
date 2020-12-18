@@ -616,7 +616,7 @@ def main():
     if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
         print(
             "ERROR: Database does not contain predictions",
-            "for all the specified optimsaiton gameweeks.\n",
+            "for all the specified optimsation gameweeks.\n",
             "Please run 'airsenal_run_prediction' first with the",
             "same input gameweeks and season you specified here.",
         )
