@@ -612,13 +612,13 @@ def main():
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
-    
+
     if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
         print(
             "ERROR: Database does not contain predictions",
             "for all the specified optimsaiton gameweeks.\n",
             "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here."
+            "same input gameweeks and season you specified here.",
         )
         sys.exit(1)
 
