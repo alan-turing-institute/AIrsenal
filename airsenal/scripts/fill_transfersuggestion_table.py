@@ -68,6 +68,7 @@ def is_finished(final_expected_num):
 
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
+    print("In is_finished - expect {} found {}".format(final_expected_num, json_count))
     if json_count == final_expected_num:
         return True
     return False
@@ -395,7 +396,7 @@ def run_optimization(
         card_gw_dict=card_gw_dict,
     )
     print("num_expected outputs: {}".format(num_expected_outputs))
-    total_progress = tqdm(total=num_expected_outputs[0], desc="Total progress")
+    total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 
     # functions to be passed to subprocess to update or reset progress bars
     def reset_progress(index, strategy_string):

@@ -794,9 +794,9 @@ def count_expected_outputs(
                  next_gw,
                  free_transfers,
                  max_total_hit,
-                 card_gw_dict,
                  allow_unused_transfers,
-                 max_transfers))
+                 max_transfers,card_gw_dict)
+    )
 
     init_strat_dict = {
         "players_in": {},
@@ -858,5 +858,5 @@ def count_expected_outputs(
         }
         baseline_dict = (2, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
-
-    return len(strategies), strategies
+    print("Strategies are {}".format(strategies))
+    return len(strategies)
