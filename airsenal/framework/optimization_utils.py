@@ -29,7 +29,7 @@ def calc_points_hit(num_transfers, free_transfers):
     Num transfers can be an integer, or "W", "F", "Bx", or "Tx"
     (wildcard, free hit, bench-boost or triple-caption).
     For Bx and Tx the "x" corresponds to the number of transfers
-    in addition to the card being played.
+    in addition to the chip being played.
     """
     if num_transfers == "W" or num_transfers == "F":
         return 0
@@ -444,7 +444,7 @@ def make_best_transfers(
         bench_boost_gw = gameweeks[0]
 
     if num_transfers == 0:
-        # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with card)
+        # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
         new_squad = squad
         transfer_dict = {"in": [], "out": []}
         if update_func_and_args:
@@ -453,7 +453,7 @@ def make_best_transfers(
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
     elif num_transfers == 1:
-        # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with card)
+        # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with chip)
         new_squad, players_out, players_in = make_optimum_single_transfer(
             squad,
             tag,
@@ -466,7 +466,7 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
 
     elif num_transfers == 2:
-        # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with card)
+        # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with chip)
         new_squad, players_out, players_in = make_optimum_double_transfer(
             squad,
             tag,
@@ -686,22 +686,22 @@ def next_week_transfers(
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
-    cards={"cards_allowed":[],"card_to_play":None}
+    chips={"chips_allowed":[],"chip_to_play":None}
 ):
     """Given a previous strategy and some optimisation constraints, determine the valid
-    options for the number of transfers (or card played) in the following gameweek.
+    options for the number of transfers (or chip played) in the following gameweek.
 
     strat is a tuple (free_transfers, hit_so_far, strat_dict)
-    strat_dict must have key cards_played, which is a dict indexed by gameweek with
+    strat_dict must have key chips_played, which is a dict indexed by gameweek with
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
     """
-    # check that the 'cards' dict we are given makes sense:
-    if "cards_allowed" in cards.keys() and len(cards["cards_allowed"])>0 \
-       and "card_to_play" in cards.keys() and cards["card_to_play"]:
+    # check that the 'chips' dict we are given makes sense:
+    if "chips_allowed" in chips.keys() and len(chips["chips_allowed"])>0 \
+       and "chip_to_play" in chips.keys() and chips["chip_to_play"]:
         raise RuntimeError("Cannot allow {} in the same week as we play {}"\
-                           .format(cards["cards_allowed"],cards["card_to_play"]))
+                           .format(chips["chips_allowed"],chips["chip_to_play"]))
     ft_available, hit_so_far, strat_dict = strat
-    card_history = strat_dict["cards_played"]
+    chip_history = strat_dict["chips_played"]
 
     if not allow_unused_transfers and ft_available == 2:
         # Force at least 1 free transfer.
@@ -718,36 +718,36 @@ def next_week_transfers(
             if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
         ]
 
-    allow_wildcard = "cards_allowed" in cards.keys() \
-        and "wildcard" in cards["cards_allowed"] \
-        and "wildcard" not in card_history.values()
-    allow_free_hit = "cards_allowed" in cards.keys() \
-        and "free_hit" in cards["cards_allowed"] \
-        and "free_hit" not in card_history.values()
+    allow_wildcard = "chips_allowed" in chips.keys() \
+        and "wildcard" in chips["chips_allowed"] \
+        and "wildcard" not in chip_history.values()
+    allow_free_hit = "chips_allowed" in chips.keys() \
+        and "free_hit" in chips["chips_allowed"] \
+        and "free_hit" not in chip_history.values()
     allow_bench_boost = (
-        "cards_allowed" in cards.keys() \
-        and "bench_boost" in  cards["cards_allowed"] \
-        and "bench_boost" not in card_history.values()
+        "chips_allowed" in chips.keys() \
+        and "bench_boost" in  chips["chips_allowed"] \
+        and "bench_boost" not in chip_history.values()
     )
     allow_triple_captain = (
-        "cards_allowed" in cards.keys() \
-        and "triple_captain" in cards["cards_allowed"] \
-        and "triple_captain" not in card_history.values()
+        "chips_allowed" in chips.keys() \
+        and "triple_captain" in chips["chips_allowed"] \
+        and "triple_captain" not in chip_history.values()
     )
 
     # if we are definitely going to play a wildcard or free_hit deal with
     # that first
-    if "card_to_play" in cards.keys() and cards["card_to_play"]=="wildcard":
+    if "chip_to_play" in chips.keys() and chips["chip_to_play"]=="wildcard":
         new_transfers = ["W"]
-    elif "card_to_play" in cards.keys() and cards["card_to_play"]=="free_hit":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="free_hit":
         new_transfers = ["F"]
     # for triple captain or bench boost, we can still do ft_choices transfers
-    elif "card_to_play" in cards.keys() and cards["card_to_play"]=="triple_captain":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="triple_captain":
         new_transfers = [f"T{nt}" for nt in ft_choices]
-    elif "card_to_play" in cards.keys() and cards["card_to_play"]=="bench_boost":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="bench_boost":
         new_transfers = [f"B{nt}" for nt in ft_choices]
     else:
-        # no card definitely played, but some might be allowed
+        # no chip definitely played, but some might be allowed
         new_transfers = [nt for nt in ft_choices]  # make a copy
         if allow_wildcard:
             new_transfers.append("W")
@@ -775,7 +775,7 @@ def count_expected_outputs(
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
-    card_gw_dict={},
+    chip_gw_dict={},
 ):
     """
     Count the number of possible transfer and chip strategies for gw_ahead gameweeks
@@ -795,12 +795,13 @@ def count_expected_outputs(
                  free_transfers,
                  max_total_hit,
                  allow_unused_transfers,
-                 max_transfers,card_gw_dict)
+                 max_transfers,
+                 chip_gw_dict)
     )
 
     init_strat_dict = {
         "players_in": {},
-        "cards_played": {},
+        "chips_played": {},
     }
     init_free_transfers = free_transfers  # used below for baseline strategy logic
     strategies = [(init_free_transfers, 0, init_strat_dict)]
@@ -809,13 +810,14 @@ def count_expected_outputs(
         new_strategies = []
         for s in strategies:
             free_transfers = s[0]
-            cards_for_gw = card_gw_dict[gw] if gw in card_gw_dict.keys() \
+            chips_for_gw = chip_gw_dict[gw] if gw in chip_gw_dict.keys() \
                 else {}
             possibilities = next_week_transfers(
                 s,
                 max_total_hit=max_total_hit,
                 max_transfers=max_transfers,
-                cards=cards_for_gw
+                allow_unused_transfers=allow_unused_transfers,
+                chips=chips_for_gw
             )
 
             for n_transfers, new_free_transfers, new_hit in possibilities:
@@ -826,19 +828,19 @@ def count_expected_outputs(
                 if n_transfers == "W":
                     # add dummy values to transfer dict for 15 possible transfers
                     new_dict["players_in"][gw] = [1] * 15
-                    new_dict["cards_played"][gw] = "wildcard"
+                    new_dict["chips_played"][gw] = "wildcard"
                 elif n_transfers == "F":
                     # add dummy values to transfer dict for 15 possible transfers
                     new_dict["players_in"][gw] = [1] * 15
-                    new_dict["cards_played"][gw] = "free_hit"
+                    new_dict["chips_played"][gw] = "free_hit"
                 else:
                     if isinstance(n_transfers, str) and (
                         n_transfers.startswith("T") or n_transfers.startswith("B")
                     ):
                         if n_transfers[0] == "T":
-                            new_dict["cards_played"][gw] = "triple_captain"
+                            new_dict["chips_played"][gw] = "triple_captain"
                         elif n_transfers[0] == "B":
-                            new_dict["cards_played"][gw] = "bench_boost"
+                            new_dict["chips_played"][gw] = "bench_boost"
                         n_transfers = int(n_transfers[1])
                     # add dummy values to transfer dict for n_transfers transfers
                     new_dict["players_in"][gw] = [1] * n_transfers
@@ -854,7 +856,7 @@ def count_expected_outputs(
     ):
         baseline_strat_dict = {
             "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
-            "cards_played": {},
+            "chips_played": {},
         }
         baseline_dict = (2, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
