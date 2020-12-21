@@ -20,6 +20,7 @@ import os
 import shutil
 import time
 import json
+import sys
 
 import cProfile
 
@@ -38,6 +39,7 @@ from airsenal.framework.optimization_utils import (
     get_num_increments,
     count_expected_outputs,
     next_week_transfers,
+    check_tag_valid,
 )
 
 from airsenal.framework.utils import (
@@ -610,6 +612,15 @@ def main():
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
+
+    if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
+        print(
+            "ERROR: Database does not contain predictions",
+            "for all the specified optimsation gameweeks.\n",
+            "Please run 'airsenal_run_prediction' first with the",
+            "same input gameweeks and season you specified here.",
+        )
+        sys.exit(1)
 
     run_optimization(
         gameweeks,
