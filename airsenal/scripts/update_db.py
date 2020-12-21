@@ -9,7 +9,7 @@ import argparse
 
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    get_last_gameweek_in_db,
+    get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     NEXT_GAMEWEEK,
     get_current_players,
@@ -49,7 +49,7 @@ def update_results(season, dbsession):
     If the last gameweek in the db is earlier than the last finished gameweek,
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
     """
-    last_in_db = get_last_gameweek_in_db(season, dbsession=dbsession)
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
         # no results in database for this season yet
         last_in_db = 0
@@ -60,10 +60,16 @@ def update_results(season, dbsession):
             # need to update
             print("Updating results table ...")
             fill_results_from_api(
-                last_in_db + 1, NEXT_GAMEWEEK, season, dbsession=dbsession
+                gw_start=last_in_db+1,
+                gw_end=NEXT_GAMEWEEK,
+                season=season,
+                dbsession=dbsession
             )
             print("Updating playerscores table ...")
-            fill_playerscores_from_api(season, dbsession, last_in_db + 1, NEXT_GAMEWEEK)
+            fill_playerscores_from_api(season=season,
+                                       gw_start=last_in_db+1,
+                                       gw_end=NEXT_GAMEWEEK,
+                                       dbsession=dbsession)
         else:
             print("Matches and player-scores already up-to-date")
     else:
@@ -119,7 +125,7 @@ def update_attributes(season, dbsession):
     # update from, and including, the last gameweek we have results for in the
     # database (including that gameweek as player prices etc. can change after
     # matches have finished but before the next gameweek deadline)
-    last_in_db = get_last_gameweek_in_db(season, dbsession=dbsession)
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
         # no results in database for this season yet
         last_in_db = 0
