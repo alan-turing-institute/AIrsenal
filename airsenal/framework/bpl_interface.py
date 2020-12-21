@@ -37,7 +37,7 @@ def get_result_df(season, gameweek, dbsession):
                     s.away_score,
                 ]
                 for s in dbsession.query(Result).all()
-                if not is_future_gameweek(
+                if s.fixture and not is_future_gameweek(
                     s.fixture.season,
                     s.fixture.gameweek,
                     current_season=season,
