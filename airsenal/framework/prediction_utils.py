@@ -350,7 +350,7 @@ def calc_predicted_points_for_player(
                         is_home,
                         mins,
                         team_model,
-                        df_player,
+                        df_player[position],
                     )
                     + get_defending_points(
                         position, team, opponent, is_home, mins, team_model
@@ -440,10 +440,23 @@ def get_fitted_player_model(
     Get the fitted player model for a given position
     """
     print("Generating player history dataframe - slow")
-    df_player, fits, reals = fit_player_data(
+    df_player, _, _ = fit_player_data(
         player_model, position, season, gameweek, dbsession
     )
     return df_player
+
+
+def get_all_fitted_player_models(
+    player_model, season, gameweek, dbsession=session
+):
+    df_positions = {
+        "GK": None
+    }
+    for pos in ["DEF", "MID", "FWD"]:
+        df_positions[pos], _, _ = fit_player_data(
+            player_model, pos, season, gameweek, dbsession
+        )
+    return df_positions
 
 
 def is_injured_or_suspended(player_api_id, gameweek, season, dbsession=session):
