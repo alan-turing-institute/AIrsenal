@@ -1121,7 +1121,7 @@ def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     last_result = (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter(Fixture.result != None)
+        .filter(Fixture.result is not None)
         .order_by(Fixture.gameweek.desc())
         .first()
     )
