@@ -6,7 +6,12 @@ import random
 from datetime import datetime
 from operator import itemgetter
 
-from airsenal.framework.schema import TransferSuggestion, Transaction
+from airsenal.framework.schema import (
+    TransferSuggestion,
+    Transaction,
+    PlayerPrediction,
+    Fixture,
+)
 from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.utils import (
@@ -20,6 +25,27 @@ from airsenal.framework.utils import (
 from copy import deepcopy
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
+
+
+def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
+    """Check a prediction tag contains predictions for all the specified gameweeks."""
+    # get unique gameweek and season values associated with pred_tag
+    fixtures = (
+        (
+            dbsession.query(Fixture.season, Fixture.gameweek)
+            .filter(PlayerPrediction.tag == pred_tag)
+            .join(PlayerPrediction)
+        )
+        .distinct()
+        .all()
+    )
+    pred_seasons = [f[0] for f in fixtures]
+    pred_gws = [f[1] for f in fixtures]
+
+    season_ok = all([s == season for s in pred_seasons])
+    gws_ok = all([gw in pred_gws for gw in gameweek_range])
+
+    return season_ok and gws_ok
 
 
 def calc_points_hit(num_transfers, free_transfers):
