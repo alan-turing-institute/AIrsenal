@@ -712,7 +712,7 @@ def next_week_transfers(
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
-    chips={"chips_allowed":[],"chip_to_play":None}
+    chips={"chips_allowed": [], "chip_to_play": None},
 ):
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or chip played) in the following gameweek.
@@ -722,10 +722,17 @@ def next_week_transfers(
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
     """
     # check that the 'chips' dict we are given makes sense:
-    if "chips_allowed" in chips.keys() and len(chips["chips_allowed"])>0 \
-       and "chip_to_play" in chips.keys() and chips["chip_to_play"]:
-        raise RuntimeError("Cannot allow {} in the same week as we play {}"\
-                           .format(chips["chips_allowed"],chips["chip_to_play"]))
+    if (
+        "chips_allowed" in chips.keys()
+        and len(chips["chips_allowed"]) > 0
+        and "chip_to_play" in chips.keys()
+        and chips["chip_to_play"]
+    ):
+        raise RuntimeError(
+            "Cannot allow {} in the same week as we play {}".format(
+                chips["chips_allowed"], chips["chip_to_play"]
+            )
+        )
     ft_available, hit_so_far, strat_dict = strat
     chip_history = strat_dict["chips_played"]
 
@@ -744,33 +751,37 @@ def next_week_transfers(
             if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
         ]
 
-    allow_wildcard = "chips_allowed" in chips.keys() \
-        and "wildcard" in chips["chips_allowed"] \
+    allow_wildcard = (
+        "chips_allowed" in chips.keys()
+        and "wildcard" in chips["chips_allowed"]
         and "wildcard" not in chip_history.values()
-    allow_free_hit = "chips_allowed" in chips.keys() \
-        and "free_hit" in chips["chips_allowed"] \
+    )
+    allow_free_hit = (
+        "chips_allowed" in chips.keys()
+        and "free_hit" in chips["chips_allowed"]
         and "free_hit" not in chip_history.values()
+    )
     allow_bench_boost = (
-        "chips_allowed" in chips.keys() \
-        and "bench_boost" in  chips["chips_allowed"] \
+        "chips_allowed" in chips.keys()
+        and "bench_boost" in chips["chips_allowed"]
         and "bench_boost" not in chip_history.values()
     )
     allow_triple_captain = (
-        "chips_allowed" in chips.keys() \
-        and "triple_captain" in chips["chips_allowed"] \
+        "chips_allowed" in chips.keys()
+        and "triple_captain" in chips["chips_allowed"]
         and "triple_captain" not in chip_history.values()
     )
 
     # if we are definitely going to play a wildcard or free_hit deal with
     # that first
-    if "chip_to_play" in chips.keys() and chips["chip_to_play"]=="wildcard":
+    if "chip_to_play" in chips.keys() and chips["chip_to_play"] == "wildcard":
         new_transfers = ["W"]
-    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="free_hit":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"] == "free_hit":
         new_transfers = ["F"]
     # for triple captain or bench boost, we can still do ft_choices transfers
-    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="triple_captain":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"] == "triple_captain":
         new_transfers = [f"T{nt}" for nt in ft_choices]
-    elif "chip_to_play" in chips.keys() and chips["chip_to_play"]=="bench_boost":
+    elif "chip_to_play" in chips.keys() and chips["chip_to_play"] == "bench_boost":
         new_transfers = [f"B{nt}" for nt in ft_choices]
     else:
         # no chip definitely played, but some might be allowed
@@ -827,14 +838,13 @@ def count_expected_outputs(
         new_strategies = []
         for s in strategies:
             free_transfers = s[0]
-            chips_for_gw = chip_gw_dict[gw] if gw in chip_gw_dict.keys() \
-                else {}
+            chips_for_gw = chip_gw_dict[gw] if gw in chip_gw_dict.keys() else {}
             possibilities = next_week_transfers(
                 s,
                 max_total_hit=max_total_hit,
                 max_transfers=max_transfers,
                 allow_unused_transfers=allow_unused_transfers,
-                chips=chips_for_gw
+                chips=chips_for_gw,
             )
 
             for n_transfers, new_free_transfers, new_hit in possibilities:

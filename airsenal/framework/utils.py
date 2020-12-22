@@ -46,7 +46,7 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     return max_gw
 
 
-def in_mid_gameweek(season=CURRENT_SEASON, dbsession=None):
+def in_mid_gameweek(season=CURRENT_SEASON, dbsession=None, verbose=False):
     """
     Use the current time to figure out whether we're in the middle of a gameweek
     """
@@ -70,12 +70,18 @@ def in_mid_gameweek(season=CURRENT_SEASON, dbsession=None):
         elif fixture_date > timenow and fixture_date < next_fixture_time:
             next_fixture = fixture
             next_fixture_time = fixture_date
-    print("Last fixture was {}/{}, next fixture is {}/{}".format(
-        most_recent_fixture.date, most_recent_fixture.gameweek,
-        next_fixture.date, next_fixture.gameweek))
+    if verbose:
+        print(
+            "Last fixture was {}/{}, next fixture is {}/{}".format(
+                most_recent_fixture.date,
+                most_recent_fixture.gameweek,
+                next_fixture.date,
+                next_fixture.gameweek,
+            )
+        )
     # see if the most recent and next fixtures are both in the same gameweek.
     # if so, return True, as we are in the middle of a gameweek.
-    return (most_recent_fixture.gameweek == next_fixture.gameweek)
+    return most_recent_fixture.gameweek == next_fixture.gameweek
 
 
 def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
@@ -1122,7 +1128,7 @@ def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     if last_result:
         # now check whether we're in the middle of a gameweek
         if in_mid_gameweek(season=season, dbsession=dbsession):
-            return last_result.gameweek -1
+            return last_result.gameweek - 1
         else:
             return last_result.gameweek
     else:

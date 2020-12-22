@@ -44,7 +44,6 @@ from airsenal.framework.optimization_utils import (
 
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     get_player_name,
     get_latest_prediction_tag,
     get_next_gameweek,
@@ -137,7 +136,6 @@ def optimize(
         # Only exception is the root node, where sid is "starting" - this
         # node only exists to add children to the queue.
 
-
         if sid == "starting":
             sid = ""
             depth = 0
@@ -147,7 +145,7 @@ def optimize(
             strat_dict["players_out"] = {}
             strat_dict["chips_played"] = {}
             new_squad = squad
-            gw = gameweek_range[0]-1
+            gw = gameweek_range[0] - 1
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -221,7 +219,7 @@ def optimize(
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_transfers=max_transfers,
-                chips=chips_gw_dict[gw+1],
+                chips=chips_gw_dict[gw + 1],
             )
 
             for strat in strategies:
@@ -498,18 +496,21 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
     chip_dict = {}
     # first fill in any allowed chips
     for gw in gameweeks:
-        chip_dict[gw] = {"chip_to_play":None,"chips_allowed":[]}
-        for k,v in chip_gameweeks.items():
+        chip_dict[gw] = {"chip_to_play": None, "chips_allowed": []}
+        for k, v in chip_gameweeks.items():
             if int(v) == 0:
                 chip_dict[gw]["chips_allowed"].append(k)
     # now go through again, for any definite ones, and remove
     # other allowed chips from those gameweeks
-    for k,v in chip_gameweeks.items():
-        if v > 0 and v in gameweeks: #v is the gameweek
+    for k, v in chip_gameweeks.items():
+        if v > 0 and v in gameweeks:  # v is the gameweek
             # check we're not trying to play 2 chips
             if chip_dict[v]["chip_to_play"] is not None:
-                raise RuntimeError("Cannot play {} and {} in the same week"\
-                                   .format(chip_dict[v]["chip_to_play"], k))
+                raise RuntimeError(
+                    "Cannot play {} and {} in the same week".format(
+                        chip_dict[v]["chip_to_play"], k
+                    )
+                )
             chip_dict[v]["chip_to_play"] = k
             chip_dict[v]["chips_allowed"] = []
     return chip_dict
@@ -543,25 +544,25 @@ def main():
         "--wildcard_week",
         help="play wildcard in the specified week. Choose 0 for 'any week'.",
         type=int,
-        default=-1
+        default=-1,
     )
     parser.add_argument(
         "--free_hit_week",
         help="play free hit in the specified week. Choose 0 for 'any week'.",
         type=int,
-        default=-1
+        default=-1,
     )
     parser.add_argument(
         "--triple_captain_week",
         help="play triple captain in the specified week. Choose 0 for 'any week'.",
         type=int,
-        default=-1
+        default=-1,
     )
     parser.add_argument(
         "--bench_boost_week",
         help="play bench_boost in the specified week. Choose 0 for 'any week'.",
         type=int,
-        default=-1
+        default=-1,
     )
     parser.add_argument(
         "--num_free_transfers", help="how many free transfers do we have", type=int

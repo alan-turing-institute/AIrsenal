@@ -60,16 +60,18 @@ def update_results(season, dbsession):
             # need to update
             print("Updating results table ...")
             fill_results_from_api(
-                gw_start=last_in_db+1,
+                gw_start=last_in_db + 1,
                 gw_end=NEXT_GAMEWEEK,
                 season=season,
-                dbsession=dbsession
+                dbsession=dbsession,
             )
             print("Updating playerscores table ...")
-            fill_playerscores_from_api(season=season,
-                                       gw_start=last_in_db+1,
-                                       gw_end=NEXT_GAMEWEEK,
-                                       dbsession=dbsession)
+            fill_playerscores_from_api(
+                season=season,
+                gw_start=last_in_db + 1,
+                gw_end=NEXT_GAMEWEEK,
+                dbsession=dbsession,
+            )
         else:
             print("Matches and player-scores already up-to-date")
     else:
