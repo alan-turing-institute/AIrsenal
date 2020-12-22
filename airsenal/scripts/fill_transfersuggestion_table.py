@@ -68,7 +68,6 @@ def is_finished(final_expected_num):
 
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
-    print("In is_finished - expect {} found {}".format(final_expected_num, json_count))
     if json_count == final_expected_num:
         return True
     return False
@@ -395,7 +394,6 @@ def run_optimization(
         max_transfers=max_transfers,
         chip_gw_dict=chip_gw_dict,
     )
-    print("num_expected outputs: {}".format(num_expected_outputs))
     total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 
     # functions to be passed to subprocess to update or reset progress bars
@@ -495,7 +493,6 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
     { <gw>: {"chip_to_play": [<chip_name>],
              "chips_allowed": [<chip_name>,...]},...}
     """
-    print("arguments for construct_chip_dict: {} {}".format(gameweeks, chip_gameweeks))
     chip_dict = {}
     # first fill in any allowed chips
     for gw in gameweeks:

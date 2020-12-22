@@ -789,15 +789,6 @@ def count_expected_outputs(
     * Make a maximum of max_transfers transfers each gameweek.
     * Each chip only allowed once.
     """
-    print("args for count_expected_outputs are: {} {} {} {} {} {} {}".\
-          format(gw_ahead,
-                 next_gw,
-                 free_transfers,
-                 max_total_hit,
-                 allow_unused_transfers,
-                 max_transfers,
-                 chip_gw_dict)
-    )
 
     init_strat_dict = {
         "players_in": {},
@@ -860,5 +851,4 @@ def count_expected_outputs(
         }
         baseline_dict = (2, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
-    print("Strategies are {}".format(strategies))
     return len(strategies)
