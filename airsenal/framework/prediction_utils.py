@@ -280,7 +280,7 @@ def calc_predicted_points_for_player(
     Use the team-level model to get the probs of scoring or conceding
     N goals, and player-level model to get the chance of player scoring
     or assisting given that their team scores.
-    """   
+    """
     if isinstance(player, int):
         player = get_player(player, dbsession=dbsession)
 
@@ -449,12 +449,8 @@ def get_fitted_player_model(
     return df_player
 
 
-def get_all_fitted_player_models(
-    player_model, season, gameweek, dbsession=session
-):
-    df_positions = {
-        "GK": None
-    }
+def get_all_fitted_player_models(player_model, season, gameweek, dbsession=session):
+    df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:
         df_positions[pos], _, _ = fit_player_data(
             player_model, pos, season, gameweek, dbsession

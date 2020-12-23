@@ -20,7 +20,6 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_top_predicted_points,
     list_players,
-    get_player,
 )
 
 from airsenal.framework.prediction_utils import (
@@ -157,7 +156,7 @@ def calc_all_predicted_points(
                 tag=tag,
                 dbsession=dbsession,
             )
-            
+
         for p in predictions:
             dbsession.add(p)
         dbsession.commit()
