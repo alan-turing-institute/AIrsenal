@@ -19,6 +19,7 @@ from airsenal.framework.utils import (
     get_recent_minutes_for_player,
     get_return_gameweek_for_player,
     get_max_matches_per_player,
+    get_player,
     get_player_from_api_id,
     list_players,
     fetcher,
@@ -279,7 +280,9 @@ def calc_predicted_points_for_player(
     Use the team-level model to get the probs of scoring or conceding
     N goals, and player-level model to get the chance of player scoring
     or assisting given that their team scores.
-    """
+    """   
+    if isinstance(player, int):
+        player = get_player(player, dbsession=dbsession)
 
     message = "Points prediction for player {}".format(player.name)
 

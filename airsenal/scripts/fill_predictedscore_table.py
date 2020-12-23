@@ -136,7 +136,7 @@ def calc_all_predicted_points(
             procs.append(processor)
 
         for p in players:
-            queue.put(p)
+            queue.put(p.player_id)
         for _ in range(num_thread):
             queue.put("DONE")
 
