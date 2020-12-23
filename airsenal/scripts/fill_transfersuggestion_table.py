@@ -62,7 +62,7 @@ def is_finished(final_expected_num):
     """
     Count the number of json files in the output directory, and see if the number
     matches the final expected number, which should be pre-calculated by the
-    count_expected_points function based on the number of weeks optimising for, cards
+    count_expected_points function based on the number of weeks optimising for, chips
     available and other constraints.
     Return True if output files are all there, False otherwise.
     """
@@ -81,7 +81,7 @@ def optimize(
     gameweek_range,
     season,
     pred_tag,
-    cards_allowed=[],
+    chips_gw_dict,
     max_total_hit=None,
     allow_unused_transfers=True,
     max_transfers=2,
@@ -143,8 +143,9 @@ def optimize(
             strat_dict["points_per_gw"] = {}
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
-            strat_dict["cards_played"] = {}
+            strat_dict["chips_played"] = {}
             new_squad = squad
+            gw = gameweek_range[0] - 1
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -157,21 +158,21 @@ def optimize(
             # gameweeks from this point in strategy to end of window
             gameweeks = gameweek_range[depth:]
 
-            # next gameweek:
+            # upcoming gameweek:
             gw = gameweeks[0]
 
             # check whether we're playing a chip this gameweek
             if isinstance(num_transfers, str):
                 if num_transfers.startswith("T"):
-                    strat_dict["cards_played"][gw] = "triple_captain"
+                    strat_dict["chips_played"][gw] = "triple_captain"
                 elif num_transfers.startswith("B"):
-                    strat_dict["cards_played"][gw] = "bench_boost"
+                    strat_dict["chips_played"][gw] = "bench_boost"
                 elif num_transfers == "W":
-                    strat_dict["cards_played"][gw] = "wildcard"
+                    strat_dict["chips_played"][gw] = "wildcard"
                 elif num_transfers == "F":
-                    strat_dict["cards_played"][gw] = "free_hit"
+                    strat_dict["chips_played"][gw] = "free_hit"
             else:
-                strat_dict["cards_played"][gw] = None
+                strat_dict["chips_played"][gw] = None
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
@@ -216,12 +217,9 @@ def optimize(
             strategies = next_week_transfers(
                 (free_transfers, hit_so_far, strat_dict),
                 max_total_hit=max_total_hit,
-                allow_wildcard="wildcard" in cards_allowed,
-                allow_free_hit="free_hit" in cards_allowed,
-                allow_bench_boost="bench_boost" in cards_allowed,
-                allow_triple_captain="triple_captain" in cards_allowed,
                 allow_unused_transfers=allow_unused_transfers,
                 max_transfers=max_transfers,
+                chips=chips_gw_dict[gw + 1],
             )
 
             for strat in strategies:
@@ -307,7 +305,7 @@ def print_strat(strat):
     print(" ===============================================")
     for gw in gameweeks_as_int:
         print("\n =========== Gameweek {} ================\n".format(gw))
-        print("Cards played:  {}\n".format(strat["cards_played"][str(gw)]))
+        print("Chips played:  {}\n".format(strat["chips_played"][str(gw)]))
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat["players_in"][str(gw)])):
@@ -344,10 +342,7 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
-    wildcard=False,
-    free_hit=False,
-    triple_captain=False,
-    bench_boost=False,
+    chip_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
     allow_unused_transfers=True,
@@ -360,6 +355,9 @@ def run_optimization(
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
     combination, to find the best strategy.
+    The chip-related variables e.g. wildcard_week are -1 if that chip
+    is not to be played, 0 for 'play it any week', or the gw in which
+    it should be played.
     """
     # How many free transfers are we starting with?
     if not num_free_transfers:
@@ -371,6 +369,10 @@ def run_optimization(
     # first get a baseline prediction
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
+    # Get a dict of what chips we definitely or possibly will play
+    # in each gw
+    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
+
     # create a queue that we will add nodes to, and some processes to take
     # things off it
     squeue = CustomQueue()
@@ -381,19 +383,16 @@ def run_optimization(
         progress_bars.append(tqdm(total=100))
 
     # number of nodes in tree will be something like 3^num_weeks unless we allow
-    # a "card" such as wildcard or free hit, in which case it gets complicated
+    # a "chip" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
     num_expected_outputs = count_expected_outputs(
         num_weeks,
+        next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
-        allow_wildcard=wildcard,
-        allow_free_hit=free_hit,
-        allow_bench_boost=bench_boost,
-        allow_triple_captain=triple_captain,
         allow_unused_transfers=allow_unused_transfers,
-        next_gw=1,
         max_transfers=max_transfers,
+        chip_gw_dict=chip_gw_dict,
     )
     total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 
@@ -438,15 +437,6 @@ def run_optimization(
     #  total_score
     #  num_free_transfers
     #  budget
-    cards = []
-    if wildcard:
-        cards.append("wildcard")
-    if free_hit:
-        cards.append("free_hit")
-    if triple_captain:
-        cards.append("triple_captain")
-    if bench_boost:
-        cards.append("bench_boost")
     for i in range(num_thread):
         processor = Process(
             target=optimize,
@@ -457,7 +447,7 @@ def run_optimization(
                 gameweeks,
                 season,
                 tag,
-                cards,
+                chip_gw_dict,
                 max_total_hit,
                 allow_unused_transfers,
                 max_transfers,
@@ -494,6 +484,38 @@ def run_optimization(
     return
 
 
+def construct_chip_dict(gameweeks, chip_gameweeks):
+    """
+    Given a dict of form {<chip_name>: <chip_gw>,...}
+    where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
+    is not to be played, 0 if it is to be considered any week, or gw
+    if it is definitely to be played that gw, return a dict
+    { <gw>: {"chip_to_play": [<chip_name>],
+             "chips_allowed": [<chip_name>,...]},...}
+    """
+    chip_dict = {}
+    # first fill in any allowed chips
+    for gw in gameweeks:
+        chip_dict[gw] = {"chip_to_play": None, "chips_allowed": []}
+        for k, v in chip_gameweeks.items():
+            if int(v) == 0:
+                chip_dict[gw]["chips_allowed"].append(k)
+    # now go through again, for any definite ones, and remove
+    # other allowed chips from those gameweeks
+    for k, v in chip_gameweeks.items():
+        if v > 0 and v in gameweeks:  # v is the gameweek
+            # check we're not trying to play 2 chips
+            if chip_dict[v]["chip_to_play"] is not None:
+                raise RuntimeError(
+                    "Cannot play {} and {} in the same week".format(
+                        chip_dict[v]["chip_to_play"], k
+                    )
+                )
+            chip_dict[v]["chip_to_play"] = k
+            chip_dict[v]["chips_allowed"] = []
+    return chip_dict
+
+
 def sanity_check_args(args):
     """
     Check that command-line arguments are self-consistent.
@@ -519,24 +541,28 @@ def main():
     parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
     parser.add_argument("--tag", help="specify a string identifying prediction set")
     parser.add_argument(
-        "--allow_wildcard",
-        help="include possibility of wildcarding in one of the weeks",
-        action="store_true",
+        "--wildcard_week",
+        help="play wildcard in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1,
     )
     parser.add_argument(
-        "--allow_free_hit",
-        help="include possibility of playing free hit in one of the weeks",
-        action="store_true",
+        "--free_hit_week",
+        help="play free hit in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1,
     )
     parser.add_argument(
-        "--allow_triple_captain",
-        help="include possibility of playing triple captain in one of the weeks",
-        action="store_true",
+        "--triple_captain_week",
+        help="play triple captain in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1,
     )
     parser.add_argument(
-        "--allow_bench_boost",
-        help="include possibility of playing bench boost in one of the weeks",
-        action="store_true",
+        "--bench_boost_week",
+        help="play bench_boost in the specified week. Choose 0 for 'any week'.",
+        type=int,
+        default=-1,
     )
     parser.add_argument(
         "--num_free_transfers", help="how many free transfers do we have", type=int
@@ -583,22 +609,7 @@ def main():
     else:
         gameweeks = list(range(args.gw_start, args.gw_end))
     num_iterations = args.num_iterations
-    if args.allow_wildcard:
-        wildcard = True
-    else:
-        wildcard = False
-    if args.allow_free_hit:
-        free_hit = True
-    else:
-        free_hit = False
-    if args.allow_triple_captain:
-        triple_captain = True
-    else:
-        triple_captain = False
-    if args.allow_bench_boost:
-        bench_boost = True
-    else:
-        bench_boost = False
+
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:
@@ -612,6 +623,11 @@ def main():
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
     profile = args.profile if args.profile else False
+    chip_gameweeks = {}
+    chip_gameweeks["wildcard"] = args.wildcard_week
+    chip_gameweeks["free_hit"] = args.free_hit_week
+    chip_gameweeks["triple_captain"] = args.triple_captain_week
+    chip_gameweeks["bench_boost"] = args.bench_boost_week
 
     if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
         print(
@@ -626,10 +642,7 @@ def main():
         gameweeks,
         tag,
         season,
-        wildcard,
-        free_hit,
-        triple_captain,
-        bench_boost,
+        chip_gameweeks,
         num_free_transfers,
         max_total_hit,
         allow_unused_transfers,
