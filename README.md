@@ -70,13 +70,11 @@ Once you've installed the module, you will need to set the following parameters:
 
 **Optional:**
 
-2. `FD_API_KEY`: an API key for [football data](https://www.football-data.org/) (this is only needed for filling past seasons results if not already present as a csv file in the ```data/``` directory.)
+2. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
 
-3. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
+3. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings).
 
-4. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings).
-
-5. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
+4. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
 
 The values for these should be defined either in environment variables with the names given above, or as files in the `airsenal/data` directory with the names given above. For example, to set your team ID you can create the file `airsenal/data/FPL_TEAM_ID` (with no file extension) and its contents should be your team ID and nothing else. So the contents of the file would just be something like:
 ```
@@ -142,7 +140,7 @@ This can also be used during the season to generate a full new squad (e.g. for w
 
 ### Run the Full AIrsenal Pipeline
 
-Instead of running the commands above individaully you can use:
+Instead of running the commands above individually you can use:
 ```shell
 airsenal_run_pipeline
 ```
@@ -152,7 +150,7 @@ This will delete and recreate the database and then run the points predictions a
 
 Build the docker-image:
 ```shell
-docker image -t airsenal .
+docker build -t airsenal .
 ```
 
 Create a volume for data persistance:

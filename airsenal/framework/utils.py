@@ -5,6 +5,7 @@ Useful commands to query the db
 from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 from typing import TypeVar
 import dateparser
 import re
@@ -43,6 +44,44 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
         max_gw = 100
 
     return max_gw
+
+
+def in_mid_gameweek(season=CURRENT_SEASON, dbsession=None, verbose=False):
+    """
+    Use the current time to figure out whether we're in the middle of a gameweek
+    """
+    if not dbsession:
+        dbsession = session
+    timenow = datetime.now(timezone.utc)
+    # find the most recent and the next fixtures, relative to now.
+    most_recent_fixture = None
+    most_recent_fixture_time = timenow - relativedelta(years=1)
+    next_fixture = None
+    next_fixture_time = timenow + relativedelta(years=1)
+    fixtures = dbsession.query(Fixture).filter_by(season=season).all()
+    for fixture in fixtures:
+        if not fixture.date:
+            continue
+        fixture_date = dateparser.parse(fixture.date)
+        fixture_date = fixture_date.replace(tzinfo=timezone.utc)
+        if fixture_date < timenow and fixture_date > most_recent_fixture_time:
+            most_recent_fixture = fixture
+            most_recent_fixture_time = fixture_date
+        elif fixture_date > timenow and fixture_date < next_fixture_time:
+            next_fixture = fixture
+            next_fixture_time = fixture_date
+    if verbose:
+        print(
+            "Last fixture was {}/{}, next fixture is {}/{}".format(
+                most_recent_fixture.date,
+                most_recent_fixture.gameweek,
+                next_fixture.date,
+                next_fixture.gameweek,
+            )
+        )
+    # see if the most recent and next fixtures are both in the same gameweek.
+    # if so, return True, as we are in the middle of a gameweek.
+    return most_recent_fixture.gameweek == next_fixture.gameweek
 
 
 def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
@@ -988,7 +1027,7 @@ def get_recent_playerscore_rows(
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     # If asking for gameweeks without results in DB, revert to most recent results.
-    last_available_gameweek = get_last_gameweek_in_db(
+    last_available_gameweek = get_last_complete_gameweek_in_db(
         season=season, dbsession=dbsession
     )
     if not last_available_gameweek:
@@ -1069,22 +1108,29 @@ def get_recent_minutes_for_player(
     return minutes
 
 
-def get_last_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
+def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     """
     query the result table to see what was the last gameweek for which
     we have filled the data.
+    Note that if we run this command while a gameweek is ongoing, we
+    want to return the week _before_ the latest result's gameweek, as
+    that will be the last complete gameweek.
     """
     if not dbsession:
         dbsession = session
     last_result = (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter(Fixture.result is not None)
+        .filter(Fixture.result != None)  # noqa: E711
         .order_by(Fixture.gameweek.desc())
         .first()
     )
     if last_result:
-        return last_result.gameweek
+        # now check whether we're in the middle of a gameweek
+        if in_mid_gameweek(season=season, dbsession=dbsession):
+            return last_result.gameweek - 1
+        else:
+            return last_result.gameweek
     else:
         return None
 

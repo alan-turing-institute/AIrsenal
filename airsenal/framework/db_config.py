@@ -20,6 +20,8 @@ if "AIrsenalDBFile" in os.environ.keys():
 
 # location of postgres server
 if "AIrsenalDBUri" in os.environ.keys():
-    DB_CONNECTION_STRING = "postgres://{}/airsenal?check_same_thread=False".format(
-        os.environ["AIrsenalDBUri"]
+    DB_CONNECTION_STRING = "postgres://{}:{}@{}/airsenal".format(
+        os.environ["AIrsenalDBUser"],
+        os.environ["AIrsenalDBPassword"],
+        os.environ["AIrsenalDBUri"],
     )
