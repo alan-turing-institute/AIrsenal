@@ -156,9 +156,8 @@ def calc_all_predicted_points(
                 tag=tag,
                 dbsession=dbsession,
             )
-
-        for p in predictions:
-            dbsession.add(p)
+            for p in predictions:
+                dbsession.add(p)
         dbsession.commit()
         print("Finished adding predictions to db")
 
