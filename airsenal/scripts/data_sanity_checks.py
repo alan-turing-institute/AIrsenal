@@ -1,6 +1,5 @@
 from airsenal.framework.utils import (
     get_past_seasons,
-    get_teams_for_season,
     session,
     CURRENT_SEASON,
     get_fixtures_for_season,
@@ -8,6 +7,8 @@ from airsenal.framework.utils import (
     get_player_scores_for_fixture,
 )
 from airsenal.framework.schema import PlayerScore
+
+from airsenal.framework.season import get_teams_for_season
 
 CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements
@@ -60,7 +61,7 @@ def result_string(n_error):
         return "FAIL! {} errors.".format(n_error)
 
 
-def season_num_teams(seasons=CHECK_SEASONS):
+def season_num_teams(seasons=CHECK_SEASONS, session=session):
     """Check whether each season has 20 teams.
 
     Keyword Arguments:
@@ -69,7 +70,7 @@ def season_num_teams(seasons=CHECK_SEASONS):
     print("Checking seasons have 20 teams...\n")
     n_error = 0
     for season in seasons:
-        teams = get_teams_for_season(season)
+        teams = get_teams_for_season(season, session)
         if len(teams) != 20:
             n_error += 1
             print(
@@ -80,7 +81,7 @@ def season_num_teams(seasons=CHECK_SEASONS):
     return n_error
 
 
-def season_num_new_teams(seasons=CHECK_SEASONS):
+def season_num_new_teams(seasons=CHECK_SEASONS, session=session):
     """Check each season has 3 new teams.
 
     Keyword Arguments:
@@ -89,7 +90,7 @@ def season_num_new_teams(seasons=CHECK_SEASONS):
     print("Checking seasons have 3 new teams...\n")
     n_error = 0
 
-    teams = [get_teams_for_season(season) for season in seasons]
+    teams = [get_teams_for_season(season, session) for season in seasons]
     for i in range(1, len(teams)):
         new_teams = [team for team in teams[i] if team not in teams[i - 1]]
         if len(new_teams) != 3:
@@ -167,14 +168,14 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
 
 def fixture_num_players(seasons=CHECK_SEASONS, session=session):
     """Check each fixture has between 11 and 14 players  with at least 1 minute
-    in player_scores.
+    in player_scores. For season 19/20 it can be up to 16 players.
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking 11 to 14 players play per team in each fixture...\n")
+    print("Checking 11 to 14 players play per team in each fixture (with exceptions for 19/20)...\n")
     n_error = 0
 
     for season in seasons:
@@ -182,6 +183,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
 
         for fixture in fixtures:
             result = get_result_for_fixture(fixture)
+
 
             if result:
                 result = result[0]
@@ -199,7 +201,13 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                if not ((len(home_scores) > 10) and (len(home_scores) < 15)):
+                # Rule change due to shorter season
+                if fixture.season == '1920' and int(fixture.gameweek) >= 39:
+                    upper_team_limit = 16
+                else: 
+                    upper_team_limit = 14
+
+                if not ((len(home_scores) > 10) and (len(home_scores) <= upper_team_limit)):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for home team.".format(
@@ -207,7 +215,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                         )
                     )
 
-                if not ((len(away_scores) > 10) and (len(away_scores) < 15)):
+                if not ((len(away_scores) > 10) and (len(away_scores) <= upper_team_limit)):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for away team.".format(
