@@ -343,6 +343,7 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
+    fpl_team_id=None,
     chip_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
@@ -608,8 +609,9 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.fpl_team_id is not None:
-        fetcher.FPL_TEAM_ID = args.fpl_team_id
+    if fpl_team_id = args.fpl_team_id if args.fpl_team_id is not None\
+       else None
+#    fetcher.FPL_TEAM_ID = args.fpl_team_id
 
     sanity_check_args(args)
     season = args.season
@@ -653,6 +655,7 @@ def main():
         gameweeks,
         tag,
         season,
+        fpl_team_id,
         chip_gameweeks,
         num_free_transfers,
         max_total_hit,
