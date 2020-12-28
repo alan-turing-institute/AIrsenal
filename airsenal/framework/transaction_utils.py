@@ -69,8 +69,10 @@ def fill_initial_squad(
     starting_gw = 0
     while len(init_players) == 0:
         starting_gw += 1
+        print(f"Trying gameweek {starting_gw}...")
         init_players = get_players_for_gameweek(starting_gw)
         free_hit = free_hit_used_in_gameweek(starting_gw)
+    print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
