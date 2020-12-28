@@ -57,7 +57,7 @@ def fill_initial_squad(
     players in our team) and the player history API endpoint (for their price in gw1).
     """
     print(
-        "Getting selected players in squad {} for first gameweek...".format(
+        "Getting initially selected players for squad {}...".format(
             fetcher.FPL_TEAM_ID
         )
     )
