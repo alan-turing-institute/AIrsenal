@@ -57,9 +57,7 @@ def fill_initial_squad(
     players in our team) and the player history API endpoint (for their price in gw1).
     """
     print(
-        "Getting initially selected players for squad {}...".format(
-            fetcher.FPL_TEAM_ID
-        )
+        "Getting initially selected players for squad {}...".format(fetcher.FPL_TEAM_ID)
     )
     if NEXT_GAMEWEEK == 1:
         # Season hasn't started yet - there won't be a team in the DB
