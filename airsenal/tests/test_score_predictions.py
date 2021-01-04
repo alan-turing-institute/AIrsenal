@@ -7,9 +7,7 @@ import pystan
 
 import bpl
 
-from airsenal.framework.FPL_scoring_rules import (
-    get_appearance_points,
-)
+from airsenal.framework.FPL_scoring_rules import get_appearance_points
 from airsenal.framework.prediction_utils import (
     get_defending_points,
     get_attacking_points,
@@ -33,7 +31,7 @@ from airsenal.framework.bpl_interface import (
 )
 
 from airsenal.conftest import test_past_data_session_scope
-from airsenal.framework.schema import PlayerScore, Result, Fixture
+from airsenal.framework.schema import Result, Fixture
 
 
 class DummyTeamModel(object):
@@ -87,7 +85,7 @@ def test_defending_points_0_0():
     if they were on the pitch for >= 60 mins.
     """
     tm = DummyTeamModel({(0, 0): 1.0})
-    ## home or away doesn't matter
+    # home or away doesn't matter
     assert get_defending_points("FWD", "dummy", "dummy", True, 90, tm) == 0
     assert get_defending_points("MID", "dummy", "dummy", True, 90, tm) == 1
     assert get_defending_points("DEF", "dummy", "dummy", True, 90, tm) == 4
@@ -101,14 +99,14 @@ def test_defending_points_1_0():
     test that out home/away logic works.
     """
     tm = DummyTeamModel({(1, 0): 1.0})
-    ## home
+    # home
     assert get_defending_points("FWD", "dummy", "dummy", True, 90, tm) == 0
     assert get_defending_points("MID", "dummy", "dummy", True, 90, tm) == 1
     assert get_defending_points("DEF", "dummy", "dummy", True, 90, tm) == 4
     assert get_defending_points("GK", "dummy", "dummy", True, 90, tm) == 4
     for pos in ["FWD", "MID", "DEF", "GK"]:
         assert get_defending_points(pos, "dummy", "dummy", True, 59, tm) == 0
-    ## away
+    # away
     assert get_defending_points("FWD", "dummy", "dummy", False, 90, tm) == 0
     assert get_defending_points("MID", "dummy", "dummy", False, 90, tm) == 0
     assert get_defending_points("DEF", "dummy", "dummy", False, 90, tm) == 0
@@ -155,10 +153,10 @@ def test_defending_points_concede_0_to_4():
     assert get_defending_points("MID", "dummy", "dummy", True, 90, tm) == 0.2
     assert round(get_defending_points("DEF", "dummy", "dummy", True, 90, tm), 2) == 0.0
     assert round(get_defending_points("GK", "dummy", "dummy", True, 90, tm), 2) == 0.0
-    ## TODO - how many points do we expect for < 90 mins?
-    ## Current calculation only awards clean sheet points for team conceding 0,
-    ## but we should allow for possibility that team concedes first goal after
-    ## the player has been subbed.
+    # TODO - how many points do we expect for < 90 mins?
+    # Current calculation only awards clean sheet points for team conceding 0,
+    # but we should allow for possibility that team concedes first goal after
+    # the player has been subbed.
 
 
 def test_attacking_points_0_0():
@@ -184,7 +182,7 @@ def test_attacking_points_1_0_top_scorer():
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 90, tm, pm) == 5
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 90, tm, pm) == 6
     assert get_attacking_points(0, "GK", "dummy", "dummy", True, 90, tm, pm) == 0
-    ## play 45 mins - 50% chance that goal was scored while they were playing
+    # play 45 mins - 50% chance that goal was scored while they were playing
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 45, tm, pm) == 2
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 45, tm, pm) == 2.5
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 45, tm, pm) == 3
@@ -200,7 +198,7 @@ def test_attacking_points_1_0_top_assister():
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 90, tm, pm) == 3
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 90, tm, pm) == 3
     assert get_attacking_points(0, "GK", "dummy", "dummy", True, 90, tm, pm) == 0
-    ## play 45 mins - 50% chance that goal was scored while they were playing
+    # play 45 mins - 50% chance that goal was scored while they were playing
     assert get_attacking_points(0, "FWD", "dummy", "dummy", True, 45, tm, pm) == 1.5
     assert get_attacking_points(0, "MID", "dummy", "dummy", True, 45, tm, pm) == 1.5
     assert get_attacking_points(0, "DEF", "dummy", "dummy", True, 45, tm, pm) == 1.5
@@ -226,7 +224,8 @@ def test_get_bonus_points():
 
 
 def test_get_save_points():
-    """Test correct szve points returned for players from fitted (average) save points"""
+    """Test correct szve points returned for players from fitted
+    (average) save points"""
     df_saves = pd.Series({1: 1, 2: 2})
 
     # >60 mins - return df value
@@ -241,7 +240,8 @@ def test_get_save_points():
 
 
 def test_get_card_points():
-    """Test correct card points returned for players from fitted (average) card points"""
+    """Test correct card points returned for players from fitted
+    (average) card points"""
     df_cards = pd.Series({1: -1, 2: -2})
     # >30 mins - return df value
     assert get_card_points(1, 90, df_cards) == -1

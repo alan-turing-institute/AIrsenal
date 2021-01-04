@@ -38,7 +38,8 @@ dummy_sub_cost = 45
 # For the list of algorithms available in pygmo see here:
 # https://esa.github.io/pygmo2/overview.html#list-of-algorithms
 # Time it will take to run normally controlled by:
-#  - "gen" argument of algorithm - no. of generations (no. of times population is evolved)
+#  - "gen" argument of algorithm - no. of generations (no. of times population
+#    is evolved)
 #  - "population_size" - no. of candidate solutions in each generatino
 uda = pg.sga(gen=100)  # ("User Defined Algorithm")
 population_size = 100

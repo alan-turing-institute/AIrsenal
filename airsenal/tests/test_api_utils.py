@@ -37,7 +37,7 @@ def test_list_all_players(fill_players):
         assert len(player_list) > 0
         first_player = player_list[0]
         # test the format of the returned strings
-        assert re.search("[a-zA-Z\s]+\([A-Z]{3}\)\: [\d\.]+", first_player)
+        assert re.search(r"[a-zA-Z\s]+\([A-Z]{3}\)\: [\d\.]+", first_player)
 
 
 def test_add_player(fill_players):

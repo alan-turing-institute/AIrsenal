@@ -3,9 +3,6 @@
 """
 Find alternative team names for all the teams in the 2018/19 FPL.
 """
-import os
-import sys
-
 
 import json
 

@@ -62,7 +62,10 @@ def main():
     )
     parser.add_argument(
         "--gw_weight_type",
-        help="'constant' to treat all gameweeks equally, or 'linear' to reduce weight of gameweeks with time (genetic only)",
+        help=(
+            "'constant' to treat all gameweeks equally, or 'linear' "
+            "to reduce weight of gameweeks with time (genetic only)"
+        ),
         type=str,
         default="linear",
     )

@@ -1,7 +1,7 @@
 """
 Functions to help fill the Transaction table, where players are bought and sold,
-hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment variable,
-or a file named FPL_TEAM_ID in airsenal/data/
+hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment
+variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
 from airsenal.framework.schema import Transaction
@@ -52,25 +52,25 @@ def fill_initial_squad(
     season=CURRENT_SEASON, tag="AIrsenal" + CURRENT_SEASON, dbsession=session
 ):
     """
-    Fill the Transactions table in the database with the initial 15 players, and their costs,
-    getting the information from the team history API endpoint (for the list of players in our team)
-    and the player history API endpoint (for their price in gw1).
+    Fill the Transactions table in the database with the initial 15 players, and their
+    costs, getting the information from the team history API endpoint (for the list of
+    players in our team) and the player history API endpoint (for their price in gw1).
     """
     print(
-        "Getting selected players in squad {} for first gameweek...".format(
-            fetcher.FPL_TEAM_ID
-        )
+        "Getting initially selected players for squad {}...".format(fetcher.FPL_TEAM_ID)
     )
     if NEXT_GAMEWEEK == 1:
-        ### Season hasn't started yet - there won't be a team in the DB
+        # Season hasn't started yet - there won't be a team in the DB
         return True
 
     init_players = []
     starting_gw = 0
     while len(init_players) == 0:
         starting_gw += 1
+        print(f"Trying gameweek {starting_gw}...")
         init_players = get_players_for_gameweek(starting_gw)
         free_hit = free_hit_used_in_gameweek(starting_gw)
+    print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
@@ -99,8 +99,8 @@ def update_squad(
     verbose=True,
 ):
     """
-    Fill the Transactions table in the DB with all the transfers in gameweeks after 1, using
-    the transfers API endpoint which has the correct buy and sell prices.
+    Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
+    using the transfers API endpoint which has the correct buy and sell prices.
     """
     transfers = fetcher.get_fpl_transfer_data()
     for transfer in transfers:

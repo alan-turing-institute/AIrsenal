@@ -13,7 +13,7 @@ outfile = open("../data/fixtures.csv", "w")
 
 outfile.write("gameweek,date,home_team,away_team\n")
 
-fixture_regex = re.compile("([\w\s]+[\w])[\s]+([\d]{2}\:[\d]{2})([\w\s]+[\w])")
+fixture_regex = re.compile(r"([\w\s]+[\w])[\s]+([\d]{2}\:[\d]{2})([\w\s]+[\w])")
 
 gameweek = ""
 date = ""
@@ -21,10 +21,10 @@ home_team = ""
 away_team = ""
 date_str = ""
 for line in infile.readlines():
-    if re.search("Gameweek ([\d]+)", line):
-        gameweek = re.search("Gameweek ([\d]+)", line).groups()[0]
+    if re.search(r"Gameweek ([\d]+)", line):
+        gameweek = re.search(r"Gameweek ([\d]+)", line).groups()[0]
         print("gameweek {}".format(gameweek))
-    elif re.search("day [\d]+ [A-Z]", line):
+    elif re.search(r"day [\d]+ [A-Z]", line):
         date_str = line.strip()
         date_str += " 2018 "
         print("date {}".format(date_str))

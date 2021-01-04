@@ -43,7 +43,7 @@ class CandidatePlayer(object):
         get expected points from the db.
         Will be a dict of dicts, keyed by method and gameweeek
         """
-        if not method in self.predicted_points.keys():
+        if method not in self.predicted_points.keys():
             self.predicted_points[method] = get_predicted_points_for_player(
                 self.player_id, method, dbsession=self.dbsession
             )
@@ -52,9 +52,9 @@ class CandidatePlayer(object):
         """
         get points for a specific gameweek
         """
-        if not method in self.predicted_points.keys():
+        if method not in self.predicted_points.keys():
             self.calc_predicted_points(method)
-        if not gameweek in self.predicted_points[method].keys():
+        if gameweek not in self.predicted_points[method].keys():
             print(
                 "No prediction available for {} week {}".format(
                     self.data.name, gameweek

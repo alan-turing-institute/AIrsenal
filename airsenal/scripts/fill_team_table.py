@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Fill the "Team" table with list of teams for all seasons, and the team_id which will help
-fill other tables from raw json files
+Fill the "Team" table with list of teams for all seasons, and the team_id which will
+help fill other tables from raw json files
 """
 import os
 

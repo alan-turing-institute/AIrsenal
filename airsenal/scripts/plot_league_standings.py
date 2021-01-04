@@ -3,9 +3,6 @@
 Plot the league
 """
 
-import sys
-
-
 import argparse
 import matplotlib.pyplot as plt
 

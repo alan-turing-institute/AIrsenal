@@ -23,11 +23,11 @@ def get_player_history_table(position="all"):
         row_count = 0
         for row in results:
             minutes = row.minutes
-            opponent = row.opponent
             match_id = row.match_id
             goals = row.goals
             assists = row.assists
             # find the match, in order to get team goals
+            Match = None  # TODO: Placeholder for missing (deprecated?) Match class
             match = session.query(Match).filter_by(match_id=row.match_id).first()
             if match.home_team == row.opponent:
                 team_goals = match.away_score

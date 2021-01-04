@@ -180,7 +180,7 @@ class Squad(object):
                 price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id][
                     "now_cost"
                 ]
-            except:
+            except Exception:
                 pass
 
         if not price_now:
@@ -263,7 +263,7 @@ class Squad(object):
                 points_prediction = p.predicted_points[tag][gameweek]
 
             except (KeyError):
-                ## player does not have a game in this gameweek
+                # player does not have a game in this gameweek
                 points_prediction = 0
             player_dict[p.position].append((p, points_prediction))
         for v in player_dict.values():

@@ -2,8 +2,6 @@
 Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-import os
-
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -155,8 +153,8 @@ class Result(Base):
 class Fixture(Base):
     __tablename__ = "fixture"
     fixture_id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String(100), nullable=True)  ### In case fixture not yet scheduled!
-    gameweek = Column(Integer, nullable=True)  ### In case fixture not yet scheduled!
+    date = Column(String(100), nullable=True)  # In case fixture not yet scheduled!
+    gameweek = Column(Integer, nullable=True)  # In case fixture not yet scheduled!
     home_team = Column(String(100), nullable=False)
     away_team = Column(String(100), nullable=False)
     season = Column(String(100), nullable=False)
@@ -289,7 +287,7 @@ def session_scope():
     try:
         yield session
         session.commit()
-    except:
+    except Exception:
         session.rollback()
         raise
     finally:

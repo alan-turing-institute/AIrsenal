@@ -154,13 +154,14 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
                     or (score.player_team == fixture.away_team)
                 ):
                     n_error += 1
-                    print(
-                        "{}: {} in player_scores but labelled as playing for {}.".format(
-                            fixture_string(fixture),
-                            score.player.name,
-                            score.player_team,
-                        )
+                    msg = (
+                        "{}: {} in player_scores but labelled as playing for {}."
+                    ).format(
+                        fixture_string(fixture),
+                        score.player.name,
+                        score.player_team,
                     )
+                    print(msg)
 
     print("\n", result_string(n_error))
     return n_error
@@ -273,23 +274,27 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
 
                 if home_goals != result.home_score:
                     n_error += 1
-                    print(
-                        "{}: Player scores sum to {} but {} goals in result for home team".format(
-                            fixture_string(fixture, result),
-                            home_goals,
-                            result.home_score,
-                        )
+                    msg = (
+                        "{}: Player scores sum to {} but {} goals in result "
+                        "for home team"
+                    ).format(
+                        fixture_string(fixture, result),
+                        home_goals,
+                        result.home_score,
                     )
+                    print(msg)
 
                 if away_goals != result.away_score:
                     n_error += 1
-                    print(
-                        "{}: Player scores sum to {} but {} goals in result for away team".format(
-                            fixture_string(fixture, result),
-                            away_goals,
-                            result.away_score,
-                        )
+                    msg = (
+                        "{}: Player scores sum to {} but {} goals in result "
+                        "for away team"
+                    ).format(
+                        fixture_string(fixture, result),
+                        away_goals,
+                        result.away_score,
                     )
+                    print(msg)
 
     print("\n", result_string(n_error))
     return n_error
@@ -334,23 +339,27 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
 
                 if home_assists > result.home_score:
                     n_error += 1
-                    print(
-                        "{}: Player assists sum to {} but {} goals in result for home team".format(
-                            fixture_string(fixture, result),
-                            home_assists,
-                            result.home_score,
-                        )
+                    msg = (
+                        "{}: Player assists sum to {} but {} goals in result "
+                        "for home team"
+                    ).format(
+                        fixture_string(fixture, result),
+                        home_assists,
+                        result.home_score,
                     )
+                    print(msg)
 
                 if away_assists > result.away_score:
                     n_error += 1
-                    print(
-                        "{}: Player assists sum to {} but {} goals in result for away team".format(
-                            fixture_string(fixture, result),
-                            away_assists,
-                            result.away_score,
-                        )
+                    msg = (
+                        "{}: Player assists sum to {} but {} goals in result "
+                        "for away team"
+                    ).format(
+                        fixture_string(fixture, result),
+                        away_assists,
+                        result.away_score,
                     )
+                    print(msg)
 
     print("\n", result_string(n_error))
     return n_error
@@ -399,23 +408,23 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
 
                 if home_conceded != result.away_score:
                     n_error += 1
-                    print(
-                        "{}: Player conceded {} but {} goals in result for home team".format(
-                            fixture_string(fixture, result),
-                            home_conceded,
-                            result.away_score,
-                        )
+                    msg = "{}: Player conceded {} but {} goals in result for home team"
+                    msg = msg.format(
+                        fixture_string(fixture, result),
+                        home_conceded,
+                        result.away_score,
                     )
+                    print(msg)
 
                 if away_conceded != result.home_score:
                     n_error += 1
-                    print(
-                        "{}: Player conceded {} but {} goals in result for away team".format(
-                            fixture_string(fixture, result),
-                            away_conceded,
-                            result.home_score,
-                        )
+                    msg = "{}: Player conceded {} but {} goals in result for away team"
+                    msg = msg.format(
+                        fixture_string(fixture, result),
+                        away_conceded,
+                        result.home_score,
                     )
+                    print(msg)
 
     print("\n", result_string(n_error))
     return n_error
