@@ -177,7 +177,8 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         airsenal.framework.schema.session)
     """
     print(
-        "Checking 11 to 14 players play per team in each fixture (with exceptions for 19/20)...\n"
+        "Checking 11 to 14 players play per team in each fixture "
+        "(with exceptions for 19/20)...\n"
     )
     n_error = 0
 
