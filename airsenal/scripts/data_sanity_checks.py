@@ -175,7 +175,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking 11 to 14 players play per team in each fixture (with exceptions for 19/20)...\n")
+    print(
+        "Checking 11 to 14 players play per team in each fixture (with exceptions for 19/20)...\n"
+    )
     n_error = 0
 
     for season in seasons:
@@ -183,7 +185,6 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
 
         for fixture in fixtures:
             result = get_result_for_fixture(fixture)
-
 
             if result:
                 result = result[0]
@@ -202,12 +203,14 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                 )
 
                 # Rule change due to shorter season
-                if fixture.season == '1920' and int(fixture.gameweek) >= 39:
+                if fixture.season == "1920" and int(fixture.gameweek) >= 39:
                     upper_team_limit = 16
-                else: 
+                else:
                     upper_team_limit = 14
 
-                if not ((len(home_scores) > 10) and (len(home_scores) <= upper_team_limit)):
+                if not (
+                    (len(home_scores) > 10) and (len(home_scores) <= upper_team_limit)
+                ):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for home team.".format(
@@ -215,7 +218,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                         )
                     )
 
-                if not ((len(away_scores) > 10) and (len(away_scores) <= upper_team_limit)):
+                if not (
+                    (len(away_scores) > 10) and (len(away_scores) <= upper_team_limit)
+                ):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for away team.".format(
