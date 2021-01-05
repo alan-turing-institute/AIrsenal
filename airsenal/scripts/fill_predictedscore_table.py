@@ -111,7 +111,7 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    if num_thread > 1:
+    if num_thread is not None and num_thread > 1:
         queue = Queue()
         procs = []
         for _ in range(num_thread):
