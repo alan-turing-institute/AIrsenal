@@ -25,7 +25,7 @@ from airsenal.framework.transaction_utils import update_squad
 from airsenal.framework.schema import Player, session_scope
 
 
-def update_transactions(season, dbsession):
+def update_transactions(season, fpl_team_id, dbsession):
     """
     Ensure that the transactions table in the database is up-to-date.
     """
@@ -33,10 +33,14 @@ def update_transactions(season, dbsession):
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
         current_gameweek = NEXT_GAMEWEEK - 1
-        db_players = sorted(get_current_players(season=season, dbsession=dbsession))
-        api_players = sorted(get_players_for_gameweek(current_gameweek))
+        db_players = sorted(get_current_players(
+            season=season,
+            fpl_team_id=fpl_team_id,
+            dbsession=dbsession
+        ))
+        api_players = sorted(get_players_for_gameweek(current_gameweek, fpl_team_id))
         if db_players != api_players:
-            update_squad(season=season, dbsession=dbsession, verbose=True)
+            update_squad(season=season, fpl_team_id=fpl_team_id, dbsession=dbsession, verbose=True)
         else:
             print("Team is up-to-date")
     else:
@@ -155,17 +159,15 @@ def main():
     parser.add_argument(
         "--fpl_team_id",
         help="specify fpl team id",
-        nargs=1,
+        type=int,
         required=False,
-        default=None,
     )
 
     args = parser.parse_args()
 
     season = args.season
     do_attributes = not args.noattr
-    if args.fpl_team_id is not None:
-        fetcher.FPL_TEAM_ID = args.fpl_team_id
+    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
 
     with session_scope() as session:
         # see if any new players have been added
@@ -182,7 +184,7 @@ def main():
         # update results and playerscores
         update_results(season, session)
         # update our squad
-        update_transactions(season, session)
+        update_transactions(season, fpl_team_id, session)
 
 
 # TODO update fixtures table (e.g. in case of rescheduling)?

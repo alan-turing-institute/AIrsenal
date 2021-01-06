@@ -175,12 +175,14 @@ def get_past_seasons(num_seasons):
     return seasons
 
 
-def get_current_players(gameweek=None, season=None, dbsession=None):
+def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=None):
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
     If gameweek is None, get team for next gameweek
     """
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
     if not season:
         season = CURRENT_SEASON
     if not dbsession:
@@ -189,6 +191,7 @@ def get_current_players(gameweek=None, season=None, dbsession=None):
     transactions = (
         dbsession.query(Transaction)
         .filter_by(season=season)
+        .filter_by(fpl_team_id=fpl_team_id)
         .order_by(Transaction.gameweek)
         .all()
     )
@@ -225,14 +228,17 @@ def get_squad_value(
     return total_value
 
 
-def get_sell_price_for_player(player_id, gameweek=None):
+def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
     """
     find the price we bought the player for,
     and the price at the specified gameweek,
     if the price increased in that time, we only get half the profit.
     if gameweek is None, get price we could sell the player for now.
     """
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
     transactions = session.query(Transaction)
+    transactions = transactions.filter_by(fpl_team_id=fpl_team_id)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
 
@@ -712,12 +718,14 @@ def get_player_scores_for_fixture(fixture, dbsession=session):
     return player_scores
 
 
-def get_players_for_gameweek(gameweek):
+def get_players_for_gameweek(gameweek, fpl_team_id=None):
     """
     Use FPL API to get the players for a given gameweek.
     """
+    if not fpl_team_id:
+        fpl_team_data = fetcher.FPL_TEAM_ID
     try:
-        player_data = fetcher.get_fpl_team_data(gameweek)["picks"]
+        player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
         player_api_id_list = [p["element"] for p in player_data]
         player_list = [
             get_player_from_api_id(api_id).player_id

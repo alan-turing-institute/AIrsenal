@@ -363,7 +363,7 @@ def run_optimization(
     """
     # How many free transfers are we starting with?
     if not num_free_transfers:
-        num_free_transfers = get_free_transfers(gameweeks[0])
+        num_free_transfers = get_free_transfers(gameweeks[0], fpl_team_id)
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
@@ -609,9 +609,7 @@ def main():
     )
     args = parser.parse_args()
 
-    if fpl_team_id = args.fpl_team_id if args.fpl_team_id is not None\
-       else None
-#    fetcher.FPL_TEAM_ID = args.fpl_team_id
+    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
 
     sanity_check_args(args)
     season = args.season
