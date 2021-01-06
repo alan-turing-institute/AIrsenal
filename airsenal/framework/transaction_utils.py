@@ -69,9 +69,13 @@ def fill_initial_squad(
         fpl_team_id = fetcher.FPL_TEAM_ID
 
     print(
+<<<<<<< HEAD
         "Getting selected players in squad {} for first gameweek...".format(
             fpl_team_id
         )
+=======
+        "Getting initially selected players for squad {}...".format(fetcher.FPL_TEAM_ID)
+>>>>>>> develop
     )
     if NEXT_GAMEWEEK == 1:
         # Season hasn't started yet - there won't be a team in the DB
@@ -81,8 +85,10 @@ def fill_initial_squad(
     starting_gw = 0
     while len(init_players) == 0:
         starting_gw += 1
+        print(f"Trying gameweek {starting_gw}...")
         init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
         free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
+    print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
