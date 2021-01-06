@@ -723,7 +723,7 @@ def get_players_for_gameweek(gameweek, fpl_team_id=None):
     Use FPL API to get the players for a given gameweek.
     """
     if not fpl_team_id:
-        fpl_team_data = fetcher.FPL_TEAM_ID
+        fpl_team_id = fetcher.FPL_TEAM_ID
     try:
         player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
         player_api_id_list = [p["element"] for p in player_data]

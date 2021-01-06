@@ -14,7 +14,6 @@ from airsenal.framework.utils import (
     get_player,
     session,
 )
-from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):

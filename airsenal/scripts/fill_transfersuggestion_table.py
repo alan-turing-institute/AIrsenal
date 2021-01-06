@@ -48,7 +48,6 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_free_transfers,
-    fetcher,
 )
 
 if os.name == "posix":
