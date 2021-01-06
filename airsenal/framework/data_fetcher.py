@@ -149,15 +149,20 @@ class FPLDataFetcher(object):
         if not fpl_team_id:
             fpl_team_id = self.FPL_TEAM_ID
         # return cached value if we already retrieved it.
-        if self.fpl_transfer_history_data and \
-           fpl_team_id in self.fpl_transfer_history_data.keys():
+        if (
+            self.fpl_transfer_history_data
+            and fpl_team_id in self.fpl_transfer_history_data.keys()
+        ):
             return self.fpl_transfer_history_data[fpl_team_id]
         # or get it from the API.
         url = self.FPL_TEAM_TRANSFER_URL.format(fpl_team_id)
         r = requests.get(url)
         if not r.status_code == 200:
-            print("Unable to access FPL transfer history API for team_id {}"\
-                  .format(fpl_team_id))
+            print(
+                "Unable to access FPL transfer history API for team_id {}".format(
+                    fpl_team_id
+                )
+            )
             return None
         # get transfer history from api and reverse order so that
         # oldest transfers at start of list and newest at end.

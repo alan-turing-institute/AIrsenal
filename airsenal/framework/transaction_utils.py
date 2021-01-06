@@ -33,7 +33,15 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
 
 
 def add_transaction(
-    player_id, gameweek, in_or_out, price, season, tag, free_hit, fpl_team_id, dbsession=session
+    player_id,
+    gameweek,
+    in_or_out,
+    price,
+    season,
+    tag,
+    free_hit,
+    fpl_team_id,
+    dbsession=session,
 ):
     """
     add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
@@ -46,7 +54,7 @@ def add_transaction(
         season=season,
         tag=tag,
         free_hit=free_hit,
-        fpl_team_id=fpl_team_id
+        fpl_team_id=fpl_team_id,
     )
     dbsession.add(t)
     dbsession.commit()
@@ -57,7 +65,6 @@ def fill_initial_squad(
     tag="AIrsenal" + CURRENT_SEASON,
     fpl_team_id=None,
     dbsession=session,
-
 ):
     """
     Fill the Transactions table in the database with the initial 15 players, and their
@@ -67,15 +74,10 @@ def fill_initial_squad(
 
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
-
     print(
-<<<<<<< HEAD
-        "Getting selected players in squad {} for first gameweek...".format(
+        "Getting initially selected players in squad {} for first gameweek...".format(
             fpl_team_id
         )
-=======
-        "Getting initially selected players for squad {}...".format(fetcher.FPL_TEAM_ID)
->>>>>>> develop
     )
     if NEXT_GAMEWEEK == 1:
         # Season hasn't started yet - there won't be a team in the DB
@@ -125,16 +127,13 @@ def update_squad(
         fpl_team_id = fetcher.FPL_TEAM_ID
     print("Updating db with squad with fpl_team_id={}".format(fpl_team_id))
     # do we already have the initial squad for this fpl_team_id?
-    existing_transfers = dbsession.query(Transaction)\
-                                  .filter_by(fpl_team_id=fpl_team_id)\
-                                  .all()
+    existing_transfers = (
+        dbsession.query(Transaction).filter_by(fpl_team_id=fpl_team_id).all()
+    )
     if len(existing_transfers) == 0:
         # need to put the initial squad into the db
         fill_initial_squad(
-            season=season,
-            tag=tag,
-            fpl_team_id=fpl_team_id,
-            dbsession=dbsession
+            season=season, tag=tag, fpl_team_id=fpl_team_id, dbsession=dbsession
         )
     # now update with transfers
     transfers = fetcher.get_fpl_transfer_data(fpl_team_id)
@@ -151,7 +150,15 @@ def update_squad(
             )
         free_hit = free_hit_used_in_gameweek(gameweek)
         add_transaction(
-            pid_out, gameweek, -1, price_out, season, tag, free_hit, fpl_team_id, dbsession
+            pid_out,
+            gameweek,
+            -1,
+            price_out,
+            season,
+            tag,
+            free_hit,
+            fpl_team_id,
+            dbsession,
         )
         api_pid_in = transfer["element_in"]
         pid_in = get_player_from_api_id(api_pid_in).player_id
@@ -163,5 +170,6 @@ def update_squad(
                 )
             )
         add_transaction(
-            pid_in, gameweek, 1, price_in, season, tag, free_hit, fpl_team_id, dbsession)
+            pid_in, gameweek, 1, price_in, season, tag, free_hit, fpl_team_id, dbsession
+        )
         pass

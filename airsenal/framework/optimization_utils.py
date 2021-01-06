@@ -100,19 +100,21 @@ def get_starting_squad(fpl_team_id=None):
     """
     if not fpl_team_id:
         # use the most recent transaction in the table
-        most_recent = session.query(Transaction)\
-                             .order_by(Transaction.id.desc())\
-                             .filter_by(free_hit=0)\
-                             .first()
+        most_recent = (
+            session.query(Transaction)
+            .order_by(Transaction.id.desc())
+            .filter_by(free_hit=0)
+            .first()
+        )
         fpl_team_id = most_recent.fpl_team_id
     s = Squad()
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
     transactions = (
-        session.query(Transaction)\
-        .order_by(Transaction.id)\
-        .filter_by(fpl_team_id=fpl_team_id)\
-        .filter_by(free_hit=0)\
+        session.query(Transaction)
+        .order_by(Transaction.id)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(free_hit=0)
         .all()
     )
     for trans in transactions:
