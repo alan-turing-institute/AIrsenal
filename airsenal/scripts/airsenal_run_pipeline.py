@@ -32,7 +32,6 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
 )
 @click.option(
     "--fpl_team_id",
-    nargs=1,
     required=False,
     default=None,
     help="fpl team id for pipeline run",

@@ -17,7 +17,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Customise fpl team id")
     parser.add_argument(
-        "--fpl_team_id", help="specify fpl team id", nargs=1, required=False
+        "--fpl_team_id", help="specify fpl team id", required=False
     )
 
     args = parser.parse_args()
