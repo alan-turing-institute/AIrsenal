@@ -179,6 +179,7 @@ def make_optimum_single_transfer(
     squad,
     tag,
     gameweek_range=None,
+    root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
     bench_boost_gw=None,
@@ -195,6 +196,7 @@ def make_optimum_single_transfer(
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        root_gw = NEXT_GAMEWEEK
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = -1.0
@@ -235,15 +237,15 @@ def make_optimum_single_transfer(
             if gw == bench_boost_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, bench_boost=True
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             else:
                 total_points += new_squad.get_expected_points(
                     gw, tag
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = p_out.player_id
@@ -256,6 +258,7 @@ def make_optimum_double_transfer(
     squad,
     tag,
     gameweek_range=None,
+    root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
     bench_boost_gw=None,
@@ -270,6 +273,7 @@ def make_optimum_double_transfer(
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        root_gw = NEXT_GAMEWEEK
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = 0.0
@@ -337,15 +341,15 @@ def make_optimum_double_transfer(
                             if gw == bench_boost_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, bench_boost=True
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                             elif gw == triple_captain_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, triple_captain=True
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                             else:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]
@@ -361,6 +365,7 @@ def make_random_transfers(
     tag,
     nsubs=1,
     gw_range=None,
+    root_gw=None,
     num_iter=1,
     update_func_and_args=None,
     season=CURRENT_SEASON,
@@ -388,6 +393,7 @@ def make_random_transfers(
 
         if not gw_range:
             gw_range = [NEXT_GAMEWEEK]
+            root_gw = NEXT_GAMEWEEK
 
         transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove = []  # this is the index within the squad
@@ -452,15 +458,15 @@ def make_random_transfers(
             if gw == bench_boost_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, bench_boost=True
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             else:
                 total_points += new_squad.get_expected_points(
                     gw, tag
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = removed_players
@@ -475,9 +481,11 @@ def make_best_transfers(
     squad,
     tag,
     gameweeks,
+    root_gw,
     season,
     num_iter=100,
     update_func_and_args=None,
+
 ):
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -509,6 +517,7 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
+            root_gw,
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
@@ -522,6 +531,7 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
+            root_gw,
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,

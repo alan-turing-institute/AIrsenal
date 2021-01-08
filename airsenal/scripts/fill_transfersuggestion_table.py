@@ -146,6 +146,7 @@ def optimize(
             strat_dict["chips_played"] = {}
             new_squad = squad
             gw = gameweek_range[0] - 1
+            strat_dict["root_gw"] = gw
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -185,6 +186,7 @@ def optimize(
                 squad,
                 pred_tag,
                 gameweeks,
+                strat_dict["root_gw"],
                 season,
                 num_iterations,
                 (updater, increment, pid),
@@ -612,14 +614,20 @@ def main():
 
     sanity_check_args(args)
     season = args.season
+    #default weeks ahead is not specified (or gw_end is not specified) is three
     if args.weeks_ahead:
         gameweeks = list(
             range(get_next_gameweek(), get_next_gameweek() + args.weeks_ahead)
         )
+    elif args.gw_start:
+        if args.gw_end:
+            gameweeks = list(range(args.gw_start, args.gw_end))
+        else:
+            gameweeks = list(range(args.gw_start, args.gw_start + 3))
     else:
-        gameweeks = list(range(args.gw_start, args.gw_end))
-    num_iterations = args.num_iterations
+        gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
 
+    num_iterations = args.num_iterations
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:
