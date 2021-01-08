@@ -94,15 +94,30 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
         )
 
 
-def get_starting_squad():
+def get_starting_squad(fpl_team_id=None):
     """
     use the transactions table in the db
     """
+
+    if not fpl_team_id:
+        # use the most recent transaction in the table
+        most_recent = (
+            session.query(Transaction)
+            .order_by(Transaction.id.desc())
+            .filter_by(free_hit=0)
+            .first()
+        )
+        fpl_team_id = most_recent.fpl_team_id
+    print("Getting starting squad for {}".format(fpl_team_id))
     s = Squad()
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
     transactions = (
-        session.query(Transaction).order_by(Transaction.id).filter_by(free_hit=0).all()
+        session.query(Transaction)
+        .order_by(Transaction.id)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(free_hit=0)
+        .all()
     )
     for trans in transactions:
         if trans.bought_or_sold == -1:
@@ -142,13 +157,13 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
     return score
 
 
-def get_baseline_prediction(gw_ahead, tag):
+def get_baseline_prediction(gw_ahead, tag, fpl_team_id=None):
     """
     use current squad, and count potential score
     also return a cumulative total per gw, so we can abort if it
     looks like we're doing too badly.
     """
-    squad = get_starting_squad()
+    squad = get_starting_squad(fpl_team_id=fpl_team_id)
     total = 0.0
     cum_total_per_gw = {}
     next_gw = NEXT_GAMEWEEK
@@ -168,6 +183,7 @@ def make_optimum_single_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    verbose=False
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -184,6 +200,8 @@ def make_optimum_single_transfer(
     best_score = -1.0
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {}
+    if verbose:
+        print("Creating ordered player lists")
     for pos in ["GK", "DEF", "MID", "FWD"]:
         ordered_player_lists[pos] = get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag
@@ -196,6 +214,8 @@ def make_optimum_single_transfer(
 
         new_squad = fastcopy(squad)
         position = p_out.position
+        if verbose:
+            print("Removing player {}".format(p_out.player_id))
         new_squad.remove_player(p_out.player_id, season=season, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
@@ -204,7 +224,12 @@ def make_optimum_single_transfer(
                 p_in[0], season=season, gameweek=transfer_gw
             )
             if added_ok:
+                if verbose:
+                    print("Added player {}".format(p_in[0].name))
                 break
+            else:
+                if verbose:
+                    print("Failed to add {}".format(p_in[0].name))
         total_points = 0.0
         for gw in gameweek_range:
             if gw == bench_boost_gw:

@@ -219,6 +219,7 @@ class Transaction(Base):
     tag = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
+    fpl_team_id = Column(Integer, nullable=False)
 
 
 class TransferSuggestion(Base):

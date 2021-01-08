@@ -48,7 +48,6 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_free_transfers,
-    fetcher,
 )
 
 if os.name == "posix":
@@ -322,11 +321,11 @@ def print_strat(strat):
     pass
 
 
-def print_team_for_next_gw(strat):
+def print_team_for_next_gw(strat, fpl_team_id=None):
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_squad()
+    t = get_starting_squad(fpl_team_id=fpl_team_id)
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
@@ -343,6 +342,7 @@ def run_optimization(
     gameweeks,
     tag,
     season=CURRENT_SEASON,
+    fpl_team_id=None,
     chip_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
@@ -360,9 +360,10 @@ def run_optimization(
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
     """
+    print("Running optimization with fpl_team_id {}".format(fpl_team_id))
     # How many free transfers are we starting with?
     if not num_free_transfers:
-        num_free_transfers = get_free_transfers(gameweeks[0])
+        num_free_transfers = get_free_transfers(gameweeks[0], fpl_team_id)
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
@@ -420,7 +421,7 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    starting_squad = get_starting_squad()
+    starting_squad = get_starting_squad(fpl_team_id=fpl_team_id)
 
     if not allow_unused_transfers and (
         num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
@@ -480,7 +481,7 @@ def run_optimization(
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
-    print_team_for_next_gw(best_strategy)
+    print_team_for_next_gw(best_strategy, fpl_team_id)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return
 
@@ -602,13 +603,12 @@ def main():
     parser.add_argument(
         "--fpl_team_id",
         help="specify fpl team id",
+        type=int,
         required=False,
-        default=None,
     )
     args = parser.parse_args()
 
-    if args.fpl_team_id is not None:
-        fetcher.FPL_TEAM_ID = args.fpl_team_id
+    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
 
     sanity_check_args(args)
     season = args.season
@@ -652,6 +652,7 @@ def main():
         gameweeks,
         tag,
         season,
+        fpl_team_id,
         chip_gameweeks,
         num_free_transfers,
         max_total_hit,
