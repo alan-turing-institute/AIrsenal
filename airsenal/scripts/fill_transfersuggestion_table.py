@@ -193,7 +193,7 @@ def optimize(
                 (updater, increment, pid),
             )
 
-            points -= (calc_points_hit(num_transfers, free_transfers) * get_discount_factor(root_gw, gw)
+            points -= (calc_points_hit(num_transfers, free_transfers) * get_discount_factor(root_gw, gw))
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 
