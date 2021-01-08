@@ -40,6 +40,7 @@ from airsenal.framework.optimization_utils import (
     count_expected_outputs,
     next_week_transfers,
     check_tag_valid,
+    get_discount_factor
 )
 
 from airsenal.framework.utils import (
