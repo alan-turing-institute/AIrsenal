@@ -213,7 +213,6 @@ def get_squad_value(
     squad,
     gameweek=NEXT_GAMEWEEK,
     season=CURRENT_SEASON,
-    fpl_team_id=None,
     use_api=False,
 ):
     """
@@ -286,6 +285,8 @@ def get_bank(gameweek=None, fpl_team_id=None):
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
     data = fetcher.get_fpl_team_history_data(fpl_team_id)
     if "current" in data.keys() and len(data["current"]) > 0:
         if gameweek and isinstance(gameweek, int):
@@ -305,6 +306,8 @@ def get_free_transfers(gameweek=None, fpl_team_id=None):
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
     data = fetcher.get_fpl_team_history_data(fpl_team_id)
     num_free_transfers = 1
     if "current" in data.keys() and len(data["current"]) > 0:

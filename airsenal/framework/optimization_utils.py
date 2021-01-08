@@ -184,7 +184,7 @@ def make_optimum_single_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    verbose=False
+    verbose=False,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
