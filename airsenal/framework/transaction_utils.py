@@ -84,7 +84,7 @@ def fill_initial_squad(
 
     init_players = []
     starting_gw = 0
-    while len(init_players) == 0:
+    while len(init_players) == 0 and starting_gw < NEXT_GAMEWEEK:
         starting_gw += 1
         print(f"Trying gameweek {starting_gw}...")
         init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
