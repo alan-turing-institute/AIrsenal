@@ -77,6 +77,7 @@ def fill_initial_squad(
         "Getting initially selected players in squad {} for first gameweek...".format(
             fpl_team_id
         )
+    )
     if NEXT_GAMEWEEK == 1:
         # Season hasn't started yet - there won't be a team in the DB
         return True
