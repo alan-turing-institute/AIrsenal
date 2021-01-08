@@ -161,6 +161,7 @@ def optimize(
 
             # upcoming gameweek:
             gw = gameweeks[0]
+            root_gw = strat_dict["root_gw"]
 
             # check whether we're playing a chip this gameweek
             if isinstance(num_transfers, str):
@@ -186,13 +187,13 @@ def optimize(
                 squad,
                 pred_tag,
                 gameweeks,
-                strat_dict["root_gw"],
+                root_gw,
                 season,
                 num_iterations,
                 (updater, increment, pid),
             )
 
-            points -= calc_points_hit(num_transfers, free_transfers)
+            points -= (calc_points_hit(num_transfers, free_transfers) * get_discount_factor(root_gw, gw)
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 

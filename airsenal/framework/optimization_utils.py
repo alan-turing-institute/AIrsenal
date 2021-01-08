@@ -562,7 +562,7 @@ def make_best_transfers(
         tag,
         triple_captain=(triple_captain_gw is not None),
         bench_boost=(bench_boost_gw is not None),
-    )
+    ) *get_discount_factor(root_gw, gameweeks[0])
 
     if num_transfers == "F":
         # Free Hit changes don't apply to next gameweek, so return the original squad
