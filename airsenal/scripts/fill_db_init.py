@@ -10,8 +10,15 @@ from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.schema import session_scope
 
+import argparse
+
 
 def main():
+
+    parser = argparse.ArgumentParser(description="Customise fpl team id")
+    parser.add_argument("--fpl_team_id", help="specify fpl team id", required=False)
+
+    args = parser.parse_args()
 
     with session_scope() as session:
         make_team_table(dbsession=session)
@@ -23,6 +30,6 @@ def main():
         make_attributes_table(dbsession=session)
         make_playerscore_table(dbsession=session)
 
-        fill_initial_squad(dbsession=session)
+        fill_initial_squad(dbsession=session, fpl_team_id=args.fpl_team_id)
 
         print("DONE!")

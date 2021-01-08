@@ -30,16 +30,24 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
     default=1,
     help="Number of free transfer for pipeline run",
 )
-def run_pipeline(num_thread, num_iterations, weeks_ahead, num_free_transfers):
+@click.option(
+    "--fpl_team_id",
+    required=False,
+    default=None,
+    help="fpl team id for pipeline run",
+)
+def run_pipeline(
+    num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id
+):
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     click.echo("Cleaning database..")
     clean_database()
     click.echo("Setting up Database..")
-    setup_database()
+    setup_database(fpl_team_id)
     click.echo("Database setup complete..")
     click.echo("Updating database..")
-    update_database()
+    update_database(fpl_team_id)
     click.echo("Database update complete..")
     click.echo("Running prediction..")
     run_prediction(num_thread, weeks_ahead)
@@ -67,18 +75,18 @@ def clean_database():
         sys.exit(1)
 
 
-def setup_database():
+def setup_database(fpl_team_id=None):
     """
     Set up database
     """
-    os.system("airsenal_setup_initial_db")
+    os.system("airsenal_setup_initial_db --fpl_team_id {}".format(fpl_team_id))
 
 
-def update_database():
+def update_database(fpl_team_id=None):
     """
     Update database
     """
-    os.system("airsenal_update_db --noattr")
+    os.system("airsenal_update_db --noattr --fpl_team_id {}".format(fpl_team_id))
 
 
 def run_prediction(num_thread, weeks_ahead):
