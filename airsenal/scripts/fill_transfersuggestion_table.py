@@ -147,7 +147,7 @@ def optimize(
             strat_dict["chips_played"] = {}
             new_squad = squad
             gw = gameweek_range[0] - 1
-            strat_dict["root_gw"] = gw
+            strat_dict["root_gw"] = gameweek_range[0]
         else:
             if len(sid) > 0:
                 sid += "-"
