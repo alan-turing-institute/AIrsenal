@@ -282,7 +282,7 @@ def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
     }
     for gw in gameweeks:
         gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
-        strat_dict["total_sore"] += gw_score
+        strat_dict["total_score"] += gw_score
         strat_dict["points_per_gw"][gw] = gw_score
         strat_dict["players_in"][gw] = []
         strat_dict["players_out"][gw] = []
