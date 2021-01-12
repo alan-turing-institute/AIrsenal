@@ -150,7 +150,7 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
     if not next_gw:
         # during tests 'none' is passed as the root gw, default to zero so the
         # optimisation is done solely on pred_gw ahead.
-        next_gw = 0
+        next_gw = pred_gw
     n_ahead = pred_gw - next_gw
 
     if discount_type in ["exp"]:
