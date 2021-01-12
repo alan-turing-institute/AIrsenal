@@ -40,6 +40,7 @@ from airsenal.framework.optimization_utils import (
     count_expected_outputs,
     next_week_transfers,
     check_tag_valid,
+    get_discount_factor,
 )
 
 from airsenal.framework.utils import (
@@ -146,6 +147,7 @@ def optimize(
             strat_dict["chips_played"] = {}
             new_squad = squad
             gw = gameweek_range[0] - 1
+            strat_dict["root_gw"] = gameweek_range[0]
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -160,6 +162,7 @@ def optimize(
 
             # upcoming gameweek:
             gw = gameweeks[0]
+            root_gw = strat_dict["root_gw"]
 
             # check whether we're playing a chip this gameweek
             if isinstance(num_transfers, str):
@@ -185,12 +188,15 @@ def optimize(
                 squad,
                 pred_tag,
                 gameweeks,
+                root_gw,
                 season,
                 num_iterations,
                 (updater, increment, pid),
             )
 
-            points -= calc_points_hit(num_transfers, free_transfers)
+            points -= calc_points_hit(
+                num_transfers, free_transfers
+            ) * get_discount_factor(root_gw, gw)
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 
@@ -264,15 +270,29 @@ def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
-    # TODO: Discount factor, use season argument
-    score = 0
+    # TODO: use season argument
+    root_gw = gameweeks[0]
+    strat_dict = {
+        "total_score": 0,
+        "points_per_gw": {},
+        "players_in": {},
+        "players_out": {},
+        "chips_played": {},
+        "root_gw": root_gw,
+    }
     for gw in gameweeks:
-        score += squad.get_expected_points(gw, tag)
+        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
+        strat_dict["total_score"] += gw_score
+        strat_dict["points_per_gw"][gw] = gw_score
+        strat_dict["players_in"][gw] = []
+        strat_dict["players_out"][gw] = []
+        strat_dict["chips_played"][gw] = None
+
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
     with open(filename, "w") as f:
-        json.dump({"total_score": score}, f)
+        json.dump(strat_dict, f)
 
 
 def find_baseline_score_from_json(tag, num_gameweeks):
@@ -612,14 +632,20 @@ def main():
 
     sanity_check_args(args)
     season = args.season
+    # default weeks ahead is not specified (or gw_end is not specified) is three
     if args.weeks_ahead:
         gameweeks = list(
             range(get_next_gameweek(), get_next_gameweek() + args.weeks_ahead)
         )
+    elif args.gw_start:
+        if args.gw_end:
+            gameweeks = list(range(args.gw_start, args.gw_end))
+        else:
+            gameweeks = list(range(args.gw_start, args.gw_start + 3))
     else:
-        gameweeks = list(range(args.gw_start, args.gw_end))
-    num_iterations = args.num_iterations
+        gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
 
+    num_iterations = args.num_iterations
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:

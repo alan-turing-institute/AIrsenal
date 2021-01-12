@@ -147,6 +147,10 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
     if discount_type not in allowed_types:
         raise Exception("unrecognised discount type, should be exp or const")
 
+    if not next_gw:
+        # during tests 'none' is passed as the root gw, default to zero so the
+        # optimisation is done solely on pred_gw ahead.
+        next_gw = pred_gw
     n_ahead = pred_gw - next_gw
 
     if discount_type in ["exp"]:
@@ -179,6 +183,7 @@ def make_optimum_single_transfer(
     squad,
     tag,
     gameweek_range=None,
+    root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
     bench_boost_gw=None,
@@ -195,6 +200,7 @@ def make_optimum_single_transfer(
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        root_gw = NEXT_GAMEWEEK
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = -1.0
@@ -235,15 +241,15 @@ def make_optimum_single_transfer(
             if gw == bench_boost_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, bench_boost=True
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             else:
                 total_points += new_squad.get_expected_points(
                     gw, tag
-                ) * get_discount_factor(gameweek_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = p_out.player_id
@@ -256,6 +262,7 @@ def make_optimum_double_transfer(
     squad,
     tag,
     gameweek_range=None,
+    root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
     bench_boost_gw=None,
@@ -270,6 +277,7 @@ def make_optimum_double_transfer(
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
+        root_gw = NEXT_GAMEWEEK
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = 0.0
@@ -337,15 +345,15 @@ def make_optimum_double_transfer(
                             if gw == bench_boost_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, bench_boost=True
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                             elif gw == triple_captain_gw:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag, triple_captain=True
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                             else:
                                 total_points += new_squad_add_2.get_expected_points(
                                     gw, tag
-                                ) * get_discount_factor(gameweek_range[0], gw)
+                                ) * get_discount_factor(root_gw, gw)
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]
@@ -361,6 +369,7 @@ def make_random_transfers(
     tag,
     nsubs=1,
     gw_range=None,
+    root_gw=None,
     num_iter=1,
     update_func_and_args=None,
     season=CURRENT_SEASON,
@@ -388,6 +397,7 @@ def make_random_transfers(
 
         if not gw_range:
             gw_range = [NEXT_GAMEWEEK]
+            root_gw = NEXT_GAMEWEEK
 
         transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove = []  # this is the index within the squad
@@ -452,15 +462,15 @@ def make_random_transfers(
             if gw == bench_boost_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, bench_boost=True
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             elif gw == triple_captain_gw:
                 total_points += new_squad.get_expected_points(
                     gw, tag, triple_captain=True
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
             else:
                 total_points += new_squad.get_expected_points(
                     gw, tag
-                ) * get_discount_factor(gw_range[0], gw)
+                ) * get_discount_factor(root_gw, gw)
         if total_points > best_score:
             best_score = total_points
             best_pid_out = removed_players
@@ -475,6 +485,7 @@ def make_best_transfers(
     squad,
     tag,
     gameweeks,
+    root_gw,
     season,
     num_iter=100,
     update_func_and_args=None,
@@ -509,6 +520,7 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
+            root_gw,
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
@@ -522,6 +534,7 @@ def make_best_transfers(
             squad,
             tag,
             gameweeks,
+            root_gw,
             season,
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
@@ -547,11 +560,14 @@ def make_best_transfers(
         )
 
     # get the expected points total for next gameweek
-    points = new_squad.get_expected_points(
-        gameweeks[0],
-        tag,
-        triple_captain=(triple_captain_gw is not None),
-        bench_boost=(bench_boost_gw is not None),
+    points = (
+        new_squad.get_expected_points(
+            gameweeks[0],
+            tag,
+            triple_captain=(triple_captain_gw is not None),
+            bench_boost=(bench_boost_gw is not None),
+        )
+        * get_discount_factor(root_gw, gameweeks[0])
     )
 
     if num_transfers == "F":
