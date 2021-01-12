@@ -147,6 +147,7 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
     if discount_type not in allowed_types:
         raise Exception("unrecognised discount type, should be exp or const")
 
+    if not next_gw: next_gw = 0 #during tests 'none' is passed as the root gw, default to zero so the optimisation is done solely on pred_gw ahead.
     n_ahead = pred_gw - next_gw
 
     if discount_type in ["exp"]:
