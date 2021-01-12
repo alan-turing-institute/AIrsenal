@@ -40,7 +40,7 @@ from airsenal.framework.optimization_utils import (
     count_expected_outputs,
     next_week_transfers,
     check_tag_valid,
-    get_discount_factor
+    get_discount_factor,
 )
 
 from airsenal.framework.utils import (
@@ -194,7 +194,9 @@ def optimize(
                 (updater, increment, pid),
             )
 
-            points -= (calc_points_hit(num_transfers, free_transfers) * get_discount_factor(root_gw, gw))
+            points -= calc_points_hit(
+                num_transfers, free_transfers
+            ) * get_discount_factor(root_gw, gw)
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
 
@@ -276,7 +278,7 @@ def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
         "players_in": {},
         "players_out": {},
         "chips_played": {},
-        "root_gw": root_gw
+        "root_gw": root_gw,
     }
     for gw in gameweeks:
         gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
@@ -630,7 +632,7 @@ def main():
 
     sanity_check_args(args)
     season = args.season
-    #default weeks ahead is not specified (or gw_end is not specified) is three
+    # default weeks ahead is not specified (or gw_end is not specified) is three
     if args.weeks_ahead:
         gameweeks = list(
             range(get_next_gameweek(), get_next_gameweek() + args.weeks_ahead)

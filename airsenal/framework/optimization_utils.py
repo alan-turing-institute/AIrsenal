@@ -147,7 +147,10 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
     if discount_type not in allowed_types:
         raise Exception("unrecognised discount type, should be exp or const")
 
-    if not next_gw: next_gw = 0 #during tests 'none' is passed as the root gw, default to zero so the optimisation is done solely on pred_gw ahead.
+    if not next_gw:
+        # during tests 'none' is passed as the root gw, default to zero so the
+        # optimisation is done solely on pred_gw ahead.
+        next_gw = 0
     n_ahead = pred_gw - next_gw
 
     if discount_type in ["exp"]:
@@ -486,7 +489,6 @@ def make_best_transfers(
     season,
     num_iter=100,
     update_func_and_args=None,
-
 ):
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -558,12 +560,15 @@ def make_best_transfers(
         )
 
     # get the expected points total for next gameweek
-    points = new_squad.get_expected_points(
-        gameweeks[0],
-        tag,
-        triple_captain=(triple_captain_gw is not None),
-        bench_boost=(bench_boost_gw is not None),
-    ) *get_discount_factor(root_gw, gameweeks[0])
+    points = (
+        new_squad.get_expected_points(
+            gameweeks[0],
+            tag,
+            triple_captain=(triple_captain_gw is not None),
+            bench_boost=(bench_boost_gw is not None),
+        )
+        * get_discount_factor(root_gw, gameweeks[0])
+    )
 
     if num_transfers == "F":
         # Free Hit changes don't apply to next gameweek, so return the original squad
