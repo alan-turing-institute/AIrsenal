@@ -268,10 +268,11 @@ def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
-    # TODO: Discount factor, use season argument
+    # TODO: use season argument
+    root_gw = gameweeks[0]
     score = 0
     for gw in gameweeks:
-        score += squad.get_expected_points(gw, tag)
+        score += squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
