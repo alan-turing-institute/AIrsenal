@@ -5,7 +5,7 @@ import multiprocessing
 import click
 
 from airsenal import TMPDIR
-from airsenal.framework.utils import NEXT_GAMEWEEK
+from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
 
 
 @click.command("airsenal_run_pipeline")
@@ -38,7 +38,9 @@ from airsenal.framework.utils import NEXT_GAMEWEEK
 def run_pipeline(
     num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id
 ):
-    print("fpl team id is {}, {}".format(fpl_team_id, type(fpl_team_id)))
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     click.echo("Cleaning database..")
@@ -75,14 +77,14 @@ def clean_database():
         sys.exit(1)
 
 
-def setup_database(fpl_team_id=None):
+def setup_database(fpl_team_id):
     """
     Set up database
     """
     os.system("airsenal_setup_initial_db --fpl_team_id {}".format(fpl_team_id))
 
 
-def update_database(fpl_team_id=None):
+def update_database(fpl_team_id):
     """
     Update database
     """
