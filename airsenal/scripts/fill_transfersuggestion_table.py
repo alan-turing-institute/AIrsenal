@@ -270,14 +270,27 @@ def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
     """
     # TODO: use season argument
     root_gw = gameweeks[0]
-    score = 0
+    strat_dict = {
+        "total_score": 0,
+        "points_per_gw": {},
+        "players_in": {},
+        "players_out": {},
+        "chips_played": {},
+        "root_gw": root_gw
+    }
     for gw in gameweeks:
-        score += squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
+        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
+        strat_dict["total_sore"] += gw_score
+        strat_dict["points_per_gw"][gw] = gw_score
+        strat_dict["players_in"][gw] = []
+        strat_dict["players_out"][gw] = []
+        strat_dict["chips_played"][gw] = None
+
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
     with open(filename, "w") as f:
-        json.dump({"total_score": score}, f)
+        json.dump(strat_dict, f)
 
 
 def find_baseline_score_from_json(tag, num_gameweeks):
