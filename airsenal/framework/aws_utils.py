@@ -56,7 +56,7 @@ def get_suggestions_string():
     """
     Query the suggested_transfers table and format the output.
     """
-    ##  first need to download sqlite file from S3
+    #  first need to download sqlite file from S3
 
     result = download_sqlite_file()
     if result != "OK":

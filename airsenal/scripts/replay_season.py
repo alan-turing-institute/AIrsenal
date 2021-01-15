@@ -18,7 +18,7 @@ def rerun_predictions(season, gw_start, gw_end, weeks_ahead=3, num_thread=4):
                 "======== Running predictions for {} week {} ======".format(season, gw)
             )
             tag_prefix = season + "_" + str(gw) + "_"
-            tag = make_predictedscore_table(
+            make_predictedscore_table(
                 gw_range=range(gw, gw + weeks_ahead),
                 season=season,
                 num_thread=num_thread,

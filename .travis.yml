@@ -51,3 +51,5 @@ jobs:
 
 script:
   - pytest
+  - flake8
+  - black --check .

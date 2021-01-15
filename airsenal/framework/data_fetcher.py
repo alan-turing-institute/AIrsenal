@@ -8,6 +8,8 @@ import json
 import time
 import getpass
 
+API_HOME = "https://fantasy.premierleague.com/api"
+
 
 class FPLDataFetcher(object):
     """
@@ -15,14 +17,15 @@ class FPLDataFetcher(object):
     or retrieve it if not already cached.
     """
 
-    def __init__(self):
+    def __init__(self, fpl_team_id=None):
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
         self.player_gameweek_data = {}
         self.fpl_team_history_data = None
-        self.fpl_transfer_history_data = None
+        # transfer history data is a dict, keyed by fpl_team_id
+        self.fpl_transfer_history_data = {}
         self.fpl_league_data = None
         self.fpl_team_data = {}  # players in squad, by gameweek
         self.fixture_data = None
@@ -44,23 +47,17 @@ class FPLDataFetcher(object):
                 )
             else:
                 self.__setattr__(ID, "MISSING_ID")
-        self.FPL_SUMMARY_API_URL = (
-            "https://fantasy.premierleague.com/api/bootstrap-static/"
-        )
-        self.FPL_DETAIL_URL = (
-            "https://fantasy.premierleague.com/api/element-summary/{}/"
-        )
-        self.FPL_HISTORY_URL = "https://fantasy.premierleague.com/api/entry/{}/history/"
-        self.FPL_TEAM_URL = (
-            "https://fantasy.premierleague.com/api/entry/{}/event/{}/picks/"
-        )
-        self.FPL_TEAM_TRANSFER_URL = (
-            "https://fantasy.premierleague.com/api/entry/{}/transfers/"
-        )
-        self.FPL_LEAGUE_URL = "https://fantasy.premierleague.com/api/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1".format(
-            self.FPL_LEAGUE_ID
-        )
-        self.FPL_FIXTURE_URL = "https://fantasy.premierleague.com/api/fixtures/"
+        if fpl_team_id is not None:
+            self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
+        self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
+        self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
+        self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
+        self.FPL_TEAM_URL = API_HOME + "/entry/{}/event/{}/picks/"
+        self.FPL_TEAM_TRANSFER_URL = API_HOME + "/entry/{}/transfers/"
+        self.FPL_LEAGUE_URL = API_HOME + (
+            "/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1"
+        ).format(self.FPL_LEAGUE_ID)
+        self.FPL_FIXTURE_URL = API_HOME + "/fixtures/"
 
     def get_fpl_credentials(self):
         """
@@ -69,7 +66,8 @@ class FPLDataFetcher(object):
         """
         print(
             """
-            Accessing FPL mini-league data requires the login (email address) and password for your FPL account.
+            Accessing FPL mini-league data requires the login (email address) and
+            password for your FPL account.
             """
         )
         self.FPL_LOGIN = input("Please enter FPL login: ")
@@ -80,9 +78,10 @@ class FPLDataFetcher(object):
             store_credentials.lower() == "y" or store_credentials.lower() == "n"
         ):
             store_credentials = input(
-                "\nWould you like to store these credentials in {} so that you won't be prompted for them again? (y/n): ".format(
-                    data_loc
-                )
+                (
+                    "\nWould you like to store these credentials in {}"
+                    " so that you won't be prompted for them again? (y/n): "
+                ).format(data_loc)
             )
         if store_credentials.lower() == "y":
             with open(os.path.join(data_loc, "FPL_LOGIN"), "w") as login_file:
@@ -105,26 +104,26 @@ class FPLDataFetcher(object):
             self.current_summary_data = json.loads(r.content.decode("utf-8"))
         return self.current_summary_data
 
-    def get_fpl_team_data(self, gameweek, team_id=None):
+    def get_fpl_team_data(self, gameweek, fpl_team_id=None):
         """
-        Use team id to get team data from the FPL API.
-        If no team_id is specified, we assume it is 'our' team
-        $TEAM_ID, and cache the results in a dictionary.
+        Use FPL team id to get team data from the FPL API.
+        If no fpl_team_id is specified, we assume it is 'our' team
+        $FPL_TEAM_ID, and cache the results in a dictionary.
         """
-        if not team_id and gameweek in self.fpl_team_data.keys():
+        if (not fpl_team_id) and (gameweek in self.fpl_team_data.keys()):
             return self.fpl_team_data[gameweek]
         else:
-            if not team_id:
-                team_id = self.FPL_TEAM_ID
-            url = self.FPL_TEAM_URL.format(team_id, gameweek)
+            if not fpl_team_id:
+                fpl_team_id = self.FPL_TEAM_ID
+            url = self.FPL_TEAM_URL.format(fpl_team_id, gameweek)
             r = requests.get(url)
             if not r.status_code == 200:
                 print("Unable to access FPL team API {}".format(url))
                 return None
-            team_data = json.loads(r.content.decode("utf-8"))
-            if not team_id:
-                self.fpl_team_data[gameweek] = team_data
-        return team_data
+            fpl_team_data = json.loads(r.content.decode("utf-8"))
+            if not fpl_team_id:
+                self.fpl_team_data[gameweek] = fpl_team_data
+        return fpl_team_data
 
     def get_fpl_team_history_data(self, team_id=None):
         """
@@ -143,25 +142,34 @@ class FPLDataFetcher(object):
             self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_team_history_data
 
-    def get_fpl_transfer_data(self):
+    def get_fpl_transfer_data(self, fpl_team_id=None):
         """
         Get our transfer history from the FPL API.
         """
-        ## return cached value if we already retrieved it.
-        if self.fpl_transfer_history_data:
-            return self.fpl_transfer_history_data
-        ## or get it from the API.
-        url = self.FPL_TEAM_TRANSFER_URL.format(self.FPL_TEAM_ID)
+        if not fpl_team_id:
+            fpl_team_id = self.FPL_TEAM_ID
+        # return cached value if we already retrieved it.
+        if (
+            self.fpl_transfer_history_data
+            and fpl_team_id in self.fpl_transfer_history_data.keys()
+        ):
+            return self.fpl_transfer_history_data[fpl_team_id]
+        # or get it from the API.
+        url = self.FPL_TEAM_TRANSFER_URL.format(fpl_team_id)
         r = requests.get(url)
         if not r.status_code == 200:
-            print("Unable to access FPL transfer history API")
+            print(
+                "Unable to access FPL transfer history API for team_id {}".format(
+                    fpl_team_id
+                )
+            )
             return None
         # get transfer history from api and reverse order so that
         # oldest transfers at start of list and newest at end.
-        self.fpl_transfer_history_data = list(
+        self.fpl_transfer_history_data[fpl_team_id] = list(
             reversed(json.loads(r.content.decode("utf-8")))
         )
-        return self.fpl_transfer_history_data
+        return self.fpl_transfer_history_data[fpl_team_id]
 
     def get_fpl_league_data(self):
         """
@@ -247,10 +255,10 @@ class FPLDataFetcher(object):
         Return a list, as in double-gameweeks, a player can play more than
         one match in a gameweek.
         """
-        if not player_api_id in self.player_gameweek_data.keys():
+        if player_api_id not in self.player_gameweek_data.keys():
             self.player_gameweek_data[player_api_id] = {}
             if (not gameweek) or (
-                not gameweek in self.player_gameweek_data[player_api_id].keys()
+                gameweek not in self.player_gameweek_data[player_api_id].keys()
             ):
                 got_data = False
                 n_tries = 0
@@ -278,11 +286,11 @@ class FPLDataFetcher(object):
                     return []
                 for game in player_detail["history"]:
                     gw = game["round"]
-                    if not gw in self.player_gameweek_data[player_api_id].keys():
+                    if gw not in self.player_gameweek_data[player_api_id].keys():
                         self.player_gameweek_data[player_api_id][gw] = []
                     self.player_gameweek_data[player_api_id][gw].append(game)
         if gameweek:
-            if not gameweek in self.player_gameweek_data[player_api_id].keys():
+            if gameweek not in self.player_gameweek_data[player_api_id].keys():
                 print(
                     "Data not available for player {} week {}".format(
                         player_api_id, gameweek

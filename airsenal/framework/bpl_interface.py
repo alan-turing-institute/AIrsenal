@@ -9,12 +9,14 @@ import pandas as pd
 
 from airsenal.framework.schema import Result, FifaTeamRating
 from airsenal.framework.utils import (
-    CURRENT_TEAMS,
     get_fixtures_for_gameweek,
     is_future_gameweek,
 )
-from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
-
+from airsenal.framework.season import (
+    CURRENT_SEASON,
+    CURRENT_TEAMS,
+    get_teams_for_season,
+)
 
 np.random.seed(42)
 
@@ -35,7 +37,8 @@ def get_result_df(season, gameweek, dbsession):
                     s.away_score,
                 ]
                 for s in dbsession.query(Result).all()
-                if not is_future_gameweek(
+                if s.fixture
+                and not is_future_gameweek(
                     s.fixture.season,
                     s.fixture.gameweek,
                     current_season=season,
@@ -77,7 +80,7 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
     model_team.fit()
     # check if each team is known to the model, and if not, add it using FIFA rankings
     for team in teams:
-        if not team in model_team.team_indices.keys():
+        if team not in model_team.team_indices.keys():
             try:
                 strvals = df_X.loc[
                     (df_X["team"] == team), ["att", "mid", "defn", "ovr"]
@@ -85,7 +88,7 @@ def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
                 intvals = [int(v) for v in strvals[0]]
                 model_team.add_new_team(team, intvals)
                 print("Adding new team {} with covariates".format(team))
-            except:
+            except Exception:
                 model_team.add_new_team(team)
                 print("Adding new team {} without covariates".format(team))
 
@@ -107,9 +110,9 @@ def get_fitted_team_model(season, gameweek, dbsession):
 
 def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):
     """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data frame with a row
-    for each fixture and columns being fixture_id, home_team, away_team, home_win_probability,
-    draw_probability, away_win_probability.
+    Returns probabilities for all fixtures in a given gameweek and season, as a data
+    frame with a row for each fixture and columns being fixture_id, home_team,
+    away_team, home_win_probability, draw_probability, away_win_probability.
     """
     model_team = get_fitted_team_model(season, gameweek, dbsession)
     fixture_probabilities_list = []

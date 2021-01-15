@@ -3,6 +3,7 @@ test that we get valid responses from the API.
 """
 
 import pytest
+import random
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import NEXT_GAMEWEEK
@@ -48,19 +49,6 @@ def test_get_team_history_data():
     assert len(data) > 0
 
 
-# @pytest.mark.skipif(NEXT_GAMEWEEK==1,
-#                    reason="No league data before start of season")
-# def test_get_league_data():
-#    """
-#    gameweek history for our mini-league
-#    """
-#    fetcher = FPLDataFetcher()
-#    if fetcher.FPL_LOGIN != "MISSING_ID":
-#        data = fetcher.get_fpl_league_data()
-#        assert(isinstance(data,dict))
-#        assert(len(data)>0)
-
-
 def test_get_event_data():
     """
     gameweek list with deadlines and status
@@ -89,6 +77,39 @@ def test_get_current_team_data():
     data = fetcher.get_current_team_data()
     assert isinstance(data, dict)
     assert len(data) > 0
+
+
+@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")
+def test_get_fpl_team_data_gw1():
+    """
+    which players are in our squad for gw1
+    """
+    fetcher = FPLDataFetcher()
+    data = fetcher.get_fpl_team_data(1)
+    assert isinstance(data, dict)
+    assert "picks" in data.keys()
+    players = [p["element"] for p in data["picks"]]
+    assert len(players) == 15
+
+
+@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")
+def test_get_fpl_team_data_gw1_different_fpl_team_ids():
+    """
+    which players are in a couple of different squads for gw 1
+    """
+    fetcher = FPLDataFetcher()
+    # assume that fpl_team_ids < 100 will all have squads for
+    # gameweek 1, and that they will be different..
+    team_id_1 = random.randint(1, 50)
+    team_id_2 = random.randint(51, 100)
+    data_1 = fetcher.get_fpl_team_data(1, fpl_team_id=team_id_1)
+    players_1 = [p["element"] for p in data_1["picks"]]
+    assert len(players_1) == 15
+    data_2 = fetcher.get_fpl_team_data(1, fpl_team_id=team_id_2)
+    players_2 = [p["element"] for p in data_2["picks"]]
+    assert len(players_2) == 15
+    # check they are different
+    assert sorted(players_1) != sorted(players_2)
 
 
 @pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")

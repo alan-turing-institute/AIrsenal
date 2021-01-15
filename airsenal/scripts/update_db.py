@@ -9,7 +9,7 @@ import argparse
 
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    get_last_gameweek_in_db,
+    get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     NEXT_GAMEWEEK,
     get_current_players,
@@ -25,7 +25,7 @@ from airsenal.framework.transaction_utils import update_squad
 from airsenal.framework.schema import Player, session_scope
 
 
-def update_transactions(season, dbsession):
+def update_transactions(season, fpl_team_id, dbsession):
     """
     Ensure that the transactions table in the database is up-to-date.
     """
@@ -33,10 +33,19 @@ def update_transactions(season, dbsession):
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
         current_gameweek = NEXT_GAMEWEEK - 1
-        db_players = sorted(get_current_players(season=season, dbsession=dbsession))
-        api_players = sorted(get_players_for_gameweek(current_gameweek))
+        db_players = sorted(
+            get_current_players(
+                season=season, fpl_team_id=fpl_team_id, dbsession=dbsession
+            )
+        )
+        api_players = sorted(get_players_for_gameweek(current_gameweek, fpl_team_id))
         if db_players != api_players:
-            update_squad(season=season, dbsession=dbsession, verbose=True)
+            update_squad(
+                season=season,
+                fpl_team_id=fpl_team_id,
+                dbsession=dbsession,
+                verbose=True,
+            )
         else:
             print("Team is up-to-date")
     else:
@@ -49,7 +58,7 @@ def update_results(season, dbsession):
     If the last gameweek in the db is earlier than the last finished gameweek,
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
     """
-    last_in_db = get_last_gameweek_in_db(season, dbsession=dbsession)
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
         # no results in database for this season yet
         last_in_db = 0
@@ -60,10 +69,18 @@ def update_results(season, dbsession):
             # need to update
             print("Updating results table ...")
             fill_results_from_api(
-                last_in_db + 1, NEXT_GAMEWEEK, season, dbsession=dbsession
+                gw_start=last_in_db + 1,
+                gw_end=NEXT_GAMEWEEK,
+                season=season,
+                dbsession=dbsession,
             )
             print("Updating playerscores table ...")
-            fill_playerscores_from_api(season, dbsession, last_in_db + 1, NEXT_GAMEWEEK)
+            fill_playerscores_from_api(
+                season=season,
+                gw_start=last_in_db + 1,
+                gw_end=NEXT_GAMEWEEK,
+                dbsession=dbsession,
+            )
         else:
             print("Matches and player-scores already up-to-date")
     else:
@@ -119,7 +136,7 @@ def update_attributes(season, dbsession):
     # update from, and including, the last gameweek we have results for in the
     # database (including that gameweek as player prices etc. can change after
     # matches have finished but before the next gameweek deadline)
-    last_in_db = get_last_gameweek_in_db(season, dbsession=dbsession)
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
         # no results in database for this season yet
         last_in_db = 0
@@ -144,11 +161,18 @@ def main():
     parser.add_argument(
         "--noattr", help="don't update player attributes", action="store_true"
     )
+    parser.add_argument(
+        "--fpl_team_id",
+        help="specify fpl team id",
+        type=int,
+        required=False,
+    )
 
     args = parser.parse_args()
 
     season = args.season
     do_attributes = not args.noattr
+    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
 
     with session_scope() as session:
         # see if any new players have been added
@@ -165,7 +189,7 @@ def main():
         # update results and playerscores
         update_results(season, session)
         # update our squad
-        update_transactions(season, session)
+        update_transactions(season, fpl_team_id, session)
 
 
 # TODO update fixtures table (e.g. in case of rescheduling)?

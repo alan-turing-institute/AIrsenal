@@ -16,15 +16,15 @@ import argparse
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
 from airsenal.framework.utils import (
-    list_players,
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_top_predicted_points,
+    list_players,
 )
 
 from airsenal.framework.prediction_utils import (
     calc_predicted_points_for_player,
-    calc_predicted_points_for_pos,
+    get_all_fitted_player_models,
     fit_bonus_points,
     fit_save_points,
     fit_card_points,
@@ -37,7 +37,7 @@ def allocate_predictions(
     queue,
     gw_range,
     team_model,
-    player_model,
+    df_player,
     df_bonus,
     df_saves,
     df_cards,
@@ -49,27 +49,26 @@ def allocate_predictions(
     Take positions off the queue and call function to calculate predictions
     """
     while True:
-        pos = queue.get()
-        if pos == "DONE":
-            print("Finished processing {}".format(pos))
+        player = queue.get()
+        if player == "DONE":
+            print("Finished processing")
             break
-        predictions = calc_predicted_points_for_pos(
-            pos=pos,
-            team_model=team_model,
-            player_model=player_model,
-            df_bonus=df_bonus,
-            df_saves=df_saves,
-            df_cards=df_cards,
-            season=season,
+
+        predictions = calc_predicted_points_for_player(
+            player,
+            team_model,
+            df_player,
+            df_bonus,
+            df_saves,
+            df_cards,
+            season,
             gw_range=gw_range,
             tag=tag,
             dbsession=dbsession,
         )
-        for k, v in predictions.items():
-            for playerprediction in v:
-                dbsession.add(playerprediction)
+        for p in predictions:
+            dbsession.add(p)
         dbsession.commit()
-        print("Finished adding predictions to db for {}".format(pos))
 
 
 def calc_all_predicted_points(
@@ -95,7 +94,7 @@ def calc_all_predicted_points(
     with open(model_file, "rb") as f:
         model_player = pickle.load(f)
 
-    #    model_player = get_player_model()
+    df_player = get_all_fitted_player_models(model_player, season, gw_range[0])
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
@@ -110,18 +109,19 @@ def calc_all_predicted_points(
     else:
         df_cards = None
 
-    all_predictions = {}
-    if num_thread:
+    players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
+
+    if num_thread is not None and num_thread > 1:
         queue = Queue()
         procs = []
-        for i in range(num_thread):
+        for _ in range(num_thread):
             processor = Process(
                 target=allocate_predictions,
                 args=(
                     queue,
                     gw_range,
                     model_team,
-                    model_player,
+                    df_player,
                     df_bonus,
                     df_saves,
                     df_cards,
@@ -134,33 +134,32 @@ def calc_all_predicted_points(
             processor.start()
             procs.append(processor)
 
-        for pos in ["GK", "DEF", "MID", "FWD"]:
-            queue.put(pos)
-        for i in range(num_thread):
+        for p in players:
+            queue.put(p.player_id)
+        for _ in range(num_thread):
             queue.put("DONE")
 
-        for i, p in enumerate(procs):
+        for _, p in enumerate(procs):
             p.join()
     else:
         # single threaded
-        for pos in ["GK", "DEF", "MID", "FWD"]:
-            predictions = calc_predicted_points_for_pos(
-                pos=pos,
-                team_model=model_team,
-                player_model=model_player,
-                df_bonus=df_bonus,
-                df_saves=df_saves,
-                df_cards=df_cards,
-                season=season,
+        for player in players:
+            predictions = calc_predicted_points_for_player(
+                player,
+                model_team,
+                df_player,
+                df_bonus,
+                df_saves,
+                df_cards,
+                season,
                 gw_range=gw_range,
                 tag=tag,
                 dbsession=dbsession,
             )
-            for k, v in predictions.items():
-                for playerprediction in v:
-                    dbsession.add(playerprediction)
+            for p in predictions:
+                dbsession.add(p)
         dbsession.commit()
-        print("Finished adding predictions to db for {}".format(pos))
+        print("Finished adding predictions to db")
 
 
 def make_predictedscore_table(
@@ -242,6 +241,8 @@ def main():
     include_saves = not args.no_saves
 
     with session_scope() as session:
+        session.expire_on_commit = False
+
         tag = make_predictedscore_table(
             gw_range=gw_range,
             season=args.season,

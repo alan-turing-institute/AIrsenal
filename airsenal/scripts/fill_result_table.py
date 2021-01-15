@@ -51,8 +51,7 @@ def fill_results_from_csv(input_file, season, dbsession):
                 home_team = k
             elif away_team in v:
                 away_team = k
-        ## query database to find corresponding fixture
-        tag = get_latest_fixture_tag(season, dbsession)
+        # query database to find corresponding fixture
         f = _find_fixture(season, home_team, away_team, dbsession)
         res = Result()
         res.fixture = f

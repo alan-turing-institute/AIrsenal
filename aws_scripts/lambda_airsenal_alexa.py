@@ -3,18 +3,17 @@ function to be called by Alexa Skill, read
 suggested transfers from sqlite file on an S3 bucket, and
 return a response.
 """
-import os
-import sys
-import time
-
 import logging
 
-logging.basicConfig()
+from airsenal.framework.aws_utils import (
+    get_suggestions_string,
+    get_score_ranking_string,
+    get_league_standings_string,
+)
 
+logging.basicConfig()
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
-from framework.aws_utils import *
 
 response_tmpl = {
     "version": "1.0",
@@ -38,7 +37,10 @@ def lambda_handler(event, context):
             if "value" in event["request"]["intent"]["slots"]["Topic"].keys():
                 topic = event["request"]["intent"]["slots"]["Topic"]["value"]
                 if topic == "best manager":
-                    response_text = "Hmmm that's a tough one.  Both Angus and Nick are pretty good, but I think I am the best."
+                    response_text = (
+                        "Hmmm that's a tough one.  Both Angus and Nick are pretty "
+                        "good, but I think I am the best."
+                    )
                     pass
                 elif topic == "transfer":
                     response_text = get_suggestions_string()

@@ -7,7 +7,7 @@ import tempfile
 # AIrsenal package version. When merging changes to master:
 # - increment 2nd digit for new features
 # - increment 3rd digit for bug fixes
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # Cross-platform temporary directory
 if os.name == "posix":
