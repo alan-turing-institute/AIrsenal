@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 
+from sqlalchemy.sql.operators import notendswith_op
+
 from airsenal.framework.db_config import DB_CONNECTION_STRING
 
 Base = declarative_base()
@@ -121,6 +123,27 @@ class Player(Base):
                 return attr.position
         return None
 
+    def is_injured_or_suspended(self, season, current_gw, fixture_gw):
+        """Check whether a player is injured or suspended (<=50% chance of playing).
+        current_gw - The current gameweek, i.e. the gameweek when we are querying the
+        player's status.
+        fixture_gw - The gameweek of the fixture we want to check whether the player
+        is available for, i.e. we are checking whether the player is availiable in the
+        future week "fixture_gw" at the previous point in time "current_gw".
+        """
+        for attr in self.attributes:
+            if attr.season == season and attr.gameweek == current_gw:
+                if (
+                    attr.chance_of_playing_next_round is not None
+                    and attr.chance_of_playing_next_round <= 50
+                ) and (
+                    attr.return_gameweek is None or attr.return_gameweek > fixture_gw
+                ):
+                    return True
+                else:
+                    return False
+        return False
+
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
@@ -133,6 +156,9 @@ class PlayerAttributes(Base):
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
 
+    chance_of_playing_next_round = Column(Integer, nullable=True)
+    news = Column(String(100), nullable=True)
+    return_gameweek = Column(Integer, nullable=True)
     transfers_balance = Column(Integer, nullable=True)
     selected = Column(Integer, nullable=True)
     transfers_in = Column(Integer, nullable=True)

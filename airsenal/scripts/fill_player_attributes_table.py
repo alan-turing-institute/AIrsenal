@@ -19,6 +19,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_player_attributes,
     get_player_team_from_fixture,
+    get_return_gameweek_from_news,
 )
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -115,6 +116,16 @@ def fill_attributes_table_from_api(
         pa.transfers_in = int(p_summary["transfers_in_event"])
         pa.transfers_out = int(p_summary["transfers_out_event"])
         pa.transfers_balance = pa.transfers_in - pa.transfers_out
+        pa.chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        pa.news = p_summary["news"]
+        if (
+            pa.chance_of_playing_next_round is not None
+            and pa.chance_of_playing_next_round <= 50
+        ):
+            pa.return_gameweek = get_return_gameweek_from_news(
+                p_summary["news"],
+                dbsession=dbsession,
+            )
 
         if not update:
             # only need to add to the dbsession for new entries, if we're doing

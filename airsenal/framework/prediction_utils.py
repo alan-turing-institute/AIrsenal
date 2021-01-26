@@ -335,7 +335,7 @@ def calc_predicted_points_for_player(
             # calculate appearance points, defending points, attacking points.
             points = 0.0
 
-        elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, dbsession):
+        elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
 
@@ -456,27 +456,6 @@ def get_all_fitted_player_models(player_model, season, gameweek, dbsession=sessi
             player_model, pos, season, gameweek, dbsession
         )
     return df_positions
-
-
-def is_injured_or_suspended(player_api_id, gameweek, season, dbsession=session):
-    """
-    Query the API for 'chance of playing next round', and if this
-    is <=50%, see if we can find a return date.
-    """
-    if season != CURRENT_SEASON:  # no API info for past seasons
-        return False
-    # check if a player is injured or suspended
-    pdata = fetcher.get_player_summary_data()[player_api_id]
-    if (
-        "chance_of_playing_next_round" in pdata.keys()
-        and pdata["chance_of_playing_next_round"] is not None
-        and pdata["chance_of_playing_next_round"] <= 50
-    ):
-        # check if we have a return date
-        return_gameweek = get_return_gameweek_for_player(player_api_id, dbsession)
-        if return_gameweek is None or return_gameweek > gameweek:
-            return True
-    return False
 
 
 def fill_ep(csv_filename, dbsession=session):
