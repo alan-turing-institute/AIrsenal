@@ -9,8 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 
-from sqlalchemy.sql.operators import notendswith_op
-
 from airsenal.framework.db_config import DB_CONNECTION_STRING
 
 Base = declarative_base()

@@ -17,7 +17,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_fixtures_for_player,
     get_recent_minutes_for_player,
-    get_return_gameweek_for_player,
     get_max_matches_per_player,
     get_player,
     get_player_from_api_id,
