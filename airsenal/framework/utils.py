@@ -231,7 +231,9 @@ def get_squad_value(
     return total_value
 
 
-def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
+def get_sell_price_for_player(
+    player_id, gameweek=None, fpl_team_id=None, dbsession=session
+):
     """
     find the price we bought the player for,
     and the price at the specified gameweek,
@@ -240,7 +242,7 @@ def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
     """
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
-    transactions = session.query(Transaction)
+    transactions = dbsession.query(Transaction)
     transactions = transactions.filter_by(fpl_team_id=fpl_team_id)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
@@ -433,7 +435,7 @@ def get_player_id(player_name, dbsession=None):
     # not found by name in DB - try alternative names
     for k, v in alternative_player_names.items():
         if player_name in v:
-            p = session.query(Player).filter_by(name=k).first()
+            p = dbsession.query(Player).filter_by(name=k).first()
             if p:
                 return p.player_id
             break
@@ -715,13 +717,13 @@ def get_fixtures_for_gameweek(gameweek, season=CURRENT_SEASON, dbsession=session
 
 def get_result_for_fixture(fixture, dbsession=session):
     """Get result for a fixture."""
-    result = session.query(Result).filter_by(fixture=fixture).all()
+    result = dbsession.query(Result).filter_by(fixture=fixture).all()
     return result
 
 
 def get_player_scores_for_fixture(fixture, dbsession=session):
     """Get player scores for a fixture."""
-    player_scores = session.query(PlayerScore).filter_by(fixture=fixture).all()
+    player_scores = dbsession.query(PlayerScore).filter_by(fixture=fixture).all()
     return player_scores
 
 
@@ -744,20 +746,20 @@ def get_players_for_gameweek(gameweek, fpl_team_id=None):
     return player_list
 
 
-def get_previous_points_for_same_fixture(player, fixture_id):
+def get_previous_points_for_same_fixture(player, fixture_id, dbsession=session):
     """
     Search the past matches for same fixture in past seasons,
     and how many points the player got.
     """
     if isinstance(player, str):
-        player_record = session.query(Player).filter_by(name=player).first()
+        player_record = dbsession.query(Player).filter_by(name=player).first()
         if not player_record:
             print("Can't find player {}".format(player))
             return {}
         player_id = player_record.player_id
     else:
         player_id = player
-    fixture = session.query(Fixture).filter_by(fixture_id=fixture_id).first()
+    fixture = dbsession.query(Fixture).filter_by(fixture_id=fixture_id).first()
     if not fixture:
         print("Couldn't find fixture_id {}".format(fixture_id))
         return {}
@@ -765,7 +767,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     away_team = fixture.away_team
 
     previous_matches = (
-        session.query(Fixture)
+        dbsession.query(Fixture)
         .filter_by(home_team=home_team)
         .filter_by(away_team=away_team)
         .order_by(Fixture.season)
@@ -775,7 +777,7 @@ def get_previous_points_for_same_fixture(player, fixture_id):
     previous_points = {}
     for fid in fixture_ids:
         scores = (
-            session.query(PlayerScore)
+            dbsession.query(PlayerScore)
             .filter_by(player_id=player_id, fixture_id=fid[0])
             .all()
         )
