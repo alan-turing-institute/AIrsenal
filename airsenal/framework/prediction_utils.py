@@ -272,7 +272,7 @@ def calc_predicted_points_for_player(
     df_cards,
     season,
     gw_range=None,
-    fixtures_behind=3,
+    fixtures_behind=None,
     tag="",
     dbsession=session,
 ):
@@ -291,6 +291,12 @@ def calc_predicted_points_for_player(
         gw_range = list(
             range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38))
         )  # don't go beyond gw 38!
+
+    if fixtures_behind is None:
+        # default to getting recent minutes from the same number of matches we're
+        # predicting for
+        fixtures_behind = len(gw_range)
+
     team = player.team(
         season, gw_range[0]
     )  # assume player stays with same team from first gameweek in range
