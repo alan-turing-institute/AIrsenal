@@ -34,39 +34,12 @@ class Player(Base):
         at least one gameweek in specified season, return a best guess value
         based on data nearest to specified gameweek.
         """
-        gw_before = 0
-        gw_after = 100
-        team_before = None
-        team_after = None
-
-        for attr in self.attributes:
-            if attr.season != season:
-                continue
-
-            if attr.gameweek == gameweek:
-                return attr.team
-            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
-                # update last available team before specified gameweek
-                gw_before = attr.gameweek
-                team_before = attr.team
-            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
-                # update next available team after specified gameweek
-                gw_after = attr.gameweek
-                team_after = attr.team
-
-        # ran through all attributes without finding gameweek, return an
-        # appropriate estimate
-        if not team_before and not team_after:
+        attr = self.get_gameweek_attributes(season, gameweek)
+        if attr is not None:
+            return attr.team
+        else:
             print("No team found for", self.name, "in", season, "season.")
             return None
-        elif not team_after:
-            return team_before
-        elif not team_before:
-            return team_after
-        elif (gw_after - gameweek) >= (gameweek - gw_before):
-            return team_before
-        else:
-            return team_after
 
     def price(self, season, gameweek):
         """
@@ -75,51 +48,104 @@ class Player(Base):
         at least one gameweek in specified season, return a best guess value
         based on data nearest to specified gameweek.
         """
-        gw_before = 0
-        gw_after = 100
-        price_before = None
-        price_after = None
+        attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
+        if attr is not None:
+            if isinstance(attr, tuple):
+                # interpolate price between nearest available gameweeks
+                gw_before = attr[0].gameweek
+                price_before = attr[0].price
+                gw_after = attr[1].gameweek
+                price_after = attr[1].price
 
-        for attr in self.attributes:
-            if attr.season != season:
-                continue
+                gradient = (price_after - price_before) / (gw_after - gw_before)
+                intercept = price_before - gradient * gw_before
+                price = gradient * gameweek + intercept
+                return round(price)
 
-            if attr.gameweek == gameweek:
+            else:
                 return attr.price
-            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
-                # update last available price before specified gameweek
-                gw_before = attr.gameweek
-                price_before = attr.price
-            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
-                # update next available price after specified gameweek
-                gw_after = attr.gameweek
-                price_after = attr.price
-
-        # ran through all attributes without finding gameweek, return an
-        # appropriate estimate
-        if not price_before and not price_after:
+        else:
             print("No price found for", self.name, "in", season, "season.")
             return None
-        elif not price_after:
-            return price_before
-        elif not price_before:
-            return price_after
-        else:
-            # found a price before and after the requested gameweek,
-            # interpolate between the two
-            gradient = (price_after - price_before) / (gw_after - gw_before)
-            intercept = price_before - gradient * gw_before
-            price = gradient * gameweek + intercept
-            return round(price)
 
     def position(self, season):
         """
         get player's position for given season
         """
+        attr = self.get_gameweek_attributes(season, None)
+        if attr is not None:
+            return attr.position
+        else:
+            print("No position found for", self.name, "in", season, "season.")
+            return None
+
+    def is_injured_or_suspended(self, season, current_gw, fixture_gw):
+        """Check whether a player is injured or suspended (<=50% chance of playing).
+        current_gw - The current gameweek, i.e. the gameweek when we are querying the
+        player's status.
+        fixture_gw - The gameweek of the fixture we want to check whether the player
+        is available for, i.e. we are checking whether the player is availiable in the
+        future week "fixture_gw" at the previous point in time "current_gw".
+        """
+        attr = self.get_gameweek_attributes(season, current_gw)
+        if attr is not None:
+            if (
+                attr.chance_of_playing_next_round is not None
+                and attr.chance_of_playing_next_round <= 50
+            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw):
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def get_gameweek_attributes(self, season, gameweek, before_and_after=False):
+        """Get the PlayerAttributes object for this player in the given gameweek and
+        season, or the nearest available gameweek(s) if the exact gameweek is not
+        available.
+        If no attributes available in the specified season, return None in all cases.
+        If before_and_after is True and an exact gameweek & season match is not found,
+        return both the nearest gameweek before and after the specified gameweek.
+        """
+        gw_before = 0
+        gw_after = 100
+        attr_before = None
+        attr_after = None
+
         for attr in self.attributes:
-            if attr.season == season:
-                return attr.position
-        return None
+            if attr.season != season:
+                continue
+
+            if gameweek is None:
+                # trying to match season only
+                return attr
+            elif attr.gameweek == gameweek:
+                return attr
+            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+                # update last available attr before specified gameweek
+                gw_before = attr.gameweek
+                attr_before = attr
+            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
+                # update next available attr after specified gameweek
+                gw_after = attr.gameweek
+                attr_after = attr
+
+        # ran through all attributes without finding exact gameweek and season match
+        if attr_before is None and attr_after is None:
+            # no attributes for this player in this season
+            return None
+        elif not attr_after:
+            return attr_before
+        elif not attr_before:
+            return attr_after
+        elif before_and_after:
+            return (attr_before, attr_after)
+        else:
+            # return attributes at gameweeek nearest to input gameweek
+            if (gw_after - gameweek) >= (gameweek - gw_before):
+                return attr_before
+            else:
+                return attr_after
 
 
 class PlayerAttributes(Base):
@@ -133,6 +159,9 @@ class PlayerAttributes(Base):
     team = Column(String(100), nullable=False)
     position = Column(String(100), nullable=False)
 
+    chance_of_playing_next_round = Column(Integer, nullable=True)
+    news = Column(String(100), nullable=True)
+    return_gameweek = Column(Integer, nullable=True)
     transfers_balance = Column(Integer, nullable=True)
     selected = Column(Integer, nullable=True)
     transfers_in = Column(Integer, nullable=True)
