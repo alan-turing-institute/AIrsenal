@@ -19,6 +19,7 @@ from airsenal.framework.utils import (
     get_player,
 )
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
+from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.framework.transaction_utils import update_squad
@@ -182,10 +183,11 @@ def main():
         if not do_attributes and num_new_players > 0:
             print("New players added - enforcing update of attributes table")
             do_attributes = True
-
         if do_attributes:
             update_attributes(season, session)
 
+        # update fixtures (which may have been rescheduled)
+        fill_fixtures_from_api(season, session)
         # update results and playerscores
         update_results(season, session)
         # update our squad

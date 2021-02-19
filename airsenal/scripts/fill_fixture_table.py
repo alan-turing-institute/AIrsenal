@@ -12,7 +12,7 @@ import uuid
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Fixture, session_scope, session
-from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.utils import CURRENT_SEASON, find_fixture, get_past_seasons
 
 
 def fill_fixtures_from_file(filename, season, dbsession=session):
@@ -47,7 +47,15 @@ def fill_fixtures_from_api(season, dbsession=session):
     fetcher = FPLDataFetcher()
     fixtures = fetcher.get_fixture_data()
     for fixture in fixtures:
-        f = Fixture()
+        try:
+            f = find_fixture(
+                fixture["team_h"],
+                was_home=True,
+                other_team=fixture["team_a"],
+                season=season,
+            )
+        except ValueError:
+            f = Fixture()
 
         f.date = fixture["kickoff_time"]
         f.gameweek = fixture["event"]
