@@ -108,6 +108,7 @@ def update_players(season, dbsession):
             "Something strange has happened - more players in DB than API"
         )
     else:
+        print("Updating player table...")
         # find the new player(s) from the API
         api_ids_from_db = [p.fpl_api_id for p in players_from_db]
         new_players = [p for p in players_from_api if p not in api_ids_from_db]
@@ -115,13 +116,16 @@ def update_players(season, dbsession):
             first_name = player_data_from_api[player_api_id]["first_name"]
             second_name = player_data_from_api[player_api_id]["second_name"]
             name = "{} {}".format(first_name, second_name)
-            print("Adding player {}".format(name))
             # check whether we alreeady have this player in the database -
             # if yes update that player's data, if no create a new player
             p = get_player(name, dbsession=dbsession)
             if p is None:
+                print("Adding player {}".format(name))
                 p = Player()
                 update = False
+            elif p.fpl_api_id is None:
+                print("Updating player {}".format(name))
+                update = True
             else:
                 update = True
             p.fpl_api_id = player_api_id
@@ -187,6 +191,7 @@ def main():
             update_attributes(season, session)
 
         # update fixtures (which may have been rescheduled)
+        print("Updating fixture table...")
         fill_fixtures_from_api(season, session)
         # update results and playerscores
         update_results(season, session)

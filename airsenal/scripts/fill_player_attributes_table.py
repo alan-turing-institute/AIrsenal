@@ -177,7 +177,7 @@ def fill_attributes_table_from_api(
                 pa.transfers_in = int(result["transfers_in"])
                 pa.transfers_out = int(result["transfers_out"])
 
-                if update:
+                if not update:
                     # don't need to add to dbsession if updating pre-existing row
                     dbsession.add(pa)
 

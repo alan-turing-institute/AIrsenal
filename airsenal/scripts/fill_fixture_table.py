@@ -54,8 +54,10 @@ def fill_fixtures_from_api(season, dbsession=session):
                 other_team=fixture["team_a"],
                 season=season,
             )
+            update = True
         except ValueError:
             f = Fixture()
+            update = False
 
         f.date = fixture["kickoff_time"]
         f.gameweek = fixture["event"]
@@ -86,7 +88,8 @@ def fill_fixtures_from_api(season, dbsession=session):
         else:
             pass
 
-        dbsession.add(f)
+        if not update:
+            dbsession.add(f)
 
     dbsession.commit()
     return True
