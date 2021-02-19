@@ -1200,17 +1200,18 @@ def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
 
 
 def find_fixture(
-    gameweek,
     team,
     was_home=None,
     other_team=None,
-    kickoff_time=None,
+    gameweek=None,
     season=CURRENT_SEASON,
+    kickoff_time=None,
     dbsession=session,
 ):
-    """Get a fixture given a gameweek, team and optionally whether
-    the team was at home or away, the kickoff time and the other team in the
-    fixture.
+    """Get a fixture given a team and optionally whether the team was at home or away,
+    the season, kickoff time and the other team in the fixture. Only returns the fixture
+    if exactly one is found that matches the input arguments, otherwise raises a
+    ValueError.
     """
     fixture = None
 
@@ -1227,9 +1228,9 @@ def find_fixture(
     else:
         other_team_name = other_team
 
-    query = (
-        dbsession.query(Fixture).filter_by(gameweek=gameweek).filter_by(season=season)
-    )
+    query = dbsession.query(Fixture).filter_by(season=season)
+    if gameweek:
+        query = query.filter_by(gameweek=gameweek)
     if was_home is True:
         query = query.filter_by(home_team=team_name)
     elif was_home is False:
@@ -1260,8 +1261,10 @@ def find_fixture(
         raise ValueError(
             (
                 "No fixture with season={}, gw={}, team_name={}, was_home={}, "
-                "other_team_name={}"
-            ).format(season, gameweek, team_name, was_home, other_team_name)
+                "other_team_name={}, kickoff_time={}"
+            ).format(
+                season, gameweek, team_name, was_home, other_team_name, kickoff_time
+            )
         )
 
     if len(fixtures) == 1:
@@ -1315,11 +1318,11 @@ def get_player_team_from_fixture(
         opponent_was_home = None
 
     fixture = find_fixture(
-        gameweek,
         opponent,
         was_home=opponent_was_home,
-        kickoff_time=kickoff_time,
+        gameweek=gameweek,
         season=season,
+        kickoff_time=kickoff_time,
         dbsession=dbsession,
     )
 

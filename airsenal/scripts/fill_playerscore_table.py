@@ -50,12 +50,12 @@ def fill_playerscores_from_json(detail_data, season, dbsession=session):
                 was_home = None
 
             fixture = find_fixture(
-                gameweek,
                 played_for,
-                other_team=fixture_data["opponent"],
                 was_home=was_home,
-                kickoff_time=fixture_data["kickoff_time"],
+                other_team=fixture_data["opponent"],
+                gameweek=gameweek,
                 season=season,
+                kickoff_time=fixture_data["kickoff_time"],
                 dbsession=dbsession,
             )
 
