@@ -112,15 +112,16 @@ def fill_playerscores_from_json(detail_data, season, dbsession=session):
 def fill_playerscores_from_api(
     season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session
 ):
-
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_api_id in input_data.keys():
-        # find the player in the player table.  If they're not
-        # there, then we don't care (probably not a current player).
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
-            print("No player with API id {}".format(player_api_id))
+            # If no player found with this API ID something has gone wrong with the
+            # Player table, e.g. clashes between players with the same name
+            print(f"ERROR! No player with API id {player_api_id}. Skipped.")
+            continue
+
         print("SCORES {} {}".format(season, player.name))
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in
