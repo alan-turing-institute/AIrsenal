@@ -326,7 +326,7 @@ def get_free_transfers(gameweek=None, fpl_team_id=None):
     return num_free_transfers
 
 
-def get_gameweek_by_date(date, dbsession=None):
+def get_gameweek_by_date(date, season=CURRENT_SEASON, dbsession=None):
     """
     Use the dates of the fixtures to find the gameweek.
     """
@@ -335,7 +335,10 @@ def get_gameweek_by_date(date, dbsession=None):
         dbsession = session
     if not isinstance(date, datetime):
         date = dateparser.parse(date)
-    fixtures = dbsession.query(Fixture).all()
+    query = dbsession.query(Fixture)
+    if season is not None:
+        query = query.filter_by(season=season)
+    fixtures = query.all()
     for fixture in fixtures:
         try:
             fixture_date = dateparser.parse(fixture.date)
@@ -958,7 +961,7 @@ def get_top_predicted_points(
             print("-" * 25)
 
 
-def get_return_gameweek_from_news(news, dbsession=None):
+def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=None):
     """Parse news strings from the FPL API for the return date of injured or
     suspended players. If a date is found, determine and return the gameweek it
     corresponds to.
@@ -977,7 +980,9 @@ def get_return_gameweek_from_news(news, dbsession=None):
                 "Failed to parse date from string '{}'".format(return_date)
             )
 
-        return_gameweek = get_gameweek_by_date(return_date, dbsession=dbsession)
+        return_gameweek = get_gameweek_by_date(
+            return_date, season=season, dbsession=dbsession
+        )
         return return_gameweek
 
     return None
