@@ -190,11 +190,12 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
     current_players = []
     transactions = (
         dbsession.query(Transaction)
-        .filter_by(season=season)
+        .order_by(Transaction.gameweek, Transaction.id)
         .filter_by(fpl_team_id=fpl_team_id)
-        .order_by(Transaction.gameweek)
+        .filter_by(free_hit=0)  # free_hit players shouldn't be considered part of squad
         .all()
     )
+
     if len(transactions) == 0:
         #  not updated the transactions table yet
         return []
