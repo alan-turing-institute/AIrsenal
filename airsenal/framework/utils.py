@@ -4,7 +4,7 @@ Useful commands to query the db
 
 from functools import lru_cache
 from operator import itemgetter
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from dateutil.relativedelta import relativedelta
 from typing import TypeVar
 import dateparser
@@ -326,23 +326,26 @@ def get_free_transfers(gameweek=None, fpl_team_id=None):
     return num_free_transfers
 
 
-def get_gameweek_by_date(date, season=CURRENT_SEASON, dbsession=None):
+@lru_cache(maxsize=365)
+def get_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None):
     """
     Use the dates of the fixtures to find the gameweek.
     """
     # convert date to a datetime object if it isn't already one.
     if not dbsession:
         dbsession = session
-    if not isinstance(date, datetime):
-        date = dateparser.parse(date)
+    if not isinstance(check_date, date):
+        if not isinstance(check_date, datetime):
+            check_date = dateparser.parse(check_date)
+        check_date = check_date.date()
     query = dbsession.query(Fixture)
     if season is not None:
         query = query.filter_by(season=season)
     fixtures = query.all()
     for fixture in fixtures:
         try:
-            fixture_date = dateparser.parse(fixture.date)
-            if fixture_date.date() == date.date():
+            fixture_date = dateparser.parse(fixture.date).date()
+            if fixture_date == check_date:
                 return fixture.gameweek
         except (TypeError):  # NULL date if fixture not scheduled
             continue
@@ -981,7 +984,7 @@ def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=None):
             )
 
         return_gameweek = get_gameweek_by_date(
-            return_date, season=season, dbsession=dbsession
+            return_date.date(), season=season, dbsession=dbsession
         )
         return return_gameweek
 
