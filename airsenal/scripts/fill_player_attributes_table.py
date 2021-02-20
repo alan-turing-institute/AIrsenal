@@ -134,6 +134,9 @@ def fill_attributes_table_from_api(
 
         # now get data for previous gameweeks
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
+        if not player_data:
+            print("Failed to get data for", player.name)
+            continue
         for gameweek, data in player_data.items():
             if gameweek not in range(gw_start, gw_end):
                 continue
