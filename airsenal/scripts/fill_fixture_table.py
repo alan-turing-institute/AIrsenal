@@ -53,6 +53,7 @@ def fill_fixtures_from_api(season, dbsession=session):
                 was_home=True,
                 other_team=fixture["team_a"],
                 season=season,
+                dbsession=dbsession,
             )
             update = True
         except ValueError:
