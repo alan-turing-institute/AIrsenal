@@ -4,7 +4,8 @@ import multiprocessing
 
 import click
 
-from airsenal import TMPDIR
+from airsenal.framework.db_config import AIrsenalDBFile
+from airsenal.framework.schema import session, Team
 from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
 
 
@@ -35,19 +36,26 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
     required=False,
     help="fpl team id for pipeline run",
 )
+@click.option(
+    "--clean",
+    is_flag=True,
+    help="If set, delete and recreate the AIrsenal database",
+)
 def run_pipeline(
-    num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id
+    num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id, clean
 ):
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
-    click.echo("Cleaning database..")
-    clean_database()
-    click.echo("Setting up Database..")
-    setup_database(fpl_team_id)
-    click.echo("Database setup complete..")
+    if clean:
+        click.echo("Cleaning database..")
+        clean_database()
+    if database_is_empty():
+        click.echo("Setting up Database..")
+        setup_database(fpl_team_id)
+        click.echo("Database setup complete..")
     click.echo("Updating database..")
     update_database(fpl_team_id)
     click.echo("Database update complete..")
@@ -68,13 +76,21 @@ def clean_database():
     """
     Clean up database
     """
-    file_path = "{}/data.db".format(TMPDIR)
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if os.path.exists(AIrsenalDBFile):
+            os.remove(AIrsenalDBFile)
     except IOError as exc:
-        click.echo("Error while deleting file {}. Reason:{}".format(file_path, exc))
+        click.echo(
+            "Error while deleting file {}. Reason:{}".format(AIrsenalDBFile, exc)
+        )
         sys.exit(1)
+
+
+def database_is_empty():
+    """
+    Basic check to determine whether the database is empty
+    """
+    return session.query(Team).first() is None
 
 
 def setup_database(fpl_team_id):
