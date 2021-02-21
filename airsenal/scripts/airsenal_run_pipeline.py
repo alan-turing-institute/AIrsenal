@@ -56,8 +56,14 @@ def run_pipeline(
         click.echo("Setting up Database..")
         setup_database(fpl_team_id)
         click.echo("Database setup complete..")
+        setup_database = True
+    else:
+        setup_database = False
     click.echo("Updating database..")
-    update_database(fpl_team_id)
+    if setup_database:
+        update_database(fpl_team_id, attr=False)
+    else:
+        update_database(fpl_team_id, attr=True)
     click.echo("Database update complete..")
     click.echo("Running prediction..")
     run_prediction(num_thread, weeks_ahead)
@@ -100,11 +106,14 @@ def setup_database(fpl_team_id):
     os.system("airsenal_setup_initial_db --fpl_team_id {}".format(fpl_team_id))
 
 
-def update_database(fpl_team_id):
+def update_database(fpl_team_id, attr=True):
     """
     Update database
     """
-    os.system("airsenal_update_db --noattr --fpl_team_id {}".format(fpl_team_id))
+    if attr:
+        os.system("airsenal_update_db --fpl_team_id {}".format(fpl_team_id))
+    else:
+        os.system("airsenal_update_db --noattr --fpl_team_id {}".format(fpl_team_id))
 
 
 def run_prediction(num_thread, weeks_ahead):
