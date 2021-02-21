@@ -76,6 +76,8 @@ Once you've installed the module, you will need to set the following parameters:
 
 4. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
 
+5. `AIrsenalDBFile`: Local path to where you would like to store the AIrsenal sqlite3 database. If not set a temporary directory will be used by default (`/tmp/data.db` on Unix systems).
+
 The values for these should be defined either in environment variables with the names given above, or as files in the `airsenal/data` directory with the names given above. For example, to set your team ID you can create the file `airsenal/data/FPL_TEAM_ID` (with no file extension) and its contents should be your team ID and nothing else. So the contents of the file would just be something like:
 ```
 1234567
@@ -88,7 +90,6 @@ If you installed AIrsenal with conda, you should always make sure the `airsenale
 ```shell
 conda activate airsenalenv
 ```
-
 
 Note: Most the commands below can be run with the `--help` flag to see additional options and information.
 
@@ -144,7 +145,7 @@ Instead of running the commands above individually you can use:
 ```shell
 airsenal_run_pipeline
 ```
-This will delete and recreate the database and then run the points predictions and transfer optimization.
+This will update the database and then run the points predictions and transfer optimization.
 
 ## Docker
 
