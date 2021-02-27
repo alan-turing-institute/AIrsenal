@@ -632,11 +632,7 @@ def get_fixtures_for_player(
             if season == CURRENT_SEASON and fixture.gameweek < NEXT_GAMEWEEK:
                 continue
             if verbose:
-                print(
-                    "{} vs {} gameweek {}".format(
-                        fixture.home_team, fixture.away_team, fixture.gameweek
-                    )
-                )
+                print(fixture)
             fixtures.append(fixture)
     return fixtures
 

@@ -87,8 +87,8 @@ def get_player_history_df(
             match_id = row.result_id
             if not match_id:
                 print(
-                    " Couldn't find result for {} {} {}".format(
-                        row.fixture.home_team, row.fixture.away_team, row.fixture.date
+                    " Couldn't find result for {}".format(
+                        row.fixture
                     )
                 )
                 continue
