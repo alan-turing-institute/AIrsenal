@@ -11,7 +11,7 @@ from airsenal.framework.mappings import positions
 from airsenal.framework.schema import PlayerAttributes, session_scope, session
 
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
+    get_next_gameweek,
     get_player,
     get_player_from_api_id,
     get_team_name,
@@ -67,12 +67,13 @@ def fill_attributes_table_from_file(detail_data, season, dbsession=session):
 
 
 def fill_attributes_table_from_api(
-    season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session
+    season, gw_start=1, dbsession=session
 ):
     """
     use the FPL API to get player attributes info for the current season
     """
     fetcher = FPLDataFetcher()
+    next_gw = get_next_gameweek(season=season, dbsession=dbsession)
 
     # needed for selected by calculation from percentage below
     n_players = fetcher.get_current_summary_data()["total_players"]
@@ -95,7 +96,7 @@ def fill_attributes_table_from_api(
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
-            player.player_id, season=season, gameweek=NEXT_GAMEWEEK, dbsession=dbsession
+            player.player_id, season=season, gameweek=next_gw, dbsession=dbsession
         )
         if pa:
             # found pre-existing attributes for this gameweek
@@ -108,7 +109,7 @@ def fill_attributes_table_from_api(
         pa.player = player
         pa.player_id = player.player_id
         pa.season = season
-        pa.gameweek = NEXT_GAMEWEEK
+        pa.gameweek = next_gw
         pa.price = int(p_summary["now_cost"])
         pa.team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
         pa.position = positions[p_summary["element_type"]]
@@ -139,7 +140,7 @@ def fill_attributes_table_from_api(
             print("Failed to get data for", player.name)
             continue
         for gameweek, data in player_data.items():
-            if gameweek not in range(gw_start, gw_end):
+            if gameweek < gw_start:
                 continue
 
             for result in data:

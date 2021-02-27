@@ -150,7 +150,6 @@ def update_attributes(season, dbsession):
     fill_attributes_table_from_api(
         season=season,
         gw_start=last_in_db,
-        gw_end=NEXT_GAMEWEEK,
         dbsession=dbsession,
     )
 
