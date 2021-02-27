@@ -59,7 +59,7 @@ def fill_playerscores_from_json(detail_data, season, dbsession=session):
                 dbsession=dbsession,
             )
 
-            if not fixture:
+            if not fixture or not fixture.result:
                 print(
                     "  Couldn't find result for {} in gw {}".format(
                         player.name, gameweek
@@ -142,9 +142,9 @@ def fill_playerscores_from_api(
                     return_fixture=True,
                 )
 
-                if not fixture or not played_for:
+                if not fixture or not played_for or not fixture.result:
                     print(
-                        "  Couldn't find match for {} in gw {}".format(
+                        "  Couldn't find match result for {} in gw {}".format(
                             player.name, gameweek
                         )
                     )

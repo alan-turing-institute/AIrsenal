@@ -46,44 +46,6 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     return max_gw
 
 
-def in_mid_gameweek(season=CURRENT_SEASON, dbsession=None, verbose=False):
-    """
-    Use the current time to figure out whether we're in the middle of a gameweek
-    """
-    if not dbsession:
-        dbsession = session
-    timenow = datetime.now(timezone.utc)
-    # find the most recent and the next fixtures, relative to now.
-    most_recent_fixture = None
-    most_recent_fixture_time = timenow - relativedelta(years=1)
-    next_fixture = None
-    next_fixture_time = timenow + relativedelta(years=1)
-    fixtures = dbsession.query(Fixture).filter_by(season=season).all()
-    for fixture in fixtures:
-        if not fixture.date:
-            continue
-        fixture_date = dateparser.parse(fixture.date)
-        fixture_date = fixture_date.replace(tzinfo=timezone.utc)
-        if fixture_date < timenow and fixture_date > most_recent_fixture_time:
-            most_recent_fixture = fixture
-            most_recent_fixture_time = fixture_date
-        elif fixture_date > timenow and fixture_date < next_fixture_time:
-            next_fixture = fixture
-            next_fixture_time = fixture_date
-    if verbose:
-        print(
-            "Last fixture was {}/{}, next fixture is {}/{}".format(
-                most_recent_fixture.date,
-                most_recent_fixture.gameweek,
-                next_fixture.date,
-                next_fixture.gameweek,
-            )
-        )
-    # see if the most recent and next fixtures are both in the same gameweek.
-    # if so, return True, as we are in the middle of a gameweek.
-    return most_recent_fixture.gameweek == next_fixture.gameweek
-
-
 def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
@@ -728,9 +690,28 @@ def get_result_for_fixture(fixture, dbsession=session):
     return result
 
 
-def get_player_scores_for_fixture(fixture, dbsession=session):
+def get_player_scores(fixture=None, player=None, dbsession=session):
     """Get player scores for a fixture."""
-    player_scores = dbsession.query(PlayerScore).filter_by(fixture=fixture).all()
+    if fixture is None and player is None:
+        raise ValueError("At least one of fixture and player must be defined")
+    
+    query = dbsession.query(PlayerScore)
+    if fixture is not None:
+        query = query.filter(PlayerScore.fixture == fixture)
+    if player is not None:
+        query = query.filter(PlayerScore.player == player)
+
+    player_scores = query.all()
+    if not player_scores:
+        raise ValueError(f"No scores found for player {player} in fixture {fixture}")
+
+    if fixture is not None and player is not None:
+        if len(player_scores) > 0:
+            raise ValueError(
+                f"More than one score found for player {player} in fixture {fixture}"
+            )
+        else:
+            return player_scores[0]
     return player_scores
 
 
@@ -1134,25 +1115,19 @@ def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     """
     query the result table to see what was the last gameweek for which
     we have filled the data.
-    Note that if we run this command while a gameweek is ongoing, we
-    want to return the week _before_ the latest result's gameweek, as
-    that will be the last complete gameweek.
     """
     if not dbsession:
         dbsession = session
-    last_result = (
+    first_missing = (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter(Fixture.result != None)  # noqa: E711
-        .order_by(Fixture.gameweek.desc())
+        .filter(Fixture.result == None)  # noqa: E711
+        .filter(Fixture.gameweek != None)  # noqa: E711
+        .order_by(Fixture.gameweek)
         .first()
     )
-    if last_result:
-        # now check whether we're in the middle of a gameweek
-        if in_mid_gameweek(season=season, dbsession=dbsession):
-            return last_result.gameweek - 1
-        else:
-            return last_result.gameweek
+    if first_missing:
+        return first_missing.gameweek - 1
     else:
         return None
 

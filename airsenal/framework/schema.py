@@ -147,6 +147,9 @@ class Player(Base):
             else:
                 return attr_after
 
+    def __str__(self):
+        return f"{self.name}"
+
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
@@ -191,6 +194,9 @@ class Fixture(Base):
     result = relationship("Result", uselist=False, back_populates="fixture")
     player = relationship("Player", back_populates="fixtures")
     player_id = Column(Integer, ForeignKey("player.player_id"))
+
+    def __str__(self):
+        return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
 class PlayerScore(Base):

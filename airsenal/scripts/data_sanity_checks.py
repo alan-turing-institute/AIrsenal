@@ -4,7 +4,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_fixtures_for_season,
     get_result_for_fixture,
-    get_player_scores_for_fixture,
+    get_player_scores,
 )
 from airsenal.framework.schema import PlayerScore
 
@@ -146,7 +146,7 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            player_scores = get_player_scores_for_fixture(fixture)
+            player_scores = get_player_scores(fixture=fixture)
 
             for score in player_scores:
                 if not (

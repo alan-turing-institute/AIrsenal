@@ -15,24 +15,9 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_fixture_tag,
     get_past_seasons,
+    find_fixture,
     CURRENT_SEASON,
 )
-
-
-def _find_fixture(season, home_team, away_team, dbsession):
-    """
-    query database to find corresponding fixture
-    """
-    tag = get_latest_fixture_tag(season)
-    f = (
-        dbsession.query(Fixture)
-        .filter_by(tag=tag)
-        .filter_by(season=season)
-        .filter_by(home_team=home_team)
-        .filter_by(away_team=away_team)
-        .first()
-    )
-    return f
 
 
 def fill_results_from_csv(input_file, season, dbsession):
@@ -84,13 +69,26 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
         if not away_team:
             raise ValueError("Unable to find team with id {}".format(away_id))
         home_score = m["team_h_score"]
-        away_score = m["team_a_score"]
-        f = _find_fixture(season, home_team, away_team, dbsession)
-        res = Result()
+        away_score = m["team_a_score"]    
+        f = find_fixture(
+            home_team,
+            was_home=True,
+            other_team=away_team,
+            gameweek=gameweek,
+            season=season,
+            dbsession=dbsession,
+        )
+        if f.result is None:
+            res = Result()
+            add = True
+        else:
+            res = f.result
+            add = False
         res.fixture = f
         res.home_score = int(home_score)
         res.away_score = int(away_score)
-        dbsession.add(res)
+        if add:
+            dbsession.add(res)
     dbsession.commit()
 
 
