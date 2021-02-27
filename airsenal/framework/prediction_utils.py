@@ -70,7 +70,7 @@ def get_player_history_df(
     for counter, player in enumerate(players):
         print(
             "Filling history dataframe for {}: {}/{} done".format(
-                player.name, counter, len(players)
+                player, counter, len(players)
             )
         )
         results = player.scores
@@ -283,7 +283,7 @@ def calc_predicted_points_for_player(
     if isinstance(player, int):
         player = get_player(player, dbsession=dbsession)
 
-    message = "Points prediction for player {}".format(player.name)
+    message = "Points prediction for player {}".format(player)
 
     if not gw_range:
         # by default, go for next three matches

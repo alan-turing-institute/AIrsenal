@@ -38,6 +38,9 @@ class CandidatePlayer(object):
         self.predicted_points = {}
         self.sub_position = None
 
+    def __str__(self):
+        return self.name
+
     def calc_predicted_points(self, method):
         """
         get expected points from the db.

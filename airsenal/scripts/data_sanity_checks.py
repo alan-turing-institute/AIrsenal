@@ -158,7 +158,7 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
                         "{}: {} in player_scores but labelled as playing for {}."
                     ).format(
                         fixture_string(fixture),
-                        score.player.name,
+                        score.player,
                         score.player_team,
                     )
                     print(msg)

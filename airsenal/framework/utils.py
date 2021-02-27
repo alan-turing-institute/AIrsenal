@@ -5,7 +5,6 @@ Useful commands to query the db
 from functools import lru_cache
 from operator import itemgetter
 from datetime import datetime, timezone, date
-from dateutil.relativedelta import relativedelta
 from typing import TypeVar
 import dateparser
 import re
@@ -500,7 +499,7 @@ def list_players(
             players.append(p.player)
             prices.append(p.price)
             if verbose and (len(gameweeks) == 1 or order_by != "price"):
-                print(p.player.name, p.team, p.position, p.price)
+                print(p.player, p.team, p.position, p.price)
     if len(gameweeks) > 1 and order_by == "price":
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
@@ -694,7 +693,7 @@ def get_player_scores(fixture=None, player=None, dbsession=session):
     """Get player scores for a fixture."""
     if fixture is None and player is None:
         raise ValueError("At least one of fixture and player must be defined")
-    
+
     query = dbsession.query(PlayerScore)
     if fixture is not None:
         query = query.filter(PlayerScore.fixture == fixture)
@@ -703,7 +702,7 @@ def get_player_scores(fixture=None, player=None, dbsession=session):
 
     player_scores = query.all()
     if not player_scores:
-        raise ValueError(f"No scores found for player {player} in fixture {fixture}")
+        return None
 
     if fixture is not None and player is not None:
         if len(player_scores) > 0:

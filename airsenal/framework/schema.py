@@ -148,7 +148,7 @@ class Player(Base):
                 return attr_after
 
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 
 class PlayerAttributes(Base):

@@ -99,25 +99,25 @@ class Squad(object):
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
-                print("Already have {} in team".format(player.name))
+                print("Already have {} in team".format(player))
             return False
         if not self.check_num_in_position(player):
             if self.verbose:
                 print(
                     "Unable to add player {} - too many {}".format(
-                        player.name, player.position
+                        player, player.position
                     )
                 )
             return False
         if check_budget and not self.check_cost(player):
             if self.verbose:
-                print("Cannot afford player {}".format(player.name))
+                print("Cannot afford player {}".format(player))
             return False
         if check_team and not self.check_num_per_team(player):
             if self.verbose:
                 print(
                     "Cannot add {} - too many players from {}".format(
-                        player.name, player.team
+                        player, player.team
                     )
                 )
             return False
@@ -194,7 +194,7 @@ class Squad(object):
             print(
                 "Using purchase price as sale price for",
                 player.player_id,
-                player.name,
+                player,
             )
             price_now = price_bought
 
