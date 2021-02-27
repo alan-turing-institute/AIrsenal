@@ -18,7 +18,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     find_fixture,
     get_player_team_from_fixture,
-    get_player_scores
+    get_player_scores,
 )
 
 
@@ -61,11 +61,7 @@ def fill_playerscores_from_json(detail_data, season, dbsession=session):
             )
 
             if not fixture or not fixture.result:
-                print(
-                    "  Couldn't find result for {} in gw {}".format(
-                        player, gameweek
-                    )
-                )
+                print("  Couldn't find result for {} in gw {}".format(player, gameweek))
                 continue
             ps = PlayerScore()
             ps.player_team = played_for

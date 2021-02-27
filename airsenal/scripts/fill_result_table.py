@@ -9,11 +9,10 @@ import argparse
 import os
 
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.schema import Result, session_scope, Fixture, session
+from airsenal.framework.schema import Result, session_scope, session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
-    get_latest_fixture_tag,
     get_past_seasons,
     find_fixture,
     CURRENT_SEASON,
@@ -37,7 +36,13 @@ def fill_results_from_csv(input_file, season, dbsession):
             elif away_team in v:
                 away_team = k
         # query database to find corresponding fixture
-        f = _find_fixture(season, home_team, away_team, dbsession)
+        f = find_fixture(
+            home_team,
+            was_home=True,
+            other_team=away_team,
+            season=season,
+            dbsession=dbsession,
+        )
         res = Result()
         res.fixture = f
         res.home_score = int(home_score)
@@ -69,7 +74,7 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
         if not away_team:
             raise ValueError("Unable to find team with id {}".format(away_id))
         home_score = m["team_h_score"]
-        away_score = m["team_a_score"]    
+        away_score = m["team_a_score"]
         f = find_fixture(
             home_team,
             was_home=True,
