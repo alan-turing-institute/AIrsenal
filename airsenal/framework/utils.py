@@ -701,7 +701,7 @@ def get_player_scores(fixture=None, player=None, dbsession=session):
         return None
 
     if fixture is not None and player is not None:
-        if len(player_scores) > 0:
+        if len(player_scores) > 1:
             raise ValueError(
                 f"More than one score found for player {player} in fixture {fixture}"
             )
