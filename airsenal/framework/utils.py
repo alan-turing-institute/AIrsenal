@@ -16,7 +16,6 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import (
     Player,
     PlayerAttributes,
-    Result,
     Fixture,
     PlayerScore,
     PlayerPrediction,
@@ -677,12 +676,6 @@ def get_fixtures_for_gameweek(gameweek, season=CURRENT_SEASON, dbsession=session
         .all()
     )
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
-
-
-def get_result_for_fixture(fixture, dbsession=session):
-    """Get result for a fixture."""
-    result = dbsession.query(Result).filter_by(fixture=fixture).all()
-    return result
 
 
 def get_player_scores(fixture=None, player=None, dbsession=session):

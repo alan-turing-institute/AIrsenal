@@ -170,6 +170,12 @@ class PlayerAttributes(Base):
     transfers_in = Column(Integer, nullable=True)
     transfers_out = Column(Integer, nullable=True)
 
+    def __str__(self):
+        return (
+            f"{self.player} ({self.season} GW{self.gameweek}): "
+            f"£{self.price / 10}, {self.team}, {self.position}"
+        )
+
 
 class Result(Base):
     __tablename__ = "result"
@@ -180,6 +186,13 @@ class Result(Base):
     away_score = Column(Integer, nullable=False)
     player = relationship("Player", back_populates="results")
     player_id = Column(Integer, ForeignKey("player.player_id"))
+
+    def __str__(self):
+        return (
+            f"{self.fixture.season} GW{self.fixture.gameweek} "
+            f"{self.fixture.home_team} {self.home_score} - "
+            f"{self.away_score} {self.fixture.away_team}"
+        )
 
 
 class Fixture(Base):
@@ -196,7 +209,13 @@ class Fixture(Base):
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
     def __str__(self):
-        return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
+        if self.result:
+            return str(self.result)
+        else:
+            return (
+                f"{self.season} GW{self.gameweek} "
+                f"{self.home_team} vs. {self.away_team}"
+            )
 
 
 class PlayerScore(Base):
@@ -232,6 +251,19 @@ class PlayerScore(Base):
     threat = Column(Float, nullable=True)
     ict_index = Column(Float, nullable=True)
 
+    def __str__(self):
+        score_str = (
+            f"{self.player} ({self.result}): " f"{self.points} pts, {self.minutes} mins"
+        )
+        if self.goals > 0:
+            score_str += f", {self.goals} goals"
+        if self.assists > 0:
+            score_str += f", {self.assists} assists"
+        if self.bonus > 0:
+            score_str += f", {self.bonus} bonus"
+
+        return score_str
+
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
@@ -242,6 +274,9 @@ class PlayerPrediction(Base):
     tag = Column(String(100), nullable=False)
     player = relationship("Player", back_populates="predictions")
     player_id = Column(Integer, ForeignKey("player.player_id"))
+
+    def __str__(self):
+        return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
 
 
 class Transaction(Base):
@@ -256,6 +291,16 @@ class Transaction(Base):
     free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
     fpl_team_id = Column(Integer, nullable=False)
 
+    def __str__(self):
+        trans_str = f"{self.season} GW{self.gameweek}: "
+        if self.bought_or_sold == 1:
+            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+        else:
+            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+        if self.free_hit:
+            trans_str += " (FREE HIT)"
+        return trans_str
+
 
 class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
@@ -266,6 +311,18 @@ class TransferSuggestion(Base):
     points_gain = Column(Float, nullable=False)
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
     season = Column(String(100), nullable=False)
+
+    def __str__(self):
+        sugg_str = f"{self.season} GW{self.gameweek}: "
+        if self.in_or_out == 1:
+            sugg_str += (
+                f"Suggest buying {self.player_id} for gain of {self.points_gain}"
+            )
+        else:
+            sugg_str += (
+                f"Suggest selling {self.player_id} for gain of {self.points_gain}"
+            )
+        return sugg_str
 
 
 class FifaTeamRating(Base):
@@ -278,6 +335,12 @@ class FifaTeamRating(Base):
     mid = Column(Integer, nullable=False)
     ovr = Column(Integer, nullable=False)
 
+    def __str__(self):
+        return (
+            f"{self.team} {self.season} FIFA rating: "
+            f"ovr {self.ovr}, def {self.defn}, mid {self.mid}, att {self.att}"
+        )
+
 
 class Team(Base):
     __tablename__ = "team"
@@ -288,6 +351,9 @@ class Team(Base):
     team_id = Column(
         Integer, nullable=False
     )  # the season-dependent team ID (from alphabetical order)
+
+    def __str__(self):
+        return f"{self.full_name} ({self.name})"
 
 
 class SessionSquad(Base):
