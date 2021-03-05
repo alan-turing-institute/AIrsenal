@@ -60,7 +60,7 @@ class CandidatePlayer(object):
         if gameweek not in self.predicted_points[method].keys():
             print(
                 "No prediction available for {} week {}".format(
-                    self.data.name, gameweek
+                    self.name, gameweek
                 )
             )
             return 0.0
