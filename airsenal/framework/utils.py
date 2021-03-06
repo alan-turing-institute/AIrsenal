@@ -442,7 +442,13 @@ def list_players(
         last_gw = get_last_complete_gameweek_in_db(
             season=CURRENT_SEASON, dbsession=dbsession
         )
-        if gameweek > last_gw:
+        if last_gw is None and gameweek != 1:
+            print(
+                f"WARNING: No complete gameweek in DB for {season} season, "
+                f"returning players from GW1."
+            )
+            gameweek = 1
+        elif last_gw is not None and gameweek > last_gw:
             print(
                 f"WARNING: Incomplete data in DB for GW{gameweek}, "
                 f"returning players from GW{last_gw}."
