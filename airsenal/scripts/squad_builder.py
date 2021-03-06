@@ -116,7 +116,13 @@ def main():
     else:
         raise ValueError("'algorithm' must be 'normal' or 'genetic'")
 
-    points = best_squad.get_expected_points(gw_start, tag)
+    if best_squad is None:
+        raise RuntimeError(
+            "best_squad is None: make_new_squad failed to generate a valid team or "
+            "something went wrong with the squad expected points calculation."
+        )
+    else:
+        points = best_squad.get_expected_points(gw_start, tag)
 
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))

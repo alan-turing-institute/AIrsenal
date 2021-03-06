@@ -604,25 +604,25 @@ def make_new_squad(
             # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
         predicted_points = {}
-        t = Squad(budget)
+        squad = Squad(budget)
         # first iteration - fill up from the front
         for pos in positions:
             predicted_points[pos] = get_predicted_points(
                 gameweek=gw_range, position=pos, tag=tag, season=season
             )
             for pp in predicted_points[pos]:
-                t.add_player(pp[0], season=season, gameweek=transfer_gw)
-                if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
+                squad.add_player(pp[0], season=season, gameweek=transfer_gw)
+                if squad.num_position[pos] == TOTAL_PER_POSITION[pos]:
                     break
 
         # presumably we didn't get a complete squad now
         excluded_player_ids = []
-        while not t.is_complete():
+        while not squad.is_complete():
             # randomly swap out a player and replace with a cheaper one in the
             # same position
-            player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
+            player_to_remove = squad.players[random.randint(0, len(squad.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            t.remove_player(
+            squad.remove_player(
                 player_to_remove.player_id, season=season, gameweek=transfer_gw
             )
             excluded_player_ids.append(player_to_remove.player_id)
@@ -634,36 +634,36 @@ def make_new_squad(
                     if cp.purchase_price >= remove_cost:
                         continue
                     else:
-                        t.add_player(pp[0], season=season, gameweek=transfer_gw)
+                        squad.add_player(pp[0], season=season, gameweek=transfer_gw)
             # now try again to fill up the rest of the squad
             for pos in positions:
-                num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
+                num_missing = TOTAL_PER_POSITION[pos] - squad.num_position[pos]
                 if num_missing == 0:
                     continue
                 for pp in predicted_points[pos]:
                     if pp[0] in excluded_player_ids:
                         continue
-                    t.add_player(pp[0], season=season, gameweek=transfer_gw)
-                    if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
+                    squad.add_player(pp[0], season=season, gameweek=transfer_gw)
+                    if squad.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete squad
         score = 0.0
         for gw in gw_range:
             if gw == bench_boost_gw:
-                score += t.get_expected_points(
+                score += squad.get_expected_points(
                     gw, tag, bench_boost=True
                 ) * get_discount_factor(gw_range[0], gw)
             elif gw == triple_captain_gw:
-                score += t.get_expected_points(
+                score += squad.get_expected_points(
                     gw, tag, triple_captain=True
                 ) * get_discount_factor(gw_range[0], gw)
             else:
-                score += t.get_expected_points(gw, tag) * get_discount_factor(
+                score += squad.get_expected_points(gw, tag) * get_discount_factor(
                     gw_range[0], gw
                 )
         if score > best_score:
             best_score = score
-            best_squad = t
+            best_squad = squad
 
     if verbose:
         print("====================================\n")
