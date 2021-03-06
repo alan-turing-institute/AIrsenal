@@ -29,6 +29,7 @@ class CandidatePlayer(object):
             pdata = get_player(player, self.dbsession)
         self.player_id = pdata.player_id
         self.name = pdata.name
+        self.season = season
         self.team = pdata.team(season, gameweek)
         self.position = pdata.position(season)
         self.purchase_price = pdata.price(season, gameweek)
@@ -48,7 +49,7 @@ class CandidatePlayer(object):
         """
         if method not in self.predicted_points.keys():
             self.predicted_points[method] = get_predicted_points_for_player(
-                self.player_id, method, dbsession=self.dbsession
+                self.player_id, method, season=self.season, dbsession=self.dbsession
             )
 
     def get_predicted_points(self, gameweek, method):

@@ -107,9 +107,10 @@ def get_starting_squad(fpl_team_id=None):
             .filter_by(free_hit=0)
             .first()
         )
+        if most_recent is None:
+            raise ValueError("No transactions in database.")
         fpl_team_id = most_recent.fpl_team_id
     print("Getting starting squad for {}".format(fpl_team_id))
-    s = Squad()
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
     transactions = (
@@ -119,6 +120,10 @@ def get_starting_squad(fpl_team_id=None):
         .filter_by(free_hit=0)
         .all()
     )
+    if len(transactions) == 0:
+        raise ValueError(f"No transactions in database for team ID {fpl_team_id}")
+
+    s = Squad(season=transactions[0].season)
     for trans in transactions:
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
@@ -128,7 +133,6 @@ def get_starting_squad(fpl_team_id=None):
             s.add_player(
                 trans.player_id,
                 price=trans.price,
-                season=trans.season,
                 gameweek=trans.gameweek,
                 check_budget=False,
                 check_team=False,
@@ -222,13 +226,11 @@ def make_optimum_single_transfer(
         position = p_out.position
         if verbose:
             print("Removing player {}".format(p_out.player_id))
-        new_squad.remove_player(p_out.player_id, season=season, gameweek=transfer_gw)
+        new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-            added_ok = new_squad.add_player(
-                p_in[0], season=season, gameweek=transfer_gw
-            )
+            added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
             if added_ok:
                 if verbose:
                     print("Added player {}".format(p_in[0].name))
@@ -293,9 +295,7 @@ def make_optimum_double_transfer(
         pout_1 = squad.players[i]
 
         new_squad_remove_1 = fastcopy(squad)
-        new_squad_remove_1.remove_player(
-            pout_1.player_id, season=season, gameweek=transfer_gw
-        )
+        new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
         for j in range(i + 1, len(squad.players)):
             if update_func_and_args:
                 # call function to update progress bar.
@@ -306,9 +306,7 @@ def make_optimum_double_transfer(
 
             pout_2 = squad.players[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
-            new_squad_remove_2.remove_player(
-                pout_2.player_id, season=season, gameweek=transfer_gw
-            )
+            new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
             if verbose:
                 print("Removing players {} {}".format(i, j))
             # what positions do we need to fill?
@@ -322,9 +320,7 @@ def make_optimum_double_transfer(
                 ):
                     continue  # no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
-                added_1_ok = new_squad_add_1.add_player(
-                    pin_1[0], season=season, gameweek=transfer_gw
-                )
+                added_1_ok = new_squad_add_1.add_player(pin_1[0], gameweek=transfer_gw)
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
@@ -336,7 +332,7 @@ def make_optimum_double_transfer(
                     ):
                         continue  # no point in adding same player back in
                     added_2_ok = new_squad_add_2.add_player(
-                        pin_2[0], season=season, gameweek=transfer_gw
+                        pin_2[0], gameweek=transfer_gw
                     )
                     if added_2_ok:
                         # calculate the score
@@ -417,9 +413,7 @@ def make_random_transfers(
         for p in players_to_remove:
             positions_needed.append(squad.players[p].position)
             removed_players.append(squad.players[p].player_id)
-            new_squad.remove_player(
-                removed_players[-1], season=season, gameweek=transfer_gw
-            )
+            new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {}
         for pos in set(positions_needed):
             predicted_points[pos] = get_predicted_points(
@@ -435,9 +429,7 @@ def make_random_transfers(
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
                 pid_to_add = predicted_points[pos][index][0]
-                added_ok = new_squad.add_player(
-                    pid_to_add, season=season, gameweek=transfer_gw
-                )
+                added_ok = new_squad.add_player(pid_to_add, gameweek=transfer_gw)
                 if added_ok:
                     added_players.append(pid_to_add)
             complete_squad = new_squad.is_complete()
@@ -450,7 +442,7 @@ def make_random_transfers(
                 # take those players out again.
                 for ap in added_players:
                     removed_ok = new_squad.remove_player(
-                        ap.player_id, season=season, gameweek=transfer_gw
+                        ap.player_id, gameweek=transfer_gw
                     )
                     if not removed_ok:
                         print("Problem removing {}".format(ap.name))
@@ -549,7 +541,12 @@ def make_best_transfers(
             # for free hit, only use one week to optimize
             gameweeks = [gameweeks[0]]
         new_squad = make_new_squad(
-            budget, num_iter, tag, gameweeks, update_func_and_args=update_func_and_args
+            budget,
+            num_iter,
+            tag,
+            gameweeks,
+            season=season,
+            update_func_and_args=update_func_and_args,
         )
         players_in = [p.player_id for p in new_squad.players]
         transfer_dict = {"in": players_in, "out": players_out}
@@ -604,14 +601,14 @@ def make_new_squad(
             # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
         predicted_points = {}
-        squad = Squad(budget)
+        squad = Squad(budget, season=season)
         # first iteration - fill up from the front
         for pos in positions:
             predicted_points[pos] = get_predicted_points(
                 gameweek=gw_range, position=pos, tag=tag, season=season
             )
             for pp in predicted_points[pos]:
-                squad.add_player(pp[0], season=season, gameweek=transfer_gw)
+                squad.add_player(pp[0], gameweek=transfer_gw)
                 if squad.num_position[pos] == TOTAL_PER_POSITION[pos]:
                     break
 
@@ -622,9 +619,7 @@ def make_new_squad(
             # same position
             player_to_remove = squad.players[random.randint(0, len(squad.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            squad.remove_player(
-                player_to_remove.player_id, season=season, gameweek=transfer_gw
-            )
+            squad.remove_player(player_to_remove.player_id, gameweek=transfer_gw)
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (
@@ -634,7 +629,7 @@ def make_new_squad(
                     if cp.purchase_price >= remove_cost:
                         continue
                     else:
-                        squad.add_player(pp[0], season=season, gameweek=transfer_gw)
+                        squad.add_player(pp[0], gameweek=transfer_gw)
             # now try again to fill up the rest of the squad
             for pos in positions:
                 num_missing = TOTAL_PER_POSITION[pos] - squad.num_position[pos]
@@ -643,7 +638,7 @@ def make_new_squad(
                 for pp in predicted_points[pos]:
                     if pp[0] in excluded_player_ids:
                         continue
-                    squad.add_player(pp[0], season=season, gameweek=transfer_gw)
+                    squad.add_player(pp[0], gameweek=transfer_gw)
                     if squad.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete squad
