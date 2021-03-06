@@ -654,7 +654,7 @@ def main():
         tag = args.tag
     else:
         # get most recent set of predictions from DB table
-        tag = get_latest_prediction_tag()
+        tag = get_latest_prediction_tag(season=season)
     max_total_hit = args.max_hit
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
@@ -665,7 +665,7 @@ def main():
     chip_gameweeks["triple_captain"] = args.triple_captain_week
     chip_gameweeks["bench_boost"] = args.bench_boost_week
 
-    if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
+    if not check_tag_valid(tag, gameweeks, season=season):
         print(
             "ERROR: Database does not contain predictions",
             "for all the specified optimsation gameweeks.\n",
