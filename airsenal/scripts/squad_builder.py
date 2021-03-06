@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import sys
 import pygmo as pg
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
 )
+from airsenal.framework.optimization_utils import check_tag_valid
 from airsenal.framework.season import get_current_season
 
 
@@ -82,6 +84,14 @@ def main():
         gw_start = NEXT_GAMEWEEK
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
+    if not check_tag_valid(tag, gw_range, season=season):
+        print(
+            "ERROR: Database does not contain predictions",
+            "for all the specified optimsation gameweeks.\n",
+            "Please run 'airsenal_run_prediction' first with the",
+            "same input gameweeks and season you specified here.",
+        )
+        sys.exit(1)
 
     if args.algorithm == "normal":
         from airsenal.framework.optimization_utils import make_new_squad

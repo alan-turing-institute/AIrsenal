@@ -354,10 +354,10 @@ def make_new_squad(
     squad = Squad(budget=opt_squad.budget, season=season)
     for idx in pop.champion_x:
         print(
-            opt_squad.players[int(idx)].position(CURRENT_SEASON),
+            opt_squad.players[int(idx)].position(season),
             opt_squad.players[int(idx)].name,
-            opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
-            opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
+            opt_squad.players[int(idx)].team(season, 1),
+            opt_squad.players[int(idx)].price(season, 1) / 10,
         )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
