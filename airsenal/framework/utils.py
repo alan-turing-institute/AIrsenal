@@ -437,9 +437,17 @@ def list_players(
     if not dbsession:
         dbsession = session
 
-    # if trying to get players from the future, return current players
-    if season == CURRENT_SEASON and gameweek > NEXT_GAMEWEEK:
-        gameweek = NEXT_GAMEWEEK
+    # if trying to get players from after DB has filled, return most recent players
+    if season == CURRENT_SEASON:
+        last_gw = get_last_complete_gameweek_in_db(
+            season=CURRENT_SEASON, dbsession=dbsession
+        )
+        if gameweek > last_gw:
+            print(
+                f"WARNING: Incomplete data in DB for GW{gameweek}, "
+                f"returning players from GW{last_gw}."
+            )
+            gameweek = last_gw
 
     gameweeks = [gameweek]
     # check if the team (or all teams) play in the specified gameweek, if not
