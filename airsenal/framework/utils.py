@@ -439,21 +439,18 @@ def list_players(
 
     # if trying to get players from after DB has filled, return most recent players
     if season == CURRENT_SEASON:
-        last_gw = get_last_complete_gameweek_in_db(
-            season=CURRENT_SEASON, dbsession=dbsession
+        last_pa = (
+            dbsession.query(PlayerAttributes)
+            .filter_by(season=season)
+            .order_by(PlayerAttributes.gameweek.desc())
+            .first()
         )
-        if last_gw is None and gameweek != 1:
-            print(
-                f"WARNING: No complete gameweek in DB for {season} season, "
-                f"returning players from GW1."
-            )
-            gameweek = 1
-        elif last_gw is not None and gameweek > last_gw:
+        if last_pa and gameweek > last_pa.gameweek:
             print(
                 f"WARNING: Incomplete data in DB for GW{gameweek}, "
-                f"returning players from GW{last_gw}."
+                f"returning players from GW{last_pa.gameweek}."
             )
-            gameweek = last_gw
+            gameweek = last_pa.gameweek
 
     gameweeks = [gameweek]
     # check if the team (or all teams) play in the specified gameweek, if not
