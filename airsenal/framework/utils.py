@@ -446,10 +446,11 @@ def list_players(
             .first()
         )
         if last_pa and gameweek > last_pa.gameweek:
-            print(
-                f"WARNING: Incomplete data in DB for GW{gameweek}, "
-                f"returning players from GW{last_pa.gameweek}."
-            )
+            if verbose:
+                print(
+                    f"WARNING: Incomplete data in DB for GW{gameweek}, "
+                    f"returning players from GW{last_pa.gameweek}."
+                )
             gameweek = last_pa.gameweek
 
     gameweeks = [gameweek]
