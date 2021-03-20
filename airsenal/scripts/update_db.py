@@ -12,8 +12,6 @@ from airsenal.framework.utils import (
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     NEXT_GAMEWEEK,
-    get_current_players,
-    get_players_for_gameweek,
     list_players,
     fetcher,
     get_player,
@@ -22,7 +20,7 @@ from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_
 from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
-from airsenal.framework.transaction_utils import update_squad
+from airsenal.framework.transaction_utils import update_squad, count_transactions
 from airsenal.framework.schema import Player, session_scope
 
 
@@ -33,14 +31,12 @@ def update_transactions(season, fpl_team_id, dbsession):
 
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
-        current_gameweek = NEXT_GAMEWEEK - 1
-        db_players = sorted(
-            get_current_players(
-                season=season, fpl_team_id=fpl_team_id, dbsession=dbsession
-            )
-        )
-        api_players = sorted(get_players_for_gameweek(current_gameweek, fpl_team_id))
-        if db_players != api_players:
+        n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
+        n_transactions_db = count_transactions(season, fpl_team_id, dbsession)
+        # DB has 2 rows per transfer, and rows for the 15 players selected in the
+        # initial squad which are not returned by the transfers API
+        n_transfers_db = (n_transactions_db - 15) / 2
+        if n_transfers_db != n_transfers_api:
             update_squad(
                 season=season,
                 fpl_team_id=fpl_team_id,
