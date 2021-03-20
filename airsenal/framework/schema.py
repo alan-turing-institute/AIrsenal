@@ -286,6 +286,7 @@ class Transaction(Base):
     gameweek = Column(Integer, nullable=False)
     bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
     season = Column(String(100), nullable=False)
+    time = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
