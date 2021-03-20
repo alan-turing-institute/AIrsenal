@@ -59,6 +59,9 @@ def transaction_exists(
     price_in,
     dbsession=session,
 ):
+    """Check whether the transactions related to transferring a player in and out
+    in a gameweek at a specific time already exist in the database.
+    """
     transactions = (
         dbsession.query(Transaction)
         .filter_by(fpl_team_id=fpl_team_id)
