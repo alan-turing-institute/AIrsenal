@@ -34,12 +34,16 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     generally be 38, but may be different in the case of major disruptino (e.g.
     Covid-19)
     """
-    max_gw = (
-        dbsession.query(func.max(Fixture.gameweek)).filter_by(season=season).first()[0]
-    )
-    if max_gw is None:
+    max_gw_fixture = dbsession.query(Fixture)\
+                              .filter_by(season=season)\
+                              .order_by(Fixture.gameweek.desc())\
+                              .first()
+
+    if max_gw_fixture is None:
         # TODO Tests fail without this as tests don't populate fixture table in db
         max_gw = 100
+    else:
+        max_gw = max_gw_fixture.gameweek
 
     return max_gw
 
@@ -109,7 +113,6 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
-
 
 def get_previous_season(season):
     """
