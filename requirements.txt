@@ -8,9 +8,9 @@ dateparser
 matplotlib
 scipy
 pip
-pystan>=2.14
+pystan~=2.19.1.1
 pytest
-bpl==0.0.4
+bpl==0.1.1
 flask
 flask_cors
 flask_session
