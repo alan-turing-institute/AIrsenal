@@ -3,8 +3,7 @@ from airsenal.framework.utils import (
     session,
     CURRENT_SEASON,
     get_fixtures_for_season,
-    get_result_for_fixture,
-    get_player_scores_for_fixture,
+    get_player_scores,
 )
 from airsenal.framework.schema import PlayerScore
 
@@ -14,47 +13,12 @@ CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements
 
 
-def fixture_string(fixture, result=None):
-    """Get a string with basic info about a fixture.
-
-    Arguments:
-        fixture {SQLAlchemy class object} -- fixture from the database.
-        result {SQLAlchemy class object} -- result from the database. If given
-        returned string contains the match score.
-
-    Returns:
-        [string] -- formatted string with id, season, gameweek, home team and
-        away team.
-    """
-
-    if result:
-        return "{} GW{} {} {}-{} {} (id {})".format(
-            fixture.season,
-            fixture.gameweek,
-            fixture.home_team,
-            result.home_score,
-            result.away_score,
-            fixture.away_team,
-            fixture.fixture_id,
-        )
-
-    else:
-        return "{} GW{} {} vs {} (id {})".format(
-            fixture.season,
-            fixture.gameweek,
-            fixture.home_team,
-            fixture.away_team,
-            fixture.fixture_id,
-        )
-
-
 def result_string(n_error):
     """make string representing check result
 
     Arguments:
         n_error {int} -- number of errors encountered during check
     """
-
     if n_error == 0:
         return "OK!"
     else:
@@ -146,22 +110,23 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            player_scores = get_player_scores_for_fixture(fixture)
+            if fixture.result:
+                player_scores = get_player_scores(fixture=fixture)
 
-            for score in player_scores:
-                if not (
-                    (score.player_team == fixture.home_team)
-                    or (score.player_team == fixture.away_team)
-                ):
-                    n_error += 1
-                    msg = (
-                        "{}: {} in player_scores but labelled as playing for {}."
-                    ).format(
-                        fixture_string(fixture),
-                        score.player.name,
-                        score.player_team,
-                    )
-                    print(msg)
+                for score in player_scores:
+                    if not (
+                        (score.player_team == fixture.home_team)
+                        or (score.player_team == fixture.away_team)
+                    ):
+                        n_error += 1
+                        msg = (
+                            "{}: {} in player_scores but labelled as playing for {}."
+                        ).format(
+                            fixture,
+                            score.player,
+                            score.player_team,
+                        )
+                        print(msg)
 
     print("\n", result_string(n_error))
     return n_error
@@ -177,8 +142,10 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         airsenal.framework.schema.session)
     """
     print(
-        "Checking 11 to 14 players play per team in each fixture "
-        "(with exceptions for 19/20)...\n"
+        "Checking 11 to 14 players play per team in each fixture...\n"
+        "Note:\n"
+        "- 2019/20: 5 subs allowed after Covid-19 lockdown (accounted for in checks)\n"
+        "- From 2020/21: Concussion subs allowed (may cause false errors)\n"
     )
     n_error = 0
 
@@ -186,10 +153,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            result = get_result_for_fixture(fixture)
+            result = fixture.result
 
             if result:
-                result = result[0]
                 home_scores = (
                     session.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
@@ -216,7 +182,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for home team.".format(
-                            fixture_string(fixture, result), len(home_scores)
+                            result, len(home_scores)
                         )
                     )
 
@@ -226,7 +192,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                     n_error += 1
                     print(
                         "{}: {} players with minutes > 0 for away team.".format(
-                            fixture_string(fixture, result), len(away_scores)
+                            result, len(away_scores)
                         )
                     )
 
@@ -249,10 +215,9 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            result = get_result_for_fixture(fixture)
+            result = fixture.result
 
             if result:
-                result = result[0]
                 home_scores = (
                     session.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
@@ -279,7 +244,7 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                         "{}: Player scores sum to {} but {} goals in result "
                         "for home team"
                     ).format(
-                        fixture_string(fixture, result),
+                        result,
                         home_goals,
                         result.home_score,
                     )
@@ -291,7 +256,7 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                         "{}: Player scores sum to {} but {} goals in result "
                         "for away team"
                     ).format(
-                        fixture_string(fixture, result),
+                        result,
                         away_goals,
                         result.away_score,
                     )
@@ -319,10 +284,8 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            result = get_result_for_fixture(fixture)
-
+            result = fixture.result
             if result:
-                result = result[0]
                 home_scores = (
                     session.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
@@ -344,7 +307,7 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
                         "{}: Player assists sum to {} but {} goals in result "
                         "for home team"
                     ).format(
-                        fixture_string(fixture, result),
+                        result,
                         home_assists,
                         result.home_score,
                     )
@@ -356,7 +319,7 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
                         "{}: Player assists sum to {} but {} goals in result "
                         "for away team"
                     ).format(
-                        fixture_string(fixture, result),
+                        result,
                         away_assists,
                         result.away_score,
                     )
@@ -384,10 +347,8 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
 
         for fixture in fixtures:
-            result = get_result_for_fixture(fixture)
-
+            result = fixture.result
             if result:
-                result = result[0]
                 home_scores = (
                     session.query(PlayerScore)
                     .filter_by(
@@ -411,7 +372,7 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
                     n_error += 1
                     msg = "{}: Player conceded {} but {} goals in result for home team"
                     msg = msg.format(
-                        fixture_string(fixture, result),
+                        result,
                         home_conceded,
                         result.away_score,
                     )
@@ -421,7 +382,7 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
                     n_error += 1
                     msg = "{}: Player conceded {} but {} goals in result for away team"
                     msg = msg.format(
-                        fixture_string(fixture, result),
+                        result,
                         away_conceded,
                         result.home_score,
                     )

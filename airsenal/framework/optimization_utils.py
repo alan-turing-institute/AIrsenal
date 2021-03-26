@@ -114,7 +114,7 @@ def get_starting_squad(fpl_team_id=None):
     # chip is activated
     transactions = (
         session.query(Transaction)
-        .order_by(Transaction.id)
+        .order_by(Transaction.gameweek, Transaction.id)
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)
         .all()
