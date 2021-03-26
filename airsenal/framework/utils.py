@@ -9,7 +9,7 @@ from typing import TypeVar
 import dateparser
 import re
 from pickle import loads, dumps
-from sqlalchemy import or_, case, func, desc
+from sqlalchemy import or_, case, desc
 
 from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -34,10 +34,12 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     generally be 38, but may be different in the case of major disruptino (e.g.
     Covid-19)
     """
-    max_gw_fixture = dbsession.query(Fixture)\
-                              .filter_by(season=season)\
-                              .order_by(Fixture.gameweek.desc())\
-                              .first()
+    max_gw_fixture = (
+        dbsession.query(Fixture)
+        .filter_by(season=season)
+        .order_by(Fixture.gameweek.desc())
+        .first()
+    )
 
     if max_gw_fixture is None:
         # TODO Tests fail without this as tests don't populate fixture table in db
@@ -113,6 +115,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
+
 
 def get_previous_season(season):
     """
