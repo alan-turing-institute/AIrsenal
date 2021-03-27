@@ -22,6 +22,7 @@ jobs:
       python: 3.9
       install:
         - pip3 install --upgrade pip
+        - pip3 install numpy Cython
         - pip3 install .
 
     - name: "Python 3.7.4 on macOS"
