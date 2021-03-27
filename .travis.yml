@@ -44,7 +44,7 @@ jobs:
         - conda activate test_env
         - conda install libpython m2w64-toolchain -c msys2
         - conda install numpy cython -c conda-forge
-        - conda install pystan -c conda-forge
+        - conda install pystan=2.19.1.1 -c conda-forge
       install:
         - python -m pip install --upgrade pip
         - python -m pip install .
