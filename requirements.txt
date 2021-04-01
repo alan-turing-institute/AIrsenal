@@ -10,7 +10,7 @@ scipy
 pip
 pystan~=2.19.1.1
 pytest
-bpl==0.1.1
+bpl @ git+https://github.com/anguswilliams91/bpl@5c5962c#egg=bpl
 flask
 flask_cors
 flask_session
