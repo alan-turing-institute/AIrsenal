@@ -238,19 +238,27 @@ def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
     if the price increased in that time, we only get half the profit.
     if gameweek is None, get price we could sell the player for now.
     """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+    if fpl_team_id:
+        fetcher = FPLDataFetcher(fpl_team_id) # create new fetcher specific to team id
+    else:
+        fpl_team_id = fetcher.FPL_TEAM_ID #use saved fetcher with default team id.
+    
     transactions = session.query(Transaction)
     transactions = transactions.filter_by(fpl_team_id=fpl_team_id)
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
 
+    history =fetcher.get_fpl_team_history_data()
+    starting_gw_adj = history['current'][0]['event'] - 1 #if you make a squad after then first gameweek then in transactions 'gameweek 1' is your starting gameweek
+
     gw_bought = None
     for t in transactions:
-        if gameweek and t.gameweek > gameweek:
+        if t.fpl_team_id != fpl_team_id: raise Exception(f'Transactions team id is {t.fpl_team_id} but cached data is for team id {fpl_team_id}')
+        trans_gameweek = t.gameweek + starting_gw_adj
+        if gameweek and trans_gameweek > gameweek:
             break
         if t.bought_or_sold == 1:
-            gw_bought = t.gameweek
+            gw_bought = trans_gameweek
 
     if not gw_bought:
         print(
@@ -260,7 +268,6 @@ def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
         )
     # to query the API we need to use fpl_api_id for the player rather than player_id
     player_api_id = get_player(player_id).fpl_api_id
-
     pdata_bought = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
     # will be a list - can be more than one match in a gw - just use the 1st.
     price_bought = pdata_bought[0]["value"]
