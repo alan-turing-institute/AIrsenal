@@ -672,7 +672,7 @@ def make_new_squad(
     return best_squad
 
 
-def fill_suggestion_table(baseline_score, best_strat, season):
+def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
     """
     Fill the optimized strategy into the table
     """
@@ -689,6 +689,7 @@ def fill_suggestion_table(baseline_score, best_strat, season):
                 ts.points_gain = points_gain
                 ts.timestamp = timestamp
                 ts.season = season
+                ts.fpl_team_id = fpl_team_id
                 session.add(ts)
     session.commit()
 

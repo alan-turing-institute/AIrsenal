@@ -231,6 +231,7 @@ class TransferSuggestion(Base):
     points_gain = Column(Float, nullable=False)
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
     season = Column(String(100), nullable=False)
+    fpl_team_id = Column(Integer, nullable=False) # to identity team to apply transfers.
 
 
 class FifaTeamRating(Base):
