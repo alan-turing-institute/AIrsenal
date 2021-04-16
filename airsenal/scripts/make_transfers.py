@@ -4,10 +4,11 @@ Script to apply recommended transfers from the current transfer suggestion table
 Ref:
 https://github.com/sk82jack/PSFPL/blob/master/PSFPL/Public/Invoke-FplTransfer.ps1
 https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
+https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 import argparse
 from prettytable import PrettyTable
-import requests, json
+import requests, json, getpass
 
 from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.utils import session, get_player_name, get_sell_price_for_player, get_bank, get_player
@@ -92,7 +93,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     return([players_out, players_in], fpl_team_id, current_gw)
     
-def build_transfer_request(priced_transfers, current_gw, fetcher):
+def build_transfer_payload(priced_transfers, current_gw, fetcher):
 
     to_dict = lambda t: {
                         "element_out": get_player(t[0][0]).fpl_api_id,
@@ -103,7 +104,7 @@ def build_transfer_request(priced_transfers, current_gw, fetcher):
 
     transfer_list = [to_dict(transfer) for transfer in priced_transfers]
 
-    transfer_req = { 
+    transfer_payload = { 
 	    "confirmed": False,
 	    "entry": fetcher.FPL_TEAM_ID, #not sure what the entry should refer to?
 	    "event": current_gw,
@@ -112,32 +113,55 @@ def build_transfer_request(priced_transfers, current_gw, fetcher):
 	    "freehit": False
     }
 
-    print("DICT", transfer_req)
+    print(transfer_payload)
 
-    return(transfer_req) 
+    return(transfer_payload) 
 
-def post_transfers(transfer_req, fetcher):
+def login(session, fetcher):
 
-
-    fpl_team_id = fetcher.FPL_TEAM_ID
+    if (not fetcher.FPL_LOGIN) or (not fetcher.FPL_PASSWORD) or (fetcher.FPL_LOGIN == "MISSING_ID") or (fetcher.FPL_PASSWORD == "MISSING_ID"):
+        fetcher.FPL_LOGIN = input("Please enter FPL login: ")
+        fetcher.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
     
+    
+    print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
+    login_url = "https://users.premierleague.com/accounts/login/"
+    headers = {
+        "login": fetcher.FPL_LOGIN,
+        "password": fetcher.FPL_PASSWORD,
+        "app": "plfpl-web",
+        "redirect_uri": "https://fantasy.premierleague.com/a/login",
+    }
+    session.post(login_url, data=headers)
+    return session
 
-    url = "https://fantasy.premierleague.com/a/squad/transfers"
-    print(url)
+def post_transfers(transfer_payload, fetcher):
 
-    r = requests.post(url, data=transfer_req)
+    session = requests.Session()
 
-    print(r.status_code)
-    print(r.text)
-    if not r.status_code == 200:
-        print(
-            "Unable to post FPL transfers for team_id {}".format(
-                fpl_team_id
-            )
-        )
-        return None
-    print(json.loads(r.content.decode("utf-8")))
+    session = login(session, fetcher)
+    
+    #code below adapted from from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
+    headers = {
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": "https://fantasy.premierleague.com/a/squad/transfers"
+    }
+    
+    transfer_url= "https://fantasy.premierleague.com/api/transfers"
+    resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
+    print(resp.status_code)
+    print(resp.text)
+    if "non_form_errors" in resp:
+            raise Exception(post_response["non_form_errors"])
 
+    # if there are no errors it means that the transfer is valid, I think.
+    transfer_payload["confirmed"]=True
+
+    resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
+    print(resp.status_code)
+    print(resp.text)
+    
 
 def main():
 
@@ -152,7 +176,7 @@ def main():
     
 
     if check_proceed():
-        transfer_req = build_transfer_request(priced_transfers, current_gw, fetcher)
+        transfer_req = build_transfer_payload(priced_transfers, current_gw, fetcher)
         post_transfers(transfer_req, fetcher)
     
 
