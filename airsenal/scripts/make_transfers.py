@@ -1,5 +1,5 @@
 """
-Script to apply recommended transfers 
+Script to apply recommended transfers from the current transfer suggestion table.
 
 Ref:
 https://github.com/sk82jack/PSFPL/blob/master/PSFPL/Public/Invoke-FplTransfer.ps1
@@ -50,40 +50,49 @@ def check_proceed():
     else: 
         return False
 
-def price_transfers(transfer_player_ids, fetcher, current_gw):
+def deduct_transfer_price(pre_bank, priced_transfers):
 
-    team_id = fetcher.FPL_TEAM_ID
-    header = f"\nTransfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
+    gain = [transfer[0][1] - transfer[1][1] for transfer in priced_transfers]
+    return(pre_bank + sum(gain))
+
+
+def print_output(team_id, current_gw, priced_transfers, pre_bank, post_bank, points_cost='TODO'):
+
+    print("\n")
+    header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
     line = "=" * len(header)
     print(f"{header} \n {line} \n")
 
-    bank = get_bank(fpl_team_id=team_id)
-    print(f"Bank Balance Before transfers is: £{bank/10}")
+    print(f"Bank Balance Before transfers is: £{pre_bank/10}")
+
     t = PrettyTable(['Status','Name','Price'])
-
-    transfers = (list(zip(*transfer_player_ids))) #[(out,in),(out,in)]
-    
-    #[[[out, price], [in, price]],[[out,price],[in,price]]]
-    priced_transfers = [[[t[0],get_sell_price_for_player(t[0], gameweek=current_gw, fpl_team_id=team_id)],
-                        [t[1], fetcher.get_player_summary_data()[t[1]]["now_cost"]]]
-                        for t in transfers]
-
     for transfer in priced_transfers:
         t.add_row(['OUT',get_player_name(transfer[0][0]),f"£{transfer[0][1]/10}"])
         t.add_row(['IN',get_player_name(transfer[1][0]),f"£{transfer[1][1]/10}"])
 
     print(t)
 
-    print(f"Bank Balance After Transfers is: TODO")
-    print(f"Points Cost of Transfers: TODO")
-    return(price_transfers)
+    print(f"Bank Balance After transfers is: £{post_bank/10}")
+    print(f"Points Cost of Transfers: {points_cost}")
+    print("\n")
+
+
+def price_transfers(transfer_player_ids, fetcher, current_gw):
+
+    transfers = (list(zip(*transfer_player_ids))) #[(out,in),(out,in)]
+    
+    #[[[out, price], [in, price]],[[out,price],[in,price]]]
+    priced_transfers = [[[t[0],get_sell_price_for_player(t[0], gameweek=current_gw, fpl_team_id=fetcher.FPL_TEAM_ID)],
+                        [t[1], fetcher.get_player_summary_data()[t[1]]["now_cost"]]]
+                        for t in transfers]
+
+    return(priced_transfers)
 
 
 def get_gw_transfer_suggestions(fpl_team_id=None):
     
     ## gets the transfer suggestions for the latest optimization run, regardless of fpl_team_id
     rows = get_transfer_suggestions(session, TransferSuggestion)
-    print(rows[0])
     if fpl_team_id and fpl_team_id != rows[0].fpl_team_id: 
         raise Exception(f'Team ID passed is {fpl_team_id}, but transfer suggestions are for team ID {rows[0].fpl_team_id}') 
     else:
@@ -93,7 +102,6 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     for row in rows:
         if row.gameweek == current_gw:
-            print(row.in_or_out)
             if row.in_or_out < 0: 
                 players_out.append(row.player_id)
             else:
@@ -107,14 +115,23 @@ def apply_transfers(player_ids):
     raise NotImplementedError
 
 
-if __name__ == "__main__":
-    
+def main():
+
     transfer_player_ids, fpl_team_id, current_gw = get_gw_transfer_suggestions()
     fetcher = FPLDataFetcher(fpl_team_id)
 
-    price_transfers(transfer_player_ids, fetcher, current_gw)
-   
+    pre_transfer_bank = get_bank(fpl_team_id=fpl_team_id)
+    priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
+    post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
+
+    print_output(fpl_team_id,current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank)
+    
 
     if check_proceed():
         apply_transfers(transfer_player_ids)
+    
+
+if __name__ == "__main__":
+    
+    main()
         
