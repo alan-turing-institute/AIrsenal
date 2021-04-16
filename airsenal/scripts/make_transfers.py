@@ -11,6 +11,7 @@ from prettytable import PrettyTable
 import requests, json, getpass
 
 from airsenal.framework.schema import TransferSuggestion
+from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import session, get_player_name, get_sell_price_for_player, get_bank, get_player
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions, build_strategy_string
 
@@ -60,14 +61,20 @@ def print_output(team_id, current_gw, priced_transfers, pre_bank, post_bank, poi
     print(f"Points Cost of Transfers: {points_cost}")
     print("\n")
 
+def get_sell_price(team_id, player_id):
+
+    squad = get_starting_squad(team_id)
+    for p in squad.players: 
+        if p.player_id == player_id:
+            return(squad.get_sell_price_for_player(p))
 
 def price_transfers(transfer_player_ids, fetcher, current_gw):
 
     transfers = (list(zip(*transfer_player_ids))) #[(out,in),(out,in)]
     
     #[[[out, price], [in, price]],[[out,price],[in,price]]]
-    priced_transfers = [[[t[0],get_sell_price_for_player(t[0], gameweek=current_gw, fpl_team_id=fetcher.FPL_TEAM_ID)],
-                        [t[1], fetcher.get_player_summary_data()[t[1]]["now_cost"]]]
+    priced_transfers = [[[t[0],get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+                        [t[1], fetcher.get_player_summary_data()[get_player(t[1]).fpl_api_id]["now_cost"]]]
                         for t in transfers]
 
     return(priced_transfers)
@@ -124,7 +131,7 @@ def login(session, fetcher):
         fetcher.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
     
     
-    print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
+    #print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
     login_url = "https://users.premierleague.com/accounts/login/"
     headers = {
         "login": fetcher.FPL_LOGIN,
@@ -137,7 +144,7 @@ def login(session, fetcher):
 
 def post_transfers(transfer_payload, fetcher):
 
-    session = requests.Session()
+    session = requests.session()
 
     session = login(session, fetcher)
     
@@ -147,17 +154,17 @@ def post_transfers(transfer_payload, fetcher):
         "X-Requested-With": "XMLHttpRequest",
         "Referer": "https://fantasy.premierleague.com/a/squad/transfers"
     }
-    
-    transfer_url= "https://fantasy.premierleague.com/api/transfers"
+
+    transfer_url= "https://fantasy.premierleague.com/api/transfers/"
     resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
-    print(resp.status_code)
-    print(resp.text)
     if "non_form_errors" in resp:
             raise Exception(post_response["non_form_errors"])
 
     # if there are no errors it means that the transfer is valid, I think.
-    transfer_payload["confirmed"]=True
 
+    print("here")
+    
+    transfer_payload["confirmed"]=True
     resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
     print(resp.status_code)
     print(resp.text)
