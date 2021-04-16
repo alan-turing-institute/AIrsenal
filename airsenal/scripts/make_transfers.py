@@ -7,34 +7,17 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 """
 import argparse
 from prettytable import PrettyTable
+import requests, json
 
 from airsenal.framework.schema import TransferSuggestion
-from airsenal.framework.utils import session, get_player_name, get_sell_price_for_player, get_bank
+from airsenal.framework.utils import session, get_player_name, get_sell_price_for_player, get_bank, get_player
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions, build_strategy_string
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
-"""
-{
-	"confirmed": false,
-	"entry": <entry>,
-	"event": <next_gameweek>,
-	"transfers": [
-		{
-		"element_in": <player_id>,
-		"element_out": <player_id>,
-		"purchase_price": <element_in_price>,
-		"selling_price": <element_out_selling_price>
-		}
-	],
-	"wildcard": false,
-	"freehit": false
-}
-"""
 
 """
 TODO:
-- print bank balance
 - confirm points loss
 - From the scripts linked to above send a request to the server. 
 - implement token use
@@ -109,10 +92,51 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     return([players_out, players_in], fpl_team_id, current_gw)
     
+def build_transfer_request(priced_transfers, current_gw, fetcher):
+
+    to_dict = lambda t: {
+                        "element_out": get_player(t[0][0]).fpl_api_id,
+                        "selling_price": t[0][1],
+                        "element_in": get_player(t[1][0]).fpl_api_id,
+                        "purchase_price": t[1][1]
+    }
+
+    transfer_list = [to_dict(transfer) for transfer in priced_transfers]
+
+    transfer_req = { 
+	    "confirmed": False,
+	    "entry": fetcher.FPL_TEAM_ID, #not sure what the entry should refer to?
+	    "event": current_gw,
+	    "transfers": transfer_list,
+	    "wildcard": False,
+	    "freehit": False
+    }
+
+    print("DICT", transfer_req)
+
+    return(transfer_req) 
+
+def post_transfers(transfer_req, fetcher):
+
+
+    fpl_team_id = fetcher.FPL_TEAM_ID
     
-def apply_transfers(player_ids):
-    """ post api request """
-    raise NotImplementedError
+
+    url = "https://fantasy.premierleague.com/a/squad/transfers"
+    print(url)
+
+    r = requests.post(url, data=transfer_req)
+
+    print(r.status_code)
+    print(r.text)
+    if not r.status_code == 200:
+        print(
+            "Unable to post FPL transfers for team_id {}".format(
+                fpl_team_id
+            )
+        )
+        return None
+    print(json.loads(r.content.decode("utf-8")))
 
 
 def main():
@@ -128,7 +152,8 @@ def main():
     
 
     if check_proceed():
-        apply_transfers(transfer_player_ids)
+        transfer_req = build_transfer_request(priced_transfers, current_gw, fetcher)
+        post_transfers(transfer_req, fetcher)
     
 
 if __name__ == "__main__":
