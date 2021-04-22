@@ -21,7 +21,6 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 """
 TODO:
 - confirm points loss
-- From the scripts linked to above send a request to the server. 
 - implement token use
 - Check for edge-cases
 - write a test. 
@@ -97,7 +96,6 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
                 players_out.append(row.player_id)
             else:
                 players_in.append(row.player_id) 
-
     return([players_out, players_in], fpl_team_id, current_gw)
     
 def build_transfer_payload(priced_transfers, current_gw, fetcher):
@@ -156,19 +154,18 @@ def post_transfers(transfer_payload, fetcher):
     }
 
     transfer_url= "https://fantasy.premierleague.com/api/transfers/"
+    
+
     resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
     if "non_form_errors" in resp:
             raise Exception(post_response["non_form_errors"])
+    elif resp.status_code == 200:
+        print("SUCCESS....transfers made!")
+    else:
+        print("Transfers unsuccessful due to unknown error")
+        print(f"Response status code: {resp.status_code}")
+        print(f"Response text: {resp.text}")
 
-    # if there are no errors it means that the transfer is valid, I think.
-
-    print("here")
-    
-    transfer_payload["confirmed"]=True
-    resp = session.post(transfer_url, data=json.dumps(transfer_payload), headers=headers)
-    print(resp.status_code)
-    print(resp.text)
-    
 
 def main():
 
