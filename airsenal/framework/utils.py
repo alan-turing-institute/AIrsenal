@@ -248,17 +248,13 @@ def get_sell_price_for_player(player_id, gameweek=None, fpl_team_id=None):
     transactions = transactions.filter_by(player_id=player_id)
     transactions = transactions.order_by(Transaction.gameweek).all()
 
-    history =fetcher.get_fpl_team_history_data()
-    starting_gw_adj = history['current'][0]['event'] - 1 #if you make a squad after then first gameweek then in transactions 'gameweek 1' is your starting gameweek
-
     gw_bought = None
     for t in transactions:
         if t.fpl_team_id != fpl_team_id: raise Exception(f'Transactions team id is {t.fpl_team_id} but cached data is for team id {fpl_team_id}')
-        trans_gameweek = t.gameweek + starting_gw_adj
-        if gameweek and trans_gameweek > gameweek:
+        if gameweek and t.gameweek > gameweek:
             break
         if t.bought_or_sold == 1:
-            gw_bought = trans_gameweek
+            gw_bought = t.gameweek
 
     if not gw_bought:
         print(

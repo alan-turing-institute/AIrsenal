@@ -108,7 +108,7 @@ def fill_initial_squad(
         else:
             price = first_gw_data[0]["value"]
 
-        add_transaction(pid, 1, 1, price, season, tag, free_hit, fpl_team_id, dbsession)
+        add_transaction(pid, starting_gw, 1, price, season, tag, free_hit, fpl_team_id, dbsession)
 
 
 def update_squad(
