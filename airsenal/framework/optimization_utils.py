@@ -678,6 +678,7 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
     """
     timestamp = str(datetime.now())
     best_score = best_strat["total_score"]
+
     points_gain = best_score - baseline_score
     for in_or_out in [("players_out", -1), ("players_in", 1)]:
         for gameweek, players in best_strat[in_or_out[0]].items():
@@ -690,7 +691,7 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
                 ts.timestamp = timestamp
                 ts.season = season
                 ts.fpl_team_id = fpl_team_id
-                ts.chips_played = best_score["chips_played"]
+                ts.chip_played = best_strat['chips_played'][gameweek]
                 session.add(ts)
     session.commit()
 

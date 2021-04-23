@@ -21,20 +21,21 @@ import click
 
 """
 TODO:
+- add parser
 - confirm points loss
 - implement token use
 - Check for edge-cases
 - write a test. 
 """
 
-@click.command("airsenal_make_transfers")
+#@click.command("airsenal_make_transfers")
 
-@click.option(
-    "--fpl_team_id",
-    type=int,
-    required=False,
-    help="fpl team id to make suggested transfers for",
-)
+#@click.option(
+#    "--fpl_team_id",
+#    type=int,
+ #   help="fpl team id to make suggested transfers for",
+##    required=False,
+#)
 
 def check_proceed():
     proceed = input("Apply Transfers? There is no turning back! (yes/no)")
@@ -67,7 +68,7 @@ def print_output(team_id, current_gw, priced_transfers, pre_bank, post_bank, poi
     print(t)
 
     print(f"Bank Balance After transfers is: £{post_bank/10}")
-    print(f"Points Cost of Transfers: {points_cost}")
+    #print(f"Points Cost of Transfers: {points_cost}")
     print("\n")
 
 def get_sell_price(team_id, player_id):
@@ -76,6 +77,7 @@ def get_sell_price(team_id, player_id):
     for p in squad.players: 
         if p.player_id == player_id:
             return(squad.get_sell_price_for_player(p))
+
 
 def price_transfers(transfer_player_ids, fetcher, current_gw):
 
@@ -97,7 +99,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
         raise Exception(f'Team ID passed is {fpl_team_id}, but transfer suggestions are for team ID {rows[0].fpl_team_id}. We recommend re-running optimization.') 
     else:
         fpl_team_id = rows[0].fpl_team_id
-    current_gw = rows[0].gameweek
+    current_gw, chip = rows[0].gameweek, rows[0].chip_played
     players_out, players_in = [],[]
 
     for row in rows:
@@ -106,9 +108,9 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
                 players_out.append(row.player_id)
             else:
                 players_in.append(row.player_id) 
-    return([players_out, players_in], fpl_team_id, current_gw)
+    return([players_out, players_in], fpl_team_id, current_gw, chip)
     
-def build_transfer_payload(priced_transfers, current_gw, fetcher):
+def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
     to_dict = lambda t: {
                         "element_out": get_player(t[0][0]).fpl_api_id,
@@ -127,6 +129,7 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher):
 	    "wildcard": False,
 	    "freehit": False
     }
+    if chip_played: transfer_payload[chip_played.replace('_','')] = True
 
     print(transfer_payload)
 
@@ -179,9 +182,10 @@ def post_transfers(transfer_payload, fetcher):
 
 def main(fpl_team_id = None):
 
-    transfer_player_ids, team_id, current_gw = get_gw_transfer_suggestions(fpl_team_id)
+    transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(fpl_team_id)
 
     fetcher = FPLDataFetcher(team_id)
+    
 
     pre_transfer_bank = get_bank(fpl_team_id=team_id)
     priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
@@ -191,7 +195,7 @@ def main(fpl_team_id = None):
     
 
     if check_proceed():
-        transfer_req = build_transfer_payload(priced_transfers, current_gw, fetcher)
+        transfer_req = build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played)
         post_transfers(transfer_req, fetcher)
     
 
