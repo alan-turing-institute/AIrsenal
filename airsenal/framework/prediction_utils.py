@@ -17,7 +17,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_fixtures_for_player,
     get_recent_minutes_for_player,
-    get_return_gameweek_for_player,
     get_max_matches_per_player,
     get_player,
     get_player_from_api_id,
@@ -71,7 +70,7 @@ def get_player_history_df(
     for counter, player in enumerate(players):
         print(
             "Filling history dataframe for {}: {}/{} done".format(
-                player.name, counter, len(players)
+                player, counter, len(players)
             )
         )
         results = player.scores
@@ -87,11 +86,7 @@ def get_player_history_df(
 
             match_id = row.result_id
             if not match_id:
-                print(
-                    " Couldn't find result for {} {} {}".format(
-                        row.fixture.home_team, row.fixture.away_team, row.fixture.date
-                    )
-                )
+                print(" Couldn't find result for {}".format(row.fixture))
                 continue
             minutes = row.minutes
             goals = row.goals
@@ -272,7 +267,7 @@ def calc_predicted_points_for_player(
     df_cards,
     season,
     gw_range=None,
-    fixtures_behind=3,
+    fixtures_behind=None,
     tag="",
     dbsession=session,
 ):
@@ -284,13 +279,19 @@ def calc_predicted_points_for_player(
     if isinstance(player, int):
         player = get_player(player, dbsession=dbsession)
 
-    message = "Points prediction for player {}".format(player.name)
+    message = "Points prediction for player {}".format(player)
 
     if not gw_range:
         # by default, go for next three matches
         gw_range = list(
             range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38))
         )  # don't go beyond gw 38!
+
+    if fixtures_behind is None:
+        # default to getting recent minutes from the same number of matches we're
+        # predicting for
+        fixtures_behind = len(gw_range)
+
     team = player.team(
         season, gw_range[0]
     )  # assume player stays with same team from first gameweek in range
@@ -335,7 +336,7 @@ def calc_predicted_points_for_player(
             # calculate appearance points, defending points, attacking points.
             points = 0.0
 
-        elif is_injured_or_suspended(player.fpl_api_id, gameweek, season, dbsession):
+        elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
 
@@ -456,27 +457,6 @@ def get_all_fitted_player_models(player_model, season, gameweek, dbsession=sessi
             player_model, pos, season, gameweek, dbsession
         )
     return df_positions
-
-
-def is_injured_or_suspended(player_api_id, gameweek, season, dbsession=session):
-    """
-    Query the API for 'chance of playing next round', and if this
-    is <=50%, see if we can find a return date.
-    """
-    if season != CURRENT_SEASON:  # no API info for past seasons
-        return False
-    # check if a player is injured or suspended
-    pdata = fetcher.get_player_summary_data()[player_api_id]
-    if (
-        "chance_of_playing_next_round" in pdata.keys()
-        and pdata["chance_of_playing_next_round"] is not None
-        and pdata["chance_of_playing_next_round"] <= 50
-    ):
-        # check if we have a return date
-        return_gameweek = get_return_gameweek_for_player(player_api_id, dbsession)
-        if return_gameweek is None or return_gameweek > gameweek:
-            return True
-    return False
 
 
 def fill_ep(csv_filename, dbsession=session):

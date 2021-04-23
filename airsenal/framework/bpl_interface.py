@@ -70,14 +70,26 @@ def get_ratings_df(season, dbsession):
     return df
 
 
-def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS):
+def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS, n_attempts=3):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
     model_team = bpl.BPLModel(df, X=df_X)
 
-    model_team.fit()
+    for i in range(n_attempts):
+        print(f"attempt {i + 1} of {n_attempts}...", end=" ", flush=True)
+        try:
+            model_team.fit()
+            print("SUCCESS!")
+            break
+        except RuntimeError:
+            print("FAILED.")
+            if i + 1 == n_attempts:
+                raise
+            else:
+                continue
+
     # check if each team is known to the model, and if not, add it using FIFA rankings
     for team in teams:
         if team not in model_team.team_indices.keys():

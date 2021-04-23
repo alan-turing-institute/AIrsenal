@@ -6,18 +6,25 @@ env:
 
 jobs:
   include:
-    - name: "Python 3.7.4 on Xenial Linux"
-      python: 3.7           # this works for Linux but is ignored on macOS or Windows
+    - name: "Python 3.7"
+      python: 3.7
       install:
         - pip3 install --upgrade pip
         - pip3 install .
     
-    - name: "Python 3.6 on Xenial Linux"
-      python: 3.6           # this works for Linux but is ignored on macOS or Windows
+    - name: "Python 3.8"
+      python: 3.8
       install:
         - pip3 install --upgrade pip
         - pip3 install .
-    
+
+    - name: "Python 3.9"
+      python: 3.9
+      install:
+        - pip3 install --upgrade pip
+        - pip3 install numpy Cython
+        - pip3 install .
+
     - name: "Python 3.7.4 on macOS"
       os: osx
       osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
@@ -44,7 +51,7 @@ jobs:
         - conda activate test_env
         - conda install libpython m2w64-toolchain -c msys2
         - conda install numpy cython -c conda-forge
-        - conda install pystan -c conda-forge
+        - conda install pystan=2.19.1.1 -c conda-forge
       install:
         - python -m pip install --upgrade pip
         - python -m pip install .
