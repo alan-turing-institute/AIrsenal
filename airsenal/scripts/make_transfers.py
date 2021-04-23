@@ -17,6 +17,7 @@ from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions, 
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
+import click
 
 """
 TODO:
@@ -25,6 +26,15 @@ TODO:
 - Check for edge-cases
 - write a test. 
 """
+
+@click.command("airsenal_make_transfers")
+
+@click.option(
+    "--fpl_team_id",
+    type=int,
+    required=False,
+    help="fpl team id to make suggested transfers for",
+)
 
 def check_proceed():
     proceed = input("Apply Transfers? There is no turning back! (yes/no)")
@@ -84,7 +94,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
     ## gets the transfer suggestions for the latest optimization run, regardless of fpl_team_id
     rows = get_transfer_suggestions(session, TransferSuggestion)
     if fpl_team_id and fpl_team_id != rows[0].fpl_team_id: 
-        raise Exception(f'Team ID passed is {fpl_team_id}, but transfer suggestions are for team ID {rows[0].fpl_team_id}') 
+        raise Exception(f'Team ID passed is {fpl_team_id}, but transfer suggestions are for team ID {rows[0].fpl_team_id}. We recommend re-running optimization.') 
     else:
         fpl_team_id = rows[0].fpl_team_id
     current_gw = rows[0].gameweek
@@ -167,16 +177,17 @@ def post_transfers(transfer_payload, fetcher):
         print(f"Response text: {resp.text}")
 
 
-def main():
+def main(fpl_team_id = None):
 
-    transfer_player_ids, fpl_team_id, current_gw = get_gw_transfer_suggestions()
-    fetcher = FPLDataFetcher(fpl_team_id)
+    transfer_player_ids, team_id, current_gw = get_gw_transfer_suggestions(fpl_team_id)
 
-    pre_transfer_bank = get_bank(fpl_team_id=fpl_team_id)
+    fetcher = FPLDataFetcher(team_id)
+
+    pre_transfer_bank = get_bank(fpl_team_id=team_id)
     priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
     post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
 
-    print_output(fpl_team_id,current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank)
+    print_output(team_id,current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank)
     
 
     if check_proceed():
