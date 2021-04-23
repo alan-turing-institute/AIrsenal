@@ -124,7 +124,7 @@ def run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id):
     ).format(num_thread, weeks_ahead, num_free_transfers, fpl_team_id)
     os.system(cmd)
 
-def make_transfers(fpl_team_id = None)
+def make_transfers(fpl_team_id = None):
     """
     Post transfers from transfer suggestion table.
 
