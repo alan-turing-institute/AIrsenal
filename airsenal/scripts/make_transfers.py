@@ -21,10 +21,8 @@ import click
 
 """
 TODO:
-- add parser
+- add arg parser to pass fpl_team_id
 - confirm points loss
-- implement token use
-- Check for edge-cases
 - write a test. 
 """
 
