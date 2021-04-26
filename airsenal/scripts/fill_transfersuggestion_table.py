@@ -21,12 +21,12 @@ import shutil
 import time
 import json
 import sys
-
+import warnings
 import cProfile
 
 
 from multiprocessing import Process
-from tqdm import tqdm
+from tqdm import tqdm, TqdmWarning
 import argparse
 
 from airsenal.framework.multiprocessing_utils import CustomQueue
@@ -673,18 +673,19 @@ def main():
             "same input gameweeks and season you specified here.",
         )
         sys.exit(1)
-
-    run_optimization(
-        gameweeks,
-        tag,
-        season,
-        fpl_team_id,
-        chip_gameweeks,
-        num_free_transfers,
-        max_total_hit,
-        allow_unused_transfers,
-        2,
-        num_iterations,
-        num_thread,
-        profile,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", TqdmWarning)
+        run_optimization(
+            gameweeks,
+            tag,
+            season,
+            fpl_team_id,
+            chip_gameweeks,
+            num_free_transfers,
+            max_total_hit,
+            allow_unused_transfers,
+            2,
+            num_iterations,
+            num_thread,
+            profile,
+        )
