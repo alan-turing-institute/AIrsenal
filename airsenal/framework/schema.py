@@ -312,6 +312,10 @@ class TransferSuggestion(Base):
     points_gain = Column(Float, nullable=False)
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
     season = Column(String(100), nullable=False)
+    fpl_team_id = Column(
+        Integer, nullable=False
+    )  # to identify team to apply transfers.
+    chip_played = Column(String(100), nullable=True)
 
     def __str__(self):
         sugg_str = f"{self.season} GW{self.gameweek}: "

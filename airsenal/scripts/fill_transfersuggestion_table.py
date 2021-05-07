@@ -494,10 +494,11 @@ def run_optimization(
     best_strategy = find_best_strat_from_json(tag)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
-    fill_suggestion_table(baseline_score, best_strategy, season)
+    fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")
+    print("Strategy for Team ID: {}".format(fpl_team_id))
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
