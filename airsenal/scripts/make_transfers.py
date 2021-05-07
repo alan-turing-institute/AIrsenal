@@ -132,7 +132,7 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
     transfer_payload = {
         "confirmed": False,
-        "entry": fetcher.FPL_TEAM_ID,  # not sure what the entry should refer to?
+        "entry": fetcher.FPL_TEAM_ID,
         "event": current_gw,
         "transfers": transfer_list,
         "wildcard": False,
