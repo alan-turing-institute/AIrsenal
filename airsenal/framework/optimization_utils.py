@@ -691,7 +691,7 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
                 ts.timestamp = timestamp
                 ts.season = season
                 ts.fpl_team_id = fpl_team_id
-                ts.chip_played = best_strat['chips_played'][gameweek]
+                ts.chip_played = best_strat["chips_played"][gameweek]
                 session.add(ts)
     session.commit()
 

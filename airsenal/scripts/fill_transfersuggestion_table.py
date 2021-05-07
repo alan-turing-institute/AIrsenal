@@ -498,7 +498,7 @@ def run_optimization(
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")
-    print("Strategy for Team ID: {}". format(fpl_team_id))
+    print("Strategy for Team ID: {}".format(fpl_team_id))
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)

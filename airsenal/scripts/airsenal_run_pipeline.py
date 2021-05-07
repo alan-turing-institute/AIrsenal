@@ -76,7 +76,6 @@ def run_pipeline(
         click.echo("Optimization complete..")
     click.echo("Applying suggested transfers...")
     make_transfers(fpl_team_id)
-    
 
 
 def clean_database():
@@ -147,16 +146,15 @@ def run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id):
     ).format(num_thread, weeks_ahead, num_free_transfers, fpl_team_id)
     os.system(cmd)
 
-def make_transfers(fpl_team_id = None):
+
+def make_transfers(fpl_team_id=None):
     """
     Post transfers from transfer suggestion table.
 
     Team id not necessary as will be taken from transfer suggestion table.
     """
 
-    cmd = (
-        "airsenal_make_transfers --fpl_team_id {}"
-    ).format(fpl_team_id)
+    cmd = ("airsenal_make_transfers --fpl_team_id {}").format(fpl_team_id)
     os.system(cmd)
 
 
