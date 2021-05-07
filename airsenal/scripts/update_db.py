@@ -12,16 +12,15 @@ from airsenal.framework.utils import (
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     NEXT_GAMEWEEK,
-    get_current_players,
-    get_players_for_gameweek,
     list_players,
     fetcher,
     get_player,
 )
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
+from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
-from airsenal.framework.transaction_utils import update_squad
+from airsenal.framework.transaction_utils import update_squad, count_transactions
 from airsenal.framework.schema import Player, session_scope
 
 
@@ -32,14 +31,12 @@ def update_transactions(season, fpl_team_id, dbsession):
 
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
-        current_gameweek = NEXT_GAMEWEEK - 1
-        db_players = sorted(
-            get_current_players(
-                season=season, fpl_team_id=fpl_team_id, dbsession=dbsession
-            )
-        )
-        api_players = sorted(get_players_for_gameweek(current_gameweek, fpl_team_id))
-        if db_players != api_players:
+        n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
+        n_transactions_db = count_transactions(season, fpl_team_id, dbsession)
+        # DB has 2 rows per transfer, and rows for the 15 players selected in the
+        # initial squad which are not returned by the transfers API
+        n_transfers_db = (n_transactions_db - 15) / 2
+        if n_transfers_db != n_transfers_api:
             update_squad(
                 season=season,
                 fpl_team_id=fpl_team_id,
@@ -107,6 +104,7 @@ def update_players(season, dbsession):
             "Something strange has happened - more players in DB than API"
         )
     else:
+        print("Updating player table...")
         # find the new player(s) from the API
         api_ids_from_db = [p.fpl_api_id for p in players_from_db]
         new_players = [p for p in players_from_api if p not in api_ids_from_db]
@@ -114,13 +112,16 @@ def update_players(season, dbsession):
             first_name = player_data_from_api[player_api_id]["first_name"]
             second_name = player_data_from_api[player_api_id]["second_name"]
             name = "{} {}".format(first_name, second_name)
-            print("Adding player {}".format(name))
             # check whether we alreeady have this player in the database -
             # if yes update that player's data, if no create a new player
             p = get_player(name, dbsession=dbsession)
             if p is None:
+                print("Adding player {}".format(name))
                 p = Player()
                 update = False
+            elif p.fpl_api_id is None:
+                print("Updating player {}".format(name))
+                update = True
             else:
                 update = True
             p.fpl_api_id = player_api_id
@@ -145,7 +146,6 @@ def update_attributes(season, dbsession):
     fill_attributes_table_from_api(
         season=season,
         gw_start=last_in_db,
-        gw_end=NEXT_GAMEWEEK,
         dbsession=dbsession,
     )
 
@@ -182,10 +182,12 @@ def main():
         if not do_attributes and num_new_players > 0:
             print("New players added - enforcing update of attributes table")
             do_attributes = True
-
         if do_attributes:
             update_attributes(season, session)
 
+        # update fixtures (which may have been rescheduled)
+        print("Updating fixture table...")
+        fill_fixtures_from_api(season, session)
         # update results and playerscores
         update_results(season, session)
         # update our squad

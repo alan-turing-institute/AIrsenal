@@ -11,23 +11,23 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 
-def find_player_in_table(name, session):
+def find_player_in_table(name, dbsession):
     """
     see if we already have the player
     """
-    player = session.query(Player).filter_by(name=name).first()
+    player = dbsession.query(Player).filter_by(name=name).first()
     return player if player else None
 
 
-def num_players_in_table(session):
+def num_players_in_table(dbsession):
     """
     how many players already in player table
     """
-    players = session.query(Player).all()
+    players = dbsession.query(Player).all()
     return len(players)
 
 
-def fill_player_table_from_file(filename, season, session):
+def fill_player_table_from_file(filename, season, dbsession):
     """
     use json file
     """
@@ -37,7 +37,7 @@ def fill_player_table_from_file(filename, season, session):
         new_entry = False
         name = jp["name"]
         print("PLAYER {} {}".format(season, name))
-        p = find_player_in_table(name, session)
+        p = find_player_in_table(name, dbsession)
         if not p:
             n_new_players += 1
             new_entry = True
@@ -47,11 +47,11 @@ def fill_player_table_from_file(filename, season, session):
             #            )  # next id sequentially
             p.name = name
         if new_entry:
-            session.add(p)
-    session.commit()
+            dbsession.add(p)
+    dbsession.commit()
 
 
-def fill_player_table_from_api(season, session):
+def fill_player_table_from_api(season, dbsession):
     """
     use the FPL API
     """
@@ -67,8 +67,8 @@ def fill_player_table_from_api(season, session):
 
         print("PLAYER {} {}".format(season, name))
         p.name = name
-        session.add(p)
-    session.commit()
+        dbsession.add(p)
+    dbsession.commit()
 
 
 def make_player_table(seasons=[], dbsession=session):
@@ -77,7 +77,7 @@ def make_player_table(seasons=[], dbsession=session):
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
     if CURRENT_SEASON in seasons:
-        fill_player_table_from_api(CURRENT_SEASON, session)
+        fill_player_table_from_api(CURRENT_SEASON, dbsession)
     for season in seasons:
         if season == CURRENT_SEASON:
             continue
@@ -89,7 +89,7 @@ def make_player_table(seasons=[], dbsession=session):
                 "player_summary_{}.json".format(season),
             )
         )
-        fill_player_table_from_file(filename, season, session)
+        fill_player_table_from_file(filename, season, dbsession)
 
 
 if __name__ == "__main__":

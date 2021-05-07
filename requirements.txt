@@ -8,12 +8,13 @@ dateparser
 matplotlib
 scipy
 pip
-pystan>=2.14
+pystan~=2.19.1.1
 pytest
-bpl==0.0.4
+bpl @ git+https://github.com/anguswilliams91/bpl@5c5962c#egg=bpl
 flask
 flask_cors
 flask_session
 jupyter
 seaborn
 click>=7.1.2
+prettytable

@@ -109,3 +109,57 @@ def test_get_position():
     assert player.position("1920") == pos_dict["1920"]
     # season not available
     assert player.position("1011") is None
+
+
+def test_is_injured_or_suspended():
+    """
+    Check Player.is_injured_or_suspended() returns appropriate value both if details are
+    available in attributes table for requested gameweek, and if they're not available.
+    """
+    player_id = 1
+    season = "1920"
+    price = 50
+    position = "MID"
+    team = "ABC"
+    # gw: (chance_of_playing_next_round, return_gameweek)
+    team_dict = {
+        2: (100, None),
+        3: (75, None),
+        4: (50, 5),
+        5: (0, None),
+    }
+
+    player = Player()
+    player.player_id = player_id
+    player.name = "Test Player"
+    player.attributes = []
+
+    for gw, attr in team_dict.items():
+        pa = PlayerAttributes()
+        pa.season = season
+        pa.team = team
+        pa.gameweek = gw
+        pa.price = price
+        pa.position = position
+        pa.player_id = player_id
+        pa.chance_of_playing_next_round = attr[0]
+        pa.return_gameweek = attr[1]
+        player.attributes.append(pa)
+
+    # gameweek available in attributes table
+    # not injured, 100% available
+    assert player.is_injured_or_suspended(season, 2, 2) is False
+    assert player.is_injured_or_suspended(season, 2, 4) is False
+    # not injured, 75% available
+    assert player.is_injured_or_suspended(season, 3, 3) is False
+    assert player.is_injured_or_suspended(season, 3, 5) is False
+    # 50% available, expected back gw 5
+    assert player.is_injured_or_suspended(season, 4, 4) is True
+    assert player.is_injured_or_suspended(season, 4, 5) is False
+    # 100% unavailable, mo return gameweek
+    assert player.is_injured_or_suspended(season, 5, 6) is True
+    assert player.is_injured_or_suspended(season, 5, 7) is True
+    # gameweek before earliest available: return status as of first available
+    assert player.is_injured_or_suspended(season, 1, 1) is False
+    # gameweek after last available: return status as of last available
+    assert player.is_injured_or_suspended(season, 6, 1) is True

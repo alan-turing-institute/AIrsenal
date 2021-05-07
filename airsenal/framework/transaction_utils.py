@@ -3,6 +3,7 @@ Functions to help fill the Transaction table, where players are bought and sold,
 hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment
 variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
+from sqlalchemy import or_, and_
 
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
@@ -31,6 +32,70 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
         return 0
 
 
+def count_transactions(season, fpl_team_id, dbsession=session):
+    """Count the number of transactions we have in the database for a given team ID
+    and season.
+    """
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+
+    transactions = (
+        dbsession.query(Transaction)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(season=season)
+        .all()
+    )
+    return len(transactions)
+
+
+def transaction_exists(
+    fpl_team_id,
+    gameweek,
+    season,
+    time,
+    pid_out,
+    price_out,
+    pid_in,
+    price_in,
+    dbsession=session,
+):
+    """Check whether the transactions related to transferring a player in and out
+    in a gameweek at a specific time already exist in the database.
+    """
+    transactions = (
+        dbsession.query(Transaction)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(gameweek=gameweek)
+        .filter_by(season=season)
+        .filter_by(time=time)
+        .filter(
+            or_(
+                and_(
+                    Transaction.player_id == pid_in,
+                    Transaction.price == price_in,
+                    Transaction.bought_or_sold == 1,
+                ),
+                and_(
+                    Transaction.player_id == pid_out,
+                    Transaction.price == price_out,
+                    Transaction.bought_or_sold == -1,
+                ),
+            )
+        )
+        .all()
+    )
+    if len(transactions) == 2:  # row for player bought and player sold
+        return True
+    elif len(transactions) == 0:
+        return False
+    else:
+        raise ValueError(
+            f"Database error: {len(transactions)} transactions in the database with "
+            f"parameters:  fpl_team_id={fpl_team_id}, gameweek={gameweek}, "
+            f"time={time}, pid_in={pid_in}, pid_out={pid_out}. Should be 2."
+        )
+
+
 def add_transaction(
     player_id,
     gameweek,
@@ -40,6 +105,7 @@ def add_transaction(
     tag,
     free_hit,
     fpl_team_id,
+    time,
     dbsession=session,
 ):
     """
@@ -54,6 +120,7 @@ def add_transaction(
         tag=tag,
         free_hit=free_hit,
         fpl_team_id=fpl_team_id,
+        time=time,
     )
     dbsession.add(t)
     dbsession.commit()
@@ -88,8 +155,10 @@ def fill_initial_squad(
         starting_gw += 1
         print(f"Trying gameweek {starting_gw}...")
         init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
-        free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
+
     print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
+    free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
+    time = fetcher.get_event_data()[starting_gw]["deadline"]
     for pid in init_players:
         player_api_id = get_player(pid).fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
@@ -108,7 +177,18 @@ def fill_initial_squad(
         else:
             price = first_gw_data[0]["value"]
 
-        add_transaction(pid, 1, 1, price, season, tag, free_hit, fpl_team_id, dbsession)
+        add_transaction(
+            pid,
+            starting_gw,
+            1,
+            price,
+            season,
+            tag,
+            free_hit,
+            fpl_team_id,
+            time,
+            dbsession,
+        )
 
 
 def update_squad(
@@ -127,7 +207,10 @@ def update_squad(
     print("Updating db with squad with fpl_team_id={}".format(fpl_team_id))
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = (
-        dbsession.query(Transaction).filter_by(fpl_team_id=fpl_team_id).all()
+        dbsession.query(Transaction)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(season=season)
+        .all()
     )
     if len(existing_transfers) == 0:
         # need to put the initial squad into the db
@@ -141,34 +224,57 @@ def update_squad(
         api_pid_out = transfer["element_out"]
         pid_out = get_player_from_api_id(api_pid_out).player_id
         price_out = transfer["element_out_cost"]
-        if verbose:
-            print(
-                "Adding transaction: gameweek: {} removing player {} for {}".format(
-                    gameweek, pid_out, price_out
-                )
-            )
-        free_hit = free_hit_used_in_gameweek(gameweek)
-        add_transaction(
-            pid_out,
-            gameweek,
-            -1,
-            price_out,
-            season,
-            tag,
-            free_hit,
-            fpl_team_id,
-            dbsession,
-        )
         api_pid_in = transfer["element_in"]
         pid_in = get_player_from_api_id(api_pid_in).player_id
         price_in = transfer["element_in_cost"]
-        if verbose:
-            print(
-                "Adding transaction: gameweek: {} adding player {} for {}".format(
-                    gameweek, pid_in, price_in
+        time = transfer["time"]
+
+        if not transaction_exists(
+            fpl_team_id,
+            gameweek,
+            season,
+            time,
+            pid_out,
+            price_out,
+            pid_in,
+            price_in,
+            dbsession=dbsession,
+        ):
+            if verbose:
+                print(
+                    "Adding transaction: gameweek: {} removing player {} for {}".format(
+                        gameweek, pid_out, price_out
+                    )
                 )
+            free_hit = free_hit_used_in_gameweek(gameweek)
+            add_transaction(
+                pid_out,
+                gameweek,
+                -1,
+                price_out,
+                season,
+                tag,
+                free_hit,
+                fpl_team_id,
+                time,
+                dbsession,
             )
-        add_transaction(
-            pid_in, gameweek, 1, price_in, season, tag, free_hit, fpl_team_id, dbsession
-        )
-        pass
+
+            if verbose:
+                print(
+                    "Adding transaction: gameweek: {} adding player {} for {}".format(
+                        gameweek, pid_in, price_in
+                    )
+                )
+            add_transaction(
+                pid_in,
+                gameweek,
+                1,
+                price_in,
+                season,
+                tag,
+                free_hit,
+                fpl_team_id,
+                time,
+                dbsession,
+            )
