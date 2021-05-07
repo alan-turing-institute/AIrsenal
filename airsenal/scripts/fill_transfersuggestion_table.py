@@ -49,6 +49,7 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_free_transfers,
+    fetcher,
 )
 
 if os.name == "posix":
@@ -380,6 +381,9 @@ def run_optimization(
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
     """
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+
     print("Running optimization with fpl_team_id {}".format(fpl_team_id))
     # How many free transfers are we starting with?
     if not num_free_transfers:
