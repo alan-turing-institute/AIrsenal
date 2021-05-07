@@ -1294,5 +1294,5 @@ T = TypeVar("T")
 
 
 def fastcopy(obj: T) -> T:
-    """ faster replacement for copy.deepcopy()"""
+    """faster replacement for copy.deepcopy()"""
     return loads(dumps(obj, -1))
