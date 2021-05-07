@@ -1,13 +1,17 @@
-import pygmo as pg
+try:
+    import pygmo as pg
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "Optional dependency pygmo not installed. If using conda run "
+        "'conda install pygmo'. If not see https://esa.github.io/pygmo2/install.html"
+    )
 
 import uuid
-
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
     get_predicted_points_for_player,
 )
-
 from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
 
 
@@ -71,10 +75,6 @@ class SquadOpt:
         optimized. For example, if you are optimizing 12 out of 15 players, the
         effective budget for optimizinig the squad will be
         budget - (15 -12) * dummy_sub_cost, by default 45
-    gw_weight_type : str, optional
-        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
-        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
-        equally,  by default "linear"
     """
 
     def __init__(
@@ -89,14 +89,13 @@ class SquadOpt:
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
         sub_weights={"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)},
-        gw_weight_type="linear",
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
-        self.gw_weight = self._get_gw_weight(gw_weight_type)
+        self.gw_weight = self._get_gw_weight()
 
         self.tag = tag
         self.positions = ["GK", "DEF", "MID", "FWD"]
@@ -246,11 +245,15 @@ class SquadOpt:
             )
         return dummy_per_position
 
-    def _get_gw_weight(self, weight_type):
-        """Weight for each gameweek. If weight_type is 'constant' treat all gameweeks
-        equally. If it is 'linear' reduce by 1/15 each week (e.g. GW1 15/15, GW2 14/15,
-        GW3 13/15,... GW15 1/15)
+    def _get_gw_weight(self, **kwargs):
+        """Weight for each gameweek (discount weeks further in the future). **kwargs
+        passed to get_discount_factor
         """
+        return [
+            get_discount_factor(min(self.gw_range), gw, **kwargs)
+            for gw in self.gw_range
+        ]
+
         if weight_type == "constant":
             return [1] * len(self.gw_range)
         elif weight_type == "linear":
@@ -275,7 +278,6 @@ def make_new_squad(
     dummy_sub_cost=45,
     uda=pg.sga(gen=100),
     population_size=100,
-    gw_weight_type="linear",
 ):
     """Optimize a full initial squad using any PyGMO-compatible algorithm.
 
@@ -313,10 +315,6 @@ def make_new_squad(
     population_size : int, optional
         Number of candidate solutions in each generation of the optimization,
         by default 100
-    gw_weight_type : str, optional
-        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
-        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
-        equally,  by default "linear"
 
     Returns
     -------
@@ -335,9 +333,7 @@ def make_new_squad(
         triple_captain_gw=triple_captain_gw,
         remove_zero=remove_zero,  # don't consider players with predicted pts of zero
         sub_weights=sub_weights,
-        gw_weight_type=gw_weight_type,
     )
-
     prob = pg.problem(opt_squad)
 
     # Create algorithm to solve problem with

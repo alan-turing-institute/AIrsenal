@@ -19,10 +19,6 @@ season = CURRENT_SEASON
 tag = get_latest_prediction_tag()
 budget = 1000
 
-# Gameweek weightings - either 'constant' to treat all gameweeks equally, or 'linear'
-# to reduce weight by 1/15 for each subsequent gameweek.
-gw_weight_type = "linear"
-
 # Weighting given to substitutes (GK, and 1st, 2nd, 3rd outfield sub).
 # 1 means points scored by subs treated as important as points scored by the first XI
 # 0 means points scored by subs not considered in optimisation
@@ -58,7 +54,6 @@ team = make_new_squad(
     budget=budget,
     players_per_position=players_per_position,
     dummy_sub_cost=dummy_sub_cost,
-    gw_weight_type=gw_weight_type,
     season=season,
 )
 

@@ -60,15 +60,6 @@ def main():
         help="Include players with zero predicted points (genetic only)",
         action="store_true",
     )
-    parser.add_argument(
-        "--gw_weight_type",
-        help=(
-            "'constant' to treat all gameweeks equally, or 'linear' "
-            "to reduce weight of gameweeks with time (genetic only)"
-        ),
-        type=str,
-        default="linear",
-    )
 
     args = parser.parse_args()
     if args.season:
@@ -95,7 +86,6 @@ def main():
         num_generations = args.num_generations
         population_size = args.population_size
         remove_zero = not args.include_zero
-        gw_weight_type = args.gw_weight_type
         uda = pg.sga(gen=num_generations)
         if args.no_subs:
             sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
@@ -111,7 +101,6 @@ def main():
             sub_weights=sub_weights,
             uda=uda,
             population_size=population_size,
-            gw_weight_type=gw_weight_type,
         )
     else:
         raise ValueError("'algorithm' must be 'normal' or 'genetic'")
