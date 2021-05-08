@@ -648,12 +648,13 @@ def make_new_squad(
     return best_squad
 
 
-def fill_suggestion_table(baseline_score, best_strat, season):
+def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
     """
     Fill the optimized strategy into the table
     """
     timestamp = str(datetime.now())
     best_score = best_strat["total_score"]
+
     points_gain = best_score - baseline_score
     for in_or_out in [("players_out", -1), ("players_in", 1)]:
         for gameweek, players in best_strat[in_or_out[0]].items():
@@ -665,6 +666,8 @@ def fill_suggestion_table(baseline_score, best_strat, season):
                 ts.points_gain = points_gain
                 ts.timestamp = timestamp
                 ts.season = season
+                ts.fpl_team_id = fpl_team_id
+                ts.chip_played = best_strat["chips_played"][gameweek]
                 session.add(ts)
     session.commit()
 

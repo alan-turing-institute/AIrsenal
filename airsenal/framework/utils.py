@@ -198,55 +198,6 @@ def get_squad_value(
     return total_value
 
 
-def get_sell_price_for_player(
-    player_id, gameweek=None, fpl_team_id=None, dbsession=session
-):
-    """
-    find the price we bought the player for,
-    and the price at the specified gameweek,
-    if the price increased in that time, we only get half the profit.
-    if gameweek is None, get price we could sell the player for now.
-    """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    transactions = dbsession.query(Transaction)
-    transactions = transactions.filter_by(fpl_team_id=fpl_team_id)
-    transactions = transactions.filter_by(player_id=player_id)
-    transactions = transactions.order_by(Transaction.gameweek).all()
-
-    gw_bought = None
-    for t in transactions:
-        if gameweek and t.gameweek > gameweek:
-            break
-        if t.bought_or_sold == 1:
-            gw_bought = t.gameweek
-
-    if not gw_bought:
-        print(
-            "Player {} is was not in the team at gameweek {}".format(
-                player_id, gameweek
-            )
-        )
-    # to query the API we need to use fpl_api_id for the player rather than player_id
-    player_api_id = get_player(player_id).fpl_api_id
-
-    pdata_bought = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
-    # will be a list - can be more than one match in a gw - just use the 1st.
-    price_bought = pdata_bought[0]["value"]
-
-    if not gameweek:  # assume we want the current (i.e. next) gameweek
-        price_now = fetcher.get_player_summary_data()[player_api_id]["now_cost"]
-    else:
-        pdata_now = fetcher.get_gameweek_data_for_player(player_api_id, gw_bought)
-        price_now = pdata_now[0]["value"]
-    # take off our half of the profit - boo!
-    if price_now > price_bought:
-        value = (price_now + price_bought) // 2  # round down
-    else:
-        value = price_now
-    return value
-
-
 def get_bank(gameweek=None, fpl_team_id=None):
     """
     Find out how much this FPL team had in the bank before the specified gameweek.
@@ -1343,7 +1294,7 @@ T = TypeVar("T")
 
 
 def fastcopy(obj: T) -> T:
-    """ faster replacement for copy.deepcopy()"""
+    """faster replacement for copy.deepcopy()"""
     return loads(dumps(obj, -1))
 
 

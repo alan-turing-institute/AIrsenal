@@ -17,3 +17,4 @@ flask_session
 jupyter
 seaborn
 click>=7.1.2
+prettytable

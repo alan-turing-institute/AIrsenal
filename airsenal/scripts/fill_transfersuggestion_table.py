@@ -21,12 +21,12 @@ import shutil
 import time
 import json
 import sys
-
+import warnings
 import cProfile
 
 
 from multiprocessing import Process
-from tqdm import tqdm
+from tqdm import tqdm, TqdmWarning
 import argparse
 
 from airsenal.framework.multiprocessing_utils import CustomQueue
@@ -49,6 +49,7 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_next_gameweek,
     get_free_transfers,
+    fetcher,
 )
 
 if os.name == "posix":
@@ -380,6 +381,9 @@ def run_optimization(
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
     """
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+
     print("Running optimization with fpl_team_id {}".format(fpl_team_id))
     # How many free transfers are we starting with?
     if not num_free_transfers:
@@ -494,10 +498,11 @@ def run_optimization(
     best_strategy = find_best_strat_from_json(tag)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
-    fill_suggestion_table(baseline_score, best_strategy, season)
+    fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")
+    print("Strategy for Team ID: {}".format(fpl_team_id))
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
@@ -673,18 +678,19 @@ def main():
             "same input gameweeks and season you specified here.",
         )
         sys.exit(1)
-
-    run_optimization(
-        gameweeks,
-        tag,
-        season,
-        fpl_team_id,
-        chip_gameweeks,
-        num_free_transfers,
-        max_total_hit,
-        allow_unused_transfers,
-        2,
-        num_iterations,
-        num_thread,
-        profile,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", TqdmWarning)
+        run_optimization(
+            gameweeks,
+            tag,
+            season,
+            fpl_team_id,
+            chip_gameweeks,
+            num_free_transfers,
+            max_total_hit,
+            allow_unused_transfers,
+            2,
+            num_iterations,
+            num_thread,
+            profile,
+        )
