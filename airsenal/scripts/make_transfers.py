@@ -121,7 +121,8 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
 def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
-    def to_dict(t): {
+    def to_dict(t): 
+        return {
         "element_out": get_player(t[0][0]).fpl_api_id,
         "selling_price": t[0][1],
         "element_in": get_player(t[1][0]).fpl_api_id,
