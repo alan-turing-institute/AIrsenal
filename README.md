@@ -131,13 +131,17 @@ Finally, we need to run the optimizer to pick the best transfer strategy over th
 ```shell
 airsenal_run_optimization --weeks_ahead 3
 ```
-This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes).
+This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with the arguments ` --wildcard_week <GW>`, `--free_hit_week <GW>`, `--triple_captain_week <GW>` and `--bench_boost_week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or use `0` to try playing the chip in all gameweeks).
 
 Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 ```shell
 airsenal_make_squad --num_gw 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
+
+### 4. Apply Transfers
+
+To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for this to work (as described in the "Configuration" section above).
 
 ### Run the Full AIrsenal Pipeline
 
