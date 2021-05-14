@@ -11,6 +11,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
     get_predicted_points_for_player,
+    get_discount_factor,
 )
 from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
 
@@ -345,17 +346,19 @@ def make_new_squad(
 
     # solve problem
     pop = algo.evolve(pop)
-    print("Best score:", -pop.champion_f[0], "pts")
+    if verbose > 0:
+        print("Best score:", -pop.champion_f[0], "pts")
 
     # construct optimal squad
     squad = Squad(budget=opt_squad.budget)
     for idx in pop.champion_x:
-        print(
-            opt_squad.players[int(idx)].position(CURRENT_SEASON),
-            opt_squad.players[int(idx)].name,
-            opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
-            opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
-        )
+        if verbose > 0:
+            print(
+                opt_squad.players[int(idx)].position(CURRENT_SEASON),
+                opt_squad.players[int(idx)].name,
+                opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
+                opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
+            )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
             season=opt_squad.season,
@@ -373,8 +376,9 @@ def make_new_squad(
                     price=opt_squad.dummy_sub_cost,
                 )
                 squad.add_player(dp)
-                print(dp.position, dp.name, dp.purchase_price / 10)
-
-    print(f"£{squad.budget/10}m in the bank")
+                if verbose > 0:
+                    print(dp.position, dp.name, dp.purchase_price / 10)
+    if verbose > 0:
+        print(f"£{squad.budget/10}m in the bank")
 
     return squad

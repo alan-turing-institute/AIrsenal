@@ -463,8 +463,9 @@ def make_best_transfers(
     gameweeks,
     root_gw,
     season,
-    num_iter=100,
+    num_iter=200,
     update_func_and_args=None,
+    algorithm="genetic",
 ):
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -524,9 +525,26 @@ def make_best_transfers(
         if num_transfers == "F":
             # for free hit, only use one week to optimize
             gameweeks = [gameweeks[0]]
-        new_squad = make_new_squad(
-            budget, num_iter, tag, gameweeks, update_func_and_args=update_func_and_args
-        )
+        if algorithm == "genetic":
+            from airsenal.framework.optimization_pygmo import (
+                make_new_squad as make_squad_pygmo,
+            )
+            new_squad = make_squad_pygmo(
+                gameweeks,
+                tag,
+                budget=budget,
+                season=season,
+                population_size=num_iter,
+                verbose=0,
+            )
+        else:
+            new_squad = make_new_squad(
+                budget,
+                num_iter,
+                tag,
+                gameweeks,
+                update_func_and_args=update_func_and_args,
+            )
         players_in = [p.player_id for p in new_squad.players]
         transfer_dict = {"in": players_in, "out": players_out}
 
