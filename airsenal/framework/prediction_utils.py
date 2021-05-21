@@ -268,6 +268,7 @@ def calc_predicted_points_for_player(
     season,
     gw_range=None,
     fixtures_behind=None,
+    min_fixtures_behind=3,
     tag="",
     dbsession=session,
 ):
@@ -291,6 +292,9 @@ def calc_predicted_points_for_player(
         # default to getting recent minutes from the same number of matches we're
         # predicting for
         fixtures_behind = len(gw_range)
+
+    if fixtures_behind < min_fixtures_behind:
+        fixtures_behind = min_fixtures_behind
 
     team = player.team(
         season, gw_range[0]
