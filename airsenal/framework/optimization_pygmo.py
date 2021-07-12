@@ -122,11 +122,13 @@ class SquadOpt:
         # Make squad from player IDs
         squad = Squad(budget=self.budget)
         for idx in player_ids:
-            squad.add_player(
+            add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
                 season=self.season,
                 gameweek=self.start_gw,
             )
+            if not add_ok:
+                return [0]
 
         # fill empty slots with dummy players (if chosen not to optimise full squad)
         for pos in self.positions:
@@ -135,7 +137,9 @@ class SquadOpt:
                     dp = DummyPlayer(
                         self.gw_range, self.tag, pos, price=self.dummy_sub_cost
                     )
-                    squad.add_player(dp)
+                    add_ok = squad.add_player(dp)
+                    if not add_ok:
+                        return [0]
 
         # Check squad is valid, if not return fitness of zero
         if not squad.is_complete():
