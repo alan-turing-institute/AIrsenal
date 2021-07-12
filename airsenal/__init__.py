@@ -1,6 +1,7 @@
 """
 ___init__.py for airsenal
 """
+
 import os
 import tempfile
 
@@ -10,7 +11,4 @@ import tempfile
 __version__ = "0.4.1"
 
 # Cross-platform temporary directory
-if os.name == "posix":
-    TMPDIR = "/tmp/"
-else:
-    TMPDIR = tempfile.gettempdir()
+TMPDIR = "/tmp/" if os.name == "posix" else tempfile.gettempdir()

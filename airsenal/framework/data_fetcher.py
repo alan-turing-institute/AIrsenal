@@ -74,9 +74,7 @@ class FPLDataFetcher(object):
         self.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
         data_loc = os.path.join(os.path.dirname(__file__), "..", "data")
         store_credentials = ""
-        while not (
-            store_credentials.lower() == "y" or store_credentials.lower() == "n"
-        ):
+        while store_credentials.lower() not in ["y", "n"]:
             store_credentials = input(
                 (
                     "\nWould you like to store these credentials in {}"
@@ -96,12 +94,11 @@ class FPLDataFetcher(object):
         """
         if self.current_summary_data:
             return self.current_summary_data
-        else:
-            r = requests.get(self.FPL_SUMMARY_API_URL)
-            if not r.status_code == 200:
-                print("Unable to access FPL API")
-                return None
-            self.current_summary_data = json.loads(r.content.decode("utf-8"))
+        r = requests.get(self.FPL_SUMMARY_API_URL)
+        if r.status_code != 200:
+            print("Unable to access FPL API")
+            return None
+        self.current_summary_data = json.loads(r.content.decode("utf-8"))
         return self.current_summary_data
 
     def get_fpl_team_data(self, gameweek, fpl_team_id=None):
@@ -112,17 +109,16 @@ class FPLDataFetcher(object):
         """
         if (not fpl_team_id) and (gameweek in self.fpl_team_data.keys()):
             return self.fpl_team_data[gameweek]
-        else:
-            if not fpl_team_id:
-                fpl_team_id = self.FPL_TEAM_ID
-            url = self.FPL_TEAM_URL.format(fpl_team_id, gameweek)
-            r = requests.get(url)
-            if not r.status_code == 200:
-                print("Unable to access FPL team API {}".format(url))
-                return None
-            fpl_team_data = json.loads(r.content.decode("utf-8"))
-            if not fpl_team_id:
-                self.fpl_team_data[gameweek] = fpl_team_data
+        if not fpl_team_id:
+            fpl_team_id = self.FPL_TEAM_ID
+        url = self.FPL_TEAM_URL.format(fpl_team_id, gameweek)
+        r = requests.get(url)
+        if r.status_code != 200:
+            print("Unable to access FPL team API {}".format(url))
+            return None
+        fpl_team_data = json.loads(r.content.decode("utf-8"))
+        if not fpl_team_id:
+            self.fpl_team_data[gameweek] = fpl_team_data
         return fpl_team_data
 
     def get_fpl_team_history_data(self, team_id=None):
@@ -131,15 +127,14 @@ class FPLDataFetcher(object):
         """
         if self.fpl_team_history_data and not team_id:
             return self.fpl_team_history_data
-        else:
-            if not team_id:
-                team_id = self.FPL_TEAM_ID
-            url = self.FPL_HISTORY_URL.format(team_id)
-            r = requests.get(url)
-            if not r.status_code == 200:
-                print("Unable to access FPL team history API")
-                return None
-            self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
+        if not team_id:
+            team_id = self.FPL_TEAM_ID
+        url = self.FPL_HISTORY_URL.format(team_id)
+        r = requests.get(url)
+        if r.status_code != 200:
+            print("Unable to access FPL team history API")
+            return None
+        self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_team_history_data
 
     def get_fpl_transfer_data(self, fpl_team_id=None):
@@ -157,7 +152,7 @@ class FPLDataFetcher(object):
         # or get it from the API.
         url = self.FPL_TEAM_TRANSFER_URL.format(fpl_team_id)
         r = requests.get(url)
-        if not r.status_code == 200:
+        if r.status_code != 200:
             print(
                 "Unable to access FPL transfer history API for team_id {}".format(
                     fpl_team_id
@@ -177,31 +172,30 @@ class FPLDataFetcher(object):
         """
         if self.fpl_league_data:
             return self.fpl_league_data
-        else:
-            session = requests.session()
-            url = "https://users.premierleague.com/accounts/login/"
-            print("FPL credentials {} {}".format(self.FPL_LOGIN, self.FPL_PASSWORD))
-            if (
-                (not self.FPL_LOGIN)
-                or (not self.FPL_PASSWORD)
-                or self.FPL_LOGIN == "MISSING_ID"
-                or self.FPL_PASSWORD == "MISSING_ID"
-            ):
-                # prompt the user for credentials
-                self.get_fpl_credentials()
-            headers = {
-                "login": self.FPL_LOGIN,
-                "password": self.FPL_PASSWORD,
-                "app": "plfpl-web",
-                "redirect_uri": "https://fantasy.premierleague.com/a/login",
-            }
-            session.post(url, data=headers)
+        session = requests.session()
+        url = "https://users.premierleague.com/accounts/login/"
+        print("FPL credentials {} {}".format(self.FPL_LOGIN, self.FPL_PASSWORD))
+        if (
+            (not self.FPL_LOGIN)
+            or (not self.FPL_PASSWORD)
+            or self.FPL_LOGIN == "MISSING_ID"
+            or self.FPL_PASSWORD == "MISSING_ID"
+        ):
+            # prompt the user for credentials
+            self.get_fpl_credentials()
+        headers = {
+            "login": self.FPL_LOGIN,
+            "password": self.FPL_PASSWORD,
+            "app": "plfpl-web",
+            "redirect_uri": "https://fantasy.premierleague.com/a/login",
+        }
+        session.post(url, data=headers)
 
-            r = session.get(self.FPL_LEAGUE_URL, headers=headers)
-            if not r.status_code == 200:
-                print("Unable to access FPL league API")
-                return None
-            self.fpl_league_data = json.loads(r.content.decode("utf-8"))
+        r = session.get(self.FPL_LEAGUE_URL, headers=headers)
+        if r.status_code != 200:
+            print("Unable to access FPL league API")
+            return None
+        self.fpl_league_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_league_data
 
     def get_event_data(self):
@@ -266,7 +260,7 @@ class FPLDataFetcher(object):
                 while (not got_data) and n_tries < 3:
                     try:
                         r = requests.get(self.FPL_DETAIL_URL.format(player_api_id))
-                        if not r.status_code == 200:
+                        if r.status_code != 200:
                             print(
                                 "Error retrieving data for player {}".format(
                                     player_api_id
@@ -289,17 +283,17 @@ class FPLDataFetcher(object):
                     if gw not in self.player_gameweek_data[player_api_id].keys():
                         self.player_gameweek_data[player_api_id][gw] = []
                     self.player_gameweek_data[player_api_id][gw].append(game)
-        if gameweek:
-            if gameweek not in self.player_gameweek_data[player_api_id].keys():
-                print(
-                    "Data not available for player {} week {}".format(
-                        player_api_id, gameweek
-                    )
-                )
-                return []
-            return self.player_gameweek_data[player_api_id][gameweek]
-        else:
+        if not gameweek:
             return self.player_gameweek_data[player_api_id]
+
+        if gameweek not in self.player_gameweek_data[player_api_id].keys():
+            print(
+                "Data not available for player {} week {}".format(
+                    player_api_id, gameweek
+                )
+            )
+            return []
+        return self.player_gameweek_data[player_api_id][gameweek]
 
     def get_fixture_data(self):
         """
@@ -307,6 +301,4 @@ class FPLDataFetcher(object):
         """
         if not self.fixture_data:
             self.fixture_data = requests.get(self.FPL_FIXTURE_URL).json()
-        else:
-            pass
         return self.fixture_data

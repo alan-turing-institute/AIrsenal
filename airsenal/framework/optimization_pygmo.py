@@ -133,7 +133,7 @@ class SquadOpt:
         # fill empty slots with dummy players (if chosen not to optimise full squad)
         for pos in self.positions:
             if self.dummy_per_position[pos] > 0:
-                for i in range(self.dummy_per_position[pos]):
+                for _ in range(self.dummy_per_position[pos]):
                     dp = DummyPlayer(
                         self.gw_range, self.tag, pos, price=self.dummy_sub_cost
                     )
@@ -223,7 +223,7 @@ class SquadOpt:
         last_pos = self.positions[0]
         for p in self.players:
             gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
-            total_pts = sum([pts for gw, pts in gw_pts.items() if gw in self.gw_range])
+            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gw_range)
             if total_pts > 0:
                 if p.position(self.season) != last_pos:
                     change_idx.append(len(players))
@@ -243,12 +243,10 @@ class SquadOpt:
         """No. of dummy players per position needed to complete the squad (if not
         optimising the full squad)
         """
-        dummy_per_position = {}
-        for pos in self.positions:
-            dummy_per_position[pos] = (
-                TOTAL_PER_POSITION[pos] - self.players_per_position[pos]
-            )
-        return dummy_per_position
+        return {
+            pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
+            for pos in self.positions
+        }
 
     def _get_gw_weight(self, weight_type):
         """Weight for each gameweek. If weight_type is 'constant' treat all gameweeks

@@ -61,27 +61,26 @@ def update_results(season, dbsession):
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
 
-    if NEXT_GAMEWEEK != 1:
-        if last_finished > last_in_db:
-            # need to update
-            print("Updating results table ...")
-            fill_results_from_api(
-                gw_start=last_in_db + 1,
-                gw_end=NEXT_GAMEWEEK,
-                season=season,
-                dbsession=dbsession,
-            )
-            print("Updating playerscores table ...")
-            fill_playerscores_from_api(
-                season=season,
-                gw_start=last_in_db + 1,
-                gw_end=NEXT_GAMEWEEK,
-                dbsession=dbsession,
-            )
-        else:
-            print("Matches and player-scores already up-to-date")
-    else:
+    if NEXT_GAMEWEEK == 1:
         print("Skipping team and result updates - season hasn't started.")
+    elif last_finished > last_in_db:
+        # need to update
+        print("Updating results table ...")
+        fill_results_from_api(
+            gw_start=last_in_db + 1,
+            gw_end=NEXT_GAMEWEEK,
+            season=season,
+            dbsession=dbsession,
+        )
+        print("Updating playerscores table ...")
+        fill_playerscores_from_api(
+            season=season,
+            gw_start=last_in_db + 1,
+            gw_end=NEXT_GAMEWEEK,
+            dbsession=dbsession,
+        )
+    else:
+        print("Matches and player-scores already up-to-date")
     return True
 
 
@@ -172,7 +171,7 @@ def main():
 
     season = args.season
     do_attributes = not args.noattr
-    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
+    fpl_team_id = args.fpl_team_id or None
 
     with session_scope() as session:
         # see if any new players have been added

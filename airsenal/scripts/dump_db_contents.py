@@ -28,14 +28,12 @@ def main():
         writer.writeheader()
         for player in session.query(Player).all():
             player = vars(player)
-            row = {}
-            for field in player:
-                if (
-                    isinstance(player[field], str)
-                    or isinstance(player[field], int)
-                    or isinstance(player[field], float)
-                ):
-                    row[field] = player[field]
+            row = {
+                field: player[field]
+                for field, value____ in player.items()
+                if isinstance(value____, (str, int, float))
+            }
+
             writer.writerow(row)
     print(" ==== dumped Player database === ")
 
@@ -61,14 +59,12 @@ def main():
         writer.writeheader()
         for player_attributes in session.query(PlayerAttributes).all():
             player_attributes = vars(player_attributes)
-            row = {}
-            for field in player_attributes:
-                if (
-                    isinstance(player_attributes[field], str)
-                    or isinstance(player_attributes[field], int)
-                    or isinstance(player_attributes[field], float)
-                ):
-                    row[field] = player_attributes[field]
+            row = {
+                field: player_attributes[field]
+                for field, value_ in player_attributes.items()
+                if isinstance(value_, (str, int, float))
+            }
+
             writer.writerow(row)
     print(" ==== dumped PlayerAttributes database === ")
 
@@ -89,14 +85,12 @@ def main():
         writer.writeheader()
         for fixture in session.query(Fixture).all():
             fixture = vars(fixture)
-            row = {}
-            for field in fixture:
-                if (
-                    isinstance(fixture[field], str)
-                    or isinstance(fixture[field], int)
-                    or isinstance(fixture[field], float)
-                ):
-                    row[field] = fixture[field]
+            row = {
+                field: fixture[field]
+                for field, value__ in fixture.items()
+                if isinstance(value__, (str, int, float))
+            }
+
             writer.writerow(row)
     print(" ==== dumped Fixture database === ")
 
@@ -114,14 +108,12 @@ def main():
         writer.writeheader()
         for result in session.query(Result).all():
             result = vars(result)
-            row = {}
-            for field in result:
-                if (
-                    isinstance(result[field], str)
-                    or isinstance(result[field], int)
-                    or isinstance(result[field], float)
-                ):
-                    row[field] = result[field]
+            row = {
+                field: result[field]
+                for field, value_____ in result.items()
+                if isinstance(value_____, (str, int, float))
+            }
+
             writer.writerow(row)
     print(" ==== dumped Result database === ")
 
@@ -133,14 +125,12 @@ def main():
         writer.writeheader()
         for team in session.query(Team).all():
             team = vars(team)
-            row = {}
-            for field in team:
-                if (
-                    isinstance(team[field], str)
-                    or isinstance(team[field], int)
-                    or isinstance(team[field], float)
-                ):
-                    row[field] = team[field]
+            row = {
+                field: team[field]
+                for field, value___ in team.items()
+                if isinstance(value___, (str, int, float))
+            }
+
             writer.writerow(row)
     print(" ==== dumped Team database === ")
 
@@ -156,12 +146,8 @@ def main():
         for fifa_team_rating in session.query(FifaTeamRating).all():
             fifa_team_rating = vars(fifa_team_rating)
             row = {}
-            for field in fifa_team_rating:
-                if (
-                    isinstance(fifa_team_rating[field], str)
-                    or isinstance(fifa_team_rating[field], int)
-                    or isinstance(fifa_team_rating[field], float)
-                ):
+            for field, value in fifa_team_rating.items():
+                if isinstance(value, (str, int, float)):
                     row[field] = fifa_team_rating[field]
             writer.writerow(row)
     print(" ==== dumped FifaTeamRating database === ")
@@ -183,12 +169,8 @@ def main():
         for transaction in session.query(Transaction).all():
             transaction = vars(transaction)
             row = {}
-            for field in transaction:
-                if (
-                    isinstance(transaction[field], str)
-                    or isinstance(transaction[field], int)
-                    or isinstance(transaction[field], float)
-                ):
+            for field, value______ in transaction.items():
+                if isinstance(value______, (str, int, float)):
                     row[field] = transaction[field]
             writer.writerow(row)
     print(" ==== dumped Transaction database === ")
@@ -232,12 +214,8 @@ def main():
         for player_score in session.query(PlayerScore).all():
             player_score = vars(player_score)
             row = {}
-            for field in player_score:
-                if (
-                    isinstance(player_score[field], str)
-                    or isinstance(player_score[field], int)
-                    or isinstance(player_score[field], float)
-                ):
+            for field, value_______ in player_score.items():
+                if isinstance(value_______, (str, int, float)):
                     row[field] = player_score[field]
             writer.writerow(row)
     print(" ==== dumped PlayerScore database === ")

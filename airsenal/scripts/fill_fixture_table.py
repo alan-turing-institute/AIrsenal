@@ -86,9 +86,6 @@ def fill_fixtures_from_api(season, dbsession=session):
             raise ValueError(error_str.format(home_id))
         elif not found_away:
             raise ValueError(error_str.format(away_id))
-        else:
-            pass
-
         if not update:
             dbsession.add(f)
 

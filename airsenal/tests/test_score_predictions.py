@@ -268,7 +268,7 @@ def test_get_player_history_df():
                 ts.query(Result).filter_by(result_id=int(result_id)).first().fixture_id
             )
             fixture = ts.query(Fixture).filter_by(fixture_id=fixture_id).first()
-            assert fixture.season == "1718" or fixture.season == "1819"
+            assert fixture.season in ["1718", "1819"]
             if fixture.season == "1819":
                 assert fixture.gameweek < 12
 
@@ -329,7 +329,7 @@ def test_get_player_scores():
             assert col in df.columns
         # test player scores correctly filtered by gameweek and season
         for _, row in df.iterrows():
-            assert row["season"] == "1718" or row["season"] == "1819"
+            assert row["season"] in ["1718", "1819"]
             if row["season"] == "1819":
                 assert row["gameweek"] < 12
         # test filtering on min minutes

@@ -114,10 +114,10 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
                 player_scores = get_player_scores(fixture=fixture)
 
                 for score in player_scores:
-                    if not (
-                        (score.player_team == fixture.home_team)
-                        or (score.player_team == fixture.away_team)
-                    ):
+                    if score.player_team not in [
+                        fixture.home_team,
+                        fixture.away_team,
+                    ]:
                         n_error += 1
                         msg = (
                             "{}: {} in player_scores but labelled as playing for {}."
@@ -230,12 +230,12 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                home_goals = sum([score.goals for score in home_scores]) + sum(
-                    [score.own_goals for score in away_scores]
+                home_goals = sum(score.goals for score in home_scores) + sum(
+                    score.own_goals for score in away_scores
                 )
 
-                away_goals = sum([score.goals for score in away_scores]) + sum(
-                    [score.own_goals for score in home_scores]
+                away_goals = sum(score.goals for score in away_scores) + sum(
+                    score.own_goals for score in home_scores
                 )
 
                 if home_goals != result.home_score:
@@ -298,8 +298,8 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                home_assists = sum([score.assists for score in home_scores])
-                away_assists = sum([score.assists for score in away_scores])
+                home_assists = sum(score.assists for score in home_scores)
+                away_assists = sum(score.assists for score in away_scores)
 
                 if home_assists > result.home_score:
                     n_error += 1
@@ -365,8 +365,8 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                home_conceded = max([score.conceded for score in home_scores])
-                away_conceded = max([score.conceded for score in away_scores])
+                home_conceded = max(score.conceded for score in home_scores)
+                away_conceded = max(score.conceded for score in away_scores)
 
                 if home_conceded != result.away_score:
                     n_error += 1
@@ -406,7 +406,7 @@ def run_all_checks(seasons=CHECK_SEASONS):
         "fixture_num_assists": fixture_num_assists,
         "fixture_num_conceded": fixture_num_conceded,
     }
-    results = dict()
+    results = {}
 
     for name, fn in functions.items():
         results[name] = fn(seasons)
@@ -418,8 +418,8 @@ def run_all_checks(seasons=CHECK_SEASONS):
         print("{}: {}".format(name, result_string(res)))
 
     n_tests = len(functions)
-    n_passed = sum([1 for _, r in results.items() if r == 0])
-    n_total_errors = sum([r for _, r in results.items()])
+    n_passed = sum(1 for _, r in results.items() if r == 0)
+    n_total_errors = sum(r for _, r in results.items())
     print(
         "\nOVERALL: Passed {} out of {} tests with {} errors.".format(
             n_passed, n_tests, n_total_errors

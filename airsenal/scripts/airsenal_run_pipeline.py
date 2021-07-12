@@ -69,11 +69,10 @@ def run_pipeline(
     if NEXT_GAMEWEEK == 1:
         click.echo("Generating a squad..")
         run_make_team(num_iterations, weeks_ahead)
-        click.echo("Optimization complete..")
     else:
         click.echo("Running optimization..")
         run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id)
-        click.echo("Optimization complete..")
+    click.echo("Optimization complete..")
     click.echo("Applying suggested transfers...")
     make_transfers(fpl_team_id)
 

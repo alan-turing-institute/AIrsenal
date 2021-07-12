@@ -40,8 +40,7 @@ def make_player_summary(season):
     for player in data["elements"]:
         name = player["first_name"] + " " + player["second_name"]
         print(player["first_name"] + " " + player["second_name"])
-        player_dict = {}
-        player_dict["name"] = name
+        player_dict = {"name": name}
         for input_key, output_key in keys_to_extract.items():
             player_dict[output_key] = player[input_key]
 
