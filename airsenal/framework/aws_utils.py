@@ -72,7 +72,7 @@ def get_suggestions_string():
     except Exception as e:
         return "Problem importing stuff {}".format(e)
     try:
-        return _extracted_from_get_suggestions_string_19(
+        return build_suggestion_string(
             session, TransferSuggestion, Player
         )
 
@@ -80,7 +80,7 @@ def get_suggestions_string():
         return "Problem with the query {}".format(e)
 
 
-def _extracted_from_get_suggestions_string_19(session, TransferSuggestion, Player):
+def build_suggestion_string(session, TransferSuggestion, Player):
     all_rows = session.query(TransferSuggestion).all()
     last_timestamp = all_rows[-1].timestamp
     rows = (

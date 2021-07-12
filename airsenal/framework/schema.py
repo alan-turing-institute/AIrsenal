@@ -49,11 +49,15 @@ class Player(Base):
         """
         attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
         if attr is not None:
-            return self._extracted_from_price_5(attr, gameweek)
+            return self._calculate_price(attr, gameweek)
         print("No price found for", self.name, "in", season, "season.")
         return None
 
-    def _extracted_from_price_5(self, attr, gameweek):
+    def _calculate_price(self, attr, gameweek):
+        """
+        Either return price available for specified gameweek or interpolate based
+        on nearest available price.
+        """
         if not isinstance(attr, tuple):
             return attr.price
         # interpolate price between nearest available gameweeks
