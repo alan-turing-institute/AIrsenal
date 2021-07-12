@@ -99,20 +99,17 @@ def test_defending_points_1_0():
     test that out home/away logic works.
     """
     tm = DummyTeamModel({(1, 0): 1.0})
-    # home
-    assert get_defending_points("FWD", "dummy", "dummy", True, 90, tm) == 0
-    assert get_defending_points("MID", "dummy", "dummy", True, 90, tm) == 1
-    assert get_defending_points("DEF", "dummy", "dummy", True, 90, tm) == 4
-    assert get_defending_points("GK", "dummy", "dummy", True, 90, tm) == 4
+    assert_defending_points(True, tm, 1, 4)  # home
+    assert_defending_points(False, tm, 0, 0)  # away
+
+
+def assert_defending_points(home, tm, exp_pts_mid, exp_pts_def):
+    assert get_defending_points("FWD", "dummy", "dummy", home, 90, tm) == 0
+    assert get_defending_points("MID", "dummy", "dummy", home, 90, tm) == exp_pts_mid
+    assert get_defending_points("DEF", "dummy", "dummy", home, 90, tm) == exp_pts_def
+    assert get_defending_points("GK", "dummy", "dummy", home, 90, tm) == exp_pts_def
     for pos in ["FWD", "MID", "DEF", "GK"]:
-        assert get_defending_points(pos, "dummy", "dummy", True, 59, tm) == 0
-    # away
-    assert get_defending_points("FWD", "dummy", "dummy", False, 90, tm) == 0
-    assert get_defending_points("MID", "dummy", "dummy", False, 90, tm) == 0
-    assert get_defending_points("DEF", "dummy", "dummy", False, 90, tm) == 0
-    assert get_defending_points("GK", "dummy", "dummy", False, 90, tm) == 0
-    for pos in ["FWD", "MID", "DEF", "GK"]:
-        assert get_defending_points(pos, "dummy", "dummy", False, 59, tm) == 0
+        assert get_defending_points(pos, "dummy", "dummy", home, 59, tm) == 0
 
 
 def test_defending_points_2_2():

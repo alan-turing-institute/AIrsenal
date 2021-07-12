@@ -94,11 +94,7 @@ class FPLDataFetcher(object):
         """
         if self.current_summary_data:
             return self.current_summary_data
-        r = requests.get(self.FPL_SUMMARY_API_URL)
-        if r.status_code != 200:
-            print("Unable to access FPL API")
-            return None
-        self.current_summary_data = json.loads(r.content.decode("utf-8"))
+        self.current_summary_data = self._get_request(self.FPL_SUMMARY_API_URL)
         return self.current_summary_data
 
     def get_fpl_team_data(self, gameweek, fpl_team_id=None):
@@ -112,11 +108,9 @@ class FPLDataFetcher(object):
         if not fpl_team_id:
             fpl_team_id = self.FPL_TEAM_ID
         url = self.FPL_TEAM_URL.format(fpl_team_id, gameweek)
-        r = requests.get(url)
-        if r.status_code != 200:
-            print("Unable to access FPL team API {}".format(url))
-            return None
-        fpl_team_data = json.loads(r.content.decode("utf-8"))
+        fpl_team_data = self._get_request(
+            url, err_msg="Unable to access FPL team API {}".format(url)
+        )
         if not fpl_team_id:
             self.fpl_team_data[gameweek] = fpl_team_data
         return fpl_team_data
@@ -130,11 +124,9 @@ class FPLDataFetcher(object):
         if not team_id:
             team_id = self.FPL_TEAM_ID
         url = self.FPL_HISTORY_URL.format(team_id)
-        r = requests.get(url)
-        if r.status_code != 200:
-            print("Unable to access FPL team history API")
-            return None
-        self.fpl_team_history_data = json.loads(r.content.decode("utf-8"))
+        self.fpl_team_history_data = self._get_request(
+            url, err_msg="Unable to access FPL team history API"
+        )
         return self.fpl_team_history_data
 
     def get_fpl_transfer_data(self, fpl_team_id=None):
@@ -147,22 +139,22 @@ class FPLDataFetcher(object):
         if (
             self.fpl_transfer_history_data
             and fpl_team_id in self.fpl_transfer_history_data.keys()
+            and self.fpl_transfer_history_data[fpl_team_id] is not None
         ):
             return self.fpl_transfer_history_data[fpl_team_id]
         # or get it from the API.
         url = self.FPL_TEAM_TRANSFER_URL.format(fpl_team_id)
-        r = requests.get(url)
-        if r.status_code != 200:
-            print(
-                "Unable to access FPL transfer history API for team_id {}".format(
-                    fpl_team_id
-                )
-            )
-            return None
         # get transfer history from api and reverse order so that
         # oldest transfers at start of list and newest at end.
         self.fpl_transfer_history_data[fpl_team_id] = list(
-            reversed(json.loads(r.content.decode("utf-8")))
+            reversed(
+                self._get_request(
+                    url,
+                    "Unable to access FPL transfer history API for team_id {}".format(
+                        fpl_team_id
+                    ),
+                )
+            )
         )
         return self.fpl_transfer_history_data[fpl_team_id]
 
@@ -259,15 +251,12 @@ class FPLDataFetcher(object):
                 player_detail = {}
                 while (not got_data) and n_tries < 3:
                     try:
-                        r = requests.get(self.FPL_DETAIL_URL.format(player_api_id))
-                        if r.status_code != 200:
-                            print(
-                                "Error retrieving data for player {}".format(
-                                    player_api_id
-                                )
-                            )
+                        player_detail = self._get_request(
+                            self.FPL_DETAIL_URL.format(player_api_id),
+                            "Error retrieving data for player {}".format(player_api_id),
+                        )
+                        if player_detail is None:
                             return []
-                        player_detail = json.loads(r.content)
                         got_data = True
                     except requests.exceptions.ConnectionError:
                         print("connection error, retrying {}".format(n_tries))
@@ -300,5 +289,12 @@ class FPLDataFetcher(object):
         Get the fixture list from the FPL API.
         """
         if not self.fixture_data:
-            self.fixture_data = requests.get(self.FPL_FIXTURE_URL).json()
+            self.fixture_data = self._get_request(self.FPL_FIXTURE_URL)
         return self.fixture_data
+
+    def _get_request(self, url, err_msg="Unable to access FPL API"):
+        r = requests.get(url)
+        if r.status_code != 200:
+            print(err_msg)
+            return None
+        return json.loads(r.content.decode("utf-8"))

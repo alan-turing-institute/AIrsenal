@@ -72,9 +72,7 @@ def get_suggestions_string():
     except Exception as e:
         return "Problem importing stuff {}".format(e)
     try:
-        return build_suggestion_string(
-            session, TransferSuggestion, Player
-        )
+        return build_suggestion_string(session, TransferSuggestion, Player)
 
     except Exception as e:
         return "Problem with the query {}".format(e)

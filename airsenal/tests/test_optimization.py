@@ -82,11 +82,10 @@ def predicted_point_mock_generator(point_dict):
         #        return output_pid_list
         if isinstance(gameweek, list):
             gameweek = gameweek[0]
-        output_list = [
+        return [
             (DummyPlayer(entry[0], position, {gameweek: entry[1]}), entry[1])
             for entry in output_pid_list
         ]
-        return output_list
 
     return mock_get_predicted_points
 

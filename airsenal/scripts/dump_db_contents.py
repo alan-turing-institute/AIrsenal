@@ -22,20 +22,12 @@ def main():
 
     # Dump Player database
     player_fieldnames = ["player_id", "name"]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/players.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=player_fieldnames)
-        writer.writeheader()
-        for player in session.query(Player).all():
-            player = vars(player)
-            row = {
-                field: player[field]
-                for field, value____ in player.items()
-                if isinstance(value____, (str, int, float))
-            }
-
-            writer.writerow(row)
-    print(" ==== dumped Player database === ")
+    save_table_fields(
+        "../data/players.csv",
+        player_fieldnames,
+        Player,
+        " ==== dumped Player database === ",
+    )
 
     # Dump PlayerAttributes database
     player_attributes_fieldnames = [
@@ -51,22 +43,12 @@ def main():
         "transfers_in",
         "transfers_out",
     ]
-    output_path = os.path.join(
-        os.path.dirname(__file__), "../data/player_attributes.csv"
+    save_table_fields(
+        "../data/player_attributes.csv",
+        player_attributes_fieldnames,
+        PlayerAttributes,
+        " ==== dumped PlayerAttributes database === ",
     )
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=player_attributes_fieldnames)
-        writer.writeheader()
-        for player_attributes in session.query(PlayerAttributes).all():
-            player_attributes = vars(player_attributes)
-            row = {
-                field: player_attributes[field]
-                for field, value_ in player_attributes.items()
-                if isinstance(value_, (str, int, float))
-            }
-
-            writer.writerow(row)
-    print(" ==== dumped PlayerAttributes database === ")
 
     # Dump Fixture database
     fixture_fieldnames = [
@@ -79,20 +61,12 @@ def main():
         "tag",
         "player_id",
     ]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/fixtures.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fixture_fieldnames)
-        writer.writeheader()
-        for fixture in session.query(Fixture).all():
-            fixture = vars(fixture)
-            row = {
-                field: fixture[field]
-                for field, value__ in fixture.items()
-                if isinstance(value__, (str, int, float))
-            }
-
-            writer.writerow(row)
-    print(" ==== dumped Fixture database === ")
+    save_table_fields(
+        "../data/fixtures.csv",
+        fixture_fieldnames,
+        Fixture,
+        " ==== dumped Fixture database === ",
+    )
 
     # Dump Result database
     result_fieldnames = [
@@ -102,55 +76,31 @@ def main():
         "away_score",
         "player_id",
     ]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/results.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=result_fieldnames)
-        writer.writeheader()
-        for result in session.query(Result).all():
-            result = vars(result)
-            row = {
-                field: result[field]
-                for field, value_____ in result.items()
-                if isinstance(value_____, (str, int, float))
-            }
-
-            writer.writerow(row)
-    print(" ==== dumped Result database === ")
+    save_table_fields(
+        "../data/results.csv",
+        result_fieldnames,
+        Result,
+        " ==== dumped Result database === ",
+    )
 
     # Dump Team database
     team_fieldnames = ["id", "name", "full_name", "season", "team_id"]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/teams.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=team_fieldnames)
-        writer.writeheader()
-        for team in session.query(Team).all():
-            team = vars(team)
-            row = {
-                field: team[field]
-                for field, value___ in team.items()
-                if isinstance(value___, (str, int, float))
-            }
-
-            writer.writerow(row)
-    print(" ==== dumped Team database === ")
+    save_table_fields(
+        "../data/teams.csv",
+        team_fieldnames,
+        Team,
+        " ==== dumped Team database === ",
+    )
 
     # Dump FifaTeamRating database
     # Add season to the fieldnames once the table creation is updated
     fifa_team_rating_fieldnames = ["team", "att", "defn", "mid", "ovr"]
-    output_path = os.path.join(
-        os.path.dirname(__file__), "../data/fifa_team_ratings.csv"
+    save_table_fields(
+        "../data/fifa_team_ratings.csv",
+        fifa_team_rating_fieldnames,
+        FifaTeamRating,
+        " ==== dumped FifaTeamRating database === ",
     )
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fifa_team_rating_fieldnames)
-        writer.writeheader()
-        for fifa_team_rating in session.query(FifaTeamRating).all():
-            fifa_team_rating = vars(fifa_team_rating)
-            row = {}
-            for field, value in fifa_team_rating.items():
-                if isinstance(value, (str, int, float)):
-                    row[field] = fifa_team_rating[field]
-            writer.writerow(row)
-    print(" ==== dumped FifaTeamRating database === ")
 
     # Dump Transaction database
     transaction_fieldnames = [
@@ -162,18 +112,12 @@ def main():
         "tag",
         "price",
     ]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/transactions.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=transaction_fieldnames)
-        writer.writeheader()
-        for transaction in session.query(Transaction).all():
-            transaction = vars(transaction)
-            row = {}
-            for field, value______ in transaction.items():
-                if isinstance(value______, (str, int, float)):
-                    row[field] = transaction[field]
-            writer.writerow(row)
-    print(" ==== dumped Transaction database === ")
+    save_table_fields(
+        "../data/transactions.csv",
+        transaction_fieldnames,
+        Transaction,
+        " ==== dumped Transaction database === ",
+    )
 
     # Dump PlayerScore database
     player_score_fieldnames = [
@@ -207,18 +151,35 @@ def main():
         "transfers_in",
         "transfers_out",
     ]
-    output_path = os.path.join(os.path.dirname(__file__), "../data/player_scores.csv")
-    with open(output_path, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=player_score_fieldnames)
-        writer.writeheader()
-        for player_score in session.query(PlayerScore).all():
-            player_score = vars(player_score)
-            row = {}
-            for field, value_______ in player_score.items():
-                if isinstance(value_______, (str, int, float)):
-                    row[field] = player_score[field]
-            writer.writerow(row)
-    print(" ==== dumped PlayerScore database === ")
+    save_table_fields(
+        "../data/player_scores.csv",
+        player_score_fieldnames,
+        PlayerScore,
+        " ==== dumped PlayerScore database === ",
+    )
+
+
+def save_table_fields(path, fields, dbclass, msg):
+    result = os.path.join(os.path.dirname(__file__), path)
+    with open(result, "w") as csvfile:
+        write_rows_to_csv(csvfile, fields, dbclass)
+    print(msg)
+
+    return result
+
+
+def write_rows_to_csv(csvfile, fieldnames, dbclass):
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for player in session.query(dbclass).all():
+        player = vars(player)
+        row = {
+            field: player[field]
+            for field, value____ in player.items()
+            if isinstance(value____, (str, int, float))
+        }
+
+        writer.writerow(row)
 
 
 if __name__ == "__main__":
