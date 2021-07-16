@@ -24,7 +24,5 @@ jobs:
         run: |
           flake8
           black --check .
-      - name: Tests
-        run: pytest
       - name: Test with pytest
         run: pytest
