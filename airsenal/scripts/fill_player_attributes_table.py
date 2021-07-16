@@ -121,7 +121,9 @@ def fill_attributes_table_from_api(season, gw_start=1, dbsession=session):
             and pa.chance_of_playing_next_round <= 50
         ):
             pa.return_gameweek = get_return_gameweek_from_news(
-                p_summary["news"], season=season, dbsession=dbsession,
+                p_summary["news"],
+                season=season,
+                dbsession=dbsession,
             )
 
         if not update:
