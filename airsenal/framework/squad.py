@@ -89,7 +89,7 @@ class Squad(object):
         current price as found in DB, but if one is specified, we override
         with that value.
         """
-        if isinstance(p, int) or isinstance(p, str) or isinstance(p, Player):
+        if isinstance(p, (int, str, Player)):
             player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
@@ -196,19 +196,15 @@ class Squad(object):
             price_now = price_bought
 
         if price_now > price_bought:
-            price_sell = (price_now + price_bought) // 2
+            return (price_now + price_bought) // 2
         else:
-            price_sell = price_now
-        return price_sell
+            return price_now
 
     def check_no_duplicate_player(self, player):
         """
         Check we don't already have the player.
         """
-        for p in self.players:
-            if p.player_id == player.player_id:
-                return False
-        return True
+        return all(p.player_id != player.player_id for p in self.players)
 
     def check_num_in_position(self, player):
         """
@@ -236,8 +232,7 @@ class Squad(object):
         """
         check we can afford the player.
         """
-        can_afford = player.purchase_price <= self.budget
-        return can_afford
+        return player.purchase_price <= self.budget
 
     def _calc_expected_points(self, tag):
         """
@@ -246,7 +241,6 @@ class Squad(object):
         """
         for p in self.players:
             p.calc_predicted_points(tag)
-        pass
 
     def optimize_subs(self, gameweek, tag):
         """
@@ -308,10 +302,7 @@ class Squad(object):
         """
         for i, pos in enumerate(["DEF", "MID", "FWD"]):
             for index, player in enumerate(player_dict[pos]):
-                if index < formation[i]:
-                    player[0].is_starting = True
-                else:
-                    player[0].is_starting = False
+                player[0].is_starting = index < formation[i]
 
     def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
         """

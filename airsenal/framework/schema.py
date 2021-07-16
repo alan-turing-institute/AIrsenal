@@ -37,9 +37,8 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek)
         if attr is not None:
             return attr.team
-        else:
-            print("No team found for", self.name, "in", season, "season.")
-            return None
+        print("No team found for", self.name, "in", season, "season.")
+        return None
 
     def price(self, season, gameweek):
         """
@@ -50,23 +49,27 @@ class Player(Base):
         """
         attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
         if attr is not None:
-            if isinstance(attr, tuple):
-                # interpolate price between nearest available gameweeks
-                gw_before = attr[0].gameweek
-                price_before = attr[0].price
-                gw_after = attr[1].gameweek
-                price_after = attr[1].price
+            return self._calculate_price(attr, gameweek)
+        print("No price found for", self.name, "in", season, "season.")
+        return None
 
-                gradient = (price_after - price_before) / (gw_after - gw_before)
-                intercept = price_before - gradient * gw_before
-                price = gradient * gameweek + intercept
-                return round(price)
+    def _calculate_price(self, attr, gameweek):
+        """
+        Either return price available for specified gameweek or interpolate based
+        on nearest available price.
+        """
+        if not isinstance(attr, tuple):
+            return attr.price
+        # interpolate price between nearest available gameweeks
+        gw_before = attr[0].gameweek
+        price_before = attr[0].price
+        gw_after = attr[1].gameweek
+        price_after = attr[1].price
 
-            else:
-                return attr.price
-        else:
-            print("No price found for", self.name, "in", season, "season.")
-            return None
+        gradient = (price_after - price_before) / (gw_after - gw_before)
+        intercept = price_before - gradient * gw_before
+        price = gradient * gameweek + intercept
+        return round(price)
 
     def position(self, season):
         """
@@ -75,9 +78,8 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, None)
         if attr is not None:
             return attr.position
-        else:
-            print("No position found for", self.name, "in", season, "season.")
-            return None
+        print("No position found for", self.name, "in", season, "season.")
+        return None
 
     def is_injured_or_suspended(self, season, current_gw, fixture_gw):
         """Check whether a player is injured or suspended (<=50% chance of playing).
@@ -89,13 +91,10 @@ class Player(Base):
         """
         attr = self.get_gameweek_attributes(season, current_gw)
         if attr is not None:
-            if (
+            return (
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
-            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw):
-                return True
-            else:
-                return False
+            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw)
         else:
             return False
 
@@ -297,7 +296,7 @@ class Transaction(Base):
         if self.bought_or_sold == 1:
             trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
         else:
-            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+            trans_str += f"Team {self.fpl_team_id} sold player {self.player_id}"
         if self.free_hit:
             trans_str += " (FREE HIT)"
         return trans_str
@@ -312,6 +311,10 @@ class TransferSuggestion(Base):
     points_gain = Column(Float, nullable=False)
     timestamp = Column(String(100), nullable=False)  # use this to group suggestions
     season = Column(String(100), nullable=False)
+    fpl_team_id = Column(
+        Integer, nullable=False
+    )  # to identify team to apply transfers.
+    chip_played = Column(String(100), nullable=True)
 
     def __str__(self):
         sugg_str = f"{self.season} GW{self.gameweek}: "

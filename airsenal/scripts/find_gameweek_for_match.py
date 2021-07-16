@@ -41,20 +41,19 @@ if __name__ == "__main__":
     season = sys.argv[-1]
 
     results_file = open("../data/results_{}.csv".format(season))
-    output_file = open("../data/results_{}_with_gw.csv".format(season), "w")
-    fpl_file_path = "../data/FPL_{}.json".format(season)
+    with open("../data/results_{}_with_gw.csv".format(season), "w") as output_file:
+        fpl_file_path = "../data/FPL_{}.json".format(season)
 
-    deadlines = get_gameweek_deadlines(fpl_file_path)
+        deadlines = get_gameweek_deadlines(fpl_file_path)
 
-    for linecount, line in enumerate(results_file.readlines()):
-        if linecount == 0:
-            output_file.write(line.strip() + ",gameweek\n")
-            continue
+        for linecount, line in enumerate(results_file.readlines()):
+            if linecount == 0:
+                output_file.write(line.strip() + ",gameweek\n")
+                continue
 
-        date, home_team, away_team = line.split(",")[:3]
-        print(date, home_team, away_team)
-        gameweek = get_gameweek_from_date(date, deadlines)
-        output_file.write(line.strip() + "," + str(gameweek) + "\n")
+            date, home_team, away_team = line.split(",")[:3]
+            print(date, home_team, away_team)
+            gameweek = get_gameweek_from_date(date, deadlines)
+            output_file.write(line.strip() + "," + str(gameweek) + "\n")
 
-    results_file.close()
-    output_file.close()
+        results_file.close()

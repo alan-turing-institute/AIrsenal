@@ -72,34 +72,36 @@ def get_suggestions_string():
     except Exception as e:
         return "Problem importing stuff {}".format(e)
     try:
-        all_rows = session.query(TransferSuggestion).all()
-        last_timestamp = all_rows[-1].timestamp
-        rows = (
-            session.query(TransferSuggestion)
-            .filter_by(timestamp=last_timestamp)
-            .order_by(TransferSuggestion.gameweek)
-            .all()
-        )
-        output_string = "Suggested transfer strategy: \n"
-        current_gw = 0
-        for row in rows:
-            if row.gameweek != current_gw:
-                output_string += " gameweek {}: ".format(row.gameweek)
-                current_gw = row.gameweek
-            if row.in_or_out < 0:
-                output_string += " sell "
-            else:
-                output_string += " buy "
-            player_name = (
-                session.query(Player).filter_by(player_id=row.player_id).first().name
-            )
-            output_string += player_name + ","
+        return build_suggestion_string(session, TransferSuggestion, Player)
 
-        points_gain = round(rows[0].points_gain, 1)
-        output_string += " for a total gain of {} points.".format(points_gain)
-        return output_string
     except Exception as e:
         return "Problem with the query {}".format(e)
+
+
+def build_suggestion_string(session, TransferSuggestion, Player):
+    all_rows = session.query(TransferSuggestion).all()
+    last_timestamp = all_rows[-1].timestamp
+    rows = (
+        session.query(TransferSuggestion)
+        .filter_by(timestamp=last_timestamp)
+        .order_by(TransferSuggestion.gameweek)
+        .all()
+    )
+    output_string = "Suggested transfer strategy: \n"
+    current_gw = 0
+    for row in rows:
+        if row.gameweek != current_gw:
+            output_string += " gameweek {}: ".format(row.gameweek)
+            current_gw = row.gameweek
+        output_string += " sell " if row.in_or_out < 0 else " buy "
+        player_name = (
+            session.query(Player).filter_by(player_id=row.player_id).first().name
+        )
+        output_string += player_name + ","
+
+    points_gain = round(rows[0].points_gain, 1)
+    output_string += " for a total gain of {} points.".format(points_gain)
+    return output_string
 
 
 def get_score_ranking_string(query, gameweek=None):

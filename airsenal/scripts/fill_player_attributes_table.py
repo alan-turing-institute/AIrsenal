@@ -48,22 +48,21 @@ def fill_attributes_table_from_file(detail_data, season, dbsession=session):
             if gameweek in previous_gameweeks:
                 # already done this gameweek
                 continue
-            else:
-                previous_gameweeks.append(gameweek)
+            previous_gameweeks.append(gameweek)
 
-                pa = PlayerAttributes()
-                pa.player = player
-                pa.player_id = player.player_id
-                pa.season = season
-                pa.gameweek = gameweek
-                pa.price = int(fixture_data["value"])
-                pa.team = fixture_data["played_for"]
-                pa.position = fixture_data["position"]
-                pa.transfers_balance = int(fixture_data["transfers_balance"])
-                pa.selected = int(fixture_data["selected"])
-                pa.transfers_in = int(fixture_data["transfers_in"])
-                pa.transfers_out = int(fixture_data["transfers_out"])
-                dbsession.add(pa)
+            pa = PlayerAttributes()
+            pa.player = player
+            pa.player_id = player.player_id
+            pa.season = season
+            pa.gameweek = gameweek
+            pa.price = int(fixture_data["value"])
+            pa.team = fixture_data["played_for"]
+            pa.position = fixture_data["position"]
+            pa.transfers_balance = int(fixture_data["transfers_balance"])
+            pa.selected = int(fixture_data["selected"])
+            pa.transfers_in = int(fixture_data["transfers_in"])
+            pa.transfers_out = int(fixture_data["transfers_out"])
+            dbsession.add(pa)
 
 
 def fill_attributes_table_from_api(season, gw_start=1, dbsession=session):
@@ -133,58 +132,59 @@ def fill_attributes_table_from_api(season, gw_start=1, dbsession=session):
             dbsession.add(pa)
 
         # now get data for previous gameweeks
-        player_data = fetcher.get_gameweek_data_for_player(player_api_id)
-        if not player_data:
-            print("Failed to get data for", player.name)
-            continue
-        for gameweek, data in player_data.items():
-            if gameweek < gw_start:
+        if next_gw > 1:
+            player_data = fetcher.get_gameweek_data_for_player(player_api_id)
+            if not player_data:
+                print("Failed to get data for", player.name)
                 continue
+            for gameweek, data in player_data.items():
+                if gameweek < gw_start:
+                    continue
 
-            for result in data:
-                # check whether there are pre-existing attributes to update
-                pa = get_player_attributes(
-                    player.player_id,
-                    season=season,
-                    gameweek=gameweek,
-                    dbsession=dbsession,
-                )
-                if pa:
-                    update = True
-                else:
-                    pa = PlayerAttributes()
-                    update = False
+                for result in data:
+                    # check whether there are pre-existing attributes to update
+                    pa = get_player_attributes(
+                        player.player_id,
+                        season=season,
+                        gameweek=gameweek,
+                        dbsession=dbsession,
+                    )
+                    if pa:
+                        update = True
+                    else:
+                        pa = PlayerAttributes()
+                        update = False
 
-                # determine the team the player played for in this fixture
-                opponent_id = result["opponent_team"]
-                was_home = result["was_home"]
-                kickoff_time = result["kickoff_time"]
-                team = get_player_team_from_fixture(
-                    gameweek,
-                    opponent_id,
-                    was_home,
-                    kickoff_time,
-                    season=season,
-                    dbsession=dbsession,
-                )
+                    # determine the team the player played for in this fixture
+                    opponent_id = result["opponent_team"]
+                    was_home = result["was_home"]
+                    kickoff_time = result["kickoff_time"]
+                    team = get_player_team_from_fixture(
+                        gameweek,
+                        opponent_id,
+                        was_home,
+                        kickoff_time,
+                        season=season,
+                        dbsession=dbsession,
+                    )
 
-                pa.player = player
-                pa.player_id = player.player_id
-                pa.season = season
-                pa.gameweek = gameweek
-                pa.price = int(result["value"])
-                pa.team = team
-                pa.position = position  # does not change during season
-                pa.transfers_balance = int(result["transfers_balance"])
-                pa.selected = int(result["selected"])
-                pa.transfers_in = int(result["transfers_in"])
-                pa.transfers_out = int(result["transfers_out"])
+                    pa.player = player
+                    pa.player_id = player.player_id
+                    pa.season = season
+                    pa.gameweek = gameweek
+                    pa.price = int(result["value"])
+                    pa.team = team
+                    pa.position = position  # does not change during season
+                    pa.transfers_balance = int(result["transfers_balance"])
+                    pa.selected = int(result["selected"])
+                    pa.transfers_in = int(result["transfers_in"])
+                    pa.transfers_out = int(result["transfers_out"])
 
-                if not update:
-                    # don't need to add to dbsession if updating pre-existing row
-                    dbsession.add(pa)
+                    if not update:
+                        # don't need to add to dbsession if updating pre-existing row
+                        dbsession.add(pa)
 
-                break  # done this gameweek now
+                    break  # done this gameweek now
 
 
 def make_attributes_table(seasons=[], dbsession=session):

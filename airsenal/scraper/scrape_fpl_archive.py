@@ -33,10 +33,9 @@ def parse_detail_page(soup):
     """
     player_detail = []
     for row in soup.find_all("tr", attrs={"class": "ng-scope"}):
-        gameweek_dict = {}
-        gameweek_dict["gameweek"] = row.find(
-            "td", attrs={"data-ng-bind": "item.gameWeek"}
-        ).text
+        gameweek_dict = {
+            "gameweek": row.find("td", attrs={"data-ng-bind": "item.gameWeek"}).text
+        }
         gameweek_dict["opponent"] = row.find(
             "td", attrs={"data-ng-bind": "item.opponent"}
         ).text
@@ -95,14 +94,13 @@ def get_detail_pages(soup, pages_to_go_forward):
         browser.back()
         while len(browser.page_source) < 10000:  # wait for page to load
             time.sleep(1)
-        for i in range(pages_to_go_forward):
+        for _ in range(pages_to_go_forward):
             next_button = browser.find_element_by_link_text("Next")
             next_button.click()
             time.sleep(0.1)
     print("Returning data for {} players".format(len(player_details_this_page)))
-    outfile = open("player_details_{}.json".format(pages_to_go_forward), "w")
-    outfile.write(json.dumps(player_details_this_page))
-    outfile.close()
+    with open("player_details_{}.json".format(pages_to_go_forward), "w") as outfile:
+        outfile.write(json.dumps(player_details_this_page))
     return player_details_this_page
 
 
@@ -115,8 +113,7 @@ def parse_summary_page(soup):
     for row in soup.find_all("tr", attrs={"class": "ng-scope"}):
         if len(row.find_all("a")) != 1:
             continue
-        player_summary = {}
-        player_summary["name"] = row.find("a").text
+        player_summary = {"name": row.find("a").text}
         player_summary["team"] = row.find(
             "td", attrs={"data-ng-bind": "item.teamShortName"}
         ).text
@@ -182,7 +179,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", help="summary or detailed", default="summary")
     args = parser.parse_args()
     season = args.season
-    if not (season == "1516" or season == "1617"):
+    if season not in ["1516", "1617"]:
         raise RuntimeError("Please specify the season - 1516 or 1617")
     if args.mode == "summary":
         output_file = open("player_summary_{}.json".format(season), "w")

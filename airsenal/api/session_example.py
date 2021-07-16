@@ -10,12 +10,7 @@ app.secret_key = "blah"
 
 @app.route("/visits-counter/")
 def visits():
-    if "visits" in session:
-        session["visits"] = (
-            session.get("visits") + 1
-        )  # reading and updating session data
-    else:
-        session["visits"] = 1  # setting session data
+    session["visits"] = (session.get("visits") + 1) if "visits" in session else 1
     return "Total visits: {}".format(session.get("visits"))
 
 
