@@ -618,7 +618,10 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "--fpl_team_id", help="specify fpl team id", type=int, required=False,
+        "--fpl_team_id",
+        help="specify fpl team id",
+        type=int,
+        required=False,
     )
     args = parser.parse_args()
 

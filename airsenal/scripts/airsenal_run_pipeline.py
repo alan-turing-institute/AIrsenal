@@ -11,7 +11,9 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
 
 @click.command("airsenal_run_pipeline")
 @click.option(
-    "--num_thread", type=int, help="No. of threads to use for pipeline run",
+    "--num_thread",
+    type=int,
+    help="No. of threads to use for pipeline run",
 )
 @click.option(
     "--num_iterations",
@@ -29,10 +31,15 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
     help="Number of free transfer for pipeline run",
 )
 @click.option(
-    "--fpl_team_id", type=int, required=False, help="fpl team id for pipeline run",
+    "--fpl_team_id",
+    type=int,
+    required=False,
+    help="fpl team id for pipeline run",
 )
 @click.option(
-    "--clean", is_flag=True, help="If set, delete and recreate the AIrsenal database",
+    "--clean",
+    is_flag=True,
+    help="If set, delete and recreate the AIrsenal database",
 )
 def run_pipeline(
     num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id, clean

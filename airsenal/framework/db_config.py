@@ -62,5 +62,7 @@ if "AIrsenalDBUri" in os.environ.keys() or os.path.exists(AIrsenalDBUri_path):
         )
 
     DB_CONNECTION_STRING = "postgres://{}:{}@{}/airsenal".format(
-        AIrsenalDBUser, AIrsenalDBPassword, AIrsenalDBUri,
+        AIrsenalDBUser,
+        AIrsenalDBPassword,
+        AIrsenalDBUri,
     )

@@ -151,7 +151,9 @@ def update_attributes(season, dbsession):
 
     print("Updating attributes table ...")
     fill_attributes_table_from_api(
-        season=season, gw_start=last_in_db, dbsession=dbsession,
+        season=season,
+        gw_start=last_in_db,
+        dbsession=dbsession,
     )
 
 
@@ -186,7 +188,10 @@ def main():
         "--noattr", help="don't update player attributes", action="store_true"
     )
     parser.add_argument(
-        "--fpl_team_id", help="specify fpl team id", type=int, required=False,
+        "--fpl_team_id",
+        help="specify fpl team id",
+        type=int,
+        required=False,
     )
     args = parser.parse_args()
 
