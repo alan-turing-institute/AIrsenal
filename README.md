@@ -1,5 +1,6 @@
 # AIrsenal
-[![Build Status](https://travis-ci.org/alan-turing-institute/AIrsenal.svg?branch=master)](https://travis-ci.org/alan-turing-institute/AIrsenal)
+
+![Build Status](https://github.com/alan-turing-institute/AIrsenal/actions/workflows/main.yml/badge.svg)
 
 *AIrsenal* is a package for using Machine learning to pick a Fantasy Premier League team.
 
