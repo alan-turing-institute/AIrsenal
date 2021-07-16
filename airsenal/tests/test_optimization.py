@@ -271,10 +271,7 @@ def test_next_week_transfers_no_chips_no_constraints():
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     # No chips or constraints
     actual = next_week_transfers(
-        strat,
-        max_total_hit=None,
-        allow_unused_transfers=True,
-        max_transfers=2,
+        strat, max_total_hit=None, allow_unused_transfers=True, max_transfers=2,
     )
     # (no. transfers, free transfers following week, points hit)
     expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4)]
@@ -313,10 +310,7 @@ def test_next_week_transfers_no_chips_zero_hit():
     # No points hits
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
-        strat,
-        max_total_hit=0,
-        allow_unused_transfers=True,
-        max_transfers=2,
+        strat, max_total_hit=0, allow_unused_transfers=True, max_transfers=2,
     )
     expected = [(0, 2, 0), (1, 1, 0)]
     assert actual == expected
@@ -326,10 +320,7 @@ def test_next_week_transfers_2ft_no_unused():
     # 2 free transfers available, no wasted transfers
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
-        strat,
-        max_total_hit=None,
-        allow_unused_transfers=False,
-        max_transfers=2,
+        strat, max_total_hit=None, allow_unused_transfers=False, max_transfers=2,
     )
     expected = [(1, 2, 0), (2, 1, 0)]
     assert actual == expected
@@ -350,11 +341,7 @@ def test_next_week_transfers_chips_already_used():
             },
         },
     )
-    actual = next_week_transfers(
-        strat,
-        max_total_hit=None,
-        max_transfers=2,
-    )
+    actual = next_week_transfers(strat, max_total_hit=None, max_transfers=2,)
     expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4)]
     assert actual == expected
 

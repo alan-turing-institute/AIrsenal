@@ -257,15 +257,6 @@ class SquadOpt:
             for gw in self.gw_range
         ]
 
-        if weight_type == "constant":
-            return [1] * len(self.gw_range)
-        elif weight_type == "linear":
-            return [
-                (15 - i) / 15 if i < 15 else 1 / 15 for i in range(len(self.gw_range))
-            ]
-        else:
-            raise ValueError("weight_type must be 'linear' or 'constant'.")
-
 
 def make_new_squad(
     gw_range,
