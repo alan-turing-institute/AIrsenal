@@ -1,4 +1,4 @@
-name: Python package
+name: Tests and code quality checks
 
 on: [push]
 
