@@ -123,8 +123,7 @@ class SquadOpt:
         squad = Squad(budget=self.budget, season=self.season)
         for idx in player_ids:
             add_ok = squad.add_player(
-                self.players[int(idx)].player_id,
-                gameweek=self.start_gw,
+                self.players[int(idx)].player_id, gameweek=self.start_gw,
             )
             if not add_ok:
                 return [0]
@@ -362,8 +361,7 @@ def make_new_squad(
             opt_squad.players[int(idx)].price(season, 1) / 10,
         )
         squad.add_player(
-            opt_squad.players[int(idx)].player_id,
-            gameweek=opt_squad.start_gw,
+            opt_squad.players[int(idx)].player_id, gameweek=opt_squad.start_gw,
         )
 
     # fill empty slots with dummy players (if chosen not to optimise full squad)

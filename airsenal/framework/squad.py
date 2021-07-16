@@ -147,10 +147,7 @@ class Squad(object):
                     self.budget += price
                 else:
                     self.budget += self.get_sell_price_for_player(
-                        p,
-                        use_api=use_api,
-                        gameweek=gameweek,
-                        dbsession=dbsession,
+                        p, use_api=use_api, gameweek=gameweek, dbsession=dbsession,
                     )
                 self.num_position[p.position] -= 1
                 self.players.remove(p)
@@ -158,11 +155,7 @@ class Squad(object):
         return False
 
     def get_sell_price_for_player(
-        self,
-        player,
-        use_api=False,
-        gameweek=NEXT_GAMEWEEK,
-        dbsession=None,
+        self, player, use_api=False, gameweek=NEXT_GAMEWEEK, dbsession=None,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
@@ -189,9 +182,7 @@ class Squad(object):
             # if all else fails just use the purchase price as the sale
             # price for this player.
             print(
-                "Using purchase price as sale price for",
-                player.player_id,
-                player,
+                "Using purchase price as sale price for", player.player_id, player,
             )
             price_now = price_bought
 

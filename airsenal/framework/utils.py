@@ -170,10 +170,7 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
 
 
 def get_squad_value(
-    squad,
-    gameweek=NEXT_GAMEWEEK,
-    season=CURRENT_SEASON,
-    use_api=False,
+    squad, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON, use_api=False,
 ):
     """
     Use the transactions table to find the squad as of specified gameweek,

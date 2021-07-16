@@ -86,10 +86,7 @@ def main():
     # Dump Team database
     team_fieldnames = ["id", "name", "full_name", "season", "team_id"]
     save_table_fields(
-        "../data/teams.csv",
-        team_fieldnames,
-        Team,
-        " ==== dumped Team database === ",
+        "../data/teams.csv", team_fieldnames, Team, " ==== dumped Team database === ",
     )
 
     # Dump FifaTeamRating database
