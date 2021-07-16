@@ -48,22 +48,21 @@ def fill_attributes_table_from_file(detail_data, season, dbsession=session):
             if gameweek in previous_gameweeks:
                 # already done this gameweek
                 continue
-            else:
-                previous_gameweeks.append(gameweek)
+            previous_gameweeks.append(gameweek)
 
-                pa = PlayerAttributes()
-                pa.player = player
-                pa.player_id = player.player_id
-                pa.season = season
-                pa.gameweek = gameweek
-                pa.price = int(fixture_data["value"])
-                pa.team = fixture_data["played_for"]
-                pa.position = fixture_data["position"]
-                pa.transfers_balance = int(fixture_data["transfers_balance"])
-                pa.selected = int(fixture_data["selected"])
-                pa.transfers_in = int(fixture_data["transfers_in"])
-                pa.transfers_out = int(fixture_data["transfers_out"])
-                dbsession.add(pa)
+            pa = PlayerAttributes()
+            pa.player = player
+            pa.player_id = player.player_id
+            pa.season = season
+            pa.gameweek = gameweek
+            pa.price = int(fixture_data["value"])
+            pa.team = fixture_data["played_for"]
+            pa.position = fixture_data["position"]
+            pa.transfers_balance = int(fixture_data["transfers_balance"])
+            pa.selected = int(fixture_data["selected"])
+            pa.transfers_in = int(fixture_data["transfers_in"])
+            pa.transfers_out = int(fixture_data["transfers_out"])
+            dbsession.add(pa)
 
 
 def fill_attributes_table_from_api(season, gw_start=1, dbsession=session):

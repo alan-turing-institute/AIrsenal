@@ -94,11 +94,7 @@ def path_to_name(path):
     # get directory name from full path
     dir_name = os.path.basename(os.path.dirname(path))
 
-    # replace _ with spaces, plus exclude anything that's numeric
-    # (some seasons have player id in directory name, we just want name)
-    name = " ".join([x for x in dir_name.split("_") if not x.isdigit()])
-
-    return name
+    return " ".join(x for x in dir_name.split("_") if not x.isdigit())
 
 
 def get_long_season_name(short_name):
@@ -125,9 +121,7 @@ def get_positions_df(season):
     raw_df["position"] = raw_df["element_type"].replace(positions)
 
     raw_df.set_index("name", inplace=True)
-    positions_df = raw_df["position"]
-
-    return positions_df
+    return raw_df["position"]
 
 
 def get_fixtures_df(season):
@@ -206,14 +200,7 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
         player_date = pd.to_datetime(player_row["kickoff_time"]).date()
         matches = matches[matches["date"] == player_date]
 
-    if len(matches) == 1:
-        # Found a unique fixture corresponding to the input data.
-        if was_home:
-            return matches["home_team"].iloc[0]
-        else:
-            return matches["away_team"].iloc[0]
-
-    else:
+    if len(matches) != 1:
         # Couldn't find a unique fixture
         raise ValueError(
             """Found no matches with gw {}, was_home {}
@@ -221,6 +208,12 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
                 gw, was_home, opponent
             )
         )
+
+    # Found a unique fixture corresponding to the input data.
+    if was_home:
+        return matches["home_team"].iloc[0]
+    else:
+        return matches["away_team"].iloc[0]
 
 
 def process_file(path, teams_dict, fixtures_df, got_fixtures):
