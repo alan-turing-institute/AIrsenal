@@ -13,7 +13,7 @@ def get_current_season():
     use the current time to find what season we're in.
     """
     current_time = datetime.now()
-    if current_time.month > 7:
+    if current_time.month > 6:
         start_year = current_time.year
     else:
         start_year = current_time.year - 1

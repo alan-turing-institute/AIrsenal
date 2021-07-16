@@ -43,8 +43,8 @@ def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=s
     pred_seasons = [f[0] for f in fixtures]
     pred_gws = [f[1] for f in fixtures]
 
-    season_ok = all([s == season for s in pred_seasons])
-    gws_ok = all([gw in pred_gws for gw in gameweek_range])
+    season_ok = all(s == season for s in pred_seasons)
+    gws_ok = all(gw in pred_gws for gw in gameweek_range)
 
     return season_ok and gws_ok
 
@@ -58,7 +58,7 @@ def calc_points_hit(num_transfers, free_transfers):
     For Bx and Tx the "x" corresponds to the number of transfers
     in addition to the chip being played.
     """
-    if num_transfers == "W" or num_transfers == "F":
+    if num_transfers in ["W", "F"]:
         return 0
     elif isinstance(num_transfers, int):
         return max(0, 4 * (num_transfers - free_transfers))
@@ -79,7 +79,7 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
     free hit, but we can't have more than 2.  So we should only be able
     to return 1 or 2.
     """
-    if num_transfers == "W" or num_transfers == "F":
+    if num_transfers in ["W", "F"]:
         return 1
     elif isinstance(num_transfers, int):
         return max(1, min(2, 1 + prev_free_transfers - num_transfers))
@@ -181,13 +181,12 @@ def make_optimum_single_transfer(
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = -1.0
     best_pid_out, best_pid_in = 0, 0
-    ordered_player_lists = {}
     if verbose:
         print("Creating ordered player lists")
-    for pos in ["GK", "DEF", "MID", "FWD"]:
-        ordered_player_lists[pos] = get_predicted_points(
-            gameweek=gameweek_range, position=pos, tag=tag
-        )
+    ordered_player_lists = {
+        pos: get_predicted_points(gameweek=gameweek_range, position=pos, tag=tag)
+        for pos in ["GK", "DEF", "MID", "FWD"]
+    }
     for p_out in squad.players:
         if update_func_and_args:
             # call function to update progress bar.
@@ -258,12 +257,10 @@ def make_optimum_double_transfer(
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = 0.0
     best_pid_out, best_pid_in = 0, 0
-    ordered_player_lists = {}
-    for pos in ["GK", "DEF", "MID", "FWD"]:
-        ordered_player_lists[pos] = get_predicted_points(
-            gameweek=gameweek_range, position=pos, tag=tag
-        )
-
+    ordered_player_lists = {
+        pos: get_predicted_points(gameweek=gameweek_range, position=pos, tag=tag)
+        for pos in ["GK", "DEF", "MID", "FWD"]
+    }
     for i in range(len(squad.players) - 1):
         positions_needed = []
         pout_1 = squad.players[i]
@@ -292,10 +289,7 @@ def make_optimum_double_transfer(
 
             # now loop over lists of players and add players back in
             for pin_1 in ordered_player_lists[positions_needed[0]]:
-                if (
-                    pin_1[0].player_id == pout_1.player_id
-                    or pin_1[0].player_id == pout_2.player_id
-                ):
+                if pin_1[0].player_id in [pout_1.player_id, pout_2.player_id]:
                     continue  # no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
                 added_1_ok = new_squad_add_1.add_player(
@@ -363,7 +357,7 @@ def make_random_transfers(
     best_pid_out = []
     best_pid_in = []
     max_tries = 100
-    for i in range(num_iter):
+    for _ in range(num_iter):
         if update_func_and_args:
             # call function to update progress bar.
             # this was passed as a tuple (func, increment, pid)
@@ -396,11 +390,10 @@ def make_random_transfers(
             new_squad.remove_player(
                 removed_players[-1], season=season, gameweek=transfer_gw
             )
-        predicted_points = {}
-        for pos in set(positions_needed):
-            predicted_points[pos] = get_predicted_points(
-                position=pos, gameweek=gw_range, tag=tag
-            )
+        predicted_points = {
+            pos: get_predicted_points(position=pos, gameweek=gw_range, tag=tag)
+            for pos in set(positions_needed)
+        }
         complete_squad = False
         added_players = []
         attempt = 0
@@ -452,7 +445,7 @@ def make_random_transfers(
             best_pid_out = removed_players
             best_pid_in = [ap.player_id for ap in added_players]
             best_squad = new_squad
-        # end of loop over n_iter
+            # end of loop over n_iter
     return best_squad, best_pid_out, best_pid_in
 
 
@@ -475,12 +468,13 @@ def make_best_transfers(
     # deal with triple_captain or free_hit
     triple_captain_gw = None
     bench_boost_gw = None
-    if isinstance(num_transfers, str) and num_transfers.startswith("T"):
-        num_transfers = int(num_transfers[1])
-        triple_captain_gw = gameweeks[0]
-    elif isinstance(num_transfers, str) and num_transfers.startswith("B"):
-        num_transfers = int(num_transfers[1])
-        bench_boost_gw = gameweeks[0]
+    if isinstance(num_transfers, str):
+        if num_transfers.startswith("T"):
+            num_transfers = int(num_transfers[1])
+            triple_captain_gw = gameweeks[0]
+        elif num_transfers.startswith("B"):
+            num_transfers = int(num_transfers[1])
+            bench_boost_gw = gameweeks[0]
 
     if num_transfers == 0:
         # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
@@ -519,7 +513,7 @@ def make_best_transfers(
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
-    elif num_transfers == "W" or num_transfers == "F":
+    elif num_transfers in ["W", "F"]:
         players_out = [p.player_id for p in squad.players]
         budget = get_squad_value(squad)
         if num_transfers == "F":
@@ -622,8 +616,8 @@ def make_new_squad(
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (
-                    not pp[0] in excluded_player_ids
-                ) or random.random() < 0.3:  # some chance to put player back
+                    pp[0] not in excluded_player_ids or random.random() < 0.3
+                ):  # some chance to put player back
                     cp = CandidatePlayer(pp[0], gameweek=transfer_gw, season=season)
                     if cp.purchase_price >= remove_cost:
                         continue
@@ -697,10 +691,7 @@ def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     (0 or 1 transfer for each gameweek).
     """
     strat_dict = strategy[0]
-    for v in strat_dict.values():
-        if isinstance(v, int) and v >= N:
-            return True
-    return False
+    return any(isinstance(v, int) and v >= N for v in strat_dict.values())
 
 
 def make_strategy_id(strategy):
@@ -708,8 +699,7 @@ def make_strategy_id(strategy):
     Return a string that will identify a strategy - just concatenate
     the numbers of transfers per gameweek.
     """
-    strat_id = ",".join([str(nt) for nt in strategy[0].values()])
-    return strat_id
+    return ",".join(str(nt) for nt in strategy[0].values())
 
 
 def get_num_increments(num_transfers, num_iterations=100):

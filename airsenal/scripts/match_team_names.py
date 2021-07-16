@@ -30,10 +30,11 @@ if __name__ == "__main__":
 
     # get the team names as used in FPL
     df = FPLDataFetcher()
-    teamdict = {}
     teamdata = df.get_current_team_data()
-    for k in teamdata.keys():
-        teamdict[teamdata[k]["name"]] = [teamdata[k]["short_name"]]
+    teamdict = {
+        teamdata[k]["name"]: [teamdata[k]["short_name"]] for k in teamdata.keys()
+    }
+
     #    teamdicts = [{teamdata[k]['name']:[teamdata[k]['short_name']]} \
     #                for k in teamdata.keys()]
     fpl_teams = list(teamdict.keys())
@@ -74,6 +75,5 @@ if __name__ == "__main__":
     # print missing teams (should be the relegated ones
     print("Teams not in this seasons FPL: {}".format(missing))
 
-    outfile = open("../data/alternative_team_names.json", "w")
-    outfile.write(json.dumps(teamdict))
-    outfile.close()
+    with open("../data/alternative_team_names.json", "w") as outfile:
+        outfile.write(json.dumps(teamdict))

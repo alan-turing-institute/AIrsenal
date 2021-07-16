@@ -149,8 +149,8 @@ def get_attacking_points(
         # partition n goals into possible combinations of
         # [n_goals, n_assists, n_neither]
         partitions = []
-        for i in range(0, n + 1):
-            for j in range(0, n - i + 1):
+        for i in range(n + 1):
+            for j in range(n - i + 1):
                 partitions.append([i, j, n - i - j])
         return partitions
 
@@ -188,7 +188,7 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
         # TODO - what about if the team concedes only after player comes off?
         team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
         defending_points = points_for_cs[position] * team_cs_prob
-    if position == "DEF" or position == "GK":
+    if position in ["DEF", "GK"]:
         # lose 1 point per 2 goals conceded if player is on pitch for both
         # lets simplify, say that its only the last goal that matters, and
         # chance that player was on pitch for that is expected_minutes/90
@@ -212,18 +212,17 @@ def get_bonus_points(player_id, minutes, df_bonus):
     NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
     must be changed together.
     """
-    if minutes >= 60:
-        if player_id in df_bonus[0].index:
-            return df_bonus[0].loc[player_id]
-        else:
-            return 0
-    elif minutes >= 30:
-        if player_id in df_bonus[1].index:
-            return df_bonus[1].loc[player_id]
-        else:
-            return 0
-    else:
+    if minutes >= 60 and player_id in df_bonus[0].index:
+        return df_bonus[0].loc[player_id]
+    elif (
+        minutes >= 60
+        or minutes >= 30
+        and player_id not in df_bonus[1].index
+        or minutes < 30
+    ):
         return 0
+    else:
+        return df_bonus[1].loc[player_id]
 
 
 def get_save_points(position, player_id, minutes, df_saves):
@@ -234,11 +233,8 @@ def get_save_points(position, player_id, minutes, df_saves):
     """
     if position != "GK":
         return 0
-    if minutes >= 60:
-        if player_id in df_saves.index:
-            return df_saves.loc[player_id]
-        else:
-            return 0
+    if minutes >= 60 and player_id in df_saves.index:
+        return df_saves.loc[player_id]
     else:
         return 0
 
@@ -249,11 +245,8 @@ def get_card_points(player_id, minutes, df_cards):
 
     df_cards - as calculated by fit_card_points().
     """
-    if minutes >= 30:
-        if player_id in df_cards.index:
-            return df_cards.loc[player_id]
-        else:
-            return 0
+    if minutes >= 30 and player_id in df_cards.index:
+        return df_cards.loc[player_id]
     else:
         return 0
 
@@ -293,8 +286,7 @@ def calc_predicted_points_for_player(
         # predicting for
         fixtures_behind = len(gw_range)
 
-    if fixtures_behind < min_fixtures_behind:
-        fixtures_behind = min_fixtures_behind
+    fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
     team = player.team(
         season, gw_range[0]
@@ -373,7 +365,7 @@ def calc_predicted_points_for_player(
                         position, player.player_id, mins, df_saves
                     )
 
-            points = points / len(recent_minutes)
+            points /= len(recent_minutes)
 
         # create the PlayerPrediction for this player+fixture
         predictions.append(make_prediction(player, fixture, points, tag))
@@ -401,16 +393,13 @@ def calc_predicted_points_for_pos(
     Calculate points predictions for all players in a given position and
     put into the DB
     """
-    predictions = {}
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
         df_player = get_fitted_player_model(
             player_model, pos, season, min(gw_range), dbsession
         )
-    for player in list_players(
-        position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
-    ):
-        predictions[player.player_id] = calc_predicted_points_for_player(
+    return {
+        player.player_id: calc_predicted_points_for_player(
             player=player,
             team_model=team_model,
             df_player=df_player,
@@ -422,8 +411,10 @@ def calc_predicted_points_for_pos(
             tag=tag,
             dbsession=dbsession,
         )
-
-    return predictions
+        for player in list_players(
+            position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
+        )
+    }
 
 
 def make_prediction(player, fixture, points, tag):
@@ -502,8 +493,7 @@ def get_player_model():
     if not os.path.exists(stan_filepath):
         raise RuntimeError("Can't find player_forecasts.stan")
 
-    model_player = pystan.StanModel(file=stan_filepath)
-    return model_player
+    return pystan.StanModel(file=stan_filepath)
 
     # new method - get pre-compiled pickle, BUT - how to ensure it looks
     # in site-packages rather than local directory?

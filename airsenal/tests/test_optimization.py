@@ -49,9 +49,7 @@ def generate_dummy_squad(player_points_dict=None):
     { player_id: { gw: points,...} ,...}
     """
     if not player_points_dict:  # make a simple one
-        player_points_dict = {}
-        for i in range(15):
-            player_points_dict[i] = {1: 2}  # 2 points per game
+        player_points_dict = {i: {1: 2} for i in range(15)}
     t = Squad()
     for i in range(15):
         if i < 2:
@@ -84,11 +82,10 @@ def predicted_point_mock_generator(point_dict):
         #        return output_pid_list
         if isinstance(gameweek, list):
             gameweek = gameweek[0]
-        output_list = [
+        return [
             (DummyPlayer(entry[0], position, {gameweek: entry[1]}), entry[1])
             for entry in output_pid_list
         ]
-        return output_list
 
     return mock_get_predicted_points
 

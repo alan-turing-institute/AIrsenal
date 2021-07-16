@@ -187,13 +187,13 @@ def session_budget():
     """
     Set or get the budget for this team.
     """
-    if request.method == "POST":
-        data = json.loads(request.data.decode("utf-8"))
-        budget = data["budget"]
-        set_session_budget(budget, get_session_id())
-        return create_response("OK")
-    else:
+    if request.method != "POST":
         return create_response(get_session_budget(get_session_id()))
+
+    data = json.loads(request.data.decode("utf-8"))
+    budget = data["budget"]
+    set_session_budget(budget, get_session_id())
+    return create_response("OK")
 
 
 def create_app(name=__name__):
