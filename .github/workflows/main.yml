@@ -12,6 +12,7 @@ on:
 
 jobs:
   build:
+    name: Run tests and quality checks
     runs-on: ubuntu-latest
     strategy:
       matrix:
