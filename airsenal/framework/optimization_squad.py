@@ -21,7 +21,7 @@ def make_new_squad(
     verbose=1,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    algorithm="normal",
+    algorithm="genetic",
     **kwargs,
 ):
     """

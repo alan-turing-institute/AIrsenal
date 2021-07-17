@@ -317,7 +317,7 @@ def make_best_transfers(
     gameweeks,
     root_gw,
     season,
-    num_iter=200,
+    num_iter=100,
     update_func_and_args=None,
     algorithm="genetic",
 ):

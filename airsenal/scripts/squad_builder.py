@@ -27,7 +27,7 @@ def main():
         "--algorithm",
         help="Which optimization algorithm to use - 'normal' or 'genetic'",
         type=str,
-        default="normal",
+        default="genetic",
     )
     # parameters for "normal" optimization
     parser.add_argument(
@@ -59,7 +59,11 @@ def main():
         help="Include players with zero predicted points (genetic only)",
         action="store_true",
     )
-
+    parser.add_argument(
+        "--verbose",
+        help="Print details on optimsation progress",
+        action="store_true",
+    )
     args = parser.parse_args()
     season = args.season or get_current_season()
     budget = args.budget
@@ -71,6 +75,7 @@ def main():
     num_generations = args.num_generations
     population_size = args.population_size
     remove_zero = not args.include_zero
+    verbose = args.verbose
     if args.no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
@@ -85,6 +90,8 @@ def main():
             print("Defaulting to algorithm=normal instead")
             algorithm = "normal"
             uda = None
+    else:
+        uda = None
 
     best_squad = make_new_squad(
         gw_range,
@@ -97,6 +104,7 @@ def main():
         uda=uda,
         population_size=population_size,
         num_iterations=num_iterations,
+        verbose=verbose,
     )
     points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
