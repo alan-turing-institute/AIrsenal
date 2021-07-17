@@ -174,7 +174,7 @@ def test_single_transfer():
     mock_pred_points = predicted_point_mock_generator(position_points_dict)
 
     with mock.patch(
-        "airsenal.framework.optimization_utils.get_predicted_points",
+        "airsenal.framework.optimization_transfers.get_predicted_points",
         side_effect=mock_pred_points,
     ):
         new_squad, pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
@@ -236,7 +236,7 @@ def test_double_transfer():
     mock_pred_points = predicted_point_mock_generator(position_points_dict)
 
     with mock.patch(
-        "airsenal.framework.optimization_utils.get_predicted_points",
+        "airsenal.framework.optimization_transfers.get_predicted_points",
         side_effect=mock_pred_points,
     ):
         new_squad, pid_out, pid_in = make_optimum_double_transfer(t, "DUMMY", [1])
