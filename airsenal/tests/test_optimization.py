@@ -5,14 +5,15 @@ and checking that the optimizer finds the expected outcome.
 from unittest import mock
 from operator import itemgetter
 
-
+from airsenal.framework.squad import Squad
 from airsenal.framework.optimization_utils import (
-    Squad,
-    make_optimum_single_transfer,
-    make_optimum_double_transfer,
     get_discount_factor,
     next_week_transfers,
     count_expected_outputs,
+)
+from airsenal.framework.optimization_transfers import (
+    make_optimum_single_transfer,
+    make_optimum_double_transfer,
 )
 
 
