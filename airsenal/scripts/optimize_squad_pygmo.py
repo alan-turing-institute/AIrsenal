@@ -1,6 +1,6 @@
 import pygmo as pg
 
-from airsenal.framework.optimization_pygmo import make_new_squad
+from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
 from airsenal.framework.squad import TOTAL_PER_POSITION
 
 from airsenal.framework.utils import (
@@ -45,7 +45,7 @@ population_size = 100
 # -------------------------
 gw_range = list(range(gw_start, min(38, gw_start + num_gw)))
 
-team = make_new_squad(
+team = make_new_squad_pygmo(
     gw_range,
     tag,
     uda=uda,

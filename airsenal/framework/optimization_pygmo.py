@@ -1,3 +1,10 @@
+"""
+Alternative approach to algorithm in optimization_squad using pygmo to create an
+optimal squad for the start of the season or for wildcards and free hits.
+
+Usually gives better results than optimization_squad.make_new_squad if run with a
+population size of at least 100 and for at least 100 generations.
+"""
 try:
     import pygmo as pg
 except ModuleNotFoundError:
@@ -258,7 +265,7 @@ class SquadOpt:
         ]
 
 
-def make_new_squad(
+def make_new_squad_pygmo(
     gw_range,
     tag,
     budget=1000,
@@ -272,6 +279,7 @@ def make_new_squad(
     dummy_sub_cost=45,
     uda=pg.sga(gen=100),
     population_size=100,
+    **kwargs,
 ):
     """Optimize a full initial squad using any PyGMO-compatible algorithm.
 

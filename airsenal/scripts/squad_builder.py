@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-import pygmo as pg
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
 )
 from airsenal.framework.season import get_current_season
-
+from airsenal.framework.optimization_squad import make_new_squad
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -67,40 +66,39 @@ def main():
     gw_start = args.gw_start or NEXT_GAMEWEEK
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
-
-    if args.algorithm == "normal":
-        from airsenal.framework.optimization_utils import make_new_squad
-
-        num_iterations = args.num_iterations
-        best_squad = make_new_squad(args.budget, num_iterations, tag, gw_range, season)
-
-    elif args.algorithm == "genetic":
-        from airsenal.framework.optimization_pygmo import make_new_squad
-
-        num_generations = args.num_generations
-        population_size = args.population_size
-        remove_zero = not args.include_zero
-        uda = pg.sga(gen=num_generations)
-        if args.no_subs:
-            sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
-        else:
-            sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-
-        best_squad = make_new_squad(
-            gw_range,
-            tag,
-            budget=budget,
-            season=season,
-            remove_zero=remove_zero,
-            sub_weights=sub_weights,
-            uda=uda,
-            population_size=population_size,
-        )
+    algorithm = args.algorithm
+    num_iterations = args.num_iterations
+    num_generations = args.num_generations
+    population_size = args.population_size
+    remove_zero = not args.include_zero
+    if args.no_subs:
+        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
-        raise ValueError("'algorithm' must be 'normal' or 'genetic'")
+        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+    if algorithm == "genetic":
+        try:
+            import pygmo as pg
 
+            uda = pg.sga(gen=num_generations)
+        except ModuleNotFoundError as e:
+            print(e)
+            print("Defaulting to algorithm=normal instead")
+            algorithm = "normal"
+            uda = None
+
+    best_squad = make_new_squad(
+        gw_range,
+        tag,
+        budget=budget,
+        season=season,
+        algorithm=algorithm,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
+        uda=uda,
+        population_size=population_size,
+        num_iterations=num_iterations,
+    )
     points = best_squad.get_expected_points(gw_start, tag)
-
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))
     print("---------------------")
