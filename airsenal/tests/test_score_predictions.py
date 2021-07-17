@@ -301,7 +301,7 @@ def test_get_fitted_team_model():
 
 def test_fixture_probabilities():
     with test_past_data_session_scope() as ts:
-        df = fixture_probabilities(20, "1819", ts)
+        df = fixture_probabilities(20, "1819", dbsession=ts)
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
 
