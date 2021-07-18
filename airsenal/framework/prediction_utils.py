@@ -38,6 +38,8 @@ from airsenal.framework.FPL_scoring_rules import (
 )
 
 np.random.seed(42)
+# consider probabilities of scoring/conceding up to this many goals
+MAX_GOALS = 10
 
 
 def get_player_history_df(
@@ -163,15 +165,16 @@ def get_attacking_points(
     # compute the weighted sum of terms like:
     #   points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
-    for ngoals in range(1, 11):
+    goals = np.arange(1, MAX_GOALS + 1)
+    team_goal_prob = model_team.predict_score_n_proba(goals, team, opponent, is_home)
+    for idx_goals, ngoals in enumerate(goals):
         partitions = _get_partitions(ngoals)
         probabilities = multinomial.pmf(
             partitions, n=[ngoals] * len(partitions), p=multinom_probs
         )
         scores = map(_get_partition_score, partitions)
         exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
-        team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
-        exp_points += exp_score_inner * team_goal_prob
+        exp_points += exp_score_inner * team_goal_prob[idx_goals]
     return exp_points
 
 
@@ -184,20 +187,21 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
         # if no minutes are played, can't get any points
         return 0.0
     defending_points = 0
+    team_concede_proba = model_team.predict_concede_n_proba(
+        np.arange(MAX_GOALS + 1), team, opponent, is_home
+    )
     if minutes >= 60:
         # TODO - what about if the team concedes only after player comes off?
-        team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
-        defending_points = points_for_cs[position] * team_cs_prob
+        defending_points = points_for_cs[position] * team_concede_proba[0]
     if position in ["DEF", "GK"]:
         # lose 1 point per 2 goals conceded if player is on pitch for both
         # lets simplify, say that its only the last goal that matters, and
         # chance that player was on pitch for that is expected_minutes/90
-        for n in range(7):
-            defending_points -= (
-                (n // 2)
-                * (minutes / 90)
-                * model_team.concede_n_probability(n, team, opponent, is_home)
-            )
+        defending_points -= sum(
+            (n // 2) * (minutes / 90) * team_concede_proba[n]
+            for n in range(MAX_GOALS + 1)
+        )
+
     return defending_points
 
 
@@ -368,6 +372,8 @@ def calc_predicted_points_for_player(
             points /= len(recent_minutes)
 
         # create the PlayerPrediction for this player+fixture
+        if np.isnan(points):
+            raise ValueError(f"nan points for {player} {fixture} {points} {tag}")
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict

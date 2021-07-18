@@ -43,7 +43,7 @@ class DummyTeamModel(object):
     def __init__(self, score_prob_dict):
         self.score_prob_dict = score_prob_dict
 
-    def score_n_probability(self, n, team, opp, is_home):
+    def predict_score_n_proba(self, n, team, opp, is_home):
         total_prob = 0.0
         for score, prob in self.score_prob_dict.items():
             s = score[0] if is_home else score[1]
