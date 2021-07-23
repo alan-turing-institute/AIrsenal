@@ -1,6 +1,6 @@
 import pygmo as pg
 
-from airsenal.framework.optimization_pygmo import make_new_squad
+from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
 from airsenal.framework.squad import TOTAL_PER_POSITION
 
 from airsenal.framework.utils import (
@@ -18,10 +18,6 @@ num_gw = 3
 season = CURRENT_SEASON
 tag = get_latest_prediction_tag()
 budget = 1000
-
-# Gameweek weightings - either 'constant' to treat all gameweeks equally, or 'linear'
-# to reduce weight by 1/15 for each subsequent gameweek.
-gw_weight_type = "linear"
 
 # Weighting given to substitutes (GK, and 1st, 2nd, 3rd outfield sub).
 # 1 means points scored by subs treated as important as points scored by the first XI
@@ -49,7 +45,7 @@ population_size = 100
 # -------------------------
 gw_range = list(range(gw_start, min(38, gw_start + num_gw)))
 
-team = make_new_squad(
+team = make_new_squad_pygmo(
     gw_range,
     tag,
     uda=uda,
@@ -58,7 +54,6 @@ team = make_new_squad(
     budget=budget,
     players_per_position=players_per_position,
     dummy_sub_cost=dummy_sub_cost,
-    gw_weight_type=gw_weight_type,
     season=season,
 )
 

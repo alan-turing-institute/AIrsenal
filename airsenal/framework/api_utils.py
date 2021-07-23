@@ -23,7 +23,7 @@ from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Playe
 
 from airsenal.framework.squad import Squad
 
-from airsenal.framework.optimization_utils import (
+from airsenal.framework.optimization_transfers import (
     make_optimum_single_transfer,
     make_optimum_double_transfer,
 )
