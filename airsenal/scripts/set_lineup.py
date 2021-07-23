@@ -22,12 +22,6 @@ from airsenal.scripts.make_transfers import (
 )
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
-"""
-TODO:
-- apply chips
-- send to api, using https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html?highlight=lineup#
-- incorporate into pipeline
-"""
 
 def check_proceed(squad):
     
@@ -116,7 +110,7 @@ def get_lineup(fetcher):
 
 
 def post_lineup(payload, fetcher):
-        
+
         req_session = requests.session()
 
         req_session = login(req_session, fetcher)
