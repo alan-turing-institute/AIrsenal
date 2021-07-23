@@ -1,14 +1,26 @@
-import pygmo as pg
+"""
+Alternative approach to algorithm in optimization_squad using pygmo to create an
+optimal squad for the start of the season or for wildcards and free hits.
+
+Usually gives better results than optimization_squad.make_new_squad if run with a
+population size of at least 100 and for at least 100 generations.
+"""
+try:
+    import pygmo as pg
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "Optional dependency pygmo not installed. If using conda run "
+        "'conda install pygmo'. If not see https://esa.github.io/pygmo2/install.html"
+    )
 
 import uuid
-
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     list_players,
     get_predicted_points_for_player,
 )
-
 from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
+from airsenal.framework.optimization_utils import get_discount_factor
 
 
 class DummyPlayer:
@@ -71,10 +83,6 @@ class SquadOpt:
         optimized. For example, if you are optimizing 12 out of 15 players, the
         effective budget for optimizinig the squad will be
         budget - (15 -12) * dummy_sub_cost, by default 45
-    gw_weight_type : str, optional
-        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
-        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
-        equally,  by default "linear"
     """
 
     def __init__(
@@ -89,14 +97,13 @@ class SquadOpt:
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
         sub_weights={"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)},
-        gw_weight_type="linear",
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
-        self.gw_weight = self._get_gw_weight(gw_weight_type)
+        self.gw_weight = self._get_gw_weight()
 
         self.tag = tag
         self.positions = ["GK", "DEF", "MID", "FWD"]
@@ -122,20 +129,24 @@ class SquadOpt:
         # Make squad from player IDs
         squad = Squad(budget=self.budget)
         for idx in player_ids:
-            squad.add_player(
+            add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
                 season=self.season,
                 gameweek=self.start_gw,
             )
+            if not add_ok:
+                return [0]
 
         # fill empty slots with dummy players (if chosen not to optimise full squad)
         for pos in self.positions:
             if self.dummy_per_position[pos] > 0:
-                for i in range(self.dummy_per_position[pos]):
+                for _ in range(self.dummy_per_position[pos]):
                     dp = DummyPlayer(
                         self.gw_range, self.tag, pos, price=self.dummy_sub_cost
                     )
-                    squad.add_player(dp)
+                    add_ok = squad.add_player(dp)
+                    if not add_ok:
+                        return [0]
 
         # Check squad is valid, if not return fitness of zero
         if not squad.is_complete():
@@ -219,7 +230,7 @@ class SquadOpt:
         last_pos = self.positions[0]
         for p in self.players:
             gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
-            total_pts = sum([pts for gw, pts in gw_pts.items() if gw in self.gw_range])
+            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gw_range)
             if total_pts > 0:
                 if p.position(self.season) != last_pos:
                     change_idx.append(len(players))
@@ -239,29 +250,22 @@ class SquadOpt:
         """No. of dummy players per position needed to complete the squad (if not
         optimising the full squad)
         """
-        dummy_per_position = {}
-        for pos in self.positions:
-            dummy_per_position[pos] = (
-                TOTAL_PER_POSITION[pos] - self.players_per_position[pos]
-            )
-        return dummy_per_position
+        return {
+            pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
+            for pos in self.positions
+        }
 
-    def _get_gw_weight(self, weight_type):
-        """Weight for each gameweek. If weight_type is 'constant' treat all gameweeks
-        equally. If it is 'linear' reduce by 1/15 each week (e.g. GW1 15/15, GW2 14/15,
-        GW3 13/15,... GW15 1/15)
+    def _get_gw_weight(self, **kwargs):
+        """Weight for each gameweek (discount weeks further in the future). **kwargs
+        passed to get_discount_factor
         """
-        if weight_type == "constant":
-            return [1] * len(self.gw_range)
-        elif weight_type == "linear":
-            return [
-                (15 - i) / 15 if i < 15 else 1 / 15 for i in range(len(self.gw_range))
-            ]
-        else:
-            raise ValueError("weight_type must be 'linear' or 'constant'.")
+        return [
+            get_discount_factor(min(self.gw_range), gw, **kwargs)
+            for gw in self.gw_range
+        ]
 
 
-def make_new_squad(
+def make_new_squad_pygmo(
     gw_range,
     tag,
     budget=1000,
@@ -275,7 +279,7 @@ def make_new_squad(
     dummy_sub_cost=45,
     uda=pg.sga(gen=100),
     population_size=100,
-    gw_weight_type="linear",
+    **kwargs,
 ):
     """Optimize a full initial squad using any PyGMO-compatible algorithm.
 
@@ -313,10 +317,6 @@ def make_new_squad(
     population_size : int, optional
         Number of candidate solutions in each generation of the optimization,
         by default 100
-    gw_weight_type : str, optional
-        Gamewek weighting strategy, either 'linear' in which case the weight is reduced
-        by 1/15 per gameweek, or 'constant' in which case all gameweeks are treated
-        equally,  by default "linear"
 
     Returns
     -------
@@ -335,9 +335,7 @@ def make_new_squad(
         triple_captain_gw=triple_captain_gw,
         remove_zero=remove_zero,  # don't consider players with predicted pts of zero
         sub_weights=sub_weights,
-        gw_weight_type=gw_weight_type,
     )
-
     prob = pg.problem(opt_squad)
 
     # Create algorithm to solve problem with
@@ -349,17 +347,19 @@ def make_new_squad(
 
     # solve problem
     pop = algo.evolve(pop)
-    print("Best score:", -pop.champion_f[0], "pts")
+    if verbose > 0:
+        print("Best score:", -pop.champion_f[0], "pts")
 
     # construct optimal squad
     squad = Squad(budget=opt_squad.budget)
     for idx in pop.champion_x:
-        print(
-            opt_squad.players[int(idx)].position(CURRENT_SEASON),
-            opt_squad.players[int(idx)].name,
-            opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
-            opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
-        )
+        if verbose > 0:
+            print(
+                opt_squad.players[int(idx)].position(CURRENT_SEASON),
+                opt_squad.players[int(idx)].name,
+                opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
+                opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
+            )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
             season=opt_squad.season,
@@ -377,8 +377,9 @@ def make_new_squad(
                     price=opt_squad.dummy_sub_cost,
                 )
                 squad.add_player(dp)
-                print(dp.position, dp.name, dp.purchase_price / 10)
-
-    print(f"£{squad.budget/10}m in the bank")
+                if verbose > 0:
+                    print(dp.position, dp.name, dp.purchase_price / 10)
+    if verbose > 0:
+        print(f"£{squad.budget/10}m in the bank")
 
     return squad

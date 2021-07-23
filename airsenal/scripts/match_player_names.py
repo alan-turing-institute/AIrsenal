@@ -81,6 +81,5 @@ if __name__ == "__main__":
     # print missing teams (should be the relegated ones
     print("Players not in this seasons FPL: {}".format(missing))
 
-    outfile = open("../data/alternative_player_names.json", "w")
-    outfile.write(json.dumps(playerdict))
-    outfile.close()
+    with open("../data/alternative_player_names.json", "w") as outfile:
+        outfile.write(json.dumps(playerdict))

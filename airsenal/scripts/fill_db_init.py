@@ -13,25 +13,27 @@ from airsenal.framework.schema import session_scope
 import argparse
 
 
-def main():
+def make_init_db(session, fpl_team_id):
+    make_team_table(dbsession=session)
+    make_fixture_table(dbsession=session)
+    make_result_table(dbsession=session)
+    make_fifa_ratings_table(dbsession=session)
 
+    make_player_table(dbsession=session)
+    make_attributes_table(dbsession=session)
+    make_playerscore_table(dbsession=session)
+
+    fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=session)
+
+    print("DONE!")
+
+
+def main():
     parser = argparse.ArgumentParser(description="Customise fpl team id")
     parser.add_argument(
         "--fpl_team_id", help="specify fpl team id", type=int, required=False
     )
-
     args = parser.parse_args()
 
     with session_scope() as session:
-        make_team_table(dbsession=session)
-        make_fixture_table(dbsession=session)
-        make_result_table(dbsession=session)
-        make_fifa_ratings_table(dbsession=session)
-
-        make_player_table(dbsession=session)
-        make_attributes_table(dbsession=session)
-        make_playerscore_table(dbsession=session)
-
-        fill_initial_squad(dbsession=session, fpl_team_id=args.fpl_team_id)
-
-        print("DONE!")
+        make_init_db(session, args.fpl_team_id)

@@ -62,12 +62,10 @@ def get_ratings_df(season, dbsession):
     if len(ratings) == 0:
         raise ValueError("No FIFA ratings found for season {}".format(season))
 
-    df = pd.DataFrame(
+    return pd.DataFrame(
         np.array([[s.team, s.att, s.mid, s.defn, s.ovr] for s in ratings]),
         columns=["team", "att", "mid", "defn", "ovr"],
     )
-
-    return df
 
 
 def create_and_fit_team_model(df, df_X, teams=CURRENT_TEAMS, n_attempts=3):
@@ -115,9 +113,7 @@ def get_fitted_team_model(season, gameweek, dbsession):
     df_team = get_result_df(season, gameweek, dbsession)
     df_X = get_ratings_df(season, dbsession=dbsession)
     teams = get_teams_for_season(season, dbsession=dbsession)
-    model_team = create_and_fit_team_model(df_team, df_X, teams=teams)
-
-    return model_team
+    return create_and_fit_team_model(df_team, df_X, teams=teams)
 
 
 def fixture_probabilities(gameweek, season=CURRENT_SEASON, dbsession=None):

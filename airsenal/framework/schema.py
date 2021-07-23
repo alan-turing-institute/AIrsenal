@@ -37,9 +37,8 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek)
         if attr is not None:
             return attr.team
-        else:
-            print("No team found for", self.name, "in", season, "season.")
-            return None
+        print("No team found for", self.name, "in", season, "season.")
+        return None
 
     def price(self, season, gameweek):
         """
@@ -50,23 +49,27 @@ class Player(Base):
         """
         attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
         if attr is not None:
-            if isinstance(attr, tuple):
-                # interpolate price between nearest available gameweeks
-                gw_before = attr[0].gameweek
-                price_before = attr[0].price
-                gw_after = attr[1].gameweek
-                price_after = attr[1].price
+            return self._calculate_price(attr, gameweek)
+        print("No price found for", self.name, "in", season, "season.")
+        return None
 
-                gradient = (price_after - price_before) / (gw_after - gw_before)
-                intercept = price_before - gradient * gw_before
-                price = gradient * gameweek + intercept
-                return round(price)
+    def _calculate_price(self, attr, gameweek):
+        """
+        Either return price available for specified gameweek or interpolate based
+        on nearest available price.
+        """
+        if not isinstance(attr, tuple):
+            return attr.price
+        # interpolate price between nearest available gameweeks
+        gw_before = attr[0].gameweek
+        price_before = attr[0].price
+        gw_after = attr[1].gameweek
+        price_after = attr[1].price
 
-            else:
-                return attr.price
-        else:
-            print("No price found for", self.name, "in", season, "season.")
-            return None
+        gradient = (price_after - price_before) / (gw_after - gw_before)
+        intercept = price_before - gradient * gw_before
+        price = gradient * gameweek + intercept
+        return round(price)
 
     def position(self, season):
         """
@@ -75,9 +78,8 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, None)
         if attr is not None:
             return attr.position
-        else:
-            print("No position found for", self.name, "in", season, "season.")
-            return None
+        print("No position found for", self.name, "in", season, "season.")
+        return None
 
     def is_injured_or_suspended(self, season, current_gw, fixture_gw):
         """Check whether a player is injured or suspended (<=50% chance of playing).
@@ -89,13 +91,10 @@ class Player(Base):
         """
         attr = self.get_gameweek_attributes(season, current_gw)
         if attr is not None:
-            if (
+            return (
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
-            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw):
-                return True
-            else:
-                return False
+            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw)
         else:
             return False
 
@@ -209,13 +208,9 @@ class Fixture(Base):
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
     def __str__(self):
-        if self.result:
-            return str(self.result)
-        else:
-            return (
-                f"{self.season} GW{self.gameweek} "
-                f"{self.home_team} vs. {self.away_team}"
-            )
+        return (
+            f"{self.season} GW{self.gameweek} " f"{self.home_team} vs. {self.away_team}"
+        )
 
 
 class PlayerScore(Base):
@@ -252,17 +247,9 @@ class PlayerScore(Base):
     ict_index = Column(Float, nullable=True)
 
     def __str__(self):
-        score_str = (
+        return (
             f"{self.player} ({self.result}): " f"{self.points} pts, {self.minutes} mins"
         )
-        if self.goals > 0:
-            score_str += f", {self.goals} goals"
-        if self.assists > 0:
-            score_str += f", {self.assists} assists"
-        if self.bonus > 0:
-            score_str += f", {self.bonus} bonus"
-
-        return score_str
 
 
 class PlayerPrediction(Base):
@@ -293,11 +280,11 @@ class Transaction(Base):
     fpl_team_id = Column(Integer, nullable=False)
 
     def __str__(self):
-        trans_str = f"{self.season} GW{self.gameweek}: "
+        trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
         if self.bought_or_sold == 1:
-            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+            trans_str += f"bought player {self.player_id}"
         else:
-            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+            trans_str += f"sold player {self.player_id}"
         if self.free_hit:
             trans_str += " (FREE HIT)"
         return trans_str
@@ -318,15 +305,11 @@ class TransferSuggestion(Base):
     chip_played = Column(String(100), nullable=True)
 
     def __str__(self):
-        sugg_str = f"{self.season} GW{self.gameweek}: "
+        sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
         if self.in_or_out == 1:
-            sugg_str += (
-                f"Suggest buying {self.player_id} for gain of {self.points_gain}"
-            )
+            sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
         else:
-            sugg_str += (
-                f"Suggest selling {self.player_id} for gain of {self.points_gain}"
-            )
+            sugg_str += f"selling {self.player_id} to gain {self.points_gain:.2f} pts"
         return sugg_str
 
 

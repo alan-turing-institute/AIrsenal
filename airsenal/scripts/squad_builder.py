@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-import pygmo as pg
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
 )
 from airsenal.framework.season import get_current_season
-
+from airsenal.framework.optimization_squad import make_new_squad
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -28,7 +27,7 @@ def main():
         "--algorithm",
         help="Which optimization algorithm to use - 'normal' or 'genetic'",
         type=str,
-        default="normal",
+        default="genetic",
     )
     # parameters for "normal" optimization
     parser.add_argument(
@@ -61,63 +60,53 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "--gw_weight_type",
-        help=(
-            "'constant' to treat all gameweeks equally, or 'linear' "
-            "to reduce weight of gameweeks with time (genetic only)"
-        ),
-        type=str,
-        default="linear",
+        "--verbose",
+        help="Print details on optimsation progress",
+        action="store_true",
     )
-
     args = parser.parse_args()
-    if args.season:
-        season = args.season
-    else:
-        season = get_current_season()
+    season = args.season or get_current_season()
     budget = args.budget
-    if args.gw_start:
-        gw_start = args.gw_start
-    else:
-        gw_start = NEXT_GAMEWEEK
+    gw_start = args.gw_start or NEXT_GAMEWEEK
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
-
-    if args.algorithm == "normal":
-        from airsenal.framework.optimization_utils import make_new_squad
-
-        num_iterations = args.num_iterations
-        best_squad = make_new_squad(args.budget, num_iterations, tag, gw_range, season)
-
-    elif args.algorithm == "genetic":
-        from airsenal.framework.optimization_pygmo import make_new_squad
-
-        num_generations = args.num_generations
-        population_size = args.population_size
-        remove_zero = not args.include_zero
-        gw_weight_type = args.gw_weight_type
-        uda = pg.sga(gen=num_generations)
-        if args.no_subs:
-            sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
-        else:
-            sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-
-        best_squad = make_new_squad(
-            gw_range,
-            tag,
-            budget=budget,
-            season=season,
-            remove_zero=remove_zero,
-            sub_weights=sub_weights,
-            uda=uda,
-            population_size=population_size,
-            gw_weight_type=gw_weight_type,
-        )
+    algorithm = args.algorithm
+    num_iterations = args.num_iterations
+    num_generations = args.num_generations
+    population_size = args.population_size
+    remove_zero = not args.include_zero
+    verbose = args.verbose
+    if args.no_subs:
+        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
-        raise ValueError("'algorithm' must be 'normal' or 'genetic'")
+        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+    if algorithm == "genetic":
+        try:
+            import pygmo as pg
 
+            uda = pg.sga(gen=num_generations)
+        except ModuleNotFoundError as e:
+            print(e)
+            print("Defaulting to algorithm=normal instead")
+            algorithm = "normal"
+            uda = None
+    else:
+        uda = None
+
+    best_squad = make_new_squad(
+        gw_range,
+        tag,
+        budget=budget,
+        season=season,
+        algorithm=algorithm,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
+        uda=uda,
+        population_size=population_size,
+        num_iterations=num_iterations,
+        verbose=verbose,
+    )
     points = best_squad.get_expected_points(gw_start, tag)
-
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))
     print("---------------------")

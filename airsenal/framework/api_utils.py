@@ -23,7 +23,7 @@ from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Playe
 
 from airsenal.framework.squad import Squad
 
-from airsenal.framework.optimization_utils import (
+from airsenal.framework.optimization_transfers import (
     make_optimum_single_transfer,
     make_optimum_double_transfer,
 )
@@ -95,9 +95,7 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     info_dict["team"] = team
     # get recent scores for the player
     rs = get_recent_scores_for_player(p, dbsession=dbsession)
-    recent_scores = []
-    for k, v in rs.items():
-        recent_scores.append({"gameweek": k, "score": v})
+    recent_scores = [{"gameweek": k, "score": v} for k, v in rs.items()]
     info_dict["recent_scores"] = recent_scores
     # get upcoming fixtures
     fixtures = get_fixtures_for_player(p, dbsession=dbsession)[:3]
@@ -199,7 +197,7 @@ def get_session_players(session_id, dbsession=DBSESSION):
     query the dbsession for the list of players with the requested player_id
     """
     players = dbsession.query(SessionSquad).filter_by(session_id=session_id).all()
-    player_list = [
+    return [
         {
             "id": p.player_id,
             "name": dbsession.query(Player)
@@ -209,7 +207,6 @@ def get_session_players(session_id, dbsession=DBSESSION):
         }
         for p in players
     ]
-    return player_list
 
 
 def validate_session_squad(session_id, dbsession=DBSESSION):
@@ -261,13 +258,12 @@ def get_session_prediction(
         gw = NEXT_GAMEWEEK
     if not pred_tag:
         pred_tag = get_latest_prediction_tag()
-    return_dict = {
+    return {
         "predicted_score": get_predicted_points_for_player(
             player_id, pred_tag, CURRENT_SEASON, dbsession
         )[gw],
         "fixture": get_next_fixture_for_player(player_id, CURRENT_SEASON, dbsession),
     }
-    return return_dict
 
 
 def get_session_predictions(session_id, dbsession=DBSESSION):
@@ -278,13 +274,10 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
-    pred_scores = {}
-    for pid in pids:
-
-        pred_scores[pid] = get_session_prediction(
-            pid, session_id, gw, pred_tag, dbsession
-        )
-    return pred_scores
+    return {
+        pid: get_session_prediction(pid, session_id, gw, pred_tag, dbsession)
+        for pid in pids
+    }
 
 
 def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):

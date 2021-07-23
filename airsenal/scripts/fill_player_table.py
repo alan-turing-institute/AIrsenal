@@ -16,7 +16,7 @@ def find_player_in_table(name, dbsession):
     see if we already have the player
     """
     player = dbsession.query(Player).filter_by(name=name).first()
-    return player if player else None
+    return player or None
 
 
 def num_players_in_table(dbsession):

@@ -39,9 +39,9 @@ def get_league_standings():
     """
     data = fetcher.get_fpl_league_data()
     team_name = data["league"]["name"]
-    standings = []
-    for s in data["standings"]["results"]:
-        standings.append(
-            {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}
-        )
+    standings = [
+        {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}
+        for s in data["standings"]["results"]
+    ]
+
     return team_name, standings

@@ -16,6 +16,7 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 """
 
+
 import os
 import shutil
 import time
@@ -35,14 +36,13 @@ from airsenal.framework.optimization_utils import (
     calc_free_transfers,
     calc_points_hit,
     fill_suggestion_table,
-    make_best_transfers,
     get_num_increments,
     count_expected_outputs,
     next_week_transfers,
     check_tag_valid,
     get_discount_factor,
 )
-
+from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_player_name,
@@ -52,11 +52,7 @@ from airsenal.framework.utils import (
     fetcher,
 )
 
-if os.name == "posix":
-    TMPDIR = "/tmp/"
-else:
-    TMPDIR = "%TMP%"
-
+TMPDIR = "/tmp/" if os.name == "posix" else "%TMP%"
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
 
 
@@ -71,9 +67,7 @@ def is_finished(final_expected_num):
 
     # count the json files in the output dir
     json_count = len(os.listdir(OUTPUT_DIR))
-    if json_count == final_expected_num:
-        return True
-    return False
+    return json_count == final_expected_num
 
 
 def optimize(
@@ -116,9 +110,8 @@ def optimize(
         else:
             if is_finished(num_expected_outputs):
                 break
-            else:
-                time.sleep(5)
-                continue
+            time.sleep(5)
+            continue
 
         # now assume we have set of parameters to do an optimization
         # from the queue.
@@ -255,7 +248,7 @@ def find_best_strat_from_json(tag):
     best_strat = None
     file_list = os.listdir(OUTPUT_DIR)
     for filename in file_list:
-        if not "strategy_{}_".format(tag) in filename:
+        if "strategy_{}_".format(tag) not in filename:
             continue
         full_filename = os.path.join(OUTPUT_DIR, filename)
         with open(full_filename) as strat_file:
@@ -310,8 +303,7 @@ def find_baseline_score_from_json(tag, num_gameweeks):
     else:
         with open(filename) as inputfile:
             strat = json.load(inputfile)
-            score = strat["total_score"]
-            return score
+            return strat["total_score"]
 
 
 def print_strat(strat):
@@ -339,7 +331,6 @@ def print_strat(strat):
             print(subs)
     print("\n==========================")
     print(" Total score: {} \n".format(int(strat["total_score"])))
-    pass
 
 
 def print_team_for_next_gw(strat, fpl_team_id=None):
@@ -633,7 +624,7 @@ def main():
     )
     args = parser.parse_args()
 
-    fpl_team_id = args.fpl_team_id if args.fpl_team_id else None
+    fpl_team_id = args.fpl_team_id or None
 
     sanity_check_args(args)
     season = args.season
@@ -655,20 +646,17 @@ def main():
         num_free_transfers = args.num_free_transfers
     else:
         num_free_transfers = None  # will work it out in run_optimization
-    if args.tag:
-        tag = args.tag
-    else:
-        # get most recent set of predictions from DB table
-        tag = get_latest_prediction_tag()
+    tag = args.tag or get_latest_prediction_tag()
     max_total_hit = args.max_hit
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
-    profile = args.profile if args.profile else False
-    chip_gameweeks = {}
-    chip_gameweeks["wildcard"] = args.wildcard_week
-    chip_gameweeks["free_hit"] = args.free_hit_week
-    chip_gameweeks["triple_captain"] = args.triple_captain_week
-    chip_gameweeks["bench_boost"] = args.bench_boost_week
+    profile = args.profile or False
+    chip_gameweeks = {
+        "wildcard": args.wildcard_week,
+        "free_hit": args.free_hit_week,
+        "triple_captain": args.triple_captain_week,
+        "bench_boost": args.bench_boost_week,
+    }
 
     if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
         print(
