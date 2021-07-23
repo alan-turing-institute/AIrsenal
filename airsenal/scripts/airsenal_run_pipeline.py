@@ -75,6 +75,8 @@ def run_pipeline(
     click.echo("Optimization complete..")
     click.echo("Applying suggested transfers...")
     make_transfers(fpl_team_id)
+    click.echo("Setting Lineup...")
+    set_lineup(fpl_team_id)
 
 
 def clean_database():
@@ -154,6 +156,16 @@ def make_transfers(fpl_team_id=None):
     """
 
     cmd = ("airsenal_make_transfers --fpl_team_id {}").format(fpl_team_id)
+    os.system(cmd)
+
+
+def set_lineup(fpl_team_id=None):
+    """
+    Set the lineup based on the latest optimization run.
+
+    """
+
+    cmd = ("airsenal_set_lineup --fpl_team_id {}").format(fpl_team_id)
     os.system(cmd)
 
 

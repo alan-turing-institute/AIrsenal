@@ -168,9 +168,9 @@ def login(session, fetcher):
 
 def post_transfers(transfer_payload, fetcher):
 
-    session = requests.session()
+    req_session = requests.session()
 
-    session = login(session, fetcher)
+    req_session = login(req_session, fetcher)
 
     # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
     headers = {
@@ -181,7 +181,7 @@ def post_transfers(transfer_payload, fetcher):
 
     transfer_url = "https://fantasy.premierleague.com/api/transfers/"
 
-    resp = session.post(
+    resp = req_session.post(
         transfer_url, data=json.dumps(transfer_payload), headers=headers
     )
     if "non_form_errors" in resp:

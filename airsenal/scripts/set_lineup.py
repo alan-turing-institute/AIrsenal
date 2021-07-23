@@ -3,13 +3,17 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
+from typing_extensions import runtime
+from airsenal.framework.squad import Squad
 import requests
 import json
 from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
     get_latest_prediction_tag,
-    get_player
+    get_player,
+    get_player_from_api_id,
+    NEXT_GAMEWEEK
 )
 from airsenal.scripts.make_transfers import (
     get_gw_transfer_suggestions,
@@ -68,11 +72,54 @@ def build_lineup_payload(squad):
              
     return payload
 
+def get_lineup_from_payload(lineup):
+    """
+    inverse of build_lineup_payload. Returns a squad object from get_lineup
+
+    lineup is a dictionary, with the entry "picks" being a list of dictionaries like:
+    {"element":353,"position":1,"selling_price":55,"multiplier":1,"purchase_price":55,"is_captain":false,"is_vice_captain":false}
+    """
+    lineup = json.loads(lineup)
+    s = Squad()
+    for p in lineup["picks"]: 
+        player = get_player_from_api_id(p["element"])
+        s.add_player(player, check_budget=False)
+    
+    if s.is_complete():
+        return s
+    else:
+        raise RuntimeError("Squad incomplete")
+
+
+
+def get_lineup(fetcher):
+    """ Retrieve up to date lineup from api """
+
+    req_session = requests.session()
+
+    req_session = login(req_session, fetcher)
+
+    headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://fantasy.premierleague.com/a/team/my",
+        }
+
+    team_url = f"https://fantasy.premierleague.com/api/my-team/{fetcher.FPL_TEAM_ID}/" 
+
+    resp = req_session.get(
+        team_url, headers=headers
+    )
+    
+    return resp.text
+
+
+
 def post_lineup(payload, fetcher):
 
-        session = requests.session()
+        req_session = requests.session()
 
-        session = login(session, fetcher)
+        req_session = login(req_session, fetcher)
 
         payload = json.dumps({"chip": None, "picks": payload})
         headers = {
@@ -83,7 +130,7 @@ def post_lineup(payload, fetcher):
 
         team_url = f"https://fantasy.premierleague.com/api/my-team/{fetcher.FPL_TEAM_ID}/"
 
-        resp = session.post(
+        resp = req_session.post(
             team_url, data=payload, headers=headers
         )
         if resp.status_code == 200:
@@ -103,15 +150,14 @@ def make_squad_transfers(squad, priced_transfers):
 
 def main(fpl_team_id=None):
 
-    squad = get_starting_squad(fpl_team_id)
-    transfer_player_ids, team_id, gw, chip_played = get_gw_transfer_suggestions(fpl_team_id)
+    """
+    TODO: why do we need transfers here? Perhaps the api doesn't update. If so, need to always run these together.
+    """
+  
     
-    fetcher = FPLDataFetcher(team_id)
-    priced_transfers = price_transfers(transfer_player_ids, fetcher, gw)
-
-    
-    make_squad_transfers(squad, priced_transfers)
-    squad.optimize_lineup(gw, get_latest_prediction_tag())
+    fetcher = FPLDataFetcher(fpl_team_id)
+    squad = get_lineup_from_payload(get_lineup(fetcher))
+    squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 
 
     if check_proceed(squad):
@@ -119,6 +165,9 @@ def main(fpl_team_id=None):
         post_lineup(payload, fetcher)
     
 
+
+
 if __name__ == "__main__":
 
-    main(fpl_team_id=8149831)
+
+    main(fpl_team_id=863052)
