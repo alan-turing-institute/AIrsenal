@@ -116,7 +116,7 @@ def get_lineup(fetcher):
 
 
 def post_lineup(payload, fetcher):
-
+        
         req_session = requests.session()
 
         req_session = login(req_session, fetcher)
@@ -151,7 +151,9 @@ def make_squad_transfers(squad, priced_transfers):
 def main(fpl_team_id=None):
 
     """
-    TODO: why do we need transfers here? Perhaps the api doesn't update. If so, need to always run these together.
+    Retrieve the latest lineup and apply the latest prediction to it.
+
+    Note that this assumes that the prediction has been ran recently.
     """
   
     
