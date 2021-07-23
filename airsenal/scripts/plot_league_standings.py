@@ -10,28 +10,23 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def get_team_ids(league_data):
-    team_ids = []
-    for team in league_data["standings"]["results"]:
-        team_ids.append(team["entry"])
-    return team_ids
+    return [team["entry"] for team in league_data["standings"]["results"]]
 
 
 def get_team_names(league_data):
-    team_names = []
-    for team in league_data["standings"]["results"]:
-        team_names.append(team["entry_name"])
-    return team_names
+    return [team["entry_name"] for team in league_data["standings"]["results"]]
 
 
 def get_team_history(team_data):
-    output_dict = {}
-    output_dict["history"] = {}
+    output_dict = {"history": {}}
     for gw in team_data["current"]:
-        output_dict["history"][gw["event"]] = {}
-        output_dict["history"][gw["event"]]["points"] = gw["points"]
-        output_dict["history"][gw["event"]]["total_points"] = gw["total_points"]
-        output_dict["history"][gw["event"]]["ranking"] = gw["rank"]
-        output_dict["history"][gw["event"]]["overall_ranking"] = gw["overall_rank"]
+        output_dict["history"][gw["event"]] = {
+            "points": gw["points"],
+            "total_points": gw["total_points"],
+            "ranking": gw["rank"],
+            "overall_ranking": gw["overall_rank"],
+        }
+
     return output_dict
 
 

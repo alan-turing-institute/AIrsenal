@@ -30,11 +30,11 @@ TODO:
 
 def check_proceed():
     proceed = input("Apply Transfers? There is no turning back! (yes/no)")
-    if proceed == "yes":
-        print("Applying Transfers...")
-        return True
-    else:
+    if proceed != "yes":
         return False
+
+    print("Applying Transfers...")
+    return True
 
 
 def deduct_transfer_price(pre_bank, priced_transfers):
@@ -78,8 +78,7 @@ def price_transfers(transfer_player_ids, fetcher, current_gw):
 
     transfers = list(zip(*transfer_player_ids))  # [(out,in),(out,in)]
 
-    # [[[out, price], [in, price]],[[out,price],[in,price]]]
-    priced_transfers = [
+    return [
         [
             [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
             [
@@ -91,8 +90,6 @@ def price_transfers(transfer_player_ids, fetcher, current_gw):
         ]
         for t in transfers
     ]
-
-    return priced_transfers
 
 
 def get_gw_transfer_suggestions(fpl_team_id=None):
@@ -120,14 +117,13 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
 
 def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
-
-    def to_dict(t): 
+    def to_dict(t):
         return {
-        "element_out": get_player(t[0][0]).fpl_api_id,
-        "selling_price": t[0][1],
-        "element_in": get_player(t[1][0]).fpl_api_id,
-        "purchase_price": t[1][1],
-    }
+            "element_out": get_player(t[0][0]).fpl_api_id,
+            "selling_price": t[0][1],
+            "element_in": get_player(t[1][0]).fpl_api_id,
+            "purchase_price": t[1][1],
+        }
 
     transfer_list = [to_dict(transfer) for transfer in priced_transfers]
 

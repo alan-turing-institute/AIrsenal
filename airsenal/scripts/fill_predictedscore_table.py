@@ -172,7 +172,7 @@ def make_predictedscore_table(
     tag_prefix=None,
     dbsession=None,
 ):
-    tag = tag_prefix if tag_prefix else ""
+    tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
@@ -224,7 +224,7 @@ def main():
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
         print("Please specify either gameweek_start and gameweek_end, OR weeks_ahead")
         raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead and not args.season == CURRENT_SEASON:
+    if args.weeks_ahead and args.season != CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
     if args.weeks_ahead:
@@ -235,7 +235,7 @@ def main():
         gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    num_thread = args.num_thread if args.num_thread else None
+    num_thread = args.num_thread or None
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
