@@ -10,7 +10,7 @@ scipy
 pip
 pystan~=2.19.1.1
 pytest
-bpl @ git+https://github.com/anguswilliams91/bpl-next.git@41ec8ae
+bpl @ git+https://github.com/anguswilliams91/bpl-next.git@433c4c6e0f28240d8ca8639ede7441108eaf60d3
 flask
 flask_cors
 flask_session
