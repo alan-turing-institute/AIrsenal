@@ -76,19 +76,26 @@ def get_training_data(season, gameweek, dbsession, ratings=True):
     return training_data
 
 
-def create_and_fit_team_model(training_data, teams=CURRENT_TEAMS):
+def create_and_fit_team_model(training_data):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    model_team = ExtendedDixonColesMatchPredictor().fit(training_data)
+    return ExtendedDixonColesMatchPredictor().fit(training_data)
 
-    # TODO: Add teams (w/covariates) without match results.
+
+def add_new_teams_to_model(team_model, season, dbsession):
+    """
+    Add teams that we don't have previous results for (e.g. promoted teams) to the model
+    using their FIFA ratings as covariates.
+    """
+    teams = get_teams_for_season(season, dbsession=dbsession)
     for t in teams:
-        if t not in model_team.teams:
-            print(f"No model for {t}")
-
-    return model_team
+        if t not in team_model.teams:
+            print("Adding {} to team model with covariates".format(t))
+            ratings = get_ratings_dict(season, [t], dbsession)
+            team_model.add_new_team(t, team_covariates=ratings[t])
+    return team_model
 
 
 def get_fitted_team_model(season, gameweek, dbsession):
@@ -97,8 +104,8 @@ def get_fitted_team_model(season, gameweek, dbsession):
     """
     print("Fitting team model...")
     training_data = get_training_data(season, gameweek, dbsession)
-    teams = get_teams_for_season(season, dbsession=dbsession)
-    return create_and_fit_team_model(training_data, teams=teams)
+    team_model = create_and_fit_team_model(training_data)
+    return add_new_teams_to_model(team_model, season, dbsession)
 
 
 def fixture_probabilities(
