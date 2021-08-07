@@ -24,7 +24,7 @@ from airsenal.framework.utils import (
 
 from airsenal.framework.prediction_utils import (
     calc_predicted_points_for_player,
-    get_all_fitted_player_models,
+    get_all_fitted_player_data,
     fit_bonus_points,
     fit_save_points,
     fit_card_points,
@@ -87,14 +87,8 @@ def calc_all_predicted_points(
     model_team = get_fitted_team_model(
         season, gameweek=min(gw_range), dbsession=dbsession
     )
-    model_file = pkg_resources.resource_filename(
-        "airsenal", "stan_model/player_forecasts.pkl"
-    )
-    print("Loading pre-compiled player model from {}".format(model_file))
-    with open(model_file, "rb") as f:
-        model_player = pickle.load(f)
 
-    df_player = get_all_fitted_player_models(model_player, season, gw_range[0])
+    df_player = get_all_fitted_player_data(season, gw_range[0])
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)

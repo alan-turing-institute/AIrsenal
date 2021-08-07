@@ -13,6 +13,8 @@ from scipy.stats import multinomial
 
 from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
 
+from airsenal.framework.player_model import PlayerModel
+
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_fixtures_for_player,
@@ -142,8 +144,8 @@ def get_attacking_points(
         return 0.0
 
     # compute multinomial probabilities given time spent on pitch
-    pr_score = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
-    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_assist"]
+    pr_score = (minutes / 90.0) * df_player.loc[player_id]["prob_score"]
+    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["prob_assist"]
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
@@ -386,7 +388,6 @@ def calc_predicted_points_for_player(
 def calc_predicted_points_for_pos(
     pos,
     team_model,
-    player_model,
     df_bonus,
     df_saves,
     df_cards,
@@ -401,8 +402,8 @@ def calc_predicted_points_for_pos(
     """
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = get_fitted_player_model(
-            player_model, pos, season, min(gw_range), dbsession
+        df_player = fit_player_data(
+            pos, season, min(gw_range), dbsession
         )
     return {
         player.player_id: calc_predicted_points_for_player(
@@ -438,27 +439,6 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-def get_fitted_player_model(
-    player_model, position, season, gameweek, dbsession=session
-):
-    """
-    Get the fitted player model for a given position
-    """
-    print("Generating player history dataframe - slow")
-    df_player, _, _ = fit_player_data(
-        player_model, position, season, gameweek, dbsession
-    )
-    return df_player
-
-
-def get_all_fitted_player_models(player_model, season, gameweek, dbsession=session):
-    df_positions = {"GK": None}
-    for pos in ["DEF", "MID", "FWD"]:
-        df_positions[pos], _, _ = fit_player_data(
-            player_model, pos, season, gameweek, dbsession
-        )
-    return df_positions
-
 
 def fill_ep(csv_filename, dbsession=session):
     """
@@ -487,30 +467,6 @@ def fill_ep(csv_filename, dbsession=session):
     outfile.close()
 
 
-def get_player_model():
-    """
-    load the player-level model, which will give the probability that
-    a given player scored/assisted/did-neither when their team scores a goal.
-    """
-    # old method - compile model at runtime
-    stan_filepath = os.path.join(
-        os.path.dirname(__file__), "../../stan/player_forecasts.stan"
-    )
-    if not os.path.exists(stan_filepath):
-        raise RuntimeError("Can't find player_forecasts.stan")
-
-    return pystan.StanModel(file=stan_filepath)
-
-    # new method - get pre-compiled pickle, BUT - how to ensure it looks
-    # in site-packages rather than local directory?
-
-
-#    model_file = pkg_resources.resource_filename(
-#        "airsenal", "stan_model/player_forecasts.pkl"
-#    )
-#    with open(model_file, "rb") as f:
-#        model_player = pickle.load(f)
-#    return model_player
 
 
 def get_empirical_bayes_estimates(df_emp):
@@ -577,51 +533,54 @@ def process_player_data(
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
-    return (
-        dict(
-            nplayer=nplayer,
-            nmatch=nmatch,
-            minutes=minutes.astype("int64"),
-            y=y.astype("int64"),
-            alpha=alpha,
-        ),
-        player_ids,
+    return  dict(
+        player_ids=player_ids,
+        nplayer=nplayer,
+        nmatch=nmatch,
+        minutes=minutes.astype("int64"),
+        y=y.astype("int64"),
+        alpha=alpha,
     )
 
 
-def fit_player_data(model, prefix, season, gameweek, dbsession=session):
+def fit_player_data(position, season, gameweek, dbsession=session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix, season, gameweek, dbsession)
-    print("Fitting player model for", prefix, "...")
-    fit = model.optimizing(data)
-    df = (
-        pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])
-        .set_index(names)
-        .reset_index()
-    )
-    df["pos"] = prefix
+    model = PlayerModel()
+    data = process_player_data(position, season, gameweek, dbsession)
+    print("Fitting player model for", position, "...")
+    fitted_model = model.fit(data)
+    df = pd.DataFrame(fitted_model.get_probs())
+
+    df["pos"] = position
     df = (
         df.rename(columns={"index": "player_id"})
         .sort_values("player_id")
         .set_index("player_id")
     )
-    return df, fit, data
+    return df
 
 
-def fit_all_player_data(model, season, gameweek, dbsession=session):
+def get_all_fitted_player_data(season, gameweek, dbsession=session):
+    df_positions = {"GK": None}
+    for pos in ["DEF", "MID", "FWD"]:
+        df_positions[pos] = fit_player_data(
+            pos, season, gameweek, dbsession
+        )
+    return df_positions
+
+
+def fit_all_player_data(season, gameweek, dbsession=session):
     df = pd.DataFrame()
-    fits = []
     dfs = []
-    reals = []
-    for prefix in ["FWD", "MID", "DEF"]:
-        d, f, r = fit_player_data(model, prefix, season, gameweek, dbsession)
-        fits.append(f)
+
+    for position in ["FWD", "MID", "DEF"]:
+        d = fit_player_data(position, season, gameweek, dbsession)
         dfs.append(d)
-        reals.append(r)
+
     df = pd.concat(dfs)
-    return df, fits, reals
+    return df
 
 
 def get_player_scores(
