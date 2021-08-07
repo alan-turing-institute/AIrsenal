@@ -130,9 +130,7 @@ def get_player_history_df(
     return df
 
 
-def get_attacking_points(
-    player_id, position, team, opponent, is_home, minutes, model_team, df_player
-):
+def get_attacking_points(position, minutes, team_score_prob, player_prob):
     """
     use team-level and player-level models.
     """
@@ -142,8 +140,8 @@ def get_attacking_points(
         return 0.0
 
     # compute multinomial probabilities given time spent on pitch
-    pr_score = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
-    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_assist"]
+    pr_score = (minutes / 90.0) * player_prob["pr_score"]
+    pr_assist = (minutes / 90.0) * player_prob["pr_assist"]
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
@@ -165,20 +163,19 @@ def get_attacking_points(
     # compute the weighted sum of terms like:
     #   points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
-    goals = np.arange(1, MAX_GOALS + 1)
-    team_goal_prob = model_team.predict_score_n_proba(goals, team, opponent, is_home)
-    for idx_goals, ngoals in enumerate(goals):
-        partitions = _get_partitions(ngoals)
-        probabilities = multinomial.pmf(
-            partitions, n=[ngoals] * len(partitions), p=multinom_probs
-        )
-        scores = map(_get_partition_score, partitions)
-        exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
-        exp_points += exp_score_inner * team_goal_prob[idx_goals]
+    for ngoals, score_n_prob in team_score_prob.items():
+        if ngoals > 0:
+            partitions = _get_partitions(ngoals)
+            probabilities = multinomial.pmf(
+                partitions, n=[ngoals] * len(partitions), p=multinom_probs
+            )
+            scores = map(_get_partition_score, partitions)
+            exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
+            exp_points += exp_score_inner * score_n_prob
     return exp_points
 
 
-def get_defending_points(position, team, opponent, is_home, minutes, model_team):
+def get_defending_points(position, minutes, team_concede_prob):
     """
     only need the team-level model
     """
@@ -187,21 +184,17 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
         # if no minutes are played, can't get any points
         return 0.0
     defending_points = 0
-    team_concede_proba = model_team.predict_concede_n_proba(
-        np.arange(MAX_GOALS + 1), team, opponent, is_home
-    )
     if minutes >= 60:
         # TODO - what about if the team concedes only after player comes off?
-        defending_points = points_for_cs[position] * team_concede_proba[0]
+        defending_points = points_for_cs[position] * team_concede_prob[0]
     if position in ["DEF", "GK"]:
         # lose 1 point per 2 goals conceded if player is on pitch for both
         # lets simplify, say that its only the last goal that matters, and
         # chance that player was on pitch for that is expected_minutes/90
         defending_points -= sum(
-            (n // 2) * (minutes / 90) * team_concede_proba[n]
-            for n in range(MAX_GOALS + 1)
+            (ngoals // 2) * (minutes / 90) * concede_n_prob
+            for ngoals, concede_n_prob in team_concede_prob.items()
         )
-
     return defending_points
 
 
@@ -257,7 +250,7 @@ def get_card_points(player_id, minutes, df_cards):
 
 def calc_predicted_points_for_player(
     player,
-    team_model,
+    fixture_goal_probs,
     df_player,
     df_bonus,
     df_saves,
@@ -299,6 +292,13 @@ def calc_predicted_points_for_player(
     fixtures = get_fixtures_for_player(
         player, season, gw_range=gw_range, dbsession=dbsession
     )
+    player_prob = (
+        # fitted probability of scoring/assisting for this player
+        # (we don't calculate this for goalkeepers)
+        df_player[position].loc[player.player_id]
+        if position != "GK"
+        else None
+    )
 
     # use same recent_minutes from previous gameweeks for all predictions
     recent_minutes = get_recent_minutes_for_player(
@@ -326,6 +326,9 @@ def calc_predicted_points_for_player(
         opponent = fixture.away_team if is_home else fixture.home_team
         home_or_away = "at home" if is_home else "away"
         message += "\ngameweek: {} vs {}  {}".format(gameweek, opponent, home_or_away)
+        team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
+        team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
+
         points = 0.0
         expected_points[gameweek] = points
 
@@ -347,18 +350,12 @@ def calc_predicted_points_for_player(
                 points += (
                     get_appearance_points(mins)
                     + get_attacking_points(
-                        player.player_id,
                         position,
-                        team,
-                        opponent,
-                        is_home,
                         mins,
-                        team_model,
-                        df_player[position],
+                        team_score_prob,
+                        player_prob,
                     )
-                    + get_defending_points(
-                        position, team, opponent, is_home, mins, team_model
-                    )
+                    + get_defending_points(position, mins, team_concede_prob)
                 )
                 if df_bonus is not None:
                     points += get_bonus_points(player.player_id, mins, df_bonus)
@@ -385,7 +382,7 @@ def calc_predicted_points_for_player(
 
 def calc_predicted_points_for_pos(
     pos,
-    team_model,
+    fixture_goal_probs,
     player_model,
     df_bonus,
     df_saves,
@@ -407,7 +404,7 @@ def calc_predicted_points_for_pos(
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
-            team_model=team_model,
+            fixture_goal_probs=fixture_goal_probs,
             df_player=df_player,
             df_bonus=df_bonus,
             df_saves=df_saves,

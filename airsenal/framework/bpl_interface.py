@@ -9,6 +9,7 @@ import pandas as pd
 from airsenal.framework.schema import Result, FifaTeamRating, session
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
+    get_fixture_teams,
     is_future_gameweek,
 )
 from airsenal.framework.season import (
@@ -108,18 +109,20 @@ def get_fitted_team_model(season, gameweek, dbsession):
 
 
 def fixture_probabilities(
-    gameweek, season=CURRENT_SEASON, model_team=None, dbsession=session
+    gameweek, season=CURRENT_SEASON, team_model=None, dbsession=session
 ):
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data
     frame with a row for each fixture and columns being home_team,
     away_team, home_win_probability, draw_probability, away_win_probability.
     """
-    if model_team is None:
-        model_team = get_fitted_team_model(season, gameweek, dbsession)
-    fixtures = get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    if team_model is None:
+        team_model = get_fitted_team_model(season, gameweek, dbsession)
+    fixtures = get_fixture_teams(
+        get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    )
     home_teams, away_teams = zip(*fixtures)
-    probabilities = model_team.predict_outcome_proba(home_teams, away_teams)
+    probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
 
     return pd.DataFrame(
         {
@@ -130,3 +133,22 @@ def fixture_probabilities(
             "away_win_probability": probabilities["away_win"],
         }
     )
+
+
+def get_goal_probabilities_for_fixtures(fixtures, team_model, max_goals=10):
+    """Get the probability that each team in a fixture scores any number of goals up
+    to max_goals."""
+    goals = np.arange(0, max_goals + 1)
+    probs = {}
+    for f in fixtures:
+        home_team_goal_prob = team_model.predict_score_n_proba(
+            goals, f.home_team, f.away_team, home=True
+        )
+        away_team_goal_prob = team_model.predict_score_n_proba(
+            goals, f.away_team, f.home_team, home=False
+        )
+        probs[f.fixture_id] = {
+            f.home_team: {g: p for g, p in zip(goals, home_team_goal_prob)},
+            f.away_team: {g: p for g, p in zip(goals, away_team_goal_prob)},
+        }
+    return probs
