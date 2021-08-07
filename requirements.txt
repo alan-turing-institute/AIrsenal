@@ -8,7 +8,6 @@ dateparser
 matplotlib
 scipy
 pip
-pystan~=2.19.1.1
 pytest
 bpl @ git+https://github.com/anguswilliams91/bpl-next.git@ee786fd
 flask
