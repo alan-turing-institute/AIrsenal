@@ -7,7 +7,6 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
-import multiprocessing
 from uuid import uuid4
 import pickle
 import pkg_resources

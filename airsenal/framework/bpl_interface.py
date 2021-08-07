@@ -13,7 +13,6 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.season import (
     CURRENT_SEASON,
-    CURRENT_TEAMS,
     get_teams_for_season,
 )
 
