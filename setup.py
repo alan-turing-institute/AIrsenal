@@ -43,5 +43,4 @@ setup(
     entry_points={"console_scripts": console_scripts},
     package_data={"airsenal": ["data/*"]},
     zip_safe=False,
-    cmdclass={"build_py": BPyCmd, "develop": DevCmd},
 )
