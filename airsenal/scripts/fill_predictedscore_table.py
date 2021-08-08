@@ -14,11 +14,15 @@ import pkg_resources
 from multiprocessing import Process, Queue
 import argparse
 
-from airsenal.framework.bpl_interface import get_fitted_team_model
+from airsenal.framework.bpl_interface import (
+    get_fitted_team_model,
+    get_goal_probabilities_for_fixtures,
+)
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
     get_top_predicted_points,
+    get_fixtures_for_gameweek,
     list_players,
 )
 
@@ -28,6 +32,7 @@ from airsenal.framework.prediction_utils import (
     fit_bonus_points,
     fit_save_points,
     fit_card_points,
+    MAX_GOALS,
 )
 
 from airsenal.framework.schema import session_scope
@@ -36,7 +41,7 @@ from airsenal.framework.schema import session_scope
 def allocate_predictions(
     queue,
     gw_range,
-    team_model,
+    fixture_goal_probs,
     df_player,
     df_bonus,
     df_saves,
@@ -56,7 +61,7 @@ def allocate_predictions(
 
         predictions = calc_predicted_points_for_player(
             player,
-            team_model,
+            fixture_goal_probs,
             df_player,
             df_bonus,
             df_saves,
@@ -87,6 +92,11 @@ def calc_all_predicted_points(
     model_team = get_fitted_team_model(
         season, gameweek=min(gw_range), dbsession=dbsession
     )
+    print("Calculating fixture score probabilities...")
+    fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
+    fixture_goal_probs = get_goal_probabilities_for_fixtures(
+        fixtures, model_team, max_goals=MAX_GOALS
+    )
 
     df_player = get_all_fitted_player_data(season, gw_range[0])
 
@@ -114,7 +124,7 @@ def calc_all_predicted_points(
                 args=(
                     queue,
                     gw_range,
-                    model_team,
+                    fixture_goal_probs,
                     df_player,
                     df_bonus,
                     df_saves,
@@ -140,7 +150,7 @@ def calc_all_predicted_points(
         for player in players:
             predictions = calc_predicted_points_for_player(
                 player,
-                model_team,
+                fixture_goal_probs,
                 df_player,
                 df_bonus,
                 df_saves,
