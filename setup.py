@@ -2,8 +2,6 @@ import os.path
 import re
 
 from setuptools import setup
-from setuptools.command.build_py import build_py
-from setuptools.command.develop import develop
 
 SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
 
