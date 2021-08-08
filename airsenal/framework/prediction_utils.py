@@ -560,18 +560,6 @@ def get_all_fitted_player_data(season, gameweek, dbsession=session):
     return df_positions
 
 
-def fit_all_player_data(season, gameweek, dbsession=session):
-    df = pd.DataFrame()
-    dfs = []
-
-    for position in ["FWD", "MID", "DEF"]:
-        d = fit_player_data(position, season, gameweek, dbsession)
-        dfs.append(d)
-
-    df = pd.concat(dfs)
-    return df
-
-
 def get_player_scores(
     season, gameweek, min_minutes=0, max_minutes=90, dbsession=session
 ):
