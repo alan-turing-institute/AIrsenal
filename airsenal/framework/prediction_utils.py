@@ -7,7 +7,6 @@ from collections import defaultdict
 from functools import partial
 import pandas as pd
 import numpy as np
-import pystan
 
 from scipy.stats import multinomial
 
@@ -402,9 +401,7 @@ def calc_predicted_points_for_pos(
     """
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = fit_player_data(
-            pos, season, min(gw_range), dbsession
-        )
+        df_player = fit_player_data(pos, season, min(gw_range), dbsession)
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
@@ -439,7 +436,6 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-
 def fill_ep(csv_filename, dbsession=session):
     """
     fill the database with FPLs ep_next prediction, and also
@@ -465,8 +461,6 @@ def fill_ep(csv_filename, dbsession=session):
         dbsession.add(pp)
     dbsession.commit()
     outfile.close()
-
-
 
 
 def get_empirical_bayes_estimates(df_emp):
@@ -533,7 +527,7 @@ def process_player_data(
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
-    return  dict(
+    return dict(
         player_ids=player_ids,
         nplayer=nplayer,
         nmatch=nmatch,
@@ -565,9 +559,7 @@ def fit_player_data(position, season, gameweek, dbsession=session):
 def get_all_fitted_player_data(season, gameweek, dbsession=session):
     df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:
-        df_positions[pos] = fit_player_data(
-            pos, season, gameweek, dbsession
-        )
+        df_positions[pos] = fit_player_data(pos, season, gameweek, dbsession)
     return df_positions
 
 
