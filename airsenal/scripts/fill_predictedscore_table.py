@@ -8,8 +8,6 @@ Generates a "tag" string which is stored so it can later be used by team-optimiz
 get consistent sets of predictions from the database.
 """
 from uuid import uuid4
-import pickle
-import pkg_resources
 
 from multiprocessing import Process, Queue
 import argparse
