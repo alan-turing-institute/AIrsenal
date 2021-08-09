@@ -13,6 +13,7 @@ from airsenal.framework.utils import (
     fetcher,
     get_latest_prediction_tag,
 )
+from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 from airsenal.framework.optimization_pygmo import make_new_squad
 from airsenal.scripts.fill_db_init import make_init_db
 from airsenal.scripts.update_db import update_db
@@ -89,15 +90,13 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
         click.echo("Prediction complete..")
         if NEXT_GAMEWEEK == 1:
             click.echo("Generating a squad..")
-            new_squad_ok = run_make_squad(weeks_ahead, dbsession)
+            new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
             if not new_squad_ok:
                 raise RuntimeError("Problem creating a new squad")
 
         else:
             click.echo("Running optimization..")
-            opt_ok = run_optimize_squad(
-                num_thread, weeks_ahead, fpl_team_id, dbsession
-            )
+            opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession)
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
 
@@ -170,7 +169,7 @@ def run_prediction(num_thread, weeks_ahead, dbsession):
     return True
 
 
-def run_make_squad(weeks_ahead, dbsession):
+def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     """
     Build the initial squad
     """
@@ -184,6 +183,9 @@ def run_make_squad(weeks_ahead, dbsession):
     )
     best_squad.get_expected_points(NEXT_GAMEWEEK, tag)
     print(best_squad)
+    fill_initial_suggestion_table(
+        best_squad, fpl_team_id, tag, season, NEXT_GAMEWEEK, dbsession=dbsession
+    )
     return True
 
 
