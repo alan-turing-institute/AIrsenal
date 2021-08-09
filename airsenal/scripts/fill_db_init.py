@@ -37,4 +37,4 @@ def main():
     args = parser.parse_args()
 
     with session_scope() as dbsession:
-        filled_ok = make_init_db(args.fpl_team_id, dbsession)
+        make_init_db(args.fpl_team_id, dbsession)

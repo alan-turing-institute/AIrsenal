@@ -3,6 +3,7 @@ import os
 import multiprocessing
 import warnings
 import click
+from tqdm import TqdmWarning
 
 from airsenal.framework.db_config import AIrsenalDBFile
 from airsenal.framework.schema import session_scope, Team, Base
@@ -10,14 +11,14 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
-    get_latest_prediction_tag
+    get_latest_prediction_tag,
 )
 from airsenal.framework.optimization_pygmo import make_new_squad
 from airsenal.scripts.fill_db_init import make_init_db
 from airsenal.scripts.update_db import update_db
 from airsenal.scripts.fill_predictedscore_table import (
     make_predictedscore_table,
-    get_top_predicted_points
+    get_top_predicted_points,
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
@@ -48,13 +49,7 @@ from airsenal.scripts.make_transfers import make_transfers
     is_flag=True,
     help="If set, go ahead and make the transfers via the API.",
 )
-def run_pipeline(
-        num_thread,
-        weeks_ahead,
-        fpl_team_id,
-        clean,
-        apply_transfers
-):
+def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
     """
     Run the full pipeline, from setting up the database and filling
     with players, teams, fixtures, and results (if it didn't already exist),
@@ -67,7 +62,6 @@ def run_pipeline(
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
-
 
     with session_scope() as dbsession:
         if clean:
@@ -101,7 +95,9 @@ def run_pipeline(
 
         else:
             click.echo("Running optimization..")
-            opt_ok = run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id, dbsession)
+            opt_ok = run_optimize_squad(
+                num_thread, weeks_ahead, fpl_team_id, dbsession
+            )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
 
@@ -127,8 +123,9 @@ def database_is_empty(dbsession):
     """
     if os.path.exists(AIrsenalDBFile):
         return dbsession.query(Team).first() is None
-    else: # file doesn't exist - db is definitely empty!
+    else:  # file doesn't exist - db is definitely empty!
         return True
+
 
 def setup_database(fpl_team_id, dbsession):
     """
@@ -152,13 +149,13 @@ def run_prediction(num_thread, weeks_ahead, dbsession):
     gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
     season = CURRENT_SEASON
     tag = make_predictedscore_table(
-            gw_range=gw_range,
-            season=season,
-            num_thread=num_thread,
-            include_bonus=True,
-            include_cards=True,
-            include_saves=True,
-            dbsession=dbsession,
+        gw_range=gw_range,
+        season=season,
+        num_thread=num_thread,
+        include_bonus=True,
+        include_cards=True,
+        include_saves=True,
+        dbsession=dbsession,
     )
 
     # print players with top predicted points
@@ -190,7 +187,7 @@ def run_make_squad(weeks_ahead, dbsession):
     return True
 
 
-def run_optimization(num_thread, weeks_ahead, fpl_team_id, dbsession):
+def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
     """
     Run optimization
     """
