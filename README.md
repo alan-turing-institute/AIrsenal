@@ -8,6 +8,16 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
+## Note (August 2021)
+
+The default branch of this repository has been renamed from "master" to "main".   If you have a previously cloned version of the repo, you can update the branch names by doing:
+'''
+git branch -m master main
+git fetch origin
+git branch -u origin/main main
+git remote set-head origin -a
+'''
+
 ## Pre-requisites
 
 The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler. To test you have gcc installed in your system run the following command in a terminal:
