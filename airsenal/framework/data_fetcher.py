@@ -292,6 +292,18 @@ class FPLDataFetcher(object):
             self.fixture_data = self._get_request(self.FPL_FIXTURE_URL)
         return self.fixture_data
 
+    def get_transfer_deadlines(self):
+        """
+        Get a list of transfer deadlines.
+        """
+        summary_data = self._get_request(self.FPL_SUMMARY_API_URL)
+        deadlines = [
+            ev["deadline_time"]
+            for ev in summary_data["events"]
+            if "deadline_time" in ev.keys()
+        ]
+        return deadlines
+
     def _get_request(self, url, err_msg="Unable to access FPL API"):
         r = requests.get(url)
         if r.status_code != 200:

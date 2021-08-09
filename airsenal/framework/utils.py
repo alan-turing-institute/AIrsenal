@@ -1260,6 +1260,18 @@ def get_player_team_from_fixture(
         return player_team
 
 
+def is_transfer_deadline_today():
+    """
+    Return True if there is a transfer deadline later today
+    """
+    deadlines = fetcher.get_transfer_deadlines()
+    for deadline in deadlines:
+        deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
+        if (deadline - datetime.now()).days == 0:
+            return True
+    return False
+
+
 T = TypeVar("T")
 
 
