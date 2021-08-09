@@ -11,12 +11,12 @@ We welcome contributions and comments - if you'd like to join the AIrsenal commu
 ## Note (August 2021)
 
 The default branch of this repository has been renamed from "master" to "main".   If you have a previously cloned version of the repo, you can update the branch names by doing:
-'''
+```
 git branch -m master main
 git fetch origin
 git branch -u origin/main main
 git remote set-head origin -a
-'''
+```
 
 ## Pre-requisites
 
