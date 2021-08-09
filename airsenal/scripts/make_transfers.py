@@ -194,7 +194,7 @@ def post_transfers(transfer_payload, fetcher):
         print(f"Response text: {resp.text}")
 
 
-def main(fpl_team_id=None):
+def make_transfers(fpl_team_id=None):
 
     transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
         fpl_team_id
@@ -215,8 +215,9 @@ def main(fpl_team_id=None):
             priced_transfers, current_gw, fetcher, chip_played
         )
         post_transfers(transfer_req, fetcher)
+    return True
 
 
 if __name__ == "__main__":
 
-    main()
+    make_transfers()
