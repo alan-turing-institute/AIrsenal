@@ -30,7 +30,7 @@ fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     """
-    Return the maximum gameweek number across all scheduled fixtures. This shuold
+    Return the maximum gameweek number across all scheduled fixtures. This should
     generally be 38, but may be different in the case of major disruptino (e.g.
     Covid-19)
     """
@@ -802,7 +802,7 @@ def get_top_predicted_points(
     per_position=False,
     max_price=None,
     season=CURRENT_SEASON,
-    dbsession=None,
+    dbsession=session,
 ):
     """Print players with the top predicted points.
 
@@ -886,7 +886,7 @@ def get_top_predicted_points(
             print("-" * 25)
 
 
-def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=None):
+def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session):
     """Parse news strings from the FPL API for the return date of injured or
     suspended players. If a date is found, determine and return the gameweek it
     corresponds to.
