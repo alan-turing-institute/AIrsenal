@@ -17,7 +17,8 @@ class FPLDataFetcher(object):
     or retrieve it if not already cached.
     """
 
-    def __init__(self, fpl_team_id=None):
+    def __init__(self, fpl_team_id=None, rsession=None):
+        self.rsession = rsession if rsession else requests.session()
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
@@ -58,6 +59,9 @@ class FPLDataFetcher(object):
             "/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1"
         ).format(self.FPL_LEAGUE_ID)
         self.FPL_FIXTURE_URL = API_HOME + "/fixtures/"
+        self.FPL_LOGIN_URL = "https://users.premierleague.com/accounts/login/"
+        self.FPL_LOGIN_REDIRECT_URL = "https://fantasy.premierleague.com/a/login"
+        self.FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
 
     def get_fpl_credentials(self):
         """
@@ -86,6 +90,42 @@ class FPLDataFetcher(object):
                 login_file.write(self.FPL_LOGIN)
             with open(os.path.join(data_loc, "FPL_PASSWORD"), "w") as passwd_file:
                 passwd_file.write(self.FPL_PASSWORD)
+
+    def login(self):
+        """
+        only needed for accessing mini-league data, or team info for current gw.
+        """
+
+        if (
+            (not self.FPL_LOGIN)
+            or (not self.FPL_PASSWORD)
+            or (self.FPL_LOGIN == "MISSING_ID")
+            or (self.FPL_PASSWORD == "MISSING_ID")
+        ):
+            self.get_fpl_credentials()
+
+        headers = {
+            "login": self.FPL_LOGIN,
+            "password": self.FPL_PASSWORD,
+            "app": "plfpl-web",
+            "redirect_uri": self.FPL_LOGIN_REDIRECT_URL,
+        }
+        self.rsession.post(self.FPL_LOGIN_URL, data=headers)
+
+    def get_current_squad_data(self, fpl_team_id=None):
+        """
+        Requires login.  Return the current "picks".
+        """
+        if fpl_team_id:
+            team_id = fpl_team_id
+        elif self.FPL_TEAM_ID and not self.FPL_TEAM_ID == "MISSING_ID":
+            team_id = self.FPL_TEAM_ID
+        else:
+            raise RuntimeError("Please specify FPL team ID")
+        self.login()
+        url = self.FPL_MYTEAM_URL.format(team_id)
+        data = self._get_request(url)
+        return data["picks"]
 
     def get_current_summary_data(self):
         """
@@ -164,9 +204,8 @@ class FPLDataFetcher(object):
         """
         if self.fpl_league_data:
             return self.fpl_league_data
-        session = requests.session()
+
         url = "https://users.premierleague.com/accounts/login/"
-        print("FPL credentials {} {}".format(self.FPL_LOGIN, self.FPL_PASSWORD))
         if (
             (not self.FPL_LOGIN)
             or (not self.FPL_PASSWORD)
@@ -181,9 +220,9 @@ class FPLDataFetcher(object):
             "app": "plfpl-web",
             "redirect_uri": "https://fantasy.premierleague.com/a/login",
         }
-        session.post(url, data=headers)
+        self.rsession.post(url, data=headers)
 
-        r = session.get(self.FPL_LEAGUE_URL, headers=headers)
+        r = self.rsession.get(self.FPL_LEAGUE_URL, headers=headers)
         if r.status_code != 200:
             print("Unable to access FPL league API")
             return None
@@ -305,7 +344,7 @@ class FPLDataFetcher(object):
         return deadlines
 
     def _get_request(self, url, err_msg="Unable to access FPL API"):
-        r = requests.get(url)
+        r = self.rsession.get(url)
         if r.status_code != 200:
             print(err_msg)
             return None

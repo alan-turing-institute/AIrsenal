@@ -14,7 +14,9 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
 )
 from airsenal.framework.optimization_utils import fill_initial_suggestion_table
-from airsenal.framework.optimization_pygmo import make_new_squad
+
+from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
+
 from airsenal.scripts.fill_db_init import make_init_db
 from airsenal.scripts.update_db import update_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -23,6 +25,8 @@ from airsenal.scripts.fill_predictedscore_table import (
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
+from airsenal.scripts.set_lineup import set_lineup
+
 
 
 @click.command("airsenal_run_pipeline")
@@ -93,7 +97,6 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
             if not new_squad_ok:
                 raise RuntimeError("Problem creating a new squad")
-
         else:
             click.echo("Running optimization..")
             opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession)
@@ -105,8 +108,13 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             click.echo("Applying suggested transfers...")
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
-                click.echo("Problem applying the transfers")
 
+                raise RuntimeError("Problem applying the transfers")
+            click.echo("Setting Lineup...")
+            lineup_ok = set_starting_11(fpl_team_id)
+            if not lineup_ok:
+                raise RuntimeError("Problem setting the lineup")
+        click.echo("Pipeline finished OK!")
 
 def clean_database():
     """
@@ -177,7 +185,7 @@ def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
-    best_squad = make_new_squad(
+    best_squad = make_new_squad_pygmo(
         gw_range,
         tag,
     )
@@ -188,10 +196,10 @@ def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     )
     return True
 
-
+  
 def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
     """
-    Run optimization
+    Build the initial squad
     """
     gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
     season = CURRENT_SEASON
@@ -207,7 +215,16 @@ def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
         )
     return True
 
+  
+def set_starting_11(fpl_team_id=None):
+    """
+    Set the lineup based on the latest optimization run.
 
+    """
+    set_lineup(fpl_team_id)
+    return True
+
+  
 def main():
     sys.exit()
 

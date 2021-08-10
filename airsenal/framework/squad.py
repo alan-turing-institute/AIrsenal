@@ -342,18 +342,23 @@ class Squad(object):
 
         return total
 
+    def optimize_lineup(self, gameweek, tag):
+
+        if not self.is_complete():
+            raise RuntimeError("Squad is incomplete")
+
+        self._calc_expected_points(tag)
+        self.optimize_subs(gameweek, tag)
+        self.pick_captains(gameweek, tag)
+
     def get_expected_points(
         self, gameweek, tag, bench_boost=False, triple_captain=False
     ):
         """
         expected points for the starting 11.
         """
-        if not self.is_complete():
-            raise RuntimeError("Squad is incomplete")
-        self._calc_expected_points(tag)
 
-        self.optimize_subs(gameweek, tag)
-        self.pick_captains(gameweek, tag)
+        self.optimize_lineup(gameweek, tag)
 
         total_score = self.total_points_for_starting_11(
             gameweek, tag, triple_captain=triple_captain
