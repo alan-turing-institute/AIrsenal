@@ -10,7 +10,6 @@ from prettytable import PrettyTable
 import requests
 import json
 import getpass
-from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
     session,
@@ -96,7 +95,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
-    rows = get_transfer_suggestions(session, TransferSuggestion)
+    rows = get_transfer_suggestions(session)
     if fpl_team_id and fpl_team_id != rows[0].fpl_team_id:
         raise Exception(
             f"Team ID passed is {fpl_team_id}, but transfer suggestions are for \
@@ -194,7 +193,7 @@ def post_transfers(transfer_payload, fetcher):
         print(f"Response text: {resp.text}")
 
 
-def main(fpl_team_id=None):
+def make_transfers(fpl_team_id=None):
 
     transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
         fpl_team_id
@@ -215,8 +214,9 @@ def main(fpl_team_id=None):
             priced_transfers, current_gw, fetcher, chip_played
         )
         post_transfers(transfer_req, fetcher)
+    return True
 
 
 if __name__ == "__main__":
 
-    main()
+    make_transfers()

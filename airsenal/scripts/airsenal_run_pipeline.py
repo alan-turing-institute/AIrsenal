@@ -1,12 +1,28 @@
 import sys
 import os
 import multiprocessing
-
+import warnings
 import click
+from tqdm import TqdmWarning
 
 from airsenal.framework.db_config import AIrsenalDBFile
-from airsenal.framework.schema import session, Team
-from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
+from airsenal.framework.schema import session_scope, Team, Base
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    NEXT_GAMEWEEK,
+    fetcher,
+    get_latest_prediction_tag,
+)
+from airsenal.framework.optimization_utils import fill_initial_suggestion_table
+from airsenal.framework.optimization_pygmo import make_new_squad
+from airsenal.scripts.fill_db_init import make_init_db
+from airsenal.scripts.update_db import update_db
+from airsenal.scripts.fill_predictedscore_table import (
+    make_predictedscore_table,
+    get_top_predicted_points,
+)
+from airsenal.scripts.fill_transfersuggestion_table import run_optimization
+from airsenal.scripts.make_transfers import make_transfers
 
 
 @click.command("airsenal_run_pipeline")
@@ -16,19 +32,7 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
     help="No. of threads to use for pipeline run",
 )
 @click.option(
-    "--num_iterations",
-    type=int,
-    default=10,
-    help="No. of iterations for generating initial squad (start of season only)",
-)
-@click.option(
     "--weeks_ahead", type=int, default=3, help="No of weeks to use for pipeline run"
-)
-@click.option(
-    "--num_free_transfers",
-    type=int,
-    default=1,
-    help="Number of free transfer for pipeline run",
 )
 @click.option(
     "--fpl_team_id",
@@ -41,120 +45,167 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher
     is_flag=True,
     help="If set, delete and recreate the AIrsenal database",
 )
-def run_pipeline(
-    num_thread, num_iterations, weeks_ahead, num_free_transfers, fpl_team_id, clean
-):
+@click.option(
+    "--apply_transfers",
+    is_flag=True,
+    help="If set, go ahead and make the transfers via the API.",
+)
+def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
+    """
+    Run the full pipeline, from setting up the database and filling
+    with players, teams, fixtures, and results (if it didn't already exist),
+    then updating with the latest info, then running predictions to get a
+    score estimate for every player, and finally optimization, to choose
+    the best squad.
+    """
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
-    if clean:
-        click.echo("Cleaning database..")
-        clean_database()
-    if database_is_empty():
-        click.echo("Setting up Database..")
-        setup_database(fpl_team_id)
-        click.echo("Database setup complete..")
-        update_attr = False
-    else:
-        click.echo("Found pre-existing AIrsenal database.")
-        update_attr = True
-    click.echo("Updating database..")
-    update_database(fpl_team_id, attr=update_attr)
-    click.echo("Database update complete..")
-    click.echo("Running prediction..")
-    run_prediction(num_thread, weeks_ahead)
-    click.echo("Prediction complete..")
-    if NEXT_GAMEWEEK == 1:
-        click.echo("Generating a squad..")
-        run_make_team(num_iterations, weeks_ahead)
-    else:
-        click.echo("Running optimization..")
-        run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id)
-    click.echo("Optimization complete..")
-    click.echo("Applying suggested transfers...")
-    make_transfers(fpl_team_id)
+
+    with session_scope() as dbsession:
+        if clean:
+            click.echo("Cleaning database..")
+            clean_database()
+        if database_is_empty(dbsession):
+            click.echo("Setting up Database..")
+            setup_ok = setup_database(fpl_team_id, dbsession)
+            if not setup_ok:
+                raise RuntimeError("Problem setting up initial db")
+            click.echo("Database setup complete..")
+            update_attr = False
+        else:
+            click.echo("Found pre-existing AIrsenal database.")
+            update_attr = True
+        click.echo("Updating database..")
+        update_ok = update_database(fpl_team_id, update_attr, dbsession)
+        if not update_ok:
+            raise RuntimeError("Problem updating db")
+        click.echo("Database update complete..")
+        click.echo("Running prediction..")
+        predict_ok = run_prediction(num_thread, weeks_ahead, dbsession)
+        if not predict_ok:
+            raise RuntimeError("Problem running prediction")
+        click.echo("Prediction complete..")
+        if NEXT_GAMEWEEK == 1:
+            click.echo("Generating a squad..")
+            new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
+            if not new_squad_ok:
+                raise RuntimeError("Problem creating a new squad")
+
+        else:
+            click.echo("Running optimization..")
+            opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession)
+            if not opt_ok:
+                raise RuntimeError("Problem running optimization")
+
+        click.echo("Optimization complete..")
+        if apply_transfers:
+            click.echo("Applying suggested transfers...")
+            transfers_ok = make_transfers(fpl_team_id)
+            if not transfers_ok:
+                click.echo("Problem applying the transfers")
 
 
 def clean_database():
     """
     Clean up database
     """
-    try:
-        if os.path.exists(AIrsenalDBFile):
-            os.remove(AIrsenalDBFile)
-    except IOError as exc:
-        click.echo(
-            "Error while deleting file {}. Reason:{}".format(AIrsenalDBFile, exc)
-        )
-        sys.exit(1)
+    Base.metadata.drop_all()
+    Base.metadata.create_all()
 
 
-def database_is_empty():
+def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    return session.query(Team).first() is None
+    if os.path.exists(AIrsenalDBFile):
+        return dbsession.query(Team).first() is None
+    else:  # file doesn't exist - db is definitely empty!
+        return True
 
 
-def setup_database(fpl_team_id):
+def setup_database(fpl_team_id, dbsession):
     """
     Set up database
     """
-    os.system("airsenal_setup_initial_db --fpl_team_id {}".format(fpl_team_id))
+    return make_init_db(fpl_team_id, dbsession)
 
 
-def update_database(fpl_team_id, attr=True):
+def update_database(fpl_team_id, attr, dbsession):
     """
     Update database
     """
-    if attr:
-        os.system("airsenal_update_db --fpl_team_id {}".format(fpl_team_id))
-    else:
-        os.system("airsenal_update_db --noattr --fpl_team_id {}".format(fpl_team_id))
+    season = CURRENT_SEASON
+    return update_db(season, attr, fpl_team_id, dbsession)
 
 
-def run_prediction(num_thread, weeks_ahead):
+def run_prediction(num_thread, weeks_ahead, dbsession):
     """
     Run prediction
     """
-    cmd = "airsenal_run_prediction --num_thread {} --weeks_ahead {}".format(
-        num_thread, weeks_ahead
+    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
+    season = CURRENT_SEASON
+    tag = make_predictedscore_table(
+        gw_range=gw_range,
+        season=season,
+        num_thread=num_thread,
+        include_bonus=True,
+        include_cards=True,
+        include_saves=True,
+        dbsession=dbsession,
     )
-    os.system(cmd)
+
+    # print players with top predicted points
+    get_top_predicted_points(
+        gameweek=gw_range,
+        tag=tag,
+        season=season,
+        per_position=True,
+        n_players=5,
+        dbsession=dbsession,
+    )
+    return True
 
 
-def run_make_team(num_iterations, weeks_ahead):
+def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
+    """
+    Build the initial squad
+    """
+    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
+    season = CURRENT_SEASON
+    tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
+
+    best_squad = make_new_squad(
+        gw_range,
+        tag,
+    )
+    best_squad.get_expected_points(NEXT_GAMEWEEK, tag)
+    print(best_squad)
+    fill_initial_suggestion_table(
+        best_squad, fpl_team_id, tag, season, NEXT_GAMEWEEK, dbsession=dbsession
+    )
+    return True
+
+
+def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
     """
     Run optimization
     """
-    cmd = "airsenal_make_squad --num_iterations {} --num_gw {}".format(
-        num_iterations, weeks_ahead
-    )
-    os.system(cmd)
-
-
-def run_optimization(num_thread, weeks_ahead, num_free_transfers, fpl_team_id):
-    """
-    Run optimization
-    """
-    cmd = (
-        "airsenal_run_optimization --num_thread {} --weeks_ahead {}  "
-        "--num_free_transfers {} --fpl_team_id {}"
-    ).format(num_thread, weeks_ahead, num_free_transfers, fpl_team_id)
-    os.system(cmd)
-
-
-def make_transfers(fpl_team_id=None):
-    """
-    Post transfers from transfer suggestion table.
-
-    Team id not necessary as will be taken from transfer suggestion table.
-    """
-
-    cmd = ("airsenal_make_transfers --fpl_team_id {}").format(fpl_team_id)
-    os.system(cmd)
+    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
+    season = CURRENT_SEASON
+    tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", TqdmWarning)
+        run_optimization(
+            gameweeks=gw_range,
+            tag=tag,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_thread=num_thread,
+        )
+    return True
 
 
 def main():

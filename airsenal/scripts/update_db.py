@@ -157,7 +157,7 @@ def update_attributes(season, dbsession):
     )
 
 
-def update_db(season, session, do_attributes, fpl_team_id):
+def update_db(season, do_attributes, fpl_team_id, session):
     # see if any new players have been added
     num_new_players = update_players(season, session)
 
@@ -175,6 +175,7 @@ def update_db(season, session, do_attributes, fpl_team_id):
     update_results(season, session)
     # update our squad
     update_transactions(season, fpl_team_id, session)
+    return True
 
 
 def main():
@@ -200,7 +201,7 @@ def main():
     fpl_team_id = args.fpl_team_id or None
 
     with session_scope() as session:
-        update_db(season, session, do_attributes, fpl_team_id)
+        update_db(season, do_attributes, fpl_team_id, session)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ from airsenal.framework.schema import session_scope
 import argparse
 
 
-def make_init_db(session, fpl_team_id):
+def make_init_db(fpl_team_id, session):
     make_team_table(dbsession=session)
     make_fixture_table(dbsession=session)
     make_result_table(dbsession=session)
@@ -26,6 +26,7 @@ def make_init_db(session, fpl_team_id):
     fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=session)
 
     print("DONE!")
+    return True
 
 
 def main():
@@ -35,5 +36,5 @@ def main():
     )
     args = parser.parse_args()
 
-    with session_scope() as session:
-        make_init_db(session, args.fpl_team_id)
+    with session_scope() as dbsession:
+        make_init_db(args.fpl_team_id, dbsession)
