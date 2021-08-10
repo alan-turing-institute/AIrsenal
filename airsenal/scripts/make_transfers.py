@@ -9,6 +9,7 @@ https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 from prettytable import PrettyTable
 import requests
 import json
+import argparse
 import getpass
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
@@ -284,7 +285,7 @@ def post_transfers(transfer_payload, fetcher):
         print(f"Response text: {resp.text}")
 
 
-def make_transfers(fpl_team_id=None):
+def make_transfers(fpl_team_id=None, skip_check=False):
 
     transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
         fpl_team_id
@@ -303,7 +304,7 @@ def make_transfers(fpl_team_id=None):
             team_id, current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank
         )
 
-    if check_proceed():
+    if skip_check or check_proceed():
         transfer_req = build_transfer_payload(
             priced_transfers, current_gw, fetcher, chip_played
         )
@@ -311,6 +312,15 @@ def make_transfers(fpl_team_id=None):
     return True
 
 
+def main():
+    parser = argparse.ArgumentParser("Make transfers via the FPL API")
+    parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
+    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
+    args = parser.parse_args()
+    confirm = args.confirm if args.confirm else False
+    make_transfers(args.fpl_team_id, confirm)
+
+
 if __name__ == "__main__":
 
-    make_transfers()
+    main()
