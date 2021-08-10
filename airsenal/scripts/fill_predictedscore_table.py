@@ -260,7 +260,7 @@ def main():
             gameweek=gw_range,
             tag=tag,
             season=args.season,
-            dbsession=session,
             per_position=True,
             n_players=5,
+            dbsession=session,
         )

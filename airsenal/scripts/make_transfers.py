@@ -10,13 +10,14 @@ from prettytable import PrettyTable
 import requests
 import json
 import getpass
-from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
-    session,
+    session as dbsession,
     get_player_name,
     get_bank,
     get_player,
+    CURRENT_SEASON,
+    get_player_from_api_id,
 )
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -74,29 +75,11 @@ def get_sell_price(team_id, player_id):
             return squad.get_sell_price_for_player(p)
 
 
-def price_transfers(transfer_player_ids, fetcher, current_gw):
-
-    transfers = list(zip(*transfer_player_ids))  # [(out,in),(out,in)]
-
-    return [
-        [
-            [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
-            [
-                t[1],
-                fetcher.get_player_summary_data()[get_player(t[1]).fpl_api_id][
-                    "now_cost"
-                ],
-            ],
-        ]
-        for t in transfers
-    ]
-
-
 def get_gw_transfer_suggestions(fpl_team_id=None):
 
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
-    rows = get_transfer_suggestions(session, TransferSuggestion)
+    rows = get_transfer_suggestions(dbsession)
     if fpl_team_id and fpl_team_id != rows[0].fpl_team_id:
         raise Exception(
             f"Team ID passed is {fpl_team_id}, but transfer suggestions are for \
@@ -116,7 +99,27 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
     return ([players_out, players_in], fpl_team_id, current_gw, chip)
 
 
-def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
+def price_transfers(transfer_player_ids, fetcher, current_gw):
+    """
+    For most gameweeks, we get transfer suggestions from the db, including
+    both players to be removed and added.
+    """
+
+    transfers = list(zip(*transfer_player_ids))  # [(out,in),(out,in)]
+
+    priced_transfers = [
+        [
+            [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+            [
+                t[1],
+                fetcher.get_player_summary_data()[get_player(t[1]).fpl_api_id][
+                    "now_cost"
+                ],
+            ],
+        ]
+        for t in transfers
+    ]
+
     def to_dict(t):
         return {
             "element_out": get_player(t[0][0]).fpl_api_id,
@@ -126,12 +129,99 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
         }
 
     transfer_list = [to_dict(transfer) for transfer in priced_transfers]
+    return transfer_list
+
+
+def sort_by_position(transfer_list):
+    """
+    Takes a list of transfers e.g. [{"element_in": <FPL_API_ID>, "purchase_price": x}]
+    and returns the same list ordered by DEF, FWD, GK, MID (i.e. alphabetical)
+    to ensure that when we send a big list to the transfer API,
+    we always replace like-with-like.
+
+    Note that it is the FPL API ID used here, NOT the player_id.
+    """
+
+    def _get_position(api_id):
+        return get_player_from_api_id(api_id).position(CURRENT_SEASON)
+
+    # key to the dict could be either 'element_in' or 'element_out'.
+    id_key = None
+    for k, v in transfer_list[0].items():
+        if "element" in k:
+            id_key = k
+            break
+    if not id_key:
+        raise RuntimeError(
+            """
+            sort_by_position expected a list of dicts,
+            containing key 'element_in' or 'element_out'
+            """
+        )
+    # now sort by position of the element_in/out player
+    transfer_list = sorted(transfer_list, key=lambda k: _get_position(k[id_key]))
+    return transfer_list
+
+
+def remove_duplicates(transfers_in, transfers_out):
+    """
+    If we are replacing lots of players (e.g. new team), need to make sure there
+    are no duplicates - can't add a player if we already have them.
+    """
+    t_in = [t["element_in"] for t in transfers_in]
+    t_out = [t["element_out"] for t in transfers_out]
+    dupes = list(set(t_in) & set(t_out))
+    transfers_in = [t for t in transfers_in if not t["element_in"] in dupes]
+    transfers_out = [t for t in transfers_out if not t["element_out"] in dupes]
+    return transfers_in, transfers_out
+
+
+def build_init_priced_transfers(fetcher, fpl_team_id=None):
+    """
+    Before gameweek 1, there won't be any 'sell' transfer suggestions in the db.
+    We can instead query the API for our current 'picks' (requires login).
+    """
+    if not fpl_team_id:
+        if (not fetcher.FPL_TEAM_ID) or fetcher.FPL_TEAM_ID == "MISSING_ID":
+            fpl_team_id = int(input("Please enter FPL team ID: "))
+        else:
+            fpl_team_id = fetcher.FPL_TEAM_ID
+
+    current_squad = fetcher.get_current_squad_data(fpl_team_id)
+    transfers_out = [
+        {"element_out": el["element"], "selling_price": el["selling_price"]}
+        for el in current_squad
+    ]
+    transfer_in_suggestions = get_transfer_suggestions(dbsession)
+    if len(transfers_out) != len(transfer_in_suggestions):
+        raise RuntimeError(
+            "Number of transfers in and out don't match: {} {}".format(
+                len(transfer_in_suggestions), len(transfers_out)
+            )
+        )
+    transfers_in = []
+    for t in transfer_in_suggestions:
+        api_id = get_player(t.player_id).fpl_api_id
+        price = fetcher.get_player_summary_data()[api_id]["now_cost"]
+        transfers_in.append({"element_in": api_id, "purchase_price": price})
+    # remove duplicates - can't add a player we already have
+    transfers_in, transfers_out = remove_duplicates(transfers_in, transfers_out)
+    # re-order both lists so they go DEF, FWD, GK, MID
+    transfers_in = sort_by_position(transfers_in)
+    transfers_out = sort_by_position(transfers_out)
+    transfer_list = [
+        {**transfers_in[i], **transfers_out[i]} for i in range(len(transfers_in))
+    ]
+    return transfer_list
+
+
+def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
     transfer_payload = {
         "confirmed": False,
-        "entry": fetcher.FPL_TEAM_ID,  # not sure what the entry should refer to?
+        "entry": fetcher.FPL_TEAM_ID,
         "event": current_gw,
-        "transfers": transfer_list,
+        "transfers": priced_transfers,
         "wildcard": False,
         "freehit": False,
     }
@@ -168,9 +258,9 @@ def login(session, fetcher):
 
 def post_transfers(transfer_payload, fetcher):
 
-    session = requests.session()
+    req_session = requests.session()
 
-    session = login(session, fetcher)
+    req_session = login(req_session, fetcher)
 
     # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
     headers = {
@@ -181,7 +271,7 @@ def post_transfers(transfer_payload, fetcher):
 
     transfer_url = "https://fantasy.premierleague.com/api/transfers/"
 
-    resp = session.post(
+    resp = req_session.post(
         transfer_url, data=json.dumps(transfer_payload), headers=headers
     )
     if "non_form_errors" in resp:
@@ -194,29 +284,33 @@ def post_transfers(transfer_payload, fetcher):
         print(f"Response text: {resp.text}")
 
 
-def main(fpl_team_id=None):
+def make_transfers(fpl_team_id=None):
 
     transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
         fpl_team_id
     )
-
     fetcher = FPLDataFetcher(team_id)
+    if len(transfer_player_ids[0]) == 0:
+        # no players to remove in DB - initial team?
+        print("Making transfer list for starting team")
+        priced_transfers = build_init_priced_transfers(fetcher, team_id)
+    else:
 
-    pre_transfer_bank = get_bank(fpl_team_id=team_id)
-    priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
-    post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
-
-    print_output(
-        team_id, current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank
-    )
+        pre_transfer_bank = get_bank(fpl_team_id=team_id)
+        priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
+        post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
+        print_output(
+            team_id, current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank
+        )
 
     if check_proceed():
         transfer_req = build_transfer_payload(
             priced_transfers, current_gw, fetcher, chip_played
         )
         post_transfers(transfer_req, fetcher)
+    return True
 
 
 if __name__ == "__main__":
 
-    main()
+    make_transfers()

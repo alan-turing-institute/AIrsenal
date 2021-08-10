@@ -25,7 +25,8 @@ console_scripts = [
     "airsenal_dump_db=airsenal.scripts.dump_db_contents:main",
     "airsenal_run_pipeline=airsenal.scripts.airsenal_run_pipeline:run_pipeline",
     "airsenal_replay_season=airsenal.scripts.replay_season:main",
-    "airsenal_make_transfers=airsenal.scripts.make_transfers:main",
+    "airsenal_make_transfers=airsenal.scripts.make_transfers:make_transfers",
+    "airsenal_set_lineup=airsenal.scripts.set_lineup:main",
 ]
 
 setup(

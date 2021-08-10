@@ -172,6 +172,33 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
     session.commit()
 
 
+def fill_initial_suggestion_table(
+    squad,
+    fpl_team_id,
+    tag,
+    season=CURRENT_SEASON,
+    gameweek=NEXT_GAMEWEEK,
+    dbsession=session,
+):
+    """
+    Fill an initial squad into the table
+    """
+    timestamp = str(datetime.now())
+    score = squad.get_expected_points(gameweek, tag)
+    for player in squad.players:
+        ts = TransferSuggestion()
+        ts.player_id = player.player_id
+        ts.in_or_out = 1
+        ts.gameweek = NEXT_GAMEWEEK
+        ts.points_gain = score
+        ts.timestamp = timestamp
+        ts.season = season
+        ts.fpl_team_id = fpl_team_id
+        ts.chip_played = None
+        dbsession.add(ts)
+    dbsession.commit()
+
+
 def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     """
     Quick function to see if we need to do multiple iterations
