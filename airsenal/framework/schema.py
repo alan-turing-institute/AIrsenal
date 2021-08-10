@@ -208,13 +208,9 @@ class Fixture(Base):
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
     def __str__(self):
-        if self.result:
-            return str(self.result)
-        else:
-            return (
-                f"{self.season} GW{self.gameweek} "
-                f"{self.home_team} vs. {self.away_team}"
-            )
+        return (
+            f"{self.season} GW{self.gameweek} " f"{self.home_team} vs. {self.away_team}"
+        )
 
 
 class PlayerScore(Base):
@@ -251,17 +247,9 @@ class PlayerScore(Base):
     ict_index = Column(Float, nullable=True)
 
     def __str__(self):
-        score_str = (
+        return (
             f"{self.player} ({self.result}): " f"{self.points} pts, {self.minutes} mins"
         )
-        if self.goals > 0:
-            score_str += f", {self.goals} goals"
-        if self.assists > 0:
-            score_str += f", {self.assists} assists"
-        if self.bonus > 0:
-            score_str += f", {self.bonus} bonus"
-
-        return score_str
 
 
 class PlayerPrediction(Base):
@@ -292,11 +280,11 @@ class Transaction(Base):
     fpl_team_id = Column(Integer, nullable=False)
 
     def __str__(self):
-        trans_str = f"{self.season} GW{self.gameweek}: "
+        trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
         if self.bought_or_sold == 1:
-            trans_str += f"Team {self.fpl_team_id} bought player {self.player_id}"
+            trans_str += f"bought player {self.player_id}"
         else:
-            trans_str += f"Team {self.fpl_team_id} sold player {self.player_id}"
+            trans_str += f"sold player {self.player_id}"
         if self.free_hit:
             trans_str += " (FREE HIT)"
         return trans_str
@@ -317,15 +305,11 @@ class TransferSuggestion(Base):
     chip_played = Column(String(100), nullable=True)
 
     def __str__(self):
-        sugg_str = f"{self.season} GW{self.gameweek}: "
+        sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
         if self.in_or_out == 1:
-            sugg_str += (
-                f"Suggest buying {self.player_id} for gain of {self.points_gain}"
-            )
+            sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
         else:
-            sugg_str += (
-                f"Suggest selling {self.player_id} for gain of {self.points_gain}"
-            )
+            sugg_str += f"selling {self.player_id} to gain {self.points_gain:.2f} pts"
         return sugg_str
 
 

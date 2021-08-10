@@ -40,11 +40,7 @@ def get_league_standings():
     data = fetcher.get_fpl_league_data()
     team_name = data["league"]["name"]
     standings = [
-        {
-            "name": s["entry_name"],
-            "manager": s["player_name"],
-            "points": s["total"],
-        }
+        {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}
         for s in data["standings"]["results"]
     ]
 

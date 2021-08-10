@@ -1,5 +1,6 @@
 """
-Interface to the Stan models
+Interface to the NumPyro team model in bpl-next:
+https://github.com/anguswilliams91/bpl-next
 """
 from bpl import ExtendedDixonColesMatchPredictor
 
