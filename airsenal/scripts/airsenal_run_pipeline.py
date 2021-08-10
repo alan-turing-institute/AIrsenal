@@ -23,7 +23,7 @@ from airsenal.scripts.fill_predictedscore_table import (
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
-
+from airsenal.scripts.set_lineup import set_lineup
 
 @click.command("airsenal_run_pipeline")
 @click.option(
@@ -93,7 +93,6 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
             if not new_squad_ok:
                 raise RuntimeError("Problem creating a new squad")
-
         else:
             click.echo("Running optimization..")
             opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession)
@@ -105,7 +104,12 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             click.echo("Applying suggested transfers...")
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
-                click.echo("Problem applying the transfers")
+                raise RuntimeError("Problem applying the transfers")
+            click.echo("Setting Lineup...")
+            lineup_ok = set_lineup(fpl_team_id)
+            if not lineup_ok:
+                raise RuntimeError("Problem setting the lineup")
+        click.echo("Pipeline finished OK!")
 
 
 def clean_database():
@@ -205,6 +209,15 @@ def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
             fpl_team_id=fpl_team_id,
             num_thread=num_thread,
         )
+    return True
+
+
+def set_lineup(fpl_team_id=None):
+    """
+    Set the lineup based on the latest optimization run.
+
+    """
+    set_lineup(fpl_team_id)
     return True
 
 
