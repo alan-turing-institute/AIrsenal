@@ -28,7 +28,6 @@ from airsenal.scripts.make_transfers import make_transfers
 from airsenal.scripts.set_lineup import set_lineup
 
 
-
 @click.command("airsenal_run_pipeline")
 @click.option(
     "--num_thread",
@@ -116,6 +115,7 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
                 raise RuntimeError("Problem setting the lineup")
         click.echo("Pipeline finished OK!")
 
+
 def clean_database():
     """
     Clean up database
@@ -196,7 +196,7 @@ def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     )
     return True
 
-  
+
 def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
     """
     Build the initial squad
@@ -215,7 +215,7 @@ def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
         )
     return True
 
-  
+
 def set_starting_11(fpl_team_id=None):
     """
     Set the lineup based on the latest optimization run.
@@ -224,7 +224,7 @@ def set_starting_11(fpl_team_id=None):
     set_lineup(fpl_team_id)
     return True
 
-  
+
 def main():
     sys.exit()
 
