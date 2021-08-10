@@ -7,11 +7,12 @@ from collections import defaultdict
 from functools import partial
 import pandas as pd
 import numpy as np
-import pystan
 
 from scipy.stats import multinomial
 
 from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
+
+from airsenal.framework.player_model import PlayerModel
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -38,6 +39,8 @@ from airsenal.framework.FPL_scoring_rules import (
 )
 
 np.random.seed(42)
+# consider probabilities of scoring/conceding up to this many goals
+MAX_GOALS = 10
 
 
 def get_player_history_df(
@@ -128,9 +131,7 @@ def get_player_history_df(
     return df
 
 
-def get_attacking_points(
-    player_id, position, team, opponent, is_home, minutes, model_team, df_player
-):
+def get_attacking_points(position, minutes, team_score_prob, player_prob):
     """
     use team-level and player-level models.
     """
@@ -140,8 +141,8 @@ def get_attacking_points(
         return 0.0
 
     # compute multinomial probabilities given time spent on pitch
-    pr_score = (minutes / 90.0) * df_player.loc[player_id]["pr_score"]
-    pr_assist = (minutes / 90.0) * df_player.loc[player_id]["pr_assist"]
+    pr_score = (minutes / 90.0) * player_prob["prob_score"]
+    pr_assist = (minutes / 90.0) * player_prob["prob_assist"]
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
@@ -163,19 +164,19 @@ def get_attacking_points(
     # compute the weighted sum of terms like:
     #   points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
-    for ngoals in range(1, 11):
-        partitions = _get_partitions(ngoals)
-        probabilities = multinomial.pmf(
-            partitions, n=[ngoals] * len(partitions), p=multinom_probs
-        )
-        scores = map(_get_partition_score, partitions)
-        exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
-        team_goal_prob = model_team.score_n_probability(ngoals, team, opponent, is_home)
-        exp_points += exp_score_inner * team_goal_prob
+    for ngoals, score_n_prob in team_score_prob.items():
+        if ngoals > 0:
+            partitions = _get_partitions(ngoals)
+            probabilities = multinomial.pmf(
+                partitions, n=[ngoals] * len(partitions), p=multinom_probs
+            )
+            scores = map(_get_partition_score, partitions)
+            exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
+            exp_points += exp_score_inner * score_n_prob
     return exp_points
 
 
-def get_defending_points(position, team, opponent, is_home, minutes, model_team):
+def get_defending_points(position, minutes, team_concede_prob):
     """
     only need the team-level model
     """
@@ -186,18 +187,15 @@ def get_defending_points(position, team, opponent, is_home, minutes, model_team)
     defending_points = 0
     if minutes >= 60:
         # TODO - what about if the team concedes only after player comes off?
-        team_cs_prob = model_team.concede_n_probability(0, team, opponent, is_home)
-        defending_points = points_for_cs[position] * team_cs_prob
+        defending_points = points_for_cs[position] * team_concede_prob[0]
     if position in ["DEF", "GK"]:
         # lose 1 point per 2 goals conceded if player is on pitch for both
         # lets simplify, say that its only the last goal that matters, and
         # chance that player was on pitch for that is expected_minutes/90
-        for n in range(7):
-            defending_points -= (
-                (n // 2)
-                * (minutes / 90)
-                * model_team.concede_n_probability(n, team, opponent, is_home)
-            )
+        defending_points -= sum(
+            (ngoals // 2) * (minutes / 90) * concede_n_prob
+            for ngoals, concede_n_prob in team_concede_prob.items()
+        )
     return defending_points
 
 
@@ -253,7 +251,7 @@ def get_card_points(player_id, minutes, df_cards):
 
 def calc_predicted_points_for_player(
     player,
-    team_model,
+    fixture_goal_probs,
     df_player,
     df_bonus,
     df_saves,
@@ -295,6 +293,13 @@ def calc_predicted_points_for_player(
     fixtures = get_fixtures_for_player(
         player, season, gw_range=gw_range, dbsession=dbsession
     )
+    player_prob = (
+        # fitted probability of scoring/assisting for this player
+        # (we don't calculate this for goalkeepers)
+        df_player[position].loc[player.player_id]
+        if position != "GK"
+        else None
+    )
 
     # use same recent_minutes from previous gameweeks for all predictions
     recent_minutes = get_recent_minutes_for_player(
@@ -322,6 +327,9 @@ def calc_predicted_points_for_player(
         opponent = fixture.away_team if is_home else fixture.home_team
         home_or_away = "at home" if is_home else "away"
         message += "\ngameweek: {} vs {}  {}".format(gameweek, opponent, home_or_away)
+        team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
+        team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
+
         points = 0.0
         expected_points[gameweek] = points
 
@@ -343,18 +351,12 @@ def calc_predicted_points_for_player(
                 points += (
                     get_appearance_points(mins)
                     + get_attacking_points(
-                        player.player_id,
                         position,
-                        team,
-                        opponent,
-                        is_home,
                         mins,
-                        team_model,
-                        df_player[position],
+                        team_score_prob,
+                        player_prob,
                     )
-                    + get_defending_points(
-                        position, team, opponent, is_home, mins, team_model
-                    )
+                    + get_defending_points(position, mins, team_concede_prob)
                 )
                 if df_bonus is not None:
                     points += get_bonus_points(player.player_id, mins, df_bonus)
@@ -368,6 +370,8 @@ def calc_predicted_points_for_player(
             points /= len(recent_minutes)
 
         # create the PlayerPrediction for this player+fixture
+        if np.isnan(points):
+            raise ValueError(f"nan points for {player} {fixture} {points} {tag}")
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
@@ -379,8 +383,7 @@ def calc_predicted_points_for_player(
 
 def calc_predicted_points_for_pos(
     pos,
-    team_model,
-    player_model,
+    fixture_goal_probs,
     df_bonus,
     df_saves,
     df_cards,
@@ -395,13 +398,11 @@ def calc_predicted_points_for_pos(
     """
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = get_fitted_player_model(
-            player_model, pos, season, min(gw_range), dbsession
-        )
+        df_player = fit_player_data(pos, season, min(gw_range), dbsession)
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
-            team_model=team_model,
+            fixture_goal_probs=fixture_goal_probs,
             df_player=df_player,
             df_bonus=df_bonus,
             df_saves=df_saves,
@@ -432,28 +433,6 @@ def make_prediction(player, fixture, points, tag):
 #    session.add(pp)
 
 
-def get_fitted_player_model(
-    player_model, position, season, gameweek, dbsession=session
-):
-    """
-    Get the fitted player model for a given position
-    """
-    print("Generating player history dataframe - slow")
-    df_player, _, _ = fit_player_data(
-        player_model, position, season, gameweek, dbsession
-    )
-    return df_player
-
-
-def get_all_fitted_player_models(player_model, season, gameweek, dbsession=session):
-    df_positions = {"GK": None}
-    for pos in ["DEF", "MID", "FWD"]:
-        df_positions[pos], _, _ = fit_player_data(
-            player_model, pos, season, gameweek, dbsession
-        )
-    return df_positions
-
-
 def fill_ep(csv_filename, dbsession=session):
     """
     fill the database with FPLs ep_next prediction, and also
@@ -479,32 +458,6 @@ def fill_ep(csv_filename, dbsession=session):
         dbsession.add(pp)
     dbsession.commit()
     outfile.close()
-
-
-def get_player_model():
-    """
-    load the player-level model, which will give the probability that
-    a given player scored/assisted/did-neither when their team scores a goal.
-    """
-    # old method - compile model at runtime
-    stan_filepath = os.path.join(
-        os.path.dirname(__file__), "../../stan/player_forecasts.stan"
-    )
-    if not os.path.exists(stan_filepath):
-        raise RuntimeError("Can't find player_forecasts.stan")
-
-    return pystan.StanModel(file=stan_filepath)
-
-    # new method - get pre-compiled pickle, BUT - how to ensure it looks
-    # in site-packages rather than local directory?
-
-
-#    model_file = pkg_resources.resource_filename(
-#        "airsenal", "stan_model/player_forecasts.pkl"
-#    )
-#    with open(model_file, "rb") as f:
-#        model_player = pickle.load(f)
-#    return model_player
 
 
 def get_empirical_bayes_estimates(df_emp):
@@ -571,51 +524,40 @@ def process_player_data(
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
-    return (
-        dict(
-            nplayer=nplayer,
-            nmatch=nmatch,
-            minutes=minutes.astype("int64"),
-            y=y.astype("int64"),
-            alpha=alpha,
-        ),
-        player_ids,
+    return dict(
+        player_ids=player_ids,
+        nplayer=nplayer,
+        nmatch=nmatch,
+        minutes=minutes.astype("int64"),
+        y=y.astype("int64"),
+        alpha=alpha,
     )
 
 
-def fit_player_data(model, prefix, season, gameweek, dbsession=session):
+def fit_player_data(position, season, gameweek, dbsession=session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    data, names = process_player_data(prefix, season, gameweek, dbsession)
-    print("Fitting player model for", prefix, "...")
-    fit = model.optimizing(data)
-    df = (
-        pd.DataFrame(fit["theta"], columns=["pr_score", "pr_assist", "pr_neither"])
-        .set_index(names)
-        .reset_index()
-    )
-    df["pos"] = prefix
+    model = PlayerModel()
+    data = process_player_data(position, season, gameweek, dbsession)
+    print("Fitting player model for", position, "...")
+    fitted_model = model.fit(data)
+    df = pd.DataFrame(fitted_model.get_probs())
+
+    df["pos"] = position
     df = (
         df.rename(columns={"index": "player_id"})
         .sort_values("player_id")
         .set_index("player_id")
     )
-    return df, fit, data
+    return df
 
 
-def fit_all_player_data(model, season, gameweek, dbsession=session):
-    df = pd.DataFrame()
-    fits = []
-    dfs = []
-    reals = []
-    for prefix in ["FWD", "MID", "DEF"]:
-        d, f, r = fit_player_data(model, prefix, season, gameweek, dbsession)
-        fits.append(f)
-        dfs.append(d)
-        reals.append(r)
-    df = pd.concat(dfs)
-    return df, fits, reals
+def get_all_fitted_player_data(season, gameweek, dbsession=session):
+    df_positions = {"GK": None}
+    for pos in ["DEF", "MID", "FWD"]:
+        df_positions[pos] = fit_player_data(pos, season, gameweek, dbsession)
+    return df_positions
 
 
 def get_player_scores(
