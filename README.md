@@ -51,12 +51,12 @@ conda activate airsenalenv
 
 _Windows is not fully supported. You should be able to install the module but there are still compatibility issues (see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)). You may have more success trying to run AIrsenal on the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) instead._
 
-If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
+If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below:
 ```
 conda create -n airsenalenv python=3.7
 conda activate airsenalenv
 conda install libpython m2w64-toolchain -c msys2
-conda install numpy cython pystan -c conda-forge
+conda install numpy cython -c conda-forge
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 pip install .

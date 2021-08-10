@@ -404,7 +404,9 @@ def list_players(
     gameweeks = [gameweek]
     # check if the team (or all teams) play in the specified gameweek, if not
     # attributes might be missing
-    fixtures = get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    fixtures = get_fixture_teams(
+        get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    )
     teams_with_fixture = [t for fixture in fixtures for t in fixture]
     teams_with_fixture = set(teams_with_fixture)
 
@@ -417,7 +419,9 @@ def list_players(
         gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
 
         for gw in gws_to_try:
-            fixtures = get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
+            fixtures = get_fixture_teams(
+                get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
+            )
             new_teams = [t for fixture in fixtures for t in fixture]
 
             if team == "all" and any(t not in teams_with_fixture for t in new_teams):
@@ -615,14 +619,20 @@ def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
 
 def get_fixtures_for_gameweek(gameweek, season=CURRENT_SEASON, dbsession=session):
     """
-    Get a list of fixtures for the specified gameweek
+    Get a list of fixtures for the specified gameweek(s)
     """
-    fixtures = (
+    if isinstance(gameweek, int):
+        gameweek = [gameweek]
+    return (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
+        .filter(Fixture.gameweek.in_(gameweek))
         .all()
     )
+
+
+def get_fixture_teams(fixtures):
+    """Get (home_team, away_team) tuples for each fixture in a list of fixtures"""
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
 
