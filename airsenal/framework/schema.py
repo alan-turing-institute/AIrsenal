@@ -2,6 +2,7 @@
 Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
+import os
 from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -9,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 
-from airsenal.framework.db_config import DB_CONNECTION_STRING
+from airsenal.framework.db_config import DB_CONNECTION_STRING, AIrsenalDBFile
 
 Base = declarative_base()
 
@@ -382,3 +383,21 @@ def session_scope():
         raise
     finally:
         session.close()
+
+
+def clean_database():
+    """
+    Clean up database
+    """
+    Base.metadata.drop_all()
+    Base.metadata.create_all()
+
+
+def database_is_empty(dbsession):
+    """
+    Basic check to determine whether the database is empty
+    """
+    if os.path.exists(AIrsenalDBFile):
+        return dbsession.query(Team).first() is None
+    else:  # file doesn't exist - db is definitely empty!
+        return True
