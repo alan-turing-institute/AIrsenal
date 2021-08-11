@@ -56,9 +56,29 @@ To use AIrsenal without conda:
 ```
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
+pip install pygmo  # Linux only
 pip install .
 ```
-AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only available when using conda. However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
+AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only pip-installable on Linux (either use conda or don't install pygmo on other platforms). However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
+
+**Docker**
+
+Build the docker-image:
+```shell
+docker build -t airsenal .
+```
+
+Create a volume for data persistance:
+```shell
+docker volume create airsenal_data
+```
+
+Run commands with your configuration as environment variables, eg:
+```shell
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+```
+```airsenal_run_pipeline``` is the default command.
+
 
 ## Configuration
 
@@ -152,23 +172,6 @@ airsenal_run_pipeline
 ```
 This will update the database and then run the points predictions and transfer optimization.  Add `--help` to see the available options.
 
-## Docker
-
-Build the docker-image:
-```shell
-docker build -t airsenal .
-```
-
-Create a volume for data persistance:
-```shell
-docker volume create airsenal_data
-```
-
-Run commands with your configuration as environment variables, eg:
-```shell
-docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
-```
-```airsenal_run_pipeline``` is the default command.
 
 ## Issues and Development
 
