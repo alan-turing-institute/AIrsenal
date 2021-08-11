@@ -107,7 +107,6 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             click.echo("Applying suggested transfers...")
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
-
                 raise RuntimeError("Problem applying the transfers")
             click.echo("Setting Lineup...")
             lineup_ok = set_starting_11(fpl_team_id)
