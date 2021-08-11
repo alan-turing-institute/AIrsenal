@@ -81,10 +81,10 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(dbsession)
-    if fpl_team_id and fpl_team_id != rows[0].fpl_team_id:
+    if fpl_team_id and int(fpl_team_id) != rows[0].fpl_team_id:
         raise Exception(
-            f"Team ID passed is {fpl_team_id}, but transfer suggestions are for \
-            team ID {rows[0].fpl_team_id}. We recommend re-running optimization."
+            f"Team ID passed is {fpl_team_id}, but transfer suggestions are for "
+            f"team ID {rows[0].fpl_team_id}. We recommend re-running optimization."
         )
     else:
         fpl_team_id = rows[0].fpl_team_id

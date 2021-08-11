@@ -46,7 +46,7 @@ def update_transactions(season, fpl_team_id, dbsession):
         else:
             print("Team is up-to-date")
     else:
-        print("No transactions as season hasn't yet started")
+        print("No transactions as season hasn't started")
     return True
 
 
