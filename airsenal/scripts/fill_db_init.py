@@ -1,4 +1,5 @@
 """Script to fill the database after install."""
+from airsenal.framework.schema import clean_database, database_is_empty
 from airsenal.scripts.fill_team_table import make_team_table
 from airsenal.scripts.fill_player_table import make_player_table
 from airsenal.scripts.fill_player_attributes_table import make_attributes_table
@@ -13,20 +14,31 @@ from airsenal.framework.schema import session_scope
 import argparse
 
 
-def make_init_db(fpl_team_id, session):
-    make_team_table(dbsession=session)
-    make_fixture_table(dbsession=session)
-    make_result_table(dbsession=session)
-    make_fifa_ratings_table(dbsession=session)
+def check_clean_db(clean, dbsession):
+    """Check whether an AIrsenal database already exists. If clean is True attempt to
+    delete any pre-existing database first. Returns True if database exists and is not
+    empty.
+    """
+    if clean:
+        print("Cleaning database..")
+        clean_database()
+    return database_is_empty(dbsession)
 
-    make_player_table(dbsession=session)
-    make_attributes_table(dbsession=session)
-    make_playerscore_table(dbsession=session)
 
-    fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=session)
+def make_init_db(fpl_team_id, dbsession):
+    make_team_table(dbsession=dbsession)
+    make_fixture_table(dbsession=dbsession)
+    make_result_table(dbsession=dbsession)
+    make_fifa_ratings_table(dbsession=dbsession)
+
+    make_player_table(dbsession=dbsession)
+    make_attributes_table(dbsession=dbsession)
+    make_playerscore_table(dbsession=dbsession)
+
+    fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
 
     print("DONE!")
-    return True
+    return not database_is_empty(dbsession)
 
 
 def main():
@@ -34,7 +46,20 @@ def main():
     parser.add_argument(
         "--fpl_team_id", help="specify fpl team id", type=int, required=False
     )
+    parser.add_argument(
+        "--clean",
+        help="If set, delete and re-create any pre-existing AIrsenal database",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     with session_scope() as dbsession:
-        make_init_db(args.fpl_team_id, dbsession)
+        continue_setup = check_clean_db(args.clean, dbsession)
+        if continue_setup:
+            make_init_db(args.fpl_team_id, dbsession)
+        else:
+            print(
+                "AIrsenal database already exists. "
+                "Run 'airsenal_setup_initial_db --clean' to delete and recreate it,\n"
+                "or keep the current database and continue to 'airsenal_update_db'."
+            )

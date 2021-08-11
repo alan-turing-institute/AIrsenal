@@ -1,12 +1,10 @@
 import sys
-import os
 import multiprocessing
 import warnings
 import click
 from tqdm import TqdmWarning
 
-from airsenal.framework.db_config import AIrsenalDBFile
-from airsenal.framework.schema import session_scope, Team, Base
+from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -17,7 +15,7 @@ from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 
 from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
 
-from airsenal.scripts.fill_db_init import make_init_db
+from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.update_db import update_db
 from airsenal.scripts.fill_predictedscore_table import (
     make_predictedscore_table,
@@ -68,10 +66,7 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
         num_thread = multiprocessing.cpu_count()
 
     with session_scope() as dbsession:
-        if clean:
-            click.echo("Cleaning database..")
-            clean_database()
-        if database_is_empty(dbsession):
+        if check_clean_db(clean, dbsession):
             click.echo("Setting up Database..")
             setup_ok = setup_database(fpl_team_id, dbsession)
             if not setup_ok:
@@ -113,24 +108,6 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
             if not lineup_ok:
                 raise RuntimeError("Problem setting the lineup")
         click.echo("Pipeline finished OK!")
-
-
-def clean_database():
-    """
-    Clean up database
-    """
-    Base.metadata.drop_all()
-    Base.metadata.create_all()
-
-
-def database_is_empty(dbsession):
-    """
-    Basic check to determine whether the database is empty
-    """
-    if os.path.exists(AIrsenalDBFile):
-        return dbsession.query(Team).first() is None
-    else:  # file doesn't exist - db is definitely empty!
-        return True
 
 
 def setup_database(fpl_team_id, dbsession):
