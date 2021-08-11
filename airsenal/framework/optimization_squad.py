@@ -105,9 +105,7 @@ def make_new_squad_iter(
             # same position
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            t.remove_player(
-                player_to_remove.player_id, gameweek=transfer_gw
-            )
+            t.remove_player(player_to_remove.player_id, gameweek=transfer_gw)
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (

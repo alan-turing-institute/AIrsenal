@@ -62,9 +62,7 @@ def make_optimum_single_transfer(
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-            added_ok = new_squad.add_player(
-                p_in[0], gameweek=transfer_gw
-            )
+            added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
             if added_ok:
                 if verbose:
                     print("Added player {}".format(p_in[0].name))
@@ -127,9 +125,7 @@ def make_optimum_double_transfer(
         pout_1 = squad.players[i]
 
         new_squad_remove_1 = fastcopy(squad)
-        new_squad_remove_1.remove_player(
-            pout_1.player_id, gameweek=transfer_gw
-        )
+        new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
         for j in range(i + 1, len(squad.players)):
             if update_func_and_args:
                 # call function to update progress bar.
@@ -140,9 +136,7 @@ def make_optimum_double_transfer(
 
             pout_2 = squad.players[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
-            new_squad_remove_2.remove_player(
-                pout_2.player_id, gameweek=transfer_gw
-            )
+            new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
             if verbose:
                 print("Removing players {} {}".format(i, j))
             # what positions do we need to fill?
@@ -153,9 +147,7 @@ def make_optimum_double_transfer(
                 if pin_1[0].player_id in [pout_1.player_id, pout_2.player_id]:
                     continue  # no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
-                added_1_ok = new_squad_add_1.add_player(
-                    pin_1[0], gameweek=transfer_gw
-                )
+                added_1_ok = new_squad_add_1.add_player(pin_1[0], gameweek=transfer_gw)
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
@@ -248,9 +240,7 @@ def make_random_transfers(
         for p in players_to_remove:
             positions_needed.append(squad.players[p].position)
             removed_players.append(squad.players[p].player_id)
-            new_squad.remove_player(
-                removed_players[-1], gameweek=transfer_gw
-            )
+            new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {
             pos: get_predicted_points(position=pos, gameweek=gw_range, tag=tag)
             for pos in set(positions_needed)
@@ -265,9 +255,7 @@ def make_random_transfers(
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
                 pid_to_add = predicted_points[pos][index][0]
-                added_ok = new_squad.add_player(
-                    pid_to_add, gameweek=transfer_gw
-                )
+                added_ok = new_squad.add_player(pid_to_add, gameweek=transfer_gw)
                 if added_ok:
                     added_players.append(pid_to_add)
             complete_squad = new_squad.is_complete()
