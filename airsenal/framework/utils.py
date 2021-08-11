@@ -30,7 +30,7 @@ fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     """
-    Return the maximum gameweek number across all scheduled fixtures. This shuold
+    Return the maximum gameweek number across all scheduled fixtures. This should
     generally be 38, but may be different in the case of major disruptino (e.g.
     Covid-19)
     """
@@ -404,7 +404,9 @@ def list_players(
     gameweeks = [gameweek]
     # check if the team (or all teams) play in the specified gameweek, if not
     # attributes might be missing
-    fixtures = get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    fixtures = get_fixture_teams(
+        get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+    )
     teams_with_fixture = [t for fixture in fixtures for t in fixture]
     teams_with_fixture = set(teams_with_fixture)
 
@@ -417,7 +419,9 @@ def list_players(
         gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
 
         for gw in gws_to_try:
-            fixtures = get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
+            fixtures = get_fixture_teams(
+                get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
+            )
             new_teams = [t for fixture in fixtures for t in fixture]
 
             if team == "all" and any(t not in teams_with_fixture for t in new_teams):
@@ -615,14 +619,20 @@ def get_fixtures_for_season(season=CURRENT_SEASON, dbsession=session):
 
 def get_fixtures_for_gameweek(gameweek, season=CURRENT_SEASON, dbsession=session):
     """
-    Get a list of fixtures for the specified gameweek
+    Get a list of fixtures for the specified gameweek(s)
     """
-    fixtures = (
+    if isinstance(gameweek, int):
+        gameweek = [gameweek]
+    return (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter_by(gameweek=gameweek)
+        .filter(Fixture.gameweek.in_(gameweek))
         .all()
     )
+
+
+def get_fixture_teams(fixtures):
+    """Get (home_team, away_team) tuples for each fixture in a list of fixtures"""
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
 
@@ -795,7 +805,7 @@ def get_top_predicted_points(
     per_position=False,
     max_price=None,
     season=CURRENT_SEASON,
-    dbsession=None,
+    dbsession=session,
 ):
     """Print players with the top predicted points.
 
@@ -878,7 +888,7 @@ def get_top_predicted_points(
             print("-" * 25)
 
 
-def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=None):
+def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session):
     """Parse news strings from the FPL API for the return date of injured or
     suspended players. If a date is found, determine and return the gameweek it
     corresponds to.
@@ -1250,6 +1260,18 @@ def get_player_team_from_fixture(
         return (player_team, fixture)
     else:
         return player_team
+
+
+def is_transfer_deadline_today():
+    """
+    Return True if there is a transfer deadline later today
+    """
+    deadlines = fetcher.get_transfer_deadlines()
+    for deadline in deadlines:
+        deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
+        if (deadline - datetime.now()).days == 0:
+            return True
+    return False
 
 
 T = TypeVar("T")

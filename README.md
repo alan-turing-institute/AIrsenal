@@ -8,19 +8,17 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
-## Pre-requisites
+## Notes (August 2021)
 
-The Stan model used to predict match results is in the package https://github.com/anguswilliams91/bpl, and to run this you will need a working (recent) C++ compiler. To test you have gcc installed in your system run the following command in a terminal:
+The default branch of this repository has been renamed from "master" to "main".   If you have a previously cloned version of the repo, you can update the branch names by doing:
 ```
-gcc --version
+git branch -m master main
+git fetch origin
+git branch -u origin/main main
+git remote set-head origin -a
 ```
 
-If this successfully returns version information you can continue with the AIrsenal installation process. If not you will need to install `gcc`. Common ways to do this include:
-* **Mac OSX:** `brew install gcc`
-* **Linux (Ubuntu):** `apt-get install build-essential`
-* **Windows:** We recommend using conda and following the windows-specific instructions below. Alternativley, have a look at [MinGW](http://www.mingw.org/wiki/Getting_Started) to get a working compiler.
-
-Alternatively, please refer to the Cython installation pre-requirements for options to get a working compiler on your system here: http://docs.cython.org/en/latest/src/quickstart/install.html.
+We have also switched from using Stan/pystan to numpyro, for the team and player models.   This will hopefully make AIrsenal easier to install (no need to worry about C compilers any more!).
 
 
 ## Install
@@ -41,12 +39,12 @@ conda activate airsenalenv
 
 _Windows is not fully supported. You should be able to install the module but there are still compatibility issues (see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)). You may have more success trying to run AIrsenal on the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) instead._
 
-If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below based on the [pystan documentation](https://pystan.readthedocs.io/en/latest/windows.html):
+If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below:
 ```
 conda create -n airsenalenv python=3.7
 conda activate airsenalenv
 conda install libpython m2w64-toolchain -c msys2
-conda install numpy cython pystan -c conda-forge
+conda install numpy cython -c conda-forge
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 pip install .
@@ -58,9 +56,29 @@ To use AIrsenal without conda:
 ```
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
+pip install pygmo  # Linux only
 pip install .
 ```
-AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only available when using conda. However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
+AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only pip-installable on Linux (either use conda or don't install pygmo on other platforms). However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
+
+**Docker**
+
+Build the docker-image:
+```shell
+docker build -t airsenal .
+```
+
+Create a volume for data persistance:
+```shell
+docker volume create airsenal_data
+```
+
+Run commands with your configuration as environment variables, eg:
+```shell
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+```
+```airsenal_run_pipeline``` is the default command.
+
 
 ## Configuration
 
@@ -73,9 +91,9 @@ Once you've installed the module, you will need to set the following parameters:
 
 2. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
 
-3. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings).
+3. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings, or automating transfers via the API).
 
-4. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings).
+4. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings, or automating transfers via the API).
 
 5. `AIrsenalDBFile`: Local path to where you would like to store the AIrsenal sqlite3 database. If not set a temporary directory will be used by default (`/tmp/data.db` on Unix systems).
 
@@ -84,6 +102,8 @@ The values for these should be defined either in environment variables with the 
 1234567
 ```
 Where `1234567` is your team ID.
+
+If you do create the files in `airsenal/data`, you should do ```pip install .``` again to ensure they are copied to the correct location for the installed package.
 
 ## Getting Started
 
@@ -150,25 +170,8 @@ Instead of running the commands above individually you can use:
 ```shell
 airsenal_run_pipeline
 ```
-This will update the database and then run the points predictions and transfer optimization.
+This will update the database and then run the points predictions and transfer optimization.  Add `--help` to see the available options.
 
-## Docker
-
-Build the docker-image:
-```shell
-docker build -t airsenal .
-```
-
-Create a volume for data persistance:
-```shell
-docker volume create airsenal_data
-```
-
-Run commands with your configuration as environment variables, eg:
-```shell
-docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
-```
-```airsenal_run_pipeline``` is the default command.
 
 ## Issues and Development
 

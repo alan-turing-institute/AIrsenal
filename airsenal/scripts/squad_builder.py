@@ -2,15 +2,15 @@
 
 import argparse
 import sys
-import pygmo as pg
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
+    fetcher,
 )
-from airsenal.framework.optimization_utils import check_tag_valid
+from airsenal.framework.optimization_utils import check_tag_valid, fill_initial_suggestion_table
 from airsenal.framework.season import get_current_season
-
+from airsenal.framework.optimization_squad import make_new_squad
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -30,7 +30,7 @@ def main():
         "--algorithm",
         help="Which optimization algorithm to use - 'normal' or 'genetic'",
         type=str,
-        default="normal",
+        default="genetic",
     )
     # parameters for "normal" optimization
     parser.add_argument(
@@ -63,15 +63,15 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "--gw_weight_type",
-        help=(
-            "'constant' to treat all gameweeks equally, or 'linear' "
-            "to reduce weight of gameweeks with time (genetic only)"
-        ),
-        type=str,
-        default="linear",
+        "--verbose",
+        help="Print details on optimsation progress",
+        action="store_true",
     )
-
+    parser.add_argument(
+        "--fpl_team_id",
+        help="ID for your FPL team",
+        type=int,
+    )
     args = parser.parse_args()
     season = args.season or get_current_season()
     budget = args.budget
@@ -86,49 +86,58 @@ def main():
             "same input gameweeks and season you specified here.",
         )
         sys.exit(1)
-
-    if args.algorithm == "normal":
-        from airsenal.framework.optimization_utils import make_new_squad
-
-        num_iterations = args.num_iterations
-        best_squad = make_new_squad(args.budget, num_iterations, tag, gw_range, season)
-
-    elif args.algorithm == "genetic":
-        from airsenal.framework.optimization_pygmo import make_new_squad
-
-        num_generations = args.num_generations
-        population_size = args.population_size
-        remove_zero = not args.include_zero
-        gw_weight_type = args.gw_weight_type
-        uda = pg.sga(gen=num_generations)
-        if args.no_subs:
-            sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
-        else:
-            sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-
-        best_squad = make_new_squad(
-            gw_range,
-            tag,
-            budget=budget,
-            season=season,
-            remove_zero=remove_zero,
-            sub_weights=sub_weights,
-            uda=uda,
-            population_size=population_size,
-            gw_weight_type=gw_weight_type,
-        )
+    algorithm = args.algorithm
+    num_iterations = args.num_iterations
+    num_generations = args.num_generations
+    population_size = args.population_size
+    remove_zero = not args.include_zero
+    verbose = args.verbose
+    if args.no_subs:
+        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
-        raise ValueError("'algorithm' must be 'normal' or 'genetic'")
+        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+    if algorithm == "genetic":
+        try:
+            import pygmo as pg
+            uda = pg.sga(gen=num_generations)
+        except ModuleNotFoundError as e:
+            print(e)
+            print("Defaulting to algorithm=normal instead")
+            algorithm = "normal"
+            uda = None
+    else:
+        uda = None
 
+    best_squad = make_new_squad(
+        gw_range,
+        tag,
+        budget=budget,
+        season=season,
+        algorithm=algorithm,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
+        uda=uda,
+        population_size=population_size,
+        num_iterations=num_iterations,
+        verbose=verbose,
+    )
     if best_squad is None:
         raise RuntimeError(
             "best_squad is None: make_new_squad failed to generate a valid team or "
             "something went wrong with the squad expected points calculation."
         )
-    else:
-        points = best_squad.get_expected_points(gw_start, tag)
 
+    points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))
     print("---------------------")
     print(best_squad)
+
+    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    fill_initial_suggestion_table(
+        best_squad,
+        fpl_team_id,
+        tag,
+        season=season,
+        gameweek=gw_start,
+    )

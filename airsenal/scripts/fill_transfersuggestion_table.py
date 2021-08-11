@@ -36,14 +36,13 @@ from airsenal.framework.optimization_utils import (
     calc_free_transfers,
     calc_points_hit,
     fill_suggestion_table,
-    make_best_transfers,
     get_num_increments,
     count_expected_outputs,
     next_week_transfers,
     check_tag_valid,
     get_discount_factor,
 )
-
+from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_player_name,

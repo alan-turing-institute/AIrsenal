@@ -1,10 +1,7 @@
 import os.path
-import pickle
 import re
 
 from setuptools import setup
-from setuptools.command.build_py import build_py
-from setuptools.command.develop import develop
 
 SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,39 +12,6 @@ with open(os.path.join(SETUP_DIR, "airsenal", "__init__.py")) as f:
 # Get dependencies from requirements.txt
 with open(os.path.join(SETUP_DIR, "requirements.txt"), "r") as f:
     REQUIRED_PACKAGES = f.read().splitlines()
-
-MODEL_DIR = os.path.join(SETUP_DIR, "stan")
-MODEL_TARGET_DIR = os.path.join("airsenal", "stan_model")
-
-
-class BPyCmd(build_py):
-    def run(self):
-        if not self.dry_run:
-            target_dir = os.path.join(self.build_lib, MODEL_TARGET_DIR)
-            self.mkpath(target_dir)
-            compile_stan_models(target_dir)
-
-        build_py.run(self)
-
-
-class DevCmd(develop):
-    def run(self):
-        if not self.dry_run:
-            target_dir = os.path.join(self.setup_path, MODEL_TARGET_DIR)
-            self.mkpath(target_dir)
-            compile_stan_models(target_dir)
-
-        develop.run(self)
-
-
-def compile_stan_models(target_dir, model_dir=MODEL_DIR):
-    """Pre-compile the stan models that are used by the module."""
-    from pystan import StanModel
-
-    print("Compiling Stan player model, and putting pickle in {}".format(target_dir))
-    sm = StanModel(file=os.path.join(model_dir, "player_forecasts.stan"))
-    with open(os.path.join(target_dir, "player_forecasts.pkl"), "wb") as f_stan:
-        pickle.dump(sm, f_stan, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 console_scripts = [
@@ -62,6 +26,7 @@ console_scripts = [
     "airsenal_run_pipeline=airsenal.scripts.airsenal_run_pipeline:run_pipeline",
     "airsenal_replay_season=airsenal.scripts.replay_season:main",
     "airsenal_make_transfers=airsenal.scripts.make_transfers:main",
+    "airsenal_set_lineup=airsenal.scripts.set_lineup:main",
 ]
 
 setup(
@@ -77,5 +42,4 @@ setup(
     entry_points={"console_scripts": console_scripts},
     package_data={"airsenal": ["data/*"]},
     zip_safe=False,
-    cmdclass={"build_py": BPyCmd, "develop": DevCmd},
 )
