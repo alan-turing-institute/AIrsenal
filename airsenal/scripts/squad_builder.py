@@ -8,7 +8,10 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     fetcher,
 )
-from airsenal.framework.optimization_utils import check_tag_valid, fill_initial_suggestion_table
+from airsenal.framework.optimization_utils import (
+    check_tag_valid,
+    fill_initial_suggestion_table,
+)
 from airsenal.framework.season import get_current_season
 from airsenal.framework.optimization_squad import make_new_squad
 
@@ -99,6 +102,7 @@ def main():
     if algorithm == "genetic":
         try:
             import pygmo as pg
+
             uda = pg.sga(gen=num_generations)
         except ModuleNotFoundError as e:
             print(e)
