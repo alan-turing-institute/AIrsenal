@@ -26,7 +26,7 @@ import warnings
 import cProfile
 
 
-from multiprocessing import Process
+from multiprocessing import Process, set_start_method
 from tqdm import tqdm, TqdmWarning
 import argparse
 
@@ -666,6 +666,13 @@ def main():
             "same input gameweeks and season you specified here.",
         )
         sys.exit(1)
+    
+    # to fix change of default behaviour in multiprocessing on Python 3.8 and later
+    # on Windows and OSX. Python 3.8 and later start processess using spawn by default
+    # see https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
+	
+    set_start_method("fork")
+    
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
         run_optimization(
