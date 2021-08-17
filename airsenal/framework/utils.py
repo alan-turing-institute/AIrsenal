@@ -191,14 +191,14 @@ def get_squad_value(
     return total_value
 
 
-def get_current_squad_from_api(fpl_team_id):
+def get_current_squad_from_api(fpl_team_id, apifetcher=fetcher):
     """
     Return a list [(player_id, purchase_price)] from the current picks.
     Requires the data fetcher to be logged in.
     """
-    if not fetcher.logged_in:
-        fetcher.login()
-    picks = fetcher.get_current_picks(fpl_team_id)
+    if not apifetcher.logged_in:
+        apifetcher.login()
+    picks = apifetcher.get_current_picks(fpl_team_id)
     players_prices = [
         (get_player_from_api_id(p["element"]).player_id, p["purchase_price"])
         for p in picks
