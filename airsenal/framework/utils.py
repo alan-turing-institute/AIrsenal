@@ -237,6 +237,21 @@ def get_bank(
         raise RuntimeError("Calculating the bank for past seasons not yet implemented")
 
 
+def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
+    """
+    Find the gameweek an FPL team ID was entered in by searching for the first gameweek
+    the API has 'picks' for.
+    """
+    init_players = []
+    starting_gw = 0
+    while not init_players and starting_gw < NEXT_GAMEWEEK:
+        starting_gw += 1
+        init_players = get_players_for_gameweek(
+            starting_gw, fpl_team_id, apifetcher=apifetcher
+        )
+    return starting_gw
+
+
 def get_free_transfers(
     fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
 ):
@@ -258,7 +273,12 @@ def get_free_transfers(
             data = apifetcher.get_fpl_team_history_data(fpl_team_id)
             num_free_transfers = 1
             if "current" in data.keys() and len(data["current"]) > 0:
+                starting_gw = get_entry_start_gameweek(
+                    fpl_team_id, apifetcher=apifetcher
+                )
                 for gw in data["current"]:
+                    if gw["event"] <= starting_gw:
+                        continue
                     if gw["event_transfers"] == 0 and num_free_transfers < 2:
                         num_free_transfers += 1
                     elif gw["event_transfers"] >= 2:
@@ -700,14 +720,14 @@ def get_player_scores(fixture=None, player=None, dbsession=session):
     return player_scores
 
 
-def get_players_for_gameweek(gameweek, fpl_team_id=None):
+def get_players_for_gameweek(gameweek, fpl_team_id=None, apifetcher=fetcher):
     """
     Use FPL API to get the players for a given gameweek.
     """
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = apifetcher.FPL_TEAM_ID
     try:
-        player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
+        player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
         player_api_id_list = [p["element"] for p in player_data]
         player_list = [
             get_player_from_api_id(api_id).player_id
