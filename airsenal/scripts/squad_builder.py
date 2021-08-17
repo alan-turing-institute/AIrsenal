@@ -5,9 +5,11 @@ import argparse
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
+    fetcher,
 )
 from airsenal.framework.season import get_current_season
 from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -64,6 +66,11 @@ def main():
         help="Print details on optimsation progress",
         action="store_true",
     )
+    parser.add_argument(
+        "--fpl_team_id",
+        help="ID for your FPL team",
+        type=int,
+    )
     args = parser.parse_args()
     season = args.season or get_current_season()
     budget = args.budget
@@ -111,3 +118,12 @@ def main():
     print("Best expected points for gameweek {}: {}".format(gw_start, points))
     print("---------------------")
     print(best_squad)
+
+    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    fill_initial_suggestion_table(
+        best_squad,
+        fpl_team_id,
+        tag,
+        season=season,
+        gameweek=gw_start,
+    )
