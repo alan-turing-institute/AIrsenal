@@ -3,6 +3,7 @@ import jax.random as random
 import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
+import pandas as pd
 
 from typing import Any, Dict, Optional
 
@@ -98,3 +99,53 @@ class PlayerModel(object):
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
         prob_neither = float(self.samples["probs"][:, index, 2].mean())
         return (prob_score, prob_assist, prob_neither)
+
+
+class ConjugatePlayerModel(object):
+    def __init__(self):
+        self.player_ids = None
+        self.samples = None
+
+    @staticmethod
+    def _model(df, prior):
+        neff = {
+            idx: get_empirical_bayes_estimates(data)
+            for idx, data in df.groupby("player_id")
+        }
+        neff = pd.DataFrame(neff).T
+        neff = neff.fillna(0)
+        neff.columns = ["prob_score", "prob_assist", "prob_neither"]
+        return prior + neff
+
+
+    def fit(self, data):
+        return self
+
+    def get_probs(self):
+        prob_dict = {
+            "player_id": [],
+            "prob_score": [],
+            "prob_assist": [],
+            "prob_neither": [],
+        }
+        for i, pid in enumerate(self.player_ids):
+            prob_dict["player_id"].append(pid)
+            prob_dict["prob_score"].append(float(self.samples["probs"][:, i, 0].mean()))
+            prob_dict["prob_assist"].append(
+                float(self.samples["probs"][:, i, 1].mean())
+            )
+            prob_dict["prob_neither"].append(
+                float(self.samples["probs"][:, i, 2].mean())
+            )
+        return prob_dict
+
+    def get_probs_for_player(self, player_id):
+        try:
+            index = list(self.player_ids).index(player_id)
+        except (ValueError):
+            raise RuntimeError(f"Unknown player_id {player_id}")
+        prob_score = float(self.samples["probs"][:, index, 0].mean())
+        prob_assist = float(self.samples["probs"][:, index, 1].mean())
+        prob_neither = float(self.samples["probs"][:, index, 2].mean())
+        return (prob_score, prob_assist, prob_neither)
+
