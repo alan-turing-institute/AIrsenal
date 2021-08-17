@@ -375,10 +375,15 @@ def run_optimization(
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
 
+    # give the user the option to login
+    fetcher.login()
+
     print("Running optimization with fpl_team_id {}".format(fpl_team_id))
     # How many free transfers are we starting with?
     if not num_free_transfers:
-        num_free_transfers = get_free_transfers(gameweeks[0], fpl_team_id)
+        num_free_transfers = get_free_transfers(
+            fpl_team_id, gameweeks[0], apifetcher=fetcher
+        )
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
@@ -436,7 +441,10 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    starting_squad = get_starting_squad(fpl_team_id=fpl_team_id)
+    use_api = fetcher.logged_in
+    starting_squad = get_starting_squad(
+        fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+    )
 
     if not allow_unused_transfers and (
         num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)

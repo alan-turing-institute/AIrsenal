@@ -19,10 +19,12 @@ class FPLDataFetcher(object):
 
     def __init__(self, fpl_team_id=None, rsession=None):
         self.rsession = rsession if rsession else requests.session()
+        self.logged_in = False
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
+        self.current_squad_data = None
         self.player_gameweek_data = {}
         self.fpl_team_history_data = None
         # transfer history data is a dict, keyed by fpl_team_id
@@ -63,6 +65,10 @@ class FPLDataFetcher(object):
         self.FPL_LOGIN_REDIRECT_URL = "https://fantasy.premierleague.com/a/login"
         self.FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
 
+        # login, if desired
+
+    #        self.login()
+
     def get_fpl_credentials(self):
         """
         If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
@@ -70,8 +76,8 @@ class FPLDataFetcher(object):
         """
         print(
             """
-            Accessing FPL mini-league data requires the login (email address) and
-            password for your FPL account.
+            Accessing the most up-to-date data on your squad, or automatic transfers,
+            requires the login (email address) and password for your FPL account.
             """
         )
         self.FPL_LOGIN = input("Please enter FPL login: ")
@@ -90,19 +96,43 @@ class FPLDataFetcher(object):
                 login_file.write(self.FPL_LOGIN)
             with open(os.path.join(data_loc, "FPL_PASSWORD"), "w") as passwd_file:
                 passwd_file.write(self.FPL_PASSWORD)
+            print(
+                """
+                Wrote files {} and {}.
+                You may need to do 'pip install .' for these to be picked up.
+                """.format(
+                    login_file, passwd_file
+                )
+            )
 
     def login(self):
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
-
+        if self.logged_in:
+            return
         if (
             (not self.FPL_LOGIN)
             or (not self.FPL_PASSWORD)
             or (self.FPL_LOGIN == "MISSING_ID")
             or (self.FPL_PASSWORD == "MISSING_ID")
         ):
-            self.get_fpl_credentials()
+            do_login = ""
+            while do_login.lower() not in ["y", "n"]:
+                do_login = input(
+                    (
+                        "\nWould you like to login to the FPL API?"
+                        "\nThis is not necessary for most AIrsenal actions, "
+                        "\nbut may improve accuracy of player sell values,"
+                        "\nand free transfers for your team, and will also "
+                        "\nenable AIrsenal to make transfers for you through "
+                        "\nthe API. (y/n): "
+                    )
+                )
+            if do_login.lower() == "y":
+                self.get_fpl_credentials()
+            else:
+                return
 
         headers = {
             "login": self.FPL_LOGIN,
@@ -110,22 +140,67 @@ class FPLDataFetcher(object):
             "app": "plfpl-web",
             "redirect_uri": self.FPL_LOGIN_REDIRECT_URL,
         }
-        self.rsession.post(self.FPL_LOGIN_URL, data=headers)
+        response = self.rsession.post(self.FPL_LOGIN_URL, data=headers)
+        if response.status_code != 200:
+            print(f"Error loging in: {response.content}")
+        else:
+            print("Logged in successfully")
+            self.logged_in = True
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
-        Requires login.  Return the current "picks".
+        Requires login.  Return the current squad data, including
+        "picks", bank, and free transfers.
         """
+        if self.current_squad_data:
+            return self.current_squad_data
         if fpl_team_id:
             team_id = fpl_team_id
-        elif self.FPL_TEAM_ID and not self.FPL_TEAM_ID == "MISSING_ID":
+        elif self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
             team_id = self.FPL_TEAM_ID
         else:
             raise RuntimeError("Please specify FPL team ID")
         self.login()
         url = self.FPL_MYTEAM_URL.format(team_id)
-        data = self._get_request(url)
-        return data["picks"]
+        self.current_squad_data = self._get_request(url)
+        return self.current_squad_data
+
+    def get_current_picks(self, fpl_team_id=None):
+        """
+        Returns the players picked for the upcoming gameweek, including
+        purchase and selling prices, and whether they are subs or not.
+        Requires login
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return squad_data["picks"]
+
+    def get_num_free_transfers(self, fpl_team_id=None):
+        """
+        Returns the number of free transfers for the upcoming gameweek.
+        Requires login
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return squad_data["transfers"]["limit"]
+
+    def get_current_bank(self, fpl_team_id=None):
+        """
+        Returns the remaining bank (in 0.1M) for the upcoming gameweek.
+        Requires login
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return squad_data["transfers"]["bank"]
+
+    def get_available_chips(self, fpl_team_id=None):
+        """
+        Returns a list of chips that are available to be played in upcoming gameweek.
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        chip_list = [
+            chip["name"]
+            for chip in squad_data["chips"]
+            if chip["status_for_entry"] == "available"
+        ]
+        return chip_list
 
     def get_current_summary_data(self):
         """

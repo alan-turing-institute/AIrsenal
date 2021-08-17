@@ -191,49 +191,88 @@ def get_squad_value(
     return total_value
 
 
-def get_bank(gameweek=None, fpl_team_id=None):
+def get_current_squad_from_api(fpl_team_id):
+    """
+    Return a list [(player_id, purchase_price)] from the current picks.
+    Requires the data fetcher to be logged in.
+    """
+    if not fetcher.logged_in:
+        fetcher.login()
+    picks = fetcher.get_current_picks(fpl_team_id)
+    players_prices = [
+        (get_player_from_api_id(p["element"]).player_id, p["purchase_price"])
+        for p in picks
+    ]
+    return players_prices
+
+
+def get_bank(
+    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+):
     """
     Find out how much this FPL team had in the bank before the specified gameweek.
     If gameweek is not provided, give the most recent value
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    data = fetcher.get_fpl_team_history_data(fpl_team_id)
-    if "current" not in data.keys() or len(data["current"]) <= 0:
-        return 0
+    if season == CURRENT_SEASON:
+        # we will use the API to estimate the bank
+        if not fpl_team_id:
+            fpl_team_id = fetcher.FPL_TEAM_ID
+        # check if we're logged in, which will let us get the most up-to-date info
+        if apifetcher.logged_in:
+            return apifetcher.get_current_bank(fpl_team_id)
+        else:
+            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            if "current" not in data.keys() or len(data["current"]) <= 0:
+                return 0
 
-    if gameweek and isinstance(gameweek, int):
-        for gw in data["current"]:
-            if gw["event"] == gameweek - 1:  # value after previous gameweek
-                return gw["bank"]
-    # otherwise, return the most recent value
-    return data["current"][-1]["bank"]
+            if gameweek and isinstance(gameweek, int):
+                for gw in data["current"]:
+                    if gw["event"] == gameweek - 1:  # value after previous gameweek
+                        return gw["bank"]
+            # otherwise, return the most recent value
+            return data["current"][-1]["bank"]
+    else:
+        raise RuntimeError("Calculating the bank for past seasons not yet implemented")
 
 
-def get_free_transfers(gameweek=None, fpl_team_id=None):
+def get_free_transfers(
+    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+):
     """
     Work out how many free transfers this FPL team should have before specified gameweek
     If gameweek is not provided, give the most recent value
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    data = fetcher.get_fpl_team_history_data(fpl_team_id)
-    num_free_transfers = 1
-    if "current" in data.keys() and len(data["current"]) > 0:
-        for gw in data["current"]:
-            if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                num_free_transfers += 1
-            if gw["event_transfers"] == 2:
-                num_free_transfers = 1
-            # if gameweek was specified, and we reached the previous one,
-            # break out of loop.
-            if gameweek and gw["event"] == gameweek - 1:
-                break
-    return num_free_transfers
+    if season == CURRENT_SEASON:
+        # we will use the API to estimate num transfers
+        if not fpl_team_id:
+            fpl_team_id = apifetcher.FPL_TEAM_ID
+        # check if we're logged in, which will let us get the most up-to-date info
+        if apifetcher.logged_in:
+            return apifetcher.get_num_free_transfers(fpl_team_id)
+        else:
+            # try to calculate free transfers based on previous transfer history
+            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            num_free_transfers = 1
+            if "current" in data.keys() and len(data["current"]) > 0:
+                for gw in data["current"]:
+                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
+                        num_free_transfers += 1
+                    elif gw["event_transfers"] >= 2:
+                        num_free_transfers = 1
+                    # if gameweek was specified, and we reached the previous one,
+                    # break out of loop.
+                    if gameweek and gw["event"] == gameweek - 1:
+                        break
+            return num_free_transfers
+    else:
+        # historical data - fetch from database, not implemented yet
+        raise RuntimeError(
+            "Estimating free transfers for previous seasons is not yet implemented."
+        )
 
 
 @lru_cache(maxsize=365)
