@@ -188,7 +188,7 @@ def build_init_priced_transfers(fetcher, fpl_team_id=None):
         else:
             fpl_team_id = fetcher.FPL_TEAM_ID
 
-    current_squad = fetcher.get_current_squad_data(fpl_team_id)
+    current_squad = fetcher.get_current_picks(fpl_team_id)
     transfers_out = [
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad
