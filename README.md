@@ -14,7 +14,7 @@ We have made a mini-league **"Prem-AI League"** for players using this software.
 The code to join is: **3rn929**.
 Hope to see your AI team there! :)
 
-Our own AIrsenal team's id for the 2021/22 season is **863052**.
+Our own AIrsenal team's id for the 2021/22 season is **[863052](https://fantasy.premierleague.com/entry/863052/history)**.
 
 ## Notes (August 2021)
 
