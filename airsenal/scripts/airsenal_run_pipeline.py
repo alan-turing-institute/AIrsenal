@@ -11,6 +11,7 @@ from airsenal.framework.utils import (
     fetcher,
     get_latest_prediction_tag,
 )
+from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 
 from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
@@ -64,6 +65,7 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
+    set_multiprocessing_start_method(num_thread)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):

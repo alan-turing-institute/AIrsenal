@@ -16,6 +16,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
+from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
@@ -241,6 +242,8 @@ def main():
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
+
+    set_multiprocessing_start_method(num_thread)
 
     with session_scope() as session:
         session.expire_on_commit = False

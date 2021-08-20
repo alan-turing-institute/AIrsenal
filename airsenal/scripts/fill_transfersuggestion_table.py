@@ -26,11 +26,14 @@ import warnings
 import cProfile
 
 
-from multiprocessing import Process, set_start_method
+from multiprocessing import Process
 from tqdm import tqdm, TqdmWarning
 import argparse
 
-from airsenal.framework.multiprocessing_utils import CustomQueue
+from airsenal.framework.multiprocessing_utils import (
+    CustomQueue,
+    set_multiprocessing_start_method,
+)
 from airsenal.framework.optimization_utils import (
     get_starting_squad,
     calc_free_transfers,
@@ -675,12 +678,7 @@ def main():
         )
         sys.exit(1)
 
-    # to fix change of default behaviour in multiprocessing on Python 3.8 and later
-    # on Windows and OSX. Python 3.8 and later start processess using spawn by default
-    # see
-    # https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
-
-    set_start_method("fork")
+    set_multiprocessing_start_method(num_thread)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
