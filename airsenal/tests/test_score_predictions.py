@@ -21,7 +21,11 @@ from airsenal.framework.prediction_utils import (
     get_player_scores,
     mean_group_min_count,
 )
-from airsenal.framework.player_model import ConjugatePlayerModel, PlayerModel
+from airsenal.framework.player_model import (
+    ConjugatePlayerModel,
+    PlayerModel,
+    scale_goals_by_minutes,
+)
 
 from airsenal.framework.bpl_interface import (
     get_result_dict,
@@ -214,7 +218,34 @@ def test_get_player_history_df():
                 assert fixture.gameweek < 12
 
 
-def test_conjugate_player_model():
+def test_scale_goals_by_minutes():
+    """Test scaling goal involvements by minutes played works as expected. Neither
+    goals should be reduced by fraction of minutes played."""
+    goals = np.zeros((2, 2, 3))
+    goals[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])
+    goals[1, :, :] = np.array([[0, 1, 2], [1, 0, 2]])
+    minutes = np.array([[90, 90], [45, 45]])
+    scaled_goals = scale_goals_by_minutes(goals, minutes)
+    assert (scaled_goals == np.array([[1, 2, 3], [1, 1, 1]])).all()
+
+
+def test_get_conjugate_prior():
+    pm = ConjugatePlayerModel()
+    goals = np.zeros((2, 2, 3))
+    goals[0, :, :] = np.array([[0, 0, 0], [2, 2, 5]])
+    goals[1, :, :] = np.array([[0, 1, 2], [1, 0, 2]])
+
+    minutes = np.array([[90, 90], [90, 90]])
+    scaled_goals = scale_goals_by_minutes(goals, minutes)
+    assert (pm.get_prior(scaled_goals, n_goals_prior=15) == np.array([3, 3, 9])).all()
+
+    minutes = np.array([[90, 90], [45, 45]])
+    scaled_goals = scale_goals_by_minutes(goals, minutes)
+    assert (pm.get_prior(scaled_goals, n_goals_prior=4) == np.array([1, 1, 2])).all()
+
+
+def test_fit_conjugate_player_model():
+    """Test results of fitting ConjugatePlayerModel"""
     pm = ConjugatePlayerModel()
     y = np.zeros((2, 2, 3))
     y[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])  # all y add to 4
@@ -224,6 +255,7 @@ def test_conjugate_player_model():
         "player_ids": [0, 1],
         "minutes": 90 * np.ones((2, 2)),
     }
+
     pm = pm.fit(data, n_goals_prior=0)
     assert (pm.posterior == np.array([[1, 2, 3], [3, 2, 1]])).all()
 
