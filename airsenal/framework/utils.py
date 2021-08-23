@@ -9,6 +9,7 @@ from typing import TypeVar
 import dateparser
 import re
 from pickle import loads, dumps
+import requests
 from sqlalchemy import or_, case, desc
 
 from airsenal.framework.mappings import alternative_player_names
@@ -879,10 +880,18 @@ def get_top_predicted_points(
         season {str} -- Season to query (default: {CURRENT_SEASON})
         dbsession {SQLAlchemy session} -- Database session (default: {None})
     """
+    discord_webhook = fetcher.DISCORD_WEBHOOK
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
         gameweek = NEXT_GAMEWEEK
+
+    discord_embed = {
+        "title": "AIrsenal webhook",
+        "description": "PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek),
+        "color": 0x35a800,
+        "fields": []
+    }
 
     first_gw = gameweek[0] if isinstance(gameweek, (list, tuple)) else gameweek
     print("=" * 50)
@@ -915,6 +924,23 @@ def get_top_predicted_points(
                     p[0].team(season, first_gw),
                 )
             )
+        
+        # If a valid discord webhook URL has been stored in env variables, send a webhook message
+        if re.match('^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$', discord_webhook):
+            payload = get_discord_payload(
+                            discord_embed=discord_embed,
+                            position=position,
+                            pts=pts[:n_players],
+                            season=season,
+                            first_gw=first_gw
+                        )
+            result = requests.post(discord_webhook, json=payload)
+            if 200 <= result.status_code < 300:
+                print(f"Webhook sent {result.status_code}")
+            else:
+                print(f"Not sent with {result.status_code}, response:\n{result.json()}")
+        else:
+            print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
     else:
         for position in ["GK", "DEF", "MID", "FWD"]:
@@ -943,6 +969,74 @@ def get_top_predicted_points(
                     )
                 )
             print("-" * 25)
+            # If a valid discord webhook URL has been stored in env variables, send a webhook message
+            if re.match('^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$', discord_webhook):
+                payload = get_discord_payload(
+                                discord_embed=discord_embed,
+                                position=position,
+                                pts=pts[:n_players],
+                                season=season,
+                                first_gw=first_gw
+                            )
+                result = requests.post(discord_webhook, json=payload)
+                if 200 <= result.status_code < 300:
+                    print(f"Webhook sent {result.status_code}")
+                else:
+                    print(f"Not sent with {result.status_code}, response:\n{result.json()}")
+            else:
+                print("Warning: Discord webhook url is malformed!\n", discord_webhook)
+
+def get_discord_payload(
+    discord_embed, 
+    position, 
+    pts, 
+    season, 
+    first_gw
+):
+    discord_embed['fields'].append(
+        {
+            "name": 'Position',
+            "value": str(position),
+            "inline": False
+        }
+    )
+    for i, p in enumerate(pts):
+        discord_embed['fields'].extend(
+            [
+                {
+                    "name": "Player",
+                    "value": "{}. {}".format(
+                        i + 1,
+                        p[0].name
+                    ),
+                    "inline": True
+                },
+                {
+                    "name": "Predicted points",
+                    "value": "{:.2f}pts".format(
+                        p[1],
+                    ),
+                    "inline": True
+                },
+                {
+                    "name": "Attributes",
+                    "value": "£{}m, {}, {}".format(
+                        p[0].price(season, first_gw) / 10,
+                        p[0].position(season),
+                        p[0].team(season, first_gw),
+                    ),
+                    "inline": True
+                }
+            ]
+        )
+    payload = {
+        "content": "",
+        "username": "AIrsenal",
+        "embeds": [
+            discord_embed
+        ],
+    }
+    return payload
 
 
 def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session):
