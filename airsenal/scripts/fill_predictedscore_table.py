@@ -230,7 +230,7 @@ def main():
     parser.add_argument(
         "--player_model",
         help="Player model class to use, either PlayerModel or ConjugatePlayerModel",
-        default="PlayerModel"
+        default="PlayerModel",
     )
 
     args = parser.parse_args()

@@ -218,7 +218,7 @@ def test_get_fitted_player_model():
     pm = PlayerModel()
     assert isinstance(pm, PlayerModel)
     with test_past_data_session_scope() as ts:
-        fpm = fit_player_data("FWD", "1819", 12, ts)
+        fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
 
