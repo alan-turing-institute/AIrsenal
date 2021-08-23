@@ -49,7 +49,6 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
     alpha = np.array([a0, a1, a2])
     if prior_goals is not None:
         alpha = prior_goals * (alpha / alpha.sum())
-    print("Alpha is {}".format(alpha))
     return alpha
 
 

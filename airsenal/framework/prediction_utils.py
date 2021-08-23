@@ -390,6 +390,7 @@ def calc_predicted_points_for_pos(
     season,
     gw_range,
     tag,
+    model=PlayerModel(),
     dbsession=session,
 ):
     """
@@ -398,7 +399,7 @@ def calc_predicted_points_for_pos(
     """
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = fit_player_data(pos, season, min(gw_range), dbsession)
+        df_player = fit_player_data(pos, season, min(gw_range), model, dbsession)
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
@@ -507,11 +508,10 @@ def process_player_data(
     )
 
 
-def fit_player_data(position, season, gameweek, dbsession=session):
+def fit_player_data(position, season, gameweek, model=PlayerModel(), dbsession=session):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    model = PlayerModel()
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
     fitted_model = model.fit(data)
@@ -526,10 +526,12 @@ def fit_player_data(position, season, gameweek, dbsession=session):
     return df
 
 
-def get_all_fitted_player_data(season, gameweek, dbsession=session):
+def get_all_fitted_player_data(
+    season, gameweek, model=PlayerModel(), dbsession=session
+):
     df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:
-        df_positions[pos] = fit_player_data(pos, season, gameweek, dbsession)
+        df_positions[pos] = fit_player_data(pos, season, gameweek, model, dbsession)
     return df_positions
 
 
