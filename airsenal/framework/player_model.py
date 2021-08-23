@@ -1,11 +1,54 @@
 import jax.numpy as jnp
 import jax.random as random
+import numpy as np
 import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 import pandas as pd
 
 from typing import Any, Dict, Optional
+
+
+def get_empirical_bayes_estimates(df_emp, prior_goals=None):
+    """
+    Get values to use either for Dirichlet prior alphas or for updating posterior
+    in conjugate model. Returns number of goals, assists and neither scaled by the
+    proportion of minutes & no. matches a player is involved in. If df_emp contains more
+    than one player, result is average across all players.
+
+    If prior_goals is not None, normalise the returned alpha values to sum to
+    prior_goals.
+    """
+    # for compatibility with models we zero pad data so all players have
+    # the same number of rows (matches). Remove the dummy matches:
+    df = df_emp.copy()
+    df = df[df["match_id"] != 0]
+
+    player_goals = df["goals"].sum()
+    player_assists = df["assists"].sum()
+    player_neither = df["neither"].sum()
+    player_minutes = df["minutes"].sum()
+    team_goals = df["team_goals"].sum()
+    total_minutes = 90 * len(df)
+    n_matches = df.groupby("player_name").count()["goals"].mean()
+
+    # Total no. of player goals, assists, neither:
+    # no. matches played * fraction goals scored * (1 / fraction mins played)
+    a0 = n_matches * (player_goals / team_goals) * (total_minutes / player_minutes)
+    a1 = n_matches * (player_assists / team_goals) * (total_minutes / player_minutes)
+    a2 = (
+        n_matches
+        * (
+            (player_neither / team_goals)
+            - (total_minutes - player_minutes) / total_minutes
+        )
+        * (total_minutes / player_minutes)
+    )
+    alpha = np.array([a0, a1, a2])
+    if prior_goals is not None:
+        alpha = prior_goals * (alpha / alpha.sum())
+    print("Alpha is {}".format(alpha))
+    return alpha
 
 
 class PlayerModel(object):
@@ -102,6 +145,15 @@ class PlayerModel(object):
 
 
 class ConjugatePlayerModel(object):
+    """Exact implementation of player model:
+    Prior: Dirichlet(alpha)
+    Posterior: Dirichlet(alpha + n)
+    where n is the result of get_empirical_bayes_estimates for each player (i.e. total
+    number of goal involvements for player weighted by amount of time on pitch).
+    Strength of prior controlled by sum(alpha), by default 13 which is roughly the
+    average no. of goals a team's expected to score in 10 matches. alpha values comes
+    from average goal involvements for all players in that position.
+    """
     def __init__(self):
         self.player_ids = None
         self.samples = None
@@ -117,8 +169,17 @@ class ConjugatePlayerModel(object):
         neff.columns = ["prob_score", "prob_assist", "prob_neither"]
         return prior + neff
 
-
     def fit(self, data):
+
+        dict(
+            player_ids=player_ids,
+            nplayer=nplayer,
+            nmatch=nmatch,
+            minutes=minutes.astype("int64"),
+            y=y.astype("int64"),
+            alpha=alpha,
+        )
+        alpha = data["alpha"]
         return self
 
     def get_probs(self):
@@ -148,4 +209,3 @@ class ConjugatePlayerModel(object):
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
         prob_neither = float(self.samples["probs"][:, index, 2].mean())
         return (prob_score, prob_assist, prob_neither)
-

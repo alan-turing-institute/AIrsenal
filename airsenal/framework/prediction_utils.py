@@ -12,7 +12,7 @@ from scipy.stats import multinomial
 
 from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
 
-from airsenal.framework.player_model import PlayerModel
+from airsenal.framework.player_model import PlayerModel, get_empirical_bayes_estimates
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -458,33 +458,6 @@ def fill_ep(csv_filename, dbsession=session):
         dbsession.add(pp)
     dbsession.commit()
     outfile.close()
-
-
-def get_empirical_bayes_estimates(df_emp):
-    """
-    Get starting values for the model based on averaging goals/assists/neither
-    over all players in that position
-    """
-    # still not sure about this...
-    df = df_emp.copy()
-    df = df[df["match_id"] != 0]
-    goals = df["goals"].sum()
-    assists = df["assists"].sum()
-    neither = df["neither"].sum()
-    minutes = df["minutes"].sum()
-    team = df["team_goals"].sum()
-    total_minutes = 90 * len(df)
-    neff = df.groupby("player_name").count()["goals"].mean()
-    a0 = neff * (goals / team) * (total_minutes / minutes)
-    a1 = neff * (assists / team) * (total_minutes / minutes)
-    a2 = (
-        neff
-        * ((neither / team) - (total_minutes - minutes) / total_minutes)
-        * (total_minutes / minutes)
-    )
-    alpha = np.array([a0, a1, a2])
-    print("Alpha is {}".format(alpha))
-    return alpha
 
 
 def process_player_data(
