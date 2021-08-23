@@ -26,7 +26,7 @@ def set_multiprocessing_start_method(num_thread=2):
     num_thread : int, optional
         Only changem ultiprocessing start method if num_thread > 1, by default 2
     """
-    if num_thread > 1 and os.name == "posix":
+    if num_thread is not None and num_thread > 1 and os.name == "posix":
         multiprocessing.set_start_method("fork")
 
 
