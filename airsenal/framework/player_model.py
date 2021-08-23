@@ -1,3 +1,6 @@
+from __future__ import annotations
+from abc import ABC, abstractmethod
+
 import jax.numpy as jnp
 import jax.random as random
 import numpy as np
@@ -85,7 +88,41 @@ def scale_goals_by_minutes(goals, minutes):
     return scaled_goals
 
 
-class PlayerModel(object):
+class BasePlayerModel(ABC):
+    """
+    Base class for player models
+    """
+
+    @abstractmethod
+    def fit(self, data: Dict[str, Any], **kwargs) -> BasePlayerModel:
+        """Fit model. Data must have the following keys (at minimum):
+        - "y": np.ndarray of shape (n_players, n_matches, 3) with player goal
+        involvements in each match. Last axis is (no. goals, no. assists, no. neither)
+        - "player_ids": np.ndarray of shape (n_players,) with player ids
+        - "minutes": np.ndarray of shape (n_players, m_matches) - no. minutes played by
+        each player in each match
+        """
+        ...
+
+    @abstractmethod
+    def get_probs(self) -> Dict[str, np.ndarray]:
+        """Get probability of all players scoring, assisting or doing neither for a
+        goal. Returns dict with followinig keys:
+        - "player_id": np.ndarray of shape (n_players,) with player ids
+        - "prob_score": np.ndarray of shape (n_players,) with goal probabilities
+        - "prob_assist": np.ndarray of shape (n_players,) with assist probabilities
+        - "prob_neither": np.ndarray of shape (n_players,) with neither probabilities
+        """
+        ...
+
+    @abstractmethod
+    def get_probs_for_player(self, player_id: int) -> np.ndarray:
+        """Get probability that a player scores, assists or does neither for a goal
+        their team scores. Returns np.ndarray of shape (3, )."""
+        ...
+
+
+class PlayerModel(BasePlayerModel):
     """
     numpyro implementation of the AIrsenal player model.
     """
@@ -178,14 +215,14 @@ class PlayerModel(object):
         return (prob_score, prob_assist, prob_neither)
 
 
-class ConjugatePlayerModel(object):
+class ConjugatePlayerModel(BasePlayerModel):
     """Exact implementation of player model:
-    Prior: Dirichlet(alpha)
-    Posterior: Dirichlet(alpha + n)
+    - Prior: Dirichlet(alpha)
+    - Posterior: Dirichlet(alpha + n)
     where n is the result of scale_goals_by_minutes for each player (i.e. total
     number of goal involvements for player weighted by amount of time on pitch).
     Strength of prior controlled by sum(alpha), by default 13 which is roughly the
-    average no. of goals a team's expected to score in 10 matches. alpha values comes
+    average no. of goals a team's expected to score in 10 matches. alpha values come
     from average goal involvements for all players in that position.
     """
 
@@ -195,7 +232,9 @@ class ConjugatePlayerModel(object):
         self.posterior = None
         self.mean_probabilities = None
 
-    def fit(self, data, n_goals_prior=13):
+    def fit(
+        self, data: Dict[str, Any], n_goals_prior: int = 13
+    ) -> ConjugatePlayerModel:
         goals = data["y"]
         minutes = data["minutes"]
         self.player_ids = data["player_ids"]
@@ -209,7 +248,7 @@ class ConjugatePlayerModel(object):
         return self
 
     @staticmethod
-    def get_prior(scaled_goals, n_goals_prior):
+    def get_prior(scaled_goals: np.ndarray, n_goals_prior: int) -> np.ndarray:
         """Compute alpha parameters for Dirichlet prior. Calculated by summing
         up all player goal involvements, then normalise to sum to n_goals_prior.
         """
@@ -217,13 +256,13 @@ class ConjugatePlayerModel(object):
         return n_goals_prior * alpha / alpha.sum()
 
     @staticmethod
-    def get_posterior(prior_alpha, scaled_goals):
+    def get_posterior(prior_alpha: np.ndarray, scaled_goals: np.ndarray) -> np.ndarray:
         """Compute parameters of Dirichlet posterior, which is the sum of the prior
         and scaled goal involvements.
         """
         return prior_alpha + scaled_goals
 
-    def get_probs(self):
+    def get_probs(self) -> Dict[str, np.ndarray]:
         return {
             "player_id": self.player_ids,
             "prob_score": self.mean_probabilities[:, 0],
@@ -231,7 +270,7 @@ class ConjugatePlayerModel(object):
             "prob_neither": self.mean_probabilities[:, 2],
         }
 
-    def get_probs_for_player(self, player_id):
+    def get_probs_for_player(self, player_id: int) -> np.ndarray:
         try:
             index = list(self.player_ids).index(player_id)
         except (ValueError):
