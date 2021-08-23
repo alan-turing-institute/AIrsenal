@@ -32,7 +32,8 @@ class PlayerModel(object):
             "prob_assist", dprobs[:, 1, None] * (minutes / 90.0)
         )
         prob_neither = numpyro.deterministic(
-            "prob_neither", dprobs[:, 2, None] * (minutes / 90.0) + (90.0 - minutes)
+            "prob_neither",
+            dprobs[:, 2, None] * (minutes / 90.0) + (90.0 - minutes) / 90.0,
         )
         theta_mins = dist.Multinomial(
             probs=jnp.moveaxis(jnp.array([prob_score, prob_assist, prob_neither]), 0, 2)
