@@ -1,11 +1,9 @@
-from airsenal.framework.utils import NEXT_GAMEWEEK
 import jax.numpy as jnp
 import jax.random as random
 import numpy as np
 import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
-import pandas as pd
 
 from typing import Any, Dict, Optional
 
