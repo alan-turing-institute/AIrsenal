@@ -1,3 +1,4 @@
+from airsenal.framework.utils import NEXT_GAMEWEEK
 import jax.numpy as jnp
 import jax.random as random
 import numpy as np
@@ -11,8 +12,8 @@ from typing import Any, Dict, Optional
 
 def get_empirical_bayes_estimates(df_emp, prior_goals=None):
     """
-    Get values to use either for Dirichlet prior alphas or for updating posterior
-    in conjugate model. Returns number of goals, assists and neither scaled by the
+    Get values to use either for Dirichlet prior alphas in the original Stan and numpyro
+    player models. Returns number of goals, assists and neither scaled by the
     proportion of minutes & no. matches a player is involved in. If df_emp contains more
     than one player, result is average across all players.
 
@@ -49,6 +50,41 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
         alpha = prior_goals * (alpha / alpha.sum())
     print("Alpha is {}".format(alpha))
     return alpha
+
+
+def scale_goals_by_minutes(goals, minutes):
+    """
+    Scaale player goal involvements by the proportion of minutes they played
+    (specifically: reduce the number of "neither" goals where the player is said
+    to have had no involvement.
+    goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
+    mo. assists and no. goals not involved in
+    minutes: np.array with shape (n_players, m_matches)
+    """
+    select_matches = (goals.sum(axis=2) > 0) & (minutes > 0)
+    n_players, _, _ = goals.shape
+    scaled_goals = np.zeros((n_players, 3))
+    for p in range(n_players):
+        if select_matches[p, :].sum() == 0:
+            # player not involved in any matches with goals
+            scaled_goals[p, :] = [0, 0, 0]
+            continue
+
+        team_goals = goals[p, select_matches[p, :], :].sum()
+        team_mins = 90 * select_matches[p, :].sum()
+        player_mins = minutes[p, select_matches[p, :]].sum()
+        player_goals = goals[p, select_matches[p, :], 0].sum()
+        player_assists = goals[p, select_matches[p, :], 1].sum()
+        player_neither = (
+            team_goals * (player_mins / team_mins) - player_goals - player_assists
+        )
+        scaled_goals[p, :] = [player_goals, player_assists, player_neither]
+
+    # players with high goal involvements in few matches may end up with a scaled
+    # neither count less than 0 - set these to zero
+    scaled_goals[scaled_goals < 0] = 0
+
+    return scaled_goals
 
 
 class PlayerModel(object):
@@ -148,64 +184,58 @@ class ConjugatePlayerModel(object):
     """Exact implementation of player model:
     Prior: Dirichlet(alpha)
     Posterior: Dirichlet(alpha + n)
-    where n is the result of get_empirical_bayes_estimates for each player (i.e. total
+    where n is the result of scale_goals_by_minutes for each player (i.e. total
     number of goal involvements for player weighted by amount of time on pitch).
     Strength of prior controlled by sum(alpha), by default 13 which is roughly the
     average no. of goals a team's expected to score in 10 matches. alpha values comes
     from average goal involvements for all players in that position.
     """
+
     def __init__(self):
         self.player_ids = None
-        self.samples = None
+        self.prior = None
+        self.posterior = None
+        self.mean_probabilities = None
 
-    @staticmethod
-    def _model(df, prior):
-        neff = {
-            idx: get_empirical_bayes_estimates(data)
-            for idx, data in df.groupby("player_id")
-        }
-        neff = pd.DataFrame(neff).T
-        neff = neff.fillna(0)
-        neff.columns = ["prob_score", "prob_assist", "prob_neither"]
-        return prior + neff
+    def fit(self, data, n_goals_prior=13):
+        goals = data["y"]
+        minutes = data["minutes"]
+        self.player_ids = data["player_ids"]
 
-    def fit(self, data):
+        scaled_goals = scale_goals_by_minutes(goals, minutes)
+        self.prior = self.get_prior(scaled_goals, n_goals_prior=n_goals_prior)
+        posterior = self.get_posterior(self.prior, scaled_goals)
+        self.posterior = posterior
+        self.mean_probabilities = self.posterior / self.posterior.sum(axis=1)[:, None]
 
-        dict(
-            player_ids=player_ids,
-            nplayer=nplayer,
-            nmatch=nmatch,
-            minutes=minutes.astype("int64"),
-            y=y.astype("int64"),
-            alpha=alpha,
-        )
-        alpha = data["alpha"]
         return self
 
+    @staticmethod
+    def get_prior(scaled_goals, n_goals_prior):
+        """Compute alpha parameters for Dirichlet prior. Calculated by summing
+        up all player goal involvements, then normalise to sum to n_goals_prior.
+        """
+        alpha = scaled_goals.sum(axis=0)
+        return n_goals_prior * alpha / alpha.sum()
+
+    @staticmethod
+    def get_posterior(prior_alpha, scaled_goals):
+        """Compute parameters of Dirichlet posterior, which is the sum of the prior
+        and scaled goal involvements.
+        """
+        return prior_alpha + scaled_goals
+
     def get_probs(self):
-        prob_dict = {
-            "player_id": [],
-            "prob_score": [],
-            "prob_assist": [],
-            "prob_neither": [],
+        return {
+            "player_id": self.player_ids,
+            "prob_score": self.mean_probabilities[:, 0],
+            "prob_assist": self.mean_probabilities[:, 1],
+            "prob_neither": self.mean_probabilities[:, 2],
         }
-        for i, pid in enumerate(self.player_ids):
-            prob_dict["player_id"].append(pid)
-            prob_dict["prob_score"].append(float(self.samples["probs"][:, i, 0].mean()))
-            prob_dict["prob_assist"].append(
-                float(self.samples["probs"][:, i, 1].mean())
-            )
-            prob_dict["prob_neither"].append(
-                float(self.samples["probs"][:, i, 2].mean())
-            )
-        return prob_dict
 
     def get_probs_for_player(self, player_id):
         try:
             index = list(self.player_ids).index(player_id)
         except (ValueError):
             raise RuntimeError(f"Unknown player_id {player_id}")
-        prob_score = float(self.samples["probs"][:, index, 0].mean())
-        prob_assist = float(self.samples["probs"][:, index, 1].mean())
-        prob_neither = float(self.samples["probs"][:, index, 2].mean())
-        return (prob_score, prob_assist, prob_neither)
+        return self.mean_probabilities[index, :]
