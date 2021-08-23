@@ -1,7 +1,7 @@
 """
 test the score-calculating functions
 """
-
+import numpy as np
 import pandas as pd
 
 import bpl
@@ -21,7 +21,7 @@ from airsenal.framework.prediction_utils import (
     get_player_scores,
     mean_group_min_count,
 )
-from airsenal.framework.player_model import PlayerModel
+from airsenal.framework.player_model import ConjugatePlayerModel, PlayerModel
 
 from airsenal.framework.bpl_interface import (
     get_result_dict,
@@ -214,13 +214,35 @@ def test_get_player_history_df():
                 assert fixture.gameweek < 12
 
 
+def test_conjugate_player_model():
+    pm = ConjugatePlayerModel()
+    y = np.zeros((2, 2, 3))
+    y[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])  # all y add to 4
+    y[1, :, :] = np.array([[1, 2, 1], [2, 0, 0]])
+    data = {
+        "y": y,
+        "player_ids": [0, 1],
+        "minutes": 90 * np.ones((2, 2)),
+    }
+    pm = pm.fit(data, n_goals_prior=0)
+    assert (pm.posterior == np.array([[1, 2, 3], [3, 2, 1]])).all()
+
+    pm = pm.fit(data, n_goals_prior=3)
+    assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
+
+
 def test_get_fitted_player_model():
     pm = PlayerModel()
     assert isinstance(pm, PlayerModel)
+    cpm = ConjugatePlayerModel()
+    assert isinstance(cpm, ConjugatePlayerModel)
     with test_past_data_session_scope() as ts:
         fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
+        fcpm = fit_player_data("FWD", "1819", 12, model=cpm, dbsession=ts)
+        assert isinstance(fcpm, pd.DataFrame)
+        assert len(fcpm) > 0
 
 
 def test_get_result_dict():
