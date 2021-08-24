@@ -13,7 +13,7 @@ from scipy.stats import multinomial
 from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
 
 from airsenal.framework.player_model import (
-    NumpyroPlayerModel,
+    ConjugatePlayerModel,
     get_empirical_bayes_estimates,
 )
 
@@ -394,7 +394,7 @@ def calc_predicted_points_for_pos(
     season,
     gw_range,
     tag,
-    model=NumpyroPlayerModel(),
+    model=ConjugatePlayerModel(),
     dbsession=session,
 ):
     """
@@ -513,7 +513,7 @@ def process_player_data(
 
 
 def fit_player_data(
-    position, season, gameweek, model=NumpyroPlayerModel(), dbsession=session
+    position, season, gameweek, model=ConjugatePlayerModel(), dbsession=session
 ):
     """
     fit the data for a particular position (FWD, MID, DEF)
@@ -534,7 +534,7 @@ def fit_player_data(
 
 
 def get_all_fitted_player_data(
-    season, gameweek, model=NumpyroPlayerModel(), dbsession=session
+    season, gameweek, model=ConjugatePlayerModel(), dbsession=session
 ):
     df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:

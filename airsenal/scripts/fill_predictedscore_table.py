@@ -83,7 +83,7 @@ def calc_all_predicted_points(
     include_saves=True,
     num_thread=4,
     tag="",
-    player_model=NumpyroPlayerModel(),
+    player_model=ConjugatePlayerModel(),
     dbsession=None,
 ):
     """
@@ -176,7 +176,7 @@ def make_predictedscore_table(
     include_cards=True,
     include_saves=True,
     tag_prefix=None,
-    player_model=NumpyroPlayerModel(),
+    player_model=ConjugatePlayerModel(),
     dbsession=None,
 ):
     tag = tag_prefix or ""
