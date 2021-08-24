@@ -16,6 +16,7 @@ from airsenal.framework.player_model import PlayerModel, get_empirical_bayes_est
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
+    fastcopy,
     get_fixtures_for_player,
     get_recent_minutes_for_player,
     get_max_matches_per_player,
@@ -514,6 +515,7 @@ def fit_player_data(position, season, gameweek, model=PlayerModel(), dbsession=s
     """
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
+    model = fastcopy(model)
     fitted_model = model.fit(data)
     df = pd.DataFrame(fitted_model.get_probs())
 
