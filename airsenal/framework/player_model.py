@@ -121,7 +121,7 @@ class BasePlayerModel(ABC):
         ...
 
 
-class PlayerModel(BasePlayerModel):
+class NumpyroPlayerModel(BasePlayerModel):
     """
     numpyro implementation of the AIrsenal player model.
     """

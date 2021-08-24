@@ -33,7 +33,7 @@ from airsenal.framework.prediction_utils import (
     fit_card_points,
     MAX_GOALS,
 )
-from airsenal.framework.player_model import ConjugatePlayerModel, PlayerModel
+from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.schema import session_scope
 
 
@@ -83,7 +83,7 @@ def calc_all_predicted_points(
     include_saves=True,
     num_thread=4,
     tag="",
-    player_model=PlayerModel(),
+    player_model=NumpyroPlayerModel(),
     dbsession=None,
 ):
     """
@@ -176,7 +176,7 @@ def make_predictedscore_table(
     include_cards=True,
     include_saves=True,
     tag_prefix=None,
-    player_model=PlayerModel(),
+    player_model=NumpyroPlayerModel(),
     dbsession=None,
 ):
     tag = tag_prefix or ""
@@ -228,9 +228,9 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "--player_model",
-        help="Player model class to use, either PlayerModel or ConjugatePlayerModel",
-        default="PlayerModel",
+        "--sampling",
+        help="If set use fit the model using sampling with numpyro",
+        action="store_true",
     )
 
     args = parser.parse_args()
@@ -252,14 +252,10 @@ def main():
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
-    if args.player_model == "PlayerModel":
-        player_model = PlayerModel()
-    elif args.player_model == "ConjugatePlayerModel":
-        player_model = ConjugatePlayerModel()
+    if args.sampling:
+        player_model = NumpyroPlayerModel()
     else:
-        raise RuntimeError(
-            "player_model must be 'PlayerModel' or 'ConjugatePlayerModel'"
-        )
+        player_model = ConjugatePlayerModel()
 
     set_multiprocessing_start_method(num_thread)
 

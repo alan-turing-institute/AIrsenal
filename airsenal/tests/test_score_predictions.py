@@ -23,7 +23,7 @@ from airsenal.framework.prediction_utils import (
 )
 from airsenal.framework.player_model import (
     ConjugatePlayerModel,
-    PlayerModel,
+    NumpyroPlayerModel,
     scale_goals_by_minutes,
 )
 
@@ -264,8 +264,8 @@ def test_fit_conjugate_player_model():
 
 
 def test_get_fitted_player_model():
-    pm = PlayerModel()
-    assert isinstance(pm, PlayerModel)
+    pm = NumpyroPlayerModel()
+    assert isinstance(pm, NumpyroPlayerModel)
     cpm = ConjugatePlayerModel()
     assert isinstance(cpm, ConjugatePlayerModel)
     with test_past_data_session_scope() as ts:
