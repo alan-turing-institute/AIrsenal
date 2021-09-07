@@ -888,7 +888,8 @@ def get_top_predicted_points(
 
     discord_embed = {
         "title": "AIrsenal webhook",
-        "description": "PREDICTED TOP {} PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek),
+        "description": "PREDICTED TOP {} "
+        "PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek),
         "color": 0x35a800,
         "fields": []
     }
@@ -924,16 +925,21 @@ def get_top_predicted_points(
                     p[0].team(season, first_gw),
                 )
             )
-        
-        # If a valid discord webhook URL has been stored in env variables, send a webhook message
+
+        # If a valid discord webhook URL has been stored
+        # in env variables, send a webhook message
         if discord_webhook != "MISSING_ID":
-        # Use regex to check the discord webhook url is correctly formatted
-            if re.match('^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$', discord_webhook):
+            # Use regex to check the discord webhook url is correctly formatted
+            if re.match(
+                '^.*(discord|discordapp)\.com\/api'
+                '\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+                discord_webhook
+            ):
                 # Maximum fields on a discord embed is 25, so limit this to n_players=8
                 payload = predicted_points_discord_payload(
                                 discord_embed=discord_embed,
                                 position=position,
-                                pts=pts[:min(n_players,8)],
+                                pts=pts[:min(n_players, 8)],
                                 season=season,
                                 first_gw=first_gw
                             )
@@ -941,9 +947,9 @@ def get_top_predicted_points(
                 if 200 <= result.status_code < 300:
                     print(f"Discord webhook sent, status code: {result.status_code}")
                 else:
-                    print(f"Not sent with {result.status_code}, response:\n{result.json()}")
+                    print(f"Not sent with {result.status_code},"
+                          "response:\n{result.json()}")
             else:
-                #TODO make this so it won't warn if the variable isn't set
                 print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
     else:
@@ -975,34 +981,45 @@ def get_top_predicted_points(
             print("-" * 25)
 
             discord_embed['fields'] = []
-            # If a valid discord webhook URL has been stored in env variables, send a webhook message
+            # If a valid discord webhook URL has been stored
+            # in env variables, send a webhook message
             if discord_webhook != "MISSING_ID":
                 # Use regex to check the discord webhook url is correctly formatted
-                if re.match('^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$', discord_webhook):
-                # create a formatted team lineup message for the discord webhook
-                    # Maximum fields on a discord embed is 25, so limit this to n_players=8
+                if re.match(
+                    '^.*(discord|discordapp)\.com\/api'
+                    '\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+                    discord_webhook
+                ):
+                    # create a formatted team lineup message for the discord webhook
+                    # Maximum fields on a discord embed is 25
+                    # limit this to n_players=8
                     payload = predicted_points_discord_payload(
                                     discord_embed=discord_embed,
                                     position=position,
-                                    pts=pts[:min(n_players,8)],
+                                    pts=pts[:min(n_players, 8)],
                                     season=season,
                                     first_gw=first_gw
                                 )
                     result = requests.post(discord_webhook, json=payload)
                     if 200 <= result.status_code < 300:
-                        print(f"Discord webhook sent, status code: {result.status_code}")
+                        print(
+                            f"Discord webhook sent, status code: {result.status_code}"
+                            )
                     else:
-                        print(f"Not sent with {result.status_code}, response:\n{result.json()}")
+                        print(
+                            f"Not sent with {result.status_code}, "
+                            f"response:\n{result.json()}"
+                            )
                 else:
-                    #TODO make this so it won't warn if the variable isn't set
-                    print("Warning: Discord webhook url is malformed!\n", discord_webhook)
+                    print("Warning: Discord webhook url is malformed!\n",
+                          discord_webhook)
 
 
 def predicted_points_discord_payload(
-    discord_embed, 
-    position, 
-    pts, 
-    season, 
+    discord_embed,
+    position,
+    pts,
+    season,
     first_gw
 ):
     """

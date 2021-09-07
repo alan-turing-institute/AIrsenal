@@ -346,8 +346,8 @@ def discord_payload(strat, lineup):
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     discord_embed = {
         "title": "AIrsenal webhook",
-        "description": "Optimum strategy for gameweek(S) "\
-        "{}:".format(','.join(str(x) for x in gameweeks_as_int)),
+        "description": "Optimum strategy for gameweek(S)"
+        " {}:".format(','.join(str(x) for x in gameweeks_as_int)),
         "color": 0x35a800,
         "fields": []
     }
@@ -555,11 +555,15 @@ def run_optimization(
     print_strat(best_strategy)
     t = print_team_for_next_gw(best_strategy, fpl_team_id)
 
-    # If a valid discord webhook URL has been stored in env variables, send a webhook message
+    # If a valid discord webhook URL has been stored
+    # in env variables, send a webhook message
     if discord_webhook != "MISSING_ID":
         # Use regex to check the discord webhook url is correctly formatted
-        if re.match('^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$', discord_webhook):
-             # create a formatted team lineup message for the discord webhook
+        if re.match(
+            '^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+            discord_webhook
+        ):
+            # create a formatted team lineup message for the discord webhook
             lineup_strings = [
                 "__Strategy for Team ID: **{}**__".format(fpl_team_id),
                 "Baseline score: *{}*".format(int(baseline_score)),
@@ -569,13 +573,13 @@ def run_optimization(
             for position in ["GK", "DEF", "MID", "FWD"]:
                 lineup_strings.append("== **{}** ==\n```".format(position))
                 for p in t.players:
-                        if p.position == position and p.is_starting:
-                            player_line = "{} ({})".format(p.name, p.team)
-                            if p.is_captain:
-                                player_line += "(C)"
-                            elif p.is_vice_captain:
-                                player_line += "(VC)"
-                            lineup_strings.append(player_line)
+                    if p.position == position and p.is_starting:
+                        player_line = "{} ({})".format(p.name, p.team)
+                        if p.is_captain:
+                            player_line += "(C)"
+                        elif p.is_vice_captain:
+                            player_line += "(VC)"
+                        lineup_strings.append(player_line)
                 lineup_strings.append("```\n")
             lineup_strings.append("=== **subs** ===")
             lineup_strings.append("```")
