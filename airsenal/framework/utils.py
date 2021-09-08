@@ -7,7 +7,7 @@ from operator import itemgetter
 from datetime import datetime, timezone, date
 from typing import TypeVar
 import dateparser
-import re
+import regex as re
 from pickle import loads, dumps
 import requests
 from sqlalchemy import or_, case, desc
@@ -931,8 +931,8 @@ def get_top_predicted_points(
         if discord_webhook != "MISSING_ID":
             # Use regex to check the discord webhook url is correctly formatted
             if re.match(
-                '^.*(discord|discordapp)\.com\/api'
-                '\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+                r'^.*(discord|discordapp)\.com\/api'
+                r'\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
                 discord_webhook
             ):
                 # Maximum fields on a discord embed is 25, so limit this to n_players=8
@@ -986,8 +986,8 @@ def get_top_predicted_points(
             if discord_webhook != "MISSING_ID":
                 # Use regex to check the discord webhook url is correctly formatted
                 if re.match(
-                    '^.*(discord|discordapp)\.com\/api'
-                    '\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+                    r'^.*(discord|discordapp)\.com\/api'
+                    r'\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
                     discord_webhook
                 ):
                     # create a formatted team lineup message for the discord webhook

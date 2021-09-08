@@ -18,7 +18,7 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 
 import os
-import re
+import regex as re
 import shutil
 import time
 import json
@@ -566,7 +566,7 @@ def run_optimization(
     if discord_webhook != "MISSING_ID":
         # Use regex to check the discord webhook url is correctly formatted
         if re.match(
-            '^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
+            r'^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
             discord_webhook
         ):
             # create a formatted team lineup message for the discord webhook
