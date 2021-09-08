@@ -359,15 +359,21 @@ def discord_payload(strat, lineup):
                 "inline": False
             }
         )
-        for i in range(len(strat["players_in"][str(gw)])):
-            pin = get_player_name(strat["players_in"][str(gw)][i])
-            pout = get_player_name(strat["players_out"][str(gw)][i])
-            discord_embed['fields'].append(
+        pin = [get_player_name(p) for p in strat["players_in"][str(gw)]]
+        pout = [get_player_name(p) for p in strat["players_out"][str(gw)]]
+        discord_embed['fields'].extend(
+                [
                     {
-                        "name": "GW{} transfer {}:".format(gw, i),
-                        "value": "out: {}\nin:{}".format(pin, pout),
+                        "name": "GW{} transfers out:".format(gw),
+                        "value": "{}".format('\n'.join(pout)),
+                        "inline": True
+                    },
+                    {
+                        "name": "GW{} transfers in:".format(gw),
+                        "value": "{}".format('\n'.join(pin)),
                         "inline": True
                     }
+                ]
             )
     payload = {
         "content": '\n'.join(lineup),
@@ -581,7 +587,7 @@ def run_optimization(
                             player_line += "(VC)"
                         lineup_strings.append(player_line)
                 lineup_strings.append("```\n")
-            lineup_strings.append("=== **subs** ===")
+            lineup_strings.append("__subs__")
             lineup_strings.append("```")
             subs = [p for p in t.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
