@@ -890,8 +890,8 @@ def get_top_predicted_points(
         "title": "AIrsenal webhook",
         "description": "PREDICTED TOP {} "
         "PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek),
-        "color": 0x35a800,
-        "fields": []
+        "color": 0x35A800,
+        "fields": [],
     }
 
     first_gw = gameweek[0] if isinstance(gameweek, (list, tuple)) else gameweek
@@ -931,24 +931,26 @@ def get_top_predicted_points(
         if discord_webhook != "MISSING_ID":
             # Use regex to check the discord webhook url is correctly formatted
             if re.match(
-                r'^.*(discord|discordapp)\.com\/api'
-                r'\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
-                discord_webhook
+                r"^.*(discord|discordapp)\.com\/api"
+                r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
+                discord_webhook,
             ):
                 # Maximum fields on a discord embed is 25, so limit this to n_players=8
                 payload = predicted_points_discord_payload(
-                                discord_embed=discord_embed,
-                                position=position,
-                                pts=pts[:min(n_players, 8)],
-                                season=season,
-                                first_gw=first_gw
-                            )
+                    discord_embed=discord_embed,
+                    position=position,
+                    pts=pts[: min(n_players, 8)],
+                    season=season,
+                    first_gw=first_gw,
+                )
                 result = requests.post(discord_webhook, json=payload)
                 if 200 <= result.status_code < 300:
                     print(f"Discord webhook sent, status code: {result.status_code}")
                 else:
-                    print(f"Not sent with {result.status_code},"
-                          "response:\n{result.json()}")
+                    print(
+                        f"Not sent with {result.status_code},"
+                        "response:\n{result.json()}"
+                    )
             else:
                 print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
@@ -980,75 +982,63 @@ def get_top_predicted_points(
                 )
             print("-" * 25)
 
-            discord_embed['fields'] = []
+            discord_embed["fields"] = []
             # If a valid discord webhook URL has been stored
             # in env variables, send a webhook message
             if discord_webhook != "MISSING_ID":
                 # Use regex to check the discord webhook url is correctly formatted
                 if re.match(
-                    r'^.*(discord|discordapp)\.com\/api'
-                    r'\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
-                    discord_webhook
+                    r"^.*(discord|discordapp)\.com\/api"
+                    r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
+                    discord_webhook,
                 ):
                     # create a formatted team lineup message for the discord webhook
                     # Maximum fields on a discord embed is 25
                     # limit this to n_players=8
                     payload = predicted_points_discord_payload(
-                                    discord_embed=discord_embed,
-                                    position=position,
-                                    pts=pts[:min(n_players, 8)],
-                                    season=season,
-                                    first_gw=first_gw
-                                )
+                        discord_embed=discord_embed,
+                        position=position,
+                        pts=pts[: min(n_players, 8)],
+                        season=season,
+                        first_gw=first_gw,
+                    )
                     result = requests.post(discord_webhook, json=payload)
                     if 200 <= result.status_code < 300:
                         print(
                             f"Discord webhook sent, status code: {result.status_code}"
-                            )
+                        )
                     else:
                         print(
                             f"Not sent with {result.status_code}, "
                             f"response:\n{result.json()}"
-                            )
+                        )
                 else:
-                    print("Warning: Discord webhook url is malformed!\n",
-                          discord_webhook)
+                    print(
+                        "Warning: Discord webhook url is malformed!\n", discord_webhook
+                    )
 
 
-def predicted_points_discord_payload(
-    discord_embed,
-    position,
-    pts,
-    season,
-    first_gw
-):
+def predicted_points_discord_payload(discord_embed, position, pts, season, first_gw):
     """
     json formated discord webhook contentent.
     """
-    discord_embed['fields'].append(
-        {
-            "name": 'Position',
-            "value": str(position),
-            "inline": False
-        }
+    discord_embed["fields"].append(
+        {"name": "Position", "value": str(position), "inline": False}
     )
     for i, p in enumerate(pts):
-        discord_embed['fields'].extend(
+        discord_embed["fields"].extend(
             [
                 {
                     "name": "Player",
-                    "value": "{}. {}".format(
-                        i + 1,
-                        p[0].name
-                    ),
-                    "inline": True
+                    "value": "{}. {}".format(i + 1, p[0].name),
+                    "inline": True,
                 },
                 {
                     "name": "Predicted points",
                     "value": "{:.2f}pts".format(
                         p[1],
                     ),
-                    "inline": True
+                    "inline": True,
                 },
                 {
                     "name": "Attributes",
@@ -1057,16 +1047,14 @@ def predicted_points_discord_payload(
                         p[0].position(season),
                         p[0].team(season, first_gw),
                     ),
-                    "inline": True
-                }
+                    "inline": True,
+                },
             ]
         )
     payload = {
         "content": "",
         "username": "AIrsenal",
-        "embeds": [
-            discord_embed
-        ],
+        "embeds": [discord_embed],
     }
     return payload
 

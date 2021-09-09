@@ -33,8 +33,11 @@ class FPLDataFetcher(object):
         self.fpl_team_data = {}  # players in squad, by gameweek
         self.fixture_data = None
         for ID in [
-            "FPL_LEAGUE_ID", "FPL_TEAM_ID", "FPL_LOGIN",
-            "FPL_PASSWORD", "DISCORD_WEBHOOK"
+            "FPL_LEAGUE_ID",
+            "FPL_TEAM_ID",
+            "FPL_LOGIN",
+            "FPL_PASSWORD",
+            "DISCORD_WEBHOOK",
         ]:
             if ID in os.environ.keys():
                 self.__setattr__(ID, os.environ[ID])

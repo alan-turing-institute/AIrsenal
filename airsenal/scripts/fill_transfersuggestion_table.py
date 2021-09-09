@@ -347,40 +347,38 @@ def discord_payload(strat, lineup):
     discord_embed = {
         "title": "AIrsenal webhook",
         "description": "Optimum strategy for gameweek(S)"
-        " {}:".format(','.join(str(x) for x in gameweeks_as_int)),
-        "color": 0x35a800,
-        "fields": []
+        " {}:".format(",".join(str(x) for x in gameweeks_as_int)),
+        "color": 0x35A800,
+        "fields": [],
     }
     for gw in gameweeks_as_int:
-        discord_embed['fields'].append(
+        discord_embed["fields"].append(
             {
                 "name": "GW{} chips:".format(gw),
                 "value": "Chips played:  {}\n".format(strat["chips_played"][str(gw)]),
-                "inline": False
+                "inline": False,
             }
         )
         pin = [get_player_name(p) for p in strat["players_in"][str(gw)]]
         pout = [get_player_name(p) for p in strat["players_out"][str(gw)]]
-        discord_embed['fields'].extend(
-                [
-                    {
-                        "name": "GW{} transfers out:".format(gw),
-                        "value": "{}".format('\n'.join(pout)),
-                        "inline": True
-                    },
-                    {
-                        "name": "GW{} transfers in:".format(gw),
-                        "value": "{}".format('\n'.join(pin)),
-                        "inline": True
-                    }
-                ]
-            )
+        discord_embed["fields"].extend(
+            [
+                {
+                    "name": "GW{} transfers out:".format(gw),
+                    "value": "{}".format("\n".join(pout)),
+                    "inline": True,
+                },
+                {
+                    "name": "GW{} transfers in:".format(gw),
+                    "value": "{}".format("\n".join(pin)),
+                    "inline": True,
+                },
+            ]
+        )
     payload = {
-        "content": '\n'.join(lineup),
+        "content": "\n".join(lineup),
         "username": "AIrsenal",
-        "embeds": [
-            discord_embed
-        ],
+        "embeds": [discord_embed],
     }
     return payload
 
@@ -566,8 +564,8 @@ def run_optimization(
     if discord_webhook != "MISSING_ID":
         # Use regex to check the discord webhook url is correctly formatted
         if re.match(
-            r'^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$',
-            discord_webhook
+            r"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
+            discord_webhook,
         ):
             # create a formatted team lineup message for the discord webhook
             lineup_strings = [
