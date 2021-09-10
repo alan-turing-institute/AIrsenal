@@ -33,7 +33,7 @@ from airsenal.framework.prediction_utils import (
     fit_card_points,
     MAX_GOALS,
 )
-
+from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.schema import session_scope
 
 
@@ -83,6 +83,7 @@ def calc_all_predicted_points(
     include_saves=True,
     num_thread=4,
     tag="",
+    player_model=ConjugatePlayerModel(),
     dbsession=None,
 ):
     """
@@ -97,7 +98,9 @@ def calc_all_predicted_points(
         fixtures, model_team, max_goals=MAX_GOALS
     )
 
-    df_player = get_all_fitted_player_data(season, gw_range[0])
+    df_player = get_all_fitted_player_data(
+        season, gw_range[0], model=player_model, dbsession=dbsession
+    )
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
@@ -173,6 +176,7 @@ def make_predictedscore_table(
     include_cards=True,
     include_saves=True,
     tag_prefix=None,
+    player_model=ConjugatePlayerModel(),
     dbsession=None,
 ):
     tag = tag_prefix or ""
@@ -187,6 +191,7 @@ def make_predictedscore_table(
         include_saves=include_saves,
         num_thread=num_thread,
         tag=tag,
+        player_model=player_model,
         dbsession=dbsession,
     )
     return tag
@@ -222,6 +227,11 @@ def main():
         help="don't include save points for goalkeepers",
         action="store_true",
     )
+    parser.add_argument(
+        "--sampling",
+        help="If set use fit the model using sampling with numpyro",
+        action="store_true",
+    )
 
     args = parser.parse_args()
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
@@ -242,6 +252,10 @@ def main():
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
+    if args.sampling:
+        player_model = NumpyroPlayerModel()
+    else:
+        player_model = ConjugatePlayerModel()
 
     set_multiprocessing_start_method(num_thread)
 
@@ -255,6 +269,7 @@ def main():
             include_bonus=include_bonus,
             include_cards=include_cards,
             include_saves=include_saves,
+            player_model=player_model,
             dbsession=session,
         )
 
