@@ -14,6 +14,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_player,
     session,
+    get_entry_start_gameweek,
 )
 
 
@@ -149,14 +150,10 @@ def fill_initial_squad(
         # Season hasn't started yet - there won't be a team in the DB
         return True
 
-    init_players = []
-    starting_gw = 0
-    while not init_players and starting_gw < NEXT_GAMEWEEK:
-        starting_gw += 1
-        print(f"Trying gameweek {starting_gw}...")
-        init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
-
+    starting_gw = get_entry_start_gameweek(fpl_team_id)
     print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
+
+    init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
     time = fetcher.get_event_data()[starting_gw]["deadline"]
     for pid in init_players:

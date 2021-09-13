@@ -163,22 +163,31 @@ class Squad(object):
         use_api=False,
         gameweek=NEXT_GAMEWEEK,
         dbsession=None,
+        apifetcher=fetcher,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-        price_bought = player.purchase_price
+
         player_id = player.player_id
         price_now = None
         if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
                 player_db = get_player(player_id)
-                price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id][
-                    "now_cost"
-                ]
+                api_id = player_db.fpl_api_id
+                if (
+                    apifetcher.logged_in
+                    and apifetcher.FPL_TEAM_ID
+                    and apifetcher.FPL_TEAM_ID != "MISSING_ID"
+                ):
+                    return apifetcher.get_current_picks()[api_id]["selling_price"]
+                # if not logged in, just get current price from API
+                price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
             except Exception:
                 pass
+        # retrieve how much we originally bought the player for from db
+        price_bought = player.purchase_price
 
         if not price_now:
             player_db = get_player(player_id, dbsession=dbsession)

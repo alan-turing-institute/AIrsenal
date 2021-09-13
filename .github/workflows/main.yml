@@ -34,4 +34,6 @@ jobs:
           flake8
           black --check .
       - name: Test with pytest
+        env:
+          FPL_TEAM_ID: ${{ secrets.FPL_TEAM_ID }}
         run: pytest

@@ -12,10 +12,14 @@ from scipy.stats import multinomial
 
 from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
 
-from airsenal.framework.player_model import PlayerModel
+from airsenal.framework.player_model import (
+    ConjugatePlayerModel,
+    get_empirical_bayes_estimates,
+)
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
+    fastcopy,
     get_fixtures_for_player,
     get_recent_minutes_for_player,
     get_max_matches_per_player,
@@ -390,6 +394,7 @@ def calc_predicted_points_for_pos(
     season,
     gw_range,
     tag,
+    model=ConjugatePlayerModel(),
     dbsession=session,
 ):
     """
@@ -398,7 +403,7 @@ def calc_predicted_points_for_pos(
     """
     df_player = None
     if pos != "GK":  # don't calculate attacking points for keepers.
-        df_player = fit_player_data(pos, season, min(gw_range), dbsession)
+        df_player = fit_player_data(pos, season, min(gw_range), model, dbsession)
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
@@ -460,33 +465,6 @@ def fill_ep(csv_filename, dbsession=session):
     outfile.close()
 
 
-def get_empirical_bayes_estimates(df_emp):
-    """
-    Get starting values for the model based on averaging goals/assists/neither
-    over all players in that position
-    """
-    # still not sure about this...
-    df = df_emp.copy()
-    df = df[df["match_id"] != 0]
-    goals = df["goals"].sum()
-    assists = df["assists"].sum()
-    neither = df["neither"].sum()
-    minutes = df["minutes"].sum()
-    team = df["team_goals"].sum()
-    total_minutes = 90 * len(df)
-    neff = df.groupby("player_name").count()["goals"].mean()
-    a0 = neff * (goals / team) * (total_minutes / minutes)
-    a1 = neff * (assists / team) * (total_minutes / minutes)
-    a2 = (
-        neff
-        * ((neither / team) - (total_minutes - minutes) / total_minutes)
-        * (total_minutes / minutes)
-    )
-    alpha = np.array([a0, a1, a2])
-    print("Alpha is {}".format(alpha))
-    return alpha
-
-
 def process_player_data(
     prefix, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=session
 ):
@@ -534,13 +512,15 @@ def process_player_data(
     )
 
 
-def fit_player_data(position, season, gameweek, dbsession=session):
+def fit_player_data(
+    position, season, gameweek, model=ConjugatePlayerModel(), dbsession=session
+):
     """
     fit the data for a particular position (FWD, MID, DEF)
     """
-    model = PlayerModel()
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
+    model = fastcopy(model)
     fitted_model = model.fit(data)
     df = pd.DataFrame(fitted_model.get_probs())
 
@@ -553,10 +533,12 @@ def fit_player_data(position, season, gameweek, dbsession=session):
     return df
 
 
-def get_all_fitted_player_data(season, gameweek, dbsession=session):
+def get_all_fitted_player_data(
+    season, gameweek, model=ConjugatePlayerModel(), dbsession=session
+):
     df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:
-        df_positions[pos] = fit_player_data(pos, season, gameweek, dbsession)
+        df_positions[pos] = fit_player_data(pos, season, gameweek, model, dbsession)
     return df_positions
 
 
