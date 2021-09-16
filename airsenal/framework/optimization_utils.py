@@ -94,19 +94,17 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
     """
     use the transactions table in the db, or the API if requested
     """
-    s = Squad()
-
     if use_api:
         if not fpl_team_id:
             raise RuntimeError(
                 "Please specify fpl_team_id to get current squad from API"
             )
         players_prices = get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
+        s = Squad(season=CURRENT_SEASON)
         for pp in players_prices:
             s.add_player(
                 pp[0],
                 price=pp[1],
-                season=CURRENT_SEASON,
                 gameweek=NEXT_GAMEWEEK - 1,
                 check_budget=False,
                 check_team=False,
@@ -122,6 +120,8 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
             .filter_by(free_hit=0)
             .first()
         )
+        if most_recent is None:
+            raise ValueError("No transactions in database.")
         fpl_team_id = most_recent.fpl_team_id
     print("Getting starting squad for {}".format(fpl_team_id))
 
@@ -134,6 +134,10 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
         .filter_by(free_hit=0)
         .all()
     )
+    if len(transactions) == 0:
+        raise ValueError(f"No transactions in database for team ID {fpl_team_id}")
+
+    s = Squad(season=transactions[0].season)
     for trans in transactions:
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
@@ -143,7 +147,6 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
             s.add_player(
                 trans.player_id,
                 price=trans.price,
-                season=trans.season,
                 gameweek=trans.gameweek,
                 check_budget=False,
                 check_team=False,

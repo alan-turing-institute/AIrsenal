@@ -127,11 +127,10 @@ class SquadOpt:
             - weghted sum of gameweek points otherwise
         """
         # Make squad from player IDs
-        squad = Squad(budget=self.budget)
+        squad = Squad(budget=self.budget, season=self.season)
         for idx in player_ids:
             add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
-                season=self.season,
                 gameweek=self.start_gw,
             )
             if not add_ok:
@@ -351,18 +350,17 @@ def make_new_squad_pygmo(
         print("Best score:", -pop.champion_f[0], "pts")
 
     # construct optimal squad
-    squad = Squad(budget=opt_squad.budget)
+    squad = Squad(budget=opt_squad.budget, season=season)
     for idx in pop.champion_x:
         if verbose > 0:
             print(
-                opt_squad.players[int(idx)].position(CURRENT_SEASON),
+                opt_squad.players[int(idx)].position(season),
                 opt_squad.players[int(idx)].name,
-                opt_squad.players[int(idx)].team(CURRENT_SEASON, 1),
-                opt_squad.players[int(idx)].price(CURRENT_SEASON, 1) / 10,
+                opt_squad.players[int(idx)].team(season, 1),
+                opt_squad.players[int(idx)].price(season, 1) / 10,
             )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
-            season=opt_squad.season,
             gameweek=opt_squad.start_gw,
         )
 

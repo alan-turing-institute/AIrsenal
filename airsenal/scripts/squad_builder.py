@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 
 import argparse
+import sys
 
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     get_latest_prediction_tag,
     fetcher,
 )
+from airsenal.framework.optimization_utils import (
+    check_tag_valid,
+    fill_initial_suggestion_table,
+)
 from airsenal.framework.season import get_current_season
 from airsenal.framework.optimization_squad import make_new_squad
-from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -77,6 +81,14 @@ def main():
     gw_start = args.gw_start or NEXT_GAMEWEEK
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
     tag = get_latest_prediction_tag(season)
+    if not check_tag_valid(tag, gw_range, season=season):
+        print(
+            "ERROR: Database does not contain predictions",
+            "for all the specified optimsation gameweeks.\n",
+            "Please run 'airsenal_run_prediction' first with the",
+            "same input gameweeks and season you specified here.",
+        )
+        sys.exit(1)
     algorithm = args.algorithm
     num_iterations = args.num_iterations
     num_generations = args.num_generations
@@ -113,6 +125,12 @@ def main():
         num_iterations=num_iterations,
         verbose=verbose,
     )
+    if best_squad is None:
+        raise RuntimeError(
+            "best_squad is None: make_new_squad failed to generate a valid team or "
+            "something went wrong with the squad expected points calculation."
+        )
+
     points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
     print("Best expected points for gameweek {}: {}".format(gw_start, points))

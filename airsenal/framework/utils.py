@@ -823,9 +823,10 @@ def get_predicted_points(
     "gameweek" argument can either be a single integer for one gameweek, or a
     list of gameweeks, in which case we will get the sum over all of them
     """
-    players = list_players(position, team, season=season, dbsession=dbsession)
-
     if isinstance(gameweek, int):  # predictions for a single gameweek
+        players = list_players(
+            position, team, season=season, gameweek=gameweek, dbsession=dbsession
+        )
         output_list = [
             (
                 p,
@@ -836,6 +837,9 @@ def get_predicted_points(
             for p in players
         ]
     else:  # predictions for a list of gameweeks
+        players = list_players(
+            position, team, season=season, gameweek=gameweek[0], dbsession=dbsession
+        )
         output_list = [
             (
                 p,
@@ -848,7 +852,6 @@ def get_predicted_points(
             )
             for p in players
         ]
-
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
 
@@ -908,7 +911,6 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
-
         if max_price is not None:
             pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
 

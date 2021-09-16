@@ -750,7 +750,7 @@ def main():
         num_free_transfers = args.num_free_transfers
     else:
         num_free_transfers = None  # will work it out in run_optimization
-    tag = args.tag or get_latest_prediction_tag()
+    tag = args.tag or get_latest_prediction_tag(season=season)
     max_total_hit = args.max_hit
     allow_unused_transfers = args.allow_unused
     num_thread = args.num_thread
@@ -762,7 +762,7 @@ def main():
         "bench_boost": args.bench_boost_week,
     }
 
-    if not check_tag_valid(tag, gameweeks, season=CURRENT_SEASON):
+    if not check_tag_valid(tag, gameweeks, season=season):
         print(
             "ERROR: Database does not contain predictions",
             "for all the specified optimsation gameweeks.\n",
