@@ -87,14 +87,14 @@ def make_new_squad_iter(
             # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
         predicted_points = {}
-        t = Squad(budget)
+        t = Squad(budget, season=season)
         # first iteration - fill up from the front
         for pos in positions:
             predicted_points[pos] = get_predicted_points(
                 gameweek=gw_range, position=pos, tag=tag, season=season
             )
             for pp in predicted_points[pos]:
-                t.add_player(pp[0], season=season, gameweek=transfer_gw)
+                t.add_player(pp[0], gameweek=transfer_gw)
                 if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                     break
 
@@ -105,9 +105,7 @@ def make_new_squad_iter(
             # same position
             player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
             remove_cost = player_to_remove.purchase_price
-            t.remove_player(
-                player_to_remove.player_id, season=season, gameweek=transfer_gw
-            )
+            t.remove_player(player_to_remove.player_id, gameweek=transfer_gw)
             excluded_player_ids.append(player_to_remove.player_id)
             for pp in predicted_points[player_to_remove.position]:
                 if (
@@ -117,7 +115,7 @@ def make_new_squad_iter(
                     if cp.purchase_price >= remove_cost:
                         continue
                     else:
-                        t.add_player(pp[0], season=season, gameweek=transfer_gw)
+                        t.add_player(pp[0], gameweek=transfer_gw)
             # now try again to fill up the rest of the squad
             for pos in positions:
                 num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
@@ -126,7 +124,7 @@ def make_new_squad_iter(
                 for pp in predicted_points[pos]:
                     if pp[0] in excluded_player_ids:
                         continue
-                    t.add_player(pp[0], season=season, gameweek=transfer_gw)
+                    t.add_player(pp[0], gameweek=transfer_gw)
                     if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete squad

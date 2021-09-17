@@ -31,13 +31,14 @@ class Squad(object):
     Squad class.  Contains 15 players
     """
 
-    def __init__(self, budget=1000):
+    def __init__(self, budget=1000, season=CURRENT_SEASON):
         """
         constructor - start with an initial empty player list,
         and £100M
         """
         self.players = []
         self.budget = budget
+        self.season = season
         self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         self.free_subs = 0
         self.subs_this_week = 0
@@ -77,7 +78,6 @@ class Squad(object):
         self,
         p,
         price=None,
-        season=CURRENT_SEASON,
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
         check_team=True,
@@ -90,7 +90,7 @@ class Squad(object):
         with that value.
         """
         if isinstance(p, (int, str, Player)):
-            player = CandidatePlayer(p, season, gameweek, dbsession=dbsession)
+            player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
         # set the price if one was specified.
@@ -130,7 +130,6 @@ class Squad(object):
         self,
         player_id,
         price=None,
-        season=CURRENT_SEASON,
         gameweek=NEXT_GAMEWEEK,
         use_api=False,
         dbsession=None,
@@ -150,7 +149,6 @@ class Squad(object):
                     self.budget += self.get_sell_price_for_player(
                         p,
                         use_api=use_api,
-                        season=season,
                         gameweek=gameweek,
                         dbsession=dbsession,
                     )
@@ -163,31 +161,39 @@ class Squad(object):
         self,
         player,
         use_api=False,
-        season=CURRENT_SEASON,
         gameweek=NEXT_GAMEWEEK,
         dbsession=None,
+        apifetcher=fetcher,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-        price_bought = player.purchase_price
+
         player_id = player.player_id
         price_now = None
-        if use_api and season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
+        if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
             try:
                 # first try getting the price for the player from the API
                 player_db = get_player(player_id)
-                price_now = fetcher.get_player_summary_data()[player_db.fpl_api_id][
-                    "now_cost"
-                ]
+                api_id = player_db.fpl_api_id
+                if (
+                    apifetcher.logged_in
+                    and apifetcher.FPL_TEAM_ID
+                    and apifetcher.FPL_TEAM_ID != "MISSING_ID"
+                ):
+                    return apifetcher.get_current_picks()[api_id]["selling_price"]
+                # if not logged in, just get current price from API
+                price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
             except Exception:
                 pass
+        # retrieve how much we originally bought the player for from db
+        price_bought = player.purchase_price
 
         if not price_now:
             player_db = get_player(player_id, dbsession=dbsession)
 
             if player_db:
-                price_now = player_db.price(season, gameweek)
+                price_now = player_db.price(self.season, gameweek)
         if not price_now:
             # if all else fails just use the purchase price as the sale
             # price for this player.

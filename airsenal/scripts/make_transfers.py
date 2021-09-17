@@ -14,7 +14,6 @@ import getpass
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
     session as dbsession,
-    get_player_name,
     get_bank,
     get_player,
     CURRENT_SEASON,
@@ -40,8 +39,10 @@ def check_proceed():
 
 
 def deduct_transfer_price(pre_bank, priced_transfers):
-
-    gain = [transfer[0][1] - transfer[1][1] for transfer in priced_transfers]
+    gain = [
+        transfer["selling_price"] - transfer["purchase_price"]
+        for transfer in priced_transfers
+    ]
     return pre_bank + sum(gain)
 
 
@@ -58,8 +59,20 @@ def print_output(
 
     t = PrettyTable(["Status", "Name", "Price"])
     for transfer in priced_transfers:
-        t.add_row(["OUT", get_player_name(transfer[0][0]), f"£{transfer[0][1]/10}"])
-        t.add_row(["IN", get_player_name(transfer[1][0]), f"£{transfer[1][1]/10}"])
+        t.add_row(
+            [
+                "OUT",
+                get_player_from_api_id(transfer["element_out"]),
+                f"£{transfer['selling_price']/10}",
+            ]
+        )
+        t.add_row(
+            [
+                "IN",
+                get_player_from_api_id(transfer["element_in"]),
+                f"£{transfer['purchase_price']/10}",
+            ]
+        )
 
     print(t)
 
@@ -188,7 +201,7 @@ def build_init_priced_transfers(fetcher, fpl_team_id=None):
         else:
             fpl_team_id = fetcher.FPL_TEAM_ID
 
-    current_squad = fetcher.get_current_squad_data(fpl_team_id)
+    current_squad = fetcher.get_current_picks(fpl_team_id)
     transfers_out = [
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad
