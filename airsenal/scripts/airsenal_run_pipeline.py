@@ -52,7 +52,27 @@ from airsenal.scripts.set_lineup import set_lineup
     is_flag=True,
     help="If set, go ahead and make the transfers via the API.",
 )
-def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
+@click.option(
+    "--wildcard_week",
+    type=int,
+    help="If set to 0, consider playing wildcard in any gameweeks. If set to a specific gameweek, it'll be played for that particular gameweek.",
+)
+@click.option(
+    "--free_hit_week",
+    type=int,
+    help="Play free hit in the specified week. Choose 0 for 'any week'.",
+)
+@click.option(
+    "--triple_captain_week",
+    type=int,
+    help="Play triple captain in the specified week. Choose 0 for 'any week'.",
+)
+@click.option(
+    "--bench_boost_week",
+    type=int,
+    help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
+)
+def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers, wildcard_week, free_hit_week, triple_captain_week, bench_boost_week):
     """
     Run the full pipeline, from setting up the database and filling
     with players, teams, fixtures, and results (if it didn't already exist),
@@ -95,7 +115,8 @@ def run_pipeline(num_thread, weeks_ahead, fpl_team_id, clean, apply_transfers):
                 raise RuntimeError("Problem creating a new squad")
         else:
             click.echo("Running optimization..")
-            opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession)
+            chips_played = setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_week)
+            opt_ok = run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession, chips_played)
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
 
@@ -117,6 +138,23 @@ def setup_database(fpl_team_id, dbsession):
     Set up database
     """
     return make_init_db(fpl_team_id, dbsession)
+
+
+def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_week):
+    """
+    Set up chips to be played for particular gameweeks. Specifically: wildcard, free_hit, triple_captain, bench_boost
+    """
+    chips_gameweeks = {}
+    if wildcard_week:
+        chips_gameweeks["wildcard"] = wildcard_week
+    if free_hit_week:
+        chips_gameweeks['free_hit'] = free_hit_week
+    if triple_captain_week:
+        chips_gameweeks['triple_captain'] = triple_captain_week
+    if bench_boost_week:
+        chips_gameweeks['bench_boost'] = bench_boost_week
+    
+    return chips_gameweeks
 
 
 def update_database(fpl_team_id, attr, dbsession):
@@ -175,7 +213,7 @@ def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     return True
 
 
-def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
+def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession, chips_played):
     """
     Build the initial squad
     """
@@ -190,6 +228,7 @@ def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession):
             season=season,
             fpl_team_id=fpl_team_id,
             num_thread=num_thread,
+            chip_gameweeks=chips_played,
         )
     return True
 
