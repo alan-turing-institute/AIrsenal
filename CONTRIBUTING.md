@@ -122,7 +122,7 @@ GitHub has a [nice introduction][github-flow] to the pull request workflow, but 
 
 ## Coding Conventions and Style Guide
 
-We have attempted to summarize some guidelines and helpful tips for keeping the code readable and consistent in [this document][CodingConventions.md].
+We have attempted to summarize some guidelines and helpful tips for keeping the code readable and consistent in [this document](CodingConventions.md).
 
 ---
 
