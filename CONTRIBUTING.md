@@ -120,12 +120,9 @@ You can view the log or rerun the checks if you have write access to the repo by
 
 GitHub has a [nice introduction][github-flow] to the pull request workflow, but please get in touch if you have any questions.
 
-## Style Guide
+## Coding Conventions and Style Guide
 
-Docstrings should follow [numpydoc][link_numpydoc] convention.
-We encourage extensive documentation.
-
-The python code itself should follow [PEP8][link_pep8] convention whenever possible, with at most about 500 lines of code (not including docstrings) per script.
+We have attempted to summarize some guidelines and helpful tips for keeping the code readable and consistent in [this document][CodingConventions.md].
 
 ---
 
@@ -148,5 +145,3 @@ _These Contributing Guidelines have been adapted from the [Contributing Guidelin
 [labels-helpwanted]: https://github.com/alan-turing-institute/AIrsenal/labels/help%20wanted
 [labels-project-management]: https://github.com/alan-turing-institute/AIrsenal/labels/project%20management
 [labels-question]: https://github.com/alan-turing-institute/AIrsenal/labels/question
-[link_numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html
-[link_pep8]: https://www.python.org/dev/peps/pep-0008/
