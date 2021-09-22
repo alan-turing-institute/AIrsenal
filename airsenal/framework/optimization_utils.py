@@ -12,6 +12,8 @@ from airsenal.framework.schema import (
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     session,
+    get_current_squad_from_api,
+    get_bank,
     NEXT_GAMEWEEK,
     CURRENT_SEASON,
 )
@@ -88,11 +90,28 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
         )
 
 
-def get_starting_squad(fpl_team_id=None):
+def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
     """
-    use the transactions table in the db
+    use the transactions table in the db, or the API if requested
     """
-
+    if use_api:
+        if not fpl_team_id:
+            raise RuntimeError(
+                "Please specify fpl_team_id to get current squad from API"
+            )
+        players_prices = get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
+        s = Squad(season=CURRENT_SEASON)
+        for pp in players_prices:
+            s.add_player(
+                pp[0],
+                price=pp[1],
+                gameweek=NEXT_GAMEWEEK - 1,
+                check_budget=False,
+                check_team=False,
+            )
+        s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
+        return s
+    # otherwise, we use the Transaction table in the DB
     if not fpl_team_id:
         # use the most recent transaction in the table
         most_recent = (
@@ -101,9 +120,11 @@ def get_starting_squad(fpl_team_id=None):
             .filter_by(free_hit=0)
             .first()
         )
+        if most_recent is None:
+            raise ValueError("No transactions in database.")
         fpl_team_id = most_recent.fpl_team_id
     print("Getting starting squad for {}".format(fpl_team_id))
-    s = Squad()
+
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
     transactions = (
@@ -113,6 +134,10 @@ def get_starting_squad(fpl_team_id=None):
         .filter_by(free_hit=0)
         .all()
     )
+    if len(transactions) == 0:
+        raise ValueError(f"No transactions in database for team ID {fpl_team_id}")
+
+    s = Squad(season=transactions[0].season)
     for trans in transactions:
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
@@ -122,7 +147,6 @@ def get_starting_squad(fpl_team_id=None):
             s.add_player(
                 trans.player_id,
                 price=trans.price,
-                season=trans.season,
                 gameweek=trans.gameweek,
                 check_budget=False,
                 check_team=False,

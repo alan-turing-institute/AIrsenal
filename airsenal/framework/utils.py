@@ -7,8 +7,9 @@ from operator import itemgetter
 from datetime import datetime, timezone, date
 from typing import TypeVar
 import dateparser
-import re
+import regex as re
 from pickle import loads, dumps
+import requests
 from sqlalchemy import or_, case, desc
 
 from airsenal.framework.mappings import alternative_player_names
@@ -172,7 +173,6 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
 def get_squad_value(
     squad,
     gameweek=NEXT_GAMEWEEK,
-    season=CURRENT_SEASON,
     use_api=False,
 ):
     """
@@ -185,55 +185,114 @@ def get_squad_value(
 
     for p in squad.players:
         total_value += squad.get_sell_price_for_player(
-            p, use_api=use_api, season=season, gameweek=gameweek
+            p, use_api=use_api, gameweek=gameweek
         )
 
     return total_value
 
 
-def get_bank(gameweek=None, fpl_team_id=None):
+def get_current_squad_from_api(fpl_team_id, apifetcher=fetcher):
+    """
+    Return a list [(player_id, purchase_price)] from the current picks.
+    Requires the data fetcher to be logged in.
+    """
+    if not apifetcher.logged_in:
+        apifetcher.login()
+    picks = apifetcher.get_current_picks(fpl_team_id)
+    players_prices = [
+        (get_player_from_api_id(p["element"]).player_id, p["purchase_price"])
+        for p in picks
+    ]
+    return players_prices
+
+
+def get_bank(
+    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+):
     """
     Find out how much this FPL team had in the bank before the specified gameweek.
     If gameweek is not provided, give the most recent value
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    data = fetcher.get_fpl_team_history_data(fpl_team_id)
-    if "current" not in data.keys() or len(data["current"]) <= 0:
-        return 0
+    if season == CURRENT_SEASON:
+        # we will use the API to estimate the bank
+        if not fpl_team_id:
+            fpl_team_id = fetcher.FPL_TEAM_ID
+        # check if we're logged in, which will let us get the most up-to-date info
+        if apifetcher.logged_in:
+            return apifetcher.get_current_bank(fpl_team_id)
+        else:
+            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            if "current" not in data.keys() or len(data["current"]) <= 0:
+                return 0
 
-    if gameweek and isinstance(gameweek, int):
-        for gw in data["current"]:
-            if gw["event"] == gameweek - 1:  # value after previous gameweek
-                return gw["bank"]
-    # otherwise, return the most recent value
-    return data["current"][-1]["bank"]
+            if gameweek and isinstance(gameweek, int):
+                for gw in data["current"]:
+                    if gw["event"] == gameweek - 1:  # value after previous gameweek
+                        return gw["bank"]
+            # otherwise, return the most recent value
+            return data["current"][-1]["bank"]
+    else:
+        raise RuntimeError("Calculating the bank for past seasons not yet implemented")
 
 
-def get_free_transfers(gameweek=None, fpl_team_id=None):
+def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
+    """
+    Find the gameweek an FPL team ID was entered in by searching for the first gameweek
+    the API has 'picks' for.
+    """
+    init_players = []
+    starting_gw = 0
+    while not init_players and starting_gw < NEXT_GAMEWEEK:
+        starting_gw += 1
+        init_players = get_players_for_gameweek(
+            starting_gw, fpl_team_id, apifetcher=apifetcher
+        )
+    return starting_gw
+
+
+def get_free_transfers(
+    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+):
     """
     Work out how many free transfers this FPL team should have before specified gameweek
     If gameweek is not provided, give the most recent value
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    data = fetcher.get_fpl_team_history_data(fpl_team_id)
-    num_free_transfers = 1
-    if "current" in data.keys() and len(data["current"]) > 0:
-        for gw in data["current"]:
-            if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                num_free_transfers += 1
-            if gw["event_transfers"] == 2:
-                num_free_transfers = 1
-            # if gameweek was specified, and we reached the previous one,
-            # break out of loop.
-            if gameweek and gw["event"] == gameweek - 1:
-                break
-    return num_free_transfers
+    if season == CURRENT_SEASON:
+        # we will use the API to estimate num transfers
+        if not fpl_team_id:
+            fpl_team_id = apifetcher.FPL_TEAM_ID
+        # check if we're logged in, which will let us get the most up-to-date info
+        if apifetcher.logged_in:
+            return apifetcher.get_num_free_transfers(fpl_team_id)
+        else:
+            # try to calculate free transfers based on previous transfer history
+            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            num_free_transfers = 1
+            if "current" in data.keys() and len(data["current"]) > 0:
+                starting_gw = get_entry_start_gameweek(
+                    fpl_team_id, apifetcher=apifetcher
+                )
+                for gw in data["current"]:
+                    if gw["event"] <= starting_gw:
+                        continue
+                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
+                        num_free_transfers += 1
+                    elif gw["event_transfers"] >= 2:
+                        num_free_transfers = 1
+                    # if gameweek was specified, and we reached the previous one,
+                    # break out of loop.
+                    if gameweek and gw["event"] == gameweek - 1:
+                        break
+            return num_free_transfers
+    else:
+        # historical data - fetch from database, not implemented yet
+        raise RuntimeError(
+            "Estimating free transfers for previous seasons is not yet implemented."
+        )
 
 
 @lru_cache(maxsize=365)
@@ -661,14 +720,14 @@ def get_player_scores(fixture=None, player=None, dbsession=session):
     return player_scores
 
 
-def get_players_for_gameweek(gameweek, fpl_team_id=None):
+def get_players_for_gameweek(gameweek, fpl_team_id=None, apifetcher=fetcher):
     """
     Use FPL API to get the players for a given gameweek.
     """
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = apifetcher.FPL_TEAM_ID
     try:
-        player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
+        player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
         player_api_id_list = [p["element"] for p in player_data]
         player_list = [
             get_player_from_api_id(api_id).player_id
@@ -763,9 +822,10 @@ def get_predicted_points(
     "gameweek" argument can either be a single integer for one gameweek, or a
     list of gameweeks, in which case we will get the sum over all of them
     """
-    players = list_players(position, team, season=season, dbsession=dbsession)
-
     if isinstance(gameweek, int):  # predictions for a single gameweek
+        players = list_players(
+            position, team, season=season, gameweek=gameweek, dbsession=dbsession
+        )
         output_list = [
             (
                 p,
@@ -776,6 +836,9 @@ def get_predicted_points(
             for p in players
         ]
     else:  # predictions for a list of gameweeks
+        players = list_players(
+            position, team, season=season, gameweek=gameweek[0], dbsession=dbsession
+        )
         output_list = [
             (
                 p,
@@ -788,7 +851,6 @@ def get_predicted_points(
             )
             for p in players
         ]
-
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
 
@@ -820,10 +882,19 @@ def get_top_predicted_points(
         season {str} -- Season to query (default: {CURRENT_SEASON})
         dbsession {SQLAlchemy session} -- Database session (default: {None})
     """
+    discord_webhook = fetcher.DISCORD_WEBHOOK
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
         gameweek = NEXT_GAMEWEEK
+
+    discord_embed = {
+        "title": "AIrsenal webhook",
+        "description": "PREDICTED TOP {} "
+        "PLAYERS FOR GAMEWEEK(S) {}:".format(n_players, gameweek),
+        "color": 0x35A800,
+        "fields": [],
+    }
 
     first_gw = gameweek[0] if isinstance(gameweek, (list, tuple)) else gameweek
     print("=" * 50)
@@ -839,7 +910,6 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
-
         if max_price is not None:
             pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
 
@@ -856,6 +926,34 @@ def get_top_predicted_points(
                     p[0].team(season, first_gw),
                 )
             )
+
+        # If a valid discord webhook URL has been stored
+        # in env variables, send a webhook message
+        if discord_webhook != "MISSING_ID":
+            # Use regex to check the discord webhook url is correctly formatted
+            if re.match(
+                r"^.*(discord|discordapp)\.com\/api"
+                r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
+                discord_webhook,
+            ):
+                # Maximum fields on a discord embed is 25, so limit this to n_players=8
+                payload = predicted_points_discord_payload(
+                    discord_embed=discord_embed,
+                    position=position,
+                    pts=pts[: min(n_players, 8)],
+                    season=season,
+                    first_gw=first_gw,
+                )
+                result = requests.post(discord_webhook, json=payload)
+                if 200 <= result.status_code < 300:
+                    print(f"Discord webhook sent, status code: {result.status_code}")
+                else:
+                    print(
+                        f"Not sent with {result.status_code},"
+                        "response:\n{result.json()}"
+                    )
+            else:
+                print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
     else:
         for position in ["GK", "DEF", "MID", "FWD"]:
@@ -884,6 +982,82 @@ def get_top_predicted_points(
                     )
                 )
             print("-" * 25)
+
+            discord_embed["fields"] = []
+            # If a valid discord webhook URL has been stored
+            # in env variables, send a webhook message
+            if discord_webhook != "MISSING_ID":
+                # Use regex to check the discord webhook url is correctly formatted
+                if re.match(
+                    r"^.*(discord|discordapp)\.com\/api"
+                    r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
+                    discord_webhook,
+                ):
+                    # create a formatted team lineup message for the discord webhook
+                    # Maximum fields on a discord embed is 25
+                    # limit this to n_players=8
+                    payload = predicted_points_discord_payload(
+                        discord_embed=discord_embed,
+                        position=position,
+                        pts=pts[: min(n_players, 8)],
+                        season=season,
+                        first_gw=first_gw,
+                    )
+                    result = requests.post(discord_webhook, json=payload)
+                    if 200 <= result.status_code < 300:
+                        print(
+                            f"Discord webhook sent, status code: {result.status_code}"
+                        )
+                    else:
+                        print(
+                            f"Not sent with {result.status_code}, "
+                            f"response:\n{result.json()}"
+                        )
+                else:
+                    print(
+                        "Warning: Discord webhook url is malformed!\n", discord_webhook
+                    )
+
+
+def predicted_points_discord_payload(discord_embed, position, pts, season, first_gw):
+    """
+    json formated discord webhook contentent.
+    """
+    discord_embed["fields"].append(
+        {"name": "Position", "value": str(position), "inline": False}
+    )
+    for i, p in enumerate(pts):
+        discord_embed["fields"].extend(
+            [
+                {
+                    "name": "Player",
+                    "value": "{}. {}".format(i + 1, p[0].name),
+                    "inline": True,
+                },
+                {
+                    "name": "Predicted points",
+                    "value": "{:.2f}pts".format(
+                        p[1],
+                    ),
+                    "inline": True,
+                },
+                {
+                    "name": "Attributes",
+                    "value": "£{}m, {}, {}".format(
+                        p[0].price(season, first_gw) / 10,
+                        p[0].position(season),
+                        p[0].team(season, first_gw),
+                    ),
+                    "inline": True,
+                },
+            ]
+        )
+    payload = {
+        "content": "",
+        "username": "AIrsenal",
+        "embeds": [discord_embed],
+    }
+    return payload
 
 
 def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session):
