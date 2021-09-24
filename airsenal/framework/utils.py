@@ -173,7 +173,6 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
 def get_squad_value(
     squad,
     gameweek=NEXT_GAMEWEEK,
-    season=CURRENT_SEASON,
     use_api=False,
 ):
     """
@@ -186,7 +185,7 @@ def get_squad_value(
 
     for p in squad.players:
         total_value += squad.get_sell_price_for_player(
-            p, use_api=use_api, season=season, gameweek=gameweek
+            p, use_api=use_api, gameweek=gameweek
         )
 
     return total_value
