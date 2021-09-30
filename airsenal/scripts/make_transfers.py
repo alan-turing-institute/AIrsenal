@@ -21,6 +21,7 @@ from airsenal.framework.utils import (
 )
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.scripts.set_lineup import set_lineup
 
 """
 TODO:
@@ -332,6 +333,7 @@ def main():
     args = parser.parse_args()
     confirm = args.confirm if args.confirm else False
     make_transfers(args.fpl_team_id, confirm)
+    set_lineup(args.fpl_team_id)
 
 
 if __name__ == "__main__":
