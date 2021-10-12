@@ -89,6 +89,9 @@ def parse_match(match_info: dict):
             "goals": (list) goals,
             "subs": (list) subs,
         }
+        The `goals` list is structured as a list of lists
+        [goal_scorer, time_of_goal]. The subs list is also a list of
+        lists of the form [player_in, player_out, time_of_substitution].
 
     """
     match_id = match_info.get("id", None)
