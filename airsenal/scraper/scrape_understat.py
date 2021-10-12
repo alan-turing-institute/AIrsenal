@@ -62,7 +62,8 @@ def get_matches_info(season: str):
         return matches_list
     else:
         raise ValueError(
-            f"Please provide valid season to scrape data. {season} not in {list(base_url.keys())}"
+            f"Please provide valid season to scrape data."
+            "{season} not in {list(base_url.keys())}"
         )
 
 
