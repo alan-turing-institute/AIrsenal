@@ -21,6 +21,14 @@ Development should mostly take place on individual branches that are branched of
 The naming convention for branches should generally be something like
 `feature/<github_issue_number>-<brief-description>` or `bugfix/<github_issue_number>-<brief-description>` (and as this implies, there should ideally be a corresponding Issue!).
 
+## Developer Dependencies
+
+Packages used for developing AIrsenal but not needed to run AIrsenal (such as those in the code style and formatting section below) are included in
+`requirements-dev.txt`. To install them run the following command from the `AIrsenal` directory (with your AIrsenal virtual environment activated if you are using one, for example with `conda activate airsenalenv`):
+```
+pip install -r requirements-dev.txt
+```
+
 ## Code style, formatting, code quality
 
 We are generally following the [PEP-8 style guide][link_pep8] regarding conventions for class, function, and variable names.
@@ -34,9 +42,23 @@ black .
 ```
 and it will reformat any python files it finds.
 
+We also use [isort](https://pycqa.github.io/isort/index.html) to have a consistent alphabetical order on imports. This can be run from the "AIrsenal" directory with:
+```
+isort .
+```
+
 We furthermore use the "flake8" style checker - this will flag up any unused imports, or undefined variables, for you to fix.  This can be run, again from the main AIrsenal directory, via:
 ```
 flake8
+```
+
+Finally, we have a [pre-commit](https://pre-commit.com/) setup that you can use to run all the steps above whenever commiting something to the AIrsenal repo. To set these up run this from the AIrsenal directory:
+```
+pre-commit install
+```
+To check they're working run:
+```
+pre-commit run --all-files
 ```
 
 ## Where to put the code
