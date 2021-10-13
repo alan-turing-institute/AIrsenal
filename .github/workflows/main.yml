@@ -24,15 +24,17 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install dev dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest black
-          pip install .
+          pip install -r requirements-dev.txt
       - name: Code quality checks
         run: |
-          flake8
+          isort --check-only .
           black --check .
+          flake8
+      - name: Install AIrsenal
+        run: pip install .
       - name: Test with pytest
         env:
           FPL_TEAM_ID: ${{ secrets.FPL_TEAM_ID }}
