@@ -2,19 +2,19 @@
 Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
-from unittest import mock
 from operator import itemgetter
+from unittest import mock
 
-from airsenal.framework.squad import Squad
+from airsenal.framework.optimization_transfers import (
+    make_optimum_double_transfer,
+    make_optimum_single_transfer,
+)
 from airsenal.framework.optimization_utils import (
+    count_expected_outputs,
     get_discount_factor,
     next_week_transfers,
-    count_expected_outputs,
 )
-from airsenal.framework.optimization_transfers import (
-    make_optimum_single_transfer,
-    make_optimum_double_transfer,
-)
+from airsenal.framework.squad import Squad
 
 
 class DummyPlayer(object):

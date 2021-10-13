@@ -2,20 +2,16 @@
 Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
-from bpl import ExtendedDixonColesMatchPredictor
-
 import numpy as np
 import pandas as pd
+from bpl import ExtendedDixonColesMatchPredictor
 
-from airsenal.framework.schema import Result, FifaTeamRating, session
+from airsenal.framework.schema import FifaTeamRating, Result, session
+from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 from airsenal.framework.utils import (
-    get_fixtures_for_gameweek,
     get_fixture_teams,
+    get_fixtures_for_gameweek,
     is_future_gameweek,
-)
-from airsenal.framework.season import (
-    CURRENT_SEASON,
-    get_teams_for_season,
 )
 
 np.random.seed(42)

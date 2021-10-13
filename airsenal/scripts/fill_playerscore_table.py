@@ -8,17 +8,17 @@ import json
 import os
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.schema import PlayerScore, session_scope, session
+from airsenal.framework.schema import PlayerScore, session, session_scope
 from airsenal.framework.utils import (
+    CURRENT_SEASON,
     NEXT_GAMEWEEK,
+    find_fixture,
+    get_past_seasons,
     get_player,
     get_player_from_api_id,
-    get_team_name,
-    get_past_seasons,
-    CURRENT_SEASON,
-    find_fixture,
-    get_player_team_from_fixture,
     get_player_scores,
+    get_player_team_from_fixture,
+    get_team_name,
 )
 
 

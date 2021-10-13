@@ -14,13 +14,14 @@ except ModuleNotFoundError:
     )
 
 import uuid
+
+from airsenal.framework.optimization_utils import get_discount_factor
+from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    list_players,
     get_predicted_points_for_player,
+    list_players,
 )
-from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
-from airsenal.framework.optimization_utils import get_discount_factor
 
 
 class DummyPlayer:

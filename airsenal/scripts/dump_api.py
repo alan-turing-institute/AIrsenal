@@ -1,7 +1,7 @@
 import json
+
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import fetcher
-
 
 sdata = fetcher.get_current_summary_data()
 with open(f"../data/FPL_{CURRENT_SEASON}.json", "w") as f:

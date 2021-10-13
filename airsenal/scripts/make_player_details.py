@@ -3,17 +3,18 @@ Generate player details json files from a locally cloned copy of the
 https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 
 """
-from glob import glob
-import os
 import json
+import os
+from glob import glob
+
 import pandas as pd
 
-from airsenal.framework.utils import get_past_seasons
 from airsenal.framework.mappings import (
-    alternative_team_names,
     alternative_player_names,
+    alternative_team_names,
     positions,
 )
+from airsenal.framework.utils import get_past_seasons
 
 # directory of this script
 SCRIPT_DIR = os.path.dirname(__file__)

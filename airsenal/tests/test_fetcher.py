@@ -2,8 +2,9 @@
 test that we get valid responses from the API.
 """
 
-import pytest
 import random
+
+import pytest
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.utils import NEXT_GAMEWEEK
