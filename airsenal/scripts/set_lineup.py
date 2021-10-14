@@ -3,20 +3,20 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-from airsenal.framework.squad import Squad
 import argparse
-import requests
 import json
+
+import requests
+
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
+    NEXT_GAMEWEEK,
     get_latest_prediction_tag,
     get_player,
     get_player_from_api_id,
-    NEXT_GAMEWEEK,
 )
-from airsenal.scripts.make_transfers import (
-    login,
-)
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.scripts.make_transfers import login
 
 
 def check_proceed(squad):

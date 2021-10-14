@@ -1,9 +1,13 @@
-import sys
 import multiprocessing
+import sys
 import warnings
+
 import click
 from tqdm import TqdmWarning
 
+from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
+from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -11,20 +15,15 @@ from airsenal.framework.utils import (
     fetcher,
     get_latest_prediction_tag,
 )
-from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
-from airsenal.framework.optimization_utils import fill_initial_suggestion_table
-
-from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
-
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
-from airsenal.scripts.update_db import update_db
 from airsenal.scripts.fill_predictedscore_table import (
-    make_predictedscore_table,
     get_top_predicted_points,
+    make_predictedscore_table,
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
 from airsenal.scripts.set_lineup import set_lineup
+from airsenal.scripts.update_db import update_db
 
 
 @click.command("airsenal_run_pipeline")

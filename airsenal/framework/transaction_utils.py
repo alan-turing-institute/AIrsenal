@@ -3,18 +3,18 @@ Functions to help fill the Transaction table, where players are bought and sold,
 hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment
 variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
-from sqlalchemy import or_, and_
+from sqlalchemy import and_, or_
 
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
-    get_players_for_gameweek,
-    fetcher,
-    get_player_from_api_id,
-    NEXT_GAMEWEEK,
     CURRENT_SEASON,
-    get_player,
-    session,
+    NEXT_GAMEWEEK,
+    fetcher,
     get_entry_start_gameweek,
+    get_player,
+    get_player_from_api_id,
+    get_players_for_gameweek,
+    session,
 )
 
 

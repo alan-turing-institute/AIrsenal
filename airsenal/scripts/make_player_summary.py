@@ -5,7 +5,6 @@ import json
 
 from airsenal.framework.utils import get_past_seasons
 
-
 INPUT_FILE = "../data/FPL_{}.json"
 SAVE_FILE = "../data/player_summary_{}.json"
 

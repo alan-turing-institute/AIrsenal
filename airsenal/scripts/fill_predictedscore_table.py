@@ -7,34 +7,32 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
-from uuid import uuid4
-
-from multiprocessing import Process, Queue
 import argparse
+from multiprocessing import Process, Queue
+from uuid import uuid4
 
 from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
+from airsenal.framework.prediction_utils import (
+    MAX_GOALS,
+    calc_predicted_points_for_player,
+    fit_bonus_points,
+    fit_card_points,
+    fit_save_points,
+    get_all_fitted_player_data,
+)
+from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     CURRENT_SEASON,
-    get_top_predicted_points,
+    NEXT_GAMEWEEK,
     get_fixtures_for_gameweek,
+    get_top_predicted_points,
     list_players,
 )
-
-from airsenal.framework.prediction_utils import (
-    calc_predicted_points_for_player,
-    get_all_fitted_player_data,
-    fit_bonus_points,
-    fit_save_points,
-    fit_card_points,
-    MAX_GOALS,
-)
-from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
-from airsenal.framework.schema import session_scope
 
 
 def allocate_predictions(

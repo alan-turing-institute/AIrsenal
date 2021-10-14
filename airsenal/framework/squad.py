@@ -4,16 +4,14 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 from operator import itemgetter
+
 import numpy as np
 
 from airsenal.framework.player import CandidatePlayer, Player
-from airsenal.framework.utils import get_player, NEXT_GAMEWEEK, CURRENT_SEASON, fetcher
+from airsenal.framework.utils import CURRENT_SEASON, NEXT_GAMEWEEK, fetcher, get_player
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
-
-# min/max active players per position
-ACTIVE_PER_POSITION = {"GK": (1, 1), "DEF": (3, 5), "MID": (3, 5), "FWD": (1, 3)}
 
 FORMATIONS = [
     (3, 4, 3),
@@ -23,6 +21,7 @@ FORMATIONS = [
     (4, 5, 1),
     (5, 4, 1),
     (5, 3, 2),
+    (5, 2, 3),
 ]
 
 

@@ -3,12 +3,11 @@ Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
 import os
-from sqlalchemy import Column, ForeignKey, Integer, String, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
 from contextlib import contextmanager
+
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
 from airsenal.framework.db_config import DB_CONNECTION_STRING, AIrsenalDBFile
 

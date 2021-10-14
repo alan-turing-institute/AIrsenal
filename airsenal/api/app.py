@@ -5,31 +5,29 @@ API for calling airsenal functions.
 HTTP requests to the endpoints defined here will give rise
 to calls to functions in api_utils.py
 """
+import json
 from uuid import uuid4
 
-from flask import Blueprint, Flask, session, request, jsonify
+from flask import Blueprint, Flask, jsonify, request, session
 from flask_cors import CORS
 from flask_session import Session
 
-import json
-
 from airsenal.api.exceptions import ApiException
-
 from airsenal.framework.api_utils import (
-    remove_db_session,
-    list_teams_for_api,
-    create_response,
-    list_players_for_api,
     add_session_player,
+    best_transfer_suggestions,
     combine_player_info,
-    remove_session_player,
+    create_response,
+    fill_session_squad,
+    get_session_budget,
     get_session_players,
     get_session_predictions,
-    validate_session_squad,
-    fill_session_squad,
-    best_transfer_suggestions,
+    list_players_for_api,
+    list_teams_for_api,
+    remove_db_session,
+    remove_session_player,
     set_session_budget,
-    get_session_budget,
+    validate_session_squad,
 )
 
 

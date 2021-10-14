@@ -3,11 +3,11 @@
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
-import os
 import json
+import os
 
-from airsenal.framework.schema import Player, session_scope, session
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.schema import Player, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
 
 

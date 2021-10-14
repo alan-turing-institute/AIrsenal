@@ -5,7 +5,6 @@ test various methods of the Team class.
 import pytest
 
 from airsenal.conftest import test_session_scope
-
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import CURRENT_SEASON
 
