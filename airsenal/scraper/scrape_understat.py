@@ -7,12 +7,12 @@ To setup -
 `pip install bs4`
 """
 
-import json
 import argparse
-import requests
+import json
 
-from tqdm import tqdm
+import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 LEAGUE_URL = "https://understat.com/league/epl/{}"
 MATCH_URL = "https://understat.com/match/{}"
