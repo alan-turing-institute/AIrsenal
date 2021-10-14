@@ -9,6 +9,7 @@ To setup -
 
 import argparse
 import json
+import os
 
 import requests
 from bs4 import BeautifulSoup
@@ -192,8 +193,8 @@ if __name__ == "__main__":
     season = args.season
     goal_subs_data = get_season_info(season)
 
-    json.dump(
-        goal_subs_data,
-        open(f"data/goals_subs_data_{season}.json", "w"),
-        indent=4,
+    save_path = os.path.join(
+        os.path.dirname(__file__), f"../data/goals_subs_data_{season}.json"
     )
+    with open(save_path, "w") as f:
+        json.dump(goal_subs_data, f, indent=4)
