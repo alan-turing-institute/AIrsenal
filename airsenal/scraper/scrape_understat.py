@@ -181,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--season",
         help="Season to scrape data for",
-        choices=["1516", "1617", "1718", "1819", "1920", "2021"],
+        choices=list(base_url.keys()),
         required=True,
     )
     args = parser.parse_args()
