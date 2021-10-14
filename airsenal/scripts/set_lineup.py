@@ -4,6 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
+import getpass
 import json
 
 import requests
@@ -16,7 +17,28 @@ from airsenal.framework.utils import (
     get_player,
     get_player_from_api_id,
 )
-from airsenal.scripts.make_transfers import login
+
+
+def login(session, fetcher):
+    if (
+        (not fetcher.FPL_LOGIN)
+        or (not fetcher.FPL_PASSWORD)
+        or (fetcher.FPL_LOGIN == "MISSING_ID")
+        or (fetcher.FPL_PASSWORD == "MISSING_ID")
+    ):
+        fetcher.FPL_LOGIN = input("Please enter FPL login: ")
+        fetcher.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
+
+    # print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
+    login_url = "https://users.premierleague.com/accounts/login/"
+    headers = {
+        "login": fetcher.FPL_LOGIN,
+        "password": fetcher.FPL_PASSWORD,
+        "app": "plfpl-web",
+        "redirect_uri": "https://fantasy.premierleague.com/a/login",
+    }
+    session.post(login_url, data=headers)
+    return session
 
 
 def check_proceed(squad):
