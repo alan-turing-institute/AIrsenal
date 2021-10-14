@@ -6,9 +6,9 @@ return a response.
 import logging
 
 from airsenal.framework.aws_utils import (
-    get_suggestions_string,
-    get_score_ranking_string,
     get_league_standings_string,
+    get_score_ranking_string,
+    get_suggestions_string,
 )
 
 logging.basicConfig()

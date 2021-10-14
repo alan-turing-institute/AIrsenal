@@ -21,6 +21,14 @@ Development should mostly take place on individual branches that are branched of
 The naming convention for branches should generally be something like
 `feature/<github_issue_number>-<brief-description>` or `bugfix/<github_issue_number>-<brief-description>` (and as this implies, there should ideally be a corresponding Issue!).
 
+## Developer Dependencies
+
+Packages used for developing AIrsenal but not needed to run AIrsenal (such as those in the code style and formatting section below) are included in
+`requirements-dev.txt`. To install them run the following command from the `AIrsenal` directory (with your AIrsenal virtual environment activated if you are using one, for example with `conda activate airsenalenv`):
+```
+pip install -r requirements-dev.txt
+```
+
 ## Code style, formatting, code quality
 
 We are generally following the [PEP-8 style guide][link_pep8] regarding conventions for class, function, and variable names.
@@ -29,15 +37,30 @@ Ideally, docstrings should follow [numpydoc][link_numpydoc] convention (though t
 We encourage extensive documentation.
 
 Although there are not many in the current codebase, we also encourage the use of type hints, as provided by the [typing](link_typing) module. Examples of functions using this can be found in `airsenal/framework/player_model.py`.
+
 For code formatting, we use the `black` linter before pushing our changes to Github - this can be run from the main "AIrsenal" directory by doing:
 ```
 black .
 ```
 and it will reformat any python files it finds.
 
+We also use [isort](https://pycqa.github.io/isort/index.html) to have a consistent alphabetical order on imports. This can be run from the "AIrsenal" directory with:
+```
+isort .
+```
+
 We furthermore use the "flake8" style checker - this will flag up any unused imports, or undefined variables, for you to fix.  This can be run, again from the main AIrsenal directory, via:
 ```
 flake8
+```
+
+Finally, we have a [pre-commit](https://pre-commit.com/) setup that you can use to run all the steps above whenever commiting something to the AIrsenal repo. To set these up run this from the AIrsenal directory:
+```
+pre-commit install
+```
+To check they're working run:
+```
+pre-commit run --all-files
 ```
 
 ## Where to put the code
@@ -56,7 +79,7 @@ Many functions in AIrsenal take a large number of arguments.  Where possible, it
 would be good to standardise the order in which these arguments go across different functions.  This is currently not enforced, and is complicated by different arguments having or not having default values (which would favour putting them towards the end) in different functions, but where possible, we could try to move towards a common order.
 
 Below is a suggested ordering of commonly used arguments, from first to last:
-- Other arguments (not listed below)
+* Other arguments (not listed below)
 * *player* or *player_id* (instance of Player class, or the player_id in the database for that player)
 * *position* (str, either "GK", "DEF", "MID" or "FWD", or "all")
 * *team* (str, 3-letter identifier for team, e.g. "ARS, MUN", or "all")

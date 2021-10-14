@@ -1,17 +1,15 @@
 """Script to fill the database after install."""
-from airsenal.framework.schema import clean_database, database_is_empty
-from airsenal.scripts.fill_team_table import make_team_table
-from airsenal.scripts.fill_player_table import make_player_table
-from airsenal.scripts.fill_player_attributes_table import make_attributes_table
-from airsenal.scripts.fill_fixture_table import make_fixture_table
-from airsenal.scripts.fill_result_table import make_result_table
-from airsenal.scripts.fill_playerscore_table import make_playerscore_table
-from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
-
-from airsenal.framework.transaction_utils import fill_initial_squad
-from airsenal.framework.schema import session_scope
-
 import argparse
+
+from airsenal.framework.schema import clean_database, database_is_empty, session_scope
+from airsenal.framework.transaction_utils import fill_initial_squad
+from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
+from airsenal.scripts.fill_fixture_table import make_fixture_table
+from airsenal.scripts.fill_player_attributes_table import make_attributes_table
+from airsenal.scripts.fill_player_table import make_player_table
+from airsenal.scripts.fill_playerscore_table import make_playerscore_table
+from airsenal.scripts.fill_result_table import make_result_table
+from airsenal.scripts.fill_team_table import make_team_table
 
 
 def check_clean_db(clean, dbsession):

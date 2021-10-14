@@ -6,21 +6,23 @@ https://github.com/sk82jack/PSFPL/blob/master/PSFPL/Public/Invoke-FplTransfer.ps
 https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
-from prettytable import PrettyTable
-import requests
-import json
 import argparse
 import getpass
+import json
+
+import requests
+from prettytable import PrettyTable
+
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
-    session as dbsession,
+    CURRENT_SEASON,
     get_bank,
     get_player,
-    CURRENT_SEASON,
     get_player_from_api_id,
 )
+from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.scripts.set_lineup import set_lineup
 
 """

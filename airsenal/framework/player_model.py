@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 
 import jax.numpy as jnp
 import jax.random as random
@@ -7,8 +9,6 @@ import numpy as np
 import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
-
-from typing import Any, Dict, Optional
 
 
 def get_empirical_bayes_estimates(df_emp, prior_goals=None):
