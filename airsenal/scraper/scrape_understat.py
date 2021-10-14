@@ -110,7 +110,7 @@ def parse_match(match_info: dict):
         soup = BeautifulSoup(response.text, features="lxml")
     else:
         raise RuntimeError(
-            f"Could not reach match at understat.com: {response.status}"
+            f"Could not reach match at understat.com: {response.status_code}"
         )
 
     timeline = soup.find_all(
