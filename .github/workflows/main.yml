@@ -37,5 +37,5 @@ jobs:
         run: pip install .
       - name: Test with pytest
         env:
-          FPL_TEAM_ID: ${{ secrets.FPL_TEAM_ID }}
+          FPL_TEAM_ID: 863052
         run: pytest

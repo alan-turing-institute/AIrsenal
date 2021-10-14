@@ -7,7 +7,6 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 import argparse
-import getpass
 import json
 
 import requests
@@ -23,7 +22,7 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.scripts.set_lineup import set_lineup
+from airsenal.scripts.set_lineup import login, set_lineup
 
 """
 TODO:
@@ -248,29 +247,6 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
     print(transfer_payload)
 
     return transfer_payload
-
-
-def login(session, fetcher):
-
-    if (
-        (not fetcher.FPL_LOGIN)
-        or (not fetcher.FPL_PASSWORD)
-        or (fetcher.FPL_LOGIN == "MISSING_ID")
-        or (fetcher.FPL_PASSWORD == "MISSING_ID")
-    ):
-        fetcher.FPL_LOGIN = input("Please enter FPL login: ")
-        fetcher.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
-
-    # print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
-    login_url = "https://users.premierleague.com/accounts/login/"
-    headers = {
-        "login": fetcher.FPL_LOGIN,
-        "password": fetcher.FPL_PASSWORD,
-        "app": "plfpl-web",
-        "redirect_uri": "https://fantasy.premierleague.com/a/login",
-    }
-    session.post(login_url, data=headers)
-    return session
 
 
 def post_transfers(transfer_payload, fetcher):
