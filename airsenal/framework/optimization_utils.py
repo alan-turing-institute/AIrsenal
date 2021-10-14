@@ -1,24 +1,23 @@
 """
 functions to optimize the transfers for N weeks ahead
 """
+from copy import deepcopy
 from datetime import datetime
 
 from airsenal.framework.schema import (
-    TransferSuggestion,
-    Transaction,
-    PlayerPrediction,
     Fixture,
+    PlayerPrediction,
+    Transaction,
+    TransferSuggestion,
 )
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
-    session,
-    get_current_squad_from_api,
-    get_bank,
-    NEXT_GAMEWEEK,
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
+    get_bank,
+    get_current_squad_from_api,
+    session,
 )
-from copy import deepcopy
-
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 

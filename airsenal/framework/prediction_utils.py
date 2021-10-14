@@ -5,41 +5,38 @@ Use the BPL models to predict scores for upcoming fixtures.
 import os
 from collections import defaultdict
 from functools import partial
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from scipy.stats import multinomial
 
-from airsenal.framework.schema import PlayerPrediction, PlayerScore, Fixture
-
+from airsenal.framework.FPL_scoring_rules import (
+    get_appearance_points,
+    points_for_assist,
+    points_for_cs,
+    points_for_goal,
+    points_for_red_card,
+    points_for_yellow_card,
+    saves_for_point,
+)
 from airsenal.framework.player_model import (
     ConjugatePlayerModel,
     get_empirical_bayes_estimates,
 )
-
+from airsenal.framework.schema import Fixture, PlayerPrediction, PlayerScore
 from airsenal.framework.utils import (
+    CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fastcopy,
+    fetcher,
     get_fixtures_for_player,
-    get_recent_minutes_for_player,
     get_max_matches_per_player,
     get_player,
     get_player_from_api_id,
-    list_players,
-    fetcher,
-    session,
-    CURRENT_SEASON,
+    get_recent_minutes_for_player,
     is_future_gameweek,
-)
-
-from airsenal.framework.FPL_scoring_rules import (
-    points_for_goal,
-    points_for_assist,
-    points_for_cs,
-    get_appearance_points,
-    saves_for_point,
-    points_for_yellow_card,
-    points_for_red_card,
+    list_players,
+    session,
 )
 
 np.random.seed(42)

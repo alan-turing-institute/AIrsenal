@@ -4,13 +4,10 @@ Functions to optimise an initial squad or a squad for wildcards/free hits.
 
 import random
 
-from airsenal.framework.squad import Squad, TOTAL_PER_POSITION
-from airsenal.framework.player import CandidatePlayer
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_predicted_points,
-)
 from airsenal.framework.optimization_utils import get_discount_factor, positions
+from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
+from airsenal.framework.utils import CURRENT_SEASON, get_predicted_points
 
 
 def make_new_squad(

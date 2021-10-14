@@ -10,13 +10,13 @@ brew cask install chromedriver
 pip install bs4
 """
 
-import time
+import argparse
 import json
 import re
-import argparse
+import time
 
-from selenium import webdriver
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 base_url = {
     "1617": "http://fplarchives.com/Seasons/1",

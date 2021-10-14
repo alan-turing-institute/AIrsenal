@@ -5,7 +5,7 @@ get values from player_score and match tables to use as input to
 Empirical Bayes model.
 """
 from airsenal.framework.schema import PlayerScore
-from airsenal.framework.utils import list_players, get_player_name, session
+from airsenal.framework.utils import get_player_name, list_players, session
 
 
 def get_player_history_table(position="all"):

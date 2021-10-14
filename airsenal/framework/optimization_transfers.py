@@ -5,15 +5,15 @@ of using chips.
 import random
 from operator import itemgetter
 
+from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.optimization_utils import get_discount_factor
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     CURRENT_SEASON,
-    get_predicted_points,
+    NEXT_GAMEWEEK,
     fastcopy,
+    get_predicted_points,
     get_squad_value,
 )
-from airsenal.framework.optimization_utils import get_discount_factor
-from airsenal.framework.optimization_squad import make_new_squad
 
 
 def make_optimum_single_transfer(

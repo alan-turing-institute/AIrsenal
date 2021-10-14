@@ -4,6 +4,7 @@ Plot the league
 """
 
 import argparse
+
 import matplotlib.pyplot as plt
 
 from airsenal.framework.data_fetcher import FPLDataFetcher

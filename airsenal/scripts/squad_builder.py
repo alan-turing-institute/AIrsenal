@@ -3,17 +3,13 @@
 import argparse
 import sys
 
-from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
-    get_latest_prediction_tag,
-    fetcher,
-)
+from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     check_tag_valid,
     fill_initial_suggestion_table,
 )
 from airsenal.framework.season import get_current_season
-from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher, get_latest_prediction_tag
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 

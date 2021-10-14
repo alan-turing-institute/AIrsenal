@@ -10,8 +10,8 @@ from sqlalchemy.orm import sessionmaker
 
 from airsenal.framework.fpl_team_utils import (
     get_league_standings,
-    get_overall_ranking,
     get_overall_points,
+    get_overall_ranking,
 )
 
 
@@ -64,7 +64,7 @@ def get_suggestions_string():
 
     time.sleep(1)
     try:
-        from airsenal.framework.schema import Player, TransferSuggestion, Base, engine
+        from airsenal.framework.schema import Base, Player, TransferSuggestion, engine
 
         Base.metadata.bind = engine
         DBSession = sessionmaker()

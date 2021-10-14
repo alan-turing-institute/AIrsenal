@@ -6,9 +6,8 @@ help fill other tables from raw json files
 """
 import os
 
-from airsenal.framework.schema import Team
+from airsenal.framework.schema import Team, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
-from airsenal.framework.schema import session_scope, session
 
 
 def fill_team_table_from_file(filename, dbsession=session):

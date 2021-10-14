@@ -4,18 +4,18 @@ test that functions supporting our API work.
 
 import re
 
+from airsenal.conftest import API_SESSION_ID, test_session_scope
 from airsenal.framework.api_utils import (
-    reset_session_squad,
-    get_session_budget,
     add_session_player,
+    get_session_budget,
     get_session_players,
+    list_players_teams_prices,
+    remove_session_player,
+    reset_session_squad,
     set_session_budget,
     validate_session_squad,
-    remove_session_player,
-    list_players_teams_prices,
 )
-from airsenal.framework.schema import SessionSquad, SessionBudget
-from airsenal.conftest import test_session_scope, API_SESSION_ID
+from airsenal.framework.schema import SessionBudget, SessionSquad
 
 
 def test_reset_session_squad():

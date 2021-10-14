@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import json
-import pandas as pd
+import sys
 
+import pandas as pd
 
 """
 The results_xxyy.csv don't have gameweek info in, create them by looking

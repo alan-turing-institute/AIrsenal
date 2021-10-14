@@ -6,14 +6,14 @@ import csv
 import os
 
 from airsenal.framework.schema import (
+    FifaTeamRating,
+    Fixture,
     Player,
     PlayerAttributes,
-    Fixture,
+    PlayerScore,
     Result,
     Team,
-    FifaTeamRating,
     Transaction,
-    PlayerScore,
 )
 from airsenal.framework.utils import session
 

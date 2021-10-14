@@ -2,26 +2,27 @@
 Useful commands to query the db
 """
 
+from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
-from datetime import datetime, timezone, date
+from pickle import dumps, loads
 from typing import TypeVar
+
 import dateparser
 import regex as re
-from pickle import loads, dumps
 import requests
-from sqlalchemy import or_, case, desc
+from sqlalchemy import case, desc, or_
 
-from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.schema import (
+    Fixture,
     Player,
     PlayerAttributes,
-    Fixture,
-    PlayerScore,
     PlayerPrediction,
-    Transaction,
+    PlayerScore,
     Team,
+    Transaction,
     session,
 )
 from airsenal.framework.season import CURRENT_SEASON

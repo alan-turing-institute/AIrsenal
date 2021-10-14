@@ -2,11 +2,12 @@
 Classes to query the FPL API to retrieve current FPL data,
 and to query football-data.org to retrieve match and fixture data.
 """
-import os
-import requests
-import json
-import time
 import getpass
+import json
+import os
+import time
+
+import requests
 
 API_HOME = "https://fantasy.premierleague.com/api"
 

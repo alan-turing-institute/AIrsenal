@@ -4,30 +4,26 @@ Functions used by the AIrsenal API
 from flask import jsonify
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from airsenal.framework.optimization_transfers import (
+    make_optimum_double_transfer,
+    make_optimum_single_transfer,
+)
+from airsenal.framework.schema import Player, SessionBudget, SessionSquad, engine
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
     fetcher,
-    list_players,
-    list_teams,
+    get_fixtures_for_player,
     get_last_finished_gameweek,
     get_latest_prediction_tag,
-    NEXT_GAMEWEEK,
-    get_predicted_points_for_player,
-    get_fixtures_for_player,
     get_next_fixture_for_player,
     get_player,
+    get_predicted_points_for_player,
     get_recent_scores_for_player,
+    list_players,
+    list_teams,
 )
-
-from airsenal.framework.schema import engine, SessionSquad, SessionBudget, Player
-
-from airsenal.framework.squad import Squad
-
-from airsenal.framework.optimization_transfers import (
-    make_optimum_single_transfer,
-    make_optimum_double_transfer,
-)
-
 
 DBSESSION = scoped_session(sessionmaker(bind=engine))
 

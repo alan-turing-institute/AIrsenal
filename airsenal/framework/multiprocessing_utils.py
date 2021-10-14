@@ -8,9 +8,9 @@ by Fanchen Bao, based on this Stack Overflow thread:
 https://stackoverflow.com/questions/41952413/get-length-of-queue-in-pythons-multiprocessing-library
 """
 
-from multiprocessing.queues import Queue
 import multiprocessing
 import os
+from multiprocessing.queues import Queue
 
 
 def set_multiprocessing_start_method(num_thread=2):
