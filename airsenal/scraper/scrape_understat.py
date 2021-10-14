@@ -131,12 +131,13 @@ def parse_match(match_info: dict):
             goal_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
             goals.append((scorer, goal_time))
         else:
-            row = event.find("div", attrs={"class": "timeline-row"})
-            if row.find("i", attrs={"class": "player-substitution"}):
-                sub_info = [a.text for a in row.find_all("a")]
-                sub_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
-                sub_info.append(sub_time)
-                subs.append(sub_info)
+            row = event.find_all("div", attrs={"class": "timeline-row"})
+            for r in row:
+                if r.find("i", attrs={"class": "player-substitution"}):
+                    sub_info = [a.text for a in r.find_all("a")]
+                    sub_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
+                    sub_info.append(sub_time)
+                    subs.append(sub_info)
 
     result = {
         "datetime": date,

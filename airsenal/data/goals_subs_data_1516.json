@@ -21,6 +21,11 @@
                 "69"
             ],
             [
+                "Mousa Demb\u00e9l\u00e9",
+                "Erik Lamela",
+                "69"
+            ],
+            [
                 "Eric Dier",
                 "Dele Alli",
                 "78"
@@ -62,6 +67,11 @@
                 "Jordan Veretout",
                 "Carlos S\u00e1nchez",
                 "72"
+            ],
+            [
+                "Scott Sinclair",
+                "Kieran Richardson",
+                "79"
             ],
             [
                 "Dan Gosling",
@@ -205,6 +215,11 @@
             [
                 "Alexander Tettey",
                 "Nathan Redmond",
+                "56"
+            ],
+            [
+                "Lewis Grabban",
+                "Cameron Jerome",
                 "56"
             ],
             [
@@ -393,6 +408,16 @@
                 "Ibrahim Afellay",
                 "Peter Odemwingie",
                 "80"
+            ],
+            [
+                "Charlie Adam",
+                "Steve Sidwell",
+                "80"
+            ],
+            [
+                "Jordon Ibe",
+                "Roberto Firmino",
+                "80"
             ]
         ]
     },
@@ -431,8 +456,18 @@
                 "75"
             ],
             [
+                "Raheem Sterling",
+                "Samir Nasri",
+                "75"
+            ],
+            [
                 "Saido Berahino",
                 "Callum McManaman",
+                "81"
+            ],
+            [
+                "Yaya Tour\u00e9",
+                "Mart\u00edn Demichelis",
                 "81"
             ]
         ]
@@ -459,9 +494,19 @@
                 "61"
             ],
             [
+                "Adnan Januzaj",
+                "Ander Herrera",
+                "61"
+            ],
+            [
                 "Jordan Veretout",
                 "Carlos S\u00e1nchez",
                 "79"
+            ],
+            [
+                "Memphis Depay",
+                "Ashley Young",
+                "83"
             ]
         ]
     },
@@ -577,6 +622,11 @@
         ],
         "subs": [
             [
+                "Moussa Sissoko",
+                "Steven Taylor",
+                "48"
+            ],
+            [
                 "Papiss Demba Ciss\u00e9",
                 "Rolando Aarons",
                 "56"
@@ -622,6 +672,11 @@
             ]
         ],
         "subs": [
+            [
+                "Marco van Ginkel",
+                "Stephen Ireland",
+                "61"
+            ],
             [
                 "Jonathan Walters",
                 "Joselu",
@@ -795,6 +850,11 @@
         ],
         "subs": [
             [
+                "John Terry",
+                "Kurt Zouma",
+                "50"
+            ],
+            [
                 "Ramires",
                 "Juan Cuadrado",
                 "68"
@@ -807,6 +867,11 @@
             [
                 "Raheem Sterling",
                 "Mart\u00edn Demichelis",
+                "83"
+            ],
+            [
+                "Willian",
+                "Falcao",
                 "83"
             ],
             [
@@ -845,6 +910,11 @@
             [
                 "Philippe Coutinho",
                 "Alberto Moreno",
+                "82"
+            ],
+            [
+                "Max Gradel",
+                "Adam Smith",
                 "82"
             ],
             [
@@ -913,9 +983,19 @@
                 "59"
             ],
             [
+                "Marko Arnautovic",
+                "Joselu",
+                "59"
+            ],
+            [
                 "Wes Hoolahan",
                 "Bradley Johnson",
                 "79"
+            ],
+            [
+                "Marco van Ginkel",
+                "Charlie Adam",
+                "81"
             ],
             [
                 "Jonny Howson",
@@ -977,6 +1057,16 @@
         ],
         "subs": [
             [
+                "Glenn Murray",
+                "Jordon Mutch",
+                "49"
+            ],
+            [
+                "Wilfried Zaha",
+                "Dwight Gayle",
+                "49"
+            ],
+            [
                 "Carlos S\u00e1nchez",
                 "Adama Traor\u00e9",
                 "72"
@@ -1017,6 +1107,11 @@
                 "Daniel Drinkwater",
                 "G\u00f6khan Inler",
                 "82"
+            ],
+            [
+                "Ryan Mason",
+                "Nabil Bentaleb",
+                "90"
             ],
             [
                 "Riyad Mahrez",
@@ -1122,6 +1217,11 @@
                 "80"
             ],
             [
+                "Diego Costa",
+                "Falcao",
+                "80"
+            ],
+            [
                 "Pedro",
                 "John Obi Mikel",
                 "86"
@@ -1162,6 +1262,11 @@
                 "Raheem Sterling",
                 "Samir Nasri",
                 "80"
+            ],
+            [
+                "Sergio Ag\u00fcero",
+                "Wilfried Bony",
+                "85"
             ],
             [
                 "Tom Cleverley",
@@ -1214,6 +1319,11 @@
         "away": "Liverpool",
         "goals": [],
         "subs": [
+            [
+                "Roberto Firmino",
+                "Jordon Ibe",
+                "64"
+            ],
             [
                 "Olivier Giroud",
                 "Theo Walcott",
@@ -1296,6 +1406,11 @@
                 "66"
             ],
             [
+                "James McClean",
+                "Cristian Gamboa",
+                "66"
+            ],
+            [
                 "Xherdan Shaqiri",
                 "Marko Arnautovic",
                 "71"
@@ -1332,9 +1447,19 @@
                 "47"
             ],
             [
+                "Danny Graham",
+                "Steven Fletcher",
+                "47"
+            ],
+            [
                 "Leandro Bacuna",
                 "Carles Gil",
                 "69"
+            ],
+            [
+                "Jeremain Lens",
+                "Sebastian Larsson",
+                "78"
             ]
         ]
     },
@@ -1352,6 +1477,11 @@
             [
                 "Charlie Daniels",
                 "Tyrone Mings",
+                "48"
+            ],
+            [
+                "Riyad Mahrez",
+                "Shinji Okazaki",
                 "48"
             ],
             [
@@ -1639,6 +1769,11 @@
                 "71"
             ],
             [
+                "Morgan Schneiderlin",
+                "Michael Carrick",
+                "71"
+            ],
+            [
                 "Ander Herrera",
                 "Marouane Fellaini",
                 "78"
@@ -1736,8 +1871,18 @@
                 "76"
             ],
             [
+                "Mame Biram Diouf",
+                "Bojan",
+                "76"
+            ],
+            [
                 "Alexis S\u00e1nchez",
                 "Mikel Arteta",
+                "85"
+            ],
+            [
+                "Mesut \u00d6zil",
+                "Alex Oxlade-Chamberlain",
                 "85"
             ]
         ]
@@ -1807,8 +1952,18 @@
                 "67"
             ],
             [
+                "Jack Cork",
+                "Ki Sung-yueng",
+                "67"
+            ],
+            [
                 "Odion Ighalo",
                 "Steven Berghuis",
+                "72"
+            ],
+            [
+                "Gylfi Sigurdsson",
+                "Eder",
                 "72"
             ],
             [
@@ -1875,9 +2030,24 @@
         ],
         "subs": [
             [
+                "Junior Stanislas",
+                "Yann Kermorgant",
+                "59"
+            ],
+            [
+                "Joshua King",
+                "Glenn Murray",
+                "59"
+            ],
+            [
                 "Eunan O'Kane",
                 "Dan Gosling",
                 "74"
+            ],
+            [
+                "Wes Hoolahan",
+                "Graham Dorrans",
+                "75"
             ],
             [
                 "Matthew Jarvis",
@@ -1921,6 +2091,11 @@
                 "66"
             ],
             [
+                "Roberto Firmino",
+                "Jordon Ibe",
+                "66"
+            ],
+            [
                 "Michael Carrick",
                 "Morgan Schneiderlin",
                 "73"
@@ -1957,6 +2132,11 @@
                 "Dele Alli",
                 "Erik Lamela",
                 "69"
+            ],
+            [
+                "Jordi G\u00f3mez",
+                "Lee Cattermole",
+                "76"
             ],
             [
                 "Fabio Borini",
@@ -2013,6 +2193,11 @@
                 "67"
             ],
             [
+                "G\u00f6khan Inler",
+                "N'Golo Kant\u00e9",
+                "67"
+            ],
+            [
                 "Carles Gil",
                 "Jordan Ayew",
                 "69"
@@ -2060,6 +2245,11 @@
                 "61"
             ],
             [
+                "Florian Thauvin",
+                "Ayoze P\u00e9rez",
+                "61"
+            ],
+            [
                 "Georginio Wijnaldum",
                 "Rolando Aarons",
                 "80"
@@ -2091,6 +2281,16 @@
                 "Oscar",
                 "Ramires",
                 "72"
+            ],
+            [
+                "Mesut \u00d6zil",
+                "Olivier Giroud",
+                "78"
+            ],
+            [
+                "Alexis S\u00e1nchez",
+                "Alex Oxlade-Chamberlain",
+                "78"
             ],
             [
                 "Diego Costa",
@@ -2139,8 +2339,18 @@
                 "82"
             ],
             [
+                "Jurado",
+                "Nathan Ak\u00e9",
+                "82"
+            ],
+            [
                 "Florian Thauvin",
                 "Gabriel Obertan",
+                "90"
+            ],
+            [
+                "Ben Watson",
+                "Adl\u00e8ne Gu\u00e9dioura",
                 "90"
             ]
         ]
@@ -2222,6 +2432,11 @@
                 "Fabio Borini",
                 "Adam Johnson",
                 "75"
+            ],
+            [
+                "Callum Wilson",
+                "Glenn Murray",
+                "79"
             ],
             [
                 "Matt Ritchie",
@@ -2436,6 +2651,11 @@
                 "47"
             ],
             [
+                "Matteo Darmian",
+                "Antonio Valencia",
+                "47"
+            ],
+            [
                 "Oriol Romeu",
                 "Steven Davis",
                 "57"
@@ -2449,6 +2669,11 @@
                 "Marcos Rojo",
                 "Paddy McNair",
                 "70"
+            ],
+            [
+                "James Ward-Prowse",
+                "Shane Long",
+                "77"
             ]
         ]
     },
@@ -2532,6 +2757,11 @@
                 "70"
             ],
             [
+                "Sergio Ag\u00fcero",
+                "Patrick Roberts",
+                "87"
+            ],
+            [
                 "Erik Lamela",
                 "Tom Carroll",
                 "88"
@@ -2553,6 +2783,11 @@
             ]
         ],
         "subs": [
+            [
+                "Jack Cork",
+                "Jefferson Montero",
+                "49"
+            ],
             [
                 "Baf\u00e9timbi Gomis",
                 "Eder",
@@ -2825,6 +3060,11 @@
                 "Mark Noble",
                 "Mauro Z\u00e1rate",
                 "86"
+            ],
+            [
+                "Wes Hoolahan",
+                "Gary O'Neil",
+                "86"
             ]
         ]
     },
@@ -2859,6 +3099,11 @@
             [
                 "Nemanja Matic",
                 "Willian",
+                "63"
+            ],
+            [
+                "Lo\u00efc Remy",
+                "Falcao",
                 "63"
             ],
             [
@@ -2898,6 +3143,11 @@
                 "Nyom",
                 "Nathan Ak\u00e9",
                 "76"
+            ],
+            [
+                "Yohan Cabaye",
+                "James McArthur",
+                "78"
             ],
             [
                 "Ben Watson",
@@ -3129,6 +3379,16 @@
                 "69"
             ],
             [
+                "Yoan Gouffran",
+                "Florian Thauvin",
+                "69"
+            ],
+            [
+                "Moussa Sissoko",
+                "Cheick Tiot\u00e9",
+                "69"
+            ],
+            [
                 "David Silva",
                 "Kelechi Iheanacho",
                 "78"
@@ -3173,6 +3433,11 @@
             [
                 "Cameron Jerome",
                 "Kyle Lafferty",
+                "80"
+            ],
+            [
+                "Jeffrey Schlupp",
+                "Andy King",
                 "80"
             ]
         ]
@@ -3261,6 +3526,11 @@
                 "48"
             ],
             [
+                "Oriol Romeu",
+                "James Ward-Prowse",
+                "48"
+            ],
+            [
                 "Willian",
                 "Pedro",
                 "66"
@@ -3310,6 +3580,11 @@
             [
                 "Steven Naismith",
                 "Arouna Kon\u00e9",
+                "82"
+            ],
+            [
+                "Lucas Leiva",
+                "Joe Allen",
                 "82"
             ]
         ]
@@ -3385,8 +3660,18 @@
                 "48"
             ],
             [
+                "Matteo Darmian",
+                "Antonio Valencia",
+                "48"
+            ],
+            [
                 "Theo Walcott",
                 "Olivier Giroud",
+                "77"
+            ],
+            [
+                "Mesut \u00d6zil",
+                "Alex Oxlade-Chamberlain",
                 "77"
             ],
             [
@@ -3421,6 +3706,11 @@
                 "Erik Lamela",
                 "Andros Townsend",
                 "89"
+            ],
+            [
+                "Philippe Coutinho",
+                "Jordon Ibe",
+                "89"
             ]
         ]
     },
@@ -3453,8 +3743,18 @@
                 "50"
             ],
             [
+                "Jeffrey Schlupp",
+                "Nathan Dyer",
+                "50"
+            ],
+            [
                 "C\u00e9dric Soares",
                 "Maya Yoshida",
+                "64"
+            ],
+            [
+                "Steven Davis",
+                "Jordy Clasie",
                 "64"
             ],
             [
@@ -3483,6 +3783,11 @@
             [
                 "Salom\u00f3n Rond\u00f3n",
                 "Rickie Lambert",
+                "72"
+            ],
+            [
+                "Jordi G\u00f3mez",
+                "Jermain Defoe",
                 "72"
             ],
             [
@@ -3606,6 +3911,11 @@
                 "47"
             ],
             [
+                "Juan Mata",
+                "Jesse Lingard",
+                "47"
+            ],
+            [
                 "Aaron Lennon",
                 "Gerard Deulofeu",
                 "74"
@@ -3677,6 +3987,11 @@
                 "Raheem Sterling",
                 "Kelechi Iheanacho",
                 "81"
+            ],
+            [
+                "Adam Smith",
+                "Marc Pugh",
+                "81"
             ]
         ]
     },
@@ -3722,6 +4037,11 @@
             [
                 "Ikechi Anya",
                 "Juan Carlos Paredes",
+                "82"
+            ],
+            [
+                "Mesut \u00d6zil",
+                "Mikel Arteta",
                 "82"
             ]
         ]
@@ -3781,6 +4101,11 @@
                 "87"
             ],
             [
+                "Graham Dorrans",
+                "Gary O'Neil",
+                "87"
+            ],
+            [
                 "Aleksandar Mitrovic",
                 "Papiss Demba Ciss\u00e9",
                 "91"
@@ -3796,6 +4121,11 @@
             [
                 "Modou Barrow",
                 "Gylfi Sigurdsson",
+                "61"
+            ],
+            [
+                "Jack Cork",
+                "Ki Sung-yueng",
                 "61"
             ],
             [
@@ -3929,6 +4259,11 @@
                 "84"
             ],
             [
+                "Ramires",
+                "Falcao",
+                "84"
+            ],
+            [
                 "C\u00e9sar Azpilicueta",
                 "Abdul Rahman Baba",
                 "89"
@@ -4053,6 +4388,11 @@
                 "Alexis S\u00e1nchez",
                 "Kieran Gibbs",
                 "91"
+            ],
+            [
+                "Seamus Coleman",
+                "Arouna Kon\u00e9",
+                "91"
             ]
         ]
     },
@@ -4133,6 +4473,11 @@
             [
                 "Glenn Murray",
                 "Yann Kermorgant",
+                "70"
+            ],
+            [
+                "Mousa Demb\u00e9l\u00e9",
+                "Ryan Mason",
                 "70"
             ],
             [
@@ -4229,6 +4574,11 @@
                 "Steven Davis",
                 "Gast\u00f3n Ram\u00edrez",
                 "81"
+            ],
+            [
+                "Philippe Coutinho",
+                "Jordon Ibe",
+                "84"
             ]
         ]
     },
@@ -4268,6 +4618,11 @@
             [
                 "C\u00e9sar Azpilicueta",
                 "Falcao",
+                "79"
+            ],
+            [
+                "Roberto Firmino",
+                "Jordon Ibe",
                 "79"
             ],
             [
@@ -4341,6 +4696,11 @@
                 "74"
             ],
             [
+                "Cameron Jerome",
+                "Lewis Grabban",
+                "88"
+            ],
+            [
                 "Yaya Tour\u00e9",
                 "Mart\u00edn Demichelis",
                 "95"
@@ -4410,8 +4770,18 @@
                 "86"
             ],
             [
+                "Olivier Giroud",
+                "Calum Chambers",
+                "86"
+            ],
+            [
                 "Baf\u00e9timbi Gomis",
                 "Eder",
+                "87"
+            ],
+            [
+                "Ki Sung-yueng",
+                "Leon Britton",
                 "87"
             ],
             [
@@ -4444,6 +4814,11 @@
             [
                 "Almen Abdi",
                 "Valon Behrami",
+                "77"
+            ],
+            [
+                "Mark Noble",
+                "Nikica Jelavic",
                 "77"
             ],
             [
@@ -4485,6 +4860,21 @@
                 "Saido Berahino",
                 "Rickie Lambert",
                 "77"
+            ],
+            [
+                "Claudio Yacob",
+                "James Morrison",
+                "77"
+            ],
+            [
+                "Marc Albrighton",
+                "Nathan Dyer",
+                "77"
+            ],
+            [
+                "Chris Brunt",
+                "Callum McManaman",
+                "83"
             ],
             [
                 "Daniel Drinkwater",
@@ -4581,6 +4971,16 @@
                 "47"
             ],
             [
+                "Glenn Murray",
+                "Joshua King",
+                "47"
+            ],
+            [
+                "Marc Pugh",
+                "Junior Stanislas",
+                "47"
+            ],
+            [
                 "Jordy Clasie",
                 "Oriol Romeu",
                 "72"
@@ -4664,6 +5064,11 @@
                 "64"
             ],
             [
+                "Junior Stanislas",
+                "Lee Tomlin",
+                "74"
+            ],
+            [
                 "Joshua King",
                 "Yann Kermorgant",
                 "74"
@@ -4742,6 +5147,11 @@
             [
                 "Salom\u00f3n Rond\u00f3n",
                 "Rickie Lambert",
+                "74"
+            ],
+            [
+                "James Morrison",
+                "Saido Berahino",
                 "74"
             ],
             [
@@ -4891,6 +5301,11 @@
                 "74"
             ],
             [
+                "Pedro",
+                "Cesc F\u00e0bregas",
+                "74"
+            ],
+            [
                 "Bojan",
                 "Geoff Cameron",
                 "75"
@@ -4941,6 +5356,11 @@
             [
                 "Jordan Ayew",
                 "Rudy Gestede",
+                "85"
+            ],
+            [
+                "Raheem Sterling",
+                "Kelechi Iheanacho",
                 "85"
             ]
         ]
@@ -5017,6 +5437,11 @@
                 "68"
             ],
             [
+                "Bakary Sako",
+                "Connor Wickham",
+                "68"
+            ],
+            [
                 "Jason Puncheon",
                 "Joe Ledley",
                 "82"
@@ -5024,6 +5449,11 @@
             [
                 "Jordon Ibe",
                 "Divock Origi",
+                "90"
+            ],
+            [
+                "Yohan Cabaye",
+                "Jordon Mutch",
                 "90"
             ]
         ]
@@ -5055,6 +5485,11 @@
                 "70"
             ],
             [
+                "Phil Jones",
+                "Paddy McNair",
+                "70"
+            ],
+            [
                 "Juan Mata",
                 "Andreas Pereira",
                 "80"
@@ -5083,6 +5518,11 @@
             [
                 "Wayne Routledge",
                 "Jefferson Montero",
+                "73"
+            ],
+            [
+                "Leon Britton",
+                "Gylfi Sigurdsson",
                 "73"
             ],
             [
@@ -5227,6 +5667,11 @@
                 "64"
             ],
             [
+                "Leonardo Ulloa",
+                "Shinji Okazaki",
+                "75"
+            ],
+            [
                 "Jamie Vardy",
                 "Andy King",
                 "79"
@@ -5277,6 +5722,16 @@
                 "75"
             ],
             [
+                "Ross Barkley",
+                "Leon Osman",
+                "75"
+            ],
+            [
+                "Jack Grealish",
+                "Charles N'Zogbia",
+                "75"
+            ],
+            [
                 "James McCarthy",
                 "Darron Gibson",
                 "85"
@@ -5295,8 +5750,18 @@
         ],
         "subs": [
             [
+                "Youssouf Mulumbu",
+                "Graham Dorrans",
+                "74"
+            ],
+            [
                 "Jonny Howson",
                 "Wes Hoolahan",
+                "74"
+            ],
+            [
+                "Dieumerci Mbokani",
+                "Cameron Jerome",
                 "74"
             ],
             [
@@ -5342,6 +5807,11 @@
             [
                 "Yaya Tour\u00e9",
                 "Fernandinho",
+                "48"
+            ],
+            [
+                "Jes\u00fas Navas",
+                "Fabian Delph",
                 "48"
             ],
             [
@@ -5393,6 +5863,11 @@
             ]
         ],
         "subs": [
+            [
+                "Andy Carroll",
+                "Nikica Jelavic",
+                "64"
+            ],
             [
                 "Victor Moses",
                 "Mauro Z\u00e1rate",
@@ -5529,6 +6004,16 @@
         ],
         "subs": [
             [
+                "Heurelho Gomes",
+                "Giedrius Arlauskis",
+                "68"
+            ],
+            [
+                "Juan Carlos Paredes",
+                "Ikechi Anya",
+                "68"
+            ],
+            [
                 "Carles Gil",
                 "Adama Traor\u00e9",
                 "69"
@@ -5579,6 +6064,11 @@
             [
                 "Steve Cook",
                 "Adam Smith",
+                "49"
+            ],
+            [
+                "Adam Federici",
+                "Ryan Allsop",
                 "49"
             ],
             [
@@ -5642,6 +6132,11 @@
             [
                 "Georginio Wijnaldum",
                 "Yoan Gouffran",
+                "72"
+            ],
+            [
+                "Jack Colback",
+                "Siem de Jong",
                 "72"
             ],
             [
@@ -5768,6 +6263,11 @@
                 "Willian",
                 "Kenedy",
                 "91"
+            ],
+            [
+                "Pedro",
+                "Ruben Loftus-Cheek",
+                "94"
             ]
         ]
     },
@@ -5880,6 +6380,11 @@
             [
                 "Wes Hoolahan",
                 "Vadis Odjidja-Ofoe",
+                "88"
+            ],
+            [
+                "Lewis Grabban",
+                "Cameron Jerome",
                 "88"
             ]
         ]
@@ -6044,6 +6549,11 @@
                 "Erik Lamela",
                 "Son Heung-Min",
                 "67"
+            ],
+            [
+                "Dele Alli",
+                "Clinton N'Jie",
+                "82"
             ]
         ]
     },
@@ -6157,6 +6667,11 @@
                 "65"
             ],
             [
+                "Victor Wanyama",
+                "Oriol Romeu",
+                "65"
+            ],
+            [
                 "Rudy Gestede",
                 "Ashley Westwood",
                 "77"
@@ -6203,6 +6718,11 @@
                 "Abdul Rahman Baba",
                 "Bertrand Traor\u00e9",
                 "86"
+            ],
+            [
+                "Cesc F\u00e0bregas",
+                "Lo\u00efc Remy",
+                "86"
             ]
         ]
     },
@@ -6220,6 +6740,11 @@
             [
                 "Christian Benteke",
                 "Adam Lallana",
+                "63"
+            ],
+            [
+                "Roberto Firmino",
+                "Daniel Sturridge",
                 "63"
             ],
             [
@@ -6267,6 +6792,11 @@
             [
                 "Connor Wickham",
                 "Dwight Gayle",
+                "78"
+            ],
+            [
+                "Yohan Cabaye",
+                "Jordon Mutch",
                 "78"
             ]
         ]
@@ -6336,6 +6866,11 @@
                 "David Silva",
                 "Kevin De Bruyne",
                 "69"
+            ],
+            [
+                "Leon Britton",
+                "Jefferson Montero",
+                "76"
             ],
             [
                 "Wayne Routledge",
@@ -6409,6 +6944,11 @@
                 "69"
             ],
             [
+                "Maya Yoshida",
+                "Dusan Tadic",
+                "69"
+            ],
+            [
                 "Oriol Romeu",
                 "James Ward-Prowse",
                 "81"
@@ -6435,6 +6975,11 @@
                 "Marco van Ginkel",
                 "Mame Biram Diouf",
                 "58"
+            ],
+            [
+                "Alexandre Song",
+                "Enner Valencia",
+                "66"
             ],
             [
                 "Ibrahim Afellay",
@@ -6518,6 +7063,11 @@
             [
                 "Joel Campbell",
                 "Kieran Gibbs",
+                "65"
+            ],
+            [
+                "Theo Walcott",
+                "Alex Oxlade-Chamberlain",
                 "65"
             ],
             [
@@ -6737,6 +7287,11 @@
                 "65"
             ],
             [
+                "Dusan Tadic",
+                "Juanmi",
+                "65"
+            ],
+            [
                 "Jordy Clasie",
                 "James Ward-Prowse",
                 "79"
@@ -6821,6 +7376,11 @@
                 "22"
             ],
             [
+                "Ola Toivonen",
+                "Fabio Borini",
+                "47"
+            ],
+            [
                 "Cesc F\u00e0bregas",
                 "John Obi Mikel",
                 "72"
@@ -6872,6 +7432,11 @@
                 "77"
             ],
             [
+                "Gerard Deulofeu",
+                "Aaron Lennon",
+                "77"
+            ],
+            [
                 "Riyad Mahrez",
                 "Ritchie de Laet",
                 "86"
@@ -6915,6 +7480,11 @@
             [
                 "Cameron Jerome",
                 "Dieumerci Mbokani",
+                "83"
+            ],
+            [
+                "Gary O'Neil",
+                "Youssouf Mulumbu",
                 "83"
             ]
         ]
@@ -6976,6 +7546,16 @@
                 "40"
             ],
             [
+                "Adam Lallana",
+                "Jordon Ibe",
+                "77"
+            ],
+            [
+                "Roberto Firmino",
+                "Christian Benteke",
+                "77"
+            ],
+            [
                 "Jurado",
                 "Ikechi Anya",
                 "79"
@@ -7014,9 +7594,19 @@
                 "74"
             ],
             [
+                "Alexandre Song",
+                "Pedro Obiang",
+                "74"
+            ],
+            [
                 "Andr\u00e9 Ayew",
                 "Modou Barrow",
                 "84"
+            ],
+            [
+                "Michail Antonio",
+                "Carl Jenkinson",
+                "86"
             ]
         ]
     },
@@ -7039,6 +7629,11 @@
             ]
         ],
         "subs": [
+            [
+                "Fabian Delph",
+                "Raheem Sterling",
+                "47"
+            ],
             [
                 "Sergio Ag\u00fcero",
                 "Wilfried Bony",
@@ -7084,6 +7679,11 @@
             [
                 "Glenn Whelan",
                 "Marco van Ginkel",
+                "49"
+            ],
+            [
+                "Memphis Depay",
+                "Wayne Rooney",
                 "49"
             ],
             [
@@ -7162,13 +7762,28 @@
         ],
         "subs": [
             [
+                "Christian Eriksen",
+                "Tom Carroll",
+                "73"
+            ],
+            [
                 "Youssouf Mulumbu",
                 "Jonny Howson",
                 "74"
             ],
             [
+                "Vadis Odjidja-Ofoe",
+                "Graham Dorrans",
+                "74"
+            ],
+            [
                 "Dele Alli",
                 "Son Heung-Min",
+                "80"
+            ],
+            [
+                "Robbie Brady",
+                "Dieumerci Mbokani",
                 "80"
             ],
             [
@@ -7225,6 +7840,11 @@
             [
                 "Harry Arter",
                 "Eunan O'Kane",
+                "48"
+            ],
+            [
+                "Jordon Mutch",
+                "Yohan Cabaye",
                 "48"
             ],
             [
@@ -7313,6 +7933,11 @@
                 "71"
             ],
             [
+                "Shinji Okazaki",
+                "Nathan Dyer",
+                "71"
+            ],
+            [
                 "Riyad Mahrez",
                 "Andrej Kramaric",
                 "82"
@@ -7367,6 +7992,16 @@
                 "63"
             ],
             [
+                "Yaya Tour\u00e9",
+                "Fabian Delph",
+                "63"
+            ],
+            [
+                "Steven Fletcher",
+                "Jeremain Lens",
+                "63"
+            ],
+            [
                 "Vincent Kompany",
                 "Mart\u00edn Demichelis",
                 "72"
@@ -7392,6 +8027,11 @@
             [
                 "Aaron Lennon",
                 "Muhamed Besic",
+                "70"
+            ],
+            [
+                "Ross Barkley",
+                "Gerard Deulofeu",
                 "70"
             ],
             [
@@ -7539,6 +8179,11 @@
                 "69"
             ],
             [
+                "Tom Carroll",
+                "Son Heung-Min",
+                "69"
+            ],
+            [
                 "Dele Alli",
                 "Nacer Chadli",
                 "82"
@@ -7579,6 +8224,11 @@
                 "Wes Hoolahan",
                 "Vadis Odjidja-Ofoe",
                 "89"
+            ],
+            [
+                "Dieumerci Mbokani",
+                "Cameron Jerome",
+                "89"
             ]
         ]
     },
@@ -7592,6 +8242,11 @@
                 "Marouane Chamakh",
                 "Patrick Bamford",
                 "47"
+            ],
+            [
+                "Jonjo Shelvey",
+                "Ki Sung-yueng",
+                "57"
             ],
             [
                 "Marvin Emnes",
@@ -7665,6 +8320,11 @@
                 "Geoff Cameron",
                 "Jonathan Walters",
                 "80"
+            ],
+            [
+                "Xherdan Shaqiri",
+                "Marco van Ginkel",
+                "89"
             ]
         ]
     },
@@ -7694,6 +8354,11 @@
                 "81"
             ],
             [
+                "Joshua King",
+                "Glenn Murray",
+                "81"
+            ],
+            [
                 "Kieran Gibbs",
                 "Nacho Monreal",
                 "83"
@@ -7714,6 +8379,11 @@
             [
                 "Matteo Darmian",
                 "Cameron Borthwick-Jackson",
+                "71"
+            ],
+            [
+                "Willian",
+                "Ramires",
                 "71"
             ],
             [
@@ -7754,6 +8424,11 @@
                 "47"
             ],
             [
+                "Mauro Z\u00e1rate",
+                "Andy Carroll",
+                "47"
+            ],
+            [
                 "Cuco Martina",
                 "Maya Yoshida",
                 "71"
@@ -7761,6 +8436,11 @@
             [
                 "Sadio Man\u00e9",
                 "Juanmi",
+                "76"
+            ],
+            [
+                "Dusan Tadic",
+                "Gast\u00f3n Ram\u00edrez",
                 "76"
             ],
             [
@@ -7777,9 +8457,19 @@
         "goals": [],
         "subs": [
             [
+                "Sergio Ag\u00fcero",
+                "Wilfried Bony",
+                "65"
+            ],
+            [
                 "G\u00f6khan Inler",
                 "Leonardo Ulloa",
                 "68"
+            ],
+            [
+                "David Silva",
+                "Jes\u00fas Navas",
+                "75"
             ],
             [
                 "Daniel Drinkwater",
@@ -7830,6 +8520,11 @@
                 "74"
             ],
             [
+                "Philippe Coutinho",
+                "Jordon Ibe",
+                "85"
+            ],
+            [
                 "Roberto Firmino",
                 "Kolo Tour\u00e9",
                 "95"
@@ -7859,6 +8554,11 @@
             [
                 "Alberto Moreno",
                 "Brad Smith",
+                "66"
+            ],
+            [
+                "Roberto Firmino",
+                "Adam Lallana",
                 "66"
             ],
             [
@@ -7910,6 +8610,11 @@
             [
                 "Claudio Yacob",
                 "Saido Berahino",
+                "85"
+            ],
+            [
+                "Xherdan Shaqiri",
+                "Charlie Adam",
                 "85"
             ],
             [
@@ -7974,6 +8679,11 @@
                 "52"
             ],
             [
+                "Harry Arter",
+                "Sylvain Distin",
+                "61"
+            ],
+            [
                 "Marc Albrighton",
                 "Shinji Okazaki",
                 "66"
@@ -8010,9 +8720,19 @@
                 "47"
             ],
             [
+                "Leon Britton",
+                "Modou Barrow",
+                "63"
+            ],
+            [
                 "Ashley Young",
                 "Paddy McNair",
                 "79"
+            ],
+            [
+                "Andr\u00e9 Ayew",
+                "Baf\u00e9timbi Gomis",
+                "83"
             ],
             [
                 "Wayne Routledge",
@@ -8045,6 +8765,11 @@
             [
                 "Jordy Clasie",
                 "Harrison Reed",
+                "81"
+            ],
+            [
+                "Dusan Tadic",
+                "Sadio Man\u00e9",
                 "81"
             ],
             [
@@ -8106,6 +8831,11 @@
             [
                 "Adam Johnson",
                 "Sebasti\u00e1n Coates",
+                "92"
+            ],
+            [
+                "Adama Traor\u00e9",
+                "Scott Sinclair",
                 "92"
             ]
         ]
@@ -8176,6 +8906,11 @@
                 "69"
             ],
             [
+                "Mile Jedinak",
+                "Joe Ledley",
+                "69"
+            ],
+            [
                 "Lee Chung-yong",
                 "Jonathan Williams",
                 "82"
@@ -8206,6 +8941,16 @@
                 "Arouna Kon\u00e9",
                 "Muhamed Besic",
                 "62"
+            ],
+            [
+                "Aaron Lennon",
+                "Gerard Deulofeu",
+                "62"
+            ],
+            [
+                "Christian Eriksen",
+                "Son Heung-Min",
+                "71"
             ],
             [
                 "Dele Alli",
@@ -8243,6 +8988,11 @@
         ],
         "subs": [
             [
+                "Jesse Lingard",
+                "Memphis Depay",
+                "66"
+            ],
+            [
                 "Ander Herrera",
                 "Juan Mata",
                 "77"
@@ -8279,6 +9029,11 @@
                 "Bakary Sako",
                 "Marouane Chamakh",
                 "63"
+            ],
+            [
+                "James McArthur",
+                "Mile Jedinak",
+                "79"
             ],
             [
                 "Carles Gil",
@@ -8414,6 +9169,11 @@
                 "65"
             ],
             [
+                "Dieumerci Mbokani",
+                "Cameron Jerome",
+                "77"
+            ],
+            [
                 "Marko Arnautovic",
                 "Marco van Ginkel",
                 "78"
@@ -8533,6 +9293,11 @@
         "goals": [],
         "subs": [
             [
+                "Leon Osman",
+                "Arouna Kon\u00e9",
+                "71"
+            ],
+            [
                 "Gerard Deulofeu",
                 "Steven Pienaar",
                 "71"
@@ -8624,6 +9389,16 @@
                 "72"
             ],
             [
+                "Jamie Vardy",
+                "Leonardo Ulloa",
+                "72"
+            ],
+            [
+                "Shinji Okazaki",
+                "Andy King",
+                "78"
+            ],
+            [
                 "Tom Carroll",
                 "Son Heung-Min",
                 "83"
@@ -8631,6 +9406,11 @@
             [
                 "Eric Dier",
                 "Josh Onomah",
+                "91"
+            ],
+            [
+                "Riyad Mahrez",
+                "Nathan Dyer",
                 "91"
             ]
         ]
@@ -8672,6 +9452,11 @@
                 "Erik Lamela",
                 "Josh Onomah",
                 "75"
+            ],
+            [
+                "Jeremain Lens",
+                "Duncan Watmore",
+                "78"
             ],
             [
                 "Mousa Demb\u00e9l\u00e9",
@@ -8726,6 +9511,11 @@
             [
                 "Sergio Ag\u00fcero",
                 "Jes\u00fas Navas",
+                "86"
+            ],
+            [
+                "Wilfried Zaha",
+                "Lee Chung-yong",
                 "86"
             ]
         ]
@@ -8797,8 +9587,18 @@
                 "47"
             ],
             [
+                "Darren Fletcher",
+                "Chris Brunt",
+                "47"
+            ],
+            [
                 "Sadio Man\u00e9",
                 "Dusan Tadic",
+                "64"
+            ],
+            [
+                "St\u00e9phane Sessegnon",
+                "Saido Berahino",
                 "64"
             ],
             [
@@ -8861,6 +9661,11 @@
                 "81"
             ],
             [
+                "Aaron Lennon",
+                "Gerard Deulofeu",
+                "81"
+            ],
+            [
                 "Ross Barkley",
                 "Steven Pienaar",
                 "82"
@@ -8885,6 +9690,11 @@
             [
                 "Vadis Odjidja-Ofoe",
                 "Nathan Redmond",
+                "58"
+            ],
+            [
+                "Matthew Jarvis",
+                "Cameron Jerome",
                 "58"
             ],
             [
@@ -8973,6 +9783,11 @@
                 "68"
             ],
             [
+                "Ander Herrera",
+                "Memphis Depay",
+                "74"
+            ],
+            [
                 "Adam Lallana",
                 "Jordon Ibe",
                 "78"
@@ -9052,6 +9867,11 @@
                 "Ki Sung-yueng",
                 "Jordi Amat",
                 "90"
+            ],
+            [
+                "Valon Behrami",
+                "Obbi Oular\u00e9",
+                "90"
             ]
         ]
     },
@@ -9098,6 +9918,11 @@
                 "Jordon Ibe",
                 "Adam Lallana",
                 "61"
+            ],
+            [
+                "Wes Hoolahan",
+                "Martin Olsson",
+                "72"
             ],
             [
                 "Nathan Redmond",
@@ -9194,6 +10019,11 @@
                 "69"
             ],
             [
+                "Dusan Tadic",
+                "James Ward-Prowse",
+                "69"
+            ],
+            [
                 "Sadio Man\u00e9",
                 "Charlie Austin",
                 "81"
@@ -9260,6 +10090,16 @@
             [
                 "Salom\u00f3n Rond\u00f3n",
                 "Victor Anichebe",
+                "64"
+            ],
+            [
+                "Craig Gardner",
+                "Saido Berahino",
+                "64"
+            ],
+            [
+                "Libor Koz\u00e1k",
+                "Rudy Gestede",
                 "64"
             ],
             [
@@ -9338,6 +10178,11 @@
             [
                 "Rolando Aarons",
                 "Yoan Gouffran",
+                "60"
+            ],
+            [
+                "Henri Saivet",
+                "Ayoze P\u00e9rez",
                 "60"
             ],
             [
@@ -9516,6 +10361,11 @@
                 "84"
             ],
             [
+                "Mathieu Flamini",
+                "Francis Coquelin",
+                "86"
+            ],
+            [
                 "Sadio Man\u00e9",
                 "Matt Targett",
                 "87"
@@ -9558,6 +10408,11 @@
                 "88"
             ],
             [
+                "Roberto Firmino",
+                "Jo\u00e3o Teixeira",
+                "88"
+            ],
+            [
                 "Riyad Mahrez",
                 "Leonardo Ulloa",
                 "91"
@@ -9590,6 +10445,11 @@
                 "71"
             ],
             [
+                "Son Heung-Min",
+                "Tom Carroll",
+                "71"
+            ],
+            [
                 "Steven Naismith",
                 "Vadis Odjidja-Ofoe",
                 "75"
@@ -9615,6 +10475,11 @@
             [
                 "Jeremain Lens",
                 "Wahbi Khazri",
+                "48"
+            ],
+            [
+                "Kelechi Iheanacho",
+                "Fernando",
                 "48"
             ],
             [
@@ -9847,6 +10712,11 @@
                 "49"
             ],
             [
+                "Paul Dummett",
+                "Rolando Aarons",
+                "49"
+            ],
+            [
                 "Henri Saivet",
                 "Aleksandar Mitrovic",
                 "58"
@@ -9905,6 +10775,11 @@
         ],
         "subs": [
             [
+                "Fabian Delph",
+                "Kelechi Iheanacho",
+                "54"
+            ],
+            [
                 "Yaya Tour\u00e9",
                 "Fernando",
                 "54"
@@ -9912,6 +10787,11 @@
             [
                 "David Silva",
                 "Bersant Celina",
+                "79"
+            ],
+            [
+                "Riyad Mahrez",
+                "Demarai Gray",
                 "79"
             ],
             [
@@ -9940,6 +10820,11 @@
             [
                 "Sandro",
                 "Saido Berahino",
+                "47"
+            ],
+            [
+                "Craig Gardner",
+                "Alex Pritchard",
                 "47"
             ],
             [
@@ -9980,8 +10865,18 @@
                 "67"
             ],
             [
+                "Xherdan Shaqiri",
+                "Peter Odemwingie",
+                "67"
+            ],
+            [
                 "Marko Arnautovic",
                 "Joselu",
+                "81"
+            ],
+            [
+                "Romelu Lukaku",
+                "Arouna Kon\u00e9",
                 "81"
             ],
             [
@@ -10010,6 +10905,11 @@
             [
                 "Mario Su\u00e1rez",
                 "Valon Behrami",
+                "47"
+            ],
+            [
+                "Almen Abdi",
+                "Troy Deeney",
                 "47"
             ],
             [
@@ -10095,6 +10995,11 @@
             [
                 "Youssouf Mulumbu",
                 "Nathan Redmond",
+                "57"
+            ],
+            [
+                "Wes Hoolahan",
+                "Patrick Bamford",
                 "57"
             ],
             [
@@ -10186,6 +11091,11 @@
                 "62"
             ],
             [
+                "Victor Moses",
+                "Andy Carroll",
+                "62"
+            ],
+            [
                 "Graziano Pell\u00e8",
                 "Charlie Austin",
                 "73"
@@ -10220,6 +11130,11 @@
             [
                 "Dan Gosling",
                 "Joshua King",
+                "68"
+            ],
+            [
+                "Matt Ritchie",
+                "Junior Stanislas",
                 "68"
             ],
             [
@@ -10400,6 +11315,11 @@
                 "65"
             ],
             [
+                "Enner Valencia",
+                "Andy Carroll",
+                "65"
+            ],
+            [
                 "Steven Naismith",
                 "Martin Olsson",
                 "79"
@@ -10520,8 +11440,18 @@
         ],
         "subs": [
             [
+                "Dan Gosling",
+                "Matt Ritchie",
+                "48"
+            ],
+            [
                 "Marc Pugh",
                 "Joshua King",
+                "48"
+            ],
+            [
+                "Marc Muniesa",
+                "Dionatan Teixeira",
                 "48"
             ],
             [
@@ -10630,8 +11560,18 @@
                 "63"
             ],
             [
+                "Shinji Okazaki",
+                "Demarai Gray",
+                "63"
+            ],
+            [
                 "Alex Oxlade-Chamberlain",
                 "Danny Welbeck",
+                "85"
+            ],
+            [
+                "Marc Albrighton",
+                "Andy King",
                 "85"
             ]
         ]
@@ -10676,6 +11616,16 @@
                 "Leandro Bacuna",
                 "Jordan Lyden",
                 "68"
+            ],
+            [
+                "Philippe Coutinho",
+                "Kevin Stewart",
+                "68"
+            ],
+            [
+                "Roberto Firmino",
+                "Christian Benteke",
+                "76"
             ],
             [
                 "Micah Richards",
@@ -10735,6 +11685,11 @@
             [
                 "Manuel Lanzini",
                 "Victor Moses",
+                "66"
+            ],
+            [
+                "Lee Cattermole",
+                "Jack Rodwell",
                 "66"
             ],
             [
@@ -10811,6 +11766,11 @@
             [
                 "Timm Klose",
                 "Dieumerci Mbokani",
+                "93"
+            ],
+            [
+                "Cameron Jerome",
+                "Patrick Bamford",
                 "93"
             ]
         ]
@@ -10889,6 +11849,11 @@
             [
                 "Ibrahim Afellay",
                 "Bojan",
+                "73"
+            ],
+            [
+                "Jonathan Walters",
+                "Joselu",
                 "73"
             ],
             [
@@ -10992,6 +11957,11 @@
                 "77"
             ],
             [
+                "Leon Britton",
+                "Leroy Fer",
+                "77"
+            ],
+            [
                 "Ki Sung-yueng",
                 "Baf\u00e9timbi Gomis",
                 "85"
@@ -11044,6 +12014,11 @@
                 "Theo Walcott",
                 "Olivier Giroud",
                 "65"
+            ],
+            [
+                "Francis Coquelin",
+                "Mohamed Elneny",
+                "72"
             ],
             [
                 "Marcus Rashford",
@@ -11148,6 +12123,11 @@
                 "71"
             ],
             [
+                "Shane Long",
+                "Dusan Tadic",
+                "71"
+            ],
+            [
                 "Max Gradel",
                 "Marc Pugh",
                 "86"
@@ -11176,6 +12156,11 @@
             [
                 "Shinji Okazaki",
                 "Leonardo Ulloa",
+                "65"
+            ],
+            [
+                "Marc Albrighton",
+                "Jeffrey Schlupp",
                 "65"
             ],
             [
@@ -11283,6 +12268,21 @@
                 "Ryan Bennett",
                 "Dieumerci Mbokani",
                 "63"
+            ],
+            [
+                "Bertrand Traor\u00e9",
+                "Willian",
+                "63"
+            ],
+            [
+                "Oscar",
+                "John Obi Mikel",
+                "63"
+            ],
+            [
+                "Kenedy",
+                "Abdul Rahman Baba",
+                "72"
             ]
         ]
     },
@@ -11297,6 +12297,11 @@
             ]
         ],
         "subs": [
+            [
+                "Nacer Chadli",
+                "Dele Alli",
+                "64"
+            ],
             [
                 "James Collins",
                 "Reece Oxford",
@@ -11405,6 +12410,11 @@
                 "Aleksandar Mitrovic",
                 "Ayoze P\u00e9rez",
                 "85"
+            ],
+            [
+                "Jack Colback",
+                "Seydou Doumbia",
+                "85"
             ]
         ]
     },
@@ -11468,6 +12478,11 @@
             [
                 "Marcos Rojo",
                 "Matteo Darmian",
+                "71"
+            ],
+            [
+                "Almen Abdi",
+                "Mario Su\u00e1rez",
                 "71"
             ],
             [
@@ -11573,6 +12588,11 @@
                 "67"
             ],
             [
+                "Steven Davis",
+                "James Ward-Prowse",
+                "67"
+            ],
+            [
                 "Wahbi Khazri",
                 "Sebastian Larsson",
                 "78"
@@ -11618,6 +12638,11 @@
             [
                 "Cameron Jerome",
                 "Dieumerci Mbokani",
+                "67"
+            ],
+            [
+                "Steven Naismith",
+                "Patrick Bamford",
                 "67"
             ],
             [
@@ -11702,14 +12727,29 @@
                 "49"
             ],
             [
+                "Reece Oxford",
+                "Andy Carroll",
+                "49"
+            ],
+            [
                 "Pedro Obiang",
                 "Alexandre Song",
+                "64"
+            ],
+            [
+                "Emmanuel Emenike",
+                "Diafra Sakho",
                 "64"
             ],
             [
                 "Aaron Lennon",
                 "Oumar Niasse",
                 "79"
+            ],
+            [
+                "Romelu Lukaku",
+                "Gareth Barry",
+                "92"
             ]
         ]
     },
@@ -11747,6 +12787,11 @@
                 "71"
             ],
             [
+                "Gabriel Agbonlahor",
+                "Rudy Gestede",
+                "71"
+            ],
+            [
                 "Jordan Veretout",
                 "Leandro Bacuna",
                 "75"
@@ -11754,6 +12799,11 @@
             [
                 "Yaya Tour\u00e9",
                 "Manu Garc\u00eda",
+                "81"
+            ],
+            [
+                "Jordan Ayew",
+                "Scott Sinclair",
                 "81"
             ]
         ]
@@ -11798,6 +12848,11 @@
                 "71"
             ],
             [
+                "Benik Afobe",
+                "Lewis Grabban",
+                "71"
+            ],
+            [
                 "Matt Ritchie",
                 "Sylvain Distin",
                 "93"
@@ -11818,6 +12873,11 @@
             [
                 "Marc Albrighton",
                 "Jeffrey Schlupp",
+                "47"
+            ],
+            [
+                "Shinji Okazaki",
+                "Andy King",
                 "47"
             ],
             [
@@ -11868,6 +12928,11 @@
                 "81"
             ],
             [
+                "Joe Ledley",
+                "Dwight Gayle",
+                "83"
+            ],
+            [
                 "Emmanuel Adebayor",
                 "Bakary Sako",
                 "83"
@@ -11890,6 +12955,11 @@
             ]
         ],
         "subs": [
+            [
+                "Craig Dawson",
+                "S\u00e9bastien Pocognoli",
+                "57"
+            ],
             [
                 "Ander Herrera",
                 "Morgan Schneiderlin",
@@ -11936,6 +13006,11 @@
             [
                 "Wes Hoolahan",
                 "Dieumerci Mbokani",
+                "69"
+            ],
+            [
+                "Patrick Bamford",
+                "Cameron Jerome",
                 "69"
             ],
             [
@@ -12189,6 +13264,11 @@
                 "47"
             ],
             [
+                "Pape Souar\u00e9",
+                "Martin Kelly",
+                "47"
+            ],
+            [
                 "Shinji Okazaki",
                 "Leonardo Ulloa",
                 "77"
@@ -12253,6 +13333,11 @@
                 "Manuel Lanzini",
                 "Pedro Obiang",
                 "86"
+            ],
+            [
+                "Oscar",
+                "Ruben Loftus-Cheek",
+                "88"
             ]
         ]
     },
@@ -12278,6 +13363,11 @@
             [
                 "Valon Behrami",
                 "Adl\u00e8ne Gu\u00e9dioura",
+                "56"
+            ],
+            [
+                "Jurado",
+                "Nordin Amrabat",
                 "56"
             ],
             [
@@ -12395,6 +13485,21 @@
             ]
         ],
         "subs": [
+            [
+                "Jordy Clasie",
+                "Victor Wanyama",
+                "48"
+            ],
+            [
+                "Dusan Tadic",
+                "Sadio Man\u00e9",
+                "48"
+            ],
+            [
+                "Dejan Lovren",
+                "Martin Skrtel",
+                "48"
+            ],
             [
                 "Oriol Romeu",
                 "James Ward-Prowse",
@@ -12527,6 +13632,11 @@
                 "47"
             ],
             [
+                "Harry Arter",
+                "Eunan O'Kane",
+                "47"
+            ],
+            [
                 "Erik Lamela",
                 "Tom Carroll",
                 "67"
@@ -12586,6 +13696,16 @@
                 "Carlos S\u00e1nchez",
                 "Leandro Bacuna",
                 "70"
+            ],
+            [
+                "Pedro",
+                "Jake Clarke-Salter",
+                "77"
+            ],
+            [
+                "Idrissa Gueye",
+                "Jordan Lyden",
+                "86"
             ]
         ]
     },
@@ -12625,6 +13745,11 @@
             [
                 "Danny Welbeck",
                 "Olivier Giroud",
+                "71"
+            ],
+            [
+                "Almen Abdi",
+                "Adl\u00e8ne Gu\u00e9dioura",
                 "71"
             ],
             [
@@ -12814,6 +13939,11 @@
                 "Wahbi Khazri",
                 "Dame N'Doye",
                 "83"
+            ],
+            [
+                "Salom\u00f3n Rond\u00f3n",
+                "Victor Anichebe",
+                "83"
             ]
         ]
     },
@@ -12929,6 +14059,16 @@
                 "Shinji Okazaki",
                 "Leonardo Ulloa",
                 "65"
+            ],
+            [
+                "Jordy Clasie",
+                "Charlie Austin",
+                "74"
+            ],
+            [
+                "Steven Davis",
+                "James Ward-Prowse",
+                "74"
             ],
             [
                 "Riyad Mahrez",
@@ -13153,9 +14293,19 @@
                 "66"
             ],
             [
+                "Andr\u00e9 Ayew",
+                "Wayne Routledge",
+                "69"
+            ],
+            [
                 "Alberto Paloschi",
                 "Baf\u00e9timbi Gomis",
                 "77"
+            ],
+            [
+                "Ruben Loftus-Cheek",
+                "Falcao",
+                "78"
             ],
             [
                 "Jefferson Montero",
@@ -13227,6 +14377,11 @@
                 "39"
             ],
             [
+                "Bakary Sako",
+                "Wilfried Zaha",
+                "69"
+            ],
+            [
                 "Steven Naismith",
                 "Patrick Bamford",
                 "70"
@@ -13234,6 +14389,11 @@
             [
                 "Jason Puncheon",
                 "Joe Ledley",
+                "80"
+            ],
+            [
+                "Matthew Jarvis",
+                "Nathan Redmond",
                 "80"
             ],
             [
@@ -13269,6 +14429,11 @@
                 "62"
             ],
             [
+                "Fabian Delph",
+                "Yaya Tour\u00e9",
+                "62"
+            ],
+            [
                 "St\u00e9phane Sessegnon",
                 "Jonathan Leko",
                 "82"
@@ -13298,6 +14463,11 @@
             [
                 "Wahbi Khazri",
                 "Dame N'Doye",
+                "71"
+            ],
+            [
+                "Yann M'Vila",
+                "Jack Rodwell",
                 "71"
             ],
             [
@@ -13476,6 +14646,11 @@
                 "48"
             ],
             [
+                "Wahbi Khazri",
+                "Duncan Watmore",
+                "48"
+            ],
+            [
                 "Matthew Jarvis",
                 "Wes Hoolahan",
                 "61"
@@ -13635,6 +14810,11 @@
                 "69"
             ],
             [
+                "James Chester",
+                "Callum McManaman",
+                "69"
+            ],
+            [
                 "Claudio Yacob",
                 "Craig Gardner",
                 "76"
@@ -13665,6 +14845,16 @@
                 "Pablo Zabaleta",
                 "Bacary Sagna",
                 "68"
+            ],
+            [
+                "Willian",
+                "Bertrand Traor\u00e9",
+                "71"
+            ],
+            [
+                "Pedro",
+                "Kenedy",
+                "71"
             ],
             [
                 "Samir Nasri",
@@ -13702,6 +14892,11 @@
                 "Pedro Obiang",
                 "Andy Carroll",
                 "47"
+            ],
+            [
+                "Marc Albrighton",
+                "Jeffrey Schlupp",
+                "55"
             ],
             [
                 "Shinji Okazaki",
@@ -13802,8 +14997,18 @@
                 "66"
             ],
             [
+                "Alex Iwobi",
+                "Aaron Ramsey",
+                "77"
+            ],
+            [
                 "Danny Welbeck",
                 "Olivier Giroud",
+                "77"
+            ],
+            [
+                "Jason Puncheon",
+                "Wilfried Zaha",
                 "77"
             ],
             [
@@ -13969,6 +15174,11 @@
         ],
         "subs": [
             [
+                "Lee Chung-yong",
+                "Jordon Mutch",
+                "61"
+            ],
+            [
                 "Marcus Rashford",
                 "Memphis Depay",
                 "65"
@@ -14019,6 +15229,11 @@
         ],
         "subs": [
             [
+                "Gareth Barry",
+                "Muhamed Besic",
+                "49"
+            ],
+            [
                 "Divock Origi",
                 "Daniel Sturridge",
                 "57"
@@ -14066,6 +15281,11 @@
                 "47"
             ],
             [
+                "Sandro",
+                "Salom\u00f3n Rond\u00f3n",
+                "47"
+            ],
+            [
                 "James McClean",
                 "Craig Gardner",
                 "66"
@@ -14074,6 +15294,11 @@
                 "Alex Iwobi",
                 "Francis Coquelin",
                 "83"
+            ],
+            [
+                "Alexis S\u00e1nchez",
+                "Theo Walcott",
+                "87"
             ],
             [
                 "Mesut \u00d6zil",
@@ -14165,6 +15390,11 @@
                 "47"
             ],
             [
+                "Victor Wanyama",
+                "Jordy Clasie",
+                "47"
+            ],
+            [
                 "Jordan Ayew",
                 "Rudy Gestede",
                 "60"
@@ -14211,6 +15441,11 @@
             [
                 "Lewis Grabban",
                 "Benik Afobe",
+                "65"
+            ],
+            [
+                "Joshua King",
+                "Callum Wilson",
                 "65"
             ],
             [
@@ -14272,6 +15507,11 @@
                 "Adam Lallana",
                 "Sheyi Ojo",
                 "86"
+            ],
+            [
+                "Cheick Tiot\u00e9",
+                "Jonjo Shelvey",
+                "86"
             ]
         ]
     },
@@ -14281,6 +15521,11 @@
         "away": "Arsenal",
         "goals": [],
         "subs": [
+            [
+                "Olivier Giroud",
+                "Danny Welbeck",
+                "72"
+            ],
             [
                 "Alex Iwobi",
                 "Theo Walcott",
@@ -14327,6 +15572,11 @@
         ],
         "subs": [
             [
+                "Wayne Routledge",
+                "Jefferson Montero",
+                "47"
+            ],
+            [
                 "Leroy Fer",
                 "Alberto Paloschi",
                 "47"
@@ -14340,6 +15590,11 @@
                 "Gylfi Sigurdsson",
                 "Ki Sung-yueng",
                 "77"
+            ],
+            [
+                "Leonardo Ulloa",
+                "Andy King",
+                "80"
             ],
             [
                 "Jeffrey Schlupp",
@@ -14373,6 +15628,11 @@
                 "Dele Alli",
                 "Nacer Chadli",
                 "91"
+            ],
+            [
+                "St\u00e9phane Sessegnon",
+                "Sandro",
+                "91"
             ]
         ]
     },
@@ -14401,6 +15661,11 @@
                 "Wahbi Khazri",
                 "Duncan Watmore",
                 "61"
+            ],
+            [
+                "Jan Kirchhoff",
+                "Sebastian Larsson",
+                "78"
             ],
             [
                 "Xherdan Shaqiri",
@@ -14482,6 +15747,11 @@
                 "47"
             ],
             [
+                "Oumar Niasse",
+                "Romelu Lukaku",
+                "61"
+            ],
+            [
                 "Marc Pugh",
                 "Junior Stanislas",
                 "69"
@@ -14539,6 +15809,11 @@
                 "Jurado",
                 "Nordin Amrabat",
                 "73"
+            ],
+            [
+                "Jordan Ayew",
+                "Carlos S\u00e1nchez",
+                "81"
             ],
             [
                 "Idrissa Gueye",
@@ -14662,6 +15937,11 @@
             [
                 "Philippe Coutinho",
                 "Christian Benteke",
+                "47"
+            ],
+            [
+                "Pedro Chirivella",
+                "Lucas Leiva",
                 "47"
             ],
             [
@@ -14828,6 +16108,11 @@
                 "Danny Rose",
                 "Ben Davies",
                 "85"
+            ],
+            [
+                "Toby Alderweireld",
+                "Nacer Chadli",
+                "94"
             ]
         ]
     },
@@ -14856,6 +16141,21 @@
                 "Cameron Jerome",
                 "Patrick Bamford",
                 "81"
+            ],
+            [
+                "Jonny Howson",
+                "Graham Dorrans",
+                "81"
+            ],
+            [
+                "Jesse Lingard",
+                "Morgan Schneiderlin",
+                "81"
+            ],
+            [
+                "Michael Carrick",
+                "Timothy Fosu-Mensah",
+                "91"
             ]
         ]
     },
@@ -14891,6 +16191,11 @@
             [
                 "Charlie Adam",
                 "Stephen Ireland",
+                "68"
+            ],
+            [
+                "Xherdan Shaqiri",
+                "Jonathan Walters",
                 "68"
             ],
             [
@@ -14944,6 +16249,11 @@
                 "79"
             ],
             [
+                "Wayne Routledge",
+                "Baf\u00e9timbi Gomis",
+                "84"
+            ],
+            [
                 "Manuel Lanzini",
                 "Enner Valencia",
                 "86"
@@ -14974,6 +16284,11 @@
             [
                 "Scott Sinclair",
                 "Rushian Hepburn-Murphy",
+                "91"
+            ],
+            [
+                "Jack Colback",
+                "Siem de Jong",
                 "91"
             ]
         ]
@@ -15006,6 +16321,11 @@
             [
                 "Junior Stanislas",
                 "Matt Ritchie",
+                "76"
+            ],
+            [
+                "Craig Gardner",
+                "Saido Berahino",
                 "76"
             ],
             [
@@ -15066,6 +16386,11 @@
                 "Willian",
                 "Oscar",
                 "83"
+            ],
+            [
+                "John Obi Mikel",
+                "Bertrand Traor\u00e9",
+                "86"
             ]
         ]
     },
@@ -15092,6 +16417,16 @@
                 "Shinji Okazaki",
                 "Leonardo Ulloa",
                 "63"
+            ],
+            [
+                "Oumar Niasse",
+                "Kevin Mirallas",
+                "64"
+            ],
+            [
+                "Tom Cleverley",
+                "Darron Gibson",
+                "64"
             ],
             [
                 "Marc Albrighton",
@@ -15140,6 +16475,11 @@
                 "69"
             ],
             [
+                "Sadio Man\u00e9",
+                "Graziano Pell\u00e8",
+                "69"
+            ],
+            [
                 "Ryan Mason",
                 "Nacer Chadli",
                 "82"
@@ -15170,6 +16510,16 @@
                 "Mario Su\u00e1rez",
                 "Adl\u00e8ne Gu\u00e9dioura",
                 "54"
+            ],
+            [
+                "Jurado",
+                "Steven Berghuis",
+                "58"
+            ],
+            [
+                "Philippe Coutinho",
+                "Roberto Firmino",
+                "62"
             ],
             [
                 "Almen Abdi",
@@ -15234,6 +16584,11 @@
             [
                 "Fernando",
                 "Yaya Tour\u00e9",
+                "81"
+            ],
+            [
+                "Jes\u00fas Navas",
+                "Wilfried Bony",
                 "81"
             ]
         ]
@@ -15335,9 +16690,19 @@
                 "74"
             ],
             [
+                "Ben Watson",
+                "Adl\u00e8ne Gu\u00e9dioura",
+                "74"
+            ],
+            [
                 "Nathan Redmond",
                 "Matthew Jarvis",
                 "82"
+            ],
+            [
+                "Steven Naismith",
+                "Vadis Odjidja-Ofoe",
+                "83"
             ]
         ]
     },
@@ -15418,6 +16783,11 @@
                 "76"
             ],
             [
+                "James Milner",
+                "Joe Allen",
+                "76"
+            ],
+            [
                 "Kolo Tour\u00e9",
                 "Sheyi Ojo",
                 "89"
@@ -15467,6 +16837,11 @@
                 "Santiago Cazorla",
                 "Joel Campbell",
                 "88"
+            ],
+            [
+                "Mesut \u00d6zil",
+                "Mikel Arteta",
+                "88"
             ]
         ]
     },
@@ -15484,6 +16859,11 @@
             [
                 "Demarai Gray",
                 "Jeffrey Schlupp",
+                "47"
+            ],
+            [
+                "Andy King",
+                "Shinji Okazaki",
                 "47"
             ],
             [
@@ -15588,6 +16968,11 @@
                 "48"
             ],
             [
+                "Ryan Mason",
+                "Tom Carroll",
+                "48"
+            ],
+            [
                 "Cheick Tiot\u00e9",
                 "Jonjo Shelvey",
                 "64"
@@ -15636,6 +17021,16 @@
                 "Oriol Romeu",
                 "Graziano Pell\u00e8",
                 "48"
+            ],
+            [
+                "Jordon Mutch",
+                "Sullay Kaikai",
+                "48"
+            ],
+            [
+                "Dusan Tadic",
+                "James Ward-Prowse",
+                "74"
             ],
             [
                 "James McArthur",
@@ -15726,6 +17121,11 @@
                 "59"
             ],
             [
+                "Kelechi Iheanacho",
+                "Samir Nasri",
+                "73"
+            ],
+            [
                 "Jefferson Montero",
                 "Baf\u00e9timbi Gomis",
                 "84"
@@ -15809,6 +17209,11 @@
                 "66"
             ],
             [
+                "Jordon Ibe",
+                "Danny Ings",
+                "66"
+            ],
+            [
                 "Jonathan Leko",
                 "Tyler Roberts",
                 "75"
@@ -15862,6 +17267,11 @@
             [
                 "Marcus Rashford",
                 "Memphis Depay",
+                "80"
+            ],
+            [
+                "Callum Wilson",
+                "Lewis Grabban",
                 "80"
             ],
             [
