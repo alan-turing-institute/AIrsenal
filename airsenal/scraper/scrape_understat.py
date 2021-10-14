@@ -50,7 +50,14 @@ def get_matches_info(season: str):
         `datetime`: The date and time of the match.
         `forecast`: Forecasted values for win/loss/draw.
     """
-    response = requests.get(base_url.get(season, "-1"))
+    try:
+        response = requests.get(base_url[season])
+    except KeyError:
+        raise KeyError(
+            f"Please provide valid season to scrape data: "
+            f"{season} not in {list(base_url.keys())}"
+        )
+
     if response.ok:
         html = response.text
         start = html.find("JSON") + 11
@@ -62,8 +69,8 @@ def get_matches_info(season: str):
         return matches_list
     else:
         raise ValueError(
-            f"Please provide valid season to scrape data."
-            "{season} not in {list(base_url.keys())}"
+            f"Could not receive data for the given season. "
+            f"Error code: {response.status_code}"
         )
 
 
@@ -121,17 +128,13 @@ def parse_match(match_info: dict):
     for event in timeline:
         if event.find("i", attrs={"title": "Goal"}):
             scorer = event.find("a", attrs={"class": "player-name"}).text
-            goal_time = event.find(
-                "span", attrs={"class": "minute-value"}
-            ).text[:-1]
+            goal_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
             goals.append((scorer, goal_time))
         else:
             row = event.find("div", attrs={"class": "timeline-row"})
             if row.find("i", attrs={"class": "player-substitution"}):
                 sub_info = [a.text for a in row.find_all("a")]
-                sub_time = event.find(
-                    "span", attrs={"class": "minute-value"}
-                ).text[:-1]
+                sub_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
                 sub_info.append(sub_time)
                 subs.append(sub_info)
 
