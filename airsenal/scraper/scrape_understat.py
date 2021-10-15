@@ -157,7 +157,7 @@ def parse_match(match_info: dict):
     return result
 
 
-def get_season_info(season: str):
+def get_season_info(season: str, result: dict = {}):
     """Get statistics for whole season
 
     This function scrapes data for all the matches and returns a single
@@ -169,7 +169,9 @@ def get_season_info(season: str):
     season: str
         The season for which the statistics need to be
         reported.
-
+    results: dict, optional
+        Previously saved match results - won't get new data for any match ID present
+        in results.keys(), by default {}
 
     Returns
     -------
@@ -180,17 +182,17 @@ def get_season_info(season: str):
     """
 
     matches_info = get_matches_info(season)
-    result = {}
 
     for match in tqdm(matches_info):
-        parsed_match = parse_match(match)
-        if parsed_match:
-            result[match.get("id")] = parse_match(match)
+        if match.get("id") not in result.keys():
+            parsed_match = parse_match(match)
+            if parsed_match:
+                result[match.get("id")] = parse_match(match)
 
     return result
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Scrape understat archives")
     parser.add_argument(
         "--season",
@@ -198,12 +200,32 @@ if __name__ == "__main__":
         choices=list(base_url.keys()),
         required=True,
     )
+    parser.add_argument(
+        "--overwrite",
+        help="Force overwriting previously saved data if set",
+        action="store_true",
+    )
     args = parser.parse_args()
     season = args.season
-    goal_subs_data = get_season_info(season)
+    overwrite = args.overwrite
 
+    result = {}
     save_path = os.path.join(
         os.path.dirname(__file__), f"../data/goals_subs_data_{season}.json"
     )
+    if os.path.exists(save_path) and not overwrite:
+        print(
+            f"Data for {season} season already exists. Will only get data for new "
+            "matches. To re-download data for all matches use --overwrite."
+        )
+        with open(save_path, "r") as f:
+            result = json.load(f)
+
+    goal_subs_data = get_season_info(season, result=result)
+
     with open(save_path, "w") as f:
         json.dump(goal_subs_data, f, indent=4)
+
+
+if __name__ == "__main__":
+    main()
