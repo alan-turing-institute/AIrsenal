@@ -25,7 +25,7 @@ base_url = {
     "1819": LEAGUE_URL.format("2018"),
     "1920": LEAGUE_URL.format("2019"),
     "2021": LEAGUE_URL.format("2020"),
-    "2122": LEAGUE_URL.format("2020"),
+    "2122": LEAGUE_URL.format("2021"),
 }
 
 
