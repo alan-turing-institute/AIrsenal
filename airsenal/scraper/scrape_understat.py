@@ -131,13 +131,13 @@ def parse_match(match_info: dict):
         "div", attrs={"class": "timiline-container"}, recursive=True
     )
     goals = {"home": [], "away": []}
-    subs = {"home": [], "away":[]}
+    subs = {"home": [], "away": []}
     for event in timeline:
         if event.find("i", attrs={"class": "fa-futbol"}):
             scorer = event.find("a", attrs={"class": "player-name"}).text
             goal_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
             block = event.find("div", attrs={"class": "timeline-row"}).find_parent()
-            if "block-home" in block['class']:
+            if "block-home" in block["class"]:
                 goals["home"].append((scorer, goal_time))
             else:
                 goals["away"].append((scorer, goal_time))
@@ -152,7 +152,7 @@ def parse_match(match_info: dict):
                     sub_info.append(sub_time)
 
                     block = r.find_parent()
-                    if "block-home" in block['class']:
+                    if "block-home" in block["class"]:
                         subs["home"].append(sub_info)
                     else:
                         subs["away"].append(sub_info)
