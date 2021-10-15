@@ -3,26 +3,23 @@
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
+import json
 import os
 
-import json
-
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
-from airsenal.framework.schema import PlayerAttributes, session_scope, session
-
+from airsenal.framework.schema import PlayerAttributes, session, session_scope
 from airsenal.framework.utils import (
-    get_next_gameweek,
-    get_player,
-    get_player_from_api_id,
-    get_team_name,
-    get_past_seasons,
     CURRENT_SEASON,
+    get_next_gameweek,
+    get_past_seasons,
+    get_player,
     get_player_attributes,
+    get_player_from_api_id,
     get_player_team_from_fixture,
     get_return_gameweek_from_news,
+    get_team_name,
 )
-
-from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def fill_attributes_table_from_file(detail_data, season, dbsession=session):

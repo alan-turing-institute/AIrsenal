@@ -1,7 +1,4 @@
-from flask import (
-    Flask,
-    session,
-)
+from flask import Flask, session
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = "filesystem"

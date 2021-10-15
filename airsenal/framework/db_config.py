@@ -2,6 +2,7 @@
 Database can be either an sqlite file or a postgress server
 """
 import os
+
 from airsenal import TMPDIR
 
 config_path = os.path.join(os.path.dirname(__file__), "..", "data")

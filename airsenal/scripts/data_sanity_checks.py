@@ -1,13 +1,12 @@
+from airsenal.framework.schema import PlayerScore
+from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (
-    get_past_seasons,
-    session,
     CURRENT_SEASON,
     get_fixtures_for_season,
+    get_past_seasons,
     get_player_scores,
+    session,
 )
-from airsenal.framework.schema import PlayerScore
-
-from airsenal.framework.season import get_teams_for_season
 
 CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements

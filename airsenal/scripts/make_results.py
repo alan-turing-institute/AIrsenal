@@ -1,8 +1,9 @@
 """
 Generate results CSV files from saved JSON files from fetcher.get_fixture_data()
 """
-import pandas as pd
 import json
+
+import pandas as pd
 
 SEASON = "2021"
 FIXTURE_DATA_FILE = "../data/fixture_data_{}.json"

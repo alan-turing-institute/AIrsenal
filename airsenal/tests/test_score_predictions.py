@@ -1,41 +1,38 @@
 """
 test the score-calculating functions
 """
+import bpl
 import numpy as np
 import pandas as pd
 
-import bpl
-
-from airsenal.framework.FPL_scoring_rules import get_appearance_points
-from airsenal.framework.prediction_utils import (
-    get_defending_points,
-    get_attacking_points,
-    get_player_history_df,
-    fit_player_data,
-    get_bonus_points,
-    get_save_points,
-    get_card_points,
-    fit_bonus_points,
-    fit_card_points,
-    fit_save_points,
-    get_player_scores,
-    mean_group_min_count,
+from airsenal.conftest import test_past_data_session_scope
+from airsenal.framework.bpl_interface import (
+    fixture_probabilities,
+    get_fitted_team_model,
+    get_ratings_dict,
+    get_result_dict,
 )
+from airsenal.framework.FPL_scoring_rules import get_appearance_points
 from airsenal.framework.player_model import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,
     scale_goals_by_minutes,
 )
-
-from airsenal.framework.bpl_interface import (
-    get_result_dict,
-    get_ratings_dict,
-    get_fitted_team_model,
-    fixture_probabilities,
+from airsenal.framework.prediction_utils import (
+    fit_bonus_points,
+    fit_card_points,
+    fit_player_data,
+    fit_save_points,
+    get_attacking_points,
+    get_bonus_points,
+    get_card_points,
+    get_defending_points,
+    get_player_history_df,
+    get_player_scores,
+    get_save_points,
+    mean_group_min_count,
 )
-
-from airsenal.conftest import test_past_data_session_scope
-from airsenal.framework.schema import Result, Fixture
+from airsenal.framework.schema import Fixture, Result
 
 
 def generate_player_df(prob_score, prob_assist):

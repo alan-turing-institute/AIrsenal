@@ -7,21 +7,21 @@ bought or sold.
 """
 import argparse
 
+from airsenal.framework.schema import Player, session_scope
+from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
+    fetcher,
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
-    NEXT_GAMEWEEK,
-    list_players,
-    fetcher,
     get_player,
+    list_players,
 )
-from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
-from airsenal.scripts.fill_result_table import fill_results_from_api
+from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
-from airsenal.framework.transaction_utils import update_squad, count_transactions
-from airsenal.framework.schema import Player, session_scope
+from airsenal.scripts.fill_result_table import fill_results_from_api
 
 
 def update_transactions(season, fpl_team_id, dbsession):

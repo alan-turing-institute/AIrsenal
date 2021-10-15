@@ -17,44 +17,43 @@ representing 0, 1, 2 transfers for the next gameweek.
 """
 
 
-import os
-import regex as re
-import shutil
-import time
-import json
-import sys
-import warnings
-import cProfile
-
-
-from multiprocessing import Process
-import requests
-from tqdm import tqdm, TqdmWarning
 import argparse
+import cProfile
+import json
+import os
+import shutil
+import sys
+import time
+import warnings
+from multiprocessing import Process
+
+import regex as re
+import requests
+from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
     set_multiprocessing_start_method,
 )
+from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
-    get_starting_squad,
     calc_free_transfers,
     calc_points_hit,
-    fill_suggestion_table,
-    get_num_increments,
-    count_expected_outputs,
-    next_week_transfers,
     check_tag_valid,
+    count_expected_outputs,
+    fill_suggestion_table,
     get_discount_factor,
+    get_num_increments,
+    get_starting_squad,
+    next_week_transfers,
 )
-from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    get_player_name,
+    fetcher,
+    get_free_transfers,
     get_latest_prediction_tag,
     get_next_gameweek,
-    get_free_transfers,
-    fetcher,
+    get_player_name,
 )
 
 TMPDIR = "/tmp/" if os.name == "posix" else "%TMP%"

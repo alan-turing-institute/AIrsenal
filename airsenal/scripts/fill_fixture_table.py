@@ -6,12 +6,11 @@ Fill the "fixture" table with info from this seasons FPL
 """
 
 import os
-
 import uuid
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.schema import Fixture, session_scope, session
+from airsenal.framework.schema import Fixture, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, find_fixture, get_past_seasons
 
 

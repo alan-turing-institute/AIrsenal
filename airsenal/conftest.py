@@ -3,15 +3,14 @@ import random
 from contextlib import contextmanager
 
 import pytest
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from airsenal import TMPDIR
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.tests.resources import dummy_players
 from airsenal.framework.schema import Base, Player, PlayerAttributes
 from airsenal.framework.utils import CURRENT_SEASON
-from airsenal import TMPDIR
+from airsenal.tests.resources import dummy_players
 
 API_SESSION_ID = "TESTSESSION"
 
