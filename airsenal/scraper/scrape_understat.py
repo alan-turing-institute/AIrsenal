@@ -97,13 +97,14 @@ def parse_match(match_info: dict):
         {
             "home": home_team,
             "away": away_team,
-            "goals": (list) goals,
-            "subs": (list) subs,
+            "goals": (dict) goals,
+            "subs": (dict) subs,
         }
-        The `goals` list is structured as a list of lists
-        [goal_scorer, time_of_goal]. The subs list is also a list of
-        lists of the form [player_in, player_out, time_of_substitution].
-
+        The `goals` dict is structured as a dictinonary of lists
+        {"home": [], "away": []} where each entry of the list is of the
+        form [goal_scorer, time_of_goal]. The subs dict is also a dict of
+        lists of the form {"home": [], "away": []} with each entry of the
+        form [player_in, player_out, time_of_substitution].
     """
     match_id = match_info.get("id", None)
     if not match_id:
@@ -129,13 +130,17 @@ def parse_match(match_info: dict):
     timeline = soup.find_all(
         "div", attrs={"class": "timiline-container"}, recursive=True
     )
-    goals = []
-    subs = []
+    goals = {"home": [], "away": []}
+    subs = {"home": [], "away":[]}
     for event in timeline:
-        if event.find("i", attrs={"title": "Goal"}):
+        if event.find("i", attrs={"class": "fa-futbol"}):
             scorer = event.find("a", attrs={"class": "player-name"}).text
             goal_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
-            goals.append((scorer, goal_time))
+            block = event.find("div", attrs={"class": "timeline-row"}).find_parent()
+            if "block-home" in block['class']:
+                goals["home"].append((scorer, goal_time))
+            else:
+                goals["away"].append((scorer, goal_time))
         else:
             row = event.find_all("div", attrs={"class": "timeline-row"})
             for r in row:
@@ -145,7 +150,12 @@ def parse_match(match_info: dict):
                         :-1
                     ]
                     sub_info.append(sub_time)
-                    subs.append(sub_info)
+
+                    block = r.find_parent()
+                    if "block-home" in block['class']:
+                        subs["home"].append(sub_info)
+                    else:
+                        subs["away"].append(sub_info)
 
     result = {
         "datetime": date,
