@@ -197,7 +197,7 @@ def get_season_info(season: str, result: dict = {}):
         if match.get("id") not in result.keys():
             parsed_match = parse_match(match)
             if parsed_match:
-                result[match.get("id")] = parse_match(match)
+                result[match.get("id")] = parsed_match
 
     return result
 
