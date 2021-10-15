@@ -10,6 +10,7 @@ To setup -
 import argparse
 import json
 import os
+from datetime import datetime, timedelta
 
 import requests
 from bs4 import BeautifulSoup
@@ -24,6 +25,7 @@ base_url = {
     "1819": LEAGUE_URL.format("2018"),
     "1920": LEAGUE_URL.format("2019"),
     "2021": LEAGUE_URL.format("2020"),
+    "2122": LEAGUE_URL.format("2020"),
 }
 
 
@@ -112,6 +114,9 @@ def parse_match(match_info: dict):
     home_team = match_info.get("h").get("title")
     away_team = match_info.get("a").get("title")
     date = match_info.get("datetime")
+    if date and datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now():
+        # match not played yet or only recently finished, skip
+        return None
 
     response = requests.get(MATCH_URL.format(match_id))
     if response.ok:
@@ -136,7 +141,9 @@ def parse_match(match_info: dict):
             for r in row:
                 if r.find("i", attrs={"class": "player-substitution"}):
                     sub_info = [a.text for a in r.find_all("a")]
-                    sub_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
+                    sub_time = event.find("span", attrs={"class": "minute-value"}).text[
+                        :-1
+                    ]
                     sub_info.append(sub_time)
                     subs.append(sub_info)
 
@@ -176,7 +183,9 @@ def get_season_info(season: str):
     result = {}
 
     for match in tqdm(matches_info):
-        result[match.get("id")] = parse_match(match)
+        parsed_match = parse_match(match)
+        if parsed_match:
+            result[match.get("id")] = parse_match(match)
 
     return result
 
