@@ -141,9 +141,9 @@ def parse_match(match_info: dict):
                 goals["home"].append((scorer, goal_time))
             else:
                 goals["away"].append((scorer, goal_time))
-        else:
-            row = event.find_all("div", attrs={"class": "timeline-row"})
-            for r in row:
+        rows = event.find_all("div", attrs={"class": "timeline-row"})
+        if rows:
+            for r in rows:
                 if r.find("i", attrs={"class": "player-substitution"}):
                     sub_info = [a.text for a in r.find_all("a")]
                     sub_time = event.find("span", attrs={"class": "minute-value"}).text[
