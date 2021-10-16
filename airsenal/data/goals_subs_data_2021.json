@@ -219,6 +219,11 @@
                     "76"
                 ],
                 [
+                    "Callum Wilson",
+                    "Miguel Almir\u00f3n",
+                    "86"
+                ],
+                [
                     "Andy Carroll",
                     "Sean Longstaff",
                     "89"
@@ -424,6 +429,11 @@
             ],
             "away": [
                 [
+                    "Ruben Loftus-Cheek",
+                    "Ross Barkley",
+                    "65"
+                ],
+                [
                     "Kai Havertz",
                     "Callum Hudson-Odoi",
                     "84"
@@ -627,6 +637,11 @@
             ],
             "away": [
                 [
+                    "Jeffrey Schlupp",
+                    "Eberechi Eze",
+                    "79"
+                ],
+                [
                     "Jordan Ayew",
                     "Michy Batshuayi",
                     "85"
@@ -680,6 +695,11 @@
                 ]
             ],
             "away": [
+                [
+                    "Jarrod Bowen",
+                    "Andriy Yarmolenko",
+                    "84"
+                ],
                 [
                     "Pablo Fornals",
                     "S\u00e9bastien Haller",
@@ -938,6 +958,11 @@
                     "Robbie Brady",
                     "Erik Pieters",
                     "39"
+                ],
+                [
+                    "Jay Rodriguez",
+                    "Matej Vydra",
+                    "72"
                 ]
             ]
         }
@@ -1470,13 +1495,13 @@
                     "50"
                 ],
                 [
-                    "Jarrod Bowen",
-                    "Mark Noble",
+                    "Michail Antonio",
+                    "S\u00e9bastien Haller",
                     "89"
                 ],
                 [
-                    "Michail Antonio",
-                    "S\u00e9bastien Haller",
+                    "Jarrod Bowen",
+                    "Mark Noble",
                     "89"
                 ]
             ],
@@ -1898,13 +1923,13 @@
             ],
             "away": [
                 [
-                    "Michail Antonio",
-                    "S\u00e9bastien Haller",
+                    "Jarrod Bowen",
+                    "Mark Noble",
                     "89"
                 ],
                 [
-                    "Jarrod Bowen",
-                    "Mark Noble",
+                    "Michail Antonio",
+                    "S\u00e9bastien Haller",
                     "89"
                 ]
             ]
@@ -1986,6 +2011,11 @@
                     "Eddie Nketiah",
                     "Nicolas Pepe",
                     "59"
+                ],
+                [
+                    "Dani Ceballos",
+                    "Granit Xhaka",
+                    "82"
                 ],
                 [
                     "Bukayo Saka",
@@ -2103,13 +2133,13 @@
         "subs": {
             "home": [
                 [
-                    "Nemanja Matic",
-                    "Scott McTominay",
+                    "Bruno Fernandes",
+                    "Fred",
                     "49"
                 ],
                 [
-                    "Bruno Fernandes",
-                    "Fred",
+                    "Nemanja Matic",
+                    "Scott McTominay",
                     "49"
                 ],
                 [
@@ -2460,6 +2490,11 @@
                     "Daniel James",
                     "Donny van de Beek",
                     "79"
+                ],
+                [
+                    "Juan Mata",
+                    "Nemanja Matic",
+                    "95"
                 ]
             ]
         }
@@ -2497,9 +2532,20 @@
                     "David McGoldrick",
                     "Rhian Brewster",
                     "67"
+                ],
+                [
+                    "Chris Basham",
+                    "Billy Sharp",
+                    "84"
                 ]
             ],
-            "away": []
+            "away": [
+                [
+                    "Ruben Loftus-Cheek",
+                    "Mario Lemina",
+                    "84"
+                ]
+            ]
         }
     },
     "14476": {
@@ -2525,6 +2571,11 @@
                     "Michy Batshuayi",
                     "Luka Milivojevic",
                     "84"
+                ],
+                [
+                    "Jeffrey Schlupp",
+                    "Christian Benteke",
+                    "89"
                 ]
             ],
             "away": [
@@ -3084,6 +3135,11 @@
             ],
             "away": [
                 [
+                    "Ryan Fraser",
+                    "Joelinton",
+                    "79"
+                ],
+                [
                     "Allan Saint-Maximin",
                     "Sean Longstaff",
                     "80"
@@ -3606,13 +3662,13 @@
                     "62"
                 ],
                 [
-                    "Bruno Fernandes",
-                    "Donny van de Beek",
+                    "Mason Greenwood",
+                    "Edinson Cavani",
                     "75"
                 ],
                 [
-                    "Mason Greenwood",
-                    "Edinson Cavani",
+                    "Bruno Fernandes",
+                    "Donny van de Beek",
                     "75"
                 ]
             ],
@@ -3781,6 +3837,11 @@
         "subs": {
             "home": [
                 [
+                    "Jamie Shackleton",
+                    "Ian Poveda-Ocampo",
+                    "47"
+                ],
+                [
                     "Pablo Hern\u00e1ndez",
                     "Tyler Roberts",
                     "68"
@@ -3940,13 +4001,13 @@
                     "71"
                 ],
                 [
-                    "Juan Mata",
-                    "Paul Pogba",
+                    "Anthony Martial",
+                    "Edinson Cavani",
                     "86"
                 ],
                 [
-                    "Anthony Martial",
-                    "Edinson Cavani",
+                    "Juan Mata",
+                    "Paul Pogba",
                     "86"
                 ]
             ]
@@ -4513,13 +4574,13 @@
             ],
             "away": [
                 [
-                    "Karlan Grant",
-                    "Callum Robinson",
+                    "Grady Diangana",
+                    "Hal Robson-Kanu",
                     "63"
                 ],
                 [
-                    "Grady Diangana",
-                    "Hal Robson-Kanu",
+                    "Karlan Grant",
+                    "Callum Robinson",
                     "63"
                 ],
                 [
@@ -4567,13 +4628,13 @@
         "subs": {
             "home": [
                 [
-                    "Tom Cairney",
-                    "Aleksandar Mitrovic",
+                    "Bobby Reid",
+                    "Ruben Loftus-Cheek",
                     "60"
                 ],
                 [
-                    "Bobby Reid",
-                    "Ruben Loftus-Cheek",
+                    "Tom Cairney",
+                    "Aleksandar Mitrovic",
                     "60"
                 ],
                 [
@@ -5504,6 +5565,11 @@
                     "76"
                 ],
                 [
+                    "Jarrod Bowen",
+                    "Manuel Lanzini",
+                    "77"
+                ],
+                [
                     "Vladimir Coufal",
                     "Ben Johnson",
                     "86"
@@ -5577,6 +5643,11 @@
                     "Robin Koch",
                     "Diego Llorente",
                     "8"
+                ],
+                [
+                    "Jack Harrison",
+                    "Ian Poveda-Ocampo",
+                    "60"
                 ],
                 [
                     "Ezgjan Alioski",
@@ -6006,6 +6077,11 @@
                     "70"
                 ],
                 [
+                    "Emil Krafth",
+                    "Jacob Murphy",
+                    "81"
+                ],
+                [
                     "Miguel Almir\u00f3n",
                     "DeAndre Yedlin",
                     "87"
@@ -6021,6 +6097,11 @@
                     "Karlan Grant",
                     "Charlie Austin",
                     "47"
+                ],
+                [
+                    "Conor Gallagher",
+                    "Kamil Grosicki",
+                    "81"
                 ]
             ]
         }
@@ -6118,6 +6199,11 @@
         },
         "subs": {
             "home": [
+                [
+                    "Theo Walcott",
+                    "Nathan Redmond",
+                    "82"
+                ],
                 [
                     "Che Adams",
                     "Daniel N'Lundulu",
@@ -7414,6 +7500,11 @@
         "subs": {
             "home": [
                 [
+                    "Ben Chilwell",
+                    "Emerson",
+                    "9"
+                ],
+                [
                     "Jorginho",
                     "Mateo Kovacic",
                     "69"
@@ -7829,13 +7920,13 @@
         "subs": {
             "home": [
                 [
-                    "Mark Noble",
-                    "Manuel Lanzini",
+                    "Jarrod Bowen",
+                    "Andriy Yarmolenko",
                     "47"
                 ],
                 [
-                    "Jarrod Bowen",
-                    "Andriy Yarmolenko",
+                    "Mark Noble",
+                    "Manuel Lanzini",
                     "47"
                 ]
             ],
@@ -7937,6 +8028,11 @@
                     "Fernando Mar\u00e7al",
                     "Rayan Ait Nouri",
                     "77"
+                ],
+                [
+                    "Jo\u00e3o Moutinho",
+                    "Owen Otasowie",
+                    "85"
                 ],
                 [
                     "Daniel Podence",
@@ -10237,13 +10333,13 @@
             ],
             "away": [
                 [
-                    "Bertrand Traor\u00e9",
-                    "Tr\u00e9z\u00e9guet",
+                    "Ross Barkley",
+                    "Anwar El Ghazi",
                     "84"
                 ],
                 [
-                    "Ross Barkley",
-                    "Anwar El Ghazi",
+                    "Bertrand Traor\u00e9",
+                    "Tr\u00e9z\u00e9guet",
                     "84"
                 ],
                 [
@@ -10434,6 +10530,11 @@
                     "Kean Bryan",
                     "Jayden Bogle",
                     "56"
+                ],
+                [
+                    "Billy Sharp",
+                    "Oliver Burke",
+                    "73"
                 ],
                 [
                     "David McGoldrick",
@@ -10865,6 +10966,11 @@
                     "Marc Albrighton",
                     "Caglar S\u00f6y\u00fcnc\u00fc",
                     "49"
+                ],
+                [
+                    "Wesley Fofana",
+                    "Cengiz \u00dcnder",
+                    "83"
                 ]
             ],
             "away": [
@@ -10872,6 +10978,11 @@
                     "Rodrigo",
                     "Mateusz Klich",
                     "20"
+                ],
+                [
+                    "Raphinha",
+                    "H\u00e9lder Costa",
+                    "83"
                 ]
             ]
         }
@@ -11785,6 +11896,11 @@
                     "Paul Pogba",
                     "Fred",
                     "38"
+                ],
+                [
+                    "Mason Greenwood",
+                    "Axel Tuanzebe",
+                    "94"
                 ]
             ],
             "away": [
@@ -12220,6 +12336,11 @@
                     "47"
                 ],
                 [
+                    "Tanguy NDombele Alvaro",
+                    "Dele Alli",
+                    "65"
+                ],
+                [
                     "Erik Lamela",
                     "Gareth Bale",
                     "73"
@@ -12533,6 +12654,11 @@
                     "Jesse Lingard",
                     "Said Benrahma",
                     "85"
+                ],
+                [
+                    "Ben Johnson",
+                    "Ryan Fredericks",
+                    "95"
                 ]
             ],
             "away": [
@@ -12749,13 +12875,13 @@
                     "66"
                 ],
                 [
-                    "Mateusz Klich",
-                    "Ezgjan Alioski",
+                    "Jack Harrison",
+                    "H\u00e9lder Costa",
                     "81"
                 ],
                 [
-                    "Jack Harrison",
-                    "H\u00e9lder Costa",
+                    "Mateusz Klich",
+                    "Ezgjan Alioski",
                     "81"
                 ]
             ]
@@ -12987,13 +13113,13 @@
             ],
             "away": [
                 [
-                    "Erik Lamela",
-                    "Gareth Bale",
+                    "Japhet Tanganga",
+                    "Matt Doherty",
                     "49"
                 ],
                 [
-                    "Japhet Tanganga",
-                    "Matt Doherty",
+                    "Erik Lamela",
+                    "Gareth Bale",
                     "49"
                 ],
                 [
@@ -14189,6 +14315,11 @@
         "subs": {
             "home": [
                 [
+                    "Oliver Norwood",
+                    "Oliver McBurnie",
+                    "48"
+                ],
+                [
                     "David McGoldrick",
                     "Lys Mousset",
                     "60"
@@ -14490,6 +14621,11 @@
                 ]
             ],
             "away": [
+                [
+                    "Eberechi Eze",
+                    "Wilfried Zaha",
+                    "48"
+                ],
                 [
                     "Andros Townsend",
                     "Jeffrey Schlupp",
@@ -15287,6 +15423,11 @@
                     "46"
                 ],
                 [
+                    "Joe Willock",
+                    "Jacob Murphy",
+                    "67"
+                ],
+                [
                     "Miguel Almir\u00f3n",
                     "Sean Longstaff",
                     "82"
@@ -15333,6 +15474,11 @@
                     "Jarrod Bowen",
                     "Mark Noble",
                     "76"
+                ],
+                [
+                    "Said Benrahma",
+                    "Ryan Fredericks",
+                    "81"
                 ]
             ],
             "away": [
@@ -15380,6 +15526,11 @@
                     "61"
                 ],
                 [
+                    "Morgan Sanson",
+                    "Ross Barkley",
+                    "67"
+                ],
+                [
                     "Tr\u00e9z\u00e9guet",
                     "Keinan Davis",
                     "80"
@@ -15390,6 +15541,11 @@
                     "Sergio Reguil\u00f3n",
                     "Ben Davies",
                     "58"
+                ],
+                [
+                    "Giovani Lo Celso",
+                    "Steven Bergwijn",
+                    "67"
                 ],
                 [
                     "Tanguy NDombele Alvaro",
@@ -15564,6 +15720,11 @@
                     "72"
                 ],
                 [
+                    "Kelechi Iheanacho",
+                    "James Maddison",
+                    "73"
+                ],
+                [
                     "Wilfred Ndidi",
                     "Nampalys Mendy",
                     "84"
@@ -15632,6 +15793,11 @@
                     "Andrew Robertson",
                     "Diogo Jota",
                     "64"
+                ],
+                [
+                    "Roberto Firmino",
+                    "Georginio Wijnaldum",
+                    "81"
                 ],
                 [
                     "Ozan Kabak",
@@ -16219,9 +16385,24 @@
                     "Jairo Riedewald",
                     "James McCarthy",
                     "60"
+                ],
+                [
+                    "Jordan Ayew",
+                    "Andros Townsend",
+                    "77"
                 ]
             ],
             "away": [
+                [
+                    "Jorginho",
+                    "N'Golo Kant\u00e9",
+                    "62"
+                ],
+                [
+                    "Callum Hudson-Odoi",
+                    "Reece James",
+                    "77"
+                ],
                 [
                     "Mateo Kovacic",
                     "Hakim Ziyech",
@@ -16262,13 +16443,13 @@
             ],
             "away": [
                 [
-                    "Dwight Gayle",
-                    "Callum Wilson",
+                    "Joelinton",
+                    "Allan Saint-Maximin",
                     "60"
                 ],
                 [
-                    "Joelinton",
-                    "Allan Saint-Maximin",
+                    "Dwight Gayle",
+                    "Callum Wilson",
                     "60"
                 ],
                 [
@@ -16432,9 +16613,24 @@
                     "David McGoldrick",
                     "Oliver McBurnie",
                     "65"
+                ],
+                [
+                    "Oliver McBurnie",
+                    "Lys Mousset",
+                    "84"
                 ]
             ],
             "away": [
+                [
+                    "Bukayo Saka",
+                    "Willian",
+                    "70"
+                ],
+                [
+                    "Gabriel Martinelli",
+                    "Mohamed Elneny",
+                    "84"
+                ],
                 [
                     "Alexandre Lacazette",
                     "Eddie Nketiah",
@@ -16582,6 +16778,16 @@
             ],
             "away": [
                 [
+                    "Tanguy NDombele Alvaro",
+                    "Erik Lamela",
+                    "67"
+                ],
+                [
+                    "Sergio Reguil\u00f3n",
+                    "Lucas Moura",
+                    "67"
+                ],
+                [
                     "Harry Kane",
                     "Dele Alli",
                     "96"
@@ -16684,13 +16890,13 @@
             ],
             "away": [
                 [
-                    "Rhian Brewster",
-                    "Oliver Burke",
+                    "Ben Osborn",
+                    "Lys Mousset",
                     "75"
                 ],
                 [
-                    "Ben Osborn",
-                    "Lys Mousset",
+                    "Rhian Brewster",
+                    "Oliver Burke",
                     "75"
                 ],
                 [
@@ -16784,6 +16990,11 @@
         },
         "subs": {
             "home": [
+                [
+                    "Fred",
+                    "Edinson Cavani",
+                    "47"
+                ],
                 [
                     "Marcus Rashford",
                     "Donny van de Beek",
@@ -17085,6 +17296,16 @@
         },
         "subs": {
             "home": [
+                [
+                    "Eddie Nketiah",
+                    "Gabriel Martinelli",
+                    "75"
+                ],
+                [
+                    "Nicolas Pepe",
+                    "Martin Odegaard",
+                    "75"
+                ],
                 [
                     "Calum Chambers",
                     "Willian",
@@ -17649,13 +17870,13 @@
             ],
             "away": [
                 [
-                    "Ivan Cavaleiro",
-                    "Josh Onomah",
+                    "Mario Lemina",
+                    "Fabio Carvalho",
                     "79"
                 ],
                 [
-                    "Mario Lemina",
-                    "Fabio Carvalho",
+                    "Ivan Cavaleiro",
+                    "Josh Onomah",
                     "79"
                 ],
                 [
@@ -17694,6 +17915,11 @@
                     "Andr\u00e9 Gomes",
                     "Fabian Delph",
                     "73"
+                ],
+                [
+                    "Alex Iwobi",
+                    "Bernard",
+                    "79"
                 ],
                 [
                     "Gylfi Sigurdsson",
@@ -17814,13 +18040,13 @@
             ],
             "away": [
                 [
-                    "Jayden Bogle",
-                    "Sander Berge",
+                    "Rhian Brewster",
+                    "Oliver Burke",
                     "49"
                 ],
                 [
-                    "Rhian Brewster",
-                    "Oliver Burke",
+                    "Jayden Bogle",
+                    "Sander Berge",
                     "49"
                 ],
                 [
@@ -18158,6 +18384,11 @@
                 ]
             ],
             "away": [
+                [
+                    "Andreas Christensen",
+                    "Kurt Zouma",
+                    "47"
+                ],
                 [
                     "N'Golo Kant\u00e9",
                     "Jorginho",
@@ -18608,6 +18839,11 @@
                     "67"
                 ],
                 [
+                    "Jordan Ayew",
+                    "Michy Batshuayi",
+                    "74"
+                ],
+                [
                     "Christian Benteke",
                     "Jean-Philippe Mateta",
                     "80"
@@ -18702,6 +18938,11 @@
         "subs": {
             "home": [
                 [
+                    "Fred",
+                    "Mason Greenwood",
+                    "67"
+                ],
+                [
                     "Eric Bailly",
                     "Nemanja Matic",
                     "90"
@@ -18709,13 +18950,13 @@
             ],
             "away": [
                 [
-                    "Diogo Jota",
-                    "Sadio Man\u00e9",
+                    "Georginio Wijnaldum",
+                    "Curtis Jones",
                     "78"
                 ],
                 [
-                    "Georginio Wijnaldum",
-                    "Curtis Jones",
+                    "Diogo Jota",
+                    "Sadio Man\u00e9",
                     "78"
                 ],
                 [
@@ -18881,6 +19122,11 @@
                     "60"
                 ],
                 [
+                    "Mateusz Klich",
+                    "Tyler Roberts",
+                    "78"
+                ],
+                [
                     "Raphinha",
                     "Ian Poveda-Ocampo",
                     "83"
@@ -18916,6 +19162,11 @@
         },
         "subs": {
             "home": [
+                [
+                    "Danny Ings",
+                    "Nathan Tella",
+                    "59"
+                ],
                 [
                     "Takumi Minamino",
                     "Theo Walcott",
@@ -19022,7 +19273,13 @@
             ]
         },
         "subs": {
-            "home": [],
+            "home": [
+                [
+                    "James McCarthy",
+                    "James Tomkins",
+                    "75"
+                ]
+            ],
             "away": [
                 [
                     "Bertrand Traor\u00e9",
@@ -19452,13 +19709,13 @@
                     "68"
                 ],
                 [
-                    "Willy Boly",
-                    "Leander Dendoncker",
+                    "Jo\u00e3o Moutinho",
+                    "Vitinha",
                     "80"
                 ],
                 [
-                    "Jo\u00e3o Moutinho",
-                    "Vitinha",
+                    "Willy Boly",
+                    "Leander Dendoncker",
                     "80"
                 ]
             ]
@@ -19614,13 +19871,13 @@
                     "68"
                 ],
                 [
-                    "Kieran Tierney",
-                    "Granit Xhaka",
+                    "Thomas Partey",
+                    "Gabriel Martinelli",
                     "81"
                 ],
                 [
-                    "Thomas Partey",
-                    "Gabriel Martinelli",
+                    "Kieran Tierney",
+                    "Granit Xhaka",
                     "81"
                 ]
             ]
@@ -19773,13 +20030,13 @@
             ],
             "away": [
                 [
-                    "Leandro Trossard",
-                    "Aaron Connolly",
+                    "Alireza Jahanbakhsh",
+                    "Adam Lallana",
                     "46"
                 ],
                 [
-                    "Alireza Jahanbakhsh",
-                    "Adam Lallana",
+                    "Leandro Trossard",
+                    "Aaron Connolly",
                     "46"
                 ],
                 [
@@ -20015,13 +20272,13 @@
             ],
             "away": [
                 [
-                    "Dele Alli",
-                    "Lucas Moura",
+                    "Steven Bergwijn",
+                    "Gareth Bale",
                     "70"
                 ],
                 [
-                    "Steven Bergwijn",
-                    "Gareth Bale",
+                    "Dele Alli",
+                    "Lucas Moura",
                     "70"
                 ],
                 [
@@ -20231,6 +20488,11 @@
                     "70"
                 ],
                 [
+                    "Jarrod Bowen",
+                    "Mark Noble",
+                    "85"
+                ],
+                [
                     "Declan Rice",
                     "Issa Diop",
                     "93"
@@ -20246,6 +20508,11 @@
                     "Takumi Minamino",
                     "Nathan Tella",
                     "63"
+                ],
+                [
+                    "Danny Ings",
+                    "Michael Obafemi",
+                    "85"
                 ]
             ]
         }
@@ -20292,13 +20559,13 @@
             ],
             "away": [
                 [
-                    "Amad Diallo Traore",
-                    "Shola Shoretire",
+                    "Juan Mata",
+                    "Hannibal Mejbri",
                     "87"
                 ],
                 [
-                    "Juan Mata",
-                    "Hannibal Mejbri",
+                    "Amad Diallo Traore",
+                    "Shola Shoretire",
                     "87"
                 ],
                 [
