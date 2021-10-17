@@ -12,6 +12,7 @@ import json
 import os
 from datetime import datetime, timedelta
 
+import pytz
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -115,7 +116,9 @@ def parse_match(match_info: dict):
     home_team = match_info.get("h").get("title")
     away_team = match_info.get("a").get("title")
     date = match_info.get("datetime")
-    if date and datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now():
+    if not date or datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now(
+        pytz.utc
+    ):
         # match not played yet or only recently finished, skip
         return None
 
@@ -124,7 +127,9 @@ def parse_match(match_info: dict):
         soup = BeautifulSoup(response.text, features="lxml")
     else:
         raise RuntimeError(
-            f"Could not reach match at understat.com: {response.status_code}"
+            f"Could not reach match {match_id} "
+            f"({home_team} vs. {away_team}, {date}) "
+            f"at understat.com: {response.status_code}"
         )
 
     timeline = soup.find_all(
