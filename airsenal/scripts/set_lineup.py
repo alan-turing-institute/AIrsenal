@@ -4,10 +4,6 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
-import getpass
-import json
-
-import requests
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
@@ -17,28 +13,6 @@ from airsenal.framework.utils import (
     get_player,
     get_player_from_api_id,
 )
-
-
-def login(session, fetcher):
-    if (
-        (not fetcher.FPL_LOGIN)
-        or (not fetcher.FPL_PASSWORD)
-        or (fetcher.FPL_LOGIN == "MISSING_ID")
-        or (fetcher.FPL_PASSWORD == "MISSING_ID")
-    ):
-        fetcher.FPL_LOGIN = input("Please enter FPL login: ")
-        fetcher.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
-
-    # print("FPL credentials {} {}".format(fetcher.FPL_LOGIN, fetcher.FPL_PASSWORD))
-    login_url = "https://users.premierleague.com/accounts/login/"
-    headers = {
-        "login": fetcher.FPL_LOGIN,
-        "password": fetcher.FPL_PASSWORD,
-        "app": "plfpl-web",
-        "redirect_uri": "https://fantasy.premierleague.com/a/login",
-    }
-    session.post(login_url, data=headers)
-    return session
 
 
 def check_proceed(squad):
@@ -92,7 +66,6 @@ def get_lineup_from_payload(lineup):
     lineup is a dictionary, with the entry "picks" being a list of dictionaries like:
     {"element":353,"position":1,"selling_price":55,"multiplier":1,"purchase_price":55,"is_captain":false,"is_vice_captain":false}
     """
-    lineup = json.loads(lineup)
     s = Squad()
     for p in lineup["picks"]:
         player = get_player_from_api_id(p["element"])
@@ -102,50 +75,6 @@ def get_lineup_from_payload(lineup):
         return s
     else:
         raise RuntimeError("Squad incomplete")
-
-
-def get_lineup(fetcher):
-    """Retrieve up to date lineup from api"""
-
-    req_session = requests.session()
-
-    req_session = login(req_session, fetcher)
-
-    headers = {
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "Referer": "https://fantasy.premierleague.com/a/team/my",
-    }
-
-    team_url = f"https://fantasy.premierleague.com/api/my-team/{fetcher.FPL_TEAM_ID}/"
-
-    resp = req_session.get(team_url, headers=headers)
-
-    return resp.text
-
-
-def post_lineup(payload, fetcher):
-
-    req_session = requests.session()
-
-    req_session = login(req_session, fetcher)
-
-    payload = json.dumps({"chip": None, "picks": payload})
-    headers = {
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "Referer": "https://fantasy.premierleague.com/a/team/my",
-    }
-
-    team_url = f"https://fantasy.premierleague.com/api/my-team/{fetcher.FPL_TEAM_ID}/"
-
-    resp = req_session.post(team_url, data=payload, headers=headers)
-    if resp.status_code == 200:
-        print("SUCCESS....lineup made!")
-    else:
-        print("Lineup changes not made due to unknown error")
-        print(f"Response status code: {resp.status_code}")
-        print(f"Response text: {resp.text}")
 
 
 def make_squad_transfers(squad, priced_transfers):
@@ -162,10 +91,11 @@ def set_lineup(fpl_team_id=None):
 
     Note that this assumes that the prediction has been ran recently.
     """
+
     print("fpl_team_id is {}".format(fpl_team_id))
     fetcher = FPLDataFetcher(fpl_team_id)
     print("Got fetcher {}".format(fetcher.FPL_TEAM_ID))
-    picks = get_lineup(fetcher)
+    picks = fetcher.get_lineup()
     print("Got picks {}".format(picks))
     squad = get_lineup_from_payload(picks)
     print("got squad: {}".format(squad))
@@ -174,7 +104,7 @@ def set_lineup(fpl_team_id=None):
 
     if check_proceed(squad):
         payload = build_lineup_payload(squad)
-        post_lineup(payload, fetcher)
+        fetcher.post_lineup(payload)
 
 
 def main():
