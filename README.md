@@ -31,7 +31,7 @@ We have also switched from using Stan/pystan to numpyro, for the team and player
 
 ## Install
 
-We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/
+We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/, or the more lightweight MiniConda: https://docs.conda.io/en/latest/miniconda.html.
 
 With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
 
@@ -45,18 +45,16 @@ conda activate airsenalenv
 
 **Windows:**
 
-_Windows is not fully supported. You should be able to install the module but there are still compatibility issues (see issue [#165](https://github.com/alan-turing-institute/AIrsenal/issues/165)). You may have more success trying to run AIrsenal on the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) instead._
+The best way to run AIrsenal on Windows is to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system. If you'd like to use AIrsenal with conda, run the following commands to install it from your WSL terminal (following the Linux instructions [here](https://docs.conda.io/en/latest/miniconda.html#linux-installers)):
 
-If you already have `gcc` working on your system you can follow the Linux & Mac OS X instructions above. Otherwise try the steps below:
 ```
-conda create -n airsenalenv python=3.7
-conda activate airsenalenv
-conda install libpython m2w64-toolchain -c msys2
-conda install numpy cython -c conda-forge
-git clone https://github.com/alan-turing-institute/AIrsenal.git
-cd AIrsenal
-pip install .
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
 ```
+
+After installing WSL and conda you can follow the installation instructions for Linux and Mac OS X above (or the instructions for without conda below).
+
+You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
 
 **Use AIrsenal without conda**
 
@@ -168,9 +166,9 @@ airsenal_make_squad --num_gw 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
-### 4. Apply Transfers
+### 4. Apply Transfers and Lineup
 
-To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for this to work (as described in the "Configuration" section above).
+To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers). Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for these to work (as described in the "Configuration" section above).
 
 ### Run the Full AIrsenal Pipeline
 
