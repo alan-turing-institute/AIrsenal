@@ -7,9 +7,7 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 import argparse
-import json
 
-import requests
 from prettytable import PrettyTable
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -22,7 +20,7 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.scripts.set_lineup import login, set_lineup
+from airsenal.scripts.set_lineup import set_lineup
 
 """
 TODO:
@@ -249,34 +247,6 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
     return transfer_payload
 
 
-def post_transfers(transfer_payload, fetcher):
-
-    req_session = requests.session()
-
-    req_session = login(req_session, fetcher)
-
-    # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
-    headers = {
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "Referer": "https://fantasy.premierleague.com/a/squad/transfers",
-    }
-
-    transfer_url = "https://fantasy.premierleague.com/api/transfers/"
-
-    resp = req_session.post(
-        transfer_url, data=json.dumps(transfer_payload), headers=headers
-    )
-    if "non_form_errors" in resp:
-        raise Exception(resp["non_form_errors"])
-    elif resp.status_code == 200:
-        print("SUCCESS....transfers made!")
-    else:
-        print("Transfers unsuccessful due to unknown error")
-        print(f"Response status code: {resp.status_code}")
-        print(f"Response text: {resp.text}")
-
-
 def make_transfers(fpl_team_id=None, skip_check=False):
 
     transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
@@ -300,7 +270,7 @@ def make_transfers(fpl_team_id=None, skip_check=False):
         transfer_req = build_transfer_payload(
             priced_transfers, current_gw, fetcher, chip_played
         )
-        post_transfers(transfer_req, fetcher)
+        fetcher.post_transfers(transfer_req)
     return True
 
 

@@ -425,6 +425,68 @@ class FPLDataFetcher(object):
         ]
         return deadlines
 
+    def get_lineup(self):
+        """
+        Retrieve up to date lineup from api
+        """
+
+        self.login()
+
+        team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+
+        resp = self._get_request(team_url)
+
+        return resp.text
+
+    def post_lineup(self, payload):
+        """
+        Set the lineup for a specific team
+        """
+
+        self.login()
+
+        payload = json.dumps({"chip": None, "picks": payload})
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://fantasy.premierleague.com/a/team/my",
+        }
+
+        team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+
+        resp = self.rsession.post(team_url, data=payload, headers=headers)
+        if resp.status_code == 200:
+            print("SUCCESS....lineup made!")
+        else:
+            print("Lineup changes not made due to unknown error")
+            print(f"Response status code: {resp.status_code}")
+            print(f"Response text: {resp.text}")
+
+    def post_transfers(self, transfer_payload):
+
+        self.login()
+
+        # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://fantasy.premierleague.com/a/squad/transfers",
+        }
+
+        transfer_url = "https://fantasy.premierleague.com/api/transfers/"
+
+        resp = self.rsession.post(
+            transfer_url, data=json.dumps(transfer_payload), headers=headers
+        )
+        if "non_form_errors" in resp:
+            raise Exception(resp["non_form_errors"])
+        elif resp.status_code == 200:
+            print("SUCCESS....transfers made!")
+        else:
+            print("Transfers unsuccessful due to unknown error")
+            print(f"Response status code: {resp.status_code}")
+            print(f"Response text: {resp.text}")
+
     def _get_request(self, url, err_msg="Unable to access FPL API"):
         r = self.rsession.get(url)
         if r.status_code != 200:
