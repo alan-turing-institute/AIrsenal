@@ -35,7 +35,7 @@ We recommend running AIrsenal in a conda environment. For instructions on how to
 
 With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
 
-**Linux and Mac OS X:**
+**Linux and macOS:**
 ```
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
@@ -45,14 +45,15 @@ conda activate airsenalenv
 
 **Windows:**
 
-The best way to run AIrsenal on Windows is to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system. If you'd like to use AIrsenal with conda, run the following commands to install it from your WSL terminal (following the Linux instructions [here](https://docs.conda.io/en/latest/miniconda.html#linux-installers)):
+The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
 
+After installing WSL, if you'd like to use AIrsenal with conda run the following commands to install it from your WSL terminal (following the Linux instructions [here](https://docs.conda.io/en/latest/miniconda.html#linux-installers)):
 ```
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
-After installing WSL and conda you can follow the installation instructions for Linux and Mac OS X above (or the instructions for without conda below).
+You can then follow the installation instructions for Linux and macOS above (or the instructions for without conda below).
 
 You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
 
