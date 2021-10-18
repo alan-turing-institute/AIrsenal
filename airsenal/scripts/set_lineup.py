@@ -4,7 +4,6 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
-import json
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
@@ -67,7 +66,6 @@ def get_lineup_from_payload(lineup):
     lineup is a dictionary, with the entry "picks" being a list of dictionaries like:
     {"element":353,"position":1,"selling_price":55,"multiplier":1,"purchase_price":55,"is_captain":false,"is_vice_captain":false}
     """
-    lineup = json.loads(lineup)
     s = Squad()
     for p in lineup["picks"]:
         player = get_player_from_api_id(p["element"])

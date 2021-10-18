@@ -434,9 +434,7 @@ class FPLDataFetcher(object):
 
         team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
 
-        resp = self._get_request(team_url)
-
-        return resp.text
+        return self._get_request(team_url)
 
     def post_lineup(self, payload):
         """
