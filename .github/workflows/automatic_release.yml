@@ -2,7 +2,7 @@ name: Increase tag and generated release
 on:
   push:
     branches:
-      - Automatic_release
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest
