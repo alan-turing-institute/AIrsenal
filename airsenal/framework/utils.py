@@ -33,7 +33,7 @@ fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     """
     Return the maximum gameweek number across all scheduled fixtures. This should
-    generally be 38, but may be different in the case of major disruptino (e.g.
+    generally be 38, but may be different in the case of major disruptions (e.g.
     Covid-19)
     """
     max_gw_fixture = (
@@ -50,6 +50,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
     """
+
     if not dbsession:
         dbsession = session
     timenow = datetime.now(timezone.utc)
@@ -108,6 +109,23 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
     return earliest_future_gameweek
 
+
+def get_gameweeks_array(weeks_ahead: int)-> int:
+    """
+    Returns the array containing only the valid (< max_gameweeks) game-weeks
+    or raise an exception if no game-weeks remaining
+    """
+    max_gameweeks = get_max_gameweek()
+    total_gameweeks = list(
+        range(get_next_gameweek(), get_next_gameweek() + weeks_ahead)
+    )
+    gameweeks = list(filter(lambda x: x <= max_gameweeks, total_gameweeks))
+    if len(gameweeks) == 0:
+        raise ValueError('No gameweeks remaining.')
+    if gameweeks != total_gameweeks:
+        print(f'WARN: Only {len(gameweeks)} left')
+
+    return gameweeks
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()

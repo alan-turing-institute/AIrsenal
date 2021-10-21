@@ -53,6 +53,7 @@ from airsenal.framework.utils import (
     get_free_transfers,
     get_latest_prediction_tag,
     get_next_gameweek,
+    get_gameweeks_array,
     get_player_name,
 )
 
@@ -733,9 +734,7 @@ def main():
     season = args.season
     # default weeks ahead is not specified (or gw_end is not specified) is three
     if args.weeks_ahead:
-        gameweeks = list(
-            range(get_next_gameweek(), get_next_gameweek() + args.weeks_ahead)
-        )
+        gameweeks = get_gameweeks_array(args.weeks_ahead)
     elif args.gw_start:
         if args.gw_end:
             gameweeks = list(range(args.gw_start, args.gw_end))
@@ -788,3 +787,6 @@ def main():
             num_thread,
             profile,
         )
+
+if __name__ == '__main__':
+    main()
