@@ -30,9 +30,9 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     get_fixtures_for_gameweek,
+    get_gameweeks_array,
     get_top_predicted_points,
     list_players,
-    get_gameweeks_array
 )
 
 

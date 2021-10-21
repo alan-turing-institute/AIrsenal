@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import TypeVar
+from typing import List, TypeVar
 
 import dateparser
 import regex as re
@@ -110,9 +110,9 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     return earliest_future_gameweek
 
 
-def get_gameweeks_array(weeks_ahead: int)-> int:
+def get_gameweeks_array(weeks_ahead: int) -> List[int]:
     """
-    Returns the array containing only the valid (< max_gameweeks) game-weeks
+    Returns the array containing only the valid (< max_gameweek) game-weeks
     or raise an exception if no game-weeks remaining
     """
     max_gameweeks = get_max_gameweek()
@@ -121,11 +121,12 @@ def get_gameweeks_array(weeks_ahead: int)-> int:
     )
     gameweeks = list(filter(lambda x: x <= max_gameweeks, total_gameweeks))
     if len(gameweeks) == 0:
-        raise ValueError('No gameweeks remaining.')
+        raise ValueError("No gameweeks remaining.")
     if gameweeks != total_gameweeks:
-        print(f'WARN: Only {len(gameweeks)} left')
+        print(f"WARN: Only {len(gameweeks)} left")
 
     return gameweeks
+
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()

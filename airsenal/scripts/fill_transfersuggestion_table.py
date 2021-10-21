@@ -51,9 +51,9 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
     get_free_transfers,
+    get_gameweeks_array,
     get_latest_prediction_tag,
     get_next_gameweek,
-    get_gameweeks_array,
     get_player_name,
 )
 
@@ -787,6 +787,3 @@ def main():
             num_thread,
             profile,
         )
-
-if __name__ == '__main__':
-    main()
