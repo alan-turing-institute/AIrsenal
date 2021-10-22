@@ -381,8 +381,8 @@ def make_best_transfers(
             update_func_and_args=update_func_and_args,
         )
         _in = [p.player_id for p in new_squad.players]
-        players_in = [p for p in _in if p not in _out]  # remove players already in team
-        players_out = [p for p in _out if p not in _in] # remove players already in team
+        players_in = [p for p in _in if p not in _out] # remove duplicates
+        players_out = [p for p in _out if p not in _in] # remove duplicates
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:
