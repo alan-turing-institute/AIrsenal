@@ -109,7 +109,7 @@ def set_lineup(fpl_team_id=None):
 
 def main():
     parser = argparse.ArgumentParser("Set the starting 11 and captain")
-    parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API")
+    parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API", type=int)
     args = parser.parse_args()
     set_lineup(args.fpl_team_id)
 
