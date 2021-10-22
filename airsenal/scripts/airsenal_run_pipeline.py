@@ -13,8 +13,8 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
-    get_latest_prediction_tag,
     get_entry_start_gameweek,
+    get_latest_prediction_tag,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
