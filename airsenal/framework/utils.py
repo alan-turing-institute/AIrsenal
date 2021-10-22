@@ -110,12 +110,14 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     return earliest_future_gameweek
 
 
-def get_gameweeks_array(weeks_ahead: int) -> List[int]:
+def get_gameweeks_array(
+    weeks_ahead: int, season=CURRENT_SEASON, dbsession=session
+) -> List[int]:
     """
     Returns the array containing only the valid (< max_gameweek) game-weeks
     or raise an exception if no game-weeks remaining
     """
-    max_gameweeks = get_max_gameweek()
+    max_gameweeks = get_max_gameweek(season=season, dbsession=dbsession)
     total_gameweeks = list(
         range(get_next_gameweek(), get_next_gameweek() + weeks_ahead)
     )
