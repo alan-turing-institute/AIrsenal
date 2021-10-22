@@ -30,6 +30,7 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     get_fixtures_for_gameweek,
+    get_gameweeks_array,
     get_top_predicted_points,
     list_players,
 )
@@ -239,7 +240,7 @@ def main():
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
     if args.weeks_ahead:
-        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + args.weeks_ahead))
+        gw_range = get_gameweeks_array(args.weeks_ahead)
     elif args.gameweek_start and args.gameweek_end:
         gw_range = list(range(args.gameweek_start, args.gameweek_end))
     elif args.gameweek_start:  # by default go three weeks ahead
