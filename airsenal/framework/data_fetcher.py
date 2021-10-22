@@ -57,8 +57,23 @@ class FPLDataFetcher(object):
                 )
             else:
                 self.__setattr__(ID, "MISSING_ID")
+        if self.FPL_TEAM_ID is not None and self.FPL_TEAM_ID != "MISSING_ID":
+            try:
+                self.FPL_TEAM_ID = int(self.FPL_TEAM_ID)
+            except ValueError:
+                raise ValueError(
+                    f"FPL_TEAM_ID in environment variable and/or data/FPL_TEAM_ID "
+                    f"file should be a valid integer. Please correct it or remove "
+                    f" it if you're using the command line argument. "
+                    f"Found: {self.FPL_TEAM_ID}"
+                )
         if fpl_team_id is not None:
-            self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
+            if isinstance(fpl_team_id, int):
+                self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
+            else:
+                raise ValueError(
+                    f"FPL_TEAM_ID should be an integer. Found: {fpl_team_id}"
+                )
         self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
         self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
