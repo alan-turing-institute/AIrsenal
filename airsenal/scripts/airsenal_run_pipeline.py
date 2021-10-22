@@ -14,6 +14,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_latest_prediction_tag,
+    get_entry_start_gameweek,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -120,7 +121,7 @@ def run_pipeline(
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
-        if NEXT_GAMEWEEK == 1:
+        if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
             click.echo("Generating a squad..")
             new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
             if not new_squad_ok:
