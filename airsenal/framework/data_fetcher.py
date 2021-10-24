@@ -25,7 +25,7 @@ class FPLDataFetcher(object):
         self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
-        self.current_squad_data = None
+        self.current_squad_data = {}
         self.player_gameweek_data = {}
         self.fpl_team_history_data = None
         # transfer history data is a dict, keyed by fpl_team_id
@@ -174,18 +174,18 @@ class FPLDataFetcher(object):
         Requires login.  Return the current squad data, including
         "picks", bank, and free transfers.
         """
-        if self.current_squad_data:
-            return self.current_squad_data
         if fpl_team_id:
             team_id = fpl_team_id
         elif self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
             team_id = self.FPL_TEAM_ID
         else:
             raise RuntimeError("Please specify FPL team ID")
+        if fpl_team_id in self.current_squad_data:
+            return self.current_squad_data[fpl_team_id]
         self.login()
         url = self.FPL_MYTEAM_URL.format(team_id)
-        self.current_squad_data = self._get_request(url)
-        return self.current_squad_data
+        self.current_squad_data[fpl_team_id] = self._get_request(url)
+        return self.current_squad_data[fpl_team_id]
 
     def get_current_picks(self, fpl_team_id=None):
         """
