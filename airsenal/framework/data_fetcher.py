@@ -174,16 +174,15 @@ class FPLDataFetcher(object):
         Requires login.  Return the current squad data, including
         "picks", bank, and free transfers.
         """
-        if fpl_team_id:
-            team_id = fpl_team_id
-        elif self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
-            team_id = self.FPL_TEAM_ID
-        else:
-            raise RuntimeError("Please specify FPL team ID")
+        if not fpl_team_id:
+            if self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
+                fpl_team_id = self.FPL_TEAM_ID
+            else:
+                raise RuntimeError("Please specify FPL team ID")
         if fpl_team_id in self.current_squad_data:
             return self.current_squad_data[fpl_team_id]
         self.login()
-        url = self.FPL_MYTEAM_URL.format(team_id)
+        url = self.FPL_MYTEAM_URL.format(fpl_team_id)
         self.current_squad_data[fpl_team_id] = self._get_request(url)
         return self.current_squad_data[fpl_team_id]
 
