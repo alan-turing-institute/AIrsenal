@@ -1224,7 +1224,7 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
-        # If the player has not played a match or two in the last
+    # If the player has not played a match or two in the last
     # `num_matches_to_use` matches, then we check a couple of gameweeks further
     # back.
     if len(playerscores) < num_match_to_use:
