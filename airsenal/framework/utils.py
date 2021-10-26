@@ -1126,7 +1126,7 @@ def estimate_minutes_from_prev_season(
     dbsession=None,
 ):
     """
-    take average of minutes from previous season if any, or else return [60]
+    take average of minutes from previous season if any, or else return [0]
     """
     if not dbsession:
         dbsession = session
@@ -1224,17 +1224,25 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
+    # If the player has not played a match or two in the last
+    # `num_matches_to_use` matches, then we check a couple of gameweeks further
+    # back.
+    if len(playerscores) < num_match_to_use:
+        playerscores = get_recent_playerscore_rows(
+            player, num_match_to_use + 2, season, last_gw, dbsession
+        )
     minutes = [r.minutes for r in playerscores] if playerscores else []
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
-    if first_gw < 0 or not minutes:
+    if first_gw < 0:
         minutes += estimate_minutes_from_prev_season(
             player, season, dbsession=dbsession
         )
-
+    if not minutes:
+        return [0]
     return minutes
 
 
