@@ -1126,7 +1126,7 @@ def estimate_minutes_from_prev_season(
     dbsession=None,
 ):
     """
-    take average of minutes from previous season if any, or else return [60]
+    take average of minutes from previous season if any, or else return [0]
     """
     if not dbsession:
         dbsession = session
