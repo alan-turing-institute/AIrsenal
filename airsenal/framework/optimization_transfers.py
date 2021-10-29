@@ -363,7 +363,7 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
 
     elif num_transfers in ["W", "F"]:
-        players_out = [p.player_id for p in squad.players]
+        _out = [p.player_id for p in squad.players]
         budget = get_squad_value(squad)
         if num_transfers == "F":
             gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
@@ -380,7 +380,9 @@ def make_best_transfers(
             num_iter=num_iter,
             update_func_and_args=update_func_and_args,
         )
-        players_in = [p.player_id for p in new_squad.players]
+        _in = [p.player_id for p in new_squad.players]
+        players_in = [p for p in _in if p not in _out]  # remove duplicates
+        players_out = [p for p in _out if p not in _in]  # remove duplicates
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:

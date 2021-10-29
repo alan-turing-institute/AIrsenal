@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import TypeVar
+from typing import List, TypeVar
 
 import dateparser
 import regex as re
@@ -33,7 +33,7 @@ fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     """
     Return the maximum gameweek number across all scheduled fixtures. This should
-    generally be 38, but may be different in the case of major disruptino (e.g.
+    generally be 38, but may be different in the case of major disruptions (e.g.
     Covid-19)
     """
     max_gw_fixture = (
@@ -50,6 +50,7 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
     """
     Use the current time to figure out which gameweek we're in
     """
+
     if not dbsession:
         dbsession = session
     timenow = datetime.now(timezone.utc)
@@ -107,6 +108,26 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
                 break
 
     return earliest_future_gameweek
+
+
+def get_gameweeks_array(
+    weeks_ahead: int, season=CURRENT_SEASON, dbsession=session
+) -> List[int]:
+    """
+    Returns the array containing only the valid (< max_gameweek) game-weeks
+    or raise an exception if no game-weeks remaining
+    """
+    max_gameweeks = get_max_gameweek(season=season, dbsession=dbsession)
+    total_gameweeks = list(
+        range(get_next_gameweek(), get_next_gameweek() + weeks_ahead)
+    )
+    gameweeks = list(filter(lambda x: x <= max_gameweeks, total_gameweeks))
+    if len(gameweeks) == 0:
+        raise ValueError("No gameweeks remaining.")
+    if gameweeks != total_gameweeks:
+        print(f"WARN: Only {len(gameweeks)} left")
+
+    return gameweeks
 
 
 # make this a global variable in this module, import into other modules
@@ -1105,7 +1126,7 @@ def estimate_minutes_from_prev_season(
     dbsession=None,
 ):
     """
-    take average of minutes from previous season if any, or else return [60]
+    take average of minutes from previous season if any, or else return [0]
     """
     if not dbsession:
         dbsession = session
@@ -1203,17 +1224,25 @@ def get_recent_minutes_for_player(
     playerscores = get_recent_playerscore_rows(
         player, num_match_to_use, season, last_gw, dbsession
     )
+    # If the player has not played a match or two in the last
+    # `num_matches_to_use` matches, then we check a couple of gameweeks further
+    # back.
+    if len(playerscores) < num_match_to_use:
+        playerscores = get_recent_playerscore_rows(
+            player, num_match_to_use + 2, season, last_gw, dbsession
+        )
     minutes = [r.minutes for r in playerscores] if playerscores else []
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
     if not last_gw:
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
-    if first_gw < 0 or not minutes:
+    if first_gw < 0:
         minutes += estimate_minutes_from_prev_season(
             player, season, dbsession=dbsession
         )
-
+    if not minutes:
+        return [0]
     return minutes
 
 

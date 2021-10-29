@@ -25,7 +25,7 @@ class FPLDataFetcher(object):
         self.current_event_data = None
         self.current_player_data = None
         self.current_team_data = None
-        self.current_squad_data = None
+        self.current_squad_data = {}
         self.player_gameweek_data = {}
         self.fpl_team_history_data = None
         # transfer history data is a dict, keyed by fpl_team_id
@@ -57,8 +57,23 @@ class FPLDataFetcher(object):
                 )
             else:
                 self.__setattr__(ID, "MISSING_ID")
+        if self.FPL_TEAM_ID is not None and self.FPL_TEAM_ID != "MISSING_ID":
+            try:
+                self.FPL_TEAM_ID = int(self.FPL_TEAM_ID)
+            except ValueError:
+                raise ValueError(
+                    f"FPL_TEAM_ID in environment variable and/or data/FPL_TEAM_ID "
+                    f"file should be a valid integer. Please correct it or remove "
+                    f" it if you're using the command line argument. "
+                    f"Found: {self.FPL_TEAM_ID}"
+                )
         if fpl_team_id is not None:
-            self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
+            if isinstance(fpl_team_id, int):
+                self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
+            else:
+                raise ValueError(
+                    f"FPL_TEAM_ID should be an integer. Found: {fpl_team_id}"
+                )
         self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
         self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
@@ -159,18 +174,17 @@ class FPLDataFetcher(object):
         Requires login.  Return the current squad data, including
         "picks", bank, and free transfers.
         """
-        if self.current_squad_data:
-            return self.current_squad_data
-        if fpl_team_id:
-            team_id = fpl_team_id
-        elif self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
-            team_id = self.FPL_TEAM_ID
-        else:
-            raise RuntimeError("Please specify FPL team ID")
+        if not fpl_team_id:
+            if self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
+                fpl_team_id = self.FPL_TEAM_ID
+            else:
+                raise RuntimeError("Please specify FPL team ID")
+        if fpl_team_id in self.current_squad_data:
+            return self.current_squad_data[fpl_team_id]
         self.login()
-        url = self.FPL_MYTEAM_URL.format(team_id)
-        self.current_squad_data = self._get_request(url)
-        return self.current_squad_data
+        url = self.FPL_MYTEAM_URL.format(fpl_team_id)
+        self.current_squad_data[fpl_team_id] = self._get_request(url)
+        return self.current_squad_data[fpl_team_id]
 
     def get_current_picks(self, fpl_team_id=None):
         """
@@ -424,6 +438,66 @@ class FPLDataFetcher(object):
             if "deadline_time" in ev.keys()
         ]
         return deadlines
+
+    def get_lineup(self):
+        """
+        Retrieve up to date lineup from api
+        """
+
+        self.login()
+
+        team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+
+        return self._get_request(team_url)
+
+    def post_lineup(self, payload):
+        """
+        Set the lineup for a specific team
+        """
+
+        self.login()
+
+        payload = json.dumps({"chip": None, "picks": payload})
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://fantasy.premierleague.com/a/team/my",
+        }
+
+        team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+
+        resp = self.rsession.post(team_url, data=payload, headers=headers)
+        if resp.status_code == 200:
+            print("SUCCESS....lineup made!")
+        else:
+            print("Lineup changes not made due to unknown error")
+            print(f"Response status code: {resp.status_code}")
+            print(f"Response text: {resp.text}")
+
+    def post_transfers(self, transfer_payload):
+
+        self.login()
+
+        # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://fantasy.premierleague.com/a/squad/transfers",
+        }
+
+        transfer_url = "https://fantasy.premierleague.com/api/transfers/"
+
+        resp = self.rsession.post(
+            transfer_url, data=json.dumps(transfer_payload), headers=headers
+        )
+        if "non_form_errors" in resp:
+            raise Exception(resp["non_form_errors"])
+        elif resp.status_code == 200:
+            print("SUCCESS....transfers made!")
+        else:
+            print("Transfers unsuccessful due to unknown error")
+            print(f"Response status code: {resp.status_code}")
+            print(f"Response text: {resp.text}")
 
     def _get_request(self, url, err_msg="Unable to access FPL API"):
         r = self.rsession.get(url)

@@ -12,6 +12,7 @@ import json
 import os
 from datetime import datetime, timedelta
 
+import pytz
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -25,7 +26,7 @@ base_url = {
     "1819": LEAGUE_URL.format("2018"),
     "1920": LEAGUE_URL.format("2019"),
     "2021": LEAGUE_URL.format("2020"),
-    "2122": LEAGUE_URL.format("2020"),
+    "2122": LEAGUE_URL.format("2021"),
 }
 
 
@@ -97,13 +98,14 @@ def parse_match(match_info: dict):
         {
             "home": home_team,
             "away": away_team,
-            "goals": (list) goals,
-            "subs": (list) subs,
+            "goals": (dict) goals,
+            "subs": (dict) subs,
         }
-        The `goals` list is structured as a list of lists
-        [goal_scorer, time_of_goal]. The subs list is also a list of
-        lists of the form [player_in, player_out, time_of_substitution].
-
+        The `goals` dict is structured as a dictinonary of lists
+        {"home": [], "away": []} where each entry of the list is of the
+        form [goal_scorer, time_of_goal]. The subs dict is also a dict of
+        lists of the form {"home": [], "away": []} with each entry of the
+        form [player_in, player_out, time_of_substitution].
     """
     match_id = match_info.get("id", None)
     if not match_id:
@@ -114,7 +116,9 @@ def parse_match(match_info: dict):
     home_team = match_info.get("h").get("title")
     away_team = match_info.get("a").get("title")
     date = match_info.get("datetime")
-    if date and datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now():
+    if not date or datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now(
+        pytz.utc
+    ):
         # match not played yet or only recently finished, skip
         return None
 
@@ -123,29 +127,40 @@ def parse_match(match_info: dict):
         soup = BeautifulSoup(response.text, features="lxml")
     else:
         raise RuntimeError(
-            f"Could not reach match at understat.com: {response.status_code}"
+            f"Could not reach match {match_id} "
+            f"({home_team} vs. {away_team}, {date}) "
+            f"at understat.com: {response.status_code}"
         )
 
     timeline = soup.find_all(
         "div", attrs={"class": "timiline-container"}, recursive=True
     )
-    goals = []
-    subs = []
+    goals = {"home": [], "away": []}
+    subs = {"home": [], "away": []}
     for event in timeline:
-        if event.find("i", attrs={"title": "Goal"}):
+        if event.find("i", attrs={"class": "fa-futbol"}):
             scorer = event.find("a", attrs={"class": "player-name"}).text
             goal_time = event.find("span", attrs={"class": "minute-value"}).text[:-1]
-            goals.append((scorer, goal_time))
-        else:
-            row = event.find_all("div", attrs={"class": "timeline-row"})
-            for r in row:
+            block = event.find("div", attrs={"class": "timeline-row"}).find_parent()
+            if "block-home" in block["class"]:
+                goals["home"].append((scorer, goal_time))
+            else:
+                goals["away"].append((scorer, goal_time))
+        rows = event.find_all("div", attrs={"class": "timeline-row"})
+        if rows:
+            for r in rows:
                 if r.find("i", attrs={"class": "player-substitution"}):
                     sub_info = [a.text for a in r.find_all("a")]
                     sub_time = event.find("span", attrs={"class": "minute-value"}).text[
                         :-1
                     ]
                     sub_info.append(sub_time)
-                    subs.append(sub_info)
+
+                    block = r.find_parent()
+                    if "block-home" in block["class"]:
+                        subs["home"].append(sub_info)
+                    else:
+                        subs["away"].append(sub_info)
 
     result = {
         "datetime": date,
@@ -187,7 +202,7 @@ def get_season_info(season: str, result: dict = {}):
         if match.get("id") not in result.keys():
             parsed_match = parse_match(match)
             if parsed_match:
-                result[match.get("id")] = parse_match(match)
+                result[match.get("id")] = parsed_match
 
     return result
 
