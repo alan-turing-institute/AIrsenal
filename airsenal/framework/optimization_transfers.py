@@ -45,7 +45,9 @@ def make_optimum_single_transfer(
     if verbose:
         print("Creating ordered player lists")
     ordered_player_lists = {
-        pos: get_predicted_points(gameweek=gameweek_range, position=pos, tag=tag)
+        pos: get_predicted_points(
+            gameweek=gameweek_range, position=pos, tag=tag, season=season
+        )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
     for p_out in squad.players:
@@ -117,7 +119,9 @@ def make_optimum_double_transfer(
     best_score = 0.0
     best_pid_out, best_pid_in = 0, 0
     ordered_player_lists = {
-        pos: get_predicted_points(gameweek=gameweek_range, position=pos, tag=tag)
+        pos: get_predicted_points(
+            gameweek=gameweek_range, position=pos, tag=tag, season=season
+        )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
     for i in range(len(squad.players) - 1):
@@ -242,7 +246,9 @@ def make_random_transfers(
             removed_players.append(squad.players[p].player_id)
             new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {
-            pos: get_predicted_points(position=pos, gameweek=gw_range, tag=tag)
+            pos: get_predicted_points(
+                position=pos, gameweek=gw_range, tag=tag, season=season
+            )
             for pos in set(positions_needed)
         }
         complete_squad = False
