@@ -304,12 +304,11 @@ def fill_initial_transaction_table(
     free_hit = 0
     time = datetime.now().isoformat()
     for player in squad.players:
-        price = player.price(season, gameweek)
         add_transaction(
             player.player_id,
             gameweek,
             1,
-            price,
+            player.purchase_price,
             season,
             tag,
             free_hit,
