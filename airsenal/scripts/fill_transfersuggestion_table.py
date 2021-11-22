@@ -42,6 +42,7 @@ from airsenal.framework.optimization_utils import (
     check_tag_valid,
     count_expected_outputs,
     fill_suggestion_table,
+    get_baseline_strat,
     get_discount_factor,
     get_num_increments,
     get_starting_squad,
@@ -265,27 +266,11 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
-def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
+def save_baseline_score(squad, gameweeks, tag):
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
-    # TODO: use season argument
-    root_gw = gameweeks[0]
-    strat_dict = {
-        "total_score": 0,
-        "points_per_gw": {},
-        "players_in": {},
-        "players_out": {},
-        "chips_played": {},
-        "root_gw": root_gw,
-    }
-    for gw in gameweeks:
-        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
-        strat_dict["total_score"] += gw_score
-        strat_dict["points_per_gw"][gw] = gw_score
-        strat_dict["players_in"][gw] = []
-        strat_dict["players_out"][gw] = []
-        strat_dict["chips_played"][gw] = None
+    strat_dict = get_baseline_strat(squad, gameweeks, tag)
 
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
@@ -383,11 +368,11 @@ def discord_payload(strat, lineup):
     return payload
 
 
-def print_team_for_next_gw(strat, fpl_team_id=None):
+def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_squad(fpl_team_id=fpl_team_id)
+    t = get_starting_squad(season=season, fpl_team_id=fpl_team_id)
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
@@ -495,7 +480,7 @@ def run_optimization(
 
     use_api = fetcher.logged_in
     starting_squad = get_starting_squad(
-        fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+        season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
     )
 
     if not allow_unused_transfers and (
@@ -503,7 +488,7 @@ def run_optimization(
     ):
         # if we are excluding unused transfers the tree may not include the baseline
         # strategy. In those cases quickly calculate and save it here first.
-        save_baseline_score(starting_squad, gameweeks, tag, season=season)
+        save_baseline_score(starting_squad, gameweeks, tag)
         update_progress()
 
     # Add Processes to run the the target 'optimize' function.
@@ -557,7 +542,7 @@ def run_optimization(
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
-    t = print_team_for_next_gw(best_strategy, fpl_team_id)
+    t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message

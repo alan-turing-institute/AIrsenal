@@ -89,11 +89,15 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
         )
 
 
-def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
+def get_starting_squad(
+    season=CURRENT_SEASON, fpl_team_id=None, use_api=False, apifetcher=None
+):
     """
     use the transactions table in the db, or the API if requested
     """
     if use_api:
+        if season != CURRENT_SEASON:
+            raise RuntimeError("Can only use API for current season")
         if not fpl_team_id:
             raise RuntimeError(
                 "Please specify fpl_team_id to get current squad from API"
@@ -117,6 +121,7 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
             session.query(Transaction)
             .order_by(Transaction.id.desc())
             .filter_by(free_hit=0)
+            .filter_by(season=season)
             .first()
         )
         if most_recent is None:
@@ -131,12 +136,13 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
         .order_by(Transaction.gameweek, Transaction.id)
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)
+        .filter_by(season=season)
         .all()
     )
     if len(transactions) == 0:
         raise ValueError(f"No transactions in database for team ID {fpl_team_id}")
 
-    s = Squad(season=transactions[0].season)
+    s = Squad(season=season)
     for trans in transactions:
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
@@ -153,22 +159,29 @@ def get_starting_squad(fpl_team_id=None, use_api=False, apifetcher=None):
     return s
 
 
-def get_baseline_prediction(gw_ahead, tag, fpl_team_id=None):
+def get_baseline_strat(squad, gameweeks, tag):
     """
-    use current squad, and count potential score
-    also return a cumulative total per gw, so we can abort if it
-    looks like we're doing too badly.
+    Create the strategy dict used by the optimisation for the baseline of making no
+    transfers.
     """
-    squad = get_starting_squad(fpl_team_id=fpl_team_id)
-    total = 0.0
-    cum_total_per_gw = {}
-    next_gw = NEXT_GAMEWEEK
-    gameweeks = list(range(next_gw, next_gw + gw_ahead))
+    root_gw = gameweeks[0]
+    strat_dict = {
+        "total_score": 0,
+        "points_per_gw": {},
+        "players_in": {},
+        "players_out": {},
+        "chips_played": {},
+        "root_gw": root_gw,
+    }
     for gw in gameweeks:
-        score = squad.get_expected_points(gw, tag) * get_discount_factor(next_gw, gw)
-        cum_total_per_gw[gw] = total + score
-        total += score
-    return total, cum_total_per_gw
+        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
+        strat_dict["total_score"] += gw_score
+        strat_dict["points_per_gw"][gw] = gw_score
+        strat_dict["players_in"][gw] = []
+        strat_dict["players_out"][gw] = []
+        strat_dict["chips_played"][gw] = None
+
+    return strat_dict
 
 
 def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
