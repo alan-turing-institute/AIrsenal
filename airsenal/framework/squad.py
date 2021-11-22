@@ -157,6 +157,12 @@ class Squad(object):
                 return True
         return False
 
+    def get_player_from_id(self, player_id):
+        for p in self.players:
+            if p.player_id == player_id:
+                return p
+        raise ValueError(f"Player {player_id} not in squad")
+
     def get_sell_price_for_player(
         self,
         player,
@@ -168,7 +174,8 @@ class Squad(object):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-
+        if isinstance(player, int):
+            player = self.get_player_from_id(player)  # get CandidatePlayer from squad
         player_id = player.player_id
         price_now = None
         if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:

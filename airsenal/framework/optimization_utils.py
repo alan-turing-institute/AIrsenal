@@ -226,9 +226,8 @@ def fill_transaction_table(
     free_hit = int(best_strat["chips_played"][fill_gw] == "free_hit")
     time = datetime.now().isoformat()
     for player_id in best_strat["players_out"][fill_gw]:
-        player = get_player(player_id, dbsession=dbsession)
         price = starting_squad.get_sell_price_for_player(
-            player, gameweek=fill_gw, dbsession=dbsession
+            player_id, gameweek=fill_gw, dbsession=dbsession
         )
         add_transaction(
             player_id,
