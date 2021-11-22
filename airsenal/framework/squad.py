@@ -92,6 +92,7 @@ class Squad(object):
             player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
+            player.season = self.season
         # set the price if one was specified.
         if price:
             player.purchase_price = price

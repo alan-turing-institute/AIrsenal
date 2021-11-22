@@ -42,23 +42,23 @@ class CandidatePlayer(object):
     def __str__(self):
         return self.name
 
-    def calc_predicted_points(self, method):
+    def calc_predicted_points(self, tag):
         """
         get expected points from the db.
-        Will be a dict of dicts, keyed by method and gameweeek
+        Will be a dict of dicts, keyed by tag and gameweeek
         """
-        if method not in self.predicted_points.keys():
-            self.predicted_points[method] = get_predicted_points_for_player(
-                self.player_id, method, season=self.season, dbsession=self.dbsession
+        if tag not in self.predicted_points.keys():
+            self.predicted_points[tag] = get_predicted_points_for_player(
+                self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
 
-    def get_predicted_points(self, gameweek, method):
+    def get_predicted_points(self, gameweek, tag):
         """
         get points for a specific gameweek
         """
-        if method not in self.predicted_points.keys():
-            self.calc_predicted_points(method)
-        if gameweek not in self.predicted_points[method].keys():
+        if tag not in self.predicted_points.keys():
+            self.calc_predicted_points(tag)
+        if gameweek not in self.predicted_points[tag].keys():
             print("No prediction available for {} week {}".format(self.name, gameweek))
             return 0.0
-        return self.predicted_points[method][gameweek]
+        return self.predicted_points[tag][gameweek]

@@ -41,13 +41,13 @@ class DummyPlayer:
         self.is_vice_captain = False
         self.sub_position = None
 
-    def calc_predicted_points(self, method):
+    def calc_predicted_points(self, tag):
         """
         Needed for compatibility with Squad/other Player classes
         """
         pass
 
-    def get_predicted_points(self, gameweek, method):
+    def get_predicted_points(self, gameweek, tag):
         """
         Get points for a specific gameweek -
         """

@@ -313,7 +313,7 @@ def get_free_transfers(
     else:
         # historical data - fetch from database, not implemented yet
         raise RuntimeError(
-            "Estimating free transfers for previous seasons is not yet implemented."
+            "Calculating free transfers for previous seasons is not yet implemented."
         )
 
 
@@ -1283,7 +1283,7 @@ def get_last_finished_gameweek():
 
 def get_latest_prediction_tag(season=CURRENT_SEASON, tag_prefix="", dbsession=None):
     """
-    query the predicted_score table and get the method
+    query the predicted_score table and get the tag
     field for the last row.
     """
     if not dbsession:
@@ -1307,7 +1307,7 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, tag_prefix="", dbsession=No
 
 def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     """
-    query the predicted_score table and get the method
+    query the predicted_score table and get the tag
     field for the last row.
     """
     if not dbsession:
