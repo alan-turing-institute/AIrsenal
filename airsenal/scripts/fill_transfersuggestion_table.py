@@ -539,7 +539,7 @@ def run_optimization(
     if season != CURRENT_SEASON:
         # simulating a previous season, so imitate applying transfers by adding
         # the suggestions to the Transaction table
-        fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id)
+        fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
 
     for i in range(len(procs)):
         print("\n")

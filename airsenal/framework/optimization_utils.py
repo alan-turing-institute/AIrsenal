@@ -286,6 +286,39 @@ def fill_initial_suggestion_table(
     dbsession.commit()
 
 
+def fill_initial_transaction_table(
+    squad,
+    fpl_team_id,
+    tag,
+    season=CURRENT_SEASON,
+    gameweek=NEXT_GAMEWEEK,
+    dbsession=session,
+):
+    """Add transactions from an optimised strategy to the transactions table in the
+    database. Used for simulating seasons only, for playing the current FPL season
+    the transactions status is kepts up to date with transfers using the FPL API.
+    Only transfers from the first gameweek in the strategy are added to the Transaction
+    table - it's assumed the strategy will be re-optimised after each week rather than
+    sticking with the originally proposed future transfers.
+    """
+    free_hit = 0
+    time = datetime.now().isoformat()
+    for player in squad.players:
+        price = player.price(season, gameweek)
+        add_transaction(
+            player.player_id,
+            gameweek,
+            1,
+            price,
+            season,
+            tag,
+            free_hit,
+            fpl_team_id,
+            time,
+            dbsession,
+        )
+
+
 def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     """
     Quick function to see if we need to do multiple iterations

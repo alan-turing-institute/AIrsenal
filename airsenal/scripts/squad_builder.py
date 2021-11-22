@@ -7,8 +7,9 @@ from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     check_tag_valid,
     fill_initial_suggestion_table,
+    fill_initial_transaction_table,
 )
-from airsenal.framework.season import get_current_season
+from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher, get_latest_prediction_tag
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
@@ -72,7 +73,7 @@ def main():
         type=int,
     )
     args = parser.parse_args()
-    season = args.season or get_current_season()
+    season = args.season or CURRENT_SEASON
     budget = args.budget
     gw_start = args.gw_start or NEXT_GAMEWEEK
     gw_range = list(range(gw_start, min(38, gw_start + args.num_gw)))
@@ -141,3 +142,13 @@ def main():
         season=season,
         gameweek=gw_start,
     )
+    if season != CURRENT_SEASON:
+        # if simulating a previous season also add suggestions to transaction table
+        # to imitate applying transfers
+        fill_initial_transaction_table(
+            best_squad,
+            fpl_team_id,
+            tag,
+            season=season,
+            gameweek=gw_start,
+        )
