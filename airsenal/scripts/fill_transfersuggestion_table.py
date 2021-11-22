@@ -479,7 +479,7 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    use_api = fetcher.logged_in
+    use_api = fetcher.logged_in if season == CURRENT_SEASON else False
     starting_squad = get_starting_squad(
         season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
     )
