@@ -11,11 +11,13 @@ from airsenal.framework.schema import (
     TransferSuggestion,
 )
 from airsenal.framework.squad import Squad
+from airsenal.framework.transaction_utils import add_transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     get_bank,
     get_current_squad_from_api,
+    get_player,
     session,
 )
 
@@ -206,6 +208,55 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
                 ts.chip_played = best_strat["chips_played"][gameweek]
                 session.add(ts)
     session.commit()
+
+
+def fill_transaction_table(
+    starting_squad, best_strat, season, fpl_team_id, tag=None, dbsession=session
+):
+    """Add transactions from an optimised strategy to the transactions table in the
+    database. Used for simulating seasons only, for playing the current FPL season
+    the transactions status is kepts up to date with transfers using the FPL API.
+    Only transfers from the first gameweek in the strategy are added to the Transaction
+    table - it's assumed the strategy will be re-optimised after each week rather than
+    sticking with the originally proposed future transfers.
+    """
+    fill_gw = min(best_strat["players_in"].keys())
+    if tag is None:
+        tag = f"AIrsenal{season}"
+    free_hit = int(best_strat["chips_played"][fill_gw] == "free_hit")
+    time = datetime.now().isoformat()
+    for player_id in best_strat["players_out"][fill_gw]:
+        player = get_player(player_id, dbsession=dbsession)
+        price = starting_squad.get_sell_price_for_player(
+            player, gameweek=fill_gw, dbsession=dbsession
+        )
+        add_transaction(
+            player_id,
+            fill_gw,
+            -1,
+            price,
+            season,
+            tag,
+            free_hit,
+            fpl_team_id,
+            time,
+            dbsession,
+        )
+    for player_id in best_strat["players_in"][fill_gw]:
+        player = get_player(player_id, dbsession=dbsession)
+        price = player.price(season, fill_gw)
+        add_transaction(
+            player_id,
+            fill_gw,
+            1,
+            price,
+            season,
+            tag,
+            free_hit,
+            fpl_team_id,
+            time,
+            dbsession,
+        )
 
 
 def fill_initial_suggestion_table(

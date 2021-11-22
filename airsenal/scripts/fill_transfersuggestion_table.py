@@ -42,6 +42,7 @@ from airsenal.framework.optimization_utils import (
     check_tag_valid,
     count_expected_outputs,
     fill_suggestion_table,
+    fill_transaction_table,
     get_baseline_strat,
     get_discount_factor,
     get_num_increments,
@@ -419,7 +420,7 @@ def run_optimization(
     # How many free transfers are we starting with?
     if not num_free_transfers:
         num_free_transfers = get_free_transfers(
-            fpl_team_id, gameweeks[0], apifetcher=fetcher
+            fpl_team_id, gameweeks[0], season=season, apifetcher=fetcher
         )
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
@@ -535,6 +536,11 @@ def run_optimization(
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
+    if season != CURRENT_SEASON:
+        # simulating a previous season, so imitate applying transfers by adding
+        # the suggestions to the Transaction table
+        fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id)
+
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")

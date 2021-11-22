@@ -175,6 +175,7 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
         .order_by(Transaction.gameweek, Transaction.id)
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)  # free_hit players shouldn't be considered part of squad
+        .filter_by(season=season)
         .all()
     )
 
@@ -275,7 +276,11 @@ def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
 
 
 def get_free_transfers(
-    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+    fpl_team_id=None,
+    gameweek=None,
+    season=CURRENT_SEASON,
+    dbsession=session,
+    apifetcher=fetcher,
 ):
     """
     Work out how many free transfers this FPL team should have before specified gameweek
@@ -290,31 +295,48 @@ def get_free_transfers(
         # check if we're logged in, which will let us get the most up-to-date info
         if apifetcher.logged_in:
             return apifetcher.get_num_free_transfers(fpl_team_id)
-        else:
-            # try to calculate free transfers based on previous transfer history
-            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
-            num_free_transfers = 1
-            if "current" in data.keys() and len(data["current"]) > 0:
-                starting_gw = get_entry_start_gameweek(
-                    fpl_team_id, apifetcher=apifetcher
-                )
-                for gw in data["current"]:
-                    if gw["event"] <= starting_gw:
-                        continue
-                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                        num_free_transfers += 1
-                    elif gw["event_transfers"] >= 2:
-                        num_free_transfers = 1
-                    # if gameweek was specified, and we reached the previous one,
-                    # break out of loop.
-                    if gameweek and gw["event"] == gameweek - 1:
-                        break
-            return num_free_transfers
+        # try to calculate free transfers based on previous transfer history
+        data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+        num_free_transfers = 1
+        if "current" in data.keys() and len(data["current"]) > 0:
+            starting_gw = get_entry_start_gameweek(fpl_team_id, apifetcher=apifetcher)
+            for gw in data["current"]:
+                if gw["event"] <= starting_gw:
+                    continue
+                if gw["event_transfers"] == 0 and num_free_transfers < 2:
+                    num_free_transfers += 1
+                elif gw["event_transfers"] >= 2:
+                    num_free_transfers = 1
+                # if gameweek was specified, and we reached the previous one,
+                # break out of loop.
+                if gameweek and gw["event"] == gameweek - 1:
+                    break
+
     else:
-        # historical data - fetch from database, not implemented yet
-        raise RuntimeError(
-            "Calculating free transfers for previous seasons is not yet implemented."
+        # historical/simulated data - fetch from database
+        transactions = (
+            dbsession.query(Transaction)
+            .order_by(Transaction.gameweek, Transaction.id)
+            .filter_by(fpl_team_id=fpl_team_id)
+            .filter_by(bought_or_sold=1)
+            .all()
         )
+        if len(transactions) == 0:
+            return 1
+        starting_gw = transactions[0].gameweek
+        gw_transactions = {}
+        for t in transactions:
+            if t.gameweek not in gw_transactions:
+                gw_transactions[t.gameweek] = 0
+            gw_transactions[t.gameweek] += 1
+        num_free_transfers = 1
+        for prev_gw in range(starting_gw + 1, gameweek):
+            if prev_gw not in gw_transactions:
+                num_free_transfers = 2
+            elif gw_transactions[prev_gw] >= 2:
+                num_free_transfers = 1
+
+    return num_free_transfers
 
 
 @lru_cache(maxsize=365)
