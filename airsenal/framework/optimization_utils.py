@@ -220,12 +220,13 @@ def fill_transaction_table(
     table - it's assumed the strategy will be re-optimised after each week rather than
     sticking with the originally proposed future transfers.
     """
-    fill_gw = min(best_strat["players_in"].keys())
+    strat_gws = [int(gw) for gw in best_strat["players_in"].keys()]
+    fill_gw = min(strat_gws)
     if tag is None:
         tag = f"AIrsenal{season}"
-    free_hit = int(best_strat["chips_played"][fill_gw] == "free_hit")
+    free_hit = int(best_strat["chips_played"][str(fill_gw)] == "free_hit")
     time = datetime.now().isoformat()
-    for player_id in best_strat["players_out"][fill_gw]:
+    for player_id in best_strat["players_out"][str(fill_gw)]:
         price = starting_squad.get_sell_price_for_player(
             player_id, gameweek=fill_gw, dbsession=dbsession
         )
@@ -241,7 +242,7 @@ def fill_transaction_table(
             time,
             dbsession,
         )
-    for player_id in best_strat["players_in"][fill_gw]:
+    for player_id in best_strat["players_in"][str(fill_gw)]:
         player = get_player(player_id, dbsession=dbsession)
         price = player.price(season, fill_gw)
         add_transaction(
