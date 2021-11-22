@@ -723,6 +723,9 @@ def main():
 
     sanity_check_args(args)
     season = args.season
+    if args.weeks_ahead and season != CURRENT_SEASON:
+        print("For past seasons, please specify gw_start and gw_end")
+        raise RuntimeError("Inconsistent arguments")
     # default weeks ahead is not specified (or gw_end is not specified) is three
     if args.weeks_ahead:
         gameweeks = get_gameweeks_array(args.weeks_ahead)
