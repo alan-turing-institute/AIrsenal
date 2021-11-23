@@ -294,12 +294,9 @@ def fill_initial_transaction_table(
     gameweek=NEXT_GAMEWEEK,
     dbsession=session,
 ):
-    """Add transactions from an optimised strategy to the transactions table in the
-    database. Used for simulating seasons only, for playing the current FPL season
-    the transactions status is kepts up to date with transfers using the FPL API.
-    Only transfers from the first gameweek in the strategy are added to the Transaction
-    table - it's assumed the strategy will be re-optimised after each week rather than
-    sticking with the originally proposed future transfers.
+    """Add transactions from an initial squad optimisation to the transactions table
+    in the database. Used for simulating seasons only, for playing the current FPL
+    season the transactions status is kepts up to date with transfers using the FPL API.
     """
     free_hit = 0
     time = datetime.now().isoformat()
