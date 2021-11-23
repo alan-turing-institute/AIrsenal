@@ -72,7 +72,9 @@ def predicted_point_mock_generator(point_dict):
     {"GK" : {player_id: points, ...}, "DEF": {}, ... }
     """
 
-    def mock_get_predicted_points(gameweek, tag, position, team=None):
+    def mock_get_predicted_points(
+        gameweek, tag, position, team=None, season=None, dbsession=None
+    ):
         """
         return an ordered list in the same way as the real
         get_predicted_points func does. EXCEPT - we return dummy players rather
