@@ -15,6 +15,75 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher, get_latest_predicti
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
+def fill_initial_squad(
+    tag,
+    gw_range,
+    season,
+    fpl_team_id,
+    budget=1000,
+    algorithm="genetic",
+    remove_zero=True,
+    sub_weights={"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    uda=None,
+    population_size=100,
+    num_iterations=10,
+    verbose=True,
+):
+    if algorithm == "genetic" and uda is None:
+        try:
+            import pygmo as pg
+
+            uda = pg.sga(gen=100)
+        except ModuleNotFoundError as e:
+            print(e)
+            print("Defaulting to algorithm=normal instead")
+            algorithm = "normal"
+
+    gw_start = gw_range[0]
+    best_squad = make_new_squad(
+        gw_range,
+        tag,
+        budget=budget,
+        season=season,
+        algorithm=algorithm,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
+        uda=uda,
+        population_size=population_size,
+        num_iterations=num_iterations,
+        verbose=verbose,
+    )
+    if best_squad is None:
+        raise RuntimeError(
+            "best_squad is None: make_new_squad failed to generate a valid team or "
+            "something went wrong with the squad expected points calculation."
+        )
+
+    points = best_squad.get_expected_points(gw_start, tag)
+    print("---------------------")
+    print("Best expected points for gameweek {}: {}".format(gw_start, points))
+    print("---------------------")
+    print(best_squad)
+
+    fill_initial_suggestion_table(
+        best_squad,
+        fpl_team_id,
+        tag,
+        season=season,
+        gameweek=gw_start,
+    )
+    if season != CURRENT_SEASON:
+        # if simulating a previous season also add suggestions to transaction table
+        # to imitate applying transfers
+        fill_initial_transaction_table(
+            best_squad,
+            fpl_team_id,
+            tag,
+            season=season,
+            gameweek=gw_start,
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Make a squad from scratch")
     # General parameters
@@ -94,6 +163,7 @@ def main():
     population_size = args.population_size
     remove_zero = not args.include_zero
     verbose = args.verbose
+    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
     if args.no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
@@ -111,11 +181,12 @@ def main():
     else:
         uda = None
 
-    best_squad = make_new_squad(
-        gw_range,
-        tag,
-        budget=budget,
+    fill_initial_squad(
+        tag=tag,
+        gw_range=gw_range,
         season=season,
+        fpl_team_id=fpl_team_id,
+        budget=budget,
         algorithm=algorithm,
         remove_zero=remove_zero,
         sub_weights=sub_weights,
@@ -124,33 +195,3 @@ def main():
         num_iterations=num_iterations,
         verbose=verbose,
     )
-    if best_squad is None:
-        raise RuntimeError(
-            "best_squad is None: make_new_squad failed to generate a valid team or "
-            "something went wrong with the squad expected points calculation."
-        )
-
-    points = best_squad.get_expected_points(gw_start, tag)
-    print("---------------------")
-    print("Best expected points for gameweek {}: {}".format(gw_start, points))
-    print("---------------------")
-    print(best_squad)
-
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
-    fill_initial_suggestion_table(
-        best_squad,
-        fpl_team_id,
-        tag,
-        season=season,
-        gameweek=gw_start,
-    )
-    if season != CURRENT_SEASON:
-        # if simulating a previous season also add suggestions to transaction table
-        # to imitate applying transfers
-        fill_initial_transaction_table(
-            best_squad,
-            fpl_team_id,
-            tag,
-            season=season,
-            gameweek=gw_start,
-        )
