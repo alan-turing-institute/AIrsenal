@@ -31,8 +31,8 @@ def get_dummy_id(season, dbsession):
 def print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id):
     print("=" * 30)
     print(f"Replay {season} season from GW{gw_start} to GW{gw_end}")
-    print(f"{tag_prefix=}")
-    print(f"{fpl_team_id=}")
+    print(f"tag_prefix = {tag_prefix}")
+    print(f"fpl_team_id = {fpl_team_id}")
     print("=" * 30)
 
 
