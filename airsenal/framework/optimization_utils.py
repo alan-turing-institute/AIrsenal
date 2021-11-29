@@ -3,6 +3,7 @@ functions to optimize the transfers for N weeks ahead
 """
 from copy import deepcopy
 from datetime import datetime
+from typing import Optional
 
 from airsenal.framework.schema import (
     Fixture,
@@ -161,12 +162,42 @@ def get_starting_squad(
     return s
 
 
-def get_baseline_strat(squad, gameweeks, tag):
+def get_discounted_squad_score(
+    squad: Squad,
+    gameweeks: list,
+    tag: str,
+    root_gw: Optional[int] = None,
+    bench_boost_gw: Optional[int] = None,
+    triple_captain_gw: Optional[int] = None,
+) -> float:
+    """Get the expected number of points a squad is to score across a number of
+    gameweeks, discounting the weight of gameweeks further into the future with respect
+    to the root_gw.
+    """
+    if root_gw is None:
+        root_gw = gameweeks[0]
+    total_points = 0
+    for gw in gameweeks:
+        if gw == bench_boost_gw:
+            total_points += squad.get_expected_points(
+                gw, tag, bench_boost=True
+            ) * get_discount_factor(root_gw, gw)
+        elif gw == triple_captain_gw:
+            total_points += squad.get_expected_points(
+                gw, tag, triple_captain=True
+            ) * get_discount_factor(root_gw, gw)
+        else:
+            total_points += squad.get_expected_points(gw, tag) * get_discount_factor(
+                root_gw, gw
+            )
+    return total_points
+
+
+def get_baseline_strat(squad, gameweeks, tag, root_gw=None):
     """
     Create the strategy dict used by the optimisation for the baseline of making no
     transfers.
     """
-    root_gw = gameweeks[0]
     strat_dict = {
         "total_score": 0,
         "points_per_gw": {},
@@ -176,7 +207,7 @@ def get_baseline_strat(squad, gameweeks, tag):
         "root_gw": root_gw,
     }
     for gw in gameweeks:
-        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
+        gw_score = get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw)
         strat_dict["total_score"] += gw_score
         strat_dict["points_per_gw"][gw] = gw_score
         strat_dict["players_in"][gw] = []
