@@ -3,9 +3,10 @@ Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
 import argparse
+import warnings
 from datetime import datetime
 
-from tqdm import tqdm
+from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.schema import Transaction, session_scope
@@ -111,13 +112,16 @@ def main():
     )
     args = parser.parse_args()
     set_multiprocessing_start_method(args.num_thread)
-    replay_season(
-        season=args.season,
-        gw_start=args.gw_start,
-        gw_end=args.gw_end,
-        weeks_ahead=args.weeks_ahead,
-        num_thread=args.num_thread,
-    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", TqdmWarning)
+        replay_season(
+            season=args.season,
+            gw_start=args.gw_start,
+            gw_end=args.gw_end,
+            weeks_ahead=args.weeks_ahead,
+            num_thread=args.num_thread,
+        )
 
 
 if __name__ == "__main__":
