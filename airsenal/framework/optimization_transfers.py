@@ -86,7 +86,6 @@ def make_optimum_single_transfer(
                 break
             if verbose:
                 print("Failed to add {}".format(p_in[0].name))
-        print("-" * 30)
 
     if best_squad is None:
         raise RuntimeError("Failed to find valid single transfer for squad")
