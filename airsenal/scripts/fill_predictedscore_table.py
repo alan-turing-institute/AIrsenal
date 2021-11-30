@@ -256,7 +256,7 @@ def main():
     else:
         player_model = ConjugatePlayerModel()
 
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method()
 
     with session_scope() as session:
         session.expire_on_commit = False

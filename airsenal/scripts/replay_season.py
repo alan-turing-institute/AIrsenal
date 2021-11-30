@@ -111,7 +111,7 @@ def main():
         default=4,
     )
     args = parser.parse_args()
-    set_multiprocessing_start_method(args.num_thread)
+    set_multiprocessing_start_method()
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)

@@ -763,7 +763,7 @@ def main():
         )
         sys.exit(1)
 
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method()
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)

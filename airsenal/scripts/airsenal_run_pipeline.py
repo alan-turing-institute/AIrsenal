@@ -98,7 +98,7 @@ def run_pipeline(
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method()
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
