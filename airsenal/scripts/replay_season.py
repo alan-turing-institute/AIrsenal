@@ -59,7 +59,7 @@ def replay_season(
     print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id)
 
     replay_range = range(gw_start, gw_end + 1)
-    for idx, gw in enumerate(tqdm(replay_range)):
+    for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
         gw_range = range(gw, gw + weeks_ahead)
         with session_scope() as session:
@@ -105,12 +105,30 @@ def main():
         "--season", help="season, in format e.g. '1819'", type=str, required=True
     )
     parser.add_argument(
+        "--fpl_team_id",
+        help="FPL team ID (defaults to a unique, negative value)",
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
+        "--resume",
+        help=(
+            "If set, use a pre-existing squad and transactions in the database "
+            "for this team ID as the starting point, rather than creating a new squad. "
+            "fpl_team_id must be defined."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
         "--num_thread",
         help="number of threads to parallelise over",
         type=int,
         default=4,
     )
     args = parser.parse_args()
+    if args.resume and not args.fpl_team_id:
+        raise RuntimeError("fpl_team_id must be set to use the resume argument")
+
     set_multiprocessing_start_method()
 
     with warnings.catch_warnings():
@@ -119,8 +137,10 @@ def main():
             season=args.season,
             gw_start=args.gw_start,
             gw_end=args.gw_end,
+            new_squad=not args.resume,
             weeks_ahead=args.weeks_ahead,
             num_thread=args.num_thread,
+            fpl_team_id=args.fpl_team_id,
         )
 
 
