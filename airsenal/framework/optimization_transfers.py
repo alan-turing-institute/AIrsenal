@@ -61,7 +61,7 @@ def make_optimum_single_transfer(
         new_squad = fastcopy(squad)
         position = p_out.position
         if verbose:
-            print("Removing player {}".format(p_out.player_id))
+            print("Removing player {}".format(p_out))
         new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
@@ -69,25 +69,24 @@ def make_optimum_single_transfer(
             added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
             if added_ok:
                 if verbose:
-                    print("Added player {}".format(p_in[0].name))
+                    print("Added player {}".format(p_in[0]))
+                total_points = get_discounted_squad_score(
+                    new_squad,
+                    gameweek_range,
+                    tag,
+                    root_gw=root_gw,
+                    bench_boost_gw=bench_boost_gw,
+                    triple_captain_gw=triple_captain_gw,
+                )
+                if total_points > best_score:
+                    best_score = total_points
+                    best_pid_out = [p_out.player_id]
+                    best_pid_in = [p_in[0].player_id]
+                    best_squad = new_squad
                 break
-            else:
-                if verbose:
-                    print("Failed to add {}".format(p_in[0].name))
-
-        total_points = get_discounted_squad_score(
-            new_squad,
-            gameweek_range,
-            tag,
-            root_gw=root_gw,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
-        )
-        if total_points > best_score:
-            best_score = total_points
-            best_pid_out = [p_out.player_id]
-            best_pid_in = [p_in[0].player_id]
-            best_squad = new_squad
+            if verbose:
+                print("Failed to add {}".format(p_in[0].name))
+        print("-" * 30)
 
     if best_squad is None:
         raise RuntimeError("Failed to find valid single transfer for squad")
