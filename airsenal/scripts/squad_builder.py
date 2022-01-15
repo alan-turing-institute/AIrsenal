@@ -21,9 +21,9 @@ def main():
         "--budget", help="budget, in 0.1 millions", type=int, default=1000
     )
     parser.add_argument("--season", help="season, in format e.g. 1819")
-    parser.add_argument("--gw_start", help="gameweek to start from", type=int)
+    parser.add_argument("--gameweek_start", help="gameweek to start from", type=int)
     parser.add_argument(
-        "--num_gw", help="how many gameweeks to consider", type=int, default=3
+        "--num_gameweeks", help="how many gameweeks to consider", type=int, default=3
     )
     parser.add_argument(
         "--algorithm",

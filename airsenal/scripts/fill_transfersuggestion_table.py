@@ -659,8 +659,8 @@ def main():
         description="Try some different transfer strategies"
     )
     parser.add_argument("--weeks_ahead", help="how many weeks ahead", type=int)
-    parser.add_argument("--gw_start", help="first gameweek to consider", type=int)
-    parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
+    parser.add_argument("--gameweek_start", help="first gameweek to consider", type=int)
+    parser.add_argument("--gameweek_end", help="last gameweek to consider", type=int)
     parser.add_argument("--tag", help="specify a string identifying prediction set")
     parser.add_argument(
         "--wildcard_week",
