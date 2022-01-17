@@ -644,7 +644,9 @@ def sanity_check_args(args):
     """
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
         raise RuntimeError("Please only specify weeks_ahead OR gameweek_start/end")
-    elif (args.gameweek_start and not args.gameweek_end) or (args.gameweek_end and not args.gameweek_start):
+    elif (args.gameweek_start and not args.gameweek_end) or (
+        args.gameweek_end and not args.gameweek_start
+    ):
         raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
     if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
         raise RuntimeError("Number of free transfers must be 1 or 2")
@@ -687,7 +689,6 @@ def main():
         default=-1,
     )
     parser.add_argument(
-
         "--num_free_transfers", help="how many free transfers do we have", type=int
     )
     parser.add_argument(
