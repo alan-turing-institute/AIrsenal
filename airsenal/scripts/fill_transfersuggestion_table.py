@@ -642,10 +642,10 @@ def sanity_check_args(args):
     """
     Check that command-line arguments are self-consistent.
     """
-    if args.weeks_ahead and (args.gw_start or args.gw_end):
-        raise RuntimeError("Please only specify weeks_ahead OR gw_start/end")
-    elif (args.gw_start and not args.gw_end) or (args.gw_end and not args.gw_start):
-        raise RuntimeError("Need to specify both gw_start and gw_end")
+    if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
+        raise RuntimeError("Please only specify weeks_ahead OR gameweek_start/end")
+    elif (args.gameweek_start and not args.gameweek_end) or (args.gameweek_end and not args.gameweek_start):
+        raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
     if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
         raise RuntimeError("Number of free transfers must be 1 or 2")
     return True
@@ -687,6 +687,7 @@ def main():
         default=-1,
     )
     parser.add_argument(
+
         "--num_free_transfers", help="how many free transfers do we have", type=int
     )
     parser.add_argument(
@@ -732,14 +733,14 @@ def main():
 
     sanity_check_args(args)
     season = args.season
-    # default weeks ahead is not specified (or gw_end is not specified) is three
+    # default weeks ahead is not specified (or gameweek_end is not specified) is three
     if args.weeks_ahead:
         gameweeks = get_gameweeks_array(args.weeks_ahead)
-    elif args.gw_start:
-        if args.gw_end:
-            gameweeks = list(range(args.gw_start, args.gw_end))
+    elif args.gameweek_start:
+        if args.gameweek_end:
+            gameweeks = list(range(args.gameweek_start, args.gameweek_end))
         else:
-            gameweeks = list(range(args.gw_start, args.gw_start + 3))
+            gameweeks = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
         gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
 
