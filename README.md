@@ -163,7 +163,7 @@ This will take a while, but should eventually provide a printout of the optimal 
 
 Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 ```shell
-airsenal_make_squad --num_gw 3
+airsenal_make_squad --num_gameweeks 3
 ```
 This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
