@@ -409,7 +409,7 @@ def run_optimization(
     chip_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
-    allow_unused_transfers=True,
+    allow_unused_transfers=False,
     max_transfers=2,
     num_iterations=100,
     num_thread=4,
