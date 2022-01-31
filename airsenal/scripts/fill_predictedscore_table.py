@@ -196,75 +196,52 @@ def make_predictedscore_table(
     return tag
 
 
-def main():
+def make_predictions(
+    weeks_ahead: int,
+    gameweek_start: int,
+    gameweek_end: int,
+    season: int,
+    num_threads: int,
+    no_bonus: bool,
+    no_cards: bool,
+    no_saves: bool,
+    sampling: bool,
+):
     """
     fill the player_prediction db table
     """
-    parser = argparse.ArgumentParser(description="fill player predictions")
-    parser.add_argument("--weeks_ahead", help="how many weeks ahead to fill", type=int)
-    parser.add_argument("--gameweek_start", help="first gameweek to look at", type=int)
-    parser.add_argument("--gameweek_end", help="last gameweek to look at", type=int)
-    parser.add_argument("--ep_filename", help="csv filename for FPL expected points")
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over", type=int
-    )
-    parser.add_argument(
-        "--no_bonus",
-        help="don't include bonus points",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_cards",
-        help="don't include points lost to yellow and red cards",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_saves",
-        help="don't include save points for goalkeepers",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--sampling",
-        help="If set use fit the model using sampling with numpyro",
-        action="store_true",
-    )
-
-    args = parser.parse_args()
-    if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
+    if weeks_ahead and (gameweek_start or gameweek_end):
         print("Please specify either gameweek_start and gameweek_end, OR weeks_ahead")
         raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead and args.season != CURRENT_SEASON:
+    if weeks_ahead and season != CURRENT_SEASON:
         print("For past seasons, please specify gameweek_start and gameweek_end")
         raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead:
-        gw_range = get_gameweeks_array(args.weeks_ahead)
-    elif args.gameweek_start and args.gameweek_end:
-        gw_range = list(range(args.gameweek_start, args.gameweek_end))
-    elif args.gameweek_start:  # by default go three weeks ahead
-        gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
+    if weeks_ahead:
+        gw_range = get_gameweeks_array(weeks_ahead)
+    elif gameweek_start and gameweek_end:
+        gw_range = list(range(gameweek_start, gameweek_end))
+    elif gameweek_start:  # by default go three weeks ahead
+        gw_range = list(range(gameweek_start, gameweek_start + 3))
     else:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    num_thread = args.num_thread or None
-    include_bonus = not args.no_bonus
-    include_cards = not args.no_cards
-    include_saves = not args.no_saves
-    if args.sampling:
+    num_threads = num_threads or None
+    include_bonus = not no_bonus
+    include_cards = not no_cards
+    include_saves = not no_saves
+    if sampling:
         player_model = NumpyroPlayerModel()
     else:
         player_model = ConjugatePlayerModel()
 
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method(num_threads)
 
     with session_scope() as session:
         session.expire_on_commit = False
 
         tag = make_predictedscore_table(
             gw_range=gw_range,
-            season=args.season,
-            num_thread=num_thread,
+            season=season,
+            num_thread=num_threads,
             include_bonus=include_bonus,
             include_cards=include_cards,
             include_saves=include_saves,
@@ -276,7 +253,7 @@ def main():
         get_top_predicted_points(
             gameweek=gw_range,
             tag=tag,
-            season=args.season,
+            season=season,
             per_position=True,
             n_players=5,
             dbsession=session,
