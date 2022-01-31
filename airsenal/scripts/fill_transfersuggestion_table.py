@@ -638,126 +638,55 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
     return chip_dict
 
 
-def sanity_check_args(args):
-    """
-    Check that command-line arguments are self-consistent.
-    """
-    if args.weeks_ahead and (args.gw_start or args.gw_end):
-        raise RuntimeError("Please only specify weeks_ahead OR gw_start/end")
-    elif (args.gw_start and not args.gw_end) or (args.gw_end and not args.gw_start):
-        raise RuntimeError("Need to specify both gw_start and gw_end")
-    if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
-        raise RuntimeError("Number of free transfers must be 1 or 2")
-    return True
-
-
-def main():
+def optimise_transfers(
+    num_gameweeks: int,
+    gameweek_start: int,
+    gameweek_end: int,
+    season: int,
+    tag: int,
+    wildcard_week: int,
+    free_hit_week: int,
+    triple_captain_week: int,
+    bench_boost_week: int,
+    num_free_transfers: int,
+    max_hit: int,
+    allow_unused: bool,
+    num_iterations: int,
+    num_threads: int,
+    profile: bool,
+    fpl_team_id: int,
+):
     """
     The main function, to be used as entrypoint.
     """
-    parser = argparse.ArgumentParser(
-        description="Try some different transfer strategies"
-    )
-    parser.add_argument("--weeks_ahead", help="how many weeks ahead", type=int)
-    parser.add_argument("--gw_start", help="first gameweek to consider", type=int)
-    parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
-    parser.add_argument("--tag", help="specify a string identifying prediction set")
-    parser.add_argument(
-        "--wildcard_week",
-        help="play wildcard in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--free_hit_week",
-        help="play free hit in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--triple_captain_week",
-        help="play triple captain in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--bench_boost_week",
-        help="play bench_boost in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--num_free_transfers", help="how many free transfers do we have", type=int
-    )
-    parser.add_argument(
-        "--max_hit",
-        help="maximum number of points to spend on additional transfers",
-        type=int,
-        default=8,
-    )
-    parser.add_argument(
-        "--allow_unused",
-        help="if set, include strategies that waste free transfers",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--num_iterations",
-        help="how many iterations to use for Wildcard/Free Hit optimization",
-        type=int,
-        default=100,
-    )
-    parser.add_argument(
-        "--num_thread", help="how many threads to use", type=int, default=4
-    )
-    parser.add_argument(
-        "--season",
-        help="what season, in format e.g. '2021'",
-        type=str,
-        default=CURRENT_SEASON,
-    )
-    parser.add_argument(
-        "--profile",
-        help="For developers: Profile strategy execution time",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="specify fpl team id",
-        type=int,
-        required=False,
-    )
-    args = parser.parse_args()
+    fpl_team_id = fpl_team_id or None
 
-    fpl_team_id = args.fpl_team_id or None
-
-    sanity_check_args(args)
-    season = args.season
-    # default weeks ahead is not specified (or gw_end is not specified) is three
-    if args.weeks_ahead:
-        gameweeks = get_gameweeks_array(args.weeks_ahead)
-    elif args.gw_start:
-        if args.gw_end:
-            gameweeks = list(range(args.gw_start, args.gw_end))
+    season = season
+    # default num of gameweeks is not specified (or gameweek_end is not specified) is three
+    if num_gameweeks:
+        gameweeks = get_gameweeks_array(num_gameweeks)
+    elif gameweek_start:
+        if gameweek_end:
+            gameweeks = list(range(gameweek_start, gameweek_end))
         else:
-            gameweeks = list(range(args.gw_start, args.gw_start + 3))
+            gameweeks = list(range(gameweek_start, gameweek_start + 3))
     else:
         gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
 
-    num_iterations = args.num_iterations
-    if args.num_free_transfers:
-        num_free_transfers = args.num_free_transfers
+    num_iterations = num_iterations
+    if num_free_transfers:
+        num_free_transfers = num_free_transfers
     else:
         num_free_transfers = None  # will work it out in run_optimization
-    tag = args.tag or get_latest_prediction_tag(season=season)
-    max_total_hit = args.max_hit
-    allow_unused_transfers = args.allow_unused
-    num_thread = args.num_thread
-    profile = args.profile or False
+    tag = tag or get_latest_prediction_tag(season=season)
+    max_total_hit = max_hit
+    allow_unused_transfers = allow_unused
+    profile = profile or False
     chip_gameweeks = {
-        "wildcard": args.wildcard_week,
-        "free_hit": args.free_hit_week,
-        "triple_captain": args.triple_captain_week,
-        "bench_boost": args.bench_boost_week,
+        "wildcard": wildcard_week,
+        "free_hit": free_hit_week,
+        "triple_captain": triple_captain_week,
+        "bench_boost": bench_boost_week,
     }
 
     if not check_tag_valid(tag, gameweeks, season=season):
@@ -769,7 +698,7 @@ def main():
         )
         sys.exit(1)
 
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method(num_threads)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
@@ -784,6 +713,6 @@ def main():
             allow_unused_transfers,
             2,
             num_iterations,
-            num_thread,
+            num_threads,
             profile,
         )
