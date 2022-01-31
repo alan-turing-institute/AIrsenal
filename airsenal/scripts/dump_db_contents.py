@@ -18,10 +18,10 @@ from airsenal.framework.schema import (
 from airsenal.framework.utils import session
 
 
-def main():
+def dump_database():
 
     # Dump Player database
-    player_fieldnames = ["player_id", "name"]
+    player_fieldnames = ["player_id", "name", "fpl_api_id"]
     save_table_fields(
         "../data/players.csv",
         player_fieldnames,
@@ -38,6 +38,9 @@ def main():
         "price",
         "team",
         "position",
+        "chance_of_playing_next_round",
+        "news",
+        "return_gameweek",
         "transfers_balance",
         "selected",
         "transfers_in",
@@ -94,7 +97,7 @@ def main():
 
     # Dump FifaTeamRating database
     # Add season to the fieldnames once the table creation is updated
-    fifa_team_rating_fieldnames = ["team", "att", "defn", "mid", "ovr"]
+    fifa_team_rating_fieldnames = ["id", "season", "team", "att", "defn", "mid", "ovr"]
     save_table_fields(
         "../data/fifa_team_ratings.csv",
         fifa_team_rating_fieldnames,
@@ -109,8 +112,11 @@ def main():
         "gameweek",
         "bought_or_sold",
         "season",
+        "time",
         "tag",
         "price",
+        "free_hit",
+        "fpl_team_id",
     ]
     save_table_fields(
         "../data/transactions.csv",
@@ -145,11 +151,6 @@ def main():
         "creativity",
         "threat",
         "ict_index",
-        "value",
-        "transfers_balance",
-        "selected",
-        "transfers_in",
-        "transfers_out",
     ]
     save_table_fields(
         "../data/player_scores.csv",
