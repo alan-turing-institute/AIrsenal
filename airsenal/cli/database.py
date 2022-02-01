@@ -2,9 +2,9 @@ import click
 
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import CURRENT_SEASON
+from airsenal.scripts.dump_db_contents import dump_database
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.update_db import update_db
-from airsenal.scripts.dump_db_contents import dump_database
 
 
 @click.command()

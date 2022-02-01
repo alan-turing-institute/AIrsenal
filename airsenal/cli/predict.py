@@ -2,8 +2,8 @@
 
 import click
 
-from airsenal.scripts.fill_predictedscore_table import make_predictions
 from airsenal.framework.utils import CURRENT_SEASON
+from airsenal.scripts.fill_predictedscore_table import make_predictions
 
 
 @click.command()

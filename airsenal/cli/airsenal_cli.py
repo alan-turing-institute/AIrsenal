@@ -1,11 +1,6 @@
 import click
-from airsenal.cli import (
-    database,
-    predict,
-    optimise,
-    pipeline,
-    apply_changes,
-)
+
+from airsenal.cli import apply_changes, database, optimise, pipeline, predict
 
 
 @click.group()

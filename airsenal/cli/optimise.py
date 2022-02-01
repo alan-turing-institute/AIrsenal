@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import click
 
+from airsenal.cli.utils import NotRequiredIf, RequiredIf
+from airsenal.framework.utils import CURRENT_SEASON
 from airsenal.scripts.fill_transfersuggestion_table import optimise_transfers
 from airsenal.scripts.squad_builder import optimise_squad
-from airsenal.cli.utils import RequiredIf, NotRequiredIf
-from airsenal.framework.utils import CURRENT_SEASON
 
 
 @click.command()
