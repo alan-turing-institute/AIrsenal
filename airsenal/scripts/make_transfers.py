@@ -272,17 +272,3 @@ def make_transfers(fpl_team_id=None, skip_check=False):
         )
         fetcher.post_transfers(transfer_req)
     return True
-
-
-def main():
-    parser = argparse.ArgumentParser("Make transfers via the FPL API")
-    parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
-    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
-    args = parser.parse_args()
-    confirm = args.confirm if args.confirm else False
-    make_transfers(args.fpl_team_id, confirm)
-    set_lineup(args.fpl_team_id)
-
-
-if __name__ == "__main__":
-    main()

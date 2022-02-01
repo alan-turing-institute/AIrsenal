@@ -84,7 +84,7 @@ def make_squad_transfers(squad, priced_transfers):
         squad.add_player(t[1][0], price=t[1][1])
 
 
-def set_lineup(fpl_team_id=None):
+def set_lineup(fpl_team_id=None, skip_check=False):
 
     """
     Retrieve the latest lineup and apply the latest prediction to it.
@@ -102,17 +102,6 @@ def set_lineup(fpl_team_id=None):
 
     squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 
-    if check_proceed(squad):
+    if skip_check or check_proceed(squad):
         payload = build_lineup_payload(squad)
         fetcher.post_lineup(payload)
-
-
-def main():
-    parser = argparse.ArgumentParser("Set the starting 11 and captain")
-    parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API", type=int)
-    args = parser.parse_args()
-    set_lineup(args.fpl_team_id)
-
-
-if __name__ == "__main__":
-    main()

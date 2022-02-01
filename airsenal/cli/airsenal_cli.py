@@ -4,6 +4,7 @@ from airsenal.cli import (
     predict,
     optimise,
     pipeline,
+    apply_changes,
 )
 
 
@@ -32,3 +33,4 @@ cli.add_command(database.database)
 cli.add_command(predict.predict)
 cli.add_command(optimise.optimise)
 cli.add_command(pipeline.run)
+cli.add_command(apply_changes.apply)
