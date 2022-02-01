@@ -19,6 +19,9 @@ from airsenal.scripts.set_lineup import set_lineup
     help="If set, doesn't ask for confirmation to make changes to FPL website.",
 )
 def apply(transfers, lineup, fpl_team_id, noconfirm):
+    """
+    Update transfers and lineup on FPL website.
+    """
     if transfers:
         make_transfers(fpl_team_id, noconfirm)
     if lineup:
