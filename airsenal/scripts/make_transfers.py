@@ -6,7 +6,6 @@ https://github.com/sk82jack/PSFPL/blob/master/PSFPL/Public/Invoke-FplTransfer.ps
 https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
-import argparse
 
 from prettytable import PrettyTable
 
@@ -20,7 +19,6 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.scripts.set_lineup import set_lineup
 
 """
 TODO:

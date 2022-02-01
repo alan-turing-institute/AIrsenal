@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import click
 
-from airsenal.cli.utils import NotRequiredIf, RequiredIf
+from airsenal.cli.utils import NotRequiredIf
 from airsenal.framework.utils import CURRENT_SEASON
 from airsenal.scripts.fill_transfersuggestion_table import optimise_transfers
 from airsenal.scripts.squad_builder import optimise_squad
@@ -99,8 +99,9 @@ from airsenal.scripts.squad_builder import optimise_squad
     "--num-iterations",
     default=100,
     type=int,
-    help="If `--transfers`: Number of iterations to use for Wildcard/Free Hit optimization."
-    + " If `--squad`: Number of iterations for normal algorithms.",
+    help="If `--transfers`: Number of iterations to use for "
+    + "Wildcard/Free Hit optimization. If `--squad`: Number of iterations for "
+    + "normal algorithms.",
 )
 @click.option(
     "--num-threads",

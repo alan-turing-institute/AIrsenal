@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import sys
 
 from airsenal.framework.optimization_squad import make_new_squad

@@ -3,8 +3,6 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-import argparse
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (

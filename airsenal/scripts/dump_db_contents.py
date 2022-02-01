@@ -181,8 +181,3 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
         }
 
         writer.writerow(row)
-
-
-if __name__ == "__main__":
-    print(" ==== dumping database contents === ")
-    main()

@@ -17,7 +17,6 @@ representing 0, 1, 2 transfers for the next gameweek.
 """
 
 
-import argparse
 import cProfile
 import json
 import os
@@ -662,7 +661,8 @@ def optimise_transfers(
     fpl_team_id = fpl_team_id or None
 
     season = season
-    # default num of gameweeks is not specified (or gameweek_end is not specified) is three
+    # default num of gameweeks is not specified
+    # (or gameweek_end is not specified) is three
     if num_gameweeks:
         gameweeks = get_gameweeks_array(num_gameweeks)
     elif gameweek_start:
