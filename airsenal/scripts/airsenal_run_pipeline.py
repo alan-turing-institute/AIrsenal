@@ -27,57 +27,9 @@ from airsenal.scripts.set_lineup import set_lineup
 from airsenal.scripts.update_db import update_db
 
 
-@click.command("airsenal_run_pipeline")
-@click.option(
-    "--num_thread",
-    type=int,
-    help="No. of threads to use for pipeline run",
-)
-@click.option(
-    "--weeks_ahead", type=int, default=3, help="No of weeks to use for pipeline run"
-)
-@click.option(
-    "--fpl_team_id",
-    type=int,
-    required=False,
-    help="fpl team id for pipeline run",
-)
-@click.option(
-    "--clean",
-    is_flag=True,
-    help="If set, delete and recreate the AIrsenal database",
-)
-@click.option(
-    "--apply_transfers",
-    is_flag=True,
-    help="If set, go ahead and make the transfers via the API.",
-)
-@click.option(
-    "--wildcard_week",
-    type=int,
-    help=(
-        "If set to 0, consider playing wildcard in any gameweek. "
-        "If set to a specific gameweek, it'll be played for that particular gameweek."
-    ),
-)
-@click.option(
-    "--free_hit_week",
-    type=int,
-    help="Play free hit in the specified week. Choose 0 for 'any week'.",
-)
-@click.option(
-    "--triple_captain_week",
-    type=int,
-    help="Play triple captain in the specified week. Choose 0 for 'any week'.",
-)
-@click.option(
-    "--bench_boost_week",
-    type=int,
-    help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
-)
 def run_pipeline(
-    num_thread,
-    weeks_ahead,
+    num_threads,
+    num_weeks,
     fpl_team_id,
     clean,
     apply_transfers,
@@ -96,9 +48,9 @@ def run_pipeline(
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
     print("Running for FPL Team ID {}".format(fpl_team_id))
-    if not num_thread:
-        num_thread = multiprocessing.cpu_count()
-    set_multiprocessing_start_method(num_thread)
+    if not num_threads:
+        num_threads = multiprocessing.cpu_count()
+    set_multiprocessing_start_method(num_threads)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
@@ -117,13 +69,13 @@ def run_pipeline(
             raise RuntimeError("Problem updating db")
         click.echo("Database update complete..")
         click.echo("Running prediction..")
-        predict_ok = run_prediction(num_thread, weeks_ahead, dbsession)
+        predict_ok = run_prediction(num_threads, num_weeks, dbsession)
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
         if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
             click.echo("Generating a squad..")
-            new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
+            new_squad_ok = run_make_squad(num_weeks, fpl_team_id, dbsession)
             if not new_squad_ok:
                 raise RuntimeError("Problem creating a new squad")
         else:
@@ -132,7 +84,7 @@ def run_pipeline(
                 wildcard_week, free_hit_week, triple_captain_week, bench_boost_week
             )
             opt_ok = run_optimize_squad(
-                num_thread, weeks_ahead, fpl_team_id, dbsession, chips_played
+                num_threads, num_weeks, fpl_team_id, dbsession, chips_played
             )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")

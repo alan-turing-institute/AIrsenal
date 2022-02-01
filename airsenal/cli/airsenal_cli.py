@@ -3,6 +3,7 @@ from airsenal.cli import (
     database,
     predict,
     optimise,
+    pipeline,
 )
 
 
@@ -30,3 +31,4 @@ def update():
 cli.add_command(database.database)
 cli.add_command(predict.predict)
 cli.add_command(optimise.optimise)
+cli.add_command(pipeline.run)
