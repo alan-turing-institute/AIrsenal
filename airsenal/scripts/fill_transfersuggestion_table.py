@@ -381,7 +381,7 @@ def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
         t.remove_player(pidout)
     for pidin in strat["players_in"][str(next_gw)]:
         t.add_player(pidin)
-    tag = get_latest_prediction_tag()
+    tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
     print(t)
     return t
