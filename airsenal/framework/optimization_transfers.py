@@ -70,6 +70,10 @@ def make_optimum_single_transfer(
             else:
                 if verbose:
                     print("Failed to add {}".format(p_in[0].name))
+        if not new_squad.is_complete():
+            if verbose:
+                print(f"Failed to find a valid replacement for {p_out.player_id}")
+            continue
         total_points = 0.0
         for gw in gameweek_range:
             if gw == bench_boost_gw:
