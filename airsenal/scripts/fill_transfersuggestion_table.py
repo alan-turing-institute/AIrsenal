@@ -395,7 +395,7 @@ def run_optimization(
     chip_gameweeks={},
     num_free_transfers=None,
     max_total_hit=None,
-    allow_unused_transfers=True,
+    allow_unused_transfers=False,
     max_transfers=2,
     num_iterations=100,
     num_thread=4,
@@ -633,10 +633,12 @@ def sanity_check_args(args):
     """
     Check that command-line arguments are self-consistent.
     """
-    if args.weeks_ahead and (args.gw_start or args.gw_end):
-        raise RuntimeError("Please only specify weeks_ahead OR gw_start/end")
-    elif (args.gw_start and not args.gw_end) or (args.gw_end and not args.gw_start):
-        raise RuntimeError("Need to specify both gw_start and gw_end")
+    if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
+        raise RuntimeError("Please only specify weeks_ahead OR gameweek_start/end")
+    elif (args.gameweek_start and not args.gameweek_end) or (
+        args.gameweek_end and not args.gameweek_start
+    ):
+        raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
     if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
         raise RuntimeError("Number of free transfers must be 1 or 2")
     return True
@@ -650,8 +652,8 @@ def main():
         description="Try some different transfer strategies"
     )
     parser.add_argument("--weeks_ahead", help="how many weeks ahead", type=int)
-    parser.add_argument("--gw_start", help="first gameweek to consider", type=int)
-    parser.add_argument("--gw_end", help="last gameweek to consider", type=int)
+    parser.add_argument("--gameweek_start", help="first gameweek to consider", type=int)
+    parser.add_argument("--gameweek_end", help="last gameweek to consider", type=int)
     parser.add_argument("--tag", help="specify a string identifying prediction set")
     parser.add_argument(
         "--wildcard_week",
@@ -723,17 +725,18 @@ def main():
 
     sanity_check_args(args)
     season = args.season
-    if args.weeks_ahead and season != CURRENT_SEASON:
-        print("For past seasons, please specify gw_start and gw_end")
-        raise RuntimeError("Inconsistent arguments")
-    # default weeks ahead is not specified (or gw_end is not specified) is three
+
+    # Specify either no. weeks to optimise or gameweek to start optimising from
     if args.weeks_ahead:
+        if season != CURRENT_SEASON:
+            print("For past seasons, please specify gameweek_start and gameweek_end")
+            raise RuntimeError("Inconsistent arguments")
         gameweeks = get_gameweeks_array(args.weeks_ahead)
-    elif args.gw_start:
-        if args.gw_end:
-            gameweeks = list(range(args.gw_start, args.gw_end))
+    elif args.gameweek_start:
+        if args.gameweek_end:
+            gameweeks = list(range(args.gameweek_start, args.gameweek_end))
         else:
-            gameweeks = list(range(args.gw_start, args.gw_start + 3))
+            gameweeks = list(range(args.gameweek_start, args.gameweek_start + 3))
     else:
         gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
 

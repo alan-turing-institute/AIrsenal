@@ -86,6 +86,8 @@ def make_optimum_single_transfer(
                 break
             if verbose:
                 print("Failed to add {}".format(p_in[0].name))
+        if not new_squad.is_complete() and verbose:
+            print(f"Failed to find a valid replacement for {p_out.player_id}")
 
     if best_squad is None:
         raise RuntimeError("Failed to find valid single transfer for squad")
