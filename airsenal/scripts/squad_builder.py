@@ -144,9 +144,12 @@ def main():
     args = parser.parse_args()
     season = args.season or CURRENT_SEASON
     budget = args.budget
-    gameweek_start = (
-        args.gameweek_start or NEXT_GAMEWEEK if season == CURRENT_SEASON else 1
-    )
+    if args.gameweek_start:
+        gameweek_start = args.gameweek_start
+    elif season == CURRENT_SEASON:
+        gameweek_start = NEXT_GAMEWEEK
+    else:
+        gameweek_start = 1
     gw_range = list(range(gameweek_start, min(38, gameweek_start + args.num_gameweeks)))
     tag = get_latest_prediction_tag(season)
     if not check_tag_valid(tag, gw_range, season=season):
