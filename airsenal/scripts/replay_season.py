@@ -29,9 +29,9 @@ def get_dummy_id(season, dbsession):
     return min(team_ids) - 1
 
 
-def print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id):
+def print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id):
     print("=" * 30)
-    print(f"Replay {season} season from GW{gw_start} to GW{gw_end}")
+    print(f"Replay {season} season from GW{gameweek_start} to GW{gameweek_end}")
     print(f"tag_prefix = {tag_prefix}")
     print(f"fpl_team_id = {fpl_team_id}")
     print("=" * 30)
@@ -39,8 +39,8 @@ def print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id):
 
 def replay_season(
     season,
-    gw_start=1,
-    gw_end=None,
+    gameweek_start=1,
+    gameweek_end=None,
     new_squad=True,
     weeks_ahead=3,
     num_thread=4,
@@ -48,17 +48,17 @@ def replay_season(
     tag_prefix="",
     fpl_team_id=None,
 ):
-    if gw_end is None:
-        gw_end = get_max_gameweek(season)
+    if gameweek_end is None:
+        gameweek_end = get_max_gameweek(season)
     if fpl_team_id is None:
         with session_scope() as session:
             fpl_team_id = get_dummy_id(season, dbsession=session)
     if not tag_prefix:
         start = datetime.now().strftime("%Y%m%d%H%M")
-        tag_prefix = f"Replay_{season}_GW{gw_start}_GW{gw_end}_{start}"
-    print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id)
+        tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start}"
+    print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
-    replay_range = range(gw_start, gw_end + 1)
+    replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
         gw_range = range(gw, gw + weeks_ahead)
@@ -72,7 +72,7 @@ def replay_season(
             )
         if not transfers:
             continue
-        if gw == gw_start and new_squad:
+        if gw == gameweek_start and new_squad:
             print("Creating initial squad...")
             fill_initial_squad(tag, gw_range, season, fpl_team_id)
         else:
@@ -85,7 +85,7 @@ def replay_season(
                 num_thread=num_thread,
             )
         print("-" * 30)
-    print_replay_params(season, gw_start, gw_end, tag_prefix, fpl_team_id)
+    print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
     print("DONE!")
 
 
@@ -93,10 +93,10 @@ def main():
     parser = argparse.ArgumentParser(description="fill player predictions")
 
     parser.add_argument(
-        "--gw_start", help="first gameweek to look at", type=int, default=1
+        "--gameweek_start", help="first gameweek to look at", type=int, default=1
     )
     parser.add_argument(
-        "--gw_end", help="last gameweek to look at", type=int, default=None
+        "--gameweek_end", help="last gameweek to look at", type=int, default=None
     )
     parser.add_argument(
         "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=3
@@ -135,8 +135,8 @@ def main():
         warnings.simplefilter("ignore", TqdmWarning)
         replay_season(
             season=args.season,
-            gw_start=args.gw_start,
-            gw_end=args.gw_end,
+            gameweek_start=args.gameweek_start,
+            gameweek_end=args.gameweek_end,
             new_squad=not args.resume,
             weeks_ahead=args.weeks_ahead,
             num_thread=args.num_thread,
