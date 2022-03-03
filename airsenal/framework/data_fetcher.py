@@ -157,12 +157,15 @@ class FPLDataFetcher(object):
                 return
 
         headers = {
+            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; PRO 5 Build/LMY47D)"
+        }
+        data = {
             "login": self.FPL_LOGIN,
             "password": self.FPL_PASSWORD,
             "app": "plfpl-web",
             "redirect_uri": self.FPL_LOGIN_REDIRECT_URL,
         }
-        response = self.rsession.post(self.FPL_LOGIN_URL, data=headers)
+        response = self.rsession.post(self.FPL_LOGIN_URL, data=data, headers=headers)
         if response.status_code != 200:
             print(f"Error loging in: {response.content}")
         else:
