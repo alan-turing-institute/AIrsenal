@@ -86,7 +86,7 @@ def optimize(
     pred_tag,
     chips_gw_dict,
     max_total_hit=None,
-    allow_unused_transfers=True,
+    allow_unused_transfers=False,
     max_transfers=2,
     num_iterations=100,
     updater=None,
