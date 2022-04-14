@@ -271,7 +271,7 @@ def save_baseline_score(squad, gameweeks, tag):
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
-    strat_dict = get_baseline_strat(squad, gameweeks, tag)
+    strat_dict = get_baseline_strat(squad, gameweeks, tag, root_gw=gameweeks[0])
 
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
