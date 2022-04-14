@@ -448,7 +448,7 @@ def test_count_expected_outputs_no_chips_no_constraints():
         max_transfers=2,
         chip_gw_dict={},
     )
-    assert count == 3 ** 3
+    assert count == 3**3
 
     # Max hit 0
     # Include:
