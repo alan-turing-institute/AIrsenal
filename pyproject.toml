@@ -1,2 +1,35 @@
+[tool.poetry]
+name="airsenal"
+version="1.3.2"
+description="AI manager for Fantasy Premier League"
+authors=["Angus Williams <anguswilliams91@gmail.com>",
+	 "Jack Roberts <jroberts@turing.ac.uk>",
+	 "Nick Barlow <nbarlow@turing.ac.uk>"
+	 ]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+bpl = { git = "https://github.com/anguswilliams91/bpl-next", branch="feature/new-numpyro-interface"}
+click = "^8.1.2"
+pandas = "^1.4.2"
+requests = "^2.27.1"
+sqlalchemy = "^1.4.35"
+tqdm = "^4.64.0"
+
 [build-system]
-requires = ["cython", "numpy", "setuptools"]
+requires = ["poetry-core>=1.0.0", "cython", "numpy", "setuptools"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+airsenal_setup_initial_db = "airsenal.scripts.fill_db_init:main"
+airsenal_update_db = "airsenal.scripts.update_db:main"
+airsenal_plot = "airsenal.scripts.plot_league_standings:main"
+airsenal_run_prediction = "airsenal.scripts.fill_predictedscore_table:main"
+airsenal_run_optimization = "airsenal.scripts.fill_transfersuggestion_table:main"
+airsenal_make_squad = "airsenal.scripts.squad_builder:main"
+airsenal_check_data = "airsenal.scripts.data_sanity_checks:run_all_checks"
+airsenal_dump_db = "airsenal.scripts.dump_db_contents:main"
+airsenal_run_pipeline = "airsenal.scripts.airsenal_run_pipeline:run_pipeline"
+airsenal_replay_season = "airsenal.scripts.replay_season:main"
+airsenal_make_transfers = "airsenal.scripts.make_transfers:main"
+airsenal_set_lineup = "airsenal.scripts.set_lineup:main"
