@@ -233,20 +233,12 @@ def main():
     )
 
     args = parser.parse_args()
-    if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
-        print("Please specify either gameweek_start and gameweek_end, OR weeks_ahead")
-        raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead and args.season != CURRENT_SEASON:
-        print("For past seasons, please specify gameweek_start and gameweek_end")
-        raise RuntimeError("Inconsistent arguments")
-    if args.weeks_ahead:
-        gw_range = get_gameweeks_array(args.weeks_ahead)
-    elif args.gameweek_start and args.gameweek_end:
-        gw_range = list(range(args.gameweek_start, args.gameweek_end))
-    elif args.gameweek_start:  # by default go three weeks ahead
-        gw_range = list(range(args.gameweek_start, args.gameweek_start + 3))
-    else:
-        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
+    gw_range = get_gameweeks_array(
+        weeks_ahead=args.weeks_ahead,
+        gameweek_start=args.gameweek_start,
+        gameweek_end=args.gameweek_end,
+        season=args.season,
+    )
     num_thread = args.num_thread or None
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards

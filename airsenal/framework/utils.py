@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 import dateparser
 import regex as re
@@ -111,23 +111,42 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 
 def get_gameweeks_array(
-    weeks_ahead: int, season=CURRENT_SEASON, dbsession=session
+    weeks_ahead: Optional[int] = None,
+    gameweek_start: Optional[int] = None,
+    gameweek_end: Optional[int] = None,
+    season: str = CURRENT_SEASON,
+    dbsession=session,
 ) -> List[int]:
     """
     Returns the array containing only the valid (< max_gameweek) game-weeks
     or raise an exception if no game-weeks remaining
     """
-    max_gameweeks = get_max_gameweek(season=season, dbsession=dbsession)
-    total_gameweeks = list(
-        range(get_next_gameweek(), get_next_gameweek() + weeks_ahead)
-    )
-    gameweeks = list(filter(lambda x: x <= max_gameweeks, total_gameweeks))
-    if len(gameweeks) == 0:
-        raise ValueError("No gameweeks remaining.")
-    if gameweeks != total_gameweeks:
-        print(f"WARN: Only {len(gameweeks)} left")
+    # Check arguments are valid
+    if gameweek_end is not None and weeks_ahead is not None:
+        raise RuntimeError("Only one of gameweek_end and weeks_ahead should be defined")
+    if gameweek_start is None and season != CURRENT_SEASON:
+        raise RuntimeError("gameweek_start must be defined if using previous seasons")
 
-    return gameweeks
+    # Set defaults for undefined arguments
+    if weeks_ahead is None and gameweek_end is None:
+        weeks_ahead = 3
+    if gameweek_start is None:
+        gameweek_start = NEXT_GAMEWEEK
+    if gameweek_end is None:
+        gameweek_end = gameweek_start + weeks_ahead
+
+    gw_range = list(range(gameweek_start, gameweek_end))
+    max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
+    gw_range = list(filter(lambda x: x <= max_gameweek, gw_range))
+
+    if len(gw_range) == 0:
+        raise ValueError("No gameweeks in specified range")
+    if max(gw_range) < gameweek_end:
+        print(
+            f"WARN: Last gameweek set to {max(gw_range)} ({len(gw_range)} weeks ahead)"
+        )
+
+    return gw_range
 
 
 # make this a global variable in this module, import into other modules

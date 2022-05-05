@@ -55,7 +55,6 @@ from airsenal.framework.utils import (
     get_free_transfers,
     get_gameweeks_array,
     get_latest_prediction_tag,
-    get_next_gameweek,
     get_player_name,
 )
 
@@ -725,20 +724,12 @@ def main():
 
     sanity_check_args(args)
     season = args.season
-
-    # Specify either no. weeks to optimise or gameweek to start optimising from
-    if args.weeks_ahead:
-        if season != CURRENT_SEASON:
-            print("For past seasons, please specify gameweek_start and gameweek_end")
-            raise RuntimeError("Inconsistent arguments")
-        gameweeks = get_gameweeks_array(args.weeks_ahead)
-    elif args.gameweek_start:
-        if args.gameweek_end:
-            gameweeks = list(range(args.gameweek_start, args.gameweek_end))
-        else:
-            gameweeks = list(range(args.gameweek_start, args.gameweek_start + 3))
-    else:
-        gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
+    gameweeks = get_gameweeks_array(
+        weeks_ahead=args.weeks_ahead,
+        gameweek_start=args.gameweek_start,
+        gameweek_end=args.gameweek_end,
+        season=season,
+    )
 
     num_iterations = args.num_iterations
     if args.num_free_transfers:
