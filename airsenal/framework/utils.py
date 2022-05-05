@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 import dateparser
 import regex as re
@@ -111,23 +111,42 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
 
 
 def get_gameweeks_array(
-    weeks_ahead: int, season=CURRENT_SEASON, dbsession=session
+    weeks_ahead: Optional[int] = None,
+    gameweek_start: Optional[int] = None,
+    gameweek_end: Optional[int] = None,
+    season: str = CURRENT_SEASON,
+    dbsession=session,
 ) -> List[int]:
     """
     Returns the array containing only the valid (< max_gameweek) game-weeks
     or raise an exception if no game-weeks remaining
     """
-    max_gameweeks = get_max_gameweek(season=season, dbsession=dbsession)
-    total_gameweeks = list(
-        range(get_next_gameweek(), get_next_gameweek() + weeks_ahead)
-    )
-    gameweeks = list(filter(lambda x: x <= max_gameweeks, total_gameweeks))
-    if len(gameweeks) == 0:
-        raise ValueError("No gameweeks remaining.")
-    if gameweeks != total_gameweeks:
-        print(f"WARN: Only {len(gameweeks)} left")
+    # Check arguments are valid
+    if gameweek_end is not None and weeks_ahead is not None:
+        raise RuntimeError("Only one of gameweek_end and weeks_ahead should be defined")
+    if gameweek_start is None and season != CURRENT_SEASON:
+        raise RuntimeError("gameweek_start must be defined if using previous seasons")
 
-    return gameweeks
+    # Set defaults for undefined arguments
+    if weeks_ahead is None and gameweek_end is None:
+        weeks_ahead = 3
+    if gameweek_start is None:
+        gameweek_start = NEXT_GAMEWEEK
+    if gameweek_end is None:
+        gameweek_end = gameweek_start + weeks_ahead
+
+    gw_range = list(range(gameweek_start, gameweek_end))
+    max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
+    gw_range = list(filter(lambda x: x <= max_gameweek, gw_range))
+
+    if len(gw_range) == 0:
+        raise ValueError("No gameweeks in specified range")
+    if max(gw_range) < gameweek_end:
+        print(
+            f"WARN: Last gameweek set to {max(gw_range)} ({len(gw_range)} weeks ahead)"
+        )
+
+    return gw_range
 
 
 # make this a global variable in this module, import into other modules
@@ -175,6 +194,7 @@ def get_current_players(gameweek=None, season=None, fpl_team_id=None, dbsession=
         .order_by(Transaction.gameweek, Transaction.id)
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)  # free_hit players shouldn't be considered part of squad
+        .filter_by(season=season)
         .all()
     )
 
@@ -275,7 +295,11 @@ def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
 
 
 def get_free_transfers(
-    fpl_team_id=None, gameweek=None, season=CURRENT_SEASON, apifetcher=fetcher
+    fpl_team_id=None,
+    gameweek=None,
+    season=CURRENT_SEASON,
+    dbsession=session,
+    apifetcher=fetcher,
 ):
     """
     Work out how many free transfers this FPL team should have before specified gameweek
@@ -290,31 +314,48 @@ def get_free_transfers(
         # check if we're logged in, which will let us get the most up-to-date info
         if apifetcher.logged_in:
             return apifetcher.get_num_free_transfers(fpl_team_id)
-        else:
-            # try to calculate free transfers based on previous transfer history
-            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
-            num_free_transfers = 1
-            if "current" in data.keys() and len(data["current"]) > 0:
-                starting_gw = get_entry_start_gameweek(
-                    fpl_team_id, apifetcher=apifetcher
-                )
-                for gw in data["current"]:
-                    if gw["event"] <= starting_gw:
-                        continue
-                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                        num_free_transfers += 1
-                    elif gw["event_transfers"] >= 2:
-                        num_free_transfers = 1
-                    # if gameweek was specified, and we reached the previous one,
-                    # break out of loop.
-                    if gameweek and gw["event"] == gameweek - 1:
-                        break
-            return num_free_transfers
+        # try to calculate free transfers based on previous transfer history
+        data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+        num_free_transfers = 1
+        if "current" in data.keys() and len(data["current"]) > 0:
+            starting_gw = get_entry_start_gameweek(fpl_team_id, apifetcher=apifetcher)
+            for gw in data["current"]:
+                if gw["event"] <= starting_gw:
+                    continue
+                if gw["event_transfers"] == 0 and num_free_transfers < 2:
+                    num_free_transfers += 1
+                elif gw["event_transfers"] >= 2:
+                    num_free_transfers = 1
+                # if gameweek was specified, and we reached the previous one,
+                # break out of loop.
+                if gameweek and gw["event"] == gameweek - 1:
+                    break
+
     else:
-        # historical data - fetch from database, not implemented yet
-        raise RuntimeError(
-            "Estimating free transfers for previous seasons is not yet implemented."
+        # historical/simulated data - fetch from database
+        transactions = (
+            dbsession.query(Transaction)
+            .order_by(Transaction.gameweek, Transaction.id)
+            .filter_by(fpl_team_id=fpl_team_id)
+            .filter_by(bought_or_sold=1)
+            .all()
         )
+        if len(transactions) == 0:
+            return 1
+        starting_gw = transactions[0].gameweek
+        gw_transactions = {}
+        for t in transactions:
+            if t.gameweek not in gw_transactions:
+                gw_transactions[t.gameweek] = 0
+            gw_transactions[t.gameweek] += 1
+        num_free_transfers = 1
+        for prev_gw in range(starting_gw + 1, gameweek):
+            if prev_gw not in gw_transactions:
+                num_free_transfers = 2
+            elif gw_transactions[prev_gw] >= 2:
+                num_free_transfers = 1
+
+    return num_free_transfers
 
 
 @lru_cache(maxsize=365)
@@ -1234,12 +1275,16 @@ def get_recent_minutes_for_player(
     minutes = [r.minutes for r in playerscores] if playerscores else []
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
-    if not last_gw:
+    if last_gw is None:
+        if season != CURRENT_SEASON:
+            raise RuntimeError(
+                "last_gw muust be defined if running on previous seasons"
+            )
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
     if first_gw < 0:
         minutes += estimate_minutes_from_prev_season(
-            player, season, dbsession=dbsession
+            player, season, gameweek=last_gw, dbsession=dbsession
         )
     if not minutes:
         return [0]
@@ -1263,8 +1308,10 @@ def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
     )
     if first_missing:
         return first_missing.gameweek - 1
-    else:
+    elif season == CURRENT_SEASON:
         return None
+    else:
+        return get_max_gameweek(season=season, dbsession=dbsession)
 
 
 def get_last_finished_gameweek():
@@ -1283,7 +1330,7 @@ def get_last_finished_gameweek():
 
 def get_latest_prediction_tag(season=CURRENT_SEASON, tag_prefix="", dbsession=None):
     """
-    query the predicted_score table and get the method
+    query the predicted_score table and get the tag
     field for the last row.
     """
     if not dbsession:
@@ -1307,7 +1354,7 @@ def get_latest_prediction_tag(season=CURRENT_SEASON, tag_prefix="", dbsession=No
 
 def get_latest_fixture_tag(season=CURRENT_SEASON, dbsession=None):
     """
-    query the predicted_score table and get the method
+    query the predicted_score table and get the tag
     field for the last row.
     """
     if not dbsession:

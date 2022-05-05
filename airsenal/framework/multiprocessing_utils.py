@@ -13,20 +13,15 @@ import os
 from multiprocessing.queues import Queue
 
 
-def set_multiprocessing_start_method(num_thread=2):
+def set_multiprocessing_start_method():
     """To fix change of default behaviour in multiprocessing on Python 3.8 and later
     on MacOS. Python 3.8 and later start processess using spawn by default, see:
     https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
 
     Note that this should be called at most once, ideally protecteed within
     if __name__  == "__main__"
-
-    Parameters
-    ----------
-    num_thread : int, optional
-        Only changem ultiprocessing start method if num_thread > 1, by default 2
     """
-    if num_thread is not None and num_thread > 1 and os.name == "posix":
+    if os.name == "posix":
         multiprocessing.set_start_method("fork")
 
 
