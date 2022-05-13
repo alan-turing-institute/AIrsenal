@@ -60,21 +60,25 @@ from airsenal.scripts.update_db import update_db
         "If set to 0, consider playing wildcard in any gameweek. "
         "If set to a specific gameweek, it'll be played for that particular gameweek."
     ),
+    default=-1,
 )
 @click.option(
     "--free_hit_week",
     type=int,
     help="Play free hit in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 @click.option(
     "--triple_captain_week",
     type=int,
     help="Play triple captain in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 @click.option(
     "--bench_boost_week",
     type=int,
     help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 def run_pipeline(
     num_thread,
@@ -165,17 +169,12 @@ def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_w
     Set up chips to be played for particular gameweeks. Specifically: wildcard,
     free_hit, triple_captain, bench_boost
     """
-    chips_gameweeks = {}
-    if wildcard_week:
-        chips_gameweeks["wildcard"] = wildcard_week
-    if free_hit_week:
-        chips_gameweeks["free_hit"] = free_hit_week
-    if triple_captain_week:
-        chips_gameweeks["triple_captain"] = triple_captain_week
-    if bench_boost_week:
-        chips_gameweeks["bench_boost"] = bench_boost_week
-
-    return chips_gameweeks
+    return {
+        "wildcard": wildcard_week,
+        "free_hit": free_hit_week,
+        "triple_captain": triple_captain_week,
+        "bench_boost": bench_boost_week,
+    }
 
 
 def update_database(fpl_team_id, attr, dbsession):

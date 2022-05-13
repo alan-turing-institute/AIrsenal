@@ -46,7 +46,7 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     return 100 if max_gw_fixture is None else max_gw_fixture.gameweek
 
 
-def get_next_gameweek(season=CURRENT_SEASON, dbsession=None):
+def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
     """
     Use the current time to figure out which gameweek we're in
     """
@@ -128,7 +128,7 @@ def get_gameweeks_array(
         raise RuntimeError("gameweek_start must be defined if using previous seasons")
 
     # Set defaults for undefined arguments
-    if weeks_ahead is None and gameweek_end is None:
+    if weeks_ahead is None:
         weeks_ahead = 3
     if gameweek_start is None:
         gameweek_start = NEXT_GAMEWEEK
