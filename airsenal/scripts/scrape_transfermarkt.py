@@ -111,11 +111,15 @@ def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
         f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/ausfaelle/')}",
         headers=HEADERS,
     )
-    player_soup = BeautifulSoup(p.content, features="lxml")
     suspended = pd.read_html(p.content)[0]
-    comp = [
-        row.find_all("img")[0].get("title") for row in player_soup.find_all("tr")[1:]
-    ]
+
+    player_soup = BeautifulSoup(p.content, features="lxml")
+    comp = []
+    for row in player_soup.find_all("table")[0].find_all("tr")[1:]:
+        try:
+            comp.append(row.find_all("img")[0].get("title"))
+        except IndexError:
+            comp.append("")
     suspended["competition"] = comp
     return suspended
 
@@ -143,14 +147,14 @@ def main(seasons: List[int]):
             inj["player"] = player_name
             inj["url"] = player_url
             injuries.append(inj)
-        except ValueError:
+        except (ValueError, IndexError):
             print(f"Didn't find injury data for {player_name}")
         try:
             sus = get_player_suspensions(player_url)
             sus["player"] = player_name
             sus["url"] = player_url
             suspensions.append(sus)
-        except ValueError:
+        except (ValueError, IndexError):
             print(f"Didn't find suspension data for {player_name}")
         sleep(1)
 
