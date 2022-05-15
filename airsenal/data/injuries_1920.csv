@@ -1,0 +1,874 @@
+season,injury,from,until,days,games,player,url
+1920,Knock,2020-06-19,2020-07-13,24,7,Fikayo Tomori,/fikayo-tomori/profil/spieler/303254
+1920,Hip problems,2019-12-09,2019-12-21,12,2,Fikayo Tomori,/fikayo-tomori/profil/spieler/303254
+1920,Ankle Injury,2019-07-21,2019-08-08,18,4,João Pedro,/joao-pedro/profil/spieler/626724
+1920,Muscle Injury,2020-03-06,2020-03-12,6,1,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+1920,Groin Injury,2019-12-02,2019-12-07,5,1,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+1920,Hip Injury,2019-08-12,2019-08-30,18,3,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+1920,Torn Knee Ligament,2019-12-15,2020-01-17,33,6,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+1920,Groin Injury,2019-10-22,2019-10-26,4,,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+1920,Head Injury,2019-09-29,2019-10-04,5,,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+1920,Groin Injury,2019-09-11,2019-09-13,2,,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+1920,Hamstring Injury,2019-12-09,2020-01-17,39,8,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+1920,Thigh Muscle Strain,2019-09-22,2019-09-28,6,,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+1920,Hamstring Injury,2019-08-26,2019-09-20,25,3,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+1920,Hamstring Injury,2019-08-12,2019-08-24,12,1,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+1920,Ruptured cruciate ligament,2020-03-01,2020-10-24,237,4,Gerard Deulofeu,/gerard-deulofeu/profil/spieler/129476
+1920,Groin Strain,2019-10-16,2019-10-19,3,,David de Gea,/david-de-gea/profil/spieler/59377
+1920,Knee Injury,2019-12-10,2019-12-14,4,1,Nicolas Pépé,/nicolas-pepe/profil/spieler/343052
+1920,Ankle Injury,2019-12-20,2020-09-12,267,27,Daniel Amartey,/daniel-amartey/profil/spieler/214056
+1920,Ankle Injury,2019-09-11,2019-09-27,16,2,Max Aarons,/max-aarons/profil/spieler/471690
+1920,Knock,2020-03-01,2020-03-02,1,,Joe Gomez,/joe-gomez/profil/spieler/256178
+1920,Ankle Injury,2020-06-22,2020-06-23,1,,Phil Jagielka,/phil-jagielka/profil/spieler/13520
+1920,Groin Injury,2019-09-15,2019-12-10,86,19,Antonio Rüdiger,/antonio-rudiger/profil/spieler/86202
+1920,Knock,2019-08-20,2019-09-13,24,2,Antonio Rüdiger,/antonio-rudiger/profil/spieler/86202
+1920,Groin Injury,2020-07-17,2020-07-19,2,,Adam Webster,/adam-webster/profil/spieler/212847
+1920,Thigh Muscle Strain,2020-06-24,2020-07-03,9,1,Adam Webster,/adam-webster/profil/spieler/212847
+1920,Ankle Injury,2019-11-02,2019-11-22,20,2,Adam Webster,/adam-webster/profil/spieler/212847
+1920,Knock,2019-09-24,2019-09-26,2,1,Adam Webster,/adam-webster/profil/spieler/212847
+1920,Ill,2019-12-22,2019-12-28,6,1,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+1920,Hamstring Injury,2019-08-18,2019-09-13,26,2,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+1920,Ankle Injury,2019-11-23,2020-02-10,79,19,Ben Davies,/ben-davies/profil/spieler/192765
+1920,Groin Injury,2019-08-08,2019-08-16,8,1,Ben Davies,/ben-davies/profil/spieler/192765
+1920,Ill,2019-10-22,2019-10-26,4,1,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+1920,Thigh Muscle Strain,2020-06-29,2020-07-04,5,1,Matty Longstaff,/matty-longstaff/profil/spieler/484387
+1920,Hamstring Injury,2020-03-08,2020-06-23,107,1,Matty Longstaff,/matty-longstaff/profil/spieler/484387
+1920,Knock,2019-09-26,2019-10-05,9,1,Alex McCarthy,/alex-mccarthy/profil/spieler/95976
+1920,Knee Injury,2020-02-06,2020-02-14,8,,James Ward-Prowse,/james-ward-prowse/profil/spieler/181579
+1920,Ankle Injury,2020-06-06,2020-06-23,17,1,Philip Billing,/philip-billing/profil/spieler/320411
+1920,Back Injury,2020-01-23,2020-01-31,8,1,Philip Billing,/philip-billing/profil/spieler/320411
+1920,Calf Injury,2020-05-01,2020-06-20,50,,Dwight Gayle,/dwight-gayle/profil/spieler/196522
+1920,Thigh Muscle Strain,2020-01-12,2020-02-21,40,7,Dwight Gayle,/dwight-gayle/profil/spieler/196522
+1920,Thigh Muscle Strain,2020-01-02,2020-01-10,8,1,Dwight Gayle,/dwight-gayle/profil/spieler/196522
+1920,Calf Injury,2019-08-08,2019-10-05,58,8,Dwight Gayle,/dwight-gayle/profil/spieler/196522
+1920,Knee Injury,2019-12-18,2020-03-01,74,15,Jack Colback,/jack-colback/profil/spieler/61644
+1920,Ankle Injury,2019-12-03,2020-01-18,46,10,Adam Smith,/adam-smith/profil/spieler/61841
+1920,Ill,2019-11-24,2019-12-02,8,1,Adam Smith,/adam-smith/profil/spieler/61841
+1920,Strain,2019-09-01,2019-10-18,47,5,Adam Smith,/adam-smith/profil/spieler/61841
+1920,Hamstring Injury,2019-12-14,2020-01-10,27,6,Grady Diangana,/grady-diangana/profil/spieler/342048
+1920,Muscle Injury,2020-07-06,2020-07-17,11,3,Andy Carroll,/andy-carroll/profil/spieler/48066
+1920,Knock,2020-01-15,2020-06-15,152,10,Andy Carroll,/andy-carroll/profil/spieler/48066
+1920,Groin Injury,2020-01-02,2020-01-10,8,1,Andy Carroll,/andy-carroll/profil/spieler/48066
+1920,Bruised Rib,2019-11-26,2019-12-03,7,1,Andy Carroll,/andy-carroll/profil/spieler/48066
+1920,Groin Injury,2019-10-20,2019-11-01,12,1,Andy Carroll,/andy-carroll/profil/spieler/48066
+1920,Groin Strain,2020-02-23,2020-03-06,12,2,Hugo Lloris,/hugo-lloris/profil/spieler/17965
+1920,Elbow Injury,2019-10-06,2020-01-18,104,21,Hugo Lloris,/hugo-lloris/profil/spieler/17965
+1920,Calf Strain,2020-07-06,2020-07-31,25,5,Moussa Djenepo,/moussa-djenepo/profil/spieler/485424
+1920,Thigh Muscle Strain,2019-12-15,2019-12-27,12,2,Moussa Djenepo,/moussa-djenepo/profil/spieler/485424
+1920,Knock,2019-09-15,2019-11-01,47,7,Moussa Djenepo,/moussa-djenepo/profil/spieler/485424
+1920,Knock,2019-08-29,2019-09-13,15,1,Moussa Djenepo,/moussa-djenepo/profil/spieler/485424
+1920,Knock,2019-12-31,2020-01-06,6,2,Nicolás Otamendi,/nicolas-otamendi/profil/spieler/54781
+1920,Knock,2019-10-10,2019-10-21,11,1,Nicolás Otamendi,/nicolas-otamendi/profil/spieler/54781
+1920,Calf muscle strain,2020-02-05,2020-02-27,22,3,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Knock,2020-01-05,2020-01-19,14,3,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Ill,2019-12-30,2020-01-03,4,1,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Knee Surgery,2019-10-18,2019-12-14,57,13,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Muscle Fatigue,2019-09-19,2019-09-25,6,2,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Thigh Muscle Strain,2019-08-18,2019-08-24,6,,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1920,Muscle Injury,2020-07-03,2020-07-25,22,5,Dele Alli,/dele-alli/profil/spieler/207929
+1920,Hamstring Injury,2019-08-04,2019-08-31,27,3,Dele Alli,/dele-alli/profil/spieler/207929
+1920,Hip Injury,2019-11-09,2019-12-04,25,5,Oliver Skipp,/oliver-skipp/profil/spieler/406638
+1920,Hamstring Injury,2019-09-10,2019-10-20,40,8,Emerson,/emerson/profil/spieler/181778
+1920,Knock,2019-12-09,2019-12-13,4,,Lys Mousset,/lys-mousset/profil/spieler/291422
+1920,Thigh Muscle Strain,2019-11-25,2019-11-30,5,,Lys Mousset,/lys-mousset/profil/spieler/291422
+1920,Ill,2019-12-30,2020-01-07,8,3,Ederson,/ederson/profil/spieler/238223
+1920,Ill,2019-12-08,2019-12-14,6,1,Ederson,/ederson/profil/spieler/238223
+1920,Muscular problems,2019-11-06,2019-11-22,16,2,Ederson,/ederson/profil/spieler/238223
+1920,Shoulder Injury,2020-03-02,2020-03-06,4,,Adama Traoré,/adama-traore/profil/spieler/204103
+1920,Shoulder Injury,2020-02-02,2020-02-13,11,,Adama Traoré,/adama-traore/profil/spieler/204103
+1920,Knock,2020-01-17,2020-01-17,0,,Adama Traoré,/adama-traore/profil/spieler/204103
+1920,Shoulder Injury,2019-12-16,2019-12-20,4,,Adama Traoré,/adama-traore/profil/spieler/204103
+1920,Knock,2019-11-11,2019-11-22,11,,Adama Traoré,/adama-traore/profil/spieler/204103
+1920,Calf Injury,2020-06-19,2020-07-10,21,5,Martin Kelly,/martin-kelly/profil/spieler/78959
+1920,Calf Injury,2020-02-07,2020-02-21,14,1,Martin Kelly,/martin-kelly/profil/spieler/78959
+1920,Thigh Muscle Strain,2019-12-29,2019-12-31,2,,Martin Kelly,/martin-kelly/profil/spieler/78959
+1920,Groin Injury,2019-10-17,2019-10-26,9,1,Martin Kelly,/martin-kelly/profil/spieler/78959
+1920,Groin Injury,2019-09-01,2019-09-21,20,1,Martin Kelly,/martin-kelly/profil/spieler/78959
+1920,Hamstring Injury,2019-08-29,2019-09-25,27,4,Michael Obafemi,/michael-obafemi/profil/spieler/444208
+1920,Knee Injury,2019-08-26,2019-09-13,18,2,Matt Doherty,/matt-doherty/profil/spieler/171679
+1920,Ill,2019-08-21,2019-08-24,3,1,Matt Doherty,/matt-doherty/profil/spieler/171679
+1920,Knock,2019-12-24,2019-12-27,3,1,Winston Reid,/winston-reid/profil/spieler/37526
+1920,Knee Injury,2019-08-17,2019-10-29,73,11,Winston Reid,/winston-reid/profil/spieler/37526
+1920,Hamstring Injury,2020-07-04,2020-07-31,27,7,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Muscle Injury,2020-02-18,2020-06-06,109,5,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Hamstring Injury,2020-01-02,2020-01-17,15,2,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Groin Injury,2019-10-15,2019-11-04,20,5,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Knock,2019-10-12,2019-10-13,1,,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Hamstring Injury,2019-09-27,2019-10-01,4,1,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Sprained ankle,2019-08-19,2019-09-21,33,4,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1920,Ankle Injury,2020-07-31,2020-08-13,13,2,Willian,/willian/profil/spieler/52769
+1920,Calf Injury,2020-03-05,2020-03-07,2,,Willian,/willian/profil/spieler/52769
+1920,Hamstring Injury,2019-07-04,2019-08-12,39,1,Willian,/willian/profil/spieler/52769
+1920,Groin Injury,2019-09-01,2019-10-18,47,5,Leandro Trossard,/leandro-trossard/profil/spieler/144028
+1920,Cruciate Ligament Surgery,2020-03-02,2020-10-26,238,36,Cenk Tosun,/cenk-tosun/profil/spieler/45671
+1920,Contused laceration,2020-01-24,2020-02-21,28,2,Cenk Tosun,/cenk-tosun/profil/spieler/45671
+1920,Groin Injury,2019-10-18,2019-10-27,9,2,Cenk Tosun,/cenk-tosun/profil/spieler/45671
+1920,Knock,2020-07-02,2020-07-10,8,3,Dejan Lovren,/dejan-lovren/profil/spieler/37838
+1920,Muscle Injury,2019-12-13,2020-01-24,42,11,Dejan Lovren,/dejan-lovren/profil/spieler/37838
+1920,Knock,2019-12-08,2019-12-09,1,,Dejan Lovren,/dejan-lovren/profil/spieler/37838
+1920,Ill,2019-08-11,2019-08-30,19,3,Dejan Lovren,/dejan-lovren/profil/spieler/37838
+1920,Knee Problems,2020-01-30,2020-02-27,28,3,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+1920,Knee Injury,2020-01-09,2020-01-20,11,2,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+1920,Hamstring Injury,2019-08-26,2019-08-29,3,1,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+1920,Back Injury,2019-08-13,2019-09-10,28,4,Adam Idah,/adam-idah/profil/spieler/434223
+1920,Metatarsal Fracture,2015-06-26,2015-09-20,86,20,Dennis Srbeny,/dennis-srbeny/profil/spieler/159239
+1920,Knee Surgery,2020-01-16,2020-10-06,264,,Isaac Christie-Davies,/isaac-christie-davies/profil/spieler/264660
+1920,Knee Injury,2019-08-08,2019-10-24,77,9,Isaac Christie-Davies,/isaac-christie-davies/profil/spieler/264660
+1920,Shoulder Injury,2019-12-09,2020-03-14,96,19,Kieran Tierney,/kieran-tierney/profil/spieler/300716
+1920,Hip Injury,2020-03-01,2020-05-20,80,3,Alisson,/alisson/profil/spieler/105470
+1920,Calf Injury,2019-08-10,2019-10-16,67,11,Alisson,/alisson/profil/spieler/105470
+1920,Cruciate Ligament Rupture,2019-12-29,2020-11-08,315,41,Calum Chambers,/calum-chambers/profil/spieler/215118
+1920,Ill,2019-12-17,2019-12-20,3,2,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+1920,Hamstring Injury,2020-02-27,2020-06-13,107,3,Aymeric Laporte,/aymeric-laporte/profil/spieler/176553
+1920,Knock,2020-01-23,2020-02-18,26,3,Aymeric Laporte,/aymeric-laporte/profil/spieler/176553
+1920,Knee Injury,2019-09-01,2020-01-20,141,30,Aymeric Laporte,/aymeric-laporte/profil/spieler/176553
+1920,Knock,2019-08-08,2019-08-09,1,,Aymeric Laporte,/aymeric-laporte/profil/spieler/176553
+1920,Knock,2020-06-07,2020-06-19,12,,Ayoze Pérez,/ayoze-perez/profil/spieler/246968
+1920,Knee Injury,2020-07-17,2020-07-25,8,1,Luka Milivojevic,/luka-milivojevic/profil/spieler/74300
+1920,Hamstring Injury,2019-12-06,2020-01-14,39,9,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
+1920,Hamstring Injury,2019-11-24,2019-12-04,10,2,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
+1920,Groin Injury,2019-11-01,2019-12-04,33,5,Jota Peleteiro,/jota-peleteiro/profil/spieler/176591
+1920,Strain,2019-10-16,2019-10-21,5,1,Christian Eriksen,/christian-eriksen/profil/spieler/69633
+1920,Strain,2020-01-05,2020-01-11,6,,Domingos Quina,/domingos-quina/profil/spieler/391719
+1920,Groin Injury,2019-10-30,2019-11-29,30,3,Domingos Quina,/domingos-quina/profil/spieler/391719
+1920,Calf Injury,2019-10-27,2019-11-24,28,3,Jack Grealish,/jack-grealish/profil/spieler/203460
+1920,Knock,2019-12-08,2019-12-21,13,1,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
+1920,Hamstring Injury,2019-11-10,2019-11-29,19,1,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
+1920,Knee Injury,2020-05-19,2020-07-04,46,4,Frédéric Guilbert,/frederic-guilbert/profil/spieler/354352
+1920,Strain,2019-11-03,2019-11-09,6,,Frédéric Guilbert,/frederic-guilbert/profil/spieler/354352
+1920,Unknown Injury,2020-07-07,2020-07-10,3,1,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1920,Thigh Muscle Strain,2019-12-06,2019-12-19,13,4,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1920,Thigh Muscle Strain,2019-10-06,2019-11-08,33,6,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1920,Ill,2019-10-03,2019-10-04,1,1,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1920,Ill,2019-10-02,2019-10-04,2,1,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1920,Hamstring Injury,2020-01-06,2020-01-10,4,,Jairo Riedewald,/jairo-riedewald/profil/spieler/241481
+1920,Groin Injury,2019-12-18,2019-12-20,2,,Jairo Riedewald,/jairo-riedewald/profil/spieler/241481
+1920,Knee Injury,2019-12-27,2020-02-22,57,13,Scott McTominay,/scott-mctominay/profil/spieler/315969
+1920,Knee Injury,2019-11-11,2019-12-04,23,4,Scott McTominay,/scott-mctominay/profil/spieler/315969
+1920,Neck Injury,2020-01-17,2020-01-20,3,1,Michael Keane,/michael-keane/profil/spieler/118534
+1920,Foot Injury,2019-12-13,2019-12-23,10,2,Ross Barkley,/ross-barkley/profil/spieler/131978
+1920,Foot Injury,2019-10-19,2019-12-05,47,11,Ross Barkley,/ross-barkley/profil/spieler/131978
+1920,Thigh Muscle Strain,2019-12-18,2020-03-05,78,20,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+1920,Hip Injury,2019-10-19,2019-11-23,35,7,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+1920,Knee Injury,2020-06-12,2021-09-09,454,78,Phil Jones,/phil-jones/profil/spieler/117996
+1920,Knock,2019-09-26,2019-10-19,23,3,Phil Jones,/phil-jones/profil/spieler/117996
+1920,Calf Injury,2020-02-09,2020-03-07,27,2,Lucas Digne,/lucas-digne/profil/spieler/126664
+1920,Ankle Injury,2019-12-08,2019-12-14,6,,Lucas Digne,/lucas-digne/profil/spieler/126664
+1920,Thigh Muscle Strain,2020-01-02,2020-03-10,68,9,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
+1920,Knock,2019-09-27,2019-11-29,63,7,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
+1920,Ruptured cruciate ligament,2020-06-15,2021-03-14,272,69,Florin Andone,/florin-andone/profil/spieler/177065
+1920,Medial Collateral Ligament Knee Injury,2019-11-09,2020-01-29,81,15,Florin Andone,/florin-andone/profil/spieler/177065
+1920,Cruciate Ligament Strain,2019-11-09,2020-01-25,77,14,Florin Andone,/florin-andone/profil/spieler/177065
+1920,Knock,2019-10-18,2019-12-02,45,6,Connor Wickham,/connor-wickham/profil/spieler/95435
+1920,Ankle Injury,2019-09-27,2019-10-04,7,1,Connor Wickham,/connor-wickham/profil/spieler/95435
+1920,Groin Injury,2019-12-29,2020-01-31,33,6,Will Hughes,/will-hughes/profil/spieler/207014
+1920,Knock,2019-09-22,2019-10-04,12,2,Will Hughes,/will-hughes/profil/spieler/207014
+1920,Thigh Problems,2019-12-13,2019-12-31,18,1,Takumi Minamino,/takumi-minamino/profil/spieler/165793
+1920,Knock,2020-01-02,2020-01-10,8,1,Dwight McNeil,/dwight-mcneil/profil/spieler/584769
+1920,Thigh Muscle Strain,2019-09-26,2019-09-27,1,,Dwight McNeil,/dwight-mcneil/profil/spieler/584769
+1920,Hamstring Injury,2019-09-01,2019-09-13,12,,Dwight McNeil,/dwight-mcneil/profil/spieler/584769
+1920,Thigh Problems,2020-02-08,2020-09-30,235,15,Lovre Kalinic,/lovre-kalinic/profil/spieler/46405
+1920,Head Injury,2020-02-10,2020-02-28,18,1,Nathan Aké,/nathan-ake/profil/spieler/177476
+1920,Hamstring Injury,2019-12-08,2020-01-11,34,6,Nathan Aké,/nathan-ake/profil/spieler/177476
+1920,Knee Injury,2019-12-08,2020-01-04,27,5,Gary Cahill,/gary-cahill/profil/spieler/27511
+1920,Knee Injury,2019-12-01,2019-12-06,5,1,Gary Cahill,/gary-cahill/profil/spieler/27511
+1920,Head Injury,2019-11-04,2019-11-08,4,,Gary Cahill,/gary-cahill/profil/spieler/27511
+1920,Ill,2020-01-03,2020-01-10,7,2,Luke Shaw,/luke-shaw/profil/spieler/183288
+1920,Muscle Injury,2019-10-18,2019-11-27,40,8,Luke Shaw,/luke-shaw/profil/spieler/183288
+1920,Hamstring Injury,2019-08-24,2019-10-07,44,9,Luke Shaw,/luke-shaw/profil/spieler/183288
+1920,Knock,2019-10-07,2019-10-25,18,2,Kyle Walker,/kyle-walker/profil/spieler/95424
+1920,Muscle Fatigue,2019-11-21,2019-12-18,27,5,Ken Sema,/ken-sema/profil/spieler/252345
+1920,Calf Injury,2020-07-05,2020-07-09,4,1,Jack Stacey,/jack-stacey/profil/spieler/249356
+1920,Hamstring Injury,2019-12-29,2020-02-08,41,7,Jack Stacey,/jack-stacey/profil/spieler/249356
+1920,Ankle Injury,2020-07-02,2020-07-04,2,,Joelinton,/joelinton/profil/spieler/333241
+1920,Thigh Muscle Strain,2020-02-17,2020-02-21,4,,Joelinton,/joelinton/profil/spieler/333241
+1920,Shoulder Injury,2020-02-06,2020-02-15,9,,Joelinton,/joelinton/profil/spieler/333241
+1920,Calf Problems,2019-12-29,2019-12-31,2,,Joelinton,/joelinton/profil/spieler/333241
+1920,Groin Injury,2019-08-18,2019-08-24,6,,Joelinton,/joelinton/profil/spieler/333241
+1920,Thigh Muscle Strain,2020-01-07,2020-02-04,28,6,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
+1920,Fitness,2019-11-14,2019-11-26,12,1,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
+1920,Tear in the abductor muscle,2019-09-30,2019-11-14,45,9,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
+1920,Knee Problems,2019-09-09,2019-09-16,7,1,Ally Samatta,/ally-samatta/profil/spieler/182201
+1920,Ankle Injury,2020-03-03,2020-07-03,122,6,Lucas Torreira,/lucas-torreira/profil/spieler/318077
+1920,Ill,2020-02-17,2020-02-21,4,1,Lucas Torreira,/lucas-torreira/profil/spieler/318077
+1920,Knock,2020-01-12,2020-01-17,5,,Lucas Torreira,/lucas-torreira/profil/spieler/318077
+1920,Knee Injury,2020-06-11,2020-06-22,11,1,Angelo Ogbonna,/angelo-ogbonna/profil/spieler/48002
+1920,Head Injury,2019-09-25,2019-10-05,10,2,Emile Smith Rowe,/emile-smith-rowe/profil/spieler/392765
+1920,Groin Injury,2019-08-08,2019-08-16,8,2,Emile Smith Rowe,/emile-smith-rowe/profil/spieler/392765
+1920,Strain,2020-07-16,2020-09-12,58,6,Chicharito,/chicharito/profil/spieler/50935
+1920,Virus Infection,2019-12-19,2019-12-27,8,1,Chicharito,/chicharito/profil/spieler/50935
+1920,Knee Injury,2020-01-19,2020-01-24,5,1,Ralf Fährmann,/ralf-fahrmann/profil/spieler/39015
+1920,Knee Injury,2019-12-29,2020-01-10,12,2,Ralf Fährmann,/ralf-fahrmann/profil/spieler/39015
+1920,Groin Injury,2019-09-29,2019-11-01,33,3,Ralf Fährmann,/ralf-fahrmann/profil/spieler/39015
+1920,Groin Strain,2019-09-15,2019-09-27,12,1,Ralf Fährmann,/ralf-fahrmann/profil/spieler/39015
+1920,Hamstring Injury,2020-06-15,2020-10-01,108,14,Grant Hanley,/grant-hanley/profil/spieler/121385
+1920,Knock,2020-01-12,2020-01-17,5,,Grant Hanley,/grant-hanley/profil/spieler/121385
+1920,Ill,2020-01-05,2020-01-10,5,,Grant Hanley,/grant-hanley/profil/spieler/121385
+1920,Groin Strain,2019-09-29,2019-12-18,80,10,Grant Hanley,/grant-hanley/profil/spieler/121385
+1920,Groin Strain,2019-08-26,2019-09-10,15,2,Grant Hanley,/grant-hanley/profil/spieler/121385
+1920,Calf Injury,2020-01-05,2020-01-31,26,4,Junior Stanislas,/junior-stanislas/profil/spieler/87672
+1920,Knock,2020-07-01,2020-07-04,3,,Henri Lansbury,/henri-lansbury/profil/spieler/44794
+1920,Ankle Injury,2019-09-23,2019-10-04,11,2,Henri Lansbury,/henri-lansbury/profil/spieler/44794
+1920,Ankle Injury,2019-11-07,2019-11-07,0,,Mason Mount,/mason-mount/profil/spieler/346483
+1920,Ankle Injury,2019-09-19,2019-09-23,4,1,Mason Mount,/mason-mount/profil/spieler/346483
+1920,Strain in the thigh and gluteal muscles,2020-01-23,2020-01-30,7,2,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+1920,Muscle Injury,2019-12-30,2020-01-06,7,2,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+1920,Ill,2020-02-21,2020-03-01,9,2,Christian Atsu,/christian-atsu/profil/spieler/186997
+1920,Hamstring Injury,2019-08-12,2019-08-24,12,1,Christian Atsu,/christian-atsu/profil/spieler/186997
+1920,Bruise,2020-06-29,2020-07-31,32,6,Nathan Tella,/nathan-tella/profil/spieler/340322
+1920,Heel pain,2020-03-12,2020-03-12,0,1,Anthony Martial,/anthony-martial/profil/spieler/182877
+1920,Ill,2020-02-26,2020-02-29,3,1,Anthony Martial,/anthony-martial/profil/spieler/182877
+1920,Knock,2019-12-03,2019-12-06,3,1,Anthony Martial,/anthony-martial/profil/spieler/182877
+1920,Bruised Foot,2019-11-28,2019-11-28,0,1,Anthony Martial,/anthony-martial/profil/spieler/182877
+1920,Thigh Muscle Strain,2019-08-25,2019-10-20,56,9,Anthony Martial,/anthony-martial/profil/spieler/182877
+1920,Virus Infection,2020-05-26,2020-05-31,5,,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+1920,Knock,2020-01-11,2020-01-17,6,1,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+1920,Knee Injury,2020-02-03,2020-02-15,12,,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+1920,Strain,2020-02-29,2020-03-15,15,2,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
+1920,Ankle Injury,2020-01-29,2020-02-01,3,,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
+1920,Ankle Injury,2019-11-30,2019-11-30,0,,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
+1920,Ankle problems,2019-12-27,2020-06-05,161,19,Paul Pogba,/paul-pogba/profil/spieler/122153
+1920,Ankle problems,2019-10-02,2019-12-20,79,17,Paul Pogba,/paul-pogba/profil/spieler/122153
+1920,Ankle Injury,2019-09-01,2019-09-26,25,4,Paul Pogba,/paul-pogba/profil/spieler/122153
+1920,Back Injury,2019-08-02,2019-08-10,8,,Paul Pogba,/paul-pogba/profil/spieler/122153
+1920,Bruised Knee,2019-12-13,2020-02-01,50,7,Kenedy,/kenedy/profil/spieler/281404
+1920,Calf Injury,2020-07-10,2020-07-11,1,,David Brooks,/david-brooks/profil/spieler/277033
+1920,Ankle Surgery,2019-07-31,2020-06-19,324,33,David Brooks,/david-brooks/profil/spieler/277033
+1920,Hamstring Injury,2020-01-26,2020-02-11,16,4,Sadio Mané,/sadio-mane/profil/spieler/200512
+1920,Muscle Injury,2020-01-24,2020-02-14,21,4,Sadio Mané,/sadio-mane/profil/spieler/200512
+1920,Thigh Muscle Strain,2019-09-23,2019-09-27,4,1,Sadio Mané,/sadio-mane/profil/spieler/200512
+1920,Knee Injury,2020-07-12,2020-07-16,4,,Troy Deeney,/troy-deeney/profil/spieler/65477
+1920,Knee Surgery,2019-08-22,2019-11-05,75,12,Troy Deeney,/troy-deeney/profil/spieler/65477
+1920,Ankle Injury,2020-01-12,2020-01-19,7,1,Max Meyer,/max-meyer/profil/spieler/146164
+1920,Ankle Injury,2020-01-06,2020-01-10,4,,Max Meyer,/max-meyer/profil/spieler/146164
+1920,Ill,2019-11-24,2019-12-15,21,3,Max Meyer,/max-meyer/profil/spieler/146164
+1920,Calf Injury,2020-07-16,2020-07-17,1,,Jay Rodríguez,/jay-rodriguez/profil/spieler/53360
+1920,Thigh Muscle Strain,2020-06-26,2020-07-04,8,1,Jay Rodríguez,/jay-rodriguez/profil/spieler/53360
+1920,Ill,2020-01-05,2020-01-18,13,1,Jay Rodríguez,/jay-rodriguez/profil/spieler/53360
+1920,Cheek bone contusion,2019-12-11,2019-12-11,0,1,Serge Aurier,/serge-aurier/profil/spieler/127032
+1920,Arch pain,2019-11-06,2019-11-06,0,1,Serge Aurier,/serge-aurier/profil/spieler/127032
+1920,Back bruise,2019-09-18,2019-09-18,0,1,Serge Aurier,/serge-aurier/profil/spieler/127032
+1920,Fractured Arm,2019-08-17,2019-08-28,11,2,Serge Aurier,/serge-aurier/profil/spieler/127032
+1920,Hand Injury,2019-07-29,2019-08-09,11,,Serge Aurier,/serge-aurier/profil/spieler/127032
+1920,Back Injury,2020-03-02,2020-03-10,8,2,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+1920,Ankle problems,2019-09-29,2019-10-15,16,2,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+1920,Achilles tendon rupture,2020-06-08,2021-03-19,284,49,Isaac Success,/isaac-success/profil/spieler/295331
+1920,Groin Strain,2019-09-16,2019-11-01,46,7,Isaac Success,/isaac-success/profil/spieler/295331
+1920,Ill,2020-03-01,2020-03-10,9,1,Will Smallbone,/will-smallbone/profil/spieler/444211
+1920,Calf Injury,2019-11-11,2020-06-14,216,21,Jed Steer,/jed-steer/profil/spieler/110867
+1920,Foot Injury,2019-11-20,2020-01-13,54,11,Mohamed Elyounoussi,/mohamed-elyounoussi/profil/spieler/186644
+1920,Arm Injury,2020-02-24,2020-06-15,112,3,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+1920,Strain,2020-01-15,2020-02-15,31,4,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+1920,Ankle Injury,2019-12-16,2019-12-30,14,3,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+1920,Hamstring Injury,2019-11-17,2019-11-30,13,2,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+1920,Ill,2020-01-26,2020-02-13,18,2,Wes Morgan,/wes-morgan/profil/spieler/10003
+1920,Groin Injury,2020-01-05,2020-01-18,13,2,Wes Morgan,/wes-morgan/profil/spieler/10003
+1920,Back Injury,2019-08-30,2019-09-13,14,1,Wes Morgan,/wes-morgan/profil/spieler/10003
+1920,Knee Injury,2020-02-19,2020-06-15,117,4,Onel Hernández,/onel-hernandez/profil/spieler/109751
+1920,Knee Injury,2019-08-10,2019-10-18,69,8,Onel Hernández,/onel-hernandez/profil/spieler/109751
+1920,Calf Injury,2020-06-18,2020-06-22,4,1,Dennis Praet,/dennis-praet/profil/spieler/129588
+1920,Ankle Injury,2020-03-04,2020-06-06,94,2,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+1920,Back Injury,2019-11-03,2020-01-10,68,14,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+1920,Knock,2019-08-08,2019-08-10,2,1,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+1920,Knock,2020-06-01,2020-06-06,5,,Reece James,/reece-james/profil/spieler/472423
+1920,Bruise,2020-01-20,2020-01-31,11,2,Reece James,/reece-james/profil/spieler/472423
+1920,Ankle Injury,2019-12-23,2019-12-30,7,2,Reece James,/reece-james/profil/spieler/472423
+1920,Ankle Injury,2019-06-07,2019-09-24,109,16,Reece James,/reece-james/profil/spieler/472423
+1920,Thigh Muscle Strain,2020-02-02,2020-02-28,26,2,Dale Stephens,/dale-stephens/profil/spieler/49755
+1920,Ankle Injury,2019-11-20,2020-01-04,45,3,Rhian Brewster,/rhian-brewster/profil/spieler/406560
+1920,Collarbone fracture,2020-01-01,2020-02-08,38,7,Dan Burn,/dan-burn/profil/spieler/134270
+1920,Knee Injury,2020-06-21,2020-12-07,169,30,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+1920,Knock,2020-02-20,2020-02-25,5,2,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+1920,Hamstring Injury,2019-12-23,2020-01-06,14,4,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+1920,Corona virus,2020-03-14,2020-03-28,14,,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1920,Groin Surgery,2020-01-02,2020-09-29,271,23,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1920,Groin Injury,2019-12-05,2019-12-13,8,1,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1920,Groin Injury,2019-10-17,2019-10-25,8,1,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1920,Groin Injury,2019-09-01,2019-09-13,12,,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1920,Ankle Injury,2020-06-26,2020-07-08,12,2,Pierre-Emile Höjbjerg,/pierre-emile-hojbjerg/profil/spieler/167799
+1920,Cruciate Ligament Rupture,2020-03-11,2021-01-15,310,35,Ricardo Pereira,/ricardo-pereira/profil/spieler/215876
+1920,Ankle Injury,2020-06-17,2020-12-03,169,31,Pablo Marí,/pablo-mari/profil/spieler/210178
+1920,Shoulder Injury,2019-11-10,2019-12-25,45,5,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
+1920,Ankle Injury,2019-09-17,2019-09-27,10,2,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
+1920,Calf Injury,2020-01-23,2020-02-07,15,1,Shane Duffy,/shane-duffy/profil/spieler/119269
+1920,Groin Injury,2020-01-12,2020-01-17,5,,Shane Duffy,/shane-duffy/profil/spieler/119269
+1920,Calf Injury,2019-09-26,2019-10-11,15,2,Shane Duffy,/shane-duffy/profil/spieler/119269
+1920,Knock,2019-08-07,2019-08-30,23,4,Ibrahim Amadou,/ibrahim-amadou/profil/spieler/205503
+1920,Knee Injury,2020-06-23,2020-10-16,115,17,Sergio Agüero,/sergio-aguero/profil/spieler/26399
+1920,Thigh Muscle Strain,2020-03-09,2020-03-31,22,,Sergio Agüero,/sergio-aguero/profil/spieler/26399
+1920,Muscle Injury,2019-11-24,2019-12-20,26,7,Sergio Agüero,/sergio-aguero/profil/spieler/26399
+1920,Knee Injury,2019-11-10,2019-12-31,51,10,Rob Holding,/rob-holding/profil/spieler/253341
+1920,Cruciate Ligament Rupture,2019-10-04,2020-03-31,179,28,Davide Zappacosta,/davide-zappacosta/profil/spieler/173859
+1920,Disrupted Calf Muscle,2019-09-01,2019-10-01,30,6,Davide Zappacosta,/davide-zappacosta/profil/spieler/173859
+1920,Knock,2019-12-22,2019-12-25,3,,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+1920,Knock,2019-11-24,2019-11-29,5,,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+1920,Knock,2019-11-10,2019-11-22,12,,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+1920,Ill,2019-09-27,2019-10-05,8,1,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+1920,Thigh Muscle Strain,2020-01-02,2020-02-28,57,10,Javier Manquillo,/javier-manquillo/profil/spieler/162029
+1920,Ill,2019-12-22,2020-01-10,19,4,Aaron Lennon,/aaron-lennon/profil/spieler/14221
+1920,Calf Injury,2020-01-12,2020-07-04,174,16,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
+1920,Thigh Muscle Strain,2019-12-28,2020-01-10,13,3,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
+1920,Calf Injury,2019-09-23,2019-11-26,64,12,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
+1920,Calf Injury,2020-07-07,2020-07-15,8,2,Mason Holgate,/mason-holgate/profil/spieler/348623
+1920,Calf Injury,2020-02-23,2020-03-06,12,1,Enda Stevens,/enda-stevens/profil/spieler/85706
+1920,Meniscal Injury,2020-01-26,2020-07-18,174,16,Juan Foyth,/juan-foyth/profil/spieler/480763
+1920,Ankle Injury,2019-07-31,2019-09-22,53,7,Juan Foyth,/juan-foyth/profil/spieler/480763
+1920,Head Injury,2020-06-13,2020-06-17,4,2,Konstantinos Mavropanos,/konstantinos-mavropanos/profil/spieler/415912
+1920,Pelvis Injury,2020-02-24,2020-03-08,13,2,Konstantinos Mavropanos,/konstantinos-mavropanos/profil/spieler/415912
+1920,Groin Injury,2019-08-09,2019-10-05,57,10,Konstantinos Mavropanos,/konstantinos-mavropanos/profil/spieler/415912
+1920,Strain,2020-01-19,2020-01-31,12,2,Emiliano Buendía,/emiliano-buendia/profil/spieler/321247
+1920,Knock,2020-02-28,2020-03-07,8,2,Daniel James,/daniel-james/profil/spieler/319301
+1920,Ankle Injury,2019-09-10,2019-09-21,11,2,Daniel James,/daniel-james/profil/spieler/319301
+1920,Back Injury,2020-02-02,2020-02-07,5,,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
+1920,Groin Injury,2020-01-23,2020-01-31,8,1,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
+1920,Groin Injury,2020-01-05,2020-01-11,6,,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
+1920,Ankle Injury,2019-11-11,2019-11-22,11,,Andrew Robertson,/andrew-robertson/profil/spieler/234803
+1920,Knee Injury,2020-02-04,2020-03-04,29,4,Roberto,/roberto/profil/spieler/37403
+1920,Knee Injury,2019-11-22,2020-02-22,92,16,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
+1920,Strain,2019-07-16,2019-11-04,111,26,Louis Thompson,/louis-thompson/profil/spieler/207771
+1920,Fitness,2020-02-24,2020-02-29,5,2,Neco Williams,/neco-williams/profil/spieler/503680
+1920,Ill,2020-01-29,2020-02-01,3,2,Neco Williams,/neco-williams/profil/spieler/503680
+1920,Fitness,2020-01-18,2020-01-20,2,1,Neco Williams,/neco-williams/profil/spieler/503680
+1920,Strain,2019-12-09,2019-12-31,22,5,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+1920,Calf Injury,2019-09-29,2019-10-04,5,,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+1920,Muscle Injury,2019-10-31,2019-11-24,24,4,Jan Vertonghen,/jan-vertonghen/profil/spieler/43250
+1920,Strain,2020-06-28,2020-07-11,13,2,Matt Targett,/matt-targett/profil/spieler/250478
+1920,Hamstring Injury,2019-12-31,2020-01-17,17,4,Matt Targett,/matt-targett/profil/spieler/250478
+1920,Strain,2019-09-29,2019-10-04,5,,Matt Targett,/matt-targett/profil/spieler/250478
+1920,Hamstring Injury,2019-08-29,2019-09-24,26,3,Matt Targett,/matt-targett/profil/spieler/250478
+1920,Neck Injury,2020-07-20,2020-07-25,5,1,Eric Bailly,/eric-bailly/profil/spieler/286384
+1920,Knee Surgery,2019-07-25,2020-01-10,169,32,Eric Bailly,/eric-bailly/profil/spieler/286384
+1920,Strain,2020-01-05,2020-01-31,26,,Leon Balogun,/leon-balogun/profil/spieler/56100
+1920,Unknown Injury,2019-08-29,2019-10-04,36,5,Leon Balogun,/leon-balogun/profil/spieler/56100
+1920,Groin Injury,2020-01-06,2020-02-16,41,5,Olivier Giroud,/olivier-giroud/profil/spieler/82442
+1920,Ankle Injury,2019-12-06,2020-01-04,29,7,Olivier Giroud,/olivier-giroud/profil/spieler/82442
+1920,Ill,2019-09-27,2019-10-05,8,2,Olivier Giroud,/olivier-giroud/profil/spieler/82442
+1920,Back trouble,2020-06-27,2020-08-02,36,10,Mesut Özil,/mesut-ozil/profil/spieler/35664
+1920,Ankle Injury,2019-12-16,2019-12-25,9,1,Mesut Özil,/mesut-ozil/profil/spieler/35664
+1920,Ill,2019-08-13,2019-08-19,6,1,Mesut Özil,/mesut-ozil/profil/spieler/35664
+1920,Foot Injury,2020-06-01,2020-06-19,18,,Jose Cholevas,/jose-cholevas/profil/spieler/41112
+1920,Ankle Injury,2019-12-01,2019-12-31,30,6,Jose Cholevas,/jose-cholevas/profil/spieler/41112
+1920,Thigh Muscle Strain,2020-03-02,2020-06-14,104,1,Seamus Coleman,/seamus-coleman/profil/spieler/68390
+1920,Hamstring Injury,2019-11-24,2019-12-14,20,3,Seamus Coleman,/seamus-coleman/profil/spieler/68390
+1920,Corona virus,2020-03-14,2020-04-05,22,,Patrick Cutrone,/patrick-cutrone/profil/spieler/265078
+1920,Ankle Injury,2020-02-26,2020-06-06,101,3,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+1920,Knock,2020-02-02,2020-02-21,19,1,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+1920,Ankle Injury,2020-01-31,2020-01-31,0,,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+1920,Groin Injury,2019-12-06,2019-12-06,0,,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+1920,Hip Injury,2019-11-28,2019-12-04,6,2,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+1920,Hamstring Injury,2020-02-02,2020-02-24,22,3,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+1920,Knee Injury,2020-03-01,2020-06-30,121,3,Simon Francis,/simon-francis/profil/spieler/13573
+1920,Head Injury,2019-12-22,2019-12-31,9,2,Simon Francis,/simon-francis/profil/spieler/13573
+1920,Thigh Problems,2020-06-13,2020-08-31,79,10,Florian Lejeune,/florian-lejeune/profil/spieler/127108
+1920,Groin Injury,2020-01-23,2020-01-30,7,1,Florian Lejeune,/florian-lejeune/profil/spieler/127108
+1920,Knee Injury,2020-01-05,2020-05-19,135,9,Chris Mepham,/chris-mepham/profil/spieler/480987
+1920,Calf Injury,2019-09-29,2019-10-18,19,1,Chris Mepham,/chris-mepham/profil/spieler/480987
+1920,Knock,2019-09-11,2019-09-14,3,,Chris Mepham,/chris-mepham/profil/spieler/480987
+1920,Knock,2019-12-08,2019-12-31,23,6,David Silva,/david-silva/profil/spieler/35518
+1920,Ill,2019-11-24,2019-11-25,1,,David Silva,/david-silva/profil/spieler/35518
+1920,Strain,2019-11-03,2019-11-09,6,1,David Silva,/david-silva/profil/spieler/35518
+1920,Knee Injury,2020-07-09,2020-08-30,52,5,Jordan Henderson,/jordan-henderson/profil/spieler/61651
+1920,Hamstring Injury,2020-02-19,2020-03-10,20,4,Jordan Henderson,/jordan-henderson/profil/spieler/61651
+1920,Calf Injury,2019-12-28,2019-12-28,0,,Jordan Henderson,/jordan-henderson/profil/spieler/61651
+1920,Strain,2020-06-19,2020-06-24,5,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Knee Injury,2020-02-22,2020-02-22,0,,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Ill,2020-01-17,2020-01-22,5,2,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Concussion,2019-12-27,2019-12-30,3,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Rest,2019-10-23,2019-10-25,2,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Rest,2019-10-02,2019-10-04,2,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Rest,2019-09-23,2019-09-25,2,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Rest,2019-09-18,2019-09-20,2,1,Sokratis Papastathopoulos,/sokratis-papastathopoulos/profil/spieler/34322
+1920,Ankle Injury,2020-06-19,2020-07-04,15,3,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1920,Knee Injury,2020-01-24,2020-01-28,4,1,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1920,Knee Injury,2020-01-12,2020-01-17,5,,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1920,Knee Injury,2020-02-01,2020-08-03,184,16,Sebastian Prödl,/sebastian-prodl/profil/spieler/37981
+1920,Hamstring Injury,2019-10-17,2019-10-25,8,1,Sebastian Prödl,/sebastian-prodl/profil/spieler/37981
+1920,Knock,2018-09-21,2018-10-19,28,4,Sebastian Prödl,/sebastian-prodl/profil/spieler/37981
+1920,Hip Injury,2019-11-20,2019-12-20,30,5,Kevin Long,/kevin-long/profil/spieler/111114
+1920,Groin Injury,2020-01-12,2020-06-15,155,8,Ben Gibson,/ben-gibson/profil/spieler/128904
+1920,Groin Injury,2019-12-08,2020-01-10,33,6,Ben Gibson,/ben-gibson/profil/spieler/128904
+1920,Knock,2020-06-24,2020-07-01,7,3,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+1920,Knock,2020-06-18,2020-06-20,2,,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+1920,Ankle Injury,2019-08-28,2020-01-03,128,19,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+1920,Hamstring Injury,2019-08-03,2019-08-10,7,,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+1920,Hamstring Injury,2019-07-30,2019-08-10,11,,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+1920,Medial Collateral Ligament Knee Injury,2020-03-07,2020-04-01,25,1,Martin Dubravka,/martin-dubravka/profil/spieler/74960
+1920,Groin Strain,2020-06-22,2020-07-04,12,3,Robbie Brady,/robbie-brady/profil/spieler/128229
+1920,Calf Injury,2020-01-02,2020-01-18,16,2,Robbie Brady,/robbie-brady/profil/spieler/128229
+1920,Chest injury,2019-08-08,2019-09-13,36,5,Robbie Brady,/robbie-brady/profil/spieler/128229
+1920,Groin Injury,2020-03-01,2020-08-28,180,10,Steven Alzate,/steven-alzate/profil/spieler/476237
+1920,Knock,2020-07-13,2020-07-25,12,2,Marc Albrighton,/marc-albrighton/profil/spieler/61560
+1920,Appendicitis,2020-05-28,2020-07-11,44,,Troy Parrott,/troy-parrott/profil/spieler/552655
+1920,Head Injury,2020-07-14,2020-07-18,4,1,Brandon Williams,/brandon-williams/profil/spieler/507700
+1920,Ankle Injury,2020-06-18,2020-06-24,6,1,Granit Xhaka,/granit-xhaka/profil/spieler/111455
+1920,Concussion,2019-12-09,2019-12-17,8,3,Granit Xhaka,/granit-xhaka/profil/spieler/111455
+1920,Back Injury,2019-08-12,2019-08-23,11,1,Granit Xhaka,/granit-xhaka/profil/spieler/111455
+1920,Knock,2019-08-29,2019-09-24,26,3,Kean Bryan,/kean-bryan/profil/spieler/214928
+1920,Knock,2020-06-10,2020-06-20,10,1,John Fleck,/john-fleck/profil/spieler/54383
+1920,Knock,2020-02-23,2020-03-06,12,1,John Fleck,/john-fleck/profil/spieler/54383
+1920,Knock,2019-10-18,2019-10-20,2,,John Fleck,/john-fleck/profil/spieler/54383
+1920,Thigh Muscle Strain,2019-08-19,2019-09-13,25,3,John Fleck,/john-fleck/profil/spieler/54383
+1920,Knee Injury,2020-06-17,2020-07-04,17,5,Jack O'Connell,/jack-oconnell/profil/spieler/212829
+1920,Head Injury,2020-02-23,2020-02-27,4,,Kelechi Iheanacho,/kelechi-iheanacho/profil/spieler/295330
+1920,Knock,2020-01-27,2020-06-12,137,10,Lee Grant,/lee-grant/profil/spieler/13460
+1920,Ill,2020-01-30,2020-02-04,5,1,Tom Davies,/tom-davies/profil/spieler/314210
+1920,Torn muscle bundle,2019-11-07,2019-12-31,54,11,Dani Ceballos,/dani-ceballos/profil/spieler/319745
+1920,Knock,2019-08-08,2019-08-10,2,,Dani Ceballos,/dani-ceballos/profil/spieler/319745
+1920,Hamstring Injury,2020-07-10,2020-07-14,4,1,Joshua King,/joshua-king/profil/spieler/91059
+1920,Ankle Injury,2020-06-21,2020-06-30,9,1,Joshua King,/joshua-king/profil/spieler/91059
+1920,Hamstring Injury,2020-03-01,2020-05-31,91,1,Joshua King,/joshua-king/profil/spieler/91059
+1920,Muscle fiber tear,2019-12-28,2020-02-08,42,8,Joshua King,/joshua-king/profil/spieler/91059
+1920,Ankle Injury,2019-12-15,2019-12-20,5,,Joshua King,/joshua-king/profil/spieler/91059
+1920,Hamstring Injury,2019-11-20,2019-12-13,23,4,Joshua King,/joshua-king/profil/spieler/91059
+1920,Hamstring Injury,2019-12-08,2019-12-20,12,1,Callum Wilson,/callum-wilson/profil/spieler/123682
+1920,Ill,2019-12-09,2019-12-20,11,1,Callum Robinson,/callum-robinson/profil/spieler/183299
+1920,Thigh Muscle Strain,2019-09-07,2019-09-13,6,,Callum Robinson,/callum-robinson/profil/spieler/183299
+1920,Thigh Muscle Strain,2019-08-19,2019-08-23,4,,Callum Robinson,/callum-robinson/profil/spieler/183299
+1920,Unknown Injury,2019-10-20,2019-12-11,52,12,Nemanja Matić,/nemanja-mati%C4%87/profil/spieler/74683
+1920,Foot Injury,2020-01-19,2020-01-25,6,1,John Stones,/john-stones/profil/spieler/186590
+1920,Knock,2019-12-08,2020-01-03,26,7,John Stones,/john-stones/profil/spieler/186590
+1920,Muscle Injury,2019-09-17,2019-10-22,35,8,John Stones,/john-stones/profil/spieler/186590
+1920,Knock,2020-07-16,2020-07-18,2,,Lucas Moura,/lucas-moura/profil/spieler/77100
+1920,Knock,2019-12-24,2020-01-01,8,3,Lucas Moura,/lucas-moura/profil/spieler/77100
+1920,Calf Injury,2020-06-05,2020-07-04,29,3,Chris Wood,/chris-wood/profil/spieler/108725
+1920,Thigh Muscle Strain,2020-02-16,2020-02-28,12,1,Chris Wood,/chris-wood/profil/spieler/108725
+1920,Thigh Muscle Strain,2020-01-05,2020-01-10,5,,Chris Wood,/chris-wood/profil/spieler/108725
+1920,Calf Injury,2019-12-15,2019-12-20,5,,Chris Wood,/chris-wood/profil/spieler/108725
+1920,Hamstring Injury,2019-10-20,2019-11-08,19,2,Chris Wood,/chris-wood/profil/spieler/108725
+1920,Ankle Injury,2019-09-01,2019-09-28,27,2,Sean Longstaff,/sean-longstaff/profil/spieler/346707
+1920,Muscle Injury,2019-10-22,2019-11-09,18,5,Rodri,/rodri/profil/spieler/357565
+1920,Abdominal Influenza,2019-09-20,2019-09-24,4,1,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+1920,Calf Injury,2020-07-02,2020-07-03,1,,Davy Pröpper,/davy-propper/profil/spieler/79027
+1920,Hamstring Injury,2019-09-22,2019-10-18,26,3,Davy Pröpper,/davy-propper/profil/spieler/79027
+1920,Strain,2020-07-02,2020-07-09,7,2,Steve Cook,/steve-cook/profil/spieler/90836
+1920,Hamstring Injury,2020-03-08,2020-06-02,86,,Steve Cook,/steve-cook/profil/spieler/90836
+1920,Hand Injury,2019-12-03,2020-01-11,39,8,Steve Cook,/steve-cook/profil/spieler/90836
+1920,Muscle Injury,2020-06-02,2020-06-30,28,2,Yerry Mina,/yerry-mina/profil/spieler/289446
+1920,Bruise,2020-01-12,2020-01-17,5,,Yerry Mina,/yerry-mina/profil/spieler/289446
+1920,Bruise,2019-12-06,2019-12-14,8,1,Yerry Mina,/yerry-mina/profil/spieler/289446
+1920,Knee Injury,2019-10-20,2019-11-02,13,2,Yerry Mina,/yerry-mina/profil/spieler/289446
+1920,Ankle Injury,2020-02-23,2020-02-28,5,,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
+1920,Head Injury,2019-11-04,2019-11-08,4,,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
+1920,Ankle Injury,2019-09-15,2019-09-21,6,,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
+1920,Knee Injury,2020-01-02,2020-01-11,9,1,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1920,Knock,2019-12-29,2019-12-31,2,,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1920,Back Injury,2019-11-03,2019-11-07,4,,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1920,Strain,2019-09-11,2019-09-27,16,3,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1920,Shoulder Injury,2020-06-29,2020-07-07,8,2,John Lundstram,/john-lundstram/profil/spieler/156941
+1920,Ankle Injury,2019-12-29,2020-01-01,3,1,John Lundstram,/john-lundstram/profil/spieler/156941
+1920,Knock,2020-06-19,2020-06-23,4,1,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
+1920,Angina,2019-12-18,2019-12-25,7,1,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
+1920,Groin Injury,2020-01-26,2020-01-31,5,1,Michail Antonio,/michail-antonio/profil/spieler/104124
+1920,Strain,2019-12-30,2020-01-21,22,4,Michail Antonio,/michail-antonio/profil/spieler/104124
+1920,Hamstring Injury,2019-08-29,2019-11-22,85,10,Michail Antonio,/michail-antonio/profil/spieler/104124
+1920,Strain,2019-11-24,2019-12-04,10,2,Alexander Tettey,/alexander-tettey/profil/spieler/12384
+1920,Groin Injury,2019-09-27,2019-10-18,21,2,Alexander Tettey,/alexander-tettey/profil/spieler/12384
+1920,Calf Injury,2019-08-01,2019-08-16,15,1,Alexander Tettey,/alexander-tettey/profil/spieler/12384
+1920,Calf Injury,2020-06-25,2020-06-28,3,,Wilfried Zaha,/wilfried-zaha/profil/spieler/145988
+1920,Knock,2020-01-02,2020-01-10,8,1,Wilfried Zaha,/wilfried-zaha/profil/spieler/145988
+1920,Ankle Injury,2019-09-27,2019-09-27,0,,Wilfried Zaha,/wilfried-zaha/profil/spieler/145988
+1920,Hamstring Injury,2019-03-10,2019-03-29,19,1,Wilfried Zaha,/wilfried-zaha/profil/spieler/145988
+1920,Muscular problems,2020-02-25,2020-03-05,9,1,Tomas Soucek,/tomas-soucek/profil/spieler/283628
+1920,Elbow Injury,2019-07-16,2019-12-31,168,16,Vitezslav Jaros,/vitezslav-jaros/profil/spieler/486604
+1920,Unknown Injury,2019-07-31,2019-08-16,16,3,Albian Ajeti,/albian-ajeti/profil/spieler/195906
+1920,Strain,2020-06-20,2020-07-31,41,8,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1920,Calf Injury,2020-02-16,2020-02-21,5,,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1920,Ill,2020-01-09,2020-01-10,1,,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1920,Ankle Injury,2019-12-29,2020-01-03,5,1,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1920,Toe Injury,2019-11-24,2019-12-20,26,4,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1920,Calf Injury,2020-06-29,2020-06-30,1,,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+1920,Tear in the abductor muscle,2020-01-02,2020-06-06,156,12,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+1920,Muscle bruise,2019-12-28,2019-12-31,3,1,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+1920,Groin Injury,2019-11-10,2019-11-22,12,,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+1920,Arch pain,2019-10-02,2019-10-02,0,1,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+1920,Head Injury,2019-11-24,2019-12-13,19,3,Craig Dawson,/craig-dawson/profil/spieler/121477
+1920,Ill,2020-03-10,2020-03-12,2,1,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Groin Injury,2020-03-01,2020-03-06,5,1,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Angina,2020-02-26,2020-03-03,6,2,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,groin strain,2020-01-02,2020-01-25,23,5,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Ill,2019-11-26,2019-11-28,2,1,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Torn muscle bundle,2019-09-22,2019-09-28,6,3,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Torn muscle bundle,2019-08-10,2019-09-24,45,7,Naby Keïta,/naby-keita/profil/spieler/302215
+1920,Back Injury,2020-06-19,2020-07-31,42,9,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1920,Knee Injury,2020-01-24,2020-01-28,4,1,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1920,Knock,2019-12-06,2019-12-08,2,,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1920,Calf Strain,2019-10-11,2019-10-18,7,,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1920,Groin Injury,2019-11-03,2019-11-30,27,2,Björn Engels,/bjorn-engels/profil/spieler/193469
+1920,Cruciate Ligament Rupture,2020-01-18,2020-09-20,246,13,Jetro Willems,/jetro-willems/profil/spieler/146258
+1920,Groin Injury,2020-01-02,2020-01-10,8,1,Jetro Willems,/jetro-willems/profil/spieler/146258
+1920,Knee Injury,2019-12-15,2019-12-25,10,1,Jetro Willems,/jetro-willems/profil/spieler/146258
+1920,Knee Injury,2019-09-22,2019-10-05,13,1,Jetro Willems,/jetro-willems/profil/spieler/146258
+1920,Hamstring Injury,2019-08-29,2019-08-30,1,,Jetro Willems,/jetro-willems/profil/spieler/146258
+1920,Strain,2020-02-05,2020-02-29,24,2,Keinan Davis,/keinan-davis/profil/spieler/412660
+1920,Strain,2019-11-01,2020-01-31,91,18,Keinan Davis,/keinan-davis/profil/spieler/412660
+1920,Hamstring Injury,2019-11-09,2020-01-15,67,11,Josip Drmic,/josip-drmic/profil/spieler/140579
+1920,Hamstring Injury,2019-08-10,2019-08-28,18,3,Josip Drmic,/josip-drmic/profil/spieler/140579
+1920,Fractured Foot,2019-10-07,2020-03-01,146,32,Ben Woodburn,/ben-woodburn/profil/spieler/344015
+1920,Foot Injury,2019-09-26,2019-10-05,9,2,Bruno Jordão,/bruno-jordao/profil/spieler/415646
+1920,Groin Injury,2020-02-03,2020-02-18,15,2,Erik Lamela,/erik-lamela/profil/spieler/111630
+1920,Hamstring Injury,2019-10-23,2019-12-25,63,12,Erik Lamela,/erik-lamela/profil/spieler/111630
+1920,Shoulder Injury,2020-08-01,2020-09-26,56,5,Pedro,/pedro/profil/spieler/65278
+1920,Ill,2020-07-11,2020-07-11,0,1,Pedro,/pedro/profil/spieler/65278
+1920,Arch pain,2020-07-01,2020-07-01,0,1,Pedro,/pedro/profil/spieler/65278
+1920,Knee Problems,2020-02-22,2020-02-22,0,1,Pedro,/pedro/profil/spieler/65278
+1920,Influenza,2019-12-29,2020-01-01,3,2,Pedro,/pedro/profil/spieler/65278
+1920,Ill,2019-12-21,2019-12-23,2,1,Pedro,/pedro/profil/spieler/65278
+1920,Achilles tendon rupture,2019-12-04,2019-12-10,6,3,Pedro,/pedro/profil/spieler/65278
+1920,Achilles tendon rupture,2019-11-02,2019-11-20,18,3,Pedro,/pedro/profil/spieler/65278
+1920,Groin Injury,2019-12-15,2020-01-23,39,8,Simon Moore,/simon-moore/profil/spieler/123536
+1920,Bruised Rib,2020-07-10,2020-07-20,10,2,Kortney Hause,/kortney-hause/profil/spieler/233124
+1920,Ankle Injury,2019-08-11,2019-08-22,11,1,Kortney Hause,/kortney-hause/profil/spieler/233124
+1920,Knee Injury,2019-11-24,2020-01-17,54,10,Joel Ward,/joel-ward/profil/spieler/92572
+1920,Knock,2019-08-25,2019-09-09,15,2,Joel Pereira,/joel-pereira/profil/spieler/192611
+1920,Back Injury,2019-08-02,2019-08-16,14,1,Joel Pereira,/joel-pereira/profil/spieler/192611
+1920,Hamstring Injury,2020-08-01,2020-09-13,43,2,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
+1920,Strain,2019-12-23,2019-12-25,2,,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
+1920,Hamstring Injury,2020-07-01,2020-07-04,3,1,Mark Noble,/mark-noble/profil/spieler/31835
+1920,Ankle Injury,2020-01-02,2020-01-09,7,1,Mark Noble,/mark-noble/profil/spieler/31835
+1920,Ankle Injury,2019-11-10,2019-11-22,12,,Mark Noble,/mark-noble/profil/spieler/31835
+1920,Strain,2019-08-08,2019-08-23,15,2,Mark Noble,/mark-noble/profil/spieler/31835
+1920,Knock,2019-12-09,2019-12-20,11,1,Karl Darlow,/karl-darlow/profil/spieler/99397
+1920,Knee Injury,2020-07-17,2020-07-25,8,1,Moise Kean,/moise-kean/profil/spieler/364135
+1920,Ankle Injury,2020-01-21,2020-06-20,151,9,Emil Krafth,/emil-krafth/profil/spieler/184528
+1920,Thigh Muscle Strain,2019-08-29,2019-08-30,1,,Emil Krafth,/emil-krafth/profil/spieler/184528
+1920,Knee Injury,2019-12-02,2019-12-07,5,1,Anwar El Ghazi,/anwar-el-ghazi/profil/spieler/183720
+1920,Knee Injury,2019-12-02,2019-12-07,5,1,Anwar El Ghazi,/anwar-el-ghazi/profil/spieler/183720
+1920,Ankle Injury,2019-08-05,2019-08-09,4,,Anwar El Ghazi,/anwar-el-ghazi/profil/spieler/183720
+1920,Cruciate Ligament Injury,2020-01-01,2020-11-07,311,31,Tom Heaton,/tom-heaton/profil/spieler/34130
+1920,Calf Strain,2019-11-10,2019-11-24,14,1,Tom Heaton,/tom-heaton/profil/spieler/34130
+1920,Back Injury,2020-03-02,2020-03-07,5,1,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
+1920,Tonsillitis,2019-09-27,2019-10-19,22,3,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
+1920,Back Injury,2019-09-03,2019-09-13,10,,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
+1920,Calf Injury,2020-01-12,2020-01-24,12,2,Mario Vrancic,/mario-vrancic/profil/spieler/39372
+1920,Calf Injury,2019-09-01,2019-11-07,67,7,Mario Vrancic,/mario-vrancic/profil/spieler/39372
+1920,Knee Injury,2020-01-24,2020-03-08,44,7,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+1920,Hamstring Injury,2019-12-23,2020-01-27,35,7,Alex Iwobi,/alex-iwobi/profil/spieler/242631
+1920,Bone Bruise,2019-07-22,2019-08-01,10,,Yasser Larouci,/yasser-larouci/profil/spieler/554251
+1920,Knee Injury,2020-01-23,2020-01-31,8,1,Shane Long,/shane-long/profil/spieler/37304
+1920,Knee Injury,2019-12-22,2019-12-31,9,2,Shane Long,/shane-long/profil/spieler/37304
+1920,Metatarsal Fracture,2019-07-16,2019-09-18,64,7,Gedson Fernandes,/gedson-fernandes/profil/spieler/337800
+1920,Calf Injury,2019-12-29,2020-01-13,15,,Víctor Camarasa,/victor-camarasa/profil/spieler/263856
+1920,Fractured Foot,2019-12-09,2020-04-09,122,15,Arnaut Danjuma,/arnaut-danjuma/profil/spieler/355861
+1920,Hamstring Injury,2019-07-29,2019-09-19,52,16,Arnaut Danjuma,/arnaut-danjuma/profil/spieler/355861
+1920,Chest injury,2020-02-02,2020-02-28,26,2,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
+1920,Groin Injury,2020-01-23,2020-01-31,8,1,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
+1920,Knee Injury,2020-01-13,2020-01-17,4,,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
+1920,Knock,2019-10-16,2019-10-25,9,1,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
+1920,Cruciate Ligament Rupture,2019-09-25,2020-09-11,352,15,Meritan Shabani,/meritan-shabani/profil/spieler/379980
+1920,Influenza,2019-09-07,2019-09-12,5,,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+1920,Knock,2019-04-26,2019-04-27,1,,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+1920,Knock,2018-12-27,2019-01-02,6,1,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+1920,Thigh Problems,2020-02-22,2020-03-07,14,,Tyrick Mitchell,/tyrick-mitchell/profil/spieler/730893
+1920,Hip problems,2019-12-21,2020-02-01,42,,Tyrick Mitchell,/tyrick-mitchell/profil/spieler/730893
+1920,Hip Injury,2019-08-10,2019-12-07,119,,Tyrick Mitchell,/tyrick-mitchell/profil/spieler/730893
+1920,Shoulder Injury,2020-07-16,2020-09-28,74,7,Fabian Schär,/fabian-schar/profil/spieler/135343
+1920,Thigh Muscle Strain,2020-01-02,2020-01-17,15,3,Fabian Schär,/fabian-schar/profil/spieler/135343
+1920,Knock,2019-12-29,2019-12-31,2,,Fabian Schär,/fabian-schar/profil/spieler/135343
+1920,Knee Injury,2019-10-20,2019-11-24,35,3,Fabian Schär,/fabian-schar/profil/spieler/135343
+1920,Calf Injury,2019-09-15,2019-09-20,5,,Fabian Schär,/fabian-schar/profil/spieler/135343
+1920,Achilles tendon rupture,2020-01-11,2020-10-18,281,30,Paul Dummett,/paul-dummett/profil/spieler/170321
+1920,Groin Injury,2019-12-22,2020-01-10,19,4,Paul Dummett,/paul-dummett/profil/spieler/170321
+1920,Thigh Muscle Strain,2020-02-03,2020-02-14,11,,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+1920,Thigh Muscle Strain,2019-12-01,2019-12-20,19,3,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+1920,Minor Knock,2020-01-17,2020-01-19,2,1,Solly March,/solly-march/profil/spieler/209212
+1920,Groin Injury,2019-11-24,2020-01-10,47,9,Solly March,/solly-march/profil/spieler/209212
+1920,Thigh Muscle Strain,2019-09-26,2019-10-04,8,1,Solly March,/solly-march/profil/spieler/209212
+1920,Muscle Injury,2019-09-19,2019-09-23,4,1,Solly March,/solly-march/profil/spieler/209212
+1920,Hamstring Injury,2020-01-24,2020-01-31,7,1,Todd Cantwell,/todd-cantwell/profil/spieler/332341
+1920,Ankle Injury,2019-11-24,2019-11-30,6,,Todd Cantwell,/todd-cantwell/profil/spieler/332341
+1920,Strain,2019-09-29,2019-10-04,5,,Todd Cantwell,/todd-cantwell/profil/spieler/332341
+1920,Nasal Bone Fracture,2020-06-17,2020-06-26,9,3,Cédric Soares,/cedric-soares/profil/spieler/112988
+1920,Knee Injury,2020-01-21,2020-03-02,41,11,Cédric Soares,/cedric-soares/profil/spieler/112988
+1920,Calf Injury,2019-09-26,2019-11-08,43,6,Cédric Soares,/cedric-soares/profil/spieler/112988
+1920,Muscle Injury,2020-01-06,2020-01-27,21,4,Nacho Monreal,/nacho-monreal/profil/spieler/43003
+1920,Groin Injury,2020-06-19,2020-07-07,18,4,Sébastien Haller,/sebastien-haller/profil/spieler/181375
+1920,Knee Injury,2019-08-11,2019-08-23,12,1,Sébastien Haller,/sebastien-haller/profil/spieler/181375
+1920,Heel Bone Injury,2019-10-30,2020-02-22,115,18,Tom Cleverley,/tom-cleverley/profil/spieler/73484
+1920,Ankle Injury,2020-02-24,2020-06-06,103,4,Jonny Otto,/jonny-otto/profil/spieler/175446
+1920,Calf Injury,2019-09-01,2019-09-20,19,1,Moritz Leitner,/moritz-leitner/profil/spieler/82243
+1920,Fractured Rib,2019-08-12,2019-09-08,27,4,Connor Ronan,/connor-ronan/profil/spieler/337787
+1920,Calf Injury,2020-07-16,2020-07-25,9,2,Ryan Fredericks,/ryan-fredericks/profil/spieler/140191
+1920,Shoulder Injury,2020-02-19,2020-06-08,110,4,Ryan Fredericks,/ryan-fredericks/profil/spieler/140191
+1920,Strain,2020-01-06,2020-01-31,25,5,Ryan Fredericks,/ryan-fredericks/profil/spieler/140191
+1920,Knock,2019-09-23,2019-09-27,4,1,Ryan Fredericks,/ryan-fredericks/profil/spieler/140191
+1920,Ankle Injury,2019-09-02,2019-10-20,48,7,Alexandre Lacazette,/alexandre-lacazette/profil/spieler/93720
+1920,Thigh Muscle Strain,2019-08-05,2019-08-19,14,1,Loris Karius,/loris-karius/profil/spieler/85864
+1920,Hamstring Injury,2020-03-07,2020-05-31,85,,Nathan Holland,/nathan-holland/profil/spieler/337321
+1920,Groin Injury,2019-12-15,2019-12-20,5,,Ashley Westwood,/ashley-westwood/profil/spieler/91317
+1920,Groin Injury,2019-11-24,2019-12-13,19,3,Ashley Westwood,/ashley-westwood/profil/spieler/91317
+1920,Thigh Muscle Strain,2020-06-24,2020-07-03,9,2,Christian Benteke,/christian-benteke/profil/spieler/50201
+1920,Knock,2019-12-22,2020-01-31,40,7,Christian Benteke,/christian-benteke/profil/spieler/50201
+1920,Knee Injury,2020-01-12,2020-01-30,18,2,Richarlison,/richarlison/profil/spieler/378710
+1920,Knock,2019-11-11,2019-12-04,23,4,Ryan Bennett,/ryan-bennett/profil/spieler/67252
+1920,Groin Strain,2019-10-20,2019-11-09,20,5,Ryan Bennett,/ryan-bennett/profil/spieler/67252
+1920,Knock,2020-06-29,2020-07-11,12,2,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+1920,Head Injury,2020-01-23,2020-01-31,8,1,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+1920,Ill,2019-11-26,2019-12-07,11,2,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+1920,Unknown Injury,2019-08-30,2019-09-10,11,1,James Garner,/james-garner/profil/spieler/505219
+1920,Thigh Muscle Strain,2020-01-18,2020-02-28,41,7,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+1920,Calf Injury,2019-12-09,2019-12-20,11,1,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+1920,Hamstring Injury,2019-09-22,2019-10-05,13,1,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+1920,Knee Injury,2019-08-12,2019-08-16,4,,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+1920,Quarantine,2020-03-12,2020-03-25,13,,Benjamin Mendy,/benjamin-mendy/profil/spieler/157495
+1920,Foot Injury,2020-01-19,2020-02-18,30,4,Benjamin Mendy,/benjamin-mendy/profil/spieler/157495
+1920,Knee Injury,2019-11-05,2019-11-17,12,2,Benjamin Mendy,/benjamin-mendy/profil/spieler/157495
+1920,Hamstring Injury,2019-10-02,2019-10-18,16,1,Benjamin Mendy,/benjamin-mendy/profil/spieler/157495
+1920,Distortion of the ankle,2019-11-09,2019-11-22,13,1,Ignacio Pussetto,/ignacio-pussetto/profil/spieler/283528
+1920,Calf Injury,2020-06-02,2020-09-23,113,13,Fabian Delph,/fabian-delph/profil/spieler/50362
+1920,Muscle Injury,2019-11-04,2019-12-20,46,7,Fabian Delph,/fabian-delph/profil/spieler/50362
+1920,Muscle Injury,2019-10-06,2019-10-24,18,1,Fabian Delph,/fabian-delph/profil/spieler/50362
+1920,Calf Injury,2019-08-03,2019-08-31,28,4,Fabian Delph,/fabian-delph/profil/spieler/50362
+1920,Knock,2019-12-23,2020-01-20,28,6,Marcos Alonso,/marcos-alonso/profil/spieler/112515
+1920,Ankle Injury,2019-09-12,2019-09-17,5,1,Davinson Sánchez,/davinson-sanchez/profil/spieler/341429
+1920,Ankle Injury,2019-12-21,2020-06-05,167,15,John McGinn,/john-mcginn/profil/spieler/193116
+1920,Strain,2020-06-18,2020-07-17,29,8,Christoph Zimmermann,/christoph-zimmermann/profil/spieler/77812
+1920,Hamstring Injury,2020-02-16,2020-03-06,19,3,Christoph Zimmermann,/christoph-zimmermann/profil/spieler/77812
+1920,Ankle Injury,2019-09-01,2019-11-22,82,8,Christoph Zimmermann,/christoph-zimmermann/profil/spieler/77812
+1920,Knee Surgery,2019-07-10,2019-08-26,47,3,Christoph Zimmermann,/christoph-zimmermann/profil/spieler/77812
+1920,Hamstring Injury,2020-01-02,2020-02-28,57,8,Kiko Femenía,/kiko-femenia/profil/spieler/76467
+1920,Knock,2019-12-01,2019-12-04,3,1,Kiko Femenía,/kiko-femenia/profil/spieler/76467
+1920,Ankle Injury,2020-06-12,2020-06-26,14,4,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
+1920,Knock,2019-09-30,2020-02-26,149,8,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
+1920,Knock,2020-06-11,2020-06-20,9,,Alex Oxlade-Chamberlain,/alex-oxlade-chamberlain/profil/spieler/143424
+1920,Ankle Injury,2019-12-23,2020-01-04,12,3,Alex Oxlade-Chamberlain,/alex-oxlade-chamberlain/profil/spieler/143424
+1920,Head Injury,2019-10-03,2019-10-07,4,1,Alex Oxlade-Chamberlain,/alex-oxlade-chamberlain/profil/spieler/143424
+1920,Knee Injury,2020-06-18,2020-06-23,5,1,David McGoldrick,/david-mcgoldrick/profil/spieler/35416
+1920,Groin Injury,2020-01-12,2020-02-08,27,4,David McGoldrick,/david-mcgoldrick/profil/spieler/35416
+1920,Groin Injury,2019-09-22,2019-10-20,28,3,David McGoldrick,/david-mcgoldrick/profil/spieler/35416
+1920,Unknown Injury,2020-03-11,2020-03-25,14,,James Maddison,/james-maddison/profil/spieler/294057
+1920,Head Injury,2020-01-10,2020-01-11,1,1,James Maddison,/james-maddison/profil/spieler/294057
+1920,Ill,2019-10-10,2019-10-18,8,,James Maddison,/james-maddison/profil/spieler/294057
+1920,Ankle Injury,2019-09-23,2019-10-04,11,2,James Maddison,/james-maddison/profil/spieler/294057
+1920,Hamstring Injury,2020-07-13,2020-07-25,12,2,Neil Taylor,/neil-taylor/profil/spieler/67416
+1920,Groin Injury,2020-06-26,2020-06-30,4,1,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1920,Head Injury,2020-02-18,2020-02-21,3,,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1920,Groin Injury,2019-10-12,2019-11-08,27,6,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1920,Knee Injury,2019-09-23,2019-09-27,4,1,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1920,Knock,2019-08-15,2019-08-17,2,,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1920,Knock,2020-07-23,2020-07-25,2,,Jarrod Bowen,/jarrod-bowen/profil/spieler/314875
+1920,Back Injury,2020-07-12,2020-10-20,100,10,Étienne Capoue,/etienne-capoue/profil/spieler/63494
+1920,Back Injury,2019-10-04,2019-11-06,33,5,Étienne Capoue,/etienne-capoue/profil/spieler/63494
+1920,Back Injury,2019-08-25,2019-09-01,7,2,Étienne Capoue,/etienne-capoue/profil/spieler/63494
+1920,Ill,2019-09-15,2019-09-25,10,3,Phil Foden,/phil-foden/profil/spieler/406635
+1920,Bruise,2020-06-03,2020-06-20,17,,André Gomes,/andre-gomes/profil/spieler/221025
+1920,Ankle Injury,2019-11-04,2020-02-21,109,17,André Gomes,/andre-gomes/profil/spieler/221025
+1920,Bruised Rib,2019-09-02,2019-10-04,32,4,André Gomes,/andre-gomes/profil/spieler/221025
+1920,Ankle Injury,2019-08-11,2019-08-16,5,,André Gomes,/andre-gomes/profil/spieler/221025
+1920,Hip Injury,2020-01-04,2020-02-19,46,9,Yoshinori Muto,/yoshinori-muto/profil/spieler/230541
+1920,Hamstring Injury,2019-10-08,2019-10-23,15,1,Romain Saïss,/romain-saiss/profil/spieler/204198
+1920,Knock,2019-09-02,2019-09-13,11,,Romain Saïss,/romain-saiss/profil/spieler/204198
+1920,Ankle Injury,2019-09-01,2019-10-18,47,4,Tom Trybull,/tom-trybull/profil/spieler/93831
+1920,Knee Injury,2019-09-22,2019-09-27,5,1,Neal Maupay,/neal-maupay/profil/spieler/217115
+1920,Hamstring Injury,2019-08-08,2019-11-09,93,14,James Chester,/james-chester/profil/spieler/73482
+1920,Hamstring Injury,2019-10-20,2020-01-31,103,18,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+1920,Ill,2020-02-19,2020-02-22,3,1,Mason Greenwood,/mason-greenwood/profil/spieler/532826
+1920,Back Injury,2019-10-07,2019-10-19,12,,Mason Greenwood,/mason-greenwood/profil/spieler/532826
+1920,Tonsillitis,2019-09-20,2019-09-23,3,1,Mason Greenwood,/mason-greenwood/profil/spieler/532826
+1920,Hamstring Injury,2020-02-09,2020-10-25,259,19,James Tomkins,/james-tomkins/profil/spieler/61592
+1920,Thigh Problems,2020-02-21,2020-03-12,20,4,Marcos Rojo,/marcos-rojo/profil/spieler/93176
+1920,Knock,2019-11-11,2020-07-31,263,40,Marcos Rojo,/marcos-rojo/profil/spieler/93176
+1920,Calf Strain,2019-08-18,2019-09-25,38,6,Jonas Lössl,/jonas-lossl/profil/spieler/48870
+1920,Fitness,2020-03-09,2020-04-01,23,1,Harry Kane,/harry-kane/profil/spieler/132098
+1920,Thigh muscle rupture,2020-01-02,2020-03-09,67,14,Harry Kane,/harry-kane/profil/spieler/132098
+1920,Ill,2019-11-01,2019-11-04,3,1,Harry Kane,/harry-kane/profil/spieler/132098
+1920,Muscle Injury,2020-07-13,2020-07-14,1,,Pedro Neto,/pedro-neto/profil/spieler/487465
+1920,Knock,2020-07-05,2020-07-11,6,1,Pedro Neto,/pedro-neto/profil/spieler/487465
+1920,Calf Injury,2019-10-08,2019-10-26,18,2,Pedro Neto,/pedro-neto/profil/spieler/487465
+1920,Abdominal Strain,2020-06-08,2020-07-08,30,4,Theo Walcott,/theo-walcott/profil/spieler/33713
+1920,Knee Injury,2020-02-09,2020-02-28,19,1,Theo Walcott,/theo-walcott/profil/spieler/33713
+1920,Calf Strain,2019-12-08,2019-12-25,17,3,Theo Walcott,/theo-walcott/profil/spieler/33713
+1920,Knock,2019-11-24,2019-12-04,10,2,Theo Walcott,/theo-walcott/profil/spieler/33713
+1920,Head Injury,2019-09-29,2019-10-18,19,1,Theo Walcott,/theo-walcott/profil/spieler/33713
+1920,Ankle Injury,2020-06-16,2020-06-30,14,3,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+1920,Corona virus,2020-03-12,2020-03-26,14,,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+1920,Hamstring Injury,2020-02-04,2020-04-04,60,6,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+1920,Knock,2019-11-21,2019-11-28,7,2,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+1920,Hip Injury,2020-01-11,2020-01-27,16,3,Lukasz Fabianski,/lukasz-fabianski/profil/spieler/29692
+1920,Hip Injury,2019-09-28,2020-01-01,95,14,Lukasz Fabianski,/lukasz-fabianski/profil/spieler/29692
+1920,Groin Injury,2019-08-08,2019-08-09,1,,Lukasz Fabianski,/lukasz-fabianski/profil/spieler/29692
+1920,Ankle Injury,2019-10-26,2020-01-22,88,20,Willy Boly,/willy-boly/profil/spieler/142310
+1920,Strain,2019-12-05,2019-12-25,20,3,Harry Wilson,/harry-wilson/profil/spieler/279455
+1920,Quarantine,2020-09-01,2020-09-14,13,2,Aaron Mooy,/aaron-mooy/profil/spieler/123951
+1920,Knock,2020-01-02,2020-01-17,15,2,Aaron Mooy,/aaron-mooy/profil/spieler/123951
+1920,Hip Injury,2019-12-15,2020-01-08,24,4,David Martin,/david-martin/profil/spieler/15930
+1920,Ankle Injury,2020-06-28,2020-09-16,80,7,Matthew Lowton,/matthew-lowton/profil/spieler/102258
+1920,Knee Injury,2020-02-03,2020-06-10,128,4,Matthew Lowton,/matthew-lowton/profil/spieler/102258
+1920,Knee Injury,2020-01-12,2020-02-29,48,10,Timothy Fosu-Mensah,/timothy-fosu-mensah/profil/spieler/315131
+1920,Groin Injury,2019-12-08,2020-01-31,54,9,Andros Townsend,/andros-townsend/profil/spieler/61842
+1920,Bruise,2019-10-28,2019-11-08,11,1,Andros Townsend,/andros-townsend/profil/spieler/61842
+1920,Hamstring Injury,2020-01-12,2020-02-22,41,6,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+1920,Ankle Injury,2019-10-08,2019-11-22,45,7,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+1920,Hip Injury,2019-12-08,2020-03-06,89,13,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
+1920,Achilles tendon rupture,2020-05-28,2021-04-02,309,45,Jean-Philippe Gbamin,/jean-philippe-gbamin/profil/spieler/182894
+1920,Hamstring Injury,2019-08-18,2020-04-03,229,32,Jean-Philippe Gbamin,/jean-philippe-gbamin/profil/spieler/182894
+1920,Hamstring Injury,2019-07-18,2019-09-11,55,6,Odion Ighalo,/odion-ighalo/profil/spieler/62121
+1920,Cals Sclerosis,2019-11-20,2019-11-30,10,1,John Egan,/john-egan/profil/spieler/121324
+1920,Knock,2019-11-03,2019-11-08,5,,John Egan,/john-egan/profil/spieler/121324
+1920,Ankle Injury,2020-06-22,2020-07-30,38,8,Joel Matip,/joel-matip/profil/spieler/82105
+1920,Knee Injury,2019-10-28,2020-01-16,80,19,Joel Matip,/joel-matip/profil/spieler/82105
+1920,Knee Injury,2020-02-24,2020-08-22,180,7,Morgan Schneiderlin,/morgan-schneiderlin/profil/spieler/56818
+1920,Calf Strain,2019-12-08,2020-01-04,27,6,Morgan Schneiderlin,/morgan-schneiderlin/profil/spieler/56818
+1920,Knock,2019-11-24,2019-11-30,6,,Morgan Schneiderlin,/morgan-schneiderlin/profil/spieler/56818
+1920,Foot Injury,2020-06-21,2020-07-01,10,3,Djibril Sidibé,/djibril-sidibe/profil/spieler/161869
+1920,Unknown Injury,2019-12-15,2019-12-18,3,2,Djibril Sidibé,/djibril-sidibe/profil/spieler/161869
+1920,Cold,2020-03-05,2020-03-09,4,1,Philip Heise,/philip-heise/profil/spieler/112617
+1920,Calf Injury,2019-09-02,2019-09-14,12,,Joe Willock,/joe-willock/profil/spieler/340329
+1920,Back Injury,2019-09-22,2019-10-18,26,2,Tim Krul,/tim-krul/profil/spieler/33027
+1920,Knock,2019-09-01,2019-09-13,12,,Tim Krul,/tim-krul/profil/spieler/33027
+1920,Knock,2019-08-31,2019-08-31,0,,Leander Dendoncker,/leander-dendoncker/profil/spieler/168157
+1920,Cruciate Ligament Rupture,2019-07-24,2020-06-30,342,50,Nathaniel Clyne,/nathaniel-clyne/profil/spieler/85177
+1920,Ankle Injury,2019-12-06,2019-12-14,8,2,Harry Winks,/harry-winks/profil/spieler/249126
+1920,Ankle Injury,2019-09-15,2019-09-27,12,3,Divock Origi,/divock-origi/profil/spieler/148368
+1920,Ankle Injury,2020-02-16,2020-09-14,211,16,Ciaran Clark,/ciaran-clark/profil/spieler/98240
+1920,Calf Injury,2019-12-09,2020-01-10,32,6,Ciaran Clark,/ciaran-clark/profil/spieler/98240
+1920,Groin Injury,2020-01-12,2020-01-31,19,2,Gylfi Sigurdsson,/gylfi-sigurdsson/profil/spieler/90466
+1920,Knock,2019-12-08,2019-12-20,12,2,Gylfi Sigurdsson,/gylfi-sigurdsson/profil/spieler/90466
+1920,Ankle Injury,2019-11-11,2019-11-22,11,,Mohamed Salah,/mohamed-salah/profil/spieler/148455
+1920,Ankle problems,2019-10-06,2019-10-22,16,1,Mohamed Salah,/mohamed-salah/profil/spieler/148455
+1920,Back Injury,2019-11-04,2019-11-08,4,,James McArthur,/james-mcarthur/profil/spieler/41416
+1920,Knock,2019-09-01,2019-09-21,20,1,James McArthur,/james-mcarthur/profil/spieler/41416
+1920,Concussion,2020-03-01,2020-03-31,30,1,Stuart Armstrong,/stuart-armstrong/profil/spieler/130765
+1920,Groin Injury,2020-01-26,2020-02-04,9,1,Stuart Armstrong,/stuart-armstrong/profil/spieler/130765
+1920,Hamstring Injury,2019-11-24,2019-12-13,19,3,Stuart Armstrong,/stuart-armstrong/profil/spieler/130765
+1920,Strain,2020-02-03,2020-02-15,12,1,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+1920,Hip Injury,2019-09-07,2019-10-20,43,8,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+1920,Foot Injury,2019-10-10,2020-01-10,92,17,Caglar Söyüncü,/caglar-soyuncu/profil/spieler/320141
+1920,Unknown Injury,2020-06-11,2020-06-26,15,3,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+1920,Calf Injury,2020-01-23,2020-02-15,23,2,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+1920,Ankle Injury,2019-09-05,2019-11-29,85,9,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+1920,Strain,2020-01-02,2020-01-17,15,2,Teemu Pukki,/teemu-pukki/profil/spieler/46972
+1920,Ankle Injury,2019-12-15,2019-12-20,5,,Teemu Pukki,/teemu-pukki/profil/spieler/46972
+1920,Knock,2020-07-13,2020-07-31,18,3,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+1920,Groin Injury,2020-01-01,2020-01-21,20,5,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+1920,Groin Injury,2019-12-06,2019-12-21,15,3,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+1920,Groin Injury,2019-11-19,2019-11-26,7,2,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+1920,Hamstring Injury,2019-08-18,2019-09-12,25,2,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+1920,Back Injury,2019-08-10,2019-08-16,6,,Kenny McLean,/kenny-mclean/profil/spieler/126600
+1920,Thigh Muscle Strain,2020-07-06,2020-07-07,1,,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+1920,Knock,2020-02-06,2020-02-15,9,,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+1920,Groin Injury,2020-01-05,2020-01-10,5,,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+1920,Hamstring Injury,2019-12-09,2019-12-20,11,1,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+1920,Ankle Injury,2019-08-26,2019-08-30,4,1,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+1920,Tonsillitis,2020-01-05,2020-01-10,5,,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+1920,Knee Injury,2019-11-18,2019-11-30,12,1,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+1920,Arm Injury,2019-09-29,2019-10-04,5,,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+1920,Hamstring Injury,2020-07-24,2020-09-14,52,8,Jermain Defoe,/jermain-defoe/profil/spieler/3875
+1920,Calf Problems,2020-03-06,2020-03-15,9,2,Jermain Defoe,/jermain-defoe/profil/spieler/3875
+1920,Calf Injury,2020-01-29,2020-03-02,33,10,Jermain Defoe,/jermain-defoe/profil/spieler/3875
+1920,Knock,2019-11-27,2019-11-29,2,1,Jermain Defoe,/jermain-defoe/profil/spieler/3875
+1920,Knee Injury,2019-11-09,2020-01-13,65,12,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
+1920,Hand Injury,2020-01-05,2020-01-23,18,4,DeAndre Yedlin,/deandre-yedlin/profil/spieler/255916
+1920,Hip Injury,2019-11-27,2019-12-10,13,3,DeAndre Yedlin,/deandre-yedlin/profil/spieler/255916
+1920,groin strain,2019-04-28,2019-09-28,153,9,DeAndre Yedlin,/deandre-yedlin/profil/spieler/255916
+1920,Ankle Injury,2019-08-18,2019-09-13,26,3,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
+1920,Hamstring Injury,2019-11-25,2019-12-06,11,2,Christian Kabasele,/christian-kabasele/profil/spieler/81512
+1920,Knock,2019-12-15,2019-12-20,5,2,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
+1920,Knee Surgery,2019-09-02,2019-12-04,93,11,Bernardo,/bernardo/profil/spieler/364258
+1920,Thigh Muscle Strain,2020-06-24,2020-06-28,4,1,Vicente Guaita,/vicente-guaita/profil/spieler/64399
+1920,Knock,2019-10-17,2019-11-02,16,2,Vicente Guaita,/vicente-guaita/profil/spieler/64399
+1920,Knee Injury,2020-01-01,2020-01-04,3,1,Bernard,/bernard/profil/spieler/175169
+1920,Knee Injury,2019-10-27,2019-11-30,34,4,Bernard,/bernard/profil/spieler/175169
+1920,Ill,2019-09-26,2019-10-04,8,1,Bernard,/bernard/profil/spieler/175169
+1920,Knee Surgery,2019-08-26,2020-10-23,424,,Charlie Daniels,/charlie-daniels/profil/spieler/61819
+1920,Tear in the abductor muscle,2019-12-25,2020-03-09,75,14,Andriy Yarmolenko,/andriy-yarmolenko/profil/spieler/69015
+1920,Back Injury,2019-12-06,2019-12-13,7,1,Andriy Yarmolenko,/andriy-yarmolenko/profil/spieler/69015
+1920,Hamstring Injury,2020-07-15,2020-07-25,10,2,Alireza Jahanbakhsh,/alireza-jahanbakhsh/profil/spieler/213268
+1920,Knock,2020-01-12,2020-01-17,5,,Alireza Jahanbakhsh,/alireza-jahanbakhsh/profil/spieler/213268
+1920,Knock,2019-09-11,2019-09-27,16,3,Alireza Jahanbakhsh,/alireza-jahanbakhsh/profil/spieler/213268
+1920,Knee Injury,2019-08-08,2019-08-09,1,,Victor Wanyama,/victor-wanyama/profil/spieler/77760
+1920,Back trouble,2020-06-15,2020-07-10,25,5,Japhet Tanganga,/japhet-tanganga/profil/spieler/346478
+1920,Calf Injury,2020-01-02,2020-01-22,20,4,Diogo Jota,/diogo-jota/profil/spieler/340950
+1920,Ankle Injury,2019-09-23,2019-10-18,25,4,Diogo Jota,/diogo-jota/profil/spieler/340950
+1920,Strain,2020-01-17,2020-02-22,36,8,Rúben Vinagre,/ruben-vinagre/profil/spieler/357158
+1920,Knock,2020-07-02,2020-07-03,1,,Andrew Surman,/andrew-surman/profil/spieler/29975
+1920,Calf Injury,2019-12-15,2019-12-20,5,,Andrew Surman,/andrew-surman/profil/spieler/29975
+1920,Knee Injury,2019-10-27,2019-12-06,40,5,Andrew Surman,/andrew-surman/profil/spieler/29975
+1920,Fitness,2020-06-25,2020-10-07,104,,Mattéo Guendouzi,/matteo-guendouzi/profil/spieler/465830
+1920,Ill,2020-02-16,2020-02-16,0,1,Mattéo Guendouzi,/matteo-guendouzi/profil/spieler/465830
+1920,Back Injury,2020-01-20,2020-02-01,12,2,Phil Bardsley,/phil-bardsley/profil/spieler/15773
+1920,Ill,2020-01-05,2020-01-10,5,,Phil Bardsley,/phil-bardsley/profil/spieler/15773
+1920,Knock,2019-12-05,2019-12-13,8,1,Phil Bardsley,/phil-bardsley/profil/spieler/15773
+1920,Cruciate Ligament Rupture,2019-08-05,2020-03-08,216,44,Leroy Sané,/leroy-sane/profil/spieler/192565
+1920,Calf Injury,2020-02-16,2020-02-28,12,1,Kyle Walker-Peters,/kyle-walker-peters/profil/spieler/341051
+1920,Thigh Muscle Strain,2019-08-26,2019-09-17,22,2,Kyle Walker-Peters,/kyle-walker-peters/profil/spieler/341051
+1920,Torn Meniscus,2019-09-02,2019-11-20,79,9,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
+1920,Thigh Muscle Strain,2020-01-05,2020-02-21,47,6,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+1920,Thigh Muscle Strain,2019-10-13,2019-12-25,73,10,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+1920,Calf Strain,2019-08-26,2019-09-27,32,4,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+1920,Hip problems,2019-08-30,2019-09-12,13,1,Eric Dier,/eric-dier/profil/spieler/175722
+1920,Strain,2020-02-02,2020-02-15,13,,Ezri Konsa,/ezri-konsa/profil/spieler/413403
+1920,Strain,2019-08-05,2019-08-09,4,,Ezri Konsa,/ezri-konsa/profil/spieler/413403
+1920,Hip Injury,2019-11-03,2019-12-02,29,3,Matej Vydra,/matej-vydra/profil/spieler/101500
+1920,Strain,2019-08-08,2019-09-02,25,,Adalberto Peñaranda,/adalberto-penaranda/profil/spieler/308801
+1920,Calf Injury,2020-07-02,2020-07-10,8,2,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+1920,Achilles tendon problems,2020-03-04,2020-06-06,94,1,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+1920,Knee Injury,2019-10-15,2019-10-18,3,,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+1920,Calf Injury,2019-09-01,2019-09-12,11,,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+1920,Knock,2019-12-29,2020-01-10,12,2,Glenn Murray,/glenn-murray/profil/spieler/45693
+1920,Back Injury,2020-07-05,2020-07-08,3,,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+1920,Ill,2020-01-20,2020-01-25,5,1,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+1920,Back Injury,2019-11-03,2019-11-09,6,1,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+1920,Knock,2020-07-23,2020-07-31,8,1,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1920,Knock,2020-01-02,2020-01-09,7,1,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1920,Hamstring Injury,2019-12-11,2019-12-13,2,,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1920,Groin Injury,2019-10-06,2019-10-24,18,1,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1920,Head Injury,2020-01-06,2020-01-17,11,1,Michael Verrips,/michael-verrips/profil/spieler/288259
+1920,Knock,2020-06-29,2020-07-18,19,4,Yan Valery,/yan-valery/profil/spieler/406008
+1920,Virus Infection,2019-11-30,2020-02-21,83,16,Yan Valery,/yan-valery/profil/spieler/406008
+1920,Knee Injury,2019-08-27,2020-03-07,193,30,Timm Klose,/timm-klose/profil/spieler/65255
+1920,Groin Injury,2019-08-07,2019-08-23,16,2,Timm Klose,/timm-klose/profil/spieler/65255
+1920,Knock,2020-07-02,2020-07-16,14,3,Felipe Anderson,/felipe-anderson/profil/spieler/159372
+1920,Back Injury,2020-01-12,2020-02-24,43,7,Felipe Anderson,/felipe-anderson/profil/spieler/159372
+1920,Chest injury,2019-08-11,2019-08-23,12,1,Felipe Anderson,/felipe-anderson/profil/spieler/159372
+1920,Strain,2019-08-11,2019-08-23,12,1,Felipe Anderson,/felipe-anderson/profil/spieler/159372
+1920,Back Injury,2020-01-16,2020-06-05,141,13,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+1920,Hip Injury,2019-09-22,2019-09-30,8,3,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+1920,Thigh Muscle Strain,2019-11-24,2019-11-30,6,,Jonny Evans,/jonny-evans/profil/spieler/42412
+1920,Hip Injury,2019-03-31,2019-04-11,11,1,Jonny Evans,/jonny-evans/profil/spieler/42412
+1920,Knee Surgery,2020-01-02,2020-03-20,78,15,Moussa Sissoko,/moussa-sissoko/profil/spieler/46001
+1920,Groin Injury,2020-02-15,2020-06-01,107,4,Nathan Redmond,/nathan-redmond/profil/spieler/129078
+1920,Ankle Injury,2019-08-29,2019-09-19,21,2,Nathan Redmond,/nathan-redmond/profil/spieler/129078
+1920,Knock,2018-12-17,2018-12-21,4,,Nathan Redmond,/nathan-redmond/profil/spieler/129078
+1920,Hamstring Injury,2019-06-21,2019-11-02,134,29,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
+1920,Head Injury,2020-06-17,2020-06-29,12,4,Eric García,/eric-garcia/profil/spieler/466794
+1920,Hip Injury,2019-04-28,2019-11-08,194,15,Dan Gosling,/dan-gosling/profil/spieler/44983
+1920,Knock,2020-07-03,2020-08-28,56,,Luke Freeman,/luke-freeman/profil/spieler/66923
+1920,Hamstring Injury,2020-02-16,2021-01-16,335,40,Sam Byram,/sam-byram/profil/spieler/236953
+1920,Thigh Muscle Strain,2019-12-07,2019-12-20,13,2,Aaron Connolly,/aaron-connolly/profil/spieler/434207
+1920,Cruciate Ligament Rupture,2020-01-01,2021-01-01,366,40,Wesley,/wesley/profil/spieler/381362
+1920,Ankle Injury,2019-12-18,2020-01-10,23,5,Scott Dann,/scott-dann/profil/spieler/62688
+1920,Ankle Injury,2019-12-01,2019-12-06,5,1,Scott Dann,/scott-dann/profil/spieler/62688
+1920,Hand Injury,2019-08-29,2019-09-21,23,2,Scott Dann,/scott-dann/profil/spieler/62688
+1920,Groin Injury,2019-10-23,2020-05-31,221,22,Jack Wilshere,/jack-wilshere/profil/spieler/74223
+1920,Groin Injury,2019-08-11,2019-08-16,5,,Jack Wilshere,/jack-wilshere/profil/spieler/74223
+1920,Stomach complaints,2019-08-09,2019-09-18,40,3,Pepe Reina,/pepe-reina/profil/spieler/7825
+1920,Fractured Foot,2020-06-30,2020-12-13,166,20,Jack Cork,/jack-cork/profil/spieler/40613
+1920,Shoulder Injury,2019-09-29,2019-10-25,26,2,Jack Cork,/jack-cork/profil/spieler/40613
+1920,Groin Injury,2019-08-03,2019-08-09,6,,Jack Cork,/jack-cork/profil/spieler/40613
+1920,Ankle Injury,2019-11-28,2020-01-18,51,13,Fabinho,/fabinho/profil/spieler/225693
+1920,Knock,2020-01-03,2020-01-10,7,1,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
+1920,Quarantine,2020-07-01,2020-07-07,6,1,Daniel Podence,/daniel-podence/profil/spieler/256977
+1920,Thigh Muscle Strain,2019-12-27,2020-01-31,35,6,Patrick van Aanholt,/patrick-van-aanholt/profil/spieler/52119
+1920,Thigh Muscle Strain,2019-12-05,2019-12-20,15,2,Patrick van Aanholt,/patrick-van-aanholt/profil/spieler/52119
+1920,Ill,2020-01-09,2020-01-14,5,1,Jesse Lingard,/jesse-lingard/profil/spieler/141660
+1920,Hamstring Injury,2019-10-04,2019-10-23,19,2,Jesse Lingard,/jesse-lingard/profil/spieler/141660
+1920,Ill,2019-09-07,2019-09-18,11,1,Jesse Lingard,/jesse-lingard/profil/spieler/141660
+1920,Strain,2020-01-23,2020-06-09,138,6,Lloyd Kelly,/lloyd-kelly/profil/spieler/480116
+1920,Hamstring Injury,2019-11-03,2020-01-19,77,13,Lloyd Kelly,/lloyd-kelly/profil/spieler/480116
+1920,Ligament Injury,2019-07-29,2019-09-21,54,7,Lloyd Kelly,/lloyd-kelly/profil/spieler/480116
+1920,Fractured Arm,2020-02-17,2020-04-30,73,6,Heung-min Son,/heung-min-son/profil/spieler/91845
+1920,Hamstring Injury,2020-01-19,2020-02-22,34,4,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+1920,Unknown Injury,2019-10-21,2019-11-22,32,4,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+1920,Stretched Ligament,2020-06-21,2020-08-27,67,11,Bernd Leno,/bernd-leno/profil/spieler/72476
+1920,Ankle Injury,2020-03-08,2020-05-31,84,1,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+1920,Hamstring Injury,2019-10-25,2019-11-23,29,4,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+1920,Unknown Injury,2019-09-01,2019-09-13,12,1,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+1920,Groin Injury,2019-10-18,2020-01-02,76,19,Diogo Dalot,/diogo-dalot/profil/spieler/357147
+1920,Knock,2019-09-20,2019-10-02,12,3,Diogo Dalot,/diogo-dalot/profil/spieler/357147
+1920,Hip Injury,2019-08-04,2019-09-17,44,5,Diogo Dalot,/diogo-dalot/profil/spieler/357147
+1920,Knock,2020-01-23,2020-02-01,9,2,Fernandinho,/fernandinho/profil/spieler/26267
+1920,Hamstring Injury,2020-02-19,2020-03-02,12,2,James Milner,/james-milner/profil/spieler/3333
+1920,Hip Injury,2020-01-06,2020-02-14,39,7,James Milner,/james-milner/profil/spieler/3333
+1920,Back Injury,2019-09-26,2019-09-27,1,,James Milner,/james-milner/profil/spieler/3333
+1920,Knock,2019-03-04,2019-03-16,12,2,James Milner,/james-milner/profil/spieler/3333
+1920,Knock,2020-01-23,2020-01-31,8,1,Diego Rico,/diego-rico/profil/spieler/249513

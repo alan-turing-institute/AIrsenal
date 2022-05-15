@@ -12,6 +12,8 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from airsenal.framework.season import CURRENT_SEASON
+
 TRANSFERMARKT_URL = "https://www.transfermarkt.co.uk"
 HEADERS = {
     "User-Agent": (
@@ -85,18 +87,22 @@ def tidy_df(df: pd.DataFrame, days_name="days") -> pd.DataFrame:
     """
     df.columns = df.columns.str.lower()
     df = df.rename(columns={"games missed": "games"})
-    df["season"] = df["season"].str.replace("/", "")
+    with contextlib.suppress(AttributeError):
+        # can fail with AttributeError if all values are missing
+        df["season"] = df["season"].str.replace("/", "")
     df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
     df["from"] = pd.to_datetime(df["from"], format="%b %d, %Y", errors="coerce")
     df["until"] = pd.to_datetime(df["until"], format="%b %d, %Y", errors="coerce")
-    df["days"] = df["days"].str.replace(f" {days_name}", "")
+    with contextlib.suppress(AttributeError):
+        # can fail with AttributeError if all values are missing
+        df["days"] = df["days"].str.replace(f" {days_name}", "")
     df["days"] = df["days"].astype("float").astype("Int32")
     df["games"] = df["games"].astype("float").astype("Int32")
     return df.convert_dtypes()
 
 
 def filter_season(df: pd.DataFrame, season: str) -> pd.DataFrame:
-    """_summary_
+    """Extract rows for a given season from a dataframe.
 
     Parameters
     ----------
@@ -264,4 +270,4 @@ def main(seasons: List[str]):
 
 
 if __name__ == "__main__":
-    main(["1516", "1617", "1718", "1819", "1920", "2021", "2122"])
+    main([CURRENT_SEASON])
