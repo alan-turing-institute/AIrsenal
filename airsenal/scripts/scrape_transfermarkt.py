@@ -1,10 +1,12 @@
 """
 Get player injury, suspension and availability data from TransferMarkt
 """
+
+import contextlib
 import os
-from time import sleep
 from typing import List, Tuple
 
+import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -68,6 +70,49 @@ def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
     ]
 
 
+def tidy_df(df: pd.DataFrame, days_name="days") -> pd.DataFrame:
+    """Clean column names, data types, and missing data for injury/suspension data.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw injury or suspension data from TransferMarkt
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned data
+    """
+    df.columns = df.columns.str.lower()
+    df = df.rename(columns={"games missed": "games"})
+    df["season"] = df["season"].str.replace("/", "")
+    df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
+    df["from"] = pd.to_datetime(df["from"], format="%b %d, %Y", errors="coerce")
+    df["until"] = pd.to_datetime(df["until"], format="%b %d, %Y", errors="coerce")
+    df["days"] = df["days"].str.replace(f" {days_name}", "")
+    df["days"] = df["days"].astype("float").astype("Int32")
+    df["games"] = df["games"].astype("float").astype("Int32")
+    return df.convert_dtypes()
+
+
+def filter_season(df: pd.DataFrame, season: str) -> pd.DataFrame:
+    """_summary_
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Data frame with season column in "1819" format
+    season : str
+        Season to extract, in "1819" format
+
+    Returns
+    -------
+    pd.DataFrame
+        Rows of data frame for specified season
+    """
+    return df[df["season"] == season]
+
+
 def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
     """Get a player's injury history.
     Example TransferMarkt page:
@@ -90,7 +135,8 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
         ),
         headers=HEADERS,
     )
-    return pd.read_html(page.content, match="Injury")[0]
+    injuries = pd.read_html(page.content, match="Injury")[0]
+    return tidy_df(injuries, days_name="days")
 
 
 def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
@@ -122,7 +168,7 @@ def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
         except IndexError:
             comp.append("")
     suspended["competition"] = comp
-    return suspended
+    return tidy_df(suspended, days_name="Tage")
 
 
 def get_players_for_season(season: int) -> List[Tuple[str, str]]:
@@ -143,51 +189,79 @@ def get_players_for_season(season: int) -> List[Tuple[str, str]]:
     players = set()
     for _, team_url in tqdm(teams):
         players.update(get_team_players(team_url))
-        sleep(1)
     return list(players)
 
 
-def main(seasons: List[int]):
-    """Get all player injury and suspension data for multiple seasons
+def season_str_to_year(season: str) -> int:
+    """Convert season in "1819" format to the year the season started (2018)
 
     Parameters
     ----------
-    seasons : List[int]
-        seasons to query - list of years the season started (int), rather than usual str
-        representation
-    """
-    print("Finding players...")
-    players = set()
-    for season in seasons:
-        print(season)
-        players.update(get_players_for_season(season))
+    season : str
+        Season string in "1819" format (for 2018/19 season)
 
-    print("Querying injuries and suspensions...")
+    Returns
+    -------
+    int
+        Year season started
+    """
+    return int(f"20{season[:2]}")
+
+
+def get_season_injuries_suspensions(season: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Get injury and suspension data for a season
+
+    Parameters
+    ----------
+    season : str
+        Season to query in "1819" format (for 2018/19 season)
+
+    Returns
+    -------
+    Tuple[pd.DataFrame, pd.DataFrame]
+        Injury and suspension data frames for all players in this season
+    """
+    year = season_str_to_year(season)
+    print("Finding players...")
+    players = get_players_for_season(year)
     injuries = []
     suspensions = []
+    print("Querying injuries and suspensions...")
     for player_name, player_url in tqdm(players):
-        try:
+        with contextlib.suppress(ValueError, IndexError):
             inj = get_player_injuries(player_url)
             inj["player"] = player_name
             inj["url"] = player_url
             injuries.append(inj)
-        except (ValueError, IndexError):
-            pass
-        try:
+        with contextlib.suppress(ValueError, IndexError):
             sus = get_player_suspensions(player_url)
             sus["player"] = player_name
             sus["url"] = player_url
             suspensions.append(sus)
-        except (ValueError, IndexError):
-            pass
-        sleep(1)
 
-    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
     injuries = pd.concat(injuries)
-    injuries.to_csv(os.path.join(data_dir, "injuries.csv"), index=False)
     suspensions = pd.concat(suspensions)
-    suspensions.to_csv(os.path.join(data_dir, "suspensions.csv"), index=False)
+    return filter_season(injuries, season), filter_season(suspensions, season)
+
+
+def main(seasons: List[str]):
+    """Get all player injury and suspension data for multiple seasons
+
+    Parameters
+    ----------
+    seasons : List[str]
+        seasons to query in format "1819" (for 2018/19 season)
+    """
+    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+
+    for season in tqdm(seasons):
+        print(f"Season: {season}")
+        injuries, suspensions = get_season_injuries_suspensions(season)
+        injuries.to_csv(os.path.join(data_dir, f"injuries_{season}.csv"), index=False)
+        suspensions.to_csv(
+            os.path.join(data_dir, f"suspensions_{season}.csv"), index=False
+        )
 
 
 if __name__ == "__main__":
-    main([2015, 2016, 2017, 2018, 2019, 2020, 2021])
+    main(["1516", "1617", "1718", "1819", "1920", "2021", "2122"])
