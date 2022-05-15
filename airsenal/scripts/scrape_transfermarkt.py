@@ -1,6 +1,7 @@
 """
 Get player injury, suspension and availability data from TransferMarkt
 """
+import os
 from time import sleep
 from typing import List, Tuple
 
@@ -89,7 +90,7 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
         ),
         headers=HEADERS,
     )
-    return pd.read_html(page.content)[0]
+    return pd.read_html(page.content, match="Injury")[0]
 
 
 def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
@@ -111,7 +112,7 @@ def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
         f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/ausfaelle/')}",
         headers=HEADERS,
     )
-    suspended = pd.read_html(p.content)[0]
+    suspended = pd.read_html(p.content, match="Absence/Suspension")[0]
 
     player_soup = BeautifulSoup(p.content, features="lxml")
     comp = []
@@ -125,6 +126,19 @@ def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
 
 
 def get_players_for_season(season: int) -> List[Tuple[str, str]]:
+    """Get all the players at any premier league club in a season
+
+    Parameters
+    ----------
+    season : int
+        season to query - the year the season started (int), rather than usual str
+        representation
+
+    Returns
+    -------
+    List[Tuple[str, str]]
+        List of player name and relative URL
+    """
     teams = get_teams_for_season(season)
     players = set()
     for _, team_url in tqdm(teams):
@@ -134,11 +148,21 @@ def get_players_for_season(season: int) -> List[Tuple[str, str]]:
 
 
 def main(seasons: List[int]):
+    """Get all player injury and suspension data for multiple seasons
+
+    Parameters
+    ----------
+    seasons : List[int]
+        seasons to query - list of years the season started (int), rather than usual str
+        representation
+    """
+    print("Finding players...")
     players = set()
     for season in seasons:
         print(season)
         players.update(get_players_for_season(season))
 
+    print("Querying injuries and suspensions...")
     injuries = []
     suspensions = []
     for player_name, player_url in tqdm(players):
@@ -148,21 +172,22 @@ def main(seasons: List[int]):
             inj["url"] = player_url
             injuries.append(inj)
         except (ValueError, IndexError):
-            print(f"Didn't find injury data for {player_name}")
+            pass
         try:
             sus = get_player_suspensions(player_url)
             sus["player"] = player_name
             sus["url"] = player_url
             suspensions.append(sus)
         except (ValueError, IndexError):
-            print(f"Didn't find suspension data for {player_name}")
+            pass
         sleep(1)
 
+    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
     injuries = pd.concat(injuries)
-    injuries.to_csv("injuries.csv", index=False)
+    injuries.to_csv(os.path.join(data_dir, "injuries.csv"), index=False)
     suspensions = pd.concat(suspensions)
-    suspensions.to_csv("suspensions.csv", index=False)
+    suspensions.to_csv(os.path.join(data_dir, "suspensions.csv"), index=False)
 
 
 if __name__ == "__main__":
-    main([2018, 2019, 2020, 2021])
+    main([2015, 2016, 2017, 2018, 2019, 2020, 2021])
