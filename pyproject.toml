@@ -1,20 +1,23 @@
 [tool.poetry]
-name="airsenal"
-version="1.3.2"
-description="AI manager for Fantasy Premier League"
-authors=["Angus Williams <anguswilliams91@gmail.com>",
-	 "Jack Roberts <jroberts@turing.ac.uk>",
-	 "Nick Barlow <nbarlow@turing.ac.uk>"
-	 ]
+name = "airsenal"
+version = "1.3.2"
+description = "AI manager for Fantasy Premier League"
+authors = [
+	"Angus Williams <anguswilliams91@gmail.com>",
+	"Jack Roberts <jroberts@turing.ac.uk>",
+	"Nick Barlow <nbarlow@turing.ac.uk>",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-bpl = { git = "https://github.com/anguswilliams91/bpl-next", branch="feature/new-numpyro-interface"}
+bpl = { git = "https://github.com/anguswilliams91/bpl-next", branch = "feature/new-numpyro-interface" }
 click = "^8.1.2"
 pandas = "^1.4.2"
 requests = "^2.27.1"
 sqlalchemy = "^1.4.35"
 tqdm = "^4.64.0"
+dateparser = "^1.1.1"
+prettytable = "^3.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "cython", "numpy", "setuptools"]
