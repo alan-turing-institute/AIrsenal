@@ -29,7 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Install AIrsenal
-        run: poetry install
+        run: poetry install --extras "Flask"
       - name: Code quality checks
         run: |
           poetry run isort --check-only .
