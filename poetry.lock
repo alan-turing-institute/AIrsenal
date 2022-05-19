@@ -1702,10 +1702,15 @@ python-versions = ">=3.7"
 docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)"]
 
+[extras]
+api = ["Flask"]
+notebook = ["jupyter"]
+plot = ["matplotlib", "seaborn"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "d75ab8ef870476acb4ee353adce54d3fb815355a59cb7127fa2aca74971866ff"
+content-hash = "171eacac50bde6a244ca35dbb4f65c103048b217b50b696a7d2e9ff5949f55e5"
 
 [metadata.files]
 absl-py = [
