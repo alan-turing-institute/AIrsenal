@@ -10,7 +10,12 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
 )
 from airsenal.framework.season import CURRENT_SEASON
-from airsenal.framework.utils import NEXT_GAMEWEEK, fetcher, get_latest_prediction_tag
+from airsenal.framework.utils import (
+    NEXT_GAMEWEEK,
+    fetcher,
+    get_latest_prediction_tag,
+    get_max_gameweek,
+)
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -150,7 +155,12 @@ def main():
         gameweek_start = NEXT_GAMEWEEK
     else:
         gameweek_start = 1
-    gw_range = list(range(gameweek_start, min(38, gameweek_start + args.num_gameweeks)))
+    gw_range = list(
+        range(
+            gameweek_start,
+            min(get_max_gameweek(season) + 1, gameweek_start + args.num_gameweeks),
+        )
+    )
     tag = get_latest_prediction_tag(season)
     if not check_tag_valid(tag, gw_range, season=season):
         print(
