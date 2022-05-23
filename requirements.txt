@@ -5,6 +5,7 @@ dateparser==1.1.1
 flask==2.0.1
 flask_cors==3.0.10
 flask_session==0.4.0
+html5lib==1.1
 jupyter==1.0.0
 lxml==4.6.5
 matplotlib==3.4.2
