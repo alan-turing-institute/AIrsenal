@@ -4,7 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.9
-  - pip=21.2.3
+  - pip
   - pygmo=2.18.0
   - pip:
     - .
