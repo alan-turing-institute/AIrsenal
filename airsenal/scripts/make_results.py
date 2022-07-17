@@ -5,7 +5,7 @@ import json
 
 import pandas as pd
 
-SEASON = "2021"
+SEASON = "2122"
 FIXTURE_DATA_FILE = "../data/fixture_data_{}.json"
 SUMMARY_DATA_FILE = "../data/FPL_{}.json"
 RESULTS_FILE = "../data/results_{}.csv"
