@@ -57,7 +57,6 @@ alternative_team_names = {
     "QPR": ["Queens Park Rangers"],
     "CAR": ["Cardiff", "Cardiff City", "Cardiff City FC"],
     "HUD": ["Huddersfield Town", "Huddersfield", "Huddersfield Town AFC"],
-    "NOT": ["Nottingham Forest", "Nott'm Forest"],
     "DER": ["Derby", "Derby County"],
 }
 
