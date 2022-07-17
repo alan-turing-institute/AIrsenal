@@ -14,6 +14,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_entry_start_gameweek,
+    get_gameweeks_array,
     get_latest_prediction_tag,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
@@ -59,21 +60,25 @@ from airsenal.scripts.update_db import update_db
         "If set to 0, consider playing wildcard in any gameweek. "
         "If set to a specific gameweek, it'll be played for that particular gameweek."
     ),
+    default=-1,
 )
 @click.option(
     "--free_hit_week",
     type=int,
     help="Play free hit in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 @click.option(
     "--triple_captain_week",
     type=int,
     help="Play triple captain in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 @click.option(
     "--bench_boost_week",
     type=int,
     help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
+    default=-1,
 )
 def run_pipeline(
     num_thread,
@@ -98,7 +103,9 @@ def run_pipeline(
     print("Running for FPL Team ID {}".format(fpl_team_id))
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method()
+
+    gw_range = get_gameweeks_array(weeks_ahead=weeks_ahead)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
@@ -117,13 +124,13 @@ def run_pipeline(
             raise RuntimeError("Problem updating db")
         click.echo("Database update complete..")
         click.echo("Running prediction..")
-        predict_ok = run_prediction(num_thread, weeks_ahead, dbsession)
+        predict_ok = run_prediction(num_thread, gw_range, dbsession)
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
         if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
             click.echo("Generating a squad..")
-            new_squad_ok = run_make_squad(weeks_ahead, fpl_team_id, dbsession)
+            new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
             if not new_squad_ok:
                 raise RuntimeError("Problem creating a new squad")
         else:
@@ -132,7 +139,7 @@ def run_pipeline(
                 wildcard_week, free_hit_week, triple_captain_week, bench_boost_week
             )
             opt_ok = run_optimize_squad(
-                num_thread, weeks_ahead, fpl_team_id, dbsession, chips_played
+                num_thread, gw_range, fpl_team_id, dbsession, chips_played
             )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
@@ -162,17 +169,12 @@ def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_w
     Set up chips to be played for particular gameweeks. Specifically: wildcard,
     free_hit, triple_captain, bench_boost
     """
-    chips_gameweeks = {}
-    if wildcard_week:
-        chips_gameweeks["wildcard"] = wildcard_week
-    if free_hit_week:
-        chips_gameweeks["free_hit"] = free_hit_week
-    if triple_captain_week:
-        chips_gameweeks["triple_captain"] = triple_captain_week
-    if bench_boost_week:
-        chips_gameweeks["bench_boost"] = bench_boost_week
-
-    return chips_gameweeks
+    return {
+        "wildcard": wildcard_week,
+        "free_hit": free_hit_week,
+        "triple_captain": triple_captain_week,
+        "bench_boost": bench_boost_week,
+    }
 
 
 def update_database(fpl_team_id, attr, dbsession):
@@ -183,11 +185,10 @@ def update_database(fpl_team_id, attr, dbsession):
     return update_db(season, attr, fpl_team_id, dbsession)
 
 
-def run_prediction(num_thread, weeks_ahead, dbsession):
+def run_prediction(num_thread, gw_range, dbsession):
     """
     Run prediction
     """
-    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
     season = CURRENT_SEASON
     tag = make_predictedscore_table(
         gw_range=gw_range,
@@ -211,11 +212,10 @@ def run_prediction(num_thread, weeks_ahead, dbsession):
     return True
 
 
-def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
+def run_make_squad(gw_range, fpl_team_id, dbsession):
     """
     Build the initial squad
     """
-    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
@@ -231,11 +231,10 @@ def run_make_squad(weeks_ahead, fpl_team_id, dbsession):
     return True
 
 
-def run_optimize_squad(num_thread, weeks_ahead, fpl_team_id, dbsession, chips_played):
+def run_optimize_squad(num_thread, gw_range, fpl_team_id, dbsession, chips_played):
     """
     Build the initial squad
     """
-    gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + weeks_ahead))
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
     with warnings.catch_warnings():

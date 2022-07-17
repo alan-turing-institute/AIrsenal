@@ -42,6 +42,8 @@ from airsenal.framework.optimization_utils import (
     check_tag_valid,
     count_expected_outputs,
     fill_suggestion_table,
+    fill_transaction_table,
+    get_baseline_strat,
     get_discount_factor,
     get_num_increments,
     get_starting_squad,
@@ -53,7 +55,6 @@ from airsenal.framework.utils import (
     get_free_transfers,
     get_gameweeks_array,
     get_latest_prediction_tag,
-    get_next_gameweek,
     get_player_name,
 )
 
@@ -84,7 +85,7 @@ def optimize(
     pred_tag,
     chips_gw_dict,
     max_total_hit=None,
-    allow_unused_transfers=True,
+    allow_unused_transfers=False,
     max_transfers=2,
     num_iterations=100,
     updater=None,
@@ -265,27 +266,11 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
-def save_baseline_score(squad, gameweeks, tag, season=CURRENT_SEASON):
+def save_baseline_score(squad, gameweeks, tag):
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
-    # TODO: use season argument
-    root_gw = gameweeks[0]
-    strat_dict = {
-        "total_score": 0,
-        "points_per_gw": {},
-        "players_in": {},
-        "players_out": {},
-        "chips_played": {},
-        "root_gw": root_gw,
-    }
-    for gw in gameweeks:
-        gw_score = squad.get_expected_points(gw, tag) * get_discount_factor(root_gw, gw)
-        strat_dict["total_score"] += gw_score
-        strat_dict["points_per_gw"][gw] = gw_score
-        strat_dict["players_in"][gw] = []
-        strat_dict["players_out"][gw] = []
-        strat_dict["chips_played"][gw] = None
+    strat_dict = get_baseline_strat(squad, gameweeks, tag, root_gw=gameweeks[0])
 
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
@@ -383,11 +368,11 @@ def discord_payload(strat, lineup):
     return payload
 
 
-def print_team_for_next_gw(strat, fpl_team_id=None):
+def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_squad(fpl_team_id=fpl_team_id)
+    t = get_starting_squad(season=season, fpl_team_id=fpl_team_id)
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
@@ -395,7 +380,7 @@ def print_team_for_next_gw(strat, fpl_team_id=None):
         t.remove_player(pidout)
     for pidin in strat["players_in"][str(next_gw)]:
         t.add_player(pidin)
-    tag = get_latest_prediction_tag()
+    tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
     print(t)
     return t
@@ -434,7 +419,7 @@ def run_optimization(
     # How many free transfers are we starting with?
     if not num_free_transfers:
         num_free_transfers = get_free_transfers(
-            fpl_team_id, gameweeks[0], apifetcher=fetcher
+            fpl_team_id, gameweeks[0], season=season, apifetcher=fetcher
         )
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
@@ -493,9 +478,9 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    use_api = fetcher.logged_in
+    use_api = fetcher.logged_in if season == CURRENT_SEASON else False
     starting_squad = get_starting_squad(
-        fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+        season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
     )
 
     if not allow_unused_transfers and (
@@ -503,7 +488,7 @@ def run_optimization(
     ):
         # if we are excluding unused transfers the tree may not include the baseline
         # strategy. In those cases quickly calculate and save it here first.
-        save_baseline_score(starting_squad, gameweeks, tag, season=season)
+        save_baseline_score(starting_squad, gameweeks, tag)
         update_progress()
 
     # Add Processes to run the the target 'optimize' function.
@@ -550,6 +535,11 @@ def run_optimization(
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
+    if season != CURRENT_SEASON:
+        # simulating a previous season, so imitate applying transfers by adding
+        # the suggestions to the Transaction table
+        fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
+
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")
@@ -557,7 +547,7 @@ def run_optimization(
     print("Baseline score: {}".format(baseline_score))
     print("Best score: {}".format(best_strategy["total_score"]))
     print_strat(best_strategy)
-    t = print_team_for_next_gw(best_strategy, fpl_team_id)
+    t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
@@ -734,16 +724,12 @@ def main():
 
     sanity_check_args(args)
     season = args.season
-    # default weeks ahead is not specified (or gameweek_end is not specified) is three
-    if args.weeks_ahead:
-        gameweeks = get_gameweeks_array(args.weeks_ahead)
-    elif args.gameweek_start:
-        if args.gameweek_end:
-            gameweeks = list(range(args.gameweek_start, args.gameweek_end))
-        else:
-            gameweeks = list(range(args.gameweek_start, args.gameweek_start + 3))
-    else:
-        gameweeks = list(range(get_next_gameweek(), get_next_gameweek() + 3))
+    gameweeks = get_gameweeks_array(
+        weeks_ahead=args.weeks_ahead,
+        gameweek_start=args.gameweek_start,
+        gameweek_end=args.gameweek_end,
+        season=season,
+    )
 
     num_iterations = args.num_iterations
     if args.num_free_transfers:
@@ -771,7 +757,7 @@ def main():
         )
         sys.exit(1)
 
-    set_multiprocessing_start_method(num_thread)
+    set_multiprocessing_start_method()
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)

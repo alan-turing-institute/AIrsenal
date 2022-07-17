@@ -81,9 +81,9 @@ def print_output(
     print("\n")
 
 
-def get_sell_price(team_id, player_id):
+def get_sell_price(team_id, player_id, season=CURRENT_SEASON):
 
-    squad = get_starting_squad(team_id)
+    squad = get_starting_squad(season=season, fpl_team_id=team_id)
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p)

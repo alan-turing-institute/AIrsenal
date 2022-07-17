@@ -72,7 +72,9 @@ def predicted_point_mock_generator(point_dict):
     {"GK" : {player_id: points, ...}, "DEF": {}, ... }
     """
 
-    def mock_get_predicted_points(gameweek, tag, position, team=None):
+    def mock_get_predicted_points(
+        gameweek, tag, position, team=None, season=None, dbsession=None
+    ):
         """
         return an ordered list in the same way as the real
         get_predicted_points func does. EXCEPT - we return dummy players rather
@@ -446,7 +448,7 @@ def test_count_expected_outputs_no_chips_no_constraints():
         max_transfers=2,
         chip_gw_dict={},
     )
-    assert count == 3 ** 3
+    assert count == 3**3
 
     # Max hit 0
     # Include:
