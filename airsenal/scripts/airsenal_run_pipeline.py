@@ -6,7 +6,6 @@ import click
 from tqdm import TqdmWarning
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
-from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
 from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
@@ -216,6 +215,8 @@ def run_make_squad(gw_range, fpl_team_id, dbsession):
     """
     Build the initial squad
     """
+    from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
+
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
