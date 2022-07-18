@@ -3,8 +3,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
-  - pip=21.2.3
+  - python=3.9
+  - pip
   - pygmo=2.18.0
   - pip:
     - .
