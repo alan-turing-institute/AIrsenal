@@ -141,7 +141,7 @@ def get_gameweeks_array(
 
     if len(gw_range) == 0:
         raise ValueError("No gameweeks in specified range")
-    if max(gw_range) < gameweek_end:
+    if max(gw_range) < gameweek_end - 1:
         print(
             f"WARN: Last gameweek set to {max(gw_range)} ({len(gw_range)} weeks ahead)"
         )
@@ -1268,7 +1268,7 @@ def get_recent_minutes_for_player(
     # If the player has not played a match or two in the last
     # `num_matches_to_use` matches, then we check a couple of gameweeks further
     # back.
-    if len(playerscores) < num_match_to_use:
+    if not playerscores or len(playerscores) < num_match_to_use:
         playerscores = get_recent_playerscore_rows(
             player, num_match_to_use + 2, season, last_gw, dbsession
         )
