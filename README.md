@@ -8,26 +8,14 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
-## NEW mini-league for 2021/22 season
+## Mini-league for 2022/23 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
-The code to join is: **3rn929**.
+The code to join is: **8wec9c**.
 Hope to see your AI team there! :)
 
-Our own AIrsenal team's id for the 2021/22 season is **[863052](https://fantasy.premierleague.com/entry/863052/history)**.
+Our own AIrsenal team's id for the 2022/23 season is **[2779516](https://fantasy.premierleague.com/entry/2779516/history)**.
 
-## Notes (August 2021)
-
-The default branch of this repository has been renamed from "master" to "main".   If you have a previously cloned version of the repo, you can update the branch names by doing:
-
-```shell
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-git remote set-head origin -a
-```
-
-We have also switched from using Stan/pystan to numpyro, for the team and player models.   This will hopefully make AIrsenal easier to install (no need to worry about C compilers any more!).
 
 ## Installation
 
