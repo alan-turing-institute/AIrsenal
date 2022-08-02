@@ -57,9 +57,7 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_player_name,
 )
-from airsenal.scripts.squad_builder import (
-    fill_initial_squad
-)
+from airsenal.scripts.squad_builder import fill_initial_squad
 
 TMPDIR = "/tmp/" if os.name == "posix" else "%TMP%"
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
