@@ -434,7 +434,7 @@ def run_optimization(
         starting_squad = get_starting_squad(
             season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
         )
-    except(ValueError, TypeError):
+    except (ValueError, TypeError):
         # first week for this squad?
         print("No existing squad or transfers found for team_id {}".format(fpl_team_id))
         print("Will suggest a new starting squad:")
