@@ -15,20 +15,29 @@ from fuzzywuzzy import fuzz
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def find_best_match(fpl_players, player):
+def find_best_match(fpl_players, player, fuzz_method=fuzz.ratio):
     """
-    use fuzzy matching to see if we can match
-    names
+    use fuzzy matching to see if we can match names
+
+    Parameters
+    ==========
+    fpl_players: list of str, current FPL player names
+    player: str, player name from previous season
+    fuzz_method: function from fuzzywuzzy
+
+    Returns:
+    ========
+    best_match: str, the current FPL player name that best matches the
+                     historical one
+    best_ratio: int, the score for the match, range 1-100.
     """
     best_ratio = 0.0
     best_match = None
     for p in fpl_players:
-        if fuzz.partial_ratio(p, player) > best_ratio:
-            best_ratio = fuzz.partial_ratio(p, player)
+        if fuzz_method(p, player) > best_ratio:
+            best_ratio = fuzz_method(p, player)
             best_match = p
-    #   print("Best match {}/{}, score {}".format(best_match,
-    #                                             player,
-    #                                             best_ratio))
+
     return best_match, best_ratio
 
 
@@ -38,48 +47,58 @@ if __name__ == "__main__":
     df = FPLDataFetcher()
     playerdict = {}
     playerdata = df.get_player_summary_data()
+    fpl_players_to_match = []
+    # from the API we construct the player name from first_name and second_name
     for k in playerdata.keys():
         player_name = "{} {}".format(
             playerdata[k]["first_name"], playerdata[k]["second_name"]
         )
-        playerdict[player_name] = [playerdata[k]["web_name"]]
+        fpl_players_to_match.append(player_name)
 
-    fpl_players_to_match = list(playerdict.keys())
     # get the player names from the fpl archives json
     missing = set()
     matched = set()
     history_players = set()
-    for season in ["1516", "1617"]:
+    for season in ["2122", "2021","1920"]:
         filename = "../data/player_summary_{}.json".format(season)
         player_data = json.load(open(filename))
         for p in player_data:
             history_players.add(p["name"])
-
+    count = 0
     for player in history_players:
+        # see if the names match exactly
         if player in fpl_players_to_match:
             matched.add(player)
             fpl_players_to_match.remove(player)
         else:
-            p, score = find_best_match(fpl_players_to_match, player)
-            if score > 90:
-                if "Sessegnon" in player:  # false matches
-                    missing.add(player)
-                    continue
-                if "Eder" in player:  # and another one
-                    missing.add(player)
-                    continue
-                print("good match", p, player, score)
-                playerdict[p].append(player)
-                matched.add(player)
-                fpl_players_to_match.remove(p)
+            # try two separate fuzzy methods, the first
+            # is the simplest, but not best for players whose
+            # names swap order
+            p, score = find_best_match(fpl_players_to_match, player, fuzz_method=fuzz.ratio)
+            if score > 70:
+                add_player = input(f"Add {p} : {player}  (score (from ratio)={score})? (y/n):")
+                if add_player.lower() =="y":
+                    if not p in playerdict.keys():
+                        playerdict[p] = []
+                    playerdict[p].append(player)
+                    matched.add(player)
+                    fpl_players_to_match.remove(p)
+                    count += 1
             else:
-                missing.add(player)
-
+                # this method should be better for swaps of first and second name
+                p, score = find_best_match(fpl_players_to_match, player, fuzz_method=fuzz.token_sort_ratio)
+                if score > 80:
+                    add_player = input(f"Add {p} : {player}  (score (from token_sort_ratio)={score})? (y/n):")
+                    if add_player.lower()=="y":
+                        if not p in playerdict.keys():
+                            playerdict[p] = []
+                        playerdict[p].append(player)
+                        matched.add(player)
+                        fpl_players_to_match.remove(p)
     print("Num matched: {}".format(len(matched)))
-    print("Num missing: {}".format(len(missing)))
 
-    # print missing teams (should be the relegated ones
-    print("Players not in this seasons FPL: {}".format(missing))
-
-    with open("../data/alternative_player_names.json", "w") as outfile:
-        outfile.write(json.dumps(playerdict))
+    # write an output csv file with each line containing all possible
+    # alternative names for a given current-season name
+    with open("../data/alternative_player_names.csv", "w") as outfile:
+        for k,v in playerdict.items():
+            outfile.write(f"{k},{','.join(v)}\n")
