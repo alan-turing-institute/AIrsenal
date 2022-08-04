@@ -7,9 +7,12 @@ import json
 import os
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.schema import Player, PlayerMappings, session, session_scope
+from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
-from airsenal.scripts.fill_player_mappings_table import make_player_mappings_table
+from airsenal.scripts.fill_player_mappings_table import (
+    add_mappings,
+    make_player_mappings_table,
+)
 
 
 def find_player_in_table(name, dbsession):
@@ -19,9 +22,11 @@ def find_player_in_table(name, dbsession):
     player = dbsession.query(Player).filter_by(name=name).first()
     if not player:
         # see if we have an alternative name for this player
-        player_id = dbsession.query(PlayerMappings).filter_by(alt_name=name).first()
-        if player_id:
-            player = dbsession.query(Player).filter_by(player_id=player_id).first()
+        mapping = dbsession.query(PlayerMapping).filter_by(alt_name=name).first()
+        if mapping:
+            player = (
+                dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+            )
 
     return player or None
 
@@ -50,6 +55,8 @@ def fill_player_table_from_file(filename, season, dbsession):
             p.name = name
         if new_entry:
             dbsession.add(p)
+            add_mappings(p, dbsession=dbsession)
+            dbsession.commit()
     dbsession.commit()
 
 
