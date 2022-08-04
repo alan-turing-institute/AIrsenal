@@ -7,8 +7,9 @@ import json
 import os
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.schema import Player, session, session_scope
+from airsenal.framework.schema import Player, PlayerMappings, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.scripts.fill_player_mappings_table import make_player_mappings_table
 
 
 def find_player_in_table(name, dbsession):
@@ -16,6 +17,12 @@ def find_player_in_table(name, dbsession):
     see if we already have the player
     """
     player = dbsession.query(Player).filter_by(name=name).first()
+    if not player:
+        # see if we have an alternative name for this player
+        player_id = dbsession.query(PlayerMappings).filter_by(alt_name=name).first()
+        if player_id:
+            player = dbsession.query(Player).filter_by(player_id=player_id).first()
+
     return player or None
 
 
@@ -32,19 +39,14 @@ def fill_player_table_from_file(filename, season, dbsession):
     use json file
     """
     jplayers = json.load(open(filename))
-    n_new_players = 0
-    for i, jp in enumerate(jplayers):
+    for jp in jplayers:
         new_entry = False
         name = jp["name"]
         print("PLAYER {} {}".format(season, name))
         p = find_player_in_table(name, dbsession)
         if not p:
-            n_new_players += 1
             new_entry = True
             p = Player()
-            #            p.player_id = (
-            #                max_id_in_table(session) + n_new_players
-            #            )  # next id sequentially
             p.name = name
         if new_entry:
             dbsession.add(p)
@@ -71,16 +73,47 @@ def fill_player_table_from_api(season, dbsession):
     dbsession.commit()
 
 
-def make_player_table(seasons=[], dbsession=session):
-
-    if not seasons:
+def make_player_table(seasons=None, dbsession=session):
+    if seasons is None:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
+
     if CURRENT_SEASON in seasons:
+        latest_season = CURRENT_SEASON
+    else:
+        latest_season = seasons[-1]
+    seasons.remove(latest_season)
+
+    make_init_player_table(season=latest_season, dbsession=session)
+    make_player_mappings_table(dbsession=session)
+    make_remaining_player_table(seasons=seasons, dbsession=session)
+
+
+def make_init_player_table(season, dbsession=session):
+    """
+    Fill the player table with the latest season of data (only, as then need to do
+    mappings)
+    """
+    if season == CURRENT_SEASON:
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
+    else:
+        filename = os.path.join(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "data",
+                "player_summary_{}.json".format(season),
+            )
+        )
+        fill_player_table_from_file(filename, season, dbsession)
+
+
+def make_remaining_player_table(seasons, dbsession=session):
+    """
+    Fill remaining players for subsequent seasons (AFTER players from the most recent
+    season)
+    """
     for season in seasons:
-        if season == CURRENT_SEASON:
-            continue
         filename = os.path.join(
             os.path.join(
                 os.path.dirname(__file__),
