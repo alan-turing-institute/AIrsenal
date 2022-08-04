@@ -9,7 +9,9 @@ from airsenal.framework.schema import Player, PlayerMapping
 
 def load_mappings_data():
     filename = os.path.join(
-        os.path.join(os.path.dirname(__file__), "..", "data", "player_mappings.csv")
+        os.path.join(
+            os.path.dirname(__file__), "..", "data", "alternative_player_names.csv"
+        )
     )
     with open(filename) as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
