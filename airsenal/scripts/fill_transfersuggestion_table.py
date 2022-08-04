@@ -57,6 +57,7 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_player_name,
 )
+from airsenal.scripts.squad_builder import fill_initial_squad
 
 TMPDIR = "/tmp/" if os.name == "posix" else "%TMP%"
 OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
@@ -412,10 +413,42 @@ def run_optimization(
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
 
+    # see if we are at the start of a season, or
+    if gameweeks[0] == 1:
+        print("Starting a new season - will make squad from scratch")
+        fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_iterations=num_iterations,
+        )
+        return
+
     # give the user the option to login
     fetcher.login()
 
     print("Running optimization with fpl_team_id {}".format(fpl_team_id))
+    use_api = fetcher.logged_in if season == CURRENT_SEASON else False
+    try:
+        starting_squad = get_starting_squad(
+            season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+        )
+    except (ValueError, TypeError):
+        # first week for this squad?
+        print("No existing squad or transfers found for team_id {}".format(fpl_team_id))
+        print("Will suggest a new starting squad:")
+        fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_iterations=num_iterations,
+        )
+        return
+
+    # if we got to here, we can assume we are optimizing an existing squad.
+
     # How many free transfers are we starting with?
     if not num_free_transfers:
         num_free_transfers = get_free_transfers(
@@ -477,11 +510,6 @@ def run_optimization(
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
-
-    use_api = fetcher.logged_in if season == CURRENT_SEASON else False
-    starting_squad = get_starting_squad(
-        season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
-    )
 
     if not allow_unused_transfers and (
         num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
@@ -732,6 +760,7 @@ def main():
     )
 
     num_iterations = args.num_iterations
+
     if args.num_free_transfers:
         num_free_transfers = args.num_free_transfers
     else:

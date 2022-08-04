@@ -467,7 +467,7 @@ alternative_player_names = {
     "Christian Eriksen": ["Eriksen"],
     "Bamidele Alli": ["Alli"],
     "Victor Wanyama": ["Wanyama"],
-    "Heung-Min Son": ["Son"],
+    "Heung-Min Son": ["Son", "Son Heung-min"],
     "Harry Winks": ["Winks"],
     "Moussa Sissoko": ["Sissoko"],
     "Lucas Rodrigues Moura da Silva": ["Lucas Moura"],
