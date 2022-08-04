@@ -150,6 +150,13 @@ class Player(Base):
         return self.name
 
 
+class PlayerMappings(Base):
+    # alternative names for players
+    __tablename__ = "player_mappings"
+    player_id = Column(Integer, ForeignKey("player.player_id"), nullable=False)
+    alt_name = Column(String(100), nullable=False)
+
+
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
     id = Column(Integer, primary_key=True, autoincrement=True)
