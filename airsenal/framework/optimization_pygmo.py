@@ -15,7 +15,10 @@ except ModuleNotFoundError:
 
 import uuid
 
-from airsenal.framework.optimization_utils import get_discount_factor
+from airsenal.framework.optimization_utils import (
+    DEFAULT_SUB_WEIGHTS,
+    get_discounted_squad_score,
+)
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -97,14 +100,13 @@ class SquadOpt:
         triple_captain_gw=None,
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
-        sub_weights={"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)},
+        sub_weights=DEFAULT_SUB_WEIGHTS,
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
-        self.gw_weight = self._get_gw_weight()
 
         self.tag = tag
         self.positions = ["GK", "DEF", "MID", "FWD"]
@@ -153,26 +155,15 @@ class SquadOpt:
             return [0]
 
         #  Calc expected points for all gameweeks
-        # - weight each gw points by its gw_weight
-        # - weight each sub by their sub_weight
-        score = 0.0
-        for i, gw in enumerate(self.gw_range):
-            gw_weight = self.gw_weight[i]
-            if gw == self.bench_boost_gw:
-                score += gw_weight * squad.get_expected_points(
-                    gw, self.tag, bench_boost=True
-                )
-            elif gw == self.triple_captain_gw:
-                score += gw_weight * squad.get_expected_points(
-                    gw, self.tag, triple_captain=True
-                )
-            else:
-                score += gw_weight * squad.get_expected_points(gw, self.tag)
-
-            if gw != self.bench_boost_gw:
-                score += gw_weight * squad.total_points_for_subs(
-                    gw, self.tag, sub_weights=self.sub_weights
-                )
+        score = get_discounted_squad_score(
+            squad,
+            self.gw_range,
+            self.tag,
+            self.gw_range[0],
+            self.bench_boost_gw,
+            self.triple_captain_gw,
+            sub_weights=self.sub_weights,
+        )
 
         return [-score]
 
@@ -254,15 +245,6 @@ class SquadOpt:
             pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
             for pos in self.positions
         }
-
-    def _get_gw_weight(self, **kwargs):
-        """Weight for each gameweek (discount weeks further in the future). **kwargs
-        passed to get_discount_factor
-        """
-        return [
-            get_discount_factor(min(self.gw_range), gw, **kwargs)
-            for gw in self.gw_range
-        ]
 
 
 def make_new_squad_pygmo(

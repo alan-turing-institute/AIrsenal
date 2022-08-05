@@ -5,9 +5,11 @@ import sys
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
+    DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
+    get_discounted_squad_score,
 )
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
@@ -64,9 +66,20 @@ def fill_initial_squad(
             "something went wrong with the squad expected points calculation."
         )
 
-    points = best_squad.get_expected_points(gw_start, tag)
+    optimised_score = get_discounted_squad_score(
+        best_squad,
+        gw_range,
+        tag,
+        gw_range[0],
+        sub_weights=DEFAULT_SUB_WEIGHTS,
+    )
+    next_points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
-    print("Best expected points for gameweek {}: {}".format(gw_start, points))
+    print(
+        "Optimised total score (gameweeks",
+        f"{min(gw_range)} to {max(gw_range)}): {optimised_score:.2f}",
+    )
+    print(f"Expected points for gameweek {gw_start}: {next_points:.2f}")
     print("---------------------")
     print(best_squad)
 

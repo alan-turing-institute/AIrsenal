@@ -4,7 +4,7 @@ Functions to optimise an initial squad or a squad for wildcards/free hits.
 
 import random
 
-from airsenal.framework.optimization_utils import get_discount_factor, positions
+from airsenal.framework.optimization_utils import get_discounted_squad_score, positions
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import CURRENT_SEASON, get_predicted_points
@@ -125,20 +125,14 @@ def make_new_squad_iter(
                     if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
                         break
         # we have a complete squad
-        score = 0.0
-        for gw in gw_range:
-            if gw == bench_boost_gw:
-                score += t.get_expected_points(
-                    gw, tag, bench_boost=True
-                ) * get_discount_factor(gw_range[0], gw)
-            elif gw == triple_captain_gw:
-                score += t.get_expected_points(
-                    gw, tag, triple_captain=True
-                ) * get_discount_factor(gw_range[0], gw)
-            else:
-                score += t.get_expected_points(gw, tag) * get_discount_factor(
-                    gw_range[0], gw
-                )
+        score = get_discounted_squad_score(
+            t,
+            gw_range,
+            tag,
+            gw_range[0],
+            bench_boost_gw,
+            triple_captain_gw,
+        )
         if score > best_score:
             best_score = score
             best_squad = t
