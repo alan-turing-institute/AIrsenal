@@ -19,6 +19,7 @@ from airsenal.framework.schema import (
     Fixture,
     Player,
     PlayerAttributes,
+    PlayerMapping,
     PlayerPrediction,
     PlayerScore,
     Team,
@@ -420,16 +421,21 @@ def get_player(player_name_or_id, dbsession=None):
     else:
         filter_attr = Player.name
     p = dbsession.query(Player).filter(filter_attr == player_name_or_id).first()
+
     if p:
         return p
+
     if isinstance(player_name_or_id, int):  # didn't find by id - return None
         return None
-    # assume we have a name, now try alternative names
-    for k, v in alternative_player_names.items():
-        if player_name_or_id in v:
-            p = dbsession.query(Player).filter_by(name=k).first()
-            if p:
-                return p
+
+    # check for match in alternative player name mappings
+    mapping = (
+        dbsession.query(PlayerMapping).filter_by(alt_name=player_name_or_id).first()
+    )
+    if mapping:
+        p = dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+        return p
+
     # didn't find it - return None
     return None
 
