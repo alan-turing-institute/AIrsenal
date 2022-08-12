@@ -59,7 +59,7 @@ if __name__ == "__main__":
     missing = set()
     matched = set()
     history_players = set()
-    for season in ["2122", "2021","1920"]:
+    for season in ["2122", "2021", "1920"]:
         filename = "../data/player_summary_{}.json".format(season)
         player_data = json.load(open(filename))
         for p in player_data:
@@ -74,11 +74,15 @@ if __name__ == "__main__":
             # try two separate fuzzy methods, the first
             # is the simplest, but not best for players whose
             # names swap order
-            p, score = find_best_match(fpl_players_to_match, player, fuzz_method=fuzz.ratio)
+            p, score = find_best_match(
+                fpl_players_to_match, player, fuzz_method=fuzz.ratio
+            )
             if score > 70:
-                add_player = input(f"Add {p} : {player}  (score (from ratio)={score})? (y/n):")
-                if add_player.lower() =="y":
-                    if not p in playerdict.keys():
+                add_player = input(
+                    f"Add {p} : {player}  (score (from ratio)={score})? (y/n):"
+                )
+                if add_player.lower() == "y":
+                    if p not in playerdict.keys():
                         playerdict[p] = []
                     playerdict[p].append(player)
                     matched.add(player)
@@ -86,11 +90,16 @@ if __name__ == "__main__":
                     count += 1
             else:
                 # this method should be better for swaps of first and second name
-                p, score = find_best_match(fpl_players_to_match, player, fuzz_method=fuzz.token_sort_ratio)
+                p, score = find_best_match(
+                    fpl_players_to_match, player, fuzz_method=fuzz.token_sort_ratio
+                )
                 if score > 80:
-                    add_player = input(f"Add {p} : {player}  (score (from token_sort_ratio)={score})? (y/n):")
-                    if add_player.lower()=="y":
-                        if not p in playerdict.keys():
+                    add_player = input(
+                        f"Add {p} : {player}  (score (from token_sort_ratio)={score})? "
+                        "(y/n):"
+                    )
+                    if add_player.lower() == "y":
+                        if p not in playerdict.keys():
                             playerdict[p] = []
                         playerdict[p].append(player)
                         matched.add(player)
@@ -100,5 +109,5 @@ if __name__ == "__main__":
     # write an output csv file with each line containing all possible
     # alternative names for a given current-season name
     with open("../data/alternative_player_names.csv", "w") as outfile:
-        for k,v in playerdict.items():
+        for k, v in playerdict.items():
             outfile.write(f"{k},{','.join(v)}\n")
