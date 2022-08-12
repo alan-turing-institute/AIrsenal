@@ -31,6 +31,7 @@ import regex as re
 import requests
 from tqdm import TqdmWarning, tqdm
 
+from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
     set_multiprocessing_start_method,
@@ -59,8 +60,7 @@ from airsenal.framework.utils import (
 )
 from airsenal.scripts.squad_builder import fill_initial_squad
 
-TMPDIR = "/tmp/" if os.name == "posix" else "%TMP%"
-OUTPUT_DIR = os.path.join(TMPDIR, "airsopt")
+OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
 
 def is_finished(final_expected_num):

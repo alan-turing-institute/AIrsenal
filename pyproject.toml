@@ -19,6 +19,7 @@ tqdm = "^4.64.0"
 dateparser = "^1.1.1"
 prettytable = "^3.3.0"
 beautifulsoup4 = "^4.11.1"
+platformdirs = "^2.5.2"
 jupyter = {version = "^1.0.0", optional = true}
 matplotlib = {version = "^3.5.2", optional = true}
 Flask = {version = "^2.1.2", optional = true}
@@ -54,3 +55,4 @@ airsenal_run_pipeline = "airsenal.scripts.airsenal_run_pipeline:run_pipeline"
 airsenal_replay_season = "airsenal.scripts.replay_season:main"
 airsenal_make_transfers = "airsenal.scripts.make_transfers:main"
 airsenal_set_lineup = "airsenal.scripts.set_lineup:main"
+airsenal_env = "airsenal.scripts.set_env:main"

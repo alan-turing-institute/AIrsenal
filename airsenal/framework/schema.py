@@ -9,7 +9,7 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-from airsenal.framework.db_config import DB_CONNECTION_STRING, AIrsenalDBFile
+from airsenal.framework.db_config import AIRSENAL_DB_FILE, DB_CONNECTION_STRING
 
 Base = declarative_base()
 
@@ -405,7 +405,7 @@ def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    if os.path.exists(AIrsenalDBFile):
+    if os.path.exists(AIRSENAL_DB_FILE):
         return dbsession.query(Team).first() is None
     else:  # file doesn't exist - db is definitely empty!
         return True

@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from airsenal import TMPDIR
+from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Base, Player, PlayerAttributes
 from airsenal.framework.utils import CURRENT_SEASON
@@ -14,16 +14,12 @@ from airsenal.tests.resources import dummy_players
 
 API_SESSION_ID = "TESTSESSION"
 
-testengine_dummy = create_engine("sqlite:///{}/test.db".format(TMPDIR))
-# testengine_past = create_engine(
-#    "sqlite:////Users/nbarlow/AIrsenal/airsenal/tests/testdata/testdata_1718_1819.db"
-# ).format(os.path.dirname(__file__)))
+testengine_dummy = create_engine(f"sqlite:///{AIRSENAL_HOME}/test.db")
 
 testengine_past = create_engine(
-    "sqlite:///{}/tests/testdata/testdata_1718_1819.db".format(
-        os.path.dirname(__file__)
-    )
+    f"sqlite:///{os.path.dirname(__file__)}/tests/testdata/testdata_1718_1819.db"
 )
+
 
 Base.metadata.create_all(testengine_dummy)
 
