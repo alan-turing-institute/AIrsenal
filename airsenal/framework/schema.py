@@ -2,14 +2,13 @@
 Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-import os
 from contextlib import contextmanager
 
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-from airsenal.framework.db_config import AIRSENAL_DB_FILE, DB_CONNECTION_STRING
+from airsenal.framework.env import DB_CONNECTION_STRING
 
 Base = declarative_base()
 
@@ -405,7 +404,4 @@ def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    if os.path.exists(AIRSENAL_DB_FILE):
-        return dbsession.query(Team).first() is None
-    else:  # file doesn't exist - db is definitely empty!
-        return True
+    return dbsession.query(Team).first() is None
