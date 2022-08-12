@@ -27,9 +27,9 @@ def make_new_squad(
     - algorithm="genetic": airsenal.framework.optimization_pygmo.make_new_squad_pygmo
     """
     if algorithm == "genetic":
-        from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
-
         try:
+            from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
+
             return make_new_squad_pygmo(
                 gw_range=gw_range,
                 tag=tag,
