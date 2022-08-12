@@ -30,7 +30,7 @@ def fill_initial_squad(
     budget=1000,
     algorithm="genetic",
     remove_zero=True,
-    sub_weights={"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    sub_weights=DEFAULT_SUB_WEIGHTS,
     uda=None,
     population_size=100,
     num_iterations=10,
@@ -71,7 +71,7 @@ def fill_initial_squad(
         gw_range,
         tag,
         gw_range[0],
-        sub_weights=DEFAULT_SUB_WEIGHTS,
+        sub_weights=sub_weights,
     )
     next_points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")

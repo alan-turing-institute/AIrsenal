@@ -1179,8 +1179,7 @@ def estimate_minutes_from_prev_season(
         dbsession = session
     previous_season = get_previous_season(season)
 
-    # Only consider minutes the player played with his
-    # current team in the previous season.
+    # Only consider minutes the player played with his current team
     current_team = player.team(season, gameweek)
 
     player_scores = (
@@ -1195,8 +1194,9 @@ def estimate_minutes_from_prev_season(
     )
 
     if len(player_scores) == 0:
-        # If this player didn't play for his current team last season, return 0 minutes
+        # no FPL history / didn't play for current team last season
         return [0]
+
     average_mins = calc_average_minutes(player_scores)
     return [average_mins]
 
