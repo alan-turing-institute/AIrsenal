@@ -136,7 +136,7 @@ def add_players_to_db(
         p.name = name
         if not update:
             dbsession.add(p)
-            add_mappings(p)
+            add_mappings(p, dbsession=dbsession)
 
     dbsession.commit()
     return len(new_players)
