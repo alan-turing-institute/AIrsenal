@@ -9,11 +9,7 @@ from glob import glob
 
 import pandas as pd
 
-from airsenal.framework.mappings import (
-    alternative_player_names,
-    alternative_team_names,
-    positions,
-)
+from airsenal.framework.mappings import alternative_team_names, positions
 from airsenal.framework.utils import get_past_seasons
 
 # directory of this script
@@ -285,20 +281,9 @@ def make_player_details(seasons=get_past_seasons(3)):
             if name in positions_df.index:
                 position = str(positions_df.loc[name])
             else:
-                position = "NA"
-                for k, v in alternative_player_names.items():
-                    if name == k or name in v:
-                        if k in positions_df.index:
-                            position = str(positions_df.loc[k])
-                        else:
-                            for alt_name in v:
-                                if alt_name in positions_df.index:
-                                    position = str(positions_df.loc[alt_name])
-                                    break
-                        print("found", position, "via alternative name")
-                        break
-            if position == "NA":
-                print("!!!FAILED!!! Could not find position for", name)
+                # TODO - previously used old mappings list, may need to be updated to
+                # search for alternative names in new database table/file
+                raise RuntimeError(f"!!!FAILED!!! Could not find position for {name}")
             for fixture in player_dict:
                 fixture["position"] = position
 
