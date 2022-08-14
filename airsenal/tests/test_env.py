@@ -6,7 +6,7 @@ from airsenal.framework.env import delete_env, get_env, save_env
 
 
 def test_get_env_none():
-    assert get_env("FPL_TEAM_ID") is None
+    assert get_env("FPL_LOGIN") is None
 
 
 def test_get_env_default():
