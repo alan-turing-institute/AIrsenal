@@ -6,17 +6,17 @@ from pathlib import Path
 
 from platformdirs import user_data_dir
 
-AIRSENAL_ENV_KEYS = [
-    "FPL_TEAM_ID",
-    "FPL_LOGIN",
-    "FPL_PASSWORD",
-    "FPL_LEAGUE_ID",
-    "AIRSENAL_DB_FILE",
-    "AIRSENAL_DB_URI",
-    "AIRSENAL_DB_USER",
-    "AIRSENAL_DB_PASSWORD",
-    "DISCORD_WEBHOOK",
-]
+AIRSENAL_ENV_KEYS = {  # dict of name then function to  convert str to correct type
+    "FPL_TEAM_ID": int,
+    "FPL_LOGIN": str,
+    "FPL_PASSWORD": str,
+    "FPL_LEAGUE_ID": int,
+    "AIRSENAL_DB_FILE": str,
+    "AIRSENAL_DB_URI": str,
+    "AIRSENAL_DB_USER": str,
+    "AIRSENAL_DB_PASSWORD": str,
+    "DISCORD_WEBHOOK": str,
+}
 
 # Cross-platform data directory
 if "AIRSENAL_HOME" in os.environ.keys():
@@ -41,10 +41,10 @@ def check_valid_key(func):
 @check_valid_key
 def get_env(key, default=None):
     if key in os.environ.keys():
-        return os.environ[key]
+        return AIRSENAL_ENV_KEYS[key](os.environ[key])
     if os.path.exists(AIRSENAL_HOME / key):
         with open(AIRSENAL_HOME / key) as f:
-            return f.read().strip()
+            return AIRSENAL_ENV_KEYS[key](f.read().strip())
     return default
 
 
@@ -61,28 +61,3 @@ def delete_env(key):
     if key in os.environ.keys():
         os.unsetenv(key)
         os.environ.pop(key)
-
-
-if get_env("AIRSENAL_DB_FILE") and get_env("AIRSENAL_DB_URI"):
-    raise RuntimeError("Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI")
-
-# sqlite database in a local file with path specified by AIRSENAL_DB_FILE,
-# or AIRSENAL_HOME / data.db by default
-DB_CONNECTION_STRING = (
-    f"sqlite:///{get_env('AIRSENAL_DB_FILE', default=AIRSENAL_HOME / 'data.db')}"
-)
-
-# postgres database specified by: AIRSENAL_DB{_URI, _USER, _PASSWORD}
-if get_env("AIRSENAL_DB_URI"):
-    keys = ["AIRSENAL_DB_URI", "AIRSENAL_DB_USER", "AIRSENAL_DB_PASSWORD"]
-    params = {}
-    for k in keys:
-        if value := get_env(k):
-            params[k] = value
-        else:
-            raise KeyError(f"{k} must be defined when using a postgres database")
-
-    DB_CONNECTION_STRING = (
-        f"postgres://{params['AIRSENAL_DB_USER']}:"
-        f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
-    )

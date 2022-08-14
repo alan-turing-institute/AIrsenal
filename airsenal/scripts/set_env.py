@@ -4,20 +4,18 @@ from airsenal import __version__
 from airsenal.framework.env import (
     AIRSENAL_ENV_KEYS,
     AIRSENAL_HOME,
-    DB_CONNECTION_STRING,
     delete_env,
     get_env,
     save_env,
 )
+from airsenal.framework.schema import session
 
 
 def print_env():
     print(f"AIRSENAL_VERSION: {__version__}")
     print(f"AIRSENAL_HOME: {AIRSENAL_HOME}")
-    print(f"DB_CONNECTION_STRING: {DB_CONNECTION_STRING}")
+    print(f"DB_CONNECTION_STRING: {session.bind.url}")
     for k in AIRSENAL_ENV_KEYS:
-        if k == "AIRSENAL_HOME":
-            continue
         if value := get_env(k):
             print(f"{k}: {value}")
 
