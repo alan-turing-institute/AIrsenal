@@ -4,10 +4,11 @@ and to query football-data.org to retrieve match and fixture data.
 """
 import getpass
 import json
-import os
 import time
 
 import requests
+
+from airsenal.framework.env import get_env, save_env
 
 API_HOME = "https://fantasy.premierleague.com/api"
 
@@ -19,7 +20,7 @@ class FPLDataFetcher(object):
     """
 
     def __init__(self, fpl_team_id=None, rsession=None):
-        self.rsession = rsession if rsession else requests.session()
+        self.rsession = rsession or requests.session()
         self.logged_in = False
         self.current_summary_data = None
         self.current_event_data = None
@@ -40,33 +41,22 @@ class FPLDataFetcher(object):
             "FPL_PASSWORD",
             "DISCORD_WEBHOOK",
         ]:
-            if ID in os.environ.keys():
-                self.__setattr__(ID, os.environ[ID])
-            elif os.path.exists(
-                os.path.join(os.path.dirname(__file__), "..", "data", "{}".format(ID))
-            ):
-                self.__setattr__(
-                    ID,
-                    open(
-                        os.path.join(
-                            os.path.dirname(__file__), "..", "data", "{}".format(ID)
-                        )
-                    )
-                    .read()
-                    .strip(),
-                )
-            else:
-                self.__setattr__(ID, "MISSING_ID")
+            self.__setattr__(
+                ID,
+                get_env(ID, default="MISSING_ID"),
+            )
+
         if self.FPL_TEAM_ID is not None and self.FPL_TEAM_ID != "MISSING_ID":
             try:
                 self.FPL_TEAM_ID = int(self.FPL_TEAM_ID)
-            except ValueError:
+            except ValueError as e:
                 raise ValueError(
                     f"FPL_TEAM_ID in environment variable and/or data/FPL_TEAM_ID "
                     f"file should be a valid integer. Please correct it or remove "
                     f" it if you're using the command line argument. "
                     f"Found: {self.FPL_TEAM_ID}"
-                )
+                ) from e
+
         if fpl_team_id is not None:
             if isinstance(fpl_team_id, int):
                 self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
@@ -74,27 +64,24 @@ class FPLDataFetcher(object):
                 raise ValueError(
                     f"FPL_TEAM_ID should be an integer. Found: {fpl_team_id}"
                 )
-        self.FPL_SUMMARY_API_URL = API_HOME + "/bootstrap-static/"
+        self.FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
         self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
         self.FPL_TEAM_URL = API_HOME + "/entry/{}/event/{}/picks/"
         self.FPL_TEAM_TRANSFER_URL = API_HOME + "/entry/{}/transfers/"
-        self.FPL_LEAGUE_URL = API_HOME + (
-            "/leagues-classic/{}/standings/?page_new_entries=1&page_standings=1"
-        ).format(self.FPL_LEAGUE_ID)
-        self.FPL_FIXTURE_URL = API_HOME + "/fixtures/"
+        self.FPL_LEAGUE_URL = (
+            f"{API_HOME}/leagues-classic/{self.FPL_LEAGUE_ID}"
+            "/standings/?page_new_entries=1&page_standings=1"
+        )
+        self.FPL_FIXTURE_URL = f"{API_HOME}/fixtures/"
         self.FPL_LOGIN_URL = "https://users.premierleague.com/accounts/login/"
         self.FPL_LOGIN_REDIRECT_URL = "https://fantasy.premierleague.com/a/login"
         self.FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
 
-        # login, if desired
-
-    #        self.login()
-
     def get_fpl_credentials(self):
         """
         If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
-        airsenal/data or as environment variables, prompt the user for them.
+        AIRSENAL_HOME or as environment variables, prompt the user for them.
         """
         print(
             """
@@ -102,30 +89,19 @@ class FPLDataFetcher(object):
             requires the login (email address) and password for your FPL account.
             """
         )
+
         self.FPL_LOGIN = input("Please enter FPL login: ")
         self.FPL_PASSWORD = getpass.getpass("Please enter FPL password: ")
-        data_loc = os.path.join(os.path.dirname(__file__), "..", "data")
         store_credentials = ""
         while store_credentials.lower() not in ["y", "n"]:
             store_credentials = input(
-                (
-                    "\nWould you like to store these credentials in {}"
-                    " so that you won't be prompted for them again? (y/n): "
-                ).format(data_loc)
+                "\nWould you like to store these credentials so that"
+                " you won't be prompted for them again? (y/n): "
             )
+
         if store_credentials.lower() == "y":
-            with open(os.path.join(data_loc, "FPL_LOGIN"), "w") as login_file:
-                login_file.write(self.FPL_LOGIN)
-            with open(os.path.join(data_loc, "FPL_PASSWORD"), "w") as passwd_file:
-                passwd_file.write(self.FPL_PASSWORD)
-            print(
-                """
-                Wrote files {} and {}.
-                You may need to do 'pip install .' for these to be picked up.
-                """.format(
-                    login_file, passwd_file
-                )
-            )
+            save_env("FPL_LOGIN", self.FPL_LOGIN)
+            save_env("FPL_PASSWORD", self.FPL_PASSWORD)
 
     def login(self):
         """
@@ -219,12 +195,11 @@ class FPLDataFetcher(object):
         Returns a list of chips that are available to be played in upcoming gameweek.
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
-        chip_list = [
+        return [
             chip["name"]
             for chip in squad_data["chips"]
             if chip["status_for_entry"] == "available"
         ]
-        return chip_list
 
     def get_current_summary_data(self):
         """

@@ -172,8 +172,8 @@ scipy = "^1.8.0"
 [package.source]
 type = "git"
 url = "https://github.com/anguswilliams91/bpl-next"
-reference = "feature/new-numpyro-interface"
-resolved_reference = "45b8615e80fae239ca4292a23477184cd82bc070"
+reference = "main"
+resolved_reference = "807e6d27ddceb97a0278eb814f95bd338ccf6f95"
 
 [[package]]
 name = "certifi"
@@ -1076,7 +1076,7 @@ tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "pa
 name = "platformdirs"
 version = "2.5.2"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -1710,7 +1710,7 @@ plot = ["matplotlib", "seaborn"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "171eacac50bde6a244ca35dbb4f65c103048b217b50b696a7d2e9ff5949f55e5"
+content-hash = "875711c338f00b8ec2936b93dcc7c073d9d23a96460cc8b8a1d16e335a1f821e"
 
 [metadata.files]
 absl-py = [

@@ -41,9 +41,8 @@ def fill_initial_squad(
             import pygmo as pg
 
             uda = pg.sga(gen=100)
-        except ModuleNotFoundError as e:
-            print(e)
-            print("Defaulting to algorithm=normal instead")
+        except ModuleNotFoundError:
+            print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
 
     gw_start = gw_range[0]
@@ -199,9 +198,8 @@ def main():
             import pygmo as pg
 
             uda = pg.sga(gen=num_generations)
-        except ModuleNotFoundError as e:
-            print(e)
-            print("Defaulting to algorithm=normal instead")
+        except ModuleNotFoundError:
+            print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
             uda = None
     else:

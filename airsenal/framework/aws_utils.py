@@ -6,13 +6,13 @@ import os
 import time
 
 import boto3
-from sqlalchemy.orm import sessionmaker
 
 from airsenal.framework.fpl_team_utils import (
     get_league_standings,
     get_overall_points,
     get_overall_ranking,
 )
+from airsenal.framework.schema import Player, TransferSuggestion
 
 
 def download_sqlite_file():
@@ -64,11 +64,7 @@ def get_suggestions_string():
 
     time.sleep(1)
     try:
-        from airsenal.framework.schema import Base, Player, TransferSuggestion, engine
-
-        Base.metadata.bind = engine
-        DBSession = sessionmaker()
-        session = DBSession()
+        from airsenal.framework.schema import session
     except Exception as e:
         return "Problem importing stuff {}".format(e)
     try:

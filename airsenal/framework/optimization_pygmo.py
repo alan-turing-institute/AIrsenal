@@ -5,13 +5,15 @@ optimal squad for the start of the season or for wildcards and free hits.
 Usually gives better results than optimization_squad.make_new_squad if run with a
 population size of at least 100 and for at least 100 generations.
 """
+
 try:
     import pygmo as pg
-except ModuleNotFoundError:
+except ModuleNotFoundError as e:
     raise ModuleNotFoundError(
         "Optional dependency pygmo not installed. If using conda run "
         "'conda install pygmo'. If not see https://esa.github.io/pygmo2/install.html"
-    )
+    ) from e
+
 
 import uuid
 

@@ -4,10 +4,10 @@
 *FD_API_KEY
 *FPL_LOGIN
 *FPL_PASSWORD
-*AIrsenalDBFile
-*AIrsenalDBUri
-*AIrsenalDBUser
-*AIrsenalDBPassword
+*AIRSENAL_DB_FILE
+*AIRSENAL_DB_URI
+*AIRSENAL_DB_USER
+*AIRSENAL_DB_PASSWORD
 
 # compiled stan models
 stan_model/

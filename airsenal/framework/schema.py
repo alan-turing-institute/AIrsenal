@@ -2,14 +2,13 @@
 Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
-import os
 from contextlib import contextmanager
 
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-from airsenal.framework.db_config import DB_CONNECTION_STRING, AIrsenalDBFile
+from airsenal.framework.env import AIRSENAL_HOME, get_env
 
 Base = declarative_base()
 
@@ -367,22 +366,52 @@ class SessionBudget(Base):
     budget = Column(Integer, nullable=False)
 
 
-engine = create_engine(DB_CONNECTION_STRING)
+def get_connection_string():
+    if get_env("AIRSENAL_DB_FILE") and get_env("AIRSENAL_DB_URI"):
+        raise RuntimeError(
+            "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
+        )
 
-Base.metadata.create_all(engine)
-# Bind the engine to the metadata of the Base class so that the
-# declaratives can be accessed through a DBSession instance
-Base.metadata.bind = engine
+    # postgres database specified by: AIRSENAL_DB{_URI, _USER, _PASSWORD}
+    if get_env("AIRSENAL_DB_URI"):
+        keys = ["AIRSENAL_DB_URI", "AIRSENAL_DB_USER", "AIRSENAL_DB_PASSWORD"]
+        params = {}
+        for k in keys:
+            if value := get_env(k):
+                params[k] = value
+            else:
+                raise KeyError(f"{k} must be defined when using a postgres database")
 
-DBSession = sessionmaker(bind=engine, autoflush=False)
+        return (
+            f"postgres://{params['AIRSENAL_DB_USER']}:"
+            f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
+        )
+
+    # sqlite database in a local file with path specified by AIRSENAL_DB_FILE,
+    # or AIRSENAL_HOME / data.db by default
+    return f"sqlite:///{get_env('AIRSENAL_DB_FILE', default=AIRSENAL_HOME / 'data.db')}"
+
+
+def get_session():
+    engine = create_engine(get_connection_string())
+
+    Base.metadata.create_all(engine)
+    # Bind the engine to the metadata of the Base class so that the
+    # declaratives can be accessed through a DBSession instance
+    Base.metadata.bind = engine
+
+    DBSession = sessionmaker(bind=engine, autoflush=False)
+    return DBSession()
+
+
 # global database session used by default throughout the package
-session = DBSession()
+session = get_session()
 
 
 @contextmanager
 def session_scope():
     """Provide a transactional scope around a series of operations."""
-    session = DBSession()
+    session = get_session()
     try:
         yield session
         session.commit()
@@ -405,7 +434,4 @@ def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    if os.path.exists(AIrsenalDBFile):
-        return dbsession.query(Team).first() is None
-    else:  # file doesn't exist - db is definitely empty!
-        return True
+    return dbsession.query(Team).first() is None
