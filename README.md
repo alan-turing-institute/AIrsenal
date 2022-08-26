@@ -180,8 +180,6 @@ Note that `airsenal_run_optimization` should only be used for transfer suggestio
 airsenal_make_squad --num_gameweeks 3
 ```
 
-This can also be used during the season to generate a full new squad (e.g. for wildcards).
-
 ### 4. Apply Transfers and Lineup
 
 To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers). Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for these to work (as described in the "Configuration" section above).
