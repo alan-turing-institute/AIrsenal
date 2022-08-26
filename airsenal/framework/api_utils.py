@@ -290,7 +290,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     for p in players:
         added_ok = t.add_player(p)
         if not added_ok:
-            raise RuntimeError("fCannot add player {p}")
+            raise RuntimeError(f"Cannot add player {p}")
     pred_tag = get_latest_prediction_tag()
     if n_transfer == 1:
         _, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
