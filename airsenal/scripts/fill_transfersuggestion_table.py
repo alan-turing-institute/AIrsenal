@@ -209,7 +209,7 @@ def optimize(
 
         if depth >= len(gameweek_range):
             with open(
-                os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(pred_tag, sid)),
+                os.path.join(OUTPUT_DIR, f"strategy_{pred_tag}_{sid}.json"),
                 "w",
             ) as outfile:
                 json.dump(strat_dict, outfile)
@@ -255,7 +255,7 @@ def find_best_strat_from_json(tag):
     best_strat = None
     file_list = os.listdir(OUTPUT_DIR)
     for filename in file_list:
-        if "strategy_{}_".format(tag) not in filename:
+        if f"strategy_{tag}_" not in filename:
             continue
         full_filename = os.path.join(OUTPUT_DIR, filename)
         with open(full_filename) as strat_file:
@@ -275,7 +275,7 @@ def save_baseline_score(squad, gameweeks, tag):
 
     num_gameweeks = len(gameweeks)
     zeros = ("0-" * num_gameweeks)[:-1]
-    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
+    filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
     with open(filename, "w") as f:
         json.dump(strat_dict, f)
 
@@ -287,9 +287,9 @@ def find_baseline_score_from_json(tag, num_gameweeks):
     """
     # the strategy string we're looking for will be something like '0-0-0'.
     zeros = ("0-" * num_gameweeks)[:-1]
-    filename = os.path.join(OUTPUT_DIR, "strategy_{}_{}.json".format(tag, zeros))
+    filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
     if not os.path.exists(filename):
-        print("Couldn't find {}".format(filename))
+        print(f"Couldn't find {filename}")
         return 0.0
     else:
         with open(filename) as inputfile:
@@ -308,20 +308,20 @@ def print_strat(strat):
     print(" ========= Optimum strategy ====================")
     print(" ===============================================")
     for gw in gameweeks_as_int:
-        print("\n =========== Gameweek {} ================\n".format(gw))
-        print("Chips played:  {}\n".format(strat["chips_played"][str(gw)]))
+        print(f"\n =========== Gameweek {gw} ================\n")
+        print(f"Chips played:  {strat['chips_played'][str(gw)]}\n")
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat["players_in"][str(gw)])):
             pin = get_player_name(strat["players_in"][str(gw)][i])
             pout = get_player_name(strat["players_out"][str(gw)][i])
             if len(pin) < 20:
-                subs = "{}\t\t\t{}".format(pin, pout)
+                subs = f"{pin}\t\t\t{pout}"
             else:
-                subs = "{}\t\t{}".format(pin, pout)
+                subs = f"{pin}\t\t{pout}"
             print(subs)
     print("\n==========================")
-    print(" Total score: {} \n".format(int(strat["total_score"])))
+    print(f" Total score: {int(strat['total_score'])} \n")
 
 
 def discord_payload(strat, lineup):
@@ -333,15 +333,15 @@ def discord_payload(strat, lineup):
     discord_embed = {
         "title": "AIrsenal webhook",
         "description": "Optimum strategy for gameweek(S)"
-        " {}:".format(",".join(str(x) for x in gameweeks_as_int)),
+        f" {','.join(str(x) for x in gameweeks_as_int)}:",
         "color": 0x35A800,
         "fields": [],
     }
     for gw in gameweeks_as_int:
         discord_embed["fields"].append(
             {
-                "name": "GW{} chips:".format(gw),
-                "value": "Chips played:  {}\n".format(strat["chips_played"][str(gw)]),
+                "name": f"GW{gw} chips:",
+                "value": f"Chips played:  {strat['chips_played'][str(gw)]}\n",
                 "inline": False,
             }
         )
@@ -350,13 +350,13 @@ def discord_payload(strat, lineup):
         discord_embed["fields"].extend(
             [
                 {
-                    "name": "GW{} transfers out:".format(gw),
-                    "value": "{}".format("\n".join(pout)),
+                    "name": f"GW{gw} transfers out:",
+                    "value": "\n".join(pout),
                     "inline": True,
                 },
                 {
-                    "name": "GW{} transfers in:".format(gw),
-                    "value": "{}".format("\n".join(pin)),
+                    "name": f"GW{gw} transfers in:",
+                    "value": "\n".join(pin),
                     "inline": True,
                 },
             ]
@@ -428,7 +428,7 @@ def run_optimization(
     # give the user the option to login
     fetcher.login()
 
-    print("Running optimization with fpl_team_id {}".format(fpl_team_id))
+    print(f"Running optimization with fpl_team_id {fpl_team_id}")
     use_api = fetcher.logged_in if season == CURRENT_SEASON else False
     try:
         starting_squad = get_starting_squad(
@@ -436,7 +436,7 @@ def run_optimization(
         )
     except (ValueError, TypeError):
         # first week for this squad?
-        print("No existing squad or transfers found for team_id {}".format(fpl_team_id))
+        print(f"No existing squad or transfers found for team_id {fpl_team_id}")
         print("Will suggest a new starting squad:")
         fill_initial_squad(
             tag=tag,
@@ -571,9 +571,9 @@ def run_optimization(
     for i in range(len(procs)):
         print("\n")
     print("\n====================================\n")
-    print("Strategy for Team ID: {}".format(fpl_team_id))
-    print("Baseline score: {}".format(baseline_score))
-    print("Best score: {}".format(best_strategy["total_score"]))
+    print(f"Strategy for Team ID: {fpl_team_id}")
+    print(f"Baseline score: {baseline_score}")
+    print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
     t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
 
@@ -587,16 +587,16 @@ def run_optimization(
         ):
             # create a formatted team lineup message for the discord webhook
             lineup_strings = [
-                "__Strategy for Team ID: **{}**__".format(fpl_team_id),
-                "Baseline score: *{}*".format(int(baseline_score)),
-                "Best score: *{}*".format(int(best_strategy["total_score"])),
+                f"__Strategy for Team ID: **{fpl_team_id}**__",
+                f"Baseline score: *{int(baseline_score)}*",
+                f"Best score: *{int(best_strategy['total_score'])}*",
                 "\n__starting 11__",
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:
-                lineup_strings.append("== **{}** ==\n```".format(position))
+                lineup_strings.append(f"== **{position}** ==\n```")
                 for p in t.players:
                     if p.position == position and p.is_starting:
-                        player_line = "{} ({})".format(p.name, p.team)
+                        player_line = f"{p.name} ({p.team})"
                         if p.is_captain:
                             player_line += "(C)"
                         elif p.is_vice_captain:
@@ -608,7 +608,7 @@ def run_optimization(
             subs = [p for p in t.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
             for p in subs:
-                lineup_strings.append("{} ({})".format(p.name, p.team))
+                lineup_strings.append(f"{p.name} ({p.team})")
             lineup_strings.append("```\n")
 
             # generate a discord embed json and send to webhook
@@ -647,8 +647,9 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
             # check we're not trying to play 2 chips
             if chip_dict[v]["chip_to_play"] is not None:
                 raise RuntimeError(
-                    "Cannot play {} and {} in the same week".format(
-                        chip_dict[v]["chip_to_play"], k
+                    (
+                        f"Cannot play {chip_dict[v]['chip_to_play']} and {k} in the "
+                        "same week"
                     )
                 )
             chip_dict[v]["chip_to_play"] = k
