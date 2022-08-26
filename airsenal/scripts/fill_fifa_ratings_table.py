@@ -21,14 +21,14 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
         seasons.append(CURRENT_SEASON)
 
     for season in seasons:
-        print("FIFA RATINGS {}".format(season))
+        print(f"FIFA RATINGS {season}")
         input_path = os.path.join(
-            os.path.dirname(__file__), "../data/fifa_team_ratings_{}.csv".format(season)
+            os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"
         )
         try:
             input_file = open(input_path)
         except FileNotFoundError:
-            print("!!! No FIFA ratings file found for {}".format(season))
+            print(f"!!! No FIFA ratings file found for {season}")
             continue
 
         for line in input_file.readlines()[1:]:
@@ -48,7 +48,7 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
                 elif team == k:
                     team_is_known = True
             if not team_is_known:
-                raise ValueError("Unknown team {}.".format(team))
+                raise ValueError(f"Unknown team {team}.")
             dbsession.add(r)
 
     dbsession.commit()

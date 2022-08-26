@@ -47,7 +47,7 @@ def fill_player_table_from_file(filename, season, dbsession):
     for jp in jplayers:
         new_entry = False
         name = jp["name"]
-        print("PLAYER {} {}".format(season, name))
+        print(f"PLAYER {season} {name}")
         p = find_player_in_table(name, dbsession)
         if not p:
             new_entry = True
@@ -72,9 +72,9 @@ def fill_player_table_from_api(season, dbsession):
         p.fpl_api_id = k
         first_name = v["first_name"]  # .encode("utf-8")
         second_name = v["second_name"]  # .encode("utf-8")
-        name = "{} {}".format(first_name, second_name)
+        name = f"{first_name} {second_name}"
 
-        print("PLAYER {} {}".format(season, name))
+        print(f"PLAYER {season} {name}")
         p.name = name
         dbsession.add(p)
     dbsession.commit()
@@ -109,7 +109,7 @@ def make_init_player_table(season, dbsession=session):
                 os.path.dirname(__file__),
                 "..",
                 "data",
-                "player_summary_{}.json".format(season),
+                f"player_summary_{season}.json",
             )
         )
         fill_player_table_from_file(filename, season, dbsession)
@@ -126,7 +126,7 @@ def make_remaining_player_table(seasons, dbsession=session):
                 os.path.dirname(__file__),
                 "..",
                 "data",
-                "player_summary_{}.json".format(season),
+                f"player_summary_{season}.json",
             )
         )
         fill_player_table_from_file(filename, season, dbsession)
