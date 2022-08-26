@@ -18,7 +18,7 @@ def get_current_season():
     else:
         start_year = current_time.year - 1
     end_year = start_year + 1
-    return "{}{}".format(str(start_year)[2:], str(end_year)[2:])
+    return f"{str(start_year)[2:]}{str(end_year)[2:]}"
 
 
 # make this a global variable in this module, import into other modules

@@ -67,9 +67,7 @@ def calc_points_hit(num_transfers, free_transfers):
         num_transfers = int(num_transfers[-1])
         return max(0, 4 * (num_transfers - free_transfers))
     else:
-        raise RuntimeError(
-            "Unexpected argument for num_transfers {}".format(num_transfers)
-        )
+        raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
 
 
 def calc_free_transfers(num_transfers, prev_free_transfers):
@@ -89,9 +87,7 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
         num_transfers = int(num_transfers[-1])
         return max(1, min(2, 1 + prev_free_transfers - num_transfers))
     else:
-        raise RuntimeError(
-            "Unexpected argument for num_transfers {}".format(num_transfers)
-        )
+        raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
 
 
 def get_starting_squad(
@@ -132,7 +128,7 @@ def get_starting_squad(
         if most_recent is None:
             raise ValueError("No transactions in database.")
         fpl_team_id = most_recent.fpl_team_id
-    print("Getting starting squad for {}".format(fpl_team_id))
+    print(f"Getting starting squad for {fpl_team_id}")
 
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
@@ -401,7 +397,7 @@ def get_num_increments(num_transfers, num_iterations=100):
         # remove each pair of players - 15*7=105 combinations
         return 105
     else:
-        print("Unrecognized num_transfers: {}".format(num_transfers))
+        print(f"Unrecognized num_transfers: {num_transfers}")
         return 1
 
 
@@ -427,9 +423,8 @@ def next_week_transfers(
         and chips["chip_to_play"]
     ):
         raise RuntimeError(
-            "Cannot allow {} in the same week as we play {}".format(
-                chips["chips_allowed"], chips["chip_to_play"]
-            )
+            f"Cannot allow {chips['chips_allowed']}"
+            "in the same week as we play {chips['chip_to_play']}"
         )
     ft_available, hit_so_far, strat_dict = strat
     chip_history = strat_dict["chips_played"]
