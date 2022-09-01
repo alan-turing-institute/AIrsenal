@@ -156,6 +156,19 @@ def price_transfers(transfer_player_ids, fetcher, current_gw):
     return transfer_list
 
 
+def separate_transfers_in_or_out(transfer_list):
+    """
+    Given a list of dicts with keys
+    "element_in", "purchase_price", "element_out", "selling_price",
+    (such as what is returned by price_transfers),
+    return two lists of dicts, one for transfers in and
+    one for transfers out
+    """
+    transfers_out = [{"element_out": t["element_out"], "selling_price": t["selling_price"]} for t in transfer_list]
+    transfers_in = [{"element_in": t["element_in"], "purchase_price": t["purchase_price"]} for t in transfer_list]
+    return transfers_out, transfers_in
+
+
 def sort_by_position(transfer_list):
     """
     Takes a list of transfers e.g. [{"element_in": <FPL_API_ID>, "purchase_price": x}]
@@ -272,14 +285,18 @@ def make_transfers(fpl_team_id=None, skip_check=False):
     else:
         pre_transfer_bank = get_bank(fpl_team_id=team_id)
         priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
-        post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
+        transfers_out, transfers_in = separate_transfers_in_or_out(priced_transfers)
+        sorted_transfers_out = sort_by_position(transfers_out)
+        sorted_transfers_in = sort_by_position(transfers_in)
+        sorted_priced_transfers = [ sorted_transfers_out[i] | sorted_transfers_in[i] for i in range(len(sorted_transfers_out)) ]
+        post_transfer_bank = deduct_transfer_price(pre_transfer_bank, sorted_priced_transfers)
         print_output(
-            team_id, current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank
+            team_id, current_gw, sorted_priced_transfers, pre_transfer_bank, post_transfer_bank
         )
 
     if skip_check or check_proceed():
         transfer_req = build_transfer_payload(
-            priced_transfers, current_gw, fetcher, chip_played
+            sorted_priced_transfers, current_gw, fetcher, chip_played
         )
         fetcher.post_transfers(transfer_req)
     return True
