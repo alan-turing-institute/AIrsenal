@@ -99,7 +99,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
     )
     if not rows:
         print(
-            f"No transfer suggestions found for GW {NEXT_GAMEWEEK}, "
+            f"No transfer suggestions found for GW {NEXT_GAMEWEEK} "
             f"({CURRENT_SEASON} season)"
         )
         return None
