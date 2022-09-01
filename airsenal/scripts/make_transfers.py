@@ -14,6 +14,7 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
     get_bank,
     get_player,
     get_player_from_api_id,
@@ -93,9 +94,18 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
-    rows = get_transfer_suggestions(dbsession)
+    rows = get_transfer_suggestions(
+        dbsession, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON
+    )
+    if not rows:
+        print(
+            f"No transfer suggestions found for GW {NEXT_GAMEWEEK} "
+            f"({CURRENT_SEASON} season)"
+        )
+        return None
+
     if fpl_team_id and int(fpl_team_id) != rows[0].fpl_team_id:
-        raise Exception(
+        raise ValueError(
             f"Team ID passed is {fpl_team_id}, but transfer suggestions are for "
             f"team ID {rows[0].fpl_team_id}. We recommend re-running optimization."
         )
@@ -110,7 +120,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
                 players_out.append(row.player_id)
             else:
                 players_in.append(row.player_id)
-    return ([players_out, players_in], fpl_team_id, current_gw, chip)
+    return [players_out, players_in], fpl_team_id, current_gw, chip
 
 
 def price_transfers(transfer_player_ids, fetcher, current_gw):
@@ -144,6 +154,25 @@ def price_transfers(transfer_player_ids, fetcher, current_gw):
 
     transfer_list = [to_dict(transfer) for transfer in priced_transfers]
     return transfer_list
+
+
+def separate_transfers_in_or_out(transfer_list):
+    """
+    Given a list of dicts with keys
+    "element_in", "purchase_price", "element_out", "selling_price",
+    (such as what is returned by price_transfers),
+    return two lists of dicts, one for transfers in and
+    one for transfers out
+    """
+    transfers_out = [
+        {"element_out": t["element_out"], "selling_price": t["selling_price"]}
+        for t in transfer_list
+    ]
+    transfers_in = [
+        {"element_in": t["element_in"], "purchase_price": t["purchase_price"]}
+        for t in transfer_list
+    ]
+    return transfers_out, transfers_in
 
 
 def sort_by_position(transfer_list):
@@ -249,26 +278,40 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
 def make_transfers(fpl_team_id=None, skip_check=False):
 
-    transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
-        fpl_team_id
-    )
+    suggestions = get_gw_transfer_suggestions(fpl_team_id)
+    if not suggestions:
+        return
+    transfer_player_ids, team_id, current_gw, chip_played = suggestions
+
     fetcher = FPLDataFetcher(team_id)
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
         print("Making transfer list for starting team")
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
     else:
-
         pre_transfer_bank = get_bank(fpl_team_id=team_id)
         priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
-        post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
+        transfers_out, transfers_in = separate_transfers_in_or_out(priced_transfers)
+        sorted_transfers_out = sort_by_position(transfers_out)
+        sorted_transfers_in = sort_by_position(transfers_in)
+        sorted_priced_transfers = [
+            sorted_transfers_out[i] | sorted_transfers_in[i]
+            for i in range(len(sorted_transfers_out))
+        ]
+        post_transfer_bank = deduct_transfer_price(
+            pre_transfer_bank, sorted_priced_transfers
+        )
         print_output(
-            team_id, current_gw, priced_transfers, pre_transfer_bank, post_transfer_bank
+            team_id,
+            current_gw,
+            sorted_priced_transfers,
+            pre_transfer_bank,
+            post_transfer_bank,
         )
 
     if skip_check or check_proceed():
         transfer_req = build_transfer_payload(
-            priced_transfers, current_gw, fetcher, chip_played
+            sorted_priced_transfers, current_gw, fetcher, chip_played
         )
         fetcher.post_transfers(transfer_req)
     return True
@@ -278,8 +321,9 @@ def main():
     parser = argparse.ArgumentParser("Make transfers via the FPL API")
     parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
     parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
+
     args = parser.parse_args()
-    confirm = args.confirm if args.confirm else False
+    confirm = args.confirm or False
     make_transfers(args.fpl_team_id, confirm)
     set_lineup(args.fpl_team_id)
 
