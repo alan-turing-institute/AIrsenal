@@ -258,14 +258,14 @@ def main(seasons: List[str]):
     seasons : List[str]
         seasons to query in format "1819" (for 2018/19 season)
     """
-    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+    REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
 
     for season in tqdm(seasons):
         print(f"Season: {season}")
         injuries, suspensions = get_season_injuries_suspensions(season)
-        injuries.to_csv(os.path.join(data_dir, f"injuries_{season}.csv"), index=False)
+        injuries.to_csv(os.path.join(REPO_HOME, f"injuries_{season}.csv"), index=False)
         suspensions.to_csv(
-            os.path.join(data_dir, f"suspensions_{season}.csv"), index=False
+            os.path.join(REPO_HOME, f"suspensions_{season}.csv"), index=False
         )
 
 

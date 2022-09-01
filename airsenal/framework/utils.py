@@ -14,11 +14,11 @@ import requests
 from sqlalchemy import case, desc, or_
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.mappings import alternative_player_names
 from airsenal.framework.schema import (
     Fixture,
     Player,
     PlayerAttributes,
+    PlayerMapping,
     PlayerPrediction,
     PlayerScore,
     Team,
@@ -409,28 +409,31 @@ def get_player(player_name_or_id, dbsession=None):
     to the FPL API ID.
     """
     if not dbsession:
-        dbsession = session  # use the one defined in this module
+        dbsession = session
 
-    # if an id has been passed as a string, convert it to an integer
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
         player_name_or_id = int(player_name_or_id)
-
     if isinstance(player_name_or_id, int):
         filter_attr = Player.player_id
     else:
         filter_attr = Player.name
-    p = dbsession.query(Player).filter(filter_attr == player_name_or_id).first()
-    if p:
+
+    if p := dbsession.query(Player).filter(filter_attr == player_name_or_id).first():
         return p
-    if isinstance(player_name_or_id, int):  # didn't find by id - return None
+
+    # failed to find player by ID
+    if isinstance(player_name_or_id, int):
         return None
-    # assume we have a name, now try alternative names
-    for k, v in alternative_player_names.items():
-        if player_name_or_id in v:
-            p = dbsession.query(Player).filter_by(name=k).first()
-            if p:
-                return p
-    # didn't find it - return None
+
+    # search for matching alternative name
+    if (
+        mapping := dbsession.query(PlayerMapping)
+        .filter_by(alt_name=player_name_or_id)
+        .first()
+    ):
+        p = dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+        return p
+
     return None
 
 
@@ -439,11 +442,10 @@ def get_player_from_api_id(api_id, dbsession=None):
     Query the database and return the player with the corresponding attribute fpl_api_id
     """
     if not dbsession:
-        dbsession = session  # use the one defined in this module
-    p = dbsession.query(Player).filter_by(fpl_api_id=api_id).first()
-    if p:
+        dbsession = session
+    if p := dbsession.query(Player).filter_by(fpl_api_id=api_id).first():
         return p
-    print("Unable to find player with fpl_api_id {}".format(api_id))
+    print(f"Unable to find player with fpl_api_id {api_id}")
     return None
 
 
@@ -451,33 +453,18 @@ def get_player_name(player_id, dbsession=None):
     """
     lookup player name, for human readability
     """
-    if not dbsession:
-        dbsession = session
-    p = dbsession.query(Player).filter_by(player_id=player_id).first()
-    if not p:
-        print("Unknown player_id {}".format(player_id))
-        return None
-    return p.name
+    if p := get_player(player_id, dbsession):
+        return p.name
+
+    print(f"Unknown player_id {player_id}")
+    return None
 
 
 def get_player_id(player_name, dbsession=None):
-    """
-    lookup player id, for machine readability
-    """
-    if not dbsession:
-        dbsession = session
-    p = dbsession.query(Player).filter_by(name=player_name).first()
-    if p:
+    if p := get_player(player_name, dbsession):
         return p.player_id
-    # not found by name in DB - try alternative names
-    for k, v in alternative_player_names.items():
-        if player_name in v:
-            p = dbsession.query(Player).filter_by(name=k).first()
-            if p:
-                return p.player_id
-            break
-    # still not found
-    print("Unknown player_name {}".format(player_name))
+
+    print(f"Unknown player_name {player_name}")
     return None
 
 
@@ -1173,8 +1160,7 @@ def estimate_minutes_from_prev_season(
         dbsession = session
     previous_season = get_previous_season(season)
 
-    # Only consider minutes the player played with his
-    # current team in the previous season.
+    # Only consider minutes the player played with his current team
     current_team = player.team(season, gameweek)
 
     player_scores = (
@@ -1189,8 +1175,9 @@ def estimate_minutes_from_prev_season(
     )
 
     if len(player_scores) == 0:
-        # If this player didn't play for his current team last season, return 0 minutes
+        # no FPL history / didn't play for current team last season
         return [0]
+
     average_mins = calc_average_minutes(player_scores)
     return [average_mins]
 

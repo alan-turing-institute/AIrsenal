@@ -24,6 +24,8 @@ from airsenal.framework.utils import (
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
+DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
+
 
 def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
     """Check a prediction tag contains predictions for all the specified gameweeks."""
@@ -169,6 +171,7 @@ def get_discounted_squad_score(
     root_gw: Optional[int] = None,
     bench_boost_gw: Optional[int] = None,
     triple_captain_gw: Optional[int] = None,
+    sub_weights: Optional[dict] = None,
 ) -> float:
     """Get the expected number of points a squad is to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
@@ -178,18 +181,23 @@ def get_discounted_squad_score(
         root_gw = gameweeks[0]
     total_points = 0
     for gw in gameweeks:
+        gw_weight = get_discount_factor(root_gw, gw)
         if gw == bench_boost_gw:
-            total_points += squad.get_expected_points(
-                gw, tag, bench_boost=True
-            ) * get_discount_factor(root_gw, gw)
-        elif gw == triple_captain_gw:
-            total_points += squad.get_expected_points(
-                gw, tag, triple_captain=True
-            ) * get_discount_factor(root_gw, gw)
-        else:
-            total_points += squad.get_expected_points(gw, tag) * get_discount_factor(
-                root_gw, gw
+            total_points += (
+                squad.get_expected_points(gw, tag, bench_boost=True) * gw_weight
             )
+        elif gw == triple_captain_gw:
+            total_points += (
+                squad.get_expected_points(gw, tag, triple_captain=True) * gw_weight
+            )
+        else:
+            total_points += squad.get_expected_points(gw, tag) * gw_weight
+
+        if gw != bench_boost_gw and sub_weights:
+            total_points += gw_weight * squad.total_points_for_subs(
+                gw, tag, sub_weights=sub_weights
+            )
+
     return total_points
 
 

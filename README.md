@@ -8,6 +8,9 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
+## NEW (1st September 2022)
+Changes merged from `develop` branch - See [here](#configuration) for new instructions on setting your Team ID, Username etc.
+
 ## Mini-league for 2022/23 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
@@ -100,23 +103,29 @@ Once you've installed the module, you will need to set the following parameters:
 
 **Optional:**
 
-2. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
+2. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings, or automating transfers via the API).
 
-3. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings, or automating transfers via the API).
+3. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings, or automating transfers via the API).
 
-4. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings, or automating transfers via the API).
+4. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
 
-5. `AIrsenalDBFile`: Local path to where you would like to store the AIrsenal sqlite3 database. If not set a temporary directory will be used by default (`/tmp/data.db` on Unix systems).
+5. `AIRSENAL_DB_FILE`: Local path to where you would like to store the AIrsenal sqlite3 database. If not set `AIRSENAL_HOME/data.db` will be used by default.
 
-The values for these should be defined either in environment variables with the names given above, or as files in the `airsenal/data` directory with the names given above. For example, to set your team ID you can create the file `airsenal/data/FPL_TEAM_ID` (with no file extension) and its contents should be your team ID and nothing else. So the contents of the file would just be something like:
+The values for these should be defined either in environment variables with the names given above, or as files in `AIRSENAL_HOME` (a directory AIrsenal creates on your system to save config files and the database).
 
-```text
-1234567
+To view the location of `AIRSENAL_HOME` and the current values of all set AIrsenal environment variables run:
+
+```bash
+airsenal_env get
 ```
 
-Where `1234567` is your team ID.
+Use `airsenal_env set` to set values and store them for future use. For example:
 
-If you do create the files in `airsenal/data`, you should do ```pip install .``` again to ensure they are copied to the correct location for the installed package.
+```bash
+airsenal_env set -k FPL_TEAM_ID -v 123456
+```
+
+See `airsenal_env --help` for other options.
 
 ## Getting Started
 

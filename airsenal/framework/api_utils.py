@@ -2,13 +2,13 @@
 Functions used by the AIrsenal API
 """
 from flask import jsonify
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session
 
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
     make_optimum_single_transfer,
 )
-from airsenal.framework.schema import Player, SessionBudget, SessionSquad, engine
+from airsenal.framework.schema import Player, SessionBudget, SessionSquad, session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -25,7 +25,7 @@ from airsenal.framework.utils import (
     list_teams,
 )
 
-DBSESSION = scoped_session(sessionmaker(bind=engine))
+DBSESSION = scoped_session(session)
 
 
 def remove_db_session(dbsession=DBSESSION):

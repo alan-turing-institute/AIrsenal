@@ -5,9 +5,11 @@ import sys
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
+    DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
+    get_discounted_squad_score,
 )
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
@@ -28,7 +30,7 @@ def fill_initial_squad(
     budget=1000,
     algorithm="genetic",
     remove_zero=True,
-    sub_weights={"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    sub_weights=DEFAULT_SUB_WEIGHTS,
     uda=None,
     population_size=100,
     num_iterations=10,
@@ -39,9 +41,8 @@ def fill_initial_squad(
             import pygmo as pg
 
             uda = pg.sga(gen=100)
-        except ModuleNotFoundError as e:
-            print(e)
-            print("Defaulting to algorithm=normal instead")
+        except ModuleNotFoundError:
+            print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
 
     gw_start = gw_range[0]
@@ -64,9 +65,20 @@ def fill_initial_squad(
             "something went wrong with the squad expected points calculation."
         )
 
-    points = best_squad.get_expected_points(gw_start, tag)
+    optimised_score = get_discounted_squad_score(
+        best_squad,
+        gw_range,
+        tag,
+        gw_range[0],
+        sub_weights=sub_weights,
+    )
+    next_points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
-    print("Best expected points for gameweek {}: {}".format(gw_start, points))
+    print(
+        "Optimised total score (gameweeks",
+        f"{min(gw_range)} to {max(gw_range)}): {optimised_score:.2f}",
+    )
+    print(f"Expected points for gameweek {gw_start}: {next_points:.2f}")
     print("---------------------")
     print(best_squad)
 
@@ -186,9 +198,8 @@ def main():
             import pygmo as pg
 
             uda = pg.sga(gen=num_generations)
-        except ModuleNotFoundError as e:
-            print(e)
-            print("Defaulting to algorithm=normal instead")
+        except ModuleNotFoundError:
+            print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
             uda = None
     else:

@@ -15,11 +15,12 @@ from airsenal.framework.utils import (
     fetcher,
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
-    get_player,
     list_players,
 )
 from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
+from airsenal.scripts.fill_player_mappings_table import add_mappings
+from airsenal.scripts.fill_player_table import find_player_in_table
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 
@@ -119,9 +120,9 @@ def add_players_to_db(
         first_name = player_data_from_api[player_api_id]["first_name"]
         second_name = player_data_from_api[player_api_id]["second_name"]
         name = "{} {}".format(first_name, second_name)
-        # check whether we alreeady have this player in the database -
+        # check whether we already have this player in the database -
         # if yes update that player's data, if no create a new player
-        p = get_player(name, dbsession=dbsession)
+        p = find_player_in_table(name, dbsession=dbsession)
         if p is None:
             print("Adding player {}".format(name))
             p = Player()
@@ -135,6 +136,8 @@ def add_players_to_db(
         p.name = name
         if not update:
             dbsession.add(p)
+            add_mappings(p, dbsession=dbsession)
+
     dbsession.commit()
     return len(new_players)
 
