@@ -14,6 +14,7 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
+    NEXT_GAMEWEEK,
     get_bank,
     get_player,
     get_player_from_api_id,
@@ -93,9 +94,18 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
 
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
-    rows = get_transfer_suggestions(dbsession)
+    rows = get_transfer_suggestions(
+        dbsession, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON
+    )
+    if not rows:
+        print(
+            f"No transfer suggestions found for GW {NEXT_GAMEWEEK}, "
+            f"({CURRENT_SEASON} season)"
+        )
+        return None
+
     if fpl_team_id and int(fpl_team_id) != rows[0].fpl_team_id:
-        raise Exception(
+        raise ValueError(
             f"Team ID passed is {fpl_team_id}, but transfer suggestions are for "
             f"team ID {rows[0].fpl_team_id}. We recommend re-running optimization."
         )
@@ -110,7 +120,7 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
                 players_out.append(row.player_id)
             else:
                 players_in.append(row.player_id)
-    return ([players_out, players_in], fpl_team_id, current_gw, chip)
+    return [players_out, players_in], fpl_team_id, current_gw, chip
 
 
 def price_transfers(transfer_player_ids, fetcher, current_gw):
@@ -249,16 +259,17 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
 
 def make_transfers(fpl_team_id=None, skip_check=False):
 
-    transfer_player_ids, team_id, current_gw, chip_played = get_gw_transfer_suggestions(
-        fpl_team_id
-    )
+    suggestions = get_gw_transfer_suggestions(fpl_team_id)
+    if not suggestions:
+        return
+    transfer_player_ids, team_id, current_gw, chip_played = suggestions
+
     fetcher = FPLDataFetcher(team_id)
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
         print("Making transfer list for starting team")
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
     else:
-
         pre_transfer_bank = get_bank(fpl_team_id=team_id)
         priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
         post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
@@ -278,8 +289,9 @@ def main():
     parser = argparse.ArgumentParser("Make transfers via the FPL API")
     parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
     parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
+
     args = parser.parse_args()
-    confirm = args.confirm if args.confirm else False
+    confirm = args.confirm or False
     make_transfers(args.fpl_team_id, confirm)
     set_lineup(args.fpl_team_id)
 
