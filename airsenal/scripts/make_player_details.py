@@ -5,6 +5,7 @@ https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
 import json
 import os
+from functools import cache
 from glob import glob
 
 import pandas as pd
@@ -45,8 +46,9 @@ RESULTS_PATH = os.path.join(SCRIPT_DIR, "../data/results_{}_with_gw.csv")
 # where to save output
 # {} will be formatted with season of interest
 SAVE_NAME = os.path.join(SCRIPT_DIR, "../data/player_details_{}.json")
-# player summary file - to get player's position for a season
-SUMMARY_PATH = os.path.join(SCRIPT_DIR, "../data/player_summary_{}.json")
+# duplicate names file - used to rename certain players to disambiguate multiple
+# players with the same name
+DUPLICATE_PATH = os.path.join(SCRIPT_DIR, "../data/duplicate_player_names.csv")
 
 #  Dictionary of features to extract {name in files: name in database}
 key_dict = {
@@ -94,6 +96,18 @@ def path_to_name(path):
     return " ".join(x for x in dir_name.split("_") if not x.isdigit())
 
 
+def path_to_index(path):
+    """function to take a sub directory path into a key for output json
+    i.e. player name from directory path
+    """
+    # get directory name from full path
+    dir_name = os.path.basename(os.path.dirname(path))
+    try:
+        return int(" ".join(x for x in dir_name.split("_") if x.isdigit()))
+    except ValueError:
+        return None
+
+
 def get_long_season_name(short_name):
     """Convert short season name of format 1718 to long name like 2017-18."""
     return "20" + short_name[:2] + "-" + short_name[2:]
@@ -117,8 +131,8 @@ def get_positions_df(season):
     # replace element type codes with position strings
     raw_df["position"] = raw_df["element_type"].replace(positions)
 
-    raw_df.set_index("name", inplace=True)
-    return raw_df["position"]
+    raw_df.set_index("id", inplace=True)
+    return raw_df
 
 
 def get_fixtures_df(season):
@@ -248,47 +262,70 @@ def process_file(path, teams_dict, fixtures_df, got_fixtures):
     return df.to_dict(orient="records")
 
 
-def make_player_details(seasons=get_past_seasons(3)):
+@cache
+def get_duplicates_df():
+    return pd.read_csv(DUPLICATE_PATH)
+
+
+def check_duplicates(idx, season, name):
+    if name == "Danny Ward":
+        print("Danny Ward")
+    df = get_duplicates_df()
+    matches = df[(df["id"] == idx) & (df["season"] == int(season))]
+    return matches.iloc[0]["name"] if len(matches) > 0 else name
+
+
+def get_player_details(season):
     """generate player details json files"""
+    season_longname = get_long_season_name(season)
+    print("-------- SEASON", season_longname, "--------")
+
+    teams_dict = get_teams_dict(season)
+    positions_df = get_positions_df(season)
+
+    fixtures_df, got_fixtures = get_fixtures_df(season)
+
+    # names of all player directories for this season
+    sub_dirs = glob(PLAYERS_DIR.format(season_longname) + "/*/")
+
+    output = {}
+    for directory in sub_dirs:
+        name = path_to_name(directory)
+        idx = path_to_index(directory)
+        print("Doing", name)
+
+        player_dict = process_file(
+            os.path.join(directory, PLAYERS_FILE),
+            teams_dict,
+            fixtures_df,
+            got_fixtures,
+        )
+
+        # get player position
+        if idx in positions_df.index:
+            position = str(positions_df.loc[idx, "position"])
+        else:
+            matches = positions_df[positions_df["name"] == name]
+            if len(matches) == 1:
+                position = str(matches["position"].iloc[0])
+            else:
+                position = None
+                print(f"!!!FAILED!!! {len(matches)} possibilities for {name}")
+
+        for fixture in player_dict:
+            fixture["position"] = position
+
+        name = check_duplicates(idx, season, name)
+        output[name] = player_dict
+        return output
+
+
+def make_player_details(seasons=get_past_seasons(3)):
     if isinstance(seasons, str):
         seasons = [seasons]
 
     for season in seasons:
-        season_longname = get_long_season_name(season)
-        print("-------- SEASON", season_longname, "--------")
-
-        teams_dict = get_teams_dict(season)
-        positions_df = get_positions_df(season)
-
-        fixtures_df, got_fixtures = get_fixtures_df(season)
-
-        # names of all player directories for this season
-        sub_dirs = glob(PLAYERS_DIR.format(season_longname) + "/*/")
-
-        output = {}
-        for directory in sub_dirs:
-            name = path_to_name(directory)
-            print("Doing", name)
-
-            player_dict = process_file(
-                os.path.join(directory, PLAYERS_FILE),
-                teams_dict,
-                fixtures_df,
-                got_fixtures,
-            )
-
-            # get player position
-            if name in positions_df.index:
-                position = str(positions_df.loc[name])
-            else:
-                # TODO - previously used old mappings list, may need to be updated to
-                # search for alternative names in new database table/file
-                raise RuntimeError(f"!!!FAILED!!! Could not find position for {name}")
-            for fixture in player_dict:
-                fixture["position"] = position
-
-            output[name] = player_dict
-
+        output = get_player_details(season)
         print("Saving JSON")
         with open(SAVE_NAME.format(season), "w") as f:
             json.dump(output, f)
