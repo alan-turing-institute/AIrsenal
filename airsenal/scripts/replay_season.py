@@ -10,7 +10,7 @@ from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.schema import Transaction, session_scope
-from airsenal.framework.utils import get_max_gameweek
+from airsenal.framework.utils import get_gameweeks_array, get_max_gameweek
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.squad_builder import fill_initial_squad
@@ -61,8 +61,10 @@ def replay_season(
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
-        gw_range = range(gw, gw + weeks_ahead)
         with session_scope() as session:
+            gw_range = get_gameweeks_array(
+                weeks_ahead, gameweek_start=gw, season=season, dbsession=session
+            )
             tag = make_predictedscore_table(
                 gw_range=gw_range,
                 season=season,

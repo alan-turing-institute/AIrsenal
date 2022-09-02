@@ -8,6 +8,9 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
+## NEW (1st September 2022)
+Changes merged from `develop` branch - See [here](#configuration) for new instructions on setting your Team ID, Username etc.
+
 ## Mini-league for 2022/23 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
@@ -185,8 +188,6 @@ Note that `airsenal_run_optimization` should only be used for transfer suggestio
 ```shell
 airsenal_make_squad --num_gameweeks 3
 ```
-
-This can also be used during the season to generate a full new squad (e.g. for wildcards).
 
 ### 4. Apply Transfers and Lineup
 
