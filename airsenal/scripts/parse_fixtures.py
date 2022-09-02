@@ -24,16 +24,14 @@ with open("../data/fixtures.csv", "w") as outfile:
     for line in infile.readlines():
         if re.search(r"Gameweek ([\d]+)", line):
             gameweek = re.search(r"Gameweek ([\d]+)", line).groups()[0]
-            print("gameweek {}".format(gameweek))
+            print(f"gameweek {gameweek}")
         elif re.search(r"day [\d]+ [A-Z]", line):
             date_str = line.strip()
             date_str += " 2018 "
-            print("date {}".format(date_str))
+            print(f"date {date_str}")
         elif fixture_regex.search(line):
             home_team, ko_time, away_team = fixture_regex.search(line).groups()
             match_time = date_str + ko_time
             date = dateparser.parse(match_time)
-            print("{} vs {} {}".format(home_team, away_team, match_time))
-            outfile.write(
-                "{},{},{},{}\n".format(gameweek, str(date), home_team, away_team)
-            )
+            print(f"{home_team} vs {away_team} {match_time}")
+            outfile.write(f"{gameweek},{str(date)},{home_team},{away_team}\n")
