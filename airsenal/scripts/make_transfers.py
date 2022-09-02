@@ -295,7 +295,7 @@ def make_transfers(fpl_team_id=None, skip_check=False):
         sorted_transfers_out = sort_by_position(transfers_out)
         sorted_transfers_in = sort_by_position(transfers_in)
         sorted_priced_transfers = [
-            sorted_transfers_out[i] | sorted_transfers_in[i]
+            {**sorted_transfers_out[i], **sorted_transfers_in[i]}
             for i in range(len(sorted_transfers_out))
         ]
         post_transfer_bank = deduct_transfer_price(
