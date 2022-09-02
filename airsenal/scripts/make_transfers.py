@@ -238,9 +238,8 @@ def build_init_priced_transfers(fetcher, fpl_team_id=None):
     transfer_in_suggestions = get_transfer_suggestions(dbsession)
     if len(transfers_out) != len(transfer_in_suggestions):
         raise RuntimeError(
-            "Number of transfers in and out don't match: {} {}".format(
-                len(transfer_in_suggestions), len(transfers_out)
-            )
+            "Number of transfers in and out don't match: "
+            f"{len(transfer_in_suggestions)} {len(transfers_out)}"
         )
     transfers_in = []
     for t in transfer_in_suggestions:

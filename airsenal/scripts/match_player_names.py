@@ -50,9 +50,7 @@ if __name__ == "__main__":
     fpl_players_to_match = []
     # from the API we construct the player name from first_name and second_name
     for k in playerdata.keys():
-        player_name = "{} {}".format(
-            playerdata[k]["first_name"], playerdata[k]["second_name"]
-        )
+        player_name = f"{playerdata[k]['first_name']} {playerdata[k]['second_name']}"
         fpl_players_to_match.append(player_name)
 
     # get the player names from the fpl archives json

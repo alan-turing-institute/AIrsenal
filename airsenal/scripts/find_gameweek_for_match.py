@@ -33,16 +33,16 @@ def get_gameweek_from_date(date, deadlines):
     date = pd.to_datetime(date, dayfirst=True).date()
 
     gw = deadlines[date >= deadlines]
-    print("GW{} (deadline {})".format(gw.index[-1], gw.values[-1]))
+    print(f"GW{gw.index[-1]} (deadline {gw.values[-1]})")
     return gw.index[-1]
 
 
 if __name__ == "__main__":
     season = sys.argv[-1]
 
-    results_file = open("../data/results_{}.csv".format(season))
-    with open("../data/results_{}_with_gw.csv".format(season), "w") as output_file:
-        fpl_file_path = "../data/FPL_{}.json".format(season)
+    results_file = open(f"../data/results_{season}.csv")
+    with open(f"../data/results_{season}_with_gw.csv", "w") as output_file:
+        fpl_file_path = f"../data/FPL_{season}.json"
 
         deadlines = get_gameweek_deadlines(fpl_file_path)
 
