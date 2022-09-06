@@ -70,9 +70,9 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
             elif str(away_id) in v:
                 away_team = k
         if not home_team:
-            raise ValueError("Unable to find team with id {}".format(home_id))
+            raise ValueError(f"Unable to find team with id {home_id}")
         if not away_team:
-            raise ValueError("Unable to find team with id {}".format(away_id))
+            raise ValueError(f"Unable to find team with id {away_id}")
         home_score = m["team_h_score"]
         away_score = m["team_a_score"]
         f = find_fixture(
@@ -105,7 +105,7 @@ def make_result_table(seasons=[], dbsession=session):
         seasons = get_past_seasons(3)
     for season in seasons:
         inpath = os.path.join(
-            os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season)
+            os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
         )
         infile = open(inpath)
         fill_results_from_csv(infile, season, dbsession)

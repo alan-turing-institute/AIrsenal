@@ -92,13 +92,13 @@ def set_lineup(fpl_team_id=None):
     Note that this assumes that the prediction has been ran recently.
     """
 
-    print("fpl_team_id is {}".format(fpl_team_id))
+    print(f"fpl_team_id is {fpl_team_id}")
     fetcher = FPLDataFetcher(fpl_team_id)
-    print("Got fetcher {}".format(fetcher.FPL_TEAM_ID))
+    print(f"Got fetcher {fetcher.FPL_TEAM_ID}")
     picks = fetcher.get_lineup()
-    print("Got picks {}".format(picks))
+    print(f"Got picks {picks}")
     squad = get_lineup_from_payload(picks)
-    print("got squad: {}".format(squad))
+    print(f"got squad: {squad}")
 
     squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 

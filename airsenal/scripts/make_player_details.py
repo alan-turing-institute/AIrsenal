@@ -160,9 +160,7 @@ def get_fixtures_df(season):
 
         got_fixtures = False
     else:
-        raise FileNotFoundError(
-            "Couldn't find fixtures file for {} season".format(season)
-        )
+        raise FileNotFoundError(f"Couldn't find fixtures file for {season} season")
 
     return fixtures_df, got_fixtures
 
@@ -179,10 +177,8 @@ def get_played_for_from_fixtures(fixture_id, opponent_id, was_home, fixtures_df)
         return fixture["team_h"]
     else:
         raise ValueError(
-            """Error finding team played for with fixture id {},
-                         opponent_id {} and was_home {}""".format(
-                fixture_id, opponent_id, was_home
-            )
+            f"""Error finding team played for with fixture id {fixture_id},
+                         opponent_id {opponent_id} and was_home {was_home}"""
         )
 
 
@@ -214,10 +210,8 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
     if len(matches) != 1:
         # Couldn't find a unique fixture
         raise ValueError(
-            """Found no matches with gw {}, was_home {}
-                                and opponent {}""".format(
-                gw, was_home, opponent
-            )
+            f"""Found no matches with gw {gw}, was_home {was_home}
+                                and opponent {opponent}"""
         )
 
     # Found a unique fixture corresponding to the input data.

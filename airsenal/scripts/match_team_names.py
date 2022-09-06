@@ -22,7 +22,7 @@ def find_best_match(fpl_teams, team):
         if fuzz.partial_ratio(t, team) > best_ratio:
             best_ratio = fuzz.partial_ratio(t, team)
             best_match = t
-    print("Best match {}/{}, score {}".format(best_match, team, best_ratio))
+    print(f"Best match {best_match}/{team}, score {best_ratio}")
     return best_match, best_ratio
 
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     matched = set()
     history_teams = set()
     for season in ["1415", "1516", "1617", "1718"]:
-        filename = "../data/results_{}.csv".format(season)
+        filename = f"../data/results_{season}.csv"
         for line in open(filename).readlines()[1:]:
             history_teams.add(line.split(",")[1])
             history_teams.add(line.split(",")[2])
@@ -70,10 +70,10 @@ if __name__ == "__main__":
                 missing.add(team)
     # matched teams should be all except promoted ones that haven't
     # been in the prem recently
-    print("Num matched: {}".format(len(matched)))
+    print(f"Num matched: {len(matched)}")
 
     # print missing teams (should be the relegated ones
-    print("Teams not in this seasons FPL: {}".format(missing))
+    print(f"Teams not in this seasons FPL: {missing}")
 
     with open("../data/alternative_team_names.json", "w") as outfile:
         outfile.write(json.dumps(teamdict))

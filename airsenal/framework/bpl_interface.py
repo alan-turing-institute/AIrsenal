@@ -46,7 +46,7 @@ def get_ratings_dict(season, teams, dbsession):
 
     ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
     if len(ratings) == 0:
-        raise ValueError("No FIFA ratings found for season {}".format(season))
+        raise ValueError(f"No FIFA ratings found for season {season}")
 
     ratings_dict = {
         s.team: np.array([s.att, s.mid, s.defn, s.ovr])
@@ -89,7 +89,7 @@ def add_new_teams_to_model(team_model, season, dbsession):
     teams = get_teams_for_season(season, dbsession=dbsession)
     for t in teams:
         if t not in team_model.teams:
-            print("Adding {} to team model with covariates".format(t))
+            print(f"Adding {t} to team model with covariates")
             ratings = get_ratings_dict(season, [t], dbsession)
             team_model.add_new_team(t, team_covariates=ratings[t])
     return team_model

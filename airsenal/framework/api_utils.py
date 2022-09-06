@@ -148,10 +148,10 @@ def list_players_teams_prices(
     Return a list of players, each with their current team and price
     """
     return [
-        "{} ({}): {}".format(
-            p.name,
-            p.team(CURRENT_SEASON, NEXT_GAMEWEEK),
-            p.price(CURRENT_SEASON, NEXT_GAMEWEEK),
+        (
+            f"{p.name} "
+            f"({p.team(CURRENT_SEASON, NEXT_GAMEWEEK)}): "
+            f"{p.price(CURRENT_SEASON, NEXT_GAMEWEEK)}"
         )
         for p in list_players(
             position=position, team=team, dbsession=dbsession, gameweek=gameweek
@@ -167,9 +167,7 @@ def get_session_budget(session_id, dbsession=DBSESSION):
 
     sb = dbsession.query(SessionBudget).filter_by(session_id=session_id).all()
     if len(sb) != 1:
-        raise RuntimeError(
-            "{}  SessionBudgets for session key {}".format(len(sb), session_id)
-        )
+        raise RuntimeError(f"{len(sb)}  SessionBudgets for session key {session_id}")
     return sb[0].budget
 
 
@@ -181,7 +179,7 @@ def set_session_budget(budget, session_id, dbsession=DBSESSION):
     print("Deleting old budget")
     dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
     dbsession.commit()
-    print("Setting budget for {} to {}".format(session_id, budget))
+    print(f"Setting budget for {session_id} to {budget}")
     sb = SessionBudget(session_id=session_id, budget=budget)
     dbsession.add(sb)
     dbsession.commit()
@@ -292,7 +290,7 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     for p in players:
         added_ok = t.add_player(p)
         if not added_ok:
-            raise RuntimeError("Cannot add player {}".format(p))
+            raise RuntimeError(f"Cannot add player {p}")
     pred_tag = get_latest_prediction_tag()
     if n_transfer == 1:
         _, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)

@@ -14,7 +14,7 @@ def fill_team_table_from_file(filename, dbsession=session):
     """
     use csv file
     """
-    print("Filling Teams table from data in {}".format(filename))
+    print(f"Filling Teams table from data in {filename}")
     infile = open(filename)
     first_line = True
     for line in infile.readlines():
@@ -39,9 +39,7 @@ def make_team_table(seasons=[], dbsession=session):
         seasons += get_past_seasons(4)
     for season in seasons:
         filename = os.path.join(
-            os.path.join(
-                os.path.dirname(__file__), "..", "data", "teams_{}.csv".format(season)
-            )
+            os.path.join(os.path.dirname(__file__), "..", "data", f"teams_{season}.csv")
         )
         fill_team_table_from_file(filename, dbsession=dbsession)
 
