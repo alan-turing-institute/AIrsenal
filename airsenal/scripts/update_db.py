@@ -7,7 +7,7 @@ bought or sold.
 """
 import argparse
 
-from airsenal.framework.schema import Player, session_scope
+from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -204,6 +204,10 @@ def main():
     fpl_team_id = args.fpl_team_id or None
 
     with session_scope() as session:
+        if database_is_empty(session):
+            print("Database is empty, run 'airsenal_setup_initial_db' first")
+            return
+
         update_db(season, do_attributes, fpl_team_id, session)
 
 
