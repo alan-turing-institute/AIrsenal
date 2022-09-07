@@ -119,16 +119,16 @@ def add_players_to_db(
     for player_api_id in new_players:
         first_name = player_data_from_api[player_api_id]["first_name"]
         second_name = player_data_from_api[player_api_id]["second_name"]
-        name = "{} {}".format(first_name, second_name)
+        name = f"{first_name} {second_name}"
         # check whether we already have this player in the database -
         # if yes update that player's data, if no create a new player
         p = find_player_in_table(name, dbsession=dbsession)
         if p is None:
-            print("Adding player {}".format(name))
+            print(f"Adding player {name}")
             p = Player()
             update = False
         elif p.fpl_api_id is None:
-            print("Updating player {}".format(name))
+            print(f"Updating player {name}")
             update = True
         else:
             update = True

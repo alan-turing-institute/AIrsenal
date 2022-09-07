@@ -99,7 +99,7 @@ def run_pipeline(
     """
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
-    print("Running for FPL Team ID {}".format(fpl_team_id))
+    print(f"Running for FPL Team ID {fpl_team_id}")
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     set_multiprocessing_start_method()

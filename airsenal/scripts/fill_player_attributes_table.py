@@ -32,10 +32,10 @@ def fill_attributes_table_from_file(detail_data, season, dbsession=session):
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
         if not player:
-            print("Couldn't find player {}".format(player_name))
+            print(f"Couldn't find player {player_name}")
             continue
 
-        print("ATTRIBUTES {} {}".format(season, player))
+        print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
         #  Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
@@ -78,12 +78,10 @@ def fill_attributes_table_from_api(season, gw_start=1, dbsession=session):
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
-            print(
-                "ATTRIBUTES {} No player found with id {}".format(season, player_api_id)
-            )
+            print(f"ATTRIBUTES {season} No player found with id {player_api_id}")
             continue
 
-        print("ATTRIBUTES {} {}".format(season, player.name))
+        print(f"ATTRIBUTES {season} {player.name}")
 
         # First update the current gameweek using the summary data
         p_summary = input_data[player_api_id]
@@ -196,7 +194,7 @@ def make_attributes_table(seasons=[], dbsession=session):
         if season == CURRENT_SEASON:
             continue
         input_path = os.path.join(
-            os.path.dirname(__file__), "../data/player_details_{}.json".format(season)
+            os.path.dirname(__file__), f"../data/player_details_{season}.json"
         )
         with open(input_path, "r") as f:
             input_data = json.load(f)

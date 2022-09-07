@@ -142,8 +142,9 @@ def fill_initial_squad(
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
     print(
-        "Getting initially selected players in squad {} for first gameweek...".format(
-            fpl_team_id
+        (
+            "Getting initially selected players "
+            f"in squad {fpl_team_id} for first gameweek..."
         )
     )
     if NEXT_GAMEWEEK == 1:
@@ -165,8 +166,9 @@ def fill_initial_squad(
             # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
             # API using current price and total price change.
             print(
-                "Using current data to determine starting price for player {}".format(
-                    player_api_id
+                (
+                    "Using current data to determine "
+                    f"starting price for player {player_api_id}"
                 )
             )
             pdata = fetcher.get_player_summary_data()[player_api_id]
@@ -201,7 +203,7 @@ def update_squad(
     """
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
-    print("Updating db with squad with fpl_team_id={}".format(fpl_team_id))
+    print(f"Updating db with squad with fpl_team_id={fpl_team_id}")
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = (
         dbsession.query(Transaction)
@@ -239,8 +241,9 @@ def update_squad(
         ):
             if verbose:
                 print(
-                    "Adding transaction: gameweek: {} removing player {} for {}".format(
-                        gameweek, pid_out, price_out
+                    (
+                        f"Adding transaction: gameweek: {gameweek} "
+                        f"removing player {pid_out} for {price_out}"
                     )
                 )
             free_hit = free_hit_used_in_gameweek(gameweek)
@@ -259,8 +262,9 @@ def update_squad(
 
             if verbose:
                 print(
-                    "Adding transaction: gameweek: {} adding player {} for {}".format(
-                        gameweek, pid_in, price_in
+                    (
+                        f"Adding transaction: gameweek: {gameweek} "
+                        f"adding player {pid_in} for {price_in}"
                     )
                 )
             add_transaction(

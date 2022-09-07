@@ -29,9 +29,9 @@ class DummyPlayer(object):
         """
         self.player_id = player_id
         self.fpl_api_id = player_id
-        self.name = "player_{}".format(player_id)
+        self.name = f"player_{player_id}"
         self.position = position
-        self.team = "DUMMY_TEAM_{}".format(player_id)
+        self.team = f"DUMMY_TEAM_{player_id}"
         self.purchase_price = 0
         self.is_starting = True
         self.is_captain = False

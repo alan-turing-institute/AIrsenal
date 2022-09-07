@@ -49,10 +49,10 @@ class Squad(object):
         """
         print("\n=== starting 11 ===\n")
         for position in ["GK", "DEF", "MID", "FWD"]:
-            print("\n== {} ==\n".format(position))
+            print(f"\n== {position} ==\n")
             for p in self.players:
                 if p.position == position and p.is_starting:
-                    player_line = "{} ({})".format(p.name, p.team)
+                    player_line = f"{p.name} ({p.team})"
                     if p.is_captain:
                         player_line += "(C)"
                     elif p.is_vice_captain:
@@ -63,7 +63,7 @@ class Squad(object):
         subs = [p for p in self.players if not p.is_starting]
         subs.sort(key=lambda p: p.sub_position)
         for p in subs:
-            print("{} ({})".format(p.name, p.team))
+            print(f"{p.name} ({p.team})")
         return ""
 
     def is_complete(self):
@@ -99,27 +99,19 @@ class Squad(object):
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
-                print("Already have {} in team".format(player))
+                print(f"Already have {player} in team")
             return False
         if not self.check_num_in_position(player):
             if self.verbose:
-                print(
-                    "Unable to add player {} - too many {}".format(
-                        player, player.position
-                    )
-                )
+                print(f"Unable to add player {player} - too many {player.position}")
             return False
         if check_budget and not self.check_cost(player):
             if self.verbose:
-                print("Cannot afford player {}".format(player))
+                print(f"Cannot afford player {player}")
             return False
         if check_team and not self.check_num_per_team(player):
             if self.verbose:
-                print(
-                    "Cannot add {} - too many players from {}".format(
-                        player, player.team
-                    )
-                )
+                print(f"Cannot add {player} - too many players from {player.team}")
             return False
         self.players.append(player)
         self.num_position[player.position] += 1
@@ -288,7 +280,7 @@ class Squad(object):
                 best_score = score
                 best_formation = f
         if self.verbose:
-            print("Best formation is {}".format(best_formation))
+            print(f"Best formation is {best_formation}")
         self.apply_formation(player_dict, best_formation)
         self.order_substitutes(gameweek, tag)
 

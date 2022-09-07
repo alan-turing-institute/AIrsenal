@@ -92,11 +92,11 @@ def fill_players():
             p.player_id = i
             p.fpl_api_id = i
             p.name = n
-            print("Filling {} {}".format(i, n))
+            print(f"Filling {i} {n}")
             try:
                 ts.add(p)
             except Exception:
-                print("Error adding {} {}".format(i, n))
+                print(f"Error adding {i} {n}")
             # now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"

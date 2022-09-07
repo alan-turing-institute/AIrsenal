@@ -31,7 +31,7 @@ def fill_fixtures_from_file(filename, season, dbsession=session):
                 f.home_team = k
             elif away_team in v:
                 f.away_team = k
-        print(" ==> Filling fixture {} {}".format(f.home_team, f.away_team))
+        print(f" ==> Filling fixture {f.home_team} {f.away_team}")
         f.season = season
         f.tag = "latest"  # not really needed for past seasons
         dbsession.add(f)
@@ -78,13 +78,12 @@ def fill_fixtures_from_api(season, dbsession=session):
             if found_home and found_away:
                 break
 
-        error_str = "Can't find team(s) with id(s): {}."
         if not found_home and found_away:
-            raise ValueError(error_str.format(home_id + ", " + away_id))
+            raise ValueError(f"Can't find team(s) with id(s): {home_id}, {away_id}.")
         elif not found_home:
-            raise ValueError(error_str.format(home_id))
+            raise ValueError(f"Can't find team(s) with id(s): {home_id}")
         elif not found_away:
-            raise ValueError(error_str.format(away_id))
+            raise ValueError(f"Can't find team(s) with id(s): {away_id}")
         if not update:
             dbsession.add(f)
 
@@ -101,7 +100,7 @@ def make_fixture_table(seasons=[], dbsession=session):
             os.path.dirname(__file__),
             "..",
             "data",
-            "results_{}_with_gw.csv".format(season),
+            f"results_{season}_with_gw.csv",
         )
         fill_fixtures_from_file(filename, season, dbsession=dbsession)
     # now fill the current season from the api

@@ -223,7 +223,7 @@ class FPLDataFetcher(object):
             fpl_team_id = self.FPL_TEAM_ID
         url = self.FPL_TEAM_URL.format(fpl_team_id, gameweek)
         fpl_team_data = self._get_request(
-            url, err_msg="Unable to access FPL team API {}".format(url)
+            url, err_msg=f"Unable to access FPL team API {url}"
         )
         if not fpl_team_id:
             self.fpl_team_data[gameweek] = fpl_team_data
@@ -264,8 +264,9 @@ class FPLDataFetcher(object):
             reversed(
                 self._get_request(
                     url,
-                    "Unable to access FPL transfer history API for team_id {}".format(
-                        fpl_team_id
+                    (
+                        "Unable to access FPL "
+                        f"transfer history API for team_id {fpl_team_id}"
                     ),
                 )
             )
@@ -366,19 +367,17 @@ class FPLDataFetcher(object):
                     try:
                         player_detail = self._get_request(
                             self.FPL_DETAIL_URL.format(player_api_id),
-                            "Error retrieving data for player {}".format(player_api_id),
+                            f"Error retrieving data for player {player_api_id}",
                         )
                         if player_detail is None:
                             return []
                         got_data = True
                     except requests.exceptions.ConnectionError:
-                        print("connection error, retrying {}".format(n_tries))
+                        print(f"connection error, retrying {n_tries}")
                         time.sleep(1)
                         n_tries += 1
                 if not player_detail:
-                    print(
-                        "Unable to get player_detail data for {}".format(player_api_id)
-                    )
+                    print(f"Unable to get player_detail data for {player_api_id}")
                     return []
                 for game in player_detail["history"]:
                     gw = game["round"]
@@ -389,11 +388,7 @@ class FPLDataFetcher(object):
             return self.player_gameweek_data[player_api_id]
 
         if gameweek not in self.player_gameweek_data[player_api_id].keys():
-            print(
-                "Data not available for player {} week {}".format(
-                    player_api_id, gameweek
-                )
-            )
+            print(f"Data not available for player {player_api_id} week {gameweek}")
             return []
         return self.player_gameweek_data[player_api_id][gameweek]
 
