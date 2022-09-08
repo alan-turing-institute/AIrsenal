@@ -200,6 +200,23 @@ class Absence(Base):
     url = Column(String(100), nullable=True)
     timestamp = Column(String(100), nullable=False)
 
+    def __str__(self):
+        return (
+            f"Absence(\n"
+            f"  player='{self.player}',\n"
+            f"  player_id='{self.player_id}',\n"
+            f"  season='{self.season}',\n"
+            f"  reason='{self.reason}',\n"
+            f"  details='{self.details}',\n"
+            f"  date_from='{self.date_from}',\n"
+            f"  date_until='{self.date_until}',\n"
+            f"  gw_from='{self.gw_from}',\n"
+            f"  gw_until='{self.gw_until}',\n"
+            f"  url='{self.url}',\n"
+            f"  timestamp='{self.timestamp}'\n"
+            ")"
+        )
+
 
 class Result(Base):
     __tablename__ = "result"
