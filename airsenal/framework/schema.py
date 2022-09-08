@@ -19,6 +19,7 @@ class Player(Base):
     fpl_api_id = Column(Integer, nullable=True)
     name = Column(String(100), nullable=False)
     attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
+    absences = relationship("Absence", uselist=True, back_populates="player")
     results = relationship("Result", uselist=True, back_populates="player")
     fixtures = relationship("Fixture", uselist=True, back_populates="player")
     predictions = relationship(
@@ -182,6 +183,22 @@ class PlayerAttributes(Base):
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
         )
+
+
+class Absence(Base):
+    __tablename__ = "absence"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player = relationship("Player", back_populates="absences")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
+    season = Column(String(100), nullable=False)
+    reason = Column(String(100), nullable=False)  # high-level, e.g. injury/suspension
+    details = Column(String(100), nullable=True)
+    date_from = Column(String(100), nullable=False)
+    date_until = Column(String(100), nullable=True)
+    gw_from = Column(Integer, nullable=False)
+    gw_until = Column(Integer, nullable=True)
+    url = Column(String(100), nullable=True)
+    timestamp = Column(String(100), nullable=False)
 
 
 class Result(Base):
