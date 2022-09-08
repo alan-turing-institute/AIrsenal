@@ -27,6 +27,7 @@ def load_injuries(season, dbsession):
         timestamp = datetime.now().isoformat()
         absence = Absence(
             player=p,
+            player_id=p.player_id,
             season=season,
             reason=reason,
             details=details,
