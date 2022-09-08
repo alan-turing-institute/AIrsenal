@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from airsenal.framework.schema import Absence, session
-from airsenal.framework.utils import get_gameweek_by_date, get_past_seasons, get_player
+from airsenal.framework.utils import get_gameweek_by_fixture_date, get_past_seasons, get_player
 
 
 def load_injuries(season, dbsession):
@@ -20,8 +20,8 @@ def load_injuries(season, dbsession):
             continue
         date_from = row["from"]
         date_until = row["until"]
-        gw_from = get_gameweek_by_date(date_from, season, dbsession)
-        gw_until = get_gameweek_by_date(date_until, season, dbsession)
+        gw_from = get_gameweek_for_fixture_date(date_from, season, dbsession)
+        gw_until = get_gameweek_for_fixture_date(date_until, season, dbsession)
         details = row["injury"]
         url = row["url"]
         timestamp = datetime.now().isoformat()

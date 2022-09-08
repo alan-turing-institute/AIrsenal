@@ -109,6 +109,45 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
     return earliest_future_gameweek
 
+def get_gameweek_for_date(check_date, season=CURRENT_SEASON, dbsession=None) -> int:
+    """
+    Use a date, or easily parse-able date string to figure out which gameweek its in
+    """
+
+    if not dbsession:
+        dbsession = session
+    if not isinstance(check_date, date):
+        if not isinstance(check_date, datetime):
+            check_date = dateparser.parse(check_date)
+        check_date = check_date.date()
+    fixtures = dbsession.query(Fixture).filter_by(season=season).all()
+    earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
+
+    if len(fixtures) > 0:
+        for fixture in fixtures:
+            try:
+                fixture_date = dateparser.parse(fixture.date).date()
+                if (
+                    fixture_date > check_date
+                    and fixture.gameweek < earliest_future_gameweek
+                ):
+                    earliest_future_gameweek = fixture.gameweek
+            except (TypeError):  # date could be null if fixture not scheduled
+                continue
+        # now make sure we aren't in the middle of a gameweek
+        for fixture in fixtures:
+            try:
+                if (
+                    dateparser.parse(fixture.date).date()
+                    < check_date
+                    and fixture.gameweek == earliest_future_gameweek
+                ):
+                    earliest_future_gameweek += 1
+            except (TypeError):
+                continue
+
+    return earliest_future_gameweek
+
 
 def get_gameweeks_array(
     weeks_ahead: Optional[int] = None,
@@ -359,7 +398,7 @@ def get_free_transfers(
 
 
 @lru_cache(maxsize=365)
-def get_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None):
+def get_gameweek_by_fixture_date(check_date, season=CURRENT_SEASON, dbsession=None):
     """
     Use the dates of the fixtures to find the gameweek.
     """
@@ -1119,7 +1158,7 @@ def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session
         if not return_date:
             raise ValueError(f"Failed to parse date from string '{return_date}'")
 
-        return get_gameweek_by_date(
+        return get_gameweek_by_fixture_date(
             return_date.date(), season=season, dbsession=dbsession
         )
 
