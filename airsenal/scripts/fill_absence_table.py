@@ -1,10 +1,10 @@
 import os
 from datetime import datetime
-
+import numpy as np
 import pandas as pd
 
 from airsenal.framework.schema import Absence, session
-from airsenal.framework.utils import get_gameweek_by_fixture_date, get_past_seasons, get_player
+from airsenal.framework.utils import get_gameweek_for_date, get_past_seasons, get_player
 
 
 def load_injuries(season, dbsession):
@@ -19,9 +19,12 @@ def load_injuries(season, dbsession):
             print(f"Couldn't find player {row['player']}")
             continue
         date_from = row["from"]
-        date_until = row["until"]
-        gw_from = get_gameweek_for_fixture_date(date_from, season, dbsession)
-        gw_until = get_gameweek_for_fixture_date(date_until, season, dbsession)
+        # date_until (and therefore gw_until) can be null
+        date_until = None if np.isnan(row["until"]) else row["until"]
+        gw_from = get_gameweek_for_date(date_from, season, dbsession)
+        gw_until = None if not date_until else \
+            get_gameweek_for_date(date_until, season, dbsession)
+        print(f"Dates {gw_from} {gw_until}")
         details = row["injury"]
         url = row["url"]
         timestamp = datetime.now().isoformat()
@@ -38,6 +41,7 @@ def load_injuries(season, dbsession):
             url=url,
             timestamp=timestamp,
         )
+        print(absence)
         dbsession.add(absence)
     dbsession.commit()
 

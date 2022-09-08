@@ -118,6 +118,8 @@ def get_gameweek_for_date(check_date, season=CURRENT_SEASON, dbsession=None) -> 
         dbsession = session
     if not isinstance(check_date, date):
         if not isinstance(check_date, datetime):
+            if not isinstance(check_date, str):
+                print(f"date {check_date} is a {type(check_date)}")
             check_date = dateparser.parse(check_date)
         check_date = check_date.date()
     fixtures = dbsession.query(Fixture).filter_by(season=season).all()
