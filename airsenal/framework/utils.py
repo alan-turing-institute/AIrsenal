@@ -109,6 +109,8 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
     return earliest_future_gameweek
 
+
+@lru_cache(365)
 def get_gameweek_for_date(check_date, season=CURRENT_SEASON, dbsession=None) -> int:
     """
     Use a date, or easily parse-able date string to figure out which gameweek its in
@@ -140,8 +142,7 @@ def get_gameweek_for_date(check_date, season=CURRENT_SEASON, dbsession=None) -> 
         for fixture in fixtures:
             try:
                 if (
-                    dateparser.parse(fixture.date).date()
-                    < check_date
+                    dateparser.parse(fixture.date).date() < check_date
                     and fixture.gameweek == earliest_future_gameweek
                 ):
                     earliest_future_gameweek += 1
