@@ -153,9 +153,8 @@ class Player(Base):
 class PlayerMapping(Base):
     # alternative names for players
     __tablename__ = "player_mapping"
-    player_id = Column(
-        Integer, ForeignKey("player.player_id"), primary_key=True, nullable=False
-    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_id = Column(Integer, ForeignKey("player.player_id"), nullable=False)
     alt_name = Column(String(100), nullable=False)
 
 
