@@ -13,7 +13,7 @@ def load_mappings_data():
             os.path.dirname(__file__), "..", "data", "alternative_player_names.csv"
         )
     )
-    with open(filename) as csvfile:
+    with open(filename, encoding="UTF-8") as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         mappings_data = list(reader)
     return mappings_data
