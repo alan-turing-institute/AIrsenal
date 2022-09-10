@@ -14,17 +14,17 @@ def load_injuries(season, dbsession):
     path = os.path.join(
         os.path.dirname(__file__), "..", "data", f"injuries_{season}.csv"
     )
+    injuries = pd.read_csv(
+        path, parse_dates=["from", "until"], infer_datetime_format=True
+    )
 
-    injuries = pd.read_csv(path)
     for _, row in tqdm(injuries.iterrows(), total=injuries.shape[0]):
         p = get_player(row["player"])
         if not p:
             print(f"Couldn't find player {row['player']}")
-            with open("tmp", "a") as f:
-                f.write(f"{row['player']}\n")
             continue
-        date_from = row["from"]
-        date_until = row["until"] if isinstance(row["until"], str) else None
+        date_from = row["from"].date()
+        date_until = row["until"].date() if isinstance(row["until"], str) else None
         gw_from = get_gameweek_for_date(date_from, season, dbsession)
         gw_until = (
             get_gameweek_for_date(date_until, season, dbsession) if date_until else None
@@ -59,8 +59,10 @@ def load_suspensions(season, dbsession):
     path = os.path.join(
         os.path.dirname(__file__), "..", "data", f"suspensions_{season}.csv"
     )
+    suspensions = pd.read_csv(
+        path, parse_dates=["from", "until"], infer_datetime_format=True
+    )
 
-    suspensions = pd.read_csv(path)
     for _, row in tqdm(suspensions.iterrows(), total=suspensions.shape[0]):
         if (
             isinstance(row["competition"], str)
@@ -70,11 +72,9 @@ def load_suspensions(season, dbsession):
         p = get_player(row["player"])
         if not p:
             print(f"Couldn't find player {row['player']}")
-            with open("tmp", "a") as f:
-                f.write(f"{row['player']}\n")
             continue
-        date_from = row["from"]
-        date_until = row["until"] if isinstance(row["until"], str) else None
+        date_from = row["from"].date()
+        date_until = row["until"].date() if isinstance(row["until"], str) else None
         gw_from = get_gameweek_for_date(date_from, season, dbsession)
         gw_until = (
             get_gameweek_for_date(date_until, season, dbsession) if date_until else None
