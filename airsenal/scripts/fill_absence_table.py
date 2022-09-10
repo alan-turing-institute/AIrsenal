@@ -20,6 +20,8 @@ def load_injuries(season, dbsession):
         p = get_player(row["player"])
         if not p:
             print(f"Couldn't find player {row['player']}")
+            with open("tmp", "a") as f:
+                f.write(f"{row['player']}\n")
             continue
         date_from = row["from"]
         date_until = row["until"] if isinstance(row["until"], str) else None
@@ -60,11 +62,16 @@ def load_suspensions(season, dbsession):
 
     suspensions = pd.read_csv(path)
     for _, row in tqdm(suspensions.iterrows(), total=suspensions.shape[0]):
-        if row["competition"] != "Premier League":
+        if (
+            isinstance(row["competition"], str)
+            and row["competition"] != "Premier League"
+        ):
             continue
         p = get_player(row["player"])
         if not p:
             print(f"Couldn't find player {row['player']}")
+            with open("tmp", "a") as f:
+                f.write(f"{row['player']}\n")
             continue
         date_from = row["from"]
         date_until = row["until"] if isinstance(row["until"], str) else None
@@ -102,4 +109,4 @@ def main(seasons=get_past_seasons(3), dbsession=session):
 
 
 if __name__ == "__main__":
-    main(["1920"], session)
+    main()
