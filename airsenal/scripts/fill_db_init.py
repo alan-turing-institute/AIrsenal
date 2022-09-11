@@ -3,6 +3,7 @@ import argparse
 
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import fill_initial_squad
+from airsenal.scripts.fill_absence_table import make_absence_table
 from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.scripts.fill_fixture_table import make_fixture_table
 from airsenal.scripts.fill_player_attributes_table import make_attributes_table
@@ -32,6 +33,7 @@ def make_init_db(fpl_team_id, dbsession):
     make_player_table(dbsession=dbsession)
     make_attributes_table(dbsession=dbsession)
     make_playerscore_table(dbsession=dbsession)
+    make_absence_table(dbsession=dbsession)
 
     fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
 

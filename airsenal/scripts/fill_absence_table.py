@@ -5,7 +5,11 @@ import pandas as pd
 from tqdm import tqdm
 
 from airsenal.framework.schema import Absence, session
-from airsenal.framework.utils import get_gameweek_for_date, get_past_seasons, get_player
+from airsenal.framework.utils import (
+    get_next_gameweek_by_date,
+    get_past_seasons,
+    get_player,
+)
 
 
 def load_injuries(season, dbsession):
@@ -25,9 +29,11 @@ def load_injuries(season, dbsession):
             continue
         date_from = row["from"].date()
         date_until = row["until"].date() if isinstance(row["until"], str) else None
-        gw_from = get_gameweek_for_date(date_from, season, dbsession)
+        gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
         gw_until = (
-            get_gameweek_for_date(date_until, season, dbsession) if date_until else None
+            get_next_gameweek_by_date(date_until, season, dbsession)
+            if date_until
+            else None
         )
         details = row["injury"]
         url = row["url"]
@@ -75,9 +81,11 @@ def load_suspensions(season, dbsession):
             continue
         date_from = row["from"].date()
         date_until = row["until"].date() if isinstance(row["until"], str) else None
-        gw_from = get_gameweek_for_date(date_from, season, dbsession)
+        gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
         gw_until = (
-            get_gameweek_for_date(date_until, season, dbsession) if date_until else None
+            get_next_gameweek_by_date(date_until, season, dbsession)
+            if date_until
+            else None
         )
 
         details = row["absence/suspension"]
@@ -102,11 +110,7 @@ def load_suspensions(season, dbsession):
     dbsession.commit()
 
 
-def main(seasons=get_past_seasons(3), dbsession=session):
+def make_absence_table(seasons=get_past_seasons(3), dbsession=session):
     for season in seasons:
         load_injuries(season, dbsession)
         load_suspensions(season, dbsession)
-
-
-if __name__ == "__main__":
-    main()

@@ -126,7 +126,7 @@ def parse_date(check_date) -> date:
 
 
 @lru_cache(365)
-def get_gameweek_for_date(check_date, season=CURRENT_SEASON, dbsession=None) -> int:
+def get_next_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None) -> int:
     """
     Use a date, or easily parse-able date string to figure out which gameweek its in
     """
@@ -1168,7 +1168,7 @@ def get_return_gameweek_from_news(news, season=CURRENT_SEASON, dbsession=session
         if not return_date:
             raise ValueError(f"Failed to parse date from string '{return_date}'")
 
-        return get_gameweek_for_date(
+        return get_next_gameweek_by_date(
             return_date.date(), season=season, dbsession=dbsession
         )
 
