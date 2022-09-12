@@ -23,7 +23,7 @@ def load_injuries(season, dbsession):
     )
 
     for _, row in tqdm(injuries.iterrows(), total=injuries.shape[0]):
-        p = get_player(row["player"])
+        p = get_player(row["player"], dbsession=dbsession)
         if not p:
             print(f"Couldn't find player {row['player']}")
             continue
@@ -75,7 +75,7 @@ def load_suspensions(season, dbsession):
             and row["competition"] != "Premier League"
         ):
             continue
-        p = get_player(row["player"])
+        p = get_player(row["player"], dbsession=dbsession)
         if not p:
             print(f"Couldn't find player {row['player']}")
             continue
