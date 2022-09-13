@@ -80,7 +80,7 @@ docker volume create airsenal_data
 Run commands with your configuration as environment variables, eg:
 
 ```shell
-docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" airsenal [airsenal_run_pipeline]
+docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal [airsenal_run_pipeline]
 ```
 
 ```airsenal_run_pipeline``` is the default command.
