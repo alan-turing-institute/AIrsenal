@@ -67,17 +67,19 @@ def main():
         required=False,
     )
     parser.add_argument(
-        "--inc_current", help="If set, includes CURRENT_SEASON", action="store_true"
+        "--no_current_season",
+        help="If set, does not include CURRENT_SEASON in database",
+        action="store_true",
     )
     args = parser.parse_args()
 
     with session_scope() as dbsession:
         continue_setup = check_clean_db(args.clean, dbsession)
         if continue_setup:
-            if args.inc_current:
-                seasons = [CURRENT_SEASON] + get_past_seasons(args.n_previous)
-            else:
+            if args.no_current_season:
                 seasons = get_past_seasons(args.n_previous)
+            else:
+                seasons = [CURRENT_SEASON] + get_past_seasons(args.n_previous)
             make_init_db(args.fpl_team_id, seasons, dbsession)
         else:
             print(

@@ -9,7 +9,8 @@ import os
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
-from airsenal.scripts.fill_player_mappings_table import (  # add_mappings,
+from airsenal.scripts.fill_player_mappings_table import (
+    add_mappings,
     make_player_mappings_table,
 )
 
@@ -54,7 +55,7 @@ def fill_player_table_from_file(filename, season, dbsession):
             p.name = name
         if new_entry:
             dbsession.add(p)
-            # add_mappings(p, dbsession=dbsession)
+            add_mappings(p, dbsession=dbsession)
             dbsession.commit()
     dbsession.commit()
 
@@ -79,8 +80,8 @@ def fill_player_table_from_api(season, dbsession):
     dbsession.commit()
 
 
-def make_player_table(seasons=None, dbsession=session):
-    if seasons is None:
+def make_player_table(seasons=[], dbsession=session):
+    if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
     if CURRENT_SEASON in seasons:
