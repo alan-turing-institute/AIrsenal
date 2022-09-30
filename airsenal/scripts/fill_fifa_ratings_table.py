@@ -17,9 +17,8 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
     # TODO: scrape the data first rather than committing file to repo
 
     if not seasons:
-        seasons = get_past_seasons(3)
-        seasons.append(CURRENT_SEASON)
-
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
     for season in seasons:
         print(f"FIFA RATINGS {season}")
         input_path = os.path.join(

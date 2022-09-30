@@ -203,19 +203,18 @@ def fill_playerscores_from_api(
 def make_playerscore_table(seasons=[], dbsession=session):
     # previous seasons data from json files
     if not seasons:
-        seasons = get_past_seasons(3)
-        seasons.append(CURRENT_SEASON)
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
     for season in seasons:
         if season == CURRENT_SEASON:
-            continue
-        input_path = os.path.join(
-            os.path.dirname(__file__), f"../data/player_details_{season}.json"
-        )
-        input_data = json.load(open(input_path))
-        fill_playerscores_from_json(input_data, season, dbsession=dbsession)
-    # this season's data from the API
-    if CURRENT_SEASON in seasons:
-        fill_playerscores_from_api(CURRENT_SEASON, dbsession=dbsession)
+            # current season - use API
+            fill_playerscores_from_api(CURRENT_SEASON, dbsession=dbsession)
+        else:
+            input_path = os.path.join(
+                os.path.dirname(__file__), f"../data/player_details_{season}.json"
+            )
+            input_data = json.load(open(input_path))
+            fill_playerscores_from_json(input_data, season, dbsession=dbsession)
 
 
 if __name__ == "__main__":

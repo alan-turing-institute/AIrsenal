@@ -33,10 +33,9 @@ def make_team_table(seasons=[], dbsession=session):
     Fill the db table containing the list of teams in the
     league for each season.
     """
-
     if not seasons:
         seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(4)
+        seasons += get_past_seasons(3)
     for season in seasons:
         filename = os.path.join(
             os.path.join(os.path.dirname(__file__), "..", "data", f"teams_{season}.csv")

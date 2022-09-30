@@ -2,7 +2,9 @@
 import argparse
 
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
+from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.transaction_utils import fill_initial_squad
+from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.scripts.fill_fixture_table import make_fixture_table
 from airsenal.scripts.fill_player_attributes_table import make_attributes_table
@@ -23,20 +25,28 @@ def check_clean_db(clean, dbsession):
     return database_is_empty(dbsession)
 
 
-def make_init_db(fpl_team_id, dbsession):
-    make_team_table(dbsession=dbsession)
-    make_fixture_table(dbsession=dbsession)
-    make_result_table(dbsession=dbsession)
-    make_fifa_ratings_table(dbsession=dbsession)
+def make_init_db(fpl_team_id, seasons, dbsession):
+    make_team_table(seasons=seasons, dbsession=dbsession)
+    make_fixture_table(seasons=seasons, dbsession=dbsession)
+    make_result_table(seasons=seasons, dbsession=dbsession)
+    make_fifa_ratings_table(seasons=seasons, dbsession=dbsession)
 
-    make_player_table(dbsession=dbsession)
-    make_attributes_table(dbsession=dbsession)
-    make_playerscore_table(dbsession=dbsession)
+    make_player_table(seasons=seasons, dbsession=dbsession)
+    make_attributes_table(seasons=seasons, dbsession=dbsession)
+    make_playerscore_table(seasons=seasons, dbsession=dbsession)
 
-    fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
+    if CURRENT_SEASON in seasons:
+        fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
 
     print("DONE!")
     return not database_is_empty(dbsession)
+
+
+def check_positive_int(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
 
 
 def main():
@@ -49,12 +59,26 @@ def main():
         help="If set, delete and re-create any pre-existing AIrsenal database",
         action="store_true",
     )
+    parser.add_argument(
+        "--n_previous",
+        help="specify how many seasons to look back into the past for",
+        type=check_positive_int,
+        default=3,
+        required=False,
+    )
+    parser.add_argument(
+        "--inc_current", help="If set, includes CURRENT_SEASON", action="store_true"
+    )
     args = parser.parse_args()
 
     with session_scope() as dbsession:
         continue_setup = check_clean_db(args.clean, dbsession)
         if continue_setup:
-            make_init_db(args.fpl_team_id, dbsession)
+            if args.inc_current:
+                seasons = [CURRENT_SEASON] + get_past_seasons(args.n_previous)
+            else:
+                seasons = get_past_seasons(args.n_previous)
+            make_init_db(args.fpl_team_id, seasons, dbsession)
         else:
             print(
                 "AIrsenal database already exists. "

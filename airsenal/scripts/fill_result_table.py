@@ -102,18 +102,19 @@ def make_result_table(seasons=[], dbsession=session):
     past seasons - read results from csv
     """
     if not seasons:
-        seasons = get_past_seasons(3)
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
     for season in seasons:
-        inpath = os.path.join(
-            os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
-        )
-        infile = open(inpath)
-        fill_results_from_csv(infile, season, dbsession)
-    """
-    current season - use API
-    """
-    gw_end = NEXT_GAMEWEEK
-    fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
+        if season == CURRENT_SEASON:
+            # current season - use API
+            gw_end = NEXT_GAMEWEEK
+            fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
+        else:
+            inpath = os.path.join(
+                os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
+            )
+            infile = open(inpath)
+            fill_results_from_csv(infile, season, dbsession)
 
 
 if __name__ == "__main__":
