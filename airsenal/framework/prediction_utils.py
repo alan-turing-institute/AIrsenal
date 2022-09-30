@@ -37,6 +37,7 @@ from airsenal.framework.utils import (
     is_future_gameweek,
     list_players,
     session,
+    was_historic_absence,
 )
 
 np.random.seed(42)
@@ -340,7 +341,14 @@ def calc_predicted_points_for_player(
         elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
-
+        elif was_historic_absence(
+            player,
+            gameweek=gameweek,
+            season=season,
+            dbsession=dbsession,
+        ):
+            # Points will be zero if player was suspended or injured (in past season)
+            points = 0.0
         else:
             # now loop over recent minutes and average
             points = 0

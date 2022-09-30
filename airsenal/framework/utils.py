@@ -16,6 +16,7 @@ from sqlalchemy import case, desc, or_
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import (
+    Absence,
     Fixture,
     Player,
     PlayerAttributes,
@@ -1316,6 +1317,32 @@ def get_recent_minutes_for_player(
             player, season, gameweek=last_gw, dbsession=dbsession
         )
     return minutes or [0]
+
+
+def was_historic_absence(player, gameweek, season, dbsession=None):
+    """
+    For past seasons, query the Absence table for a given player and season,
+    and see if the gameweek is within the period of the absence.
+
+    Returns: bool, True if player was absent (injured or suspended), False otherwise.
+    """
+    if season == CURRENT_SEASON:
+        # we only consider past seasons here.
+        return False
+    if not dbsession:
+        dbsession = session
+    absence = (
+        dbsession.query(Absence)
+        .filter_by(season=season)
+        .filter_by(player=player)
+        .filter(Absence.gw_from <= gameweek)
+        .filter(Absence.gw_until >= gameweek)  # should this be > rather than >= ?
+        .first()
+    )
+    if absence:
+        return True
+    else:
+        return False
 
 
 def get_last_complete_gameweek_in_db(season=CURRENT_SEASON, dbsession=None):
