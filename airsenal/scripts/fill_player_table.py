@@ -88,11 +88,10 @@ def make_player_table(seasons=[], dbsession=session):
         latest_season = CURRENT_SEASON
     else:
         latest_season = seasons[0]
-    seasons.remove(latest_season)
 
     make_init_player_table(season=latest_season, dbsession=session)
     make_player_mappings_table(dbsession=session)
-    make_remaining_player_table(seasons=seasons, dbsession=session)
+    make_remaining_player_table(seasons=seasons[1:], dbsession=session)
 
 
 def make_init_player_table(season, dbsession=session):
