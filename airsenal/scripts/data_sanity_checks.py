@@ -135,6 +135,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         "Note:\n"
         "- 2019/20: 5 subs allowed after Covid-19 lockdown (accounted for in checks)\n"
         "- From 2020/21: Concussion subs allowed (may cause false errors)\n"
+        "- From 2022/22: 5 subs allowed due to rule change (accounted for in checks)\n"
     )
     n_error = 0
 
@@ -159,8 +160,10 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                # Rule change due to shorter season
-                if fixture.season == "1920" and int(fixture.gameweek) >= 39:
+                # Rule change due to shorter season and
+                if (fixture.season == "1920" and int(fixture.gameweek) >= 39) or (
+                    int(fixture.season[:2]) >= 22
+                ):
                     upper_team_limit = 16
                 else:
                     upper_team_limit = 14
