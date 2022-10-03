@@ -139,7 +139,7 @@ def get_next_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None)
 
     if len(fixtures) > 0:
         for fixture in fixtures:
-            if not fixture:
+            if not fixture.date:
                 # date could be null if fixture not scheduled
                 continue
             fixture_date = parse_date(fixture.date)
@@ -151,7 +151,7 @@ def get_next_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None)
 
         # now make sure we aren't in the middle of a gameweek
         for fixture in fixtures:
-            if not fixture:
+            if not fixture.date:
                 # date could be null if fixture not scheduled
                 continue
             if (
