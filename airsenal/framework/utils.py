@@ -61,26 +61,23 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
     if len(fixtures) > 0:
         for fixture in fixtures:
-            try:
-                fixture_date = parse_datetime(fixture.date)
-                fixture_date = fixture_date.replace(tzinfo=timezone.utc)
-                if (
-                    fixture_date > timenow
-                    and fixture.gameweek < earliest_future_gameweek
-                ):
-                    earliest_future_gameweek = fixture.gameweek
-            except (TypeError):  # date could be null if fixture not scheduled
+            if not fixture.date:
+                # date could be null if fixture not scheduled
                 continue
+            fixture_date = parse_datetime(fixture.date).replace(tzinfo=timezone.utc)
+            if fixture_date > timenow and fixture.gameweek < earliest_future_gameweek:
+                earliest_future_gameweek = fixture.gameweek
+
         # now make sure we aren't in the middle of a gameweek
         for fixture in fixtures:
-            try:
-                if (
-                    parse_datetime(fixture.date).replace(tzinfo=timezone.utc) < timenow
-                    and fixture.gameweek == earliest_future_gameweek
-                ):
-                    earliest_future_gameweek += 1
-            except (TypeError):
+            if not fixture.date:
+                # date could be null if fixture not scheduled
                 continue
+            if (
+                parse_datetime(fixture.date).replace(tzinfo=timezone.utc) < timenow
+                and fixture.gameweek == earliest_future_gameweek
+            ):
+                earliest_future_gameweek += 1
 
     else:
         # got no fixtures from database, maybe we're filling it for the first
@@ -113,8 +110,6 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
 @lru_cache(365)
 def parse_datetime(check_date) -> datetime:
-    if not check_date:
-        return None
     if type(check_date) is datetime:
         return check_date
     if isinstance(check_date, str):
@@ -135,34 +130,35 @@ def get_next_gameweek_by_date(check_date, season=CURRENT_SEASON, dbsession=None)
     """
     Use a date, or easily parse-able date string to figure out which gameweek its in
     """
-
     if not dbsession:
         dbsession = session
+
     check_date = parse_date(check_date)
     fixtures = dbsession.query(Fixture).filter_by(season=season).all()
     earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
 
     if len(fixtures) > 0:
         for fixture in fixtures:
-            try:
-                fixture_date = parse_date(fixture.date)
-                if (
-                    fixture_date > check_date
-                    and fixture.gameweek < earliest_future_gameweek
-                ):
-                    earliest_future_gameweek = fixture.gameweek
-            except (TypeError):  # date could be null if fixture not scheduled
+            if not fixture:
+                # date could be null if fixture not scheduled
                 continue
+            fixture_date = parse_date(fixture.date)
+            if (
+                fixture_date > check_date
+                and fixture.gameweek < earliest_future_gameweek
+            ):
+                earliest_future_gameweek = fixture.gameweek
+
         # now make sure we aren't in the middle of a gameweek
         for fixture in fixtures:
-            try:
-                if (
-                    parse_date(fixture.date) < check_date
-                    and fixture.gameweek == earliest_future_gameweek
-                ):
-                    earliest_future_gameweek += 1
-            except (TypeError):
+            if not fixture:
+                # date could be null if fixture not scheduled
                 continue
+            if (
+                parse_date(fixture.date) < check_date
+                and fixture.gameweek == earliest_future_gameweek
+            ):
+                earliest_future_gameweek += 1
 
     return earliest_future_gameweek
 
@@ -423,18 +419,19 @@ def get_gameweek_by_fixture_date(check_date, season=CURRENT_SEASON, dbsession=No
     # convert date to a datetime object if it isn't already one.
     if not dbsession:
         dbsession = session
+
     check_date = parse_date(check_date)
     query = dbsession.query(Fixture)
     if season is not None:
         query = query.filter_by(season=season)
     fixtures = query.all()
     for fixture in fixtures:
-        try:
-            fixture_date = parse_date(fixture.date)
-            if fixture_date == check_date:
-                return fixture.gameweek
-        except (TypeError):  # NULL date if fixture not scheduled
+        if not fixture.date:
+            # NULL date if fixture not scheduled
             continue
+        fixture_date = parse_date(fixture.date)
+        if fixture_date == check_date:
+            return fixture.gameweek
     return None
 
 
