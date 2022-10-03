@@ -61,9 +61,9 @@ def main():
     )
     parser.add_argument(
         "--n_previous",
-        help="specify how many seasons to look back into the past for",
+        help="specify how many seasons to look back into the past for (defaults to 3)",
         type=int,
-        choices=range(1, 6),
+        choices=range(1, 7),
         default=3,
         required=False,
     )
