@@ -113,12 +113,16 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
 @lru_cache(365)
 def parse_datetime(check_date) -> datetime:
+    if not check_date:
+        return None
     if type(check_date) is datetime:
         return check_date
-    try:
-        return isoparse(check_date)
-    except (ValueError, TypeError):
-        return dateparser.parse(check_date)
+    if isinstance(check_date, str):
+        try:
+            return isoparse(check_date)
+        except (ValueError, TypeError):
+            return dateparser.parse(check_date)
+    raise TypeError(f"Don't know what to do with type {type(check_date)}")
 
 
 @lru_cache(365)
