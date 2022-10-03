@@ -110,6 +110,8 @@ def get_next_gameweek(season=CURRENT_SEASON, dbsession=None) -> int:
 
 @lru_cache(365)
 def parse_datetime(check_date) -> datetime:
+    if not check_date:
+        return None
     if type(check_date) is datetime:
         return check_date
     if isinstance(check_date, str):
