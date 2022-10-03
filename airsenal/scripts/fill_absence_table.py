@@ -28,9 +28,7 @@ def load_injuries(season, dbsession):
             print(f"Couldn't find player {row['player']}")
             continue
         date_from = row["from"].date()
-        date_until = (
-            row["until"].date() if isinstance(row["until"], pd.Timestamp) else None
-        )
+        date_until = None if row["until"].isna() else row["until"].date()
         gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
         gw_until = (
             get_next_gameweek_by_date(date_until, season, dbsession)
