@@ -55,8 +55,8 @@ def fill_player_table_from_file(filename, season, dbsession):
             p.name = name
         if new_entry:
             dbsession.add(p)
-            add_mappings(p, dbsession=dbsession)
             dbsession.commit()
+            add_mappings(p, dbsession=dbsession)
     dbsession.commit()
 
 

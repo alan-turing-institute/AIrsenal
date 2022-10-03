@@ -1756,7 +1756,7 @@ plot = ["matplotlib", "seaborn"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "875711c338f00b8ec2936b93dcc7c073d9d23a96460cc8b8a1d16e335a1f821e"
+content-hash = "9e109254ed028e3c4f9e3134780c7aeec2bac6b408e6e9aed41ea826e1bdfebe"
 
 [metadata.files]
 absl-py = []
