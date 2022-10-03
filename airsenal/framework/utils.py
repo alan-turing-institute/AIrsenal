@@ -117,7 +117,7 @@ def parse_datetime(check_date) -> datetime:
         return check_date
     try:
         return isoparse(check_date)
-    except ValueError:
+    except (ValueError, TypeError):
         return dateparser.parse(check_date)
 
 
