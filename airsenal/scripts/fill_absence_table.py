@@ -28,6 +28,9 @@ def load_injuries(season, dbsession):
             print(f"Couldn't find player {row['player']}")
             continue
         date_from = row["from"].date()
+        if date_from is pd.NaT:
+            print(f"{row['player']} {row['injury']} has no from date")
+            continue
         date_until = None if row["until"] is pd.NaT else row["until"].date()
         gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
         gw_until = (
@@ -80,6 +83,9 @@ def load_suspensions(season, dbsession):
             print(f"Couldn't find player {row['player']}")
             continue
         date_from = row["from"].date()
+        if date_from is pd.NaT:
+            print(f"{row['player']} {row['absence/suspension']} has no from date")
+            continue
         date_until = None if row["until"] is pd.NaT else row["until"].date()
 
         gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
