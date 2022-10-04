@@ -84,7 +84,7 @@ def load_suspensions(season, dbsession):
             continue
         date_from = row["from"].date()
         if date_from is pd.NaT:
-            print(f"{row['player']} {row['injury']} has no from date")
+            print(f"{row['player']} {row['absence/suspension']} has no from date")
             continue
         date_until = None if row["until"] is pd.NaT else row["until"].date()
 
