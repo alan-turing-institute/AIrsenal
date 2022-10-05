@@ -9,6 +9,7 @@ from pickle import dumps, loads
 from typing import List, Optional, TypeVar
 
 import dateparser
+import pandas as pd
 import regex as re
 import requests
 from dateutil.parser import isoparse
@@ -204,6 +205,35 @@ def get_gameweeks_array(
 
 # make this a global variable in this module, import into other modules
 NEXT_GAMEWEEK = get_next_gameweek()
+
+
+def get_next_season(season):
+    """
+    Convert string e.g. '1819' into one for next season, i.e. '1920'
+    """
+    start_year = int(season[:2])
+    end_year = int(season[2:])
+    next_start_year = f"0{start_year+1}" if start_year + 1 < 10 else str(start_year + 1)
+    next_end_year = f"0{end_year+1}" if end_year + 1 < 10 else str(end_year + 1)
+    return f"{next_start_year}{next_end_year}"
+
+
+def get_start_end_dates_of_season(season: str) -> list:
+    """
+    Obtains rough start and end dates for the season
+    Takes into account the shorter and longer seasons in 19/20 and 20/21
+    """
+    start_year = int(f"20{season[:2]}")
+    end_year = int(f"20{season[2:]}")
+    if season == "1920":
+        # regular start, late end to season
+        return [pd.Timestamp(2019, 7, 1), pd.Timestamp(2020, 7, 31)]
+    elif season == "2021":
+        # late start to season, regular end
+        return [pd.Timestamp(2020, 8, 1), pd.Timestamp(2021, 6, 30)]
+    else:
+        # regular season
+        return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
 
 
 def get_previous_season(season):
