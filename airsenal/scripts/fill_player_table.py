@@ -8,7 +8,8 @@ import os
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_player_mappings_table import (
     add_mappings,
     make_player_mappings_table,
@@ -80,20 +81,14 @@ def fill_player_table_from_api(season, dbsession):
     dbsession.commit()
 
 
-def make_player_table(seasons=None, dbsession=session):
-    if seasons is None:
+def make_player_table(seasons=[], dbsession=session):
+    if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
-
-    if CURRENT_SEASON in seasons:
-        latest_season = CURRENT_SEASON
-    else:
-        latest_season = seasons[-1]
-    seasons.remove(latest_season)
-
-    make_init_player_table(season=latest_season, dbsession=session)
+    seasons = sort_seasons(seasons)
+    make_init_player_table(season=seasons[0], dbsession=session)
     make_player_mappings_table(dbsession=session)
-    make_remaining_player_table(seasons=seasons, dbsession=session)
+    make_remaining_player_table(seasons=seasons[1:], dbsession=session)
 
 
 def make_init_player_table(season, dbsession=session):
@@ -102,6 +97,7 @@ def make_init_player_table(season, dbsession=session):
     mappings)
     """
     if season == CURRENT_SEASON:
+        # current season - use API
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
     else:
         filename = os.path.join(

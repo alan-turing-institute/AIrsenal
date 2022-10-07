@@ -9,7 +9,8 @@ import os
 
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import FifaTeamRating, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import get_past_seasons
 
 
 def make_fifa_ratings_table(seasons=[], dbsession=session):
@@ -17,10 +18,9 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
     # TODO: scrape the data first rather than committing file to repo
 
     if not seasons:
-        seasons = get_past_seasons(3)
-        seasons.append(CURRENT_SEASON)
-
-    for season in seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
         print(f"FIFA RATINGS {season}")
         input_path = os.path.join(
             os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"

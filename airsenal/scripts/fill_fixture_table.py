@@ -11,7 +11,8 @@ import uuid
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Fixture, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, find_fixture, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import find_fixture, get_past_seasons
 
 
 def fill_fixtures_from_file(filename, season, dbsession=session):
@@ -94,17 +95,20 @@ def fill_fixtures_from_api(season, dbsession=session):
 def make_fixture_table(seasons=[], dbsession=session):
     # fill the fixture table for past seasons
     if not seasons:
-        seasons = get_past_seasons(3)
-    for season in seasons:
-        filename = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "data",
-            f"results_{season}_with_gw.csv",
-        )
-        fill_fixtures_from_file(filename, season, dbsession=dbsession)
-    # now fill the current season from the api
-    fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
+        if season == CURRENT_SEASON:
+            # current season - use API
+            fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)
+        else:
+            filename = os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "data",
+                f"results_{season}_with_gw.csv",
+            )
+            fill_fixtures_from_file(filename, season, dbsession=dbsession)
 
 
 if __name__ == "__main__":

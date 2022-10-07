@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.framework.season import CURRENT_SEASON, season_str_to_year
 
 TRANSFERMARKT_URL = "https://www.transfermarkt.co.uk"
 HEADERS = {
@@ -196,22 +196,6 @@ def get_players_for_season(season: int) -> List[Tuple[str, str]]:
     for _, team_url in tqdm(teams):
         players.update(get_team_players(team_url))
     return list(players)
-
-
-def season_str_to_year(season: str) -> int:
-    """Convert season in "1819" format to the year the season started (2018)
-
-    Parameters
-    ----------
-    season : str
-        Season string in "1819" format (for 2018/19 season)
-
-    Returns
-    -------
-    int
-        Year season started
-    """
-    return int(f"20{season[:2]}")
 
 
 def get_season_injuries_suspensions(season: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
