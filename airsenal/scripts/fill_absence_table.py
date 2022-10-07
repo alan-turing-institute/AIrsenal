@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from airsenal.framework.schema import Absence, session
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     get_next_gameweek_by_date,
     get_past_seasons,
@@ -119,7 +119,7 @@ def load_suspensions(season, dbsession):
 
 
 def make_absence_table(seasons=get_past_seasons(3), dbsession=session):
-    for season in seasons:
+    for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             continue
         load_injuries(season, dbsession)

@@ -11,7 +11,8 @@ import uuid
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Fixture, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, find_fixture, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import find_fixture, get_past_seasons
 
 
 def fill_fixtures_from_file(filename, season, dbsession=session):
@@ -96,7 +97,7 @@ def make_fixture_table(seasons=[], dbsession=session):
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
-    for season in seasons:
+    for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
             fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)

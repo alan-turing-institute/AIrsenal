@@ -2,7 +2,7 @@
 import argparse
 
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_absence_table import make_absence_table
@@ -27,6 +27,7 @@ def check_clean_db(clean, dbsession):
 
 
 def make_init_db(fpl_team_id, seasons, dbsession):
+    seasons = sort_seasons(seasons)
     make_team_table(seasons=seasons, dbsession=dbsession)
     make_fixture_table(seasons=seasons, dbsession=dbsession)
     make_result_table(seasons=seasons, dbsession=dbsession)

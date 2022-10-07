@@ -11,12 +11,8 @@ import os
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Result, session, session_scope
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    NEXT_GAMEWEEK,
-    find_fixture,
-    get_past_seasons,
-)
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seasons
 
 
 def fill_results_from_csv(input_file, season, dbsession):
@@ -104,7 +100,7 @@ def make_result_table(seasons=[], dbsession=session):
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
-    for season in seasons:
+    for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
             gw_end = NEXT_GAMEWEEK

@@ -9,8 +9,8 @@ import os
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     get_next_gameweek,
     get_past_seasons,
     get_player,
@@ -189,7 +189,7 @@ def make_attributes_table(seasons=[], dbsession=session):
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
-    for season in seasons:
+    for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
             fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
