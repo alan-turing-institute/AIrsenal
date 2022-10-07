@@ -13,8 +13,6 @@ from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Fixture, session, session_scope
 from airsenal.framework.utils import CURRENT_SEASON, find_fixture, get_past_seasons
 
-# from tkinter import CURRENT
-
 
 def fill_fixtures_from_file(filename, season, dbsession=session):
     """
