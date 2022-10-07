@@ -15,6 +15,7 @@ from airsenal.framework.utils import (
     get_entry_start_gameweek,
     get_gameweeks_array,
     get_latest_prediction_tag,
+    get_past_seasons,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -79,6 +80,17 @@ from airsenal.scripts.update_db import update_db
     help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
     default=-1,
 )
+@click.option(
+    "--n_previous",
+    help="specify how many seasons to look back into the past for (defaults to 3)",
+    type=int,
+    default=3,
+)
+@click.option(
+    "--no_current_season",
+    help="If set, does not include CURRENT_SEASON in database",
+    is_flag=True,
+)
 def run_pipeline(
     num_thread,
     weeks_ahead,
@@ -89,6 +101,8 @@ def run_pipeline(
     free_hit_week,
     triple_captain_week,
     bench_boost_week,
+    n_previous,
+    no_current_season,
 ):
     """
     Run the full pipeline, from setting up the database and filling
@@ -109,7 +123,9 @@ def run_pipeline(
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
             click.echo("Setting up Database..")
-            setup_ok = setup_database(fpl_team_id, dbsession)
+            setup_ok = setup_database(
+                fpl_team_id, n_previous, no_current_season, dbsession
+            )
             if not setup_ok:
                 raise RuntimeError("Problem setting up initial db")
             click.echo("Database setup complete..")
@@ -156,11 +172,16 @@ def run_pipeline(
         click.echo("Pipeline finished OK!")
 
 
-def setup_database(fpl_team_id, dbsession):
+def setup_database(fpl_team_id, n_previous, no_current_season, dbsession):
     """
     Set up database
     """
-    return make_init_db(fpl_team_id, dbsession)
+    if no_current_season:
+        seasons = get_past_seasons(n_previous)
+    else:
+        seasons = [CURRENT_SEASON] + get_past_seasons(n_previous)
+
+    return make_init_db(fpl_team_id, seasons, dbsession)
 
 
 def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_week):
