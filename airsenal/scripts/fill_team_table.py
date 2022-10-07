@@ -7,7 +7,8 @@ help fill other tables from raw json files
 import os
 
 from airsenal.framework.schema import Team, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import get_past_seasons
 
 
 def fill_team_table_from_file(filename, dbsession=session):
@@ -33,11 +34,10 @@ def make_team_table(seasons=[], dbsession=session):
     Fill the db table containing the list of teams in the
     league for each season.
     """
-
     if not seasons:
         seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(4)
-    for season in seasons:
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
         filename = os.path.join(
             os.path.join(os.path.dirname(__file__), "..", "data", f"teams_{season}.csv")
         )

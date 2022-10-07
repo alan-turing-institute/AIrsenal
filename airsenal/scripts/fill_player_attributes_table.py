@@ -9,8 +9,8 @@ import os
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     get_next_gameweek,
     get_past_seasons,
     get_player,
@@ -187,25 +187,22 @@ def make_attributes_table(seasons=[], dbsession=session):
     player details JSON files) and the current season (from API)
     """
     if not seasons:
-        seasons = get_past_seasons(3)
-        seasons.append(CURRENT_SEASON)
-
-    for season in seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
-            continue
-        input_path = os.path.join(
-            os.path.dirname(__file__), f"../data/player_details_{season}.json"
-        )
-        with open(input_path, "r") as f:
-            input_data = json.load(f)
+            # current season - use API
+            fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
+        else:
+            input_path = os.path.join(
+                os.path.dirname(__file__), f"../data/player_details_{season}.json"
+            )
+            with open(input_path, "r") as f:
+                input_data = json.load(f)
 
-        fill_attributes_table_from_file(
-            detail_data=input_data, season=season, dbsession=dbsession
-        )
-
-    # this season's data from the API
-    if CURRENT_SEASON in seasons:
-        fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
+            fill_attributes_table_from_file(
+                detail_data=input_data, season=season, dbsession=dbsession
+            )
 
     dbsession.commit()
 

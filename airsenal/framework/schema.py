@@ -19,6 +19,7 @@ class Player(Base):
     fpl_api_id = Column(Integer, nullable=True)
     name = Column(String(100), nullable=False)
     attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
+    absences = relationship("Absence", uselist=True, back_populates="player")
     results = relationship("Result", uselist=True, back_populates="player")
     fixtures = relationship("Fixture", uselist=True, back_populates="player")
     predictions = relationship(
@@ -152,9 +153,8 @@ class Player(Base):
 class PlayerMapping(Base):
     # alternative names for players
     __tablename__ = "player_mapping"
-    player_id = Column(
-        Integer, ForeignKey("player.player_id"), primary_key=True, nullable=False
-    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_id = Column(Integer, ForeignKey("player.player_id"), nullable=False)
     alt_name = Column(String(100), nullable=False)
 
 
@@ -181,6 +181,39 @@ class PlayerAttributes(Base):
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
+        )
+
+
+class Absence(Base):
+    __tablename__ = "absence"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player = relationship("Player", back_populates="absences")
+    player_id = Column(Integer, ForeignKey("player.player_id"))
+    season = Column(String(100), nullable=False)
+    reason = Column(String(100), nullable=False)  # high-level, e.g. injury/suspension
+    details = Column(String(100), nullable=True)
+    date_from = Column(String(100), nullable=False)
+    date_until = Column(String(100), nullable=True)
+    gw_from = Column(Integer, nullable=False)
+    gw_until = Column(Integer, nullable=True)
+    url = Column(String(100), nullable=True)
+    timestamp = Column(String(100), nullable=False)
+
+    def __str__(self):
+        return (
+            f"Absence(\n"
+            f"  player='{self.player}',\n"
+            f"  player_id='{self.player_id}',\n"
+            f"  season='{self.season}',\n"
+            f"  reason='{self.reason}',\n"
+            f"  details='{self.details}',\n"
+            f"  date_from='{self.date_from}',\n"
+            f"  date_until='{self.date_until}',\n"
+            f"  gw_from='{self.gw_from}',\n"
+            f"  gw_until='{self.gw_until}',\n"
+            f"  url='{self.url}',\n"
+            f"  timestamp='{self.timestamp}'\n"
+            ")"
         )
 
 
