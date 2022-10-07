@@ -1366,8 +1366,8 @@ def was_historic_absence(player, gameweek, season, dbsession=None):
         dbsession.query(Absence)
         .filter_by(season=season)
         .filter_by(player=player)
-        .filter(Absence.gw_from <= gameweek)
-        .filter(Absence.gw_until >= gameweek)  # should this be > rather than >= ?
+        .filter(Absence.gw_from < gameweek)
+        .filter(Absence.gw_until > gameweek)
         .first()
     )
     if absence:
