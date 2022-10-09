@@ -575,7 +575,9 @@ def run_optimization(
     print(f"Baseline score: {baseline_score}")
     print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
-    t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
+    best_squad = print_team_for_next_gw(
+        best_strategy, season=season, fpl_team_id=fpl_team_id
+    )
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
@@ -594,7 +596,7 @@ def run_optimization(
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:
                 lineup_strings.append(f"== **{position}** ==\n```")
-                for p in t.players:
+                for p in best_squad.players:
                     if p.position == position and p.is_starting:
                         player_line = f"{p.name} ({p.team})"
                         if p.is_captain:
@@ -605,7 +607,7 @@ def run_optimization(
                 lineup_strings.append("```\n")
             lineup_strings.append("__subs__")
             lineup_strings.append("```")
-            subs = [p for p in t.players if not p.is_starting]
+            subs = [p for p in best_squad.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
             for p in subs:
                 lineup_strings.append(f"{p.name} ({p.team})")
@@ -621,7 +623,7 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    return
+    return best_squad
 
 
 def construct_chip_dict(gameweeks, chip_gameweeks):
