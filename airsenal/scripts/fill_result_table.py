@@ -11,12 +11,8 @@ import os
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Result, session, session_scope
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    NEXT_GAMEWEEK,
-    find_fixture,
-    get_past_seasons,
-)
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seasons
 
 
 def fill_results_from_csv(input_file, season, dbsession):
@@ -70,9 +66,9 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
             elif str(away_id) in v:
                 away_team = k
         if not home_team:
-            raise ValueError("Unable to find team with id {}".format(home_id))
+            raise ValueError(f"Unable to find team with id {home_id}")
         if not away_team:
-            raise ValueError("Unable to find team with id {}".format(away_id))
+            raise ValueError(f"Unable to find team with id {away_id}")
         home_score = m["team_h_score"]
         away_score = m["team_a_score"]
         f = find_fixture(
@@ -102,18 +98,19 @@ def make_result_table(seasons=[], dbsession=session):
     past seasons - read results from csv
     """
     if not seasons:
-        seasons = get_past_seasons(3)
-    for season in seasons:
-        inpath = os.path.join(
-            os.path.dirname(__file__), "../data/results_{}_with_gw.csv".format(season)
-        )
-        infile = open(inpath)
-        fill_results_from_csv(infile, season, dbsession)
-    """
-    current season - use API
-    """
-    gw_end = NEXT_GAMEWEEK
-    fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
+        if season == CURRENT_SEASON:
+            # current season - use API
+            gw_end = NEXT_GAMEWEEK
+            fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
+        else:
+            inpath = os.path.join(
+                os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
+            )
+            infile = open(inpath)
+            fill_results_from_csv(infile, season, dbsession)
 
 
 if __name__ == "__main__":

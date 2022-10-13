@@ -12,7 +12,7 @@ def get_player_history_table(position="all"):
     """
     Query the player_score table.
     """
-    with open("player_history_{}.csv".format(position), "w") as output_file:
+    with open(f"player_history_{position}.csv", "w") as output_file:
         output_file.write(
             "player_id,player_name,match_id,goals,assists,minutes,team_goals\n"
         )
@@ -37,14 +37,13 @@ def get_player_history_table(position="all"):
                     print("Unknown opponent!")
                     team_goals = -1
                 output_file.write(
-                    "{},{},{},{},{},{},{}\n".format(
-                        pid, player_name, match_id, goals, assists, minutes, team_goals
-                    )
+                    f"{pid},{player_name},{match_id},{goals},{assists},{minutes},"
+                    f"{team_goals}\n"
                 )
                 row_count += 1
             if row_count < 38 * 3:
                 for _ in range(row_count, 38 * 3):
-                    output_file.write("{},{},0,0,0,0,0\n".format(pid, player_name))
+                    output_file.write(f"{pid},{player_name},0,0,0,0,0\n")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ bought or sold.
 """
 import argparse
 
-from airsenal.framework.schema import Player, session_scope
+from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -119,16 +119,16 @@ def add_players_to_db(
     for player_api_id in new_players:
         first_name = player_data_from_api[player_api_id]["first_name"]
         second_name = player_data_from_api[player_api_id]["second_name"]
-        name = "{} {}".format(first_name, second_name)
+        name = f"{first_name} {second_name}"
         # check whether we already have this player in the database -
         # if yes update that player's data, if no create a new player
         p = find_player_in_table(name, dbsession=dbsession)
         if p is None:
-            print("Adding player {}".format(name))
+            print(f"Adding player {name}")
             p = Player()
             update = False
         elif p.fpl_api_id is None:
-            print("Updating player {}".format(name))
+            print(f"Updating player {name}")
             update = True
         else:
             update = True
@@ -204,6 +204,10 @@ def main():
     fpl_team_id = args.fpl_team_id or None
 
     with session_scope() as session:
+        if database_is_empty(session):
+            print("Database is empty, run 'airsenal_setup_initial_db' first")
+            return
+
         update_db(season, do_attributes, fpl_team_id, session)
 
 

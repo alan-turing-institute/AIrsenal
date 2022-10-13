@@ -18,6 +18,7 @@ from airsenal.framework.utils import CURRENT_SEASON  # noqa: E402
 from airsenal.tests.resources import dummy_players  # noqa: E402
 
 API_SESSION_ID = "TESTSESSION"
+TEST_PAST_SEASON = "2021"
 
 testengine_dummy = create_engine(f"sqlite:///{env.AIRSENAL_HOME}/test.db")
 
@@ -92,11 +93,11 @@ def fill_players():
             p.player_id = i
             p.fpl_api_id = i
             p.name = n
-            print("Filling {} {}".format(i, n))
+            print(f"Filling {i} {n}")
             try:
                 ts.add(p)
             except Exception:
-                print("Error adding {} {}".format(i, n))
+                print(f"Error adding {i} {n}")
             # now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"

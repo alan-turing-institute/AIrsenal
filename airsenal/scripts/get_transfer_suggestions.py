@@ -36,11 +36,11 @@ def build_strategy_string(rows):
     current_gw = 0
     for row in rows:
         if row.gameweek != current_gw:
-            output_string += " gameweek {}: ".format(row.gameweek)
+            output_string += f" gameweek {row.gameweek}: "
             current_gw = row.gameweek
         output_string += " sell " if row.in_or_out < 0 else " buy "
         output_string += get_player_name(row.player_id) + ","
-    output_string += " for a total gain of {} points.".format(rows[0].points_gain)
+    output_string += f" for a total gain of {rows[0].points_gain} points."
     return output_string
 
 

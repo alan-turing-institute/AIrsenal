@@ -37,6 +37,7 @@ from airsenal.framework.utils import (
     is_future_gameweek,
     list_players,
     session,
+    was_historic_absence,
 )
 
 np.random.seed(42)
@@ -72,11 +73,7 @@ def get_player_history_df(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     for counter, player in enumerate(players):
-        print(
-            "Filling history dataframe for {}: {}/{} done".format(
-                player, counter, len(players)
-            )
-        )
+        print(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
         results = player.scores
         row_count = 0
         for row in results:
@@ -90,7 +87,7 @@ def get_player_history_df(
 
             match_id = row.result_id
             if not match_id:
-                print(" Couldn't find result for {}".format(row.fixture))
+                print(f" Couldn't find result for {row.fixture}")
                 continue
             minutes = row.minutes
             goals = row.goals
@@ -272,7 +269,7 @@ def calc_predicted_points_for_player(
     if isinstance(player, int):
         player = get_player(player, dbsession=dbsession)
 
-    message = "Points prediction for player {}".format(player)
+    message = f"Points prediction for player {player}"
 
     if not gw_range:
         # by default, go for next three matches
@@ -327,7 +324,7 @@ def calc_predicted_points_for_player(
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
         home_or_away = "at home" if is_home else "away"
-        message += "\ngameweek: {} vs {}  {}".format(gameweek, opponent, home_or_away)
+        message += f"\ngameweek: {gameweek} vs {opponent}  {home_or_away}"
         team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
         team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
 
@@ -344,7 +341,14 @@ def calc_predicted_points_for_player(
         elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
-
+        elif was_historic_absence(
+            player,
+            gameweek=gameweek,
+            season=season,
+            dbsession=dbsession,
+        ):
+            # Points will be zero if player was suspended or injured (in past season)
+            points = 0.0
         else:
             # now loop over recent minutes and average
             points = 0
@@ -376,7 +380,7 @@ def calc_predicted_points_for_player(
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
-        message += "\nExpected points: {:.2f}".format(points)
+        message += f"\nExpected points: {points:.2f}"
 
     print(message)
     return predictions
@@ -451,7 +455,7 @@ def fill_ep(csv_filename, dbsession=session):
     for k, v in summary_data.items():
         player = get_player_from_api_id(k)
         player_id = player.player_id
-        outfile.write("{},{},{}\n".format(player_id, gameweek, v["ep_next"]))
+        outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
         pp = PlayerPrediction()
         pp.player_id = player_id
         pp.gameweek = gameweek

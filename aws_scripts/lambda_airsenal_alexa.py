@@ -28,7 +28,7 @@ print("Loading AIrsenal function")
 
 
 def lambda_handler(event, context):
-    logger.info("got event{}".format(event))
+    logger.info(f"got event{event}")
 
     response_text = "A.I. Arsenal forever."
     if event["request"]["intent"]["name"] == "Question":
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
                 else:
                     response_text = "unknown query"
         except Exception as e:
-            response_text = "Exception {}".format(e)
+            response_text = f"Exception {e}"
 
     response_tmpl["response"]["outputSpeech"]["text"] = response_text
     return response_tmpl

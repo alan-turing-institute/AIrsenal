@@ -61,7 +61,7 @@ def make_optimum_single_transfer(
         new_squad = fastcopy(squad)
         position = p_out.position
         if verbose:
-            print("Removing player {}".format(p_out))
+            print(f"Removing player {p_out}")
         new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
@@ -69,7 +69,7 @@ def make_optimum_single_transfer(
             added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
             if added_ok:
                 if verbose:
-                    print("Added player {}".format(p_in[0]))
+                    print(f"Added player {p_in[0]}")
                 total_points = get_discounted_squad_score(
                     new_squad,
                     gameweek_range,
@@ -85,7 +85,7 @@ def make_optimum_single_transfer(
                     best_squad = new_squad
                 break
             if verbose:
-                print("Failed to add {}".format(p_in[0].name))
+                print(f"Failed to add {p_in[0].name}")
         if not new_squad.is_complete() and verbose:
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
@@ -144,7 +144,7 @@ def make_optimum_double_transfer(
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
             new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
             if verbose:
-                print("Removing players {} {}".format(i, j))
+                print(f"Removing players {i} {j}")
             # what positions do we need to fill?
             positions_needed = [pout_1.position, pout_2.position]
 
@@ -275,7 +275,7 @@ def make_random_transfers(
                         ap.player_id, gameweek=transfer_gw
                     )
                     if not removed_ok:
-                        print("Problem removing {}".format(ap.name))
+                        print(f"Problem removing {ap.name}")
                 added_players = []
 
         # calculate the score
@@ -388,9 +388,7 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:
-        raise RuntimeError(
-            "Unrecognized value for num_transfers: {}".format(num_transfers)
-        )
+        raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
 
     # get the expected points total for next gameweek
     points = get_discounted_squad_score(

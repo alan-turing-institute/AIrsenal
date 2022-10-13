@@ -21,7 +21,7 @@ def result_string(n_error):
     if n_error == 0:
         return "OK!"
     else:
-        return "FAIL! {} errors.".format(n_error)
+        return f"FAIL! {n_error} errors."
 
 
 def season_num_teams(seasons=CHECK_SEASONS, session=session):
@@ -36,9 +36,7 @@ def season_num_teams(seasons=CHECK_SEASONS, session=session):
         teams = get_teams_for_season(season, session)
         if len(teams) != 20:
             n_error += 1
-            print(
-                "Number of teams in {} season is {} (not 20)".format(season, len(teams))
-            )
+            print(f"Number of teams in {season} season is {len(teams)} (not 20)")
 
     print("\n", result_string(n_error))
     return n_error
@@ -59,9 +57,8 @@ def season_num_new_teams(seasons=CHECK_SEASONS, session=session):
         if len(new_teams) != 3:
             n_error += 1
             print(
-                "Number of teams changed between {} and {} is {} (not 3)".format(
-                    seasons[i - 1], seasons[i], len(new_teams)
-                )
+                f"Number of teams changed between {seasons[i - 1]} "
+                f"and {seasons[i]} is {len(new_teams)} (not 3)"
             )
 
     print("\n", result_string(n_error))
@@ -83,11 +80,7 @@ def season_num_fixtures(seasons=CHECK_SEASONS, session=session):
         fixtures = get_fixtures_for_season(season=season)
         if len(fixtures) != 380:
             n_error += 1
-            print(
-                "Number of fixtures in {} season is {} (not 380)".format(
-                    season, len(fixtures)
-                )
-            )
+            print(f"Number of fixtures in {season} season is {len(fixtures)} (not 380)")
 
     print("\n", result_string(n_error))
     return n_error
@@ -119,11 +112,8 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
                     ]:
                         n_error += 1
                         msg = (
-                            "{}: {} in player_scores but labelled as playing for {}."
-                        ).format(
-                            fixture,
-                            score.player,
-                            score.player_team,
+                            f"{fixture}: {score.player} in player_scores but labelled "
+                            f"as playing for {score.player_team}."
                         )
                         print(msg)
 
@@ -145,6 +135,7 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
         "Note:\n"
         "- 2019/20: 5 subs allowed after Covid-19 lockdown (accounted for in checks)\n"
         "- From 2020/21: Concussion subs allowed (may cause false errors)\n"
+        "- From 2022/22: 5 subs allowed due to rule change (accounted for in checks)\n"
     )
     n_error = 0
 
@@ -169,8 +160,10 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                     .all()
                 )
 
-                # Rule change due to shorter season
-                if fixture.season == "1920" and int(fixture.gameweek) >= 39:
+                # Rule change due to shorter season and
+                if (fixture.season == "1920" and int(fixture.gameweek) >= 39) or (
+                    int(fixture.season[:2]) >= 22
+                ):
                     upper_team_limit = 16
                 else:
                     upper_team_limit = 14
@@ -180,8 +173,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                 ):
                     n_error += 1
                     print(
-                        "{}: {} players with minutes > 0 for home team.".format(
-                            result, len(home_scores)
+                        (
+                            f"{result}: {len(home_scores)} "
+                            "players with minutes > 0 for home team."
                         )
                     )
 
@@ -190,8 +184,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
                 ):
                     n_error += 1
                     print(
-                        "{}: {} players with minutes > 0 for away team.".format(
-                            result, len(away_scores)
+                        (
+                            f"{result}: {len(away_scores)} "
+                            "players with minutes > 0 for away team."
                         )
                     )
 
@@ -240,24 +235,16 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
                 if home_goals != result.home_score:
                     n_error += 1
                     msg = (
-                        "{}: Player scores sum to {} but {} goals in result "
-                        "for home team"
-                    ).format(
-                        result,
-                        home_goals,
-                        result.home_score,
+                        f"{result}: Player scores sum to {home_goals} "
+                        f"but {result.home_score} goals in result for home team"
                     )
                     print(msg)
 
                 if away_goals != result.away_score:
                     n_error += 1
                     msg = (
-                        "{}: Player scores sum to {} but {} goals in result "
-                        "for away team"
-                    ).format(
-                        result,
-                        away_goals,
-                        result.away_score,
+                        f"{result}: Player scores sum to {away_goals} but "
+                        f"{result.away_score} goals in result for away team"
                     )
                     print(msg)
 
@@ -303,24 +290,16 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
                 if home_assists > result.home_score:
                     n_error += 1
                     msg = (
-                        "{}: Player assists sum to {} but {} goals in result "
-                        "for home team"
-                    ).format(
-                        result,
-                        home_assists,
-                        result.home_score,
+                        f"{result}: Player assists sum to {home_assists} but "
+                        f"{result.home_score} goals in result for home team"
                     )
                     print(msg)
 
                 if away_assists > result.away_score:
                     n_error += 1
                     msg = (
-                        "{}: Player assists sum to {} but {} goals in result "
-                        "for away team"
-                    ).format(
-                        result,
-                        away_assists,
-                        result.away_score,
+                        f"{result}: Player assists sum to {away_assists} but "
+                        f"{result.away_score} goals in result for away team"
                     )
                     print(msg)
 
@@ -369,21 +348,17 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
 
                 if home_conceded != result.away_score:
                     n_error += 1
-                    msg = "{}: Player conceded {} but {} goals in result for home team"
-                    msg = msg.format(
-                        result,
-                        home_conceded,
-                        result.away_score,
+                    msg = (
+                        f"{result}: Player conceded {home_conceded} but "
+                        f"{result.away_score} goals in result for home team"
                     )
                     print(msg)
 
                 if away_conceded != result.home_score:
                     n_error += 1
-                    msg = "{}: Player conceded {} but {} goals in result for away team"
-                    msg = msg.format(
-                        result,
-                        away_conceded,
-                        result.home_score,
+                    msg = (
+                        f"{result}: Player conceded {away_conceded} but "
+                        f"{result.home_score} goals in result for away team"
                     )
                     print(msg)
 
@@ -414,14 +389,15 @@ def run_all_checks(seasons=CHECK_SEASONS):
     print("SUMMARY\n-------")
     print("Seasons:", seasons, "\n")
     for name, res in results.items():
-        print("{}: {}".format(name, result_string(res)))
+        print(f"{name}: {result_string(res)}")
 
     n_tests = len(functions)
     n_passed = sum(1 for _, r in results.items() if r == 0)
     n_total_errors = sum(r for _, r in results.items())
     print(
-        "\nOVERALL: Passed {} out of {} tests with {} errors.".format(
-            n_passed, n_tests, n_total_errors
+        (
+            f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
+            f"{n_total_errors} errors."
         )
     )
 

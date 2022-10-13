@@ -37,4 +37,4 @@ fixtures_df["away_team"].replace(teams, inplace=True)
 fixtures_df.to_csv(RESULTS_WITH_GW_FILE.format(SEASON), index=False)
 fixtures_df.drop("gameweek", axis=1).to_csv(RESULTS_FILE.format(SEASON), index=False)
 
-print("DONE {} SEASON!".format(SEASON))
+print(f"DONE {SEASON} SEASON!")

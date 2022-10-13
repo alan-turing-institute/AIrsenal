@@ -50,9 +50,7 @@ if __name__ == "__main__":
     fpl_players_to_match = []
     # from the API we construct the player name from first_name and second_name
     for k in playerdata.keys():
-        player_name = "{} {}".format(
-            playerdata[k]["first_name"], playerdata[k]["second_name"]
-        )
+        player_name = f"{playerdata[k]['first_name']} {playerdata[k]['second_name']}"
         fpl_players_to_match.append(player_name)
 
     # get the player names from the fpl archives json
@@ -60,7 +58,7 @@ if __name__ == "__main__":
     matched = set()
     history_players = set()
     for season in ["2122", "2021", "1920"]:
-        filename = "../data/player_summary_{}.json".format(season)
+        filename = f"../data/player_summary_{season}.json"
         player_data = json.load(open(filename))
         for p in player_data:
             history_players.add(p["name"])
@@ -104,7 +102,7 @@ if __name__ == "__main__":
                         playerdict[p].append(player)
                         matched.add(player)
                         fpl_players_to_match.remove(p)
-    print("Num matched: {}".format(len(matched)))
+    print(f"Num matched: {len(matched)}")
 
     # write an output csv file with each line containing all possible
     # alternative names for a given current-season name

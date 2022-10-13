@@ -2,9 +2,19 @@
 test some db access helper functions
 """
 
-from airsenal.conftest import test_session_scope
+from airsenal.conftest import (
+    TEST_PAST_SEASON,
+    test_past_data_session_scope,
+    test_session_scope,
+)
 from airsenal.framework.schema import Player
-from airsenal.framework.utils import get_player, get_player_id, get_player_name
+from airsenal.framework.utils import (
+    get_gameweek_by_fixture_date,
+    get_next_gameweek_by_date,
+    get_player,
+    get_player_id,
+    get_player_name,
+)
 
 
 def test_get_player_name(fill_players):
@@ -31,3 +41,29 @@ def test_get_player(fill_players):
         p = get_player("Bob", tsession)
         assert isinstance(p, Player)
         assert p.player_id == 1
+
+
+def test_get_next_gameweek_by_date():
+    with test_past_data_session_scope() as ts:
+        gw = get_next_gameweek_by_date(
+            "2020-09-18", season=TEST_PAST_SEASON, dbsession=ts
+        )
+        assert gw == 2
+
+        gw = get_next_gameweek_by_date(
+            "2020-09-20T12:34:00Z", season=TEST_PAST_SEASON, dbsession=ts
+        )
+        assert gw == 3
+
+
+def test_get_gameweek_by_fixture_date():
+    with test_past_data_session_scope() as ts:
+        gw = get_gameweek_by_fixture_date(
+            "2020-09-18", season=TEST_PAST_SEASON, dbsession=ts
+        )
+        assert gw is None
+
+        gw = get_gameweek_by_fixture_date(
+            "2020-09-20T12:34:00Z", season=TEST_PAST_SEASON, dbsession=ts
+        )
+        assert gw == 2

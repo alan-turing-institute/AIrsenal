@@ -27,12 +27,12 @@ def download_sqlite_file():
             aws_secret_access_key=os.environ["ACCESS_KEY"],
         )
     except Exception as e:
-        return "Problem initializing client {}".format(e)
+        return f"Problem initializing client {e}"
     try:
         client.download_file(bucket_name, "data.db", "/tmp/datas3.db")
         return "OK"
     except Exception as e:
-        return "Problem downloading file {}".format(e)
+        return f"Problem downloading file {e}"
 
 
 def get_league_standings_string():
@@ -42,14 +42,17 @@ def get_league_standings_string():
     output_string = ""
     try:
         league_name, standings = get_league_standings()
-        output_string += "Standings for league {} :".format(league_name)
+        output_string += f"Standings for league {league_name} :"
         for i, entry in enumerate(standings):
-            output_string += "{}: {}, managed by {}, with {} points, ".format(
-                i + 1, entry["name"], entry["manager"], entry["points"]
+            output_string += (
+                f"{i + 1,}: "
+                f"{entry['name']}, "
+                f"managed by {entry['manager']}, "
+                f"with {entry['points']} points, "
             )
         return output_string
     except Exception as e:
-        return "Problem {}".format(e)
+        return f"Problem {e}"
 
 
 def get_suggestions_string():
@@ -66,12 +69,12 @@ def get_suggestions_string():
     try:
         from airsenal.framework.schema import session
     except Exception as e:
-        return "Problem importing stuff {}".format(e)
+        return f"Problem importing stuff {e}"
     try:
         return build_suggestion_string(session, TransferSuggestion, Player)
 
     except Exception as e:
-        return "Problem with the query {}".format(e)
+        return f"Problem with the query {e}"
 
 
 def build_suggestion_string(session, TransferSuggestion, Player):
@@ -87,7 +90,7 @@ def build_suggestion_string(session, TransferSuggestion, Player):
     current_gw = 0
     for row in rows:
         if row.gameweek != current_gw:
-            output_string += " gameweek {}: ".format(row.gameweek)
+            output_string += f" gameweek {row.gameweek}: "
             current_gw = row.gameweek
         output_string += " sell " if row.in_or_out < 0 else " buy "
         player_name = (
@@ -96,7 +99,7 @@ def build_suggestion_string(session, TransferSuggestion, Player):
         output_string += player_name + ","
 
     points_gain = round(rows[0].points_gain, 1)
-    output_string += " for a total gain of {} points.".format(points_gain)
+    output_string += f" for a total gain of {points_gain} points."
     return output_string
 
 
@@ -106,8 +109,8 @@ def get_score_ranking_string(query, gameweek=None):
     """
     f = get_overall_ranking if query == "ranking" else get_overall_points
     result = f(gameweek)
-    output_string = "Our {} ".format(query)
+    output_string = f"Our {query} "
     if gameweek:
-        output_string += "for gameweek {} ".format(gameweek)
-    output_string += "is {}".format(result)
+        output_string += f"for gameweek {gameweek} "
+    output_string += f"is {result}"
     return output_string

@@ -59,6 +59,6 @@ class CandidatePlayer(object):
         if tag not in self.predicted_points.keys():
             self.calc_predicted_points(tag)
         if gameweek not in self.predicted_points[tag].keys():
-            print("No prediction available for {} week {}".format(self.name, gameweek))
+            print(f"No prediction available for {self.name} week {gameweek}")
             return 0.0
         return self.predicted_points[tag][gameweek]

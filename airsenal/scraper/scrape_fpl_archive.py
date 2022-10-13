@@ -80,9 +80,9 @@ def get_detail_pages(soup, pages_to_go_forward):
         player_names.append(player_name)
     # seems a bit crazy to loop again here, but I guess going "back" means
     # the page elements are reset
-    print("Found {} players on this page".format(len(player_names)))
+    print(f"Found {len(player_names)} players on this page")
     for player in player_names:
-        print("Getting details for {}".format(player))
+        print(f"Getting details for {player}")
         player_link = browser.find_element_by_link_text(player)
         player_link.click()
         while len(browser.page_source) < 20000:  # wait for page to load
@@ -98,8 +98,8 @@ def get_detail_pages(soup, pages_to_go_forward):
             next_button = browser.find_element_by_link_text("Next")
             next_button.click()
             time.sleep(0.1)
-    print("Returning data for {} players".format(len(player_details_this_page)))
-    with open("player_details_{}.json".format(pages_to_go_forward), "w") as outfile:
+    print(f"Returning data for {len(player_details_this_page)} players")
+    with open(f"player_details_{pages_to_go_forward}.json", "w") as outfile:
         outfile.write(json.dumps(player_details_this_page))
     return player_details_this_page
 
@@ -182,10 +182,10 @@ if __name__ == "__main__":
     if season not in ["1516", "1617"]:
         raise RuntimeError("Please specify the season - 1516 or 1617")
     if args.mode == "summary":
-        output_file = open("player_summary_{}.json".format(season), "w")
+        output_file = open(f"player_summary_{season}.json", "w")
         player_data = []
     else:
-        output_file = open("player_details_{}.json".format(season), "w")
+        output_file = open(f"player_details_{season}.json", "w")
         player_data = {}
 
     # go to the starting page

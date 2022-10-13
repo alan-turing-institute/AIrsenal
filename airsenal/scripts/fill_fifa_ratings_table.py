@@ -9,7 +9,8 @@ import os
 
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import FifaTeamRating, session, session_scope
-from airsenal.framework.utils import CURRENT_SEASON, get_past_seasons
+from airsenal.framework.season import CURRENT_SEASON, sort_seasons
+from airsenal.framework.utils import get_past_seasons
 
 
 def make_fifa_ratings_table(seasons=[], dbsession=session):
@@ -17,18 +18,17 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
     # TODO: scrape the data first rather than committing file to repo
 
     if not seasons:
-        seasons = get_past_seasons(3)
-        seasons.append(CURRENT_SEASON)
-
-    for season in seasons:
-        print("FIFA RATINGS {}".format(season))
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    for season in sort_seasons(seasons):
+        print(f"FIFA RATINGS {season}")
         input_path = os.path.join(
-            os.path.dirname(__file__), "../data/fifa_team_ratings_{}.csv".format(season)
+            os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"
         )
         try:
             input_file = open(input_path)
         except FileNotFoundError:
-            print("!!! No FIFA ratings file found for {}".format(season))
+            print(f"!!! No FIFA ratings file found for {season}")
             continue
 
         for line in input_file.readlines()[1:]:
@@ -48,7 +48,7 @@ def make_fifa_ratings_table(seasons=[], dbsession=session):
                 elif team == k:
                     team_is_known = True
             if not team_is_known:
-                raise ValueError("Unknown team {}.".format(team))
+                raise ValueError(f"Unknown team {team}.")
             dbsession.add(r)
 
     dbsession.commit()
