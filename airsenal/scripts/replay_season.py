@@ -123,14 +123,12 @@ def replay_season(
         gw_result["free_transfers"] = best_strategy["free_transfers"][str(gw)]
         gw_result["num_transfers"] = best_strategy["num_transfers"][str(gw)]
         gw_result["points_hit"] = best_strategy["points_hit"][str(gw)]
-        players_in = best_strategy["players_in"][str(gw)]
-        gw_result["players_in"] = (
-            [get_player_name(p) for p in players_in] if len(players_in) > 0 else []
-        )
-        players_out = best_strategy["players_out"][str(gw)]
-        gw_result["players_out"] = (
-            [get_player_name(p) for p in players_out] if len(players_in) > 0 else []
-        )
+        gw_result["players_in"] = [
+            get_player_name(p) for p in best_strategy["players_in"][str(gw)]
+        ]
+        gw_result["players_out"] = [
+            get_player_name(p) for p in best_strategy["players_out"][str(gw)]
+        ]
         # compute expected and actual points for gameweek
         exp_points = squad.get_expected_points(gw, tag)
         gw_result["expected_points"] = exp_points - gw_result["points_hit"]
