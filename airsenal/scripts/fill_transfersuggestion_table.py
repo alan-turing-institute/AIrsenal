@@ -143,6 +143,10 @@ def optimize(
             depth = 0
             strat_dict["total_score"] = 0
             strat_dict["points_per_gw"] = {}
+            strat_dict["free_transfers"] = {}
+            strat_dict["num_transfers"] = {}
+            strat_dict["points_hit"] = {}
+            strat_dict["discount_factor"] = {}
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
             strat_dict["chips_played"] = {}
@@ -195,12 +199,15 @@ def optimize(
                 (updater, increment, pid),
             )
 
-            points -= calc_points_hit(
-                num_transfers, free_transfers
-            ) * get_discount_factor(root_gw, gw)
+            points_hit = calc_points_hit(num_transfers, free_transfers)
+            discount_factor = get_discount_factor(root_gw, gw)
+            points -= points_hit * discount_factor
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
-
+            strat_dict["free_transfers"][gw] = free_transfers
+            strat_dict["num_transfers"][gw] = num_transfers
+            strat_dict["points_hit"][gw] = points_hit
+            strat_dict["discount_factor"][gw] = get_discount_factor(root_gw, gw)
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
@@ -623,7 +630,7 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    return best_squad
+    return best_squad, best_strategy
 
 
 def construct_chip_dict(gameweeks, chip_gameweeks):
