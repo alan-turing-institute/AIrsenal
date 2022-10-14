@@ -143,7 +143,10 @@ def replay_season(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="fill player predictions")
+    """
+    replay a particular FPL season
+    """
+    parser = argparse.ArgumentParser(description="replay a particular FPL season")
 
     parser.add_argument(
         "--gameweek_start", help="first gameweek to look at", type=int, default=1
