@@ -207,7 +207,7 @@ def optimize(
             strat_dict["free_transfers"][gw] = free_transfers
             strat_dict["num_transfers"][gw] = num_transfers
             strat_dict["points_hit"][gw] = points_hit
-            strat_dict["discount_factor"][gw] = get_discount_factor(root_gw, gw)
+            strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
