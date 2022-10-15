@@ -13,7 +13,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_player,
-    get_playerscore_for_player_gameweek,
+    get_playerscores_for_player_gameweek,
 )
 
 # how many players do we need to add
@@ -435,17 +435,19 @@ class Squad(object):
         need_sub = []
         for p in self.players:
             if p.is_starting or bench_boost:
-                score = get_playerscore_for_player_gameweek(p, gameweek, season)
-                if score and score.minutes > 0:
-                    total_points += score.points
-                    if p.is_captain:
-                        # double their score!
+                scores = get_playerscores_for_player_gameweek(p, gameweek, season)
+                minutes = sum(s.minutes for s in scores)
+                if minutes > 0:
+                    for score in scores:
                         total_points += score.points
-                        if triple_captain:
-                            # TREBLE their score!
+                        if p.is_captain:
+                            # double their score!
                             total_points += score.points
-                    elif p.is_vice_captain:
-                        vice_captain_points = score.points
+                            if triple_captain:
+                                # TREBLE their score!
+                                total_points += score.points
+                        elif p.is_vice_captain:
+                            vice_captain_points = score.points
                 else:  # starting player didn't get any minutes
                     need_sub.append(p)
                     if p.is_captain:
@@ -461,14 +463,18 @@ class Squad(object):
                 total_points += vice_captain_points  # TREBLE them!
         # now take account of subs.
         # UNLESS bench_boost (in which case we've already counted subs points)
-        if len(need_sub) > 0 and not bench_boost:
+        if need_sub and not bench_boost:
             for p_out in need_sub:
                 for p_in in subs:
                     if not self.is_substitution_allowed(p_out, p_in):
                         continue
-                    score = get_playerscore_for_player_gameweek(p_in, gameweek, season)
-                    if score and score.minutes > 0:
-                        total_points += score.points
+                    scores = get_playerscores_for_player_gameweek(
+                        p_in, gameweek, season
+                    )
+                    minutes = sum(s.minutes for s in scores)
+                    if minutes > 0:
+                        for score in scores:
+                            total_points += score.points
                         subs.remove(p_in)
                         break
         return total_points

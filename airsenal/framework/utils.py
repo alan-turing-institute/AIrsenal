@@ -1259,7 +1259,7 @@ def get_recent_playerscore_rows(
     return rows[-num_match_to_use:]
 
 
-def get_playerscore_for_player_gameweek(
+def get_playerscores_for_player_gameweek(
     player, gameweek, season=CURRENT_SEASON, dbsession=None
 ):
     """
@@ -1269,14 +1269,13 @@ def get_playerscore_for_player_gameweek(
     if not dbsession:
         dbsession = session
 
-    playerscore = (
+    return (
         dbsession.query(PlayerScore)
         .filter(PlayerScore.fixture.has(season=season))
         .filter_by(player_id=player.player_id)
         .filter(PlayerScore.fixture.has(Fixture.gameweek == gameweek))
-        .first()
+        .all()
     )
-    return playerscore
 
 
 def get_recent_scores_for_player(
