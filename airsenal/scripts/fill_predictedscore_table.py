@@ -9,7 +9,11 @@ get consistent sets of predictions from the database.
 """
 import argparse
 from multiprocessing import Process, Queue
+from typing import List, Optional
 from uuid import uuid4
+
+from pandas import Series
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
@@ -25,7 +29,7 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.framework.schema import session_scope
+from airsenal.framework.schema import session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -37,17 +41,17 @@ from airsenal.framework.utils import (
 
 
 def allocate_predictions(
-    queue,
-    gw_range,
-    fixture_goal_probs,
-    df_player,
-    df_bonus,
-    df_saves,
-    df_cards,
-    season,
-    tag,
-    dbsession,
-):
+    queue: Queue,
+    gw_range: List[int],
+    fixture_goal_probs: dict,
+    df_player: dict,
+    df_bonus: tuple,
+    df_saves: Series,
+    df_cards: Series,
+    season: str,
+    tag: str,
+    dbsession: Session,
+) -> None:
     """
     Take positions off the queue and call function to calculate predictions
     """
@@ -75,16 +79,16 @@ def allocate_predictions(
 
 
 def calc_all_predicted_points(
-    gw_range,
-    season,
-    include_bonus=True,
-    include_cards=True,
-    include_saves=True,
-    num_thread=4,
-    tag="",
-    player_model=ConjugatePlayerModel(),
-    dbsession=None,
-):
+    gw_range: List[int],
+    season: str,
+    dbsession: Session,
+    include_bonus: bool = True,
+    include_cards: bool = True,
+    include_saves: bool = True,
+    num_thread: int = 4,
+    tag: str = "",
+    player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+) -> None:
     """
     Do the full prediction for players.
     """
@@ -168,16 +172,16 @@ def calc_all_predicted_points(
 
 
 def make_predictedscore_table(
-    gw_range=None,
-    season=CURRENT_SEASON,
-    num_thread=4,
-    include_bonus=True,
-    include_cards=True,
-    include_saves=True,
-    tag_prefix=None,
-    player_model=ConjugatePlayerModel(),
-    dbsession=None,
-):
+    gw_range: Optional[List[int]] = None,
+    season: str = CURRENT_SEASON,
+    num_thread: int = 4,
+    include_bonus: bool = True,
+    include_cards: bool = True,
+    include_saves: bool = True,
+    tag_prefix: Optional[str] = None,
+    player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+    dbsession: Session = session,
+) -> None:
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:

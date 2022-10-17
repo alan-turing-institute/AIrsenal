@@ -25,7 +25,8 @@ import shutil
 import sys
 import time
 import warnings
-from multiprocessing import Process
+from multiprocessing import Process, Queue
+from typing import Callable, List, Optional
 
 import regex as re
 import requests
@@ -50,6 +51,7 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
@@ -63,7 +65,7 @@ from airsenal.scripts.squad_builder import fill_initial_squad
 OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
 
-def is_finished(final_expected_num):
+def is_finished(final_expected_num: int) -> bool:
     """
     Count the number of json files in the output directory, and see if the number
     matches the final expected number, which should be pre-calculated by the
@@ -78,21 +80,21 @@ def is_finished(final_expected_num):
 
 
 def optimize(
-    queue,
-    pid,
-    num_expected_outputs,
-    gameweek_range,
-    season,
-    pred_tag,
-    chips_gw_dict,
-    max_total_hit=None,
-    allow_unused_transfers=False,
-    max_transfers=2,
-    num_iterations=100,
-    updater=None,
-    resetter=None,
-    profile=False,
-):
+    queue: Queue,
+    pid: Process,
+    num_expected_outputs: int,
+    gameweek_range: List[int],
+    season: str,
+    pred_tag: str,
+    chips_gw_dict: dict,
+    max_total_hit: Optional[int] = None,
+    allow_unused_transfers: bool = False,
+    max_transfers: int = 2,
+    num_iterations: int = 100,
+    updater: Optional[Callable] = None,
+    resetter: Optional[Callable] = None,
+    profile: bool = False,
+) -> None:
     """
     Queue is the multiprocessing queue,
     pid is the Process that will execute this func,
@@ -245,7 +247,7 @@ def optimize(
                 )
 
 
-def find_best_strat_from_json(tag):
+def find_best_strat_from_json(tag: str) -> dict:
     """
     Look through all the files in our tmp directory that
     contain the prediction tag in their filename.
@@ -267,7 +269,7 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
-def save_baseline_score(squad, gameweeks, tag):
+def save_baseline_score(squad: Squad, gameweeks: List[int], tag: str) -> None:
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
@@ -280,7 +282,7 @@ def save_baseline_score(squad, gameweeks, tag):
         json.dump(strat_dict, f)
 
 
-def find_baseline_score_from_json(tag, num_gameweeks):
+def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> None:
     """
     The baseline score is the one where we make 0 transfers
     for all gameweeks.
@@ -297,11 +299,10 @@ def find_baseline_score_from_json(tag, num_gameweeks):
             return strat["total_score"]
 
 
-def print_strat(strat):
+def print_strat(strat: dict) -> None:
     """
     nicely formated printout as output of optimization.
     """
-
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     print(" ===============================================")
@@ -324,7 +325,7 @@ def print_strat(strat):
     print(f" Total score: {int(strat['total_score'])} \n")
 
 
-def discord_payload(strat, lineup):
+def discord_payload(strat: dict, lineup: List[str]) -> dict:
     """
     json formated discord webhook contentent.
     """
@@ -369,7 +370,9 @@ def discord_payload(strat, lineup):
     return payload
 
 
-def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
+def print_team_for_next_gw(
+    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: Optional[int] = None
+) -> Squad:
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
@@ -388,18 +391,18 @@ def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
 
 
 def run_optimization(
-    gameweeks,
-    tag,
-    season=CURRENT_SEASON,
-    fpl_team_id=None,
-    chip_gameweeks={},
-    num_free_transfers=None,
-    max_total_hit=None,
-    allow_unused_transfers=False,
-    max_transfers=2,
-    num_iterations=100,
-    num_thread=4,
-    profile=False,
+    gameweeks: List[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: Optional[int] = None,
+    chip_gameweeks: dict = {},
+    num_free_transfers: Optional[int] = None,
+    max_total_hit: Optional[int] = None,
+    allow_unused_transfers: bool = False,
+    max_transfers: int = 2,
+    num_iterations: int = 100,
+    num_thread: int = 4,
+    profile: bool = False,
 ):
     """
     This is the actual main function that sets up the multiprocessing
@@ -624,7 +627,7 @@ def run_optimization(
     return
 
 
-def construct_chip_dict(gameweeks, chip_gameweeks):
+def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
     """
     Given a dict of form {<chip_name>: <chip_gw>,...}
     where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
@@ -657,7 +660,7 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
     return chip_dict
 
 
-def sanity_check_args(args):
+def sanity_check_args(args: argparse.Namespace) -> bool:
     """
     Check that command-line arguments are self-consistent.
     """
