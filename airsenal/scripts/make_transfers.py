@@ -265,7 +265,10 @@ def build_init_priced_transfers(
 
 
 def build_transfer_payload(
-    priced_transfers: List[dict], current_gw: int, fetcher: FPLDataFetcher, chip_played
+    priced_transfers: List[dict],
+    current_gw: int,
+    fetcher: FPLDataFetcher,
+    chip_played: str,
 ) -> dict:
     transfer_payload = {
         "confirmed": False,
