@@ -187,15 +187,15 @@ def make_predictedscore_table(
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
     calc_all_predicted_points(
-        gw_range,
-        season,
+        gw_range=gw_range,
+        season=season,
+        dbsession=dbsession,
         include_bonus=include_bonus,
         include_cards=include_cards,
         include_saves=include_saves,
         num_thread=num_thread,
         tag=tag,
         player_model=player_model,
-        dbsession=dbsession,
     )
     return tag
 
