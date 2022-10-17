@@ -7,6 +7,7 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 import argparse
+from typing import List, Optional, Tuple
 
 from prettytable import PrettyTable
 
@@ -30,7 +31,7 @@ TODO:
 """
 
 
-def check_proceed():
+def check_proceed() -> bool:
     proceed = input("Apply Transfers? There is no turning back! (yes/no)")
     if proceed != "yes":
         return False
@@ -39,7 +40,7 @@ def check_proceed():
     return True
 
 
-def deduct_transfer_price(pre_bank, priced_transfers):
+def deduct_transfer_price(pre_bank: float, priced_transfers: List[dict]) -> float:
     gain = [
         transfer["selling_price"] - transfer["purchase_price"]
         for transfer in priced_transfers
@@ -48,9 +49,13 @@ def deduct_transfer_price(pre_bank, priced_transfers):
 
 
 def print_output(
-    team_id, current_gw, priced_transfers, pre_bank, post_bank, points_cost="TODO"
-):
-
+    team_id: int,
+    current_gw: int,
+    priced_transfers: List[dict],
+    pre_bank: float,
+    post_bank: float,
+    points_cost: str = "TODO",
+) -> None:
     print("\n")
     header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
     line = "=" * len(header)
@@ -82,16 +87,16 @@ def print_output(
     print("\n")
 
 
-def get_sell_price(team_id, player_id, season=CURRENT_SEASON):
-
+def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:
     squad = get_starting_squad(season=season, fpl_team_id=team_id)
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p)
 
 
-def get_gw_transfer_suggestions(fpl_team_id=None):
-
+def get_gw_transfer_suggestions(
+    fpl_team_id: Optional[int] = None,
+) -> Optional[Tuple[List[list], int, int, str]]:
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
@@ -123,14 +128,14 @@ def get_gw_transfer_suggestions(fpl_team_id=None):
     return [players_out, players_in], fpl_team_id, current_gw, chip
 
 
-def price_transfers(transfer_player_ids, fetcher, current_gw):
+def price_transfers(
+    transfer_player_ids: List[list], fetcher: FPLDataFetcher
+) -> List[dict]:
     """
     For most gameweeks, we get transfer suggestions from the db, including
     both players to be removed and added.
     """
-
     transfers = list(zip(*transfer_player_ids))  # [(out,in),(out,in)]
-
     priced_transfers = [
         [
             [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
@@ -156,7 +161,7 @@ def price_transfers(transfer_player_ids, fetcher, current_gw):
     return transfer_list
 
 
-def separate_transfers_in_or_out(transfer_list):
+def separate_transfers_in_or_out(transfer_list: List[dict]) -> Tuple[list, list]:
     """
     Given a list of dicts with keys
     "element_in", "purchase_price", "element_out", "selling_price",
@@ -175,7 +180,7 @@ def separate_transfers_in_or_out(transfer_list):
     return transfers_out, transfers_in
 
 
-def sort_by_position(transfer_list):
+def sort_by_position(transfer_list: List[dict]) -> list[dict]:
     """
     Takes a list of transfers e.g. [{"element_in": <FPL_API_ID>, "purchase_price": x}]
     and returns the same list ordered by DEF, FWD, GK, MID (i.e. alphabetical)
@@ -206,7 +211,7 @@ def sort_by_position(transfer_list):
     return transfer_list
 
 
-def remove_duplicates(transfers_in, transfers_out):
+def remove_duplicates(transfers_in: List[int], transfers_out: List[int]) -> Tuple:
     """
     If we are replacing lots of players (e.g. new team), need to make sure there
     are no duplicates - can't add a player if we already have them.
@@ -219,7 +224,9 @@ def remove_duplicates(transfers_in, transfers_out):
     return transfers_in, transfers_out
 
 
-def build_init_priced_transfers(fetcher, fpl_team_id=None):
+def build_init_priced_transfers(
+    fetcher: FPLDataFetcher, fpl_team_id: Optional[int] = None
+) -> List[dict]:
     """
     Before gameweek 1, there won't be any 'sell' transfer suggestions in the db.
     We can instead query the API for our current 'picks' (requires login).
@@ -257,8 +264,9 @@ def build_init_priced_transfers(fetcher, fpl_team_id=None):
     return transfer_list
 
 
-def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
-
+def build_transfer_payload(
+    priced_transfers: List[dict], current_gw: int, fetcher: FPLDataFetcher, chip_played
+) -> dict:
     transfer_payload = {
         "confirmed": False,
         "entry": fetcher.FPL_TEAM_ID,
@@ -271,15 +279,15 @@ def build_transfer_payload(priced_transfers, current_gw, fetcher, chip_played):
         transfer_payload[chip_played.replace("_", "")] = True
 
     print(transfer_payload)
-
     return transfer_payload
 
 
-def make_transfers(fpl_team_id=None, skip_check=False):
-
+def make_transfers(
+    fpl_team_id: Optional[int] = None, skip_check: bool = False
+) -> Optional[bool]:
     suggestions = get_gw_transfer_suggestions(fpl_team_id)
     if not suggestions:
-        return
+        return None
     transfer_player_ids, team_id, current_gw, chip_played = suggestions
 
     fetcher = FPLDataFetcher(team_id)
@@ -289,7 +297,7 @@ def make_transfers(fpl_team_id=None, skip_check=False):
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
     else:
         pre_transfer_bank = get_bank(fpl_team_id=team_id)
-        priced_transfers = price_transfers(transfer_player_ids, fetcher, current_gw)
+        priced_transfers = price_transfers(transfer_player_ids, fetcher)
         transfers_out, transfers_in = separate_transfers_in_or_out(priced_transfers)
         sorted_transfers_out = sort_by_position(transfers_out)
         sorted_transfers_in = sort_by_position(transfers_in)
