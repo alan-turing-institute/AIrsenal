@@ -84,7 +84,7 @@ def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
     ]
 
 
-def tidy_df(df: pd.DataFrame, days_name="days") -> pd.DataFrame:
+def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
     """Clean column names, data types, and missing data for injury/suspension data.
 
     Parameters
@@ -159,7 +159,7 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
     return tidy_df(injuries, days_name="days")
 
 
-def get_reason(details):
+def get_reason(details: str) -> str:
     """get suspension/absence reason category (not for injuries)"""
     return "suspension" if "suspen" in details.lower() else "absence"
 

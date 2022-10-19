@@ -5,7 +5,9 @@ code and strategies.
 import argparse
 import warnings
 from datetime import datetime
+from typing import Optional
 
+from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
@@ -16,7 +18,7 @@ from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.squad_builder import fill_initial_squad
 
 
-def get_dummy_id(season, dbsession):
+def get_dummy_id(season: str, dbsession: Session) -> int:
     team_ids = [
         item[0]
         for item in dbsession.query(Transaction.fpl_team_id)
@@ -29,7 +31,13 @@ def get_dummy_id(season, dbsession):
     return min(team_ids) - 1
 
 
-def print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id):
+def print_replay_params(
+    season: str,
+    gameweek_start: int,
+    gameweek_end: int,
+    tag_prefix: str,
+    fpl_team_id: int,
+) -> None:
     print("=" * 30)
     print(f"Replay {season} season from GW{gameweek_start} to GW{gameweek_end}")
     print(f"tag_prefix = {tag_prefix}")
@@ -38,16 +46,16 @@ def print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_te
 
 
 def replay_season(
-    season,
-    gameweek_start=1,
-    gameweek_end=None,
-    new_squad=True,
-    weeks_ahead=3,
-    num_thread=4,
-    transfers=True,
-    tag_prefix="",
-    fpl_team_id=None,
-):
+    season: str,
+    gameweek_start: int = 1,
+    gameweek_end: Optional[int] = None,
+    new_squad: bool = True,
+    weeks_ahead: int = 3,
+    num_thread: int = 4,
+    transfers: bool = True,
+    tag_prefix: str = "",
+    fpl_team_id: Optional[int] = None,
+) -> None:
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
     if fpl_team_id is None:
