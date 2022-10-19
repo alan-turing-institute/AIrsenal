@@ -27,6 +27,8 @@ def check_clean_db(clean, dbsession):
 
 
 def make_init_db(fpl_team_id, seasons, dbsession):
+    """Used to recreate a database by deleting the previous data and then initalizing it
+    """
     seasons = sort_seasons(seasons)
     make_team_table(seasons=seasons, dbsession=dbsession)
     make_fixture_table(seasons=seasons, dbsession=dbsession)
