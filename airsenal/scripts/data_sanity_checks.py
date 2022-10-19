@@ -1,3 +1,7 @@
+from typing import List
+
+from sqlalchemy.orm.session import Session
+
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (
@@ -12,7 +16,7 @@ CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements
 
 
-def result_string(n_error):
+def result_string(n_error: int) -> str:
     """make string representing check result
 
     Arguments:
@@ -24,7 +28,9 @@ def result_string(n_error):
         return f"FAIL! {n_error} errors."
 
 
-def season_num_teams(seasons=CHECK_SEASONS, session=session):
+def season_num_teams(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check whether each season has 20 teams.
 
     Keyword Arguments:
@@ -42,7 +48,9 @@ def season_num_teams(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def season_num_new_teams(seasons=CHECK_SEASONS, session=session):
+def season_num_new_teams(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check each season has 3 new teams.
 
     Keyword Arguments:
@@ -65,7 +73,9 @@ def season_num_new_teams(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def season_num_fixtures(seasons=CHECK_SEASONS, session=session):
+def season_num_fixtures(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check each season has 380 fixtures.
 
     Keyword Arguments:
@@ -86,7 +96,9 @@ def season_num_fixtures(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
+def fixture_player_teams(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check players who played in a match are labelled as playing for either
     the home team or the away team.
 
@@ -121,7 +133,9 @@ def fixture_player_teams(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def fixture_num_players(seasons=CHECK_SEASONS, session=session):
+def fixture_num_players(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check each fixture has between 11 and 14 players  with at least 1 minute
     in player_scores. For season 19/20 it can be up to 16 players.
 
@@ -194,7 +208,9 @@ def fixture_num_players(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
+def fixture_num_goals(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check individual player goals sum to match result for each fixture.
 
     Keyword Arguments:
@@ -252,7 +268,9 @@ def fixture_num_goals(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
+def fixture_num_assists(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check number of assists is less than or equal to number of goals
     for home and away team in each fixture.
     Less than or equal to as some goals do not result in an assist being
@@ -307,7 +325,9 @@ def fixture_num_assists(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
+def fixture_num_conceded(
+    seasons: List[str] = CHECK_SEASONS, session: Session = session
+) -> int:
     """Check number of goals concdeded equals goals scored by opposition if
     player played whole match (90 minutes).
     NB: only checks max of player conceded values to avoid potential issues
@@ -366,7 +386,7 @@ def fixture_num_conceded(seasons=CHECK_SEASONS, session=session):
     return n_error
 
 
-def run_all_checks(seasons=CHECK_SEASONS):
+def run_all_checks(seasons: List[str] = CHECK_SEASONS) -> None:
     print("Running checks for seasons:", seasons)
     print(SEPARATOR)
 
