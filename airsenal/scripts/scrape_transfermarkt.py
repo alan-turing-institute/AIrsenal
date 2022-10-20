@@ -1,6 +1,7 @@
 """
 Get player injury, suspension and availability data from TransferMarkt
 """
+import argparse
 
 import contextlib
 import os
@@ -536,6 +537,19 @@ def main(seasons: List[str]):
         }
         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
         absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
+
+
+def autoMain():
+    # --season=2223
+    parser = argparse.ArgumentParser(description="Customise fpl team id")
+    parser.add_argument(
+        "--season",
+        help="specify the season for which the data neds to be scrapped",
+        type=int, required=True
+    )
+    args = parser.parse_args()
+
+    print(args.season)
 
 
 if __name__ == "__main__":
