@@ -549,7 +549,21 @@ def autoMain():
     )
     args = parser.parse_args()
 
-    print(args.season)
+    print(str(args.season))
+
+    REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
+
+    seasons = []
+    seasons.append(str(args.season))
+
+    for season in tqdm(seasons):
+        print(f"Season: {season}")
+        pl_teams = {
+            s: [get_teams_for_season(season_str_to_year(s))[i][3] for i in range(20)]
+            for s in seasons
+        }
+        absences = get_season_absences(season, pl_teams_in_season=pl_teams)
+        absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
 
 
 if __name__ == "__main__":
