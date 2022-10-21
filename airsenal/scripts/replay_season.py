@@ -3,6 +3,7 @@ Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
 import argparse
+import json
 import warnings
 from datetime import datetime
 
@@ -10,7 +11,11 @@ from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.schema import Transaction, session_scope
-from airsenal.framework.utils import get_gameweeks_array, get_max_gameweek
+from airsenal.framework.utils import (
+    get_gameweeks_array,
+    get_max_gameweek,
+    get_player_name,
+)
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.squad_builder import fill_initial_squad
@@ -58,6 +63,12 @@ def replay_season(
         tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start}"
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
+    # store results in a dictionary, which we will later save to a json file
+    replay_results = {}
+    replay_results["tag"] = tag_prefix
+    replay_results["season"] = season
+    replay_results["weeks_ahead"] = weeks_ahead
+    replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
@@ -72,27 +83,70 @@ def replay_season(
                 tag_prefix=tag_prefix,
                 dbsession=session,
             )
+        gw_result = {"gameweek": gw, "predictions_tag": tag}
+
         if not transfers:
             continue
         if gw == gameweek_start and new_squad:
             print("Creating initial squad...")
-            fill_initial_squad(tag, gw_range, season, fpl_team_id)
+            squad = fill_initial_squad(tag, gw_range, season, fpl_team_id)
+            # no points hits due to unlimited transfers to initialise team
+            best_strategy = {
+                "points_hit": {str(gw): 0},
+                "free_transfers": {str(gw): 0},
+                "num_transfers": {str(gw): 0},
+                "players_in": {str(gw): []},
+                "players_out": {str(gw): []},
+            }
         else:
             print("Optimising transfers...")
-            run_optimization(
+            # find best squad and the strategy for this gameweek
+            squad, best_strategy = run_optimization(
                 gw_range,
                 tag,
                 season=season,
                 fpl_team_id=fpl_team_id,
                 num_thread=num_thread,
             )
+        gw_result["starting_11"] = []
+        gw_result["subs"] = []
+        for p in squad.players:
+            if p.is_starting:
+                gw_result["starting_11"].append(p.name)
+            else:
+                gw_result["subs"].append(p.name)
+            if p.is_captain:
+                gw_result["captain"] = p.name
+            elif p.is_vice_captain:
+                gw_result["vice_captain"] = p.name
+        # obtain information about the strategy used for gameweek
+        gw_result["free_transfers"] = best_strategy["free_transfers"][str(gw)]
+        gw_result["num_transfers"] = best_strategy["num_transfers"][str(gw)]
+        gw_result["points_hit"] = best_strategy["points_hit"][str(gw)]
+        gw_result["players_in"] = [
+            get_player_name(p) for p in best_strategy["players_in"][str(gw)]
+        ]
+        gw_result["players_out"] = [
+            get_player_name(p) for p in best_strategy["players_out"][str(gw)]
+        ]
+        # compute expected and actual points for gameweek
+        exp_points = squad.get_expected_points(gw, tag)
+        gw_result["expected_points"] = exp_points - gw_result["points_hit"]
+        actual_points = squad.get_actual_points(gw, season)
+        gw_result["actual_points"] = actual_points - gw_result["points_hit"]
+        replay_results["gameweeks"].append(gw_result)
         print("-" * 30)
+    with open(f"{tag_prefix}.json", "w") as outfile:
+        json.dump(replay_results, outfile)
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
     print("DONE!")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="fill player predictions")
+    """
+    replay a particular FPL season
+    """
+    parser = argparse.ArgumentParser(description="replay a particular FPL season")
 
     parser.add_argument(
         "--gameweek_start", help="first gameweek to look at", type=int, default=1

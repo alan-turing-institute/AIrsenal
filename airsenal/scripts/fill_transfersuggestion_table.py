@@ -143,6 +143,10 @@ def optimize(
             depth = 0
             strat_dict["total_score"] = 0
             strat_dict["points_per_gw"] = {}
+            strat_dict["free_transfers"] = {}
+            strat_dict["num_transfers"] = {}
+            strat_dict["points_hit"] = {}
+            strat_dict["discount_factor"] = {}
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
             strat_dict["chips_played"] = {}
@@ -195,12 +199,15 @@ def optimize(
                 (updater, increment, pid),
             )
 
-            points -= calc_points_hit(
-                num_transfers, free_transfers
-            ) * get_discount_factor(root_gw, gw)
+            points_hit = calc_points_hit(num_transfers, free_transfers)
+            discount_factor = get_discount_factor(root_gw, gw)
+            points -= points_hit * discount_factor
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
-
+            strat_dict["free_transfers"][gw] = free_transfers
+            strat_dict["num_transfers"][gw] = num_transfers
+            strat_dict["points_hit"][gw] = points_hit
+            strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
@@ -575,7 +582,9 @@ def run_optimization(
     print(f"Baseline score: {baseline_score}")
     print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
-    t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
+    best_squad = print_team_for_next_gw(
+        best_strategy, season=season, fpl_team_id=fpl_team_id
+    )
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
@@ -594,7 +603,7 @@ def run_optimization(
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:
                 lineup_strings.append(f"== **{position}** ==\n```")
-                for p in t.players:
+                for p in best_squad.players:
                     if p.position == position and p.is_starting:
                         player_line = f"{p.name} ({p.team})"
                         if p.is_captain:
@@ -605,7 +614,7 @@ def run_optimization(
                 lineup_strings.append("```\n")
             lineup_strings.append("__subs__")
             lineup_strings.append("```")
-            subs = [p for p in t.players if not p.is_starting]
+            subs = [p for p in best_squad.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
             for p in subs:
                 lineup_strings.append(f"{p.name} ({p.team})")
@@ -621,7 +630,7 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    return
+    return best_squad, best_strategy
 
 
 def construct_chip_dict(gameweeks, chip_gameweeks):

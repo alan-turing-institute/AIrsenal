@@ -99,6 +99,7 @@ def fill_initial_squad(
             season=season,
             gameweek=gw_start,
         )
+    return best_squad
 
 
 def main():
