@@ -2,17 +2,16 @@
 Get player injury, suspension and availability data from TransferMarkt
 """
 import argparse
-
 import contextlib
-import os
-from cmath import nan
-from typing import List, Tuple
-
 import numpy as np
+import os
 import pandas as pd
 import requests
+
 from bs4 import BeautifulSoup
+from cmath import nan
 from tqdm import tqdm
+from typing import List, Tuple
 
 from airsenal.framework.season import CURRENT_SEASON, season_str_to_year
 from airsenal.framework.utils import get_next_season, get_start_end_dates_of_season
@@ -518,29 +517,30 @@ def get_season_absences(
     absences = pd.concat(absences)
     return filter_season(absences, season)
 
+# Old Main Function
+# def main(seasons: List[str]):
+#     """Get all player injury and suspension data for mutiple seasons
+
+#     Parameters
+#     ----------
+#     seasons : List[str]
+#         seasons to query in format "1819" (for 2018/19 season)
+#     """
+#     REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
+
+#     for season in tqdm(seasons):
+#         print(f"Season: {season}")
+#         pl_teams = {
+#             s: [get_teams_for_season(season_str_to_year(s))[i][3] for i in range(20)]
+#             for s in seasons
+#         }
+#         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
+#         absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
+
 
 def main(seasons: List[str]):
-    """Get all player injury and suspension data for mutiple seasons
-
-    Parameters
-    ----------
-    seasons : List[str]
-        seasons to query in format "1819" (for 2018/19 season)
+    """Get all player injury and suspension data for the specified season
     """
-    REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
-
-    for season in tqdm(seasons):
-        print(f"Season: {season}")
-        pl_teams = {
-            s: [get_teams_for_season(season_str_to_year(s))[i][3] for i in range(20)]
-            for s in seasons
-        }
-        absences = get_season_absences(season, pl_teams_in_season=pl_teams)
-        absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
-
-
-def autoMain():
-    # --season=2223
     parser = argparse.ArgumentParser(description="Customise fpl team id")
     parser.add_argument(
         "--season",
@@ -548,8 +548,6 @@ def autoMain():
         type=int, required=True
     )
     args = parser.parse_args()
-
-    print(str(args.season))
 
     REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -565,6 +563,5 @@ def autoMain():
         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
         absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
 
-
-if __name__ == "__main__":
-    main(["1516", "1617", "1718", "1819", "1920", "2021", "2122"])
+# if __name__ == "__main__":
+#     main(["1516", "1617", "1718", "1819", "1920", "2021", "2122"])
