@@ -4,6 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
+from typing import List, Optional
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
@@ -15,8 +16,7 @@ from airsenal.framework.utils import (
 )
 
 
-def check_proceed(squad):
-
+def check_proceed(squad: Squad) -> bool:
     print(squad)
     proceed = input("Apply changes to lineup? (yes/no) ")
     if proceed == "yes":
@@ -26,7 +26,7 @@ def check_proceed(squad):
         return False
 
 
-def build_lineup_payload(squad):
+def build_lineup_payload(squad: Squad) -> list:
     def to_dict(player, pos_int):
         return {
             "element": get_player(player.player_id).fpl_api_id,
@@ -59,7 +59,7 @@ def build_lineup_payload(squad):
     return payload
 
 
-def get_lineup_from_payload(lineup):
+def get_lineup_from_payload(lineup: dict) -> Squad:
     """
     inverse of build_lineup_payload. Returns a squad object from get_lineup
 
@@ -77,21 +77,18 @@ def get_lineup_from_payload(lineup):
         raise RuntimeError("Squad incomplete")
 
 
-def make_squad_transfers(squad, priced_transfers):
-
+def make_squad_transfers(squad: Squad, priced_transfers: List[dict]) -> None:
     for t in priced_transfers:
         squad.remove_player(t[0][0], price=t[0][1])
         squad.add_player(t[1][0], price=t[1][1])
 
 
-def set_lineup(fpl_team_id=None):
-
+def set_lineup(fpl_team_id: Optional[int] = None) -> None:
     """
     Retrieve the latest lineup and apply the latest prediction to it.
 
     Note that this assumes that the prediction has been ran recently.
     """
-
     print(f"fpl_team_id is {fpl_team_id}")
     fetcher = FPLDataFetcher(fpl_team_id)
     print(f"Got fetcher {fetcher.FPL_TEAM_ID}")

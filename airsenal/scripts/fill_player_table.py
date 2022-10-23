@@ -5,6 +5,9 @@ Fill the "Player" table with info from this and past seasonss FPL
 """
 import json
 import os
+from typing import List, Optional
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
@@ -16,7 +19,7 @@ from airsenal.scripts.fill_player_mappings_table import (
 )
 
 
-def find_player_in_table(name, dbsession):
+def find_player_in_table(name: str, dbsession: Session) -> Optional[Player]:
     """
     see if we already have the player
     """
@@ -32,7 +35,7 @@ def find_player_in_table(name, dbsession):
     return player or None
 
 
-def num_players_in_table(dbsession):
+def num_players_in_table(dbsession: Session) -> int:
     """
     how many players already in player table
     """
@@ -40,7 +43,7 @@ def num_players_in_table(dbsession):
     return len(players)
 
 
-def fill_player_table_from_file(filename, season, dbsession):
+def fill_player_table_from_file(filename: str, season: str, dbsession: Session) -> None:
     """
     use json file
     """
@@ -61,7 +64,7 @@ def fill_player_table_from_file(filename, season, dbsession):
     dbsession.commit()
 
 
-def fill_player_table_from_api(season, dbsession):
+def fill_player_table_from_api(season: str, dbsession: Session) -> None:
     """
     use the FPL API
     """
@@ -81,17 +84,7 @@ def fill_player_table_from_api(season, dbsession):
     dbsession.commit()
 
 
-def make_player_table(seasons=[], dbsession=session):
-    if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
-    seasons = sort_seasons(seasons)
-    make_init_player_table(season=seasons[0], dbsession=session)
-    make_player_mappings_table(dbsession=session)
-    make_remaining_player_table(seasons=seasons[1:], dbsession=session)
-
-
-def make_init_player_table(season, dbsession=session):
+def make_init_player_table(season: str, dbsession: Session = session) -> None:
     """
     Fill the player table with the latest season of data (only, as then need to do
     mappings)
@@ -111,7 +104,9 @@ def make_init_player_table(season, dbsession=session):
         fill_player_table_from_file(filename, season, dbsession)
 
 
-def make_remaining_player_table(seasons, dbsession=session):
+def make_remaining_player_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
     """
     Fill remaining players for subsequent seasons (AFTER players from the most recent
     season)
@@ -126,6 +121,18 @@ def make_remaining_player_table(seasons, dbsession=session):
             )
         )
         fill_player_table_from_file(filename, season, dbsession)
+
+
+def make_player_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
+    if not seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
+    seasons = sort_seasons(seasons)
+    make_init_player_table(season=seasons[0], dbsession=dbsession)
+    make_player_mappings_table(dbsession=dbsession)
+    make_remaining_player_table(seasons=seasons[1:], dbsession=dbsession)
 
 
 if __name__ == "__main__":

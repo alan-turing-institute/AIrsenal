@@ -2,6 +2,9 @@
 
 import argparse
 import sys
+from typing import List, Optional
+
+from pygmo.core import sga
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
@@ -23,19 +26,19 @@ positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
 def fill_initial_squad(
-    tag,
-    gw_range,
-    season,
-    fpl_team_id,
-    budget=1000,
-    algorithm="genetic",
-    remove_zero=True,
-    sub_weights=DEFAULT_SUB_WEIGHTS,
-    uda=None,
-    population_size=100,
-    num_iterations=10,
-    verbose=True,
-):
+    tag: str,
+    gw_range: List[int],
+    season: str,
+    fpl_team_id: int,
+    budget: int = 1000,
+    algorithm: str = "genetic",
+    remove_zero: bool = True,
+    sub_weights: dict = DEFAULT_SUB_WEIGHTS,
+    uda: Optional[sga] = None,
+    population_size: int = 100,
+    num_iterations: int = 10,
+    verbose: bool = True,
+) -> None:
     if algorithm == "genetic" and uda is None:
         try:
             import pygmo as pg

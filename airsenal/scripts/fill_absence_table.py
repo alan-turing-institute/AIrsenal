@@ -1,7 +1,9 @@
 import os
 from datetime import datetime
+from typing import List, Optional
 
 import pandas as pd
+from sqlalchemy.orm.session import Session
 from tqdm import tqdm
 
 from airsenal.framework.schema import Absence, session
@@ -13,7 +15,7 @@ from airsenal.framework.utils import (
 )
 
 
-def load_absences(season, dbsession):
+def load_absences(season: str, dbsession: Session) -> None:
     print(f"ABSENCES {season}")
     path = os.path.join(
         os.path.dirname(__file__), "..", "data", f"absences_{season}.csv"
@@ -55,12 +57,16 @@ def load_absences(season, dbsession):
             url=url,
             timestamp=timestamp,
         )
-
         dbsession.add(absence)
     dbsession.commit()
 
 
-def make_absence_table(seasons=get_past_seasons(3), dbsession=session):
+def make_absence_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
+    if not seasons:
+        seasons = [CURRENT_SEASON]
+        seasons += get_past_seasons(3)
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             continue

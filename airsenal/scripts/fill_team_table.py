@@ -5,13 +5,16 @@ Fill the "Team" table with list of teams for all seasons, and the team_id which 
 help fill other tables from raw json files
 """
 import os
+from typing import List, Optional
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Team, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
 
 
-def fill_team_table_from_file(filename, dbsession=session):
+def fill_team_table_from_file(filename: str, dbsession: Session = session) -> None:
     """
     use csv file
     """
@@ -29,7 +32,9 @@ def fill_team_table_from_file(filename, dbsession=session):
     dbsession.commit()
 
 
-def make_team_table(seasons=[], dbsession=session):
+def make_team_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
     """
     Fill the db table containing the list of teams in the
     league for each season.
