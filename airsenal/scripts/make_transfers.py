@@ -31,11 +31,18 @@ TODO:
 """
 
 
-def check_proceed() -> bool:
+def check_proceed(num_transfers: int = 0) -> bool:
     proceed = input("Apply Transfers? There is no turning back! (yes/no)")
     if proceed != "yes":
         return False
-
+    if num_transfers > 2:
+        proceed = input(
+            "Note that this script doesn't currently apply wildcard/free-hit chips.\n"
+            "These transfers will result in points hit unless you play one of those "
+            "chips via the website.  Are you sure you wish to proceed? (yes/no) "
+        )
+        if proceed != "yes":
+            return False
     print("Applying Transfers...")
     return True
 
@@ -319,11 +326,14 @@ def make_transfers(
             post_transfer_bank,
         )
 
-    if skip_check or check_proceed():
+    if skip_check or check_proceed(len(sorted_priced_transfers)):
         transfer_req = build_transfer_payload(
             sorted_priced_transfers, current_gw, fetcher, chip_played
         )
         fetcher.post_transfers(transfer_req)
+    else:
+        print("Not applying transfers.  Can still choose starting 11 and captain.")
+        return False
     return True
 
 
