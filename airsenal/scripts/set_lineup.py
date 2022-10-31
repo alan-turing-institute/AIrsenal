@@ -83,7 +83,9 @@ def make_squad_transfers(squad: Squad, priced_transfers: List[dict]) -> None:
         squad.add_player(t[1][0], price=t[1][1])
 
 
-def set_lineup(fpl_team_id: Optional[int] = None) -> None:
+def set_lineup(
+    fpl_team_id: Optional[int] = None, verbose: Optional[bool] = False
+) -> None:
     """
     Retrieve the latest lineup and apply the latest prediction to it.
 
@@ -91,11 +93,14 @@ def set_lineup(fpl_team_id: Optional[int] = None) -> None:
     """
     print(f"fpl_team_id is {fpl_team_id}")
     fetcher = FPLDataFetcher(fpl_team_id)
-    print(f"Got fetcher {fetcher.FPL_TEAM_ID}")
+    if verbose:
+        print(f"Got fetcher {fetcher.FPL_TEAM_ID}")
     picks = fetcher.get_lineup()
-    print(f"Got picks {picks}")
+    if verbose:
+        print(f"Got picks {picks}")
     squad = get_lineup_from_payload(picks)
-    print(f"got squad: {squad}")
+    if verbose:
+        print(f"got squad: {squad}")
 
     squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 
