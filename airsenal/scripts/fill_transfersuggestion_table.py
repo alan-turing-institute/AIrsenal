@@ -475,6 +475,12 @@ def run_optimization(
     # in each gw
     chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
 
+    # Specific fix (aka hack) for the 2022 World Cup, where everyone
+    # gets a free wildcard
+    if season == "2223" and gameweeks[0] == 17:
+        chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
+        num_free_transfers = 1
+
     # create a queue that we will add nodes to, and some processes to take
     # things off it
     squeue = CustomQueue()
