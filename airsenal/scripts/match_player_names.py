@@ -9,13 +9,16 @@ Write out a dict of the format
 """
 
 import json
+from typing import Callable, List, Tuple
 
 from fuzzywuzzy import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def find_best_match(fpl_players, player, fuzz_method=fuzz.ratio):
+def find_best_match(
+    fpl_players: List[str], player: str, fuzz_method: Callable = fuzz.ratio
+) -> Tuple[str, int]:
     """
     use fuzzy matching to see if we can match names
 

@@ -1290,6 +1290,25 @@ def get_recent_playerscore_rows(
     return rows[-num_match_to_use:]
 
 
+def get_playerscores_for_player_gameweek(
+    player, gameweek, season=CURRENT_SEASON, dbsession=None
+):
+    """
+    FPL points for this player for selected match.
+    Returns a PlayerScore object
+    """
+    if not dbsession:
+        dbsession = session
+
+    return (
+        dbsession.query(PlayerScore)
+        .filter(PlayerScore.fixture.has(season=season))
+        .filter_by(player_id=player.player_id)
+        .filter(PlayerScore.fixture.has(Fixture.gameweek == gameweek))
+        .all()
+    )
+
+
 def get_recent_scores_for_player(
     player, num_match_to_use=3, season=CURRENT_SEASON, last_gw=None, dbsession=None
 ):

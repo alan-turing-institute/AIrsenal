@@ -1,5 +1,8 @@
 """Script to fill the database after install."""
 import argparse
+from typing import List
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
@@ -15,7 +18,7 @@ from airsenal.scripts.fill_result_table import make_result_table
 from airsenal.scripts.fill_team_table import make_team_table
 
 
-def check_clean_db(clean, dbsession):
+def check_clean_db(clean: bool, dbsession: Session) -> bool:
     """Check whether an AIrsenal database already exists. If clean is True attempt to
     delete any pre-existing database first. Returns True if database exists and is not
     empty.
@@ -26,7 +29,7 @@ def check_clean_db(clean, dbsession):
     return database_is_empty(dbsession)
 
 
-def make_init_db(fpl_team_id, seasons, dbsession):
+def make_init_db(fpl_team_id: int, seasons: List[str], dbsession: Session) -> bool:
     seasons = sort_seasons(seasons)
     make_team_table(seasons=seasons, dbsession=dbsession)
     make_fixture_table(seasons=seasons, dbsession=dbsession)
@@ -45,7 +48,7 @@ def make_init_db(fpl_team_id, seasons, dbsession):
     return not database_is_empty(dbsession)
 
 
-def check_positive_int(value):
+def check_positive_int(value: int) -> int:
     ivalue = int(value)
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)

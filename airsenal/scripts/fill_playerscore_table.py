@@ -6,6 +6,9 @@ Fill the "player_score" table with historic results
 """
 import json
 import os
+from typing import List, Optional
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import PlayerScore, session, session_scope
@@ -22,7 +25,9 @@ from airsenal.framework.utils import (
 )
 
 
-def fill_playerscores_from_json(detail_data, season, dbsession=session):
+def fill_playerscores_from_json(
+    detail_data: list, season: str, dbsession: Session = session
+) -> None:
     for player_name in detail_data.keys():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
@@ -108,8 +113,11 @@ def fill_playerscores_from_json(detail_data, season, dbsession=session):
 
 
 def fill_playerscores_from_api(
-    season, gw_start=1, gw_end=NEXT_GAMEWEEK, dbsession=session
-):
+    season: str,
+    gw_start: int = 1,
+    gw_end: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
+) -> None:
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_api_id in input_data.keys():
@@ -200,7 +208,9 @@ def fill_playerscores_from_api(
     dbsession.commit()
 
 
-def make_playerscore_table(seasons=[], dbsession=session):
+def make_playerscore_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
     # previous seasons data from json files
     if not seasons:
         seasons = [CURRENT_SEASON]

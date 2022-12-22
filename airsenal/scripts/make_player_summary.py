@@ -27,7 +27,7 @@ keys_to_extract = {
 }
 
 
-def make_player_summary(season):
+def make_player_summary(season: str) -> None:
     with open(INPUT_FILE.format(season), "r") as f:
         data = json.load(f)
 

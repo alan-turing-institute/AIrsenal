@@ -25,7 +25,8 @@ import shutil
 import sys
 import time
 import warnings
-from multiprocessing import Process
+from multiprocessing import Process, Queue
+from typing import Callable, List, Optional
 
 import regex as re
 import requests
@@ -50,6 +51,7 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
@@ -63,7 +65,7 @@ from airsenal.scripts.squad_builder import fill_initial_squad
 OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
 
-def is_finished(final_expected_num):
+def is_finished(final_expected_num: int) -> bool:
     """
     Count the number of json files in the output directory, and see if the number
     matches the final expected number, which should be pre-calculated by the
@@ -78,21 +80,21 @@ def is_finished(final_expected_num):
 
 
 def optimize(
-    queue,
-    pid,
-    num_expected_outputs,
-    gameweek_range,
-    season,
-    pred_tag,
-    chips_gw_dict,
-    max_total_hit=None,
-    allow_unused_transfers=False,
-    max_transfers=2,
-    num_iterations=100,
-    updater=None,
-    resetter=None,
-    profile=False,
-):
+    queue: Queue,
+    pid: Process,
+    num_expected_outputs: int,
+    gameweek_range: List[int],
+    season: str,
+    pred_tag: str,
+    chips_gw_dict: dict,
+    max_total_hit: Optional[int] = None,
+    allow_unused_transfers: bool = False,
+    max_transfers: int = 2,
+    num_iterations: int = 100,
+    updater: Optional[Callable] = None,
+    resetter: Optional[Callable] = None,
+    profile: bool = False,
+) -> None:
     """
     Queue is the multiprocessing queue,
     pid is the Process that will execute this func,
@@ -143,6 +145,10 @@ def optimize(
             depth = 0
             strat_dict["total_score"] = 0
             strat_dict["points_per_gw"] = {}
+            strat_dict["free_transfers"] = {}
+            strat_dict["num_transfers"] = {}
+            strat_dict["points_hit"] = {}
+            strat_dict["discount_factor"] = {}
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
             strat_dict["chips_played"] = {}
@@ -195,12 +201,15 @@ def optimize(
                 (updater, increment, pid),
             )
 
-            points -= calc_points_hit(
-                num_transfers, free_transfers
-            ) * get_discount_factor(root_gw, gw)
+            points_hit = calc_points_hit(num_transfers, free_transfers)
+            discount_factor = get_discount_factor(root_gw, gw)
+            points -= points_hit * discount_factor
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
-
+            strat_dict["free_transfers"][gw] = free_transfers
+            strat_dict["num_transfers"][gw] = num_transfers
+            strat_dict["points_hit"][gw] = points_hit
+            strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
             free_transfers = calc_free_transfers(num_transfers, free_transfers)
@@ -245,7 +254,7 @@ def optimize(
                 )
 
 
-def find_best_strat_from_json(tag):
+def find_best_strat_from_json(tag: str) -> dict:
     """
     Look through all the files in our tmp directory that
     contain the prediction tag in their filename.
@@ -267,7 +276,7 @@ def find_best_strat_from_json(tag):
     return best_strat
 
 
-def save_baseline_score(squad, gameweeks, tag):
+def save_baseline_score(squad: Squad, gameweeks: List[int], tag: str) -> None:
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
@@ -280,7 +289,7 @@ def save_baseline_score(squad, gameweeks, tag):
         json.dump(strat_dict, f)
 
 
-def find_baseline_score_from_json(tag, num_gameweeks):
+def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> None:
     """
     The baseline score is the one where we make 0 transfers
     for all gameweeks.
@@ -297,11 +306,10 @@ def find_baseline_score_from_json(tag, num_gameweeks):
             return strat["total_score"]
 
 
-def print_strat(strat):
+def print_strat(strat: dict) -> None:
     """
     nicely formated printout as output of optimization.
     """
-
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     print(" ===============================================")
@@ -324,7 +332,7 @@ def print_strat(strat):
     print(f" Total score: {int(strat['total_score'])} \n")
 
 
-def discord_payload(strat, lineup):
+def discord_payload(strat: dict, lineup: List[str]) -> dict:
     """
     json formated discord webhook contentent.
     """
@@ -369,7 +377,9 @@ def discord_payload(strat, lineup):
     return payload
 
 
-def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
+def print_team_for_next_gw(
+    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: Optional[int] = None
+) -> Squad:
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
@@ -388,18 +398,18 @@ def print_team_for_next_gw(strat, season=CURRENT_SEASON, fpl_team_id=None):
 
 
 def run_optimization(
-    gameweeks,
-    tag,
-    season=CURRENT_SEASON,
-    fpl_team_id=None,
-    chip_gameweeks={},
-    num_free_transfers=None,
-    max_total_hit=None,
-    allow_unused_transfers=False,
-    max_transfers=2,
-    num_iterations=100,
-    num_thread=4,
-    profile=False,
+    gameweeks: List[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: Optional[int] = None,
+    chip_gameweeks: dict = {},
+    num_free_transfers: Optional[int] = None,
+    max_total_hit: Optional[int] = None,
+    allow_unused_transfers: bool = False,
+    max_transfers: int = 2,
+    num_iterations: int = 100,
+    num_thread: int = 4,
+    profile: bool = False,
 ):
     """
     This is the actual main function that sets up the multiprocessing
@@ -464,6 +474,12 @@ def run_optimization(
     # Get a dict of what chips we definitely or possibly will play
     # in each gw
     chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
+
+    # Specific fix (aka hack) for the 2022 World Cup, where everyone
+    # gets a free wildcard
+    if season == "2223" and gameweeks[0] == 17:
+        chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
+        num_free_transfers = 1
 
     # create a queue that we will add nodes to, and some processes to take
     # things off it
@@ -575,7 +591,9 @@ def run_optimization(
     print(f"Baseline score: {baseline_score}")
     print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
-    t = print_team_for_next_gw(best_strategy, season=season, fpl_team_id=fpl_team_id)
+    best_squad = print_team_for_next_gw(
+        best_strategy, season=season, fpl_team_id=fpl_team_id
+    )
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
@@ -594,7 +612,7 @@ def run_optimization(
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:
                 lineup_strings.append(f"== **{position}** ==\n```")
-                for p in t.players:
+                for p in best_squad.players:
                     if p.position == position and p.is_starting:
                         player_line = f"{p.name} ({p.team})"
                         if p.is_captain:
@@ -605,7 +623,7 @@ def run_optimization(
                 lineup_strings.append("```\n")
             lineup_strings.append("__subs__")
             lineup_strings.append("```")
-            subs = [p for p in t.players if not p.is_starting]
+            subs = [p for p in best_squad.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
             for p in subs:
                 lineup_strings.append(f"{p.name} ({p.team})")
@@ -621,10 +639,10 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    return
+    return best_squad, best_strategy
 
 
-def construct_chip_dict(gameweeks, chip_gameweeks):
+def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
     """
     Given a dict of form {<chip_name>: <chip_gw>,...}
     where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
@@ -657,7 +675,7 @@ def construct_chip_dict(gameweeks, chip_gameweeks):
     return chip_dict
 
 
-def sanity_check_args(args):
+def sanity_check_args(args: argparse.Namespace) -> bool:
     """
     Check that command-line arguments are self-consistent.
     """

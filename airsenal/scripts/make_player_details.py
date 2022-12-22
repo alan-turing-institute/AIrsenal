@@ -7,6 +7,7 @@ import json
 import os
 from functools import cache
 from glob import glob
+from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -86,7 +87,7 @@ key_dict = {
 }
 
 
-def path_to_name(path):
+def path_to_name(path: str) -> str:
     """function to take a sub directory path into a key for output json
     i.e. player name from directory path
     """
@@ -96,7 +97,7 @@ def path_to_name(path):
     return " ".join(x for x in dir_name.split("_") if not x.isdigit())
 
 
-def path_to_index(path):
+def path_to_index(path: str) -> Optional[int]:
     """function to take a sub directory path into a key for output json
     i.e. player name from directory path
     """
@@ -108,17 +109,17 @@ def path_to_index(path):
         return None
 
 
-def get_long_season_name(short_name):
+def get_long_season_name(short_name: str) -> str:
     """Convert short season name of format 1718 to long name like 2017-18."""
     return "20" + short_name[:2] + "-" + short_name[2:]
 
 
-def get_teams_dict(season):
+def get_teams_dict(season: str) -> dict:
     teams_df = pd.read_csv(TEAM_PATH.format(season))
     return {row["team_id"]: row["name"] for _, row in teams_df.iterrows()}
 
 
-def get_positions_df(season):
+def get_positions_df(season: str) -> pd.DataFrame:
     """
     Get dataframe of player names and their positions for the given season,
     using the players_raw file from the FPL results repo.
@@ -135,7 +136,7 @@ def get_positions_df(season):
     return raw_df
 
 
-def get_fixtures_df(season):
+def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
     """Load fixture info (which teams played in which matches), either
     from vaastav/Fantasy-Premier-League repo or AIrsenal data depending
     on what's available.
@@ -165,7 +166,9 @@ def get_fixtures_df(season):
     return fixtures_df, got_fixtures
 
 
-def get_played_for_from_fixtures(fixture_id, opponent_id, was_home, fixtures_df):
+def get_played_for_from_fixtures(
+    fixture_id: int, opponent_id: int, was_home: bool, fixtures_df: pd.DataFrame
+) -> str:
     """Get the team a player played for given the id of a fixture
     and the id of the opposing team.
     """
@@ -184,7 +187,7 @@ def get_played_for_from_fixtures(fixture_id, opponent_id, was_home, fixtures_df)
 
 def get_played_for_from_results(player_row, results_df, teams_dict):
     """
-    Find what team a played for given the gameweek, match date, opposing team,
+    Find what team played for given the gameweek, match date, opposing team,
     and whether the player was at home or not.
     """
     opponent = teams_dict[player_row["opponent_team"]]
@@ -257,11 +260,11 @@ def process_file(path, teams_dict, fixtures_df, got_fixtures):
 
 
 @cache
-def get_duplicates_df():
+def get_duplicates_df() -> pd.DataFrame:
     return pd.read_csv(DUPLICATE_PATH)
 
 
-def check_duplicates(idx, season, name):
+def check_duplicates(idx: int, season: str, name: str) -> Union[pd.DataFrame, str]:
     if name == "Danny Ward":
         print("Danny Ward")
     df = get_duplicates_df()
@@ -269,7 +272,7 @@ def check_duplicates(idx, season, name):
     return matches.iloc[0]["name"] if len(matches) > 0 else name
 
 
-def get_player_details(season):
+def get_player_details(season: str) -> dict:
     """generate player details json files"""
     season_longname = get_long_season_name(season)
     print("-------- SEASON", season_longname, "--------")
@@ -314,16 +317,14 @@ def get_player_details(season):
         return output
 
 
-def make_player_details(seasons=get_past_seasons(3)):
-    if isinstance(seasons, str):
-        seasons = [seasons]
-
+def make_player_details(seasons: Optional[List[str]] = []):
+    if not seasons:
+        seasons = get_past_seasons(3)
     for season in seasons:
         output = get_player_details(season)
         print("Saving JSON")
         with open(SAVE_NAME.format(season), "w") as f:
             json.dump(output, f)
-
     print("DONE!")
 
 

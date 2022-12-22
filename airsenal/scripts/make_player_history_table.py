@@ -8,7 +8,7 @@ from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import get_player_name, list_players, session
 
 
-def get_player_history_table(position="all"):
+def get_player_history_table(position: str = "all") -> None:
     """
     Query the player_score table.
     """

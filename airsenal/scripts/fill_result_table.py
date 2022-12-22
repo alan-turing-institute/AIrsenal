@@ -7,6 +7,9 @@ Fill the "result" table with historic results
 
 import argparse
 import os
+from typing import List, Optional
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
@@ -15,7 +18,7 @@ from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seasons
 
 
-def fill_results_from_csv(input_file, season, dbsession):
+def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
     for line in input_file.readlines()[1:]:
         (
             date,
@@ -47,7 +50,9 @@ def fill_results_from_csv(input_file, season, dbsession):
     dbsession.commit()
 
 
-def fill_results_from_api(gw_start, gw_end, season, dbsession):
+def fill_results_from_api(
+    gw_start: int, gw_end: int, season: str, dbsession: Session
+) -> None:
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
     for m in matches:
@@ -93,7 +98,9 @@ def fill_results_from_api(gw_start, gw_end, season, dbsession):
     dbsession.commit()
 
 
-def make_result_table(seasons=[], dbsession=session):
+def make_result_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
     """
     past seasons - read results from csv
     """
