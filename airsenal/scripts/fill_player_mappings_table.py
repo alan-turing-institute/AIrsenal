@@ -4,10 +4,12 @@ Fill the "PlayerMapping" table with alternative names for players
 import csv
 import os
 
+from sqlalchemy.orm.session import Session
+
 from airsenal.framework.schema import Player, PlayerMapping
 
 
-def load_mappings_data():
+def load_mappings_data() -> list[list[str]]:
     filename = os.path.join(
         os.path.join(
             os.path.dirname(__file__), "..", "data", "alternative_player_names.csv"
@@ -22,7 +24,7 @@ def load_mappings_data():
 mappings_data = load_mappings_data()
 
 
-def add_mappings(player, dbsession):
+def add_mappings(player: Player, dbsession: Session) -> None:
     for row in mappings_data:
         if player.name in row:
             # add mappings from row
@@ -36,7 +38,7 @@ def add_mappings(player, dbsession):
             break
 
 
-def make_player_mappings_table(dbsession):
+def make_player_mappings_table(dbsession: Session) -> None:
     players = dbsession.query(Player).all()
     for p in players:
         add_mappings(p, dbsession)

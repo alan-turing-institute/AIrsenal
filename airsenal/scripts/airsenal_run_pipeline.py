@@ -1,8 +1,10 @@
 import multiprocessing
 import sys
 import warnings
+from typing import List, Optional
 
 import click
+from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
@@ -92,18 +94,18 @@ from airsenal.scripts.update_db import update_db
     is_flag=True,
 )
 def run_pipeline(
-    num_thread,
-    weeks_ahead,
-    fpl_team_id,
-    clean,
-    apply_transfers,
-    wildcard_week,
-    free_hit_week,
-    triple_captain_week,
-    bench_boost_week,
-    n_previous,
-    no_current_season,
-):
+    num_thread: int,
+    weeks_ahead: int,
+    fpl_team_id: int,
+    clean: bool,
+    apply_transfers: bool,
+    wildcard_week: int,
+    free_hit_week: int,
+    triple_captain_week: int,
+    bench_boost_week: int,
+    n_previous: int,
+    no_current_season: bool,
+) -> None:
     """
     Run the full pipeline, from setting up the database and filling
     with players, teams, fixtures, and results (if it didn't already exist),
@@ -172,7 +174,9 @@ def run_pipeline(
         click.echo("Pipeline finished OK!")
 
 
-def setup_database(fpl_team_id, n_previous, no_current_season, dbsession):
+def setup_database(
+    fpl_team_id: int, n_previous: int, no_current_season: bool, dbsession: Session
+) -> bool:
     """
     Set up database
     """
@@ -184,7 +188,12 @@ def setup_database(fpl_team_id, n_previous, no_current_season, dbsession):
     return make_init_db(fpl_team_id, seasons, dbsession)
 
 
-def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_week):
+def setup_chips(
+    wildcard_week: int,
+    free_hit_week: int,
+    triple_captain_week: int,
+    bench_boost_week: int,
+) -> dict:
     """
     Set up chips to be played for particular gameweeks. Specifically: wildcard,
     free_hit, triple_captain, bench_boost
@@ -197,7 +206,7 @@ def setup_chips(wildcard_week, free_hit_week, triple_captain_week, bench_boost_w
     }
 
 
-def update_database(fpl_team_id, attr, dbsession):
+def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
     """
     Update database
     """
@@ -205,7 +214,7 @@ def update_database(fpl_team_id, attr, dbsession):
     return update_db(season, attr, fpl_team_id, dbsession)
 
 
-def run_prediction(num_thread, gw_range, dbsession):
+def run_prediction(num_thread: int, gw_range: List[int], dbsession: Session) -> bool:
     """
     Run prediction
     """
@@ -232,7 +241,7 @@ def run_prediction(num_thread, gw_range, dbsession):
     return True
 
 
-def run_make_squad(gw_range, fpl_team_id, dbsession):
+def run_make_squad(gw_range: List[int], fpl_team_id: int, dbsession: Session) -> bool:
     """
     Build the initial squad
     """
@@ -253,7 +262,13 @@ def run_make_squad(gw_range, fpl_team_id, dbsession):
     return True
 
 
-def run_optimize_squad(num_thread, gw_range, fpl_team_id, dbsession, chips_played):
+def run_optimize_squad(
+    num_thread: int,
+    gw_range: List[int],
+    fpl_team_id: int,
+    dbsession: Session,
+    chips_played: dict,
+) -> bool:
     """
     Build the initial squad
     """
@@ -272,7 +287,7 @@ def run_optimize_squad(num_thread, gw_range, fpl_team_id, dbsession, chips_playe
     return True
 
 
-def set_starting_11(fpl_team_id=None):
+def set_starting_11(fpl_team_id: Optional[int] = None) -> bool:
     """
     Set the lineup based on the latest optimization run.
 

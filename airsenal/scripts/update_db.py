@@ -6,6 +6,9 @@ the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
 import argparse
+from typing import List
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
@@ -25,11 +28,10 @@ from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 
 
-def update_transactions(season, fpl_team_id, dbsession):
+def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
     """
     Ensure that the transactions table in the database is up-to-date.
     """
-
     if NEXT_GAMEWEEK != 1:
         print("Checking team")
         n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
@@ -51,7 +53,7 @@ def update_transactions(season, fpl_team_id, dbsession):
     return True
 
 
-def update_results(season, dbsession):
+def update_results(season: str, dbsession: Session) -> bool:
     """
     If the last gameweek in the db is earlier than the last finished gameweek,
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
@@ -85,7 +87,7 @@ def update_results(season, dbsession):
     return True
 
 
-def update_players(season, dbsession):
+def update_players(season: str, dbsession: Session) -> int:
     """
     See if any new players have been added to FPL since we last filled the 'player'
     table in the db.  If so, add them.
@@ -110,8 +112,11 @@ def update_players(season, dbsession):
 
 
 def add_players_to_db(
-    players_from_db, players_from_api, player_data_from_api, dbsession
-):
+    players_from_db: list,
+    players_from_api: List[int],
+    player_data_from_api: dict,
+    dbsession: Session,
+) -> int:
     print("Updating player table...")
     # find the new player(s) from the API
     api_ids_from_db = [p.fpl_api_id for p in players_from_db]
@@ -142,7 +147,7 @@ def add_players_to_db(
     return len(new_players)
 
 
-def update_attributes(season, dbsession):
+def update_attributes(season: str, dbsession: Session) -> None:
     """Update player attributes table"""
     # update from, and including, the last gameweek we have results for in the
     # database (including that gameweek as player prices etc. can change after
@@ -160,7 +165,9 @@ def update_attributes(season, dbsession):
     )
 
 
-def update_db(season, do_attributes, fpl_team_id, session):
+def update_db(
+    season: str, do_attributes: bool, fpl_team_id: int, session: Session
+) -> bool:
     # see if any new players have been added
     num_new_players = update_players(season, session)
 

@@ -7,6 +7,9 @@ Fill the "fixture" table with info from this seasons FPL
 
 import os
 import uuid
+from typing import List, Optional
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
@@ -15,7 +18,9 @@ from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import find_fixture, get_past_seasons
 
 
-def fill_fixtures_from_file(filename, season, dbsession=session):
+def fill_fixtures_from_file(
+    filename: str, season: str, dbsession: Session = session
+) -> None:
     """
     use the match results csv files to get a list of matches in a season,
     """
@@ -39,7 +44,7 @@ def fill_fixtures_from_file(filename, season, dbsession=session):
     dbsession.commit()
 
 
-def fill_fixtures_from_api(season, dbsession=session):
+def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
     """
     Use the FPL API to get a list of fixures.
     """
@@ -87,12 +92,12 @@ def fill_fixtures_from_api(season, dbsession=session):
             raise ValueError(f"Can't find team(s) with id(s): {away_id}")
         if not update:
             dbsession.add(f)
-
     dbsession.commit()
-    return True
 
 
-def make_fixture_table(seasons=[], dbsession=session):
+def make_fixture_table(
+    seasons: Optional[List[str]] = [], dbsession: Session = session
+) -> None:
     # fill the fixture table for past seasons
     if not seasons:
         seasons = [CURRENT_SEASON]

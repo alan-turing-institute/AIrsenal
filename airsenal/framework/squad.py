@@ -8,7 +8,13 @@ from operator import itemgetter
 import numpy as np
 
 from airsenal.framework.player import CandidatePlayer, Player
-from airsenal.framework.utils import CURRENT_SEASON, NEXT_GAMEWEEK, fetcher, get_player
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    NEXT_GAMEWEEK,
+    fetcher,
+    get_player,
+    get_playerscores_for_player_gameweek,
+)
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -312,6 +318,27 @@ class Squad(object):
             for index, player in enumerate(player_dict[pos]):
                 player[0].is_starting = index < formation[i]
 
+    def get_formation(self):
+        """
+        Return the formation of a starting 11 in the form
+        of a dict {"DEF": nDEF, "MID": nMID, "FWD": nFWD}
+        """
+        formation = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        for player in self.players:
+            if player.is_starting:
+                formation[player.position] += 1
+        return formation
+
+    def is_substitution_allowed(self, player_out, player_in):
+        """
+        for a given player out and player in, would the substitution result in a
+        valid formation?
+        """
+        formation = self.get_formation()
+        formation[player_out.position] -= 1
+        formation[player_in.position] += 1
+        return (formation["DEF"], formation["MID"], formation["FWD"]) in FORMATIONS
+
     def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
         """
         simple sum over starting players
@@ -387,3 +414,67 @@ class Squad(object):
         player_list.sort(key=itemgetter(1), reverse=True)
         player_list[0][0].is_captain = True
         player_list[1][0].is_vice_captain = True
+
+    def get_actual_points(
+        self, gameweek, season, triple_captain=False, bench_boost=False
+    ):
+        """
+        Calculate the actual points a squad stored in a historical gameweek/season.
+        """
+        total_points = 0
+        # we will first loop through the list of players to identify
+        # subs / captain / vice captain changes, and add up scores
+        # for the starting 11, and then after that deal with points
+        # for subs and vice captain.
+
+        need_vice_captain = False
+        vice_captain_points = 0
+
+        # this will be an ordered list of subs - make it the right size beforehand
+        subs = [None, None, None, None]
+        need_sub = []
+        for p in self.players:
+            if p.is_starting or bench_boost:
+                scores = get_playerscores_for_player_gameweek(p, gameweek, season)
+                minutes = sum(s.minutes for s in scores)
+                if minutes > 0:
+                    for score in scores:
+                        total_points += score.points
+                        if p.is_captain:
+                            # double their score!
+                            total_points += score.points
+                            if triple_captain:
+                                # TREBLE their score!
+                                total_points += score.points
+                        elif p.is_vice_captain:
+                            vice_captain_points = score.points
+                else:  # starting player didn't get any minutes
+                    need_sub.append(p)
+                    if p.is_captain:
+                        need_vice_captain = True
+
+            else:  # player not in our initial starting 11
+                # put the subs in order
+                subs[p.sub_position] = p
+        # now take account of possibility that captain didn't play
+        if need_vice_captain:
+            total_points += vice_captain_points  # double them
+            if triple_captain:
+                total_points += vice_captain_points  # TREBLE them!
+        # now take account of subs.
+        # UNLESS bench_boost (in which case we've already counted subs points)
+        if need_sub and not bench_boost:
+            for p_out in need_sub:
+                for p_in in subs:
+                    if not self.is_substitution_allowed(p_out, p_in):
+                        continue
+                    scores = get_playerscores_for_player_gameweek(
+                        p_in, gameweek, season
+                    )
+                    minutes = sum(s.minutes for s in scores)
+                    if minutes > 0:
+                        for score in scores:
+                            total_points += score.points
+                        subs.remove(p_in)
+                        break
+        return total_points

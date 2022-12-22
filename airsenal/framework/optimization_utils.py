@@ -116,6 +116,11 @@ def get_starting_squad(
         s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
         return s
     # otherwise, we use the Transaction table in the DB
+    s = get_squad_from_transactions(NEXT_GAMEWEEK - 1, season, fpl_team_id)
+    return s
+
+
+def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
     if not fpl_team_id:
         # use the most recent transaction in the table
         most_recent = (
@@ -138,6 +143,7 @@ def get_starting_squad(
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)
         .filter_by(season=season)
+        .filter(Transaction.gameweek <= gameweek)
         .all()
     )
     if len(transactions) == 0:

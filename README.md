@@ -193,6 +193,8 @@ airsenal_make_squad --num_gameweeks 3
 
 To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers). Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for these to work (as described in the "Configuration" section above).
 
+Also note that this command can't currently apply chips such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline via the FPL website.
+
 ### Run the Full AIrsenal Pipeline
 
 Instead of running the commands above individually you can use:
