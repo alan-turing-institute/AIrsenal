@@ -45,6 +45,7 @@ def fill_initial_squad(
         except ModuleNotFoundError:
             print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
+            uda = None
     else:
         uda = None
 
