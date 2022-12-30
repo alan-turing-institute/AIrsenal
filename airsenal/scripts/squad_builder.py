@@ -2,9 +2,7 @@
 
 import argparse
 import sys
-from typing import List, Optional
-
-from pygmo.core import sga
+from typing import List
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
@@ -34,19 +32,21 @@ def fill_initial_squad(
     algorithm: str = "genetic",
     remove_zero: bool = True,
     sub_weights: dict = DEFAULT_SUB_WEIGHTS,
-    uda: Optional[sga] = None,
+    num_generations: int = 100,
     population_size: int = 100,
     num_iterations: int = 10,
     verbose: bool = True,
 ) -> None:
-    if algorithm == "genetic" and uda is None:
+    if algorithm == "genetic":
         try:
             import pygmo as pg
 
-            uda = pg.sga(gen=100)
+            uda = pg.sga(gen=num_generations)
         except ModuleNotFoundError:
             print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
+    else:
+        uda = None
 
     gw_start = gw_range[0]
     best_squad = make_new_squad(
@@ -197,17 +197,6 @@ def main():
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
         sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-    if algorithm == "genetic":
-        try:
-            import pygmo as pg
-
-            uda = pg.sga(gen=num_generations)
-        except ModuleNotFoundError:
-            print("pygmo not available. Defaulting to algorithm=normal instead")
-            algorithm = "normal"
-            uda = None
-    else:
-        uda = None
 
     fill_initial_squad(
         tag=tag,
@@ -218,7 +207,7 @@ def main():
         algorithm=algorithm,
         remove_zero=remove_zero,
         sub_weights=sub_weights,
-        uda=uda,
+        num_generations=num_generations,
         population_size=population_size,
         num_iterations=num_iterations,
         verbose=verbose,
