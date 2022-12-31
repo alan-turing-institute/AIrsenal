@@ -10,7 +10,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-bpl = { git = "https://github.com/anguswilliams91/bpl-next", branch = "main" }
+bpl = { git = "https://github.com/anguswilliams91/bpl-next", branch="feature/neutral-dixon-coles" }
 click = "^8.1.2"
 pandas = "^1.4.2"
 requests = "^2.27.1"
