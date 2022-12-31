@@ -179,14 +179,18 @@ def fixture_probabilities(
         get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
     )
     home_teams, away_teams = zip(*fixtures)
-    if model == "extended":
+    if isinstance(team_model, ExtendedDixonColesMatchPredictor):
         probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
-    elif model == "neutral":
+    elif isinstance(team_model, NeutralDixonColesMatchPredictor):
         probabilities = team_model.predict_outcome_proba(
-            home_teams, away_teams, np.zeros(len(home_teams))
+            home_teams, away_teams, neutral_venue=np.zeros(len(home_teams))
         )
     else:
-        raise NotImplementedError("model must be either 'extended' or 'neutral'")
+        raise NotImplementedError(
+            "team_model must be either of type "
+            + "'ExtendedDixonColesMatchPredictor' or "
+            + "'NeutralDixonColesMatchPredictor'"
+        )
     return pd.DataFrame(
         {
             "home_team": home_teams,
