@@ -299,7 +299,7 @@ def test_get_fitted_team_model():
         )
     # neutral model with epsilon = 0.0 by default
     with test_past_data_session_scope() as ts:
-        model_team = get_fitted_team_model("1819", 10, ts, model="neutral")
+        model_team = get_fitted_team_model("1819", 10, ts)
         assert isinstance(
             model_team, bpl.neutral_dixon_coles.NeutralDixonColesMatchPredictor
         )
@@ -314,8 +314,21 @@ def test_get_fitted_team_model():
 
 
 def test_fixture_probabilities():
+    # extended model
+    with test_past_data_session_scope() as ts:
+        df = fixture_probabilities(20, "1819", dbsession=ts, model="extended")
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 10
+    # neutral model with epsilon = 0.0 by default
     with test_past_data_session_scope() as ts:
         df = fixture_probabilities(20, "1819", dbsession=ts)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 10
+    # neutral model with epsilon = 0.5
+    with test_past_data_session_scope() as ts:
+        df = fixture_probabilities(
+            20, "1819", dbsession=ts, model="neutral", epsilon=0.5
+        )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
 

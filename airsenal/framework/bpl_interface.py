@@ -44,7 +44,7 @@ def get_result_dict(
         [pd.Timestamp(r.fixture.date).replace(tzinfo=None) for r in results]
     )
     end_date = pd.to_datetime(
-        [f.date for f in get_fixtures_for_gameweek(gameweek)]
+        [f.date for f in get_fixtures_for_gameweek(gameweek, season, dbsession)]
     ).min()
     end_date = end_date.replace(tzinfo=None)
     time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
@@ -179,8 +179,14 @@ def fixture_probabilities(
         get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
     )
     home_teams, away_teams = zip(*fixtures)
-    probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
-
+    if model == "extended":
+        probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
+    elif model == "neutral":
+        probabilities = team_model.predict_outcome_proba(
+            home_teams, away_teams, np.zeros(len(home_teams))
+        )
+    else:
+        raise NotImplementedError("model must be either 'extended' or 'neutral'")
     return pd.DataFrame(
         {
             "home_team": home_teams,
