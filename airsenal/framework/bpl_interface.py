@@ -2,7 +2,7 @@
 Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ def get_result_dict(
     season: str, gameweek: int, dbsession: Session
 ) -> dict[str, np.array]:
     """
-    query the match table and put results into pandas dataframe,
+    Query the match table and put results into pandas dataframe,
     to train the team-level model.
     """
     results = [
@@ -38,24 +38,33 @@ def get_result_dict(
             next_gameweek=gameweek,
         )
     ]
-    # TODO: obtain more detailed result dictionary with
-    # - time_diff
-    # (to current gameweek I guess),
-    # - game_weights
-    # (which will just be all set to have equal weights and equal 1)
+    # compute the time difference for each fixture in results
+    # to the first fixture of the next gameweek
+    result_dates = np.array(
+        [pd.Timestamp(r.fixture.date).replace(tzinfo=None) for r in results]
+    )
+    end_date = pd.to_datetime(
+        [f.date for f in get_fixtures_for_gameweek(gameweek)]
+    ).min()
+    end_date = end_date.replace(tzinfo=None)
+    time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
         "away_team": np.array([r.fixture.away_team for r in results]),
         "home_goals": np.array([r.home_score for r in results]),
         "away_goals": np.array([r.away_score for r in results]),
+        "neutral_venue": np.zeros(len(results)),
+        "time_diff": time_diff,
+        "game_weights": np.ones(len(results)),
     }
 
 
 def get_ratings_dict(
     season: str, teams: List[str], dbsession: Session
 ) -> dict[str, np.array]:
-    """Create a dataframe containing the fifa team ratings."""
-
+    """
+    Create a dataframe containing the fifa team ratings.
+    """
     ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
     if len(ratings) == 0:
         raise ValueError(f"No FIFA ratings found for season {season}")
@@ -76,7 +85,8 @@ def get_ratings_dict(
 def get_training_data(
     season: str, gameweek: int, dbsession: Session, ratings: bool = True
 ) -> dict[str, Union[np.array, dict]]:
-    """Get training data for team model, optionally including FIFA ratings
+    """
+    Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. Data returned is for all matches up
     to specified gameweek and season.
     """
@@ -97,6 +107,12 @@ def create_and_fit_team_model(
     if model == "extended":
         return ExtendedDixonColesMatchPredictor().fit(training_data, **fit_args)
     elif model == "neutral":
+        if not fit_args:
+            fit_args = {}
+        if "epsilon" in fit_args:
+            print(f"Fitting Neutral model with epsilon = {fit_args['epsilon']}")
+        else:
+            print("Fitting Neutral model but no epsilon passed, so setting epsilon = 0")
         return NeutralDixonColesMatchPredictor().fit(training_data, **fit_args)
     else:
         raise NotImplementedError("model must be either 'extended' or 'neutral'")
@@ -123,24 +139,32 @@ def add_new_teams_to_model(
 
 
 def get_fitted_team_model(
-    season: str, gameweek: int, dbsession: Session
+    season: str,
+    gameweek: int,
+    dbsession: Session,
+    ratings: bool = True,
+    model: str = "neutral",
+    **fit_args,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
-    get the fitted team model using the past results and the FIFA rankings
+    Get the fitted team model using the past results and the FIFA rankings.
     """
     print("Fitting team model...")
-    training_data = get_training_data(season, gameweek, dbsession)
-    team_model = create_and_fit_team_model(training_data)
+    training_data = get_training_data(season, gameweek, dbsession, ratings)
+    team_model = create_and_fit_team_model(training_data, model, **fit_args)
     return add_new_teams_to_model(team_model, season, dbsession)
 
 
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    team_model: Optional[
+        Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]
     ] = None,
     dbsession: Session = session,
+    ratings: bool = True,
+    model: str = "neutral",
+    **fit_args,
 ) -> pd.DataFrame:
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data
@@ -148,7 +172,9 @@ def fixture_probabilities(
     away_team, home_win_probability, draw_probability, away_win_probability.
     """
     if team_model is None:
-        team_model = get_fitted_team_model(season, gameweek, dbsession)
+        team_model = get_fitted_team_model(
+            season, gameweek, dbsession, ratings, model, **fit_args
+        )
     fixtures = get_fixture_teams(
         get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
     )
@@ -173,8 +199,10 @@ def get_goal_probabilities_for_fixtures(
     ],
     max_goals: int = 10,
 ) -> dict[int, dict[str, dict[int, float]]]:
-    """Get the probability that each team in a fixture scores any number of goals up
-    to max_goals."""
+    """
+    Get the probability that each team in a fixture scores any number of goals up
+    to max_goals.
+    """
     goals = np.arange(0, max_goals + 1)
     probs = {}
     for f in fixtures:

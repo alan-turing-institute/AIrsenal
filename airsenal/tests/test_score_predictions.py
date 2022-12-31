@@ -291,11 +291,26 @@ def test_get_ratings_dict():
 
 
 def test_get_fitted_team_model():
+    # extended model
     with test_past_data_session_scope() as ts:
-        model_team = get_fitted_team_model("1819", 10, ts)
+        model_team = get_fitted_team_model("1819", 10, ts, model="extended")
         assert isinstance(
             model_team, bpl.extended_dixon_coles.ExtendedDixonColesMatchPredictor
         )
+    # neutral model with epsilon = 0.0 by default
+    with test_past_data_session_scope() as ts:
+        model_team = get_fitted_team_model("1819", 10, ts, model="neutral")
+        assert isinstance(
+            model_team, bpl.neutral_dixon_coles.NeutralDixonColesMatchPredictor
+        )
+        assert model_team.epsilon == 0.0
+    # neutral model with epsilon = 0.5
+    with test_past_data_session_scope() as ts:
+        model_team = get_fitted_team_model("1819", 10, ts, model="neutral", epsilon=0.5)
+        assert isinstance(
+            model_team, bpl.neutral_dixon_coles.NeutralDixonColesMatchPredictor
+        )
+        assert model_team.epsilon == 0.5
 
 
 def test_fixture_probabilities():
