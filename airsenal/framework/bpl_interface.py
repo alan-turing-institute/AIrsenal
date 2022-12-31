@@ -198,7 +198,7 @@ def get_goal_probabilities_for_fixtures(
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ],
     max_goals: int = 10,
-) -> Dict[int, dict[str, dict[int, float]]]:
+) -> Dict[int, Dict[str, Dict[int, float]]]:
     """
     Get the probability that each team in a fixture scores any number of goals up
     to max_goals.
