@@ -266,7 +266,7 @@ def calc_predicted_points_for_player(
     N goals, and player-level model to get the chance of player scoring
     or assisting given that their team scores.
     """
-    if isinstance(player, int):
+    if isinstance(player, (str, int)):
         player = get_player(player, dbsession=dbsession)
 
     message = f"Points prediction for player {player}"
