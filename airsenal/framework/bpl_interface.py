@@ -2,7 +2,7 @@
 Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ np.random.seed(42)
 
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
-) -> dict[str, np.array]:
+) -> Dict[str, np.array]:
     """
     Query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -61,7 +61,7 @@ def get_result_dict(
 
 def get_ratings_dict(
     season: str, teams: List[str], dbsession: Session
-) -> dict[str, np.array]:
+) -> Dict[str, np.array]:
     """
     Create a dataframe containing the fifa team ratings.
     """
@@ -84,7 +84,7 @@ def get_ratings_dict(
 
 def get_training_data(
     season: str, gameweek: int, dbsession: Session, ratings: bool = True
-) -> dict[str, Union[np.array, dict]]:
+) -> Dict[str, Union[np.array, dict]]:
     """
     Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. Data returned is for all matches up
@@ -198,7 +198,7 @@ def get_goal_probabilities_for_fixtures(
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ],
     max_goals: int = 10,
-) -> dict[int, dict[str, dict[int, float]]]:
+) -> Dict[int, dict[str, dict[int, float]]]:
     """
     Get the probability that each team in a fixture scores any number of goals up
     to max_goals.
