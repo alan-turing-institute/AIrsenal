@@ -59,6 +59,8 @@ def replay_season(
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
+    team_model: str = "neutral",
+    team_model_args: dict = {"epsilon": 0.0},
     fpl_team_id: Optional[int] = None,
 ) -> None:
     if gameweek_end is None:
@@ -89,6 +91,8 @@ def replay_season(
                 season=season,
                 num_thread=num_thread,
                 tag_prefix=tag_prefix,
+                team_model=team_model,
+                team_model_args=team_model_args,
                 dbsession=session,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
@@ -189,6 +193,19 @@ def main():
         type=int,
         default=4,
     )
+    parser.add_argument(
+        "--team_model",
+        help="which team model to fit",
+        type=str,
+        choices=["extended", "neutral"],
+        default="neutral",
+    )
+    parser.add_argument(
+        "--epsilon",
+        help="how much to downweight games by in exponential time weighting",
+        type=float,
+        default=0.0,
+    )
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
@@ -204,6 +221,8 @@ def main():
             new_squad=not args.resume,
             weeks_ahead=args.weeks_ahead,
             num_thread=args.num_thread,
+            team_model=args.team_model,
+            team_model_args={"epsilon": args.epsilon},
             fpl_team_id=args.fpl_team_id,
         )
 

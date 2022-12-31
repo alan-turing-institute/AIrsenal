@@ -88,12 +88,18 @@ def calc_all_predicted_points(
     num_thread: int = 4,
     tag: str = "",
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+    team_model: str = "neutral",
+    team_model_args: dict = {"epsilon": 0.0},
 ) -> None:
     """
     Do the full prediction for players.
     """
     model_team = get_fitted_team_model(
-        season, gameweek=min(gw_range), dbsession=dbsession
+        season,
+        gameweek=min(gw_range),
+        dbsession=dbsession,
+        model=team_model,
+        **team_model_args
     )
     print("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
@@ -180,6 +186,8 @@ def make_predictedscore_table(
     include_saves: bool = True,
     tag_prefix: Optional[str] = None,
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+    team_model: str = "neutral",
+    team_model_args: dict = {"epsilon": 0.0},
     dbsession: Session = session,
 ) -> None:
     tag = tag_prefix or ""
@@ -196,6 +204,8 @@ def make_predictedscore_table(
         num_thread=num_thread,
         tag=tag,
         player_model=player_model,
+        team_model=team_model,
+        team_model_args=team_model_args,
     )
     return tag
 
@@ -235,6 +245,19 @@ def main():
         help="If set use fit the model using sampling with numpyro",
         action="store_true",
     )
+    parser.add_argument(
+        "--team_model",
+        help="which team model to fit",
+        type=str,
+        choices=["extended", "neutral"],
+        default="neutral",
+    )
+    parser.add_argument(
+        "--epsilon",
+        help="how much to downweight games by in exponential time weighting",
+        type=float,
+        default=0.0,
+    )
 
     args = parser.parse_args()
     gw_range = get_gameweeks_array(
@@ -265,6 +288,8 @@ def main():
             include_cards=include_cards,
             include_saves=include_saves,
             player_model=player_model,
+            team_model=args.team_model,
+            team_model_args={"epsilon": args.epsilon},
             dbsession=session,
         )
 
