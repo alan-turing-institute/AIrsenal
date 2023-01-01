@@ -37,8 +37,7 @@ fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 def get_max_gameweek(season: str = CURRENT_SEASON, dbsession: Session = session) -> int:
     """
     Return the maximum gameweek number across all scheduled fixtures. This should
-    generally be 38, but may be different in the case of major disruptions (e.g.
-    Covid-19).
+    generally be 38, but may be different with major disruptions (e.g. Covid-19).
     """
     max_gw_fixture = (
         dbsession.query(Fixture)
@@ -135,7 +134,6 @@ def get_next_gameweek_by_date(
     """
     if not dbsession:
         dbsession = session
-
     check_date = parse_date(check_date)
     fixtures = dbsession.query(Fixture).filter_by(season=season).all()
     earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
@@ -240,7 +238,7 @@ def get_start_end_dates_of_season(season: str) -> List[pd.Timestamp]:
 
 def get_previous_season(season: str) -> str:
     """
-    Convert string e.g. '1819' into one for previous season, i.e. '1718'/
+    Convert string e.g. '1819' into one for previous season, i.e. '1718'
     """
     start_year = int(season[:2])
     end_year = int(season[2:])
@@ -251,7 +249,7 @@ def get_previous_season(season: str) -> str:
 
 def get_past_seasons(num_seasons: int) -> List[str]:
     """
-    Go back num_seasons from the current one
+    Go back num_seasons from the current one.
     """
     season = CURRENT_SEASON
     seasons = []
@@ -555,7 +553,6 @@ def get_player_name(player_id: int, dbsession: Session = session) -> Optional[st
     """
     if p := get_player(player_id, dbsession):
         return p.name
-
     print(f"Unknown player_id {player_id}")
     return None
 
@@ -724,7 +721,6 @@ def get_max_matches_per_player(
         )
         if num_match > max_matches:
             max_matches = num_match
-
     return max_matches
 
 
@@ -1011,7 +1007,7 @@ def get_predicted_points(
     team: str = "all",
     season: str = CURRENT_SEASON,
     dbsession: Optional[Session] = None,
-):
+) -> List[Tuple[int, float]]:
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -1061,7 +1057,7 @@ def get_top_predicted_points(
     max_price: Optional[float] = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
-):
+) -> None:
     """
     Print players with the top predicted points.
 
@@ -1147,7 +1143,6 @@ def get_top_predicted_points(
                     )
             else:
                 print("Warning: Discord webhook url is malformed!\n", discord_webhook)
-
     else:
         for position in ["GK", "DEF", "MID", "FWD"]:
             pts = get_predicted_points(
@@ -1210,7 +1205,9 @@ def get_top_predicted_points(
                     )
 
 
-def predicted_points_discord_payload(discord_embed, position, pts, season, first_gw):
+def predicted_points_discord_payload(
+    discord_embed: dict, position: str, pts: float, season: str, first_gw: int
+) -> dict:
     """
     json formated discord webhook contentent.
     """
@@ -1249,8 +1246,8 @@ def predicted_points_discord_payload(discord_embed, position, pts, season, first
 
 
 def get_return_gameweek_from_news(
-    news, season: str = CURRENT_SEASON, dbsession: Session = session
-):
+    news: str, season: str = CURRENT_SEASON, dbsession: Session = session
+) -> Optional[int]:
     """
     Parse news strings from the FPL API for the return date of injured or
     suspended players. If a date is found, determine and return the gameweek it
@@ -1271,7 +1268,6 @@ def get_return_gameweek_from_news(
         return get_next_gameweek_by_date(
             return_date.date(), season=season, dbsession=dbsession
         )
-
     return None
 
 
@@ -1326,7 +1322,7 @@ def get_recent_playerscore_rows(
     season: str = CURRENT_SEASON,
     last_gw: Optional[int] = None,
     dbsession: Optional[Session] = None,
-):
+) -> List[PlayerScore]:
     """
     Query the playerscore table in the database to retrieve
     the last num_match_to_use rows for this player.
@@ -1362,7 +1358,7 @@ def get_recent_playerscore_rows(
 
 def get_playerscores_for_player_gameweek(
     player: Player,
-    gameweek,
+    gameweek: int,
     season: str = CURRENT_SEASON,
     dbsession: Optional[Session] = None,
 ) -> PlayerScore:
@@ -1412,7 +1408,7 @@ def get_recent_minutes_for_player(
     season: str = CURRENT_SEASON,
     last_gw: Optional[int] = None,
     dbsession: Session = session,
-):
+) -> List[int]:
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
@@ -1520,7 +1516,7 @@ def get_latest_prediction_tag(
     season: str = CURRENT_SEASON,
     tag_prefix: str = "",
     dbsession: Optional[Session] = None,
-):
+) -> str:
     """
     Query the predicted_score table and get the tag field for the last row.
     """
@@ -1545,7 +1541,7 @@ def get_latest_prediction_tag(
 
 def get_latest_fixture_tag(
     season: str = CURRENT_SEASON, dbsession: Optional[Session] = None
-):
+) -> str:
     """
     Query the predicted_score table and get the tag field for the last row.
     """
