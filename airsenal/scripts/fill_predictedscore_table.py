@@ -9,7 +9,7 @@ get consistent sets of predictions from the database.
 """
 import argparse
 from multiprocessing import Process, Queue
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import uuid4
 
 from pandas import Series
@@ -87,7 +87,9 @@ def calc_all_predicted_points(
     include_saves: bool = True,
     num_thread: int = 4,
     tag: str = "",
-    player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+    player_model: Union[
+        NumpyroPlayerModel, ConjugatePlayerModel
+    ] = ConjugatePlayerModel(),
     team_model: str = "neutral",
     team_model_args: dict = {"epsilon": 0.0},
 ) -> None:
@@ -185,7 +187,9 @@ def make_predictedscore_table(
     include_cards: bool = True,
     include_saves: bool = True,
     tag_prefix: Optional[str] = None,
-    player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
+    player_model: Union[
+        NumpyroPlayerModel, ConjugatePlayerModel
+    ] = ConjugatePlayerModel(),
     team_model: str = "neutral",
     team_model_args: dict = {"epsilon": 0.0},
     dbsession: Session = session,
