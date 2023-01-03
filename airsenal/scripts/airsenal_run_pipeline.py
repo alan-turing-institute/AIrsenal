@@ -96,8 +96,7 @@ from airsenal.scripts.update_db import update_db
 @click.option(
     "--team_model",
     help="which team model to fit",
-    type=str,
-    choices=["extended", "neutral"],
+    type=click.Choice(["extended", "neutral"]),
     default="neutral",
 )
 @click.option(

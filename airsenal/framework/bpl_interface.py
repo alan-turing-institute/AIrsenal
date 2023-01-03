@@ -105,6 +105,11 @@ def create_and_fit_team_model(
     each potential scoreline in a given fixture.
     """
     if model == "extended":
+        if not fit_args:
+            fit_args = {}
+        if "epsilon" in fit_args:
+            # epsilon not required in fitting extended model
+            del fit_args["epsilon"]
         return ExtendedDixonColesMatchPredictor().fit(training_data, **fit_args)
     elif model == "neutral":
         if not fit_args:
