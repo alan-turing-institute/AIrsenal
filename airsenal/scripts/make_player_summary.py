@@ -22,7 +22,7 @@ keys_to_extract = {
     "red_cards": "reds",
     "yellow_cards": "yellows",
     "team": "team",  # need to convert index to string
-    "element_type": "position",  #  need to convert index to string
+    "element_type": "position",  # need to convert index to string
     "now_cost": "cost",
 }
 

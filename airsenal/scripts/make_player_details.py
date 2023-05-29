@@ -5,6 +5,7 @@ https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
 import json
 import os
+import subprocess
 from functools import cache
 from glob import glob
 from typing import List, Optional, Tuple, Union
@@ -78,6 +79,10 @@ key_dict = {
     "selected": "selected",
     "transfers_in": "transfers_in",
     "transfers_out": "transfers_out",
+    "expected_goals": "expected_goals",
+    "expected_assists": "expected_assists",
+    "expected_goal_involvements": "expected_goal_involvements",
+    "expected_goals_conceded": "expected_goals_conceded",
     # attributes
     "value": "value",
     "played_for": "played_for",
