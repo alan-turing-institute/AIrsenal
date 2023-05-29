@@ -5,10 +5,13 @@ from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import fetcher
 from airsenal.scripts.make_player_details import make_player_details
 from airsenal.scripts.make_player_summary import make_player_summary
+from airsenal.scripts.scrape_transfermarkt import scrape_transfermarkt
 
 
 def main():
-    """Save all data from the FPL API, e.g. at the end of the season."""
+    """
+    Save all data from the FPL API and other sources, e.g. at the end of the season.
+    """
     REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
 
     print("Saving summary data...")
@@ -45,6 +48,9 @@ def main():
 
     print("Making player details data file...")
     make_player_details([CURRENT_SEASON])
+
+    print("Scraping Transfermarkt data...")
+    scrape_transfermarkt([CURRENT_SEASON])
 
     print("DONE!")
 

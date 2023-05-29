@@ -5,6 +5,7 @@ https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
 import json
 import os
+import shutil
 import subprocess
 from functools import cache
 from glob import glob
@@ -26,15 +27,17 @@ SCRIPT_DIR = os.path.dirname(__file__)
 # repo is assumed to be cloned locally in same directory as parent AIrsenal
 # directory.
 # {} will be formatted with season of interest
-REPO_DIR = os.path.join(SCRIPT_DIR, "../../../Fantasy-Premier-League/data/{}")
+GIT_REPO = "https://github.com/vaastav/Fantasy-Premier-League.git"
+REPO_DIR = os.path.join(SCRIPT_DIR, "Fantasy-Premier-League")
+DATA_DIR = os.path.join(REPO_DIR, "data", "{}")
 # Path to directory of player data
-PLAYERS_DIR = os.path.join(REPO_DIR, "players")
+PLAYERS_DIR = os.path.join(DATA_DIR, "players")
 # file containing GW data in every sub_directory in PLAYERS_DIR
 PLAYERS_FILE = "gw.csv"
 # Path to fixtures files
-FIXTURES_PATH = os.path.join(REPO_DIR, "fixtures.csv")
+FIXTURES_PATH = os.path.join(DATA_DIR, "fixtures.csv")
 # Path to raw player summary data
-RAW_PATH = os.path.join(REPO_DIR, "players_raw.csv")
+RAW_PATH = os.path.join(DATA_DIR, "players_raw.csv")
 
 # ------------------------------------
 # AIrsenal Files
@@ -319,10 +322,23 @@ def get_player_details(season: str) -> dict:
 
         name = check_duplicates(idx, season, name)
         output[name] = player_dict
-        return output
+
+    return output
 
 
 def make_player_details(seasons: Optional[List[str]] = []):
+    print(f"Cloning {GIT_REPO}...")
+    subprocess.run(
+        [
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            GIT_REPO,
+            REPO_DIR,
+        ]
+    )
+
     if not seasons:
         seasons = get_past_seasons(3)
     for season in seasons:
@@ -330,8 +346,12 @@ def make_player_details(seasons: Optional[List[str]] = []):
         print("Saving JSON")
         with open(SAVE_NAME.format(season), "w") as f:
             json.dump(output, f)
+
+    print(f"Deleting {REPO_DIR}...")
+    shutil.rmtree(REPO_DIR)
+
     print("DONE!")
 
 
 if __name__ == "__main__":
-    make_player_details()
+    make_player_details(["2223"])
