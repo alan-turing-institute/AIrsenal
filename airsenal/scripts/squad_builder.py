@@ -4,7 +4,7 @@ import argparse
 import sys
 from typing import List
 
-from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.optimization_squad import Squad, make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
@@ -36,7 +36,8 @@ def fill_initial_squad(
     population_size: int = 100,
     num_iterations: int = 10,
     verbose: bool = True,
-) -> None:
+    is_replay: bool = False,  # for replaying seasons
+) -> Squad:
     if algorithm == "genetic":
         try:
             import pygmo as pg
@@ -93,7 +94,7 @@ def fill_initial_squad(
         season=season,
         gameweek=gw_start,
     )
-    if season != CURRENT_SEASON:
+    if is_replay:
         # if simulating a previous season also add suggestions to transaction table
         # to imitate applying transfers
         fill_initial_transaction_table(
