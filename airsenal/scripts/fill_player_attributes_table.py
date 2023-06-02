@@ -57,13 +57,30 @@ def fill_attributes_table_from_file(
             pa.player_id = player.player_id
             pa.season = season
             pa.gameweek = gameweek
-            pa.price = int(fixture_data["value"])
-            pa.team = fixture_data["played_for"]
-            pa.position = fixture_data["position"]
-            pa.transfers_balance = int(fixture_data["transfers_balance"])
-            pa.selected = int(fixture_data["selected"])
-            pa.transfers_in = int(fixture_data["transfers_in"])
-            pa.transfers_out = int(fixture_data["transfers_out"])
+            # obtain attributes if available, otherwise set to None or default value
+            pa.price = int(fixture_data.get("value", 0))
+            pa.team = fixture_data.get("played_for", "")
+            pa.position = fixture_data.get("position", "")
+            pa.transfers_balance = (
+                int(fixture_data.get("transfers_balance"))
+                if fixture_data.get("transfers_balance") is not None
+                else None
+            )
+            pa.selected = (
+                int(fixture_data.get("selected"))
+                if fixture_data.get("selected") is not None
+                else None
+            )
+            pa.transfers_in = (
+                int(fixture_data.get("transfers_in"))
+                if fixture_data.get("transfers_in") is not None
+                else None
+            )
+            pa.transfers_out = (
+                int(fixture_data.get("transfers_out"))
+                if fixture_data.get("transfers_out") is not None
+                else None
+            )
             dbsession.add(pa)
 
 
