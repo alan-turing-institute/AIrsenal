@@ -1,736 +1,63 @@
 season,details,from,until,days,games,reason,player,url
-1617,Transferred to Liverpool U18,2016-07-01,2017-06-30,,,Transfer,Rhian Brewster,/rhian-brewster/profil/spieler/406560
-1617,Hamstring Injury,2017-03-28,2017-04-15,18,4,injury,Leon Britton,/leon-britton/profil/spieler/40043
-1617,Transferred to Tottenham U21,2016-07-01,2017-01-26,,,Transfer,Luke Amos,/luke-amos/profil/spieler/258912
-1617,Transferred to Southend United,2017-01-27,2017-05-30,,,Transfer,Luke Amos,/luke-amos/profil/spieler/258912
-1617,Transferred to Tottenham U23,2017-05-31,2017-06-30,,,Transfer,Luke Amos,/luke-amos/profil/spieler/258912
-1617,Transferred to Gillingham FC,2016-08-31,2017-01-02,,,Transfer,Baily Cargill,/baily-cargill/profil/spieler/293450
-1617,Thigh Muscle Strain,2017-03-16,2017-05-01,46,8,injury,Lucas Pérez,/lucas-perez/profil/spieler/73185
-1617,Ankle Injury,2016-10-25,2016-11-30,36,8,injury,Lucas Pérez,/lucas-perez/profil/spieler/73185
-1617,Transferred to Dep. La Coruña,2016-07-01,2016-08-29,,,Transfer,Lucas Pérez,/lucas-perez/profil/spieler/73185
-1617,Transferred to Sheff Wed,2016-08-15,2017-06-30,,,Transfer,David Jones,/david-jones/profil/spieler/24634
-1617,Transferred to Northampton,2016-07-29,2017-01-01,,,Transfer,Kenji Gorré,/kenji-gorre/profil/spieler/374889
-1617,Ankle Injury,2017-03-06,2017-04-13,38,4,injury,Patrick van Aanholt,/patrick-van-aanholt/profil/spieler/52119
-1617,Back trouble,2016-11-19,2016-12-02,13,2,injury,Artur Boruc,/artur-boruc/profil/spieler/15220
-1617,Knee Injury,2017-01-19,2017-06-01,133,19,injury,Kevin Long,/kevin-long/profil/spieler/111114
-1617,Transferred to Viking FK,2017-03-29,2017-06-29,,,Transfer,Kwesi Appiah,/kwesi-appiah/profil/spieler/121223
-1617,Transferred to Reading,2017-01-31,2017-06-29,,,Transfer,Lewis Grabban,/lewis-grabban/profil/spieler/35413
-1617,Groin Strain,2016-11-30,2016-12-14,14,4,injury,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
-1617,Torn Meniscus,2017-05-09,2017-10-01,145,22,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
-1617,Muscular problems,2017-03-09,2017-03-23,14,2,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
-1617,Tonsillitis,2016-11-04,2016-12-07,33,4,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
-1617,Transferred to E. Frankfurt,2016-08-31,2017-06-29,,,Transfer,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
-1617,Foot Injury,2017-02-27,2017-07-06,129,13,injury,Jordan Henderson,/jordan-henderson/profil/spieler/61651
-1617,Fitness,2017-01-06,2017-01-17,11,3,injury,Allan McGregor,/allan-mcgregor/profil/spieler/9422
-1617,Back Injury,2016-05-13,2017-01-05,237,27,injury,Allan McGregor,/allan-mcgregor/profil/spieler/9422
-1617,Hamstring Injury,2017-01-31,2017-03-04,32,6,injury,Steven Defour,/steven-defour/profil/spieler/33866
-1617,Transferred to RSC Anderlecht,2016-07-01,2016-08-15,,,Transfer,Steven Defour,/steven-defour/profil/spieler/33866
-1617,Transferred to Aston Villa,2016-07-01,2016-07-28,,,Transfer,Brad Guzan,/brad-guzan/profil/spieler/39471
-1617,Transferred to Sheff Wed,2017-01-31,2017-06-29,,,Transfer,Jordan Rhodes,/jordan-rhodes/profil/spieler/48950
-1617,Shoulder Injury,2016-12-21,2017-04-02,102,19,injury,Jonathan Williams,/jonathan-williams/profil/spieler/170322
-1617,Transferred to Ipswich,2016-08-31,2017-05-30,,,Transfer,Jonathan Williams,/jonathan-williams/profil/spieler/170322
-1617,Knee Injury,2016-10-01,2016-10-13,12,1,injury,Steven Berghuis,/steven-berghuis/profil/spieler/129554
-1617,Transferred to Feyenoord,2016-08-01,2017-06-29,,,Transfer,Steven Berghuis,/steven-berghuis/profil/spieler/129554
-1617,Back Injury,2016-11-04,2016-12-09,35,5,injury,Shaun Maloney,/shaun-maloney/profil/spieler/9508
-1617,Transferred to Sunderland U21,2016-07-01,2017-02-20,,,Transfer,Michael Ledger,/michael-ledger/profil/spieler/320228
-1617,Transferred to Viking FK,2017-02-21,2017-06-19,,,Transfer,Michael Ledger,/michael-ledger/profil/spieler/320228
-1617,Transferred to Sunderland U23,2017-06-20,2017-06-30,,,Transfer,Michael Ledger,/michael-ledger/profil/spieler/320228
-1617,Knee Injury,2016-11-19,2016-12-27,38,7,injury,Phil Bardsley,/phil-bardsley/profil/spieler/15773
-1617,Indirect card suspension,2017-03-20,2017-04-03,14,1,suspension,Phil Bardsley,/phil-bardsley/profil/spieler/15773
-1617,Transferred to Derby,2016-08-27,2017-06-30,,,Transfer,Matej Vydra,/matej-vydra/profil/spieler/101500
-1617,Transferred to AS Roma,2016-07-01,2017-06-29,,,Transfer,Wojciech Szczesny,/wojciech-szczesny/profil/spieler/44058
-1617,Transferred to Man Utd U21,2016-07-01,2017-06-30,,,Transfer,Scott McTominay,/scott-mctominay/profil/spieler/315969
-1617,Transferred to Wigan,2017-01-07,2017-05-30,,,Transfer,Jakob Haugaard,/jakob-haugaard/profil/spieler/138335
-1617,Transferred to Man City U21,2016-07-01,2017-06-30,,,Transfer,Tosin Adarabioyo,/tosin-adarabioyo/profil/spieler/258878
-1617,Hamstring Injury,2017-03-24,2017-06-30,98,9,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
-1617,Hamstring Injury,2016-12-19,2017-01-07,19,5,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
-1617,Groin Strain,2016-08-23,2016-10-05,43,7,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
-1617,Transferred to Stoke U21,2016-07-01,2017-06-30,,,Transfer,Daniel Bachmann,/daniel-bachmann/profil/spieler/120186
-1617,Nose surgery,2017-05-23,2017-07-02,40,,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
-1617,Muscle Injury,2016-12-18,2017-01-13,26,5,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
-1617,Hamstring Injury,2016-08-04,2016-09-04,31,5,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
-1617,Transferred to FC Schalke 04,2016-07-01,2016-08-01,,,Transfer,Leroy Sané,/leroy-sane/profil/spieler/192565
-1617,Knee Injury,2017-01-21,2017-04-04,73,9,injury,Victor Anichebe,/victor-anichebe/profil/spieler/39532
-1617,Transferred to Without Club,2016-07-01,2016-09-01,,,Transfer,Victor Anichebe,/victor-anichebe/profil/spieler/39532
-1617,Transferred to Man Utd U21,2016-07-01,2017-06-30,,,Transfer,Demetri Mitchell,/demetri-mitchell/profil/spieler/258886
-1617,Transferred to Leeds,2016-08-31,2017-06-30,,,Transfer,Eunan O'Kane,/eunan-okane/profil/spieler/61583
-1617,Ankle Surgery,2016-10-20,2018-06-30,618,103,injury,Santi Cazorla,/santi-cazorla/profil/spieler/15799
-1617,Shoulder Injury,2017-02-18,2017-07-01,133,,injury,Molla Wagué,/molla-wague/profil/spieler/129893
-1617,Flu,2016-10-21,2016-10-22,1,,injury,Molla Wagué,/molla-wague/profil/spieler/129893
-1617,Transferred to Udinese Calcio,2016-07-01,2017-01-29,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
-1617,Transferred to Granada CF,2017-01-30,2017-01-30,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
-1617,Transferred to Granada CF,2017-06-30,2017-06-30,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
-1617,No eligibility,2016-09-01,2017-01-30,151,19,absence,Giedrius Arlauskis,/giedrius-arlauskis/profil/spieler/69001
-1617,Rupture of Outer Meniscus,2016-12-15,2017-06-01,168,24,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
-1617,Hamstring Injury,2016-10-03,2016-11-17,45,5,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
-1617,Hamstring Injury,2016-08-01,2016-09-05,35,4,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
-1617,Muscle Injury,2017-03-06,2017-03-15,9,2,injury,Bastian Schweinsteiger,/bastian-schweinsteiger/profil/spieler/2514
-1617,Toe Injury,2017-04-17,2017-04-20,3,1,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
-1617,Transferred to Charlton,2016-07-01,2016-07-18,,,Transfer,Nick Pope,/nick-pope/profil/spieler/192080
-1617,Knock,2016-08-16,2016-08-30,14,4,injury,Dimitri Payet,/dimitri-payet/profil/spieler/37647
-1617,Transferred to Bournemouth U21,2016-07-01,2016-08-30,,,Transfer,Sam Surridge,/sam-surridge/profil/spieler/398402
-1617,Transferred to Poole,2016-08-31,2016-12-31,,,Transfer,Sam Surridge,/sam-surridge/profil/spieler/398402
-1617,Transferred to Bournemouth U21,2017-01-01,2017-06-30,,,Transfer,Sam Surridge,/sam-surridge/profil/spieler/398402
-1617,Groin Injury,2017-04-15,2017-09-11,149,11,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
-1617,Groin Injury,2017-02-04,2017-03-06,30,4,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
-1617,Knee Injury,2016-08-18,2016-12-02,106,17,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
-1617,Transferred to Leeds,2016-07-07,2017-05-30,,,Transfer,Matt Grimes,/matt-grimes/profil/spieler/265471
-1617,Adductor problems,2017-05-12,2017-05-19,7,1,injury,Andre Wisdom,/andre-wisdom/profil/spieler/128912
-1617,Thigh muscle rupture,2016-09-15,2016-10-06,21,6,injury,Andre Wisdom,/andre-wisdom/profil/spieler/128912
-1617,Transferred to RB Salzburg,2016-08-31,2017-06-29,,,Transfer,Andre Wisdom,/andre-wisdom/profil/spieler/128912
-1617,Called up to national team,2017-01-02,2017-01-23,21,2,absence,Riyad Mahrez,/riyad-mahrez/profil/spieler/171424
-1617,Yellow card suspension,2017-04-06,2017-04-16,10,2,suspension,Oriol Romeu,/oriol-romeu/profil/spieler/66100
-1617,Yellow card suspension,2016-12-15,2016-12-19,4,1,suspension,Oriol Romeu,/oriol-romeu/profil/spieler/66100
-1617,Ankle Injury,2017-03-18,2017-08-10,145,10,injury,Pedro Obiang,/pedro-obiang/profil/spieler/101213
-1617,Yellow card suspension,2016-12-19,2016-12-27,8,1,suspension,Matthew Lowton,/matthew-lowton/profil/spieler/102258
-1617,Transferred to Tottenham U21,2016-07-01,2016-07-11,,,Transfer,Filip Lesniak,/filip-lesniak/profil/spieler/186383
-1617,Transferred to Slovan Liberec,2016-07-12,2016-12-31,,,Transfer,Filip Lesniak,/filip-lesniak/profil/spieler/186383
-1617,Transferred to Tottenham U23,2017-01-01,2017-06-30,,,Transfer,Filip Lesniak,/filip-lesniak/profil/spieler/186383
-1617,Cruciate Ligament Injury,2016-08-03,2017-03-18,227,32,injury,Muhamed Besic,/muhamed-besic/profil/spieler/93905
-1617,Transferred to Newcastle,2016-07-01,2016-08-30,,,Transfer,Moussa Sissoko,/moussa-sissoko/profil/spieler/46001
-1617,Foot Injury,2017-04-29,2017-05-11,12,2,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
-1617,Knee Injury,2016-12-07,2017-02-24,79,12,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
-1617,Knee Injury,2016-09-21,2016-11-29,69,10,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
-1617,Transferred to Olympiacos,2016-07-01,2016-08-07,,,Transfer,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
-1617,Metatarsal Fracture,2017-02-16,2017-04-24,67,13,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-1617,Transferred to Palmeiras,2016-07-01,2016-12-31,,,Transfer,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-1617,Hamstring Injury,2016-11-27,2017-01-27,61,13,injury,Mathieu Debuchy,/mathieu-debuchy/profil/spieler/27306
-1617,Transferred to Aston Villa,2016-08-31,2017-06-30,,,Transfer,Albert Adomah,/albert-adomah/profil/spieler/83430
-1617,Groin Strain,2017-03-19,2017-06-30,103,12,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
-1617,Hamstring Injury,2016-10-12,2016-11-18,37,7,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
-1617,Muscular problems,2016-08-17,2016-09-09,23,3,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
-1617,Transferred to Marseille,2016-07-29,2017-06-29,,,Transfer,Bafétimbi Gomis,/bafetimbi-gomis/profil/spieler/22388
-1617,Transferred to Aston Villa,2016-07-01,2017-01-03,,,Transfer,Rudy Gestede,/rudy-gestede/profil/spieler/39908
-1617,Ankle Injury,2017-04-03,2017-04-20,17,5,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
-1617,Knee Injury,2017-03-13,2017-03-30,17,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
-1617,Hamstring Injury,2016-12-26,2017-01-05,10,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
-1617,Thigh Muscle Strain,2016-10-20,2016-10-27,7,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
-1617,Yellow card suspension,2016-12-01,2016-12-05,4,1,suspension,Wayne Rooney,/wayne-rooney/profil/spieler/3332
-1617,Unknown Injury,2017-01-30,2017-02-02,3,2,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
-1617,Unknown Injury,2017-01-06,2017-01-08,2,1,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
-1617,Unknown Injury,2016-11-06,2016-11-21,15,1,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
-1617,Suspended,2016-08-12,2017-02-01,173,,suspension,Marvin Emnes,/marvin-emnes/profil/spieler/37787
-1617,Calf Injury,2017-05-22,2017-06-05,14,,injury,Divock Origi,/divock-origi/profil/spieler/148368
-1617,Knee Injury,2016-07-21,2017-01-27,190,32,injury,Per Mertesacker,/per-mertesacker/profil/spieler/6710
-1617,Transferred to West Ham U21,2016-07-01,2017-06-30,,,Transfer,Domingos Quina,/domingos-quina/profil/spieler/391719
-1617,Transferred to Hull U21,2016-07-01,2017-06-30,,,Transfer,Will Mannion,/will-mannion/profil/spieler/456111
-1617,Transferred to Reading U21,2016-07-01,2016-07-31,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
-1617,Transferred to Palace U21,2016-08-01,2017-01-30,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
-1617,Transferred to Accrington,2017-01-31,2017-05-30,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
-1617,Transferred to Palace U21,2017-05-31,2017-06-30,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
-1617,Knee Injury,2017-01-09,2017-01-30,21,6,injury,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
-1617,Knee Injury,2016-09-05,2016-10-03,28,7,injury,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
-1617,Transferred to LOSC Lille,2016-07-01,2016-08-28,,,Transfer,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
-1617,Transferred to Sunderland U21,2016-07-01,2017-06-30,,,Transfer,Josh Robson,/josh-robson/profil/spieler/357958
-1617,Shoulder Injury,2016-07-09,2017-04-04,269,34,injury,James Husband,/james-husband/profil/spieler/167393
-1617,Ankle Injury,2017-01-13,2017-02-06,24,4,injury,Havard Nordtveit,/havard-nordtveit/profil/spieler/42234
-1617,Cruciate Ligament Rupture,2017-02-25,2017-09-23,210,20,injury,Mauro Zárate,/mauro-zarate/profil/spieler/26456
-1617,Transferred to Fiorentina,2016-07-01,2017-01-24,,,Transfer,Mauro Zárate,/mauro-zarate/profil/spieler/26456
-1617,Transferred to Bristol Rovers,2016-08-31,2016-12-28,,,Transfer,Hiram Boateng,/hiram-boateng/profil/spieler/244125
-1617,Transferred to Northampton,2017-01-01,2017-05-30,,,Transfer,Hiram Boateng,/hiram-boateng/profil/spieler/244125
-1617,Transferred to Brentford,2016-08-31,2017-01-01,,,Transfer,Sullay Kaikai,/sullay-kaikai/profil/spieler/244130
-1617,Ankle Injury,2017-04-08,2017-04-29,21,3,injury,Jack Cork,/jack-cork/profil/spieler/40613
-1617,Transferred to 1.FSV Mainz 05,2017-01-29,2017-06-29,,,Transfer,Bojan Krkic,/bojan-krkic/profil/spieler/44675
-1617,Calf Strain,2017-02-11,2017-04-08,56,6,injury,Steven Pienaar,/steven-pienaar/profil/spieler/4321
-1617,Hamstring Injury,2016-09-24,2016-10-15,21,3,injury,Steven Pienaar,/steven-pienaar/profil/spieler/4321
-1617,Indirect card suspension,2016-11-06,2016-11-20,14,1,suspension,Steven Pienaar,/steven-pienaar/profil/spieler/4321
-1617,Hamstring Injury,2017-04-09,2017-05-13,34,6,injury,Bryan Oviedo,/bryan-oviedo/profil/spieler/124983
-1617,Transferred to Sint-Truiden,2016-08-31,2017-06-29,,,Transfer,Cristian Cuevas,/cristian-cuevas/profil/spieler/186863
-1617,Back Injury,2017-04-03,2017-04-27,24,5,injury,David Ospina,/david-ospina/profil/spieler/73396
-1617,Transferred to Derby,2017-01-09,2017-06-30,,,Transfer,David Nugent,/david-nugent/profil/spieler/33963
-1617,Transferred to Tottenham U21,2016-07-01,2017-06-30,,,Transfer,Kyle Walker-Peters,/kyle-walker-peters/profil/spieler/341051
-1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
-1617,Transferred to Derby,2016-07-01,2016-08-30,,,Transfer,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
-1617,Groin Injury,2017-03-24,2017-03-31,7,,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
-1617,Called up to national team,2017-01-02,2017-02-06,35,4,absence,Daniel Amartey,/daniel-amartey/profil/spieler/214056
-1617,Hamstring Injury,2016-08-13,2016-08-30,17,4,injury,Marten de Roon,/marten-de-roon/profil/spieler/133179
-1617,Transferred to Atalanta BC,2016-07-01,2016-07-03,,,Transfer,Marten de Roon,/marten-de-roon/profil/spieler/133179
-1617,Suspension through sports court,2017-03-09,2017-04-10,32,5,suspension,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-1617,Knee Injury,2017-01-01,2017-01-19,18,1,injury,Nathan,/nathan/profil/spieler/294798
-1617,Transferred to Vitesse,2016-07-01,2017-06-29,,,Transfer,Nathan,/nathan/profil/spieler/294798
-1617,Transferred to Barnsley FC,2016-07-01,2016-08-29,,,Transfer,Alfie Mawson,/alfie-mawson/profil/spieler/287431
-1617,Transferred to Reading,2017-01-31,2017-05-30,,,Transfer,Jordon Mutch,/jordon-mutch/profil/spieler/57207
-1617,Transferred to Chelsea U21,2016-07-01,2016-07-21,,,Transfer,Victorien Angban,/victorien-angban/profil/spieler/178314
-1617,Transferred to Granada CF,2016-07-22,2017-06-29,,,Transfer,Victorien Angban,/victorien-angban/profil/spieler/178314
-1617,Transferred to Chelsea U23,2017-06-30,2017-06-30,,,Transfer,Victorien Angban,/victorien-angban/profil/spieler/178314
-1617,Hamstring Injury,2016-08-15,2016-09-15,31,4,injury,Hugo Lloris,/hugo-lloris/profil/spieler/17965
-1617,Transferred to Melbourne City,2016-07-01,2017-06-30,,,Transfer,Luke Brattan,/luke-brattan/profil/spieler/114365
-1617,Transferred to Tottenham U21,2016-07-01,2016-08-30,,,Transfer,Luke McGee,/luke-mcgee/profil/spieler/183301
-1617,Transferred to Peterborough,2016-08-31,2017-05-30,,,Transfer,Luke McGee,/luke-mcgee/profil/spieler/183301
-1617,Transferred to Tottenham U23,2017-05-31,2017-06-30,,,Transfer,Luke McGee,/luke-mcgee/profil/spieler/183301
-1617,Hamstring Injury,2016-08-01,2016-11-05,96,12,injury,Ashley Barnes,/ashley-barnes/profil/spieler/63200
-1617,Indirect card suspension,2017-02-26,2017-03-05,7,1,suspension,Ashley Barnes,/ashley-barnes/profil/spieler/63200
-1617,Transferred to Arsenal U18,2016-07-01,2017-06-30,,,Transfer,Josh Dasilva,/josh-dasilva/profil/spieler/340321
-1617,Arthroscopie,2016-10-06,2016-12-07,62,3,injury,Joleon Lescott,/joleon-lescott/profil/spieler/4241
-1617,Transferred to Aston Villa,2016-07-01,2016-08-28,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
-1617,Transferred to AEK Athens,2016-08-29,2016-11-23,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
-1617,Transferred to Without Club,2016-11-24,2017-01-23,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
-1617,Transferred to Man City U18,2016-07-01,2017-06-30,,,Transfer,Phil Foden,/phil-foden/profil/spieler/406635
-1617,Cruciate Ligament Injury,2016-11-19,2017-11-09,355,48,injury,Paddy McNair,/paddy-mcnair/profil/spieler/167268
-1617,Thigh Problems,2016-10-27,2016-11-07,11,3,injury,Nacho Monreal,/nacho-monreal/profil/spieler/43003
-1617,Transferred to Unknown,2016-07-01,2017-01-12,,,Transfer,Jordan Lee,/jordan-lee/profil/spieler/416621
-1617,Transferred to Torquay,2017-01-13,2017-05-30,,,Transfer,Jordan Lee,/jordan-lee/profil/spieler/416621
-1617,Transferred to Bournemouth U21,2017-05-31,2017-06-30,,,Transfer,Jordan Lee,/jordan-lee/profil/spieler/416621
-1617,Ankle Injury,2017-01-06,2017-01-16,10,2,injury,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
-1617,Ankle Injury,2016-11-07,2016-12-10,33,7,injury,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
-1617,Transferred to Sheff Wed,2016-08-05,2017-05-30,,,Transfer,Will Buckley,/will-buckley/profil/spieler/77329
-1617,Transferred to Hull U21,2016-07-01,2017-06-30,,,Transfer,Ben Hinchliffe,/ben-hinchliffe/profil/spieler/457129
-1617,Bruise,2017-01-26,2017-02-06,11,2,injury,Oliver McBurnie,/oliver-mcburnie/profil/spieler/298477
-1617,Transferred to Olympiacos,2016-07-01,2017-01-30,,,Transfer,Luka Milivojevic,/luka-milivojevic/profil/spieler/74300
-1617,Ankle Injury,2016-07-06,2016-08-20,45,1,injury,Daniel Ayala,/daniel-ayala/profil/spieler/78966
-1617,Transferred to SSC Napoli,2016-07-01,2016-07-15,,,Transfer,Camilo Zúñiga,/camilo-zuniga/profil/spieler/37941
-1617,Transferred to SSC Napoli,2017-06-30,2017-06-30,,,Transfer,Camilo Zúñiga,/camilo-zuniga/profil/spieler/37941
-1617,Hamstring Injury,2016-10-08,2016-10-28,20,4,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
-1617,Knee Injury,2016-08-01,2016-08-27,26,3,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
-1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Diego Costa,/diego-costa/profil/spieler/44779
-1617,Transferred to Birmingham,2017-01-18,2017-06-30,,,Transfer,Emilio Nsue,/emilio-nsue/profil/spieler/59558
-1617,Ankle problems,2017-06-24,2017-06-24,0,,injury,Emre Can,/emre-can/profil/spieler/119296
-1617,Knee Injury,2016-12-09,2016-12-19,10,3,injury,Emre Can,/emre-can/profil/spieler/119296
-1617,Tear in a joint capsule,2016-08-22,2016-09-20,29,5,injury,Emre Can,/emre-can/profil/spieler/119296
-1617,Transferred to Oldham Athletic,2016-08-30,2017-01-01,,,Transfer,Freddie Ladapo,/freddie-ladapo/profil/spieler/233998
-1617,Transferred to Shrewsbury,2017-01-06,2017-05-30,,,Transfer,Freddie Ladapo,/freddie-ladapo/profil/spieler/233998
-1617,Knee Injury,2017-01-07,2017-02-11,35,7,injury,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
-1617,Indirect card suspension,2017-04-23,2017-04-27,4,1,suspension,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
-1617,Yellow card suspension,2016-10-30,2016-11-06,7,1,suspension,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
-1617,Hamstring Injury,2016-10-10,2016-10-24,14,2,injury,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
-1617,Knee Injury,2016-09-15,2016-09-26,11,3,injury,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
-1617,Transferred to Newcastle,2016-07-01,2016-07-21,,,Transfer,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
-1617,Cruciate Ligament Rupture,2016-12-05,2017-12-10,370,53,injury,Yannick Bolasie,/yannick-bolasie/profil/spieler/75471
-1617,Toe Injury,2017-05-22,2017-06-30,39,,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
-1617,Shoulder Injury,2016-11-07,2016-11-18,11,,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
-1617,Shoulder Injury,2016-09-18,2016-10-16,28,4,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
-1617,Transferred to Newcastle,2016-07-01,2016-08-22,,,Transfer,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
-1617,Knock,2016-12-05,2017-01-13,39,7,injury,James Collins,/james-collins/profil/spieler/12691
-1617,Adductor problems,2017-03-18,2017-04-20,33,5,injury,Winston Reid,/winston-reid/profil/spieler/37526
-1617,Indirect card suspension,2016-11-20,2016-11-28,8,1,suspension,Winston Reid,/winston-reid/profil/spieler/37526
-1617,Yellow card suspension,2016-10-31,2016-11-06,6,1,suspension,Winston Reid,/winston-reid/profil/spieler/37526
-1617,Transferred to El Ahly,2016-07-01,2016-07-24,,,Transfer,Ramadan Sobhi,/ramadan-sobhi/profil/spieler/312017
-1617,Muscle Injury,2017-01-19,2017-01-27,8,,injury,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
-1617,Ankle Injury,2016-10-22,2016-11-10,19,4,injury,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
-1617,Knee Injury,2017-04-03,2017-06-29,87,8,injury,Sadio Mané,/sadio-mane/profil/spieler/200512
-1617,Shoulder Injury,2016-08-15,2016-08-22,7,1,injury,Sadio Mané,/sadio-mane/profil/spieler/200512
-1617,Hamstring Injury,2016-12-01,2017-02-27,88,18,injury,Marko Grujic,/marko-grujic/profil/spieler/222813
-1617,Knee Injury,2016-08-23,2017-08-24,366,49,injury,Greg Luer,/greg-luer/profil/spieler/356195
-1617,Muscular problems,2017-04-25,2017-05-10,15,3,injury,Mario Suárez,/mario-suarez/profil/spieler/37337
-1617,Transferred to Valencia,2016-08-16,2017-06-29,,,Transfer,Mario Suárez,/mario-suarez/profil/spieler/37337
-1617,Transferred to Bournemouth U21,2016-07-01,2017-06-30,,,Transfer,Jack Simpson,/jack-simpson/profil/spieler/419930
-1617,Ankle Injury,2017-04-03,2017-06-01,59,10,injury,Harry Winks,/harry-winks/profil/spieler/249126
-1617,Knee Injury,2017-04-13,2017-04-30,17,4,injury,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
-1617,Achilles tendon problems,2016-07-15,2016-11-20,128,15,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
-1617,Ankle Injury,2017-05-15,2017-05-31,16,2,injury,Kyle Walker,/kyle-walker/profil/spieler/95424
-1617,Yellow card suspension,2016-12-29,2017-01-02,4,1,suspension,Kyle Walker,/kyle-walker/profil/spieler/95424
-1617,Transferred to Espanyol,2016-07-01,2016-08-30,,,Transfer,Pau López,/pau-lopez/profil/spieler/286415
-1617,Transferred to Espanyol,2017-06-30,2017-06-30,,,Transfer,Pau López,/pau-lopez/profil/spieler/286415
-1617,Transferred to Waasl.-Beveren,2017-02-01,2017-05-09,,,Transfer,Leandro Rodríguez,/leandro-rodriguez/profil/spieler/238988
-1617,Transferred to Rayo Vallecano,2017-01-05,2017-06-29,,,Transfer,Tomas Mejias,/tomas-mejias/profil/spieler/62947
-1617,Ankle Injury,2016-11-15,2016-12-25,40,6,injury,Boaz Myhill,/boaz-myhill/profil/spieler/3838
-1617,Shoulder Injury,2016-11-01,2017-03-01,120,21,injury,Tommie Hoban,/tommie-hoban/profil/spieler/183161
-1617,Transferred to Blackburn,2016-08-26,2017-05-30,,,Transfer,Tommie Hoban,/tommie-hoban/profil/spieler/183161
-1617,Ankle Injury,2017-06-08,2017-06-08,0,,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
-1617,Abdominal Influenza,2017-02-13,2017-02-16,3,1,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
-1617,Influenza,2016-12-08,2016-12-08,0,1,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
-1617,Transferred to FC Schalke 04,2016-08-25,2017-06-29,,,Transfer,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
-1617,Transferred to Leeds,2017-01-31,2017-05-30,,,Transfer,Modou Barrow,/modou-barrow/profil/spieler/189070
-1617,Thigh Problems,2017-06-10,2017-09-10,92,5,injury,Gareth McAuley,/gareth-mcauley/profil/spieler/40567
-1617,Transferred to Watford U21,2016-07-01,2017-06-30,,,Transfer,Carl Stewart,/carl-stewart/profil/spieler/479945
-1617,Achilles tendon problems,2016-10-13,2016-10-24,11,3,injury,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
-1617,Transferred to Inter,2016-07-01,2017-01-30,,,Transfer,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
-1617,Transferred to Inter,2017-06-30,2017-06-30,,,Transfer,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
-1617,Muscular problems,2017-05-12,2017-05-18,6,1,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-1617,Groin Strain,2016-09-11,2016-09-18,7,1,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-1617,Knee Surgery,2016-08-24,2017-04-04,223,41,injury,Jérémy Pied,/jeremy-pied/profil/spieler/60583
-1617,Transferred to OGC Nice,2016-07-01,2016-07-31,,,Transfer,Jérémy Pied,/jeremy-pied/profil/spieler/60583
-1617,Transferred to Birmingham,2017-01-11,2017-06-29,,,Transfer,Craig Gardner,/craig-gardner/profil/spieler/37171
-1617,Transferred to Ufa,2016-07-01,2016-07-03,,,Transfer,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-1617,Transferred to PSV Eindhoven,2016-08-26,2017-06-29,,,Transfer,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-1617,Toe Injury,2017-03-20,2017-05-04,45,10,injury,Phil Jones,/phil-jones/profil/spieler/117996
-1617,Knee Injury,2016-09-05,2016-11-03,59,13,injury,Phil Jones,/phil-jones/profil/spieler/117996
-1617,Transferred to Oldham Athletic,2016-07-09,2017-05-30,,,Transfer,Connor Ripley,/connor-ripley/profil/spieler/163531
-1617,Calf Strain,2017-03-18,2017-04-07,20,3,injury,Victor Moses,/victor-moses/profil/spieler/59866
-1617,Transferred to Juventus,2016-07-01,2016-08-27,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
-1617,Transferred to Juventus,2017-01-14,2017-01-14,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
-1617,Transferred to Valencia,2017-01-15,2017-06-29,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
-1617,Transferred to Juventus,2017-06-30,2017-06-30,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
-1617,Hip Injury,2017-02-28,2017-04-07,38,4,injury,Christian Kabasele,/christian-kabasele/profil/spieler/81512
-1617,Hamstring Injury,2017-01-21,2017-02-04,14,4,injury,Christian Kabasele,/christian-kabasele/profil/spieler/81512
-1617,Knock,2017-05-02,2017-05-23,21,4,injury,Miguel Britos,/miguel-britos/profil/spieler/76799
-1617,Indirect card suspension,2017-04-05,2017-04-16,11,2,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
-1617,Yellow card suspension,2016-12-27,2017-01-02,6,1,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
-1617,Indirect card suspension,2016-11-28,2016-12-04,6,1,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
-1617,Red card suspension,2016-09-25,2016-10-02,7,1,suspension,Ahmed Elmohamady,/ahmed-elmohamady/profil/spieler/66333
-1617,Transferred to Gimnàstic,2016-07-01,2016-08-14,,,Transfer,Pablo Marí,/pablo-mari/profil/spieler/210178
-1617,Transferred to Girona,2016-08-16,2017-06-29,,,Transfer,Pablo Marí,/pablo-mari/profil/spieler/210178
-1617,Transferred to Blackburn,2016-07-01,2017-05-30,,,Transfer,Stephen Hendrie,/stephen-hendrie/profil/spieler/186269
-1617,Ankle Injury,2017-01-26,2017-09-14,231,23,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-1617,Indirect card suspension,2017-01-01,2017-01-03,2,1,suspension,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-1617,Thigh Problems,2016-10-14,2016-11-18,35,5,injury,Cesc Fàbregas,/cesc-fabregas/profil/spieler/8806
-1617,Knee Injury,2016-07-10,2016-10-13,95,10,injury,Florin Gardos,/florin-gardos/profil/spieler/57423
-1617,Hip problems,2016-08-21,2016-09-09,19,3,injury,John O'Shea,/john-oshea/profil/spieler/3540
+1617,Red card suspension,2016-09-17,2016-10-03,16,3,suspension,Nolito,/nolito/profil/spieler/70934
+1617,Transferred to Morecambe FC,2016-08-31,2017-01-02,,,Transfer,Ntumba Massanka,/ntumba-massanka/profil/spieler/385922
+1617,Transferred to Wrexham,2017-01-12,2017-05-30,,,Transfer,Ntumba Massanka,/ntumba-massanka/profil/spieler/385922
+1617,Transferred to Newcastle,2016-07-01,2016-07-17,,,Transfer,Mark Birighitti,/mark-birighitti/profil/spieler/80702
+1617,Ankle Injury,2017-04-30,2017-05-10,10,3,injury,Granit Xhaka,/granit-xhaka/profil/spieler/111455
 1617,Hamstring Injury,2017-04-25,2017-06-30,66,5,injury,Matt Phillips,/matt-phillips/profil/spieler/77274
 1617,Hamstring Injury,2017-02-11,2017-04-04,52,7,injury,Matt Phillips,/matt-phillips/profil/spieler/77274
 1617,Transferred to QPR,2016-07-01,2016-07-05,,,Transfer,Matt Phillips,/matt-phillips/profil/spieler/77274
-1617,Achilles tendon rupture,2016-02-01,2016-10-03,245,9,injury,Martín Cáceres,/martin-caceres/profil/spieler/54935
-1617,Transferred to Without Club,2016-07-01,2017-02-15,,,Transfer,Martín Cáceres,/martin-caceres/profil/spieler/54935
-1617,Transferred to Preston,2017-01-30,2017-05-30,,,Transfer,Tyias Browning,/tyias-browning/profil/spieler/156934
-1617,Transferred to Wigan,2016-08-16,2017-01-01,,,Transfer,Luke Garbutt,/luke-garbutt/profil/spieler/110860
-1617,Unknown Injury,2017-05-22,2017-06-30,39,,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
-1617,Knee Injury,2017-03-02,2017-03-09,7,1,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
-1617,Knee Injury,2016-08-05,2016-10-29,85,12,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
-1617,Transferred to PSV Eindhoven,2017-01-01,2017-06-30,,,Transfer,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
-1617,Groin Injury,2016-07-19,2016-08-14,26,2,injury,Cameron Borthwick-Jackson,/cameron-borthwick-jackson/profil/spieler/258879
-1617,Transferred to Wolves,2016-08-22,2017-01-09,,,Transfer,Cameron Borthwick-Jackson,/cameron-borthwick-jackson/profil/spieler/258879
-1617,Knee Injury,2016-10-22,2017-02-25,126,18,injury,Geoff Cameron,/geoff-cameron/profil/spieler/31642
-1617,Fitness,2016-10-12,2017-01-20,100,,injury,Saido Berahino,/saido-berahino/profil/spieler/128897
-1617,Doping ban,2016-11-03,2016-12-29,56,8,absence,Saido Berahino,/saido-berahino/profil/spieler/128897
-1617,Transferred to Preston,2016-08-31,2017-05-30,,,Transfer,Aiden McGeady,/aiden-mcgeady/profil/spieler/21333
-1617,Knee Injury,2016-12-26,2017-02-27,63,11,injury,Jordan Pickford,/jordan-pickford/profil/spieler/130164
-1617,Calf Injury,2017-06-07,2017-06-24,17,4,injury,Anton Walkes,/anton-walkes/profil/spieler/307763
-1617,Transferred to Tottenham U21,2016-07-01,2017-01-25,,,Transfer,Anton Walkes,/anton-walkes/profil/spieler/307763
-1617,Transferred to Atlanta,2017-01-26,2017-06-30,,,Transfer,Anton Walkes,/anton-walkes/profil/spieler/307763
-1617,Knee Injury,2016-12-26,2017-01-16,21,5,injury,Kieran Gibbs,/kieran-gibbs/profil/spieler/44792
-1617,Knock,2016-10-15,2016-10-19,4,1,injury,Morgan Schneiderlin,/morgan-schneiderlin/profil/spieler/56818
-1617,Hamstring Injury,2017-01-28,2017-02-04,7,3,injury,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
-1617,Strain,2016-08-18,2016-09-17,30,5,injury,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
+1617,Transferred to Unknown,2016-07-01,2017-01-12,,,Transfer,Jordan Lee,/jordan-lee/profil/spieler/416621
+1617,Transferred to Torquay,2017-01-13,2017-05-30,,,Transfer,Jordan Lee,/jordan-lee/profil/spieler/416621
+1617,Cruciate Ligament Rupture,2017-02-25,2017-09-23,210,20,injury,Mauro Zárate,/mauro-zarate/profil/spieler/26456
+1617,Transferred to Fiorentina,2016-07-01,2017-01-24,,,Transfer,Mauro Zárate,/mauro-zarate/profil/spieler/26456
+1617,Ankle Injury,2017-01-30,2017-04-19,79,11,injury,Ovie Ejaria,/ovie-ejaria/profil/spieler/337284
+1617,Transferred to Cheltenham,2017-01-12,2017-05-30,,,Transfer,Alex Pike,/alex-pike/profil/spieler/345960
 1617,Thigh Muscle Strain,2016-10-07,2016-10-14,7,,injury,Phil Jagielka,/phil-jagielka/profil/spieler/13520
 1617,Indirect card suspension,2016-12-14,2016-12-20,6,1,suspension,Phil Jagielka,/phil-jagielka/profil/spieler/13520
-1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Pedro,/pedro/profil/spieler/65278
-1617,Nose Injury,2016-11-12,2016-12-07,25,5,injury,Dusan Tadić,/dusan-tadi%C4%87/profil/spieler/36139
-1617,Hamstring Injury,2016-10-16,2017-05-04,200,38,injury,Matt Targett,/matt-targett/profil/spieler/250478
-1617,Transferred to Ajax,2016-07-01,2016-07-05,,,Transfer,Mike van der Hoorn,/mike-van-der-hoorn/profil/spieler/187105
-1617,Cruciate Ligament Rupture,2017-05-23,2018-09-02,467,67,injury,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
-1617,Transferred to Arsenal U21,2016-07-01,2017-01-30,,,Transfer,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
-1617,Transferred to VVV-Venlo,2017-01-31,2017-06-29,,,Transfer,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
-1617,Transferred to Arsenal U23,2017-06-30,2017-06-30,,,Transfer,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
-1617,Red card suspension,2016-12-18,2017-01-03,16,3,suspension,Jamie Vardy,/jamie-vardy/profil/spieler/197838
-1617,Transferred to Bristol City,2016-07-28,2017-05-30,,,Transfer,Adam Matthews,/adam-matthews/profil/spieler/108878
-1617,Transferred to Palace U21,2016-07-01,2017-06-30,,,Transfer,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
-1617,Ankle Injury,2017-01-02,2017-02-25,54,8,injury,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
-1617,Transferred to Sheff Utd,2016-07-01,2016-08-30,,,Transfer,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
-1617,Ankle Injury,2017-03-09,2017-08-17,161,15,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
-1617,Ankle Injury,2016-08-20,2016-12-03,105,19,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
-1617,Transferred to OGC Nice,2016-07-01,2016-07-02,,,Transfer,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
-1617,Transferred to Without Club,2016-07-01,2016-08-25,,,Transfer,Stuart Taylor,/stuart-taylor/profil/spieler/3190
-1617,Muscle Injury,2016-08-17,2016-09-18,32,5,injury,Borja Bastón,/borja-baston/profil/spieler/85324
-1617,Transferred to Atlético Madrid,2016-07-01,2016-08-10,,,Transfer,Borja Bastón,/borja-baston/profil/spieler/85324
-1617,Transferred to Limerick FC,2017-02-22,2017-06-29,,,Transfer,Tommy Robson,/tommy-robson/profil/spieler/257968
-1617,Ankle Injury,2017-01-30,2017-04-19,79,11,injury,Ovie Ejaria,/ovie-ejaria/profil/spieler/337284
-1617,Hamstring Injury,2017-03-22,2018-03-12,355,50,injury,Lewis Page,/lewis-page/profil/spieler/242652
-1617,Transferred to West Ham U21,2016-07-01,2016-08-08,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
-1617,Transferred to Coventry,2016-08-09,2017-01-04,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
-1617,Transferred to West Ham U21,2017-01-05,2017-01-05,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
-1617,Transferred to Charlton,2017-01-06,2017-06-30,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
-1617,Transferred to Southampton U23,2016-07-01,2017-06-30,,,Transfer,Harry Lewis,/harry-lewis/profil/spieler/341043
-1617,Shoulder Injury,2016-12-08,2017-04-30,143,26,injury,Charlie Austin,/charlie-austin/profil/spieler/129627
-1617,Transferred to Palace U21,2016-07-01,2017-06-30,,,Transfer,Michael Phillips,/michael-phillips/profil/spieler/378629
-1617,Transferred to Man Utd U21,2016-07-01,2017-06-30,,,Transfer,Kieran O'Hara,/kieran-ohara/profil/spieler/289791
-1617,Transferred to Everton U21,2016-07-01,2016-12-31,,,Transfer,Tom Davies,/tom-davies/profil/spieler/314210
-1617,Hamstring Injury,2017-01-29,2017-03-10,40,6,injury,Curtis Davies,/curtis-davies/profil/spieler/18227
-1617,Hamstring Injury,2017-01-02,2017-01-20,18,4,injury,Curtis Davies,/curtis-davies/profil/spieler/18227
 1617,Transferred to Boavista,2016-07-01,2016-09-06,,,Transfer,Mika,/mika/profil/spieler/138285
-1617,Transferred to Marseille,2016-07-01,2016-08-30,,,Transfer,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
-1617,Transferred to Arsenal U21,2016-07-01,2017-06-30,,,Transfer,Chris Willock,/chris-willock/profil/spieler/314341
-1617,Knee Injury,2016-07-15,2018-09-21,798,18,injury,Moses Odubajo,/moses-odubajo/profil/spieler/163738
-1617,Transferred to Man Utd U21,2016-07-01,2016-08-30,,,Transfer,Dean Henderson,/dean-henderson/profil/spieler/258919
-1617,Transferred to Grimsby Town,2016-08-31,2017-02-02,,,Transfer,Dean Henderson,/dean-henderson/profil/spieler/258919
-1617,Transferred to Man Utd U23,2017-02-03,2017-06-30,,,Transfer,Dean Henderson,/dean-henderson/profil/spieler/258919
-1617,Transferred to Chesterfield FC,2016-08-31,2017-05-30,,,Transfer,Tom Anderson,/tom-anderson/profil/spieler/128828
-1617,Back trouble,2017-03-14,2017-06-30,108,14,injury,Wes Morgan,/wes-morgan/profil/spieler/10003
-1617,Abdominal Strain,2016-11-07,2016-11-18,11,,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
-1617,Meniscal Injury,2017-03-29,2017-07-17,110,9,injury,Ramiro Funes Mori,/ramiro-funes-mori/profil/spieler/11111
-1617,Knee Surgery,2017-01-03,2017-03-03,59,8,injury,Jonathan Walters,/jonathan-walters/profil/spieler/3306
-1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Adam Smith,/adam-smith/profil/spieler/61841
-1617,Transferred to Málaga CF,2017-01-24,2017-06-30,,,Transfer,Luis Hernández,/luis-hernandez/profil/spieler/62945
-1617,Transferred to Derby,2016-08-31,2017-06-30,,,Transfer,Ikechi Anya,/ikechi-anya/profil/spieler/107427
-1617,Transferred to Everton U23,2016-07-01,2017-01-21,,,Transfer,Nathan Holland,/nathan-holland/profil/spieler/337321
-1617,Transferred to West Ham U21,2017-01-22,2017-06-30,,,Transfer,Nathan Holland,/nathan-holland/profil/spieler/337321
-1617,Ankle Injury,2017-01-14,2017-02-18,35,7,injury,Jan Vertonghen,/jan-vertonghen/profil/spieler/43250
-1617,Yellow card suspension,2016-12-29,2017-01-02,4,1,suspension,Jan Vertonghen,/jan-vertonghen/profil/spieler/43250
-1617,Ankle Injury,2017-04-23,2017-06-23,61,5,injury,Franck Tabanou,/franck-tabanou/profil/spieler/66413
-1617,Achilles Irritation,2016-09-24,2016-11-17,54,6,injury,Franck Tabanou,/franck-tabanou/profil/spieler/66413
-1617,Transferred to Granada CF,2016-08-31,2017-06-29,,,Transfer,Franck Tabanou,/franck-tabanou/profil/spieler/66413
-1617,Red card suspension,2017-03-19,2017-04-09,21,3,suspension,Tom Huddlestone,/tom-huddlestone/profil/spieler/13465
-1617,Leg Injury,2016-12-03,2017-07-01,210,,injury,Álvaro Arbeloa,/alvaro-arbeloa/profil/spieler/28260
-1617,Transferred to Real Madrid,2016-07-01,2016-08-30,,,Transfer,Álvaro Arbeloa,/alvaro-arbeloa/profil/spieler/28260
-1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Robert Huth,/robert-huth/profil/spieler/2998
-1617,Transferred to Wigan,2016-08-30,2017-05-30,,,Transfer,Reece Burke,/reece-burke/profil/spieler/264220
-1617,Transferred to West Brom U21,2016-07-01,2016-12-31,,,Transfer,Alex Palmer,/alex-palmer/profil/spieler/245625
-1617,Transferred to Kidderminster,2017-01-01,2017-05-30,,,Transfer,Alex Palmer,/alex-palmer/profil/spieler/245625
-1617,Transferred to West Brom U21,2017-05-31,2017-06-30,,,Transfer,Alex Palmer,/alex-palmer/profil/spieler/245625
-1617,Suspension through sports court,2016-09-23,2016-10-23,30,4,suspension,Andre Gray,/andre-gray/profil/spieler/120565
-1617,Hip Injury,2017-04-22,2017-04-26,4,1,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
-1617,Hip problems,2017-03-02,2017-03-29,27,3,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
-1617,Ill,2017-02-17,2017-03-01,12,1,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
-1617,Ruptured cruciate ligament,2016-10-17,2017-08-25,312,54,injury,James Wilson,/james-wilson/profil/spieler/214104
-1617,Transferred to Derby,2016-08-20,2017-02-01,,,Transfer,James Wilson,/james-wilson/profil/spieler/214104
-1617,Unknown Injury,2016-09-18,2016-10-02,14,5,injury,Eric Dier,/eric-dier/profil/spieler/175722
-1617,Ankle Injury,2017-02-08,2017-03-10,30,6,injury,Marlos Moreno,/marlos-moreno/profil/spieler/345654
-1617,Transferred to Atl. Nacional,2016-07-01,2016-08-04,,,Transfer,Marlos Moreno,/marlos-moreno/profil/spieler/345654
-1617,Transferred to Dep. La Coruña,2016-08-06,2017-06-29,,,Transfer,Marlos Moreno,/marlos-moreno/profil/spieler/345654
-1617,Transferred to Sevilla FC,2016-07-01,2016-08-04,,,Transfer,Fernando Llorente,/fernando-llorente/profil/spieler/35564
-1617,Transferred to Aston Villa,2016-08-17,2017-06-30,,,Transfer,Mile Jedinak,/mile-jedinak/profil/spieler/28336
-1617,Transferred to Leyton Orient,2016-07-27,2016-12-31,,,Transfer,Harry Cornick,/harry-cornick/profil/spieler/255703
-1617,Transferred to Gillingham FC,2017-01-31,2017-05-30,,,Transfer,Harry Cornick,/harry-cornick/profil/spieler/255703
-1617,Transferred to Sunderland U21,2016-07-01,2017-06-30,,,Transfer,Max Stryjek,/max-stryjek/profil/spieler/240457
-1617,Hamstring Injury,2016-07-30,2016-09-20,52,6,injury,Billy Jones,/billy-jones/profil/spieler/36866
-1617,Adductor problems,2017-02-03,2017-02-14,11,3,injury,Philipp Wollscheid,/philipp-wollscheid/profil/spieler/53173
-1617,Surgery,2017-01-04,2017-01-22,18,1,injury,Philipp Wollscheid,/philipp-wollscheid/profil/spieler/53173
-1617,Infected wound,2017-05-23,2017-05-28,5,1,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Ankle problems,2017-03-27,2017-04-13,17,3,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Screws/nails removal,2017-03-09,2017-03-23,14,2,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Ankle problems,2017-03-02,2017-03-09,7,1,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Fitness,2017-01-16,2017-02-23,38,6,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Torn Ankle Ligament,2016-09-12,2017-01-16,126,15,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Transferred to E. Frankfurt,2016-07-23,2017-06-29,,,Transfer,Guillermo Varela,/guillermo-varela/profil/spieler/188862
-1617,Transferred to Stoke U21,2016-07-01,2017-06-30,,,Transfer,Thibaud Verlinden,/thibaud-verlinden/profil/spieler/338673
-1617,Transferred to Swansea U21,2016-07-01,2017-06-30,,,Transfer,Daniel James,/daniel-james/profil/spieler/319301
-1617,Muscle Injury,2016-12-09,2017-01-01,23,5,injury,Bakary Sako,/bakary-sako/profil/spieler/46791
-1617,Groin Strain,2016-07-20,2016-09-14,56,5,injury,Bakary Sako,/bakary-sako/profil/spieler/46791
-1617,Transferred to Bor. M'gladbach,2016-07-01,2017-06-29,,,Transfer,Andreas Christensen,/andreas-christensen/profil/spieler/196948
-1617,Transferred to Grêmio,2016-07-01,2017-06-29,,,Transfer,Wallace Oliveira,/wallace-oliveira/profil/spieler/181779
-1617,Groin Injury,2016-08-31,2016-09-16,16,1,injury,Yohan Cabaye,/yohan-cabaye/profil/spieler/29434
-1617,Yellow card suspension,2016-11-27,2016-12-04,7,1,suspension,Yohan Cabaye,/yohan-cabaye/profil/spieler/29434
-1617,Red card suspension,2017-04-27,2017-05-14,17,3,suspension,Marouane Fellaini,/marouane-fellaini/profil/spieler/39679
-1617,Eye Injury,2016-09-09,2016-09-16,7,2,injury,Dejan Lovren,/dejan-lovren/profil/spieler/37838
-1617,Foot Injury,2017-04-30,2017-08-20,112,11,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-1617,Groin Injury,2016-10-30,2017-01-02,64,14,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-1617,Transferred to Huddersfield,2016-07-05,2017-05-30,,,Transfer,Aaron Mooy,/aaron-mooy/profil/spieler/123951
-1617,Transferred to FC Porto,2016-07-01,2017-01-12,,,Transfer,Evandro,/evandro/profil/spieler/53359
-1617,Injury to the ankle,2017-01-26,2017-01-29,3,1,injury,James Ward-Prowse,/james-ward-prowse/profil/spieler/181579
-1617,Hamstring Injury,2016-07-20,2016-08-23,34,3,injury,Lucas Leiva,/lucas-leiva/profil/spieler/41414
-1617,Hamstring Injury,2017-02-27,2017-06-29,122,12,injury,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
-1617,Hamstring Injury,2016-10-10,2016-11-03,24,4,injury,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
-1617,Transferred to Dynamo Kyiv,2016-07-01,2016-08-30,,,Transfer,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
-1617,Transferred to Dynamo Kyiv,2017-06-30,2017-06-30,,,Transfer,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
+1617,Thigh Problems,2016-10-14,2016-11-18,35,5,injury,Cesc Fàbregas,/cesc-fabregas/profil/spieler/8806
+1617,Achilles tendon problems,2016-07-15,2016-11-20,128,15,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
+1617,Muscle Injury,2017-02-18,2017-04-05,46,5,injury,Mathieu Flamini,/mathieu-flamini/profil/spieler/17396
+1617,Transferred to Without Club,2016-07-01,2016-09-07,,,Transfer,Mathieu Flamini,/mathieu-flamini/profil/spieler/17396
+1617,Transferred to KAA Gent,2016-07-01,2016-08-28,,,Transfer,Sven Kums,/sven-kums/profil/spieler/42735
+1617,Transferred to Udinese Calcio,2016-08-30,2017-06-29,,,Transfer,Sven Kums,/sven-kums/profil/spieler/42735
+1617,Knock,2016-11-02,2016-11-04,2,,injury,Fernandinho,/fernandinho/profil/spieler/26267
+1617,Red card suspension,2016-12-05,2016-12-19,14,3,suspension,Fernandinho,/fernandinho/profil/spieler/26267
+1617,Transferred to Viking,2017-03-29,2017-06-29,,,Transfer,Kwesi Appiah,/kwesi-appiah/profil/spieler/121223
+1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Pedro,/pedro/profil/spieler/65278
+1617,Transferred to Granada CF,2016-08-26,2017-06-29,,,Transfer,Andreas Pereira,/andreas-pereira/profil/spieler/203394
+1617,Transferred to CSKA Moscow,2016-07-01,2016-07-07,,,Transfer,Ahmed Musa,/ahmed-musa/profil/spieler/168337
+1617,Transferred to Aston Villa,2016-07-01,2017-01-30,,,Transfer,Jordan Ayew,/jordan-ayew/profil/spieler/108354
+1617,Achilles tendon rupture,2016-02-01,2016-10-03,245,9,injury,Martín Cáceres,/martin-caceres/profil/spieler/54935
+1617,Transferred to Without Club,2016-07-01,2017-02-15,,,Transfer,Martín Cáceres,/martin-caceres/profil/spieler/54935
 1617,Knee Injury,2017-04-15,2017-04-21,6,1,injury,Ragnar Klavan,/ragnar-klavan/profil/spieler/26669
 1617,Knee Injury,2016-08-23,2016-09-05,13,2,injury,Ragnar Klavan,/ragnar-klavan/profil/spieler/26669
 1617,Back trouble,2016-07-18,2016-08-07,20,,injury,Ragnar Klavan,/ragnar-klavan/profil/spieler/26669
 1617,Transferred to FC Augsburg,2016-07-01,2016-07-19,,,Transfer,Ragnar Klavan,/ragnar-klavan/profil/spieler/26669
-1617,Transferred to Arsenal U21,2016-07-01,2017-06-30,,,Transfer,Ben Sheaf,/ben-sheaf/profil/spieler/314384
-1617,Fractured Hand,2016-07-28,2016-09-08,42,4,injury,Loris Karius,/loris-karius/profil/spieler/85864
-1617,Hamstring Injury,2016-10-03,2016-11-04,32,3,injury,Glen Johnson,/glen-johnson/profil/spieler/3881
-1617,Thigh Muscle Strain,2016-07-27,2016-09-18,53,6,injury,Glen Johnson,/glen-johnson/profil/spieler/3881
-1617,Transferred to West Ham U21,2016-07-01,2017-06-30,,,Transfer,Declan Rice,/declan-rice/profil/spieler/357662
-1617,Transferred to Reading,2016-07-01,2016-08-30,,,Transfer,Hal Robson-Kanu,/hal-robson-kanu/profil/spieler/65976
-1617,Hamstring Injury,2016-08-16,2016-10-25,70,11,injury,André Ayew,/andre-ayew/profil/spieler/45403
-1617,Knee Injury,2016-12-01,2017-01-22,52,10,injury,Adrian Mariappa,/adrian-mariappa/profil/spieler/38145
-1617,Knee Injury,2016-12-08,2016-12-15,7,2,injury,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
-1617,Suspension through sports court,2016-11-24,2016-12-11,17,3,suspension,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
-1617,Leg Injury,2016-12-02,2017-01-01,30,5,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
-1617,Foot Injury,2016-11-07,2016-11-16,9,,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
-1617,Transferred to Ajax,2016-08-12,2017-06-29,,,Transfer,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
-1617,Surgery,2017-05-12,2017-06-30,49,2,injury,Mark Noble,/mark-noble/profil/spieler/31835
-1617,Yellow card suspension,2017-04-09,2017-04-23,14,2,suspension,Mark Noble,/mark-noble/profil/spieler/31835
-1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Mark Noble,/mark-noble/profil/spieler/31835
-1617,Calf Strain,2017-03-18,2017-04-17,30,5,injury,Petr Cech,/petr-cech/profil/spieler/5658
-1617,Achilles tendon rupture,2017-02-13,2017-09-22,221,20,injury,Nathan Dyer,/nathan-dyer/profil/spieler/37011
-1617,Ankle Injury,2016-09-10,2016-11-19,70,10,injury,Nathan Dyer,/nathan-dyer/profil/spieler/37011
-1617,Ankle Injury,2017-04-13,2017-04-20,7,1,injury,Thibaut Courtois,/thibaut-courtois/profil/spieler/108390
-1617,Medial Collateral Ligament Injury,2016-08-11,2016-11-24,105,15,injury,Sebastian Larsson,/sebastian-larsson/profil/spieler/31720
-1617,Red card suspension,2017-04-10,2017-04-27,17,3,suspension,Sebastian Larsson,/sebastian-larsson/profil/spieler/31720
-1617,Fractured Hand,2016-11-03,2016-12-17,44,9,injury,Kasper Schmeichel,/kasper-schmeichel/profil/spieler/16911
-1617,Transferred to Man Utd U21,2016-07-01,2016-08-10,,,Transfer,Donald Love,/donald-love/profil/spieler/179451
+1617,Transferred to Sheff Wed,2017-01-01,2017-05-30,,,Transfer,Callum McManaman,/callum-mcmanaman/profil/spieler/61711
+1617,Transferred to Marseille,2016-07-01,2016-08-30,,,Transfer,Georges-Kevin N'Koudou,/georges-kevin-nkoudou/profil/spieler/215679
+1617,Hamstring Injury,2017-03-28,2017-04-15,18,4,injury,Leon Britton,/leon-britton/profil/spieler/40043
+1617,Knee Injury,2016-12-26,2017-01-16,21,5,injury,Kieran Gibbs,/kieran-gibbs/profil/spieler/44792
+1617,Transferred to Sheff Wed,2017-01-31,2017-06-29,,,Transfer,Jordan Rhodes,/jordan-rhodes/profil/spieler/48950
+1617,Transferred to Southend United,2017-01-27,2017-05-30,,,Transfer,Luke Amos,/luke-amos/profil/spieler/258912
+1617,Achilles tendon problems,2016-10-13,2016-10-24,11,3,injury,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
+1617,Transferred to Inter,2016-07-01,2017-01-30,,,Transfer,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
+1617,Transferred to Inter,2017-06-30,2017-06-30,,,Transfer,Andrea Ranocchia,/andrea-ranocchia/profil/spieler/44327
 1617,Fractured Leg,2016-05-09,2017-12-31,601,65,injury,Stephen Ireland,/stephen-ireland/profil/spieler/34838
-1617,Calf Strain,2016-10-03,2016-10-14,11,,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
-1617,Transferred to FC Lorient,2016-07-01,2016-08-30,,,Transfer,Didier Ndong,/didier-ndong/profil/spieler/210081
-1617,Knee Surgery,2017-01-22,2017-08-10,200,16,injury,Angelo Ogbonna,/angelo-ogbonna/profil/spieler/48002
-1617,Transferred to AC Milan,2017-01-23,2017-06-29,,,Transfer,Gerard Deulofeu,/gerard-deulofeu/profil/spieler/129476
-1617,Transferred to Oxford United,2017-01-31,2017-05-30,,,Transfer,Conor McAleny,/conor-mcaleny/profil/spieler/121260
-1617,Back Injury,2017-04-28,2017-08-10,104,4,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
-1617,Back Injury,2016-12-21,2017-03-18,87,13,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
-1617,Hamstring Injury,2016-11-27,2016-12-20,23,6,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
-1617,Back Injury,2016-07-05,2016-11-05,123,17,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
-1617,Transferred to Burnley U21,2016-07-01,2016-08-17,,,Transfer,Dan Agyei,/dan-agyei/profil/spieler/367195
-1617,Transferred to Coventry,2016-08-18,2017-01-01,,,Transfer,Dan Agyei,/dan-agyei/profil/spieler/367195
-1617,Transferred to Burnley U21,2017-01-02,2017-06-30,,,Transfer,Dan Agyei,/dan-agyei/profil/spieler/367195
-1617,Transferred to Newcastle,2016-07-01,2016-07-17,,,Transfer,Mark Birighitti,/mark-birighitti/profil/spieler/80702
-1617,Transferred to Charlton,2016-07-01,2017-01-04,,,Transfer,Ademola Lookman,/ademola-lookman/profil/spieler/406040
-1617,Red card suspension,2016-09-17,2016-10-03,16,3,suspension,Nolito,/nolito/profil/spieler/70934
-1617,Transferred to Luton,2017-01-31,2017-04-04,,,Transfer,Matt Macey,/matt-macey/profil/spieler/220491
-1617,Transferred to OGC Nice,2016-07-01,2017-01-30,,,Transfer,Mouez Hassen,/mouez-hassen/profil/spieler/215677
-1617,Transferred to OGC Nice,2017-06-30,2017-06-30,,,Transfer,Mouez Hassen,/mouez-hassen/profil/spieler/215677
-1617,Knee Problems,2017-02-17,2017-02-24,7,2,injury,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
-1617,No eligibility,2016-09-01,2017-01-30,151,19,absence,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
-1617,Transferred to Olympiacos,2017-01-31,2017-06-29,,,Transfer,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
-1617,Ankle Injury,2016-09-24,2016-11-05,42,7,injury,Adnan Januzaj,/adnan-januzaj/profil/spieler/177847
-1617,Ankle Injury,2016-10-31,2016-12-12,42,8,injury,Ben Davies,/ben-davies/profil/spieler/192765
-1617,Transferred to Man Utd U21,2016-07-01,2016-08-30,,,Transfer,James Weir,/james-weir/profil/spieler/251058
-1617,Transferred to Wigan,2017-01-31,2017-05-30,,,Transfer,James Weir,/james-weir/profil/spieler/251058
-1617,Transferred to F. Düsseldorf,2016-08-22,2017-06-29,,,Transfer,Rouwen Hennings,/rouwen-hennings/profil/spieler/16311
-1617,Transferred to Djurgården,2016-07-01,2016-11-29,,,Transfer,Mathias Ranégie,/mathias-ranegie/profil/spieler/46477
-1617,Transferred to Udinese Calcio,2017-01-31,2017-06-29,,,Transfer,Mathias Ranégie,/mathias-ranegie/profil/spieler/46477
-1617,Transferred to West Brom U21,2016-07-01,2017-06-30,,,Transfer,Rekeem Harper,/rekeem-harper/profil/spieler/456877
-1617,Hamstring Injury,2017-02-24,2017-03-09,13,2,injury,Obbi Oulare,/obbi-oulare/profil/spieler/314959
-1617,Foot Injury,2016-09-03,2016-09-26,23,4,injury,Obbi Oulare,/obbi-oulare/profil/spieler/314959
-1617,Transferred to Zulte Waregem,2016-07-27,2017-01-15,,,Transfer,Obbi Oulare,/obbi-oulare/profil/spieler/314959
-1617,Transferred to Willem II,2017-01-26,2017-06-29,,,Transfer,Obbi Oulare,/obbi-oulare/profil/spieler/314959
-1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Gareth Barry,/gareth-barry/profil/spieler/3291
-1617,Ankle Injury,2016-12-01,2016-12-28,27,6,injury,Vincent Janssen,/vincent-janssen/profil/spieler/207015
-1617,Concussion,2016-11-10,2016-11-16,6,,injury,Vincent Janssen,/vincent-janssen/profil/spieler/207015
-1617,Transferred to AZ Alkmaar,2016-07-01,2016-07-11,,,Transfer,Vincent Janssen,/vincent-janssen/profil/spieler/207015
-1617,Traffic Accident,2016-09-11,2017-08-25,348,41,injury,Pape Souaré,/pape-souare/profil/spieler/125868
-1617,Transferred to Unknown,2016-07-01,2017-01-30,,,Transfer,Josh Clackstone,/josh-clackstone/profil/spieler/453306
-1617,Transferred to Notts County,2017-01-31,2017-05-30,,,Transfer,Josh Clackstone,/josh-clackstone/profil/spieler/453306
-1617,Calf Strain,2017-03-05,2017-04-17,43,6,injury,George Friend,/george-friend/profil/spieler/77544
-1617,Calf Injury,2017-01-28,2017-03-03,34,6,injury,George Friend,/george-friend/profil/spieler/77544
-1617,Knee Injury,2016-11-17,2016-12-14,27,5,injury,George Friend,/george-friend/profil/spieler/77544
-1617,Transferred to Aston Villa,2016-07-01,2016-08-30,,,Transfer,Adama Traoré,/adama-traore/profil/spieler/204103
-1617,Foot Injury,2016-08-07,2016-08-19,12,1,injury,James Milner,/james-milner/profil/spieler/3333
-1617,Muscular problems,2017-02-23,2017-03-06,11,2,injury,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
-1617,Strain,2016-09-15,2016-10-17,32,7,injury,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
-1617,Transferred to Bor. Dortmund,2016-07-01,2016-07-05,,,Transfer,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
-1617,Groin Strain,2017-02-08,2017-05-11,92,11,injury,Ben Watson,/ben-watson/profil/spieler/14081
-1617,Red card suspension,2016-08-14,2016-08-21,7,1,suspension,Ben Watson,/ben-watson/profil/spieler/14081
-1617,groin strain,2017-06-28,2017-07-20,22,,injury,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
-1617,groin strain,2017-06-23,2017-06-25,2,,injury,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
-1617,Elbow Injury,2016-08-23,2016-11-18,87,12,injury,Vito Mannone,/vito-mannone/profil/spieler/33781
-1617,Transferred to Real Oviedo,2017-01-31,2017-06-29,,,Transfer,Carlos de Pena,/carlos-de-pena/profil/spieler/257740
-1617,Knock,2016-11-14,2016-11-26,12,1,injury,Glenn Whelan,/glenn-whelan/profil/spieler/12124
-1617,Hamstring Injury,2016-08-10,2016-08-20,10,2,injury,Kevin Wimmer,/kevin-wimmer/profil/spieler/122675
-1617,Ankle Injury,2017-03-13,2017-04-06,24,3,injury,Harry Kane,/harry-kane/profil/spieler/132098
-1617,Ankle Injury,2016-09-19,2016-11-07,49,11,injury,Harry Kane,/harry-kane/profil/spieler/132098
-1617,Transferred to Bradford,2016-08-08,2017-05-30,,,Transfer,Josh Cullen,/josh-cullen/profil/spieler/242606
-1617,Torn Muscle Fibre,2016-11-09,2016-12-01,22,4,injury,Jeremain Lens,/jeremain-lens/profil/spieler/38497
-1617,Unknown Injury,2016-09-29,2016-10-21,22,4,injury,Jeremain Lens,/jeremain-lens/profil/spieler/38497
-1617,Transferred to Fenerbahce,2016-08-30,2017-06-29,,,Transfer,Jeremain Lens,/jeremain-lens/profil/spieler/38497
-1617,Hamstring Injury,2017-01-08,2017-02-03,26,2,injury,Marc Wilson,/marc-wilson/profil/spieler/30456
-1617,Calf Strain,2017-01-02,2017-02-11,40,7,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
-1617,Yellow card suspension,2016-10-16,2016-10-23,7,1,suspension,Jonny Evans,/jonny-evans/profil/spieler/42412
-1617,Cruciate Ligament Rupture,2016-02-29,2016-10-24,238,21,injury,Chris Brunt,/chris-brunt/profil/spieler/36814
-1617,Transferred to Juventus,2016-08-31,2017-06-29,,,Transfer,Juan Cuadrado,/juan-cuadrado/profil/spieler/91970
-1617,Foot Injury,2016-07-20,2016-09-01,43,7,injury,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
-1617,No eligibility,2016-09-01,2017-06-30,302,35,absence,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
-1617,Transferred to Marseille,2016-07-01,2016-07-20,,,Transfer,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
-1617,Groin Injury,2016-12-01,2017-02-02,63,6,injury,Danilo Pantic,/danilo-pantic/profil/spieler/222830
-1617,Transferred to Excelsior,2016-08-12,2017-06-29,,,Transfer,Danilo Pantic,/danilo-pantic/profil/spieler/222830
-1617,Transferred to Sunderland U21,2016-07-01,2017-06-30,,,Transfer,Ethan Robson,/ethan-robson/profil/spieler/258199
-1617,Transferred to Bolton,2016-08-31,2017-01-15,,,Transfer,Keshi Anderson,/keshi-anderson/profil/spieler/353674
-1617,Transferred to Northampton,2017-01-17,2017-05-30,,,Transfer,Keshi Anderson,/keshi-anderson/profil/spieler/353674
-1617,Yellow card suspension,2016-10-30,2016-11-07,8,1,suspension,James McClean,/james-mcclean/profil/spieler/85935
-1617,Muscle Injury,2016-10-09,2016-10-30,21,4,injury,Branislav Ivanovic,/branislav-ivanovic/profil/spieler/36827
-1617,Transferred to Zenit S-Pb,2017-02-01,2017-06-30,,,Transfer,Branislav Ivanovic,/branislav-ivanovic/profil/spieler/36827
-1617,Knee Injury,2017-02-06,2017-03-02,24,4,injury,Patrick Roberts,/patrick-roberts/profil/spieler/225452
-1617,Knee Injury,2016-08-04,2016-08-25,21,5,injury,Patrick Roberts,/patrick-roberts/profil/spieler/225452
-1617,Transferred to Celtic,2016-07-01,2017-05-30,,,Transfer,Patrick Roberts,/patrick-roberts/profil/spieler/225452
-1617,Transferred to Leicester U21,2016-07-01,2017-01-19,,,Transfer,Harvey Barnes,/harvey-barnes/profil/spieler/398065
-1617,Transferred to MK Dons,2017-01-20,2017-04-30,,,Transfer,Harvey Barnes,/harvey-barnes/profil/spieler/398065
-1617,Transferred to Leicester U21,2017-05-01,2017-06-30,,,Transfer,Harvey Barnes,/harvey-barnes/profil/spieler/398065
-1617,Ankle Injury,2016-11-27,2017-01-09,43,9,injury,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
-1617,Fractured Skull,2017-01-22,2018-02-13,387,,injury,Ryan Mason,/ryan-mason/profil/spieler/61834
-1617,Transferred to Granada CF,2016-08-26,2017-06-29,,,Transfer,Andreas Pereira,/andreas-pereira/profil/spieler/203394
-1617,Transferred to Blackburn,2016-08-11,2017-05-30,,,Transfer,Sam Gallagher,/sam-gallagher/profil/spieler/227183
-1617,Knock,2016-11-02,2016-11-04,2,,injury,Fernandinho,/fernandinho/profil/spieler/26267
-1617,Red card suspension,2016-12-05,2016-12-19,14,3,suspension,Fernandinho,/fernandinho/profil/spieler/26267
-1617,Transferred to Paris SG,2016-07-01,2016-08-30,,,Transfer,David Luiz,/david-luiz/profil/spieler/46741
-1617,Tear in the abductor muscle,2017-02-01,2017-02-22,21,3,injury,Joel Campbell,/joel-campbell/profil/spieler/131248
-1617,Transferred to Sporting CP,2016-08-21,2017-06-29,,,Transfer,Joel Campbell,/joel-campbell/profil/spieler/131248
-1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Christian Fuchs,/christian-fuchs/profil/spieler/6636
-1617,Hamstring Injury,2016-09-07,2016-11-04,58,8,injury,Marc Pugh,/marc-pugh/profil/spieler/36939
-1617,Hamstring Injury,2016-07-30,2017-01-07,161,23,injury,Matthew Pennington,/matthew-pennington/profil/spieler/220755
-1617,Transferred to Arsenal U21,2016-07-01,2017-01-30,,,Transfer,Marc Bola,/marc-bola/profil/spieler/340310
-1617,Transferred to Notts County,2017-01-31,2017-05-30,,,Transfer,Marc Bola,/marc-bola/profil/spieler/340310
-1617,Transferred to Arsenal U23,2017-05-31,2017-06-30,,,Transfer,Marc Bola,/marc-bola/profil/spieler/340310
-1617,Yellow card suspension,2016-12-04,2016-12-11,7,1,suspension,Nicolás Otamendi,/nicolas-otamendi/profil/spieler/54781
-1617,Hamstring Injury,2017-02-13,2017-03-11,26,4,injury,Simon Francis,/simon-francis/profil/spieler/13573
-1617,Transferred to Charlton,2016-08-31,2017-05-30,,,Transfer,Fredrik Ulvestad,/fredrik-ulvestad/profil/spieler/158022
-1617,Shoulder Injury,2017-01-10,2017-04-01,81,13,injury,Markus Henriksen,/markus-henriksen/profil/spieler/122011
-1617,Transferred to AZ Alkmaar,2016-07-01,2016-08-30,,,Transfer,Markus Henriksen,/markus-henriksen/profil/spieler/122011
-1617,Transferred to AZ Alkmaar,2017-01-05,2017-01-05,,,Transfer,Markus Henriksen,/markus-henriksen/profil/spieler/122011
-1617,Transferred to Stoke U21,2016-07-01,2017-06-30,,,Transfer,Julien Ngoy,/julien-ngoy/profil/spieler/286005
-1617,Transferred to Stoke U21,2016-07-01,2017-06-30,,,Transfer,Tom Edwards,/tom-edwards/profil/spieler/430788
-1617,Hamstring Injury,2017-03-16,2017-04-03,18,3,injury,Paul Pogba,/paul-pogba/profil/spieler/122153
-1617,Transferred to Juventus,2016-07-01,2016-08-08,,,Transfer,Paul Pogba,/paul-pogba/profil/spieler/122153
-1617,Transferred to AFC Wimbledon,2016-07-01,2016-08-04,,,Transfer,Ryan Sweeney,/ryan-sweeney/profil/spieler/347666
-1617,Transferred to Bristol Rovers,2017-01-20,2017-05-30,,,Transfer,Ryan Sweeney,/ryan-sweeney/profil/spieler/347666
-1617,Transferred to E. Frankfurt,2016-08-14,2017-06-29,,,Transfer,Michael Hector,/michael-hector/profil/spieler/157490
-1617,Transferred to Sheff Utd,2016-08-31,2017-01-11,,,Transfer,Danny Lafferty,/danny-lafferty/profil/spieler/85928
-1617,Transferred to Sheff Utd,2017-01-13,2017-06-30,,,Transfer,Danny Lafferty,/danny-lafferty/profil/spieler/85928
-1617,Muscle Injury,2016-11-03,2016-11-18,15,1,injury,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
-1617,Calf Injury,2016-08-17,2016-09-24,38,7,injury,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
-1617,Ankle Injury,2016-10-06,2017-01-06,92,13,injury,Lewis Cook,/lewis-cook/profil/spieler/249089
-1617,Transferred to Leeds,2016-07-01,2016-07-07,,,Transfer,Lewis Cook,/lewis-cook/profil/spieler/249089
-1617,Transferred to Bournemouth U21,2016-07-01,2017-06-30,,,Transfer,Matt Worthington,/matt-worthington/profil/spieler/493607
-1617,Transferred to Leicester U21,2016-07-01,2017-06-30,,,Transfer,Elliott Moore,/elliott-moore/profil/spieler/341993
-1617,Suspension through sports court,2016-10-28,2016-11-20,23,3,suspension,Adama Diomande,/adama-diomande/profil/spieler/93145
-1617,Bruise,2017-01-17,2017-02-04,18,3,injury,Brendan Galloway,/brendan-galloway/profil/spieler/208244
-1617,Transferred to Liverpool U21,2016-07-01,2017-06-30,,,Transfer,MJ Williams,/mj-williams/profil/spieler/279454
-1617,Transferred to Arsenal U21,2016-07-01,2017-06-30,,,Transfer,Jeff Reine-Adélaïde,/jeff-reine-adelaide/profil/spieler/326300
-1617,Metatarsal Fracture,2017-03-11,2017-06-01,82,11,injury,Ángel Rangel,/angel-rangel/profil/spieler/66550
-1617,Foot Injury,2017-05-10,2017-05-31,21,2,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
-1617,Hamstring Injury,2017-02-04,2017-02-25,21,3,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
-1617,Tear in the abductor muscle,2016-11-07,2017-01-02,56,10,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
-1617,Ankle Injury,2016-11-28,2017-01-29,62,11,injury,Lynden Gooch,/lynden-gooch/profil/spieler/307781
-1617,Disrupted Calf Muscle,2017-04-27,2017-06-23,57,6,injury,Claudio Bravo,/claudio-bravo/profil/spieler/40423
-1617,Transferred to Barcelona,2016-07-01,2016-08-24,,,Transfer,Claudio Bravo,/claudio-bravo/profil/spieler/40423
-1617,Transferred to Everton U21,2016-07-01,2017-06-30,,,Transfer,Joe Williams,/joe-williams/profil/spieler/268185
-1617,Transferred to Rayo Vallecano,2016-08-29,2017-01-14,,,Transfer,Bruno Zuculini,/bruno-zuculini/profil/spieler/115507
-1617,Transferred to Hellas Verona,2017-01-19,2017-06-29,,,Transfer,Bruno Zuculini,/bruno-zuculini/profil/spieler/115507
-1617,Foot Injury,2016-10-10,2016-11-14,35,4,injury,Brad Smith,/brad-smith/profil/spieler/175745
-1617,Knee Injury,2016-10-28,2016-11-03,6,1,injury,Arouna Koné,/arouna-kone/profil/spieler/8552
-1617,Transferred to FC Porto,2016-07-01,2016-08-30,,,Transfer,Bruno Martins Indi,/bruno-martins-indi/profil/spieler/112052
-1617,Transferred to FC Porto,2017-06-30,2017-06-30,,,Transfer,Bruno Martins Indi,/bruno-martins-indi/profil/spieler/112052
-1617,Muscle Injury,2016-11-23,2016-12-02,9,2,injury,Jérémie Boga,/jeremie-boga/profil/spieler/216569
-1617,Transferred to Chelsea U21,2016-07-01,2016-07-05,,,Transfer,Jérémie Boga,/jeremie-boga/profil/spieler/216569
-1617,Transferred to Granada CF,2016-07-06,2017-06-29,,,Transfer,Jérémie Boga,/jeremie-boga/profil/spieler/216569
-1617,Transferred to Chelsea U23,2017-06-30,2017-06-30,,,Transfer,Jérémie Boga,/jeremie-boga/profil/spieler/216569
-1617,Knee Injury,2016-12-17,2017-01-21,35,7,injury,Viktor Fischer,/viktor-fischer/profil/spieler/95755
-1617,Transferred to Besiktas,2016-07-01,2016-07-10,,,Transfer,Gökhan Töre,/gokhan-tore/profil/spieler/82130
-1617,Transferred to Besiktas,2017-06-30,2017-06-30,,,Transfer,Gökhan Töre,/gokhan-tore/profil/spieler/82130
-1617,Transferred to Valencia,2016-07-01,2016-07-19,,,Transfer,Álvaro Negredo,/alvaro-negredo/profil/spieler/18644
-1617,Transferred to Valencia,2017-06-30,2017-06-30,,,Transfer,Álvaro Negredo,/alvaro-negredo/profil/spieler/18644
-1617,Transferred to Girona,2017-01-01,2017-06-29,,,Transfer,Pablo Maffeo,/pablo-maffeo/profil/spieler/251876
-1617,Transferred to Man Utd U21,2016-07-01,2017-06-30,,,Transfer,Josh Harrop,/josh-harrop/profil/spieler/289844
-1617,Red card suspension,2016-12-15,2017-01-02,18,3,suspension,Marko Arnautovic,/marko-arnautovic/profil/spieler/41384
-1617,Yellow card suspension,2016-10-31,2016-11-07,7,1,suspension,Marko Arnautovic,/marko-arnautovic/profil/spieler/41384
-1617,Yellow card suspension,2016-11-07,2016-11-20,13,1,suspension,Jose Cholevas,/jose-cholevas/profil/spieler/41112
-1617,Transferred to Liverpool U18,2016-07-01,2016-12-31,,,Transfer,Ben Woodburn,/ben-woodburn/profil/spieler/344015
-1617,Transferred to Cardiff,2016-07-01,2016-08-29,,,Transfer,David Marshall,/david-marshall/profil/spieler/9500
-1617,Groin Injury,2017-03-03,2017-03-13,10,2,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
-1617,Ankle Injury,2016-12-04,2016-12-25,21,4,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
-1617,Inguinal Hernia,2016-06-01,2016-08-27,87,4,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
-1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-1617,Transferred to Chelsea U21,2016-07-01,2017-06-30,,,Transfer,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-1617,Transferred to Man Utd U18,2016-07-01,2017-06-30,,,Transfer,Angel Gomes,/angel-gomes/profil/spieler/392770
-1617,Groin Strain,2017-03-19,2017-04-15,27,5,injury,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
-1617,Muscle Fatigue,2016-11-14,2016-11-19,5,1,injury,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
-1617,Transferred to SSC Napoli,2016-07-01,2017-01-30,,,Transfer,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
-1617,Calf Injury,2016-11-25,2016-12-13,18,3,injury,Ryan Shawcross,/ryan-shawcross/profil/spieler/45861
-1617,Hamstring Injury,2016-09-05,2016-10-03,28,7,injury,Danny Rose,/danny-rose/profil/spieler/50174
-1617,Yellow card suspension,2016-11-20,2016-11-27,7,1,suspension,Danny Rose,/danny-rose/profil/spieler/50174
-1617,Transferred to CSKA Moscow,2016-07-01,2016-07-07,,,Transfer,Ahmed Musa,/ahmed-musa/profil/spieler/168337
+1617,Transferred to Wigan,2017-01-20,2017-05-30,,,Transfer,Marcus Browne,/marcus-browne/profil/spieler/391470
+1617,Transferred to Chesterfield FC,2016-08-31,2017-05-30,,,Transfer,Tom Anderson,/tom-anderson/profil/spieler/128828
+1617,Nose Injury,2016-11-12,2016-12-07,25,5,injury,Dusan Tadic,/dusan-tadic/profil/spieler/36139
+1617,Transferred to Aston Villa,2016-07-01,2017-01-30,,,Transfer,Ashley Westwood,/ashley-westwood/profil/spieler/91317
 1617,Knee Injury,2016-10-17,2016-12-01,45,9,injury,Toby Alderweireld,/toby-alderweireld/profil/spieler/42710
-1617,Transferred to Mouscron,2016-07-22,2017-06-29,,,Transfer,Matej Delac,/matej-delac/profil/spieler/60220
-1617,Hamstring Injury,2016-12-26,2017-01-06,11,3,injury,Jason Denayer,/jason-denayer/profil/spieler/277114
-1617,Adductors avulsion,2016-10-08,2016-11-04,27,4,injury,Jason Denayer,/jason-denayer/profil/spieler/277114
-1617,Transferred to Torino,2016-08-31,2017-06-29,,,Transfer,Joe Hart,/joe-hart/profil/spieler/40204
-1617,Transferred to Oldham Athletic,2017-01-31,2017-05-30,,,Transfer,Aiden O'Neill,/aiden-oneill/profil/spieler/385918
-1617,Transferred to FC Schalke 04,2016-08-02,2017-06-29,,,Transfer,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
-1617,Transferred to Norwich,2016-07-01,2017-01-30,,,Transfer,Robbie Brady,/robbie-brady/profil/spieler/128229
-1617,Calf Strain,2017-02-04,2017-04-01,56,7,injury,Michael Dawson,/michael-dawson/profil/spieler/9988
-1617,Knee Injury,2016-07-20,2016-10-20,92,10,injury,Michael Dawson,/michael-dawson/profil/spieler/9988
-1617,Ankle Injury,2016-12-12,2017-01-09,28,6,injury,Joel Matip,/joel-matip/profil/spieler/82105
-1617,Ankle Injury,2016-11-28,2016-12-05,7,2,injury,Joel Matip,/joel-matip/profil/spieler/82105
-1617,Transferred to Newcastle,2016-08-31,2017-06-29,,,Transfer,Christian Atsu,/christian-atsu/profil/spieler/186997
-1617,Back Injury,2017-02-09,2017-03-01,20,4,injury,Gaël Clichy,/gael-clichy/profil/spieler/7449
-1617,Hamstring Injury,2017-01-27,2017-02-13,17,3,injury,Charlie Daniels,/charlie-daniels/profil/spieler/61819
-1617,Transferred to Liverpool U21,2016-07-01,2017-06-30,,,Transfer,Harry Wilson,/harry-wilson/profil/spieler/279455
-1617,Achilles tendon problems,2017-04-27,2017-05-31,34,4,injury,Joselu,/joselu/profil/spieler/81999
-1617,Knee Injury,2016-09-12,2016-11-28,77,10,injury,Joselu,/joselu/profil/spieler/81999
-1617,Transferred to Dep. La Coruña,2016-08-31,2017-06-29,,,Transfer,Joselu,/joselu/profil/spieler/81999
-1617,Transferred to Fiorentina,2016-07-01,2016-08-30,,,Transfer,Marcos Alonso,/marcos-alonso/profil/spieler/112515
-1617,Hamstring Injury,2016-10-26,2017-08-13,291,41,injury,Alex McCarthy,/alex-mccarthy/profil/spieler/95976
-1617,Red card suspension,2016-12-29,2017-01-01,3,1,suspension,Nathan Redmond,/nathan-redmond/profil/spieler/129078
-1617,groin strain,2016-08-30,2016-09-09,10,,injury,James McArthur,/james-mcarthur/profil/spieler/41416
-1617,Transferred to Marseille,2016-08-31,2017-06-29,,,Transfer,Clinton N'Jie,/clinton-njie/profil/spieler/241119
-1617,Hamstring Injury,2017-02-26,2017-04-20,53,8,injury,Rubén Sobrino,/ruben-sobrino/profil/spieler/85383
-1617,Transferred to Alavés,2016-07-14,2017-06-29,,,Transfer,Rubén Sobrino,/ruben-sobrino/profil/spieler/85383
-1617,Transferred to Derby,2017-01-05,2017-05-30,,,Transfer,Julien de Sart,/julien-de-sart/profil/spieler/129592
-1617,Strain,2016-11-22,2016-12-17,25,5,injury,John Terry,/john-terry/profil/spieler/3160
-1617,Ankle Injury,2016-09-11,2016-10-01,20,5,injury,John Terry,/john-terry/profil/spieler/3160
-1617,Red card suspension,2017-01-09,2017-01-15,6,1,suspension,John Terry,/john-terry/profil/spieler/3160
-1617,Transferred to Derby,2016-07-01,2016-08-30,,,Transfer,Lee Grant,/lee-grant/profil/spieler/13460
-1617,Transferred to Derby,2017-01-03,2017-01-03,,,Transfer,Lee Grant,/lee-grant/profil/spieler/13460
-1617,Hamstring Injury,2016-12-10,2017-01-14,35,8,injury,Stefano Okaka,/stefano-okaka/profil/spieler/35249
-1617,Hamstring Injury,2016-09-10,2016-11-19,70,9,injury,Stefano Okaka,/stefano-okaka/profil/spieler/35249
-1617,Transferred to RSC Anderlecht,2016-07-01,2016-08-28,,,Transfer,Stefano Okaka,/stefano-okaka/profil/spieler/35249
-1617,Transferred to Hull U21,2016-07-01,2017-06-30,,,Transfer,Daniel Batty,/daniel-batty/profil/spieler/509268
-1617,Transferred to Fleetwood,2016-08-12,2017-01-28,,,Transfer,Chris Long,/chris-long/profil/spieler/183298
-1617,Transferred to Bolton,2017-01-30,2017-05-30,,,Transfer,Chris Long,/chris-long/profil/spieler/183298
-1617,Transferred to Watford U18,2016-07-01,2017-06-30,,,Transfer,Dion Pereira,/dion-pereira/profil/spieler/499604
-1617,Transferred to Bournemouth U21,2016-07-01,2017-01-18,,,Transfer,Callum Buckley,/callum-buckley/profil/spieler/398398
-1617,Transferred to Aldershot,2017-01-19,2017-05-30,,,Transfer,Callum Buckley,/callum-buckley/profil/spieler/398398
-1617,Transferred to Bournemouth U21,2017-05-31,2017-06-30,,,Transfer,Callum Buckley,/callum-buckley/profil/spieler/398398
-1617,Concussion,2017-05-15,2017-06-08,24,3,injury,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
-1617,Transferred to Valencia,2016-07-01,2016-08-29,,,Transfer,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
-1617,Knee Surgery,2017-04-05,2017-09-22,170,14,injury,Ibrahim Afellay,/ibrahim-afellay/profil/spieler/15760
-1617,Hamstring Injury,2016-12-17,2017-01-07,21,3,injury,Tomas Kalas,/tomas-kalas/profil/spieler/148657
-1617,Unknown Injury,2016-09-20,2016-10-23,33,7,injury,Tomas Kalas,/tomas-kalas/profil/spieler/148657
-1617,Transferred to Fulham,2016-07-13,2017-05-30,,,Transfer,Tomas Kalas,/tomas-kalas/profil/spieler/148657
-1617,Transferred to Rayo Vallecano,2016-07-29,2017-06-29,,,Transfer,Paulo Gazzaniga,/paulo-gazzaniga/profil/spieler/195488
 1617,Calf Strain,2017-01-26,2017-02-02,7,2,injury,Mohamed Elneny,/mohamed-elneny/profil/spieler/160438
-1617,Transferred to Tottenham U21,2016-07-01,2017-01-19,,,Transfer,Shayon Harrison,/shayon-harrison/profil/spieler/345739
-1617,Transferred to Yeovil Town,2017-01-20,2017-02-19,,,Transfer,Shayon Harrison,/shayon-harrison/profil/spieler/345739
-1617,Transferred to Tottenham U23,2017-02-20,2017-06-30,,,Transfer,Shayon Harrison,/shayon-harrison/profil/spieler/345739
-1617,Minor Knock,2017-06-19,2017-06-21,2,,injury,Bartosz Kapustka,/bartosz-kapustka/profil/spieler/246579
-1617,Transferred to Cracovia,2016-07-01,2016-08-02,,,Transfer,Bartosz Kapustka,/bartosz-kapustka/profil/spieler/246579
-1617,Transferred to Rotherham,2016-08-31,2017-01-03,,,Transfer,Dael Fry,/dael-fry/profil/spieler/314140
-1617,Ankle Injury,2016-08-07,2016-09-09,33,4,injury,Jesse Lingard,/jesse-lingard/profil/spieler/141660
-1617,Transferred to Watford U21,2016-07-01,2017-06-30,,,Transfer,Charlie Rowan,/charlie-rowan/profil/spieler/479944
-1617,Suspension through sports court,2017-03-20,2017-04-01,12,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
-1617,Indirect card suspension,2017-03-16,2017-03-20,4,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
-1617,Indirect card suspension,2017-03-14,2017-03-19,5,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
-1617,Indirect card suspension,2016-10-31,2016-11-07,7,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
-1617,Unknown Injury,2016-12-12,2016-12-26,14,2,injury,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
-1617,Unknown Injury,2016-11-12,2016-11-20,8,1,injury,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
-1617,Transferred to Alanyaspor,2016-08-31,2017-06-29,,,Transfer,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
-1617,Ill,2016-12-09,2016-12-18,9,3,injury,Cédric Soares,/cedric-soares/profil/spieler/112988
-1617,Foot Injury,2016-10-02,2016-11-19,48,9,injury,Cédric Soares,/cedric-soares/profil/spieler/112988
-1617,Ankle Injury,2017-05-06,2017-07-05,60,,injury,Lazar Markovic,/lazar-markovic/profil/spieler/144303
-1617,Knock,2016-12-08,2016-12-20,12,3,injury,Lazar Markovic,/lazar-markovic/profil/spieler/144303
-1617,Transferred to Sporting CP,2016-08-31,2017-01-21,,,Transfer,Lazar Markovic,/lazar-markovic/profil/spieler/144303
-1617,Knee Injury,2016-10-15,2016-10-21,6,1,injury,Harry Arter,/harry-arter/profil/spieler/55742
-1617,Ruptured knee ligament,2016-11-02,2017-12-31,424,,injury,Doneil Henry,/doneil-henry/profil/spieler/157907
-1617,Knee Injury,2016-07-13,2016-09-22,71,7,injury,Doneil Henry,/doneil-henry/profil/spieler/157907
-1617,Transferred to AC Horsens,2016-08-31,2016-12-30,,,Transfer,Doneil Henry,/doneil-henry/profil/spieler/157907
-1617,Ill,2017-02-23,2017-03-09,14,3,injury,Reece Oxford,/reece-oxford/profil/spieler/314295
-1617,Ankle Injury,2016-10-31,2017-01-05,66,11,injury,Reece Oxford,/reece-oxford/profil/spieler/314295
-1617,Transferred to Reading,2017-01-31,2017-05-30,,,Transfer,Reece Oxford,/reece-oxford/profil/spieler/314295
-1617,Transferred to Man Utd U21,2016-07-01,2017-06-30,,,Transfer,Matty Willock,/matty-willock/profil/spieler/289845
-1617,Suspension through sports court,2017-03-09,2017-04-02,24,2,suspension,Zlatan Ibrahimović,/zlatan-ibrahimovi%C4%87/profil/spieler/3455
-1617,Yellow card suspension,2016-11-07,2016-11-21,14,1,suspension,Zlatan Ibrahimović,/zlatan-ibrahimovi%C4%87/profil/spieler/3455
-1617,Knee Injury,2016-10-30,2018-06-30,608,139,injury,Rhoys Wiggins,/rhoys-wiggins/profil/spieler/42298
-1617,Transferred to Birmingham,2016-08-31,2017-01-01,,,Transfer,Rhoys Wiggins,/rhoys-wiggins/profil/spieler/42298
-1617,Yellow card suspension,2017-01-23,2017-01-30,7,1,suspension,Leroy Fer,/leroy-fer/profil/spieler/63342
-1617,Transferred to QPR,2016-07-01,2016-07-04,,,Transfer,Leroy Fer,/leroy-fer/profil/spieler/63342
-1617,Transferred to Vitesse,2016-08-31,2017-06-30,,,Transfer,Matt Miazga,/matt-miazga/profil/spieler/245893
-1617,Transferred to Southend United,2016-08-31,2017-05-30,,,Transfer,Ryan Inniss,/ryan-inniss/profil/spieler/183284
-1617,Calf Strain,2016-10-15,2016-11-26,42,7,injury,Andrew Robertson,/andrew-robertson/profil/spieler/234803
-1617,Fractured Jaw,2017-02-25,2017-04-03,37,7,injury,Lucas Piazon,/lucas-piazon/profil/spieler/176485
-1617,Transferred to Fulham,2016-08-31,2017-06-30,,,Transfer,Lucas Piazon,/lucas-piazon/profil/spieler/176485
-1617,Transferred to Spurs U18,2016-07-01,2017-06-30,,,Transfer,Alfie Whiteman,/alfie-whiteman/profil/spieler/282823
-1617,Transferred to Watford U21,2016-07-01,2017-06-30,,,Transfer,Andrew Eleftheriou,/andrew-eleftheriou/profil/spieler/476532
-1617,Hamstring Injury,2017-01-31,2017-03-04,32,6,injury,Antonio Barragán,/antonio-barragan/profil/spieler/32522
-1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Antonio Barragán,/antonio-barragan/profil/spieler/32522
-1617,Transferred to Valencia,2016-07-01,2016-07-14,,,Transfer,Antonio Barragán,/antonio-barragan/profil/spieler/32522
-1617,Ankle Injury,2017-04-30,2017-05-10,10,3,injury,Granit Xhaka,/granit-xhaka/profil/spieler/111455
-1617,Transferred to Sunderland U23,2016-07-01,2017-06-30,,,Transfer,Elliot Embleton,/elliot-embleton/profil/spieler/364828
-1617,Back Injury,2016-09-28,2017-01-07,101,22,injury,Chuba Akpom,/chuba-akpom/profil/spieler/197642
-1617,Transferred to Brighton,2017-01-30,2017-05-30,,,Transfer,Chuba Akpom,/chuba-akpom/profil/spieler/197642
-1617,Indirect card suspension,2016-11-20,2016-11-27,7,1,suspension,Papy Djilobodji,/papy-djilobodji/profil/spieler/136610
-1617,Transferred to Morecambe FC,2016-08-31,2017-01-02,,,Transfer,Ntumba Massanka,/ntumba-massanka/profil/spieler/385922
-1617,Transferred to Wrexham,2017-01-12,2017-05-30,,,Transfer,Ntumba Massanka,/ntumba-massanka/profil/spieler/385922
-1617,Calf Strain,2016-12-23,2017-01-27,35,6,injury,Theo Walcott,/theo-walcott/profil/spieler/33713
-1617,Hamstring Injury,2016-10-25,2016-11-06,12,4,injury,Theo Walcott,/theo-walcott/profil/spieler/33713
-1617,Transferred to FC Sion,2016-07-01,2016-08-24,,,Transfer,Edimilson Fernandes,/edimilson-fernandes/profil/spieler/247555
-1617,Transferred to Rangers,2016-07-01,2016-11-09,,,Transfer,Joey Barton,/joey-barton/profil/spieler/3292
-1617,Transferred to Without Club,2016-11-10,2017-01-01,,,Transfer,Joey Barton,/joey-barton/profil/spieler/3292
-1617,Knee Injury,2017-04-01,2017-05-20,49,8,injury,Andrew Surman,/andrew-surman/profil/spieler/29975
-1617,Hamstring Injury,2016-10-29,2016-12-25,57,8,injury,Andrew Surman,/andrew-surman/profil/spieler/29975
-1617,Thigh Muscle Strain,2016-08-14,2016-09-10,27,4,injury,Alex Iwobi,/alex-iwobi/profil/spieler/242631
-1617,Transferred to Burnley U21,2016-07-01,2017-01-30,,,Transfer,Brad Jackson,/brad-jackson/profil/spieler/385920
-1617,Transferred to Bangor City,2017-01-31,2017-06-29,,,Transfer,Brad Jackson,/brad-jackson/profil/spieler/385920
-1617,Transferred to Burnley U21,2017-06-30,2017-06-30,,,Transfer,Brad Jackson,/brad-jackson/profil/spieler/385920
-1617,Transferred to Hull U21,2016-07-01,2016-12-31,,,Transfer,Harvey Rodgers,/harvey-rodgers/profil/spieler/459873
-1617,Transferred to Accrington,2017-01-01,2017-05-30,,,Transfer,Harvey Rodgers,/harvey-rodgers/profil/spieler/459873
-1617,Transferred to Hull U21,2017-05-31,2017-06-30,,,Transfer,Harvey Rodgers,/harvey-rodgers/profil/spieler/459873
-1617,Transferred to Huddersfield,2016-07-11,2017-05-30,,,Transfer,Danny Ward,/danny-ward/profil/spieler/203026
-1617,Hairline crack in calfbone,2017-04-16,2017-08-06,112,1,injury,Jack Wilshere,/jack-wilshere/profil/spieler/74223
-1617,Knee Injury,2016-07-31,2016-08-11,11,,injury,Jack Wilshere,/jack-wilshere/profil/spieler/74223
-1617,Calf Problems,2016-11-02,2016-11-05,3,1,injury,Federico Fazio,/federico-fazio/profil/spieler/45314
-1617,Transferred to AS Roma,2016-08-03,2017-06-29,,,Transfer,Federico Fazio,/federico-fazio/profil/spieler/45314
-1617,Groin Injury,2016-09-05,2016-09-15,10,1,injury,Enes Ünal,/enes-unal/profil/spieler/251106
-1617,Transferred to Twente FC,2016-07-23,2017-06-29,,,Transfer,Enes Ünal,/enes-unal/profil/spieler/251106
-1617,Transferred to Aston Villa,2017-01-05,2017-05-30,,,Transfer,Sam Johnstone,/sam-johnstone/profil/spieler/110864
-1617,Knee Injury,2016-09-29,2017-01-29,122,19,injury,Jonathan Benteke,/jonathan-benteke/profil/spieler/273773
-1617,Transferred to Zulte Waregem,2016-07-01,2016-08-31,,,Transfer,Jonathan Benteke,/jonathan-benteke/profil/spieler/273773
-1617,Knee Injury,2017-06-14,2017-10-06,114,9,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
-1617,Knee Injury,2017-01-31,2017-03-04,32,5,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
-1617,Fractured Toe,2016-11-19,2016-12-17,28,6,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
-1617,Hip Injury,2016-11-14,2017-04-01,138,20,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
-1617,Back Injury,2016-09-27,2016-11-19,53,7,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
-1617,Inguinal Hernia,2016-07-08,2016-09-16,70,5,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
-1617,Transferred to Watford U21,2016-07-01,2017-01-30,,,Transfer,Michael Folivi,/michael-folivi/profil/spieler/479939
-1617,Transferred to Coventry,2017-01-31,2017-05-30,,,Transfer,Michael Folivi,/michael-folivi/profil/spieler/479939
-1617,Transferred to Watford U21,2017-05-31,2017-06-30,,,Transfer,Michael Folivi,/michael-folivi/profil/spieler/479939
+1617,Back Injury,2017-02-09,2017-03-01,20,4,injury,Gaël Clichy,/gael-clichy/profil/spieler/7449
+1617,Groin Injury,2016-07-19,2016-08-14,26,2,injury,Cameron Borthwick-Jackson,/cameron-borthwick-jackson/profil/spieler/258879
+1617,Transferred to Wolves,2016-08-22,2017-01-09,,,Transfer,Cameron Borthwick-Jackson,/cameron-borthwick-jackson/profil/spieler/258879
+1617,Ankle Injury,2016-10-14,2017-02-19,128,12,injury,Jake Hesketh,/jake-hesketh/profil/spieler/315185
+1617,Transferred to Sheff Utd,2016-07-01,2017-01-30,,,Transfer,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+1617,Toe Injury,2017-04-17,2017-04-20,3,1,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+1617,Hamstring Injury,2016-12-01,2017-02-27,88,18,injury,Marko Grujic,/marko-grujic/profil/spieler/222813
 1617,Muscular problems,2017-05-06,2017-05-31,25,2,injury,Samir Nasri,/samir-nasri/profil/spieler/18935
 1617,Muscle Injury,2017-04-06,2017-04-27,21,4,injury,Samir Nasri,/samir-nasri/profil/spieler/18935
 1617,Muscular problems,2017-01-20,2017-01-25,5,1,injury,Samir Nasri,/samir-nasri/profil/spieler/18935
@@ -738,222 +65,738 @@ season,details,from,until,days,games,reason,player,url
 1617,Achilles tendon problems,2016-10-31,2016-11-03,3,1,injury,Samir Nasri,/samir-nasri/profil/spieler/18935
 1617,Sprained ankle,2016-09-12,2016-09-19,7,2,injury,Samir Nasri,/samir-nasri/profil/spieler/18935
 1617,Transferred to Sevilla FC,2016-08-31,2017-06-29,,,Transfer,Samir Nasri,/samir-nasri/profil/spieler/18935
-1617,Transferred to KRC Genk,2016-07-01,2017-01-02,,,Transfer,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
-1617,Red card suspension,2016-12-04,2016-12-27,23,4,suspension,Sergio Agüero,/sergio-aguero/profil/spieler/26399
-1617,Suspension through sports court,2016-09-05,2016-09-17,12,2,suspension,Sergio Agüero,/sergio-aguero/profil/spieler/26399
-1617,Transferred to Man Utd U21,2016-07-01,2016-07-11,,,Transfer,Ashley Fletcher,/ashley-fletcher/profil/spieler/289846
-1617,Transferred to Real Betis,2016-07-01,2016-07-05,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
-1617,Transferred to Villarreal,2016-07-06,2017-01-30,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
-1617,Transferred to Villarreal,2017-06-30,2017-06-30,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
-1617,Transferred to Leeds,2016-07-01,2017-05-30,,,Transfer,Kyle Bartley,/kyle-bartley/profil/spieler/67421
-1617,Knock,2016-11-13,2016-11-18,5,,injury,Pierre-Emile Höjbjerg,/pierre-emile-hojbjerg/profil/spieler/167799
-1617,Transferred to Bayern Munich,2016-07-01,2016-07-10,,,Transfer,Pierre-Emile Höjbjerg,/pierre-emile-hojbjerg/profil/spieler/167799
-1617,Back trouble,2016-08-05,2016-10-31,87,13,injury,Sheyi Ojo,/sheyi-ojo/profil/spieler/236510
-1617,Transferred to Arsenal U21,2016-07-01,2017-06-30,,,Transfer,Ainsley Maitland-Niles,/ainsley-maitland-niles/profil/spieler/285845
-1617,Transferred to Olympique Lyon,2017-01-20,2017-06-30,,,Transfer,Memphis Depay,/memphis-depay/profil/spieler/167850
-1617,Transferred to Sheff Wed,2017-01-01,2017-05-30,,,Transfer,Callum McManaman,/callum-mcmanaman/profil/spieler/61711
-1617,Transferred to Everton U21,2016-07-01,2017-06-30,,,Transfer,Jonjoe Kenny,/jonjoe-kenny/profil/spieler/258883
+1617,Ill,2016-12-09,2016-12-18,9,3,injury,Cédric Soares,/cedric-soares/profil/spieler/112988
+1617,Foot Injury,2016-10-02,2016-11-19,48,9,injury,Cédric Soares,/cedric-soares/profil/spieler/112988
+1617,Transferred to Kidderminster,2017-01-01,2017-05-30,,,Transfer,Alex Palmer,/alex-palmer/profil/spieler/245625
+1617,Infected wound,2017-05-23,2017-05-28,5,1,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Ankle problems,2017-03-27,2017-04-13,17,3,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Screws/nails removal,2017-03-09,2017-03-23,14,2,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Ankle problems,2017-03-02,2017-03-09,7,1,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Fitness,2017-01-16,2017-02-23,38,6,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Torn Ankle Ligament,2016-09-12,2017-01-16,126,15,injury,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Transferred to E. Frankfurt,2016-07-23,2017-06-29,,,Transfer,Guillermo Varela,/guillermo-varela/profil/spieler/188862
+1617,Traffic Accident,2016-09-11,2017-08-25,348,41,injury,Pape Souaré,/pape-souare/profil/spieler/125868
+1617,Suspension through sports court,2016-09-23,2016-10-23,30,4,suspension,Andre Gray,/andre-gray/profil/spieler/120565
+1617,Knee Injury,2016-10-10,2017-01-27,109,16,injury,Kenedy,/kenedy/profil/spieler/281404
+1617,Toe Injury,2017-05-22,2017-06-30,39,,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
+1617,Shoulder Injury,2016-11-07,2016-11-18,11,,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
+1617,Shoulder Injury,2016-09-18,2016-10-16,28,4,injury,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
+1617,Transferred to Newcastle,2016-07-01,2016-08-22,,,Transfer,Daryl Janmaat,/daryl-janmaat/profil/spieler/60744
+1617,Hamstring Injury,2016-10-08,2016-10-28,20,4,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
+1617,Knee Injury,2016-08-01,2016-08-27,26,3,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
+1617,Knee Injury,2017-01-19,2017-06-01,133,19,injury,Kevin Long,/kevin-long/profil/spieler/111114
+1617,Suspension through sports court,2016-10-28,2016-11-20,23,3,suspension,Adama Diomande,/adama-diomande/profil/spieler/93145
+1617,Transferred to E. Frankfurt,2016-08-14,2017-06-29,,,Transfer,Michael Hector,/michael-hector/profil/spieler/157490
+1617,groin strain,2017-04-28,2017-05-10,12,2,injury,Jonas Olsson,/jonas-olsson/profil/spieler/25248
+1617,Transferred to Djurgården,2017-03-23,2017-06-30,,,Transfer,Jonas Olsson,/jonas-olsson/profil/spieler/25248
+1617,Unknown Injury,2017-01-30,2017-02-02,3,2,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
+1617,Unknown Injury,2017-01-06,2017-01-08,2,1,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
+1617,Unknown Injury,2016-11-06,2016-11-21,15,1,injury,Marvin Emnes,/marvin-emnes/profil/spieler/37787
+1617,Suspended,2016-08-12,2017-02-01,173,,suspension,Marvin Emnes,/marvin-emnes/profil/spieler/37787
+1617,Red card suspension,2016-12-29,2017-01-01,3,1,suspension,Nathan Redmond,/nathan-redmond/profil/spieler/129078
+1617,Fitness,2016-10-12,2017-01-20,100,,injury,Saido Berahino,/saido-berahino/profil/spieler/128897
+1617,Doping ban,2016-11-03,2016-12-29,56,8,absence,Saido Berahino,/saido-berahino/profil/spieler/128897
+1617,Knee Injury,2016-11-07,2016-11-17,10,,injury,Dele Alli,/dele-alli/profil/spieler/207929
+1617,Transferred to Birmingham,2016-08-31,2017-01-01,,,Transfer,Lukas Jutkiewicz,/lukas-jutkiewicz/profil/spieler/33507
+1617,Transferred to Birmingham,2017-01-03,2017-06-30,,,Transfer,Lukas Jutkiewicz,/lukas-jutkiewicz/profil/spieler/33507
+1617,Indirect card suspension,2016-05-22,2016-08-15,85,1,suspension,Chris Smalling,/chris-smalling/profil/spieler/103427
+1617,Red card suspension,2016-12-15,2017-01-02,18,3,suspension,Marko Arnautovic,/marko-arnautovic/profil/spieler/41384
+1617,Yellow card suspension,2016-10-31,2016-11-07,7,1,suspension,Marko Arnautovic,/marko-arnautovic/profil/spieler/41384
+1617,Elbow Injury,2016-08-23,2016-11-18,87,12,injury,Vito Mannone,/vito-mannone/profil/spieler/33781
+1617,Hamstring Injury,2016-12-26,2017-01-06,11,3,injury,Jason Denayer,/jason-denayer/profil/spieler/277114
+1617,Adductors avulsion,2016-10-08,2016-11-04,27,4,injury,Jason Denayer,/jason-denayer/profil/spieler/277114
+1617,Transferred to AC Milan,2017-01-23,2017-06-29,,,Transfer,Gerard Deulofeu,/gerard-deulofeu/profil/spieler/129476
+1617,Hamstring Injury,2016-08-01,2016-11-05,96,12,injury,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1617,Indirect card suspension,2017-02-26,2017-03-05,7,1,suspension,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+1617,Knee Injury,2017-04-13,2017-04-30,17,4,injury,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
+1617,Transferred to Belenenses,2016-08-31,2017-01-04,,,Transfer,Joel Pereira,/joel-pereira/profil/spieler/192611
+1617,Ankle Injury,2017-01-26,2017-09-14,231,23,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+1617,Indirect card suspension,2017-01-01,2017-01-03,2,1,suspension,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+1617,Hamstring Injury,2017-02-13,2017-03-11,26,4,injury,Simon Francis,/simon-francis/profil/spieler/13573
+1617,Red card suspension,2017-04-27,2017-05-14,17,3,suspension,Marouane Fellaini,/marouane-fellaini/profil/spieler/39679
+1617,Fractured Skull,2017-01-22,2018-02-13,387,,injury,Ryan Mason,/ryan-mason/profil/spieler/61834
+1617,Shoulder Injury,2016-07-09,2017-04-04,269,34,injury,James Husband,/james-husband/profil/spieler/167393
+1617,Called up to national team,2017-01-02,2017-01-23,21,2,absence,Riyad Mahrez,/riyad-mahrez/profil/spieler/171424
+1617,Ankle Injury,2016-11-15,2016-12-25,40,6,injury,Boaz Myhill,/boaz-myhill/profil/spieler/3838
+1617,Transferred to Ipswich,2016-08-30,2017-05-30,,,Transfer,Tom Lawrence,/tom-lawrence/profil/spieler/229970
+1617,Medial Collateral Ligament Injury,2016-08-11,2016-11-24,105,15,injury,Sebastian Larsson,/sebastian-larsson/profil/spieler/31720
+1617,Red card suspension,2017-04-10,2017-04-27,17,3,suspension,Sebastian Larsson,/sebastian-larsson/profil/spieler/31720
+1617,Transferred to Málaga CF,2017-01-24,2017-06-30,,,Transfer,Luis Hernández,/luis-hernandez/profil/spieler/62945
+1617,Transferred to AFC Wimbledon,2016-07-01,2016-08-04,,,Transfer,Ryan Sweeney,/ryan-sweeney/profil/spieler/347666
+1617,Transferred to Bristol Rovers,2017-01-20,2017-05-30,,,Transfer,Ryan Sweeney,/ryan-sweeney/profil/spieler/347666
+1617,Knee Injury,2016-12-14,2017-05-31,168,25,injury,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
+1617,Transferred to Juventus,2016-07-01,2016-08-18,,,Transfer,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
+1617,Cruciate Ligament Rupture,2017-05-23,2018-09-02,467,67,injury,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
+1617,Transferred to VVV-Venlo,2017-01-31,2017-06-29,,,Transfer,Gedion Zelalem,/gedion-zelalem/profil/spieler/228370
+1617,Transferred to Vitesse,2016-07-01,2017-06-29,,,Transfer,Lewis Baker,/lewis-baker/profil/spieler/198589
+1617,Leg Injury,2016-12-19,2017-01-13,25,5,injury,Maarten Stekelenburg,/maarten-stekelenburg/profil/spieler/4311
+1617,Foot Injury,2016-10-28,2016-11-02,5,1,injury,Maarten Stekelenburg,/maarten-stekelenburg/profil/spieler/4311
+1617,Transferred to Wigan,2016-08-16,2017-01-01,,,Transfer,Luke Garbutt,/luke-garbutt/profil/spieler/110860
+1617,Transferred to Accrington,2017-01-01,2017-05-30,,,Transfer,Harvey Rodgers,/harvey-rodgers/profil/spieler/459873
+1617,Ankle Injury,2016-10-31,2016-12-12,42,8,injury,Ben Davies,/ben-davies/profil/spieler/192765
+1617,Transferred to Marseille,2016-07-29,2017-06-29,,,Transfer,Bafétimbi Gomis,/bafetimbi-gomis/profil/spieler/22388
+1617,Transferred to Aston Villa,2017-01-05,2017-05-30,,,Transfer,Sam Johnstone,/sam-johnstone/profil/spieler/110864
+1617,Knee Injury,2017-05-21,2017-09-06,108,4,injury,Gabriel Paulista,/gabriel-paulista/profil/spieler/149498
+1617,Ankle Injury,2016-08-08,2016-09-19,42,6,injury,Gabriel Paulista,/gabriel-paulista/profil/spieler/149498
+1617,Transferred to Besiktas,2016-07-01,2016-07-10,,,Transfer,Gökhan Töre,/gokhan-tore/profil/spieler/82130
+1617,Transferred to Besiktas,2017-06-30,2017-06-30,,,Transfer,Gökhan Töre,/gokhan-tore/profil/spieler/82130
+1617,Muscle Injury,2016-12-09,2017-01-01,23,5,injury,Bakary Sako,/bakary-sako/profil/spieler/46791
+1617,Groin Strain,2016-07-20,2016-09-14,56,5,injury,Bakary Sako,/bakary-sako/profil/spieler/46791
+1617,Yellow card suspension,2016-10-31,2016-11-07,7,1,suspension,Idrissa Gueye,/idrissa-gueye/profil/spieler/126665
+1617,Transferred to Aston Villa,2016-07-01,2016-08-01,,,Transfer,Idrissa Gueye,/idrissa-gueye/profil/spieler/126665
+1617,Foot Injury,2017-01-29,2017-02-25,27,5,injury,Costel Pantilimon,/costel-pantilimon/profil/spieler/47659
+1617,Hamstring Injury,2017-02-27,2017-06-29,122,12,injury,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
+1617,Hamstring Injury,2016-10-10,2016-11-03,24,4,injury,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
+1617,Transferred to Dynamo Kyiv,2016-07-01,2016-08-30,,,Transfer,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
+1617,Transferred to Dynamo Kyiv,2017-06-30,2017-06-30,,,Transfer,Dieumerci Mbokani,/dieumerci-mbokani/profil/spieler/44624
+1617,Transferred to Slovan Liberec,2016-07-12,2016-12-31,,,Transfer,Filip Lesniak,/filip-lesniak/profil/spieler/186383
+1617,Red card suspension,2017-02-12,2017-02-26,14,1,suspension,Sam Clucas,/sam-clucas/profil/spieler/122223
+1617,Transferred to Reading,2017-01-31,2017-06-29,,,Transfer,Lewis Grabban,/lewis-grabban/profil/spieler/35413
+1617,Calf Problems,2016-11-02,2016-11-05,3,1,injury,Federico Fazio,/federico-fazio/profil/spieler/45314
+1617,Transferred to AS Roma,2016-08-03,2017-06-29,,,Transfer,Federico Fazio,/federico-fazio/profil/spieler/45314
+1617,Thigh Muscle Strain,2017-01-07,2017-02-05,29,6,injury,Leonardo Ulloa,/leonardo-ulloa/profil/spieler/54890
+1617,Hamstring Injury,2016-08-16,2016-10-25,70,11,injury,André Ayew,/andre-ayew/profil/spieler/45403
+1617,Foot Injury,2017-04-30,2017-08-20,112,11,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+1617,Transferred to Oldham Athletic,2016-07-09,2017-05-30,,,Transfer,Connor Ripley,/connor-ripley/profil/spieler/163531
+1617,Hamstring Injury,2016-10-31,2016-11-07,7,1,injury,Max Gradel,/max-gradel/profil/spieler/28140
+1617,Hamstring Injury,2016-10-03,2016-10-17,14,1,injury,Max Gradel,/max-gradel/profil/spieler/28140
+1617,Knock,2016-08-16,2016-08-30,14,4,injury,Dimitri Payet,/dimitri-payet/profil/spieler/37647
+1617,Transferred to Ajax,2016-07-01,2016-07-05,,,Transfer,Mike van der Hoorn,/mike-van-der-hoorn/profil/spieler/187105
+1617,Transferred to Reading,2017-01-31,2017-05-30,,,Transfer,Jordon Mutch,/jordon-mutch/profil/spieler/57207
+1617,Calf Injury,2016-11-25,2016-12-13,18,3,injury,Ryan Shawcross,/ryan-shawcross/profil/spieler/45861
+1617,Transferred to Valencia,2016-07-01,2016-07-19,,,Transfer,Álvaro Negredo,/alvaro-negredo/profil/spieler/18644
+1617,Transferred to Valencia,2017-06-30,2017-06-30,,,Transfer,Álvaro Negredo,/alvaro-negredo/profil/spieler/18644
+1617,Transferred to Grêmio,2016-07-01,2017-06-29,,,Transfer,Wallace Oliveira,/wallace-oliveira/profil/spieler/181779
+1617,Calf Injury,2017-06-07,2017-06-24,17,4,injury,Anton Walkes,/anton-walkes/profil/spieler/307763
+1617,Transferred to Atlanta,2017-01-26,2017-06-30,,,Transfer,Anton Walkes,/anton-walkes/profil/spieler/307763
+1617,Suspension through sports court,2017-03-09,2017-04-10,32,5,suspension,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+1617,Unknown Injury,2016-09-18,2016-10-02,14,5,injury,Eric Dier,/eric-dier/profil/spieler/175722
+1617,Transferred to Charlton,2016-08-31,2017-05-30,,,Transfer,Fredrik Ulvestad,/fredrik-ulvestad/profil/spieler/158022
+1617,Transferred to Cardiff,2016-07-01,2016-08-29,,,Transfer,David Marshall,/david-marshall/profil/spieler/9500
+1617,Knock,2016-10-15,2016-10-19,4,1,injury,Morgan Schneiderlin,/morgan-schneiderlin/profil/spieler/56818
+1617,Transferred to Peterborough,2016-08-31,2017-05-30,,,Transfer,Luke McGee,/luke-mcgee/profil/spieler/183301
+1617,Hamstring Injury,2016-09-07,2016-11-04,58,8,injury,Marc Pugh,/marc-pugh/profil/spieler/36939
+1617,Calf Strain,2017-03-05,2017-04-17,43,6,injury,George Friend,/george-friend/profil/spieler/77544
+1617,Calf Injury,2017-01-28,2017-03-03,34,6,injury,George Friend,/george-friend/profil/spieler/77544
+1617,Knee Injury,2016-11-17,2016-12-14,27,5,injury,George Friend,/george-friend/profil/spieler/77544
+1617,Arthroscopie,2016-10-06,2016-12-07,62,3,injury,Joleon Lescott,/joleon-lescott/profil/spieler/4241
+1617,Transferred to Aston Villa,2016-07-01,2016-08-28,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
+1617,Transferred to AEK Athens,2016-08-29,2016-11-23,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
+1617,Transferred to Without Club,2016-11-24,2017-01-23,,,Transfer,Joleon Lescott,/joleon-lescott/profil/spieler/4241
+1617,Unknown Injury,2016-09-18,2016-10-02,14,5,injury,Mousa Dembélé,/mousa-dembele/profil/spieler/19368
+1617,Fractured Leg,2017-03-27,2018-01-13,292,45,injury,Seamus Coleman,/seamus-coleman/profil/spieler/68390
+1617,Ankle Injury,2016-08-11,2016-09-05,25,4,injury,Seamus Coleman,/seamus-coleman/profil/spieler/68390
+1617,Nose surgery,2017-05-22,2017-07-03,42,,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
+1617,Muscle Injury,2016-12-15,2017-01-16,32,6,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
+1617,Hamstring Injury,2016-08-04,2016-09-05,32,5,injury,Leroy Sané,/leroy-sane/profil/spieler/192565
+1617,Transferred to FC Schalke 04,2016-07-01,2016-08-01,,,Transfer,Leroy Sané,/leroy-sane/profil/spieler/192565
+1617,Transferred to Aldershot,2017-01-19,2017-05-30,,,Transfer,Callum Buckley,/callum-buckley/profil/spieler/398398
+1617,Calf Strain,2016-10-03,2016-10-14,11,,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+1617,Transferred to Newcastle,2016-07-01,2016-08-30,,,Transfer,Moussa Sissoko,/moussa-sissoko/profil/spieler/46001
+1617,Hamstring Injury,2016-09-05,2016-10-03,28,7,injury,Danny Rose,/danny-rose/profil/spieler/50174
+1617,Yellow card suspension,2016-11-20,2016-11-27,7,1,suspension,Danny Rose,/danny-rose/profil/spieler/50174
+1617,Calf Strain,2017-03-18,2017-04-17,30,5,injury,Petr Cech,/petr-cech/profil/spieler/5658
+1617,Ankle Injury,2016-12-01,2016-12-28,27,6,injury,Vincent Janssen,/vincent-janssen/profil/spieler/207015
+1617,Concussion,2016-11-10,2016-11-16,6,,injury,Vincent Janssen,/vincent-janssen/profil/spieler/207015
+1617,Transferred to AZ Alkmaar,2016-07-01,2016-07-11,,,Transfer,Vincent Janssen,/vincent-janssen/profil/spieler/207015
+1617,Knee Surgery,2016-08-24,2017-04-04,223,41,injury,Jérémy Pied,/jeremy-pied/profil/spieler/60583
+1617,Transferred to OGC Nice,2016-07-01,2016-07-31,,,Transfer,Jérémy Pied,/jeremy-pied/profil/spieler/60583
+1617,Knee Injury,2016-10-15,2016-10-21,6,1,injury,Harry Arter,/harry-arter/profil/spieler/55742
+1617,Yellow card suspension,2016-10-16,2016-10-23,7,1,suspension,Jonny Evans,/jonny-evans/profil/spieler/42412
+1617,Calf Strain,2016-10-15,2016-11-26,42,7,injury,Andrew Robertson,/andrew-robertson/profil/spieler/234803
+1617,Knock,2016-12-05,2017-01-13,39,7,injury,James Collins,/james-collins/profil/spieler/12691
 1617,Groin Injury,2017-04-13,2017-04-28,15,3,injury,Islam Slimani,/islam-slimani/profil/spieler/174915
 1617,Groin Injury,2017-01-23,2017-03-13,49,9,injury,Islam Slimani,/islam-slimani/profil/spieler/174915
 1617,Minor Knock,2016-10-27,2016-11-03,7,2,injury,Islam Slimani,/islam-slimani/profil/spieler/174915
 1617,Transferred to Sporting CP,2016-07-01,2016-08-30,,,Transfer,Islam Slimani,/islam-slimani/profil/spieler/174915
-1617,Knee Injury,2017-05-21,2017-09-06,108,4,injury,Gabriel Paulista,/gabriel-paulista/profil/spieler/149498
-1617,Ankle Injury,2016-08-08,2016-09-19,42,6,injury,Gabriel Paulista,/gabriel-paulista/profil/spieler/149498
-1617,Cruciate Ligament Injury,2016-11-06,2018-01-19,439,62,injury,Will Keane,/will-keane/profil/spieler/118535
-1617,Inguinal Hernia,2016-09-26,2016-12-17,82,12,injury,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1617,Thigh muscle rupture,2017-02-25,2017-05-25,89,17,injury,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
+1617,Transferred to Charlton,2017-01-31,2017-02-28,,,Transfer,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
+1617,Groin Strain,2016-11-30,2016-12-11,11,3,injury,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1617,Knee Injury,2016-07-23,2016-10-15,84,13,injury,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1617,Indirect card suspension,2016-10-17,2016-10-24,7,1,suspension,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Christian Fuchs,/christian-fuchs/profil/spieler/6636
+1617,Transferred to KRC Genk,2016-07-01,2017-01-02,,,Transfer,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+1617,Red card suspension,2017-03-19,2017-04-09,21,3,suspension,Tom Huddlestone,/tom-huddlestone/profil/spieler/13465
+1617,Ankle Injury,2016-09-24,2016-11-05,42,7,injury,Adnan Januzaj,/adnan-januzaj/profil/spieler/177847
+1617,Knee Injury,2016-10-30,2018-06-30,608,139,injury,Rhoys Wiggins,/rhoys-wiggins/profil/spieler/42298
+1617,Transferred to Birmingham,2016-08-31,2017-01-01,,,Transfer,Rhoys Wiggins,/rhoys-wiggins/profil/spieler/42298
+1617,Groin Injury,2017-04-15,2017-09-11,149,11,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
+1617,Groin Injury,2017-02-04,2017-03-06,30,4,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
+1617,Knee Injury,2016-08-18,2016-12-02,106,17,injury,Andy Carroll,/andy-carroll/profil/spieler/48066
+1617,Hamstring Injury,2017-03-18,2017-08-18,153,,injury,Valon Behrami,/valon-behrami/profil/spieler/21905
+1617,Yellow card suspension,2016-11-28,2016-12-04,6,1,suspension,Valon Behrami,/valon-behrami/profil/spieler/21905
+1617,Cruciate Ligament Rupture,2016-12-15,2017-08-13,241,31,injury,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+1617,Hamstring Injury,2016-12-17,2017-01-07,21,3,injury,Tomas Kalas,/tomas-kalas/profil/spieler/148657
+1617,Unknown Injury,2016-09-20,2016-10-23,33,7,injury,Tomas Kalas,/tomas-kalas/profil/spieler/148657
+1617,Transferred to Fulham,2016-07-13,2017-05-30,,,Transfer,Tomas Kalas,/tomas-kalas/profil/spieler/148657
+1617,Transferred to Djurgården,2016-07-01,2016-11-29,,,Transfer,Mathias Ranégie,/mathias-ranegie/profil/spieler/46477
+1617,Transferred to Udinese Calcio,2017-01-31,2017-06-29,,,Transfer,Mathias Ranégie,/mathias-ranegie/profil/spieler/46477
+1617,Cruciate Ligament Injury,2016-11-19,2017-11-09,355,48,injury,Paddy McNair,/paddy-mcnair/profil/spieler/167268
+1617,Ankle Injury,2016-12-12,2017-01-09,28,6,injury,Joel Matip,/joel-matip/profil/spieler/82105
+1617,Ankle Injury,2016-11-28,2016-12-05,7,2,injury,Joel Matip,/joel-matip/profil/spieler/82105
+1617,Transferred to Huddersfield,2016-07-11,2017-05-30,,,Transfer,Danny Ward,/danny-ward/profil/spieler/203026
+1617,Knee Injury,2016-12-01,2017-01-22,52,10,injury,Adrian Mariappa,/adrian-mariappa/profil/spieler/38145
+1617,Metatarsal Fracture,2017-03-11,2017-06-01,82,11,injury,Ángel Rangel,/angel-rangel/profil/spieler/66550
 1617,Hamstring Injury,2017-03-22,2017-04-14,23,3,injury,Fraizer Campbell,/fraizer-campbell/profil/spieler/42411
 1617,Hamstring Injury,2016-07-27,2016-09-19,54,6,injury,Fraizer Campbell,/fraizer-campbell/profil/spieler/42411
-1617,Transferred to Man Utd U18,2016-07-01,2017-06-30,,,Transfer,Zak Dearnley,/zak-dearnley/profil/spieler/396284
-1617,Transferred to Bournemouth U21,2016-07-01,2017-01-05,,,Transfer,Jordan Holmes,/jordan-holmes/profil/spieler/399158
-1617,Transferred to Eastbourne,2017-01-06,2017-05-30,,,Transfer,Jordan Holmes,/jordan-holmes/profil/spieler/399158
-1617,Transferred to Bournemouth U21,2017-05-31,2017-06-30,,,Transfer,Jordan Holmes,/jordan-holmes/profil/spieler/399158
-1617,Cheekbone Fracture,2017-01-11,2017-02-04,24,3,injury,Neil Taylor,/neil-taylor/profil/spieler/67416
-1617,Groin Strain,2016-12-20,2016-12-31,11,2,injury,Neil Taylor,/neil-taylor/profil/spieler/67416
-1617,Transferred to Aston Villa,2017-01-31,2017-06-30,,,Transfer,Neil Taylor,/neil-taylor/profil/spieler/67416
+1617,Transferred to Blackburn,2016-07-01,2017-05-30,,,Transfer,Stephen Hendrie,/stephen-hendrie/profil/spieler/186269
 1617,Transferred to AC Milan,2016-08-27,2017-06-29,,,Transfer,Mario Pasalic,/mario-pasalic/profil/spieler/205938
-1617,Transferred to Spurs U18,2016-07-01,2017-06-30,,,Transfer,Samuel Shashoua,/samuel-shashoua/profil/spieler/387313
-1617,Cruciate Ligament Rupture,2016-11-27,2018-03-12,470,62,injury,Connor Wickham,/connor-wickham/profil/spieler/95435
-1617,Achilles tendon surgery,2016-07-11,2017-02-01,205,1,injury,Alex Bruce,/alex-bruce/profil/spieler/37957
-1617,Transferred to Wigan,2017-01-31,2017-05-30,,,Transfer,Alex Bruce,/alex-bruce/profil/spieler/37957
-1617,Fitness,2016-09-05,2016-10-17,42,7,injury,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
-1617,Transferred to Olympiacos,2016-07-01,2017-01-19,,,Transfer,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
-1617,Transferred to Olympiacos,2017-06-30,2017-06-30,,,Transfer,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
-1617,Transferred to Brighton,2016-08-31,2017-05-30,,,Transfer,Sébastien Pocognoli,/sebastien-pocognoli/profil/spieler/17804
-1617,Hamstring Injury,2017-01-03,2017-01-16,13,3,injury,Francis Coquelin,/francis-coquelin/profil/spieler/74869
-1617,Knee Injury,2016-09-27,2016-10-17,20,3,injury,Francis Coquelin,/francis-coquelin/profil/spieler/74869
-1617,Transferred to Man City U23,2016-07-01,2017-06-30,,,Transfer,Brahim Díaz,/brahim-diaz/profil/spieler/314678
-1617,Hand fracture,2017-06-15,2017-08-12,58,,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-1617,Transferred to Wycombe,2016-08-15,2017-05-30,,,Transfer,Jamal Blackman,/jamal-blackman/profil/spieler/128898
-1617,Hamstring Injury,2017-03-27,2017-04-27,31,5,injury,Adam Lallana,/adam-lallana/profil/spieler/43530
-1617,Hamstring Injury,2017-04-08,2017-08-10,124,7,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
-1617,Hamstring Injury,2017-03-18,2017-04-04,17,2,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
-1617,Groin Strain,2016-11-30,2016-12-11,11,3,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
-1617,Indirect card suspension,2017-02-26,2017-03-07,9,1,suspension,Michail Antonio,/michail-antonio/profil/spieler/104124
-1617,Hamstring Injury,2016-10-31,2016-11-07,7,1,injury,Max Gradel,/max-gradel/profil/spieler/28140
-1617,Hamstring Injury,2016-10-03,2016-10-17,14,1,injury,Max Gradel,/max-gradel/profil/spieler/28140
-1617,Knee Injury,2016-11-07,2016-11-17,10,,injury,Dele Alli,/dele-alli/profil/spieler/207929
-1617,Head Injury,2017-01-10,2017-06-30,171,25,injury,Ben Hamer,/ben-hamer/profil/spieler/67283
-1617,Groin Strain,2016-12-09,2016-12-31,22,4,injury,James Tomkins,/james-tomkins/profil/spieler/61592
-1617,Red card suspension,2017-02-12,2017-02-26,14,1,suspension,Sam Clucas,/sam-clucas/profil/spieler/122223
-1617,Transferred to Charlton,2016-07-01,2016-07-18,,,Transfer,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
-1617,Ankle Injury,2016-10-15,2017-01-31,108,8,injury,Marcus Edwards,/marcus-edwards/profil/spieler/314367
-1617,Transferred to Tottenham U23,2016-07-01,2017-06-30,,,Transfer,Marcus Edwards,/marcus-edwards/profil/spieler/314367
-1617,Bruised Rib,2016-12-19,2016-12-29,10,1,injury,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
-1617,Knee Injury,2016-07-25,2016-09-08,45,7,injury,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
-1617,Knee Injury,2016-12-14,2017-05-31,168,25,injury,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
-1617,Transferred to Juventus,2016-07-01,2016-08-18,,,Transfer,Roberto Pereyra,/roberto-pereyra/profil/spieler/112302
-1617,Transferred to Atlético Madrid,2016-07-01,2016-08-24,,,Transfer,Javier Manquillo,/javier-manquillo/profil/spieler/162029
-1617,Transferred to Atlético Madrid,2017-06-30,2017-06-30,,,Transfer,Javier Manquillo,/javier-manquillo/profil/spieler/162029
+1617,Transferred to MK Dons,2017-01-20,2017-04-30,,,Transfer,Harvey Barnes,/harvey-barnes/profil/spieler/398065
+1617,Transferred to Wigan,2016-08-30,2017-05-30,,,Transfer,Reece Burke,/reece-burke/profil/spieler/264220
+1617,Ankle Surgery,2016-10-20,2018-06-30,618,103,injury,Santi Cazorla,/santi-cazorla/profil/spieler/15799
+1617,Groin Injury,2017-03-03,2017-03-13,10,2,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
+1617,Ankle Injury,2016-12-04,2016-12-25,21,4,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
+1617,Inguinal Hernia,2016-06-01,2016-08-27,87,4,injury,Junior Stanislas,/junior-stanislas/profil/spieler/87672
+1617,Cruciate Ligament Rupture,2017-02-02,2017-10-20,260,25,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+1617,Muscular problems,2017-05-04,2017-08-20,108,10,injury,Ashley Young,/ashley-young/profil/spieler/14086
+1617,Knock,2017-04-03,2017-04-13,10,3,injury,Ashley Young,/ashley-young/profil/spieler/14086
+1617,Transferred to Sheff Wed,2016-08-31,2017-06-30,,,Transfer,Adam Reach,/adam-reach/profil/spieler/163530
+1617,Indirect card suspension,2016-11-20,2016-11-27,7,1,suspension,Papy Djilobodji,/papy-djilobodji/profil/spieler/136610
+1617,Strain,2016-11-22,2016-12-17,25,5,injury,John Terry,/john-terry/profil/spieler/3160
+1617,Ankle Injury,2016-09-11,2016-10-01,20,5,injury,John Terry,/john-terry/profil/spieler/3160
+1617,Red card suspension,2017-01-09,2017-01-15,6,1,suspension,John Terry,/john-terry/profil/spieler/3160
+1617,Fractured Hand,2016-07-28,2016-09-08,42,4,injury,Loris Karius,/loris-karius/profil/spieler/85864
+1617,Transferred to Bradford,2016-08-08,2017-05-30,,,Transfer,Josh Cullen,/josh-cullen/profil/spieler/242606
+1617,Hamstring Injury,2016-08-15,2016-09-15,31,4,injury,Hugo Lloris,/hugo-lloris/profil/spieler/17965
+1617,Transferred to Rayo Vallecano,2016-07-29,2017-06-29,,,Transfer,Paulo Gazzaniga,/paulo-gazzaniga/profil/spieler/195488
+1617,Calf Strain,2017-04-28,2017-05-05,7,1,injury,Jack Rodwell,/jack-rodwell/profil/spieler/57079
+1617,Hamstring Injury,2016-11-03,2016-12-31,58,9,injury,Jack Rodwell,/jack-rodwell/profil/spieler/57079
 1617,Torn Muscle Fibre,2017-05-01,2017-09-20,142,5,injury,Jefferson Montero,/jefferson-montero/profil/spieler/77932
 1617,Hamstring Injury,2016-12-27,2017-02-28,63,9,injury,Jefferson Montero,/jefferson-montero/profil/spieler/77932
 1617,Fractured Hand,2016-11-07,2016-11-25,18,1,injury,Jefferson Montero,/jefferson-montero/profil/spieler/77932
 1617,Hamstring Injury,2016-09-30,2016-11-04,35,4,injury,Jefferson Montero,/jefferson-montero/profil/spieler/77932
-1617,Transferred to Birmingham,2016-08-31,2017-01-01,,,Transfer,Lukas Jutkiewicz,/lukas-jutkiewicz/profil/spieler/33507
-1617,Transferred to Birmingham,2017-01-03,2017-06-30,,,Transfer,Lukas Jutkiewicz,/lukas-jutkiewicz/profil/spieler/33507
-1617,Yellow card suspension,2016-12-27,2017-01-02,6,1,suspension,Damien Delaney,/damien-delaney/profil/spieler/36861
-1617,Shoulder Injury,2017-04-27,2017-05-20,23,7,injury,Timothy Fosu-Mensah,/timothy-fosu-mensah/profil/spieler/315131
+1617,Transferred to Sheff Wed,2016-08-15,2017-06-30,,,Transfer,David Jones,/david-jones/profil/spieler/24634
+1617,Thigh Problems,2016-10-27,2016-11-07,11,3,injury,Nacho Monreal,/nacho-monreal/profil/spieler/43003
+1617,Transferred to Notts County,2017-01-31,2017-05-30,,,Transfer,Marc Bola,/marc-bola/profil/spieler/340310
 1617,Thigh Problems,2016-11-27,2016-12-05,8,3,injury,Olivier Giroud,/olivier-giroud/profil/spieler/82442
-1617,Toe Injury,2016-09-24,2016-10-16,22,4,injury,Olivier Giroud,/olivier-giroud/profil/spieler/82442
+1617,Transferred to Girona,2017-01-01,2017-06-29,,,Transfer,Pablo Maffeo,/pablo-maffeo/profil/spieler/251876
+1617,Knee Surgery,2017-01-03,2017-03-03,59,8,injury,Jonathan Walters,/jonathan-walters/profil/spieler/3306
+1617,Fitness,2016-09-05,2016-10-17,42,7,injury,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
+1617,Transferred to Olympiacos,2016-07-01,2017-01-19,,,Transfer,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
+1617,Transferred to Olympiacos,2017-06-30,2017-06-30,,,Transfer,Omar Elabdellaoui,/omar-elabdellaoui/profil/spieler/121404
+1617,Transferred to Northampton,2016-07-29,2017-01-01,,,Transfer,Kenji Gorré,/kenji-gorre/profil/spieler/374889
+1617,Cheekbone Fracture,2017-01-11,2017-02-04,24,3,injury,Neil Taylor,/neil-taylor/profil/spieler/67416
+1617,Groin Strain,2016-12-20,2016-12-31,11,2,injury,Neil Taylor,/neil-taylor/profil/spieler/67416
+1617,Transferred to Aston Villa,2017-01-31,2017-06-30,,,Transfer,Neil Taylor,/neil-taylor/profil/spieler/67416
+1617,Transferred to 1.FSV Mainz 05,2017-01-29,2017-06-29,,,Transfer,Bojan Krkic,/bojan-krkic/profil/spieler/44675
+1617,Knee Problems,2017-02-17,2017-02-24,7,2,injury,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
+1617,No eligibility,2016-09-01,2017-01-30,151,19,absence,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
+1617,Transferred to Olympiacos,2017-01-31,2017-06-29,,,Transfer,Juan Carlos Paredes,/juan-carlos-paredes/profil/spieler/100507
+1617,Transferred to Fleetwood,2016-08-12,2017-01-28,,,Transfer,Chris Long,/chris-long/profil/spieler/183298
+1617,Transferred to Bolton,2017-01-30,2017-05-30,,,Transfer,Chris Long,/chris-long/profil/spieler/183298
+1617,Muscular problems,2017-04-25,2017-05-10,15,3,injury,Mario Suárez,/mario-suarez/profil/spieler/37337
+1617,Transferred to Valencia,2016-08-16,2017-06-29,,,Transfer,Mario Suárez,/mario-suarez/profil/spieler/37337
+1617,Transferred to Derby,2016-08-27,2017-06-30,,,Transfer,Matej Vydra,/matej-vydra/profil/spieler/101500
+1617,Cruciate Ligament Rupture,2016-02-29,2016-10-24,238,21,injury,Chris Brunt,/chris-brunt/profil/spieler/36814
+1617,Achilles tendon rupture,2017-02-13,2017-09-22,221,20,injury,Nathan Dyer,/nathan-dyer/profil/spieler/37011
+1617,Ankle Injury,2016-09-10,2016-11-19,70,10,injury,Nathan Dyer,/nathan-dyer/profil/spieler/37011
+1617,Transferred to FC Schalke 04,2016-08-02,2017-06-29,,,Transfer,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
+1617,Transferred to Derby,2017-01-05,2017-05-30,,,Transfer,Julien De Sart,/julien-de-sart/profil/spieler/129592
+1617,Bruise,2017-01-26,2017-02-06,11,2,injury,Oliver McBurnie,/oliver-mcburnie/profil/spieler/298477
+1617,Transferred to Real Betis,2016-07-01,2016-07-05,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
+1617,Transferred to Villarreal,2016-07-06,2017-01-30,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
+1617,Transferred to Villarreal,2017-06-30,2017-06-30,,,Transfer,Alfred N'Diaye,/alfred-ndiaye/profil/spieler/77737
+1617,Transferred to Reading U21,2016-07-01,2016-07-31,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
+1617,Transferred to Accrington,2017-01-31,2017-05-30,,,Transfer,Noor Husin,/noor-husin/profil/spieler/320220
+1617,Knee Surgery,2016-10-26,2017-08-10,288,35,injury,Danny Ings,/danny-ings/profil/spieler/134294
+1617,Groin Strain,2017-03-19,2017-04-15,27,5,injury,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
+1617,Muscle Fatigue,2016-11-14,2016-11-19,5,1,injury,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
+1617,Transferred to SSC Napoli,2016-07-01,2017-01-30,,,Transfer,Manolo Gabbiadini,/manolo-gabbiadini/profil/spieler/112343
+1617,Transferred to Sevilla FC,2016-07-01,2016-08-04,,,Transfer,Fernando Llorente,/fernando-llorente/profil/spieler/35564
+1617,Transferred to Southend United,2016-08-31,2017-05-30,,,Transfer,Ryan Inniss,/ryan-inniss/profil/spieler/183284
+1617,Transferred to Brighton,2016-08-31,2017-05-30,,,Transfer,Sébastien Pocognoli,/sebastien-pocognoli/profil/spieler/17804
+1617,Transferred to Preston,2016-08-31,2017-05-30,,,Transfer,Aiden McGeady,/aiden-mcgeady/profil/spieler/21333
+1617,Hip problems,2016-08-21,2016-09-09,19,3,injury,John O'Shea,/john-oshea/profil/spieler/3540
+1617,Hamstring Injury,2017-01-29,2017-03-10,40,6,injury,Curtis Davies,/curtis-davies/profil/spieler/18227
+1617,Hamstring Injury,2017-01-02,2017-01-20,18,4,injury,Curtis Davies,/curtis-davies/profil/spieler/18227
+1617,Transferred to Rangers,2016-07-01,2016-11-09,,,Transfer,Joey Barton,/joey-barton/profil/spieler/3292
+1617,Transferred to Without Club,2016-11-10,2017-01-01,,,Transfer,Joey Barton,/joey-barton/profil/spieler/3292
+1617,Bruise,2017-01-17,2017-02-04,18,3,injury,Brendan Galloway,/brendan-galloway/profil/spieler/208244
+1617,No eligibility,2016-09-01,2017-01-30,151,19,absence,Giedrius Arlauskis,/giedrius-arlauskis/profil/spieler/69001
+1617,Groin Injury,2016-08-27,2016-12-09,104,14,injury,Fabio Borini,/fabio-borini/profil/spieler/96754
+1617,Toe Injury,2016-08-18,2016-08-26,8,2,injury,Fabio Borini,/fabio-borini/profil/spieler/96754
+1617,Transferred to Juventus,2016-07-01,2016-08-27,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
+1617,Transferred to Juventus,2017-01-14,2017-01-14,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
+1617,Transferred to Valencia,2017-01-15,2017-06-29,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
+1617,Transferred to Juventus,2017-06-30,2017-06-30,,,Transfer,Simone Zaza,/simone-zaza/profil/spieler/96828
+1617,Fractured Toe,2016-12-01,2016-12-25,24,4,injury,Federico Fernández,/federico-fernandez/profil/spieler/85475
+1617,Transferred to Sheff Utd,2016-08-31,2017-01-11,,,Transfer,Danny Lafferty,/danny-lafferty/profil/spieler/85928
+1617,Transferred to Sheff Utd,2017-01-13,2017-06-30,,,Transfer,Danny Lafferty,/danny-lafferty/profil/spieler/85928
+1617,Ill,2016-12-08,2016-12-17,9,3,injury,Oscar,/oscar/profil/spieler/85314
+1617,Transferred to SH SIPG,2017-01-01,2017-06-30,,,Transfer,Oscar,/oscar/profil/spieler/85314
+1617,Transferred to Ufa,2016-07-01,2016-07-03,,,Transfer,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1617,Transferred to PSV Eindhoven,2016-08-26,2017-06-29,,,Transfer,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+1617,Ankle Injury,2016-11-27,2017-01-09,43,9,injury,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
+1617,Transferred to Oldham Athletic,2017-01-31,2017-05-30,,,Transfer,Aiden O'Neill,/aiden-oneill/profil/spieler/385918
+1617,Yellow card suspension,2017-01-01,2017-01-04,3,1,suspension,Jordi Amat,/jordi-amat/profil/spieler/85289
+1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Diego Costa,/diego-costa/profil/spieler/44779
+1617,Knee Injury,2016-08-23,2017-08-24,366,49,injury,Greg Luer,/greg-luer/profil/spieler/356195
+1617,Transferred to Bristol Rovers,2016-08-31,2016-12-28,,,Transfer,Hiram Boateng,/hiram-boateng/profil/spieler/244125
+1617,Transferred to Northampton,2017-01-01,2017-05-30,,,Transfer,Hiram Boateng,/hiram-boateng/profil/spieler/244125
+1617,Back Injury,2017-04-28,2017-08-10,104,4,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
+1617,Back Injury,2016-12-21,2017-03-18,87,13,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
+1617,Hamstring Injury,2016-11-27,2016-12-20,23,6,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
+1617,Back Injury,2016-07-05,2016-11-05,123,17,injury,Diafra Sakho,/diafra-sakho/profil/spieler/120610
+1617,Yellow card suspension,2017-01-23,2017-01-30,7,1,suspension,Leroy Fer,/leroy-fer/profil/spieler/63342
+1617,Transferred to QPR,2016-07-01,2016-07-04,,,Transfer,Leroy Fer,/leroy-fer/profil/spieler/63342
+1617,Transferred to Luton,2017-01-31,2017-04-04,,,Transfer,Matt Macey,/matt-macey/profil/spieler/220491
+1617,Metatarsal Fracture,2017-02-16,2017-04-24,67,13,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+1617,Transferred to Palmeiras,2016-07-01,2016-12-31,,,Transfer,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+1617,Knee Injury,2017-04-01,2017-05-20,49,8,injury,Andrew Surman,/andrew-surman/profil/spieler/29975
+1617,Hamstring Injury,2016-10-29,2016-12-25,57,8,injury,Andrew Surman,/andrew-surman/profil/spieler/29975
 1617,Transferred to Marseille,2016-07-01,2016-07-02,,,Transfer,Michy Batshuayi,/michy-batshuayi/profil/spieler/179184
-1617,Yellow card suspension,2016-10-31,2016-11-07,7,1,suspension,Idrissa Gueye,/idrissa-gueye/profil/spieler/126665
-1617,Transferred to Aston Villa,2016-07-01,2016-08-01,,,Transfer,Idrissa Gueye,/idrissa-gueye/profil/spieler/126665
-1617,Transferred to Man City U21,2016-07-01,2016-12-31,,,Transfer,Angeliño,/angelino/profil/spieler/277179
-1617,Transferred to Girona,2017-01-01,2017-01-29,,,Transfer,Angeliño,/angelino/profil/spieler/277179
-1617,Transferred to Man City U23,2017-01-30,2017-01-30,,,Transfer,Angeliño,/angelino/profil/spieler/277179
-1617,Transferred to RCD Mallorca,2017-01-31,2017-06-29,,,Transfer,Angeliño,/angelino/profil/spieler/277179
-1617,Transferred to Man City U23,2017-06-30,2017-06-30,,,Transfer,Angeliño,/angelino/profil/spieler/277179
-1617,Groin Strain,2016-12-20,2017-01-01,12,2,injury,Jordy Clasie,/jordy-clasie/profil/spieler/104223
-1617,Transferred to Ipswich,2016-08-30,2017-05-30,,,Transfer,Tom Lawrence,/tom-lawrence/profil/spieler/229970
-1617,Foot Injury,2017-02-20,2017-04-17,56,8,injury,Calum Chambers,/calum-chambers/profil/spieler/215118
-1617,Foot Injury,2017-01-26,2017-02-02,7,2,injury,Calum Chambers,/calum-chambers/profil/spieler/215118
-1617,Knee Surgery,2016-11-13,2017-04-15,153,24,injury,Steve Mandanda,/steve-mandanda/profil/spieler/23951
-1617,Unknown Injury,2016-09-18,2016-10-02,14,5,injury,Mousa Dembélé,/mousa-dembele/profil/spieler/19368
-1617,Foot Injury,2017-05-02,2017-05-31,29,5,injury,Emerson Hyndman,/emerson-hyndman/profil/spieler/223047
-1617,Transferred to Rangers,2017-01-08,2017-05-08,,,Transfer,Emerson Hyndman,/emerson-hyndman/profil/spieler/223047
-1617,Transferred to Aston Villa,2016-07-01,2017-01-30,,,Transfer,Ashley Westwood,/ashley-westwood/profil/spieler/91317
-1617,Hamstring Injury,2017-05-10,2017-05-27,17,5,injury,Alex Oxlade-Chamberlain,/alex-oxlade-chamberlain/profil/spieler/143424
+1617,Transferred to Bristol Rovers,2016-08-25,2016-12-14,,,Transfer,Connor Roberts,/connor-roberts/profil/spieler/214666
+1617,Transferred to Wigan,2017-01-07,2017-05-30,,,Transfer,Jakob Haugaard,/jakob-haugaard/profil/spieler/138335
+1617,Ankle Injury,2016-07-06,2016-08-20,45,1,injury,Daniel Ayala,/daniel-ayala/profil/spieler/78966
+1617,Foot Injury,2017-02-27,2017-07-06,129,13,injury,Jordan Henderson,/jordan-henderson/profil/spieler/61651
+1617,Hamstring Injury,2016-11-26,2016-11-04,22,,injury,Luciano Narsingh,/luciano-narsingh/profil/spieler/72462
+1617,Leg Injury,2016-10-09,2016-10-14,5,,injury,Luciano Narsingh,/luciano-narsingh/profil/spieler/72462
+1617,Ankle Injury,2017-05-15,2017-06-01,17,2,injury,Kyle Walker,/kyle-walker/profil/spieler/95424
+1617,Yellow card suspension,2016-12-29,2017-01-02,4,1,suspension,Kyle Walker,/kyle-walker/profil/spieler/95424
 1617,Transferred to Preston,2016-08-31,2017-05-30,,,Transfer,Alex Baptiste,/alex-baptiste/profil/spieler/16660
-1617,Transferred to Sunderland U23,2016-07-01,2017-06-30,,,Transfer,Josh Maja,/josh-maja/profil/spieler/453824
-1617,Foot Injury,2017-01-02,2017-02-02,31,6,injury,Nordin Amrabat,/nordin-amrabat/profil/spieler/55619
-1617,groin strain,2017-04-28,2017-05-10,12,2,injury,Jonas Olsson,/jonas-olsson/profil/spieler/25248
-1617,Transferred to Djurgården,2017-03-23,2017-06-30,,,Transfer,Jonas Olsson,/jonas-olsson/profil/spieler/25248
-1617,Leg Injury,2016-12-19,2017-01-13,25,5,injury,Maarten Stekelenburg,/maarten-stekelenburg/profil/spieler/4311
-1617,Foot Injury,2016-10-28,2016-11-02,5,1,injury,Maarten Stekelenburg,/maarten-stekelenburg/profil/spieler/4311
-1617,Transferred to Liverpool U23,2016-07-01,2017-06-30,,,Transfer,Paulinho,/paulinho/profil/spieler/372670
-1617,Cruciate Ligament Rupture,2017-01-22,2017-12-25,337,40,injury,Dean Marney,/dean-marney/profil/spieler/4055
-1617,Yellow card suspension,2017-01-01,2017-01-03,2,1,suspension,Dean Marney,/dean-marney/profil/spieler/4055
-1617,Transferred to Palace U21,2016-07-01,2016-08-30,,,Transfer,Luke Croll,/luke-croll/profil/spieler/244309
-1617,Transferred to Exeter City,2016-08-31,2017-05-30,,,Transfer,Luke Croll,/luke-croll/profil/spieler/244309
-1617,Transferred to Palace U21,2017-05-31,2017-06-30,,,Transfer,Luke Croll,/luke-croll/profil/spieler/244309
+1617,Foot Injury,2016-07-20,2016-09-01,43,7,injury,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
+1617,No eligibility,2016-09-01,2017-06-30,302,35,absence,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
+1617,Transferred to Marseille,2016-07-01,2016-07-20,,,Transfer,Brice Dja Djedje,/brice-dja-djedje/profil/spieler/93690
+1617,Calf Injury,2017-05-22,2017-06-05,14,,injury,Divock Origi,/divock-origi/profil/spieler/148368
+1617,Transferred to York City,2017-01-17,2017-05-30,,,Transfer,Johan Ter Horst,/johan-ter-horst/profil/spieler/318224
+1617,Surgery,2017-05-12,2017-06-30,49,2,injury,Mark Noble,/mark-noble/profil/spieler/31835
+1617,Yellow card suspension,2017-04-09,2017-04-23,14,2,suspension,Mark Noble,/mark-noble/profil/spieler/31835
+1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Mark Noble,/mark-noble/profil/spieler/31835
+1617,Transferred to Blackburn,2016-08-11,2017-05-30,,,Transfer,Sam Gallagher,/sam-gallagher/profil/spieler/227183
+1617,Abdominal Strain,2016-11-07,2016-11-18,11,,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
+1617,Hamstring Injury,2016-12-10,2017-01-14,35,8,injury,Stefano Okaka,/stefano-okaka/profil/spieler/35249
+1617,Hamstring Injury,2016-09-10,2016-11-19,70,9,injury,Stefano Okaka,/stefano-okaka/profil/spieler/35249
+1617,Transferred to RSC Anderlecht,2016-07-01,2016-08-28,,,Transfer,Stefano Okaka,/stefano-okaka/profil/spieler/35249
+1617,Transferred to Derby,2016-07-01,2016-08-30,,,Transfer,Lee Grant,/lee-grant/profil/spieler/13460
+1617,Transferred to Derby,2017-01-03,2017-01-03,,,Transfer,Lee Grant,/lee-grant/profil/spieler/13460
+1617,Transferred to Unknown,2016-07-01,2017-01-30,,,Transfer,Josh Clackstone,/josh-clackstone/profil/spieler/453306
+1617,Transferred to Notts County,2017-01-31,2017-05-30,,,Transfer,Josh Clackstone,/josh-clackstone/profil/spieler/453306
+1617,Ankle problems,2017-06-24,2017-06-24,0,,injury,Emre Can,/emre-can/profil/spieler/119296
+1617,Knee Injury,2016-12-09,2016-12-19,10,3,injury,Emre Can,/emre-can/profil/spieler/119296
+1617,Transferred to Sint-Truiden,2016-08-31,2017-06-29,,,Transfer,Cristian Cuevas,/cristian-cuevas/profil/spieler/186863
+1617,Transferred to Granada CF,2016-07-22,2017-06-29,,,Transfer,Victorien Angban,/victorien-angban/profil/spieler/178314
+1617,Transferred to Viking,2017-02-21,2017-06-19,,,Transfer,Michael Ledger,/michael-ledger/profil/spieler/320228
+1617,Leg Injury,2016-12-03,2017-07-01,210,,injury,Álvaro Arbeloa,/alvaro-arbeloa/profil/spieler/28260
+1617,Transferred to Real Madrid,2016-07-01,2016-08-30,,,Transfer,Álvaro Arbeloa,/alvaro-arbeloa/profil/spieler/28260
+1617,Transferred to Olympique Lyon,2017-01-20,2017-06-30,,,Transfer,Memphis Depay,/memphis-depay/profil/spieler/167850
+1617,Hamstring Injury,2016-08-13,2016-08-30,17,4,injury,Marten de Roon,/marten-de-roon/profil/spieler/133179
+1617,Transferred to Atalanta BC,2016-07-01,2016-07-03,,,Transfer,Marten de Roon,/marten-de-roon/profil/spieler/133179
+1617,Transferred to Vitesse,2016-08-31,2017-06-30,,,Transfer,Matt Miazga,/matt-miazga/profil/spieler/245893
+1617,Transferred to Rotherham,2016-08-31,2017-01-03,,,Transfer,Dael Fry,/dael-fry/profil/spieler/314140
+1617,Ankle Injury,2016-10-06,2017-01-06,92,13,injury,Lewis Cook,/lewis-cook/profil/spieler/249089
+1617,Transferred to Leeds,2016-07-01,2016-07-07,,,Transfer,Lewis Cook,/lewis-cook/profil/spieler/249089
+1617,Transferred to Wycombe,2016-08-15,2017-05-30,,,Transfer,Jamal Blackman,/jamal-blackman/profil/spieler/128898
+1617,Disrupted Calf Muscle,2017-04-27,2017-06-23,57,6,injury,Claudio Bravo,/claudio-bravo/profil/spieler/40423
+1617,Transferred to Barcelona,2016-07-01,2016-08-24,,,Transfer,Claudio Bravo,/claudio-bravo/profil/spieler/40423
+1617,Hamstring Injury,2017-04-08,2017-08-10,124,7,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
+1617,Hamstring Injury,2017-03-18,2017-04-04,17,2,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
+1617,Groin Strain,2016-11-30,2016-12-11,11,3,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
+1617,Indirect card suspension,2017-02-26,2017-03-07,9,1,suspension,Michail Antonio,/michail-antonio/profil/spieler/104124
+1617,Ankle Injury,2017-03-09,2017-08-17,161,15,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+1617,Ankle Injury,2016-08-20,2016-12-03,105,19,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+1617,Transferred to OGC Nice,2016-07-01,2016-07-02,,,Transfer,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+1617,Transferred to Bor. M'gladbach,2016-07-01,2017-06-29,,,Transfer,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+1617,Red card suspension,2016-12-04,2016-12-27,23,4,suspension,Sergio Agüero,/sergio-aguero/profil/spieler/26399
+1617,Suspension through sports court,2016-09-05,2016-09-17,12,2,suspension,Sergio Agüero,/sergio-aguero/profil/spieler/26399
+1617,Ankle Injury,2016-10-15,2017-01-31,108,8,injury,Marcus Edwards,/marcus-edwards/profil/spieler/314367
+1617,Yellow card suspension,2016-12-19,2016-12-27,8,1,suspension,Matthew Lowton,/matthew-lowton/profil/spieler/102258
+1617,Yellow card suspension,2016-12-27,2017-01-02,6,1,suspension,Damien Delaney,/damien-delaney/profil/spieler/36861
+1617,Ill,2017-02-23,2017-03-09,14,3,injury,Reece Oxford,/reece-oxford/profil/spieler/314295
+1617,Ankle Injury,2016-10-31,2017-01-05,66,11,injury,Reece Oxford,/reece-oxford/profil/spieler/314295
+1617,Transferred to Reading,2017-01-31,2017-05-30,,,Transfer,Reece Oxford,/reece-oxford/profil/spieler/314295
+1617,Transferred to Marseille,2016-08-31,2017-06-29,,,Transfer,Clinton N'Jie,/clinton-njie/profil/spieler/241119
+1617,Shoulder Injury,2017-01-10,2017-04-01,81,13,injury,Markus Henriksen,/markus-henriksen/profil/spieler/122011
+1617,Transferred to AZ Alkmaar,2016-07-01,2016-08-30,,,Transfer,Markus Henriksen,/markus-henriksen/profil/spieler/122011
+1617,Transferred to AZ Alkmaar,2017-01-05,2017-01-05,,,Transfer,Markus Henriksen,/markus-henriksen/profil/spieler/122011
+1617,Transferred to Norwich,2016-07-01,2017-01-16,,,Transfer,Martin Olsson,/martin-olsson/profil/spieler/38073
+1617,Transferred to Aston Villa,2016-07-01,2017-01-03,,,Transfer,Rudy Gestede,/rudy-gestede/profil/spieler/39908
+1617,Abdominal Influenza,2017-06-05,2017-06-10,5,,injury,David de Gea,/david-de-gea/profil/spieler/59377
+1617,Transferred to Leeds,2017-01-31,2017-05-30,,,Transfer,Modou Barrow,/modou-barrow/profil/spieler/189070
+1617,Ankle Injury,2017-04-23,2017-06-23,61,5,injury,Franck Tabanou,/franck-tabanou/profil/spieler/66413
+1617,Achilles Irritation,2016-09-24,2016-11-17,54,6,injury,Franck Tabanou,/franck-tabanou/profil/spieler/66413
+1617,Transferred to Granada CF,2016-08-31,2017-06-29,,,Transfer,Franck Tabanou,/franck-tabanou/profil/spieler/66413
+1617,Ankle Injury,2017-01-13,2017-02-06,24,4,injury,Havard Nordtveit,/havard-nordtveit/profil/spieler/42234
+1617,Unknown Injury,2017-05-22,2017-06-30,39,,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
+1617,Knee Injury,2017-03-02,2017-03-09,7,1,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
+1617,Knee Injury,2016-08-05,2016-10-29,85,12,injury,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
+1617,Transferred to PSV Eindhoven,2017-01-01,2017-06-30,,,Transfer,Marco van Ginkel,/marco-van-ginkel/profil/spieler/147034
+1617,Muscular problems,2017-05-12,2017-05-18,6,1,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+1617,Groin Strain,2016-09-11,2016-09-18,7,1,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+1617,Torn Meniscus,2017-05-09,2017-10-01,145,22,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
+1617,Muscular problems,2017-03-09,2017-03-23,14,2,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
+1617,Tonsillitis,2016-11-04,2016-12-07,33,4,injury,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
+1617,Transferred to E. Frankfurt,2016-08-31,2017-06-29,,,Transfer,Shani Tarashaj,/shani-tarashaj/profil/spieler/184381
+1617,Transferred to Juventus,2016-08-31,2017-06-29,,,Transfer,Juan Cuadrado,/juan-cuadrado/profil/spieler/91970
+1617,Fractured Jaw,2017-02-25,2017-04-03,37,7,injury,Lucas Piazon,/lucas-piazon/profil/spieler/176485
+1617,Transferred to Fulham,2016-08-31,2017-06-30,,,Transfer,Lucas Piazon,/lucas-piazon/profil/spieler/176485
+1617,Foot Injury,2016-10-10,2016-11-14,35,4,injury,Brad Smith,/brad-smith/profil/spieler/175745
+1617,Transferred to Without Club,2016-07-01,2016-08-25,,,Transfer,Stuart Taylor,/stuart-taylor/profil/spieler/3190
+1617,Head Injury,2017-01-10,2017-06-30,171,25,injury,Ben Hamer,/ben-hamer/profil/spieler/67283
+1617,Transferred to Barnsley FC,2016-07-01,2016-08-29,,,Transfer,Alfie Mawson,/alfie-mawson/profil/spieler/287431
+1617,Transferred to Aston Villa,2016-08-31,2017-06-30,,,Transfer,Albert Adomah,/albert-adomah/profil/spieler/83430
+1617,groin strain,2017-06-28,2017-07-20,22,,injury,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
+1617,groin strain,2017-06-23,2017-06-25,2,,injury,Nathaniel Chalobah,/nathaniel-chalobah/profil/spieler/128900
+1617,Transferred to FC Sion,2016-07-01,2016-08-24,,,Transfer,Edimilson Fernandes,/edimilson-fernandes/profil/spieler/247555
+1617,Groin Strain,2017-03-19,2017-06-30,103,12,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
+1617,Hamstring Injury,2016-10-12,2016-11-18,37,7,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
+1617,Muscular problems,2016-08-17,2016-09-09,23,3,injury,Bacary Sagna,/bacary-sagna/profil/spieler/26764
+1617,Hamstring Injury,2016-07-30,2016-09-20,52,6,injury,Billy Jones,/billy-jones/profil/spieler/36866
+1617,Hamstring Injury,2016-07-30,2017-01-07,161,23,injury,Matthew Pennington,/matthew-pennington/profil/spieler/220755
 1617,Minor Knock,2016-10-31,2016-11-07,7,1,injury,M'Baye Niang,/mbaye-niang/profil/spieler/157501
 1617,Transferred to AC Milan,2016-07-01,2017-01-25,,,Transfer,M'Baye Niang,/mbaye-niang/profil/spieler/157501
 1617,Transferred to AC Milan,2017-06-30,2017-06-30,,,Transfer,M'Baye Niang,/mbaye-niang/profil/spieler/157501
-1617,Metatarsal Fracture,2017-05-13,2017-06-30,48,3,injury,Shane Long,/shane-long/profil/spieler/37304
-1617,Hamstring Injury,2016-10-20,2016-11-18,29,6,injury,Shane Long,/shane-long/profil/spieler/37304
-1617,Muscle Injury,2016-09-01,2017-01-05,126,25,injury,Fabian Delph,/fabian-delph/profil/spieler/50362
-1617,Transferred to West Ham U21,2016-07-01,2017-06-30,,,Transfer,Dan Kemp,/dan-kemp/profil/spieler/396857
-1617,Transferred to West Ham U21,2016-07-01,2017-01-19,,,Transfer,Marcus Browne,/marcus-browne/profil/spieler/391470
-1617,Transferred to Wigan,2017-01-20,2017-05-30,,,Transfer,Marcus Browne,/marcus-browne/profil/spieler/391470
-1617,Transferred to West Ham U21,2017-05-31,2017-06-30,,,Transfer,Marcus Browne,/marcus-browne/profil/spieler/391470
-1617,Cruciate Ligament Rupture,2017-02-02,2017-10-20,260,25,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
-1617,Transferred to West Ham U21,2016-07-01,2017-01-11,,,Transfer,Alex Pike,/alex-pike/profil/spieler/345960
-1617,Transferred to Cheltenham,2017-01-12,2017-05-30,,,Transfer,Alex Pike,/alex-pike/profil/spieler/345960
-1617,Transferred to West Ham U21,2017-05-31,2017-06-30,,,Transfer,Alex Pike,/alex-pike/profil/spieler/345960
+1617,Transferred to Preston,2017-01-30,2017-05-30,,,Transfer,Tyias Browning,/tyias-browning/profil/spieler/156934
+1617,Transferred to Reading,2016-07-01,2016-08-30,,,Transfer,Hal Robson-Kanu,/hal-robson-kanu/profil/spieler/65976
+1617,Hamstring Injury,2016-10-16,2017-05-04,200,38,injury,Matt Targett,/matt-targett/profil/spieler/250478
+1617,Transferred to Derby,2016-08-31,2017-06-30,,,Transfer,Ikechi Anya,/ikechi-anya/profil/spieler/107427
+1617,Fitness,2017-01-06,2017-01-17,11,3,injury,Allan McGregor,/allan-mcgregor/profil/spieler/9422
+1617,Back Injury,2016-05-13,2017-01-05,237,27,injury,Allan McGregor,/allan-mcgregor/profil/spieler/9422
+1617,Ankle Injury,2017-01-14,2017-02-18,35,7,injury,Jan Vertonghen,/jan-vertonghen/profil/spieler/43250
+1617,Yellow card suspension,2016-12-29,2017-01-02,4,1,suspension,Jan Vertonghen,/jan-vertonghen/profil/spieler/43250
+1617,Thigh Problems,2017-02-16,2017-03-02,14,1,injury,Laurent Koscielny,/laurent-koscielny/profil/spieler/76277
+1617,Red card suspension,2017-05-22,2017-08-21,91,2,suspension,Laurent Koscielny,/laurent-koscielny/profil/spieler/76277
+1617,Hamstring Injury,2016-10-26,2017-08-13,291,41,injury,Alex McCarthy,/alex-mccarthy/profil/spieler/95976
+1617,Groin Surgery,2017-03-30,2017-04-28,29,8,injury,Juan Mata,/juan-mata/profil/spieler/44068
+1617,Hamstring Injury,2017-01-08,2017-02-03,26,2,injury,Marc Wilson,/marc-wilson/profil/spieler/30456
+1617,Transferred to SSC Napoli,2016-07-01,2016-07-15,,,Transfer,Camilo Zúñiga,/camilo-zuniga/profil/spieler/37941
+1617,Transferred to SSC Napoli,2017-06-30,2017-06-30,,,Transfer,Camilo Zúñiga,/camilo-zuniga/profil/spieler/37941
+1617,Cruciate Ligament Rupture,2016-11-27,2018-03-12,470,62,injury,Connor Wickham,/connor-wickham/profil/spieler/95435
+1617,Back trouble,2016-08-05,2016-10-31,87,13,injury,Sheyi Ojo,/sheyi-ojo/profil/spieler/236510
+1617,Transferred to Sheff Wed,2016-08-05,2017-05-30,,,Transfer,Will Buckley,/will-buckley/profil/spieler/77329
+1617,Hamstring Injury,2017-01-31,2017-03-04,32,6,injury,Steven Defour,/steven-defour/profil/spieler/33866
+1617,Transferred to RSC Anderlecht,2016-07-01,2016-08-15,,,Transfer,Steven Defour,/steven-defour/profil/spieler/33866
+1617,Hamstring Injury,2016-08-10,2016-08-20,10,2,injury,Kevin Wimmer,/kevin-wimmer/profil/spieler/122675
+1617,Groin Strain,2016-11-30,2016-12-14,14,4,injury,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
+1617,Back trouble,2017-03-14,2017-06-30,108,14,injury,Wes Morgan,/wes-morgan/profil/spieler/10003
+1617,Transferred to FC Porto,2016-07-01,2017-01-12,,,Transfer,Evandro,/evandro/profil/spieler/53359
+1617,Transferred to Coventry,2016-08-18,2017-01-01,,,Transfer,Dan Agyei,/dan-agyei/profil/spieler/367195
+1617,Knee Injury,2017-01-09,2017-01-30,21,6,injury,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1617,Knee Injury,2016-09-05,2016-10-03,28,7,injury,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1617,Transferred to LOSC Lille,2016-07-01,2016-08-28,,,Transfer,Sofiane Boufal,/sofiane-boufal/profil/spieler/232271
+1617,Hamstring Injury,2016-10-03,2016-11-04,32,3,injury,Glen Johnson,/glen-johnson/profil/spieler/3881
+1617,Thigh Muscle Strain,2016-07-27,2016-09-18,53,6,injury,Glen Johnson,/glen-johnson/profil/spieler/3881
+1617,Hip Injury,2016-10-24,2017-11-16,388,57,injury,Erik Lamela,/erik-lamela/profil/spieler/111630
+1617,Transferred to Olympiacos,2016-07-01,2017-01-30,,,Transfer,Luka Milivojevic,/luka-milivojevic/profil/spieler/74300
+1617,Transferred to Wigan,2016-07-20,2016-11-21,,,Transfer,Ádám Bogdán,/adam-bogdan/profil/spieler/55247
+1617,Ankle Injury,2017-03-13,2017-04-06,24,3,injury,Harry Kane,/harry-kane/profil/spieler/132098
+1617,Ankle Injury,2016-09-19,2016-11-07,49,11,injury,Harry Kane,/harry-kane/profil/spieler/132098
+1617,Transferred to Bristol City,2016-07-28,2017-05-30,,,Transfer,Adam Matthews,/adam-matthews/profil/spieler/108878
+1617,Knee Surgery,2017-04-05,2017-09-22,170,14,injury,Ibrahim Afellay,/ibrahim-afellay/profil/spieler/15760
+1617,Transferred to Brentford,2016-08-31,2017-01-01,,,Transfer,Sullay Kaikai,/sullay-kaikai/profil/spieler/244130
+1617,Tear in the abductor muscle,2017-02-01,2017-02-22,21,3,injury,Joel Campbell,/joel-campbell/profil/spieler/131248
+1617,Transferred to Sporting CP,2016-08-21,2017-06-29,,,Transfer,Joel Campbell,/joel-campbell/profil/spieler/131248
+1617,Calf Strain,2017-03-18,2017-04-07,20,3,injury,Victor Moses,/victor-moses/profil/spieler/59866
+1617,Hamstring Injury,2016-07-20,2016-08-23,34,3,injury,Lucas Leiva,/lucas-leiva/profil/spieler/41414
+1617,Transferred to Poole Town,2016-08-31,2016-12-31,,,Transfer,Sam Surridge,/sam-surridge/profil/spieler/398402
+1617,Hamstring Injury,2017-01-03,2017-01-16,13,3,injury,Francis Coquelin,/francis-coquelin/profil/spieler/74869
+1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+1617,Shoulder Injury,2016-12-08,2017-04-30,143,26,injury,Charlie Austin,/charlie-austin/profil/spieler/129627
+1617,Transferred to Yeovil Town,2017-01-20,2017-02-19,,,Transfer,Shayon Harrison,/shayon-harrison/profil/spieler/345739
+1617,Hamstring Injury,2016-12-23,2017-02-04,43,9,injury,Isaac Success,/isaac-success/profil/spieler/295331
+1617,Hamstring Injury,2016-10-16,2016-12-03,48,7,injury,Isaac Success,/isaac-success/profil/spieler/295331
+1617,Cruciate Ligament Rupture,2016-12-05,2017-12-10,370,53,injury,Yannick Bolasie,/yannick-bolasie/profil/spieler/75471
+1617,Calf Strain,2017-02-04,2017-04-01,56,7,injury,Michael Dawson,/michael-dawson/profil/spieler/9988
+1617,Knee Injury,2016-07-20,2016-10-20,92,10,injury,Michael Dawson,/michael-dawson/profil/spieler/9988
+1617,Transferred to Leyton Orient,2016-07-27,2016-12-31,,,Transfer,Harry Cornick,/harry-cornick/profil/spieler/255703
+1617,Transferred to Gillingham FC,2017-01-31,2017-05-30,,,Transfer,Harry Cornick,/harry-cornick/profil/spieler/255703
 1617,Muscle Injury,2016-12-22,2017-01-08,17,1,injury,Eliaquim Mangala,/eliaquim-mangala/profil/spieler/90681
 1617,Achilles tendon problems,2016-10-03,2016-10-22,19,2,injury,Eliaquim Mangala,/eliaquim-mangala/profil/spieler/90681
 1617,Transferred to Valencia,2016-08-31,2017-06-29,,,Transfer,Eliaquim Mangala,/eliaquim-mangala/profil/spieler/90681
-1617,Thigh Problems,2017-02-16,2017-03-02,14,1,injury,Laurent Koscielny,/laurent-koscielny/profil/spieler/76277
-1617,Red card suspension,2017-05-22,2017-08-21,91,2,suspension,Laurent Koscielny,/laurent-koscielny/profil/spieler/76277
-1617,Fractured Leg,2017-03-27,2018-01-13,292,45,injury,Seamus Coleman,/seamus-coleman/profil/spieler/68390
-1617,Ankle Injury,2016-08-11,2016-09-05,25,4,injury,Seamus Coleman,/seamus-coleman/profil/spieler/68390
-1617,Abdominal Influenza,2017-06-05,2017-06-10,5,,injury,David de Gea,/david-de-gea/profil/spieler/59377
+1617,Ankle Injury,2016-10-03,2016-12-05,63,10,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+1617,Hamstring Injury,2017-05-10,2017-05-27,17,5,injury,Alex Oxlade-Chamberlain,/alex-oxlade-chamberlain/profil/spieler/143424
+1617,Groin Strain,2017-02-08,2017-05-11,92,11,injury,Ben Watson,/ben-watson/profil/spieler/14081
+1617,Red card suspension,2016-08-14,2016-08-21,7,1,suspension,Ben Watson,/ben-watson/profil/spieler/14081
+1617,Groin Injury,2016-12-01,2017-02-02,63,6,injury,Danilo Pantic,/danilo-pantic/profil/spieler/222830
+1617,Transferred to Excelsior,2016-08-12,2017-06-29,,,Transfer,Danilo Pantic,/danilo-pantic/profil/spieler/222830
+1617,Hamstring Injury,2017-02-24,2017-03-09,13,2,injury,Obbi Oulare,/obbi-oulare/profil/spieler/314959
+1617,Foot Injury,2016-09-03,2016-09-26,23,4,injury,Obbi Oulare,/obbi-oulare/profil/spieler/314959
+1617,Transferred to Zulte Waregem,2016-07-27,2017-01-15,,,Transfer,Obbi Oulare,/obbi-oulare/profil/spieler/314959
+1617,Transferred to Willem II,2017-01-26,2017-06-29,,,Transfer,Obbi Oulare,/obbi-oulare/profil/spieler/314959
+1617,Transferred to Bolton,2016-08-31,2017-01-15,,,Transfer,Keshi Anderson,/keshi-anderson/profil/spieler/353674
+1617,Transferred to Northampton,2017-01-17,2017-05-30,,,Transfer,Keshi Anderson,/keshi-anderson/profil/spieler/353674
+1617,Thigh Problems,2017-06-10,2017-09-10,92,5,injury,Gareth McAuley,/gareth-mcauley/profil/spieler/40567
+1617,Rupture of Outer Meniscus,2016-12-15,2017-06-01,168,24,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
+1617,Hamstring Injury,2016-10-03,2016-11-17,45,5,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
+1617,Hamstring Injury,2016-08-01,2016-09-05,35,4,injury,Jan Kirchhoff,/jan-kirchhoff/profil/spieler/49734
+1617,Achilles tendon problems,2017-04-27,2017-05-31,34,4,injury,Joselu,/joselu/profil/spieler/81999
+1617,Knee Injury,2016-09-12,2016-11-28,77,10,injury,Joselu,/joselu/profil/spieler/81999
+1617,Transferred to Dep. La Coruña,2016-08-31,2017-06-29,,,Transfer,Joselu,/joselu/profil/spieler/81999
+1617,Eye Injury,2016-09-09,2016-09-16,7,2,injury,Dejan Lovren,/dejan-lovren/profil/spieler/37838
+1617,Knee Injury,2016-12-03,2017-09-15,286,36,injury,Duncan Watmore,/duncan-watmore/profil/spieler/248045
+1617,Knee Injury,2017-01-01,2017-01-19,18,1,injury,Nathan,/nathan/profil/spieler/294798
+1617,Transferred to Vitesse,2016-07-01,2017-06-29,,,Transfer,Nathan,/nathan/profil/spieler/294798
+1617,Groin Strain,2016-12-20,2017-01-01,12,2,injury,Jordy Clasie,/jordy-clasie/profil/spieler/104223
+1617,Transferred to Mouscron,2016-07-22,2017-06-29,,,Transfer,Matej Delac,/matej-delac/profil/spieler/60220
+1617,Transferred to Birmingham,2017-01-11,2017-06-29,,,Transfer,Craig Gardner,/craig-gardner/profil/spieler/37171
+1617,Ankle Injury,2017-04-13,2017-04-20,7,1,injury,Thibaut Courtois,/thibaut-courtois/profil/spieler/108390
+1617,Calf Strain,2017-02-11,2017-04-08,56,6,injury,Steven Pienaar,/steven-pienaar/profil/spieler/4321
+1617,Hamstring Injury,2016-09-24,2016-10-15,21,3,injury,Steven Pienaar,/steven-pienaar/profil/spieler/4321
+1617,Indirect card suspension,2016-11-06,2016-11-20,14,1,suspension,Steven Pienaar,/steven-pienaar/profil/spieler/4321
+1617,Transferred to São Paulo,2016-07-01,2016-07-30,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
+1617,Transferred to Maldonado,2016-07-31,2016-08-10,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
+1617,Transferred to Maldonado,2017-06-30,2017-06-30,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
+1617,Transferred to Fiorentina,2016-07-01,2016-08-30,,,Transfer,Marcos Alonso,/marcos-alonso/profil/spieler/112515
+1617,Knee Injury,2016-07-21,2017-01-27,190,32,injury,Per Mertesacker,/per-mertesacker/profil/spieler/6710
+1617,Cruciate Ligament Injury,2016-11-06,2018-01-19,439,62,injury,Will Keane,/will-keane/profil/spieler/118535
+1617,Knock,2017-05-02,2017-05-23,21,4,injury,Miguel Britos,/miguel-britos/profil/spieler/76799
+1617,Indirect card suspension,2017-04-05,2017-04-16,11,2,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
+1617,Yellow card suspension,2016-12-27,2017-01-02,6,1,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
+1617,Indirect card suspension,2016-11-28,2016-12-04,6,1,suspension,Miguel Britos,/miguel-britos/profil/spieler/76799
+1617,Ankle Injury,2017-04-03,2017-04-20,17,5,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
+1617,Knee Injury,2017-03-13,2017-03-30,17,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
+1617,Hamstring Injury,2016-12-26,2017-01-05,10,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
+1617,Thigh Muscle Strain,2016-10-20,2016-10-27,7,3,injury,Wayne Rooney,/wayne-rooney/profil/spieler/3332
+1617,Yellow card suspension,2016-12-01,2016-12-05,4,1,suspension,Wayne Rooney,/wayne-rooney/profil/spieler/3332
+1617,Knee Injury,2016-10-22,2017-02-25,126,18,injury,Geoff Cameron,/geoff-cameron/profil/spieler/31642
+1617,Ruptured cruciate ligament,2016-10-17,2017-08-25,312,54,injury,James Wilson,/james-wilson/profil/spieler/214104
+1617,Transferred to Derby,2016-08-20,2017-02-01,,,Transfer,James Wilson,/james-wilson/profil/spieler/214104
+1617,Hamstring Injury,2016-10-10,2016-10-24,14,2,injury,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
+1617,Knee Injury,2016-09-15,2016-09-26,11,3,injury,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
+1617,Transferred to Newcastle,2016-07-01,2016-07-21,,,Transfer,Georginio Wijnaldum,/georginio-wijnaldum/profil/spieler/49499
+1617,Transferred to Charlton,2016-07-01,2016-07-18,,,Transfer,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+1617,Thigh Muscle Strain,2017-03-16,2017-05-01,46,8,injury,Lucas Pérez,/lucas-perez/profil/spieler/73185
+1617,Ankle Injury,2016-10-25,2016-11-30,36,8,injury,Lucas Pérez,/lucas-perez/profil/spieler/73185
+1617,Transferred to Dep. La Coruña,2016-07-01,2016-08-29,,,Transfer,Lucas Pérez,/lucas-perez/profil/spieler/73185
+1617,Torn Muscle Fibre,2016-11-09,2016-12-01,22,4,injury,Jeremain Lens,/jeremain-lens/profil/spieler/38497
+1617,Unknown Injury,2016-09-29,2016-10-21,22,4,injury,Jeremain Lens,/jeremain-lens/profil/spieler/38497
+1617,Transferred to Fenerbahce,2016-08-30,2017-06-29,,,Transfer,Jeremain Lens,/jeremain-lens/profil/spieler/38497
+1617,Minor Knock,2017-06-19,2017-06-21,2,,injury,Bartosz Kapustka,/bartosz-kapustka/profil/spieler/246579
+1617,Transferred to Cracovia,2016-07-01,2016-08-02,,,Transfer,Bartosz Kapustka,/bartosz-kapustka/profil/spieler/246579
+1617,Transferred to Gillingham FC,2016-08-31,2017-01-02,,,Transfer,Baily Cargill,/baily-cargill/profil/spieler/293450
+1617,Knock,2016-11-13,2016-11-18,5,,injury,Pierre-Emile Höjbjerg,/pierre-emile-hojbjerg/profil/spieler/167799
+1617,Transferred to Bayern Munich,2016-07-01,2016-07-10,,,Transfer,Pierre-Emile Höjbjerg,/pierre-emile-hojbjerg/profil/spieler/167799
+1617,Hamstring Injury,2017-04-09,2017-05-13,34,6,injury,Bryan Oviedo,/bryan-oviedo/profil/spieler/124983
+1617,Knee Injury,2016-10-28,2016-11-03,6,1,injury,Arouna Koné,/arouna-kone/profil/spieler/8552
 1617,Hamstring Injury,2016-10-01,2017-01-08,99,17,injury,Sam Byram,/sam-byram/profil/spieler/236953
-1617,Ankle Injury,2016-10-14,2017-02-19,128,12,injury,Jake Hesketh,/jake-hesketh/profil/spieler/315185
-1617,Transferred to Southampton U21,2016-07-01,2017-06-30,,,Transfer,Jake Hesketh,/jake-hesketh/profil/spieler/315185
-1617,Transferred to York City,2017-01-17,2017-05-30,,,Transfer,Johan Ter Horst,/johan-ter-horst/profil/spieler/318224
-1617,Concussion,2017-04-02,2017-04-09,7,3,injury,Fábio,/fabio/profil/spieler/61891
-1617,Transferred to Cardiff,2016-07-01,2016-08-11,,,Transfer,Fábio,/fabio/profil/spieler/61891
-1617,Groin Injury,2016-08-27,2016-12-09,104,14,injury,Fabio Borini,/fabio-borini/profil/spieler/96754
-1617,Toe Injury,2016-08-18,2016-08-26,8,2,injury,Fabio Borini,/fabio-borini/profil/spieler/96754
+1617,Knee Injury,2016-10-01,2016-10-13,12,1,injury,Steven Berghuis,/steven-berghuis/profil/spieler/129554
+1617,Transferred to Feyenoord,2016-08-01,2017-06-29,,,Transfer,Steven Berghuis,/steven-berghuis/profil/spieler/129554
+1617,Knock,2016-11-14,2016-11-26,12,1,injury,Glenn Whelan,/glenn-whelan/profil/spieler/12124
+1617,Fractured Arm,2016-10-27,2016-11-14,18,3,injury,Antonio Valencia,/antonio-valencia/profil/spieler/33544
+1617,Cruciate Ligament Injury,2016-08-03,2017-03-18,227,32,injury,Muhamed Besic,/muhamed-besic/profil/spieler/93905
+1617,Red card suspension,2016-09-25,2016-10-02,7,1,suspension,Ahmed Elmohamady,/ahmed-elmohamady/profil/spieler/66333
+1617,Knee Injury,2017-04-03,2017-06-29,87,8,injury,Sadio Mané,/sadio-mane/profil/spieler/200512
+1617,Shoulder Injury,2016-08-15,2016-08-22,7,1,injury,Sadio Mané,/sadio-mane/profil/spieler/200512
+1617,Hamstring Injury,2017-01-27,2017-02-13,17,3,injury,Charlie Daniels,/charlie-daniels/profil/spieler/61819
+1617,Cruciate Ligament Rupture,2017-01-22,2017-12-25,337,40,injury,Dean Marney,/dean-marney/profil/spieler/4055
+1617,Yellow card suspension,2017-01-01,2017-01-03,2,1,suspension,Dean Marney,/dean-marney/profil/spieler/4055
+1617,Hamstring Injury,2017-03-24,2017-06-30,98,9,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
+1617,Hamstring Injury,2016-12-19,2017-01-07,19,5,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
+1617,Groin Strain,2016-08-23,2016-10-05,43,7,injury,James McCarthy,/james-mccarthy/profil/spieler/45333
+1617,Thigh Muscle Strain,2016-08-14,2016-09-10,27,4,injury,Alex Iwobi,/alex-iwobi/profil/spieler/242631
+1617,Metatarsal Fracture,2017-05-13,2017-06-30,48,3,injury,Shane Long,/shane-long/profil/spieler/37304
+1617,Hamstring Injury,2016-10-20,2016-11-18,29,6,injury,Shane Long,/shane-long/profil/spieler/37304
+1617,Transferred to Newcastle,2016-08-31,2017-06-29,,,Transfer,Christian Atsu,/christian-atsu/profil/spieler/186997
+1617,Hip Injury,2016-11-14,2017-04-01,138,20,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
+1617,Back Injury,2016-09-27,2016-11-19,53,7,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
+1617,Inguinal Hernia,2016-07-08,2016-09-16,70,5,injury,Lee Cattermole,/lee-cattermole/profil/spieler/37363
+1617,Foot Injury,2016-08-07,2016-08-19,12,1,injury,James Milner,/james-milner/profil/spieler/3333
+1617,Yellow card suspension,2017-04-06,2017-04-16,10,2,suspension,Oriol Romeu,/oriol-romeu/profil/spieler/66100
+1617,Yellow card suspension,2016-12-15,2016-12-19,4,1,suspension,Oriol Romeu,/oriol-romeu/profil/spieler/66100
+1617,Ligament Injury,2017-04-26,2017-09-18,145,11,injury,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
+1617,Achilles tendon problems,2016-07-12,2016-08-23,42,3,injury,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
+1617,Adductor problems,2017-03-18,2017-04-20,33,5,injury,Winston Reid,/winston-reid/profil/spieler/37526
+1617,Indirect card suspension,2016-11-20,2016-11-28,8,1,suspension,Winston Reid,/winston-reid/profil/spieler/37526
+1617,Yellow card suspension,2016-10-31,2016-11-06,6,1,suspension,Winston Reid,/winston-reid/profil/spieler/37526
+1617,Hamstring Injury,2017-01-28,2017-02-04,7,3,injury,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
+1617,Strain,2016-08-18,2016-09-17,30,5,injury,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
+1617,Transferred to Aston Villa,2016-08-17,2017-06-30,,,Transfer,Mile Jedinak,/mile-jedinak/profil/spieler/28336
+1617,Foot Injury,2017-05-10,2017-05-31,21,2,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
+1617,Hamstring Injury,2017-02-04,2017-02-25,21,3,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
+1617,Tear in the abductor muscle,2016-11-07,2017-01-02,56,10,injury,Abel Hernández,/abel-hernandez/profil/spieler/76608
+1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
+1617,Transferred to Derby,2016-07-01,2016-08-30,,,Transfer,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
 1617,Leg Injury,2017-02-16,2017-03-06,18,4,injury,Vincent Kompany,/vincent-kompany/profil/spieler/9594
 1617,Knee Injury,2016-11-21,2017-01-02,42,10,injury,Vincent Kompany,/vincent-kompany/profil/spieler/9594
 1617,Groin Injury,2016-09-22,2016-10-24,32,6,injury,Vincent Kompany,/vincent-kompany/profil/spieler/9594
 1617,Groin Injury,2016-05-05,2016-09-15,133,9,injury,Vincent Kompany,/vincent-kompany/profil/spieler/9594
-1617,Muscle Injury,2017-02-18,2017-04-05,46,5,injury,Mathieu Flamini,/mathieu-flamini/profil/spieler/17396
-1617,Transferred to Without Club,2016-07-01,2016-09-07,,,Transfer,Mathieu Flamini,/mathieu-flamini/profil/spieler/17396
-1617,Transferred to Southampton U21,2016-07-01,2017-06-30,,,Transfer,Olufela Olomola,/olufela-olomola/profil/spieler/356569
-1617,Hamstring Injury,2017-03-18,2017-08-18,153,,injury,Valon Behrami,/valon-behrami/profil/spieler/21905
-1617,Yellow card suspension,2016-11-28,2016-12-04,6,1,suspension,Valon Behrami,/valon-behrami/profil/spieler/21905
-1617,Transferred to Bolton,2016-07-01,2016-07-21,,,Transfer,Rob Holding,/rob-holding/profil/spieler/253341
-1617,Hamstring Injury,2016-11-26,2016-11-04,22,,injury,Luciano Narsingh,/luciano-narsingh/profil/spieler/72462
-1617,Leg Injury,2016-10-09,2016-10-14,5,,injury,Luciano Narsingh,/luciano-narsingh/profil/spieler/72462
-1617,Transferred to Barnsley FC,2017-01-25,2017-05-30,,,Transfer,Matty James,/matty-james/profil/spieler/73522
-1617,Transferred to Aston Villa,2016-07-01,2017-01-30,,,Transfer,Jordan Ayew,/jordan-ayew/profil/spieler/108354
-1617,Transferred to Vitesse,2016-07-01,2017-06-29,,,Transfer,Lewis Baker,/lewis-baker/profil/spieler/198589
-1617,Transferred to Wigan,2016-07-20,2016-11-21,,,Transfer,Ádám Bogdán,/adam-bogdan/profil/spieler/55247
-1617,Transferred to KAA Gent,2016-07-01,2016-08-28,,,Transfer,Sven Kums,/sven-kums/profil/spieler/42735
-1617,Transferred to Udinese Calcio,2016-08-30,2017-06-29,,,Transfer,Sven Kums,/sven-kums/profil/spieler/42735
-1617,Thigh muscle rupture,2017-02-25,2017-05-25,89,17,injury,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
-1617,Transferred to Arsenal U21,2016-07-01,2017-01-30,,,Transfer,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
-1617,Transferred to Charlton,2017-01-31,2017-02-28,,,Transfer,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
-1617,Transferred to Arsenal U23,2017-03-01,2017-06-30,,,Transfer,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
-1617,Transferred to Man Utd U18,2016-07-01,2016-12-31,,,Transfer,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
-1617,Knee Surgery,2016-10-26,2017-08-10,288,35,injury,Danny Ings,/danny-ings/profil/spieler/134294
-1617,Fractured Toe,2016-12-01,2016-12-25,24,4,injury,Federico Fernández,/federico-fernandez/profil/spieler/85475
 1617,Transferred to Lechia Gdansk,2017-02-03,2017-06-30,,,Transfer,Dusan Kuciak,/dusan-kuciak/profil/spieler/31886
-1617,Thigh Muscle Strain,2017-01-07,2017-02-05,29,6,injury,Leonardo Ulloa,/leonardo-ulloa/profil/spieler/54890
-1617,Transferred to West Ham U21,2016-07-01,2017-06-30,,,Transfer,Grady Diangana,/grady-diangana/profil/spieler/342048
-1617,Transferred to Stoke U21,2016-07-01,2017-01-24,,,Transfer,Joel Taylor,/joel-taylor/profil/spieler/258310
-1617,Transferred to Rochdale,2017-01-25,2017-05-30,,,Transfer,Joel Taylor,/joel-taylor/profil/spieler/258310
-1617,Transferred to Stoke U21,2017-05-31,2017-06-30,,,Transfer,Joel Taylor,/joel-taylor/profil/spieler/258310
-1617,Foot Injury,2017-01-29,2017-02-25,27,5,injury,Costel Pantilimon,/costel-pantilimon/profil/spieler/47659
-1617,Transferred to Birmingham,2017-01-31,2017-05-30,,,Transfer,Jerome Sinclair,/jerome-sinclair/profil/spieler/236513
-1617,Transferred to Burton Albion,2017-01-31,2017-05-30,,,Transfer,Michael Kightly,/michael-kightly/profil/spieler/25366
-1617,Hip Injury,2016-10-24,2017-11-16,388,57,injury,Erik Lamela,/erik-lamela/profil/spieler/111630
-1617,Ligament Injury,2017-04-26,2017-09-18,145,11,injury,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
-1617,Achilles tendon problems,2016-07-12,2016-08-23,42,3,injury,Mamadou Sakho,/mamadou-sakho/profil/spieler/47713
-1617,Transferred to Southampton U21,2016-07-01,2016-12-31,,,Transfer,Josh Sims,/josh-sims/profil/spieler/286919
-1617,Transferred to Norwich,2016-07-01,2017-01-16,,,Transfer,Martin Olsson,/martin-olsson/profil/spieler/38073
-1617,Knee Injury,2017-01-24,2017-06-30,157,16,injury,Adam Federici,/adam-federici/profil/spieler/4233
-1617,Groin Surgery,2017-03-30,2017-04-28,29,8,injury,Juan Mata,/juan-mata/profil/spieler/44068
-1617,Transferred to Sheff Wed,2016-08-31,2017-06-30,,,Transfer,Adam Reach,/adam-reach/profil/spieler/163530
-1617,Cruciate Ligament Rupture,2016-12-15,2017-08-13,241,31,injury,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
-1617,Transferred to Birmingham,2017-01-31,2017-05-30,,,Transfer,Krystian Bielik,/krystian-bielik/profil/spieler/287247
-1617,Yellow card suspension,2016-11-20,2016-11-28,8,1,suspension,Joe Allen,/joe-allen/profil/spieler/51452
-1617,Transferred to Watford U21,2016-07-01,2017-06-30,,,Transfer,Brandon Mason,/brandon-mason/profil/spieler/479942
-1617,Transferred to CC Yatai,2017-01-31,2017-06-30,,,Transfer,Odion Ighalo,/odion-ighalo/profil/spieler/62121
-1617,Knee Injury,2016-12-03,2017-09-15,286,36,injury,Duncan Watmore,/duncan-watmore/profil/spieler/248045
+1617,Transferred to OGC Nice,2016-07-01,2017-01-30,,,Transfer,Mouez Hassen,/mouez-hassen/profil/spieler/215677
+1617,Transferred to OGC Nice,2017-06-30,2017-06-30,,,Transfer,Mouez Hassen,/mouez-hassen/profil/spieler/215677
+1617,Knee Surgery,2017-01-22,2017-08-10,200,16,injury,Angelo Ogbonna,/angelo-ogbonna/profil/spieler/48002
+1617,Calf Strain,2016-12-23,2017-01-27,35,6,injury,Theo Walcott,/theo-walcott/profil/spieler/33713
+1617,Hamstring Injury,2016-10-25,2016-11-06,12,4,injury,Theo Walcott,/theo-walcott/profil/spieler/33713
+1617,Bruised Rib,2016-12-19,2016-12-29,10,1,injury,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
+1617,Knee Injury,2016-07-25,2016-09-08,45,7,injury,Manuel Lanzini,/manuel-lanzini/profil/spieler/135853
+1617,Transferred to Juventus,2016-07-01,2016-08-08,,,Transfer,Paul Pogba,/paul-pogba/profil/spieler/122153
+1617,Adductor problems,2017-05-12,2017-05-19,7,1,injury,Andre Wisdom,/andre-wisdom/profil/spieler/128912
+1617,Thigh muscle rupture,2016-09-15,2016-10-06,21,6,injury,Andre Wisdom,/andre-wisdom/profil/spieler/128912
+1617,Transferred to RB Salzburg,2016-08-31,2017-06-29,,,Transfer,Andre Wisdom,/andre-wisdom/profil/spieler/128912
+1617,Knee Surgery,2016-11-13,2017-04-15,153,24,injury,Steve Mandanda,/steve-mandanda/profil/spieler/23951
+1617,Knee Injury,2016-07-15,2018-09-21,798,18,injury,Moses Odubajo,/moses-odubajo/profil/spieler/163738
 1617,Groin Strain,2016-08-22,2016-10-13,52,7,injury,Darron Gibson,/darron-gibson/profil/spieler/42413
-1617,Ankle Injury,2016-10-04,2016-12-03,60,10,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
-1617,Transferred to Man Utd U21,2016-07-01,2016-08-30,,,Transfer,Joel Pereira,/joel-pereira/profil/spieler/192611
-1617,Transferred to Belenenses,2016-08-31,2017-01-04,,,Transfer,Joel Pereira,/joel-pereira/profil/spieler/192611
-1617,Transferred to Man Utd U23,2017-01-05,2017-06-30,,,Transfer,Joel Pereira,/joel-pereira/profil/spieler/192611
-1617,Calf Strain,2017-04-28,2017-05-05,7,1,injury,Jack Rodwell,/jack-rodwell/profil/spieler/57079
-1617,Hamstring Injury,2016-11-03,2016-12-31,58,9,injury,Jack Rodwell,/jack-rodwell/profil/spieler/57079
-1617,Transferred to São Paulo,2016-07-01,2016-07-30,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
-1617,Transferred to Maldonado,2016-07-31,2016-08-10,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
-1617,Transferred to Maldonado,2017-06-30,2017-06-30,,,Transfer,Jonathan Calleri,/jonathan-calleri/profil/spieler/284727
-1617,Fractured Arm,2016-10-27,2016-11-14,18,3,injury,Antonio Valencia,/antonio-valencia/profil/spieler/33544
-1617,Muscular problems,2017-05-04,2017-08-20,108,10,injury,Ashley Young,/ashley-young/profil/spieler/14086
-1617,Knock,2017-04-03,2017-04-13,10,3,injury,Ashley Young,/ashley-young/profil/spieler/14086
+1617,Transferred to Barnsley FC,2017-01-25,2017-05-30,,,Transfer,Matty James,/matty-james/profil/spieler/73522
+1617,Red card suspension,2016-12-18,2017-01-03,16,3,suspension,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+1617,Hamstring Injury,2017-03-22,2018-03-12,355,50,injury,Lewis Page,/lewis-page/profil/spieler/242652
+1617,Transferred to Coventry,2016-08-09,2017-01-04,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
+1617,Transferred to Charlton,2017-01-06,2017-06-30,,,Transfer,Lewis Page,/lewis-page/profil/spieler/242652
+1617,Achilles tendon surgery,2016-07-11,2017-02-01,205,1,injury,Alex Bruce,/alex-bruce/profil/spieler/37957
+1617,Transferred to Wigan,2017-01-31,2017-05-30,,,Transfer,Alex Bruce,/alex-bruce/profil/spieler/37957
+1617,Ankle Injury,2017-04-08,2017-04-29,21,3,injury,Jack Cork,/jack-cork/profil/spieler/40613
+1617,Transferred to Birmingham,2017-01-18,2017-06-30,,,Transfer,Emilio Nsue,/emilio-nsue/profil/spieler/59558
+1617,Transferred to Oldham Athletic,2016-08-30,2017-01-01,,,Transfer,Freddie Ladapo,/freddie-ladapo/profil/spieler/233998
+1617,Transferred to Shrewsbury,2017-01-06,2017-05-30,,,Transfer,Freddie Ladapo,/freddie-ladapo/profil/spieler/233998
+1617,Ankle Injury,2017-06-08,2017-06-08,0,,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
+1617,Abdominal Influenza,2017-02-13,2017-02-16,3,1,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
+1617,Influenza,2016-12-08,2016-12-08,0,1,injury,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
+1617,Transferred to FC Schalke 04,2016-08-25,2017-06-29,,,Transfer,Nabil Bentaleb,/nabil-bentaleb/profil/spieler/245537
+1617,Transferred to El Ahly,2016-07-01,2016-07-24,,,Transfer,Ramadan Sobhi,/ramadan-sobhi/profil/spieler/312017
+1617,Hip Injury,2017-02-28,2017-04-07,38,4,injury,Christian Kabasele,/christian-kabasele/profil/spieler/81512
+1617,Hamstring Injury,2017-01-21,2017-02-04,14,4,injury,Christian Kabasele,/christian-kabasele/profil/spieler/81512
+1617,Transferred to Paris SG,2016-07-01,2016-08-30,,,Transfer,David Luiz,/david-luiz/profil/spieler/46741
+1617,Transferred to Leeds,2016-08-31,2017-06-30,,,Transfer,Eunan O'Kane,/eunan-okane/profil/spieler/61583
+1617,Meniscal Injury,2017-03-29,2017-07-17,110,9,injury,Ramiro Funes Mori,/ramiro-funes-mori/profil/spieler/11111
+1617,Unknown Injury,2016-12-12,2016-12-26,14,2,injury,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
+1617,Unknown Injury,2016-11-12,2016-11-20,8,1,injury,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
+1617,Transferred to Alanyaspor,2016-08-31,2017-06-29,,,Transfer,Kenneth Omeruo,/kenneth-omeruo/profil/spieler/131708
+1617,Groin Strain,2016-12-09,2016-12-31,22,4,injury,James Tomkins,/james-tomkins/profil/spieler/61592
+1617,Transferred to Real Oviedo,2017-01-31,2017-06-29,,,Transfer,Carlos de Pena,/carlos-de-pena/profil/spieler/257740
+1617,Yellow card suspension,2016-11-20,2016-11-28,8,1,suspension,Joe Allen,/joe-allen/profil/spieler/51452
+1617,Inguinal Hernia,2016-09-26,2016-12-17,82,12,injury,Craig Cathcart,/craig-cathcart/profil/spieler/59606
+1617,Foot Injury,2017-04-29,2017-05-11,12,2,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1617,Knee Injury,2016-12-07,2017-02-24,79,12,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1617,Knee Injury,2016-09-21,2016-11-29,69,10,injury,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
+1617,Transferred to Olympiacos,2016-07-01,2016-08-07,,,Transfer,Arthur Masuaku,/arthur-masuaku/profil/spieler/181380
 1617,Back trouble,2016-12-12,2016-12-15,3,1,injury,Kamil Grosicki,/kamil-grosicki/profil/spieler/37920
 1617,Cold,2016-11-21,2016-11-28,7,1,injury,Kamil Grosicki,/kamil-grosicki/profil/spieler/37920
 1617,Muscular problems,2016-08-21,2016-09-19,29,3,injury,Kamil Grosicki,/kamil-grosicki/profil/spieler/37920
-1617,Transferred to Stade Rennais,2016-07-01,2017-01-30,,,Transfer,Kamil Grosicki,/kamil-grosicki/profil/spieler/37920
-1617,Knee Injury,2017-03-23,2017-05-01,39,9,injury,Chris Smalling,/chris-smalling/profil/spieler/103427
-1617,Indirect card suspension,2016-05-22,2016-08-15,85,1,suspension,Chris Smalling,/chris-smalling/profil/spieler/103427
-1617,Transferred to Sheff Utd,2016-07-01,2017-01-30,,,Transfer,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
-1617,Hamstring Injury,2016-12-23,2017-02-04,43,9,injury,Isaac Success,/isaac-success/profil/spieler/295331
-1617,Hamstring Injury,2016-10-16,2016-12-03,48,7,injury,Isaac Success,/isaac-success/profil/spieler/295331
-1617,Transferred to West Brom U21,2016-07-01,2017-06-30,,,Transfer,Jack Rose,/jack-rose/profil/spieler/186923
-1617,Transferred to Swansea U21,2016-07-01,2016-08-24,,,Transfer,Connor Roberts,/connor-roberts/profil/spieler/214666
-1617,Transferred to Bristol Rovers,2016-08-25,2016-12-14,,,Transfer,Connor Roberts,/connor-roberts/profil/spieler/214666
-1617,Transferred to Swansea U21,2016-12-15,2017-06-30,,,Transfer,Connor Roberts,/connor-roberts/profil/spieler/214666
-1617,Transferred to Sunderland U21,2016-07-01,2017-06-30,,,Transfer,Rees Greenwood,/rees-greenwood/profil/spieler/320213
-1617,Ill,2016-12-08,2016-12-17,9,3,injury,Oscar,/oscar/profil/spieler/85314
-1617,Transferred to SH SIPG,2017-01-01,2017-06-30,,,Transfer,Oscar,/oscar/profil/spieler/85314
-1617,Knee Injury,2016-10-10,2017-01-27,109,16,injury,Kenedy,/kenedy/profil/spieler/281404
-1617,Groin Strain,2016-11-30,2016-12-11,11,3,injury,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
-1617,Knee Injury,2016-07-23,2016-10-15,84,13,injury,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
-1617,Indirect card suspension,2016-10-17,2016-10-24,7,1,suspension,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
-1617,Yellow card suspension,2017-01-01,2017-01-04,3,1,suspension,Jordi Amat,/jordi-amat/profil/spieler/85289
+1617,Transferred to Rennes,2016-07-01,2017-01-30,,,Transfer,Kamil Grosicki,/kamil-grosicki/profil/spieler/37920
+1617,Knee Injury,2016-12-26,2017-02-27,63,11,injury,Jordan Pickford,/jordan-pickford/profil/spieler/130164
+1617,Ankle Injury,2017-05-06,2017-07-05,60,,injury,Lazar Markovic,/lazar-markovic/profil/spieler/144303
+1617,Knock,2016-12-08,2016-12-20,12,3,injury,Lazar Markovic,/lazar-markovic/profil/spieler/144303
+1617,Transferred to Sporting CP,2016-08-31,2017-01-21,,,Transfer,Lazar Markovic,/lazar-markovic/profil/spieler/144303
+1617,Toe Injury,2017-03-20,2017-05-04,45,10,injury,Phil Jones,/phil-jones/profil/spieler/117996
+1617,Knee Injury,2016-09-05,2016-11-03,59,13,injury,Phil Jones,/phil-jones/profil/spieler/117996
+1617,Adductor problems,2017-02-03,2017-02-14,11,3,injury,Philipp Wollscheid,/philipp-wollscheid/profil/spieler/53173
+1617,Surgery,2017-01-04,2017-01-22,18,1,injury,Philipp Wollscheid,/philipp-wollscheid/profil/spieler/53173
+1617,Knee Injury,2016-11-19,2016-12-27,38,7,injury,Phil Bardsley,/phil-bardsley/profil/spieler/15773
+1617,Indirect card suspension,2017-03-20,2017-04-03,14,1,suspension,Phil Bardsley,/phil-bardsley/profil/spieler/15773
+1617,Knee Injury,2016-07-10,2016-10-13,95,10,injury,Florin Gardos,/florin-gardos/profil/spieler/57423
+1617,Transferred to Oxford United,2017-01-31,2017-05-30,,,Transfer,Conor McAleny,/conor-mcaleny/profil/spieler/121260
+1617,Ankle Injury,2017-03-18,2017-08-10,145,10,injury,Pedro Obiang,/pedro-obiang/profil/spieler/101213
+1617,Transferred to Leeds,2016-07-01,2017-05-30,,,Transfer,Kyle Bartley,/kyle-bartley/profil/spieler/67421
+1617,Back Injury,2016-09-28,2017-01-07,101,22,injury,Chuba Akpom,/chuba-akpom/profil/spieler/197642
+1617,Transferred to Brighton,2017-01-30,2017-05-30,,,Transfer,Chuba Akpom,/chuba-akpom/profil/spieler/197642
+1617,Muscle Injury,2016-10-09,2016-10-30,21,4,injury,Branislav Ivanovic,/branislav-ivanovic/profil/spieler/36827
+1617,Transferred to Zenit S-Pb,2017-02-01,2017-06-30,,,Transfer,Branislav Ivanovic,/branislav-ivanovic/profil/spieler/36827
+1617,Knee Injury,2017-06-14,2017-10-06,114,9,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
+1617,Knee Injury,2017-01-31,2017-03-04,32,5,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
+1617,Fractured Toe,2016-11-19,2016-12-17,28,6,injury,Sung-yueng Ki,/sung-yueng-ki/profil/spieler/81796
+1617,Foot Injury,2017-05-02,2017-05-31,29,5,injury,Emerson Hyndman,/emerson-hyndman/profil/spieler/223047
+1617,Transferred to Rangers,2017-01-08,2017-05-08,,,Transfer,Emerson Hyndman,/emerson-hyndman/profil/spieler/223047
+1617,Transferred to Hibernian FC,2018-08-08,2017-06-30,,,Transfer,Emerson Hyndman,/emerson-hyndman/profil/spieler/223047
+1617,Ankle Injury,2017-04-03,2017-06-01,59,10,injury,Harry Winks,/harry-winks/profil/spieler/249126
+1617,Yellow card suspension,2016-10-30,2016-11-07,8,1,suspension,James McClean,/james-mcclean/profil/spieler/85935
+1617,Transferred to Aston Villa,2016-07-01,2016-07-28,,,Transfer,Brad Guzan,/brad-guzan/profil/spieler/39471
+1617,Transferred to F. Düsseldorf,2016-08-22,2017-06-29,,,Transfer,Rouwen Hennings,/rouwen-hennings/profil/spieler/16311
+1617,Knee Injury,2017-01-07,2017-02-11,35,7,injury,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
+1617,Indirect card suspension,2017-04-23,2017-04-27,4,1,suspension,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
+1617,Yellow card suspension,2016-10-30,2016-11-06,7,1,suspension,Gastón Ramírez,/gaston-ramirez/profil/spieler/123742
+1617,Transferred to Limerick FC,2017-02-22,2017-06-29,,,Transfer,Tommy Robson,/tommy-robson/profil/spieler/257968
+1617,Ankle Injury,2017-01-02,2017-02-25,54,8,injury,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
+1617,Transferred to Sheff Utd,2016-07-01,2016-08-30,,,Transfer,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
+1617,Transferred to Leeds,2016-07-07,2017-05-30,,,Transfer,Matt Grimes,/matt-grimes/profil/spieler/265471
+1617,Muscle Injury,2016-11-23,2016-12-02,9,2,injury,Jérémie Boga,/jeremie-boga/profil/spieler/216569
+1617,Transferred to Granada CF,2016-07-06,2017-06-29,,,Transfer,Jérémie Boga,/jeremie-boga/profil/spieler/216569
+1617,Transferred to Norwich,2016-07-01,2017-01-30,,,Transfer,Robbie Brady,/robbie-brady/profil/spieler/128229
+1617,groin strain,2016-08-30,2016-09-09,10,,injury,James McArthur,/james-mcarthur/profil/spieler/41416
+1617,Ruptured knee ligament,2016-11-02,2017-12-31,424,,injury,Doneil Henry,/doneil-henry/profil/spieler/157907
+1617,Knee Injury,2016-07-13,2016-09-22,71,7,injury,Doneil Henry,/doneil-henry/profil/spieler/157907
+1617,Transferred to AC Horsens,2016-08-31,2016-12-30,,,Transfer,Doneil Henry,/doneil-henry/profil/spieler/157907
+1617,Muscle Injury,2016-11-03,2016-11-18,15,1,injury,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
+1617,Calf Injury,2016-08-17,2016-09-24,38,7,injury,Xherdan Shaqiri,/xherdan-shaqiri/profil/spieler/86792
+1617,Transferred to Aston Villa,2016-07-01,2016-08-30,,,Transfer,Adama Traoré,/adama-traore/profil/spieler/204103
+1617,Transferred to Girona,2017-01-01,2017-01-29,,,Transfer,Angeliño,/angelino/profil/spieler/277179
+1617,Transferred to RCD Mallorca,2017-01-31,2017-06-29,,,Transfer,Angeliño,/angelino/profil/spieler/277179
+1617,Transferred to Espanyol,2016-07-01,2016-08-30,,,Transfer,Pau López,/pau-lopez/profil/spieler/286415
+1617,Transferred to Espanyol,2017-06-30,2017-06-30,,,Transfer,Pau López,/pau-lopez/profil/spieler/286415
+1617,Ankle Injury,2017-03-06,2017-04-13,38,4,injury,Patrick van Aanholt,/patrick-van-aanholt/profil/spieler/52119
+1617,Transferred to Coventry,2017-01-31,2017-05-30,,,Transfer,Michael Folivi,/michael-folivi/profil/spieler/479939
+1617,Transferred to Waasl.-Beveren,2017-02-01,2017-05-09,,,Transfer,Leandro Rodríguez,/leandro-rodriguez/profil/spieler/238988
+1617,Transferred to Derby,2017-01-09,2017-06-30,,,Transfer,David Nugent,/david-nugent/profil/spieler/33963
+1617,Hairline crack in calfbone,2017-04-16,2017-08-06,112,1,injury,Jack Wilshere,/jack-wilshere/profil/spieler/74223
+1617,Knee Injury,2016-07-31,2016-08-11,11,,injury,Jack Wilshere,/jack-wilshere/profil/spieler/74223
+1617,Injury to the ankle,2017-01-26,2017-01-29,3,1,injury,James Ward-Prowse,/james-ward-prowse/profil/spieler/181579
+1617,Yellow card suspension,2016-12-18,2016-12-27,9,1,suspension,Robert Huth,/robert-huth/profil/spieler/2998
+1617,Foot Injury,2017-01-02,2017-02-02,31,6,injury,Nordin Amrabat,/nordin-amrabat/profil/spieler/55619
+1617,Ankle Injury,2016-11-28,2017-01-29,62,11,injury,Lynden Gooch,/lynden-gooch/profil/spieler/307781
+1617,Transferred to Torino,2016-08-31,2017-06-29,,,Transfer,Joe Hart,/joe-hart/profil/spieler/40204
+1617,Knee Injury,2016-12-08,2016-12-15,7,2,injury,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+1617,Suspension through sports court,2016-11-24,2016-12-11,17,3,suspension,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+1617,Knee Injury,2017-01-24,2017-06-30,157,16,injury,Adam Federici,/adam-federici/profil/spieler/4233
+1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Adam Smith,/adam-smith/profil/spieler/61841
+1617,Called up to national team,2017-01-02,2017-02-06,35,4,absence,Daniel Amartey,/daniel-amartey/profil/spieler/214056
+1617,Transferred to Rayo Vallecano,2017-01-05,2017-06-29,,,Transfer,Tomás Mejías,/tomas-mejias/profil/spieler/62947
+1617,Transferred to Exeter City,2016-08-31,2017-05-30,,,Transfer,Luke Croll,/luke-croll/profil/spieler/244309
+1617,Transferred to Charlton,2016-07-01,2017-01-04,,,Transfer,Ademola Lookman,/ademola-lookman/profil/spieler/406040
+1617,Transferred to Birmingham,2017-01-31,2017-05-30,,,Transfer,Jerome Sinclair,/jerome-sinclair/profil/spieler/236513
+1617,Suspension through sports court,2017-03-20,2017-04-01,12,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
+1617,Indirect card suspension,2017-03-16,2017-03-20,4,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
+1617,Indirect card suspension,2017-03-14,2017-03-19,5,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
+1617,Indirect card suspension,2016-10-31,2016-11-07,7,1,suspension,Ander Herrera,/ander-herrera/profil/spieler/99343
+1617,Transferred to Burton Albion,2017-01-31,2017-05-30,,,Transfer,Michael Kightly,/michael-kightly/profil/spieler/25366
+1617,Shoulder Injury,2016-12-21,2017-04-02,102,19,injury,Jonathan Williams,/jonathan-williams/profil/spieler/170322
+1617,Transferred to Ipswich,2016-08-31,2017-05-30,,,Transfer,Jonathan Williams,/jonathan-williams/profil/spieler/170322
+1617,Transferred to Birmingham,2017-01-31,2017-05-30,,,Transfer,Krystian Bielik,/krystian-bielik/profil/spieler/287247
+1617,Transferred to Eastbourne,2017-01-06,2017-05-30,,,Transfer,Jordan Holmes,/jordan-holmes/profil/spieler/399158
+1617,Transferred to FC Lorient,2016-07-01,2016-08-30,,,Transfer,Didier Ndong,/didier-ndong/profil/spieler/210081
+1617,Transferred to Wigan,2017-01-31,2017-05-30,,,Transfer,James Weir,/james-weir/profil/spieler/251058
+1617,Muscle Injury,2017-01-19,2017-01-27,8,,injury,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1617,Ankle Injury,2016-10-22,2016-11-10,19,4,injury,Robert Snodgrass,/robert-snodgrass/profil/spieler/22614
+1617,Transferred to AS Roma,2016-07-01,2017-06-29,,,Transfer,Wojciech Szczesny,/wojciech-szczesny/profil/spieler/44058
+1617,Concussion,2017-04-02,2017-04-09,7,3,injury,Fábio,/fabio/profil/spieler/61891
+1617,Transferred to Cardiff,2016-07-01,2016-08-11,,,Transfer,Fábio,/fabio/profil/spieler/61891
+1617,Groin Injury,2016-08-31,2016-09-16,16,1,injury,Yohan Cabaye,/yohan-cabaye/profil/spieler/29434
+1617,Yellow card suspension,2016-11-27,2016-12-04,7,1,suspension,Yohan Cabaye,/yohan-cabaye/profil/spieler/29434
+1617,Transferred to Rochdale,2017-01-25,2017-05-30,,,Transfer,Joel Taylor,/joel-taylor/profil/spieler/258310
+1617,Knee Injury,2017-01-21,2017-04-04,73,9,injury,Victor Anichebe,/victor-anichebe/profil/spieler/39532
+1617,Transferred to Without Club,2016-07-01,2016-09-01,,,Transfer,Victor Anichebe,/victor-anichebe/profil/spieler/39532
+1617,Yellow card suspension,2016-11-07,2016-11-20,13,1,suspension,Jose Cholevas,/jose-cholevas/profil/spieler/41112
+1617,Transferred to FC Porto,2016-07-01,2016-08-30,,,Transfer,Bruno Martins Indi,/bruno-martins-indi/profil/spieler/112052
+1617,Transferred to FC Porto,2017-06-30,2017-06-30,,,Transfer,Bruno Martins Indi,/bruno-martins-indi/profil/spieler/112052
+1617,Fractured Hand,2016-11-03,2016-12-17,44,9,injury,Kasper Schmeichel,/kasper-schmeichel/profil/spieler/16911
+1617,Transferred to Atlético Madrid,2016-07-01,2016-08-24,,,Transfer,Javier Manquillo,/javier-manquillo/profil/spieler/162029
+1617,Transferred to Atlético Madrid,2017-06-30,2017-06-30,,,Transfer,Javier Manquillo,/javier-manquillo/profil/spieler/162029
+1617,Back trouble,2016-11-19,2016-12-02,13,2,injury,Artur Boruc,/artur-boruc/profil/spieler/15220
+1617,Transferred to Charlton,2016-07-01,2016-07-18,,,Transfer,Nick Pope,/nick-pope/profil/spieler/192080
+1617,Muscle Injury,2017-03-06,2017-03-15,9,2,injury,Bastian Schweinsteiger,/bastian-schweinsteiger/profil/spieler/2514
+1617,Shoulder Injury,2016-11-01,2017-03-01,120,21,injury,Tommie Hoban,/tommie-hoban/profil/spieler/183161
+1617,Transferred to Blackburn,2016-08-26,2017-05-30,,,Transfer,Tommie Hoban,/tommie-hoban/profil/spieler/183161
+1617,Leg Injury,2016-12-02,2017-01-01,30,5,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+1617,Foot Injury,2016-11-07,2016-11-16,9,,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+1617,Transferred to Ajax,2016-08-12,2017-06-29,,,Transfer,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+1617,Hamstring Injury,2017-01-31,2017-03-04,32,6,injury,Antonio Barragán,/antonio-barragan/profil/spieler/32522
+1617,Yellow card suspension,2016-12-27,2017-01-01,5,1,suspension,Antonio Barragán,/antonio-barragan/profil/spieler/32522
+1617,Transferred to Valencia,2016-07-01,2016-07-14,,,Transfer,Antonio Barragán,/antonio-barragan/profil/spieler/32522
+1617,Shoulder Injury,2017-02-18,2017-07-01,133,,injury,Molla Wagué,/molla-wague/profil/spieler/129893
+1617,Flu,2016-10-21,2016-10-22,1,,injury,Molla Wagué,/molla-wague/profil/spieler/129893
+1617,Transferred to Udinese Calcio,2016-07-01,2017-01-29,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
+1617,Transferred to Granada CF,2017-01-30,2017-01-30,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
+1617,Transferred to Granada CF,2017-06-30,2017-06-30,,,Transfer,Molla Wagué,/molla-wague/profil/spieler/129893
+1617,Ankle Injury,2016-08-07,2016-09-09,33,4,injury,Jesse Lingard,/jesse-lingard/profil/spieler/141660
+1617,Muscle Injury,2016-08-17,2016-09-18,32,5,injury,Borja Bastón,/borja-baston/profil/spieler/85324
+1617,Transferred to Atlético Madrid,2016-07-01,2016-08-10,,,Transfer,Borja Bastón,/borja-baston/profil/spieler/85324
+1617,Hamstring Injury,2016-11-27,2017-01-27,61,13,injury,Mathieu Debuchy,/mathieu-debuchy/profil/spieler/27306
+1617,Transferred to Grimsby Town,2016-08-31,2017-02-02,,,Transfer,Dean Henderson,/dean-henderson/profil/spieler/258919
+1617,Transferred to Valencia,2016-07-01,2016-08-29,,,Transfer,Shkodran Mustafi,/shkodran-mustafi/profil/spieler/88590
+1617,Transferred to CC Yatai,2017-01-31,2017-06-30,,,Transfer,Odion Ighalo,/odion-ighalo/profil/spieler/62121
+1617,Yellow card suspension,2016-11-06,2016-11-20,14,1,suspension,Gareth Barry,/gareth-barry/profil/spieler/3291
+1617,Transferred to Bolton,2016-07-01,2016-07-21,,,Transfer,Rob Holding,/rob-holding/profil/spieler/253341
+1617,Knee Injury,2016-12-17,2017-01-21,35,7,injury,Viktor Fischer,/viktor-fischer/profil/spieler/95755
+1617,Ankle Injury,2017-01-06,2017-01-16,10,2,injury,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
+1617,Ankle Injury,2016-11-07,2016-12-10,33,7,injury,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
+1617,Foot Injury,2017-02-20,2017-04-17,56,8,injury,Calum Chambers,/calum-chambers/profil/spieler/215118
+1617,Foot Injury,2017-01-26,2017-02-02,7,2,injury,Calum Chambers,/calum-chambers/profil/spieler/215118
+1617,Muscle Injury,2016-09-01,2017-01-05,126,25,injury,Fabian Delph,/fabian-delph/profil/spieler/50362
+1617,Knee Injury,2016-09-29,2017-01-29,122,19,injury,Jonathan Benteke,/jonathan-benteke/profil/spieler/273773
+1617,Transferred to Zulte Waregem,2016-07-01,2016-08-31,,,Transfer,Jonathan Benteke,/jonathan-benteke/profil/spieler/273773
+1617,Shoulder Injury,2017-04-27,2017-05-20,23,7,injury,Timothy Fosu-Mensah,/timothy-fosu-mensah/profil/spieler/315131
+1617,Back Injury,2016-11-04,2016-12-09,35,5,injury,Shaun Maloney,/shaun-maloney/profil/spieler/9508
+1617,Transferred to Bangor City,2017-01-31,2017-06-29,,,Transfer,Brad Jackson,/brad-jackson/profil/spieler/385920
+1617,Suspension through sports court,2017-03-09,2017-04-02,24,2,suspension,Zlatan Ibrahimović,/zlatan-ibrahimovi%C4%87/profil/spieler/3455
+1617,Yellow card suspension,2016-11-07,2016-11-21,14,1,suspension,Zlatan Ibrahimović,/zlatan-ibrahimovi%C4%87/profil/spieler/3455
+1617,Hip Injury,2017-04-22,2017-04-26,4,1,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
+1617,Hip problems,2017-03-02,2017-03-29,27,3,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
+1617,Ill,2017-02-17,2017-03-01,12,1,injury,Daniel Sturridge,/daniel-sturridge/profil/spieler/47082
+1617,Muscular problems,2017-02-23,2017-03-06,11,2,injury,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
+1617,Strain,2016-09-15,2016-10-17,32,7,injury,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
+1617,Transferred to Bor. Dortmund,2016-07-01,2016-07-05,,,Transfer,Henrikh Mkhitaryan,/henrikh-mkhitaryan/profil/spieler/55735
