@@ -287,8 +287,8 @@ def remove_youth_or_reserve_suffix(team_name: str) -> str:
         "-u23",
     ]
     for suffix in suffix_to_remove:
-        if suffix in team_name:
-            team_name = team_name.replace(suffix, "")
+        if team_name.endswith(suffix):
+            team_name = team_name[: -len(suffix)]
     return team_name
 
 
