@@ -286,6 +286,10 @@ class PlayerScore(Base):
     creativity = Column(Float, nullable=True)
     threat = Column(Float, nullable=True)
     ict_index = Column(Float, nullable=True)
+    expected_goals = Column(Float, nullable=True)
+    expected_assists = Column(Float, nullable=True)
+    expected_goal_involvements = Column(Float, nullable=True)
+    expected_goals_conceded = Column(Float, nullable=True)
 
     def __str__(self):
         return (

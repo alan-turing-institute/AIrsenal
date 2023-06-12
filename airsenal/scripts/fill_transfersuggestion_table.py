@@ -410,6 +410,7 @@ def run_optimization(
     num_iterations: int = 100,
     num_thread: int = 4,
     profile: bool = False,
+    is_replay: bool = False,  # for replaying seasons
 ):
     """
     This is the actual main function that sets up the multiprocessing
@@ -439,7 +440,7 @@ def run_optimization(
     fetcher.login()
 
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
-    use_api = fetcher.logged_in if season == CURRENT_SEASON else False
+    use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False
     try:
         starting_squad = get_starting_squad(
             season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
@@ -462,7 +463,11 @@ def run_optimization(
     # How many free transfers are we starting with?
     if not num_free_transfers:
         num_free_transfers = get_free_transfers(
-            fpl_team_id, gameweeks[0], season=season, apifetcher=fetcher
+            fpl_team_id,
+            gameweeks[0],
+            season=season,
+            apifetcher=fetcher,
+            is_replay=is_replay,
         )
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
@@ -579,7 +584,7 @@ def run_optimization(
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
-    if season != CURRENT_SEASON:
+    if is_replay:
         # simulating a previous season, so imitate applying transfers by adding
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)

@@ -2,11 +2,13 @@
 Make player summary files from FPL season data json
 """
 import json
+import os
 
 from airsenal.framework.utils import get_past_seasons
 
-INPUT_FILE = "../data/FPL_{}.json"
-SAVE_FILE = "../data/player_summary_{}.json"
+SCRIPT_DIR = os.path.dirname(__file__)
+INPUT_FILE = os.path.join(SCRIPT_DIR, "../data/FPL_{}.json")
+SAVE_FILE = os.path.join(SCRIPT_DIR, "../data/player_summary_{}.json")
 
 # dict of {key in input file: key in output file}
 keys_to_extract = {
@@ -22,7 +24,7 @@ keys_to_extract = {
     "red_cards": "reds",
     "yellow_cards": "yellows",
     "team": "team",  # need to convert index to string
-    "element_type": "position",  #  need to convert index to string
+    "element_type": "position",  # need to convert index to string
     "now_cost": "cost",
 }
 

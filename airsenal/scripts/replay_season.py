@@ -97,7 +97,9 @@ def replay_season(
             continue
         if gw == gameweek_start and new_squad:
             print("Creating initial squad...")
-            squad = fill_initial_squad(tag, gw_range, season, fpl_team_id)
+            squad = fill_initial_squad(
+                tag, gw_range, season, fpl_team_id, is_replay=True
+            )
             # no points hits due to unlimited transfers to initialise team
             best_strategy = {
                 "points_hit": {str(gw): 0},
@@ -115,6 +117,7 @@ def replay_season(
                 season=season,
                 fpl_team_id=fpl_team_id,
                 num_thread=num_thread,
+                is_replay=True,
             )
         gw_result["starting_11"] = []
         gw_result["subs"] = []

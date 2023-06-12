@@ -69,7 +69,7 @@ def main():
         "--n_previous",
         help="specify how many seasons to look back into the past for (defaults to 3)",
         type=int,
-        choices=range(1, 7),
+        choices=range(1, 8),
         default=3,
         required=False,
     )

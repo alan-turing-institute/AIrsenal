@@ -31,7 +31,7 @@ def load_absences(season: str, dbsession: Session) -> None:
             continue
         date_from = row["from"].date()
         if date_from is pd.NaT:
-            print(f"{row['player']} {row['absence']} has no from date")
+            print(f"{row['player']} {row['details']} has no from date")
             continue
         date_until = None if row["until"] is pd.NaT else row["until"].date()
 
