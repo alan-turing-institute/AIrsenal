@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - develop
-      - fix/574-docker-build
   pull_request:
     branches:
       - main

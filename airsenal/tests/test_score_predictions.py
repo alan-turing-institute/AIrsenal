@@ -262,7 +262,7 @@ def test_fit_conjugate_player_model():
 
 
 @pytest.mark.xfail(
-    reason="`NumpyroPlayerModel` raises a RuntimeError: ticket #578",
+    reason="`NumpyroPlayerModel` raises a `RuntimeError`: ticket #578",
 )
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()

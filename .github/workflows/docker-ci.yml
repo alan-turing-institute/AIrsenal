@@ -7,10 +7,10 @@ env:
 
 on:
   pull_request:
-    branches: [ "main", "fix/574-docker-build" ]
+    branches: [ "main", "develop" ]
 
   push:
-    branches: [ "main", "fix/574-docker-build" ]
+    branches: [ "main", "develop" ]
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
