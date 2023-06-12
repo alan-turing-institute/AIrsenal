@@ -262,7 +262,9 @@ def test_fit_conjugate_player_model():
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
-@pytest.mark.xfail(in_docker(), reason="known issues running in docker, see ticket #574")
+@pytest.mark.xfail(
+    in_docker(), reason="known issues running in docker, see ticket #574"
+)
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)

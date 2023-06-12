@@ -10,8 +10,12 @@ def in_docker() -> bool:
 
     Reference: https://stackoverflow.com/a/73564246/678486
     """
-    cgroup: Path = Path('/proc/self/cgroup')
-    return Path('/.dockerenv').is_file() or cgroup.is_file() and 'docker' in cgroup.read_text()
+    cgroup: Path = Path("/proc/self/cgroup")
+    return (
+        Path("/.dockerenv").is_file()
+        or cgroup.is_file()
+        and "docker" in cgroup.read_text()
+    )
 
 
 dummy_players: list[str] = [
