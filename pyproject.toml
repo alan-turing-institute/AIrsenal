@@ -30,12 +30,14 @@ lxml = "^4.9.2"
 html5lib = "^1.1"
 jaxlib = "^0.4.12"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^4.1.0"
 black = "^22.12.0"
 isort = "^5.12.0"
 flake8 = "^4.0.1"
 pre-commit = "^3.3.2"
 pytest = "^7.3.2"
+pytest-sugar = "^0.9.7"
 
 [tool.poetry.extras]
 api = ["Flask"]
@@ -45,6 +47,13 @@ plot = ["matplotlib", "seaborn"]
 [build-system]
 requires = ["poetry-core>=1.0.0", "cython", "numpy", "setuptools"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = """
+--cov=airsenal
+--cov-report=term:skip-covered
+--pdbcls=IPython.terminal.debugger:TerminalPdb
+"""
 
 [tool.poetry.scripts]
 airsenal_run_pipeline = "airsenal.scripts.airsenal_run_pipeline:run_pipeline"

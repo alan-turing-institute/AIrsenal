@@ -5,6 +5,7 @@ import bpl
 import numpy as np
 import pandas as pd
 import pytest
+import sys
 
 from airsenal.conftest import test_past_data_session_scope
 from airsenal.framework.bpl_interface import (
@@ -263,7 +264,8 @@ def test_fit_conjugate_player_model():
 
 
 @pytest.mark.xfail(
-    in_docker(), reason="known issues running in docker, see ticket #574"
+    in_docker() or sys.platform.startswith("darwin"),
+    reason="fails with NumpyroPlayerModel in macOS and docker: ticket #574"
 )
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
