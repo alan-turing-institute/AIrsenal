@@ -8,6 +8,6 @@ WORKDIR /airsenal
 
 COPY . /airsenal
 
-RUN poetry install
+RUN poetry install --extras "api"
 
 CMD ["poetry", "run", "airsenal_run_pipeline"]
