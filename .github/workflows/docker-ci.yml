@@ -33,4 +33,4 @@ jobs:
           docker run airsenal poetry run pre-commit run --all-files
       - name: Tests
         run: |
-          docker run -e "FPL_TEAM_ID=2779516" poetry run pytest
+          docker run -e "FPL_TEAM_ID=2779516" airsenal poetry run pytest
