@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airsenal"
-version = "1.5.3"
+version = "1.5.4"
 description = "AI manager for Fantasy Premier League"
 authors = [
 	"Angus Williams <anguswilliams91@gmail.com>",
