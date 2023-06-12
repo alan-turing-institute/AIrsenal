@@ -67,6 +67,30 @@ Build the docker-image:
 docker build -t airsenal .
 ```
 
+!!! warning
+
+    If `docker build` fails due to a `RuntimeError` like 
+
+    ```console
+    Unable to find installation candidates for jaxlib (0.4.11)
+    ```
+
+    this may be a lack of maintained versions of a package for `m1` on Linux.
+
+    A slow solution for this error is to force a `linux/amd64` build like 
+
+    ```console
+    docker build --platform linux/amd64 -t airsenal .
+    ```
+
+    if that fails try 
+
+    ```console
+    docker build --platform linux/amd64 --no-cache -t airsenal .
+    ```
+
+    See ticket [#547](https://github.com/alan-turing-institute/AIrsenal/issues/574) for latest on this issue.
+
 Create a volume for data persistance:
 
 ```shell
