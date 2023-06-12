@@ -164,6 +164,11 @@ def main():
         help="ID for your FPL team",
         type=int,
     )
+    parser.add_argument(
+        "--is_replay",
+        help="Add suggested squad to the database (for replaying seasons)",
+        action="store_true",
+    )
     args = parser.parse_args()
     season = args.season or CURRENT_SEASON
     budget = args.budget
@@ -213,4 +218,5 @@ def main():
         population_size=population_size,
         num_iterations=num_iterations,
         verbose=verbose,
+        is_replay=args.is_replay,
     )
