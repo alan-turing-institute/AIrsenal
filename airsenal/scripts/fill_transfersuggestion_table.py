@@ -770,6 +770,11 @@ def main():
         type=int,
         required=False,
     )
+    parser.add_argument(
+        "--is_replay",
+        help="Add suggested squad to the database (for replaying seasons)",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -827,4 +832,5 @@ def main():
             num_iterations,
             num_thread,
             profile,
+            is_replay=args.is_replay,
         )
