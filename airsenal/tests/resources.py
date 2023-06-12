@@ -3,8 +3,8 @@ A list of dummy players and utils for use in tests.
 """
 
 from pathlib import Path
-
 from typing import List
+
 
 def in_docker() -> bool:
     """Return True if in running within docker, else False.
