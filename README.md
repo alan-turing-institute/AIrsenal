@@ -63,47 +63,51 @@ AIrsenal has an optional optimisation algorithm using the PyGMO package, which i
 
 Build the docker-image:
 
-```shell
-docker build -t airsenal .
+```console
+$ docker build -t airsenal .
 ```
 
-!!! warning
+If `docker build` fails due to a `RuntimeError` like 
 
-    If `docker build` fails due to a `RuntimeError` like 
+```console
+Unable to find installation candidates for jaxlib (0.4.11)
+```
 
-    ```console
-    Unable to find installation candidates for jaxlib (0.4.11)
-    ```
+this may be a lack of maintained versions of a package for `m1` on Linux.
 
-    this may be a lack of maintained versions of a package for `m1` on Linux.
+A slow solution for this error is to force a `linux/amd64` build like 
 
-    A slow solution for this error is to force a `linux/amd64` build like 
+```console
+$ docker build --platform linux/amd64 -t airsenal .
+```
 
-    ```console
-    docker build --platform linux/amd64 -t airsenal .
-    ```
+If that fails try 
 
-    if that fails try 
+```console
+$ docker build --platform linux/amd64 --no-cache -t airsenal .
+```
 
-    ```console
-    docker build --platform linux/amd64 --no-cache -t airsenal .
-    ```
-
-    See ticket [#547](https://github.com/alan-turing-institute/AIrsenal/issues/574) for latest on this issue.
+See ticket [#547](https://github.com/alan-turing-institute/AIrsenal/issues/574) for latest on this issue.
 
 Create a volume for data persistance:
 
-```shell
-docker volume create airsenal_data
+```console
+$ docker volume create airsenal_data
 ```
 
 Run commands with your configuration as environment variables, eg:
 
-```shell
-docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal [airsenal_run_pipeline]
+```console
+$ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal bash
 ```
 
-```airsenal_run_pipeline``` is the default command.
+or 
+
+```console
+$ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal airsenal_run_pipeline
+```
+
+`airsenal_run_pipeline` is the default command.
 
 ## Optional dependencies
 
