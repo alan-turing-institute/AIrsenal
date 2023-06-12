@@ -38,6 +38,7 @@ flake8 = "^4.0.1"
 pre-commit = "^3.3.2"
 pytest = "^7.3.2"
 pytest-sugar = "^0.9.7"
+ipython = "8.12.1"  # Last for Python 3.8
 
 [tool.poetry.extras]
 api = ["Flask"]

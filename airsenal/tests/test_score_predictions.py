@@ -1,8 +1,6 @@
 """
 test the score-calculating functions
 """
-import sys
-
 import bpl
 import numpy as np
 import pandas as pd
@@ -36,7 +34,6 @@ from airsenal.framework.prediction_utils import (
     mean_group_min_count,
 )
 from airsenal.framework.schema import Fixture, Result
-from airsenal.tests.resources import in_docker
 
 
 def generate_player_df(prob_score, prob_assist):
@@ -265,8 +262,7 @@ def test_fit_conjugate_player_model():
 
 
 @pytest.mark.xfail(
-    in_docker() or sys.platform.startswith("darwin"),
-    reason="fails with NumpyroPlayerModel in macOS and docker: ticket #574",
+    reason="`NumpyroPlayerModel` raises a RuntimeError: ticket #578",
 )
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
