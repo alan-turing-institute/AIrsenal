@@ -57,7 +57,8 @@ def get_ratings_dict(season, teams, dbsession):
         raise ValueError(
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
             + f"teams with FIFA ratings but {len(teams)} teams with results."
-            + f"the effected teams are {set(ratings_dict.keys()).symmetric_difference(teams)}"
+            + f"the effected teams are "
+            + f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
     return ratings_dict
 
