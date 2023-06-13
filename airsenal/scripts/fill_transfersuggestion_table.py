@@ -437,7 +437,8 @@ def run_optimization(
         return
 
     # give the user the option to login
-    fetcher.login()
+    if season == CURRENT_SEASON:
+        fetcher.login()
 
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
     use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False

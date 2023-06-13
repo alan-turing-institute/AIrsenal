@@ -5,6 +5,7 @@ from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import fetcher
 from airsenal.scripts.make_player_details import make_player_details
 from airsenal.scripts.make_player_summary import make_player_summary
+from airsenal.scripts.make_results import make_results
 from airsenal.scripts.scrape_transfermarkt import scrape_transfermarkt
 
 
@@ -48,6 +49,9 @@ def main():
 
     print("Making player details data file...")
     make_player_details([CURRENT_SEASON])
+
+    print("Making results file...")
+    make_results(CURRENT_SEASON)
 
     print("Scraping Transfermarkt data...")
     scrape_transfermarkt([CURRENT_SEASON])
