@@ -61,13 +61,14 @@ def replay_season(
     tag_prefix: str = "",
     fpl_team_id: Optional[int] = None,
 ) -> None:
+    start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
     if fpl_team_id is None:
         with session_scope() as session:
             fpl_team_id = get_dummy_id(season, dbsession=session)
     if not tag_prefix:
-        start = datetime.now().strftime("%Y%m%d%H%M")
+        start_str = start.strftime("%Y%m%d%H%M")
         tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start}"
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
@@ -147,6 +148,10 @@ def replay_season(
         gw_result["actual_points"] = actual_points - gw_result["points_hit"]
         replay_results["gameweeks"].append(gw_result)
         print("-" * 30)
+
+    end = datetime.now()
+    elapsed = end - start
+    replay_results["elapsed"] = elapsed.total_seconds()
     with open(f"{tag_prefix}.json", "w") as outfile:
         json.dump(replay_results, outfile)
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
