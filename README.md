@@ -196,7 +196,7 @@ Also note that this command can't currently apply chips such as "free hit" or "w
 Instead of running the commands above individually you can use:
 
 ```shell
-airsenal_run_pipeline
+
 ```
 
 This will update the database and then run the points predictions and transfer optimization.  Add `--help` to see the available options.
