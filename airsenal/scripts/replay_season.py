@@ -69,7 +69,7 @@ def replay_season(
             fpl_team_id = get_dummy_id(season, dbsession=session)
     if not tag_prefix:
         start_str = start.strftime("%Y%m%d%H%M")
-        tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start}"
+        tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start_str}"
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
     # store results in a dictionary, which we will later save to a json file
