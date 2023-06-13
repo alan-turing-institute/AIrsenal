@@ -4,7 +4,6 @@ test the score-calculating functions
 import bpl
 import numpy as np
 import pandas as pd
-import pytest
 
 from airsenal.conftest import test_past_data_session_scope
 from airsenal.framework.bpl_interface import (
@@ -261,9 +260,6 @@ def test_fit_conjugate_player_model():
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
-@pytest.mark.xfail(
-    reason="`NumpyroPlayerModel` raises a `RuntimeError`: ticket #578",
-)
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)

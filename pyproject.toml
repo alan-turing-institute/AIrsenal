@@ -28,7 +28,8 @@ seaborn = {version = "^0.11.2", optional = true}
 python-dateutil = "^2.8.2"
 lxml = "^4.9.2"
 html5lib = "^1.1"
-jaxlib = "^0.4.12"
+jax = "0.3.25"
+jaxlib = "0.3.25"
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^4.1.0"
