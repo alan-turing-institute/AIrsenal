@@ -1,10 +1,13 @@
-FROM python:3.8-slim-buster
+FROM python:3.9-slim-buster
+
+RUN apt-get update && \
+    apt-get install build-essential git sqlite3 curl -y && \
+    pip install -U setuptools pygmo poetry
 
 WORKDIR /airsenal
 
 COPY . /airsenal
 
-RUN apt-get update && apt-get install build-essential git sqlite3 -y && \
-    pip install pygmo && pip install .
+RUN poetry install --extras "api"
 
-CMD ["airsenal_run_pipeline"]
+CMD ["poetry", "run", "airsenal_run_pipeline"]

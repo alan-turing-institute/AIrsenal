@@ -1,0 +1,36 @@
+name: CI
+
+# Enable Buildkit and let compose use it to speed up image building
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+
+  push:
+    branches: [ "main", "develop" ]
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code Repository
+        uses: actions/checkout@main
+
+      - name: Build AIrsenal
+        run:  docker build -t airsenal .
+
+      - name: Code quality checks
+        run: |
+          docker run airsenal poetry run pre-commit run --all-files
+      - name: Tests
+        run: |
+          docker run -e "FPL_TEAM_ID=2779516" airsenal poetry run pytest
