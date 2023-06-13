@@ -192,6 +192,12 @@ def main():
         type=int,
         default=4,
     )
+    parser.add_argument(
+        "--loop",
+        help="How many times to repeat repla (default 1, -1 to loop contiuously)",
+        type=int,
+        default=1,
+    )
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
@@ -200,15 +206,21 @@ def main():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
-        replay_season(
-            season=args.season,
-            gameweek_start=args.gameweek_start,
-            gameweek_end=args.gameweek_end,
-            new_squad=not args.resume,
-            weeks_ahead=args.weeks_ahead,
-            num_thread=args.num_thread,
-            fpl_team_id=args.fpl_team_id,
-        )
+        n_completed = 0
+        while (args.loop == -1) or (n_completed < args.loop):
+            print("*" * 15)
+            print(f"RUNNING REPLAY {n_completed + 1}")
+            print("*" * 15)
+            replay_season(
+                season=args.season,
+                gameweek_start=args.gameweek_start,
+                gameweek_end=args.gameweek_end,
+                new_squad=not args.resume,
+                weeks_ahead=args.weeks_ahead,
+                num_thread=args.num_thread,
+                fpl_team_id=args.fpl_team_id,
+            )
+            n_completed += 1
 
 
 if __name__ == "__main__":
