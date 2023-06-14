@@ -181,7 +181,7 @@ def make_predictedscore_table(
     tag_prefix: Optional[str] = None,
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
     dbsession: Session = session,
-) -> None:
+) -> str:
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:

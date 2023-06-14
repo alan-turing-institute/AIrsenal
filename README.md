@@ -187,7 +187,7 @@ with more recent data, using the command
 airsenal_update_db
 ```
 
-The next step is to use the team- and player-level Stan models to predict the expected points for all players for the next fixtures.  This is done using the command
+The next step is to use the team- and player-level NumPyro models to predict the expected points for all players for the next fixtures.  This is done using the command
 
 ```shell
 airsenal_run_prediction --weeks_ahead 3
