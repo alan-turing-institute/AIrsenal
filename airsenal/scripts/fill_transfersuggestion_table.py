@@ -437,7 +437,8 @@ def run_optimization(
         return
 
     # give the user the option to login
-    fetcher.login()
+    if season == CURRENT_SEASON:
+        fetcher.login()
 
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
     use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False
@@ -770,6 +771,11 @@ def main():
         type=int,
         required=False,
     )
+    parser.add_argument(
+        "--is_replay",
+        help="Add suggested squad to the database (for replaying seasons)",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -827,4 +833,5 @@ def main():
             num_iterations,
             num_thread,
             profile,
+            is_replay=args.is_replay,
         )
