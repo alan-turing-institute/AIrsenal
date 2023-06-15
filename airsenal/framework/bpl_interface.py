@@ -75,7 +75,9 @@ def get_training_data(season, gameweek, dbsession, ratings=True):
     return training_data
 
 
-def create_and_fit_team_model(training_data, model_class=ExtendedDixonColesMatchPredictor):
+def create_and_fit_team_model(
+    training_data, model_class=ExtendedDixonColesMatchPredictor
+):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
@@ -97,7 +99,9 @@ def add_new_teams_to_model(team_model, season, dbsession):
     return team_model
 
 
-def get_fitted_team_model(season, gameweek, dbsession, team_model_class=ExtendedDixonColesMatchPredictor):
+def get_fitted_team_model(
+    season, gameweek, dbsession, team_model_class=ExtendedDixonColesMatchPredictor
+):
     """
     get the fitted team model using the past results and the FIFA rankings
     """

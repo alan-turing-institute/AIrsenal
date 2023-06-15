@@ -12,10 +12,9 @@ from multiprocessing import Process, Queue
 from typing import List, Optional
 from uuid import uuid4
 
+from bpl import ExtendedDixonColesMatchPredictor
 from pandas import Series
 from sqlalchemy.orm.session import Session
-
-from bpl import ExtendedDixonColesMatchPredictor
 
 from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
@@ -90,13 +89,16 @@ def calc_all_predicted_points(
     num_thread: int = 4,
     tag: str = "",
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
-    team_model_class=ExtendedDixonColesMatchPredictor
+    team_model_class=ExtendedDixonColesMatchPredictor,
 ) -> None:
     """
     Do the full prediction for players.
     """
     model_team = get_fitted_team_model(
-        season, gameweek=min(gw_range), dbsession=dbsession, team_model_class=team_model_class
+        season,
+        gameweek=min(gw_range),
+        dbsession=dbsession,
+        team_model_class=team_model_class,
     )
     print("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
@@ -184,7 +186,7 @@ def make_predictedscore_table(
     tag_prefix: Optional[str] = None,
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
     dbsession: Session = session,
-    team_model_class=ExtendedDixonColesMatchPredictor
+    team_model_class=ExtendedDixonColesMatchPredictor,
 ) -> str:
     tag = tag_prefix or ""
     tag += str(uuid4())
@@ -200,7 +202,7 @@ def make_predictedscore_table(
         num_thread=num_thread,
         tag=tag,
         player_model=player_model,
-        team_model_class=team_model_class
+        team_model_class=team_model_class,
     )
     return tag
 
