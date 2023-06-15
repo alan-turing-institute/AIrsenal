@@ -175,7 +175,7 @@ def get_discounted_squad_score(
     triple_captain_gw: Optional[int] = None,
     sub_weights: Optional[dict] = None,
 ) -> float:
-    """Get the expected number of points a squad is to score across a number of
+    """Get the number of points a squad is expected to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
     to the root_gw.
     """
