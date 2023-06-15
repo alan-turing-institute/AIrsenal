@@ -308,7 +308,7 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> None:
 
 def print_strat(strat: dict) -> None:
     """
-    nicely formated printout as output of optimization.
+    nicely formatted printout as output of optimization.
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
@@ -334,7 +334,7 @@ def print_strat(strat: dict) -> None:
 
 def discord_payload(strat: dict, lineup: List[str]) -> dict:
     """
-    json formated discord webhook contentent.
+    json formated discord webhook content.
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
@@ -541,7 +541,7 @@ def run_optimization(
         save_baseline_score(starting_squad, gameweeks, tag)
         update_progress()
 
-    # Add Processes to run the the target 'optimize' function.
+    # Add Processes to run the target 'optimize' function.
     # This target function needs to know:
     #  num_transfers
     #  current_team (list of player_ids)
