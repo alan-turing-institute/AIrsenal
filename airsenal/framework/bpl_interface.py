@@ -71,9 +71,9 @@ def get_ratings_dict(season, teams, dbsession):
     return ratings_dict
 
 
-def get_training_data(season, gameweek, dbsession, ratings=True, time_decay=False):
+def get_training_data(season, gameweek, dbsession, ratings=True, time_decay=None):
     """Get training data for team model, optionally including FIFA ratings
-    as covariates if ratings is True. If time_decay is False, do not include 
+    as covariates if ratings is True. If time_decay is None, do not include
     exponential time decay in model.
     Data returned is for all matches up to specified gameweek and season.
     """
@@ -81,17 +81,17 @@ def get_training_data(season, gameweek, dbsession, ratings=True, time_decay=Fals
     if ratings:
         teams = set(training_data["home_team"]) | set(training_data["away_team"])
         training_data["team_covariates"] = get_ratings_dict(season, teams, dbsession)
-    if not time_decay:
+    if time_decay is None:
         del training_data["time_diff"]
     return training_data
 
 
-def create_and_fit_team_model(training_data):
+def create_and_fit_team_model(training_data, time_decay=None):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    return ExtendedDixonColesMatchPredictor().fit(training_data)
+    return ExtendedDixonColesMatchPredictor().fit(training_data, epsilon=time_decay)
 
 
 def add_new_teams_to_model(team_model, season, dbsession, ratings=True):
@@ -112,13 +112,13 @@ def add_new_teams_to_model(team_model, season, dbsession, ratings=True):
     return team_model
 
 
-def get_fitted_team_model(season, gameweek, dbsession, ratings=True, time_decay=False):
+def get_fitted_team_model(season, gameweek, dbsession, ratings=True, time_decay=None):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
     print("Fitting team model...")
     training_data = get_training_data(season, gameweek, dbsession, ratings, time_decay)
-    team_model = create_and_fit_team_model(training_data)
+    team_model = create_and_fit_team_model(training_data, time_decay)
     return add_new_teams_to_model(team_model, season, dbsession, ratings)
 
 
