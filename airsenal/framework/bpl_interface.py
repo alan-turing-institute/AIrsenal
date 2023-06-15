@@ -94,7 +94,7 @@ def create_and_fit_team_model(training_data):
     return ExtendedDixonColesMatchPredictor().fit(training_data)
 
 
-def add_new_teams_to_model(team_model, season, dbsession):
+def add_new_teams_to_model(team_model, season, dbsession, ratings=True):
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
@@ -102,20 +102,24 @@ def add_new_teams_to_model(team_model, season, dbsession):
     teams = get_teams_for_season(season, dbsession=dbsession)
     for t in teams:
         if t not in team_model.teams:
-            print(f"Adding {t} to team model with covariates")
-            ratings = get_ratings_dict(season, [t], dbsession)
-            team_model.add_new_team(t, team_covariates=ratings[t])
+            if ratings:
+                print(f"Adding {t} to team model with covariates")
+                ratings = get_ratings_dict(season, [t], dbsession)
+                team_model.add_new_team(t, team_covariates=ratings[t])
+            else:
+                print(f"Adding {t} to team model without covariates")
+                team_model.add_new_team(t)
     return team_model
 
 
-def get_fitted_team_model(season, gameweek, dbsession):
+def get_fitted_team_model(season, gameweek, dbsession, ratings=True, time_decay=False):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
     print("Fitting team model...")
-    training_data = get_training_data(season, gameweek, dbsession)
+    training_data = get_training_data(season, gameweek, dbsession, ratings, time_decay)
     team_model = create_and_fit_team_model(training_data)
-    return add_new_teams_to_model(team_model, season, dbsession)
+    return add_new_teams_to_model(team_model, season, dbsession, ratings)
 
 
 def fixture_probabilities(
