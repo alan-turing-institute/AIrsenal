@@ -33,11 +33,22 @@ def get_result_dict(season, gameweek, dbsession):
             next_gameweek=gameweek,
         )
     ]
+    # compute the time difference for each fixture in results
+    # to the first fixture of the next gameweek
+    result_dates = np.array(
+        [pd.Timestamp(r.fixture.date).replace(tzinfo=None) for r in results]
+    )
+    end_date = pd.to_datetime(
+        [f.date for f in get_fixtures_for_gameweek(gameweek, season, dbsession)]
+    ).min()
+    end_date = end_date.replace(tzinfo=None)
+    time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
         "away_team": np.array([r.fixture.away_team for r in results]),
         "home_goals": np.array([r.home_score for r in results]),
         "away_goals": np.array([r.away_score for r in results]),
+        "time_diff": time_diff,
     }
 
 
