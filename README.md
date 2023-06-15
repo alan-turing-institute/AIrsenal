@@ -12,7 +12,7 @@ We welcome contributions and comments - if you'd like to join the AIrsenal commu
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
 The code to join is: **8wec9c**.
-Hope to see your AI team there!! :)
+Hope to see your AI team there! :)
 
 Our own AIrsenal team's id for the 2022/23 season is **[2779516](https://fantasy.premierleague.com/entry/2779516/history)**.
 
