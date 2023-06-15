@@ -34,15 +34,12 @@ def get_result_dict(season, gameweek, dbsession):
         )
     ]
     # compute the time difference for each fixture in results
-    # to the first fixture of the next gameweek
+    # to the last fixture
     result_dates = np.array(
-        [pd.Timestamp(r.fixture.date).replace(tzinfo=None) for r in results]
+        [pd.Timestamp(r.fixture.date).replace(tzinfo=None).date() for r in results]
     )
-    end_date = pd.to_datetime(
-        [f.date for f in get_fixtures_for_gameweek(gameweek, season, dbsession)]
-    ).min()
-    end_date = end_date.replace(tzinfo=None)
-    time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
+    end_date = max(result_dates)
+    time_diff = (end_date - result_dates) / pd.Timedelta(days=1)
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
         "away_team": np.array([r.fixture.away_team for r in results]),
@@ -74,15 +71,18 @@ def get_ratings_dict(season, teams, dbsession):
     return ratings_dict
 
 
-def get_training_data(season, gameweek, dbsession, ratings=True):
+def get_training_data(season, gameweek, dbsession, ratings=True, time_decay=False):
     """Get training data for team model, optionally including FIFA ratings
-    as covariates if ratings is True. Data returned is for all matches up
-    to specified gameweek and season.
+    as covariates if ratings is True. If time_decay is False, do not include 
+    exponential time decay in model.
+    Data returned is for all matches up to specified gameweek and season.
     """
     training_data = get_result_dict(season, gameweek, dbsession)
     if ratings:
         teams = set(training_data["home_team"]) | set(training_data["away_team"])
         training_data["team_covariates"] = get_ratings_dict(season, teams, dbsession)
+    if not time_decay:
+        del training_data["time_diff"]
     return training_data
 
 
