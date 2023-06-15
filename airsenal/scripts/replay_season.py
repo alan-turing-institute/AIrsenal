@@ -60,6 +60,7 @@ def replay_season(
     transfers: bool = True,
     tag_prefix: str = "",
     fpl_team_id: Optional[int] = None,
+    team_model: str = "xdc",
 ) -> None:
     start = datetime.now()
     if gameweek_end is None:
@@ -69,8 +70,20 @@ def replay_season(
             fpl_team_id = get_dummy_id(season, dbsession=session)
     if not tag_prefix:
         start_str = start.strftime("%Y%m%d%H%M")
-        tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start_str}"
+        tag_prefix = (
+            f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_"
+            f"{start_str}_{team_model}"
+        )
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
+
+    if team_model == "random":
+        from airsenal.framework.random_team_model import (
+            RandomMatchPredictor as team_model_class,
+        )
+    else:
+        from airsenal.framework.bpl_interface import (
+            ExtendedDixonColesMatchPredictor as team_model_class,
+        )
 
     # store results in a dictionary, which we will later save to a json file
     replay_results = {}
@@ -91,6 +104,7 @@ def replay_season(
                 num_thread=num_thread,
                 tag_prefix=tag_prefix,
                 dbsession=session,
+                team_model_class=team_model_class,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
 
@@ -199,9 +213,16 @@ def main():
     )
     parser.add_argument(
         "--loop",
-        help="How many times to repeat repla (default 1, -1 to loop contiuously)",
+        help="How many times to repeat repla (default 1, -1 to loop continuously)",
         type=int,
         default=1,
+    )
+    parser.add_argument(
+        "--team_model",
+        help="Specify name of the team model.",
+        type=str,
+        default="xdc",
+        choices=["xdc", "random"],
     )
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -224,6 +245,7 @@ def main():
                 weeks_ahead=args.weeks_ahead,
                 num_thread=args.num_thread,
                 fpl_team_id=args.fpl_team_id,
+                team_model=args.team_model,
             )
             n_completed += 1
 
