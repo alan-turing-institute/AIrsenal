@@ -5,49 +5,45 @@ x-replay-season-command: &replay-season-command
     airsenal_setup_initial_db --clean --no_current_season --n_previous $${AIRSENAL_N_PREVIOUS} &&
     airsenal_replay_season --season $${AIRSENAL_SEASON} --loop $${AIRSENAL_LOOP} --num_thread $${AIRSENAL_NUM_THREAD} --weeks_ahead $${WEEKS_AHEAD}
 
-services:
-  experiment-1:
-    build: &default-build
+x-default-build-config: &default-build-config
+    build:
       dockerfile: Dockerfile
       context: .
-    environment:
-      - AIRSENAL_N_PREVIOUS=0
-      - AIRSENAL_WEEKS_AHEAD=5
-      - AIRSENAL_SEASON=2223
-      - AIRSENAL_NUM_THREAD=8
-      - AIRSENAL_LOOP=-1
-      - AIRSENAL_FPL_TEAM_ID=2779516
-    <<: *replay-season-command
+
+x-default-environment: &default-environment
+  environment:
+    - AIRSENAL_N_PREVIOUS=3
+    - AIRSENAL_WEEKS_AHEAD=5
+    - AIRSENAL_SEASON=2223
+    - AIRSENAL_NUM_THREAD=2
+    - AIRSENAL_LOOP=-1
+    - AIRSENAL_FPL_TEAM_ID=2779516
+
+x-default-config: &default-config
+  <<: [
+    *default-build-config,
+    *replay-season-command,
+    *default-environment
+  ]
+
+services:
+  experiment-1:
+    <<: *default-config
 
   experiment-2:
-    build: *default-build
+    <<: *default-config
     environment:
       - AIRSENAL_N_PREVIOUS=4
-      - AIRSENAL_WEEKS_AHEAD=5
       - AIRSENAL_SEASON=2122
-      - AIRSENAL_NUM_THREAD=8
-      - AIRSENAL_LOOP=-1
-      - AIRSENAL_FPL_TEAM_ID=2779516
-    <<: *replay-season-command
 
   experiment-3:
-    build: *default-build
+    <<: *default-config
     environment:
       - AIRSENAL_N_PREVIOUS=5
-      - AIRSENAL_WEEKS_AHEAD=5
       - AIRSENAL_SEASON=2021
-      - AIRSENAL_NUM_THREAD=8
-      - AIRSENAL_LOOP=-1
-      - AIRSENAL_FPL_TEAM_ID=2779516
-    <<: *replay-season-command
 
   experiment-4:
-    build: *default-build
+    <<: *default-config
     environment:
       - AIRSENAL_N_PREVIOUS=5
       - AIRSENAL_WEEKS_AHEAD=6
-      - AIRSENAL_SEASON=2223
-      - AIRSENAL_NUM_THREAD=8
-      - AIRSENAL_LOOP=-1
-      - AIRSENAL_FPL_TEAM_ID=2779516
-    <<: *replay-season-command
