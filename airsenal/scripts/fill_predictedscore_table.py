@@ -185,7 +185,7 @@ def make_predictedscore_table(
     player_model: ConjugatePlayerModel = ConjugatePlayerModel(),
     dbsession: Session = session,
     team_model_class=ExtendedDixonColesMatchPredictor
-) -> None:
+) -> str:
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
