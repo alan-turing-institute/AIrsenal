@@ -2,7 +2,7 @@
 
 """
 usage:
-python fill_transfersuggestsions_table.py --weeks_ahead <num_weeks_ahead>
+python fill_transfersuggestions_table.py --weeks_ahead <num_weeks_ahead>
                                           --num_iterations <num_iterations>
 output for each strategy tried is going to be a dict
 { "total_points": <float>,
