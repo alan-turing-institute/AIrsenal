@@ -1,49 +1,45 @@
 version: '3.5'
 
-x-replay-season-command: &replay-season-command
-  command: >
-    poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $AIRSENAL_N_PREVIOUS &&
-    poetry run airsenal_replay_season --season $AIRSENAL_SEASON --loop $AIRSENAL_LOOP --num_thread $AIRSENAL_NUM_THREAD --weeks_ahead $WEEKS_AHEAD
-
-x-default-build-config: &default-build-config
-    build:
-      dockerfile: Dockerfile
-      context: .
-
-x-default-environment: &default-environment
-  environment:
-    - AIRSENAL_N_PREVIOUS=3
-    - AIRSENAL_WEEKS_AHEAD=5
-    - AIRSENAL_SEASON=2223
-    - AIRSENAL_NUM_THREAD=2
-    - AIRSENAL_LOOP=-1
-    - AIRSENAL_FPL_TEAM_ID=2779516
-
-x-default-config: &default-config
-  <<: [
-    *default-build-config,
-    *replay-season-command,
-    *default-environment
-  ]
+x-default: &default
+  platform: "linux/amd64"
+  build:
+    dockerfile: Dockerfile
+    context: .
+  environment: &environment
+    AIRSENAL_N_PREVIOUS: 4
+    AIRSENAL_SEASON: 2122
+    AIRSENAL_LOOP: 1
+    AIRSENAL_NUM_THREAD: 2
+    AIRSENAL_FPL_TEAM_ID: 2779516
+  command: &replay-season-command >
+    bash -c "
+    poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $AIRSENAL_N_PREVIOUS
+    &&
+    poetry run airsenal_replay_season --season $AIRSENAL_SEASON --loop $AIRSENAL_LOOP --num_thread $AIRSENAL_NUM_THREAD --weeks_ahead $WEEKS_AHEAD"
 
 services:
   experiment-1:
-    <<: *default-config
+    <<: *default
 
   experiment-2:
-    <<: *default-config
+    <<: *default
     environment:
-      - AIRSENAL_N_PREVIOUS=4
-      - AIRSENAL_SEASON=2122
+      <<: *environment
+      AIRSENAL_N_PREVIOUS: 4
+      AIRSENAL_SEASON: 2122
 
   experiment-3:
-    <<: *default-config
+    <<: *default
     environment:
-      - AIRSENAL_N_PREVIOUS=5
-      - AIRSENAL_SEASON=2021
+      <<: *environment
+      # <<: *default-environment
+      AIRSENAL_N_PREVIOUS: 5
+      AIRSENAL_SEASON: 2021
 
   experiment-4:
-    <<: *default-config
+    <<: *default
     environment:
-      - AIRSENAL_N_PREVIOUS=5
-      - AIRSENAL_WEEKS_AHEAD=6
+      <<: *environment
+      # <<: *default-environment
+      AIRSENAL_N_PREVIOUS: 5
+      AIRSENAL_WEEKS_AHEAD: 6
