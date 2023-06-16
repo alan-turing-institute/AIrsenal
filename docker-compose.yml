@@ -5,17 +5,24 @@ x-default: &default
   build:
     dockerfile: Dockerfile
     context: .
-  environment: &environment
-    AIRSENAL_N_PREVIOUS: 4
-    AIRSENAL_SEASON: 2122
-    AIRSENAL_LOOP: 1
-    AIRSENAL_NUM_THREAD: 2
-    AIRSENAL_FPL_TEAM_ID: 2779516
+  # environment: &environment
+  #   AIRSENAL_N_PREVIOUS: 4
+  #   AIRSENAL_SEASON: 2122
+  #   AIRSENAL_LOOP: 1
+  #   AIRSENAL_NUM_THREAD: 2
+  #   AIRSENAL_FPL_TEAM_ID: 2779516
+  #   AIRSENAL_WEEKS_AHEAD: 4
+  #   Need to try with $$
   command: &replay-season-command >
     bash -c "
-    poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $AIRSENAL_N_PREVIOUS
+    poetry run airsenal_setup_initial_db --clean --no_current_season
     &&
-    poetry run airsenal_replay_season --season $AIRSENAL_SEASON --loop $AIRSENAL_LOOP --num_thread $AIRSENAL_NUM_THREAD --weeks_ahead $WEEKS_AHEAD"
+    poetry run airsenal_replay_season --season 2223 --loop 1 --num_thread 2 --weeks_ahead 4"
+  # command: &replay-season-command >
+  #   bash -c "
+  #   poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $AIRSENAL_N_PREVIOUS
+  #   &&
+  #   poetry run airsenal_replay_season --season $AIRSENAL_SEASON --loop $AIRSENAL_LOOP --num_thread $AIRSENAL_NUM_THREAD --weeks_ahead $WEEKS_AHEAD"
 
 services:
   experiment-1:
@@ -23,23 +30,29 @@ services:
 
   experiment-2:
     <<: *default
-    environment:
-      <<: *environment
-      AIRSENAL_N_PREVIOUS: 4
-      AIRSENAL_SEASON: 2122
+    command: >
+      bash -c "
+      poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous 4
+      &&
+      poetry run airsenal_replay_season --season 2122 --loop $AIRSENAL_LOOP --num_thread 2 --weeks_ahead 4"
 
   experiment-3:
     <<: *default
-    environment:
-      <<: *environment
-      # <<: *default-environment
-      AIRSENAL_N_PREVIOUS: 5
-      AIRSENAL_SEASON: 2021
+    command: >
+      bash -c "
+      poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous 5
+      &&
+      poetry run airsenal_replay_season --season 2021 --loop $AIRSENAL_LOOP --num_thread 2 --weeks_ahead 4"
+      # environment:
+      #   <<: *environment
+      #   # <<: *default-environment
+      #   AIRSENAL_N_PREVIOUS: 5
+      #   AIRSENAL_SEASON: 2021
 
-  experiment-4:
-    <<: *default
-    environment:
-      <<: *environment
-      # <<: *default-environment
-      AIRSENAL_N_PREVIOUS: 5
-      AIRSENAL_WEEKS_AHEAD: 6
+  # experiment-4:
+  #   <<: *default
+  #   # environment:
+  #   #   <<: *environment
+  #   #   # <<: *default-environment
+  #   #   AIRSENAL_N_PREVIOUS: 5
+  #   #   AIRSENAL_WEEKS_AHEAD: 6
