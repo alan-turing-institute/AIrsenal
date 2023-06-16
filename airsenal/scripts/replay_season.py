@@ -60,16 +60,30 @@ def replay_season(
     transfers: bool = True,
     tag_prefix: str = "",
     fpl_team_id: Optional[int] = None,
+    team_model: str = "xdc",
 ) -> None:
+    start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
     if fpl_team_id is None:
         with session_scope() as session:
             fpl_team_id = get_dummy_id(season, dbsession=session)
     if not tag_prefix:
-        start = datetime.now().strftime("%Y%m%d%H%M")
-        tag_prefix = f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_{start}"
+        start_str = start.strftime("%Y%m%d%H%M")
+        tag_prefix = (
+            f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_"
+            f"{start_str}_{team_model}"
+        )
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
+
+    if team_model == "random":
+        from airsenal.framework.random_team_model import (
+            RandomMatchPredictor as team_model_class,
+        )
+    else:
+        from airsenal.framework.bpl_interface import (
+            ExtendedDixonColesMatchPredictor as team_model_class,
+        )
 
     # store results in a dictionary, which we will later save to a json file
     replay_results = {}
@@ -90,6 +104,7 @@ def replay_season(
                 num_thread=num_thread,
                 tag_prefix=tag_prefix,
                 dbsession=session,
+                team_model_class=team_model_class,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
 
@@ -147,6 +162,10 @@ def replay_season(
         gw_result["actual_points"] = actual_points - gw_result["points_hit"]
         replay_results["gameweeks"].append(gw_result)
         print("-" * 30)
+
+    end = datetime.now()
+    elapsed = end - start
+    replay_results["elapsed"] = elapsed.total_seconds()
     with open(f"{tag_prefix}.json", "w") as outfile:
         json.dump(replay_results, outfile)
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
@@ -192,6 +211,19 @@ def main():
         type=int,
         default=4,
     )
+    parser.add_argument(
+        "--loop",
+        help="How many times to repeat repla (default 1, -1 to loop continuously)",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "--team_model",
+        help="Specify name of the team model.",
+        type=str,
+        default="xdc",
+        choices=["xdc", "random"],
+    )
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
@@ -200,15 +232,22 @@ def main():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
-        replay_season(
-            season=args.season,
-            gameweek_start=args.gameweek_start,
-            gameweek_end=args.gameweek_end,
-            new_squad=not args.resume,
-            weeks_ahead=args.weeks_ahead,
-            num_thread=args.num_thread,
-            fpl_team_id=args.fpl_team_id,
-        )
+        n_completed = 0
+        while (args.loop == -1) or (n_completed < args.loop):
+            print("*" * 15)
+            print(f"RUNNING REPLAY {n_completed + 1}")
+            print("*" * 15)
+            replay_season(
+                season=args.season,
+                gameweek_start=args.gameweek_start,
+                gameweek_end=args.gameweek_end,
+                new_squad=not args.resume,
+                weeks_ahead=args.weeks_ahead,
+                num_thread=args.num_thread,
+                fpl_team_id=args.fpl_team_id,
+                team_model=args.team_model,
+            )
+            n_completed += 1
 
 
 if __name__ == "__main__":
