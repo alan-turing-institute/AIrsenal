@@ -107,7 +107,7 @@ def make_optimum_double_transfer(
     verbose=False,
 ):
     """
-    If we want to just make two transfers, it's not unfeasible to try all
+    If we want to just make two transfers, it's not infeasible to try all
     possibilities in turn.
     We will order the list of potential subs via the sum of expected points
     over a specified range of gameweeks.
@@ -204,7 +204,7 @@ def make_random_transfers(
 ):
     """
     choose nsubs random players to sub out, and then select players
-    using a triangular PDF to preferentially select  the replacements with
+    using a triangular PDF to preferentially select the replacements with
     the best expected score to fill their place.
     Do this num_iter times and choose the best total score over gw_range gameweeks.
     """
