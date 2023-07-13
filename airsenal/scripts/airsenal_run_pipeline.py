@@ -93,6 +93,18 @@ from airsenal.scripts.update_db import update_db
     help="If set, does not include CURRENT_SEASON in database",
     is_flag=True,
 )
+@click.option(
+    "--team_model",
+    help="which team model to fit",
+    type=click.Choice(["extended", "neutral"]),
+    default="neutral",
+)
+@click.option(
+    "--epsilon",
+    help="how much to downweight games by in exponential time weighting",
+    type=float,
+    default=0.0,
+)
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
@@ -105,6 +117,8 @@ def run_pipeline(
     bench_boost_week: int,
     n_previous: int,
     no_current_season: bool,
+    team_model: str,
+    epsilon: int,
 ) -> None:
     """
     Run the full pipeline, from setting up the database and filling
@@ -141,7 +155,13 @@ def run_pipeline(
             raise RuntimeError("Problem updating db")
         click.echo("Database update complete..")
         click.echo("Running prediction..")
-        predict_ok = run_prediction(num_thread, gw_range, dbsession)
+        predict_ok = run_prediction(
+            num_thread,
+            gw_range,
+            dbsession,
+            team_model,
+            team_model_args={"epsilon": epsilon},
+        )
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
@@ -214,7 +234,13 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
     return update_db(season, attr, fpl_team_id, dbsession)
 
 
-def run_prediction(num_thread: int, gw_range: List[int], dbsession: Session) -> bool:
+def run_prediction(
+    num_thread: int,
+    gw_range: List[int],
+    dbsession: Session,
+    team_model: str = "neutral",
+    team_model_args: dict = {"epsilon": 0.0},
+) -> bool:
     """
     Run prediction
     """
@@ -226,6 +252,8 @@ def run_prediction(num_thread: int, gw_range: List[int], dbsession: Session) -> 
         include_bonus=True,
         include_cards=True,
         include_saves=True,
+        team_model=team_model,
+        team_model_args=team_model_args,
         dbsession=dbsession,
     )
 

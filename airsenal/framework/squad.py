@@ -7,9 +7,10 @@ from operator import itemgetter
 
 import numpy as np
 
-from airsenal.framework.player import CandidatePlayer, Player
+from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.schema import Player
+from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
     get_player,
