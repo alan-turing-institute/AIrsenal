@@ -85,7 +85,13 @@ def get_ratings_dict(
     return ratings_dict
 
 
-def get_training_data(season: str, gameweek: int, ratings: bool = True, time_decay: float | None = None, dbsession: Session):
+def get_training_data(
+    season: str,
+    gameweek: int,
+    dbsession: Session,
+    ratings: bool = True,
+    time_decay: float | None = None,
+):
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
     exponential time decay in model.
@@ -134,8 +140,8 @@ def add_new_teams_to_model(
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ],
     season: str,
-    ratings: bool = True
     dbsession: Session,
+    ratings: bool = True,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
@@ -168,7 +174,9 @@ def get_fitted_team_model(
     Get the fitted team model using the past results and the FIFA rankings.
     """
     print("Fitting team model...")
-    training_data = get_training_data(season, gameweek, ratings, fit_args.get("epsilon", None), dbsession)
+    training_data = get_training_data(
+        season, gameweek, ratings, fit_args.get("epsilon", None), dbsession
+    )
     team_model = create_and_fit_team_model(training_data, model_class)
     return add_new_teams_to_model(team_model, season, ratings, dbsession)
 
