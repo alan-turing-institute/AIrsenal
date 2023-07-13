@@ -90,7 +90,7 @@ def get_training_data(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    time_decay: float | None = None,
+    time_decay: Optional[float] = None,
 ):
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
@@ -111,7 +111,6 @@ def create_and_fit_team_model(
     model_class: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
-    model: str = "neutral",
     **fit_args,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
@@ -124,7 +123,7 @@ def create_and_fit_team_model(
         if "epsilon" in fit_args:
             # epsilon not required in fitting extended model
             del fit_args["epsilon"]
-    elif isinstance(model, NeutralDixonColesMatchPredictor):
+    elif isinstance(model_class, NeutralDixonColesMatchPredictor):
         if not fit_args:
             fit_args = {}
         if "epsilon" in fit_args:
