@@ -53,6 +53,7 @@ def get_result_dict(
         "away_team": np.array([r.fixture.away_team for r in results]),
         "home_goals": np.array([r.home_score for r in results]),
         "away_goals": np.array([r.away_score for r in results]),
+        "time_diff": time_diff,
         "neutral_venue": np.zeros(len(results)),
         "time_diff": time_diff,
         "game_weights": np.ones(len(results)),
@@ -85,17 +86,23 @@ def get_ratings_dict(
 
 
 def get_training_data(
-    season: str, gameweek: int, dbsession: Session, ratings: bool = True
-) -> Dict[str, Union[np.array, dict]]:
-    """
-    Get training data for team model, optionally including FIFA ratings
-    as covariates if ratings is True. Data returned is for all matches up
-    to specified gameweek and season.
+    season: str,
+    gameweek: int,
+    dbsession: Session,
+    ratings: bool = True,
+    time_decay: float | None = None,
+):
+    """Get training data for team model, optionally including FIFA ratings
+    as covariates if ratings is True. If time_decay is None, do not include
+    exponential time decay in model.
+    Data returned is for all matches up to specified gameweek and season.
     """
     training_data = get_result_dict(season, gameweek, dbsession)
     if ratings:
         teams = set(training_data["home_team"]) | set(training_data["away_team"])
         training_data["team_covariates"] = get_ratings_dict(season, teams, dbsession)
+    if time_decay is None:
+        del training_data["time_diff"]
     return training_data
 
 
@@ -134,6 +141,7 @@ def add_new_teams_to_model(
     ],
     season: str,
     dbsession: Session,
+    ratings: bool = True,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
@@ -142,9 +150,13 @@ def add_new_teams_to_model(
     teams = get_teams_for_season(season, dbsession=dbsession)
     for t in teams:
         if t not in team_model.teams:
-            print(f"Adding {t} to team model with covariates")
-            ratings = get_ratings_dict(season, [t], dbsession)
-            team_model.add_new_team(t, team_covariates=ratings[t])
+            if ratings:
+                print(f"Adding {t} to team model with covariates")
+                ratings = get_ratings_dict(season, [t], dbsession)
+                team_model.add_new_team(t, team_covariates=ratings[t])
+            else:
+                print(f"Adding {t} to team model without covariates")
+                team_model.add_new_team(t)
     return team_model
 
 
@@ -161,10 +173,12 @@ def get_fitted_team_model(
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
-    print(f"Fitting team model ({type(model_class())})...")
-    training_data = get_training_data(season, gameweek, dbsession)
+    print("Fitting team model...")
+    training_data = get_training_data(
+        season, gameweek, ratings, fit_args.get("epsilon", None), dbsession
+    )
     team_model = create_and_fit_team_model(training_data, model_class)
-    return add_new_teams_to_model(team_model, season, dbsession)
+    return add_new_teams_to_model(team_model, season, ratings, dbsession)
 
 
 def fixture_probabilities(
