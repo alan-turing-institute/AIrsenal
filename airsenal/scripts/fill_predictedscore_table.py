@@ -12,6 +12,7 @@ from multiprocessing import Process, Queue
 from typing import List, Optional, Union
 from uuid import uuid4
 
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from pandas import Series
 from sqlalchemy.orm.session import Session
 
@@ -90,7 +91,9 @@ def calc_all_predicted_points(
     player_model: Union[
         NumpyroPlayerModel, ConjugatePlayerModel
     ] = ConjugatePlayerModel(),
-    team_model: str = "neutral",
+    team_model_class: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor,
     team_model_args: dict = {"epsilon": 0.0},
 ) -> None:
     """
@@ -100,7 +103,7 @@ def calc_all_predicted_points(
         season,
         gameweek=min(gw_range),
         dbsession=dbsession,
-        model=team_model,
+        model_class=team_model_class,
         **team_model_args
     )
     print("Calculating fixture score probabilities...")
@@ -190,10 +193,12 @@ def make_predictedscore_table(
     player_model: Union[
         NumpyroPlayerModel, ConjugatePlayerModel
     ] = ConjugatePlayerModel(),
-    team_model: str = "neutral",
+    team_model_class: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor,
     team_model_args: dict = {"epsilon": 0.0},
     dbsession: Session = session,
-) -> None:
+) -> str:
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
@@ -208,7 +213,7 @@ def make_predictedscore_table(
         num_thread=num_thread,
         tag=tag,
         player_model=player_model,
-        team_model=team_model,
+        team_model_class=team_model_class,
         team_model_args=team_model_args,
     )
     return tag

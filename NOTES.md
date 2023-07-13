@@ -40,7 +40,6 @@ The database is filled with data from the previous three FPL seasons (stored in 
 
 - **TransferSuggestion:** Stores recommended transfers from AIrsenal optimisation runs.
 
-
 The database schema is defined using `sqlalchemy` in `airsenal.framework.schema.py`.
 
 ### Interacting with the FPL API
@@ -97,12 +96,11 @@ Player points predictions are generated from three main components:
 
 ### Team Model
 
-BPL package (written by Angus, one of the original AIrsenal developers): https://github.com/anguswilliams91/bpl
-
+BPL package (written by Angus, one of the original AIrsenal developers): https://github.com/anguswilliams91/bpl-next
 
 ### Player Model
 
-Stan model definition: `airsenal/stan/player_forecasts.stan`
+NumPyro model definition: `airsenal/framework/player_model.py`
 
 ### How Predicted Points are Calculated
 

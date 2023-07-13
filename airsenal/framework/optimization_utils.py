@@ -175,7 +175,7 @@ def get_discounted_squad_score(
     triple_captain_gw: Optional[int] = None,
     sub_weights: Optional[dict] = None,
 ) -> float:
-    """Get the expected number of points a squad is to score across a number of
+    """Get the number of points a squad is expected to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
     to the root_gw.
     """
@@ -256,7 +256,7 @@ def fill_transaction_table(
 ):
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
-    the transactions status is kepts up to date with transfers using the FPL API.
+    the transactions status is kept up to date with transfers using the FPL API.
     Only transfers from the first gameweek in the strategy are added to the Transaction
     table - it's assumed the strategy will be re-optimised after each week rather than
     sticking with the originally proposed future transfers.

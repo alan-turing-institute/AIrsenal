@@ -78,6 +78,8 @@ def get_ratings_dict(
         raise ValueError(
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
             + f"teams with FIFA ratings but {len(teams)} teams with results."
+            + " The teams involved are "
+            + f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
     return ratings_dict
 
@@ -98,29 +100,32 @@ def get_training_data(
 
 
 def create_and_fit_team_model(
-    training_data: dict, model: str = "neutral", **fit_args
+    training_data: dict,
+    model_class: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor(),
+    model: str = "neutral",
+    **fit_args,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    if model == "extended":
+    if isinstance(model_class, ExtendedDixonColesMatchPredictor):
         if not fit_args:
             fit_args = {}
         if "epsilon" in fit_args:
             # epsilon not required in fitting extended model
             del fit_args["epsilon"]
-        return ExtendedDixonColesMatchPredictor().fit(training_data, **fit_args)
-    elif model == "neutral":
+    elif isinstance(model, NeutralDixonColesMatchPredictor):
         if not fit_args:
             fit_args = {}
         if "epsilon" in fit_args:
             print(f"Fitting Neutral model with epsilon = {fit_args['epsilon']}")
         else:
             print("Fitting Neutral model but no epsilon passed, so setting epsilon = 0")
-        return NeutralDixonColesMatchPredictor().fit(training_data, **fit_args)
-    else:
-        raise NotImplementedError("model must be either 'extended' or 'neutral'")
+
+    return model_class().fit(training_data, **fit_args)
 
 
 def add_new_teams_to_model(
@@ -148,15 +153,17 @@ def get_fitted_team_model(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    model: str = "neutral",
+    model_class: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor,
     **fit_args,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
-    print("Fitting team model...")
-    training_data = get_training_data(season, gameweek, dbsession, ratings)
-    team_model = create_and_fit_team_model(training_data, model, **fit_args)
+    print(f"Fitting team model ({type(model_class())})...")
+    training_data = get_training_data(season, gameweek, dbsession)
+    team_model = create_and_fit_team_model(training_data, model_class)
     return add_new_teams_to_model(team_model, season, dbsession)
 
 

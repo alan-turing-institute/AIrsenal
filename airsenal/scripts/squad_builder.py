@@ -2,11 +2,9 @@
 
 import argparse
 import sys
-from typing import List, Optional
+from typing import List
 
-from pygmo.core import sga
-
-from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.optimization_squad import Squad, make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
@@ -34,19 +32,23 @@ def fill_initial_squad(
     algorithm: str = "genetic",
     remove_zero: bool = True,
     sub_weights: dict = DEFAULT_SUB_WEIGHTS,
-    uda: Optional[sga] = None,
+    num_generations: int = 100,
     population_size: int = 100,
     num_iterations: int = 10,
     verbose: bool = True,
-) -> None:
-    if algorithm == "genetic" and uda is None:
+    is_replay: bool = False,  # for replaying seasons
+) -> Squad:
+    if algorithm == "genetic":
         try:
             import pygmo as pg
 
-            uda = pg.sga(gen=100)
+            uda = pg.sga(gen=num_generations)
         except ModuleNotFoundError:
             print("pygmo not available. Defaulting to algorithm=normal instead")
             algorithm = "normal"
+            uda = None
+    else:
+        uda = None
 
     gw_start = gw_range[0]
     best_squad = make_new_squad(
@@ -92,7 +94,7 @@ def fill_initial_squad(
         season=season,
         gameweek=gw_start,
     )
-    if season != CURRENT_SEASON:
+    if is_replay:
         # if simulating a previous season also add suggestions to transaction table
         # to imitate applying transfers
         fill_initial_transaction_table(
@@ -162,6 +164,11 @@ def main():
         help="ID for your FPL team",
         type=int,
     )
+    parser.add_argument(
+        "--is_replay",
+        help="Add suggested squad to the database (for replaying seasons)",
+        action="store_true",
+    )
     args = parser.parse_args()
     season = args.season or CURRENT_SEASON
     budget = args.budget
@@ -197,17 +204,6 @@ def main():
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
         sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-    if algorithm == "genetic":
-        try:
-            import pygmo as pg
-
-            uda = pg.sga(gen=num_generations)
-        except ModuleNotFoundError:
-            print("pygmo not available. Defaulting to algorithm=normal instead")
-            algorithm = "normal"
-            uda = None
-    else:
-        uda = None
 
     fill_initial_squad(
         tag=tag,
@@ -218,8 +214,9 @@ def main():
         algorithm=algorithm,
         remove_zero=remove_zero,
         sub_weights=sub_weights,
-        uda=uda,
+        num_generations=num_generations,
         population_size=population_size,
         num_iterations=num_iterations,
         verbose=verbose,
+        is_replay=args.is_replay,
     )

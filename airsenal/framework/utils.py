@@ -393,6 +393,7 @@ def get_free_transfers(
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
     apifetcher: FPLDataFetcher = fetcher,
+    is_replay: bool = False,
 ) -> int:
     """
     Work out how many free transfers FPL team should have before specified gameweek.
@@ -400,7 +401,7 @@ def get_free_transfers(
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if season == CURRENT_SEASON:
+    if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
         if not fpl_team_id:
             fpl_team_id = apifetcher.FPL_TEAM_ID
@@ -914,7 +915,7 @@ def get_players_for_gameweek(
             for api_id in player_api_id_list
             if get_player_from_api_id(api_id)
         ]
-    except (TypeError):
+    except TypeError:
         return []
     return player_list
 

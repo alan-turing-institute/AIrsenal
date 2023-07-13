@@ -54,7 +54,7 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
 
 def scale_goals_by_minutes(goals, minutes):
     """
-    Scaale player goal involvements by the proportion of minutes they played
+    Scale player goal involvements by the proportion of minutes they played
     (specifically: reduce the number of "neither" goals where the player is said
     to have had no involvement.
     goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,

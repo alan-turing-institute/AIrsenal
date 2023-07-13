@@ -3,13 +3,14 @@ Fill the "PlayerMapping" table with alternative names for players
 """
 import csv
 import os
+from typing import List
 
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Player, PlayerMapping
 
 
-def load_mappings_data() -> list[list[str]]:
+def load_mappings_data() -> List[List[str]]:
     filename = os.path.join(
         os.path.join(
             os.path.dirname(__file__), "..", "data", "alternative_player_names.csv"
