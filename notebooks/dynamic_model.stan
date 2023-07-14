@@ -23,7 +23,7 @@ transformed parameters {
   for (i in 1:n_team) {
       a[i, 1] = sigma * a_std[i, 1];
       b[i, 1] = mu_b + sigma * b_std[i, 1];
-      
+
       for (j in 2:n_gameweeks) {
         a[i, j] = a[i, j - 1] + sigma_ar * a_std[i, j];
         b[i, j] = b[i, j - 1] + sigma_ar * b_std[i, j];
@@ -51,4 +51,4 @@ model {
 
     home_goals ~ poisson_log(home_rate);
     away_goals ~ poisson_log(away_rate);
-} 
+}
