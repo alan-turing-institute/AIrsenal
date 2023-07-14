@@ -1340,20 +1340,26 @@ def get_recent_minutes_for_player(
     If current_gw is not given, we take it to be the most
     recent finished gameweek.
     """
-    playerscores = get_recent_playerscore_rows(
-        player, num_match_to_use, season, last_gw, dbsession
+    playerscores = (
+        get_recent_playerscore_rows(
+            player, num_match_to_use, season, last_gw, dbsession
+        )
+        or []
     )
     # If the player has not played a match or two in the last
     # `num_matches_to_use` matches, then we check a couple of gameweeks further
     # back.
-    if not playerscores or len(playerscores) < num_match_to_use:
-        playerscores = get_recent_playerscore_rows(
-            player, num_match_to_use + 2, season, last_gw, dbsession
+    if len(playerscores) < num_match_to_use:
+        playerscores = (
+            get_recent_playerscore_rows(
+                player, num_match_to_use + 2, season, last_gw, dbsession
+            )
+            or []
         )
     if len(playerscores) > num_match_to_use:
         playerscores = playerscores[-num_match_to_use:]
 
-    minutes = [r.minutes for r in playerscores] if playerscores else []
+    minutes = [r.minutes for r in playerscores]
     # if going back num_matches_to_use from last_gw takes us before the start
     # of the season, also include a minutes estimate using last season's data
     if last_gw is None:
