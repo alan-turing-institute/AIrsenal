@@ -29,17 +29,17 @@ you can reinstall AIrsenal from our `develop` branch - there are instructions
 ## New Features
 <!-- List changes that add new functionality to AIrsenal here.-->
 
-- 
+-
 
 ## Enhancements
 <!-- List changes that add improve pre-existing AIrsenal components here -->
 
-- 
+-
 
 ## Bug Fixes
 <!-- List changes that fix errors and bugs in AIrsenal here -->
 
-- 
+-
 
 ---
 

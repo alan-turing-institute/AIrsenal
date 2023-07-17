@@ -67,7 +67,7 @@ Build the docker-image:
 $ docker build -t airsenal .
 ```
 
-If `docker build` fails due to a `RuntimeError` like 
+If `docker build` fails due to a `RuntimeError` like
 
 ```console
 Unable to find installation candidates for jaxlib (0.4.11)
@@ -75,13 +75,13 @@ Unable to find installation candidates for jaxlib (0.4.11)
 
 this may be a lack of maintained versions of a package for `m1` on Linux.
 
-A slow solution for this error is to force a `linux/amd64` build like 
+A slow solution for this error is to force a `linux/amd64` build like
 
 ```console
 $ docker build --platform linux/amd64 -t airsenal .
 ```
 
-If that fails try 
+If that fails try
 
 ```console
 $ docker build --platform linux/amd64 --no-cache -t airsenal .
@@ -101,7 +101,7 @@ Run commands with your configuration as environment variables, eg:
 $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal bash
 ```
 
-or 
+or
 
 ```console
 $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal airsenal_run_pipeline
