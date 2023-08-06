@@ -4,7 +4,6 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
-import warnings
 from typing import List, Optional
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
