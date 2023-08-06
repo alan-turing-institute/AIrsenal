@@ -22,6 +22,7 @@ class FPLDataFetcher(object):
     def __init__(self, fpl_team_id=None, rsession=None):
         self.rsession = rsession or requests.session()
         self.logged_in = False
+        self.login_failed = False
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
@@ -103,12 +104,17 @@ class FPLDataFetcher(object):
             save_env("FPL_LOGIN", self.FPL_LOGIN)
             save_env("FPL_PASSWORD", self.FPL_PASSWORD)
 
-    def login(self):
+    def login(self, attempts=3):
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
         if self.logged_in:
             return
+        if self.login_failed:
+            raise RuntimeError(
+                "Attempted to use a function requiring login, but login previously "
+                "failed."
+            )
         if (
             (not self.FPL_LOGIN)
             or (not self.FPL_PASSWORD)
@@ -130,8 +136,10 @@ class FPLDataFetcher(object):
             if do_login.lower() == "y":
                 self.get_fpl_credentials()
             else:
-                return
-
+                self.login_failed = True
+                raise RuntimeError(
+                    "Requested logging into the FPL API but no credentials provided."
+                )
         headers = {
             "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; PRO 5 Build/LMY47D)"
         }
@@ -141,12 +149,24 @@ class FPLDataFetcher(object):
             "app": "plfpl-web",
             "redirect_uri": self.FPL_LOGIN_REDIRECT_URL,
         }
-        response = self.rsession.post(self.FPL_LOGIN_URL, data=data, headers=headers)
-        if response.status_code != 200:
-            print(f"Error loging in: {response.content}")
-        else:
-            print("Logged in successfully")
-            self.logged_in = True
+        tried = 0
+        while tried < attempts:
+            print(f"Login attempt {tried+1}/{attempts}...", end=" ")
+            response = self.rsession.post(
+                self.FPL_LOGIN_URL, data=data, headers=headers
+            )
+            if response.status_code == 200:
+                print("Logged in successfully")
+                self.logged_in = True
+                return
+            print("Failed")
+            tried += 1
+            time.sleep(1)
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            self.login_failed = True
+            raise requests.HTTPError(f"Error logging in to FPL API: {e}")
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
@@ -265,8 +285,8 @@ class FPLDataFetcher(object):
                 self._get_request(
                     url,
                     (
-                        "Unable to access FPL "
-                        f"transfer history API for team_id {fpl_team_id}"
+                        "Unable to access FPL transfer history API for "
+                        f"team_id {fpl_team_id}"
                     ),
                 )
             )
@@ -360,25 +380,10 @@ class FPLDataFetcher(object):
             if (not gameweek) or (
                 gameweek not in self.player_gameweek_data[player_api_id].keys()
             ):
-                got_data = False
-                n_tries = 0
-                player_detail = {}
-                while (not got_data) and n_tries < 3:
-                    try:
-                        player_detail = self._get_request(
-                            self.FPL_DETAIL_URL.format(player_api_id),
-                            f"Error retrieving data for player {player_api_id}",
-                        )
-                        if player_detail is None:
-                            return []
-                        got_data = True
-                    except requests.exceptions.ConnectionError:
-                        print(f"connection error, retrying {n_tries}")
-                        time.sleep(1)
-                        n_tries += 1
-                if not player_detail:
-                    print(f"Unable to get player_detail data for {player_api_id}")
-                    return []
+                player_detail = self._get_request(
+                    self.FPL_DETAIL_URL.format(player_api_id),
+                    f"Error retrieving data for player {player_api_id}",
+                )
                 for game in player_detail["history"]:
                     gw = game["round"]
                     if gw not in self.player_gameweek_data[player_api_id].keys():
@@ -416,39 +421,40 @@ class FPLDataFetcher(object):
         """
         Retrieve up to date lineup from api
         """
-
         self.login()
-
         team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
-
         return self._get_request(team_url)
 
     def post_lineup(self, payload):
         """
         Set the lineup for a specific team
         """
-
         self.login()
-
         payload = json.dumps({"chip": None, "picks": payload})
         headers = {
             "Content-Type": "application/json; charset=UTF-8",
             "X-Requested-With": "XMLHttpRequest",
             "Referer": "https://fantasy.premierleague.com/a/team/my",
         }
-
         team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
 
         resp = self.rsession.post(team_url, data=payload, headers=headers)
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            raise requests.HTTPError(
+                f"{e}\nLineup changes not made due to the error above! Make the "
+                "changes manually on the web-site if needed."
+            )
         if resp.status_code == 200:
             print("SUCCESS....lineup made!")
-        else:
-            print("Lineup changes not made due to unknown error")
-            print(f"Response status code: {resp.status_code}")
-            print(f"Response text: {resp.text}")
+            return
+        raise Exception(
+            f"Unexpected error in post_lineup: "
+            f"code={resp.status_code}, content={resp.content}"
+        )
 
     def post_transfers(self, transfer_payload):
-
         self.login()
 
         # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py
@@ -464,17 +470,48 @@ class FPLDataFetcher(object):
             transfer_url, data=json.dumps(transfer_payload), headers=headers
         )
         if "non_form_errors" in resp:
-            raise Exception(resp["non_form_errors"])
-        elif resp.status_code == 200:
+            raise Exception(
+                f"{resp['non_form_errors']}\nMaking transfers failed due to the "
+                "error above! Make the changes manually on the web-site if needed."
+            )
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            raise requests.HTTPError(
+                f"{e}\nMaking transfers failed due to the error above! Make the "
+                "changes manually on the web-site if needed."
+            )
+        if resp.status_code == 200:
             print("SUCCESS....transfers made!")
-        else:
-            print("Transfers unsuccessful due to unknown error")
-            print(f"Response status code: {resp.status_code}")
-            print(f"Response text: {resp.text}")
+            return
+        raise Exception(
+            f"Unexpected error in post_transfers: "
+            f"code={resp.status_code}, content={resp.content}"
+        )
 
-    def _get_request(self, url, err_msg="Unable to access FPL API"):
-        r = self.rsession.get(url)
-        if r.status_code != 200:
-            print(err_msg)
-            return None
-        return json.loads(r.content.decode("utf-8"))
+    def _get_request(self, url, err_msg="Unable to access FPL API", attempts=3):
+        tries = 0
+        while tries < attempts:
+            try:
+                r = self.rsession.get(url)
+            except requests.exceptions.ConnectionError:
+                tries += 1
+                if tries == attempts:
+                    raise requests.exceptions.ConnectionError(
+                        f"{err_msg}: Failed to connect to FPL API when requesting {url}"
+                    )
+                time.sleep(1)
+                continue
+            if r.status_code == 200:
+                return json.loads(r.content.decode("utf-8"))
+            time.sleep(1)
+            tries += 1
+
+        try:
+            r.raise_for_status()
+        except requests.HTTPError as e:
+            raise requests.HTTPError(f"{err_msg}: {e}")
+        raise Exception(
+            f"Unexpected error in _get_request to {url}: "
+            f"code={r.status_code}, content={r.content}"
+        )
