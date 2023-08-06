@@ -91,14 +91,20 @@ def calc_free_transfers(num_transfers, prev_free_transfers):
 
 
 def get_starting_squad(
-    season=CURRENT_SEASON, fpl_team_id=None, use_api=False, apifetcher=None
+    next_gw=NEXT_GAMEWEEK,
+    season=CURRENT_SEASON,
+    fpl_team_id=None,
+    use_api=False,
+    apifetcher=None,
 ):
     """
     use the transactions table in the db, or the API if requested
     """
     if use_api:
         if season != CURRENT_SEASON:
-            raise RuntimeError("Can only use API for current season")
+            raise RuntimeError("Can only use API for current season and gameweek")
+        if season == CURRENT_SEASON and next_gw != NEXT_GAMEWEEK:
+            raise RuntimeError("Can only use API for current season and gameweek")
         if not fpl_team_id:
             raise RuntimeError(
                 "Please specify fpl_team_id to get current squad from API"
@@ -109,14 +115,14 @@ def get_starting_squad(
             s.add_player(
                 pp[0],
                 price=pp[1],
-                gameweek=NEXT_GAMEWEEK - 1,
+                gameweek=next_gw - 1,
                 check_budget=False,
                 check_team=False,
             )
         s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
         return s
     # otherwise, we use the Transaction table in the DB
-    s = get_squad_from_transactions(NEXT_GAMEWEEK - 1, season, fpl_team_id)
+    s = get_squad_from_transactions(next_gw - 1, season, fpl_team_id)
     return s
 
 
