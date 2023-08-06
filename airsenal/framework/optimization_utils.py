@@ -1,9 +1,12 @@
 """
 functions to optimize the transfers for N weeks ahead
 """
+import warnings
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional
+
+import requests
 
 from airsenal.framework.schema import (
     Fixture,
@@ -109,21 +112,29 @@ def get_starting_squad(
             raise RuntimeError(
                 "Please specify fpl_team_id to get current squad from API"
             )
-        players_prices = get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
-        s = Squad(season=CURRENT_SEASON)
-        for pp in players_prices:
-            s.add_player(
-                pp[0],
-                price=pp[1],
-                gameweek=next_gw - 1,
-                check_budget=False,
-                check_team=False,
+        try:
+            players_prices = get_current_squad_from_api(
+                fpl_team_id, apifetcher=apifetcher
             )
-        s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
-        return s
+            s = Squad(season=CURRENT_SEASON)
+            for pp in players_prices:
+                s.add_player(
+                    pp[0],
+                    price=pp[1],
+                    gameweek=next_gw - 1,
+                    check_budget=False,
+                    check_team=False,
+                )
+            s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
+            return s
+        except requests.exceptions.RequestException as e:
+            warnings.warn(
+                f"Failed to get current squad from API:\n{e}\nUsing DB instead, which "
+                "may be out of date."
+            )
+
     # otherwise, we use the Transaction table in the DB
-    s = get_squad_from_transactions(next_gw - 1, season, fpl_team_id)
-    return s
+    return get_squad_from_transactions(next_gw - 1, season, fpl_team_id)
 
 
 def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):

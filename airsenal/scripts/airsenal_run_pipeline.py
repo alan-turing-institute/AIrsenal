@@ -4,6 +4,7 @@ import warnings
 from typing import List, Optional
 
 import click
+import requests
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
@@ -137,10 +138,22 @@ def run_pipeline(
             update_attr = True
 
         click.echo("Updating database..")
-        update_ok = update_database(fpl_team_id, update_attr, dbsession)
+        try:
+            update_ok = update_database(fpl_team_id, update_attr, dbsession)
+        except requests.exceptions.RequestException as e:
+            warnings.warn(f"Database updated failed: {e}")
+            update_ok = False
+
         if not update_ok:
-            raise RuntimeError("Problem updating db")
-        click.echo("Database update complete..")
+            confirmed = input(
+                "The database update failed. AIrsenal can continue using the latest "
+                "status of its database but the results may be outdated or invalid.\n"
+                "Do you want to continue? [y/n] "
+            )
+            if confirmed == "n":
+                sys.exit()
+        else:
+            click.echo("Database update complete..")
 
         click.echo("Running prediction..")
         predict_ok = run_prediction(num_thread, gw_range, dbsession)

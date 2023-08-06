@@ -3,6 +3,7 @@ The class for an FPL squad.
 Contains a set of players.
 Is able to check that it obeys all constraints.
 """
+import warnings
 from operator import itemgetter
 
 import numpy as np
@@ -175,37 +176,41 @@ class Squad(object):
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
         player_id = player.player_id
+
         price_now = None
         if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
+            player_db = get_player(player_id)
+            api_id = player_db.fpl_api_id
+            # first try getting the actual sale price from a logged in API
             try:
-                # first try getting the price for the player from the API
-                player_db = get_player(player_id)
-                api_id = player_db.fpl_api_id
-                if (
-                    apifetcher.logged_in
-                    and apifetcher.FPL_TEAM_ID
-                    and apifetcher.FPL_TEAM_ID != "MISSING_ID"
-                ):
-                    return apifetcher.get_current_picks()[api_id]["selling_price"]
-                # if not logged in, just get current price from API
+                return apifetcher.get_current_picks()[api_id]["selling_price"]
+            except Exception as e:
+                warnings.warn(
+                    f"Failed to login to get actual sale price for {player} from API:\n"
+                    f"{e}.\nWill estimate it based on the players current price instead"
+                )
+            # if not logged in, just get current price from API
+            try:
                 price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
-            except Exception:
-                pass
+            except Exception as e:
+                warnings.warn(
+                    f"Failed to to get current price of {player} from API:\n"
+                    f"{e}.\nWill attempt to use latest price in DB instead."
+                )
+
         # retrieve how much we originally bought the player for from db
         price_bought = player.purchase_price
 
+        # get player's current price from db if the API wasn't used
         if not price_now:
             player_db = get_player(player_id, dbsession=dbsession)
-
             if player_db:
                 price_now = player_db.price(self.season, gameweek)
+
+        # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
-            # if all else fails just use the purchase price as the sale
-            # price for this player.
-            print(
-                "Using purchase price as sale price for",
-                player.player_id,
-                player,
+            warnings.warn(
+                f"Using purchase price as sale price for {player.player_id}, {player}"
             )
             price_now = price_bought
 
@@ -267,7 +272,7 @@ class Squad(object):
             try:
                 points_prediction = p.predicted_points[tag][gameweek]
 
-            except (KeyError):
+            except KeyError:
                 # player does not have a game in this gameweek
                 points_prediction = 0
             player_dict[p.position].append((p, points_prediction))
@@ -357,7 +362,6 @@ class Squad(object):
     def total_points_for_subs(
         self, gameweek, tag, sub_weights={"GK": 1, "Outfield": (1, 1, 1)}
     ):
-
         outfield_subs = [
             p for p in self.players if (not p.is_starting) and (p.position != "GK")
         ]
@@ -375,7 +379,6 @@ class Squad(object):
         return total
 
     def optimize_lineup(self, gameweek, tag):
-
         if not self.is_complete():
             raise RuntimeError("Squad is incomplete")
 

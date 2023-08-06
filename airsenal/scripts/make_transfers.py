@@ -346,8 +346,15 @@ def main():
 
     args = parser.parse_args()
     confirm = args.confirm or False
-    make_transfers(args.fpl_team_id, confirm)
-    set_lineup(args.fpl_team_id)
+    try:
+        make_transfers(args.fpl_team_id, confirm)
+        set_lineup(args.fpl_team_id)
+    except Exception as e:
+        raise Exception(
+            "Something went wrong when making transfers. Check your team and make "
+            "transfers and lineup changes manually on the web-site. If the problem "
+            "persists, let us know on GitHub."
+        ) from e
 
 
 if __name__ == "__main__":
