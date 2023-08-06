@@ -213,6 +213,7 @@ class FPLDataFetcher(object):
     def get_available_chips(self, fpl_team_id=None):
         """
         Returns a list of chips that are available to be played in upcoming gameweek.
+        Requires login
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
         return [
@@ -470,7 +471,7 @@ class FPLDataFetcher(object):
             transfer_url, data=json.dumps(transfer_payload), headers=headers
         )
         if "non_form_errors" in resp:
-            raise Exception(
+            raise requests.RequestException(
                 f"{resp['non_form_errors']}\nMaking transfers failed due to the "
                 "error above! Make the changes manually on the web-site if needed."
             )
@@ -494,23 +495,22 @@ class FPLDataFetcher(object):
         while tries < attempts:
             try:
                 r = self.rsession.get(url)
-            except requests.exceptions.ConnectionError:
+                break
+            except requests.exceptions.ConnectionError as e:
                 tries += 1
                 if tries == attempts:
                     raise requests.exceptions.ConnectionError(
                         f"{err_msg}: Failed to connect to FPL API when requesting {url}"
-                    )
+                    ) from e
                 time.sleep(1)
-                continue
-            if r.status_code == 200:
-                return json.loads(r.content.decode("utf-8"))
-            time.sleep(1)
-            tries += 1
+
+        if r.status_code == 200:
+            return json.loads(r.content.decode("utf-8"))
 
         try:
             r.raise_for_status()
         except requests.HTTPError as e:
-            raise requests.HTTPError(f"{err_msg}: {e}")
+            raise requests.HTTPError(f"{err_msg}: {e}") from e
         raise Exception(
             f"Unexpected error in _get_request to {url}: "
             f"code={r.status_code}, content={r.content}"
