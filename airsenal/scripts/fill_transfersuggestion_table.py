@@ -2,7 +2,7 @@
 
 """
 usage:
-python fill_transfersuggestsions_table.py --weeks_ahead <num_weeks_ahead>
+python fill_transfersuggestions_table.py --weeks_ahead <num_weeks_ahead>
                                           --num_iterations <num_iterations>
 output for each strategy tried is going to be a dict
 { "total_points": <float>,
@@ -308,7 +308,7 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> None:
 
 def print_strat(strat: dict) -> None:
     """
-    nicely formated printout as output of optimization.
+    nicely formatted printout as output of optimization.
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
@@ -334,7 +334,7 @@ def print_strat(strat: dict) -> None:
 
 def discord_payload(strat: dict, lineup: List[str]) -> dict:
     """
-    json formated discord webhook contentent.
+    json formated discord webhook content.
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
@@ -383,10 +383,10 @@ def print_team_for_next_gw(
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_squad(season=season, fpl_team_id=fpl_team_id)
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
+    t = get_starting_squad(next_gw=next_gw, season=season, fpl_team_id=fpl_team_id)
     for pidout in strat["players_out"][str(next_gw)]:
         t.remove_player(pidout)
     for pidin in strat["players_in"][str(next_gw)]:
@@ -437,13 +437,18 @@ def run_optimization(
         return
 
     # give the user the option to login
-    fetcher.login()
+    if season == CURRENT_SEASON:
+        fetcher.login()
 
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
     use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False
     try:
         starting_squad = get_starting_squad(
-            season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+            next_gw=gameweeks[0],
+            season=season,
+            fpl_team_id=fpl_team_id,
+            use_api=use_api,
+            apifetcher=fetcher,
         )
     except (ValueError, TypeError):
         # first week for this squad?
@@ -540,7 +545,7 @@ def run_optimization(
         save_baseline_score(starting_squad, gameweeks, tag)
         update_progress()
 
-    # Add Processes to run the the target 'optimize' function.
+    # Add Processes to run the target 'optimize' function.
     # This target function needs to know:
     #  num_transfers
     #  current_team (list of player_ids)
@@ -770,6 +775,11 @@ def main():
         type=int,
         required=False,
     )
+    parser.add_argument(
+        "--is_replay",
+        help="Add suggested squad to the database (for replaying seasons)",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -827,4 +837,5 @@ def main():
             num_iterations,
             num_thread,
             profile,
+            is_replay=args.is_replay,
         )

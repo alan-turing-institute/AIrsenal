@@ -463,8 +463,9 @@ def clean_database():
     """
     Clean up database
     """
-    Base.metadata.drop_all()
-    Base.metadata.create_all()
+    engine = create_engine(get_connection_string())
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def database_is_empty(dbsession):

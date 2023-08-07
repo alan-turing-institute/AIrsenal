@@ -95,7 +95,9 @@ def print_output(
 
 
 def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:
-    squad = get_starting_squad(season=season, fpl_team_id=team_id)
+    squad = get_starting_squad(
+        next_gw=NEXT_GAMEWEEK, season=season, fpl_team_id=team_id
+    )
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p)
@@ -344,8 +346,15 @@ def main():
 
     args = parser.parse_args()
     confirm = args.confirm or False
-    make_transfers(args.fpl_team_id, confirm)
-    set_lineup(args.fpl_team_id)
+    try:
+        make_transfers(args.fpl_team_id, confirm)
+        set_lineup(args.fpl_team_id)
+    except Exception as e:
+        raise Exception(
+            "Something went wrong when making transfers. Check your team and make "
+            "transfers and lineup changes manually on the web-site. If the problem "
+            "persists, let us know on GitHub."
+        ) from e
 
 
 if __name__ == "__main__":

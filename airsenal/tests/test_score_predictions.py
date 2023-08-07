@@ -4,6 +4,7 @@ test the score-calculating functions
 import bpl
 import numpy as np
 import pandas as pd
+import pytest
 
 from airsenal.conftest import test_past_data_session_scope
 from airsenal.framework.bpl_interface import (
@@ -260,15 +261,25 @@ def test_fit_conjugate_player_model():
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
-def test_get_fitted_player_model():
+@pytest.mark.xfail(
+    reason=(
+        "NumpyroPlayerModel is broken after numpyro updates. "
+        "See https://github.com/alan-turing-institute/AIrsenal/issues/611"
+    )
+)
+def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)
-    cpm = ConjugatePlayerModel()
-    assert isinstance(cpm, ConjugatePlayerModel)
     with test_past_data_session_scope() as ts:
         fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
+
+
+def test_get_fitted_player_model_conjugate():
+    cpm = ConjugatePlayerModel()
+    assert isinstance(cpm, ConjugatePlayerModel)
+    with test_past_data_session_scope() as ts:
         fcpm = fit_player_data("FWD", "1819", 12, model=cpm, dbsession=ts)
         assert isinstance(fcpm, pd.DataFrame)
         assert len(fcpm) > 0

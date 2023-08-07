@@ -11,7 +11,7 @@ jobs:
       install:
         - pip3 install --upgrade pip
         - pip3 install .
-    
+
     - name: "Python 3.8"
       python: 3.8
       install:

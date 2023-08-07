@@ -1,0 +1,46 @@
+version: '3.5'
+
+x-default: &default
+  platform: "linux/amd64"
+  build:
+    dockerfile: Dockerfile
+    context: .
+  environment: &environment
+    AIRSENAL_N_PREVIOUS: 4
+    AIRSENAL_SEASON: 2122
+    AIRSENAL_LOOP: 1
+    AIRSENAL_NUM_THREAD: 2
+    AIRSENAL_FPL_TEAM_ID: 2779516
+    WEEKS_AHEAD: 4
+  # Note the $$ is necessary for referring to docker-compose environment variables.
+  # For details see:
+  # https://github.com/compose-spec/compose-spec/blob/master/spec.md#interpolation
+  command: &replay-season-command >
+    bash -c "
+    poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $$AIRSENAL_N_PREVIOUS
+    &&
+    poetry run airsenal_replay_season --season $$AIRSENAL_SEASON --loop $$AIRSENAL_LOOP --num_thread $$AIRSENAL_NUM_THREAD --weeks_ahead $$WEEKS_AHEAD"
+
+services:
+  experiment-1:
+    <<: *default
+
+  experiment-2:
+    <<: *default
+    environment:
+      <<: *environment
+      AIRSENAL_SEASON: 2122
+
+  experiment-3:
+    <<: *default
+    environment:
+      <<: *environment
+      AIRSENAL_N_PREVIOUS: 5
+      AIRSENAL_SEASON: 2021
+
+  experiment-4:
+    <<: *default
+    environment:
+      <<: *environment
+      AIRSENAL_N_PREVIOUS: 5
+      AIRSENAL_WEEKS_AHEAD: 6

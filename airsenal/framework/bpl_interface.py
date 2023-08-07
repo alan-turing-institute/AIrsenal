@@ -57,6 +57,8 @@ def get_ratings_dict(season, teams, dbsession):
         raise ValueError(
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
             + f"teams with FIFA ratings but {len(teams)} teams with results."
+            + " The teams involved are "
+            + f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
     return ratings_dict
 
@@ -73,12 +75,14 @@ def get_training_data(season, gameweek, dbsession, ratings=True):
     return training_data
 
 
-def create_and_fit_team_model(training_data):
+def create_and_fit_team_model(
+    training_data, model_class=ExtendedDixonColesMatchPredictor
+):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    return ExtendedDixonColesMatchPredictor().fit(training_data)
+    return model_class().fit(training_data)
 
 
 def add_new_teams_to_model(team_model, season, dbsession):
@@ -95,13 +99,15 @@ def add_new_teams_to_model(team_model, season, dbsession):
     return team_model
 
 
-def get_fitted_team_model(season, gameweek, dbsession):
+def get_fitted_team_model(
+    season, gameweek, dbsession, team_model_class=ExtendedDixonColesMatchPredictor
+):
     """
     get the fitted team model using the past results and the FIFA rankings
     """
-    print("Fitting team model...")
+    print(f"Fitting team model ({type(team_model_class())})...")
     training_data = get_training_data(season, gameweek, dbsession)
-    team_model = create_and_fit_team_model(training_data)
+    team_model = create_and_fit_team_model(training_data, team_model_class)
     return add_new_teams_to_model(team_model, season, dbsession)
 
 

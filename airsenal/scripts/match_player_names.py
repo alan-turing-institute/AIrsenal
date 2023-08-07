@@ -45,7 +45,6 @@ def find_best_match(
 
 
 if __name__ == "__main__":
-
     # get the team names as used in FPL
     df = FPLDataFetcher()
     playerdict = {}

@@ -626,7 +626,7 @@ def get_player_scores(
 
 
 def mean_group_min_count(df, group_col, mean_col, min_count=10):
-    """Calculate mean of column col in df, grouped by group_col,  but normalising the
+    """Calculate mean of column col in df, grouped by group_col, but normalising the
     sum by either the actual number of rows in the group or min_count, whichever is
     larger
     """

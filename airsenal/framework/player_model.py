@@ -54,7 +54,7 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
 
 def scale_goals_by_minutes(goals, minutes):
     """
-    Scaale player goal involvements by the proportion of minutes they played
+    Scale player goal involvements by the proportion of minutes they played
     (specifically: reduce the number of "neither" goals where the player is said
     to have had no involvement.
     goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
@@ -173,7 +173,7 @@ class NumpyroPlayerModel(BasePlayerModel):
             progress_bar=True,
             **(mcmc_kwargs or {}),
         )
-        rng_key, rng_key_predict = random.split(random.PRNGKey(44))
+        rng_key, rng_key_predict = random.split(random.PRNGKey(random_state))
         mcmc.run(
             rng_key,
             data["nplayer"],
@@ -207,7 +207,7 @@ class NumpyroPlayerModel(BasePlayerModel):
     def get_probs_for_player(self, player_id):
         try:
             index = list(self.player_ids).index(player_id)
-        except (ValueError):
+        except ValueError:
             raise RuntimeError(f"Unknown player_id {player_id}")
         prob_score = float(self.samples["probs"][:, index, 0].mean())
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
@@ -273,6 +273,6 @@ class ConjugatePlayerModel(BasePlayerModel):
     def get_probs_for_player(self, player_id: int) -> np.ndarray:
         try:
             index = list(self.player_ids).index(player_id)
-        except (ValueError):
+        except ValueError:
             raise RuntimeError(f"Unknown player_id {player_id}")
         return self.mean_probabilities[index, :]

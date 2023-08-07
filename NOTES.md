@@ -22,11 +22,11 @@ The database is filled with data from the previous three FPL seasons (stored in 
 
 - **FifaTeamRating:** FIFA (the game) team ratings for each team in each season. These are taken from https://www.fifaindex.com/teams/. Their main use is to give an idea of team strength for promoted teams (but we are considering their use in general - see [Issue #136](https://github.com/alan-turing-institute/AIrsenal/issues/136))
 
-  
+
 **_Tables with Player Data:_**
 - **Player:** Name and ID for each player (for all football players that have been in the FPL game at some point in the last 3 seasons). The ID is the same as the FPL player ID for players active in the current season.
 
-- **PlayerAttributes:** Attributes for each player in every gameweek of each season. The main attributes are FPL price, FPL position, and the team the player plays for. 
+- **PlayerAttributes:** Attributes for each player in every gameweek of each season. The main attributes are FPL price, FPL position, and the team the player plays for.
 
 - **PlayerScore:** Stats for each player in each match. These include points scored, goals scored and condeded, assists, bonus points, minutes played and a few others. Only contains the stats available from the FPL API, we don't currently have other stats (like xG).
 
@@ -39,7 +39,6 @@ The database is filled with data from the previous three FPL seasons (stored in 
 - **PlayerPrediction:** Stores predicted points for each player in each fixture from an AIrsenal prediction run.
 
 - **TransferSuggestion:** Stores recommended transfers from AIrsenal optimisation runs.
-
 
 The database schema is defined using `sqlalchemy` in `airsenal.framework.schema.py`.
 
@@ -71,7 +70,7 @@ It does the following:
 
 You should always run `airsenal_update_db --noattr` after an initial database setup to get the latest status of your FPL team (which is not done as part of `airsenal_setup_initial_db`). Giving the `--noattr` flag means player attributes will not be updated, which is not needed if you have just setup the database (as FPL player attributes can only change once per day).
 
-Note we don't currently have a way to update the list of currently active _players_ (only their attributes). This unfortunately means that if a new player is added to the game the whole database needs to be recreated. It's therefore best to follow the initial database setup steps above at the start of every gameweek. 
+Note we don't currently have a way to update the list of currently active _players_ (only their attributes). This unfortunately means that if a new player is added to the game the whole database needs to be recreated. It's therefore best to follow the initial database setup steps above at the start of every gameweek.
 
 ### Data Sanity Checks
 
@@ -97,12 +96,11 @@ Player points predictions are generated from three main components:
 
 ### Team Model
 
-BPL package (written by Angus, one of the original AIrsenal developers): https://github.com/anguswilliams91/bpl
-
+BPL package (written by Angus, one of the original AIrsenal developers): https://github.com/anguswilliams91/bpl-next
 
 ### Player Model
 
-Stan model definition: `airsenal/stan/player_forecasts.stan`
+NumPyro model definition: `airsenal/framework/player_model.py`
 
 ### How Predicted Points are Calculated
 
@@ -111,7 +109,7 @@ First:
 - Predict the probability of each number of goals scored and conceded for each team in each fixture in the gameweek to consider, using the team model.
 - Get the number of minutes each player played in the last three fixtures, and their current injury and suspension status.
 
-Then calculate the different points contributions as below: 
+Then calculate the different points contributions as below:
 
 **Recent Minutes and Appearance Points:**
 
@@ -146,7 +144,7 @@ The following is done in `get_defending_points()` in `airsenal.framework.predict
 
 **Final Prediction:**
 
-See `calc_predicted_points()` in `airsenal.framework.prediction_utils`. 
+See `calc_predicted_points()` in `airsenal.framework.prediction_utils`.
 
 The final points prediction for each player in a fixture is the sum of their predicted appearance points, attacking points and defending points (averaged across the different predictions for the different number of minutes the player might play). The predicted points for a player in a _gameweek_ is the sum of their predicted points in all their team's fixtures in that gameweek - which may be two for double gameweeks (or none in blank gameweeks).
 
@@ -237,7 +235,7 @@ player_id, gameweek, predicted_score, method
 (the method column allows us to have more than one predicted score per
 player per gameweek, and add more later, without having to add more columns.
 We now have a gameweek column rather than a fixture_id column - in double gameweeks
-the player can have more than one fixture in a gameweek - the score we show is the 
+the player can have more than one fixture in a gameweek - the score we show is the
 sum of both.)
 
 ```
