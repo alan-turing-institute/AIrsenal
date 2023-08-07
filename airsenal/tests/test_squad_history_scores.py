@@ -42,7 +42,7 @@ def get_squad_for_gameweek(
             subs_index = subs.index(p.name)
             p.is_starting = False
             p.sub_position = subs_index
-        except (ValueError):
+        except ValueError:
             p.is_starting = True
         if p.name == captain:
             p.is_captain = True

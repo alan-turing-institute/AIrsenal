@@ -28,7 +28,6 @@ def find_best_match(fpl_teams: List[str], team: str) -> Tuple[str, int]:
 
 
 if __name__ == "__main__":
-
     # get the team names as used in FPL
     df = FPLDataFetcher()
     teamdata = df.get_current_team_data()

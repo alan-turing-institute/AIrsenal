@@ -4,11 +4,11 @@ import warnings
 from typing import List, Optional
 
 import click
+import requests
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
-from airsenal.framework.optimization_utils import fill_initial_suggestion_table
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -27,6 +27,7 @@ from airsenal.scripts.fill_predictedscore_table import (
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
 from airsenal.scripts.set_lineup import set_lineup
+from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.scripts.update_db import update_db
 
 
@@ -149,11 +150,25 @@ def run_pipeline(
         else:
             click.echo("Found pre-existing AIrsenal database.")
             update_attr = True
+
         click.echo("Updating database..")
-        update_ok = update_database(fpl_team_id, update_attr, dbsession)
+        try:
+            update_ok = update_database(fpl_team_id, update_attr, dbsession)
+        except requests.exceptions.RequestException as e:
+            warnings.warn(f"Database updated failed: {e}")
+            update_ok = False
+
         if not update_ok:
-            raise RuntimeError("Problem updating db")
-        click.echo("Database update complete..")
+            confirmed = input(
+                "The database update failed. AIrsenal can continue using the latest "
+                "status of its database but the results may be outdated or invalid.\n"
+                "Do you want to continue? [y/n] "
+            )
+            if confirmed == "n":
+                sys.exit()
+        else:
+            click.echo("Database update complete..")
+
         click.echo("Running prediction..")
         predict_ok = run_prediction(
             num_thread,
@@ -165,6 +180,7 @@ def run_pipeline(
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
+
         if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
             click.echo("Generating a squad..")
             new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
@@ -191,6 +207,7 @@ def run_pipeline(
             lineup_ok = set_starting_11(fpl_team_id)
             if not lineup_ok:
                 raise RuntimeError("Problem setting the lineup")
+
         click.echo("Pipeline finished OK!")
 
 
@@ -273,20 +290,11 @@ def run_make_squad(gw_range: List[int], fpl_team_id: int, dbsession: Session) ->
     """
     Build the initial squad
     """
-    from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
-
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
-    best_squad = make_new_squad_pygmo(
-        gw_range,
-        tag,
-    )
-    best_squad.get_expected_points(NEXT_GAMEWEEK, tag)
-    print(best_squad)
-    fill_initial_suggestion_table(
-        best_squad, fpl_team_id, tag, season, NEXT_GAMEWEEK, dbsession=dbsession
-    )
+    fill_initial_squad(tag, gw_range, season, fpl_team_id)
+
     return True
 
 

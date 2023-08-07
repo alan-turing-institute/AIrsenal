@@ -106,7 +106,7 @@ def combine_player_info(player_id, dbsession=DBSESSION):
         tag = get_latest_prediction_tag(dbsession=dbsession)
         predicted_points = get_predicted_points_for_player(p, tag, dbsession=dbsession)
         info_dict["predictions"] = predicted_points
-    except (RuntimeError):
+    except RuntimeError:
         pass
     return info_dict
 

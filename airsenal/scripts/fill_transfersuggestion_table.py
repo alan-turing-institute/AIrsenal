@@ -383,10 +383,10 @@ def print_team_for_next_gw(
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    t = get_starting_squad(season=season, fpl_team_id=fpl_team_id)
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
+    t = get_starting_squad(next_gw=next_gw, season=season, fpl_team_id=fpl_team_id)
     for pidout in strat["players_out"][str(next_gw)]:
         t.remove_player(pidout)
     for pidin in strat["players_in"][str(next_gw)]:
@@ -444,7 +444,11 @@ def run_optimization(
     use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False
     try:
         starting_squad = get_starting_squad(
-            season=season, fpl_team_id=fpl_team_id, use_api=use_api, apifetcher=fetcher
+            next_gw=gameweeks[0],
+            season=season,
+            fpl_team_id=fpl_team_id,
+            use_api=use_api,
+            apifetcher=fetcher,
         )
     except (ValueError, TypeError):
         # first week for this squad?
