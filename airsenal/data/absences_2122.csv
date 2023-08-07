@@ -1,1002 +1,800 @@
-season,details,reason,from,until,days,games,player,url
-2122,Transferred to Watford U18,Transfer,2021-07-01,2022-06-30,,,Jack Grieves,/jack-grieves/profil/spieler/974327
-2122,Transferred to Southampton U18,Transfer,2021-07-01,2022-06-30,,,Tyler Dibling,/tyler-dibling/profil/spieler/866655
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Jamal Baptiste,/jamal-baptiste/profil/spieler/610706
-2122,Transferred to Middlesbrough,Transfer,2021-08-29,2022-01-12,,,Onel Hernández,/onel-hernandez/profil/spieler/109751
-2122,Transferred to Birmingham,Transfer,2022-01-14,2022-06-29,,,Onel Hernández,/onel-hernandez/profil/spieler/109751
-2122,Corona virus,injury,2021-09-04,2021-09-20,16,3,Zack Steffen,/zack-steffen/profil/spieler/221624
-2122,Ankle Injury,injury,2021-11-13,2022-01-08,56,10,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
-2122,Transferred to Marseille,Transfer,2022-01-18,2022-06-30,,,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
-2122,Transferred to Spartak Moscow,Transfer,2021-07-01,2021-08-30,,,Alex Kral,/alex-kral/profil/spieler/337333
-2122,Transferred to Spartak Moscow,Transfer,2022-06-30,2022-06-30,,,Alex Kral,/alex-kral/profil/spieler/337333
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Isaac Price,/isaac-price/profil/spieler/612749
-2122,Transferred to Bournemouth,Transfer,2022-01-31,2022-05-30,,,Todd Cantwell,/todd-cantwell/profil/spieler/332341
-2122,Transferred to Brentford B,Transfer,2021-07-01,2022-06-30,,,Nathan Young-Coombes,/nathan-young-coombes/profil/spieler/581679
-2122,Transferred to Everton U18,Transfer,2021-07-01,2021-08-23,,,Thierry Small,/thierry-small/profil/spieler/746554
-2122,Transferred to Southampton B,Transfer,2021-08-24,2022-06-30,,,Thierry Small,/thierry-small/profil/spieler/746554
-2122,Calf Injury,injury,2022-04-18,2022-05-23,35,6,Paul Pogba,/paul-pogba/profil/spieler/122153
-2122,Hamstring Injury,injury,2021-11-08,2022-02-03,87,14,Paul Pogba,/paul-pogba/profil/spieler/122153
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Sammy Braybrooke,/sammy-braybrooke/profil/spieler/840640
-2122,Thigh Problems,injury,2022-05-12,2022-05-25,13,3,Fabinho,/fabinho/profil/spieler/225693
-2122,Groin Injury,injury,2021-11-18,2022-02-06,80,9,Ashley Barnes,/ashley-barnes/profil/spieler/63200
-2122,Transferred to Swansea,Transfer,2021-08-31,2022-06-30,,,Michael Obafemi,/michael-obafemi/profil/spieler/444208
-2122,Transferred to Brentford B,Transfer,2021-07-01,2022-06-30,,,Daniel Oyegoke,/daniel-oyegoke/profil/spieler/586984
-2122,groin strain,injury,2021-11-05,2021-12-20,45,8,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
-2122,groin strain,injury,2021-08-01,2021-09-30,60,10,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
-2122,Groin Injury,injury,2022-04-30,2022-05-21,21,3,Enock Mwepu,/enock-mwepu/profil/spieler/490307
-2122,Hamstring Injury,injury,2022-01-08,2022-03-11,62,10,Enock Mwepu,/enock-mwepu/profil/spieler/490307
-2122,Unknown Injury,injury,2021-09-22,2021-10-14,22,3,Enock Mwepu,/enock-mwepu/profil/spieler/490307
-2122,Knock,injury,2021-08-24,2021-08-27,3,1,Enock Mwepu,/enock-mwepu/profil/spieler/490307
-2122,Transferred to RB Salzburg,Transfer,2021-07-01,2021-07-05,,,Enock Mwepu,/enock-mwepu/profil/spieler/490307
-2122,Fitness,injury,2022-01-31,2022-04-23,82,13,Philippe Sandler,/philippe-sandler/profil/spieler/340460
-2122,Ankle Injury,injury,2021-09-25,2022-01-01,98,13,Philippe Sandler,/philippe-sandler/profil/spieler/340460
-2122,Transferred to Troyes,Transfer,2021-08-31,2022-01-24,,,Philippe Sandler,/philippe-sandler/profil/spieler/340460
-2122,Transferred to Feyenoord,Transfer,2022-01-31,2022-06-30,,,Philippe Sandler,/philippe-sandler/profil/spieler/340460
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Xavier Mbuyamba,/xavier-mbuyamba/profil/spieler/640432
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Zidane Iqbal,/zidane-iqbal/profil/spieler/686845
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Charlie Savage,/charlie-savage/profil/spieler/686837
-2122,Hamstring Injury,injury,2022-02-05,2022-04-02,56,11,Lyanco,/lyanco/profil/spieler/379807
-2122,Corona virus,injury,2021-12-18,2022-01-03,16,2,Lyanco,/lyanco/profil/spieler/379807
-2122,Transferred to Torino,Transfer,2021-07-01,2021-08-24,,,Lyanco,/lyanco/profil/spieler/379807
-2122,Thigh Problems,injury,2021-12-05,2022-02-10,67,9,Leon Bailey,/leon-bailey/profil/spieler/387626
-2122,Transferred to B. Leverkusen,Transfer,2021-07-01,2021-08-03,,,Leon Bailey,/leon-bailey/profil/spieler/387626
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-06-30,,,Jesurun Rak-Sakyi,/jesurun-rak-sakyi/profil/spieler/586834
-2122,Transferred to Celtic B,Transfer,2021-07-01,2021-08-26,,,Leo Fuhr Hjelde,/leo-fuhr-hjelde/profil/spieler/661208
-2122,Transferred to Leeds U21,Transfer,2021-08-27,2022-06-30,,,Leo Fuhr Hjelde,/leo-fuhr-hjelde/profil/spieler/661208
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Salah-Eddine Oulad M'Hand,/salah-eddine-oulad-mhand/profil/spieler/559330
-2122,Transferred to FC Midtjylland,Transfer,2021-07-01,2021-07-19,,,Frank Onyeka,/frank-onyeka/profil/spieler/421637
-2122,Transferred to Middlesbrough,Transfer,2022-01-02,2022-05-30,,,Aaron Connolly,/aaron-connolly/profil/spieler/434207
-2122,Sprained Ankle,injury,2022-04-18,2022-04-25,7,1,Kurt Zouma,/kurt-zouma/profil/spieler/157509
-2122,Hamstring Injury,injury,2021-12-06,2022-01-17,42,10,Kurt Zouma,/kurt-zouma/profil/spieler/157509
-2122,Corona virus,injury,2021-11-19,2021-11-27,8,2,Mason Greenwood,/mason-greenwood/profil/spieler/532826
-2122,Knee Problems,injury,2022-06-09,2022-06-30,21,,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Knock,injury,2022-04-28,2022-05-12,14,4,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Corona virus,injury,2022-01-06,2022-01-10,4,1,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Knee Problems,injury,2021-11-25,2021-12-16,21,6,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Corona virus,injury,2021-09-27,2021-10-11,14,2,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Groin Injury,injury,2021-08-26,2021-09-16,21,3,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
-2122,Knee Injury,injury,2022-05-15,2022-07-10,56,3,Ezri Konsa,/ezri-konsa/profil/spieler/413403
-2122,Ill,injury,2022-03-03,2022-03-07,4,1,Joel Matip,/joel-matip/profil/spieler/82105
-2122,Corona virus,injury,2021-12-30,2022-01-06,7,1,Joel Matip,/joel-matip/profil/spieler/82105
-2122,Calf Injury,injury,2021-07-28,2022-01-01,157,20,Paul Dummett,/paul-dummett/profil/spieler/170321
-2122,Knee Injury,injury,2022-02-26,2022-05-02,65,11,Erik Pieters,/erik-pieters/profil/spieler/43763
-2122,Transferred to Watford U23,Transfer,2021-07-01,2021-08-30,,,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
-2122,Transferred to Racing Ferrol,Transfer,2021-08-31,2022-01-11,,,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
-2122,Transferred to Watford U23,Transfer,2022-01-12,2022-01-12,,,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
-2122,Transferred to Fortaleza CEIF,Transfer,2022-01-13,2022-06-30,,,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
-2122,Transferred to Hull City,Transfer,2022-01-31,2022-05-30,,,Marcus Forss,/marcus-forss/profil/spieler/404584
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Björn Hardley,/bjorn-hardley/profil/spieler/682562
-2122,Hip problems,injury,2022-05-12,2022-05-26,14,3,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Hamstring Injury,injury,2021-11-17,2022-02-05,80,16,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Quarantine,injury,2021-09-09,2021-09-17,8,2,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Knee Injury,injury,2021-08-20,2021-08-25,5,1,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Knee Injury,injury,2021-06-23,2021-07-10,17,,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Transferred to Atalanta BC,Transfer,2021-07-01,2021-08-03,,,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Transferred to Juventus,Transfer,2021-08-04,2021-08-04,,,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Transferred to Atalanta BC,Transfer,2021-08-05,2021-08-05,,,Cristian Romero,/cristian-romero/profil/spieler/355915
-2122,Ankle Injury,injury,2021-12-15,2021-12-28,13,2,Joël Veltman,/joel-veltman/profil/spieler/111195
-2122,Corona virus,injury,2021-08-14,2021-08-27,13,3,Joël Veltman,/joel-veltman/profil/spieler/111195
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2022-06-30,,,Jonathan Tomkinson,/jonathan-tomkinson/profil/spieler/696762
-2122,Corona virus,injury,2021-12-18,2021-12-31,13,1,Fábio Silva,/fabio-silva/profil/spieler/505653
-2122,Ankle Fracture,injury,2022-04-17,2022-12-31,258,36,Ashley Westwood,/ashley-westwood/profil/spieler/91317
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Joe McGlynn,/joe-mcglynn/profil/spieler/704801
-2122,Transferred to Liverpool U18,Transfer,2021-07-01,2022-06-30,,,Melkamu Frauendorf,/melkamu-frauendorf/profil/spieler/594721
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Kaide Gordon,/kaide-gordon/profil/spieler/732119
-2122,Hamstring Injury,injury,2022-07-09,2022-08-31,53,6,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
-2122,Transferred to Celtic,Transfer,2021-07-01,2021-07-20,,,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
-2122,Hamstring Injury,injury,2022-02-08,2022-04-11,62,12,Yerry Mina,/yerry-mina/profil/spieler/289446
-2122,Thigh Problems,injury,2021-10-22,2021-11-30,39,5,Yerry Mina,/yerry-mina/profil/spieler/289446
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Marcel Lavinier,/marcel-lavinier/profil/spieler/392772
-2122,Transferred to OGC Nice,Transfer,2021-07-01,2022-01-03,,,Hassane Kamara,/hassane-kamara/profil/spieler/290017
-2122,Transferred to Derby,Transfer,2021-07-01,2021-07-19,,,Scott Carson,/scott-carson/profil/spieler/14555
-2122,Corona virus,injury,2021-09-01,2021-09-19,18,2,Shane Long,/shane-long/profil/spieler/37304
-2122,Knee Injury,injury,2022-03-07,2022-04-25,49,11,Jamie Vardy,/jamie-vardy/profil/spieler/197838
-2122,Hamstring Injury,injury,2021-12-27,2022-02-24,59,10,Jamie Vardy,/jamie-vardy/profil/spieler/197838
-2122,Corona virus,injury,2022-01-10,2022-01-16,6,2,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
-2122,Strain in the thigh and gluteal muscles,injury,2021-10-20,2021-12-25,66,9,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
-2122,Transferred to Chelsea U18,Transfer,2021-07-01,2021-12-31,,,Lewis Hall,/lewis-hall/profil/spieler/670858
-2122,Transferred to Chelsea U23,Transfer,2022-01-01,2022-06-30,,,Lewis Hall,/lewis-hall/profil/spieler/670858
-2122,Thigh Problems,injury,2022-02-04,2022-02-15,11,3,Eric Dier,/eric-dier/profil/spieler/175722
-2122,Thigh Problems,injury,2022-01-03,2022-01-20,17,4,Eric Dier,/eric-dier/profil/spieler/175722
-2122,Transferred to Olympique Lyon,Transfer,2021-07-01,2021-07-27,,,Joachim Andersen,/joachim-andersen/profil/spieler/260827
-2122,Transferred to R. Strasbourg,Transfer,2021-08-31,2022-06-29,,,Frédéric Guilbert,/frederic-guilbert/profil/spieler/354352
-2122,Ill,injury,2022-04-19,2022-04-21,2,1,Leandro Trossard,/leandro-trossard/profil/spieler/144028
-2122,Hamstring Injury,injury,2021-12-26,2022-01-01,6,2,Leandro Trossard,/leandro-trossard/profil/spieler/144028
-2122,Elbow Injury,injury,2021-12-04,2021-12-14,10,1,Leandro Trossard,/leandro-trossard/profil/spieler/144028
-2122,Corona virus,injury,2022-01-03,2022-01-10,7,2,Ferran Torres,/ferran-torres/profil/spieler/398184
-2122,Metatarsal Fracture,injury,2021-10-14,2022-01-10,88,5,Ferran Torres,/ferran-torres/profil/spieler/398184
-2122,Transferred to Barcelona,Transfer,2022-01-01,2022-06-30,,,Ferran Torres,/ferran-torres/profil/spieler/398184
-2122,Shoulder Injury,injury,2021-12-26,2021-12-28,2,1,Dan Burn,/dan-burn/profil/spieler/134270
-2122,Knee Injury,injury,2021-10-27,2021-11-19,23,3,Dan Burn,/dan-burn/profil/spieler/134270
-2122,Torn Knee Ligament,injury,2021-07-31,2021-09-18,49,5,Dan Burn,/dan-burn/profil/spieler/134270
-2122,Calf Injury,injury,2021-12-27,2022-01-16,20,5,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
-2122,Ankle Injury,injury,2021-09-16,2021-10-11,25,6,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
-2122,Ankle Injury,injury,2021-09-07,2021-09-14,7,1,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
-2122,Thigh Problems,injury,2021-09-04,2021-09-13,9,1,Takumi Minamino,/takumi-minamino/profil/spieler/165793
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Cieran Slicker,/cieran-slicker/profil/spieler/621997
-2122,Corona virus,injury,2021-07-15,2021-08-02,18,,Karl Darlow,/karl-darlow/profil/spieler/99397
-2122,Cheekbone Fracture,injury,2021-12-08,2022-01-22,45,10,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
-2122,Transferred to Bournemouth,Transfer,2022-01-31,2022-05-30,,,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Keenan Appiah-Forson,/keenan-appiah-forson/profil/spieler/554098
-2122,Corona virus,injury,2022-01-01,2022-01-08,7,1,Alisson,/alisson/profil/spieler/105470
-2122,Corona virus,injury,2021-10-17,2021-11-01,15,3,Wout Weghorst,/wout-weghorst/profil/spieler/228645
-2122,Transferred to VfL Wolfsburg,Transfer,2021-07-01,2022-01-30,,,Wout Weghorst,/wout-weghorst/profil/spieler/228645
-2122,Corona virus,injury,2022-01-07,2022-01-13,6,2,Edouard Mendy,/edouard-mendy/profil/spieler/442531
-2122,Bruised Rib,injury,2021-09-14,2021-09-24,10,3,Edouard Mendy,/edouard-mendy/profil/spieler/442531
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-01-25,,,Ellis Simms,/ellis-simms/profil/spieler/511550
-2122,Transferred to Heart of Midl.,Transfer,2022-01-26,2022-05-30,,,Ellis Simms,/ellis-simms/profil/spieler/511550
-2122,Transferred to Everton U23,Transfer,2022-05-31,2022-06-30,,,Ellis Simms,/ellis-simms/profil/spieler/511550
-2122,Hamstring Injury,injury,2022-01-29,2022-06-30,152,,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
-2122,Transferred to Lincoln City,Transfer,2021-07-14,2022-01-04,,,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
-2122,Transferred to Cheltenham,Transfer,2022-01-06,2022-05-30,,,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
-2122,Transferred to Benfica,Transfer,2021-07-01,2021-07-09,,,Nuno Tavares,/nuno-tavares/profil/spieler/535955
-2122,Knee Injury,injury,2021-11-19,2022-06-30,223,31,Tom Davies,/tom-davies/profil/spieler/314210
-2122,Shoulder Injury,injury,2022-04-09,2022-04-25,16,2,Lucas Digne,/lucas-digne/profil/spieler/126664
-2122,Hamstring Injury,injury,2022-03-14,2022-03-21,7,1,Lucas Digne,/lucas-digne/profil/spieler/126664
-2122,Problems with the hip flexor,injury,2022-04-09,2022-04-30,21,5,Fred,/fred/profil/spieler/191614
-2122,Corona virus,injury,2022-02-07,2022-02-14,7,2,Fred,/fred/profil/spieler/191614
-2122,Muscular problems,injury,2022-01-20,2022-01-27,7,1,Michal Karbownik,/michal-karbownik/profil/spieler/401604
-2122,Ligament Problems,injury,2021-11-01,2021-12-08,37,7,Michal Karbownik,/michal-karbownik/profil/spieler/401604
-2122,Transferred to Olympiacos,Transfer,2021-08-28,2022-06-29,,,Michal Karbownik,/michal-karbownik/profil/spieler/401604
-2122,Achilles tendon problems,injury,2022-02-26,2022-03-03,5,2,Andreas Christensen,/andreas-christensen/profil/spieler/196948
-2122,Corona virus,injury,2022-01-14,2022-02-01,18,3,Andreas Christensen,/andreas-christensen/profil/spieler/196948
-2122,Back Injury,injury,2021-12-29,2022-01-07,9,3,Andreas Christensen,/andreas-christensen/profil/spieler/196948
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Kallum Cesay,/kallum-cesay/profil/spieler/696183
-2122,Transferred to AFC Wimbledon,Transfer,2021-07-01,2021-07-21,,,Matthew Cox,/matthew-cox/profil/spieler/741236
-2122,Transferred to Brentford B,Transfer,2021-07-22,2022-06-30,,,Matthew Cox,/matthew-cox/profil/spieler/741236
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2122,Ill,injury,2022-03-06,2022-03-13,7,2,Christian Pulisic,/christian-pulisic/profil/spieler/315779
-2122,Ankle Injury,injury,2021-09-09,2021-10-31,52,12,Christian Pulisic,/christian-pulisic/profil/spieler/315779
-2122,Corona virus,injury,2021-08-18,2021-08-30,12,2,Christian Pulisic,/christian-pulisic/profil/spieler/315779
-2122,Cruciate Ligament Injury,injury,2022-03-20,,435,53,Andros Townsend,/andros-townsend/profil/spieler/61842
-2122,Transferred to Leeds U18,Transfer,2021-07-01,2022-06-30,,,Archie Gray,/archie-gray/profil/spieler/922693
-2122,Thigh Problems,injury,2021-12-13,2022-02-15,64,8,Federico Fernández,/federico-fernandez/profil/spieler/85475
-2122,Hamstring Injury,injury,2021-09-19,2021-10-12,23,4,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
-2122,Ankle Injury,injury,2022-01-08,2022-02-05,28,5,Billy Gilmour,/billy-gilmour/profil/spieler/423744
-2122,Hamstring Injury,injury,2021-11-19,2021-12-11,22,6,Ricardo Pereira,/ricardo-pereira/profil/spieler/215876
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Brooklyn Lyons-Foster,/brooklyn-lyons-foster/profil/spieler/462698
-2122,Transferred to Flamengo,Transfer,2021-08-18,2022-01-12,,,Kenedy,/kenedy/profil/spieler/281404
-2122,Corona virus,injury,2022-01-18,2022-01-25,7,1,Emerson,/emerson/profil/spieler/181778
-2122,Unknown Injury,injury,2021-09-08,2021-09-11,3,,Emerson,/emerson/profil/spieler/181778
-2122,Transferred to Olympique Lyon,Transfer,2021-08-19,2022-06-29,,,Emerson,/emerson/profil/spieler/181778
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Marcelo Pitaluga,/marcelo-pitaluga/profil/spieler/662334
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Harry Tyrer,/harry-tyrer/profil/spieler/574448
-2122,Foot Injury,injury,2022-03-27,2022-07-01,96,8,Patrick Bamford,/patrick-bamford/profil/spieler/183334
-2122,Hamstring Injury,injury,2021-12-07,2022-02-28,83,12,Patrick Bamford,/patrick-bamford/profil/spieler/183334
-2122,Ankle Injury,injury,2021-09-18,2021-11-28,71,10,Patrick Bamford,/patrick-bamford/profil/spieler/183334
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Oliver Ewing,/oliver-ewing/profil/spieler/583953
-2122,Transferred to Charlton,Transfer,2021-07-08,2022-05-30,,,Akin Famewo,/akin-famewo/profil/spieler/425713
-2122,Transferred to Liverpool U18,Transfer,2021-07-01,2022-06-30,,,Isaac Mabaya,/isaac-mabaya/profil/spieler/670843
-2122,Transferred to West Brom U21,Transfer,2021-07-01,2021-07-28,,,Tim Iroegbunam,/tim-iroegbunam/profil/spieler/696589
-2122,Transferred to Aston Villa U23,Transfer,2021-07-29,2021-12-31,,,Tim Iroegbunam,/tim-iroegbunam/profil/spieler/696589
-2122,Hamstring Injury,injury,2021-12-21,2022-04-01,101,18,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
-2122,Transferred to Everton U23,Transfer,2021-07-01,2021-08-15,,,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
-2122,Transferred to Sunderland,Transfer,2021-08-16,2022-05-30,,,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
-2122,Transferred to Everton U23,Transfer,2022-05-31,2022-06-30,,,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Charlie Webster,/charlie-webster/profil/spieler/697278
-2122,Hamstring Injury,injury,2021-12-19,2022-02-06,49,6,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
-2122,Transferred to RB Leipzig,Transfer,2021-07-01,2021-08-28,,,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
-2122,Transferred to RB Leipzig,Transfer,2022-06-30,2022-06-30,,,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
-2122,Corona virus,injury,2022-02-25,2022-03-03,6,1,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
-2122,Hip Injury,injury,2021-12-05,2021-12-16,11,2,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
-2122,Transferred to FC Augsburg,Transfer,2021-08-30,2022-06-29,,,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
-2122,Ill,injury,2022-03-12,2022-03-14,2,1,Bruno Fernandes,/bruno-fernandes/profil/spieler/240306
-2122,Transferred to Watford U18,Transfer,2021-07-01,2022-02-25,,,Shaqai Forde,/shaqai-forde/profil/spieler/852517
-2122,Transferred to Kings Langley,Transfer,2022-02-26,2022-03-31,,,Shaqai Forde,/shaqai-forde/profil/spieler/852517
-2122,Transferred to Watford U18,Transfer,2022-04-01,2022-06-30,,,Shaqai Forde,/shaqai-forde/profil/spieler/852517
-2122,Hamstring Injury,injury,2022-03-17,2022-03-31,14,1,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2122,Corona virus,injury,2022-01-03,2022-01-13,10,2,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2122,Muscular problems,injury,2021-09-27,2021-10-14,17,2,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2122,Hamstring Injury,injury,2021-06-03,2021-07-12,39,,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2122,Foot Injury,injury,2022-04-17,2022-05-08,21,6,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-2122,Muscular problems,injury,2022-02-17,2022-03-10,21,6,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-2122,Corona virus,injury,2022-01-01,2022-01-08,7,1,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-2122,Hamstring Injury,injury,2021-11-03,2021-12-12,39,9,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-2122,Muscle Injury,injury,2021-08-29,2021-09-22,24,4,Roberto Firmino,/roberto-firmino/profil/spieler/131789
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Freddie Potts,/freddie-potts/profil/spieler/698164
-2122,Corona virus,injury,2022-03-17,2022-03-31,14,1,Raphinha,/raphinha/profil/spieler/411295
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Liam Delap,/liam-delap/profil/spieler/610849
-2122,Corona virus,injury,2021-12-21,2022-01-01,11,1,Matt Ritchie,/matt-ritchie/profil/spieler/92469
-2122,Stress response of the bone,injury,2021-10-17,2021-11-28,42,6,Abdoulaye Doucouré,/abdoulaye-doucoure/profil/spieler/127187
-2122,Transferred to Vålerenga,Transfer,2021-07-01,2021-07-30,,,Kristoffer Klaesson,/kristoffer-klaesson/profil/spieler/418561
-2122,Transferred to Brentford B,Transfer,2021-07-01,2022-06-30,,,Fin Stevens,/fin-stevens/profil/spieler/587019
-2122,Ankle Injury,injury,2022-02-14,2022-02-21,7,1,Mason Mount,/mason-mount/profil/spieler/346483
-2122,Minor Knock,injury,2021-09-20,2021-09-30,10,3,Mason Mount,/mason-mount/profil/spieler/346483
-2122,Transferred to Burton Albion,Transfer,2021-07-01,2022-01-03,,,Ellery Balcombe,/ellery-balcombe/profil/spieler/456292
-2122,Transferred to Bromley,Transfer,2022-02-01,2022-05-30,,,Ellery Balcombe,/ellery-balcombe/profil/spieler/456292
-2122,Transferred to Watford U23,Transfer,2021-07-01,2021-07-18,,,Tiago Cukur,/tiago-cukur/profil/spieler/594276
-2122,Transferred to Doncaster,Transfer,2021-07-19,2022-01-10,,,Tiago Cukur,/tiago-cukur/profil/spieler/594276
-2122,Transferred to Watford U23,Transfer,2022-01-11,2022-06-30,,,Tiago Cukur,/tiago-cukur/profil/spieler/594276
-2122,Transferred to Fulham,Transfer,2021-07-01,2021-07-27,,,Marcus Bettinelli,/marcus-bettinelli/profil/spieler/116648
-2122,Transferred to B. Leverkusen,Transfer,2021-07-01,2021-07-21,,,Demarai Gray,/demarai-gray/profil/spieler/292417
-2122,Transferred to DL Pro,Transfer,2021-07-01,2021-08-30,,,Salomón Rondón,/salomon-rondon/profil/spieler/80197
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-01-30,,,Filip Marschall,/filip-marschall/profil/spieler/610863
-2122,Transferred to Gateshead,Transfer,2022-01-31,2022-05-30,,,Filip Marschall,/filip-marschall/profil/spieler/610863
-2122,Transferred to Aston Villa U23,Transfer,2022-05-31,2022-06-30,,,Filip Marschall,/filip-marschall/profil/spieler/610863
-2122,Calf Injury,injury,2021-09-21,2021-12-05,75,10,André Gomes,/andre-gomes/profil/spieler/221025
-2122,Unknown Injury,injury,2022-04-29,2022-08-07,100,7,Jay Rodríguez,/jay-rodriguez/profil/spieler/53360
-2122,Corona virus,injury,2021-12-15,2021-12-28,13,4,Kai Havertz,/kai-havertz/profil/spieler/309400
-2122,Cold,injury,2021-09-03,2021-09-06,3,,Kai Havertz,/kai-havertz/profil/spieler/309400
-2122,Transferred to Burton Albion,Transfer,2021-08-31,2021-11-23,,,Sam Hughes,/sam-hughes/profil/spieler/395797
-2122,Transferred to Burton Albion,Transfer,2022-01-31,2022-06-30,,,Sam Hughes,/sam-hughes/profil/spieler/395797
-2122,Fractured Kneecap,injury,2022-04-22,2022-06-30,69,6,Adam Forshaw,/adam-forshaw/profil/spieler/121257
-2122,Unknown Injury,injury,2022-05-24,2022-07-20,57,,José Sá,/jose-sa/profil/spieler/249994
-2122,Transferred to Olympiacos,Transfer,2021-07-01,2021-07-14,,,José Sá,/jose-sa/profil/spieler/249994
-2122,Laceration,injury,2022-05-22,2022-06-15,24,1,Joelinton,/joelinton/profil/spieler/333241
-2122,Knock,injury,2022-03-07,2022-03-15,8,2,Joelinton,/joelinton/profil/spieler/333241
-2122,Groin Injury,injury,2022-01-22,2022-02-05,14,1,Joelinton,/joelinton/profil/spieler/333241
-2122,Groin Surgery,injury,2022-03-01,2022-05-01,61,10,Jamal Lewis,/jamal-lewis/profil/spieler/346018
-2122,Hamstring Injury,injury,2021-12-17,2022-01-14,28,3,Jamal Lewis,/jamal-lewis/profil/spieler/346018
-2122,Calf Injury,injury,2021-11-07,2021-12-07,30,6,Youri Tielemans,/youri-tielemans/profil/spieler/249565
-2122,Hip Injury,injury,2021-09-13,2021-12-20,98,14,Freddie Woodman,/freddie-woodman/profil/spieler/226049
-2122,Transferred to Bournemouth,Transfer,2022-01-31,2022-05-30,,,Freddie Woodman,/freddie-woodman/profil/spieler/226049
-2122,Transferred to Celtic U18,Transfer,2021-07-01,2021-07-13,,,Vincent Angelini,/vincent-angelini/profil/spieler/736251
-2122,Transferred to Watford U23,Transfer,2021-07-14,2022-06-30,,,Vincent Angelini,/vincent-angelini/profil/spieler/736251
-2122,Hip Injury,injury,2021-12-01,2022-01-14,44,6,Pascal Struijk,/pascal-struijk/profil/spieler/410708
-2122,Hairline crack in calfbone,injury,2022-03-01,2022-06-30,121,14,Ben Mee,/ben-mee/profil/spieler/74810
-2122,Transferred to Blackburn,Transfer,2021-07-01,2021-08-09,,,Adam Armstrong,/adam-armstrong/profil/spieler/250426
-2122,Transferred to Kayserispor,Transfer,2021-07-01,2021-08-24,,,Aaron Lennon,/aaron-lennon/profil/spieler/14221
-2122,Muscular problems,injury,2021-12-15,2022-02-15,62,13,Divock Origi,/divock-origi/profil/spieler/148368
-2122,Transferred to Hibernian FC,Transfer,2022-01-10,2022-05-30,,,Rocky Bushiri,/rocky-bushiri/profil/spieler/511802
-2122,Corona virus,injury,2022-05-30,2022-06-09,10,,Armando Broja,/armando-broja/profil/spieler/571743
-2122,Fitness,injury,2021-11-11,2021-11-18,7,,Armando Broja,/armando-broja/profil/spieler/571743
-2122,Ankle Injury,injury,2021-10-25,2021-11-04,10,2,Armando Broja,/armando-broja/profil/spieler/571743
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-08-09,,,Armando Broja,/armando-broja/profil/spieler/571743
-2122,Transferred to Chelsea U23,Transfer,2022-05-31,2022-06-30,,,Armando Broja,/armando-broja/profil/spieler/571743
-2122,Thigh Muscle Strain,injury,2022-03-28,2022-03-31,3,,Ben Davies,/ben-davies/profil/spieler/192765
-2122,Ill,injury,2021-10-04,2021-10-11,7,,Ben Davies,/ben-davies/profil/spieler/192765
-2122,Back Injury,injury,2022-02-15,2022-04-20,64,13,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-01-27,,,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
-2122,Transferred to Crewe Alexandra,Transfer,2022-01-28,2022-05-30,,,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
-2122,Transferred to Arsenal U23,Transfer,2022-05-31,2022-06-30,,,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
-2122,Calf Injury,injury,2022-04-01,2022-04-30,29,6,Edinson Cavani,/edinson-cavani/profil/spieler/48280
-2122,groin strain,injury,2022-02-11,2022-03-07,24,6,Edinson Cavani,/edinson-cavani/profil/spieler/48280
-2122,tendon irritation,injury,2021-11-04,2021-12-22,48,8,Edinson Cavani,/edinson-cavani/profil/spieler/48280
-2122,Knock,injury,2021-09-09,2021-09-23,14,4,Edinson Cavani,/edinson-cavani/profil/spieler/48280
-2122,Quarantine,injury,2021-08-01,2021-08-15,14,1,Edinson Cavani,/edinson-cavani/profil/spieler/48280
-2122,Chickenpox,injury,2022-05-12,2022-05-23,11,2,Javier Manquillo,/javier-manquillo/profil/spieler/162029
-2122,Transferred to Leeds U21,Transfer,2021-07-01,2021-12-31,,,Sam Greenwood,/sam-greenwood/profil/spieler/532178
-2122,Ankle Injury,injury,2021-08-19,2021-09-08,20,,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
-2122,Transferred to Celtic,Transfer,2021-08-31,2022-05-30,,,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
-2122,Transferred to Cardiff,Transfer,2022-01-12,2022-05-30,,,Cody Drameh,/cody-drameh/profil/spieler/531957
-2122,Achilles tendon problems,injury,2022-02-22,2022-03-03,9,3,Hakim Ziyech,/hakim-ziyech/profil/spieler/217111
-2122,Shoulder Injury,injury,2021-08-12,2021-08-17,5,1,Hakim Ziyech,/hakim-ziyech/profil/spieler/217111
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-06-30,,,Ben Chrisene,/ben-chrisene/profil/spieler/670846
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Lewis Brunt,/lewis-brunt/profil/spieler/533657
-2122,Transferred to AS Roma,Transfer,2021-07-01,2021-08-30,,,Robin Olsen,/robin-olsen/profil/spieler/75458
-2122,Transferred to Sheff Utd,Transfer,2021-08-31,2022-01-16,,,Robin Olsen,/robin-olsen/profil/spieler/75458
-2122,Transferred to AS Roma,Transfer,2022-01-17,2022-01-17,,,Robin Olsen,/robin-olsen/profil/spieler/75458
-2122,Transferred to AS Roma,Transfer,2022-06-30,2022-06-30,,,Robin Olsen,/robin-olsen/profil/spieler/75458
-2122,Unknown Injury,injury,2022-02-08,2022-02-16,8,2,Ozan Tufan,/ozan-tufan/profil/spieler/236471
-2122,Knee Injury,injury,2021-11-12,2021-11-17,5,,Ozan Tufan,/ozan-tufan/profil/spieler/236471
-2122,Transferred to Fenerbahce,Transfer,2021-07-01,2021-08-18,,,Ozan Tufan,/ozan-tufan/profil/spieler/236471
-2122,Transferred to Fenerbahce,Transfer,2022-02-02,2022-06-30,,,Ozan Tufan,/ozan-tufan/profil/spieler/236471
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2022-01-03,,,Thomas Dickson-Peters,/thomas-dickson-peters/profil/spieler/566888
-2122,Transferred to Gillingham FC,Transfer,2022-01-04,2022-05-30,,,Thomas Dickson-Peters,/thomas-dickson-peters/profil/spieler/566888
-2122,Transferred to Norwich U21,Transfer,2022-05-31,2022-06-30,,,Thomas Dickson-Peters,/thomas-dickson-peters/profil/spieler/566888
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2021-08-01,,,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
-2122,Transferred to Swindon Town,Transfer,2021-08-02,2022-01-08,,,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
-2122,Transferred to Aston Villa U23,Transfer,2022-01-09,2022-01-30,,,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
-2122,Transferred to MK Dons,Transfer,2022-01-31,2022-05-30,,,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
-2122,Transferred to Aston Villa U23,Transfer,2022-05-31,2022-06-30,,,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
-2122,Plantar fascia,injury,2022-04-01,2022-04-13,12,2,Michael Olise,/michael-olise/profil/spieler/566723
-2122,Transferred to Reading,Transfer,2021-07-01,2021-07-07,,,Michael Olise,/michael-olise/profil/spieler/566723
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Romaine Mundle,/romaine-mundle/profil/spieler/696181
-2122,Shoulder Injury,injury,2021-12-18,2022-02-18,62,7,Charlie Cresswell,/charlie-cresswell/profil/spieler/597659
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Álvaro Fernandez,/alvaro-fernandez/profil/spieler/811778
-2122,Transferred to OGC Nice,Transfer,2021-07-01,2021-07-12,,,Pierre Lees-Melou,/pierre-lees-melou/profil/spieler/377393
-2122,Transferred to Ipswich,Transfer,2022-01-27,2022-05-30,,,Dominic Thompson,/dominic-thompson/profil/spieler/503688
-2122,Corona virus,injury,2022-02-07,2022-02-16,9,2,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
-2122,Unknown Injury,injury,2021-10-29,2021-11-18,20,3,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
-2122,Pulled hamstring at the adductors,injury,2021-10-03,2021-10-13,10,1,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
-2122,Unknown Injury,injury,2021-09-04,2021-09-10,6,,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
-2122,Transferred to Dynamo Kyiv,Transfer,2021-07-01,2021-12-31,,,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
-2122,Ill,injury,2021-08-02,2021-09-02,31,3,Dean Henderson,/dean-henderson/profil/spieler/258919
-2122,Unknown Injury,injury,2022-03-02,2022-03-09,7,2,Amad Diallo,/amad-diallo/profil/spieler/536835
-2122,Thigh Problems,injury,2021-08-28,2021-10-08,41,8,Amad Diallo,/amad-diallo/profil/spieler/536835
-2122,Transferred to Rangers,Transfer,2022-01-27,2022-05-30,,,Amad Diallo,/amad-diallo/profil/spieler/536835
-2122,Transferred to Real Betis,Transfer,2021-08-31,2022-06-29,,,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
-2122,Transferred to Man City U23,Transfer,2021-07-01,2021-08-30,,,Tommy Doyle,/tommy-doyle/profil/spieler/433183
-2122,Transferred to Hamburger SV,Transfer,2021-08-31,2022-01-18,,,Tommy Doyle,/tommy-doyle/profil/spieler/433183
-2122,Transferred to Man City U23,Transfer,2022-01-19,2022-01-19,,,Tommy Doyle,/tommy-doyle/profil/spieler/433183
-2122,Transferred to Cardiff,Transfer,2022-01-20,2022-05-30,,,Tommy Doyle,/tommy-doyle/profil/spieler/433183
-2122,Transferred to Man City U23,Transfer,2022-05-31,2022-06-30,,,Tommy Doyle,/tommy-doyle/profil/spieler/433183
-2122,Transferred to Viking,Transfer,2021-08-31,2021-12-30,,,Patrik Gunnarsson,/patrik-gunnarsson/profil/spieler/429563
-2122,Transferred to Viking,Transfer,2022-01-17,2022-06-30,,,Patrik Gunnarsson,/patrik-gunnarsson/profil/spieler/429563
-2122,Foot Injury,injury,2022-04-05,2022-05-12,37,5,Daniel Podence,/daniel-podence/profil/spieler/256977
-2122,Corona virus,injury,2021-11-19,2021-12-03,14,3,Daniel Podence,/daniel-podence/profil/spieler/256977
-2122,Transferred to Blackburn,Transfer,2021-08-29,2022-05-30,,,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
-2122,Muscle Injury,injury,2022-02-21,2022-03-09,16,3,Anthony Martial,/anthony-martial/profil/spieler/182877
-2122,Knee Injury,injury,2021-12-04,2021-12-13,9,3,Anthony Martial,/anthony-martial/profil/spieler/182877
-2122,Fitness,injury,2021-10-15,2021-10-29,14,3,Anthony Martial,/anthony-martial/profil/spieler/182877
-2122,Transferred to Sevilla FC,Transfer,2022-01-25,2022-06-29,,,Anthony Martial,/anthony-martial/profil/spieler/182877
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-06-30,,,Tayo Adaramola,/tayo-adaramola/profil/spieler/724529
-2122,Groin Injury,injury,2022-04-14,2022-04-28,14,4,Antonio Rüdiger,/antonio-rudiger/profil/spieler/86202
-2122,Corona virus,injury,2022-01-06,2022-01-08,2,,Hannibal,/hannibal/profil/spieler/607224
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Hannibal,/hannibal/profil/spieler/607224
-2122,Pubitis,injury,2022-02-05,2022-06-30,145,20,Oliver Skipp,/oliver-skipp/profil/spieler/406638
-2122,Transferred to Celtic,Transfer,2021-07-01,2021-08-30,,,Odsonne Edouard,/odsonne-edouard/profil/spieler/344152
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Owen Dodgson,/owen-dodgson/profil/spieler/686839
-2122,Unknown Injury,injury,2022-01-07,2022-02-25,49,11,Taylor Richards,/taylor-richards/profil/spieler/484551
-2122,Transferred to Birmingham,Transfer,2022-01-07,2022-05-30,,,Taylor Richards,/taylor-richards/profil/spieler/484551
-2122,Groin Injury,injury,2022-01-22,2022-03-17,54,10,Nathan Tella,/nathan-tella/profil/spieler/340322
-2122,Corona virus,injury,2021-12-17,2021-12-27,10,1,Nathan Tella,/nathan-tella/profil/spieler/340322
-2122,Transferred to Preston,Transfer,2022-01-24,2022-05-30,,,Cameron Archer,/cameron-archer/profil/spieler/533662
-2122,Quarantine,injury,2021-09-10,2021-09-17,7,1,Samuel Kalu,/samuel-kalu/profil/spieler/424051
-2122,Transferred to G. Bordeaux,Transfer,2021-07-01,2022-01-25,,,Samuel Kalu,/samuel-kalu/profil/spieler/424051
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Lewis Dobbin,/lewis-dobbin/profil/spieler/627248
-2122,Transferred to FC Lorient,Transfer,2021-07-01,2021-08-09,,,Yoane Wissa,/yoane-wissa/profil/spieler/388165
-2122,Thigh Problems,injury,2022-04-03,2022-04-23,20,3,Shane Duffy,/shane-duffy/profil/spieler/119269
-2122,Ankle Injury,injury,2022-01-14,2022-02-04,21,3,Shane Duffy,/shane-duffy/profil/spieler/119269
-2122,Corona virus,injury,2021-12-16,2021-12-28,12,1,Shane Duffy,/shane-duffy/profil/spieler/119269
-2122,Ankle Fracture,injury,2021-11-05,2022-03-14,129,20,Kwadwo Baah,/kwadwo-baah/profil/spieler/711247
-2122,Transferred to Man City U23,Transfer,2021-07-01,2021-08-30,,,Claudio Gomes,/claudio-gomes/profil/spieler/395239
-2122,Transferred to Barnsley FC,Transfer,2021-08-31,2022-04-25,,,Claudio Gomes,/claudio-gomes/profil/spieler/395239
-2122,Transferred to Man City U23,Transfer,2022-04-26,2022-06-30,,,Claudio Gomes,/claudio-gomes/profil/spieler/395239
-2122,Ankle Injury,injury,2022-02-14,2022-02-28,14,4,Diogo Jota,/diogo-jota/profil/spieler/340950
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,James Norris,/james-norris/profil/spieler/618495
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Josh Wilson-Esbrand,/josh-wilson-esbrand/profil/spieler/576121
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-01-11,,,Folarin Balogun,/folarin-balogun/profil/spieler/503770
-2122,Transferred to Middlesbrough,Transfer,2022-01-12,2022-05-30,,,Folarin Balogun,/folarin-balogun/profil/spieler/503770
-2122,Transferred to Arsenal U23,Transfer,2022-05-31,2022-06-30,,,Folarin Balogun,/folarin-balogun/profil/spieler/503770
-2122,Transferred to Liverpool U18,Transfer,2021-07-01,2022-06-30,,,James Balagizi,/james-balagizi/profil/spieler/655987
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2021-08-30,,,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
-2122,Transferred to Randers FC,Transfer,2021-08-31,2021-12-30,,,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
-2122,Transferred to Wolves U21,Transfer,2021-12-31,2022-01-30,,,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
-2122,Transferred to Hereford,Transfer,2022-01-31,2022-05-30,,,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
-2122,Transferred to Wolves U21,Transfer,2022-05-31,2022-06-30,,,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Armstrong Oko-Flex,/armstrong-oko-flex/profil/spieler/531461
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Ed Turns,/ed-turns/profil/spieler/580809
-2122,Transferred to Aberdeen FC,Transfer,2021-08-27,2021-12-30,,,Matty Longstaff,/matty-longstaff/profil/spieler/484387
-2122,Transferred to Mansfield Town,Transfer,2022-01-31,2022-05-30,,,Matty Longstaff,/matty-longstaff/profil/spieler/484387
-2122,Transferred to Fenerbahce,Transfer,2021-07-01,2021-09-08,,,Zanka,/zanka/profil/spieler/52059
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Matthew Craig,/matthew-craig/profil/spieler/633659
-2122,Hamstring Injury,injury,2022-04-21,2022-04-28,7,2,Reece James,/reece-james/profil/spieler/472423
-2122,Muscle Injury,injury,2022-03-03,2022-03-21,18,5,Reece James,/reece-james/profil/spieler/472423
-2122,Fitness,injury,2022-02-14,2022-02-24,10,2,Reece James,/reece-james/profil/spieler/472423
-2122,Hamstring Injury,injury,2021-12-27,2022-02-14,49,11,Reece James,/reece-james/profil/spieler/472423
-2122,Transferred to Aston Villa U18,Transfer,2021-07-01,2021-12-31,,,Tommi O'Reilly,/tommi-oreilly/profil/spieler/818237
-2122,Transferred to Aston Villa U23,Transfer,2022-01-01,2022-06-30,,,Tommi O'Reilly,/tommi-oreilly/profil/spieler/818237
-2122,Corona virus,injury,2022-02-03,2022-02-10,7,2,Alex Telles,/alex-telles/profil/spieler/255755
-2122,Ankle Injury,injury,2021-07-20,2021-09-16,58,5,Alex Telles,/alex-telles/profil/spieler/255755
-2122,Thigh Problems,injury,2022-04-21,2022-05-16,25,5,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
-2122,Thigh Problems,injury,2022-03-31,2022-04-11,11,3,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
-2122,Groin Injury,injury,2021-06-07,2021-07-12,35,,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
-2122,Infection,injury,2021-12-08,2022-01-09,32,4,Connor Roberts,/connor-roberts/profil/spieler/214666
-2122,Transferred to Swansea,Transfer,2021-07-01,2021-08-30,,,Connor Roberts,/connor-roberts/profil/spieler/214666
-2122,Transferred to Newcastle U23,Transfer,2021-07-01,2022-06-30,,,Lucas De Bolle,/lucas-de-bolle/profil/spieler/626291
-2122,Transferred to Stade Brestois,Transfer,2021-07-01,2021-07-01,,,Romain Perraud,/romain-perraud/profil/spieler/318523
-2122,Knee Injury,injury,2022-03-17,2022-05-30,74,17,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
-2122,Corona virus,injury,2021-12-14,2021-12-25,11,1,Pascal Groß,/pascal-gross/profil/spieler/82873
-2122,Transferred to 1.FSV Mainz 05,Transfer,2022-01-30,2022-01-30,,,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
-2122,Corona virus,injury,2021-12-30,2022-01-13,14,3,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
-2122,Fitness,injury,2021-08-08,2021-08-25,17,2,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
-2122,Transferred to Barcelona,Transfer,2021-07-01,2022-01-06,,,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
-2122,Transferred to Barcelona,Transfer,2022-06-30,2022-06-30,,,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
-2122,Unknown Injury,injury,2021-11-03,2021-11-08,5,2,Andriy Yarmolenko,/andriy-yarmolenko/profil/spieler/69015
-2122,Transferred to Southampton B,Transfer,2021-07-01,2022-06-30,,,Kgaogelo Chauke,/kgaogelo-chauke/profil/spieler/703577
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2021-07-18,,,Dion Sanderson,/dion-sanderson/profil/spieler/495993
-2122,Transferred to Birmingham,Transfer,2021-07-19,2022-01-03,,,Dion Sanderson,/dion-sanderson/profil/spieler/495993
-2122,Transferred to Wolves U21,Transfer,2022-01-04,2022-01-24,,,Dion Sanderson,/dion-sanderson/profil/spieler/495993
-2122,Transferred to QPR,Transfer,2022-01-25,2022-05-30,,,Dion Sanderson,/dion-sanderson/profil/spieler/495993
-2122,Transferred to Wolves U21,Transfer,2022-05-31,2022-06-30,,,Dion Sanderson,/dion-sanderson/profil/spieler/495993
-2122,Hamstring Injury,injury,2022-02-19,2022-03-31,40,7,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
-2122,Transferred to Reading,Transfer,2021-08-27,2022-05-30,,,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Marc Leonard,/marc-leonard/profil/spieler/463751
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-06-30,,,Sil Swinkels,/sil-swinkels/profil/spieler/646710
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Jude Soonsup-Bell,/jude-soonsup-bell/profil/spieler/670857
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-07-22,,,Myles Peart-Harris,/myles-peart-harris/profil/spieler/587002
-2122,Transferred to Brentford B,Transfer,2021-07-23,2022-06-30,,,Myles Peart-Harris,/myles-peart-harris/profil/spieler/587002
-2122,Hamstring Injury,injury,2021-09-17,2021-10-15,28,4,Seamus Coleman,/seamus-coleman/profil/spieler/68390
-2122,Transferred to Newcastle U23,Transfer,2021-07-01,2022-01-30,,,Elliot Anderson,/elliot-anderson/profil/spieler/567576
-2122,Transferred to Bristol Rovers,Transfer,2022-01-31,2022-05-30,,,Elliot Anderson,/elliot-anderson/profil/spieler/567576
-2122,Transferred to Newcastle U23,Transfer,2022-05-31,2022-06-30,,,Elliot Anderson,/elliot-anderson/profil/spieler/567576
-2122,Knee Problems,injury,2021-10-01,2021-10-24,23,3,Kayky,/kayky/profil/spieler/668265
-2122,Transferred to Fluminense,Transfer,2021-07-01,2021-08-30,,,Kayky,/kayky/profil/spieler/668265
-2122,Transferred to Man City U23,Transfer,2021-08-31,2022-06-30,,,Kayky,/kayky/profil/spieler/668265
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Luke Mbete,/luke-mbete/profil/spieler/609883
-2122,Transferred to Derby,Transfer,2021-07-01,2022-01-21,,,Dylan Williams,/dylan-williams/profil/spieler/732117
-2122,Transferred to Chelsea U23,Transfer,2022-01-22,2022-06-30,,,Dylan Williams,/dylan-williams/profil/spieler/732117
-2122,Transferred to Watford U23,Transfer,2021-07-01,2022-06-30,,,Derek Agyakwa,/derek-agyakwa/profil/spieler/591360
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,CJ Egan-Riley,/cj-egan-riley/profil/spieler/581669
-2122,Corona virus,injury,2021-12-29,2022-01-06,8,2,Nick Pope,/nick-pope/profil/spieler/192080
-2122,Transferred to Estoril Praia,Transfer,2021-07-01,2022-01-16,,,Chiquinho,/chiquinho/profil/spieler/695454
-2122,Calf Injury,injury,2021-12-12,2022-01-12,31,4,Richarlison,/richarlison/profil/spieler/378710
-2122,Knee Injury,injury,2021-09-13,2021-10-22,39,6,Richarlison,/richarlison/profil/spieler/378710
-2122,Transferred to Ipswich,Transfer,2021-08-30,2022-01-17,,,Christian Walton,/christian-walton/profil/spieler/208379
-2122,Transferred to Ipswich,Transfer,2022-01-19,2022-06-30,,,Christian Walton,/christian-walton/profil/spieler/208379
-2122,Transferred to Reading,Transfer,2021-08-12,2022-05-30,,,Tom Dele-Bashiru,/tom-dele-bashiru/profil/spieler/346472
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Anthony Mancini,/anthony-mancini/profil/spieler/677311
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Billy Koumetio,/billy-koumetio/profil/spieler/696324
-2122,Heel pain,injury,2021-12-09,2022-01-14,36,5,Rodrigo,/rodrigo/profil/spieler/131505
-2122,Transferred to Inter,Transfer,2021-07-01,2021-12-16,,,Christian Eriksen,/christian-eriksen/profil/spieler/69633
-2122,Transferred to Without Club,Transfer,2021-12-17,2022-01-30,,,Christian Eriksen,/christian-eriksen/profil/spieler/69633
-2122,Transferred to Real Madrid,Transfer,2021-07-01,2021-08-19,,,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
-2122,Transferred to St. Mirren,Transfer,2021-08-31,2022-05-16,,,Connor Ronan,/connor-ronan/profil/spieler/337787
-2122,Ankle Injury,injury,2022-04-17,2022-04-30,13,4,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
-2122,Corona virus,injury,2021-12-03,2021-12-18,15,4,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
-2122,Adductor problems,injury,2021-10-29,2021-12-01,33,7,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
-2122,Transferred to Udinese Calcio,Transfer,2022-01-13,2022-06-30,,,Filip Benkovic,/filip-benkovic/profil/spieler/293168
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Pierre Ekwah,/pierre-ekwah/profil/spieler/538994
-2122,Corona virus,injury,2021-12-13,2022-01-03,21,6,Timo Werner,/timo-werner/profil/spieler/170527
-2122,Strain,injury,2021-10-21,2021-11-15,25,5,Timo Werner,/timo-werner/profil/spieler/170527
-2122,Ill,injury,2022-05-12,2022-05-19,7,1,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
-2122,Knee Problems,injury,2022-03-17,2022-04-11,25,3,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
-2122,Back bruise,injury,2022-03-03,2022-03-10,7,1,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
-2122,Corona virus,injury,2021-12-13,2022-01-03,21,4,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
-2122,Transferred to VfL Bochum,Transfer,2022-01-06,2022-06-30,,,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-01-27,,,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
-2122,Transferred to Forest Green,Transfer,2022-01-28,2022-05-30,,,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
-2122,Transferred to Leicester U21,Transfer,2022-05-31,2022-06-30,,,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2022-06-30,,,Tony Springett,/tony-springett/profil/spieler/570864
-2122,Wirst Injury,injury,2021-11-10,2022-01-24,75,9,Lukas Jensen,/lukas-jensen/profil/spieler/581890
-2122,Transferred to Kórdrengir,Transfer,2021-07-01,2021-07-09,,,Lukas Jensen,/lukas-jensen/profil/spieler/581890
-2122,Transferred to Burnley U21,Transfer,2021-07-10,2021-07-19,,,Lukas Jensen,/lukas-jensen/profil/spieler/581890
-2122,Transferred to Carlisle United,Transfer,2021-07-20,2021-12-30,,,Lukas Jensen,/lukas-jensen/profil/spieler/581890
-2122,Transferred to Burnley U21,Transfer,2021-12-31,2022-06-30,,,Lukas Jensen,/lukas-jensen/profil/spieler/581890
-2122,Transferred to Coventry,Transfer,2021-08-13,2022-05-30,,,Jake Clarke-Salter,/jake-clarke-salter/profil/spieler/316551
-2122,Knee Injury,injury,2022-04-21,2022-04-29,8,1,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2122,Calf Problems,injury,2022-05-01,2022-05-25,24,3,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
-2122,Muscle Injury,injury,2021-12-17,2021-12-26,9,1,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
-2122,Calf Injury,injury,2021-08-15,2021-10-15,61,8,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
-2122,Calf Injury,injury,2021-12-03,2022-01-02,30,8,Adrián,/adrian/profil/spieler/71271
-2122,Calf Injury,injury,2021-11-19,2021-12-22,33,6,Stuart Armstrong,/stuart-armstrong/profil/spieler/130765
-2122,Hamstring Injury,injury,2021-11-21,2022-05-21,181,26,Nicolas N'Koulou,/nicolas-nkoulou/profil/spieler/60577
-2122,Transferred to Without Club,Transfer,2021-07-01,2021-10-06,,,Nicolas N'Koulou,/nicolas-nkoulou/profil/spieler/60577
-2122,Adductor problems,injury,2022-03-23,2022-04-01,9,,Fabian Schär,/fabian-schar/profil/spieler/135343
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Arthur Okonkwo,/arthur-okonkwo/profil/spieler/503769
-2122,Hamstring Injury,injury,2021-12-05,2022-03-14,99,16,Liam Cooper,/liam-cooper/profil/spieler/75067
-2122,Dead Leg,injury,2021-06-30,2021-07-05,5,,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2122,Groin Injury,injury,2022-02-18,2022-04-08,49,6,Adam Webster,/adam-webster/profil/spieler/212847
-2122,Calf Injury,injury,2021-12-01,2021-12-25,24,3,Adam Webster,/adam-webster/profil/spieler/212847
-2122,Hamstring Injury,injury,2021-09-11,2021-10-18,37,6,Adam Webster,/adam-webster/profil/spieler/212847
-2122,Fibula Fracture,injury,2021-08-04,2022-03-15,223,41,Wesley Fofana,/wesley-fofana/profil/spieler/475411
-2122,Transferred to Huddersfield,Transfer,2021-07-28,2022-05-30,,,Danel Sinani,/danel-sinani/profil/spieler/346499
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,James McAtee,/james-mcatee/profil/spieler/583199
-2122,Knee Injury,injury,2021-07-06,2021-08-25,50,3,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2122,Transferred to Grasshoppers,Transfer,2022-01-31,2022-06-29,,,Bruno Jordão,/bruno-jordao/profil/spieler/415646
-2122,Fracture-dislocation of the ankle,injury,2021-09-13,2022-01-31,140,30,Harvey Elliott,/harvey-elliott/profil/spieler/565822
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Dane Scarlett,/dane-scarlett/profil/spieler/670883
-2122,Corona virus,injury,2022-04-14,2022-04-19,5,1,Alexandre Lacazette,/alexandre-lacazette/profil/spieler/93720
-2122,Ill,injury,2021-08-01,2021-08-24,23,2,Alexandre Lacazette,/alexandre-lacazette/profil/spieler/93720
-2122,Transferred to Without Club,Transfer,2021-07-01,2021-12-05,,,Willy Caballero,/willy-caballero/profil/spieler/19948
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Malachi Fagan-Walcott,/malachi-fagan-walcott/profil/spieler/554173
-2122,Transferred to CSKA Moscow,Transfer,2022-02-21,2022-06-29,,,Jean-Philippe Gbamin,/jean-philippe-gbamin/profil/spieler/182894
-2122,Knee Surgery,injury,2021-12-28,2022-04-20,113,15,Isaac Hayden,/isaac-hayden/profil/spieler/206225
-2122,Foot Injury,injury,2022-04-06,2022-04-18,12,2,Scott McTominay,/scott-mctominay/profil/spieler/315969
-2122,Ill,injury,2022-02-22,2022-03-02,8,2,Scott McTominay,/scott-mctominay/profil/spieler/315969
-2122,Groin Injury,injury,2021-08-26,2021-09-16,21,3,Scott McTominay,/scott-mctominay/profil/spieler/315969
-2122,Thigh muscle rupture,injury,2022-03-07,2022-05-27,81,11,Tyler Roberts,/tyler-roberts/profil/spieler/296986
-2122,Corona virus,injury,2021-08-29,2021-09-09,11,1,Mateusz Klich,/mateusz-klich/profil/spieler/92738
-2122,Hamstring Injury,injury,2022-01-21,2022-04-05,74,12,Fabian Delph,/fabian-delph/profil/spieler/50362
-2122,Shoulder Injury,injury,2021-08-27,2021-10-25,59,8,Fabian Delph,/fabian-delph/profil/spieler/50362
-2122,Corona virus,injury,2022-01-05,2022-01-11,6,2,Thiago Silva,/thiago-silva/profil/spieler/29241
-2122,Knee Problems,injury,2021-12-26,2021-12-31,5,2,Thiago Silva,/thiago-silva/profil/spieler/29241
-2122,Ankle Injury,injury,2021-08-01,2022-07-28,361,2,Tudor Baluta,/tudor-baluta/profil/spieler/433976
-2122,Fractured Toe,injury,2021-08-28,2021-12-31,125,16,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
-2122,Thigh muscle rupture,injury,2022-03-10,2022-05-23,74,14,Cenk Tosun,/cenk-tosun/profil/spieler/45671
-2122,Transferred to Liverpool U18,Transfer,2021-07-01,2022-06-30,,,Harvey Blair,/harvey-blair/profil/spieler/707164
-2122,Knee Injury,injury,2021-09-27,2022-02-28,154,21,Peter Etebo,/peter-etebo/profil/spieler/409106
-2122,Transferred to Stoke City,Transfer,2021-07-01,2021-07-08,,,Peter Etebo,/peter-etebo/profil/spieler/409106
-2122,Transferred to Stoke City,Transfer,2022-05-31,2022-06-30,,,Peter Etebo,/peter-etebo/profil/spieler/409106
-2122,Transferred to Ebbsfleet,Transfer,2022-01-31,2022-05-30,,,Louie Moulden,/louie-moulden/profil/spieler/444641
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2021-08-06,,,Jamie Bowden,/jamie-bowden/profil/spieler/504051
-2122,Transferred to Oldham Athletic,Transfer,2021-08-07,2022-01-09,,,Jamie Bowden,/jamie-bowden/profil/spieler/504051
-2122,Transferred to Tottenham U23,Transfer,2022-01-10,2022-06-30,,,Jamie Bowden,/jamie-bowden/profil/spieler/504051
-2122,Transferred to Ipswich U18,Transfer,2021-07-01,2021-07-22,,,Liam Gibbs,/liam-gibbs/profil/spieler/724785
-2122,Transferred to Norwich U21,Transfer,2021-07-23,2022-06-30,,,Liam Gibbs,/liam-gibbs/profil/spieler/724785
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Maksim Paskotsi,/maksim-paskotsi/profil/spieler/488298
-2122,Hamstring Injury,injury,2022-03-07,2022-04-07,31,5,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
-2122,Muscle Injury,injury,2021-12-21,2022-01-07,17,5,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
-2122,Bruise,injury,2021-09-01,2021-11-14,74,14,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
-2122,Thigh Problems,injury,2021-07-01,2021-08-15,45,1,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Tyler Morton,/tyler-morton/profil/spieler/618494
-2122,Calf Injury,injury,2022-02-20,2022-04-21,60,9,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2122,Transferred to Bologna,Transfer,2021-07-01,2021-08-30,,,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2122,Transferred to Southampton B,Transfer,2021-07-01,2022-06-30,,,Kazeem Olaigbe,/kazeem-olaigbe/profil/spieler/565406
-2122,Transferred to Sunderland,Transfer,2021-07-01,2021-07-11,,,Remi Matthews,/remi-matthews/profil/spieler/196722
-2122,Knock,injury,2022-03-03,2022-04-11,39,7,Rúben Dias,/ruben-dias/profil/spieler/258004
-2122,Unknown Injury,injury,2021-09-01,2021-09-28,27,5,Jonas Lössl,/jonas-lossl/profil/spieler/48870
-2122,Transferred to FC Midtjylland,Transfer,2021-07-01,2021-12-31,,,Jonas Lössl,/jonas-lossl/profil/spieler/48870
-2122,Transferred to FC Midtjylland,Transfer,2022-06-30,2022-06-30,,,Jonas Lössl,/jonas-lossl/profil/spieler/48870
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-01-25,,,Robert Street,/robert-street/profil/spieler/703474
-2122,Transferred to Newport County,Transfer,2022-01-26,2022-05-30,,,Robert Street,/robert-street/profil/spieler/703474
-2122,Transferred to Palace U21,Transfer,2022-05-31,2022-06-30,,,Robert Street,/robert-street/profil/spieler/703474
-2122,Transferred to New York RB,Transfer,2022-02-28,2022-06-30,,,Ashley Fletcher,/ashley-fletcher/profil/spieler/289846
-2122,Ill,injury,2022-01-31,2022-02-07,7,1,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2122,Corona virus,injury,2021-12-26,2022-01-05,10,3,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2122,Heart Condition,injury,2021-12-11,2021-12-21,10,1,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2122,Transferred to Bournemouth,Transfer,2021-07-01,2021-07-19,,,Asmir Begovic,/asmir-begovic/profil/spieler/33873
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Ryan Astley,/ryan-astley/profil/spieler/511552
-2122,Knock,injury,2022-04-04,2022-07-25,112,10,Thomas Partey,/thomas-partey/profil/spieler/230784
-2122,Ankle Injury,injury,2021-07-29,2021-08-30,32,4,Thomas Partey,/thomas-partey/profil/spieler/230784
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-06-30,,,Reece Hannam,/reece-hannam/profil/spieler/503241
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Evan Ferguson,/evan-ferguson/profil/spieler/648046
-2122,Femoral Fracture,injury,2022-04-30,,394,49,Stuart Dallas,/stuart-dallas/profil/spieler/158764
-2122,Leg Injury,injury,2021-07-07,2021-08-31,55,4,Mathias Jensen,/mathias-jensen/profil/spieler/319859
-2122,Hamstring Injury,injury,2022-01-06,2022-02-03,28,4,Heung-min Son,/heung-min-son/profil/spieler/91845
-2122,Calf Strain,injury,2021-09-06,2021-09-20,14,3,Heung-min Son,/heung-min-son/profil/spieler/91845
-2122,Knee Injury,injury,2021-09-17,2021-11-28,72,11,Luke Ayling,/luke-ayling/profil/spieler/67420
-2122,Corona virus,injury,2021-12-23,2022-01-03,11,3,Ruben Loftus-Cheek,/ruben-loftus-cheek/profil/spieler/202886
-2122,Unknown Injury,injury,2021-12-17,2022-01-03,17,5,Ruben Loftus-Cheek,/ruben-loftus-cheek/profil/spieler/202886
-2122,Transferred to QPR,Transfer,2022-01-31,2022-05-30,,,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Teddy Sharman-Lowe,/teddy-sharman-lowe/profil/spieler/731466
-2122,Corona virus,injury,2021-10-06,2021-10-20,14,1,Trincão,/trincao/profil/spieler/412669
-2122,Transferred to Barcelona,Transfer,2021-07-01,2021-07-03,,,Trincão,/trincao/profil/spieler/412669
-2122,Transferred to Barcelona,Transfer,2022-06-30,2022-06-30,,,Trincão,/trincao/profil/spieler/412669
-2122,Heart Condition,injury,2022-01-13,2022-01-31,18,,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
-2122,Corona virus,injury,2022-01-03,2022-01-13,10,2,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
-2122,Corona virus,injury,2021-08-02,2021-08-16,14,1,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
-2122,Transferred to Barcelona,Transfer,2022-01-31,2022-06-30,,,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
-2122,Transferred to Sheff Utd,Transfer,2021-08-30,2022-05-30,,,Conor Hourihane,/conor-hourihane/profil/spieler/61653
-2122,Transferred to FC Porto,Transfer,2021-07-01,2022-01-29,,,Luis Díaz,/luis-diaz/profil/spieler/480692
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-07-29,,,Conor Gallagher,/conor-gallagher/profil/spieler/488362
-2122,Transferred to Chelsea U23,Transfer,2022-05-31,2022-06-30,,,Conor Gallagher,/conor-gallagher/profil/spieler/488362
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Samuel Edozie,/samuel-edozie/profil/spieler/680806
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Tobi Omole,/tobi-omole/profil/spieler/503687
-2122,Knee Problems,injury,2022-04-22,2022-05-05,13,2,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
-2122,Transferred to Olympique Lyon,Transfer,2021-07-01,2021-08-28,,,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
-2122,Corona virus,injury,2022-01-12,2022-01-17,5,1,Hélder Costa,/helder-costa/profil/spieler/173900
-2122,Transferred to Valencia,Transfer,2021-08-31,2022-06-29,,,Hélder Costa,/helder-costa/profil/spieler/173900
-2122,Tonsillitis,injury,2022-04-26,2022-05-08,12,3,Jadon Sancho,/jadon-sancho/profil/spieler/401173
-2122,Transferred to Bor. Dortmund,Transfer,2021-07-01,2021-07-22,,,Jadon Sancho,/jadon-sancho/profil/spieler/401173
-2122,Rest,injury,2022-06-09,2022-06-13,4,,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
-2122,Problems with the hip flexor,injury,2022-03-03,2022-03-07,4,1,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
-2122,Problems with the hip flexor,injury,2022-01-10,2022-01-17,7,2,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
-2122,Arm Injury,injury,2021-08-26,2021-08-30,4,1,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
-2122,Hamstring Injury,injury,2022-02-27,2022-03-16,17,3,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
-2122,Bruise,injury,2022-01-07,2022-01-27,20,3,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
-2122,Ligament Injury,injury,2021-11-21,2022-01-01,41,6,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
-2122,Transferred to Sheff Utd,Transfer,2021-08-31,2022-05-30,,,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Dan Chesters,/dan-chesters/profil/spieler/561452
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Kamarai Swyer,/kamarai-swyer/profil/spieler/693066
-2122,Transferred to Wolves U18,Transfer,2021-07-01,2022-06-30,,,Dexter Lembikisa,/dexter-lembikisa/profil/spieler/712099
-2122,Calf Injury,injury,2021-12-27,2022-05-01,125,18,Callum Wilson,/callum-wilson/profil/spieler/123682
-2122,Hamstring Injury,injury,2021-08-30,2021-10-17,48,5,Callum Wilson,/callum-wilson/profil/spieler/123682
-2122,Transferred to MK Dons,Transfer,2021-07-01,2022-01-15,,,Josh Martin,/josh-martin/profil/spieler/547534
-2122,Transferred to Doncaster,Transfer,2022-01-17,2022-05-30,,,Josh Martin,/josh-martin/profil/spieler/547534
-2122,Groin Injury,injury,2021-10-31,2021-11-24,24,3,Grant Hanley,/grant-hanley/profil/spieler/121385
-2122,Knee Injury,injury,2021-10-25,2022-02-04,102,17,David Raya,/david-raya/profil/spieler/262749
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Harrison Ashby,/harrison-ashby/profil/spieler/559130
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-02-09,,,Michael Craig,/michael-craig/profil/spieler/633621
-2122,Transferred to Without Club,Transfer,2022-02-10,2022-06-30,,,Michael Craig,/michael-craig/profil/spieler/633621
-2122,Ill,injury,2022-04-01,2022-04-06,5,1,Moisés Caicedo,/moises-caicedo/profil/spieler/687626
-2122,Transferred to Beerschot V.A.,Transfer,2021-08-31,2022-01-11,,,Moisés Caicedo,/moises-caicedo/profil/spieler/687626
-2122,Sideband injury,injury,2022-03-11,2022-04-11,31,4,Junior Firpo,/junior-firpo/profil/spieler/374139
-2122,Thigh Muscle Strain,injury,2022-01-16,2022-02-14,29,4,Junior Firpo,/junior-firpo/profil/spieler/374139
-2122,Transferred to Barcelona,Transfer,2021-07-01,2021-07-05,,,Junior Firpo,/junior-firpo/profil/spieler/374139
-2122,Transferred to Peterborough,Transfer,2022-01-06,2022-05-30,,,Bali Mumba,/bali-mumba/profil/spieler/433186
-2122,Transferred to Stoke City,Transfer,2022-01-21,2022-05-30,,,Jaden Philogene,/jaden-philogene/profil/spieler/665390
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2021-12-31,,,Anthony Elanga,/anthony-elanga/profil/spieler/583189
-2122,Hamstring Injury,injury,2021-09-27,2021-12-25,89,12,Danny Welbeck,/danny-welbeck/profil/spieler/67063
-2122,Hamstring Injury,injury,2021-07-24,2021-08-27,34,3,Danny Welbeck,/danny-welbeck/profil/spieler/67063
-2122,Transferred to Sunderland,Transfer,2022-01-26,2022-05-30,,,Jack Clarke,/jack-clarke/profil/spieler/559794
-2122,Knee Injury,injury,2022-03-19,2022-04-25,37,3,Rúben Neves,/ruben-neves/profil/spieler/225161
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Charlie Whitaker,/charlie-whitaker/profil/spieler/726992
-2122,Transferred to Sheff Utd,Transfer,2021-08-16,2022-05-30,,,Ben Davies,/ben-davies/profil/spieler/257097
-2122,Corona virus,injury,2021-12-14,2021-12-28,14,2,Jason Steele,/jason-steele/profil/spieler/73564
-2122,Hamstring Injury,injury,2021-12-22,2022-01-14,23,4,Caglar Söyüncü,/caglar-soyuncu/profil/spieler/320141
-2122,Hamstring Injury,injury,2021-12-02,2022-03-14,102,16,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
-2122,Transferred to Standard Liège,Transfer,2021-08-31,2022-06-29,,,Niels Nkounkou,/niels-nkounkou/profil/spieler/591193
-2122,Unknown Injury,injury,2021-12-02,2021-12-25,23,3,Fraser Forster,/fraser-forster/profil/spieler/52570
-2122,Knee Injury,injury,2022-05-01,2022-05-25,24,3,Joe Willock,/joe-willock/profil/spieler/340329
-2122,Knee Injury,injury,2022-04-04,2022-04-10,6,1,Joe Willock,/joe-willock/profil/spieler/340329
-2122,Corona virus,injury,2021-12-21,2021-12-31,10,1,Joe Willock,/joe-willock/profil/spieler/340329
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-06-30,,,Jack Wells-Morrison,/jack-wells-morrison/profil/spieler/814811
-2122,Transferred to Leeds U21,Transfer,2021-07-01,2022-06-30,,,Stuart McKinstry,/stuart-mckinstry/profil/spieler/592474
-2122,Bruised Ankle,injury,2022-01-07,2022-02-25,49,7,Charlie Taylor,/charlie-taylor/profil/spieler/195633
-2122,Groin Injury,injury,2021-12-10,2022-03-18,98,19,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Back Injury,injury,2021-11-02,2021-12-04,32,5,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Ankle Injury,injury,2021-09-24,2021-10-29,35,7,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Fitness,injury,2021-07-12,2021-07-28,16,1,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Transferred to Slavia Prague,Transfer,2021-07-01,2021-08-30,,,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Transferred to Stoke City,Transfer,2021-09-01,2022-05-30,,,Abdallah Sima,/abdallah-sima/profil/spieler/776798
-2122,Minor Knock,injury,2022-06-09,2022-06-13,4,,Juraj Kucka,/juraj-kucka/profil/spieler/74943
-2122,Leg Injury,injury,2021-08-16,2021-08-26,10,2,Juraj Kucka,/juraj-kucka/profil/spieler/74943
-2122,Transferred to Parma,Transfer,2021-07-01,2021-08-05,,,Juraj Kucka,/juraj-kucka/profil/spieler/74943
-2122,Transferred to Parma,Transfer,2022-06-30,2022-06-30,,,Juraj Kucka,/juraj-kucka/profil/spieler/74943
-2122,Corona virus,injury,2021-12-17,2021-12-24,7,2,Albert Sambi Lokonga,/albert-sambi-lokonga/profil/spieler/381967
-2122,Transferred to RSC Anderlecht,Transfer,2021-07-01,2021-07-18,,,Albert Sambi Lokonga,/albert-sambi-lokonga/profil/spieler/381967
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Mark Helm,/mark-helm/profil/spieler/596217
-2122,Shinbone injury,injury,2022-02-10,2022-02-18,8,2,Nemanja Matic,/nemanja-matic/profil/spieler/74683
-2122,Corona virus,injury,2021-12-13,2022-01-06,24,2,Josh Brownhill,/josh-brownhill/profil/spieler/293569
-2122,Transferred to Cádiz CF,Transfer,2021-08-23,2022-06-29,,,Florin Andone,/florin-andone/profil/spieler/177065
-2122,Hamstring Injury,injury,2021-08-28,2021-09-10,13,1,Solly March,/solly-march/profil/spieler/209212
-2122,Ill,injury,2022-04-10,2022-04-19,9,1,Steven Alzate,/steven-alzate/profil/spieler/476237
-2122,Ankle Surgery,injury,2021-09-27,2021-12-14,78,11,Steven Alzate,/steven-alzate/profil/spieler/476237
-2122,Transferred to Preston,Transfer,2021-07-01,2022-05-30,,,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Wanya Marçal,/wanya-marcal/profil/spieler/670988
-2122,Transferred to Arsenal U18,Transfer,2021-07-01,2021-12-31,,,Marcelo Flores,/marcelo-flores/profil/spieler/668495
-2122,Transferred to Arsenal U23,Transfer,2022-01-01,2022-06-30,,,Marcelo Flores,/marcelo-flores/profil/spieler/668495
-2122,Transferred to Millwall,Transfer,2021-08-31,2022-05-30,,,Sheyi Ojo,/sheyi-ojo/profil/spieler/236510
-2122,Transferred to Birmingham,Transfer,2021-08-30,2022-06-30,,,Troy Deeney,/troy-deeney/profil/spieler/65477
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-07-26,,,Dynel Simeu,/dynel-simeu/profil/spieler/503976
-2122,Transferred to Southampton B,Transfer,2021-07-27,2022-01-24,,,Dynel Simeu,/dynel-simeu/profil/spieler/503976
-2122,Transferred to Carlisle United,Transfer,2022-01-25,2022-05-30,,,Dynel Simeu,/dynel-simeu/profil/spieler/503976
-2122,Transferred to Southampton B,Transfer,2022-05-31,2022-06-30,,,Dynel Simeu,/dynel-simeu/profil/spieler/503976
-2122,Ankle Surgery,injury,2022-04-05,2022-06-06,62,10,Nathan Patterson,/nathan-patterson/profil/spieler/424015
-2122,Quarantine,injury,2021-08-27,2021-09-08,12,1,Nathan Patterson,/nathan-patterson/profil/spieler/424015
-2122,Transferred to Rangers,Transfer,2021-07-01,2022-01-03,,,Nathan Patterson,/nathan-patterson/profil/spieler/424015
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Xavier Simons,/xavier-simons/profil/spieler/599739
-2122,Hamstring Injury,injury,2022-03-30,2022-05-23,54,9,Ozan Kabak,/ozan-kabak/profil/spieler/361260
-2122,Influenza,injury,2021-11-04,2021-11-29,25,3,Ozan Kabak,/ozan-kabak/profil/spieler/361260
-2122,Transferred to FC Schalke 04,Transfer,2021-07-01,2021-08-29,,,Ozan Kabak,/ozan-kabak/profil/spieler/361260
-2122,Transferred to FC Schalke 04,Transfer,2022-06-30,2022-06-30,,,Ozan Kabak,/ozan-kabak/profil/spieler/361260
-2122,Hamstring Injury,injury,2021-12-12,2022-03-31,109,19,Jonny Evans,/jonny-evans/profil/spieler/42412
-2122,Foot Injury,injury,2021-08-01,2021-09-10,40,4,Jonny Evans,/jonny-evans/profil/spieler/42412
-2122,Corona virus,injury,2022-01-19,2022-01-29,10,1,Yan Couto,/yan-couto/profil/spieler/627228
-2122,Transferred to SC Braga,Transfer,2021-08-21,2022-06-29,,,Yan Couto,/yan-couto/profil/spieler/627228
-2122,Achilles tendon problems,injury,2022-02-28,2022-05-02,63,15,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
-2122,Knock,injury,2021-09-11,2021-09-17,6,2,Rhys Williams,/rhys-williams/profil/spieler/503679
-2122,Transferred to Swansea,Transfer,2021-08-31,2022-01-19,,,Rhys Williams,/rhys-williams/profil/spieler/503679
-2122,Transferred to Olympique Lyon,Transfer,2022-01-31,2022-06-29,,,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
-2122,Transferred to Brentford B,Transfer,2021-07-01,2022-06-30,,,Max Haygarth,/max-haygarth/profil/spieler/596216
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Emmanuel Longelo,/emmanuel-longelo/profil/spieler/504386
-2122,Knee Problems,injury,2022-04-26,2022-05-03,7,2,Harry Maguire,/harry-maguire/profil/spieler/177907
-2122,Chest injury,injury,2022-01-01,2022-01-14,13,2,Harry Maguire,/harry-maguire/profil/spieler/177907
-2122,Calf Injury,injury,2021-09-25,2021-10-15,20,3,Harry Maguire,/harry-maguire/profil/spieler/177907
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-06-30,,,Alejandro Garnacho,/alejandro-garnacho/profil/spieler/811779
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2021-08-30,,,J'Neil Bennett,/jneil-bennett/profil/spieler/554174
-2122,Transferred to Crewe Alexandra,Transfer,2021-08-31,2021-12-31,,,J'Neil Bennett,/jneil-bennett/profil/spieler/554174
-2122,Transferred to Tottenham U23,Transfer,2022-01-01,2022-06-30,,,J'Neil Bennett,/jneil-bennett/profil/spieler/554174
-2122,Transferred to Bournemouth,Transfer,2021-07-27,2022-05-30,,,Leif Davis,/leif-davis/profil/spieler/596446
-2122,Lumbago,injury,2022-02-03,2022-03-14,39,8,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
-2122,Transferred to SSC Napoli,Transfer,2022-01-07,2022-06-29,,,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Max Woltman,/max-woltman/profil/spieler/696326
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2021-08-29,,,Miguel Azeez,/miguel-azeez/profil/spieler/547533
-2122,Transferred to Portsmouth,Transfer,2021-08-30,2022-01-16,,,Miguel Azeez,/miguel-azeez/profil/spieler/547533
-2122,Transferred to Arsenal U23,Transfer,2022-01-17,2022-06-30,,,Miguel Azeez,/miguel-azeez/profil/spieler/547533
-2122,Ill,injury,2021-12-19,2021-12-27,8,2,Jordan Henderson,/jordan-henderson/profil/spieler/61651
-2122,Corona virus,injury,2021-12-14,2021-12-25,11,1,Neal Maupay,/neal-maupay/profil/spieler/217115
-2122,Shoulder Injury,injury,2021-08-21,2021-08-27,6,2,Neal Maupay,/neal-maupay/profil/spieler/217115
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-01-17,,,Dilan Markanday,/dilan-markanday/profil/spieler/530807
-2122,Transferred to Blackburn,Transfer,2022-01-18,2022-06-30,,,Dilan Markanday,/dilan-markanday/profil/spieler/530807
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-01-26,,,Nile John,/nile-john/profil/spieler/581683
-2122,Transferred to Charlton,Transfer,2022-01-27,2022-04-10,,,Nile John,/nile-john/profil/spieler/581683
-2122,Transferred to Tottenham U23,Transfer,2022-04-11,2022-06-30,,,Nile John,/nile-john/profil/spieler/581683
-2122,Knee Problems,injury,2022-05-20,2022-05-29,9,1,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
-2122,Metatarsal Fracture,injury,2021-11-27,2022-03-31,124,16,Daniel Adshead,/daniel-adshead/profil/spieler/532464
-2122,Transferred to Gillingham FC,Transfer,2021-08-19,2022-02-11,,,Daniel Adshead,/daniel-adshead/profil/spieler/532464
-2122,Transferred to Leeds U21,Transfer,2021-07-01,2022-06-30,,,Jack Jenkins,/jack-jenkins/profil/spieler/734375
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Odel Offiah,/odel-offiah/profil/spieler/567597
-2122,Bruised Ankle,injury,2022-04-22,2022-05-31,39,6,Max Kilman,/max-kilman/profil/spieler/525247
-2122,Ill,injury,2022-01-16,2022-01-25,9,3,Ben Woodburn,/ben-woodburn/profil/spieler/344015
-2122,Transferred to Heart of Midl.,Transfer,2021-08-23,2022-05-30,,,Ben Woodburn,/ben-woodburn/profil/spieler/344015
-2122,Ill,injury,2022-02-11,2022-02-16,5,1,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
-2122,Unknown Injury,injury,2022-05-01,2022-05-08,7,2,Jorginho,/jorginho/profil/spieler/102017
-2122,Corona virus,injury,2022-03-01,2022-03-12,11,3,Marcos Alonso,/marcos-alonso/profil/spieler/112515
-2122,Transferred to Olympique Lyon,Transfer,2021-07-01,2022-01-29,,,Bruno Guimarães,/bruno-guimaraes/profil/spieler/520624
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Lewis Richardson,/lewis-richardson/profil/spieler/657863
-2122,Transferred to Southampton B,Transfer,2021-07-01,2021-08-04,,,James Morris,/james-morris/profil/spieler/610621
-2122,Transferred to Watford U23,Transfer,2021-08-05,2022-06-30,,,James Morris,/james-morris/profil/spieler/610621
-2122,Transferred to QPR,Transfer,2021-07-12,2022-05-30,,,Sam McCallum,/sam-mccallum/profil/spieler/618901
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Reece Welch,/reece-welch/profil/spieler/655986
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2021-12-31,,,Jonathan Rowe,/jonathan-rowe/profil/spieler/672381
-2122,Transferred to Fulham,Transfer,2021-08-31,2022-01-30,,,Domingos Quina,/domingos-quina/profil/spieler/391719
-2122,Transferred to Barnsley FC,Transfer,2022-01-31,2022-04-25,,,Domingos Quina,/domingos-quina/profil/spieler/391719
-2122,Shoulder Injury,injury,2021-09-13,2021-09-27,14,4,Jordan Pickford,/jordan-pickford/profil/spieler/130164
-2122,Quarantine,injury,2021-09-09,2021-09-17,8,2,Davinson Sánchez,/davinson-sanchez/profil/spieler/341429
-2122,Ankle Injury,injury,2022-04-18,2022-05-02,14,3,Issa Diop,/issa-diop/profil/spieler/272622
-2122,Shoulder Injury,injury,2022-01-03,2022-06-01,149,44,Matija Sarkic,/matija-sarkic/profil/spieler/293257
-2122,Transferred to Birmingham,Transfer,2021-07-26,2022-01-05,,,Matija Sarkic,/matija-sarkic/profil/spieler/293257
-2122,Transferred to Leeds U21,Transfer,2021-07-01,2022-06-30,,,Kris Moore,/kris-moore/profil/spieler/746067
-2122,Achilles tendon problems,injury,2022-01-30,2022-10-31,274,33,Nathan Ferguson,/nathan-ferguson/profil/spieler/507254
-2122,Transferred to KAS Eupen,Transfer,2021-07-01,2022-01-06,,,Edo Kayembe,/edo-kayembe/profil/spieler/486477
-2122,Transferred to Northampton,Transfer,2021-07-01,2021-08-15,,,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
-2122,Transferred to Aston Villa U23,Transfer,2021-08-16,2022-01-11,,,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
-2122,Transferred to Livingston FC,Transfer,2022-01-12,2022-05-19,,,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
-2122,Transferred to Aston Villa U23,Transfer,2022-05-20,2022-06-30,,,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Zak Swanson,/zak-swanson/profil/spieler/540687
-2122,Transferred to Birmingham,Transfer,2022-01-04,2022-05-30,,,Teden Mengi,/teden-mengi/profil/spieler/548470
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Andy Moran,/andy-moran/profil/spieler/724537
-2122,Transferred to SD Huesca,Transfer,2021-07-01,2021-08-16,,,Álvaro Fernández,/alvaro-fernandez/profil/spieler/453704
-2122,Transferred to SD Huesca,Transfer,2022-06-30,2022-06-30,,,Álvaro Fernández,/alvaro-fernandez/profil/spieler/453704
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-01-10,,,Aaron Ramsey,/aaron-ramsey/profil/spieler/646658
-2122,Transferred to Cheltenham,Transfer,2022-01-11,2022-05-30,,,Aaron Ramsey,/aaron-ramsey/profil/spieler/646658
-2122,Transferred to Aston Villa U23,Transfer,2022-05-31,2022-06-30,,,Aaron Ramsey,/aaron-ramsey/profil/spieler/646658
-2122,Foot Injury,injury,2021-08-01,2021-09-09,39,4,Phil Foden,/phil-foden/profil/spieler/406635
-2122,Knee Injury,injury,2021-12-11,2022-03-31,110,15,Marvelous Nakamba,/marvelous-nakamba/profil/spieler/324882
-2122,Transferred to Udinese Calcio,Transfer,2021-07-01,2022-01-05,,,Samir Caetano,/samir-caetano/profil/spieler/255744
-2122,Ankle Surgery,injury,2021-07-01,2021-08-02,32,,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2021-07-12,,,Ryan Giles,/ryan-giles/profil/spieler/504581
-2122,Transferred to Cardiff,Transfer,2021-07-13,2022-01-02,,,Ryan Giles,/ryan-giles/profil/spieler/504581
-2122,Transferred to Wolves U21,Transfer,2022-01-03,2022-01-30,,,Ryan Giles,/ryan-giles/profil/spieler/504581
-2122,Transferred to Blackburn,Transfer,2022-01-31,2022-05-30,,,Ryan Giles,/ryan-giles/profil/spieler/504581
-2122,Transferred to Wolves U21,Transfer,2022-05-31,2022-06-30,,,Ryan Giles,/ryan-giles/profil/spieler/504581
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Omari Hutchinson,/omari-hutchinson/profil/spieler/741238
-2122,Ankle Injury,injury,2022-03-30,2022-07-01,93,9,Josh Sargent,/josh-sargent/profil/spieler/393325
-2122,Transferred to Werder Bremen,Transfer,2021-07-01,2021-08-08,,,Josh Sargent,/josh-sargent/profil/spieler/393325
-2122,Ankle Injury,injury,2021-12-22,2022-01-05,14,1,Tammy Abraham,/tammy-abraham/profil/spieler/331726
-2122,Bruised Ankle,injury,2021-10-12,2021-10-17,5,1,Tammy Abraham,/tammy-abraham/profil/spieler/331726
-2122,Transferred to AS Roma,Transfer,2021-08-17,2022-06-30,,,Tammy Abraham,/tammy-abraham/profil/spieler/331726
-2122,Transferred to Atlético Madrid,Transfer,2021-07-01,2021-08-30,,,Saúl Ñíguez,/saul-niguez/profil/spieler/148928
-2122,Transferred to Atlético Madrid,Transfer,2022-06-30,2022-06-30,,,Saúl Ñíguez,/saul-niguez/profil/spieler/148928
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-06-30,,,Lamare Bogarde,/lamare-bogarde/profil/spieler/645686
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-06-30,,,Hayden Lindley,/hayden-lindley/profil/spieler/698097
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-01-30,,,Vontae Daley-Campbell,/vontae-daley-campbell/profil/spieler/530732
-2122,Transferred to Dundee FC,Transfer,2022-01-31,2022-05-15,,,Vontae Daley-Campbell,/vontae-daley-campbell/profil/spieler/530732
-2122,Transferred to Leicester U21,Transfer,2022-05-16,2022-06-30,,,Vontae Daley-Campbell,/vontae-daley-campbell/profil/spieler/530732
-2122,Foot surgery,injury,2022-02-12,2022-04-19,66,9,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Ankle problems,injury,2022-01-10,2022-01-15,5,2,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Muscular problems,injury,2021-12-19,2021-12-22,3,2,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Ankle fracture,injury,2021-11-17,2021-11-24,7,1,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Biceps femoris muscle injury,injury,2021-09-17,2021-10-18,31,5,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Transferred to Torino,Transfer,2021-08-31,2022-06-29,,,Dennis Praet,/dennis-praet/profil/spieler/129588
-2122,Transferred to Leeds U21,Transfer,2021-07-01,2022-06-30,,,Nohan Kenneh,/nohan-kenneh/profil/spieler/581677
-2122,Corona virus,injury,2021-12-13,2022-01-07,25,3,Jack Stephens,/jack-stephens/profil/spieler/163744
-2122,Knee Injury,injury,2021-09-18,2021-11-30,73,11,Jack Stephens,/jack-stephens/profil/spieler/163744
-2122,Transferred to Nordsjaelland,Transfer,2022-01-29,2022-06-30,,,Mads Bidstrup,/mads-bidstrup/profil/spieler/462832
-2122,Cruciate Ligament Rupture,injury,2022-04-02,2023-04-14,377,44,Jakub Moder,/jakub-moder/profil/spieler/384461
-2122,Pelvis Injury,injury,2021-11-27,2022-02-04,69,11,Mathias Normann,/mathias-normann/profil/spieler/257805
-2122,Transferred to Rostov,Transfer,2021-07-01,2021-08-28,,,Mathias Normann,/mathias-normann/profil/spieler/257805
-2122,Transferred to Rostov,Transfer,2022-06-30,2022-06-30,,,Mathias Normann,/mathias-normann/profil/spieler/257805
-2122,Cruciate Ligament Rupture,injury,2022-04-25,2023-04-13,353,43,Tino Livramento,/tino-livramento/profil/spieler/503981
-2122,Knee Problems,injury,2022-01-06,2022-02-03,28,4,Tino Livramento,/tino-livramento/profil/spieler/503981
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-08-01,,,Tino Livramento,/tino-livramento/profil/spieler/503981
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Aji Alese,/aji-alese/profil/spieler/502065
-2122,Transferred to West Ham U21,Transfer,2021-07-01,2022-06-30,,,Sonny Perkins,/sonny-perkins/profil/spieler/670877
-2122,Groin Surgery,injury,2021-11-03,2022-02-21,110,18,Tahith Chong,/tahith-chong/profil/spieler/344830
-2122,Transferred to Birmingham,Transfer,2021-07-26,2022-05-30,,,Tahith Chong,/tahith-chong/profil/spieler/344830
-2122,groin strain,injury,2022-04-30,2022-06-30,61,5,Sergio Reguilón,/sergio-reguilon/profil/spieler/282429
-2122,Corona virus,injury,2022-02-15,2022-02-22,7,1,Sergio Reguilón,/sergio-reguilon/profil/spieler/282429
-2122,Dead Leg,injury,2022-02-24,2022-03-03,7,2,Lucas Moura,/lucas-moura/profil/spieler/77100
-2122,Ankle Injury,injury,2021-09-16,2021-09-23,7,3,Lucas Moura,/lucas-moura/profil/spieler/77100
-2122,Transferred to Orlando,Transfer,2021-07-01,2021-07-30,,,Brandon Austin,/brandon-austin/profil/spieler/428016
-2122,Transferred to Tottenham U23,Transfer,2021-07-31,2021-07-31,,,Brandon Austin,/brandon-austin/profil/spieler/428016
-2122,Knee Surgery,injury,2022-03-10,2022-04-25,46,11,Danny Ward,/danny-ward/profil/spieler/203026
-2122,Groin Injury,injury,2021-12-14,2021-12-31,17,2,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
-2122,Head Injury,injury,2021-09-22,2021-10-02,10,3,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
-2122,Transferred to Angers SCO,Transfer,2021-07-01,2021-07-08,,,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
-2122,Ill,injury,2022-01-14,2022-01-23,9,3,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
-2122,Hand Injury,injury,2021-11-29,2021-12-04,5,1,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
-2122,Fitness,injury,2021-08-01,2021-08-09,8,,Rob Holding,/rob-holding/profil/spieler/253341
-2122,Transferred to Everton U23,Transfer,2021-07-01,2022-06-30,,,Tyler Onyango,/tyler-onyango/profil/spieler/663225
-2122,Transferred to Cheltenham,Transfer,2021-08-30,2022-05-30,,,Mattie Pollock,/mattie-pollock/profil/spieler/624948
-2122,Metatarsal Fracture,injury,2022-02-13,2022-05-01,77,13,Kieran Trippier,/kieran-trippier/profil/spieler/95810
-2122,Shoulder Injury,injury,2021-11-08,2021-12-10,32,5,Kieran Trippier,/kieran-trippier/profil/spieler/95810
-2122,Transferred to Atlético Madrid,Transfer,2021-07-01,2022-01-06,,,Kieran Trippier,/kieran-trippier/profil/spieler/95810
-2122,Corona virus,injury,2021-11-19,2021-12-03,14,4,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
-2122,Ankle Injury,injury,2021-08-01,2021-09-10,40,4,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
-2122,Calf Injury,injury,2022-01-03,2022-02-02,30,4,Will Smallbone,/will-smallbone/profil/spieler/444211
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Tom McGill,/tom-mcgill/profil/spieler/406556
-2122,Transferred to Fulham U18,Transfer,2021-07-01,2021-07-29,,,Mika Biereth,/mika-biereth/profil/spieler/565821
-2122,Transferred to Arsenal U23,Transfer,2021-07-30,2022-06-30,,,Mika Biereth,/mika-biereth/profil/spieler/565821
-2122,Corona virus,injury,2022-03-21,2022-03-28,7,,Robin Koch,/robin-koch/profil/spieler/328784
-2122,Ill,injury,2021-11-29,2021-12-17,18,4,Robin Koch,/robin-koch/profil/spieler/328784
-2122,Pubis bone contusion,injury,2021-08-19,2021-11-28,101,15,Robin Koch,/robin-koch/profil/spieler/328784
-2122,Hamstring Injury,injury,2021-09-22,2022-02-25,156,23,Yerson Mosquera,/yerson-mosquera/profil/spieler/716276
-2122,Hamstring Injury,injury,2021-08-01,2021-08-14,13,1,Yerson Mosquera,/yerson-mosquera/profil/spieler/716276
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Lucas Bergström,/lucas-bergstrom/profil/spieler/490606
-2122,Transferred to AS Roma,Transfer,2022-01-07,2022-06-29,,,Ainsley Maitland-Niles,/ainsley-maitland-niles/profil/spieler/285845
-2122,Knee Injury,injury,2021-12-01,2022-01-22,52,9,Lewis Dunk,/lewis-dunk/profil/spieler/148153
-2122,Corona virus,injury,2022-03-19,2022-03-26,7,1,Saman Ghoddos,/saman-ghoddos/profil/spieler/204294
-2122,Transferred to Spurs U18,Transfer,2021-07-01,2021-07-31,,,Alfie Devine,/alfie-devine/profil/spieler/728734
-2122,Transferred to Tottenham U23,Transfer,2021-08-01,2022-06-30,,,Alfie Devine,/alfie-devine/profil/spieler/728734
-2122,Transferred to Derby,Transfer,2021-07-01,2022-01-30,,,Luke Plange,/luke-plange/profil/spieler/586986
-2122,Transferred to Derby,Transfer,2022-02-01,2022-05-30,,,Luke Plange,/luke-plange/profil/spieler/586986
-2122,Transferred to Watford U23,Transfer,2021-07-01,2022-02-04,,,Kamil Conteh,/kamil-conteh/profil/spieler/733494
-2122,Transferred to Braintree,Transfer,2022-02-05,2022-05-30,,,Kamil Conteh,/kamil-conteh/profil/spieler/733494
-2122,Transferred to Watford U23,Transfer,2022-05-31,2022-06-30,,,Kamil Conteh,/kamil-conteh/profil/spieler/733494
-2122,Ill,injury,2022-03-07,2022-03-12,5,1,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
-2122,Knock,injury,2022-02-14,2022-03-04,18,2,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
-2122,Calf Injury,injury,2021-12-28,2022-01-05,8,,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
-2122,Ruptured cruciate ligament,injury,2021-11-22,2022-05-19,178,43,Ben Chilwell,/ben-chilwell/profil/spieler/316125
-2122,Unknown Injury,injury,2021-08-16,2021-09-07,22,4,Joe Rodon,/joe-rodon/profil/spieler/297212
-2122,Transferred to Leicester U18,Transfer,2021-07-01,2022-06-30,,,Will Alves,/will-alves/profil/spieler/867711
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2022-06-30,,,Chem Campbell,/chem-campbell/profil/spieler/614603
-2122,Transferred to Tottenham U23,Transfer,2021-07-01,2022-06-30,,,Harvey White,/harvey-white/profil/spieler/581598
-2122,Back Injury,injury,2022-03-07,2022-03-15,8,2,Mahmoud Trezeguet,/mahmoud-trezeguet/profil/spieler/234189
-2122,Transferred to Basaksehir,Transfer,2022-02-08,2022-06-29,,,Mahmoud Trezeguet,/mahmoud-trezeguet/profil/spieler/234189
-2122,Hamstring Injury,injury,2021-12-06,2022-05-06,151,24,Alex McCarthy,/alex-mccarthy/profil/spieler/95976
-2122,Calf Injury,injury,2022-02-22,2022-08-21,180,21,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
-2122,Appendectomy,injury,2022-01-24,2022-02-21,28,4,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
-2122,Corona virus,injury,2022-01-04,2022-01-18,14,1,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
-2122,Unknown Injury,injury,2021-10-04,2021-10-20,16,1,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
-2122,Transferred to FC Porto B,Transfer,2021-07-03,2022-01-24,,,Sebastian Soto,/sebastian-soto/profil/spieler/605498
-2122,Transferred to Livingston FC,Transfer,2022-01-26,2022-06-30,,,Sebastian Soto,/sebastian-soto/profil/spieler/605498
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Ben Nelson,/ben-nelson/profil/spieler/714458
-2122,Muscular problems,injury,2021-11-09,2021-11-12,3,,Bernardo Silva,/bernardo-silva/profil/spieler/241641
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2022-06-30,,,Jon McCracken,/jon-mccracken/profil/spieler/403564
-2122,Transferred to Peterborough,Transfer,2021-08-31,2022-01-04,,,Conor Coventry,/conor-coventry/profil/spieler/419025
-2122,Transferred to MK Dons,Transfer,2022-01-18,2022-05-30,,,Conor Coventry,/conor-coventry/profil/spieler/419025
-2122,Knee Injury,injury,2022-05-07,2022-09-30,146,15,Imrân Louza,/imran-louza/profil/spieler/635336
-2122,Foot Injury,injury,2022-01-08,2022-04-11,93,16,Cole Palmer,/cole-palmer/profil/spieler/568177
-2122,Testicular Cancer,injury,2021-10-18,2022-03-17,150,23,Daniel Barden,/daniel-barden/profil/spieler/504042
-2122,Transferred to Livingston FC,Transfer,2021-07-02,2022-05-30,,,Daniel Barden,/daniel-barden/profil/spieler/504042
-2122,Knee Problems,injury,2021-09-01,2021-10-29,58,10,Ben Knight,/ben-knight/profil/spieler/568007
-2122,Transferred to Man City U23,Transfer,2021-07-01,2021-08-15,,,Ben Knight,/ben-knight/profil/spieler/568007
-2122,Transferred to Crewe Alexandra,Transfer,2021-08-16,2022-05-30,,,Ben Knight,/ben-knight/profil/spieler/568007
-2122,Transferred to Man City U23,Transfer,2022-05-31,2022-06-30,,,Ben Knight,/ben-knight/profil/spieler/568007
-2122,Calf Injury,injury,2022-04-29,2022-05-03,4,1,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
-2122,Transferred to Barcelona,Transfer,2022-01-29,2022-06-29,,,Adama Traoré,/adama-traore/profil/spieler/204103
-2122,Angina,injury,2022-03-22,2022-04-01,10,,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
-2122,Foot Injury,injury,2021-07-13,2021-09-20,69,6,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Dara Costelloe,/dara-costelloe/profil/spieler/614700
-2122,Ankle Injury,injury,2021-10-25,2021-11-15,21,3,Charlie Patino,/charlie-patino/profil/spieler/581674
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Charlie Patino,/charlie-patino/profil/spieler/581674
-2122,Bruised Foot,injury,2021-08-14,2021-08-18,4,1,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
-2122,Bruise,injury,2021-07-24,2021-07-27,3,1,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
-2122,Transferred to CSKA Moscow,Transfer,2021-07-01,2021-08-30,,,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
-2122,Transferred to RB Leipzig,Transfer,2021-07-01,2021-08-30,,,Ademola Lookman,/ademola-lookman/profil/spieler/406040
-2122,Transferred to RB Leipzig,Transfer,2022-06-30,2022-06-30,,,Ademola Lookman,/ademola-lookman/profil/spieler/406040
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-06-30,,,Chituru Odunze,/chituru-odunze/profil/spieler/627198
-2122,Corona virus,injury,2022-01-01,2022-01-31,30,4,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2122,Unknown Injury,injury,2021-09-17,2021-10-14,27,5,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2122,Fitness,injury,2021-07-31,2021-08-08,8,1,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-06-30,,,Oscar Bobb,/oscar-bobb/profil/spieler/661207
-2122,Knee Surgery,injury,2022-02-07,,476,71,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
-2122,Knee Problems,injury,2021-12-26,2022-02-06,42,6,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
-2122,Transferred to Palace U21,Transfer,2021-07-01,2022-06-30,,,Scott Banks,/scott-banks/profil/spieler/596821
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Elijah Dixon-Bonner,/elijah-dixon-bonner/profil/spieler/433180
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Alex Kirk,/alex-kirk/profil/spieler/586980
-2122,Transferred to Sheff Wed,Transfer,2021-07-27,2022-05-30,,,Bailey Peacock-Farrell,/bailey-peacock-farrell/profil/spieler/410436
-2122,Elbow Injury,injury,2022-03-09,2022-03-31,22,1,Matej Vydra,/matej-vydra/profil/spieler/101500
-2122,Groin Surgery,injury,2022-02-03,2022-02-28,25,6,Matej Vydra,/matej-vydra/profil/spieler/101500
-2122,Transferred to Paris SG,Transfer,2021-07-01,2021-07-28,,,Alphonse Areola,/alphonse-areola/profil/spieler/120629
-2122,Transferred to Paris SG,Transfer,2022-06-30,2022-06-30,,,Alphonse Areola,/alphonse-areola/profil/spieler/120629
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2021-08-21,,,James Garner,/james-garner/profil/spieler/505219
-2122,Transferred to Nottm Forest,Transfer,2021-08-22,2022-05-30,,,James Garner,/james-garner/profil/spieler/505219
-2122,Transferred to Man Utd U23,Transfer,2022-05-31,2022-06-30,,,James Garner,/james-garner/profil/spieler/505219
-2122,Hamstring Injury,injury,2022-04-26,2022-05-24,28,4,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
-2122,Hamstring Injury,injury,2021-12-02,2022-03-10,98,15,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
-2122,Transferred to Benfica U19,Transfer,2021-07-01,2021-07-01,,,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
-2122,Transferred to Unknown,Transfer,2021-07-01,2021-07-05,,,Josh Feeney,/josh-feeney/profil/spieler/875929
-2122,Transferred to Aston Villa U23,Transfer,2021-07-06,2022-06-30,,,Josh Feeney,/josh-feeney/profil/spieler/875929
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Owen Beck,/owen-beck/profil/spieler/551001
-2122,Back trouble,injury,2022-05-23,2022-06-13,21,,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2122,Ankle Injury,injury,2022-02-25,2022-03-04,7,2,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2122,Transferred to Juventus,Transfer,2021-07-01,2022-01-30,,,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2122,Transferred to Fulham,Transfer,2022-01-31,2022-05-30,,,Neco Williams,/neco-williams/profil/spieler/503680
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2022-06-30,,,Harvey Vale,/harvey-vale/profil/spieler/581675
-2122,Surgery,injury,2021-12-07,2021-12-15,8,2,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
-2122,Transferred to Juventus,Transfer,2021-07-01,2022-01-30,,,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
-2122,Bronchitis,injury,2022-05-04,2022-05-19,15,1,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2122,Dead Leg,injury,2022-01-13,2022-01-17,4,1,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2122,Shoulder Injury,injury,2021-07-14,2021-10-15,93,10,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2122,Transferred to Sheff Utd,Transfer,2021-07-01,2021-08-19,,,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
-2122,Minor Knock,injury,2022-05-12,2022-05-26,14,2,Reiss Nelson,/reiss-nelson/profil/spieler/340325
-2122,Knock,injury,2022-02-15,2022-03-07,20,3,Reiss Nelson,/reiss-nelson/profil/spieler/340325
-2122,Corona virus,injury,2022-02-03,2022-02-10,7,1,Reiss Nelson,/reiss-nelson/profil/spieler/340325
-2122,Groin Injury,injury,2021-09-09,2021-10-04,25,6,Reiss Nelson,/reiss-nelson/profil/spieler/340325
-2122,Transferred to Feyenoord,Transfer,2021-08-31,2022-06-29,,,Reiss Nelson,/reiss-nelson/profil/spieler/340325
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,James Furlong,/james-furlong/profil/spieler/580030
-2122,Eye Injury,injury,2021-11-02,2022-01-02,61,14,Curtis Jones,/curtis-jones/profil/spieler/433188
-2122,Unknown Injury,injury,2021-12-03,2021-12-13,10,2,Emerson Royal,/emerson-royal/profil/spieler/476344
-2122,Transferred to Barcelona,Transfer,2021-07-01,2021-08-30,,,Emerson Royal,/emerson-royal/profil/spieler/476344
-2122,Transferred to Aston Villa U23,Transfer,2021-07-01,2022-06-30,,,Viljami Sinisalo,/viljami-sinisalo/profil/spieler/484838
-2122,Transferred to Chelsea U23,Transfer,2021-07-01,2021-07-21,,,Lewis Bate,/lewis-bate/profil/spieler/587003
-2122,Transferred to Leeds U21,Transfer,2021-07-22,2022-06-30,,,Lewis Bate,/lewis-bate/profil/spieler/587003
-2122,Transferred to Doncaster,Transfer,2021-08-06,2022-01-12,,,Pontus Dahlberg,/pontus-dahlberg/profil/spieler/365544
-2122,Transferred to Gillingham FC,Transfer,2022-01-14,2022-05-30,,,Pontus Dahlberg,/pontus-dahlberg/profil/spieler/365544
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-06-30,,,Mazeed Ogungbo,/mazeed-ogungbo/profil/spieler/581445
-2122,Transferred to LOSC Lille,Transfer,2021-07-01,2021-07-01,,,Boubakary Soumaré,/boubakary-soumare/profil/spieler/344605
-2122,Transferred to Flamengo,Transfer,2021-08-20,2022-06-29,,,Andreas Pereira,/andreas-pereira/profil/spieler/203394
-2122,Transferred to Sheff Utd,Transfer,2022-01-31,2022-05-30,,,Charlie Goode,/charlie-goode/profil/spieler/376856
-2122,Transferred to Man Utd U23,Transfer,2021-07-01,2022-01-30,,,Matej Kovar,/matej-kovar/profil/spieler/550829
-2122,Transferred to Burton Albion,Transfer,2022-01-31,2022-05-30,,,Matej Kovar,/matej-kovar/profil/spieler/550829
-2122,Transferred to Man Utd U23,Transfer,2022-05-31,2022-06-30,,,Matej Kovar,/matej-kovar/profil/spieler/550829
-2122,Transferred to Wolves U18,Transfer,2021-07-01,2022-06-30,,,James Storer,/james-storer/profil/spieler/838367
-2122,Cruciate Ligament Rupture,injury,2021-11-08,2022-07-21,255,39,Angelo Ogbonna,/angelo-ogbonna/profil/spieler/48002
-2122,Groin Injury,injury,2021-12-05,2021-12-31,26,1,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
-2122,Transferred to Reading,Transfer,2021-08-30,2022-05-30,,,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
-2122,Transferred to West Brom,Transfer,2021-08-25,2022-01-28,,,Jordan Hugill,/jordan-hugill/profil/spieler/291544
-2122,Transferred to Cardiff,Transfer,2022-01-30,2022-05-30,,,Jordan Hugill,/jordan-hugill/profil/spieler/291544
-2122,Calf Injury,injury,2021-08-25,2021-09-06,12,1,Christos Tzolis,/christos-tzolis/profil/spieler/451677
-2122,Transferred to PAOK Salonika,Transfer,2021-07-01,2021-08-11,,,Christos Tzolis,/christos-tzolis/profil/spieler/451677
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-01-06,,,Liam Hughes,/liam-hughes/profil/spieler/494284
-2122,Transferred to Stalybridge,Transfer,2022-01-07,2022-05-30,,,Liam Hughes,/liam-hughes/profil/spieler/494284
-2122,Transferred to Liverpool U23,Transfer,2022-05-31,2022-06-30,,,Liam Hughes,/liam-hughes/profil/spieler/494284
-2122,Leg Injury,injury,2021-12-18,2022-02-25,69,10,Willy Boly,/willy-boly/profil/spieler/142310
-2122,Unknown Injury,injury,2021-11-30,2021-12-06,6,2,Willy Boly,/willy-boly/profil/spieler/142310
-2122,Hamstring Injury,injury,2021-07-25,2021-08-14,20,1,Willy Boly,/willy-boly/profil/spieler/142310
-2122,Thigh Problems,injury,2022-02-26,2022-03-06,8,3,Thiago,/thiago/profil/spieler/60444
-2122,Hip Injury,injury,2021-12-27,2022-02-02,37,7,Thiago,/thiago/profil/spieler/60444
-2122,Corona virus,injury,2021-12-19,2021-12-29,10,3,Thiago,/thiago/profil/spieler/60444
-2122,Calf Injury,injury,2021-09-18,2021-10-31,43,10,Thiago,/thiago/profil/spieler/60444
-2122,Surgery,injury,2022-02-27,2022-03-03,4,2,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2122,Hamstring Injury,injury,2022-01-03,2022-01-21,18,5,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2122,Unknown Injury,injury,2022-05-29,2022-06-16,18,,Moise Kean,/moise-kean/profil/spieler/364135
-2122,Muscle Fatigue,injury,2021-10-23,2021-11-09,17,5,Moise Kean,/moise-kean/profil/spieler/364135
-2122,Quarantine,injury,2021-08-12,2021-08-19,7,1,Moise Kean,/moise-kean/profil/spieler/364135
-2122,Transferred to Juventus,Transfer,2021-08-31,2022-06-30,,,Moise Kean,/moise-kean/profil/spieler/364135
-2122,Transferred to Getafe,Transfer,2021-07-01,2021-08-30,,,Marc Cucurella,/marc-cucurella/profil/spieler/284857
-2122,Knee Surgery,injury,2022-03-31,2022-07-07,98,10,Kieran Tierney,/kieran-tierney/profil/spieler/300716
-2122,Ankle problems,injury,2021-10-21,2021-11-06,16,3,Kieran Tierney,/kieran-tierney/profil/spieler/300716
-2122,Transferred to Leicester U21,Transfer,2021-07-01,2022-01-30,,,Jakub Stolarczyk,/jakub-stolarczyk/profil/spieler/486144
-2122,Transferred to Dunfermline A.,Transfer,2022-01-31,2022-05-08,,,Jakub Stolarczyk,/jakub-stolarczyk/profil/spieler/486144
-2122,Transferred to Leicester U21,Transfer,2022-05-09,2022-06-30,,,Jakub Stolarczyk,/jakub-stolarczyk/profil/spieler/486144
-2122,Achilles tendon problems,injury,2022-03-03,2022-10-31,242,32,Jed Steer,/jed-steer/profil/spieler/110867
-2122,Transferred to Luton,Transfer,2022-01-31,2022-05-30,,,Jed Steer,/jed-steer/profil/spieler/110867
-2122,Hamstring Injury,injury,2022-06-15,2022-09-28,105,,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
-2122,Ill,injury,2021-10-22,2021-11-01,10,3,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
-2122,Finger Injury,injury,2022-02-23,2022-05-14,80,16,Karl Hein,/karl-hein/profil/spieler/493513
-2122,Transferred to Arsenal U23,Transfer,2021-07-01,2022-01-23,,,Karl Hein,/karl-hein/profil/spieler/493513
-2122,Transferred to Reading,Transfer,2022-01-24,2022-03-09,,,Karl Hein,/karl-hein/profil/spieler/493513
-2122,Transferred to Arsenal U23,Transfer,2022-03-10,2022-06-30,,,Karl Hein,/karl-hein/profil/spieler/493513
-2122,Hamstring Injury,injury,2022-04-16,2022-05-13,27,6,Keinan Davis,/keinan-davis/profil/spieler/412660
-2122,Knee Injury,injury,2021-08-14,2021-09-25,42,8,Keinan Davis,/keinan-davis/profil/spieler/412660
-2122,Transferred to Nottm Forest,Transfer,2022-01-01,2022-05-30,,,Keinan Davis,/keinan-davis/profil/spieler/412660
-2122,Transferred to Arsenal U18,Transfer,2021-07-01,2022-06-30,,,Zach Awe,/zach-awe/profil/spieler/697282
-2122,Transferred to Nottm Forest,Transfer,2021-08-07,2022-05-30,,,Philip Zinckernagel,/philip-zinckernagel/profil/spieler/271098
-2122,Transferred to Newcastle U23,Transfer,2021-07-01,2022-01-28,,,Joe White,/joe-white/profil/spieler/614811
-2122,Transferred to Hartlepool,Transfer,2022-01-29,2022-05-30,,,Joe White,/joe-white/profil/spieler/614811
-2122,Transferred to Newcastle U23,Transfer,2022-05-31,2022-06-30,,,Joe White,/joe-white/profil/spieler/614811
-2122,Knee Injury,injury,2021-09-19,2021-10-14,25,4,Yves Bissouma,/yves-bissouma/profil/spieler/410425
-2122,Knee Injury,injury,2022-02-09,2022-08-23,195,24,Adam Idah,/adam-idah/profil/spieler/434223
-2122,Shinbone injury,injury,2021-12-25,2021-12-30,5,2,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
-2122,Knee Injury,injury,2021-11-18,2021-12-15,27,5,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
-2122,Quarantine,injury,2021-09-09,2021-09-17,8,2,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
-2122,Transferred to Villarreal,Transfer,2022-01-31,2022-06-29,,,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
-2122,Hamstring Injury,injury,2022-03-12,2022-04-01,20,2,Adam Lallana,/adam-lallana/profil/spieler/43530
-2122,Hamstring Injury,injury,2022-01-14,2022-01-22,8,2,Adam Lallana,/adam-lallana/profil/spieler/43530
-2122,Leg Injury,injury,2021-12-01,2021-12-14,13,2,Adam Lallana,/adam-lallana/profil/spieler/43530
-2122,Unknown Injury,injury,2021-09-19,2021-09-23,4,2,Halil Dervisoglu,/halil-dervisoglu/profil/spieler/465606
-2122,Transferred to Galatasaray,Transfer,2021-09-01,2022-06-29,,,Halil Dervisoglu,/halil-dervisoglu/profil/spieler/465606
-2122,Corona virus,injury,2022-01-07,2022-01-14,7,2,Kyle Walker-Peters,/kyle-walker-peters/profil/spieler/341051
-2122,Transferred to QPR,Transfer,2021-08-31,2022-05-30,,,Andre Gray,/andre-gray/profil/spieler/120565
-2122,Muscular problems,injury,2022-04-03,2022-04-21,18,3,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Corona virus,injury,2022-03-01,2022-03-09,8,1,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Stomach complaints,injury,2022-02-14,2022-02-18,4,1,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Hamstring Injury,injury,2021-11-02,2021-12-22,50,9,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Groin Injury,injury,2021-10-11,2021-10-26,15,3,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Transferred to Real Madrid,Transfer,2021-07-01,2021-08-13,,,Raphaël Varane,/raphael-varane/profil/spieler/164770
-2122,Ankle problems,injury,2021-07-24,2021-09-10,48,4,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
-2122,Transferred to Ajax,Transfer,2021-07-01,2021-07-15,,,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
-2122,Transferred to KV Oostende,Transfer,2022-01-31,2022-06-29,,,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
-2122,Rest,injury,2022-06-06,2022-06-16,10,,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-2122,Knee Problems,injury,2022-05-16,2022-05-19,3,1,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-2122,Corona virus,injury,2021-12-16,2021-12-27,11,3,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-2122,Medial Collateral Ligament Injury,injury,2021-09-27,2021-12-05,69,9,Granit Xhaka,/granit-xhaka/profil/spieler/111455
-2122,Hip Injury,injury,2022-04-28,2022-05-03,5,2,James Maddison,/james-maddison/profil/spieler/294057
-2122,Hip Injury,injury,2022-04-04,2022-04-14,10,1,Bryan Gil,/bryan-gil/profil/spieler/537382
-2122,Corona virus,injury,2021-12-06,2021-12-23,17,3,Bryan Gil,/bryan-gil/profil/spieler/537382
-2122,Hamstring Injury,injury,2021-10-25,2021-11-18,24,4,Bryan Gil,/bryan-gil/profil/spieler/537382
-2122,Transferred to Sevilla FC,Transfer,2021-07-01,2021-07-25,,,Bryan Gil,/bryan-gil/profil/spieler/537382
-2122,Transferred to Valencia,Transfer,2022-01-31,2022-06-29,,,Bryan Gil,/bryan-gil/profil/spieler/537382
-2122,Transferred to West Brom,Transfer,2021-07-01,2021-08-19,,,Andy Lonergan,/andy-lonergan/profil/spieler/14044
-2122,Unknown Injury,injury,2021-08-01,2021-08-14,13,,Hugo Bueno,/hugo-bueno/profil/spieler/698678
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2022-06-30,,,Hugo Bueno,/hugo-bueno/profil/spieler/698678
-2122,Knee Injury,injury,2022-02-04,2022-06-30,146,20,Japhet Tanganga,/japhet-tanganga/profil/spieler/346478
-2122,Transferred to Wolves U21,Transfer,2021-07-01,2021-08-30,,,Christian Marques,/christian-marques/profil/spieler/539807
-2122,Transferred to B SAD,Transfer,2021-08-31,2022-01-03,,,Christian Marques,/christian-marques/profil/spieler/539807
-2122,Transferred to Wolves U21,Transfer,2022-01-04,2022-06-30,,,Christian Marques,/christian-marques/profil/spieler/539807
-2122,Transferred to Club Brugge,Transfer,2021-08-28,2021-12-30,,,Wesley Moraes,/wesley-moraes/profil/spieler/381362
-2122,Transferred to Internacional,Transfer,2022-01-07,2022-06-30,,,Wesley Moraes,/wesley-moraes/profil/spieler/381362
-2122,Transferred to Brentford B,Transfer,2021-07-01,2022-06-30,,,Paris Maghoma,/paris-maghoma/profil/spieler/470596
-2122,Transferred to Udinese Calcio,Transfer,2022-01-20,2022-06-29,,,Pablo Marí,/pablo-mari/profil/spieler/210178
-2122,Transferred to Brighton U23,Transfer,2021-07-01,2022-06-30,,,Antef Tsoungui,/antef-tsoungui/profil/spieler/503858
-2122,Transferred to Stoke City,Transfer,2022-01-15,2022-06-30,,,Lewis Baker,/lewis-baker/profil/spieler/198589
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Conor Bradley,/conor-bradley/profil/spieler/624258
-2122,Ankle Injury,injury,2022-06-03,2022-06-30,27,,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
-2122,Corona virus,injury,2021-12-16,2021-12-25,9,3,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
-2122,Sprain,injury,2021-10-21,2021-11-21,31,6,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
-2122,Transferred to Inter,Transfer,2021-07-01,2021-08-11,,,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
-2122,Ill,injury,2021-08-15,2021-09-25,41,7,Przemyslaw Placheta,/przemyslaw-placheta/profil/spieler/383109
-2122,Hip Injury,injury,2022-05-09,2022-05-20,11,1,Chris Wood,/chris-wood/profil/spieler/108725
-2122,Transferred to Liverpool U18,Transfer,2021-07-01,2022-06-30,,,Harvey Davies,/harvey-davies/profil/spieler/706815
-2122,Ankle Injury,injury,2022-02-03,2022-02-16,13,4,Eric Bailly,/eric-bailly/profil/spieler/286384
-2122,Ankle Fracture,injury,2021-11-20,2022-04-20,151,27,Ian Poveda,/ian-poveda/profil/spieler/392763
-2122,Transferred to Blackburn,Transfer,2021-08-23,2022-05-30,,,Ian Poveda,/ian-poveda/profil/spieler/392763
-2122,Transferred to Liverpool U23,Transfer,2021-07-01,2022-06-30,,,Jarell Quansah,/jarell-quansah/profil/spieler/632349
-2122,Transferred to Norwich U21,Transfer,2021-07-01,2022-06-30,,,Abu Kamara,/abu-kamara/profil/spieler/696764
-2122,Corona virus,injury,2021-12-21,2022-01-01,11,1,Ciaran Clark,/ciaran-clark/profil/spieler/98240
-2122,Transferred to Burnley U21,Transfer,2021-07-01,2022-06-30,,,Sam Waller,/sam-waller/profil/spieler/733430
-2122,Transferred to Atalanta BC,Transfer,2021-07-01,2021-07-23,,,Pierluigi Gollini,/pierluigi-gollini/profil/spieler/244192
-2122,Transferred to Atalanta BC,Transfer,2022-06-30,2022-06-30,,,Pierluigi Gollini,/pierluigi-gollini/profil/spieler/244192
-2122,Transferred to Barnet,Transfer,2021-08-31,2022-05-30,,,Aston Oxborough,/aston-oxborough/profil/spieler/288948
-2122,Transferred to Man City U23,Transfer,2021-07-01,2022-01-29,,,Finley Burns,/finley-burns/profil/spieler/581681
-2122,Transferred to Swansea,Transfer,2022-01-30,2022-05-30,,,Finley Burns,/finley-burns/profil/spieler/581681
-2122,Transferred to Man City U23,Transfer,2022-05-31,2022-06-30,,,Finley Burns,/finley-burns/profil/spieler/581681
-2122,Transferred to West Brom,Transfer,2021-07-13,2022-05-30,,,Matt Clarke,/matt-clarke/profil/spieler/307497
-2122,Corona virus,injury,2022-04-08,2022-04-11,3,1,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
-2122,Ill,injury,2022-03-10,2022-03-15,5,2,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
-2122,Knock,injury,2022-02-27,2022-03-06,7,3,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
-2122,Medial Collateral Ligament Tear,injury,2022-04-10,2022-07-10,91,7,Matt Doherty,/matt-doherty/profil/spieler/171679
-2122,Unknown Injury,injury,2021-10-13,2021-10-26,13,3,Matt Doherty,/matt-doherty/profil/spieler/171679
-2122,Leg Injury,injury,2022-04-02,2022-05-13,41,8,Luke Shaw,/luke-shaw/profil/spieler/183288
-2122,Corona virus,injury,2022-03-02,2022-03-16,14,3,Luke Shaw,/luke-shaw/profil/spieler/183288
-2122,Hamstring Injury,injury,2022-01-18,2022-01-31,13,2,Luke Shaw,/luke-shaw/profil/spieler/183288
-2122,Head Injury,injury,2021-11-20,2021-12-07,17,5,Luke Shaw,/luke-shaw/profil/spieler/183288
-2122,Knee Problems,injury,2022-03-21,2022-04-03,13,1,Naby Keïta,/naby-keita/profil/spieler/302215
-2122,Hamstring Injury,injury,2021-10-31,2021-12-05,35,7,Naby Keïta,/naby-keita/profil/spieler/302215
-2122,Transferred to Grasshoppers,Transfer,2021-07-01,2022-01-03,,,Toti,/toti/profil/spieler/606718
+season,details,from,until,days,games,reason,player,url
+2122,Corona virus,2021-12-13,2022-01-07,25,3,injury,Jack Stephens,/jack-stephens/profil/spieler/163744
+2122,Knee Injury,2021-09-18,2021-11-30,73,11,injury,Jack Stephens,/jack-stephens/profil/spieler/163744
+2122,Transferred to Derby,2021-07-01,2022-01-30,,,Transfer,Luke Plange,/luke-plange/profil/spieler/586986
+2122,Transferred to Derby,2022-02-01,2022-05-30,,,Transfer,Luke Plange,/luke-plange/profil/spieler/586986
+2122,No eligibility,2022-02-13,2022-02-14,1,1,absence,Matt Targett,/matt-targett/profil/spieler/250478
+2122,Corona virus,2021-12-23,2022-01-03,11,3,injury,Ruben Loftus-Cheek,/ruben-loftus-cheek/profil/spieler/202886
+2122,Unknown Injury,2021-12-17,2022-01-03,17,5,injury,Ruben Loftus-Cheek,/ruben-loftus-cheek/profil/spieler/202886
+2122,Transferred to Vålerenga,2021-07-01,2021-07-30,,,Transfer,Kristoffer Klaesson,/kristoffer-klaesson/profil/spieler/418561
+2122,Leg Injury,2021-12-18,2022-02-25,69,10,injury,Willy Boly,/willy-boly/profil/spieler/142310
+2122,Unknown Injury,2021-11-30,2021-12-06,6,2,injury,Willy Boly,/willy-boly/profil/spieler/142310
+2122,Hamstring Injury,2021-07-25,2021-08-14,20,1,injury,Willy Boly,/willy-boly/profil/spieler/142310
+2122,Wirst Injury,2021-11-10,2022-01-24,75,9,injury,Lukas Jensen,/lukas-jensen/profil/spieler/581890
+2122,Transferred to Kórdrengir,2021-07-01,2021-07-09,,,Transfer,Lukas Jensen,/lukas-jensen/profil/spieler/581890
+2122,Transferred to Carlisle United,2021-07-20,2021-12-30,,,Transfer,Lukas Jensen,/lukas-jensen/profil/spieler/581890
+2122,Corona virus,2022-01-05,2022-01-11,6,2,injury,Thiago Silva,/thiago-silva/profil/spieler/29241
+2122,Knee Problems,2021-12-26,2021-12-31,5,2,injury,Thiago Silva,/thiago-silva/profil/spieler/29241
+2122,Elbow Injury,2022-03-09,2022-03-31,22,1,injury,Matej Vydra,/matej-vydra/profil/spieler/101500
+2122,Groin Surgery,2022-02-03,2022-02-28,25,6,injury,Matej Vydra,/matej-vydra/profil/spieler/101500
+2122,Ill,2022-04-19,2022-04-21,2,1,injury,Leandro Trossard,/leandro-trossard/profil/spieler/144028
+2122,Hamstring Injury,2021-12-26,2022-01-01,6,2,injury,Leandro Trossard,/leandro-trossard/profil/spieler/144028
+2122,Elbow Injury,2021-12-04,2021-12-14,10,1,injury,Leandro Trossard,/leandro-trossard/profil/spieler/144028
+2122,Laceration,2022-05-22,2022-06-15,24,1,injury,Joelinton,/joelinton/profil/spieler/333241
+2122,Knock,2022-03-07,2022-03-15,8,2,injury,Joelinton,/joelinton/profil/spieler/333241
+2122,Groin Injury,2022-01-22,2022-02-05,14,1,injury,Joelinton,/joelinton/profil/spieler/333241
+2122,Unknown Injury,2022-05-01,2022-05-08,7,2,injury,Jorginho,/jorginho/profil/spieler/102017
+2122,Transferred to Sheff Wed,2021-07-27,2022-05-30,,,Transfer,Bailey Peacock-Farrell,/bailey-peacock-farrell/profil/spieler/410436
+2122,Ankle problems,2021-07-24,2021-09-10,48,4,injury,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
+2122,Transferred to Ajax,2021-07-01,2021-07-15,,,Transfer,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
+2122,Transferred to KV Oostende,2022-01-31,2022-06-29,,,Transfer,Kjell Scherpen,/kjell-scherpen/profil/spieler/463527
+2122,Rest,2022-06-06,2022-06-16,10,,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+2122,Knee Problems,2022-05-16,2022-05-19,3,1,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+2122,Corona virus,2021-12-16,2021-12-27,11,3,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+2122,Ankle Injury,2022-04-18,2022-05-02,14,3,injury,Issa Diop,/issa-diop/profil/spieler/272622
+2122,Transferred to Stoke City,2022-01-15,2022-06-30,,,Transfer,Lewis Baker,/lewis-baker/profil/spieler/198589
+2122,Hamstring Injury,2022-02-27,2022-03-16,17,3,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2122,Bruise,2022-01-07,2022-01-27,20,3,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2122,Ligament Injury,2021-11-21,2022-01-01,41,6,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2122,Knee Injury,2022-03-17,2022-05-30,74,17,injury,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+2122,Hamstring Injury,2021-09-22,2022-02-25,156,23,injury,Yerson Mosquera,/yerson-mosquera/profil/spieler/716276
+2122,Hamstring Injury,2021-08-01,2021-08-14,13,1,injury,Yerson Mosquera,/yerson-mosquera/profil/spieler/716276
+2122,Surgery,2021-12-07,2021-12-15,8,2,injury,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
+2122,Transferred to Juventus,2021-07-01,2022-01-30,,,Transfer,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
+2122,Transferred to Swansea,2021-08-31,2022-06-30,,,Transfer,Michael Obafemi,/michael-obafemi/profil/spieler/444208
+2122,Shinbone injury,2022-02-10,2022-02-18,8,2,injury,Nemanja Matic,/nemanja-matic/profil/spieler/74683
+2122,Yellow card suspension,2021-12-27,2021-12-30,3,1,suspension,Declan Rice,/declan-rice/profil/spieler/357662
+2122,Transferred to West Brom,2021-07-01,2021-08-19,,,Transfer,Andy Lonergan,/andy-lonergan/profil/spieler/14044
+2122,Ankle Fracture,2021-11-20,2022-04-20,151,27,injury,Ian Poveda,/ian-poveda/profil/spieler/392763
+2122,Transferred to Blackburn,2021-08-23,2022-05-30,,,Transfer,Ian Poveda,/ian-poveda/profil/spieler/392763
+2122,Knee Injury,2022-05-01,2022-05-25,24,3,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2122,Knee Injury,2022-04-04,2022-04-10,6,1,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2122,Corona virus,2021-12-21,2021-12-31,10,1,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2122,Muscular problems,2021-11-09,2021-11-12,3,,injury,Bernardo Silva,/bernardo-silva/profil/spieler/241641
+2122,Hamstring Injury,2022-04-16,2022-05-13,27,6,injury,Keinan Davis,/keinan-davis/profil/spieler/412660
+2122,Knee Injury,2021-08-14,2021-09-25,42,8,injury,Keinan Davis,/keinan-davis/profil/spieler/412660
+2122,Transferred to Nottm Forest,2022-01-01,2022-05-30,,,Transfer,Keinan Davis,/keinan-davis/profil/spieler/412660
+2122,Transferred to AFC Wimbledon,2021-07-01,2021-07-21,,,Transfer,Matthew Cox,/matthew-cox/profil/spieler/741236
+2122,Plantar fascia,2022-04-01,2022-04-13,12,2,injury,Michael Olise,/michael-olise/profil/spieler/566723
+2122,Transferred to Reading,2021-07-01,2021-07-07,,,Transfer,Michael Olise,/michael-olise/profil/spieler/566723
+2122,Ankle Fracture,2022-04-17,2022-12-31,258,36,injury,Ashley Westwood,/ashley-westwood/profil/spieler/91317
+2122,Knee Injury,2022-02-09,2022-08-23,195,24,injury,Adam Idah,/adam-idah/profil/spieler/434223
+2122,Foot Injury,2022-01-08,2022-04-11,93,16,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
+2122,Transferred to Ipswich,2021-08-30,2022-01-17,,,Transfer,Christian Walton,/christian-walton/profil/spieler/208379
+2122,Transferred to Ipswich,2022-01-19,2022-06-30,,,Transfer,Christian Walton,/christian-walton/profil/spieler/208379
+2122,Angina,2022-03-22,2022-04-01,10,,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
+2122,Foot Injury,2021-07-13,2021-09-20,69,6,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
+2122,Transferred to Udinese Calcio,2022-01-13,2022-06-30,,,Transfer,Filip Benkovic,/filip-benkovic/profil/spieler/293168
+2122,Calf Injury,2021-12-12,2022-01-12,31,4,injury,Richarlison,/richarlison/profil/spieler/378710
+2122,Knee Injury,2021-09-13,2021-10-22,39,6,injury,Richarlison,/richarlison/profil/spieler/378710
+2122,Transferred to Burton Albion,2021-07-01,2022-01-03,,,Transfer,Ellery Balcombe,/ellery-balcombe/profil/spieler/456292
+2122,Transferred to Bromley,2022-02-01,2022-05-30,,,Transfer,Ellery Balcombe,/ellery-balcombe/profil/spieler/456292
+2122,Hamstring Injury,2021-11-21,2022-05-21,181,26,injury,Nicolas N'Koulou,/nicolas-nkoulou/profil/spieler/60577
+2122,Transferred to Without Club,2021-07-01,2021-10-06,,,Transfer,Nicolas N'Koulou,/nicolas-nkoulou/profil/spieler/60577
+2122,Cheekbone Fracture,2021-12-08,2022-01-22,45,10,injury,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
+2122,Transferred to Bournemouth,2022-01-31,2022-05-30,,,Transfer,Nathaniel Phillips,/nathaniel-phillips/profil/spieler/371814
+2122,Hamstring Injury,2022-02-19,2022-03-31,40,7,injury,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
+2122,Transferred to Reading,2021-08-27,2022-05-30,,,Transfer,Abdul-Rahman Baba,/abdul-rahman-baba/profil/spieler/224884
+2122,Hamstring Injury,2022-03-12,2022-04-01,20,2,injury,Adam Lallana,/adam-lallana/profil/spieler/43530
+2122,Hamstring Injury,2022-01-14,2022-01-22,8,2,injury,Adam Lallana,/adam-lallana/profil/spieler/43530
+2122,Leg Injury,2021-12-01,2021-12-14,13,2,injury,Adam Lallana,/adam-lallana/profil/spieler/43530
+2122,Red card suspension,2021-11-07,2021-11-26,19,1,suspension,Robert Sánchez,/robert-sanchez/profil/spieler/403151
+2122,Hamstring Injury,2022-02-08,2022-04-11,62,12,injury,Yerry Mina,/yerry-mina/profil/spieler/289446
+2122,Thigh Problems,2021-10-22,2021-11-30,39,5,injury,Yerry Mina,/yerry-mina/profil/spieler/289446
+2122,Transferred to Ebbsfleet,2022-01-31,2022-05-30,,,Transfer,Louie Moulden,/louie-moulden/profil/spieler/444641
+2122,Thigh Problems,2021-12-05,2022-02-10,67,9,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
+2122,Transferred to B. Leverkusen,2021-07-01,2021-08-03,,,Transfer,Leon Bailey,/leon-bailey/profil/spieler/387626
+2122,Transferred to Benfica,2021-07-01,2021-07-09,,,Transfer,Nuno Tavares,/nuno-tavares/profil/spieler/535955
+2122,Unknown Injury,2021-12-03,2021-12-13,10,2,injury,Emerson Royal,/emerson-royal/profil/spieler/476344
+2122,Transferred to Barcelona,2021-07-01,2021-08-30,,,Transfer,Emerson Royal,/emerson-royal/profil/spieler/476344
+2122,Knee Problems,2021-09-01,2021-10-29,58,10,injury,Ben Knight,/ben-knight/profil/spieler/568007
+2122,Transferred to Crewe Alexandra,2021-08-16,2022-05-30,,,Transfer,Ben Knight,/ben-knight/profil/spieler/568007
+2122,Sprained Ankle,2022-04-18,2022-04-25,7,1,injury,Kurt Zouma,/kurt-zouma/profil/spieler/157509
+2122,Hamstring Injury,2021-12-06,2022-01-17,42,10,injury,Kurt Zouma,/kurt-zouma/profil/spieler/157509
+2122,Called up to national team,2022-01-03,2022-02-06,34,3,absence,Adam Masina,/adam-masina/profil/spieler/286949
+2122,Fitness,2022-01-31,2022-04-23,82,13,injury,Philippe Sandler,/philippe-sandler/profil/spieler/340460
+2122,Ankle Injury,2021-09-25,2022-01-01,98,13,injury,Philippe Sandler,/philippe-sandler/profil/spieler/340460
+2122,Transferred to Troyes,2021-08-31,2022-01-24,,,Transfer,Philippe Sandler,/philippe-sandler/profil/spieler/340460
+2122,Transferred to Feyenoord,2022-01-31,2022-06-30,,,Transfer,Philippe Sandler,/philippe-sandler/profil/spieler/340460
+2122,Knee Injury,2022-05-07,2022-09-30,146,15,injury,Imrân Louza,/imran-louza/profil/spieler/635336
+2122,Called up to national team,2022-01-03,2022-02-06,34,3,absence,Imrân Louza,/imran-louza/profil/spieler/635336
+2122,Corona virus,2021-09-04,2021-09-20,16,3,injury,Zack Steffen,/zack-steffen/profil/spieler/221624
+2122,Calf Injury,2021-08-25,2021-09-06,12,1,injury,Christos Tzolis,/christos-tzolis/profil/spieler/451677
+2122,Transferred to PAOK Salonika,2021-07-01,2021-08-11,,,Transfer,Christos Tzolis,/christos-tzolis/profil/spieler/451677
+2122,Corona virus,2021-12-14,2021-12-28,14,2,injury,Jason Steele,/jason-steele/profil/spieler/73564
+2122,Ill,2022-04-10,2022-04-19,9,1,injury,Steven Alzate,/steven-alzate/profil/spieler/476237
+2122,Ankle Surgery,2021-09-27,2021-12-14,78,11,injury,Steven Alzate,/steven-alzate/profil/spieler/476237
+2122,Hip Injury,2022-04-28,2022-05-03,5,2,injury,James Maddison,/james-maddison/profil/spieler/294057
+2122,Leg Injury,2021-07-07,2021-08-31,55,4,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2122,Transferred to Middlesbrough,2022-01-12,2022-05-30,,,Transfer,Folarin Balogun,/folarin-balogun/profil/spieler/503770
+2122,Transferred to Orlando,2021-07-01,2021-07-30,,,Transfer,Brandon Austin,/brandon-austin/profil/spieler/428016
+2122,Transferred to Celtic,2021-07-01,2021-08-30,,,Transfer,Odsonne Edouard,/odsonne-edouard/profil/spieler/344152
+2122,Ankle Injury,2022-06-03,2022-06-30,27,,injury,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
+2122,Corona virus,2021-12-16,2021-12-25,9,3,injury,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
+2122,Sprain,2021-10-21,2021-11-21,31,6,injury,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
+2122,Transferred to Inter,2021-07-01,2021-08-11,,,Transfer,Romelu Lukaku,/romelu-lukaku/profil/spieler/96341
+2122,Eye Injury,2021-11-02,2022-01-02,61,14,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
+2122,Transferred to Grasshoppers,2021-07-01,2022-01-03,,,Transfer,Toti,/toti/profil/spieler/606718
+2122,Transferred to QPR,2021-07-12,2022-05-30,,,Transfer,Sam McCallum,/sam-mccallum/profil/spieler/618901
+2122,Thigh Problems,2022-05-12,2022-05-25,13,3,injury,Fabinho,/fabinho/profil/spieler/225693
+2122,Hamstring Injury,2022-01-06,2022-02-03,28,4,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2122,Calf Strain,2021-09-06,2021-09-20,14,3,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2122,Rest,2022-06-09,2022-06-13,4,,injury,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
+2122,Problems with the hip flexor,2022-03-03,2022-03-07,4,1,injury,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
+2122,Problems with the hip flexor,2022-01-10,2022-01-17,7,2,injury,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
+2122,Arm Injury,2021-08-26,2021-08-30,4,1,injury,Cristiano Ronaldo,/cristiano-ronaldo/profil/spieler/8198
+2122,Corona virus,2022-01-10,2022-01-16,6,2,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+2122,Strain in the thigh and gluteal muscles,2021-10-20,2021-12-25,66,9,injury,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Bertrand Traoré,/bertrand-traore/profil/spieler/131996
+2122,Transferred to Newport County,2022-01-26,2022-05-30,,,Transfer,Robert Street,/robert-street/profil/spieler/703474
+2122,Corona virus,2022-01-12,2022-01-17,5,1,injury,Hélder Costa,/helder-costa/profil/spieler/173900
+2122,Transferred to Valencia,2021-08-31,2022-06-29,,,Transfer,Hélder Costa,/helder-costa/profil/spieler/173900
+2122,Transferred to Inter,2021-07-01,2021-12-16,,,Transfer,Christian Eriksen,/christian-eriksen/profil/spieler/69633
+2122,Transferred to Without Club,2021-12-17,2022-01-30,,,Transfer,Christian Eriksen,/christian-eriksen/profil/spieler/69633
+2122,Calf Injury,2021-12-03,2022-01-02,30,8,injury,Adrián,/adrian/profil/spieler/71271
+2122,Transferred to Swansea,2022-01-30,2022-05-30,,,Transfer,Finley Burns,/finley-burns/profil/spieler/581681
+2122,Groin Injury,2022-04-30,2022-05-21,21,3,injury,Enock Mwepu,/enock-mwepu/profil/spieler/490307
+2122,Hamstring Injury,2022-01-08,2022-03-11,62,10,injury,Enock Mwepu,/enock-mwepu/profil/spieler/490307
+2122,Unknown Injury,2021-09-22,2021-10-14,22,3,injury,Enock Mwepu,/enock-mwepu/profil/spieler/490307
+2122,Knock,2021-08-24,2021-08-27,3,1,injury,Enock Mwepu,/enock-mwepu/profil/spieler/490307
+2122,Transferred to RB Salzburg,2021-07-01,2021-07-05,,,Transfer,Enock Mwepu,/enock-mwepu/profil/spieler/490307
+2122,Ankle Injury,2021-11-13,2022-01-08,56,10,injury,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+2122,Transferred to Marseille,2022-01-18,2022-06-30,,,Transfer,Sead Kolasinac,/sead-kolasinac/profil/spieler/94005
+2122,Unknown Injury,2022-04-29,2022-08-07,100,7,injury,Jay Rodríguez,/jay-rodriguez/profil/spieler/53360
+2122,Bruised Foot,2021-08-14,2021-08-18,4,1,injury,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
+2122,Bruise,2021-07-24,2021-07-27,3,1,injury,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
+2122,Transferred to CSKA Moscow,2021-07-01,2021-08-30,,,Transfer,Nikola Vlasic,/nikola-vlasic/profil/spieler/293200
+2122,Unknown Injury,2021-09-01,2021-09-28,27,5,injury,Jonas Lössl,/jonas-lossl/profil/spieler/48870
+2122,Transferred to FC Midtjylland,2021-07-01,2021-12-31,,,Transfer,Jonas Lössl,/jonas-lossl/profil/spieler/48870
+2122,Transferred to FC Midtjylland,2022-06-30,2022-06-30,,,Transfer,Jonas Lössl,/jonas-lossl/profil/spieler/48870
+2122,Metatarsal Fracture,2021-11-27,2022-03-31,124,16,injury,Daniel Adshead,/daniel-adshead/profil/spieler/532464
+2122,Transferred to Gillingham FC,2021-08-19,2022-02-11,,,Transfer,Daniel Adshead,/daniel-adshead/profil/spieler/532464
+2122,Transferred to Ipswich,2022-01-27,2022-05-30,,,Transfer,Dominic Thompson,/dominic-thompson/profil/spieler/503688
+2122,Transferred to Flamengo,2021-08-18,2022-01-12,,,Transfer,Kenedy,/kenedy/profil/spieler/281404
+2122,Knee Injury,2022-03-19,2022-04-25,37,3,injury,Rúben Neves,/ruben-neves/profil/spieler/225161
+2122,Corona virus,2022-01-06,2022-01-08,2,,injury,Hannibal,/hannibal/profil/spieler/607224
+2122,Transferred to Viking,2021-08-31,2021-12-30,,,Transfer,Patrik Gunnarsson,/patrik-gunnarsson/profil/spieler/429563
+2122,Transferred to Viking,2022-01-17,2022-06-30,,,Transfer,Patrik Gunnarsson,/patrik-gunnarsson/profil/spieler/429563
+2122,Knock,2022-04-04,2022-07-25,112,10,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
+2122,Ankle Injury,2021-07-29,2021-08-30,32,4,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
+2122,Called up to national team,2022-01-03,2022-01-19,16,,absence,Thomas Partey,/thomas-partey/profil/spieler/230784
+2122,Calf Injury,2021-12-27,2022-05-01,125,18,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2122,Hamstring Injury,2021-08-30,2021-10-17,48,5,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2122,Knock,2022-03-03,2022-04-11,39,7,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2122,Hip Injury,2021-12-01,2022-01-14,44,6,injury,Pascal Struijk,/pascal-struijk/profil/spieler/410708
+2122,Corona virus,2022-03-21,2022-03-28,7,,injury,Robin Koch,/robin-koch/profil/spieler/328784
+2122,Ill,2021-11-29,2021-12-17,18,4,injury,Robin Koch,/robin-koch/profil/spieler/328784
+2122,Pubis bone contusion,2021-08-19,2021-11-28,101,15,injury,Robin Koch,/robin-koch/profil/spieler/328784
+2122,Corona virus,2022-03-01,2022-03-12,11,3,injury,Marcos Alonso,/marcos-alonso/profil/spieler/112515
+2122,Transferred to OGC Nice,2021-07-01,2022-01-03,,,Transfer,Hassane Kamara,/hassane-kamara/profil/spieler/290017
+2122,Transferred to Olympique Lyon,2021-07-01,2021-07-27,,,Transfer,Joachim Andersen,/joachim-andersen/profil/spieler/260827
+2122,Transferred to QPR,2021-08-31,2022-05-30,,,Transfer,Andre Gray,/andre-gray/profil/spieler/120565
+2122,Hip problems,2022-05-12,2022-05-26,14,3,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Hamstring Injury,2021-11-17,2022-02-05,80,16,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Quarantine,2021-09-09,2021-09-17,8,2,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Knee Injury,2021-08-20,2021-08-25,5,1,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Knee Injury,2021-06-23,2021-07-10,17,,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Transferred to Atalanta BC,2021-07-01,2021-08-03,,,Transfer,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Transferred to Juventus,2021-08-04,2021-08-04,,,Transfer,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Transferred to Atalanta BC,2021-08-05,2021-08-05,,,Transfer,Cristian Romero,/cristian-romero/profil/spieler/355915
+2122,Hamstring Injury,2022-02-05,2022-04-02,56,11,injury,Lyanco,/lyanco/profil/spieler/379807
+2122,Corona virus,2021-12-18,2022-01-03,16,2,injury,Lyanco,/lyanco/profil/spieler/379807
+2122,Transferred to Torino,2021-07-01,2021-08-24,,,Transfer,Lyanco,/lyanco/profil/spieler/379807
+2122,Transferred to Hamburger SV,2021-08-31,2022-01-18,,,Transfer,Tommy Doyle,/tommy-doyle/profil/spieler/433183
+2122,Transferred to Cardiff,2022-01-20,2022-05-30,,,Transfer,Tommy Doyle,/tommy-doyle/profil/spieler/433183
+2122,Transferred to Sunderland,2022-01-26,2022-05-30,,,Transfer,Jack Clarke,/jack-clarke/profil/spieler/559794
+2122,Ankle Injury,2022-01-08,2022-02-05,28,5,injury,Billy Gilmour,/billy-gilmour/profil/spieler/423744
+2122,Knee Injury,2021-11-19,2022-06-30,223,31,injury,Tom Davies,/tom-davies/profil/spieler/314210
+2122,Transferred to Standard Liège,2021-08-31,2022-06-29,,,Transfer,Niels Nkounkou,/niels-nkounkou/profil/spieler/591193
+2122,Ankle Injury,2021-08-01,2022-07-28,361,2,injury,Tudor Baluta,/tudor-baluta/profil/spieler/433976
+2122,Knee Injury,2022-05-15,2022-07-10,56,3,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
+2122,Transferred to West Brom U21,2021-07-01,2021-07-28,,,Transfer,Tim Iroegbunam,/tim-iroegbunam/profil/spieler/696589
+2122,Transferred to Sheff Utd,2021-07-01,2021-08-19,,,Transfer,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+2122,Transferred to Bournemouth,2021-07-27,2022-05-30,,,Transfer,Leif Davis,/leif-davis/profil/spieler/596446
+2122,Transferred to Unknown,2021-07-01,2021-07-05,,,Transfer,Josh Feeney,/josh-feeney/profil/spieler/875929
+2122,Cruciate Ligament Rupture,2022-04-25,2023-04-13,353,43,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
+2122,Knee Problems,2022-01-06,2022-02-03,28,4,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
+2122,Corona virus,2021-12-14,2021-12-25,11,1,injury,Neal Maupay,/neal-maupay/profil/spieler/217115
+2122,Shoulder Injury,2021-08-21,2021-08-27,6,2,injury,Neal Maupay,/neal-maupay/profil/spieler/217115
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Alex Iwobi,/alex-iwobi/profil/spieler/242631
+2122,Hamstring Injury,2021-12-05,2022-03-14,99,16,injury,Liam Cooper,/liam-cooper/profil/spieler/75067
+2122,Shinbone injury,2021-12-25,2021-12-30,5,2,injury,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+2122,Knee Injury,2021-11-18,2021-12-15,27,5,injury,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+2122,Quarantine,2021-09-09,2021-09-17,8,2,injury,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+2122,Transferred to Villarreal,2022-01-31,2022-06-29,,,Transfer,Giovani Lo Celso,/giovani-lo-celso/profil/spieler/348795
+2122,Transferred to Fenerbahce,2021-07-01,2021-09-08,,,Transfer,Zanka,/zanka/profil/spieler/52059
+2122,Lumbago,2022-02-03,2022-03-14,39,8,injury,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2122,Transferred to SSC Napoli,2022-01-07,2022-06-29,,,Transfer,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2122,Infection,2021-12-08,2022-01-09,32,4,injury,Connor Roberts,/connor-roberts/profil/spieler/214666
+2122,Transferred to Swansea,2021-07-01,2021-08-30,,,Transfer,Connor Roberts,/connor-roberts/profil/spieler/214666
+2122,Transferred to RB Leipzig,2021-07-01,2021-08-30,,,Transfer,Ademola Lookman,/ademola-lookman/profil/spieler/406040
+2122,Transferred to RB Leipzig,2022-06-30,2022-06-30,,,Transfer,Ademola Lookman,/ademola-lookman/profil/spieler/406040
+2122,Transferred to Fulham,2021-08-31,2022-01-30,,,Transfer,Domingos Quina,/domingos-quina/profil/spieler/391719
+2122,Transferred to Barnsley FC,2022-01-31,2022-04-25,,,Transfer,Domingos Quina,/domingos-quina/profil/spieler/391719
+2122,Adductor problems,2022-03-23,2022-04-01,9,,injury,Fabian Schär,/fabian-schar/profil/spieler/135343
+2122,Transferred to Udinese Calcio,2022-01-20,2022-06-29,,,Transfer,Pablo Marí,/pablo-mari/profil/spieler/210178
+2122,Hip Injury,2021-09-13,2021-12-20,98,14,injury,Freddie Woodman,/freddie-woodman/profil/spieler/226049
+2122,Transferred to Bournemouth,2022-01-31,2022-05-30,,,Transfer,Freddie Woodman,/freddie-woodman/profil/spieler/226049
+2122,Ill,2021-12-19,2021-12-27,8,2,injury,Jordan Henderson,/jordan-henderson/profil/spieler/61651
+2122,Transferred to Fulham U18,2021-07-01,2021-07-29,,,Transfer,Mika Biereth,/mika-biereth/profil/spieler/565821
+2122,Hamstring Injury,2021-11-19,2021-12-11,22,6,injury,Ricardo Pereira,/ricardo-pereira/profil/spieler/215876
+2122,Transferred to Huddersfield,2021-07-28,2022-05-30,,,Transfer,Danel Sinani,/danel-sinani/profil/spieler/346499
+2122,Groin Injury,2021-12-14,2021-12-31,17,2,injury,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
+2122,Head Injury,2021-09-22,2021-10-02,10,3,injury,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
+2122,Transferred to Angers SCO,2021-07-01,2021-07-08,,,Transfer,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
+2122,Transferred to Estoril Praia,2021-07-01,2022-01-16,,,Transfer,Chiquinho,/chiquinho/profil/spieler/695454
+2122,Unknown Injury,2021-11-03,2021-11-08,5,2,injury,Andriy Yarmolenko,/andriy-yarmolenko/profil/spieler/69015
+2122,Transferred to Stalybridge,2022-01-07,2022-05-30,,,Transfer,Liam Hughes,/liam-hughes/profil/spieler/494284
+2122,Transferred to Stoke City,2022-01-21,2022-05-30,,,Transfer,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2122,Transferred to Olympique Lyon,2021-07-01,2022-01-29,,,Transfer,Bruno Guimarães,/bruno-guimaraes/profil/spieler/520624
+2122,Transferred to New York RB,2022-02-28,2022-06-30,,,Transfer,Ashley Fletcher,/ashley-fletcher/profil/spieler/289846
+2122,Hamstring Injury,2022-04-21,2022-04-28,7,2,injury,Reece James,/reece-james/profil/spieler/472423
+2122,Muscle Injury,2022-03-03,2022-03-21,18,5,injury,Reece James,/reece-james/profil/spieler/472423
+2122,Fitness,2022-02-14,2022-02-24,10,2,injury,Reece James,/reece-james/profil/spieler/472423
+2122,Hamstring Injury,2021-12-27,2022-02-14,49,11,injury,Reece James,/reece-james/profil/spieler/472423
+2122,Red card suspension,2021-08-28,2021-09-12,15,1,suspension,Reece James,/reece-james/profil/spieler/472423
+2122,Knee Injury,2021-09-19,2021-10-14,25,4,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2122,Yellow card suspension,2022-04-17,2022-04-29,12,2,suspension,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2122,Called up to national team,2022-01-03,2022-01-27,24,3,absence,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2122,Yellow card suspension,2021-12-25,2021-12-27,2,1,suspension,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2122,Knee Problems,2022-03-21,2022-04-03,13,1,injury,Naby Keïta,/naby-keita/profil/spieler/302215
+2122,Hamstring Injury,2021-10-31,2021-12-05,35,7,injury,Naby Keïta,/naby-keita/profil/spieler/302215
+2122,Transferred to Udinese Calcio,2021-07-01,2022-01-05,,,Transfer,Samir Caetano,/samir-caetano/profil/spieler/255744
+2122,Hairline crack in calfbone,2022-03-01,2022-06-30,121,14,injury,Ben Mee,/ben-mee/profil/spieler/74810
+2122,Bronchitis,2022-05-04,2022-05-19,15,1,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2122,Dead Leg,2022-01-13,2022-01-17,4,1,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2122,Shoulder Injury,2021-07-14,2021-10-15,93,10,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2122,Transferred to OGC Nice,2021-07-01,2021-07-12,,,Transfer,Pierre Lees-Melou,/pierre-lees-melou/profil/spieler/377393
+2122,Transferred to Cheltenham,2021-08-30,2022-05-30,,,Transfer,Mattie Pollock,/mattie-pollock/profil/spieler/624948
+2122,Transferred to Atalanta BC,2021-07-01,2021-07-23,,,Transfer,Pierluigi Gollini,/pierluigi-gollini/profil/spieler/244192
+2122,Transferred to Atalanta BC,2022-06-30,2022-06-30,,,Transfer,Pierluigi Gollini,/pierluigi-gollini/profil/spieler/244192
+2122,Transferred to Coventry,2021-08-13,2022-05-30,,,Transfer,Jake Clarke-Salter,/jake-clarke-salter/profil/spieler/316551
+2122,Ill,2021-08-02,2021-09-02,31,3,injury,Dean Henderson,/dean-henderson/profil/spieler/258919
+2122,Ankle Injury,2022-02-14,2022-02-21,7,1,injury,Mason Mount,/mason-mount/profil/spieler/346483
+2122,Minor Knock,2021-09-20,2021-09-30,10,3,injury,Mason Mount,/mason-mount/profil/spieler/346483
+2122,Transferred to Fulham,2022-01-31,2022-05-30,,,Transfer,Neco Williams,/neco-williams/profil/spieler/503680
+2122,Foot surgery,2022-02-12,2022-04-19,66,9,injury,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Ankle problems,2022-01-10,2022-01-15,5,2,injury,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Muscular problems,2021-12-19,2021-12-22,3,2,injury,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Ankle fracture,2021-11-17,2021-11-24,7,1,injury,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Biceps femoris muscle injury,2021-09-17,2021-10-18,31,5,injury,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Transferred to Torino,2021-08-31,2022-06-29,,,Transfer,Dennis Praet,/dennis-praet/profil/spieler/129588
+2122,Transferred to Gateshead,2022-01-31,2022-05-30,,,Transfer,Filip Marschall,/filip-marschall/profil/spieler/610863
+2122,Quarantine,2021-09-10,2021-09-17,7,1,injury,Samuel Kalu,/samuel-kalu/profil/spieler/424051
+2122,Transferred to G. Bordeaux,2021-07-01,2022-01-25,,,Transfer,Samuel Kalu,/samuel-kalu/profil/spieler/424051
+2122,Knee Surgery,2021-12-28,2022-04-20,113,15,injury,Isaac Hayden,/isaac-hayden/profil/spieler/206225
+2122,Calf Injury,2022-04-01,2022-04-30,29,6,injury,Edinson Cavani,/edinson-cavani/profil/spieler/48280
+2122,groin strain,2022-02-11,2022-03-07,24,6,injury,Edinson Cavani,/edinson-cavani/profil/spieler/48280
+2122,tendon irritation,2021-11-04,2021-12-22,48,8,injury,Edinson Cavani,/edinson-cavani/profil/spieler/48280
+2122,Knock,2021-09-09,2021-09-23,14,4,injury,Edinson Cavani,/edinson-cavani/profil/spieler/48280
+2122,Quarantine,2021-08-01,2021-08-15,14,1,injury,Edinson Cavani,/edinson-cavani/profil/spieler/48280
+2122,Foot Injury,2022-03-27,2022-07-01,96,8,injury,Patrick Bamford,/patrick-bamford/profil/spieler/183334
+2122,Hamstring Injury,2021-12-07,2022-02-28,83,12,injury,Patrick Bamford,/patrick-bamford/profil/spieler/183334
+2122,Ankle Injury,2021-09-18,2021-11-28,71,10,injury,Patrick Bamford,/patrick-bamford/profil/spieler/183334
+2122,Transferred to Sunderland,2021-07-01,2021-07-11,,,Transfer,Remi Matthews,/remi-matthews/profil/spieler/196722
+2122,Unknown Injury,2022-02-08,2022-02-16,8,2,injury,Ozan Tufan,/ozan-tufan/profil/spieler/236471
+2122,Knee Injury,2021-11-12,2021-11-17,5,,injury,Ozan Tufan,/ozan-tufan/profil/spieler/236471
+2122,Transferred to Fenerbahce,2021-07-01,2021-08-18,,,Transfer,Ozan Tufan,/ozan-tufan/profil/spieler/236471
+2122,Transferred to Fenerbahce,2022-02-02,2022-06-30,,,Transfer,Ozan Tufan,/ozan-tufan/profil/spieler/236471
+2122,Transferred to B. Leverkusen,2021-07-01,2021-07-21,,,Transfer,Demarai Gray,/demarai-gray/profil/spieler/292417
+2122,Corona virus,2022-03-19,2022-03-26,7,1,injury,Saman Ghoddos,/saman-ghoddos/profil/spieler/204294
+2122,Knee Injury,2021-12-11,2022-03-31,110,15,injury,Marvelous Nakamba,/marvelous-nakamba/profil/spieler/324882
+2122,Calf Injury,2022-04-18,2022-05-23,35,6,injury,Paul Pogba,/paul-pogba/profil/spieler/122153
+2122,Hamstring Injury,2021-11-08,2022-02-03,87,14,injury,Paul Pogba,/paul-pogba/profil/spieler/122153
+2122,Red card suspension,2021-10-25,2021-11-21,27,3,suspension,Paul Pogba,/paul-pogba/profil/spieler/122153
+2122,Corona virus,2021-12-13,2022-01-03,21,6,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2122,Strain,2021-10-21,2021-11-15,25,5,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2122,Transferred to FC Porto B,2021-07-03,2022-01-24,,,Transfer,Sebastian Soto,/sebastian-soto/profil/spieler/605498
+2122,Transferred to Livingston FC,2022-01-26,2022-06-30,,,Transfer,Sebastian Soto,/sebastian-soto/profil/spieler/605498
+2122,Corona virus,2022-01-03,2022-01-10,7,2,injury,Ferran Torres,/ferran-torres/profil/spieler/398184
+2122,Metatarsal Fracture,2021-10-14,2022-01-10,88,5,injury,Ferran Torres,/ferran-torres/profil/spieler/398184
+2122,Transferred to Barcelona,2022-01-01,2022-06-30,,,Transfer,Ferran Torres,/ferran-torres/profil/spieler/398184
+2122,Unknown Injury,2021-12-02,2021-12-25,23,3,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
+2122,Transferred to Cheltenham,2022-01-11,2022-05-30,,,Transfer,Aaron Ramsey,/aaron-ramsey/profil/spieler/646658
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Wilfried Zaha,/wilfried-zaha/profil/spieler/145988
+2122,Ankle Fracture,2021-11-05,2022-03-14,129,20,injury,Kwadwo Baah,/kwadwo-baah/profil/spieler/711247
+2122,Unknown Injury,2021-08-01,2021-08-14,13,,injury,Hugo Bueno,/hugo-bueno/profil/spieler/698678
+2122,Transferred to Bournemouth,2021-07-01,2021-07-19,,,Transfer,Asmir Begovic,/asmir-begovic/profil/spieler/33873
+2122,Transferred to Randers FC,2021-08-31,2021-12-30,,,Transfer,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
+2122,Transferred to Hereford,2022-01-31,2022-05-30,,,Transfer,Andreas Söndergaard,/andreas-sondergaard/profil/spieler/462820
+2122,Ill,2022-03-07,2022-03-12,5,1,injury,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+2122,Knock,2022-02-14,2022-03-04,18,2,injury,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+2122,Calf Injury,2021-12-28,2022-01-05,8,,injury,Allan Saint-Maximin,/allan-saint-maximin/profil/spieler/272642
+2122,Foot Injury,2022-04-06,2022-04-18,12,2,injury,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2122,Ill,2022-02-22,2022-03-02,8,2,injury,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2122,Groin Injury,2021-08-26,2021-09-16,21,3,injury,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2122,Yellow card suspension,2022-01-03,2022-01-17,14,1,suspension,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Cheikhou Kouyaté,/cheikhou-kouyate/profil/spieler/66934
+2122,Thigh muscle rupture,2022-03-07,2022-05-27,81,11,injury,Tyler Roberts,/tyler-roberts/profil/spieler/296986
+2122,Transferred to Middlesbrough,2022-01-02,2022-05-30,,,Transfer,Aaron Connolly,/aaron-connolly/profil/spieler/434207
+2122,Thigh Problems,2022-02-04,2022-02-15,11,3,injury,Eric Dier,/eric-dier/profil/spieler/175722
+2122,Thigh Problems,2022-01-03,2022-01-20,17,4,injury,Eric Dier,/eric-dier/profil/spieler/175722
+2122,Transferred to Burton Albion,2021-08-31,2021-11-23,,,Transfer,Sam Hughes,/sam-hughes/profil/spieler/395797
+2122,Transferred to Burton Albion,2022-01-31,2022-06-30,,,Transfer,Sam Hughes,/sam-hughes/profil/spieler/395797
+2122,Transferred to KAS Eupen,2021-07-01,2022-01-06,,,Transfer,Edo Kayembe,/edo-kayembe/profil/spieler/486477
+2122,Transferred to Birmingham,2021-08-30,2022-06-30,,,Transfer,Troy Deeney,/troy-deeney/profil/spieler/65477
+2122,Knee Problems,2022-04-26,2022-05-03,7,2,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2122,Chest injury,2022-01-01,2022-01-14,13,2,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2122,Calf Injury,2021-09-25,2021-10-15,20,3,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2122,Red card suspension,2021-11-21,2021-11-29,8,1,suspension,Harry Maguire,/harry-maguire/profil/spieler/177907
+2122,Transferred to Doncaster,2021-08-06,2022-01-12,,,Transfer,Pontus Dahlberg,/pontus-dahlberg/profil/spieler/365544
+2122,Transferred to Gillingham FC,2022-01-14,2022-05-30,,,Transfer,Pontus Dahlberg,/pontus-dahlberg/profil/spieler/365544
+2122,Corona virus,2021-07-15,2021-08-02,18,,injury,Karl Darlow,/karl-darlow/profil/spieler/99397
+2122,Corona virus,2021-12-21,2022-01-01,11,1,injury,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+2122,Yellow card suspension,2021-11-28,2021-12-01,3,1,suspension,Matt Ritchie,/matt-ritchie/profil/spieler/92469
+2122,Quarantine,2021-09-09,2021-09-17,8,2,injury,Davinson Sánchez,/davinson-sanchez/profil/spieler/341429
+2122,Corona virus,2022-03-17,2022-03-31,14,1,injury,Raphinha,/raphinha/profil/spieler/411295
+2122,Chickenpox,2022-05-12,2022-05-23,11,2,injury,Javier Manquillo,/javier-manquillo/profil/spieler/162029
+2122,Transferred to Hartlepool,2022-01-29,2022-05-30,,,Transfer,Joe White,/joe-white/profil/spieler/614811
+2122,Cruciate Ligament Rupture,2022-04-02,2023-04-14,377,44,injury,Jakub Moder,/jakub-moder/profil/spieler/384461
+2122,Minor Knock,2022-06-09,2022-06-13,4,,injury,Juraj Kucka,/juraj-kucka/profil/spieler/74943
+2122,Leg Injury,2021-08-16,2021-08-26,10,2,injury,Juraj Kucka,/juraj-kucka/profil/spieler/74943
+2122,Transferred to Parma,2021-07-01,2021-08-05,,,Transfer,Juraj Kucka,/juraj-kucka/profil/spieler/74943
+2122,Transferred to Parma,2022-06-30,2022-06-30,,,Transfer,Juraj Kucka,/juraj-kucka/profil/spieler/74943
+2122,Ill,2022-03-06,2022-03-13,7,2,injury,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+2122,Ankle Injury,2021-09-09,2021-10-31,52,12,injury,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+2122,Corona virus,2021-08-18,2021-08-30,12,2,injury,Christian Pulisic,/christian-pulisic/profil/spieler/315779
+2122,Muscle Injury,2022-02-21,2022-03-09,16,3,injury,Anthony Martial,/anthony-martial/profil/spieler/182877
+2122,Knee Injury,2021-12-04,2021-12-13,9,3,injury,Anthony Martial,/anthony-martial/profil/spieler/182877
+2122,Fitness,2021-10-15,2021-10-29,14,3,injury,Anthony Martial,/anthony-martial/profil/spieler/182877
+2122,Transferred to Sevilla FC,2022-01-25,2022-06-29,,,Transfer,Anthony Martial,/anthony-martial/profil/spieler/182877
+2122,Calf Injury,2021-12-27,2022-01-16,20,5,injury,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+2122,Ankle Injury,2021-09-16,2021-10-11,25,6,injury,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+2122,Ankle Injury,2021-09-07,2021-09-14,7,1,injury,Steven Bergwijn,/steven-bergwijn/profil/spieler/284165
+2122,Knock,2021-09-11,2021-09-17,6,2,injury,Rhys Williams,/rhys-williams/profil/spieler/503679
+2122,Transferred to Swansea,2021-08-31,2022-01-19,,,Transfer,Rhys Williams,/rhys-williams/profil/spieler/503679
+2122,Transferred to Cardiff,2021-07-13,2022-01-02,,,Transfer,Ryan Giles,/ryan-giles/profil/spieler/504581
+2122,Transferred to Blackburn,2022-01-31,2022-05-30,,,Transfer,Ryan Giles,/ryan-giles/profil/spieler/504581
+2122,Ill,2022-02-11,2022-02-16,5,1,injury,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
+2122,Yellow card suspension,2021-11-28,2021-12-01,3,1,suspension,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
+2122,Knee Problems,2022-04-22,2022-05-05,13,2,injury,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2122,Called up to national team,2022-01-03,2022-02-04,32,1,absence,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2122,Transferred to Olympique Lyon,2021-07-01,2021-08-28,,,Transfer,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2122,Transferred to Blackburn,2021-07-01,2021-08-09,,,Transfer,Adam Armstrong,/adam-armstrong/profil/spieler/250426
+2122,Hamstring Injury,2021-12-12,2022-03-31,109,19,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
+2122,Foot Injury,2021-08-01,2021-09-10,40,4,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
+2122,Thigh Problems,2021-12-13,2022-02-15,64,8,injury,Federico Fernández,/federico-fernandez/profil/spieler/85475
+2122,Transferred to Stade Brestois,2021-07-01,2021-07-01,,,Transfer,Romain Perraud,/romain-perraud/profil/spieler/318523
+2122,Achilles tendon problems,2022-01-30,2022-10-31,274,33,injury,Nathan Ferguson,/nathan-ferguson/profil/spieler/507254
+2122,Ill,2022-05-12,2022-05-19,7,1,injury,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+2122,Knee Problems,2022-03-17,2022-04-11,25,3,injury,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+2122,Back bruise,2022-03-03,2022-03-10,7,1,injury,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+2122,Corona virus,2021-12-13,2022-01-03,21,4,injury,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+2122,Transferred to VfL Bochum,2022-01-06,2022-06-30,,,Transfer,Jürgen Locadia,/jurgen-locadia/profil/spieler/166240
+2122,Transferred to LOSC Lille,2021-07-01,2021-07-01,,,Transfer,Boubakary Soumaré,/boubakary-soumare/profil/spieler/344605
+2122,Transferred to Atlético Madrid,2021-07-01,2021-08-30,,,Transfer,Saúl Ñíguez,/saul-niguez/profil/spieler/148928
+2122,Transferred to Atlético Madrid,2022-06-30,2022-06-30,,,Transfer,Saúl Ñíguez,/saul-niguez/profil/spieler/148928
+2122,Fractured Toe,2021-08-28,2021-12-31,125,16,injury,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
+2122,Ankle Surgery,2021-07-01,2021-08-02,32,,injury,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
+2122,Red card suspension,2022-05-15,2022-05-20,5,1,suspension,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
+2122,Foot Injury,2022-04-17,2022-05-08,21,6,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+2122,Muscular problems,2022-02-17,2022-03-10,21,6,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+2122,Corona virus,2022-01-01,2022-01-08,7,1,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+2122,Hamstring Injury,2021-11-03,2021-12-12,39,9,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+2122,Muscle Injury,2021-08-29,2021-09-22,24,4,injury,Roberto Firmino,/roberto-firmino/profil/spieler/131789
+2122,Metatarsal Fracture,2022-02-13,2022-05-01,77,13,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
+2122,Shoulder Injury,2021-11-08,2021-12-10,32,5,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
+2122,Transferred to Atlético Madrid,2021-07-01,2022-01-06,,,Transfer,Kieran Trippier,/kieran-trippier/profil/spieler/95810
+2122,Transferred to Swindon Town,2021-08-02,2022-01-08,,,Transfer,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
+2122,Transferred to MK Dons,2022-01-31,2022-05-30,,,Transfer,Kaine Kesler-Hayden,/kaine-kesler-hayden/profil/spieler/626888
+2122,Thigh Problems,2022-04-03,2022-04-23,20,3,injury,Shane Duffy,/shane-duffy/profil/spieler/119269
+2122,Ankle Injury,2022-01-14,2022-02-04,21,3,injury,Shane Duffy,/shane-duffy/profil/spieler/119269
+2122,Corona virus,2021-12-16,2021-12-28,12,1,injury,Shane Duffy,/shane-duffy/profil/spieler/119269
+2122,Yellow card suspension,2021-12-13,2021-12-16,3,1,suspension,Shane Duffy,/shane-duffy/profil/spieler/119269
+2122,Transferred to Carlisle United,2022-01-25,2022-05-30,,,Transfer,Dynel Simeu,/dynel-simeu/profil/spieler/503976
+2122,Called up to national team,2022-01-03,2022-02-06,34,4,absence,Frank Onyeka,/frank-onyeka/profil/spieler/421637
+2122,Transferred to FC Midtjylland,2021-07-01,2021-07-19,,,Transfer,Frank Onyeka,/frank-onyeka/profil/spieler/421637
+2122,Ankle Injury,2022-02-03,2022-02-16,13,4,injury,Eric Bailly,/eric-bailly/profil/spieler/286384
+2122,Corona virus,2021-10-17,2021-11-01,15,3,injury,Wout Weghorst,/wout-weghorst/profil/spieler/228645
+2122,Transferred to VfL Wolfsburg,2021-07-01,2022-01-30,,,Transfer,Wout Weghorst,/wout-weghorst/profil/spieler/228645
+2122,Transferred to Middlesbrough,2021-08-29,2022-01-12,,,Transfer,Onel Hernández,/onel-hernandez/profil/spieler/109751
+2122,Transferred to Birmingham,2022-01-14,2022-06-29,,,Transfer,Onel Hernández,/onel-hernandez/profil/spieler/109751
+2122,Foot Injury,2021-08-01,2021-09-09,39,4,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2122,Transferred to Club Brugge,2021-08-28,2021-12-30,,,Transfer,Wesley Moraes,/wesley-moraes/profil/spieler/381362
+2122,Transferred to Internacional,2022-01-07,2022-06-30,,,Transfer,Wesley Moraes,/wesley-moraes/profil/spieler/381362
+2122,Hamstring Injury,2022-01-21,2022-04-05,74,12,injury,Fabian Delph,/fabian-delph/profil/spieler/50362
+2122,Shoulder Injury,2021-08-27,2021-10-25,59,8,injury,Fabian Delph,/fabian-delph/profil/spieler/50362
+2122,Fractured Kneecap,2022-04-22,2022-06-30,69,6,injury,Adam Forshaw,/adam-forshaw/profil/spieler/121257
+2122,Calf Injury,2022-02-22,2022-08-21,180,21,injury,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+2122,Appendectomy,2022-01-24,2022-02-21,28,4,injury,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+2122,Corona virus,2022-01-04,2022-01-18,14,1,injury,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+2122,Unknown Injury,2021-10-04,2021-10-20,16,1,injury,Jóhann Berg Gudmundsson,/johann-berg-gudmundsson/profil/spieler/89231
+2122,Ill,2022-01-14,2022-01-23,9,3,injury,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
+2122,Hand Injury,2021-11-29,2021-12-04,5,1,injury,Aaron Wan-Bissaka,/aaron-wan-bissaka/profil/spieler/477758
+2122,Transferred to Celtic U18,2021-07-01,2021-07-13,,,Transfer,Vincent Angelini,/vincent-angelini/profil/spieler/736251
+2122,Hip Injury,2022-05-09,2022-05-20,11,1,injury,Chris Wood,/chris-wood/profil/spieler/108725
+2122,Ill,2021-08-15,2021-09-25,41,7,injury,Przemyslaw Placheta,/przemyslaw-placheta/profil/spieler/383109
+2122,Unknown Injury,2022-05-24,2022-07-20,57,,injury,José Sá,/jose-sa/profil/spieler/249994
+2122,Transferred to Olympiacos,2021-07-01,2021-07-14,,,Transfer,José Sá,/jose-sa/profil/spieler/249994
+2122,Calf Injury,2022-01-03,2022-02-02,30,4,injury,Will Smallbone,/will-smallbone/profil/spieler/444211
+2122,Transferred to Portsmouth,2021-08-30,2022-01-16,,,Transfer,Miguel Azeez,/miguel-azeez/profil/spieler/547533
+2122,Heel pain,2021-12-09,2022-01-14,36,5,injury,Rodrigo,/rodrigo/profil/spieler/131505
+2122,Transferred to Hibernian FC,2022-01-10,2022-05-30,,,Transfer,Rocky Bushiri,/rocky-bushiri/profil/spieler/511802
+2122,Transferred to Birmingham,2022-01-04,2022-05-30,,,Transfer,Teden Mengi,/teden-mengi/profil/spieler/548470
+2122,Hamstring Injury,2021-12-06,2022-05-06,151,24,injury,Alex McCarthy,/alex-mccarthy/profil/spieler/95976
+2122,Transferred to Aberdeen FC,2021-08-27,2021-12-30,,,Transfer,Matty Longstaff,/matty-longstaff/profil/spieler/484387
+2122,Transferred to Mansfield Town,2022-01-31,2022-05-30,,,Transfer,Matty Longstaff,/matty-longstaff/profil/spieler/484387
+2122,Corona virus,2021-12-14,2021-12-25,11,1,injury,Pascal Groß,/pascal-gross/profil/spieler/82873
+2122,Unknown Injury,2022-03-02,2022-03-09,7,2,injury,Amad Diallo,/amad-diallo/profil/spieler/536835
+2122,Thigh Problems,2021-08-28,2021-10-08,41,8,injury,Amad Diallo,/amad-diallo/profil/spieler/536835
+2122,Transferred to Rangers,2022-01-27,2022-05-30,,,Transfer,Amad Diallo,/amad-diallo/profil/spieler/536835
+2122,Transferred to Without Club,2021-07-01,2021-12-05,,,Transfer,Willy Caballero,/willy-caballero/profil/spieler/19948
+2122,Achilles tendon problems,2022-03-03,2022-10-31,242,32,injury,Jed Steer,/jed-steer/profil/spieler/110867
+2122,Transferred to Luton,2022-01-31,2022-05-30,,,Transfer,Jed Steer,/jed-steer/profil/spieler/110867
+2122,Ill,2022-03-03,2022-03-07,4,1,injury,Joel Matip,/joel-matip/profil/spieler/82105
+2122,Corona virus,2021-12-30,2022-01-06,7,1,injury,Joel Matip,/joel-matip/profil/spieler/82105
+2122,Groin Injury,2021-12-05,2021-12-31,26,1,injury,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+2122,Transferred to Reading,2021-08-30,2022-05-30,,,Transfer,Danny Drinkwater,/danny-drinkwater/profil/spieler/73491
+2122,Pubitis,2022-02-05,2022-06-30,145,20,injury,Oliver Skipp,/oliver-skipp/profil/spieler/406638
+2122,Yellow card suspension,2021-11-21,2021-11-21,0,1,suspension,Oliver Skipp,/oliver-skipp/profil/spieler/406638
+2122,Transferred to Nordsjaelland,2022-01-29,2022-06-30,,,Transfer,Mads Bidstrup,/mads-bidstrup/profil/spieler/462832
+2122,Knee Injury,2022-02-26,2022-05-02,65,11,injury,Erik Pieters,/erik-pieters/profil/spieler/43763
+2122,Bruised Ankle,2022-04-22,2022-05-31,39,6,injury,Max Kilman,/max-kilman/profil/spieler/525247
+2122,Transferred to Reading,2021-08-12,2022-05-30,,,Transfer,Tom Dele-Bashiru,/tom-dele-bashiru/profil/spieler/346472
+2122,Transferred to Racing Ferrol,2021-08-31,2022-01-11,,,Transfer,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
+2122,Transferred to Fortaleza CEIF,2022-01-13,2022-06-30,,,Transfer,Jaime Alvarado,/jaime-alvarado/profil/spieler/522131
+2122,Transferred to Real Betis,2021-08-31,2022-06-29,,,Transfer,Héctor Bellerín,/hector-bellerin/profil/spieler/191217
+2122,Corona virus,2021-11-19,2021-12-03,14,4,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+2122,Ankle Injury,2021-08-01,2021-09-10,40,4,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+2122,Transferred to Getafe,2021-07-01,2021-08-30,,,Transfer,Marc Cucurella,/marc-cucurella/profil/spieler/284857
+2122,Transferred to Barnet,2021-08-31,2022-05-30,,,Transfer,Aston Oxborough,/aston-oxborough/profil/spieler/288948
+2122,Transferred to West Brom,2021-08-25,2022-01-28,,,Transfer,Jordan Hugill,/jordan-hugill/profil/spieler/291544
+2122,Transferred to Cardiff,2022-01-30,2022-05-30,,,Transfer,Jordan Hugill,/jordan-hugill/profil/spieler/291544
+2122,Transferred to CSKA Moscow,2022-02-21,2022-06-29,,,Transfer,Jean-Philippe Gbamin,/jean-philippe-gbamin/profil/spieler/182894
+2122,Hamstring Injury,2021-09-17,2021-10-15,28,4,injury,Seamus Coleman,/seamus-coleman/profil/spieler/68390
+2122,Called up to national team,2022-01-03,2022-02-06,34,3,absence,Saïd Benrahma,/said-benrahma/profil/spieler/290532
+2122,Thigh Problems,2022-04-21,2022-05-16,25,5,injury,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
+2122,Thigh Problems,2022-03-31,2022-04-11,11,3,injury,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
+2122,Groin Injury,2021-06-07,2021-07-12,35,,injury,Donny van de Beek,/donny-van-de-beek/profil/spieler/288255
+2122,Calf Injury,2022-02-20,2022-04-21,60,9,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2122,Transferred to Bologna,2021-07-01,2021-08-30,,,Transfer,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2122,Transferred to Preston,2021-07-01,2022-05-30,,,Transfer,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
+2122,Groin Injury,2021-10-31,2021-11-24,24,3,injury,Grant Hanley,/grant-hanley/profil/spieler/121385
+2122,Knee Injury,2021-12-01,2022-01-22,52,9,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
+2122,Red card suspension,2022-02-16,2022-02-20,4,1,suspension,Lewis Dunk,/lewis-dunk/profil/spieler/148153
+2122,Transferred to Celtic B,2021-07-01,2021-08-26,,,Transfer,Leo Fuhr Hjelde,/leo-fuhr-hjelde/profil/spieler/661208
+2122,Ill,2022-01-31,2022-02-07,7,1,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2122,Corona virus,2021-12-26,2022-01-05,10,3,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2122,Heart Condition,2021-12-11,2021-12-21,10,1,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2122,special leave,2022-01-20,2022-01-23,3,1,absence,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2122,Corona virus,2022-05-30,2022-06-09,10,,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2122,Fitness,2021-11-11,2021-11-18,7,,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2122,Ankle Injury,2021-10-25,2021-11-04,10,2,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2122,Shoulder Injury,2021-12-18,2022-02-18,62,7,injury,Charlie Cresswell,/charlie-cresswell/profil/spieler/597659
+2122,Fitness,2021-08-01,2021-08-09,8,,injury,Rob Holding,/rob-holding/profil/spieler/253341
+2122,Red card suspension,2022-05-17,2022-05-16,1,1,suspension,Rob Holding,/rob-holding/profil/spieler/253341
+2122,Ankle Injury,2021-08-19,2021-09-08,20,,injury,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
+2122,Transferred to Celtic,2021-08-31,2022-05-30,,,Transfer,Cameron Carter-Vickers,/cameron-carter-vickers/profil/spieler/341049
+2122,Knee Surgery,2022-03-31,2022-07-07,98,10,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
+2122,Ankle problems,2021-10-21,2021-11-06,16,3,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
+2122,Indirect card suspension,2021-09-11,2021-09-20,9,1,suspension,Michail Antonio,/michail-antonio/profil/spieler/104124
+2122,Corona virus,2021-12-18,2021-12-31,13,1,injury,Fábio Silva,/fabio-silva/profil/spieler/505653
+2122,Hamstring Injury,2022-01-29,2022-06-30,152,,injury,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
+2122,Transferred to Lincoln City,2021-07-14,2022-01-04,,,Transfer,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
+2122,Transferred to Cheltenham,2022-01-06,2022-05-30,,,Transfer,Dan Nlundulu,/dan-nlundulu/profil/spieler/346482
+2122,Knee Surgery,2022-03-10,2022-04-25,46,11,injury,Danny Ward,/danny-ward/profil/spieler/203026
+2122,Calf Injury,2021-11-19,2021-12-22,33,6,injury,Stuart Armstrong,/stuart-armstrong/profil/spieler/130765
+2122,Transferred to Without Club,2022-02-10,2022-06-30,,,Transfer,Michael Craig,/michael-craig/profil/spieler/633621
+2122,Transferred to Fulham,2021-07-01,2021-07-27,,,Transfer,Marcus Bettinelli,/marcus-bettinelli/profil/spieler/116648
+2122,Called up to national team,2022-01-03,2022-02-06,34,3,absence,Moussa Djenepo,/moussa-djenepo/profil/spieler/485424
+2122,Thigh Muscle Strain,2022-03-28,2022-03-31,3,,injury,Ben Davies,/ben-davies/profil/spieler/192765
+2122,Ill,2021-10-04,2021-10-11,7,,injury,Ben Davies,/ben-davies/profil/spieler/192765
+2122,Knee Problems,2022-05-20,2022-05-29,9,1,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
+2122,Knee Injury,2022-03-07,2022-04-25,49,11,injury,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+2122,Hamstring Injury,2021-12-27,2022-02-24,59,10,injury,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+2122,Transferred to Braintree,2022-02-05,2022-05-30,,,Transfer,Kamil Conteh,/kamil-conteh/profil/spieler/733494
+2122,Red card suspension,2021-12-20,2022-01-03,14,2,suspension,Andrew Robertson,/andrew-robertson/profil/spieler/234803
+2122,Transferred to B SAD,2021-08-31,2022-01-03,,,Transfer,Christian Marques,/christian-marques/profil/spieler/539807
+2122,Transferred to Flamengo,2021-08-20,2022-06-29,,,Transfer,Andreas Pereira,/andreas-pereira/profil/spieler/203394
+2122,Corona virus,2021-12-21,2022-01-01,11,1,injury,Ciaran Clark,/ciaran-clark/profil/spieler/98240
+2122,Red card suspension,2021-12-01,2021-12-05,4,1,suspension,Ciaran Clark,/ciaran-clark/profil/spieler/98240
+2122,Foot Injury,2022-04-05,2022-05-12,37,5,injury,Daniel Podence,/daniel-podence/profil/spieler/256977
+2122,Corona virus,2021-11-19,2021-12-03,14,3,injury,Daniel Podence,/daniel-podence/profil/spieler/256977
+2122,Back Injury,2022-02-15,2022-04-20,64,13,injury,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
+2122,Transferred to Crewe Alexandra,2022-01-28,2022-05-30,,,Transfer,Ryan Alebiosu,/ryan-alebiosu/profil/spieler/610649
+2122,Transferred to QPR,2022-01-31,2022-05-30,,,Transfer,Jeff Hendrick,/jeff-hendrick/profil/spieler/148262
+2122,Transferred to Charlton,2021-07-08,2022-05-30,,,Transfer,Akin Famewo,/akin-famewo/profil/spieler/425713
+2122,Ill,2022-03-12,2022-03-14,2,1,injury,Bruno Fernandes,/bruno-fernandes/profil/spieler/240306
+2122,Yellow card suspension,2021-12-28,2021-12-31,3,1,suspension,Bruno Fernandes,/bruno-fernandes/profil/spieler/240306
+2122,Transferred to Burton Albion,2022-01-31,2022-05-30,,,Transfer,Matej Kovar,/matej-kovar/profil/spieler/550829
+2122,Transferred to Nottm Forest,2021-08-07,2022-05-30,,,Transfer,Philip Zinckernagel,/philip-zinckernagel/profil/spieler/271098
+2122,Calf Injury,2021-09-21,2021-12-05,75,10,injury,André Gomes,/andre-gomes/profil/spieler/221025
+2122,Transferred to Derby,2021-07-01,2021-07-19,,,Transfer,Scott Carson,/scott-carson/profil/spieler/14555
+2122,Fibula Fracture,2021-08-04,2022-03-15,223,41,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2122,Transferred to Nottm Forest,2021-08-22,2022-05-30,,,Transfer,James Garner,/james-garner/profil/spieler/505219
+2122,Dead Leg,2022-02-24,2022-03-03,7,2,injury,Lucas Moura,/lucas-moura/profil/spieler/77100
+2122,Ankle Injury,2021-09-16,2021-09-23,7,3,injury,Lucas Moura,/lucas-moura/profil/spieler/77100
+2122,Called up to national team,2022-01-03,2022-01-20,17,1,absence,Jordan Ayew,/jordan-ayew/profil/spieler/108354
+2122,Cruciate Ligament Injury,2022-03-20,,442,53,injury,Andros Townsend,/andros-townsend/profil/spieler/61842
+2122,Transferred to FC Porto,2021-07-01,2022-01-29,,,Transfer,Luis Díaz,/luis-diaz/profil/spieler/480692
+2122,Corona virus,2022-02-07,2022-02-16,9,2,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2122,Unknown Injury,2021-10-29,2021-11-18,20,3,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2122,Pulled hamstring at the adductors,2021-10-03,2021-10-13,10,1,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2122,Unknown Injury,2021-09-04,2021-09-10,6,,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2122,Transferred to Dynamo Kyiv,2021-07-01,2021-12-31,,,Transfer,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2122,Ill,2022-01-16,2022-01-25,9,3,injury,Ben Woodburn,/ben-woodburn/profil/spieler/344015
+2122,Transferred to Heart of Midl.,2021-08-23,2022-05-30,,,Transfer,Ben Woodburn,/ben-woodburn/profil/spieler/344015
+2122,Ankle Injury,2021-12-22,2022-01-05,14,1,injury,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+2122,Bruised Ankle,2021-10-12,2021-10-17,5,1,injury,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+2122,Transferred to AS Roma,2021-08-17,2022-06-30,,,Transfer,Tammy Abraham,/tammy-abraham/profil/spieler/331726
+2122,Transferred to Blackburn,2021-08-29,2022-05-30,,,Transfer,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Riyad Mahrez,/riyad-mahrez/profil/spieler/171424
+2122,Transferred to Barnsley FC,2021-08-31,2022-04-25,,,Transfer,Claudio Gomes,/claudio-gomes/profil/spieler/395239
+2122,Transferred to Sheff Utd,2021-08-31,2022-05-30,,,Transfer,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+2122,Sideband injury,2022-03-11,2022-04-11,31,4,injury,Junior Firpo,/junior-firpo/profil/spieler/374139
+2122,Thigh Muscle Strain,2022-01-16,2022-02-14,29,4,injury,Junior Firpo,/junior-firpo/profil/spieler/374139
+2122,Transferred to Barcelona,2021-07-01,2021-07-05,,,Transfer,Junior Firpo,/junior-firpo/profil/spieler/374139
+2122,Stress response of the bone,2021-10-17,2021-11-28,42,6,injury,Abdoulaye Doucouré,/abdoulaye-doucoure/profil/spieler/127187
+2122,Achilles tendon problems,2022-02-26,2022-03-03,5,2,injury,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+2122,Corona virus,2022-01-14,2022-02-01,18,3,injury,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+2122,Back Injury,2021-12-29,2022-01-07,9,3,injury,Andreas Christensen,/andreas-christensen/profil/spieler/196948
+2122,Transferred to Charlton,2022-01-27,2022-04-10,,,Transfer,Nile John,/nile-john/profil/spieler/581683
+2122,Unknown Injury,2022-05-29,2022-06-16,18,,injury,Moise Kean,/moise-kean/profil/spieler/364135
+2122,Muscle Fatigue,2021-10-23,2021-11-09,17,5,injury,Moise Kean,/moise-kean/profil/spieler/364135
+2122,Quarantine,2021-08-12,2021-08-19,7,1,injury,Moise Kean,/moise-kean/profil/spieler/364135
+2122,Transferred to Juventus,2021-08-31,2022-06-30,,,Transfer,Moise Kean,/moise-kean/profil/spieler/364135
+2122,Knee Problems,2022-06-09,2022-06-30,21,,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Knock,2022-04-28,2022-05-12,14,4,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Corona virus,2022-01-06,2022-01-10,4,1,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Knee Problems,2021-11-25,2021-12-16,21,6,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Corona virus,2021-09-27,2021-10-11,14,2,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Groin Injury,2021-08-26,2021-09-16,21,3,injury,N'Golo Kanté,/ngolo-kante/profil/spieler/225083
+2122,Hamstring Injury,2021-09-19,2021-10-12,23,4,injury,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+2122,Indirect card suspension,2022-02-11,2022-02-19,8,1,suspension,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+2122,Ankle Surgery,2022-04-05,2022-06-06,62,10,injury,Nathan Patterson,/nathan-patterson/profil/spieler/424015
+2122,Quarantine,2021-08-27,2021-09-08,12,1,injury,Nathan Patterson,/nathan-patterson/profil/spieler/424015
+2122,Transferred to Rangers,2021-07-01,2022-01-03,,,Transfer,Nathan Patterson,/nathan-patterson/profil/spieler/424015
+2122,Transferred to Derby,2021-07-01,2022-01-21,,,Transfer,Dylan Williams,/dylan-williams/profil/spieler/732117
+2122,Hamstring Injury,2021-08-28,2021-09-10,13,1,injury,Solly March,/solly-march/profil/spieler/209212
+2122,Medial Collateral Ligament Tear,2022-04-10,2022-07-10,91,7,injury,Matt Doherty,/matt-doherty/profil/spieler/171679
+2122,Unknown Injury,2021-10-13,2021-10-26,13,3,injury,Matt Doherty,/matt-doherty/profil/spieler/171679
+2122,Corona virus,2021-08-29,2021-09-09,11,1,injury,Mateusz Klich,/mateusz-klich/profil/spieler/92738
+2122,Corona virus,2022-01-07,2022-01-14,7,2,injury,Kyle Walker-Peters,/kyle-walker-peters/profil/spieler/341051
+2122,Transferred to AS Roma,2022-01-07,2022-06-29,,,Transfer,Ainsley Maitland-Niles,/ainsley-maitland-niles/profil/spieler/285845
+2122,Hip Injury,2022-04-04,2022-04-14,10,1,injury,Bryan Gil,/bryan-gil/profil/spieler/537382
+2122,Corona virus,2021-12-06,2021-12-23,17,3,injury,Bryan Gil,/bryan-gil/profil/spieler/537382
+2122,Hamstring Injury,2021-10-25,2021-11-18,24,4,injury,Bryan Gil,/bryan-gil/profil/spieler/537382
+2122,Transferred to Sevilla FC,2021-07-01,2021-07-25,,,Transfer,Bryan Gil,/bryan-gil/profil/spieler/537382
+2122,Transferred to Valencia,2022-01-31,2022-06-29,,,Transfer,Bryan Gil,/bryan-gil/profil/spieler/537382
+2122,Ankle Injury,2021-10-25,2021-11-15,21,3,injury,Charlie Patino,/charlie-patino/profil/spieler/581674
+2122,Dead Leg,2021-06-30,2021-07-05,5,,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2122,Transferred to Ipswich U18,2021-07-01,2021-07-22,,,Transfer,Liam Gibbs,/liam-gibbs/profil/spieler/724785
+2122,Transferred to Cádiz CF,2021-08-23,2022-06-29,,,Transfer,Florin Andone,/florin-andone/profil/spieler/177065
+2122,Corona virus,2021-12-29,2022-01-06,8,2,injury,Nick Pope,/nick-pope/profil/spieler/192080
+2122,Transferred to Birmingham,2021-07-19,2022-01-03,,,Transfer,Dion Sanderson,/dion-sanderson/profil/spieler/495993
+2122,Transferred to QPR,2022-01-25,2022-05-30,,,Transfer,Dion Sanderson,/dion-sanderson/profil/spieler/495993
+2122,Bruised Ankle,2022-01-07,2022-02-25,49,7,injury,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+2122,Transferred to Spartak Moscow,2021-07-01,2021-08-30,,,Transfer,Alex Kral,/alex-kral/profil/spieler/337333
+2122,Transferred to Spartak Moscow,2022-06-30,2022-06-30,,,Transfer,Alex Kral,/alex-kral/profil/spieler/337333
+2122,Ankle Injury,2022-03-30,2022-07-01,93,9,injury,Josh Sargent,/josh-sargent/profil/spieler/393325
+2122,Transferred to Werder Bremen,2021-07-01,2021-08-08,,,Transfer,Josh Sargent,/josh-sargent/profil/spieler/393325
+2122,Groin Injury,2021-12-10,2022-03-18,98,19,injury,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Back Injury,2021-11-02,2021-12-04,32,5,injury,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Ankle Injury,2021-09-24,2021-10-29,35,7,injury,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Fitness,2021-07-12,2021-07-28,16,1,injury,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Transferred to Slavia Prague,2021-07-01,2021-08-30,,,Transfer,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Transferred to Stoke City,2021-09-01,2022-05-30,,,Transfer,Abdallah Sima,/abdallah-sima/profil/spieler/776798
+2122,Hamstring Injury,2022-03-07,2022-04-07,31,5,injury,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
+2122,Muscle Injury,2021-12-21,2022-01-07,17,5,injury,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
+2122,Bruise,2021-09-01,2021-11-14,74,14,injury,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
+2122,Thigh Problems,2021-07-01,2021-08-15,45,1,injury,Ryan Sessegnon,/ryan-sessegnon/profil/spieler/392775
+2122,Hamstring Injury,2022-04-26,2022-05-24,28,4,injury,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
+2122,Hamstring Injury,2021-12-02,2022-03-10,98,15,injury,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
+2122,Transferred to Benfica U19,2021-07-01,2021-07-01,,,Transfer,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
+2122,Transferred to Northampton,2021-07-01,2021-08-15,,,Transfer,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
+2122,Transferred to Livingston FC,2022-01-12,2022-05-19,,,Transfer,Caleb Chukwuemeka,/caleb-chukwuemeka/profil/spieler/742746
+2122,Corona virus,2022-04-14,2022-04-19,5,1,injury,Alexandre Lacazette,/alexandre-lacazette/profil/spieler/93720
+2122,Ill,2021-08-01,2021-08-24,23,2,injury,Alexandre Lacazette,/alexandre-lacazette/profil/spieler/93720
+2122,Corona virus,2022-01-01,2022-01-31,30,4,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2122,Unknown Injury,2021-09-17,2021-10-14,27,5,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2122,Fitness,2021-07-31,2021-08-08,8,1,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2122,Hamstring Injury,2022-03-17,2022-03-31,14,1,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2122,Corona virus,2022-01-03,2022-01-13,10,2,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2122,Muscular problems,2021-09-27,2021-10-14,17,2,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2122,Hamstring Injury,2021-06-03,2021-07-12,39,,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2122,Corona virus,2021-12-17,2021-12-24,7,2,injury,Albert Sambi Lokonga,/albert-sambi-lokonga/profil/spieler/381967
+2122,Transferred to RSC Anderlecht,2021-07-01,2021-07-18,,,Transfer,Albert Sambi Lokonga,/albert-sambi-lokonga/profil/spieler/381967
+2122,Shoulder Injury,2022-01-03,2022-06-01,149,44,injury,Matija Sarkic,/matija-sarkic/profil/spieler/293257
+2122,Transferred to Birmingham,2021-07-26,2022-01-05,,,Transfer,Matija Sarkic,/matija-sarkic/profil/spieler/293257
+2122,Transferred to West Brom,2021-07-13,2022-05-30,,,Transfer,Matt Clarke,/matt-clarke/profil/spieler/307497
+2122,Transferred to Blackburn,2022-01-18,2022-06-30,,,Transfer,Dilan Markanday,/dilan-markanday/profil/spieler/530807
+2122,Groin Injury,2022-04-14,2022-04-28,14,4,injury,Antonio Rüdiger,/antonio-rudiger/profil/spieler/86202
+2122,Calf Injury,2022-04-29,2022-05-03,4,1,injury,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
+2122,Transferred to Dundee FC,2022-01-31,2022-05-15,,,Transfer,Vontae Daley-Campbell,/vontae-daley-campbell/profil/spieler/530732
+2122,Muscular problems,2022-01-20,2022-01-27,7,1,injury,Michal Karbownik,/michal-karbownik/profil/spieler/401604
+2122,Ligament Problems,2021-11-01,2021-12-08,37,7,injury,Michal Karbownik,/michal-karbownik/profil/spieler/401604
+2122,Transferred to Olympiacos,2021-08-28,2022-06-29,,,Transfer,Michal Karbownik,/michal-karbownik/profil/spieler/401604
+2122,Leg Injury,2022-04-02,2022-05-13,41,8,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2122,Corona virus,2022-03-02,2022-03-16,14,3,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2122,Hamstring Injury,2022-01-18,2022-01-31,13,2,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2122,Head Injury,2021-11-20,2021-12-07,17,5,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2122,Yellow card suspension,2022-01-04,2022-01-16,12,1,suspension,Luke Shaw,/luke-shaw/profil/spieler/183288
+2122,Corona virus,2022-02-25,2022-03-03,6,1,injury,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
+2122,Hip Injury,2021-12-05,2021-12-16,11,2,injury,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
+2122,Transferred to FC Augsburg,2021-08-30,2022-06-29,,,Transfer,Andi Zeqiri,/andi-zeqiri/profil/spieler/345468
+2122,Hamstring Injury,2021-12-22,2022-01-14,23,4,injury,Caglar Söyüncü,/caglar-soyuncu/profil/spieler/320141
+2122,Knee Injury,2021-09-27,2022-02-28,154,21,injury,Peter Etebo,/peter-etebo/profil/spieler/409106
+2122,Transferred to Stoke City,2021-07-01,2021-07-08,,,Transfer,Peter Etebo,/peter-etebo/profil/spieler/409106
+2122,Transferred to Stoke City,2022-05-31,2022-06-30,,,Transfer,Peter Etebo,/peter-etebo/profil/spieler/409106
+2122,Transferred to Millwall,2021-08-31,2022-05-30,,,Transfer,Sheyi Ojo,/sheyi-ojo/profil/spieler/236510
+2122,Ankle Injury,2021-12-15,2021-12-28,13,2,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2122,Corona virus,2021-08-14,2021-08-27,13,3,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2122,Transferred to Dunfermline A.,2022-01-31,2022-05-08,,,Transfer,Jakub Stolarczyk,/jakub-stolarczyk/profil/spieler/486144
+2122,Transferred to Sheff Utd,2021-08-30,2022-05-30,,,Transfer,Conor Hourihane,/conor-hourihane/profil/spieler/61653
+2122,Unknown Injury,2021-09-19,2021-09-23,4,2,injury,Halil Dervisoglu,/halil-dervisoglu/profil/spieler/465606
+2122,Transferred to Galatasaray,2021-09-01,2022-06-29,,,Transfer,Halil Dervisoglu,/halil-dervisoglu/profil/spieler/465606
+2122,Knee Injury,2022-04-21,2022-04-29,8,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2122,Pelvis Injury,2021-11-27,2022-02-04,69,11,injury,Mathias Normann,/mathias-normann/profil/spieler/257805
+2122,Transferred to Rostov,2021-07-01,2021-08-28,,,Transfer,Mathias Normann,/mathias-normann/profil/spieler/257805
+2122,Transferred to Rostov,2022-06-30,2022-06-30,,,Transfer,Mathias Normann,/mathias-normann/profil/spieler/257805
+2122,Hamstring Injury,2022-03-30,2022-05-23,54,9,injury,Ozan Kabak,/ozan-kabak/profil/spieler/361260
+2122,Influenza,2021-11-04,2021-11-29,25,3,injury,Ozan Kabak,/ozan-kabak/profil/spieler/361260
+2122,Transferred to FC Schalke 04,2021-07-01,2021-08-29,,,Transfer,Ozan Kabak,/ozan-kabak/profil/spieler/361260
+2122,Transferred to FC Schalke 04,2022-06-30,2022-06-30,,,Transfer,Ozan Kabak,/ozan-kabak/profil/spieler/361260
+2122,Called up to national team,2022-01-03,2022-01-20,17,1,absence,Daniel Amartey,/daniel-amartey/profil/spieler/214056
+2122,Hamstring Injury,2022-07-09,2022-08-31,53,6,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2122,Transferred to Celtic,2021-07-01,2021-07-20,,,Transfer,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2122,Corona virus,2021-11-19,2021-11-27,8,2,injury,Mason Greenwood,/mason-greenwood/profil/spieler/532826
+2122,Transferred to AS Roma,2021-07-01,2021-08-30,,,Transfer,Robin Olsen,/robin-olsen/profil/spieler/75458
+2122,Transferred to Sheff Utd,2021-08-31,2022-01-16,,,Transfer,Robin Olsen,/robin-olsen/profil/spieler/75458
+2122,Transferred to AS Roma,2022-01-17,2022-01-17,,,Transfer,Robin Olsen,/robin-olsen/profil/spieler/75458
+2122,Transferred to AS Roma,2022-06-30,2022-06-30,,,Transfer,Robin Olsen,/robin-olsen/profil/spieler/75458
+2122,Knee Injury,2021-10-25,2022-02-04,102,17,injury,David Raya,/david-raya/profil/spieler/262749
+2122,Hamstring Injury,2022-06-15,2022-09-28,105,9,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
+2122,Ill,2021-10-22,2021-11-01,10,3,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
+2122,Ankle Injury,2022-04-17,2022-04-30,13,4,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2122,Corona virus,2021-12-03,2021-12-18,15,4,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2122,Adductor problems,2021-10-29,2021-12-01,33,7,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2122,Unknown Injury,2021-08-16,2021-09-07,22,4,injury,Joe Rodon,/joe-rodon/profil/spieler/297212
+2122,Transferred to Preston,2022-01-24,2022-05-30,,,Transfer,Cameron Archer,/cameron-archer/profil/spieler/533662
+2122,Shoulder Injury,2021-09-13,2021-09-27,14,4,injury,Jordan Pickford,/jordan-pickford/profil/spieler/130164
+2122,Corona virus,2022-01-18,2022-01-25,7,1,injury,Emerson,/emerson/profil/spieler/181778
+2122,Unknown Injury,2021-09-08,2021-09-11,3,,injury,Emerson,/emerson/profil/spieler/181778
+2122,Transferred to Olympique Lyon,2021-08-19,2022-06-29,,,Transfer,Emerson,/emerson/profil/spieler/181778
+2122,Transferred to Sheff Utd,2021-08-16,2022-05-30,,,Transfer,Ben Davies,/ben-davies/profil/spieler/257097
+2122,Corona virus,2021-12-15,2021-12-28,13,4,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2122,Cold,2021-09-03,2021-09-06,3,,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2122,Knee Injury,2022-02-04,2022-06-30,146,20,injury,Japhet Tanganga,/japhet-tanganga/profil/spieler/346478
+2122,Indirect card suspension,2021-09-12,2021-09-19,7,1,suspension,Japhet Tanganga,/japhet-tanganga/profil/spieler/346478
+2122,Groin Injury,2021-11-18,2022-02-06,80,9,injury,Ashley Barnes,/ashley-barnes/profil/spieler/63200
+2122,Groin Surgery,2021-11-03,2022-02-21,110,18,injury,Tahith Chong,/tahith-chong/profil/spieler/344830
+2122,Transferred to Birmingham,2021-07-26,2022-05-30,,,Transfer,Tahith Chong,/tahith-chong/profil/spieler/344830
+2122,Fracture-dislocation of the ankle,2021-09-13,2022-01-31,140,30,injury,Harvey Elliott,/harvey-elliott/profil/spieler/565822
+2122,Transferred to Cardiff,2022-01-12,2022-05-30,,,Transfer,Cody Drameh,/cody-drameh/profil/spieler/531957
+2122,Corona virus,2022-01-19,2022-01-29,10,1,injury,Yan Couto,/yan-couto/profil/spieler/627228
+2122,Transferred to SC Braga,2021-08-21,2022-06-29,,,Transfer,Yan Couto,/yan-couto/profil/spieler/627228
+2122,Corona virus,2021-10-06,2021-10-20,14,1,injury,Trincão,/trincao/profil/spieler/412669
+2122,Transferred to Barcelona,2021-07-01,2021-07-03,,,Transfer,Trincão,/trincao/profil/spieler/412669
+2122,Transferred to Barcelona,2022-06-30,2022-06-30,,,Transfer,Trincão,/trincao/profil/spieler/412669
+2122,Hamstring Injury,2021-09-27,2021-12-25,89,12,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+2122,Hamstring Injury,2021-07-24,2021-08-27,34,3,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+2122,Transferred to Kayserispor,2021-07-01,2021-08-24,,,Transfer,Aaron Lennon,/aaron-lennon/profil/spieler/14221
+2122,Tonsillitis,2022-04-26,2022-05-08,12,3,injury,Jadon Sancho,/jadon-sancho/profil/spieler/401173
+2122,Transferred to Bor. Dortmund,2021-07-01,2021-07-22,,,Transfer,Jadon Sancho,/jadon-sancho/profil/spieler/401173
+2122,Knee Problems,2021-10-01,2021-10-24,23,3,injury,Kayky,/kayky/profil/spieler/668265
+2122,Transferred to Fluminense,2021-07-01,2021-08-30,,,Transfer,Kayky,/kayky/profil/spieler/668265
+2122,Transferred to Bournemouth,2022-01-31,2022-05-30,,,Transfer,Todd Cantwell,/todd-cantwell/profil/spieler/332341
+2122,Transferred to SD Huesca,2021-07-01,2021-08-16,,,Transfer,Álvaro Fernández,/alvaro-fernandez/profil/spieler/453704
+2122,Transferred to SD Huesca,2022-06-30,2022-06-30,,,Transfer,Álvaro Fernández,/alvaro-fernandez/profil/spieler/453704
+2122,Femoral Fracture,2022-04-30,,401,49,injury,Stuart Dallas,/stuart-dallas/profil/spieler/158764
+2122,Transferred to Real Madrid,2021-07-01,2021-08-19,,,Transfer,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
+2122,Hamstring Injury,2021-12-02,2022-03-14,102,16,injury,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
+2122,Calf Problems,2022-05-01,2022-05-25,24,3,injury,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+2122,Muscle Injury,2021-12-17,2021-12-26,9,1,injury,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+2122,Calf Injury,2021-08-15,2021-10-15,61,8,injury,Jonjo Shelvey,/jonjo-shelvey/profil/spieler/71292
+2122,Muscular problems,2021-12-15,2022-02-15,62,13,injury,Divock Origi,/divock-origi/profil/spieler/148368
+2122,Transferred to Kings Langley,2022-02-26,2022-03-31,,,Transfer,Shaqai Forde,/shaqai-forde/profil/spieler/852517
+2122,Finger Injury,2022-02-23,2022-05-14,80,16,injury,Karl Hein,/karl-hein/profil/spieler/493513
+2122,Transferred to Reading,2022-01-24,2022-03-09,,,Transfer,Karl Hein,/karl-hein/profil/spieler/493513
+2122,Problems with the hip flexor,2022-04-09,2022-04-30,21,5,injury,Fred,/fred/profil/spieler/191614
+2122,Corona virus,2022-02-07,2022-02-14,7,2,injury,Fred,/fred/profil/spieler/191614
+2122,Hamstring Injury,2021-12-19,2022-02-06,49,6,injury,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
+2122,Transferred to RB Leipzig,2021-07-01,2021-08-28,,,Transfer,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
+2122,Transferred to RB Leipzig,2022-06-30,2022-06-30,,,Transfer,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
+2122,Minor Knock,2022-05-12,2022-05-26,14,2,injury,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2122,Knock,2022-02-15,2022-03-07,20,3,injury,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2122,Corona virus,2022-02-03,2022-02-10,7,1,injury,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2122,Groin Injury,2021-09-09,2021-10-04,25,6,injury,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2122,Transferred to Feyenoord,2021-08-31,2022-06-29,,,Transfer,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2122,Red card suspension,2021-08-22,2021-09-25,34,3,suspension,Ayoze Pérez,/ayoze-perez/profil/spieler/246968
+2122,Knee Injury,2021-09-17,2021-11-28,72,11,injury,Luke Ayling,/luke-ayling/profil/spieler/67420
+2122,Medial Collateral Ligament Injury,2021-09-27,2021-12-05,69,9,injury,Granit Xhaka,/granit-xhaka/profil/spieler/111455
+2122,Red card suspension,2021-08-30,2021-09-27,28,2,suspension,Granit Xhaka,/granit-xhaka/profil/spieler/111455
+2122,Thigh muscle rupture,2022-03-10,2022-05-23,74,14,injury,Cenk Tosun,/cenk-tosun/profil/spieler/45671
+2122,Heart Condition,2022-01-13,2022-01-31,18,,injury,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
+2122,Corona virus,2022-01-03,2022-01-13,10,2,injury,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
+2122,Corona virus,2021-08-02,2021-08-16,14,1,injury,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
+2122,Transferred to Barcelona,2022-01-31,2022-06-30,,,Transfer,Pierre-Emerick Aubameyang,/pierre-emerick-aubameyang/profil/spieler/58864
+2122,Unknown Injury,2022-01-07,2022-02-25,49,11,injury,Taylor Richards,/taylor-richards/profil/spieler/484551
+2122,Transferred to Birmingham,2022-01-07,2022-05-30,,,Transfer,Taylor Richards,/taylor-richards/profil/spieler/484551
+2122,groin strain,2022-04-30,2022-06-30,61,5,injury,Sergio Reguilón,/sergio-reguilon/profil/spieler/282429
+2122,Corona virus,2022-02-15,2022-02-22,7,1,injury,Sergio Reguilón,/sergio-reguilon/profil/spieler/282429
+2122,Transferred to Peterborough,2022-01-06,2022-05-30,,,Transfer,Bali Mumba,/bali-mumba/profil/spieler/433186
+2122,Transferred to Barcelona,2022-01-29,2022-06-29,,,Transfer,Adama Traoré,/adama-traore/profil/spieler/204103
+2122,Transferred to Bristol Rovers,2022-01-31,2022-05-30,,,Transfer,Elliot Anderson,/elliot-anderson/profil/spieler/567576
+2122,Corona virus,2022-01-01,2022-01-08,7,1,injury,Alisson,/alisson/profil/spieler/105470
+2122,Back trouble,2022-05-23,2022-06-13,21,,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2122,Ankle Injury,2022-02-25,2022-03-04,7,2,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2122,Transferred to Juventus,2021-07-01,2022-01-30,,,Transfer,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2122,Transferred to 1.FSV Mainz 05,2022-01-30,2022-01-30,,,Transfer,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
+2122,Groin Injury,2022-01-22,2022-03-17,54,10,injury,Nathan Tella,/nathan-tella/profil/spieler/340322
+2122,Corona virus,2021-12-17,2021-12-27,10,1,injury,Nathan Tella,/nathan-tella/profil/spieler/340322
+2122,Corona virus,2022-01-07,2022-01-13,6,2,injury,Edouard Mendy,/edouard-mendy/profil/spieler/442531
+2122,Bruised Rib,2021-09-14,2021-09-24,10,3,injury,Edouard Mendy,/edouard-mendy/profil/spieler/442531
+2122,Transferred to Oldham Athletic,2021-08-07,2022-01-09,,,Transfer,Jamie Bowden,/jamie-bowden/profil/spieler/504051
+2122,Transferred to Grasshoppers,2022-01-31,2022-06-29,,,Transfer,Bruno Jordão,/bruno-jordao/profil/spieler/415646
+2122,Transferred to Forest Green,2022-01-28,2022-05-30,,,Transfer,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
+2122,Achilles tendon problems,2022-02-28,2022-05-02,63,15,injury,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+2122,Transferred to Olympique Lyon,2022-01-31,2022-06-29,,,Transfer,Tanguy Ndombélé,/tanguy-ndombele/profil/spieler/450936
+2122,Ruptured cruciate ligament,2021-11-22,2022-05-19,178,43,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+2122,Transferred to Doncaster,2021-07-19,2022-01-10,,,Transfer,Tiago Cukur,/tiago-cukur/profil/spieler/594276
+2122,Cruciate Ligament Rupture,2021-11-08,2022-07-21,255,39,injury,Angelo Ogbonna,/angelo-ogbonna/profil/spieler/48002
+2122,Testicular Cancer,2021-10-18,2022-03-17,150,23,injury,Daniel Barden,/daniel-barden/profil/spieler/504042
+2122,Transferred to Livingston FC,2021-07-02,2022-05-30,,,Transfer,Daniel Barden,/daniel-barden/profil/spieler/504042
+2122,Hamstring Injury,2021-12-21,2022-04-01,101,18,injury,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
+2122,Transferred to Sunderland,2021-08-16,2022-05-30,,,Transfer,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
+2122,Transferred to R. Strasbourg,2021-08-31,2022-06-29,,,Transfer,Frédéric Guilbert,/frederic-guilbert/profil/spieler/354352
+2122,Surgery,2022-02-27,2022-03-03,4,2,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2122,Hamstring Injury,2022-01-03,2022-01-21,18,5,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2122,Ankle Injury,2022-02-14,2022-02-28,14,4,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
+2122,Achilles tendon problems,2022-02-22,2022-03-03,9,3,injury,Hakim Ziyech,/hakim-ziyech/profil/spieler/217111
+2122,Shoulder Injury,2021-08-12,2021-08-17,5,1,injury,Hakim Ziyech,/hakim-ziyech/profil/spieler/217111
+2122,Called up to national team,2022-01-04,2022-02-06,33,2,absence,Romain Saïss,/romain-saiss/profil/spieler/204198
+2122,Transferred to Crewe Alexandra,2021-08-31,2021-12-31,,,Transfer,J'Neil Bennett,/jneil-bennett/profil/spieler/554174
+2122,groin strain,2021-11-05,2021-12-20,45,8,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+2122,groin strain,2021-08-01,2021-09-30,60,10,injury,Nampalys Mendy,/nampalys-mendy/profil/spieler/111051
+2122,Knee Surgery,2022-02-07,,483,71,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
+2122,Knee Problems,2021-12-26,2022-02-06,42,6,injury,Ryan Bertrand,/ryan-bertrand/profil/spieler/40611
+2122,Transferred to FC Lorient,2021-07-01,2021-08-09,,,Transfer,Yoane Wissa,/yoane-wissa/profil/spieler/388165
+2122,Thigh Problems,2021-09-04,2021-09-13,9,1,injury,Takumi Minamino,/takumi-minamino/profil/spieler/165793
+2122,Transferred to Hull City,2022-01-31,2022-05-30,,,Transfer,Marcus Forss,/marcus-forss/profil/spieler/404584
+2122,Transferred to Heart of Midl.,2022-01-26,2022-05-30,,,Transfer,Ellis Simms,/ellis-simms/profil/spieler/511550
+2122,Transferred to Sheff Utd,2022-01-31,2022-05-30,,,Transfer,Charlie Goode,/charlie-goode/profil/spieler/376856
+2122,Calf Injury,2021-11-07,2021-12-07,30,6,injury,Youri Tielemans,/youri-tielemans/profil/spieler/249565
+2122,Corona virus,2022-04-08,2022-04-11,3,1,injury,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
+2122,Ill,2022-03-10,2022-03-15,5,2,injury,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
+2122,Knock,2022-02-27,2022-03-06,7,3,injury,César Azpilicueta,/cesar-azpilicueta/profil/spieler/57500
+2122,Calf Injury,2021-07-28,2022-01-01,157,20,injury,Paul Dummett,/paul-dummett/profil/spieler/170321
+2122,Corona virus,2022-02-03,2022-02-10,7,2,injury,Alex Telles,/alex-telles/profil/spieler/255755
+2122,Ankle Injury,2021-07-20,2021-09-16,58,5,injury,Alex Telles,/alex-telles/profil/spieler/255755
+2122,Transferred to MK Dons,2021-07-01,2022-01-15,,,Transfer,Josh Martin,/josh-martin/profil/spieler/547534
+2122,Transferred to Doncaster,2022-01-17,2022-05-30,,,Transfer,Josh Martin,/josh-martin/profil/spieler/547534
+2122,Transferred to Gillingham FC,2022-01-04,2022-05-30,,,Transfer,Thomas Dickson-Peters,/thomas-dickson-peters/profil/spieler/566888
+2122,Knee Injury,2021-07-06,2021-08-25,50,3,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
+2122,Transferred to St. Mirren,2021-08-31,2022-05-16,,,Transfer,Connor Ronan,/connor-ronan/profil/spieler/337787
+2122,Corona virus,2021-12-30,2022-01-13,14,3,injury,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
+2122,Fitness,2021-08-08,2021-08-25,17,2,injury,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
+2122,Transferred to Barcelona,2021-07-01,2022-01-06,,,Transfer,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
+2122,Transferred to Barcelona,2022-06-30,2022-06-30,,,Transfer,Philippe Coutinho,/philippe-coutinho/profil/spieler/80444
+2122,Transferred to Paris SG,2021-07-01,2021-07-28,,,Transfer,Alphonse Areola,/alphonse-areola/profil/spieler/120629
+2122,Transferred to Paris SG,2022-06-30,2022-06-30,,,Transfer,Alphonse Areola,/alphonse-areola/profil/spieler/120629
+2122,Shoulder Injury,2021-12-26,2021-12-28,2,1,injury,Dan Burn,/dan-burn/profil/spieler/134270
+2122,Knee Injury,2021-10-27,2021-11-19,23,3,injury,Dan Burn,/dan-burn/profil/spieler/134270
+2122,Torn Knee Ligament,2021-07-31,2021-09-18,49,5,injury,Dan Burn,/dan-burn/profil/spieler/134270
+2122,Shoulder Injury,2022-04-09,2022-04-25,16,2,injury,Lucas Digne,/lucas-digne/profil/spieler/126664
+2122,Hamstring Injury,2022-03-14,2022-03-21,7,1,injury,Lucas Digne,/lucas-digne/profil/spieler/126664
+2122,Groin Surgery,2022-03-01,2022-05-01,61,10,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+2122,Hamstring Injury,2021-12-17,2022-01-14,28,3,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+2122,Thigh Problems,2022-02-26,2022-03-06,8,3,injury,Thiago,/thiago/profil/spieler/60444
+2122,Hip Injury,2021-12-27,2022-02-02,37,7,injury,Thiago,/thiago/profil/spieler/60444
+2122,Corona virus,2021-12-19,2021-12-29,10,3,injury,Thiago,/thiago/profil/spieler/60444
+2122,Calf Injury,2021-09-18,2021-10-31,43,10,injury,Thiago,/thiago/profil/spieler/60444
+2122,Groin Injury,2022-02-18,2022-04-08,49,6,injury,Adam Webster,/adam-webster/profil/spieler/212847
+2122,Calf Injury,2021-12-01,2021-12-25,24,3,injury,Adam Webster,/adam-webster/profil/spieler/212847
+2122,Hamstring Injury,2021-09-11,2021-10-18,37,6,injury,Adam Webster,/adam-webster/profil/spieler/212847
+2122,Corona virus,2021-12-13,2022-01-06,24,2,injury,Josh Brownhill,/josh-brownhill/profil/spieler/293569
+2122,Corona virus,2021-09-01,2021-09-19,18,2,injury,Shane Long,/shane-long/profil/spieler/37304
+2122,Back Injury,2022-03-07,2022-03-15,8,2,injury,Mahmoud Trezeguet,/mahmoud-trezeguet/profil/spieler/234189
+2122,Called up to national team,2022-01-03,2022-02-06,34,2,absence,Mahmoud Trezeguet,/mahmoud-trezeguet/profil/spieler/234189
+2122,Transferred to Basaksehir,2022-02-08,2022-06-29,,,Transfer,Mahmoud Trezeguet,/mahmoud-trezeguet/profil/spieler/234189
+2122,Transferred to Peterborough,2021-08-31,2022-01-04,,,Transfer,Conor Coventry,/conor-coventry/profil/spieler/419025
+2122,Transferred to MK Dons,2022-01-18,2022-05-30,,,Transfer,Conor Coventry,/conor-coventry/profil/spieler/419025
+2122,Ill,2022-04-01,2022-04-06,5,1,injury,Moisés Caicedo,/moises-caicedo/profil/spieler/687626
+2122,Transferred to Beerschot V.A.,2021-08-31,2022-01-11,,,Transfer,Moisés Caicedo,/moises-caicedo/profil/spieler/687626
+2122,Muscular problems,2022-04-03,2022-04-21,18,3,injury,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Corona virus,2022-03-01,2022-03-09,8,1,injury,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Stomach complaints,2022-02-14,2022-02-18,4,1,injury,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Hamstring Injury,2021-11-02,2021-12-22,50,9,injury,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Groin Injury,2021-10-11,2021-10-26,15,3,injury,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Transferred to Real Madrid,2021-07-01,2021-08-13,,,Transfer,Raphaël Varane,/raphael-varane/profil/spieler/164770
+2122,Transferred to DL Pro,2021-07-01,2021-08-30,,,Transfer,Salomón Rondón,/salomon-rondon/profil/spieler/80197

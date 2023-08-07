@@ -26,7 +26,9 @@ HEADERS = {
 }
 
 
-def get_teams_for_season(season: int) -> List[Tuple[str, str, str, set]]:
+def get_teams_for_season(
+    season: int, verbose: bool = False
+) -> List[Tuple[str, str, str, set]]:
     """Get the names and TransferMarkt URLs for all the teams in this season.
 
     Parameters
@@ -34,6 +36,8 @@ def get_teams_for_season(season: int) -> List[Tuple[str, str, str, set]]:
     season : str
         season to query - the year the season started (int), rather than usual str
         representation
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
@@ -42,6 +46,11 @@ def get_teams_for_season(season: int) -> List[Tuple[str, str, str, set]]:
         and the set of the team identifier split by '-' (useful for checking
         if a team played in this season) for each team
     """
+    if verbose:
+        print(
+            f"getting teams that played in {str(season)[2:]}/{str(season+1)[2:]} season"
+        )
+
     # get list of teams
     url_season = (
         f"{TRANSFERMARKT_URL}/premier-league/startseite/wettbewerb/GB1/plus/"
@@ -50,6 +59,7 @@ def get_teams_for_season(season: int) -> List[Tuple[str, str, str, set]]:
     page = requests.get(url_season, headers=HEADERS)
     soup = BeautifulSoup(page.content, features="lxml")
     rows = soup.find_all("td", {"class": "zentriert no-border-rechts"})
+
     return [
         (
             r.a.get("title"),
@@ -79,6 +89,7 @@ def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
     page = requests.get(f"{TRANSFERMARKT_URL}{team_season_url}", headers=HEADERS)
     team_soup = BeautifulSoup(page.content, features="lxml")
     player_rows = team_soup.find_all("td", {"class": "posrela"})
+
     return [
         (r.find_all("a")[-1].get("title"), r.find_all("a")[-1].get("href"))
         for r in player_rows
@@ -100,17 +111,20 @@ def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
     """
     df.columns = df.columns.str.lower()
     df = df.rename(columns={"games missed": "games"})
+
     with contextlib.suppress(AttributeError):
         # can fail with AttributeError if all values are missing
         df["season"] = df["season"].str.replace("/", "")
     df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
     df["from"] = pd.to_datetime(df["from"], format="%b %d, %Y", errors="coerce")
     df["until"] = pd.to_datetime(df["until"], format="%b %d, %Y", errors="coerce")
+
     with contextlib.suppress(AttributeError):
         # can fail with AttributeError if all values are missing
         df["days"] = df["days"].str.replace(f" {days_name}", "")
     df["days"] = df["days"].astype("float").astype("Int32")
     df["games"] = df["games"].astype("float").astype("Int32")
+
     return df.convert_dtypes()
 
 
@@ -132,7 +146,7 @@ def filter_season(df: pd.DataFrame, season: str) -> pd.DataFrame:
     return df[df["season"] == season]
 
 
-def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
+def get_player_injuries(player_profile_url: str, verbose: bool = False) -> pd.DataFrame:
     """Get a player's injury history.
     Example TransferMarkt page:
     https://www.transfermarkt.co.uk/kyle-walker/verletzungen/spieler/95424
@@ -141,12 +155,17 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
     ----------
     player_profile_url : str
         Relative URL to the player's homepage
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
     pd.DataFrame
         Player injuries: type, date, length and games missed
     """
+    if verbose:
+        print(f"getting player injuries for {player_profile_url}")
+
     page = requests.get(
         (
             f"{TRANSFERMARKT_URL}"
@@ -154,9 +173,13 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
         ),
         headers=HEADERS,
     )
+    if verbose:
+        print(f"processing player injuries for {player_profile_url}")
+
     injuries = pd.read_html(page.content, match="Injury")[0]
     injuries = injuries.rename(columns={"Injury": "Details"})
     injuries["Reason"] = "injury"
+
     return tidy_df(injuries, days_name="days")
 
 
@@ -165,7 +188,10 @@ def get_reason(details: str) -> str:
     return "suspension" if "suspen" in details.lower() else "absence"
 
 
-def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
+def get_player_suspensions(
+    player_profile_url: str,
+    verbose: bool = False,
+) -> pd.DataFrame:
     """Get a players non-injury unavailability history (suspensions and other reasons)
     Example TransferMarkt page:
     https://www.transfermarkt.co.uk/kyle-walker/ausfaelle/spieler/95424
@@ -174,28 +200,38 @@ def get_player_suspensions(player_profile_url: str) -> pd.DataFrame:
     ----------
     player_profile_url : str
         Relative URL to the player's homepage
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
     pd.DataFrame
         Player unavailability: reason, competition, date, length, games missed
     """
+    if verbose:
+        print(f"getting player suspensions for {player_profile_url}")
+
     p = requests.get(
         f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/ausfaelle/')}",
         headers=HEADERS,
     )
-    suspended = pd.read_html(p.content, match="Absence/Suspension")[0]
 
+    if verbose:
+        print(f"processing player suspensions for {player_profile_url}")
+
+    suspended = pd.read_html(p.content, match="Absence/Suspension")[0]
     player_soup = BeautifulSoup(p.content, features="lxml")
+
     comp = []
     for row in player_soup.find_all("table")[0].find_all("tr")[1:]:
         try:
             comp.append(row.find_all("img")[0].get("title"))
         except IndexError:
             comp.append("")
-    suspended["competition"] = comp
+    suspended["Competition"] = comp
     suspended = suspended.rename(columns={"Absence/Suspension": "Details"})
     suspended["Reason"] = [get_reason(detail) for detail in suspended["Details"]]
+
     return tidy_df(suspended, days_name="Tage")
 
 
@@ -217,10 +253,49 @@ def get_players_for_season(season: int) -> List[Tuple[str, str]]:
     players = set()
     for _, team_url, __, ___ in tqdm(teams):
         players.update(get_team_players(team_url))
+
     return list(players)
 
 
-def get_player_transfers(player_profile_url: str) -> pd.DataFrame:
+def remove_youth_or_reserve_suffix(team_name: str) -> str:
+    """Removes any youth or reserve team suffixes,
+    e.g. "-youth", "-b", "-u18", "-u21", "-u23", etc.
+
+    This may cause confusion later to say a player is unavailable
+    just because they're in the youth team. This does not in
+    practice mean they are unable to play in a premier league game
+
+    Parameters
+    ----------
+    team_name : str
+        team name given by TM, e.g. arsenal-fc or arsenal-fc-u21
+
+    Returns
+    -------
+    str
+        team name but with youth or reserve team suffixes removed
+    """
+    suffix_to_remove = [
+        "-youth",
+        "-b",
+        "u16",
+        "-u17",
+        "-u18",
+        "u19",
+        "-u20",
+        "-u21",
+        "-u23",
+    ]
+    for suffix in suffix_to_remove:
+        if team_name.endswith(suffix):
+            team_name = team_name[: -len(suffix)]
+    return team_name
+
+
+def get_player_transfers(
+    player_profile_url: str,
+    verbose: bool = False,
+) -> pd.DataFrame:
     """Get a player's transfer history.
     Example TransferMarkt page:
     https://www.transfermarkt.co.uk/kyle-walker/transfers/spieler/95424
@@ -229,12 +304,17 @@ def get_player_transfers(player_profile_url: str) -> pd.DataFrame:
     ----------
     player_profile_url : str
         Relative URL to the player's homepage
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
     pd.DataFrame
         Player transfers: season, date, old team and new team
     """
+    if verbose:
+        print(f"getting player transfer history for {player_profile_url}")
+
     page = requests.get(
         (
             f"{TRANSFERMARKT_URL}"
@@ -242,11 +322,16 @@ def get_player_transfers(player_profile_url: str) -> pd.DataFrame:
         ),
         headers=HEADERS,
     )
+
+    if verbose:
+        print(f"processing player transfer history for {player_profile_url}")
+
     soup = BeautifulSoup(page.text, "lxml")
     raw = pd.DataFrame()
     n_transfers = len(
         soup.find_all("div", class_="tm-player-transfer-history-grid__season")
     )
+
     for i in range(1, n_transfers):
         # obtain season and date of transfer
         season = " ".join(
@@ -283,8 +368,8 @@ def get_player_transfers(player_profile_url: str) -> pd.DataFrame:
                             date,
                             old_club,
                             new_club,
-                            old_tm_identifier,
-                            new_tm_identifier,
+                            remove_youth_or_reserve_suffix(old_tm_identifier),
+                            remove_youth_or_reserve_suffix(new_tm_identifier),
                             old_link,
                             new_link,
                         ]
@@ -304,6 +389,7 @@ def get_player_transfers(player_profile_url: str) -> pd.DataFrame:
         "new_link",
     ]
     raw["date"] = pd.to_datetime(raw["date"], format="%b %d, %Y", errors="coerce")
+
     return raw.iloc[::-1]
 
 
@@ -331,13 +417,14 @@ def get_player_team_history(
     """
     teams_df = pd.DataFrame()
     current_season = "".join(df.iloc[0]["season"].split("/"))
-    diff = int(current_season[:2]) - int(end_season[:2])
+    diff = int(current_season[:2]) - int(end_season[2:])
     for i in range(abs(diff)):
         season_df = df[df["season"] == f"{current_season[:2]}/{current_season[2:]}"]
         start, end = get_start_end_dates_of_season(current_season)
         if current_season not in pl_teams_in_season:
             teams = get_teams_for_season(season_str_to_year(current_season))
             pl_teams_in_season[current_season] = [teams[i][3] for i in range(20)]
+
         if len(season_df) == 0:
             # if no transfer data, player continued at current club that year
             teams_df = pd.concat(
@@ -358,6 +445,7 @@ def get_player_team_history(
                     ),
                 ]
             )
+
         for i in range(len(season_df)):
             transfer_date = season_df.iloc[i]["date"]
             if i == 0 and transfer_date > start:
@@ -400,15 +488,16 @@ def get_player_team_history(
                             ),
                         ]
                     )
+
             # decide how long this player was at the club that season
+            # by default, player will be until the end of the year unless they moved
+            to_entry = end
             if i != len(season_df) - 1:
                 # player left before the end of the year, so end this entry at this time
                 to_date = season_df.iloc[i + 1]["date"] - pd.DateOffset(days=1)
                 if to_date < end:
                     to_entry = to_date
-            else:
-                # player stayed until the end of the year
-                to_entry = end
+
             teams_df = pd.concat(
                 [
                     teams_df,
@@ -427,8 +516,11 @@ def get_player_team_history(
                     ),
                 ]
             )
+
         current_season = get_next_season(current_season)
+
     teams_df.columns = ["season", "team", "team_tm", "from", "until", "pl"]
+
     return teams_df
 
 
@@ -436,6 +528,7 @@ def get_player_transfer_unavailability(
     player_profile_url: str,
     pl_teams_in_season: dict = {},
     end_season: str = CURRENT_SEASON,
+    verbose: bool = False,
 ) -> pd.DataFrame:
     """Get a player's unavailability from transfers
     Example TransferMarkt page:
@@ -450,6 +543,8 @@ def get_player_transfer_unavailability(
         teams that played in that season (obtained with get_teams_for_season())
     end_season : str
         Where to stop the function getting data for. Default set to CURRENT_SEASON
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
@@ -457,12 +552,20 @@ def get_player_transfer_unavailability(
         Player's unavailability due to transfers: season,
         details, reason, from, until, days, games missed
     """
+    if verbose:
+        print(f"getting player transfer unavailability for {player_profile_url}")
+
     transfer_history = get_player_team_history(
         df=get_player_transfers(player_profile_url),
         pl_teams_in_season=pl_teams_in_season,
         end_season=end_season,
     )
+
+    if verbose:
+        print(f"processing player transfer unavailability for {player_profile_url}")
+
     unavailability = transfer_history[~transfer_history["pl"]]
+
     return pd.DataFrame(
         {
             "season": unavailability["season"],
@@ -477,7 +580,9 @@ def get_player_transfer_unavailability(
 
 
 def get_season_absences(
-    season: str, pl_teams_in_season: dict = {}
+    season: str,
+    pl_teams_in_season: dict = {},
+    verbose: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Get injury and suspension data for a season
 
@@ -485,6 +590,8 @@ def get_season_absences(
     ----------
     season : str
         Season to query in "1819" format (for 2018/19 season)
+    verbose : bool
+        Whether or not to print out information on progress
 
     Returns
     -------
@@ -492,25 +599,34 @@ def get_season_absences(
         Injury and suspension data frames for all players in this season
     """
     year = season_str_to_year(season)
-    print("Finding players...")
+    if verbose:
+        print("Finding players...")
+
     players = get_players_for_season(year)
     absences = []
-    print("Querying injuries, suspensions and transfers...")
+    if verbose:
+        print("Querying injuries, suspensions and transfers...")
+
     for player_name, player_url in tqdm(players):
         with contextlib.suppress(ValueError, IndexError):
-            inj = get_player_injuries(player_url)
+            inj = get_player_injuries(player_profile_url=player_url, verbose=verbose)
             inj["player"] = player_name
             inj["url"] = player_url
             absences.append(inj)
         with contextlib.suppress(ValueError, IndexError):
-            sus = get_player_suspensions(player_url)
+            sus = get_player_suspensions(player_profile_url=player_url, verbose=verbose)
             sus = sus[sus["competition"] == "Premier League"]
             sus = sus.drop("competition", axis=1)
             sus["player"] = player_name
             sus["url"] = player_url
             absences.append(sus)
         with contextlib.suppress(ValueError, IndexError):
-            tran = get_player_transfer_unavailability(player_url, pl_teams_in_season)
+            tran = get_player_transfer_unavailability(
+                player_profile_url=player_url,
+                pl_teams_in_season=pl_teams_in_season,
+                end_season=season,
+                verbose=verbose,
+            )
             tran["player"] = player_name
             tran["url"] = player_url
             absences.append(tran)
@@ -519,23 +635,32 @@ def get_season_absences(
     return filter_season(absences, season)
 
 
-def scrape_transfermarkt(seasons: List[str]):
+def scrape_transfermarkt(seasons: List[str], verbose: bool = False):
     """Get all player injury and suspension data for mutiple seasons
 
     Parameters
     ----------
     seasons : List[str]
         seasons to query in format "1819" (for 2018/19 season)
+    verbose : bool
+        Whether or not to print out information on progress
     """
     REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
 
+    # get the teams that played in each season we want to scrape
+    pl_teams = {}
+    for s in seasons:
+        teams_in_s = get_teams_for_season(season_str_to_year(s), verbose=verbose)
+        pl_teams[s] = [teams_in_s[i][3] for i in range(20)]
+
     for season in tqdm(seasons):
-        print(f"Season: {season}")
-        pl_teams = {
-            s: [get_teams_for_season(season_str_to_year(s))[i][3] for i in range(20)]
-            for s in seasons
-        }
-        absences = get_season_absences(season, pl_teams_in_season=pl_teams)
+        if verbose:
+            print("-" * 50)
+            print(f"Season: {season}")
+
+        absences = get_season_absences(
+            season, pl_teams_in_season=pl_teams, verbose=verbose
+        )
         absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
 
 
@@ -552,11 +677,21 @@ def main():
         type=str,
         default=CURRENT_SEASON,
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help=(
+            "Which season(s) to update (comma separated, e.g. 2021,2122 "
+            "for 2020/21 and 2021/22 seasons)"
+        ),
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
     seasons = args.season.split(",")
     seasons = [s.strip() for s in seasons]
-    scrape_transfermarkt(seasons)
+    scrape_transfermarkt(seasons, args.verbose)
 
 
 if __name__ == "__main__":
-    main(["1516", "1617", "1718", "1819", "1920", "2021", "2122", "2223"])
+    main()
