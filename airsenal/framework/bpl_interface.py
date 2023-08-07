@@ -89,7 +89,7 @@ def get_training_data(
     season: str,
     gameweek: int,
     dbsession: Session,
-    ratings: bool = True,
+    ratings: bool = False,
 ):
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
@@ -134,7 +134,7 @@ def add_new_teams_to_model(
     ],
     season: str,
     dbsession: Session,
-    ratings: bool = True,
+    ratings: bool = False,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
@@ -157,7 +157,7 @@ def get_fitted_team_model(
     season: str,
     gameweek: int,
     dbsession: Session,
-    ratings: bool = True,
+    ratings: bool = False,
     model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
@@ -184,14 +184,11 @@ def get_fitted_team_model(
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    team_model: Optional[
+    model: Optional[
         Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]
     ] = None,
     dbsession: Session = session,
-    ratings: bool = True,
-    model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
+    ratings: bool = False,
     **fit_args,
 ) -> pd.DataFrame:
     """
@@ -199,35 +196,39 @@ def fixture_probabilities(
     frame with a row for each fixture and columns being home_team,
     away_team, home_win_probability, draw_probability, away_win_probability.
 
-    If no team_model is passed, it will fit a model of type model.
+    If no model is passed, it will fit a ExtendedDixonColesMatchPredictor model
+    by default.
     """
-    # fit team model if none is passed
-    if team_model is None:
-        team_model = get_fitted_team_model(
+
+    # fit team model if none is passed or if it is not fitted yet
+    # (model.teams will be None if so)
+    if model is None or model.teams is None:
+        model = get_fitted_team_model(
             season=season,
             gameweek=gameweek,
             dbsession=dbsession,
             ratings=ratings,
-            model=model,
+            model=ExtendedDixonColesMatchPredictor(),
             **fit_args,
         )
+
     # obtain fixtures
     fixtures = get_fixture_teams(
         get_fixtures_for_gameweek(gameweek=gameweek, season=season, dbsession=dbsession)
     )
     home_teams, away_teams = zip(*fixtures)
     # obtain match probabilities
-    if isinstance(team_model, ExtendedDixonColesMatchPredictor):
-        probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
-    elif isinstance(team_model, NeutralDixonColesMatchPredictor):
-        probabilities = team_model.predict_outcome_proba(
+    if isinstance(model, ExtendedDixonColesMatchPredictor):
+        probabilities = model.predict_outcome_proba(home_teams, away_teams)
+    elif isinstance(model, NeutralDixonColesMatchPredictor):
+        probabilities = model.predict_outcome_proba(
             home_teams, away_teams, neutral_venue=np.zeros(len(home_teams))
         )
     else:
         raise NotImplementedError(
-            "team_model must be either of type "
-            + "'ExtendedDixonColesMatchPredictor' or "
-            + "'NeutralDixonColesMatchPredictor'"
+            "model must be either of type "
+            "'ExtendedDixonColesMatchPredictor' or "
+            "'NeutralDixonColesMatchPredictor'"
         )
     return pd.DataFrame(
         {

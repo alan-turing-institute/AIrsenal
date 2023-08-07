@@ -100,7 +100,7 @@ def calc_all_predicted_points(
     Do the full prediction for players.
     """
     model_team = get_fitted_team_model(
-        season,
+        season=season,
         gameweek=min(gw_range),
         dbsession=dbsession,
         model=team_model,

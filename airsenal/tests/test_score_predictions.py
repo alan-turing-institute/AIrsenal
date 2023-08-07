@@ -336,36 +336,40 @@ def test_fixture_probabilities():
     # extended model
     with test_past_data_session_scope() as ts:
         extended = ExtendedDixonColesMatchPredictor()
-        df = fixture_probabilities(20, "1819", dbsession=ts, model=extended)
+        df = fixture_probabilities(
+            gameweek=20, season="1819", model=extended, dbsession=ts
+        )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
     # extended model with epsilon = 0.0 by default
     with test_past_data_session_scope() as ts:
-        df = fixture_probabilities(20, "1819", dbsession=ts)
+        df = fixture_probabilities(gameweek=20, season="1819", dbsession=ts)
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
     # extended model with epsilon = 0.5
     with test_past_data_session_scope() as ts:
         extended = ExtendedDixonColesMatchPredictor()
         df = fixture_probabilities(
-            20, "1819", dbsession=ts, model=extended, epsilon=0.5
+            gameweek=20, season="1819", model=extended, dbsession=ts, epsilon=0.5
         )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
     # neutral model with epsilon = 0.5
     with test_past_data_session_scope() as ts:
         neutral = NeutralDixonColesMatchPredictor()
-        df = fixture_probabilities(20, "1819", dbsession=ts, model=neutral, epsilon=0.5)
+        df = fixture_probabilities(
+            gameweek=20, season="1819", model=neutral, dbsession=ts, epsilon=0.5
+        )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
     # neutral model with no epsilon passed
     with test_past_data_session_scope() as ts:
         neutral = NeutralDixonColesMatchPredictor()
         df = fixture_probabilities(
-            20,
-            "1819",
-            dbsession=ts,
+            gameweek=20,
+            season="1819",
             model=neutral,
+            dbsession=ts,
         )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
