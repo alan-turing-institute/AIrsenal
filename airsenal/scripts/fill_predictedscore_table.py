@@ -91,9 +91,9 @@ def calc_all_predicted_points(
     player_model: Union[
         NumpyroPlayerModel, ConjugatePlayerModel
     ] = ConjugatePlayerModel(),
-    team_model_class: Union[
+    team_model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor,
+    ] = ExtendedDixonColesMatchPredictor(),
     team_model_args: dict = {"epsilon": 0.0},
 ) -> None:
     """
@@ -103,7 +103,7 @@ def calc_all_predicted_points(
         season,
         gameweek=min(gw_range),
         dbsession=dbsession,
-        model_class=team_model_class,
+        model=team_model,
         **team_model_args
     )
     print("Calculating fixture score probabilities...")
@@ -193,9 +193,9 @@ def make_predictedscore_table(
     player_model: Union[
         NumpyroPlayerModel, ConjugatePlayerModel
     ] = ConjugatePlayerModel(),
-    team_model_class: Union[
+    team_model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor,
+    ] = ExtendedDixonColesMatchPredictor(),
     team_model_args: dict = {"epsilon": 0.0},
     dbsession: Session = session,
 ) -> str:
@@ -213,7 +213,7 @@ def make_predictedscore_table(
         num_thread=num_thread,
         tag=tag,
         player_model=player_model,
-        team_model_class=team_model_class,
+        team_model=team_model,
         team_model_args=team_model_args,
     )
     return tag
@@ -259,7 +259,7 @@ def main():
         help="which team model to fit",
         type=str,
         choices=["extended", "neutral"],
-        default="neutral",
+        default="extended",
     )
     parser.add_argument(
         "--epsilon",
@@ -283,6 +283,10 @@ def main():
         player_model = NumpyroPlayerModel()
     else:
         player_model = ConjugatePlayerModel()
+    if args.team_model == "extended":
+        team_model = ExtendedDixonColesMatchPredictor()
+    elif args.team_model == "neutral":
+        team_model = NeutralDixonColesMatchPredictor()
 
     set_multiprocessing_start_method()
 
@@ -297,7 +301,7 @@ def main():
             include_cards=include_cards,
             include_saves=include_saves,
             player_model=player_model,
-            team_model=args.team_model,
+            team_model=team_model,
             team_model_args={"epsilon": args.epsilon},
             dbsession=session,
         )

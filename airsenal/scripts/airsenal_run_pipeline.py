@@ -98,7 +98,7 @@ from airsenal.scripts.update_db import update_db
     "--team_model",
     help="which team model to fit",
     type=click.Choice(["extended", "neutral"]),
-    default="neutral",
+    default="extended",
 )
 @click.option(
     "--epsilon",
