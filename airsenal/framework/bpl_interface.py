@@ -202,13 +202,24 @@ def fixture_probabilities(
 
     # fit team model if none is passed or if it is not fitted yet
     # (model.teams will be None if so)
-    if model is None or model.teams is None:
+    if model is None:
+        # fit extended model by default
         model = get_fitted_team_model(
             season=season,
             gameweek=gameweek,
             dbsession=dbsession,
             ratings=ratings,
             model=ExtendedDixonColesMatchPredictor(),
+            **fit_args,
+        )
+    elif model.teams is None:
+        # model is not fit yet, so will need to fit
+        model = get_fitted_team_model(
+            season=season,
+            gameweek=gameweek,
+            dbsession=dbsession,
+            ratings=ratings,
+            model=model,
             **fit_args,
         )
 
