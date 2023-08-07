@@ -32,7 +32,6 @@ def lambda_handler(event, context):
 
     response_text = "A.I. Arsenal forever."
     if event["request"]["intent"]["name"] == "Question":
-
         try:
             if "value" in event["request"]["intent"]["slots"]["Topic"].keys():
                 topic = event["request"]["intent"]["slots"]["Topic"]["value"]

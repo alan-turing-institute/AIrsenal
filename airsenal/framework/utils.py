@@ -2,6 +2,7 @@
 Useful commands to query the db
 """
 
+import warnings
 from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
@@ -321,8 +322,6 @@ def get_current_squad_from_api(fpl_team_id, apifetcher=fetcher):
     Return a list [(player_id, purchase_price)] from the current picks.
     Requires the data fetcher to be logged in.
     """
-    if not apifetcher.logged_in:
-        apifetcher.login()
     picks = apifetcher.get_current_picks(fpl_team_id)
     players_prices = [
         (get_player_from_api_id(p["element"]).player_id, p["purchase_price"])
@@ -340,26 +339,30 @@ def get_bank(
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
-    if season == CURRENT_SEASON:
-        # we will use the API to estimate the bank
-        if not fpl_team_id:
-            fpl_team_id = fetcher.FPL_TEAM_ID
-        # check if we're logged in, which will let us get the most up-to-date info
-        if apifetcher.logged_in:
-            return apifetcher.get_current_bank(fpl_team_id)
-        else:
-            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
-            if "current" not in data.keys() or len(data["current"]) <= 0:
-                return 0
-
-            if gameweek and isinstance(gameweek, int):
-                for gw in data["current"]:
-                    if gw["event"] == gameweek - 1:  # value after previous gameweek
-                        return gw["bank"]
-            # otherwise, return the most recent value
-            return data["current"][-1]["bank"]
-    else:
+    if season != CURRENT_SEASON:
         raise RuntimeError("Calculating the bank for past seasons not yet implemented")
+
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    # check if we're logged in, which will let us get the most up-to-date info
+    try:
+        return apifetcher.get_current_bank(fpl_team_id)
+    except requests.exceptions.RequestException as e:
+        warnings.warn(
+            f"Failed to get actual bank from a logged in API:\n{e}\n"
+            "Will try to estimate it from the API without logging in, which will "
+            "not include any transfers made in the current gameweek."
+        )
+        data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+        if "current" not in data.keys() or len(data["current"]) <= 0:
+            return 0
+
+        if gameweek and isinstance(gameweek, int):
+            for gw in data["current"]:
+                if gw["event"] == gameweek - 1:  # value after previous gameweek
+                    return gw["bank"]
+        # otherwise, return the most recent value
+        return data["current"][-1]["bank"]
 
 
 def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
@@ -367,14 +370,26 @@ def get_entry_start_gameweek(fpl_team_id, apifetcher=fetcher):
     Find the gameweek an FPL team ID was entered in by searching for the first gameweek
     the API has 'picks' for.
     """
-    init_players = []
-    starting_gw = 0
-    while not init_players and starting_gw < NEXT_GAMEWEEK:
-        starting_gw += 1
-        init_players = get_players_for_gameweek(
-            starting_gw, fpl_team_id, apifetcher=apifetcher
-        )
-    return starting_gw
+    starting_gw = 1
+    while starting_gw < NEXT_GAMEWEEK:
+        try:
+            if get_players_for_gameweek(
+                starting_gw, fpl_team_id, apifetcher=apifetcher
+            ):
+                return starting_gw
+            starting_gw += 1
+        except requests.exceptions.HTTPError:
+            starting_gw += 1
+        except requests.exceptions.ConnectionError as e:
+            warnings.warn(
+                f"Failed to connect to the API:\n{e}\n. "
+                "Assuming team {fpl_team_id} was entered in GW1 which may be incorrect."
+            )
+            return 1
+
+    # if we failed to find picks in any gameweek, or we're before the start of the
+    # season, assume this team ID was entered in NEXT_GAMEWEEK
+    return NEXT_GAMEWEEK
 
 
 def get_free_transfers(
@@ -395,49 +410,64 @@ def get_free_transfers(
         # we will use the API to estimate num transfers
         if not fpl_team_id:
             fpl_team_id = apifetcher.FPL_TEAM_ID
-        # check if we're logged in, which will let us get the most up-to-date info
-        if apifetcher.logged_in:
-            return apifetcher.get_num_free_transfers(fpl_team_id)
-        # try to calculate free transfers based on previous transfer history
-        data = apifetcher.get_fpl_team_history_data(fpl_team_id)
-        num_free_transfers = 1
-        if "current" in data.keys() and len(data["current"]) > 0:
-            starting_gw = get_entry_start_gameweek(fpl_team_id, apifetcher=apifetcher)
-            for gw in data["current"]:
-                if gw["event"] <= starting_gw:
-                    continue
-                if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                    num_free_transfers += 1
-                elif gw["event_transfers"] >= 2:
-                    num_free_transfers = 1
-                # if gameweek was specified, and we reached the previous one,
-                # break out of loop.
-                if gameweek and gw["event"] == gameweek - 1:
-                    break
 
-    else:
-        # historical/simulated data - fetch from database
-        transactions = (
-            dbsession.query(Transaction)
-            .order_by(Transaction.gameweek, Transaction.id)
-            .filter_by(fpl_team_id=fpl_team_id)
-            .filter_by(bought_or_sold=1)
-            .all()
-        )
-        if len(transactions) == 0:
-            return 1
-        starting_gw = transactions[0].gameweek
-        gw_transactions = {}
-        for t in transactions:
-            if t.gameweek not in gw_transactions:
-                gw_transactions[t.gameweek] = 0
-            gw_transactions[t.gameweek] += 1
-        num_free_transfers = 1
-        for prev_gw in range(starting_gw + 1, gameweek):
-            if prev_gw not in gw_transactions:
-                num_free_transfers = 2
-            elif gw_transactions[prev_gw] >= 2:
-                num_free_transfers = 1
+        # try to get the most up-to-date info from logged in api
+        try:
+            return apifetcher.get_num_free_transfers(fpl_team_id)
+        except requests.exceptions.RequestException as e:
+            warnings.warn(
+                f"Failed to get actual free transfers from a logged in API:\n{e}\n"
+                "Will try to estimate it from the API without logging in, which will "
+                "not include any transfers used in the current gameweek."
+            )
+        # try to calculate free transfers based on previous transfer history in API
+        try:
+            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            num_free_transfers = 1
+            if "current" in data.keys() and len(data["current"]) > 0:
+                starting_gw = get_entry_start_gameweek(
+                    fpl_team_id, apifetcher=apifetcher
+                )
+                for gw in data["current"]:
+                    if gw["event"] <= starting_gw:
+                        continue
+                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
+                        num_free_transfers += 1
+                    elif gw["event_transfers"] >= 2:
+                        num_free_transfers = 1
+                    # if gameweek was specified, and we reached the previous one,
+                    # break out of loop.
+                    if gameweek and gw["event"] == gameweek - 1:
+                        break
+            return num_free_transfers
+        except requests.exceptions.RequestException as e:
+            warnings.warn(
+                f"Failed to estimate free transfers from the API:\n{e}\n"
+                "Will estimate from the DB instead, which may be out of date."
+            )
+
+    # historical/simulated data or API failed - fetch from database
+    transactions = (
+        dbsession.query(Transaction)
+        .order_by(Transaction.gameweek, Transaction.id)
+        .filter_by(fpl_team_id=fpl_team_id)
+        .filter_by(bought_or_sold=1)
+        .all()
+    )
+    if len(transactions) == 0:
+        return 1
+    starting_gw = transactions[0].gameweek
+    gw_transactions = {}
+    for t in transactions:
+        if t.gameweek not in gw_transactions:
+            gw_transactions[t.gameweek] = 0
+        gw_transactions[t.gameweek] += 1
+    num_free_transfers = 1
+    for prev_gw in range(starting_gw + 1, gameweek):
+        if prev_gw not in gw_transactions:
+            num_free_transfers = 2
+        elif gw_transactions[prev_gw] >= 2:
+            num_free_transfers = 1
 
     return num_free_transfers
 
@@ -858,16 +888,14 @@ def get_players_for_gameweek(gameweek, fpl_team_id=None, apifetcher=fetcher):
     """
     if not fpl_team_id:
         fpl_team_id = apifetcher.FPL_TEAM_ID
-    try:
-        player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
-        player_api_id_list = [p["element"] for p in player_data]
-        player_list = [
-            get_player_from_api_id(api_id).player_id
-            for api_id in player_api_id_list
-            if get_player_from_api_id(api_id)
-        ]
-    except TypeError:
-        return []
+
+    player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
+    player_api_id_list = [p["element"] for p in player_data]
+    player_list = [
+        get_player_from_api_id(api_id).player_id
+        for api_id in player_api_id_list
+        if get_player_from_api_id(api_id)
+    ]
     return player_list
 
 

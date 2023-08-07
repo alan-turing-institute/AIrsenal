@@ -2,7 +2,7 @@
 ___init__.py for airsenal
 """
 
-import pkg_resources
+from importlib.metadata import version
 
 # AIrsenal package version.
-__version__ = pkg_resources.get_distribution(__name__).version
+__version__ = version(__name__)

@@ -19,7 +19,6 @@ from airsenal.framework.utils import session
 
 
 def main():
-
     # Dump Player database
     player_fieldnames = ["player_id", "name"]
     save_table_fields(
