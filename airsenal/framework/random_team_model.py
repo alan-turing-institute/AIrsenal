@@ -20,7 +20,6 @@ class RandomMatchPredictor(BaseMatchPredictor):
         training_data: Dict[str, Union[Iterable[str], Iterable[float]]],
         random_state: int = 42,
     ):
-
         home_team = training_data["home_team"]
         away_team = training_data["away_team"]
         self.teams = sorted(list(set(home_team) | set(away_team)))
@@ -43,7 +42,6 @@ class RandomMatchPredictor(BaseMatchPredictor):
         home_goals: Union[int, Iterable[int]],
         away_goals: Union[int, Iterable[int]],
     ) -> np.array:
-
         home_team = [home_team] if isinstance(home_team, str) else home_team
         away_team = [away_team] if isinstance(away_team, str) else away_team
 

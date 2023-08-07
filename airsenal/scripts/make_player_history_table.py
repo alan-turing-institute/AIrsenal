@@ -47,6 +47,5 @@ def get_player_history_table(position: str = "all") -> None:
 
 
 if __name__ == "__main__":
-
     for position in ["GK", "DEF", "MID", "FWD"]:
         get_player_history_table(position)
