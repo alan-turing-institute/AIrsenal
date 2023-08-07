@@ -107,7 +107,7 @@ def get_training_data(
 
 def create_and_fit_team_model(
     training_data: dict,
-    model_class: Union[
+    model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
     **fit_args,
@@ -116,21 +116,14 @@ def create_and_fit_team_model(
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
-    if isinstance(model_class(), ExtendedDixonColesMatchPredictor):
-        if not fit_args:
-            fit_args = {}
-        if "epsilon" in fit_args:
-            # epsilon not required in fitting extended model
-            del fit_args["epsilon"]
-    elif isinstance(model_class(), NeutralDixonColesMatchPredictor):
-        if not fit_args:
-            fit_args = {}
-        if "epsilon" in fit_args:
-            print(f"Fitting Neutral model with epsilon = {fit_args['epsilon']}")
-        else:
-            print("Fitting Neutral model but no epsilon passed, so setting epsilon = 0")
+    if not fit_args:
+        fit_args = {}
+    if "epsilon" in fit_args:
+        print(f"Fitting {model} model with epsilon = {fit_args['epsilon']}")
+    else:
+        print(f"Fitting {model} model but no epsilon passed, so setting epsilon = 0")
 
-    return model_class().fit(training_data, **fit_args)
+    return model.fit(training_data=training_data, **fit_args)
 
 
 def add_new_teams_to_model(
@@ -145,7 +138,7 @@ def add_new_teams_to_model(
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
     """
-    teams = get_teams_for_season(season, dbsession=dbsession)
+    teams = get_teams_for_season(season=season, dbsession=dbsession)
     for t in teams:
         if t not in team_model.teams:
             if ratings:
@@ -163,15 +156,15 @@ def get_fitted_team_model(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    model_class: Union[
+    model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor,
+    ] = ExtendedDixonColesMatchPredictor(),
     **fit_args,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
-    print(f"Fitting team model ({type(model_class())})...")
+    print(f"Fitting team model ({type(model)})...")
     training_data = get_training_data(
         season=season,
         gameweek=gameweek,
@@ -179,7 +172,7 @@ def get_fitted_team_model(
         ratings=ratings,
     )
     team_model = create_and_fit_team_model(
-        training_data=training_data, model_class=model_class, **fit_args
+        training_data=training_data, model=model, **fit_args
     )
     return add_new_teams_to_model(
         team_model=team_model, season=season, dbsession=dbsession, ratings=ratings
@@ -194,9 +187,9 @@ def fixture_probabilities(
     ] = None,
     dbsession: Session = session,
     ratings: bool = True,
-    model_class: Union[
+    model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor,
+    ] = ExtendedDixonColesMatchPredictor(),
     **fit_args,
 ) -> pd.DataFrame:
     """
@@ -204,21 +197,24 @@ def fixture_probabilities(
     frame with a row for each fixture and columns being home_team,
     away_team, home_win_probability, draw_probability, away_win_probability.
 
-    If no team_model is passed, it will fit a model of type model_class.
+    If no team_model is passed, it will fit a model of type model.
     """
+    # fit team model if none is passed
     if team_model is None:
         team_model = get_fitted_team_model(
             season=season,
             gameweek=gameweek,
             dbsession=dbsession,
             ratings=ratings,
-            model_class=model_class,
+            model=model,
             **fit_args,
         )
+    # obtain fixtures
     fixtures = get_fixture_teams(
         get_fixtures_for_gameweek(gameweek=gameweek, season=season, dbsession=dbsession)
     )
     home_teams, away_teams = zip(*fixtures)
+    # obtain match probabilities
     if isinstance(team_model, ExtendedDixonColesMatchPredictor):
         probabilities = team_model.predict_outcome_proba(home_teams, away_teams)
     elif isinstance(team_model, NeutralDixonColesMatchPredictor):
