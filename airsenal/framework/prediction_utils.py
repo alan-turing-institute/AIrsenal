@@ -26,7 +26,14 @@ from airsenal.framework.player_model import (
     NumpyroPlayerModel,
     get_empirical_bayes_estimates,
 )
-from airsenal.framework.schema import Fixture, Player, PlayerPrediction, PlayerScore
+from airsenal.framework.schema import (
+    Absence,
+    Fixture,
+    Player,
+    PlayerAttributes,
+    PlayerPrediction,
+    PlayerScore,
+)
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -48,15 +55,48 @@ np.random.seed(42)
 MAX_GOALS = 10
 
 
+def check_absence(player, gameweek, season, dbsession=session):
+    """
+    Query the Absence table for a given player and season to see if the
+    gameweek is within the period of absence. If so, return the details of absence.
+
+    Returns: the Absence object (which may be empty if there was no absence)
+    """
+    absence = (
+        dbsession.query(Absence)
+        .filter_by(season=season)
+        .filter_by(player=player)
+        .filter(Absence.gw_from < gameweek)
+        .filter(Absence.gw_until > gameweek)
+    ).all()
+    # save the reasons and details - there may be more than 1 reason for absence
+    reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
+    details = [ab.details for ab in absence] if len(absence) > 0 else None
+    # for those that just have one reason, just take first element of list
+    if reasons is not None:
+        reasons = reasons[0] if len(reasons) == 1 else reasons
+    if details is not None:
+        details = details[0] if len(details) == 1 else details
+    return reasons, details
+
+
 def get_player_history_df(
-    position: str = "all",
-    season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Session = session,
+    position="all",
+    all_players=False,
+    fill_blank=True,
+    season=CURRENT_SEASON,
+    gameweek=NEXT_GAMEWEEK,
+    dbsession=session,
 ) -> pd.DataFrame:
     """
     Query the player_score table to get goals/assists/minutes, and then
     get the team_goals from the match table.
+    If all_players=True, will get the player history for every player available in the
+    PlayerAttributes table, otherwise will only get players available for the season
+    and gameweek.
+    If fill_blank=True, will fill blank rows for players that do not have enough data
+    to have the same number of rows as the maximum number of matches for player in the
+    season and gameweek.
     The 'season' argument defined the set of players that will be considered, but
     for those players, all results will be used.
     """
@@ -65,15 +105,27 @@ def get_player_history_df(
         "player_name",
         "match_id",
         "date",
+        "season",
+        "gameweek",
         "goals",
         "assists",
         "minutes",
         "team_goals",
+        "absence_reason",
+        "absence_detail",
     ]
     player_data = []
-    players = list_players(
-        position=position, season=season, gameweek=gameweek, dbsession=dbsession
-    )
+    if all_players:
+        q = session.query(PlayerAttributes)
+        players = []
+        for p in q.all():
+            if p.player not in players:
+                # only add if it's a new player
+                players.append(p.player)
+    else:
+        players = list_players(
+            position=position, season=season, gameweek=gameweek, dbsession=dbsession
+        )
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
@@ -107,25 +159,33 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
+            absence_reason, absence_detail = check_absence(
+                player, row.fixture.gameweek, row.fixture.season, session
+            )
             player_data.append(
                 [
                     player.player_id,
                     player.name,
                     match_id,
                     match_date,
+                    row.fixture.season,
+                    row.fixture.gameweek,
                     goals,
                     assists,
                     minutes,
                     team_goals,
+                    absence_reason,
+                    absence_detail,
                 ]
             )
             row_count += 1
 
-        # fill blank rows so they are all the same size
-        if row_count < max_matches_per_player:
-            player_data += [[player.player_id, player.name, 0, 0, 0, 0, 0, 0]] * (
-                max_matches_per_player - row_count
-            )
+        if fill_blank:
+            # fill blank rows so they are all the same size
+            if row_count < max_matches_per_player:
+                player_data += [
+                    [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
+                ] * (max_matches_per_player - row_count)
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
