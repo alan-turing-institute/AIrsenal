@@ -59,8 +59,8 @@ def print_output(
     team_id: int,
     current_gw: int,
     priced_transfers: List[dict],
-    pre_bank: float,
-    post_bank: float,
+    pre_bank: Optional[float] = None,
+    post_bank: Optional[float] = None,
     points_cost: str = "TODO",
 ) -> None:
     print("\n")
@@ -68,7 +68,8 @@ def print_output(
     line = "=" * len(header)
     print(f"{header} \n {line} \n")
 
-    print(f"Bank Balance Before transfers is: £{pre_bank/10}")
+    if pre_bank is not None:
+        print(f"Bank Balance Before transfers is: £{pre_bank/10}")
 
     t = PrettyTable(["Status", "Name", "Price"])
     for transfer in priced_transfers:
@@ -89,7 +90,8 @@ def print_output(
 
     print(t)
 
-    print(f"Bank Balance After transfers is: £{post_bank/10}")
+    if post_bank is not None:
+        print(f"Bank Balance After transfers is: £{post_bank/10}")
     # print(f"Points Cost of Transfers: {points_cost}")
     print("\n")
 
@@ -109,21 +111,19 @@ def get_gw_transfer_suggestions(
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
-        dbsession, gameweek=NEXT_GAMEWEEK, season=CURRENT_SEASON
+        dbsession,
+        gameweek=NEXT_GAMEWEEK,
+        season=CURRENT_SEASON,
+        fpl_team_id=fpl_team_id,
     )
     if not rows:
         print(
-            f"No transfer suggestions found for GW {NEXT_GAMEWEEK} "
-            f"({CURRENT_SEASON} season)"
+            f"No transfer suggestions found for GW {NEXT_GAMEWEEK}, "
+            f"{CURRENT_SEASON} season, FPL team id {fpl_team_id}"
         )
         return None
 
-    if fpl_team_id and int(fpl_team_id) != rows[0].fpl_team_id:
-        raise ValueError(
-            f"Team ID passed is {fpl_team_id}, but transfer suggestions are for "
-            f"team ID {rows[0].fpl_team_id}. We recommend re-running optimization."
-        )
-    else:
+    if fpl_team_id is None:
         fpl_team_id = rows[0].fpl_team_id
     current_gw, chip = rows[0].gameweek, rows[0].chip_played
     players_out, players_in = [], []
@@ -307,30 +307,32 @@ def make_transfers(
         # no players to remove in DB - initial team?
         print("Making transfer list for starting team")
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
+        pre_transfer_bank = None
+        post_transfer_bank = None
     else:
         pre_transfer_bank = get_bank(fpl_team_id=team_id)
         priced_transfers = price_transfers(transfer_player_ids, fetcher)
+        # sort transfers by position
         transfers_out, transfers_in = separate_transfers_in_or_out(priced_transfers)
         sorted_transfers_out = sort_by_position(transfers_out)
         sorted_transfers_in = sort_by_position(transfers_in)
-        sorted_priced_transfers = [
+        priced_transfers = [
             {**sorted_transfers_out[i], **sorted_transfers_in[i]}
             for i in range(len(sorted_transfers_out))
         ]
-        post_transfer_bank = deduct_transfer_price(
-            pre_transfer_bank, sorted_priced_transfers
-        )
-        print_output(
-            team_id,
-            current_gw,
-            sorted_priced_transfers,
-            pre_transfer_bank,
-            post_transfer_bank,
-        )
+        post_transfer_bank = deduct_transfer_price(pre_transfer_bank, priced_transfers)
 
-    if skip_check or check_proceed(len(sorted_priced_transfers)):
+    print_output(
+        team_id,
+        current_gw,
+        priced_transfers,
+        pre_transfer_bank,
+        post_transfer_bank,
+    )
+
+    if skip_check or check_proceed(len(priced_transfers)):
         transfer_req = build_transfer_payload(
-            sorted_priced_transfers, current_gw, fetcher, chip_played
+            priced_transfers, current_gw, fetcher, chip_played
         )
         fetcher.post_transfers(transfer_req)
     else:
