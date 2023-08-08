@@ -9,7 +9,7 @@ from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.utils import get_player_name, session
 
 
-def get_transfer_suggestions(dbsession, gameweek=None, season=None):
+def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=None):
     """
     query the transfer_suggestion table.  Each row of the table
     will be in individual player in-or-out in a gameweek - we
@@ -27,6 +27,8 @@ def get_transfer_suggestions(dbsession, gameweek=None, season=None):
         query = query.filter_by(gameweek=gameweek)
     if season:
         query = query.filter_by(season=season)
+    if fpl_team_id:
+        query = query.filter_by(fpl_team_id=fpl_team_id)
 
     return query.all()
 
