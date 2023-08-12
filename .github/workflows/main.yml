@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -37,5 +37,5 @@ jobs:
           poetry run flake8
       - name: Tests
         env:
-          FPL_TEAM_ID: 2779516
+          FPL_TEAM_ID: 1822891
         run: poetry run pytest
