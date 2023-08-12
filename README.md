@@ -8,13 +8,13 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
-## Mini-league for 2022/23 season
+## Mini-league for 2023/24 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
-The code to join is: **8wec9c**.
+The code to join is: **uke1z3**.
 Hope to see your AI team there!! :)
 
-Our own AIrsenal team's ID for the 2022/23 season is **[2779516](https://fantasy.premierleague.com/entry/2779516/history)**.
+Our own AIrsenal team's ID for the 2022/23 season is **[2779516](https://fantasy.premierleague.com/entry/1822891/history)**.
 
 ## Installation
 

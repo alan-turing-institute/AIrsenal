@@ -684,7 +684,7 @@ def list_players(
         #  Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
         _whens = {gw: i for i, gw in enumerate(gameweeks)}
-        sort_order = case(value=PlayerAttributes.gameweek, whens=_whens)
+        sort_order = case(_whens, value=PlayerAttributes.gameweek)
         q = q.order_by(sort_order)
     if order_by == "price":
         q = q.order_by(PlayerAttributes.price.desc())
