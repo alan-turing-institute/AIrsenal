@@ -5,6 +5,8 @@ and checking that the optimizer finds the expected outcome.
 from operator import itemgetter
 from unittest import mock
 
+import pytest
+
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
     make_optimum_single_transfer,
@@ -15,6 +17,8 @@ from airsenal.framework.optimization_utils import (
     next_week_transfers,
 )
 from airsenal.framework.squad import Squad
+
+pytestmark = pytest.mark.filterwarnings("ignore:Using purchase price as sale price")
 
 
 class DummyPlayer(object):

@@ -33,7 +33,7 @@ Base.metadata.bind = testengine_dummy
 
 
 @contextmanager
-def test_session_scope():
+def session_scope():
     """Provide a transactional scope around a series of operations."""
     db_session = sessionmaker(bind=testengine_dummy)
     testsession = db_session()
@@ -48,7 +48,7 @@ def test_session_scope():
 
 
 @contextmanager
-def test_past_data_session_scope():
+def past_data_session_scope():
     """Provide a transactional scope around a series of operations."""
     db_session = sessionmaker(bind=testengine_past)
     testsession = db_session()
@@ -85,7 +85,7 @@ def fill_players():
     team_list = list(alternative_team_names.keys())
     season = CURRENT_SEASON
     gameweek = 1
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         if len(ts.query(Player).all()) > 0:
             return
         for i, n in enumerate(dummy_players):

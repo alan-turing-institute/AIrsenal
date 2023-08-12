@@ -4,7 +4,7 @@ test various methods of the Team class.
 
 import pytest
 
-from airsenal.conftest import test_session_scope
+from airsenal.conftest import session_scope
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import CURRENT_SEASON
 
@@ -15,7 +15,7 @@ def test_add_player_by_id(fill_players):
     """
     Should be able to add a player with integer argument
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player(50, dbsession=ts)
         assert added_ok
@@ -25,7 +25,7 @@ def test_add_player_by_name(fill_players):
     """
     Should be able to add a player with string argument
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player("Alice", dbsession=ts)
         assert added_ok
@@ -35,7 +35,7 @@ def test_cant_add_same_player(fill_players):
     """
     can't add a player thats already on the squad.
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player(1, dbsession=ts)
         assert added_ok
@@ -47,7 +47,7 @@ def test_cant_add_too_many_per_position(fill_players):
     """
     no more than two keepers, 5 defenders, 5 midfielders, 3 forwards.
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         # keepers
         assert t.add_player("Alice", dbsession=ts)
@@ -66,7 +66,7 @@ def test_cant_add_too_many_per_squad(fill_players):
     """
     no more than three from the same squad.
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         assert t.add_player(1, dbsession=ts)
         assert t.add_player(21, dbsession=ts)
@@ -78,7 +78,7 @@ def test_cant_exceed_budget():
     """
     try and make an expensive squad
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = True
         added_ok = added_ok and t.add_player(45, dbsession=ts)
@@ -103,7 +103,7 @@ def test_remove_player(fill_players):
     """
     add a player then remove them.
     """
-    with test_session_scope() as ts:
+    with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         t.add_player(1, dbsession=ts)
         assert len(t.players) == 1
