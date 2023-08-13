@@ -43,7 +43,7 @@ def get_max_gameweek(season=CURRENT_SEASON, dbsession=session):
     max_gw_fixture = (
         dbsession.query(Fixture)
         .filter_by(season=season)
-        .filter(Fixture.date.isnot(None))
+        .filter(Fixture.gameweek.isnot(None))
         .order_by(Fixture.gameweek.desc())
         .first()
     )
