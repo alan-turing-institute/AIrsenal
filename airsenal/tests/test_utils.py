@@ -2,11 +2,7 @@
 test some db access helper functions
 """
 
-from airsenal.conftest import (
-    TEST_PAST_SEASON,
-    test_past_data_session_scope,
-    test_session_scope,
-)
+from airsenal.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
 from airsenal.framework.schema import Player
 from airsenal.framework.utils import (
     get_gameweek_by_fixture_date,
@@ -21,7 +17,7 @@ def test_get_player_name(fill_players):
     """
     Should be able to find a player with integer argument
     """
-    with test_session_scope() as tsession:
+    with session_scope() as tsession:
         assert get_player_name(1, tsession) == "Bob"
 
 
@@ -29,7 +25,7 @@ def test_get_player_id(fill_players):
     """
     Should be able to find a player with string argument
     """
-    with test_session_scope() as tsession:
+    with session_scope() as tsession:
         assert get_player_id("Bob", tsession) == 1
 
 
@@ -37,14 +33,14 @@ def test_get_player(fill_players):
     """
     test we can get a player object from either a name or an id
     """
-    with test_session_scope() as tsession:
+    with session_scope() as tsession:
         p = get_player("Bob", tsession)
         assert isinstance(p, Player)
         assert p.player_id == 1
 
 
 def test_get_next_gameweek_by_date():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         gw = get_next_gameweek_by_date(
             "2020-09-18", season=TEST_PAST_SEASON, dbsession=ts
         )
@@ -57,7 +53,7 @@ def test_get_next_gameweek_by_date():
 
 
 def test_get_gameweek_by_fixture_date():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         gw = get_gameweek_by_fixture_date(
             "2020-09-18", season=TEST_PAST_SEASON, dbsession=ts
         )

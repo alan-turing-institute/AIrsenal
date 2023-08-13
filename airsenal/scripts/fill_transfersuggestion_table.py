@@ -55,6 +55,7 @@ from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
+    get_entry_start_gameweek,
     get_free_transfers,
     get_gameweeks_array,
     get_latest_prediction_tag,
@@ -425,8 +426,11 @@ def run_optimization(
         fpl_team_id = fetcher.FPL_TEAM_ID
 
     # see if we are at the start of a season, or
-    if gameweeks[0] == 1:
-        print("Starting a new season - will make squad from scratch")
+    if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(fpl_team_id):
+        print(
+            "This is the start of the season or a new team - will make a squad "
+            "from scratch"
+        )
         fill_initial_squad(
             tag=tag,
             gw_range=gameweeks,

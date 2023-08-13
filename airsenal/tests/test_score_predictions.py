@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from airsenal.conftest import test_past_data_session_scope
+from airsenal.conftest import past_data_session_scope
 from airsenal.framework.bpl_interface import (
     fixture_probabilities,
     get_fitted_team_model,
@@ -200,7 +200,7 @@ def test_get_player_history_df():
     test that we only consider gameweeks up to the specified gameweek
     (gw 12 in 1819 season).
     """
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df = get_player_history_df(season="1819", gameweek=12, dbsession=ts)
         assert len(df) > 0
         result_ids = df.match_id.unique()
@@ -270,7 +270,7 @@ def test_fit_conjugate_player_model():
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
@@ -279,21 +279,21 @@ def test_get_fitted_player_model_numpyro():
 def test_get_fitted_player_model_conjugate():
     cpm = ConjugatePlayerModel()
     assert isinstance(cpm, ConjugatePlayerModel)
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         fcpm = fit_player_data("FWD", "1819", 12, model=cpm, dbsession=ts)
         assert isinstance(fcpm, pd.DataFrame)
         assert len(fcpm) > 0
 
 
 def test_get_result_dict():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         d = get_result_dict("1819", 10, ts)
         assert isinstance(d, dict)
         assert len(d) > 0
 
 
 def test_get_ratings_dict():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         rd = get_result_dict("1819", 10, ts)
         teams = set(rd["home_team"]) | set(rd["away_team"])
         d = get_ratings_dict("1819", teams, ts)
@@ -302,7 +302,7 @@ def test_get_ratings_dict():
 
 
 def test_get_fitted_team_model():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         model_team = get_fitted_team_model("1819", 10, ts)
         assert isinstance(
             model_team, bpl.extended_dixon_coles.ExtendedDixonColesMatchPredictor
@@ -310,7 +310,7 @@ def test_get_fitted_team_model():
 
 
 def test_fixture_probabilities():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df = fixture_probabilities(20, "1819", dbsession=ts)
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
@@ -319,7 +319,7 @@ def test_fixture_probabilities():
 def test_get_player_scores():
     """Test utility function used by fit bonus, save and card points to get player
     scores rows filtered by season, gameweek and minutese played values"""
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df = get_player_scores(season="1819", gameweek=12, dbsession=ts)
         # check type and columns
         assert len(df) > 0
@@ -363,7 +363,7 @@ def test_mean_group_min_count():
 
 
 def test_fit_bonus():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df_bonus = fit_bonus_points(gameweek=1, season="1819", dbsession=ts)
         assert len(df_bonus) == 2
         for df in df_bonus:
@@ -374,7 +374,7 @@ def test_fit_bonus():
 
 
 def test_fit_saves():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df_saves = fit_save_points(gameweek=1, season="1819", dbsession=ts)
         assert isinstance(df_saves, pd.Series)
         assert len(df_saves) > 0
@@ -382,7 +382,7 @@ def test_fit_saves():
 
 
 def test_fit_cards():
-    with test_past_data_session_scope() as ts:
+    with past_data_session_scope() as ts:
         df_cards = fit_card_points(gameweek=1, season="1819", dbsession=ts)
         assert isinstance(df_cards, pd.Series)
         assert len(df_cards) > 0
