@@ -419,7 +419,7 @@ def get_connection_string():
                 raise KeyError(f"{k} must be defined when using a postgres database")
 
         return (
-            f"postgres://{params['AIRSENAL_DB_USER']}:"
+            f"postgresql://{params['AIRSENAL_DB_USER']}:"
             f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
         )
 
