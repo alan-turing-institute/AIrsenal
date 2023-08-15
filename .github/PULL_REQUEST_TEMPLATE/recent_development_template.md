@@ -45,7 +45,7 @@ you can reinstall AIrsenal from our `develop` branch - there are instructions
 
 ### When this PR is ready to merge:
 
-- [ ] **Before merging:** Update the AIrsenal package version in `airsenal/__init__.py`. If new
+- [ ] **Before merging:** Update the AIrsenal package version in `pyproject.toml`. If new
 features have been added increment the middle number, e.g. 0.1.0 -> 0.2.0,
 or if bug fixes only change the last number, e.g. 0.1.0 -> 0.1.1.
 

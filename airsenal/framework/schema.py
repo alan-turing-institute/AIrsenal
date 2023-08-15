@@ -5,8 +5,7 @@ Use SQLAlchemy to convert between DB tables and python objects.
 from contextlib import contextmanager
 
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 from airsenal.framework.env import AIRSENAL_HOME, get_env
 
@@ -420,7 +419,7 @@ def get_connection_string():
                 raise KeyError(f"{k} must be defined when using a postgres database")
 
         return (
-            f"postgres://{params['AIRSENAL_DB_USER']}:"
+            f"postgresql://{params['AIRSENAL_DB_USER']}:"
             f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
         )
 

@@ -148,11 +148,19 @@ def fill_initial_squad(
         )
     )
     if NEXT_GAMEWEEK == 1:
-        # Season hasn't started yet - there won't be a team in the DB
-        return True
+        print("Season hasn't started yet so nothing to add to the DB.")
+        return
 
     starting_gw = get_entry_start_gameweek(fpl_team_id)
-    print(f"Got starting squad from gameweek {starting_gw}. Adding player data...")
+    print(f"Got starting squad from gameweek {starting_gw}.")
+    if starting_gw == NEXT_GAMEWEEK:
+        print(
+            "This is team {fpl_team_id}'s first gameweek so nothing to add to the DB "
+            "yet."
+        )
+        return
+
+    print("Adding player data...")
 
     init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
