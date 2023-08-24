@@ -110,9 +110,9 @@ class FPLDataFetcher(object):
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
-        if self.logged_in:
+        if self.logged_in or self.continue_without_login:
             return
-        if self.login_failed and not self.continue_without_login:
+        if self.login_failed:
             raise RuntimeError(
                 "Attempted to use a function requiring login, but login previously "
                 "failed."
@@ -141,7 +141,7 @@ class FPLDataFetcher(object):
                 self.login_failed = True
                 self.continue_without_login = True
                 warnings.warn(
-                    "Skipping login which means AIrsenal may have out of data "
+                    "Skipping login which means AIrsenal may have out of date "
                     "information for your team."
                 )
                 return
