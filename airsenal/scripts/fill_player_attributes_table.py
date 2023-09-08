@@ -82,6 +82,7 @@ def fill_attributes_table_from_file(
                 else None
             )
             dbsession.add(pa)
+    dbsession.commit()
 
 
 def fill_attributes_table_from_api(
@@ -114,6 +115,7 @@ def fill_attributes_table_from_api(
         pa = get_player_attributes(
             player.player_id, season=season, gameweek=next_gw, dbsession=dbsession
         )
+
         if pa:
             # found pre-existing attributes for this gameweek
             update = True
@@ -204,6 +206,7 @@ def fill_attributes_table_from_api(
                         dbsession.add(pa)
 
                     break  # done this gameweek now
+    dbsession.commit()
 
 
 def make_attributes_table(
