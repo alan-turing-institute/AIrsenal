@@ -25,14 +25,30 @@ def make_optimum_single_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    candidate_players_to_remove=[],
     verbose=False,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
-    possibilities in turn.
+    possibilities in turn, and select the one that gives the highest return
+    over a specified number of gameweeks
 
-    We will order the list of potential transfers via the sum of
-    expected points over a specified range of gameweeks.
+    Parameters:
+       squad: Squad, our starting 15-player squad.
+       tag: str, identifier for set of score predictions in the Predictions table to use
+       root_gw: int, the gameweek for which this transfer will be applied
+       season: str, season under consideration, e.g. "2324" for the 23/24 season.
+       update_func_and_args: (function, args) for updating progress bar.
+       bench_boost_gw: int, which gameweek to use bench boost (used in score estimation)
+       triple_captain_gw: int, gameweek to use triple captain (used in score estimation)
+       candidate_players_to_remove: list of CandidatePlayer instances, optional,
+           used in place of squad.players if for example we have too many players from
+           one team in our squad, and need to remove one of them.
+
+    Returns:
+        best_squad: Squad, squad with the best predicted score over next few gameweeks
+        best_pid_out: list of int, length 1, player id to remove
+        best_pid_in: list of int, length 1, player id to add
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
@@ -43,7 +59,8 @@ def make_optimum_single_transfer(
     best_score = -1
     best_squad = None
     best_pid_out, best_pid_in = [], []
-
+    # create list of players ordered by how many points they are expected to
+    # score over the next few gameweeks
     if verbose:
         print("Creating ordered player lists")
     ordered_player_lists = {
@@ -52,7 +69,12 @@ def make_optimum_single_transfer(
         )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
-    for p_out in squad.players:
+    # if we have been given a list of players from which to choose our transfer out
+    # (e.g. because we have too many from one team in squad), we use that.  Otherwise
+    # (i.e. in 99% of cases), we look at all players in our squad.
+    if not candidate_players_to_remove:
+        candidate_players_to_remove = squad.players
+    for p_out in candidate_players_to_remove:
         if update_func_and_args:
             # call function to update progress bar.
             # this was passed as a tuple (func, increment, pid)
@@ -104,13 +126,30 @@ def make_optimum_double_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    candidate_players_to_remove=[],
     verbose=False,
 ):
     """
-    If we want to just make two transfers, it's not infeasible to try all
+    If we want to just make two transfers, it's not unfeasible to try all
     possibilities in turn.
-    We will order the list of potential subs via the sum of expected points
-    over a specified range of gameweeks.
+
+    Parameters:
+       squad: Squad, our starting 15-player squad.
+       tag: str, identifier for set of score predictions in the Predictions table to use
+       root_gw: int, the gameweek for which this transfer will be applied
+       season: str, season under consideration, e.g. "2324" for the 23/24 season.
+       update_func_and_args: (function, args) for updating progress bar.
+       bench_boost_gw: int, which gameweek to use bench boost (used in score estimation)
+       triple_captain_gw: int, gameweek to use triple captain (used in score estimation)
+       candidate_players_to_remove: list of CandidatePlayer instances, optional,
+           used in place of squad.players if for example we have too many players from
+           one team in our squad, and need to remove one of them.
+
+    Returns:
+        best_squad: Squad, squad with the best predicted score over next few gameweeks
+        best_pid_out: list of int, length 2, player ids to remove
+        best_pid_in: list of int, length 2, player ids to add
+
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
@@ -120,19 +159,23 @@ def make_optimum_double_transfer(
     best_score = -1
     best_squad = None
     best_pid_out, best_pid_in = [], []
+    # We will order the list of potential subs via the sum of expected points
+    # over a specified range of gameweeks.
     ordered_player_lists = {
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
         )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
-    for i in range(len(squad.players) - 1):
+    if not candidate_players_to_remove:
+        candidate_players_to_remove = squad.players
+    for i in range(len(candidate_players_to_remove) - 1):
         positions_needed = []
-        pout_1 = squad.players[i]
+        pout_1 = candidate_players_to_remove[i]
 
         new_squad_remove_1 = fastcopy(squad)
         new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
-        for j in range(i + 1, len(squad.players)):
+        for j in range(i + 1, len(candidate_players_to_remove)):
             if update_func_and_args:
                 # call function to update progress bar.
                 # this was passed as a tuple (func, increment, pid)
@@ -140,7 +183,7 @@ def make_optimum_double_transfer(
                     update_func_and_args[1], update_func_and_args[2]
                 )
 
-            pout_2 = squad.players[j]
+            pout_2 = candidate_players_to_remove[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
             new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
             if verbose:
@@ -201,12 +244,33 @@ def make_random_transfers(
     season=CURRENT_SEASON,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    candidate_players_to_remove=[],
 ):
     """
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select the replacements with
     the best expected score to fill their place.
     Do this num_iter times and choose the best total score over gw_range gameweeks.
+
+        Parameters:
+       squad: Squad, our starting 15-player squad.
+       tag: str, identifier for set of score predictions in the Predictions table to use
+       nsubs: int, how many transfers to make
+       gw_range: list of int, gameweeks to consider for score predictions.
+       root_gw: int, the gameweek for which this transfer will be applied
+       num_iter: int, number of iterations tried to find the best squad.
+       season: str, season under consideration, e.g. "2324" for the 23/24 season.
+       update_func_and_args: (function, args) for updating progress bar.
+       bench_boost_gw: int, which gameweek to use bench boost (used in score estimation)
+       triple_captain_gw: int, gameweek to use triple captain (used in score estimation)
+       candidate_players_to_remove: list of CandidatePlayer instances, optional,
+           used in place of squad.players if for example we have too many players from
+           one team in our squad, and need to remove one of them.
+
+    Returns:
+        best_squad: Squad, squad with the best predicted score over next few gameweeks
+        best_pid_out: list of int, length nsubs, player ids to remove
+        best_pid_in: list of int, length nsubs, player ids to add
     """
     best_score = -1
     best_squad = None
@@ -229,7 +293,9 @@ def make_random_transfers(
         removed_players = []  # this is the player_ids
         # order the players in the squad by predicted_points - least-to-most
         player_list = []
-        for p in squad.players:
+        if not candidate_players_to_remove:
+            candidate_players_to_remove = squad.players
+        for p in candidate_players_to_remove:
             p.calc_predicted_points(tag)
             player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
         player_list.sort(key=itemgetter(1), reverse=False)
@@ -314,8 +380,26 @@ def make_best_transfers(
     """
     Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
+
+    Parameters:
+        num_transfers: int, or str, how many transfers to make (given by strategy).
+           Typically this will be 0, 1, or 2 indicating 0, 1, or 2 transfers, but, could
+           be e.g. "T2" indicating triple_captain chip and 2 transfers,
+           or "W" or "F" would indicate making a whole new squad after wildcard or
+           free hit chip.
+        squad: Squad, starting squad.
+        tag: str, identifier for retrieving predictions from the database.
+        gameweeks: list of int, gameweek range to use for points estimation
+        root_gw: int, gameweek for which to make transfer(s).
+        season: str, season under consideration, e.g. "2324" for the 2023/24 season.
+        num_iter: int, number of iterations of trying to find the best squad,
+           if creating a new squad from scratch.
+        update_func_and_args: (func, args), progress bar function.
+        algorithm: str, whether to use genetic algorithm or classic algorithm when
+           making a new squad from scratch.
     """
-    transfer_dict = {}
+    # prepare the dict containing lists of player_ids to transfer in and out.
+    transfer_dict = {"in": [], "out": []}
     # deal with triple_captain or free_hit
     triple_captain_gw = None
     bench_boost_gw = None
@@ -326,45 +410,8 @@ def make_best_transfers(
         elif num_transfers.startswith("B"):
             num_transfers = int(num_transfers[1])
             bench_boost_gw = gameweeks[0]
-
-    if num_transfers == 0:
-        # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
-        new_squad = squad
-        transfer_dict = {"in": [], "out": []}
-        if update_func_and_args:
-            # call function to update progress bar.
-            # this was passed as a tuple (func, increment, pid)
-            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-
-    elif num_transfers == 1:
-        # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with chip)
-        new_squad, players_out, players_in = make_optimum_single_transfer(
-            squad,
-            tag,
-            gameweeks,
-            root_gw,
-            season,
-            triple_captain_gw=triple_captain_gw,
-            bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args,
-        )
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif num_transfers == 2:
-        # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with chip)
-        new_squad, players_out, players_in = make_optimum_double_transfer(
-            squad,
-            tag,
-            gameweeks,
-            root_gw,
-            season,
-            triple_captain_gw=triple_captain_gw,
-            bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args,
-        )
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif num_transfers in ["W", "F"]:
+        # for wildcard and free hit, make a whole new squad
+    if num_transfers in ["W", "F"]:
         _out = [p.player_id for p in squad.players]
         budget = get_squad_value(squad)
         if num_transfers == "F":
@@ -385,10 +432,102 @@ def make_best_transfers(
         _in = [p.player_id for p in new_squad.players]
         players_in = [p for p in _in if p not in _out]  # remove duplicates
         players_out = [p for p in _out if p not in _in]  # remove duplicates
-        transfer_dict = {"in": players_in, "out": players_out}
-
+        transfer_dict["in"] += players_in
+        transfer_dict["out"] += players_out
+    # not a wildcard or free hit - modify our existing squad
     else:
-        raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
+        # see if we need to do any compulsory transfers e.g. if we have
+        # >3 players from the same team, after the (real) transfer window
+        candidate_players_to_remove, num_players_to_remove = find_compulsory_transfers(
+            squad
+        )
+        if num_players_to_remove == 1:
+            squad, players_out, players_in = make_optimum_single_transfer(
+                squad,
+                tag,
+                gameweeks,
+                root_gw,
+                season,
+                triple_captain_gw=triple_captain_gw,
+                bench_boost_gw=bench_boost_gw,
+                update_func_and_args=update_func_and_args,
+                candidate_players_to_remove=candidate_players_to_remove,
+            )
+            transfer_dict["in"] += players_in
+            transfer_dict["out"] += players_out
+        elif num_players_to_remove == 2:
+            squad, players_out, players_in = make_optimum_double_transfer(
+                squad,
+                tag,
+                gameweeks,
+                root_gw,
+                season,
+                triple_captain_gw=triple_captain_gw,
+                bench_boost_gw=bench_boost_gw,
+                update_func_and_args=update_func_and_args,
+                candidate_players_to_remove=candidate_players_to_remove,
+            )
+            transfer_dict["in"] += players_in
+            transfer_dict["out"] += players_out
+        elif num_players_to_remove > 2:
+            squad, players_out, players_in = make_random_transfers(
+                squad,
+                tag,
+                num_players_to_remove,
+                gameweeks,
+                root_gw,
+                season,
+                triple_captain_gw=triple_captain_gw,
+                bench_boost_gw=bench_boost_gw,
+                candidate_players_to_remove=candidate_players_to_remove,
+            )
+            transfer_dict["in"] += players_in
+            transfer_dict["out"] += players_out
+
+        # ok, after compulsory transfers, how many more transfers should we do?
+        num_transfers = max(0, num_transfers - num_players_to_remove)
+        if num_transfers == 0:
+            # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
+            new_squad = squad
+            if update_func_and_args:
+                # call function to update progress bar.
+                # this was passed as a tuple (func, increment, pid)
+                update_func_and_args[0](
+                    update_func_and_args[1], update_func_and_args[2]
+                )
+
+        elif num_transfers == 1:
+            # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with chip)
+            new_squad, players_out, players_in = make_optimum_single_transfer(
+                squad,
+                tag,
+                gameweeks,
+                root_gw,
+                season,
+                triple_captain_gw=triple_captain_gw,
+                bench_boost_gw=bench_boost_gw,
+                update_func_and_args=update_func_and_args,
+            )
+            transfer_dict["in"] += players_in
+            transfer_dict["out"] += players_out
+
+        elif num_transfers == 2:
+            # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with chip)
+            new_squad, players_out, players_in = make_optimum_double_transfer(
+                squad,
+                tag,
+                gameweeks,
+                root_gw,
+                season,
+                triple_captain_gw=triple_captain_gw,
+                bench_boost_gw=bench_boost_gw,
+                update_func_and_args=update_func_and_args,
+            )
+            transfer_dict["in"] += players_in
+            transfer_dict["out"] += players_out
+
+        else:
+            raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
 
     # get the expected points total for next gameweek
     points = get_discounted_squad_score(
@@ -405,3 +544,28 @@ def make_best_transfers(
         return squad, transfer_dict, points
     else:
         return new_squad, transfer_dict, points
+
+
+def find_compulsory_transfers(squad):
+    """
+    It can happen that during the real transfer window, a player will change team
+    resulting in our FPL squad having >3 players from the same team.
+    In this case, we need to transfer player(s) out to make a legal squad.
+    This function will find out how many players we need to take out, and
+    a list of player_ids from which to choose that number of players to remove.
+
+    Returns:
+        cand_players_to_remove [player_id:int,...], num_players_to_remove
+    """
+    players_per_team, is_legal = squad.players_per_team()
+    if is_legal:
+        return [], 0
+
+    # count, and make list of players where there are >3 players in same team
+    num_players_to_remove = 0
+    candidate_players_to_remove = []
+    for v in players_per_team.values():
+        if len(v) > 3:
+            num_players_to_remove += len(v) - 3
+            candidate_players_to_remove += v
+    return candidate_players_to_remove, num_players_to_remove

@@ -180,6 +180,8 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
                 check_budget=False,
                 check_team=False,
             )
+    # make sure all the players' teams are up-to-date
+    s.update(gameweek)
     return s
 
 

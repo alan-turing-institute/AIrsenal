@@ -62,3 +62,11 @@ class CandidatePlayer(object):
             print(f"No prediction available for {self.name} week {gameweek}")
             return 0.0
         return self.predicted_points[tag][gameweek]
+
+    def update_team(self, gameweek):
+        """
+        update team info for player (in case they were transferred since
+        being added to a squad)
+        """
+        pdata = get_player(self.player_id)
+        self.team = pdata.team(self.season, gameweek)

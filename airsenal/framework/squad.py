@@ -481,3 +481,32 @@ class Squad(object):
                         subs.remove(p_in)
                         break
         return total_points
+
+    def update(self, gameweek):
+        """
+        If real life players changed teams, update the 'team'
+        of the CandidatePlayer in the squad
+        """
+        for p in self.players:
+            p.update_team(gameweek)
+
+    def players_per_team(self):
+        """
+        Return a dict of player_ids keyed by team.
+        Useful for determining if we have a legal squad (e.g. after the transfer window,
+        if players changed teams, we might have >3 players from one team).
+
+        Returns:
+            team_player_dict: dict{str,CandidatePlayer} , is_legal: bool
+        """
+        team_player_dict = {}
+        for p in self.players:
+            if p.team not in team_player_dict.keys():
+                team_player_dict[p.team] = []
+            team_player_dict[p.team].append(p)
+        is_legal = True
+        for v in team_player_dict.values():
+            if len(v) > 3:
+                is_legal = False
+                break
+        return team_player_dict, is_legal
