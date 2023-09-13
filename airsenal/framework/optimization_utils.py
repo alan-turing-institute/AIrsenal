@@ -101,7 +101,17 @@ def get_starting_squad(
     apifetcher=None,
 ):
     """
-    use the transactions table in the db, or the API if requested
+    Use the transactions table in the db, or the API if requested.
+
+    Parameters:
+        next_gw: int, gameweek for which to get our FPL squad
+        season: str, season under consideration, format e.g. "2324".
+        fpl_team_id: int, ID of our FPL squad in the FPL API
+        use_api: bool, if True, use API to retrieve squad (only for current season)
+        apifetcher: FPLDataFetcher instance of fetcher, will retrieve data from API.
+
+    Returns:
+        squad: Squad, set of 15 PlayerCandidates.
     """
     if use_api:
         if season != CURRENT_SEASON:
@@ -138,6 +148,19 @@ def get_starting_squad(
 
 
 def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
+    """
+    Mid season, we should be able to reconstruct a squad from the Transactions
+    (players bought and sold) since the start of the season.
+
+    Parameters:
+        gameweek: int, gameweek for which to reconstruct the Squad
+        season: str, format e.g. "2324".
+        fpl_team_id: int, if given, used to find the correct Transactions in the DB
+            (otherwise the ID for the latest Transaction in the table is used.
+    Returns:
+        squad: Squad.
+    """
+
     if not fpl_team_id:
         # use the most recent transaction in the table
         most_recent = (
@@ -543,6 +566,24 @@ def count_expected_outputs(
     are available), if allow_unused_transfers is False.
     * Make a maximum of max_transfers transfers each gameweek.
     * Each chip only allowed once.
+    This number is used to determine when the optimization is finished - i.e. terminate
+    when the number of gw_ahead-length strategy results produced by the tree search, is
+    equal to the output of this function.
+
+    Parameters:
+        gw_ahead: int, how many gameweeks ahead to look.
+        next_gw: int, the next gameweek.
+        free_transfers: int, the current number of free transfers.
+        max_total_hit: int, multiple of 4, how much points hit are we prepared to take?
+        allow_unused_transfers: bool, can we have strategies that waste free transfers?
+        max_transfers: int, maximum number of transfers we consider in a single gameweek
+        chip_gw_dict: dict, keyed by gameweek, values are another dict, with keys
+            "chips_allowed", "chip_to_play".
+
+    Returns:
+        num_strategies: int, how many possible strategies of length `gw_ahead` weeks
+            fulfil the selected criteria.  i.e. how many outputs should we expect from
+            the tree search?
     """
 
     init_strat_dict = {

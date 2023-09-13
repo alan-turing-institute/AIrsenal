@@ -11,7 +11,7 @@ output for each strategy tried is going to be a dict
 "players_bought" : {<gw>: [], ...}
 }
 This is done via a recursive tree search, where nodes on the tree do an optimization
-for a given number of transfers, then adds some children to the multiprocessing queue
+for a given number of transfers, then add some children to the multiprocessing queue
 representing 0, 1, 2 transfers for the next gameweek.
 
 """
@@ -660,7 +660,7 @@ def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
     where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
     is not to be played, 0 if it is to be considered any week, or gw
     if it is definitely to be played that gw, return a dict
-    { <gw>: {"chip_to_play": [<chip_name>],
+    { <gw>: {"chip_to_play": <chip_name>,
              "chips_allowed": [<chip_name>,...]},...}
     """
     chip_dict = {}
