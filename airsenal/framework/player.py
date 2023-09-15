@@ -68,5 +68,5 @@ class CandidatePlayer(object):
         update team info for player (in case they were transferred since
         being added to a squad)
         """
-        pdata = get_player(self.player_id)
+        pdata = get_player(self.player_id, dbsession=self.dbsession)
         self.team = pdata.team(self.season, gameweek)
