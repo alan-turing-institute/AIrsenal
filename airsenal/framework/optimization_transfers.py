@@ -448,27 +448,13 @@ def make_best_transfers(
         players_out = [p for p in _out if p not in _in]  # remove duplicates
         transfer_dict["in"] += players_in
         transfer_dict["out"] += players_out
-    # not a wildcard or free hit - modify our existing squad
     else:
-        # see if we need to do any compulsory transfers e.g. if we have
+        # not a wildcard or free hit - modify our existing squad.
+        # First see if we need to do any compulsory transfers e.g. if we have
         # >3 players from the same team, after the (real) transfer window
         candidate_players_to_remove, num_players_to_remove = find_compulsory_transfers(
             squad
         )
-        if num_players_to_remove > 2:
-            squad, players_out, players_in = make_random_transfers(
-                squad,
-                tag,
-                num_players_to_remove,
-                gameweeks,
-                root_gw,
-                season,
-                triple_captain_gw=triple_captain_gw,
-                bench_boost_gw=bench_boost_gw,
-                candidate_players_to_remove=candidate_players_to_remove,
-            )
-            transfer_dict["in"] += players_in
-            transfer_dict["out"] += players_out
 
         if num_transfers == 0:
             # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
