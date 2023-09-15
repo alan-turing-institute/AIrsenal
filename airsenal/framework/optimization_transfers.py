@@ -127,6 +127,7 @@ def make_optimum_double_transfer(
     bench_boost_gw=None,
     triple_captain_gw=None,
     candidate_players_to_remove=[],
+    num_compulsory_transfers=0,
     verbose=False,
 ):
     """
@@ -144,6 +145,10 @@ def make_optimum_double_transfer(
        candidate_players_to_remove: list of CandidatePlayer instances, optional,
            used in place of squad.players if for example we have too many players from
            one team in our squad, and need to remove one of them.
+       num_compulsory_transfers: int, should be 0, 1, or 2. If we have non-empty list of
+           candidate_players_to_remove, do we need to remove 1 or 2 of them in order to
+           make a valid team?   This will determine whether we use that list in place of
+           all-players-in-squad, for the outer loop, or both loops.
 
     Returns:
         best_squad: Squad, squad with the best predicted score over next few gameweeks
@@ -167,23 +172,32 @@ def make_optimum_double_transfer(
         )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
-    if not candidate_players_to_remove:
-        candidate_players_to_remove = squad.players
-    for i in range(len(candidate_players_to_remove) - 1):
+    # see whether we should loop over all players in the squad, or over a subset of
+    # players, in the inner and outer loops.
+    outer_loop_players = squad.players
+    inner_loop_players = squad.players
+    if num_compulsory_transfers >= 1:
+        outer_loop_players = candidate_players_to_remove
+        if num_compulsory_transfers >= 2:
+            outer_loop_players = candidate_players_to_remove
+    for i, pout_1 in enumerate(outer_loop_players):
         positions_needed = []
-        pout_1 = candidate_players_to_remove[i]
-
         new_squad_remove_1 = fastcopy(squad)
         new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
-        for j in range(i + 1, len(candidate_players_to_remove)):
+        for j, pout_2 in enumerate(inner_loop_players):
+            # can't remove the same player twice
+            if pout_2.player_id == pout_1.player_id:
+                continue
+            # if we're using the full squad for both inner and outer loops, only
+            # need to consider half the matrix
+            if num_compulsory_transfers == 0 and i < j:
+                continue
             if update_func_and_args:
                 # call function to update progress bar.
                 # this was passed as a tuple (func, increment, pid)
                 update_func_and_args[0](
                     update_func_and_args[1], update_func_and_args[2]
                 )
-
-            pout_2 = candidate_players_to_remove[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
             new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
             if verbose:
@@ -441,35 +455,7 @@ def make_best_transfers(
         candidate_players_to_remove, num_players_to_remove = find_compulsory_transfers(
             squad
         )
-        if num_players_to_remove == 1:
-            squad, players_out, players_in = make_optimum_single_transfer(
-                squad,
-                tag,
-                gameweeks,
-                root_gw,
-                season,
-                triple_captain_gw=triple_captain_gw,
-                bench_boost_gw=bench_boost_gw,
-                update_func_and_args=update_func_and_args,
-                candidate_players_to_remove=candidate_players_to_remove,
-            )
-            transfer_dict["in"] += players_in
-            transfer_dict["out"] += players_out
-        elif num_players_to_remove == 2:
-            squad, players_out, players_in = make_optimum_double_transfer(
-                squad,
-                tag,
-                gameweeks,
-                root_gw,
-                season,
-                triple_captain_gw=triple_captain_gw,
-                bench_boost_gw=bench_boost_gw,
-                update_func_and_args=update_func_and_args,
-                candidate_players_to_remove=candidate_players_to_remove,
-            )
-            transfer_dict["in"] += players_in
-            transfer_dict["out"] += players_out
-        elif num_players_to_remove > 2:
+        if num_players_to_remove > 2:
             squad, players_out, players_in = make_random_transfers(
                 squad,
                 tag,
@@ -484,8 +470,6 @@ def make_best_transfers(
             transfer_dict["in"] += players_in
             transfer_dict["out"] += players_out
 
-        # ok, after compulsory transfers, how many more transfers should we do?
-        num_transfers = max(0, num_transfers - num_players_to_remove)
         if num_transfers == 0:
             # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
             new_squad = squad
@@ -507,6 +491,7 @@ def make_best_transfers(
                 triple_captain_gw=triple_captain_gw,
                 bench_boost_gw=bench_boost_gw,
                 update_func_and_args=update_func_and_args,
+                candidate_players_to_remove=candidate_players_to_remove,
             )
             transfer_dict["in"] += players_in
             transfer_dict["out"] += players_out
@@ -522,6 +507,8 @@ def make_best_transfers(
                 triple_captain_gw=triple_captain_gw,
                 bench_boost_gw=bench_boost_gw,
                 update_func_and_args=update_func_and_args,
+                candidate_players_to_remove=candidate_players_to_remove,
+                num_compulsory_transfers=num_players_to_remove,
             )
             transfer_dict["in"] += players_in
             transfer_dict["out"] += players_out
