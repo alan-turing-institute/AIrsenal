@@ -94,6 +94,12 @@ from airsenal.scripts.update_db import update_db
     help="If set, does not include CURRENT_SEASON in database",
     is_flag=True,
 )
+@click.option(
+    "--max_transfers",
+    help="specify maximum number of transfers to be made each gameweek (defaults to 2)",
+    type=int,
+    default=2,
+)
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
@@ -106,6 +112,7 @@ def run_pipeline(
     bench_boost_week: int,
     n_previous: int,
     no_current_season: bool,
+    max_transfers: int,
 ) -> None:
     """
     Run the full pipeline, from setting up the database and filling
@@ -172,7 +179,12 @@ def run_pipeline(
                 wildcard_week, free_hit_week, triple_captain_week, bench_boost_week
             )
             opt_ok = run_optimize_squad(
-                num_thread, gw_range, fpl_team_id, dbsession, chips_played
+                num_thread,
+                gw_range,
+                fpl_team_id,
+                dbsession,
+                chips_played,
+                max_transfers,
             )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
@@ -276,6 +288,7 @@ def run_optimize_squad(
     fpl_team_id: int,
     dbsession: Session,
     chips_played: dict,
+    max_transfers: int,
 ) -> bool:
     """
     Build the initial squad
@@ -291,6 +304,7 @@ def run_optimize_squad(
             fpl_team_id=fpl_team_id,
             num_thread=num_thread,
             chip_gameweeks=chips_played,
+            max_transfers=max_transfers
         )
     return True
 
