@@ -97,7 +97,7 @@ from airsenal.scripts.update_db import update_db
 @click.option(
     "--max_transfers",
     help="specify maximum number of transfers to be made each gameweek (defaults to 2)",
-    type=int,
+    type=click.IntRange(min=0, max=2),
     default=2,
 )
 def run_pipeline(
