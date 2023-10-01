@@ -84,7 +84,9 @@ def make_squad_transfers(squad: Squad, priced_transfers: List[dict]) -> None:
 
 
 def set_lineup(
-    fpl_team_id: Optional[int] = None, verbose: Optional[bool] = False
+    fpl_team_id: Optional[int] = None,
+    verbose: Optional[bool] = False,
+    skip_check: bool = False,
 ) -> None:
     """
     Retrieve the latest lineup and apply the latest prediction to it.
@@ -104,7 +106,7 @@ def set_lineup(
 
     squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 
-    if check_proceed(squad):
+    if check_proceed(squad) and not skip_check:
         payload = build_lineup_payload(squad)
         fetcher.post_lineup(payload)
 
@@ -112,9 +114,10 @@ def set_lineup(
 def main():
     parser = argparse.ArgumentParser("Set the starting 11 and captain")
     parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API", type=int)
+    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
     args = parser.parse_args()
     try:
-        set_lineup(args.fpl_team_id)
+        set_lineup(args.fpl_team_id, skip_check=args.confirm)
     except Exception as e:
         raise Exception(
             "Something went wrong when setting lineup. Check your lineup manually on "
