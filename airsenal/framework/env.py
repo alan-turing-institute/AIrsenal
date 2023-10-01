@@ -20,7 +20,7 @@ AIRSENAL_ENV_KEYS = {  # dict of name then function to  convert str to correct t
 
 # Cross-platform data directory
 if "AIRSENAL_HOME" in os.environ.keys():
-    AIRSENAL_HOME = os.environ["AIRSENAL_HOME"]
+    AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
     AIRSENAL_HOME = Path(user_data_dir("airsenal"))
 os.makedirs(AIRSENAL_HOME, exist_ok=True)

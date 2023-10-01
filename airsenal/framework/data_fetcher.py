@@ -5,6 +5,7 @@ and to query football-data.org to retrieve match and fixture data.
 import getpass
 import json
 import time
+import warnings
 
 import requests
 
@@ -23,6 +24,7 @@ class FPLDataFetcher(object):
         self.rsession = rsession or requests.session()
         self.logged_in = False
         self.login_failed = False
+        self.continue_without_login = False
         self.current_summary_data = None
         self.current_event_data = None
         self.current_player_data = None
@@ -108,7 +110,7 @@ class FPLDataFetcher(object):
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
-        if self.logged_in:
+        if self.logged_in or self.continue_without_login:
             return
         if self.login_failed:
             raise RuntimeError(
@@ -137,9 +139,12 @@ class FPLDataFetcher(object):
                 self.get_fpl_credentials()
             else:
                 self.login_failed = True
-                raise RuntimeError(
-                    "Requested logging into the FPL API but no credentials provided."
+                self.continue_without_login = True
+                warnings.warn(
+                    "Skipping login which means AIrsenal may have out of date "
+                    "information for your team."
                 )
+                return
         headers = {
             "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; PRO 5 Build/LMY47D)"
         }
