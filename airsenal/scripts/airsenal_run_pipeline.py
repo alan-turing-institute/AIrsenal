@@ -102,7 +102,10 @@ from airsenal.scripts.update_db import update_db
 )
 @click.option(
     "--max_hit",
-    help="specify maximum number of points to spend on additional transfers (defaults to 8)",
+    help=(
+        "specify maximum number of points to spend on additional transfers "
+        "(defaults to 8)"
+    ),
     type=click.IntRange(min=0),
     default=8,
 )
