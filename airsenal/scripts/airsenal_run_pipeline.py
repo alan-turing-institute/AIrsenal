@@ -100,6 +100,17 @@ from airsenal.scripts.update_db import update_db
     type=click.IntRange(min=0, max=2),
     default=2,
 )
+@click.option(
+    "--max_hit",
+    help="specify maximum number of points to spend on additional transfers (defaults to 8)",
+    type=click.IntRange(min=0),
+    default=8,
+)
+@click.option(
+    "--allow_unused",
+    help="If set, include strategies that waste free transfers",
+    is_flag=True,
+)
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
@@ -113,6 +124,8 @@ def run_pipeline(
     n_previous: int,
     no_current_season: bool,
     max_transfers: int,
+    max_hit: int,
+    allow_unused: bool,
 ) -> None:
     """
     Run the full pipeline, from setting up the database and filling
@@ -185,6 +198,8 @@ def run_pipeline(
                 dbsession,
                 chips_played,
                 max_transfers,
+                max_hit,
+                allow_unused,
             )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
@@ -289,6 +304,8 @@ def run_optimize_squad(
     dbsession: Session,
     chips_played: dict,
     max_transfers: int,
+    max_hit: int,
+    allow_unused: bool,
 ) -> bool:
     """
     Build the initial squad
@@ -305,6 +322,8 @@ def run_optimize_squad(
             num_thread=num_thread,
             chip_gameweeks=chips_played,
             max_transfers=max_transfers,
+            max_total_hit=max_hit,
+            allow_unused_transfers=allow_unused,
         )
     return True
 
