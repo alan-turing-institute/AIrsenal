@@ -304,7 +304,7 @@ def run_optimize_squad(
             fpl_team_id=fpl_team_id,
             num_thread=num_thread,
             chip_gameweeks=chips_played,
-            max_transfers=max_transfers
+            max_transfers=max_transfers,
         )
     return True
 
