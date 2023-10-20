@@ -13,14 +13,11 @@ import dateparser
 import pandas as pd
 import regex as re
 import requests
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from dateutil.parser import isoparse
 from sqlalchemy import case, desc, or_
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.bpl_interface import (
-    ExtendedDixonColesMatchPredictor,
-    NeutralDixonColesMatchPredictor,
-)
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import (
