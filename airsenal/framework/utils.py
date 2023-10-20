@@ -1765,10 +1765,10 @@ def parse_team_model_from_str(
     Returns the team model class corresponding to the given string.
     """
     if team_model == "random":
-        return RandomMatchPredictor
+        return RandomMatchPredictor()
     elif team_model == "extended":
-        return ExtendedDixonColesMatchPredictor
+        return ExtendedDixonColesMatchPredictor()
     elif team_model == "neutral":
-        return NeutralDixonColesMatchPredictor
+        return NeutralDixonColesMatchPredictor()
     else:
         raise ValueError("Unknown team model")
