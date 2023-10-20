@@ -17,6 +17,7 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_max_gameweek,
     get_player_name,
+    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
@@ -77,14 +78,7 @@ def replay_season(
         )
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
-    if team_model == "random":
-        from airsenal.framework.random_team_model import (
-            RandomMatchPredictor as team_model_class,
-        )
-    else:
-        from airsenal.framework.bpl_interface import (
-            ExtendedDixonColesMatchPredictor as team_model_class,
-        )
+    team_model_class = parse_team_model_from_str(team_model)
 
     # store results in a dictionary, which we will later save to a json file
     replay_results = {}
@@ -104,10 +98,9 @@ def replay_season(
                 season=season,
                 num_thread=num_thread,
                 tag_prefix=tag_prefix,
-                team_model=team_model,
+                team_model=team_model_class,
                 team_model_args=team_model_args,
                 dbsession=session,
-                team_model_class=team_model_class,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
 

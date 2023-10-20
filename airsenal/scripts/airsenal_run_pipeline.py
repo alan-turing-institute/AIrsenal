@@ -1,10 +1,11 @@
 import multiprocessing
 import sys
 import warnings
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import click
 import requests
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
@@ -18,6 +19,7 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_latest_prediction_tag,
     get_past_seasons,
+    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -137,6 +139,8 @@ def run_pipeline(
 
     gw_range = get_gameweeks_array(weeks_ahead=weeks_ahead)
 
+    team_model_class = parse_team_model_from_str(team_model)
+
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
             click.echo("Setting up Database..")
@@ -171,10 +175,10 @@ def run_pipeline(
 
         click.echo("Running prediction..")
         predict_ok = run_prediction(
-            num_thread,
-            gw_range,
-            dbsession,
-            team_model,
+            num_thread=num_thread,
+            gw_range=gw_range,
+            dbsession=dbsession,
+            team_model=team_model_class,
             team_model_args={"epsilon": epsilon},
         )
         if not predict_ok:
@@ -255,7 +259,9 @@ def run_prediction(
     num_thread: int,
     gw_range: List[int],
     dbsession: Session,
-    team_model: str = "neutral",
+    team_model: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor(),
     team_model_args: dict = {"epsilon": 0.0},
 ) -> bool:
     """
