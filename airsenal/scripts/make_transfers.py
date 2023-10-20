@@ -350,7 +350,7 @@ def main():
     confirm = args.confirm or False
     try:
         make_transfers(args.fpl_team_id, confirm)
-        set_lineup(args.fpl_team_id)
+        set_lineup(args.fpl_team_id, skip_check=confirm)
     except Exception as e:
         raise Exception(
             "Something went wrong when making transfers. Check your team and make "

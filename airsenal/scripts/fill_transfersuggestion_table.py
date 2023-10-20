@@ -55,6 +55,7 @@ from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fetcher,
+    get_entry_start_gameweek,
     get_free_transfers,
     get_gameweeks_array,
     get_latest_prediction_tag,
@@ -425,8 +426,13 @@ def run_optimization(
         fpl_team_id = fetcher.FPL_TEAM_ID
 
     # see if we are at the start of a season, or
-    if gameweeks[0] == 1:
-        print("Starting a new season - will make squad from scratch")
+    if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
+        fpl_team_id, apifetcher=fetcher
+    ):
+        print(
+            "This is the start of the season or a new team - will make a squad "
+            "from scratch"
+        )
         fill_initial_squad(
             tag=tag,
             gw_range=gameweeks,
@@ -436,12 +442,8 @@ def run_optimization(
         )
         return
 
-    # give the user the option to login
-    if season == CURRENT_SEASON:
-        fetcher.login()
-
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
-    use_api = fetcher.logged_in if season == CURRENT_SEASON and not is_replay else False
+    use_api = season == CURRENT_SEASON and not is_replay
     try:
         starting_squad = get_starting_squad(
             next_gw=gameweeks[0],
@@ -462,7 +464,6 @@ def run_optimization(
             num_iterations=num_iterations,
         )
         return
-
     # if we got to here, we can assume we are optimizing an existing squad.
 
     # How many free transfers are we starting with?
@@ -474,6 +475,7 @@ def run_optimization(
             apifetcher=fetcher,
             is_replay=is_replay,
         )
+
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
