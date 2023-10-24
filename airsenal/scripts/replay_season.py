@@ -60,7 +60,7 @@ def replay_season(
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
-    team_model: str = "xdc",
+    team_model: str = "extended",
     team_model_args: dict = {"epsilon": 0.0},
     fpl_team_id: Optional[int] = None,
 ) -> None:
@@ -217,9 +217,16 @@ def main():
         "--team_model",
         help="Specify name of the team model.",
         type=str,
-        default="xdc",
-        choices=["xdc", "random"],
+        default="extended",
+        choices=["extended", "random"],
     )
+    parser.add_argument(
+        "--epsilon",
+        help="how much to downweight games by in exponential time weighting",
+        type=float,
+        default=0.0,
+    )
+
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
@@ -242,6 +249,7 @@ def main():
                 num_thread=args.num_thread,
                 fpl_team_id=args.fpl_team_id,
                 team_model=args.team_model,
+                team_model_args={"epsilon": args.epsilon},
             )
             n_completed += 1
 
