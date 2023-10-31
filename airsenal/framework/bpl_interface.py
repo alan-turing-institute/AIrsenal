@@ -122,7 +122,8 @@ def create_and_fit_team_model(
         print(f"Fitting {type(model)} model with epsilon = {fit_args['epsilon']}")
     else:
         print(
-            f"Fitting {type(model)} model but no epsilon passed, so setting epsilon = 0"
+            f"Fitting {type(model)} model but no epsilon passed, "
+            "so using the default epsilon = 0"
         )
 
     return model.fit(training_data=training_data, **fit_args)
