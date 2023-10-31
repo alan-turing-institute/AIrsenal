@@ -89,7 +89,7 @@ def get_training_data(
     season: str,
     gameweek: int,
     dbsession: Session,
-    ratings: bool = False,
+    ratings: bool = True,
 ):
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
@@ -135,7 +135,7 @@ def add_new_teams_to_model(
     ],
     season: str,
     dbsession: Session,
-    ratings: bool = False,
+    ratings: bool = True,
 ) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
@@ -158,7 +158,7 @@ def get_fitted_team_model(
     season: str,
     gameweek: int,
     dbsession: Session,
-    ratings: bool = False,
+    ratings: bool = True,
     model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
@@ -189,7 +189,7 @@ def fixture_probabilities(
         Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]
     ] = None,
     dbsession: Session = session,
-    ratings: bool = False,
+    ratings: bool = True,
     **fit_args,
 ) -> pd.DataFrame:
     """
