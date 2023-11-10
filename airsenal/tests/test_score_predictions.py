@@ -1,10 +1,10 @@
 """
 test the score-calculating functions
 """
-import bpl
 import numpy as np
 import pandas as pd
 import pytest
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 
 from airsenal.conftest import past_data_session_scope
 from airsenal.framework.bpl_interface import (
@@ -302,11 +302,34 @@ def test_get_ratings_dict():
 
 
 def test_get_fitted_team_model():
+    # extended model
+    with past_data_session_scope() as ts:
+        extended = ExtendedDixonColesMatchPredictor()
+        model_team = get_fitted_team_model("1819", 10, ts, model=extended)
+        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+    # extended model with epsilon = 0.0 by default
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model("1819", 10, ts)
-        assert isinstance(
-            model_team, bpl.extended_dixon_coles.ExtendedDixonColesMatchPredictor
-        )
+        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+        assert model_team.epsilon is None
+    # extended model with epsilon = 0.5
+    with past_data_session_scope() as ts:
+        extended = ExtendedDixonColesMatchPredictor()
+        model_team = get_fitted_team_model("1819", 10, ts, model=extended, epsilon=0.5)
+        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+        assert model_team.epsilon == 0.5
+    # neutral model with epsilon = 0.5
+    with past_data_session_scope() as ts:
+        neutral = NeutralDixonColesMatchPredictor()
+        model_team = get_fitted_team_model("1819", 10, ts, model=neutral, epsilon=0.5)
+        assert isinstance(model_team, NeutralDixonColesMatchPredictor)
+        assert model_team.epsilon == 0.5
+    # neutral model with no epsilon passed
+    with past_data_session_scope() as ts:
+        neutral = NeutralDixonColesMatchPredictor()
+        model_team = get_fitted_team_model("1819", 10, ts, model=neutral)
+        assert isinstance(model_team, NeutralDixonColesMatchPredictor)
+        assert model_team.epsilon is None
 
 
 def test_fixture_probabilities():

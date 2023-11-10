@@ -1,10 +1,11 @@
 import multiprocessing
 import sys
 import warnings
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import click
 import requests
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
@@ -18,6 +19,7 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_latest_prediction_tag,
     get_past_seasons,
+    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -95,6 +97,18 @@ from airsenal.scripts.update_db import update_db
     is_flag=True,
 )
 @click.option(
+    "--team_model",
+    help="which team model to fit",
+    type=click.Choice(["extended", "neutral"]),
+    default="extended",
+)
+@click.option(
+    "--epsilon",
+    help="how much to downweight games by in exponential time weighting",
+    type=float,
+    default=0.0,
+)
+@click.option(
     "--max_transfers",
     help="specify maximum number of transfers to be made each gameweek (defaults to 2)",
     type=click.IntRange(min=0, max=2),
@@ -126,6 +140,8 @@ def run_pipeline(
     bench_boost_week: int,
     n_previous: int,
     no_current_season: bool,
+    team_model: str,
+    epsilon: int,
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
@@ -145,6 +161,8 @@ def run_pipeline(
     set_multiprocessing_start_method()
 
     gw_range = get_gameweeks_array(weeks_ahead=weeks_ahead)
+
+    team_model_class = parse_team_model_from_str(team_model)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
@@ -179,7 +197,13 @@ def run_pipeline(
             click.echo("Database update complete..")
 
         click.echo("Running prediction..")
-        predict_ok = run_prediction(num_thread, gw_range, dbsession)
+        predict_ok = run_prediction(
+            num_thread=num_thread,
+            gw_range=gw_range,
+            dbsession=dbsession,
+            team_model=team_model_class,
+            team_model_args={"epsilon": epsilon},
+        )
         if not predict_ok:
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
@@ -192,17 +216,20 @@ def run_pipeline(
         else:
             click.echo("Running optimization..")
             chips_played = setup_chips(
-                wildcard_week, free_hit_week, triple_captain_week, bench_boost_week
+                wildcard_week=wildcard_week,
+                free_hit_week=free_hit_week,
+                triple_captain_week=triple_captain_week,
+                bench_boost_week=bench_boost_week,
             )
             opt_ok = run_optimize_squad(
-                num_thread,
-                gw_range,
-                fpl_team_id,
-                dbsession,
-                chips_played,
-                max_transfers,
-                max_hit,
-                allow_unused,
+                num_thread=num_thread,
+                gw_range=gw_range,
+                fpl_team_id=fpl_team_id,
+                dbsession=dbsession,
+                chips_played=chips_played,
+                max_transfers=max_transfers,
+                max_hit=max_hit,
+                allow_unused=allow_unused,
             )
             if not opt_ok:
                 raise RuntimeError("Problem running optimization")
@@ -261,7 +288,15 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
     return update_db(season, attr, fpl_team_id, dbsession)
 
 
-def run_prediction(num_thread: int, gw_range: List[int], dbsession: Session) -> bool:
+def run_prediction(
+    num_thread: int,
+    gw_range: List[int],
+    dbsession: Session,
+    team_model: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ] = ExtendedDixonColesMatchPredictor(),
+    team_model_args: dict = {"epsilon": 0.0},
+) -> bool:
     """
     Run prediction
     """
@@ -273,6 +308,8 @@ def run_prediction(num_thread: int, gw_range: List[int], dbsession: Session) -> 
         include_bonus=True,
         include_cards=True,
         include_saves=True,
+        team_model=team_model,
+        team_model_args=team_model_args,
         dbsession=dbsession,
     )
 
