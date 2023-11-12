@@ -93,10 +93,8 @@ def set_lineup(
 
     Note that this assumes that the prediction has been ran recently.
     """
-    print(f"fpl_team_id is {fpl_team_id}")
     fetcher = FPLDataFetcher(fpl_team_id)
-    if verbose:
-        print(f"Got fetcher {fetcher.FPL_TEAM_ID}")
+    print(f"fpl_team_id is {fetcher.FPL_TEAM_ID}")
     picks = fetcher.get_lineup()
     if verbose:
         print(f"Got picks {picks}")
