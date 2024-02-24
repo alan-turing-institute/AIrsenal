@@ -3,6 +3,7 @@ Generate player details json files from a locally cloned copy of the
 https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 
 """
+
 import json
 import os
 import shutil

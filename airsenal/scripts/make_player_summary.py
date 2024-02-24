@@ -1,6 +1,7 @@
 """
 Make player summary files from FPL season data json
 """
+
 import json
 import os
 

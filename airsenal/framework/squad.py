@@ -3,6 +3,7 @@ The class for an FPL squad.
 Contains a set of players.
 Is able to check that it obeys all constraints.
 """
+
 import warnings
 from operator import itemgetter
 

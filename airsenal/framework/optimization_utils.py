@@ -1,6 +1,7 @@
 """
 functions to optimize the transfers for N weeks ahead
 """
+
 import warnings
 from copy import deepcopy
 from datetime import datetime

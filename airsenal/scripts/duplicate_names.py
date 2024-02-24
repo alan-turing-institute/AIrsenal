@@ -2,6 +2,7 @@
 Find multiple players with the same name in the same season from a locally cloned copy
 of the https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
+
 from glob import glob
 from typing import List, Union
 

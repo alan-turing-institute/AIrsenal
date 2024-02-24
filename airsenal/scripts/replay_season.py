@@ -2,6 +2,7 @@
 Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
+
 import argparse
 import json
 import warnings

@@ -1,6 +1,7 @@
 """
 Fill the "PlayerMapping" table with alternative names for players
 """
+
 import csv
 import os
 from typing import List

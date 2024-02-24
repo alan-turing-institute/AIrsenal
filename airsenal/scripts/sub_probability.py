@@ -7,6 +7,7 @@ TODO: Determine the actual probability of an XI player not playing
 TODO: Use different probabilities for each position (GK, DEF, MID, FWD)
 TODO: Take into account different formations and sub (position) orders
 """
+
 import numpy as np
 
 # number of random trials

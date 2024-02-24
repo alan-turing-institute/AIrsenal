@@ -1,6 +1,7 @@
 """
 Generate results CSV files from saved JSON files from fetcher.get_fixture_data()
 """
+
 import json
 import os
 
