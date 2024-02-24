@@ -45,7 +45,7 @@ def get_league_standings_string():
         output_string += f"Standings for league {league_name} :"
         for i, entry in enumerate(standings):
             output_string += (
-                f"{i + 1,}: "
+                f"{i + 1}: "
                 f"{entry['name']}, "
                 f"managed by {entry['manager']}, "
                 f"with {entry['points']} points, "
