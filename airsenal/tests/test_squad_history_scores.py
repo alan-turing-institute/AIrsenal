@@ -3,6 +3,7 @@ This test is more for development purposes than regular testing, and may
 fail between seasons, but keep here for now in case it's useful to plunder
 bits from.
 """
+
 import pytest
 
 from airsenal.framework.optimization_utils import get_squad_from_transactions

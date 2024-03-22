@@ -2,6 +2,7 @@
 Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
+
 import argparse
 import json
 import warnings
@@ -17,6 +18,7 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_max_gameweek,
     get_player_name,
+    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
@@ -59,8 +61,9 @@ def replay_season(
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
+    team_model: str = "extended",
+    team_model_args: dict = {"epsilon": 0.0},
     fpl_team_id: Optional[int] = None,
-    team_model: str = "xdc",
 ) -> None:
     start = datetime.now()
     if gameweek_end is None:
@@ -76,14 +79,7 @@ def replay_season(
         )
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
-    if team_model == "random":
-        from airsenal.framework.random_team_model import (
-            RandomMatchPredictor as team_model_class,
-        )
-    else:
-        from airsenal.framework.bpl_interface import (
-            ExtendedDixonColesMatchPredictor as team_model_class,
-        )
+    team_model_class = parse_team_model_from_str(team_model)
 
     # store results in a dictionary, which we will later save to a json file
     replay_results = {}
@@ -103,8 +99,9 @@ def replay_season(
                 season=season,
                 num_thread=num_thread,
                 tag_prefix=tag_prefix,
+                team_model=team_model_class,
+                team_model_args=team_model_args,
                 dbsession=session,
-                team_model_class=team_model_class,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
 
@@ -221,9 +218,16 @@ def main():
         "--team_model",
         help="Specify name of the team model.",
         type=str,
-        default="xdc",
-        choices=["xdc", "random"],
+        default="extended",
+        choices=["extended", "random"],
     )
+    parser.add_argument(
+        "--epsilon",
+        help="how much to downweight games by in exponential time weighting",
+        type=float,
+        default=0.0,
+    )
+
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
@@ -246,6 +250,7 @@ def main():
                 num_thread=args.num_thread,
                 fpl_team_id=args.fpl_team_id,
                 team_model=args.team_model,
+                team_model_args={"epsilon": args.epsilon},
             )
             n_completed += 1
 

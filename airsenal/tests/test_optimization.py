@@ -2,6 +2,7 @@
 Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
+
 from operator import itemgetter
 from unittest import mock
 

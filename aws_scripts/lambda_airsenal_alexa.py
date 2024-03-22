@@ -3,6 +3,7 @@ function to be called by Alexa Skill, read
 suggested transfers from sqlite file on an S3 bucket, and
 return a response.
 """
+
 import logging
 
 from airsenal.framework.aws_utils import (

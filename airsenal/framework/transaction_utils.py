@@ -3,6 +3,7 @@ Functions to help fill the Transaction table, where players are bought and sold,
 hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via environment
 variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
+
 from sqlalchemy import and_, or_
 
 from airsenal.framework.schema import Transaction

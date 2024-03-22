@@ -2,6 +2,7 @@
 Classes to query the FPL API to retrieve current FPL data,
 and to query football-data.org to retrieve match and fixture data.
 """
+
 import getpass
 import json
 import time

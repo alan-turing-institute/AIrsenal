@@ -1,4 +1,5 @@
 """Script to fill the database after install."""
+
 import argparse
 from typing import List
 

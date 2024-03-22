@@ -1,6 +1,7 @@
 """
 Functions used by the AIrsenal API
 """
+
 from flask import jsonify
 from sqlalchemy.orm import scoped_session
 

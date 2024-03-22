@@ -1,6 +1,7 @@
 """
 Database can be either an sqlite file or a postgress server
 """
+
 import os
 from pathlib import Path
 

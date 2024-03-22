@@ -3,14 +3,16 @@ The class for an FPL squad.
 Contains a set of players.
 Is able to check that it obeys all constraints.
 """
+
 import warnings
 from operator import itemgetter
 
 import numpy as np
 
-from airsenal.framework.player import CandidatePlayer, Player
+from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.schema import Player
+from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
     get_player,
