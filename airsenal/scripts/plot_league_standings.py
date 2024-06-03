@@ -2,7 +2,7 @@
 """
 Plot the league
 """
-
+import numpy as np
 import argparse
 
 import matplotlib.pyplot as plt
@@ -46,20 +46,29 @@ def main():
     team_ids = get_team_ids(league_data)
     team_names = get_team_names(league_data)
     team_histories = []
+    max_gameweeks = 0
     for i, team_id in enumerate(team_ids):
         team_data = fetcher.get_fpl_team_history_data(team_id)
         history_dict = get_team_history(team_data)
         history_dict["name"] = team_names[i]
         team_histories.append(history_dict)
+        max_gameweeks = max(max_gameweeks, len(history_dict['history']))
 
-    xvals = sorted(team_histories[0]["history"].keys())
+    xvals = np.arange(1, max_gameweeks + 1)
     points = []
     for th in team_histories:
-        points.append(
-            [th["history"][gw][thing_to_plot] for gw in sorted(th["history"].keys())]
-        )
-        plt.plot(xvals, points[-1], label=th["name"])
+        team_points = [th["history"][gw][thing_to_plot] for gw in sorted(th["history"].keys())]
+        if len(team_points) < max_gameweeks:
+            team_points.extend([None] * (max_gameweeks - len(team_points)))  # Pad with None values
+        points.append(team_points)
+
+    for i, team_points in enumerate(points):
+        plt.plot(xvals, team_points, label=team_histories[i]["name"])
+
     plt.legend(loc="best")
     plt.xlabel("gameweek")
     plt.ylabel(thing_to_plot)
     plt.show()
+
+if __name__ == "__main__":
+    main()
