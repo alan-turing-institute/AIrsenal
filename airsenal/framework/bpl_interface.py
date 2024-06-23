@@ -3,6 +3,7 @@ Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
 
+import time
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -28,6 +29,7 @@ def get_result_dict(
     Query the match table and put results into pandas dataframe,
     to train the team-level model.
     """
+    start = time.time()
     results = [
         s
         for s in dbsession.query(Result).all()
@@ -49,6 +51,9 @@ def get_result_dict(
     ).min()
     end_date = end_date.replace(tzinfo=None)
     time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
+    end = time.time()
+    print(f"Time to get results: {end - start} seconds")
+
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
         "away_team": np.array([r.fixture.away_team for r in results]),
@@ -67,6 +72,7 @@ def get_ratings_dict(
     """
     Create a dataframe containing the fifa team ratings.
     """
+    start = time.time()
     ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
     if len(ratings) == 0:
         raise ValueError(f"No FIFA ratings found for season {season}")
@@ -83,6 +89,8 @@ def get_ratings_dict(
             + " The teams involved are "
             + f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
+    end = time.time()
+    print(f"Time to get ratings: {end - start} seconds")
     return ratings_dict
 
 
@@ -97,12 +105,15 @@ def get_training_data(
     exponential time decay in model.
     Data returned is for all matches up to specified gameweek and season.
     """
+    start = time.time()
     training_data = get_result_dict(season, gameweek, dbsession)
     if ratings:
         teams = set(training_data["home_team"]) | set(training_data["away_team"])
         training_data["team_covariates"] = get_ratings_dict(
             season=season, teams=teams, dbsession=dbsession
         )
+    end = time.time()
+    print(f"Time to get training data: {end - start} seconds")
     return training_data
 
 
@@ -117,6 +128,7 @@ def create_and_fit_team_model(
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
+    start = time.time()
     if not fit_args:
         fit_args = {}
     if "epsilon" in fit_args:
@@ -126,7 +138,8 @@ def create_and_fit_team_model(
             f"Fitting {type(model)} model but no epsilon passed, "
             "so using the default epsilon = 0"
         )
-
+    end = time.time()
+    print(f"Time to create and fit model: {end - start} seconds")
     return model.fit(training_data=training_data, **fit_args)
 
 
@@ -168,6 +181,7 @@ def get_fitted_team_model(
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
+    start = time.time()
     print(f"Fitting team model ({type(model)})...")
     training_data = get_training_data(
         season=season,
@@ -178,6 +192,8 @@ def get_fitted_team_model(
     team_model = create_and_fit_team_model(
         training_data=training_data, model=model, **fit_args
     )
+    end = time.time()
+    print(f"Team model fitted in {end - start:.2f} seconds")
     return add_new_teams_to_model(
         team_model=team_model, season=season, dbsession=dbsession, ratings=ratings
     )
@@ -265,6 +281,7 @@ def get_goal_probabilities_for_fixtures(
     Get the probability that each team in a fixture scores any number of goals up
     to max_goals.
     """
+    start = time.time()
     goals = np.arange(0, max_goals + 1)
     probs = {}
     for f in fixtures:
@@ -278,4 +295,6 @@ def get_goal_probabilities_for_fixtures(
             f.home_team: {g: p for g, p in zip(goals, home_team_goal_prob)},
             f.away_team: {g: p for g, p in zip(goals, away_team_goal_prob)},
         }
+    end = time.time()
+    print(f"Computed goal probabilities for {len(fixtures)} fixtures in {end - start} seconds")
     return probs

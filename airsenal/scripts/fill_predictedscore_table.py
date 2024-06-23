@@ -9,6 +9,7 @@ get consistent sets of predictions from the database.
 """
 import argparse
 from multiprocessing import Process, Queue
+import time
 from typing import List, Optional, Union
 from uuid import uuid4
 
@@ -163,6 +164,7 @@ def calc_all_predicted_points(
             p.join()
     else:
         # single threaded
+        start = time.time()
         for player in players:
             predictions = calc_predicted_points_for_player(
                 player,
@@ -179,6 +181,8 @@ def calc_all_predicted_points(
             for p in predictions:
                 dbsession.add(p)
         dbsession.commit()
+        end = time.time()
+        print(f"Single threaded processing took {end - start} seconds")
         print("Finished adding predictions to db")
 
 
