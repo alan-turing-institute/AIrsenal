@@ -2,6 +2,7 @@
 Useful commands to query the database.
 """
 
+import time
 import warnings
 from datetime import date, datetime, timezone
 from functools import lru_cache
@@ -883,8 +884,11 @@ def get_fixtures_for_gameweek(
     """
     Get a list of fixtures for the specified gameweek(s).
     """
+    start = time.time()
     if isinstance(gameweek, int):
         gameweek = [gameweek]
+    end = time.time()
+    print(f"get_fixtures_for_gameweek took {end - start} seconds")
     return (
         dbsession.query(Fixture)
         .filter_by(season=season)
