@@ -448,6 +448,8 @@ def next_week_transfers(
 
     max_free_transfers - maximum number of free transfers saved in the game rules
     (2 before 2024/25, 5 from 2024/25 season)
+
+    Returns (new_transfers, new_ft_available, new_points_hits) tuples.
     """
     # check that the 'chips' dict we are given makes sense:
     if (
