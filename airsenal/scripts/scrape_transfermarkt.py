@@ -90,10 +90,14 @@ def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
     team_soup = BeautifulSoup(page.content, features="lxml")
     player_rows = team_soup.find_all("td", {"class": "posrela"})
 
-    return [
-        (r.find_all("a")[-1].get("title"), r.find_all("a")[-1].get("href"))
-        for r in player_rows
-    ]
+    player_names_urls = []
+    for r in player_rows:
+        last_a_tag = r.find_all("a")[-1]
+        name = last_a_tag.contents[0].strip()
+        url = last_a_tag.get("href")
+        player_names_urls.append((name, url))
+
+    return player_names_urls
 
 
 def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
@@ -680,10 +684,7 @@ def main():
     parser.add_argument(
         "-v",
         "--verbose",
-        help=(
-            "Which season(s) to update (comma separated, e.g. 2021,2122 "
-            "for 2020/21 and 2021/22 seasons)"
-        ),
+        help="Print more information on progress if set",
         action="store_true",
         default=False,
     )

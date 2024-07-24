@@ -2,7 +2,7 @@
 How many points does FPL assign for goals, assists, clean sheets, appearances
 """
 
-points_for_goal = {"GK": 6, "DEF": 6, "MID": 5, "FWD": 4}
+points_for_goal = {"GK": 10, "DEF": 6, "MID": 5, "FWD": 4}
 
 points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
 

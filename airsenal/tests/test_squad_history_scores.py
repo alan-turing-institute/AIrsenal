@@ -35,7 +35,7 @@ SQUAD_DATA = [
 
 
 def get_squad_for_gameweek(
-    subs, captain, vice_captain, gameweek, season=CURRENT_SEASON, fpl_team_id=2779516
+    subs, captain, vice_captain, gameweek, season=CURRENT_SEASON, fpl_team_id=2004389
 ):
     s = get_squad_from_transactions(gameweek)
     for p in s.players:
