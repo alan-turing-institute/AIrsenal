@@ -338,6 +338,7 @@ def test_next_week_transfers_2ft_no_unused():
         max_total_hit=None,
         allow_unused_transfers=False,
         max_opt_transfers=2,
+        max_free_transfers=2,
     )
     expected = [(1, 2, 0), (2, 1, 0)]
     assert actual == expected
@@ -386,6 +387,7 @@ def test_next_week_transfers_2ft_allow_wildcard():
         max_total_hit=None,
         max_opt_transfers=2,
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
+        max_free_transfers=2,
     )
     expected = [(0, 2, 0), (1, 2, 0), (2, 1, 0), ("W", 2, 0)]
     assert actual == expected
@@ -399,6 +401,7 @@ def test_next_week_transfers_2ft_allow_wildcard_no_unused():
         allow_unused_transfers=False,
         max_opt_transfers=2,
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
+        max_free_transfers=2,
     )
     expected = [(1, 2, 0), (2, 1, 0), ("W", 2, 0)]
     assert actual == expected
@@ -424,6 +427,7 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
         allow_unused_transfers=False,
         max_opt_transfers=2,
         chips={"chips_allowed": [], "chip_to_play": "bench_boost"},
+        max_free_transfers=2,
     )
     expected = [("B1", 2, 0), ("B2", 1, 0)]
     assert actual == expected
@@ -494,6 +498,7 @@ def test_count_expected_outputs_no_chips_2ft_no_unused():
         allow_unused_transfers=False,
         next_gw=1,
         max_opt_transfers=2,
+        max_free_transfers=2,
     )
     assert count == 14
 
