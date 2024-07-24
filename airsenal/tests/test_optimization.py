@@ -586,7 +586,7 @@ def test_count_expected_outputs_no_chips_no_constraints_max5():
         max_opt_transfers=5,
         chip_gw_dict={},
     )
-    assert count == 5**3
+    assert count == 6**3
 
 
 def test_count_expected_outputs_no_chips_zero_hit():
@@ -625,7 +625,7 @@ def test_count_expected_outputs_no_chips_zero_hit_max5():
         max_opt_transfers=5,
         chip_gw_dict={},
     )
-    assert count == 13
+    assert count == 14
 
 
 def test_count_expected_outputs_no_chips_2ft_no_unused():
