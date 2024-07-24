@@ -39,6 +39,7 @@ from airsenal.framework.multiprocessing_utils import (
 )
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
+    MAX_FREE_TRANSFERS,
     calc_free_transfers,
     calc_points_hit,
     check_tag_valid,
@@ -95,6 +96,7 @@ def optimize(
     updater: Optional[Callable] = None,
     resetter: Optional[Callable] = None,
     profile: bool = False,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> None:
     """
     Queue is the multiprocessing queue,
@@ -213,7 +215,9 @@ def optimize(
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
-            free_transfers = calc_free_transfers(num_transfers, free_transfers)
+            free_transfers = calc_free_transfers(
+                num_transfers, free_transfers, max_free_transfers
+            )
 
             depth += 1
 
@@ -235,8 +239,9 @@ def optimize(
                 (free_transfers, hit_so_far, strat_dict),
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
-                max_transfers=max_transfers,
+                max_opt_transfers=max_transfers,
                 chips=chips_gw_dict[gw + 1],
+                max_free_transfers=max_free_transfers,
             )
 
             for strat in strategies:
@@ -412,6 +417,7 @@ def run_optimization(
     num_thread: int = 4,
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
 ):
     """
     This is the actual main function that sets up the multiprocessing
@@ -511,8 +517,9 @@ def run_optimization(
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
         allow_unused_transfers=allow_unused_transfers,
-        max_transfers=max_transfers,
+        max_opt_transfers=max_transfers,
         chip_gw_dict=chip_gw_dict,
+        max_free_transfers=max_free_transfers,
     )
     total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 

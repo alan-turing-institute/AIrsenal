@@ -29,6 +29,7 @@ from airsenal.framework.utils import (
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
+MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 
 def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
@@ -74,22 +75,24 @@ def calc_points_hit(num_transfers, free_transfers):
         raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
 
 
-def calc_free_transfers(num_transfers, prev_free_transfers):
+def calc_free_transfers(
+    num_transfers, prev_free_transfers, max_free_transfers=MAX_FREE_TRANSFERS
+):
     """
     We get one extra free transfer per week, unless we use a wildcard or
     free hit, but we can't have more than 2.  So we should only be able
     to return 1 or 2.
     """
     if num_transfers in ["W", "F"]:
-        return 1
+        return prev_free_transfers  # changed in 24/25 season, previously 1
     elif isinstance(num_transfers, int):
-        return max(1, min(2, 1 + prev_free_transfers - num_transfers))
+        return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
     elif (num_transfers.startswith("B") or num_transfers.startswith("T")) and len(
         num_transfers
     ) == 2:
         # take the 'x' out of Bx or Tx
         num_transfers = int(num_transfers[-1])
-        return max(1, min(2, 1 + prev_free_transfers - num_transfers))
+        return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
     else:
         raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
 
@@ -429,8 +432,9 @@ def next_week_transfers(
     strat,
     max_total_hit=None,
     allow_unused_transfers=True,
-    max_transfers=2,
+    max_opt_transfers=2,
     chips={"chips_allowed": [], "chip_to_play": None},
+    max_free_transfers=MAX_FREE_TRANSFERS,
 ):
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or chip played) in the following gameweek.
@@ -438,6 +442,12 @@ def next_week_transfers(
     strat is a tuple (free_transfers, hit_so_far, strat_dict)
     strat_dict must have key chips_played, which is a dict indexed by gameweek with
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
+
+    max_opt_transfers - maximum number of transfers to play each week as part of
+    strategy in optimisation
+
+    max_free_transfers - maximum number of free transfers saved in the game rules
+    (2 before 2024/25, 5 from 2024/25 season)
     """
     # check that the 'chips' dict we are given makes sense:
     if (
@@ -453,13 +463,13 @@ def next_week_transfers(
     ft_available, hit_so_far, strat_dict = strat
     chip_history = strat_dict["chips_played"]
 
-    if not allow_unused_transfers and ft_available == 2:
-        # Force at least 1 free transfer.
+    if not allow_unused_transfers and ft_available == max_free_transfers:
+        # Force at least 1 free transfer if a free transfer will be lost otherwise.
         # NOTE: This will exclude the baseline strategy when allow_unused_transfers
         # is False. Re-add it outside this function in that case.
-        ft_choices = list(range(1, max_transfers + 1))
+        ft_choices = list(range(1, max_opt_transfers + 1))
     else:
-        ft_choices = list(range(max_transfers + 1))
+        ft_choices = list(range(max_opt_transfers + 1))
 
     if max_total_hit is not None:
         ft_choices = [
@@ -515,7 +525,10 @@ def next_week_transfers(
     new_points_hits = [
         hit_so_far + calc_points_hit(nt, ft_available) for nt in new_transfers
     ]
-    new_ft_available = [calc_free_transfers(nt, ft_available) for nt in new_transfers]
+    new_ft_available = [
+        calc_free_transfers(nt, ft_available, max_free_transfers)
+        for nt in new_transfers
+    ]
 
     # return list of (num_transfers, free_transfers, hit_so_far) tuples for each new
     # strategy
@@ -528,8 +541,9 @@ def count_expected_outputs(
     free_transfers=1,
     max_total_hit=None,
     allow_unused_transfers=True,
-    max_transfers=2,
+    max_opt_transfers=2,
     chip_gw_dict={},
+    max_free_transfers=MAX_FREE_TRANSFERS,
 ):
     """
     Count the number of possible transfer and chip strategies for gw_ahead gameweeks
@@ -540,7 +554,7 @@ def count_expected_outputs(
     * Allow playing the chips which have their allow_xxx argument set True
     * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
     are available), if allow_unused_transfers is False.
-    * Make a maximum of max_transfers transfers each gameweek.
+    * Make a maximum of max_opt_transfers transfers each gameweek.
     * Each chip only allowed once.
     """
 
@@ -559,9 +573,10 @@ def count_expected_outputs(
             possibilities = next_week_transfers(
                 s,
                 max_total_hit=max_total_hit,
-                max_transfers=max_transfers,
+                max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,
                 chips=chips_for_gw,
+                max_free_transfers=max_free_transfers,
             )
 
             for n_transfers, new_free_transfers, new_hit in possibilities:
@@ -596,13 +611,13 @@ def count_expected_outputs(
     # if allow_unused_transfers is False baseline of no transfers will be removed above,
     # add it back in here, apart from edge cases where it's already included.
     if not allow_unused_transfers and (
-        gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == 2)
+        gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == max_free_transfers)
     ):
         baseline_strat_dict = {
             "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
             "chips_played": {},
         }
-        baseline_dict = (2, 0, baseline_strat_dict)
+        baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
     return len(strategies)
 
