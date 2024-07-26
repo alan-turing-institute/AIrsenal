@@ -64,6 +64,7 @@ def replay_season(
     team_model: str = "extended",
     team_model_args: dict = {"epsilon": 0.0},
     fpl_team_id: Optional[int] = None,
+    max_opt_transfers: int = 2,
 ) -> None:
     start = datetime.now()
     if gameweek_end is None:
@@ -130,6 +131,7 @@ def replay_season(
                 fpl_team_id=fpl_team_id,
                 num_thread=num_thread,
                 is_replay=True,
+                max_opt_transfers=max_opt_transfers,
             )
         gw_result["starting_11"] = []
         gw_result["subs"] = []
@@ -227,6 +229,15 @@ def main():
         type=float,
         default=0.0,
     )
+    parser.add_argument(
+        "--max_transfers",
+        help=(
+            "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
+            "increasing this value above 2 will make the optimisation extremely slow!]"
+        ),
+        type=int,
+        default=2,
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -251,6 +262,7 @@ def main():
                 fpl_team_id=args.fpl_team_id,
                 team_model=args.team_model,
                 team_model_args={"epsilon": args.epsilon},
+                max_opt_transfers=args.max_transfers,
             )
             n_completed += 1
 

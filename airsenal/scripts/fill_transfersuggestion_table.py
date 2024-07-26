@@ -412,7 +412,7 @@ def run_optimization(
     num_free_transfers: Optional[int] = None,
     max_total_hit: Optional[int] = None,
     allow_unused_transfers: bool = False,
-    max_transfers: int = 2,
+    max_opt_transfers: int = 2,
     num_iterations: int = 100,
     num_thread: int = 4,
     profile: bool = False,
@@ -517,7 +517,7 @@ def run_optimization(
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
         allow_unused_transfers=allow_unused_transfers,
-        max_opt_transfers=max_transfers,
+        max_opt_transfers=max_opt_transfers,
         chip_gw_dict=chip_gw_dict,
         max_free_transfers=max_free_transfers,
     )
@@ -575,7 +575,7 @@ def run_optimization(
                 chip_gw_dict,
                 max_total_hit,
                 allow_unused_transfers,
-                max_transfers,
+                max_opt_transfers,
                 num_iterations,
                 update_progress,
                 reset_progress,
@@ -759,6 +759,15 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--max_transfers",
+        help=(
+            "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
+            "increasing this value above 2 will make the optimisation extremely slow!]"
+        ),
+        type=int,
+        default=2,
+    )
+    parser.add_argument(
         "--num_iterations",
         help="how many iterations to use for Wildcard/Free Hit optimization",
         type=int,
@@ -842,7 +851,7 @@ def main():
             num_free_transfers,
             max_total_hit,
             allow_unused_transfers,
-            2,
+            args.max_transfers,
             num_iterations,
             num_thread,
             profile,
