@@ -110,8 +110,11 @@ from airsenal.scripts.update_db import update_db
 )
 @click.option(
     "--max_transfers",
-    help="specify maximum number of transfers to be made each gameweek (defaults to 2)",
-    type=click.IntRange(min=0, max=2),
+    help=(
+        "specify maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
+        "increasing this value above 2 will make the optimisation extremely slow!]"
+    ),
+    type=click.IntRange(min=0, max=5),
     default=2,
 )
 @click.option(
@@ -361,7 +364,7 @@ def run_optimize_squad(
             fpl_team_id=fpl_team_id,
             num_thread=num_thread,
             chip_gameweeks=chips_played,
-            max_transfers=max_transfers,
+            max_opt_transfers=max_transfers,
             max_total_hit=max_hit,
             allow_unused_transfers=allow_unused,
         )
