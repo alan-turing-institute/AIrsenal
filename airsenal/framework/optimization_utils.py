@@ -467,8 +467,8 @@ def next_week_transfers(
 
     if not allow_unused_transfers and ft_available == max_free_transfers:
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
-        # NOTE: This will exclude the baseline strategy when allow_unused_transfers
-        # is False. Re-add it outside this function in that case.
+        # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
+        # this function in that case.
         ft_choices = list(range(1, max_opt_transfers + 1))
     else:
         ft_choices = list(range(max_opt_transfers + 1))
@@ -610,17 +610,19 @@ def count_expected_outputs(
 
         strategies = new_strategies
 
-    # if allow_unused_transfers is False baseline of no transfers will be removed above,
-    # add it back in here, apart from edge cases where it's already included.
-    if not allow_unused_transfers and (
-        gw_ahead > 1 or (gw_ahead == 1 and init_free_transfers == max_free_transfers)
-    ):
-        baseline_strat_dict = {
-            "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
-            "chips_played": {},
-        }
+    # if allow_unused_transfers is False baseline of no transfers can be removed above.
+    # Check whether 1st strategy is the baseline and if not add it back in here
+    baseline_strat_dict = {
+        "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
+        "chips_played": {},
+    }
+    if strategies[0][2] != baseline_strat_dict:
         baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
+    # print(strategies)
+    # for s in strategies:
+    #     print("-".join([str(sum(p)) for p in s[2]["players_in"].values()]))
+    # raise RuntimeError("stop here")
     return len(strategies)
 
 
