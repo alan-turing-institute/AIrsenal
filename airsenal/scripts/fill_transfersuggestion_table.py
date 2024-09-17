@@ -40,7 +40,6 @@ from airsenal.framework.multiprocessing_utils import (
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
     MAX_FREE_TRANSFERS,
-    calc_free_transfers,
     calc_points_hit,
     check_tag_valid,
     count_expected_outputs,
@@ -215,9 +214,6 @@ def optimize(
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
-            free_transfers = calc_free_transfers(
-                num_transfers, free_transfers, max_free_transfers
-            )
 
             depth += 1
 
