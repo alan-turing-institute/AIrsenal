@@ -64,15 +64,16 @@ def calc_points_hit(num_transfers, free_transfers):
     """
     if num_transfers in ["W", "F"]:
         return 0
-    elif isinstance(num_transfers, int):
-        return max(0, 4 * (num_transfers - free_transfers))
-    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) and len(
-        num_transfers
-    ) == 2:
+    if (
+        isinstance(num_transfers, str)
+        and num_transfers.startswith(("B", "T"))
+        and len(num_transfers) == 2
+    ):
         num_transfers = int(num_transfers[-1])
-        return max(0, 4 * (num_transfers - free_transfers))
-    else:
+    if not isinstance(num_transfers, int):
         raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
+
+    return max(0, 4 * (num_transfers - free_transfers))
 
 
 def calc_free_transfers(
@@ -85,16 +86,19 @@ def calc_free_transfers(
     """
     if num_transfers in ["W", "F"]:
         return prev_free_transfers  # changed in 24/25 season, previously 1
-    elif isinstance(num_transfers, int):
-        return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
-    elif (num_transfers.startswith("B") or num_transfers.startswith("T")) and len(
-        num_transfers
-    ) == 2:
-        # take the 'x' out of Bx or Tx
+
+    if (
+        isinstance(num_transfers, str)
+        and num_transfers.startswith(("B", "T"))
+        and len(num_transfers) == 2
+    ):
+        # take the 'x' out of Bx or Tx (bench boost or triple captain with x transfers)
         num_transfers = int(num_transfers[-1])
-        return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
-    else:
-        raise RuntimeError(f"Unexpected argument for num_transfers {num_transfers}")
+
+    if not isinstance(num_transfers, int):
+        raise ValueError(f"Unexpected input for num_transfers {num_transfers}")
+
+    return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
 
 
 def get_starting_squad(
@@ -538,15 +542,15 @@ def next_week_transfers(
 
 
 def count_expected_outputs(
-    gw_ahead,
-    next_gw=NEXT_GAMEWEEK,
-    free_transfers=1,
-    max_total_hit=None,
-    allow_unused_transfers=True,
-    max_opt_transfers=2,
-    chip_gw_dict={},
-    max_free_transfers=MAX_FREE_TRANSFERS,
-):
+    gw_ahead: int,
+    next_gw: int = NEXT_GAMEWEEK,
+    free_transfers: int = 1,
+    max_total_hit: Optional[int] = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chip_gw_dict: dict = {},
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> tuple[int, bool]:
     """
     Count the number of possible transfer and chip strategies for gw_ahead gameweeks
     ahead, subject to:
@@ -558,6 +562,13 @@ def count_expected_outputs(
     are available), if allow_unused_transfers is False.
     * Make a maximum of max_opt_transfers transfers each gameweek.
     * Each chip only allowed once.
+
+    Returns
+    -------
+        Tuple of int: number of strategies that will be computed, and bool: whether the
+        baseline strategy will be excluded from the main optimization tree and will need
+        to be computed separately (this can be the case if allow_unused_transfers is
+        False). Either way, the total count of strategies will include the baseline.
     """
 
     init_strat_dict = {
@@ -619,11 +630,11 @@ def count_expected_outputs(
     if strategies[0][2] != baseline_strat_dict:
         baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
-    # print(strategies)
-    # for s in strategies:
-    #     print("-".join([str(sum(p)) for p in s[2]["players_in"].values()]))
-    # raise RuntimeError("stop here")
-    return len(strategies)
+        baseline_excluded = True
+    else:
+        baseline_excluded = False
+
+    return len(strategies), baseline_excluded
 
 
 def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):

@@ -112,7 +112,7 @@ from airsenal.scripts.update_db import update_db
     "--max_transfers",
     help=(
         "specify maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-        "increasing this value above 2 will make the optimisation extremely slow!]"
+        "increasing this value above 2 may make the optimisation very slow!]"
     ),
     type=click.IntRange(min=0, max=5),
     default=2,

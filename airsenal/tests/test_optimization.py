@@ -562,7 +562,7 @@ def test_next_week_transfers_play_triple_captain_max_transfers_3():
 
 def test_count_expected_outputs_no_chips_no_constraints():
     # No constraints or chips, expect 3**num_gameweeks strategies
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         3,
         free_transfers=1,
         max_total_hit=None,
@@ -577,7 +577,7 @@ def test_count_expected_outputs_no_chips_no_constraints():
 def test_count_expected_outputs_no_chips_no_constraints_max5():
     # No constraints or chips, expect 6**num_gameweeks strategies (0 to 5 transfers
     # each week)
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         3,
         free_transfers=1,
         max_total_hit=None,
@@ -599,7 +599,7 @@ def test_count_expected_outputs_no_chips_zero_hit():
     (0, 2, 2), (1, 1, 2), (1, 2, 0), (1, 2, 1), (1, 2, 2), (2, 0, 0), (2, 0, 1),
     (2, 0, 2), (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 2, 0), (2, 2, 1), (2, 2, 2)
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         3,
         free_transfers=1,
         max_total_hit=0,
@@ -617,7 +617,7 @@ def test_count_expected_outputs_no_chips_zero_hit_max5():
     Adds (0, 0, 3) to valid strategies compared to
     test_count_expected_outputs_no_chips_zero_hit above
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         3,
         free_transfers=1,
         max_total_hit=0,
@@ -638,7 +638,7 @@ def test_count_expected_outputs_no_chips_2ft_no_unused():
     (0, 0, 1), (0, 0, 2), (0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 2, 0), (0, 2, 1),
     (0, 2, 2), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 0), (2, 0, 0)
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         3,
         free_transfers=2,
         max_total_hit=None,
@@ -661,7 +661,7 @@ def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
     (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5),
     (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5),
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         2,
         free_transfers=5,
         max_total_hit=None,
@@ -680,7 +680,7 @@ def test_count_expected_wildcard_allowed_no_constraints():
     (0, 0), (0, 1), (0, 2), (0, 'W'), (1, 0), (1, 1), (1, 2), (1, 'W'), (2, 0),
     (2, 1), (2, 2), (2, 'W'), ('W', 0), ('W', 1), ('W', 2)
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         2,
         free_transfers=1,
         max_total_hit=None,
@@ -705,7 +705,7 @@ def count_expected_bench_boost_allowed_no_constraints():
     (2, 'B2'), ('B0', 0), ('B0', 1), ('B0', 2), ('B1', 0), ('B1', 1), ('B1', 2),
     ('B2', 0), ('B2', 1), ('B2', 2),
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         2,
         free_transfers=1,
         max_total_hit=None,
@@ -727,7 +727,7 @@ def count_expected_play_wildcard_no_constraints():
     Strategies:
     ("W",0), ("W,1), ("W",2)
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         2,
         free_transfers=1,
         max_total_hit=None,
@@ -748,7 +748,7 @@ def count_expected_play_free_hit_no_unused():
     Strategies:
     (0,0), ("F",1), ("F",2)
     """
-    count = count_expected_outputs(
+    count, _ = count_expected_outputs(
         2,
         free_transfers=2,
         max_total_hit=None,

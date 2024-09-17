@@ -233,7 +233,7 @@ def main():
         "--max_transfers",
         help=(
             "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-            "increasing this value above 2 will make the optimisation extremely slow!]"
+            "increasing this value above 2 may make the optimisation very slow!]"
         ),
         type=int,
         default=2,

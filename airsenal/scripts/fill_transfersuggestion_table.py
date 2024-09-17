@@ -473,7 +473,7 @@ def run_optimization(
     # if we got to here, we can assume we are optimizing an existing squad.
 
     # How many free transfers are we starting with?
-    if not num_free_transfers:
+    if num_free_transfers is None:
         num_free_transfers = get_free_transfers(
             fpl_team_id,
             gameweeks[0],
@@ -511,7 +511,7 @@ def run_optimization(
     # number of nodes in tree will be something like 3^num_weeks unless we allow
     # a "chip" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
-    num_expected_outputs = count_expected_outputs(
+    num_expected_outputs, baseline_excluded = count_expected_outputs(
         num_weeks,
         next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
@@ -546,9 +546,7 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    if not allow_unused_transfers and (
-        num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
-    ):
+    if baseline_excluded:
         # if we are excluding unused transfers the tree may not include the baseline
         # strategy. In those cases quickly calculate and save it here first.
         save_baseline_score(starting_squad, gameweeks, tag)
@@ -704,8 +702,8 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
         args.gameweek_end and not args.gameweek_start
     ):
         raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
-    if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
-        raise RuntimeError("Number of free transfers must be 1 or 2")
+    if args.num_free_transfers and args.num_free_transfers not in range(6):
+        raise RuntimeError("Number of free transfers must be 0 to 5")
     return True
 
 
@@ -762,7 +760,7 @@ def main():
         "--max_transfers",
         help=(
             "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-            "increasing this value above 2 will make the optimisation extremely slow!]"
+            "increasing this value above 2 make the optimisation very slow!]"
         ),
         type=int,
         default=2,
