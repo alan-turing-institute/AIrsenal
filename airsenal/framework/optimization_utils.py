@@ -81,8 +81,8 @@ def calc_free_transfers(
 ):
     """
     We get one extra free transfer per week, unless we use a wildcard or
-    free hit, but we can't have more than 2.  So we should only be able
-    to return 1 or 2.
+    free hit, but we can't have more than 5.  So we should only be able
+    to return 1 to 5.
     """
     if num_transfers in ["W", "F"]:
         return prev_free_transfers  # changed in 24/25 season, previously 1
