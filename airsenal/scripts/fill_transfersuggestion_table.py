@@ -39,7 +39,7 @@ from airsenal.framework.multiprocessing_utils import (
 )
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
-    calc_free_transfers,
+    MAX_FREE_TRANSFERS,
     calc_points_hit,
     check_tag_valid,
     count_expected_outputs,
@@ -95,6 +95,7 @@ def optimize(
     updater: Optional[Callable] = None,
     resetter: Optional[Callable] = None,
     profile: bool = False,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> None:
     """
     Queue is the multiprocessing queue,
@@ -213,7 +214,6 @@ def optimize(
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
-            free_transfers = calc_free_transfers(num_transfers, free_transfers)
 
             depth += 1
 
@@ -235,8 +235,9 @@ def optimize(
                 (free_transfers, hit_so_far, strat_dict),
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
-                max_transfers=max_transfers,
+                max_opt_transfers=max_transfers,
                 chips=chips_gw_dict[gw + 1],
+                max_free_transfers=max_free_transfers,
             )
 
             for strat in strategies:
@@ -407,11 +408,12 @@ def run_optimization(
     num_free_transfers: Optional[int] = None,
     max_total_hit: Optional[int] = None,
     allow_unused_transfers: bool = False,
-    max_transfers: int = 2,
+    max_opt_transfers: int = 2,
     num_iterations: int = 100,
     num_thread: int = 4,
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
 ):
     """
     This is the actual main function that sets up the multiprocessing
@@ -467,7 +469,7 @@ def run_optimization(
     # if we got to here, we can assume we are optimizing an existing squad.
 
     # How many free transfers are we starting with?
-    if not num_free_transfers:
+    if num_free_transfers is None:
         num_free_transfers = get_free_transfers(
             fpl_team_id,
             gameweeks[0],
@@ -505,14 +507,15 @@ def run_optimization(
     # number of nodes in tree will be something like 3^num_weeks unless we allow
     # a "chip" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
-    num_expected_outputs = count_expected_outputs(
+    num_expected_outputs, baseline_excluded = count_expected_outputs(
         num_weeks,
         next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=max_total_hit,
         allow_unused_transfers=allow_unused_transfers,
-        max_transfers=max_transfers,
+        max_opt_transfers=max_opt_transfers,
         chip_gw_dict=chip_gw_dict,
+        max_free_transfers=max_free_transfers,
     )
     total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
 
@@ -539,9 +542,7 @@ def run_optimization(
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
 
-    if not allow_unused_transfers and (
-        num_weeks > 1 or (num_weeks == 1 and num_free_transfers == 2)
-    ):
+    if baseline_excluded:
         # if we are excluding unused transfers the tree may not include the baseline
         # strategy. In those cases quickly calculate and save it here first.
         save_baseline_score(starting_squad, gameweeks, tag)
@@ -568,7 +569,7 @@ def run_optimization(
                 chip_gw_dict,
                 max_total_hit,
                 allow_unused_transfers,
-                max_transfers,
+                max_opt_transfers,
                 num_iterations,
                 update_progress,
                 reset_progress,
@@ -697,8 +698,8 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
         args.gameweek_end and not args.gameweek_start
     ):
         raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
-    if args.num_free_transfers and args.num_free_transfers not in range(1, 3):
-        raise RuntimeError("Number of free transfers must be 1 or 2")
+    if args.num_free_transfers and args.num_free_transfers not in range(6):
+        raise RuntimeError("Number of free transfers must be 0 to 5")
     return True
 
 
@@ -750,6 +751,15 @@ def main():
         "--allow_unused",
         help="if set, include strategies that waste free transfers",
         action="store_true",
+    )
+    parser.add_argument(
+        "--max_transfers",
+        help=(
+            "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
+            "increasing this value above 2 make the optimisation very slow!]"
+        ),
+        type=int,
+        default=2,
     )
     parser.add_argument(
         "--num_iterations",
@@ -835,7 +845,7 @@ def main():
             num_free_transfers,
             max_total_hit,
             allow_unused_transfers,
-            2,
+            args.max_transfers,
             num_iterations,
             num_thread,
             profile,
