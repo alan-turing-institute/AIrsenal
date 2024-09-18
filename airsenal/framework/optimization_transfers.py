@@ -388,6 +388,21 @@ def make_best_transfers(
         players_out = [p for p in _out if p not in _in]  # remove duplicates
         transfer_dict = {"in": players_in, "out": players_out}
 
+    elif isinstance(num_transfers, int) and num_transfers > 2:
+        new_squad, players_out, players_in = make_random_transfers(
+            squad,
+            tag,
+            nsubs=num_transfers,
+            gw_range=gameweeks,
+            root_gw=root_gw,
+            num_iter=num_iter,
+            update_func_and_args=update_func_and_args,
+            season=season,
+            bench_boost_gw=bench_boost_gw,
+            triple_captain_gw=triple_captain_gw,
+        )
+        transfer_dict = {"in": players_in, "out": players_out}
+
     else:
         raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
 
