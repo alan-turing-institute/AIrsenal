@@ -2,7 +2,7 @@
 map between different conventions used in different data sources.
 """
 
-positions = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
+positions = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD", 5: "MNG"}
 
 alternative_team_names = {
     "ARS": ["1", "Arsenal", "Arsenal FC"],

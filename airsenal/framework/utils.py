@@ -217,8 +217,10 @@ def get_next_season(season: str) -> str:
     """
     start_year = int(season[:2])
     end_year = int(season[2:])
-    next_start_year = f"0{start_year+1}" if start_year + 1 < 10 else str(start_year + 1)
-    next_end_year = f"0{end_year+1}" if end_year + 1 < 10 else str(end_year + 1)
+    next_start_year = (
+        f"0{start_year + 1}" if start_year + 1 < 10 else str(start_year + 1)
+    )
+    next_end_year = f"0{end_year + 1}" if end_year + 1 < 10 else str(end_year + 1)
     return f"{next_start_year}{next_end_year}"
 
 
@@ -683,6 +685,9 @@ def list_players(
         q = q.filter_by(team=team)
     if position != "all":
         q = q.filter_by(position=position)
+    else:
+        # exclude managers
+        q = q.filter(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
         #  Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
@@ -1115,8 +1120,7 @@ def get_top_predicted_points(
 
     discord_embed = {
         "title": "AIrsenal webhook",
-        "description": f"PREDICTED TOP {n_players} "
-        f"PLAYERS FOR GAMEWEEK(S) {gameweek}:",
+        "description": f"PREDICTED TOP {n_players} PLAYERS FOR GAMEWEEK(S) {gameweek}:",
         "color": 0x35A800,
         "fields": [],
     }
