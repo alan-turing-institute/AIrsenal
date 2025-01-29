@@ -1341,7 +1341,6 @@ def estimate_minutes_from_prev_season(
         .filter_by(player_team=current_team)
         .join(Fixture, PlayerScore.fixture)
         .order_by(desc(Fixture.gameweek))
-        .limit(n_games_to_use)
         .all()
     )
 
@@ -1349,7 +1348,14 @@ def estimate_minutes_from_prev_season(
         # no FPL history / didn't play for current team last season
         return [0]
 
-    average_mins = calc_average_minutes(player_scores)
+    # Use average of last n games and all games from last season. Attempts to balance
+    # whether player was first choice at the end of the season vs. whether they were
+    # only not playing at the end of the season due to rotation/injury. First-choice
+    # players with long-term injuries early in the season will be underestimated.
+    average_mins_last_n = calc_average_minutes(player_scores[-n_games_to_use:])
+    average_mins_season = calc_average_minutes(player_scores)
+    average_mins = (average_mins_last_n + average_mins_season) / 2
+
     return [average_mins]
 
 
