@@ -236,8 +236,8 @@ AIrsenal is regularly developed to fix bugs and add new features. If you have an
 You may also like to try the development version of AIrsenal, which has the latest fixes and features. To do this checkout the `develop` branch of the repo and reinstall:
 
 ```shell
-git pull
 git checkout develop
+git pull
 pip install --force-reinstall .
 ```
 
