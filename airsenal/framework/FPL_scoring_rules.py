@@ -2,9 +2,7 @@
 How many points does FPL assign for goals, assists, clean sheets, appearances etc.
 """
 
-###############
-### PLAYERS ###
-###############
+# PLAYERS
 points_for_goal = {"GK": 10, "DEF": 6, "MID": 5, "FWD": 4}
 
 points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
@@ -33,10 +31,7 @@ def get_appearance_points(minutes):
     return app_points
 
 
-################
-### MANAGERS ###
-################
-
+# MANAGERS
 points_for_manager_win = 6
 points_for_manager_table_bonus_win = 10
 points_for_manager_draw = 3

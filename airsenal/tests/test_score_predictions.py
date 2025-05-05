@@ -295,7 +295,7 @@ def test_get_result_dict():
 
 def test_get_ratings_dict():
     with past_data_session_scope() as ts:
-        rd = lt_dict("1819", 10, ts)
+        rd = get_result_dict("1819", 10, ts)
         teams = set(rd["home_team"]) | set(rd["away_team"])
         d = get_ratings_dict("1819", teams, ts)
         assert isinstance(d, dict)
