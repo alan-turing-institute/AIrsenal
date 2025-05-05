@@ -12,11 +12,18 @@ import pandas as pd
 from scipy.stats import multinomial
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.bpl_interface import get_result_dict
 from airsenal.framework.FPL_scoring_rules import (
     get_appearance_points,
     points_for_assist,
     points_for_cs,
     points_for_goal,
+    points_for_manager_clean_sheet,
+    points_for_manager_draw,
+    points_for_manager_goal,
+    points_for_manager_table_bonus_draw,
+    points_for_manager_table_bonus_win,
+    points_for_manager_win,
     points_for_red_card,
     points_for_yellow_card,
     saves_for_point,
@@ -39,6 +46,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fastcopy,
     fetcher,
+    get_fixtures_for_gameweek,
     get_fixtures_for_player,
     get_max_matches_per_player,
     get_player,
@@ -374,9 +382,7 @@ def calc_predicted_points_for_player(
     player_prob = (
         # fitted probability of scoring/assisting for this player
         # (we don't calculate this for goalkeepers)
-        df_player[position].loc[player.player_id]
-        if position != "GK"
-        else None
+        df_player[position].loc[player.player_id] if position != "GK" else None
     )
 
     # use same recent_minutes from previous gameweeks for all predictions
@@ -764,3 +770,191 @@ def fit_card_points(
     )
 
     return mean_group_min_count(df, "player_id", "card_pts", min_count=min_matches)
+
+
+def calc_predicted_points_for_managers(
+    season: str,
+    gw_range: Iterable[int],
+    fixture_outcome_probs: Dict[int, Dict[str, float]],
+    fixture_goal_probs: Dict[int, Dict[str, Dict[int, float]]],
+    tag: str = "",
+    dbsession: Session = session,
+) -> List[PlayerPrediction]:
+    """
+    Calculate predicted points for all managers in the league.
+
+    Rules:
+    - Win:	6pts + 10pts if opposition 5+ places higher in league
+    - Draw:	3pts + 5pts if opposition 5+ places higher in league
+    - Goal:	1pt each
+    - Clean Sheet: 2pts
+    """
+    fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
+
+    # expected goals scored for each team in each match
+    exp_goals = goal_proba_to_exp_goals(fixture_goal_probs)
+    # probability of clean sheet for each team in each match
+    clean_sheet_proba = goal_proba_to_clean_sheet_proba(fixture_goal_probs)
+
+    league_table = get_league_table(gw_range[0], season, dbsession=dbsession)
+
+    # TODO predict future league position probabilities
+    # position_proba = simulate_leage_tables(league_table, result_probabilities)
+    # TODO predict manager table bonus probability
+    # table_bonus_proba = calc_table_bonus_proba(position_proba, fixtures)
+
+    managers = list_players(
+        position="MNG", season=season, gameweek=min(gw_range), dbsession=dbsession
+    )
+
+    manager_preds = []
+    for mng in managers:
+        message = f"Points prediction for manager {mng}"
+        team = mng.team(season, gw_range[0])
+        team_fixtures = [
+            f for f in fixtures if f.home_team == team or f.away_team == team
+        ]
+
+        for fixture in team_fixtures:
+            is_home = fixture.home_team == team
+
+            if is_home:
+                opponent = fixture.away_team
+                prob_win = fixture_outcome_probs[fixture.fixture_id]["home_win"]
+
+            else:
+                opponent = fixture.home_team
+                prob_win = fixture_outcome_probs[fixture.fixture_id]["away_win"]
+
+            home_or_away = "at home" if is_home else "away"
+            message += f"\ngameweek: {fixture.gameweek} vs {opponent} {home_or_away}"
+
+            prob_draw = fixture_outcome_probs[fixture.fixture_id]["draw"]
+            x_goals = exp_goals[fixture.fixture_id][team]
+            cs_proba = clean_sheet_proba[fixture.fixture_id][team]
+            has_table_bonus = (
+                league_table.loc[team, "Pos"] - league_table.loc[opponent, "Pos"] >= 5
+            )
+
+            # predicted points from winning
+            pts = prob_win * (
+                points_for_manager_win
+                + has_table_bonus * points_for_manager_table_bonus_win
+            )
+
+            # predicted points from drawing
+            pts += prob_draw * (
+                points_for_manager_draw
+                + has_table_bonus * points_for_manager_table_bonus_draw
+            )
+
+            # predicted points from goals scored
+            pts += x_goals * points_for_manager_goal
+
+            # predicted points from clean sheets
+            pts += cs_proba * points_for_manager_clean_sheet
+
+            manager_preds.append(make_prediction(mng, fixture, pts, tag))
+
+            message += f"\nExpected points: {pts:.2f}"
+            print(message)
+
+    return manager_preds
+
+
+def goal_proba_to_exp_goals(
+    fixture_goal_probs: Dict[int, Dict[str, Dict[int, float]]],
+) -> Dict[int, Dict[str, float]]:
+    """
+    Convert goal probabilities to expected goals for each team in each match.
+    """
+    exp_goals = {}
+    for fixture_id, team_probs in fixture_goal_probs.items():
+        exp_goals[fixture_id] = {
+            t: float(sum(goals * prob for goals, prob in team_probs[t].items()))
+            for t in team_probs
+        }
+    return exp_goals
+
+
+def goal_proba_to_clean_sheet_proba(
+    fixture_goal_probs: Dict[int, Dict[str, Dict[int, float]]],
+) -> Dict[int, Dict[str, float]]:
+    """
+    Convert goal probabilities to clean sheet probabilities for each team in each match.
+    """
+    clean_sheet_proba = {}
+    for fixture_id, team_probs in fixture_goal_probs.items():
+        clean_sheet_proba[fixture_id] = {}
+        teams = list(team_probs.keys())
+        # probability other team scores 0 goals
+        clean_sheet_proba[fixture_id][teams[0]] = float(team_probs[teams[1]][0])
+        clean_sheet_proba[fixture_id][teams[1]] = float(team_probs[teams[0]][0])
+    return clean_sheet_proba
+
+
+def get_league_table(
+    gameweek: int,
+    season: str,
+    dbsession: Session = session,
+) -> pd.DataFrame:
+    """
+    Get the league table for a given gameweek (before that gameweek's fixtures have
+    been played).
+    """
+    result_dict = get_result_dict(season, gameweek, dbsession, this_season_only=True)
+
+    team_pts = defaultdict(int)
+    team_gf = defaultdict(int)
+    team_ga = defaultdict(int)
+    team_played = defaultdict(int)
+    team_won = defaultdict(int)
+    team_drawn = defaultdict(int)
+    team_lost = defaultdict(int)
+    for ht, at, hg, ag in zip(
+        result_dict["home_team"],
+        result_dict["away_team"],
+        result_dict["home_goals"],
+        result_dict["away_goals"],
+    ):
+        team_pts[ht] += 3 if hg > ag else 1 if hg == ag else 0
+        team_pts[at] += 3 if ag > hg else 1 if hg == ag else 0
+        team_gf[ht] += hg
+        team_gf[at] += ag
+        team_ga[ht] += ag
+        team_ga[at] += hg
+        team_played[ht] += 1
+        team_played[at] += 1
+        team_won[ht] += hg > ag
+        team_won[at] += ag > hg
+        team_drawn[ht] += hg == ag
+        team_drawn[at] += hg == ag
+        team_lost[ht] += hg < ag
+        team_lost[at] += hg > ag
+
+    team_gd = {t: team_gf[t] - team_ga[t] for t in team_pts}
+
+    table = (
+        pd.DataFrame(
+            [
+                {
+                    "Team": t,
+                    "MP": team_played[t],
+                    "W": team_won[t],
+                    "D": team_drawn[t],
+                    "L": team_lost[t],
+                    "GF": team_gf[t],
+                    "GA": team_ga[t],
+                    "GD": team_gd[t],
+                    "Pts": team_pts[t],
+                }
+                for t in team_pts
+            ]
+        )
+        .sort_values(by=["Pts", "GD", "GF"], ascending=False)
+        .reset_index(drop=True)
+        .set_index("Team")
+    )  # doesn't incorporate head-to-head tiebreaker
+    table["Pos"] = range(1, len(table) + 1)
+
+    return table

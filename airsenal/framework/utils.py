@@ -619,7 +619,7 @@ def list_players(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Optional[Session] = None,
     verbose: bool = False,
-) -> List[int]:
+) -> List[Player]:
     """
     Print list of players and return a list of player_ids.
     """
@@ -686,7 +686,7 @@ def list_players(
     if position != "all":
         q = q.filter_by(position=position)
     else:
-        # exclude managers
+        # exclude managers by default
         q = q.filter(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
         #  Sort query results by order of gameweeks - i.e. make sure the input
@@ -1139,6 +1139,19 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
+        if position == "all":
+            # manager points not usually included by default in other functions, but
+            # include it here
+            pts.append(
+                get_predicted_points(
+                    gameweek,
+                    tag,
+                    position="MNG",
+                    team=team,
+                    season=season,
+                    dbsession=dbsession,
+                )
+            )
         if max_price is not None:
             pts = [p for p in pts if p[0].price(season, first_gw) <= max_price]
 
@@ -1181,7 +1194,7 @@ def get_top_predicted_points(
             else:
                 print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     else:
-        for position in ["GK", "DEF", "MID", "FWD"]:
+        for position in ["GK", "DEF", "MID", "FWD", "MNG"]:
             pts = get_predicted_points(
                 gameweek,
                 tag,

@@ -7,6 +7,7 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
+
 import argparse
 from multiprocessing import Process, Queue
 from typing import List, Optional, Union
@@ -19,11 +20,13 @@ from sqlalchemy.orm.session import Session
 from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
+    get_outcome_probabilities_for_fixtures,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
+    calc_predicted_points_for_managers,
     calc_predicted_points_for_player,
     fit_bonus_points,
     fit_card_points,
@@ -104,7 +107,7 @@ def calc_all_predicted_points(
         gameweek=min(gw_range),
         dbsession=dbsession,
         model=team_model,
-        **team_model_args
+        **team_model_args,
     )
     print("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
@@ -179,7 +182,26 @@ def calc_all_predicted_points(
             for p in predictions:
                 dbsession.add(p)
         dbsession.commit()
-        print("Finished adding predictions to db")
+        print("Finished adding player predictions to db")
+
+    # manager points
+    # TODO outcome proba computation currently repeats all the computations done in
+    # when computing goals scored probabilities earlier. Can save time by creating a
+    # function that returns both at once
+    print("Predicting manager points...")
+    fixture_outcome_probs = get_outcome_probabilities_for_fixtures(fixtures, model_team)
+    manager_preds = calc_predicted_points_for_managers(
+        season=season,
+        gw_range=gw_range,
+        fixture_outcome_probs=fixture_outcome_probs,
+        fixture_goal_probs=fixture_goal_probs,
+        tag=tag,
+        dbsession=dbsession,
+    )
+    for p in manager_preds:
+        dbsession.add(p)
+    dbsession.commit()
+    print("Finished adding manager predictions to db")
 
 
 def make_predictedscore_table(

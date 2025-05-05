@@ -22,11 +22,12 @@ np.random.seed(42)
 
 
 def get_result_dict(
-    season: str, gameweek: int, dbsession: Session
+    season: str, gameweek: int, dbsession: Session, this_season_only: bool = False
 ) -> Dict[str, np.array]:
     """
     Query the match table and put results into pandas dataframe,
-    to train the team-level model.
+    to train the team-level model. If this_season_only is True, only return
+    results from the current season.
     """
     results = [
         s
@@ -38,6 +39,7 @@ def get_result_dict(
             current_season=season,
             next_gameweek=gameweek,
         )
+        and (not this_season_only or s.fixture.season == season)
     ]
     # compute the time difference for each fixture in results
     # to the first fixture of the next gameweek
@@ -252,6 +254,38 @@ def fixture_probabilities(
             "away_win_probability": probabilities["away_win"],
         }
     )
+
+
+def get_outcome_probabilities_for_fixtures(
+    fixtures: List[Fixture],
+    team_model: Union[
+        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+    ],
+) -> Dict[int, Dict[str, float]]:
+    """
+    Get the probability of each outcome (home win, away win, draw) for each fixture.
+    """
+    probs = {}
+    for f in fixtures:
+        if isinstance(team_model, ExtendedDixonColesMatchPredictor):
+            probs[f.fixture_id] = team_model.predict_outcome_proba(
+                f.home_team, f.away_team
+            )
+        elif isinstance(team_model, NeutralDixonColesMatchPredictor):
+            probs[f.fixture_id] = team_model.predict_outcome_proba(
+                f.home_team, f.away_team, neutral_venue=0
+            )
+        else:
+            raise NotImplementedError(
+                "model must be either of type "
+                "'ExtendedDixonColesMatchPredictor' or "
+                "'NeutralDixonColesMatchPredictor'"
+            )
+        # dict of jax arrays to dict of floats (first element as only computing proba
+        # for one fixture at a time)
+        probs[f.fixture_id] = {k: float(v[0]) for k, v in probs[f.fixture_id].items()}
+
+    return probs
 
 
 def get_goal_probabilities_for_fixtures(
