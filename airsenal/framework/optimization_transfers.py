@@ -8,6 +8,7 @@ from operator import itemgetter
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -18,7 +19,7 @@ from airsenal.framework.utils import (
 
 
 def make_optimum_single_transfer(
-    squad,
+    squad: Squad,
     tag,
     gameweek_range=None,
     root_gw=None,
@@ -26,6 +27,7 @@ def make_optimum_single_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    full_squad_check=False,
     verbose=False,
 ):
     """
@@ -34,6 +36,9 @@ def make_optimum_single_transfer(
 
     We will order the list of potential transfers via the sum of
     expected points over a specified range of gameweeks.
+
+    full_squad_check: Set to True if initial squad may be invalid and the transfers are
+    required to make it valid (e.g. this is the case when activating assistant manager).
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
@@ -51,7 +56,7 @@ def make_optimum_single_transfer(
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
         )
-        for pos in ["GK", "DEF", "MID", "FWD"]
+        for pos in ["GK", "DEF", "MID", "FWD", "MNG"]
     }
     for p_out in squad.players:
         if update_func_and_args:
@@ -68,6 +73,9 @@ def make_optimum_single_transfer(
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
             added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
+            if full_squad_check:
+                added_ok = new_squad.is_complete(full_check=True)
+
             if added_ok:
                 if verbose:
                     print(f"Added player {p_in[0]}")
@@ -85,9 +93,10 @@ def make_optimum_single_transfer(
                     best_pid_in = [p_in[0].player_id]
                     best_squad = new_squad
                 break
-            if verbose:
+            elif verbose:
                 print(f"Failed to add {p_in[0].name}")
-        if not new_squad.is_complete() and verbose:
+
+        if verbose and not new_squad.is_complete(full_check=full_squad_check):
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
     if best_squad is None:
@@ -97,7 +106,7 @@ def make_optimum_single_transfer(
 
 
 def make_optimum_double_transfer(
-    squad,
+    squad: Squad,
     tag,
     gameweek_range=None,
     root_gw=None,
@@ -105,6 +114,7 @@ def make_optimum_double_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    full_squad_check=False,
     verbose=False,
 ):
     """
@@ -125,7 +135,7 @@ def make_optimum_double_transfer(
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
         )
-        for pos in ["GK", "DEF", "MID", "FWD"]
+        for pos in ["GK", "DEF", "MID", "FWD", "MNG"]
     }
     for i in range(len(squad.players) - 1):
         positions_needed = []
@@ -168,6 +178,8 @@ def make_optimum_double_transfer(
                     added_2_ok = new_squad_add_2.add_player(
                         pin_2[0], gameweek=transfer_gw
                     )
+                    if full_squad_check:
+                        added_2_ok = new_squad_add_2.is_complete(full_check=True)
                     if added_2_ok:
                         # calculate the score
                         total_points = get_discounted_squad_score(
@@ -192,7 +204,7 @@ def make_optimum_double_transfer(
 
 
 def make_random_transfers(
-    squad,
+    squad: Squad,
     tag,
     nsubs=1,
     gw_range=None,
@@ -202,6 +214,7 @@ def make_random_transfers(
     season=CURRENT_SEASON,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    full_squad_check=False,
 ):
     """
     choose nsubs random players to sub out, and then select players
@@ -258,12 +271,17 @@ def make_random_transfers(
             # the start
             added_players = []
             for pos in positions_needed:
-                index = int(random.triangular(0, len(predicted_points[pos]), 0))
-                pid_to_add = predicted_points[pos][index][0]
+                pid_to_add = None
+                while pid_to_add is None:
+                    index = int(random.triangular(0, len(predicted_points[pos]), 0))
+                    candidate_pid = predicted_points[pos][index][0]
+                    # only try adding players that weren't removed previously
+                    if candidate_pid not in removed_players:
+                        pid_to_add = candidate_pid
                 added_ok = new_squad.add_player(pid_to_add, gameweek=transfer_gw)
                 if added_ok:
                     added_players.append(pid_to_add)
-            complete_squad = new_squad.is_complete()
+            complete_squad = new_squad.is_complete(full_check=full_squad_check)
             if not complete_squad:
                 # try to avoid getting stuck in a loop
                 attempt += 1
@@ -311,6 +329,8 @@ def make_best_transfers(
     num_iter=100,
     update_func_and_args=None,
     algorithm="genetic",
+    full_squad_check=False,
+    verbose=False,
 ):
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -332,6 +352,8 @@ def make_best_transfers(
         # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
         new_squad = squad
         transfer_dict = {"in": [], "out": []}
+        if not new_squad.is_complete(full_check=full_squad_check):
+            raise RuntimeError("Initial squad is invalid")
         if update_func_and_args:
             # call function to update progress bar.
             # this was passed as a tuple (func, increment, pid)
@@ -348,6 +370,8 @@ def make_best_transfers(
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args,
+            full_squad_check=full_squad_check,
+            verbose=verbose,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -362,6 +386,8 @@ def make_best_transfers(
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args,
+            full_squad_check=full_squad_check,
+            verbose=verbose,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -400,6 +426,7 @@ def make_best_transfers(
             season=season,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
+            full_squad_check=full_squad_check,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -421,3 +448,75 @@ def make_best_transfers(
         return squad, transfer_dict, points
     else:
         return new_squad, transfer_dict, points
+
+
+def activate_assistant_manager(
+    num_transfers: int,
+    squad: Squad,
+    tag: str,
+    gameweek_range: list[int],
+    root_gw: int,
+    season: str,
+    num_iter: int = 100,
+    update_func_and_args=None,
+    verbose=False,
+):
+    ordered_managers = get_predicted_points(
+        gameweek=gameweek_range, position="MNG", tag=tag, season=season
+    )
+    squad.assistant_manager = True
+
+    best_points = 0
+    best_squad = None
+    best_transfer_dict = {}
+
+    for manager, _ in ordered_managers:
+        manager_squad = fastcopy(squad)
+        if num_transfers == 0:
+            added_ok = manager_squad.add_player(manager, gameweek=gameweek_range[0])
+            if not added_ok:
+                continue
+        else:
+            added_ok = manager_squad.add_player(
+                manager,
+                gameweek=gameweek_range[0],
+                check_budget=False,
+                check_team=False,
+            )
+            if not added_ok:
+                raise ValueError(f"Failed to add manager {manager.name} to squad")
+
+        try:
+            new_squad, transfer_dict, points = make_best_transfers(
+                num_transfers,
+                manager_squad,
+                tag,
+                gameweek_range,
+                root_gw,
+                season,
+                num_iter=num_iter,
+                update_func_and_args=update_func_and_args,
+                full_squad_check=True,
+                verbose=verbose,
+            )
+            if points > best_points:
+                best_points = points
+                best_squad = new_squad
+                best_transfer_dict = transfer_dict
+                best_transfer_dict["in"].append(manager.player_id)
+        except RuntimeError:
+            if verbose:
+                # If the assistant manager is not valid, skip to the next one
+                print(
+                    f"Failed to add manager {manager.name} to squad with "
+                    f"{num_transfers} transfers"
+                )
+            continue
+
+    if best_squad is None:
+        raise RuntimeError(
+            "Failed to find valid assistant manager for squad with "
+            f"{num_transfers} transfers"
+        )
+
+    return best_squad, best_transfer_dict, best_points

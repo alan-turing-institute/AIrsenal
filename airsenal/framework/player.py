@@ -11,7 +11,7 @@ from airsenal.framework.utils import (
 )
 
 
-class CandidatePlayer(object):
+class CandidatePlayer:
     """
     player class
     """

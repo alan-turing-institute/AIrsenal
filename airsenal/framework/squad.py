@@ -5,6 +5,7 @@ Is able to check that it obeys all constraints.
 """
 
 import warnings
+from collections import Counter
 from operator import itemgetter
 
 import numpy as np
@@ -36,10 +37,10 @@ FORMATIONS = [
 
 class Squad(object):
     """
-    Squad class.  Contains 15 players
+    Squad class. Contains 15 players + optionally a manager
     """
 
-    def __init__(self, budget=1000, season=CURRENT_SEASON):
+    def __init__(self, budget=1000, assistant_manager=False, season=CURRENT_SEASON):
         """
         constructor - start with an initial empty player list,
         and £100M
@@ -47,18 +48,19 @@ class Squad(object):
         self.players = []
         self.budget = budget
         self.season = season
-        self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0, "MNG": 0}
         self.free_subs = 0
         self.subs_this_week = 0
         self.verbose = False
+        self.assistant_manager = assistant_manager
 
     def __repr__(self):
         """
         Display the squad
         """
-        print("\n=== starting 11 ===\n")
+        message = "\n=== starting 11 ===\n\n"
         for position in ["GK", "DEF", "MID", "FWD"]:
-            print(f"\n== {position} ==\n")
+            message += f"\n== {position} ==\n\n"
             for p in self.players:
                 if p.position == position and p.is_starting:
                     player_line = f"{p.name} ({p.team})"
@@ -66,21 +68,63 @@ class Squad(object):
                         player_line += "(C)"
                     elif p.is_vice_captain:
                         player_line += "(VC)"
-                    print(player_line)
-        print("\n=== subs ===\n")
+                    message += f"{player_line}\n"
 
+        message += "\n=== subs ===\n\n"
         subs = [p for p in self.players if not p.is_starting]
         subs.sort(key=lambda p: p.sub_position)
         for p in subs:
-            print(f"{p.name} ({p.team})")
-        return ""
+            message += f"{p.name} ({p.team})\n"
 
-    def is_complete(self):
+        message += "\n=== manager ===\n\n"
+        for p in self.players:
+            if p.position == "MNG":
+                message += f"{p.name} ({p.team})\n"
+                break
+
+        return message
+
+    def is_complete(self, full_check=False):
         """
-        See if we have 15 players.
+        See if we have 15 players (16 if assistant manager active). If full_check is
+        True, do a full check of the whole squad across all constraints.
         """
+        # check we have the right number of players (only check if full_check is True)
         num_players = sum(self.num_position.values())
-        return num_players == 15
+        has_correct_num_players = (
+            num_players == 15 if not self.assistant_manager else num_players == 16
+        )
+        if not has_correct_num_players:
+            return False
+        elif not full_check:
+            return True
+
+        # check budget
+        if self.budget < 0:
+            return False
+
+        # check we have the right number of players in each position
+        for position in ["GK", "DEF", "MID", "FWD"]:
+            if self.num_position[position] != TOTAL_PER_POSITION[position]:
+                return False
+
+        # check we have a manager if assistant manager is active
+        if self.assistant_manager and self.num_position["MNG"] != 1:
+            return False
+        elif not self.assistant_manager and self.num_position["MNG"] != 0:
+            return False
+
+        # check no duplicate players
+        pids = {p.player_id for p in self.players}
+        if len(pids) != len(self.players):
+            return False
+
+        # check no more than 3 players from the same team
+        team_counts = Counter(p.team for p in self.players)
+        if max(team_counts.values()) > 3:
+            return False
+
+        return True
 
     def add_player(
         self,
@@ -125,6 +169,7 @@ class Squad(object):
         self.players.append(player)
         self.num_position[player.position] += 1
         self.budget -= player.purchase_price
+
         return True
 
     def remove_player(
@@ -233,6 +278,8 @@ class Squad(object):
         num players in the chosen players position.
         """
         position = player.position
+        if position == "MNG":
+            return self.num_position[position] < self.assistant_manager
         return self.num_position[position] < TOTAL_PER_POSITION[position]
 
     def check_num_per_team(self, player):
@@ -269,7 +316,7 @@ class Squad(object):
         choose the best starting 11, obeying constraints.
         """
         # first order all the players by expected points
-        player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": [], "MNG": []}
         for p in self.players:
             try:
                 points_prediction = p.predicted_points[tag][gameweek]
@@ -284,6 +331,9 @@ class Squad(object):
         # always start the first-placed and sub the second-placed keeper
         player_dict["GK"][0][0].is_starting = True
         player_dict["GK"][1][0].is_starting = False
+        # always start the manager
+        player_dict["MNG"][0][0].is_starting = True
+
         best_score = 0.0
         best_formation = None
         for f in FORMATIONS:
