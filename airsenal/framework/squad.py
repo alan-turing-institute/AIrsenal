@@ -104,7 +104,7 @@ class Squad(object):
             player.season = self.season
         if player.position == "MNG":
             warnings.warn(
-                f"Skipped adding manager {player} as assistant manager is not implemented. "
+                f"Skipped adding manager {player}, assistant manager not implemented."
                 f"Reduced squad budget by {player.purchase_price}."
             )
             self.budget -= player.purchase_price
