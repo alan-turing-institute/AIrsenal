@@ -105,8 +105,9 @@ class Squad(object):
         if player.position == "MNG":
             warnings.warn(
                 f"Skipped adding manager {p} as assistant manager is not implemented. "
-                f"AIrsenal will over-estimate your budget by {p.purchase_price}."
+                f"Reduced squad budget by {p.purchase_price}."
             )
+            self.budget -= player.purchase_price
             return True
         # set the price if one was specified.
         if price:
