@@ -104,7 +104,8 @@ class Squad(object):
             player.season = self.season
         if player.position == "MNG":
             warnings.warn(
-                f"Skipped adding manager {p} as assistant manager is not implemented"
+                f"Skipped adding manager {p} as assistant manager is not implemented. "
+                f"AIrsenal will over-estimate your budget by {p.purchase_price}."
             )
             return True
         # set the price if one was specified.
