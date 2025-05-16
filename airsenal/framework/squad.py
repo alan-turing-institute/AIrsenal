@@ -102,6 +102,11 @@ class Squad(object):
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
             player.season = self.season
+        if player.position == "MNG":
+            warnings.warn(
+                f"Skipped adding manager {p} as assistant manager is not implemented"
+            )
+            return True
         # set the price if one was specified.
         if price:
             player.purchase_price = price
