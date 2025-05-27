@@ -48,7 +48,7 @@ def get_teams_for_season(
     """
     if verbose:
         print(
-            f"getting teams that played in {str(season)[2:]}/{str(season+1)[2:]} season"
+            f"getting teams that played in {str(season)[2:]}/{str(season + 1)[2:]} season"
         )
 
     # get list of teams
@@ -320,10 +320,7 @@ def get_player_transfers(
         print(f"getting player transfer history for {player_profile_url}")
 
     page = requests.get(
-        (
-            f"{TRANSFERMARKT_URL}"
-            f"{player_profile_url.replace('/profil/', '/transfers/')}"
-        ),
+        (f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/transfers/')}"),
         headers=HEADERS,
     )
 
