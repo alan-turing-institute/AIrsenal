@@ -1,381 +1,374 @@
 season,details,from,until,days,games,reason,player,url
-2425,Ankle injury,2025-02-14,2025-04-28,74,15,injury,Amad Diallo,/amad-diallo/profil/spieler/536835
-2425,Ill,2025-01-01,2025-01-17,17,4,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
-2425,Fitness,2025-03-03,2025-05-25,84,12,injury,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
-2425,Ill,2024-10-04,2024-10-07,4,1,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
-2425,unknown injury,2025-03-15,2025-03-17,3,1,injury,Bernardo Silva,/bernardo-silva/profil/spieler/241641
-2425,unknown injury,2025-04-30,2025-05-23,24,5,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
-2425,Knock,2025-04-30,,28,6,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
-2425,Hamstring injury,2024-10-27,2025-02-13,110,27,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
-2425,Hamstring injury,2024-09-18,2024-10-23,36,7,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
-2425,Broken foot,2024-09-11,2024-11-21,72,14,injury,Harvey Elliott,/harvey-elliott/profil/spieler/565822
-2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
-2425,Ill,2024-09-21,2024-09-23,3,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
-2425,Broken toe,2024-11-04,2024-11-19,16,2,injury,Declan Rice,/declan-rice/profil/spieler/357662
-2425,Adductor injury,2025-02-12,2025-04-13,61,11,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,Adductor injury,2024-11-11,2024-11-19,9,,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,Knee injury,2024-12-07,2025-06-30,206,35,injury,David Datro Fofana,/david-datro-fofana/profil/spieler/787232
-2425,unknown injury,2025-02-23,2025-03-04,10,1,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Back injury,2025-02-22,2025-03-06,13,3,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Abdominal muscle strain,2024-08-10,2024-09-27,49,8,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Knock,2025-01-18,2025-01-25,8,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
-2425,Groin problems,2024-09-10,2024-09-20,11,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
-2425,Knee injury,2025-05-05,2025-05-23,19,4,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Foot injury,2025-04-01,2025-04-18,18,5,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Ill,2024-12-20,2024-12-23,4,1,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Hamstring injury,2024-12-14,2025-03-03,80,15,injury,Benoît Badiashile,/benoit-badiashile/profil/spieler/463603
-2425,Hamstring injury,2025-04-21,2025-06-01,42,5,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Ill,2025-04-01,2025-04-04,4,1,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Skin disease,2024-09-16,2024-11-04,50,8,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Knock,2025-02-08,2025-02-17,10,1,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
-2425,Knock,2025-01-26,2025-02-01,7,2,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
-2425,Knee problems,2025-03-07,2025-04-23,48,7,injury,Sven Botman,/sven-botman/profil/spieler/361093
-2425,Broken kneecap,2025-02-05,2025-03-06,30,6,injury,Sven Botman,/sven-botman/profil/spieler/361093
+2425,Ankle surgery,2025-02-27,2025-07-01,125,13,injury,Lewis Hall,/lewis-hall/profil/spieler/670858
+2425,surgery,2025-04-01,2025-07-01,92,17,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2425,Hamstring injury,2024-12-01,2025-02-24,86,18,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2425,Knock,2025-04-30,2025-05-26,27,6,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
+2425,Muscle injury,2025-01-04,2025-01-21,18,5,injury,Ethan Nwaneri,/ethan-nwaneri/profil/spieler/890719
+2425,Knee injury,2024-12-07,2025-01-20,45,11,injury,Nick Pope,/nick-pope/profil/spieler/192080
+2425,Knee bruise,2025-05-24,,17,1,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
 2425,Knee injury,2025-03-21,2025-05-06,47,9,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
 2425,Muscle injury,2025-01-11,2025-01-21,11,3,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
 2425,Knee injury,2024-12-03,2024-12-17,15,4,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
 2425,Knee injury,2024-10-22,2024-11-21,31,8,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
 2425,Calf problems,2024-09-07,2024-09-18,12,2,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Leg injury,2025-04-04,2025-05-16,43,11,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
-2425,Knock,2025-02-10,2025-03-03,22,4,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
-2425,unknown injury,2025-02-24,2025-03-03,8,2,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Muscle injury,2025-01-30,2025-02-17,19,3,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Calf injury,2024-11-05,2024-11-11,7,2,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Hamstring injury,2024-08-24,2024-10-08,46,11,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,surgery,2025-03-18,2025-06-01,76,14,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Hamstring injury,2024-09-01,2025-03-10,191,37,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Hamstring injury,2024-08-30,2024-10-31,63,11,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Groin surgery,2024-06-07,2024-08-07,62,,injury,Axel Disasi,/axel-disasi/profil/spieler/386047
+2425,Fitness,2025-03-03,2025-05-25,84,12,injury,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
+2425,Muscle injury,2024-11-08,2024-11-22,15,1,injury,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Dead leg,2024-10-06,2024-10-17,12,1,injury,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Muscle injury,2024-09-23,2024-09-27,5,1,injury,David Raya,/david-raya/profil/spieler/262749
+2425,Hamstring injury,2024-06-19,2024-11-25,160,18,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
+2425,Calf injury,2025-02-06,2025-04-03,57,10,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,Groin injury,2025-01-26,2025-01-29,4,1,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,Hamstring injury,2024-11-03,2025-01-14,73,17,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,unknown injury,2024-08-27,2024-10-19,54,9,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,Knock,2025-03-04,2025-03-09,6,2,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
+2425,Knock,2025-02-12,2025-02-21,10,3,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
+2425,Hamstring injury,2025-02-20,2025-05-12,82,17,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Hamstring injury,2024-11-11,2024-12-18,38,7,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Ankle injury,2025-01-08,2025-01-15,8,1,injury,João Pedro,/joao-pedro/profil/spieler/626724
+2425,Hamstring injury,2025-02-14,2025-04-02,48,7,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
+2425,Ill,2025-01-10,2025-01-13,4,1,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
+2425,Knee problems,2025-04-21,2025-04-28,8,1,injury,Ben White,/ben-white/profil/spieler/335721
+2425,unknown injury,2025-04-11,2025-04-15,5,1,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Knee surgery,2024-11-11,2025-02-10,92,21,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Knee injury,2024-09-23,2024-10-07,15,4,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Hamstring injury,2024-12-14,2025-03-03,80,15,injury,Benoît Badiashile,/benoit-badiashile/profil/spieler/463603
+2425,Back injury,2025-03-04,,98,12,injury,Myles Peart-Harris,/myles-peart-harris/profil/spieler/587002
+2425,Knee injury,2024-10-02,2024-10-30,29,4,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
+2425,Ankle injury,2024-11-10,2025-02-17,100,16,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+2425,Cruciate ligament tear,2025-01-24,2026-01-01,343,21,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
+2425,Knee injury,2024-08-28,2024-12-28,123,19,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
+2425,Hamstring injury,2025-02-09,2025-05-15,96,17,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
+2425,Hamstring injury,2024-12-29,2025-02-07,41,11,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
+2425,Hip problems,2025-04-13,2025-04-25,13,2,injury,Ederson,/ederson/profil/spieler/238223
+2425,Abdominal problems,2025-03-14,2025-03-30,17,2,injury,Ederson,/ederson/profil/spieler/238223
+2425,unknown injury,2025-02-01,2025-02-10,10,2,injury,Ederson,/ederson/profil/spieler/238223
+2425,unknown injury,2024-12-20,2025-01-10,22,4,injury,Ederson,/ederson/profil/spieler/238223
+2425,Muscle injury,2024-11-28,2024-12-03,6,1,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
+2425,Hamstring injury,2024-12-08,2025-03-03,86,21,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Toe injury,2024-11-22,2024-12-06,15,4,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Ankle injury,2024-11-03,2024-11-08,6,2,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Hamstring injury,2024-12-07,2025-02-05,61,14,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2425,Back injury,2024-07-19,2024-11-25,130,15,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2425,Shoulder injury,2025-03-08,2025-06-01,86,11,injury,Fábio Carvalho,/fabio-carvalho/profil/spieler/559263
+2425,Groin injury,2025-01-01,2025-01-10,10,2,injury,Fábio Carvalho,/fabio-carvalho/profil/spieler/559263
+2425,Calf injury,2025-02-24,2025-03-28,33,4,injury,Adam Smith,/adam-smith/profil/spieler/61841
+2425,Hamstring injury,2024-12-23,2025-02-24,64,11,injury,Adam Smith,/adam-smith/profil/spieler/61841
+2425,Knee surgery,2025-05-02,2025-07-01,61,4,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Muscle injury,2025-03-14,2025-03-29,16,2,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Leg injury,2024-12-30,2025-01-06,8,1,injury,Will Hughes,/will-hughes/profil/spieler/207014
+2425,Heel injury,2025-04-29,2025-08-01,95,5,injury,Vitaly Janelt,/vitaly-janelt/profil/spieler/270171
+2425,Hamstring injury,2025-02-03,2025-04-01,58,9,injury,Nicolas Jackson,/nicolas-jackson/profil/spieler/776890
+2425,Thigh problems,2025-02-02,2025-03-05,32,6,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Hamstring injury,2024-12-08,2025-01-27,51,14,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Hamstring injury,2024-10-30,2024-12-07,39,10,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Knee injury,2024-08-29,2024-09-09,12,2,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Knock,2024-12-05,2024-12-22,18,5,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2425,Calf injury,2024-09-14,2024-10-21,38,8,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2425,Muscle injury,2024-11-23,2024-12-08,16,3,injury,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
+2425,Ill,2025-01-27,2025-01-30,4,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,Ill,2024-09-26,2024-09-30,5,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,unknown injury,2024-11-17,2024-11-29,13,3,injury,Pedro Neto,/pedro-neto/profil/spieler/487465
+2425,Thigh problems,2025-05-02,2025-05-05,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Knee injury,2025-01-17,2025-03-02,45,10,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Ill,2024-11-29,2024-12-02,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Ankle injury,2024-08-21,2024-09-09,20,2,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Knock,2025-02-01,2025-02-16,16,2,injury,Ji-soo Kim,/ji-soo-kim/profil/spieler/709767
+2425,Adductor pain,2024-08-06,2024-08-12,7,1,injury,Julio Soler,/julio-soler/profil/spieler/1009658
+2425,Groin surgery,2025-04-03,2025-06-30,89,14,injury,Dane Scarlett,/dane-scarlett/profil/spieler/670883
+2425,Ill,2024-11-02,2024-11-11,10,3,injury,Jadon Sancho,/jadon-sancho/profil/spieler/401173
+2425,Hamstring injury,2024-10-30,2024-11-08,10,2,injury,Jacob Murphy,/jacob-murphy/profil/spieler/199527
+2425,Fitness,2025-01-20,2025-01-22,3,1,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,Hamstring injury,2024-12-14,2025-01-15,33,6,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,concussion,2024-08-17,2024-08-28,12,3,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,Ill,2025-01-24,2025-01-28,5,1,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
+2425,Ankle sprain,2024-09-09,2024-11-04,57,14,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
+2425,Ill,2024-12-03,2024-12-16,14,4,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
+2425,unknown injury,2024-09-06,2024-09-09,4,,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
+2425,unknown injury,2025-05-28,,13,,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
+2425,Ankle surgery,2024-11-25,2025-02-10,78,21,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
+2425,Muscle injury,2025-05-12,,29,2,injury,Alexis Mac Allister,/alexis-mac-allister/profil/spieler/534033
+2425,Shoulder injury,2025-01-22,2025-05-03,102,15,injury,Jason Steele,/jason-steele/profil/spieler/73564
+2425,Hamstring injury,2025-03-15,2025-04-03,20,2,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
+2425,Muscle fatigue,2024-09-03,2024-09-08,6,1,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
+2425,Achilles tendon surgery,2025-06-02,,8,,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2425,unknown injury,2024-11-18,2024-12-12,25,6,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2425,Ill,2025-01-14,2025-01-17,4,1,injury,Fabian Schär,/fabian-schar/profil/spieler/135343
+2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
+2425,Ill,2024-09-21,2024-09-23,3,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
+2425,Knee surgery,2025-02-19,2025-10-01,225,19,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Knee injury,2024-10-06,2025-02-18,136,29,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Knee injury,2024-07-21,2024-10-02,74,9,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
 2425,concussion,2025-03-21,2025-04-07,18,2,injury,Alisson,/alisson/profil/spieler/105470
 2425,Hamstring injury,2024-10-18,2024-12-19,63,16,injury,Alisson,/alisson/profil/spieler/105470
 2425,Hamstring injury,2024-10-05,2024-11-10,37,10,injury,Alisson,/alisson/profil/spieler/105470
 2425,Thigh problems,2024-09-18,2024-09-26,9,2,injury,Alisson,/alisson/profil/spieler/105470
-2425,unknown injury,2024-12-15,2025-01-11,28,2,injury,Mathis Amougou,/mathis-amougou/profil/spieler/1010854
-2425,Virus,2024-11-06,2025-01-07,63,14,injury,Mikey Moore,/mikey-moore/profil/spieler/1011147
-2425,Cruciate ligament injury,2025-02-03,2026-01-01,333,23,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
-2425,Back problems,2024-11-23,2024-11-25,3,1,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
-2425,Ankle injury,2024-11-10,2025-02-17,100,16,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
-2425,Muscle injury,2024-09-30,2024-12-11,73,14,injury,Federico Chiesa,/federico-chiesa/profil/spieler/341092
-2425,Ill,2024-12-13,2024-12-20,8,2,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
-2425,Hamstring injury,2025-02-03,2025-03-10,36,8,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Hamstring injury,2025-01-19,2025-01-31,13,3,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Foot injury,2024-11-22,2024-12-05,14,4,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Hamstring injury,2024-10-02,2024-10-17,16,4,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Cruciate ligament tear,2024-09-23,2025-05-16,236,47,injury,Rodri,/rodri/profil/spieler/357565
-2425,Hamstring injury,2024-07-14,2024-08-25,43,3,injury,Rodri,/rodri/profil/spieler/357565
-2425,Muscle injury,2024-11-28,2024-12-03,6,1,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
-2425,Hamstring injury,2025-02-14,2025-04-02,48,7,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
-2425,Ill,2025-01-10,2025-01-13,4,1,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
+2425,Ill,2024-10-04,2024-10-07,4,1,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
+2425,Leg injury,2024-12-22,2025-02-10,51,9,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,Thigh problems,2024-12-21,2025-01-19,30,7,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,unknown injury,2024-08-24,2024-09-16,24,6,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,unknown injury,2024-11-29,2024-12-02,4,1,injury,Lewis Cook,/lewis-cook/profil/spieler/249089
+2425,Muscle injury,2024-12-27,2024-12-30,4,1,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Muscle fatigue,2024-12-06,2024-12-09,4,1,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Back injury,2024-07-15,2024-10-07,85,10,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Knee injury,2024-08-26,2024-09-12,18,1,injury,Savinho,/savinho/profil/spieler/743591
+2425,Knee surgery,2025-01-24,2025-06-01,129,21,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
+2425,Toe injury,2024-09-15,2024-10-28,44,6,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
+2425,Hamstring injury,2025-02-11,2025-05-16,95,18,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2425,Ill,2024-12-30,2025-01-06,8,2,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2425,Knee problems,2024-10-06,2024-10-21,16,3,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
 2425,Hamstring injury,2025-03-30,2025-05-01,33,5,injury,Adam Webster,/adam-webster/profil/spieler/212847
 2425,Thigh problems,2024-10-12,2024-12-31,81,13,injury,Adam Webster,/adam-webster/profil/spieler/212847
-2425,Muscle injury,2024-10-15,2024-11-11,28,5,injury,Yankuba Minteh,/yankuba-minteh/profil/spieler/1012534
-2425,Thigh problems,2025-03-12,2025-04-14,34,6,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
-2425,heart problems,2024-08-31,2024-10-15,46,9,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
-2425,Ill,2024-11-02,2024-11-11,10,3,injury,Jadon Sancho,/jadon-sancho/profil/spieler/401173
-2425,Ankle injury,2025-03-31,2025-05-01,32,6,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
-2425,Knee problems,2025-02-16,2025-02-25,10,2,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
-2425,Knee injury,2024-08-26,2024-09-12,18,1,injury,Savinho,/savinho/profil/spieler/743591
-2425,Cruciate ligament tear,2025-01-13,2025-11-22,314,27,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-2425,Groin injury,2024-08-20,2024-09-04,16,2,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-2425,Foot injury,2025-02-17,2025-04-21,64,10,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,unknown injury,2024-11-25,2024-12-17,23,4,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,Ill,2024-09-27,2024-09-30,4,1,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,Thigh problems,2024-10-01,2025-05-25,237,37,injury,James Milner,/james-milner/profil/spieler/3333
-2425,Hamstring injury,2024-08-31,2024-09-14,15,2,injury,James Milner,/james-milner/profil/spieler/3333
-2425,Knock,2025-03-21,2025-04-14,25,3,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Thigh problems,2025-02-06,2025-02-10,5,1,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Groin injury,2024-10-26,2024-10-30,5,2,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Knee problems,2024-12-20,2025-01-07,19,5,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
-2425,Knee problems,2025-02-24,2025-03-03,8,2,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Knee injury,2025-01-26,2025-02-10,16,4,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Ill,2024-12-13,2024-12-15,3,1,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Calf injury,2025-03-02,2025-03-24,23,5,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,unknown injury,2024-11-06,2024-11-29,24,5,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,Knock,2024-09-27,2024-10-01,5,1,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,Fitness,2025-03-01,2025-03-30,30,4,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
-2425,Broken leg,2024-08-14,2025-03-01,200,42,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
+2425,Groin injury,2025-04-03,2025-06-23,82,8,injury,Ryan Christie,/ryan-christie/profil/spieler/188077
+2425,Groin problems,2025-02-28,2025-03-03,4,1,injury,Ryan Christie,/ryan-christie/profil/spieler/188077
+2425,Hamstring injury,2024-12-29,2025-02-10,44,12,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
+2425,Hamstring injury,2024-09-29,2024-09-30,2,1,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
+2425,Ill,2025-01-16,2025-01-24,9,1,injury,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
+2425,Knock,2025-01-21,2025-01-26,6,2,injury,Pape Matar Sarr,/pape-matar-sarr/profil/spieler/568693
+2425,Ankle injury,2024-10-18,2025-01-18,93,19,injury,Carl Rushworth,/carl-rushworth/profil/spieler/646353
+2425,Cruciate ligament tear,2024-09-23,2025-05-16,236,47,injury,Rodri,/rodri/profil/spieler/357565
+2425,Hamstring injury,2024-07-14,2024-08-25,43,3,injury,Rodri,/rodri/profil/spieler/357565
+2425,unknown injury,2025-03-16,2025-04-01,17,3,injury,Ryan Gravenberch,/ryan-gravenberch/profil/spieler/478573
+2425,Ill,2025-01-12,2025-01-15,4,2,injury,Dean Henderson,/dean-henderson/profil/spieler/258919
+2425,Hamstring injury,2025-01-17,2025-03-01,44,8,injury,James Hill,/james-hill/profil/spieler/611793
 2425,unknown injury,2025-05-02,2025-05-05,4,1,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
 2425,Ill,2025-03-19,2025-03-24,6,1,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
 2425,Hamstring muscle injury,2025-01-02,2025-01-07,6,2,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
 2425,Muscle injury,2024-10-01,2024-10-25,25,6,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
 2425,Knock,2024-09-22,2024-09-28,7,3,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Knee injury,2024-10-02,2024-10-30,29,4,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
-2425,surgery,2025-04-01,2025-07-01,92,17,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
-2425,Hamstring injury,2024-12-01,2025-02-24,86,18,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
-2425,unknown injury,2025-01-19,2025-02-11,24,7,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
-2425,Hamstring injury,2024-11-03,2024-11-27,25,6,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
-2425,Hamstring injury,2025-02-09,2025-05-15,96,17,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
-2425,Hamstring injury,2024-12-29,2025-02-07,41,11,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
-2425,Knock,2025-01-21,2025-01-26,6,2,injury,Pape Matar Sarr,/pape-matar-sarr/profil/spieler/568693
-2425,Hamstring injury,2025-02-15,2025-03-03,17,5,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
-2425,Thigh problems,2024-11-22,2024-11-24,3,1,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
-2425,Hamstring injury,2025-04-23,2025-05-23,31,4,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2425,Ill,2025-01-04,2025-01-15,12,2,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2425,Hamstring injury,2025-01-13,2025-02-22,41,10,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2425,Hip injury,2024-11-04,2024-11-09,6,1,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2425,Cruciate ligament tear,2025-01-08,2025-10-18,284,22,injury,Enes Ünal,/enes-unal/profil/spieler/251106
+2425,Rest,2024-11-18,2024-11-20,3,1,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+2425,Muscle injury,2024-08-22,2024-09-14,24,3,injury,Vitor Reis,/vitor-reis/profil/spieler/1005575
+2425,Calf injury,2025-01-16,2025-02-13,29,7,injury,Brennan Johnson,/brennan-johnson/profil/spieler/470607
+2425,Hip injury,2025-02-11,2025-02-17,7,2,injury,Jack Grealish,/jack-grealish/profil/spieler/203460
+2425,Adductor injury,2025-02-12,2025-04-13,61,11,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,Adductor injury,2024-11-11,2024-11-19,9,,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,Head injury,2025-02-21,2025-03-08,16,3,injury,Christian Nørgaard,/christian-norgaard/profil/spieler/148367
+2425,unknown injury,2024-09-17,2024-10-05,19,4,injury,Christian Nørgaard,/christian-norgaard/profil/spieler/148367
 2425,Rib fracture,2024-03-09,2025-02-03,332,40,injury,Matheus França,/matheus-franca/profil/spieler/743597
-2425,Hamstring injury,2024-06-19,2024-11-25,160,18,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
-2425,Metatarsal fracture,2024-07-02,2024-10-17,108,9,injury,Lewis Miley,/lewis-miley/profil/spieler/922769
-2425,Ill,2025-01-24,2025-01-28,5,1,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
-2425,Ankle sprain,2024-09-09,2024-11-04,57,14,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
-2425,Hamstring injury,2024-12-08,2025-03-03,86,21,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Toe injury,2024-11-22,2024-12-06,15,4,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Ankle injury,2024-11-03,2024-11-08,6,2,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Muscle injury,2024-11-23,2024-12-08,16,3,injury,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
-2425,Ill,2025-04-11,2025-04-15,5,1,injury,Matt Turner,/matt-turner/profil/spieler/425306
-2425,Hamstring injury,2025-02-09,2025-02-22,14,4,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
-2425,Hip problems,2024-11-22,2024-11-24,3,1,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
-2425,Ankle injury,2025-04-07,2025-04-18,12,1,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,unknown injury,2024-12-01,2024-12-09,9,3,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,cold,2024-09-03,2024-09-08,6,,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,Ill,2024-08-21,2024-08-31,11,2,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,Muscle injury,2025-02-10,2025-04-07,57,10,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
-2425,Muscle injury,2024-10-17,2024-11-11,26,7,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
-2425,Hamstring injury,2025-01-05,2025-01-25,21,4,injury,John McGinn,/john-mcginn/profil/spieler/193116
-2425,Thigh problems,2024-09-28,2024-10-07,10,3,injury,John McGinn,/john-mcginn/profil/spieler/193116
+2425,Cruciate ligament tear,2025-01-30,2025-12-06,311,25,injury,Radu Drăgușin,/radu-dragusin/profil/spieler/568559
+2425,Hamstring injury,2024-12-05,2025-01-17,44,12,injury,Ben Davies,/ben-davies/profil/spieler/192765
 2425,concussion,2025-01-09,2025-01-22,14,3,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
 2425,Head injury,2024-08-20,2024-08-31,12,1,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2425,Ill,2025-01-12,2025-01-15,4,2,injury,Dean Henderson,/dean-henderson/profil/spieler/258919
-2425,Ankle injury,2025-04-30,2025-06-09,41,7,injury,Lucas Bergvall,/lucas-bergvall/profil/spieler/866246
-2425,Knock,2025-01-20,2025-02-01,13,3,injury,Djed Spence,/djed-spence/profil/spieler/483348
-2425,Groin injury,2024-10-21,2024-11-08,19,5,injury,Djed Spence,/djed-spence/profil/spieler/483348
-2425,Hip problems,2025-04-13,2025-04-25,13,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,Abdominal problems,2025-03-14,2025-03-30,17,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,unknown injury,2025-02-01,2025-02-10,10,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,unknown injury,2024-12-20,2025-01-10,22,4,injury,Ederson,/ederson/profil/spieler/238223
-2425,Ankle surgery,2025-02-27,2025-07-01,125,13,injury,Lewis Hall,/lewis-hall/profil/spieler/670858
-2425,Hamstring injury,2024-12-29,2025-02-10,44,12,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
-2425,Hamstring injury,2024-09-29,2024-09-30,2,1,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
-2425,Knock,2024-12-25,2025-01-16,23,5,injury,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
-2425,Muscle injury,2025-01-04,2025-01-21,18,5,injury,Ethan Nwaneri,/ethan-nwaneri/profil/spieler/890719
-2425,Hamstring injury,2025-01-05,2025-05-01,117,18,injury,Igor,/igor/profil/spieler/380350
-2425,Thigh problems,2025-05-02,2025-05-05,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Knee injury,2025-01-17,2025-03-02,45,10,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Ill,2024-11-29,2024-12-02,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Ankle injury,2024-08-21,2024-09-09,20,2,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Hamstring injury,2025-03-15,2025-04-03,20,2,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
-2425,Muscle fatigue,2024-09-03,2024-09-08,6,1,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
-2425,Hamstring injury,2024-12-07,2025-02-05,61,14,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
-2425,Back injury,2024-07-19,2024-11-25,130,15,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
-2425,Muscle injury,2025-01-11,2025-04-18,98,21,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
-2425,Knee problems,2025-04-20,2025-05-23,34,4,injury,Joelinton,/joelinton/profil/spieler/333241
-2425,Knee injury,2025-02-02,2025-03-01,28,5,injury,Joelinton,/joelinton/profil/spieler/333241
-2425,Knee injury,2025-05-03,2025-06-23,52,6,injury,James Maddison,/james-maddison/profil/spieler/294057
-2425,Calf strain,2025-01-25,2025-02-10,17,5,injury,James Maddison,/james-maddison/profil/spieler/294057
-2425,Calf injury,2025-01-16,2025-02-13,29,7,injury,Brennan Johnson,/brennan-johnson/profil/spieler/470607
-2425,Ill,2025-01-14,2025-01-17,4,1,injury,Fabian Schär,/fabian-schar/profil/spieler/135343
-2425,Hamstring injury,2024-10-30,2024-11-08,10,2,injury,Jacob Murphy,/jacob-murphy/profil/spieler/199527
-2425,unknown injury,2024-12-11,2025-01-10,31,5,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
-2425,Hamstring injury,2025-02-11,2025-05-16,95,18,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Ill,2024-12-30,2025-01-06,8,2,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Knee problems,2024-10-06,2024-10-21,16,3,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Thigh problems,2025-02-02,2025-03-05,32,6,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Hamstring injury,2024-12-08,2025-01-27,51,14,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Hamstring injury,2024-10-30,2024-12-07,39,8,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Knee injury,2024-08-29,2024-09-09,12,2,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Knee problems,2025-02-28,2025-03-30,31,4,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
-2425,Ankle injury,2024-08-27,2024-11-08,74,11,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
-2425,Hip injury,2025-02-11,2025-02-17,7,2,injury,Jack Grealish,/jack-grealish/profil/spieler/203460
-2425,Ill,2025-01-16,2025-01-24,9,1,injury,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
-2425,Ill,2024-12-03,2024-12-16,14,4,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
-2425,unknown injury,2024-09-06,2024-09-09,4,,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
-2425,Knee problems,2025-03-12,2025-03-30,19,2,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle injury,2025-02-02,2025-02-14,13,1,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle fatigue,2024-09-03,2024-09-11,9,,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle injury,2024-09-23,2024-09-27,5,1,injury,David Raya,/david-raya/profil/spieler/262749
-2425,Calf injury,2025-02-06,2025-04-03,57,10,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Groin injury,2025-01-26,2025-01-29,4,1,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Hamstring injury,2024-11-03,2025-01-14,73,17,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,unknown injury,2024-08-27,2024-10-19,54,9,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Calf injury,2025-04-21,2025-05-15,25,5,injury,Diogo Dalot,/diogo-dalot/profil/spieler/357147
-2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Hip injury,2025-01-24,2025-02-07,15,3,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,unknown injury,2024-12-20,2025-01-18,30,6,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Calf injury,2024-10-30,2024-12-01,33,9,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Foot surgery,2025-03-01,2025-05-23,84,14,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Muscle injury,2025-01-18,2025-02-11,25,7,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Hamstring injury,2024-09-10,2024-10-14,35,7,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Hamstring injury,2024-10-14,2024-11-25,43,7,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
-2425,Hamstring injury,2025-02-20,2025-05-12,82,17,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
-2425,Hamstring injury,2024-11-11,2024-12-18,38,7,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
-2425,Ill,2025-01-04,2025-01-10,7,2,injury,Dominik Szoboszlai,/dominik-szoboszlai/profil/spieler/451276
-2425,Knee surgery,2025-05-02,2025-07-01,61,4,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Muscle injury,2025-03-14,2025-03-29,16,2,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Hamstring injury,2024-12-16,2025-03-14,89,20,injury,Mason Mount,/mason-mount/profil/spieler/346483
-2425,Hamstring injury,2024-08-28,2024-09-19,23,3,injury,Mason Mount,/mason-mount/profil/spieler/346483
-2425,Hamstring injury,2025-02-06,2025-03-07,30,4,injury,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
-2425,Cruciate ligament tear,2025-01-24,2026-01-01,343,21,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
-2425,Knee injury,2024-08-28,2024-12-28,123,19,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
-2425,Hamstring injury,2025-04-02,2025-07-14,104,12,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Knee injury,2024-12-01,2024-12-13,13,3,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Knee injury,2024-10-27,2024-11-01,6,2,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Ill,2025-03-08,2025-03-12,5,1,injury,Reece James,/reece-james/profil/spieler/472423
-2425,Hamstring injury,2024-11-19,2024-12-27,39,10,injury,Reece James,/reece-james/profil/spieler/472423
-2425,Hamstring injury,2024-08-09,2024-10-14,67,11,injury,Reece James,/reece-james/profil/spieler/472423
-2425,muscular problems,2025-01-15,2025-01-31,17,4,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
-2425,Muscle injury,2024-10-20,2024-12-12,54,14,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
-2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
-2425,Ankle injury,2024-04-14,2024-08-31,140,17,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
-2425,unknown injury,2024-11-10,2024-11-19,10,,injury,Matheus Nunes,/matheus-nunes/profil/spieler/601883
-2425,Metatarsal fracture,2024-12-31,2025-03-03,63,14,injury,Pau Torres,/pau-torres/profil/spieler/399776
-2425,Ankle injury,2025-01-08,2025-01-15,8,1,injury,João Pedro,/joao-pedro/profil/spieler/626724
-2425,Muscle injury,2025-01-21,2025-01-31,11,3,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
-2425,Muscle injury,2024-08-24,2024-09-11,19,2,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
-2425,Ankle injury,2024-11-23,2024-12-16,24,6,injury,Konstantinos Tsimikas,/konstantinos-tsimikas/profil/spieler/338070
-2425,Knee injury,2024-12-07,2025-01-20,45,11,injury,Nick Pope,/nick-pope/profil/spieler/192080
+2425,Ankle injury,2025-02-06,2025-02-11,6,1,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
+2425,Ankle injury,2021-08-03,2021-11-25,115,22,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
+2425,unknown injury,2025-02-23,2025-03-04,10,1,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Back injury,2025-02-22,2025-03-06,13,3,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Abdominal muscle strain,2024-08-10,2024-09-27,49,8,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Ill,2025-02-07,2025-02-12,6,1,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2425,Muscle injury,2024-10-15,2024-11-11,28,5,injury,Yankuba Minteh,/yankuba-minteh/profil/spieler/1012534
 2425,Chest injury,2025-02-08,2025-03-29,50,8,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
 2425,Calf problems,2025-01-03,2025-01-14,12,2,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
-2425,Knock,2025-03-04,2025-03-09,6,2,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
-2425,Knock,2025-02-12,2025-02-21,10,3,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
-2425,unknown injury,2025-03-07,2025-03-09,3,1,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
-2425,unknown injury,2025-01-09,2025-01-14,6,1,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
+2425,Foot injury,2025-03-03,2025-04-10,39,7,injury,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
+2425,Knee injury,2025-05-03,2025-06-23,52,6,injury,James Maddison,/james-maddison/profil/spieler/294057
+2425,Calf strain,2025-01-25,2025-02-10,17,5,injury,James Maddison,/james-maddison/profil/spieler/294057
+2425,muscular problems,2025-01-15,2025-01-31,17,4,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
+2425,Muscle injury,2024-10-20,2024-12-12,54,14,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
+2425,Ankle injury,2025-05-06,2025-05-12,7,1,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
+2425,Groin surgery,2024-11-01,2025-02-01,93,17,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
+2425,Knee problems,2025-02-28,2025-03-30,31,4,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
+2425,Ankle injury,2024-08-27,2024-11-08,74,11,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
+2425,Knock,2024-11-20,2024-12-06,17,4,injury,Myles Lewis-Skelly,/myles-lewis-skelly/profil/spieler/890721
+2425,unknown injury,2024-12-11,2025-01-10,31,5,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+2425,Cruciate ligament tear,2025-01-13,2025-11-22,314,27,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+2425,Groin injury,2024-08-20,2024-09-04,16,2,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+2425,Hamstring injury,2025-02-19,2025-05-23,94,17,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Foot injury,2024-12-22,2025-01-20,30,6,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Foot injury,2024-11-23,2024-12-14,22,6,injury,John Stones,/john-stones/profil/spieler/186590
+2425,unknown injury,2024-11-01,2024-11-18,18,4,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Knee problems,2025-02-15,2025-03-15,29,5,injury,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
+2425,Groin problems,2024-12-16,2024-12-28,13,3,injury,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
 2425,unknown injury,2025-01-15,2025-01-24,10,2,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
 2425,unknown injury,2025-01-15,2025-01-24,10,2,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
 2425,Knock,2024-08-12,2024-09-14,34,7,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
 2425,Muscle injury,2024-05-04,2024-05-06,3,1,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
 2425,Muscle injury,2023-09-15,2023-09-17,3,1,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,Hamstring injury,2024-12-22,2025-03-30,99,19,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Thigh problems,2024-10-10,2024-10-24,15,3,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Muscle injury,2024-05-13,2024-05-20,8,1,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Hamstring injury,2024-07-28,2024-09-16,51,7,injury,Rasmus Højlund,/rasmus-hojlund/profil/spieler/610442
-2425,unknown injury,2025-02-03,2025-03-31,57,9,injury,Altay Bayındır,/altay-bayindir/profil/spieler/336077
-2425,Muscle injury,2025-04-20,2025-04-28,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Injury to the ankle,2025-03-07,2025-03-15,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Ill,2024-11-22,2024-11-29,8,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Muscle injury,2024-09-01,2024-09-22,22,5,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Muscle injury,2024-12-03,2025-04-04,123,26,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Calf injury,2024-08-11,2024-11-08,90,20,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Knee injury,2024-08-01,2024-10-20,81,16,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Knock,2025-01-16,2025-01-23,8,1,injury,Levi Colwill,/levi-colwill/profil/spieler/614258
-2425,Ill,2025-02-26,2025-03-03,6,1,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
-2425,Fever,2024-09-29,2024-10-03,5,1,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
-2425,Thigh problems,2025-03-17,2025-04-18,33,5,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2025-01-16,2025-03-07,51,8,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2024-12-09,2025-01-07,30,7,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2024-08-23,2024-09-15,24,4,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Head injury,2025-04-19,2025-05-03,15,2,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
-2425,Groin injury,2024-09-23,2024-10-16,24,4,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
-2425,concussion,2025-04-03,2025-04-15,13,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Muscle injury,2025-01-11,2025-01-14,4,1,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Thigh problems,2024-08-28,2024-09-11,15,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Knock,2024-12-05,2024-12-22,18,5,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2425,Calf injury,2024-09-14,2024-10-21,38,8,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2425,Ill,2025-01-27,2025-01-30,4,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
-2425,Ill,2024-09-26,2024-09-30,5,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
-2425,Leg injury,2024-12-22,2025-02-10,51,9,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,Thigh problems,2024-12-21,2025-01-19,30,7,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,unknown injury,2024-08-24,2024-09-16,24,6,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,Knee surgery,2025-01-24,2025-06-01,129,21,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
-2425,Toe injury,2024-09-15,2024-10-28,44,6,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
-2425,Foot injury,2025-04-14,2025-05-09,26,6,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Knock,2025-04-11,2025-04-14,4,1,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Thigh problems,2024-10-21,2024-11-02,13,3,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Hamstring injury,2024-09-26,2024-10-19,24,7,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Hamstring injury,2025-02-03,2025-05-12,99,20,injury,Marc Guiu,/marc-guiu/profil/spieler/938158
-2425,Calf injury,2025-01-10,2025-04-06,87,19,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
-2425,unknown injury,2024-11-03,2024-11-11,9,3,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
-2425,Knock,2024-11-20,2024-12-06,17,4,injury,Myles Lewis-Skelly,/myles-lewis-skelly/profil/spieler/890721
-2425,Hamstring injury,2025-01-13,2025-02-22,41,10,injury,Timo Werner,/timo-werner/profil/spieler/170527
-2425,Hip injury,2024-11-04,2024-11-09,6,1,injury,Timo Werner,/timo-werner/profil/spieler/170527
-2425,Foot injury,2025-02-03,2025-02-11,9,1,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
-2425,Hamstring injury,2024-10-30,2024-11-25,27,4,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
-2425,Ankle injury,2025-05-06,2025-05-12,7,1,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
-2425,Groin surgery,2024-11-01,2025-02-01,93,17,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
-2425,Leg injury,2024-12-30,2025-01-06,8,1,injury,Will Hughes,/will-hughes/profil/spieler/207014
-2425,Foot injury,2025-03-03,2025-04-10,39,7,injury,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
-2425,Hamstring injury,2024-11-22,2024-12-27,36,9,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
-2425,Muscle injury,2024-10-05,2024-10-07,3,1,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
-2425,Knee injury,2024-11-28,2024-12-31,34,8,injury,Ibrahima Konaté,/ibrahima-konate/profil/spieler/357119
-2425,Ankle injury,2025-03-12,2025-04-17,37,4,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Hamstring injury,2025-02-02,2025-02-11,10,2,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Hamstring injury,2024-11-09,2024-11-25,17,3,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Ankle injury,2025-02-06,2025-02-11,6,1,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
-2425,Ankle injury,2021-08-03,2021-11-25,115,22,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
-2425,unknown injury,2024-11-18,2024-12-12,25,6,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
-2425,Muscle injury,2025-02-19,2025-04-03,44,8,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
-2425,Hamstring injury,2024-11-27,2025-01-03,38,9,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
-2425,unknown injury,2024-11-17,2024-11-29,13,3,injury,Pedro Neto,/pedro-neto/profil/spieler/487465
-2425,Rest,2024-11-18,2024-11-20,3,1,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-2425,Knock,2025-02-08,2025-02-10,3,1,injury,Nico González,/nico-gonzalez/profil/spieler/466805
-2425,unknown injury,2025-03-16,2025-04-01,17,1,injury,Ryan Gravenberch,/ryan-gravenberch/profil/spieler/478573
-2425,Ill,2025-04-11,2025-04-15,5,1,injury,Romain Esse,/romain-esse/profil/spieler/967319
-2425,Calf injury,2025-05-05,,23,3,injury,Youri Tielemans,/youri-tielemans/profil/spieler/249565
-2425,Ill,2025-02-15,2025-02-17,3,1,injury,Christian Eriksen,/christian-eriksen/profil/spieler/69633
-2425,Groin injury,2025-02-25,2025-03-01,5,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Hamstring injury,2025-01-11,2025-01-14,4,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Broken toe,2024-09-15,2024-10-18,34,7,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Cruciate ligament tear,2025-01-30,2025-12-06,311,25,injury,Radu Drăgușin,/radu-dragusin/profil/spieler/568559
-2425,Hamstring injury,2025-02-19,2025-05-23,94,17,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Foot injury,2024-12-22,2025-01-20,30,6,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Foot injury,2024-11-23,2024-12-14,22,6,injury,John Stones,/john-stones/profil/spieler/186590
-2425,unknown injury,2024-11-01,2024-11-18,18,4,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Ankle injury,2024-10-18,2025-01-18,93,19,injury,Carl Rushworth,/carl-rushworth/profil/spieler/646353
-2425,Foot injury,2025-03-14,2025-04-21,39,6,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Ill,2025-01-10,2025-01-15,6,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Muscle injury,2024-08-10,2024-08-23,14,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Shoulder injury,2025-02-07,,110,19,injury,Tyler Morton,/tyler-morton/profil/spieler/618494
-2425,Ankle surgery,2024-11-25,2025-02-10,78,21,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
-2425,unknown injury,2024-09-26,2024-10-14,19,2,injury,Simon Adingra,/simon-adingra/profil/spieler/658536
-2425,Hamstring injury,2025-01-17,2025-01-24,8,2,injury,William Saliba,/william-saliba/profil/spieler/495666
-2425,Calf problems,2025-04-01,2025-04-11,11,2,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Hamstring injury,2024-09-27,2024-11-03,38,8,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Knee problems,2024-04-01,2024-04-19,19,3,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Knee problems,2025-04-21,2025-04-28,8,1,injury,Ben White,/ben-white/profil/spieler/335721
-2425,unknown injury,2025-04-11,2025-04-15,5,1,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Knee surgery,2024-11-11,2025-02-10,92,21,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Knee injury,2024-09-23,2024-10-07,15,4,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Broken collarbone,2024-11-08,2025-01-13,67,13,injury,Emil Krafth,/emil-krafth/profil/spieler/184528
-2425,Shoulder injury,2025-01-22,2025-05-03,102,15,injury,Jason Steele,/jason-steele/profil/spieler/73564
-2425,Foot injury,2025-03-16,2025-05-16,62,13,injury,Ayden Heaven,/ayden-heaven/profil/spieler/1078163
-2425,unknown injury,2024-12-20,2025-01-25,37,8,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,unknown injury,2024-11-17,2024-12-09,23,6,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,Toe injury,2024-08-04,2024-09-14,42,7,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,Heel problems,2025-05-02,2025-05-09,8,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
-2425,Heel problems,2025-04-07,2025-04-18,12,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
-2425,Foot injury,2025-03-30,2025-05-25,57,9,injury,Georginio Rutter,/georginio-rutter/profil/spieler/538977
-2425,Chest injury,2025-04-13,2025-05-06,24,5,injury,Jorginho,/jorginho/profil/spieler/102017
-2425,Hamstring muscle injury,2024-09-18,2024-10-31,44,12,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
-2425,Ill,2024-12-24,2024-12-29,6,1,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
-2425,Head injury,2025-03-08,2025-03-29,22,2,injury,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
-2425,Thigh problems,2025-04-14,2025-06-01,49,10,injury,Joshua Zirkzee,/joshua-zirkzee/profil/spieler/435648
-2425,Knock,2025-01-16,2025-01-23,8,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
-2425,Ill,2024-09-13,2024-09-15,3,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
-2425,Rest,2024-11-15,2024-11-15,1,,injury,Omar Marmoush,/omar-marmoush/profil/spieler/445939
-2425,Calf strain,2025-01-24,2025-03-09,45,8,injury,Joel Ward,/joel-ward/profil/spieler/92572
-2425,Calf injury,2024-12-08,2024-12-18,11,2,injury,Joel Ward,/joel-ward/profil/spieler/92572
-2425,Muscle injury,2024-08-01,2024-11-25,117,18,injury,Alfie Whiteman,/alfie-whiteman/profil/spieler/282823
-2425,Ill,2024-12-06,2024-12-09,4,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Knock,2024-11-20,2024-11-24,5,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Shoulder injury,2024-10-07,2024-10-13,7,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Groin surgery,2025-04-03,2025-06-30,89,14,injury,Dane Scarlett,/dane-scarlett/profil/spieler/670883
-2425,Toe joint capsular tear,2024-11-02,2025-05-23,203,32,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,unknown injury,2024-08-30,2024-09-10,12,3,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,Hamstring strain,2024-08-12,2024-08-16,5,1,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,Ill,2025-02-07,2025-02-12,6,1,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
-2425,heart problems,2024-10-09,2024-10-18,10,2,injury,Noussair Mazraoui,/noussair-mazraoui/profil/spieler/340456
-2425,concussion,2024-08-13,2024-08-20,8,1,injury,İlkay Gündoğan,/ilkay-gundogan/profil/spieler/53622
+2425,Ankle injury,2025-04-30,2025-06-09,41,7,injury,Lucas Bergvall,/lucas-bergvall/profil/spieler/866246
+2425,Hamstring injury,2025-04-21,2025-06-01,42,5,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,Ill,2025-04-01,2025-04-04,4,1,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,Skin disease,2024-09-16,2024-11-04,50,8,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,Adductor pain,2024-10-25,2024-11-04,11,2,injury,Kepa Arrizabalaga,/kepa-arrizabalaga/profil/spieler/192279
 2425,unknown injury,2025-04-21,2025-04-28,8,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
 2425,Knock,2025-01-24,2025-01-28,5,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
 2425,Knee injury,2024-11-28,2024-12-02,5,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
 2425,Shoulder injury,2024-08-30,2024-10-01,33,9,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
-2425,Hamstring injury,2025-02-03,2025-04-01,58,9,injury,Nicolas Jackson,/nicolas-jackson/profil/spieler/776890
-2425,unknown injury,2025-03-26,2025-04-14,20,5,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,unknown injury,2025-02-14,2025-02-20,7,2,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Thigh problems,2024-12-13,2024-12-15,3,1,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Hamstring injury,2024-09-02,2024-09-17,16,4,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Fitness,2025-01-20,2025-01-22,3,1,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,Hamstring injury,2024-12-14,2025-01-15,33,6,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,concussion,2024-08-17,2024-08-28,12,3,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Carlos Baleba,/carlos-baleba/profil/spieler/973085
-2425,Muscle injury,2024-08-22,2024-09-14,24,3,injury,Vitor Reis,/vitor-reis/profil/spieler/1005575
+2425,minor knock,2025-03-13,2025-03-15,3,1,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Torn thigh muscle,2025-02-23,2025-05-31,98,12,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Hamstring injury,2024-09-15,2025-01-24,132,24,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Muscle injury,2024-12-27,2025-01-14,19,5,injury,Ben Mee,/ben-mee/profil/spieler/74810
+2425,Knee injury,2024-12-07,2025-06-30,206,35,injury,David Datro Fofana,/david-datro-fofana/profil/spieler/787232
+2425,Meniscus tear,2024-10-19,2025-02-10,115,19,injury,Alex Scott,/alex-scott/profil/spieler/855256
+2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
+2425,Ankle injury,2024-04-14,2024-08-31,140,17,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
+2425,Fitness,2025-03-08,2025-04-04,28,3,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Hamstring injury,2025-01-25,2025-03-08,43,6,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Knee injury,2024-09-01,2025-01-10,132,20,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Knee injury,2024-09-01,2024-10-19,49,6,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Ill,2025-01-04,2025-01-10,7,2,injury,Dominik Szoboszlai,/dominik-szoboszlai/profil/spieler/451276
+2425,Hamstring muscle injury,2024-09-18,2024-10-31,44,12,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Hip injury,2025-01-24,2025-02-07,15,3,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,unknown injury,2024-12-20,2025-01-18,30,6,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Calf injury,2024-10-30,2024-12-01,33,9,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Groin injury,2025-02-25,2025-03-01,5,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Hamstring injury,2025-01-11,2025-01-14,4,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Broken toe,2024-09-15,2024-10-18,34,7,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Ankle injury,2024-12-21,2025-01-25,36,7,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Foot injury,2024-10-19,2024-12-07,50,11,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Ankle injury,2024-08-31,2024-09-14,15,4,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Fitness,2025-03-01,2025-03-30,30,6,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
+2425,Broken leg,2024-08-14,2025-03-01,200,48,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
+2425,Ankle injury,2024-10-10,2024-11-26,48,6,injury,Amario Cozier-Duberry,/amario-cozier-duberry/profil/spieler/878150
+2425,Foot injury,2025-03-30,2025-05-25,57,9,injury,Georginio Rutter,/georginio-rutter/profil/spieler/538977
+2425,unknown injury,2024-09-26,2024-10-14,19,2,injury,Simon Adingra,/simon-adingra/profil/spieler/658536
+2425,Ill,2024-12-13,2024-12-20,8,2,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+2425,Ill,2025-03-14,2025-04-04,22,2,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Adductor injury,2025-02-17,2025-03-08,20,3,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Hamstring injury,2024-11-30,2025-01-01,33,8,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Calf injury,2024-09-06,2024-10-26,51,7,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Ill,2025-01-01,2025-01-17,17,4,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
+2425,Fitness,2025-03-19,2025-04-09,22,2,injury,Gustavo Nunes,/gustavo-nunes/profil/spieler/1086375
+2425,Back injury,2024-08-28,2025-03-19,204,32,injury,Gustavo Nunes,/gustavo-nunes/profil/spieler/1086375
+2425,Foot surgery,2025-03-01,2025-05-23,84,16,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Muscle injury,2025-01-18,2025-02-11,25,7,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Hamstring injury,2024-09-10,2024-10-14,35,9,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Hamstring injury,2025-02-06,2025-03-07,30,4,injury,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+2425,Hamstring injury,2025-01-17,2025-01-24,8,2,injury,William Saliba,/william-saliba/profil/spieler/495666
+2425,Calf strain,2025-01-24,2025-03-09,45,8,injury,Joel Ward,/joel-ward/profil/spieler/92572
+2425,Calf injury,2024-12-08,2024-12-18,11,2,injury,Joel Ward,/joel-ward/profil/spieler/92572
+2425,Knock,2025-01-16,2025-01-23,8,1,injury,Levi Colwill,/levi-colwill/profil/spieler/614258
 2425,Thigh problems,2025-01-12,2025-02-14,34,7,injury,Harvey Barnes,/harvey-barnes/profil/spieler/398065
-2425,Knee surgery,2025-02-19,2025-10-01,225,19,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2425,Knee injury,2024-10-06,2025-02-18,136,29,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2425,Knee injury,2024-07-21,2024-10-02,74,9,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Hamstring injury,2024-12-18,2025-02-01,46,9,injury,Ethan Pinnock,/ethan-pinnock/profil/spieler/442248
+2425,Thigh problems,2025-03-17,2025-04-18,33,5,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2025-01-16,2025-03-07,51,8,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2024-12-09,2025-01-07,30,7,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2024-08-23,2024-09-15,24,4,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Ankle injury,2024-09-14,2024-10-19,36,6,injury,Yoane Wissa,/yoane-wissa/profil/spieler/388165
+2425,concussion,2024-08-13,2024-08-20,8,1,injury,İlkay Gündoğan,/ilkay-gundogan/profil/spieler/53622
+2425,Shoulder injury,2025-02-07,,123,19,injury,Tyler Morton,/tyler-morton/profil/spieler/618494
+2425,Broken foot,2024-09-11,2024-11-21,72,14,injury,Harvey Elliott,/harvey-elliott/profil/spieler/565822
+2425,Thigh problems,2025-06-09,,1,,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Thigh problems,2025-03-12,2025-04-14,34,6,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,heart problems,2024-08-31,2024-10-15,46,9,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Ankle injury,2025-04-07,2025-04-18,12,1,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,unknown injury,2024-12-01,2024-12-09,9,3,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,cold,2024-09-03,2024-09-08,6,,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,Ill,2024-08-21,2024-08-31,11,2,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,Muscle injury,2025-04-20,2025-04-28,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Injury to the ankle,2025-03-07,2025-03-15,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Ill,2024-11-22,2024-11-29,8,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Muscle injury,2024-09-01,2024-09-22,22,5,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Hamstring injury,2025-04-03,,68,7,injury,Ryan Trevitt,/ryan-trevitt/profil/spieler/874538
+2425,Achilles tendon problems,2025-01-10,2025-01-22,13,3,injury,Ryan Trevitt,/ryan-trevitt/profil/spieler/874538
+2425,Fitness,2024-06-10,2024-08-27,79,2,injury,David Brooks,/david-brooks/profil/spieler/277033
+2425,Knee injury,2024-12-07,2025-05-02,147,22,injury,Igor Thiago,/igor-thiago/profil/spieler/739443
+2425,Meniscus injury,2024-07-21,2024-11-23,126,15,injury,Igor Thiago,/igor-thiago/profil/spieler/739443
+2425,Ankle injury,2024-11-23,2024-12-16,24,6,injury,Konstantinos Tsimikas,/konstantinos-tsimikas/profil/spieler/338070
+2425,Metatarsal fracture,2024-07-02,2024-10-17,108,9,injury,Lewis Miley,/lewis-miley/profil/spieler/922769
+2425,Head injury,2025-04-19,2025-05-03,15,2,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2425,Groin injury,2024-09-23,2024-10-16,24,4,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2425,unknown injury,2025-01-19,2025-02-11,24,7,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
+2425,Hamstring injury,2024-11-03,2024-11-27,25,6,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
+2425,Knock,2025-02-08,2025-02-10,3,1,injury,Nico González,/nico-gonzalez/profil/spieler/466805
+2425,Muscle injury,2024-09-30,2024-12-11,73,14,injury,Federico Chiesa,/federico-chiesa/profil/spieler/341092
+2425,Virus,2024-11-06,2025-01-07,63,14,injury,Mikey Moore,/mikey-moore/profil/spieler/1011147
+2425,Hamstring injury,2024-10-14,2024-11-25,43,7,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
+2425,Heel problems,2025-05-02,2025-05-09,8,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
+2425,Heel problems,2025-04-07,2025-04-18,12,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
+2425,Hamstring injury,2024-11-30,2025-04-01,123,21,injury,Marcos Senesi,/marcos-senesi/profil/spieler/469781
+2425,Facial injury,2024-08-10,2024-08-19,10,1,injury,Marcos Senesi,/marcos-senesi/profil/spieler/469781
+2425,Ill,2024-12-24,2024-12-29,6,1,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
+2425,Knee problems,2024-12-20,2025-01-07,19,5,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+2425,Knee problems,2025-03-07,2025-04-02,27,3,injury,Michael Kayode,/michael-kayode/profil/spieler/823486
+2425,Ill,2025-03-08,2025-03-12,5,1,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Hamstring injury,2024-11-19,2024-12-27,39,10,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Hamstring injury,2024-08-09,2024-10-14,67,11,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Foot injury,2025-03-14,2025-04-21,39,6,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Ill,2025-01-10,2025-01-15,6,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Muscle injury,2024-08-10,2024-08-23,14,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Chest injury,2025-01-31,2025-02-14,15,1,injury,Mark Flekken,/mark-flekken/profil/spieler/125714
+2425,Broken toe,2024-11-04,2024-11-19,16,2,injury,Declan Rice,/declan-rice/profil/spieler/357662
+2425,Ankle injury,2025-03-31,2025-05-01,32,6,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
+2425,Knee problems,2025-02-16,2025-02-25,10,2,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
+2425,Fitness,2025-03-03,2025-03-30,28,3,injury,Julián Araujo,/julian-araujo/profil/spieler/513970
+2425,Hamstring injury,2024-11-10,2025-03-03,114,19,injury,Julián Araujo,/julian-araujo/profil/spieler/513970
+2425,Adductor pain,2025-05-05,2025-05-23,19,2,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,unknown injury,2024-11-01,2024-11-11,11,2,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,Injury to the ankle,2024-09-07,2024-09-20,14,2,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,Muscle injury,2024-08-01,2024-11-25,117,18,injury,Alfie Whiteman,/alfie-whiteman/profil/spieler/282823
+2425,unknown injury,2024-11-10,2024-11-19,10,,injury,Matheus Nunes,/matheus-nunes/profil/spieler/601883
+2425,Hamstring injury,2024-12-22,2025-03-30,99,19,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,Thigh problems,2024-10-10,2024-10-24,15,3,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,Muscle injury,2024-05-13,2024-05-20,8,1,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,Hamstring injury,2025-01-05,2025-05-01,117,18,injury,Igor,/igor/profil/spieler/380350
+2425,Ankle injury,2024-06-01,2024-10-19,141,10,injury,Paris Maghoma,/paris-maghoma/profil/spieler/470596
+2425,Hamstring injury,2024-10-27,2025-02-13,110,27,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
+2425,Hamstring injury,2024-09-18,2024-10-23,36,7,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
+2425,Foot injury,2025-04-14,2025-05-09,26,6,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Knock,2025-04-11,2025-04-14,4,1,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Thigh problems,2024-10-21,2024-11-02,13,3,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Hamstring injury,2024-09-26,2024-10-19,24,7,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Broken foot,2025-01-04,2025-02-20,48,8,injury,Evanilson,/evanilson/profil/spieler/711337
+2425,Knee injury,2024-11-28,2024-12-31,34,8,injury,Ibrahima Konaté,/ibrahima-konate/profil/spieler/357119
+2425,Knock,2025-01-18,2025-01-25,8,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Groin problems,2024-09-10,2024-09-20,11,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Head injury,2025-03-08,2025-03-29,22,2,injury,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
+2425,Hamstring injury,2025-04-02,2025-07-14,104,12,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
+2425,Knee injury,2024-12-01,2024-12-13,13,3,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
+2425,Knee injury,2024-10-27,2024-11-01,6,2,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
+2425,Ill,2025-04-11,2025-04-15,5,1,injury,Romain Esse,/romain-esse/profil/spieler/967319
+2425,Foot injury,2025-02-17,2025-04-21,64,10,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,unknown injury,2024-11-25,2024-12-17,23,4,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,Ill,2024-09-27,2024-09-30,4,1,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,Toe joint capsular tear,2024-11-02,2025-06-11,222,33,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,unknown injury,2024-08-30,2024-09-10,12,3,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,Hamstring strain,2024-08-12,2024-08-16,5,1,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,concussion,2025-04-03,2025-04-15,13,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Muscle injury,2025-01-11,2025-01-14,4,1,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Thigh problems,2024-08-28,2024-09-11,15,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Calf problems,2025-04-01,2025-04-11,11,2,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Hamstring injury,2024-09-27,2024-11-03,38,8,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Knee problems,2024-04-01,2024-04-19,19,3,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Thigh problems,2025-03-15,2025-05-23,70,10,injury,Luis Sinisterra,/luis-sinisterra/profil/spieler/512385
+2425,Hamstring injury,2024-10-25,2025-02-10,109,18,injury,Luis Sinisterra,/luis-sinisterra/profil/spieler/512385
+2425,Muscle injury,2025-02-19,2025-04-03,44,8,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,Hamstring injury,2024-11-27,2025-01-03,38,9,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,Ill,2025-04-11,2025-04-15,5,1,injury,Matt Turner,/matt-turner/profil/spieler/425306
+2425,unknown injury,2025-03-15,2025-03-17,3,1,injury,Bernardo Silva,/bernardo-silva/profil/spieler/241641
+2425,Hamstring injury,2025-02-03,2025-05-12,99,20,injury,Marc Guiu,/marc-guiu/profil/spieler/938158
+2425,Knock,2025-01-16,2025-01-23,8,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
+2425,Ill,2024-09-13,2024-09-15,3,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
+2425,Muscle injury,2025-01-21,2025-01-31,11,3,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
+2425,Muscle injury,2024-08-24,2024-09-11,19,2,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
+2425,Ill,2024-12-06,2024-12-09,4,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Knock,2024-11-20,2024-11-24,5,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Shoulder injury,2024-10-07,2024-10-13,7,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Carlos Baleba,/carlos-baleba/profil/spieler/973085
+2425,Foot injury,2025-02-03,2025-02-11,9,1,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
+2425,Hamstring injury,2024-10-30,2024-11-25,27,4,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
+2425,Foot injury,2025-03-28,2025-04-11,15,3,injury,Marcus Tavernier,/marcus-tavernier/profil/spieler/399434
+2425,Thigh problems,2024-12-09,2025-01-24,47,8,injury,Marcus Tavernier,/marcus-tavernier/profil/spieler/399434
+2425,Knock,2024-12-25,2025-01-16,23,5,injury,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
+2425,unknown injury,2024-12-15,2025-01-11,28,2,injury,Mathis Amougou,/mathis-amougou/profil/spieler/1010854
+2425,unknown injury,2025-04-01,2025-04-11,11,2,injury,Justin Kluivert,/justin-kluivert/profil/spieler/330659
+2425,Thigh problems,2024-10-01,2025-05-25,237,37,injury,James Milner,/james-milner/profil/spieler/3333
+2425,Hamstring injury,2024-08-31,2024-09-14,15,2,injury,James Milner,/james-milner/profil/spieler/3333
+2425,Knock,2025-01-20,2025-02-01,13,3,injury,Djed Spence,/djed-spence/profil/spieler/483348
+2425,Groin injury,2024-10-21,2024-11-08,19,5,injury,Djed Spence,/djed-spence/profil/spieler/483348
+2425,Fitness,2025-02-17,2025-05-16,89,11,injury,Aaron Hickey,/aaron-hickey/profil/spieler/591949
+2425,Knee problems,2025-03-07,2025-04-23,48,7,injury,Sven Botman,/sven-botman/profil/spieler/361093
+2425,Broken kneecap,2025-02-05,2025-03-06,30,6,injury,Sven Botman,/sven-botman/profil/spieler/361093
+2425,Knee problems,2025-04-20,2025-05-23,34,4,injury,Joelinton,/joelinton/profil/spieler/333241
+2425,Knee injury,2025-02-02,2025-03-01,28,5,injury,Joelinton,/joelinton/profil/spieler/333241
+2425,Broken collarbone,2024-11-08,2025-01-13,67,13,injury,Emil Krafth,/emil-krafth/profil/spieler/184528
+2425,Rest,2024-11-15,2024-11-15,1,,injury,Omar Marmoush,/omar-marmoush/profil/spieler/445939
 2425,Knee injury,2024-11-09,2025-01-24,77,13,injury,Jack Hinshelwood,/jack-hinshelwood/profil/spieler/867688
-2425,Foot injury,2025-03-09,2025-04-01,24,4,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Ill,2025-02-14,2025-02-17,4,1,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Ankle injury,2024-07-29,2024-12-01,126,21,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Hamstring injury,2024-12-05,2025-01-17,44,12,injury,Ben Davies,/ben-davies/profil/spieler/192765
+2425,ankle sprain,2024-11-09,2024-11-14,6,1,injury,Mike Penders,/mike-penders/profil/spieler/834397
+2425,Knock,2025-03-21,2025-04-14,25,3,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Thigh problems,2025-02-06,2025-02-10,5,1,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Groin injury,2024-10-26,2024-10-30,5,2,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
