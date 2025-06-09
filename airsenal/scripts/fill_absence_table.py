@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from typing import List, Optional
+import argparse
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
@@ -71,3 +72,11 @@ def make_absence_table(
         if season == CURRENT_SEASON:
             continue
         load_absences(season, dbsession)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("parse arguments")
+    parser.add_argument("--season", help="comma-separated list of season", default=CURRENT_SEASON)
+    args = parser.parse_args()
+    seasons = args.season.split(",")
+    make_absence_table(seasons)
