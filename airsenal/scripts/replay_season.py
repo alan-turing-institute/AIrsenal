@@ -238,10 +238,22 @@ def main():
         type=int,
         default=2,
     )
+    parser.add_argument(
+        "--predictions_only",
+        help=(
+            "If True, only run prediction each week, not optimization."
+        ),
+        action='store_true',
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
         raise RuntimeError("fpl_team_id must be set to use the resume argument")
+
+    if args.predictions_only:
+        transfers = False
+    else:
+        transfers = True
 
     set_multiprocessing_start_method()
 
@@ -263,6 +275,7 @@ def main():
                 team_model=args.team_model,
                 team_model_args={"epsilon": args.epsilon},
                 max_opt_transfers=args.max_transfers,
+                transfers=transfers,
             )
             n_completed += 1
 
