@@ -8,6 +8,7 @@ from typing import List
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.utils import session
 from airsenal.framework.schema import Player, PlayerMapping
 
 
@@ -43,4 +44,9 @@ def add_mappings(player: Player, dbsession: Session) -> None:
 def make_player_mappings_table(dbsession: Session) -> None:
     players = dbsession.query(Player).all()
     for p in players:
+        print(f"adding mappings for {p.name}")
         add_mappings(p, dbsession)
+
+
+if __name__ == "__main__":
+    make_player_mappings_table(session)
