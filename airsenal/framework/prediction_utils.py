@@ -60,7 +60,8 @@ def check_absence(player, gameweek, season, dbsession=session):
     Query the Absence table for a given player and season to see if the
     gameweek is within the period of absence. If so, return the details of absence.
 
-    Returns: the Absence object (which may be empty if there was no absence)
+    Returns: absent: bool, reasons: tuple(str), details: tuple(str)
+         ab
     """
     absence = (
         dbsession.query(Absence)
@@ -72,12 +73,8 @@ def check_absence(player, gameweek, season, dbsession=session):
     # save the reasons and details - there may be more than 1 reason for absence
     reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
     details = [ab.details for ab in absence] if len(absence) > 0 else None
-    # for those that just have one reason, just take first element of list
-    if reasons is not None:
-        reasons = reasons[0] if len(reasons) == 1 else reasons
-    if details is not None:
-        details = details[0] if len(details) == 1 else details
-    return reasons, details
+    absent = len(absence) > 0
+    return absent, reasons, details
 
 
 def get_player_history_df(
@@ -159,7 +156,7 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            absence_reason, absence_detail = check_absence(
+            absent, absence_reason, absence_detail = check_absence(
                 player, row.fixture.gameweek, row.fixture.season, session
             )
             player_data.append(
@@ -327,6 +324,41 @@ def get_card_points(
         return 0
 
 
+def get_predicted_minutes_for_player(
+    player: Union[Player, str, int],
+    recent_minutes: List[int],
+    season: str,
+    query_gameweek: int,
+    prediction_gameweek: int,
+    dbsession: Session = session,
+) -> int:
+    """
+    Get the predicted minutes played for a player in a set of upcoming fixtures,
+    based on how many minutes they played in previous matches
+    """
+    if sum(recent_minutes) == 0:
+        # 'recent_minutes' contains the number of minutes that player played for
+        # in the past few matches. If these are all zero, we will for sure predict
+        # zero points for this player, so we don't need to call all the functions to
+        # calculate appearance points, defending points, attacking points.
+        return 0
+
+    if player.is_injured_or_suspended(season, query_gameweek, prediction_gameweek):
+        return 0
+ #   print(f"NICK about to call was_historic_absence with {player} {prediction_gameweek} {season} {dbsession} ")
+    elif was_historic_absence(
+        player,
+        gameweek=prediction_gameweek,
+        season=season,
+        dbsession=dbsession,
+    ):
+    # Points will be zero if player was suspended or injured (in past season)
+        return 0
+    # otherwise, average over recent minutes
+    return sum(recent_minutes) // len(recent_minutes)
+
+
+
 def calc_predicted_points_for_player(
     player: Union[Player, str, int],
     fixture_goal_probs: dict,
@@ -387,14 +419,6 @@ def calc_predicted_points_for_player(
         last_gw=min(gw_range) - 1,
         dbsession=dbsession,
     )
-    if len(recent_minutes) == 0:
-        # e.g. for gameweek 1
-        # this should now be dealt with in get_recent_minutes_for_player, so
-        # throw error if not.
-        # recent_minutes = estimate_minutes_from_prev_season(
-        #    player, season=season, dbsession: Session = session
-        # )
-        raise ValueError("Recent minutes is empty.")
 
     expected_points = defaultdict(float)  # default value is 0.
     predictions = []  # list that will hold PlayerPrediction objects
@@ -411,53 +435,44 @@ def calc_predicted_points_for_player(
         points = 0.0
         expected_points[gameweek] = points
 
-        if sum(recent_minutes) == 0:
-            # 'recent_minutes' contains the number of minutes that player played for
-            # in the past few matches. If these are all zero, we will for sure predict
-            # zero points for this player, so we don't need to call all the functions to
-            # calculate appearance points, defending points, attacking points.
-            points = 0.0
-
-        elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
-            # Points for fixture will be zero if suspended or injured
-            points = 0.0
-        elif was_historic_absence(
-            player,
-            gameweek=gameweek,
+        expected_minutes = get_predicted_minutes_for_player(
+            player=player,
+            recent_minutes=recent_minutes,
             season=season,
-            dbsession=dbsession,
-        ):
-            # Points will be zero if player was suspended or injured (in past season)
+            query_gameweek=gw_range[0],
+            prediction_gameweek=gameweek,
+            dbsession=dbsession
+        )
+
+        if expected_minutes == 0:
+            # Points will be zero if expected minutes is zero
             points = 0.0
         else:
-            # now loop over recent minutes and average
-            points = 0
-            for mins in recent_minutes:
-                points += (
-                    get_appearance_points(mins)
-                    + get_attacking_points(
-                        position,
-                        mins,
-                        team_score_prob,
-                        player_prob,
-                    )
-                    + get_defending_points(position, mins, team_concede_prob)
-                )
-                if df_bonus is not None:
-                    points += get_bonus_points(player.player_id, mins, df_bonus)
-                if df_cards is not None:
-                    points += get_card_points(player.player_id, mins, df_cards)
-                if df_saves is not None:
-                    points += get_save_points(
-                        position, player.player_id, mins, df_saves
-                    )
 
-            points /= len(recent_minutes)
+            points = 0.0
+            points += (
+                get_appearance_points(expected_minutes)
+                + get_attacking_points(
+                    position,
+                    expected_minutes,
+                    team_score_prob,
+                    player_prob,
+                )
+                + get_defending_points(position, expected_minutes, team_concede_prob)
+            )
+            if df_bonus is not None:
+                points += get_bonus_points(player.player_id, expected_minutes, df_bonus)
+                if df_cards is not None:
+                    points += get_card_points(player.player_id, expected_minutes, df_cards)
+                    if df_saves is not None:
+                        points += get_save_points(
+                            position, player.player_id, expected_minutes, df_saves
+                        )
 
         # create the PlayerPrediction for this player+fixture
         if np.isnan(points):
-            raise ValueError(f"nan points for {player} {fixture} {points} {tag}")
-        predictions.append(make_prediction(player, fixture, points, tag))
+            raise ValueError(f"nan points for {player} {fixture} {points} {expected_minutes} {tag}")
+        predictions.append(make_prediction(player, fixture, points, expected_minutes, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
         message += f"\nExpected points: {points:.2f}"
@@ -505,13 +520,14 @@ def calc_predicted_points_for_pos(
 
 
 def make_prediction(
-    player: Player, fixture: Fixture, points: float, tag: str
+        player: Player, fixture: Fixture, points: float, minutes: int, tag: str
 ) -> PlayerPrediction:
     """
     Fill one row in the player_prediction table.
     """
     pp = PlayerPrediction()
     pp.predicted_points = points
+    pp.predicted_minutes = minutes
     pp.tag = tag
     pp.player = player
     pp.fixture = fixture

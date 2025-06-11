@@ -303,6 +303,7 @@ class PlayerPrediction(Base):
     fixture = relationship("Fixture", uselist=False)
     fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
     predicted_points = Column(Float, nullable=False)
+    predicted_minutes = Column(Integer, nullable=True)
     tag = Column(String(100), nullable=False)
     player = relationship("Player", back_populates="predictions")
     player_id = Column(Integer, ForeignKey("player.player_id"))
