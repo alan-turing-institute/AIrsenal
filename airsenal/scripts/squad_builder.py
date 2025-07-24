@@ -20,6 +20,11 @@ from airsenal.framework.utils import (
     get_max_gameweek,
 )
 
+try:
+    from airsenal.framework.optimization_deap import make_new_squad_deap
+except ModuleNotFoundError:
+    make_new_squad_deap = None
+
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 
@@ -35,35 +40,58 @@ def fill_initial_squad(
     num_generations: int = 100,
     population_size: int = 100,
     num_iterations: int = 10,
+    crossover_prob: float = 0.7,
+    mutation_prob: float = 0.3,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
 ) -> Squad:
-    if algorithm == "genetic":
-        try:
-            import pygmo as pg
-
-            uda = pg.sga(gen=num_generations)
-        except ModuleNotFoundError:
-            print("pygmo not available. Defaulting to algorithm=normal instead")
-            algorithm = "normal"
-            uda = None
-    else:
-        uda = None
-
     gw_start = gw_range[0]
-    best_squad = make_new_squad(
-        gw_range,
-        tag,
-        budget=budget,
-        season=season,
-        algorithm=algorithm,
-        remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        uda=uda,
-        population_size=population_size,
-        num_iterations=num_iterations,
-        verbose=verbose,
-    )
+
+    if algorithm == "deap":
+        if make_new_squad_deap is None:
+            print("DEAP not available. Defaulting to algorithm=normal instead")
+            algorithm = "normal"
+        else:
+            best_squad = make_new_squad_deap(
+                gw_range,
+                tag,
+                budget=budget,
+                season=season,
+                remove_zero=remove_zero,
+                sub_weights=sub_weights,
+                population_size=population_size,
+                generations=num_generations,
+                crossover_prob=crossover_prob,
+                mutation_prob=mutation_prob,
+                verbose=verbose,
+            )
+
+    if algorithm != "deap":
+        if algorithm == "genetic":
+            try:
+                import pygmo as pg
+
+                uda = pg.sga(gen=num_generations)
+            except ModuleNotFoundError:
+                print("pygmo not available. Defaulting to algorithm=normal instead")
+                algorithm = "normal"
+                uda = None
+        else:
+            uda = None
+
+        best_squad = make_new_squad(
+            gw_range,
+            tag,
+            budget=budget,
+            season=season,
+            algorithm=algorithm,
+            remove_zero=remove_zero,
+            sub_weights=sub_weights,
+            uda=uda,
+            population_size=population_size,
+            num_iterations=num_iterations,
+            verbose=verbose,
+        )
     if best_squad is None:
         raise RuntimeError(
             "best_squad is None: make_new_squad failed to generate a valid team or "
@@ -120,7 +148,7 @@ def main():
     )
     parser.add_argument(
         "--algorithm",
-        help="Which optimization algorithm to use - 'normal' or 'genetic'",
+        help="Which optimization algorithm to use - 'normal', 'genetic' (pygmo), or 'deap'",
         type=str,
         default="genetic",
     )
@@ -134,24 +162,37 @@ def main():
     # parameters for "pygmo" optimization
     parser.add_argument(
         "--num_generations",
-        help="number of generations (genetic only)",
+        help="number of generations (genetic and deap only)",
         type=int,
         default=100,
     )
     parser.add_argument(
         "--population_size",
-        help="number of candidate solutions per generation (genetic only)",
+        help="number of candidate solutions per generation (genetic and deap only)",
         type=int,
         default=100,
     )
+    # parameters for "deap" optimization
+    parser.add_argument(
+        "--crossover_prob",
+        help="crossover probability (deap only)",
+        type=float,
+        default=0.7,
+    )
+    parser.add_argument(
+        "--mutation_prob",
+        help="mutation probability (deap only)",
+        type=float,
+        default=0.3,
+    )
     parser.add_argument(
         "--no_subs",
-        help="Don't include points contribution from substitutes (genetic only)",
+        help="Don't include points contribution from substitutes (genetic and deap only)",
         action="store_true",
     )
     parser.add_argument(
         "--include_zero",
-        help="Include players with zero predicted points (genetic only)",
+        help="Include players with zero predicted points (genetic and deap only)",
         action="store_true",
     )
     parser.add_argument(
@@ -197,6 +238,8 @@ def main():
     num_iterations = args.num_iterations
     num_generations = args.num_generations
     population_size = args.population_size
+    crossover_prob = args.crossover_prob
+    mutation_prob = args.mutation_prob
     remove_zero = not args.include_zero
     verbose = args.verbose
     fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
@@ -217,6 +260,8 @@ def main():
         num_generations=num_generations,
         population_size=population_size,
         num_iterations=num_iterations,
+        crossover_prob=crossover_prob,
+        mutation_prob=mutation_prob,
         verbose=verbose,
         is_replay=args.is_replay,
     )

@@ -1,0 +1,6 @@
+2:Best score: 166.48900696723726 pts
+20:Optimised total score (gameweeks 1 to 3): 166.49
+136:Best score: 168.82845257589025 pts
+154:Optimised total score (gameweeks 1 to 3): 168.83
+203:Optimised total score (gameweeks 1 to 3): 175.30
+242:Optimised total score (gameweeks 1 to 3): 171.94

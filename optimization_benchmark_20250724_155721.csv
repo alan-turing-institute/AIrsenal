@@ -1,0 +1,3 @@
+algorithm,budget,config_name,crossover_prob,description,error,gameweeks,generations,gw_start_points,money_left,mutation_prob,population_size,run_order,runtime_minutes,runtime_seconds,score,squad_cost,status,timestamp
+deap,1000,DEAP_HIGH_QUALITY,0.8,High quality DEAP optimization,,1-3,200,61.760432958602905,1000,0.2,150,1,0.7582276503245036,45.493659019470215,180.81292527325948,0,SUCCESS,2025-07-24T15:58:07.424912
+pygmo,1000,PYGMO_HIGH_QUALITY,N/A,High quality pygmo optimization,,1-3,200,62.99337577819824,1000,N/A,150,2,0.9718109647432963,58.30865788459778,182.97862388153075,0,SUCCESS,2025-07-24T15:59:05.733711

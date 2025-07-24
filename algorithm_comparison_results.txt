@@ -1,0 +1,34 @@
+=== ALGORITHM COMPARISON RESULTS ===
+
+Test Configuration:
+- Gameweeks: 1-3
+- Budget: £100.0m
+- Parameters tested: 50 and 100 generations with matching population sizes
+
+RESULTS:
+
+FIRST TEST (50 generations, 50 population):
+- PYGMO (genetic): 166.49 pts
+- DEAP: 168.83 pts
+- DIFFERENCE: +2.34 pts in favor of DEAP (+1.4% improvement)
+
+HIGH QUALITY TEST (100 generations, 100 population):  
+- PYGMO (genetic): 175.30 pts
+- DEAP: 171.94 pts  
+- DIFFERENCE: -3.36 pts in favor of PYGMO (-2.0% difference)
+
+ANALYSIS:
+1. Both algorithms are competitive and can produce high-quality results
+2. With smaller population/generation parameters (50/50), DEAP performed better
+3. With larger parameters (100/100), PYGMO performed better  
+4. The difference between algorithms is relatively small (1-2%)
+5. Both algorithms successfully found solutions scoring 166-175 pts for a 3-gameweek period
+
+CONCLUSION:
+Both DEAP and PYGMO algorithms are viable options for squad optimization. The choice between them may depend on:
+- Available computational time
+- Desired parameter tuning
+- Specific optimization preferences
+- Hardware capabilities
+
+The integration of DEAP as an alternative genetic algorithm option has been successful and provides users with more choice in optimization approaches.
