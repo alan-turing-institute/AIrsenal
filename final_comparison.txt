@@ -1,4 +1,0 @@
-=== COMPLETE COMPARISON RESULTS ===
-
-FIRST RUN (50 generations, 50 population):
-Best score: 166.48900696723726 pts
