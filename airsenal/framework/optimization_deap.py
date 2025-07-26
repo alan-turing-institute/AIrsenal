@@ -36,74 +36,6 @@ from airsenal.framework.utils import (
     list_players,
 )
 
-# Optimized parameter presets based on testing
-PARAMETER_PRESETS = {
-    "FAST": {
-        "population_size": 30,
-        "generations": 50,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "tournament_size": 2,
-        "description": "Quick optimization for testing/development",
-    },
-    "BALANCED": {
-        "population_size": 80,
-        "generations": 80,
-        "crossover_prob": 0.75,
-        "mutation_prob": 0.25,
-        "tournament_size": 4,
-        "description": "Good balance of quality and speed",
-    },
-    "HIGH_QUALITY": {
-        "population_size": 150,
-        "generations": 150,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "tournament_size": 5,
-        "description": "Best quality results (slower)",
-    },
-    "HIGH_EXPLORATION": {
-        "population_size": 50,
-        "generations": 50,
-        "crossover_prob": 0.6,
-        "mutation_prob": 0.4,
-        "tournament_size": 2,
-        "description": "Maximum exploration of solution space",
-    },
-    "DEFAULT": {
-        "population_size": 100,
-        "generations": 100,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "tournament_size": 3,
-        "description": "Standard DEAP parameters",
-    },
-    "MAXIMUM_PERFORMANCE": {
-        "population_size": 200,
-        "generations": 400,
-        "crossover_prob": 0.65,
-        "mutation_prob": 0.35,
-        "tournament_size": 4,
-        "description": "Maximum performance for extended runs (very slow)",
-    },
-    "ULTRA_LONG": {
-        "population_size": 300,
-        "generations": 600,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "tournament_size": 5,
-        "description": "Ultra-long optimization for absolute best results",
-    },
-    "EXPLORATION_FOCUSED": {
-        "population_size": 400,
-        "generations": 300,
-        "crossover_prob": 0.5,
-        "mutation_prob": 0.5,
-        "tournament_size": 2,
-        "description": "Maximum exploration with large population",
-    },
-}
-
 
 class DummyPlayer:
     """To fill squads with placeholders (if not optimising full squad)."""
@@ -223,7 +155,7 @@ class SquadOptDEAP:
         self.toolbox.register("evaluate", self._evaluate_individual)
         self.toolbox.register("mate", self._crossover)
         self.toolbox.register("mutate", self._mutate)
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
+        self.toolbox.register("select", tools.selTournament, tournsize=2)
 
     def _create_individual(self):
         """Create a valid individual (chromosome) representing a squad selection."""
@@ -240,7 +172,29 @@ class SquadOptDEAP:
             )
             individual.extend(selected_players)
 
+        individual = self._sort_by_price(individual)
+
         return creator.Individual(individual)
+
+    def _sort_by_price(self, individual: List[int]) -> List[int]:
+        """Sort individuals by player price within positions (ascending)."""
+        sorted_individual = []
+        for pos in self.positions:
+            pos_players = [
+                idx
+                for idx in individual
+                if self.players[int(idx)].position(self.season) == pos
+            ]
+            sorted_individual.extend(
+                sorted(
+                    pos_players,
+                    key=lambda idx: self.players[int(idx)].price(
+                        self.season, self.gw_range[0]
+                    ),
+                )
+            )
+
+        return sorted_individual
 
     def _evaluate_individual(self, individual: List[int]) -> Tuple[float]:
         """Evaluate the fitness of an individual (squad)."""
@@ -312,6 +266,10 @@ class SquadOptDEAP:
 
             start_idx = end_idx
 
+        # Sort the children by price
+        child1 = self._sort_by_price(child1)
+        child2 = self._sort_by_price(child2)
+
         # Modify individuals in place
         ind1[:] = child1
         ind2[:] = child2
@@ -334,6 +292,9 @@ class SquadOptDEAP:
                     individual[i] = random.randint(pos_min, pos_max)
 
             start_idx = end_idx
+
+        # Sort the mutated individual by price
+        individual[:] = self._sort_by_price(individual)
 
         return (individual,)
 
@@ -456,111 +417,6 @@ class SquadOptDEAP:
         best_fitness = best_individual.fitness.values[0]
 
         return best_individual, best_fitness
-
-
-def get_preset_parameters(preset_name: str = "BALANCED") -> dict:
-    """Get optimized parameter sets for different use cases.
-
-    Parameters
-    ----------
-    preset_name : str
-        One of: "FAST", "BALANCED", "HIGH_QUALITY", "HIGH_EXPLORATION", "DEFAULT"
-
-    Returns
-    -------
-    dict
-        Dictionary of optimization parameters
-    """
-    if preset_name not in PARAMETER_PRESETS:
-        available = list(PARAMETER_PRESETS.keys())
-        raise ValueError(f"Unknown preset '{preset_name}'. Available: {available}")
-
-    return PARAMETER_PRESETS[preset_name].copy()
-
-
-def make_new_squad_deap_optimized(
-    gw_range,
-    tag,
-    preset="BALANCED",
-    budget=1000,
-    players_per_position=TOTAL_PER_POSITION,
-    season=CURRENT_SEASON,
-    verbose=True,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    remove_zero=True,
-    sub_weights={"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
-    dummy_sub_cost=45,
-    random_state=None,
-    **kwargs,
-):
-    """Optimize a squad using preset optimized parameters.
-
-    Parameters
-    ----------
-    gw_range : list
-        Gameweeks to optimize squad for
-    tag : str
-        Points prediction tag to use
-    preset : str, optional
-        Parameter preset to use: "FAST", "BALANCED", "HIGH_QUALITY", "HIGH_EXPLORATION", "DEFAULT"
-        by default "BALANCED"
-    budget : int, optional
-        Total budget for squad times 10, by default 1000
-    players_per_position : dict
-        No. of players to optimize in each position, by default TOTAL_PER_POSITION
-    season : str
-        Season to optimize for, by default CURRENT_SEASON
-    verbose : bool
-        Whether to print optimization progress, by default True
-    bench_boost_gw : int
-        Gameweek to play bench boost, by default None
-    triple_captain_gw : int
-        Gameweek to play triple captain, by default None
-    remove_zero : bool
-        If True don't consider players with predicted pts of zero, by default True
-    sub_weights : dict
-        Weighting to give to substitutes in optimization, by default {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
-    dummy_sub_cost : int, optional
-        Cost of dummy players if not optimizing full squad, by default 45
-    random_state : int, optional
-        Random seed for reproducibility, by default None
-
-    Returns
-    -------
-    airsenal.framework.squad.Squad
-        The optimized squad
-    """
-    # Get preset parameters
-    params = get_preset_parameters(preset)
-
-    if verbose:
-        print(f"Using preset '{preset}': {params['description']}")
-        print(
-            f"Parameters: pop={params['population_size']}, gen={params['generations']}, "
-            f"cx={params['crossover_prob']}, mut={params['mutation_prob']}"
-        )
-
-    # Use make_new_squad_deap with preset parameters
-    return make_new_squad_deap(
-        gw_range=gw_range,
-        tag=tag,
-        budget=budget,
-        players_per_position=players_per_position,
-        season=season,
-        verbose=verbose,
-        bench_boost_gw=bench_boost_gw,
-        triple_captain_gw=triple_captain_gw,
-        remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        dummy_sub_cost=dummy_sub_cost,
-        population_size=params["population_size"],
-        generations=params["generations"],
-        crossover_prob=params["crossover_prob"],
-        mutation_prob=params["mutation_prob"],
-        random_state=random_state,
-        **kwargs,
-    )
 
 
 def make_new_squad_deap(
