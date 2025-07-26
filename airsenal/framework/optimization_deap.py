@@ -5,6 +5,11 @@ optimal squad for the start of the season or for wildcards and free hits.
 DEAP (Distributed Evolutionary Algorithms in Python) is a pure Python package
 that provides genetic algorithm functionality without requiring conda installation.
 
+This implementation uses DEAP's built-in genetic operators:
+- Crossover: tools.cxUniform (uniform crossover)
+- Mutation: tools.mutUniformInt (uniform integer mutation with position-specific bounds)
+- Selection: tools.selTournament (tournament selection)
+
 OPTIMIZED PARAMETER SETS:
 - FAST: population_size=30, generations=50, cx=0.8, mut=0.2, tournament=2
 - BALANCED: population_size=80, generations=80, cx=0.75, mut=0.25, tournament=4
@@ -151,11 +156,16 @@ class SquadOptDEAP:
             "population", tools.initRepeat, list, self.toolbox.individual
         )
 
-        # Register genetic operators
+        # Create bounds for mutation - each position has its own bounds
+        low_bounds, up_bounds = self._get_mutation_bounds()
+
+        # Register genetic operators using DEAP built-ins
         self.toolbox.register("evaluate", self._evaluate_individual)
-        self.toolbox.register("mate", self._crossover)
-        self.toolbox.register("mutate", self._mutate)
-        self.toolbox.register("select", tools.selTournament, tournsize=2)
+        self.toolbox.register("mate", tools.cxUniform, indpb=0.5)
+        self.toolbox.register(
+            "mutate", tools.mutUniformInt, low=low_bounds, up=up_bounds, indpb=0.1
+        )
+        self.toolbox.register("select", tools.selTournament, tournsize=3)
 
     def _create_individual(self):
         """Create a valid individual (chromosome) representing a squad selection."""
@@ -172,29 +182,23 @@ class SquadOptDEAP:
             )
             individual.extend(selected_players)
 
-        individual = self._sort_by_price(individual)
-
         return creator.Individual(individual)
 
-    def _sort_by_price(self, individual: List[int]) -> List[int]:
-        """Sort individuals by player price within positions (ascending)."""
-        sorted_individual = []
-        for pos in self.positions:
-            pos_players = [
-                idx
-                for idx in individual
-                if self.players[int(idx)].position(self.season) == pos
-            ]
-            sorted_individual.extend(
-                sorted(
-                    pos_players,
-                    key=lambda idx: self.players[int(idx)].price(
-                        self.season, self.gw_range[0]
-                    ),
-                )
-            )
+    def _get_mutation_bounds(self):
+        """Get lower and upper bounds for each gene for mutation."""
+        low_bounds = []
+        up_bounds = []
 
-        return sorted_individual
+        # For each position, add bounds for each player slot
+        for pos in self.positions:
+            pos_min, pos_max = self.position_idx[pos]
+            n_players = self.players_per_position[pos]
+
+            # Add bounds for each player in this position
+            low_bounds.extend([pos_min] * n_players)
+            up_bounds.extend([pos_max] * n_players)
+
+        return low_bounds, up_bounds
 
     def _evaluate_individual(self, individual: List[int]) -> Tuple[float]:
         """Evaluate the fitness of an individual (squad)."""
@@ -237,66 +241,6 @@ class SquadOptDEAP:
         )
 
         return (score,)
-
-    def _crossover(
-        self, ind1: List[int], ind2: List[int]
-    ) -> Tuple[List[int], List[int]]:
-        """Custom crossover that maintains position constraints."""
-        # Create offspring
-        child1, child2 = [], []
-
-        # For each position, perform crossover while maintaining constraints
-        start_idx = 0
-        for pos in self.positions:
-            n_players = self.players_per_position[pos]
-            end_idx = start_idx + n_players
-
-            # Extract position-specific genes
-            pos_genes1 = ind1[start_idx:end_idx]
-            pos_genes2 = ind2[start_idx:end_idx]
-
-            # Perform single-point crossover within position
-            if random.random() < 0.5:  # 50% chance of crossover
-                cx_point = random.randint(1, n_players - 1) if n_players > 1 else 1
-                child1.extend(pos_genes1[:cx_point] + pos_genes2[cx_point:])
-                child2.extend(pos_genes2[:cx_point] + pos_genes1[cx_point:])
-            else:
-                child1.extend(pos_genes1)
-                child2.extend(pos_genes2)
-
-            start_idx = end_idx
-
-        # Sort the children by price
-        child1 = self._sort_by_price(child1)
-        child2 = self._sort_by_price(child2)
-
-        # Modify individuals in place
-        ind1[:] = child1
-        ind2[:] = child2
-
-        return ind1, ind2
-
-    def _mutate(self, individual: List[int]) -> Tuple[List[int]]:
-        """Custom mutation that maintains position constraints."""
-        # For each position, potentially mutate players
-        start_idx = 0
-        for pos in self.positions:
-            n_players = self.players_per_position[pos]
-            end_idx = start_idx + n_players
-            pos_min, pos_max = self.position_idx[pos]
-
-            # Mutate each gene in this position with some probability
-            for i in range(start_idx, end_idx):
-                if random.random() < 0.1:  # 10% mutation rate per gene
-                    # Replace with a random valid player from same position
-                    individual[i] = random.randint(pos_min, pos_max)
-
-            start_idx = end_idx
-
-        # Sort the mutated individual by price
-        individual[:] = self._sort_by_price(individual)
-
-        return (individual,)
 
     def _get_player_list(self):
         """Get list of active players at the start of the gameweek range,
