@@ -42,6 +42,9 @@ def fill_initial_squad(
     num_iterations: int = 10,
     crossover_prob: float = 0.7,
     mutation_prob: float = 0.3,
+    crossover_indpb: float = 0.5,
+    mutation_indpb: float = 0.1,
+    tournament_size: int = 3,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
 ) -> Squad:
@@ -63,6 +66,9 @@ def fill_initial_squad(
                 generations=num_generations,
                 crossover_prob=crossover_prob,
                 mutation_prob=mutation_prob,
+                crossover_indpb=crossover_indpb,
+                mutation_indpb=mutation_indpb,
+                tournament_size=tournament_size,
                 verbose=verbose,
             )
 
@@ -186,6 +192,24 @@ def main():
         default=0.3,
     )
     parser.add_argument(
+        "--crossover_indpb",
+        help="independent probability for each attribute to be exchanged in crossover (deap only)",
+        type=float,
+        default=0.5,
+    )
+    parser.add_argument(
+        "--mutation_indpb",
+        help="independent probability for each attribute to be mutated (deap only)",
+        type=float,
+        default=0.1,
+    )
+    parser.add_argument(
+        "--tournament_size",
+        help="size of tournament for tournament selection (deap only)",
+        type=int,
+        default=3,
+    )
+    parser.add_argument(
         "--no_subs",
         help="Don't include points contribution from substitutes (genetic and deap only)",
         action="store_true",
@@ -240,6 +264,9 @@ def main():
     population_size = args.population_size
     crossover_prob = args.crossover_prob
     mutation_prob = args.mutation_prob
+    crossover_indpb = args.crossover_indpb
+    mutation_indpb = args.mutation_indpb
+    tournament_size = args.tournament_size
     remove_zero = not args.include_zero
     verbose = args.verbose
     fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
@@ -262,6 +289,9 @@ def main():
         num_iterations=num_iterations,
         crossover_prob=crossover_prob,
         mutation_prob=mutation_prob,
+        crossover_indpb=crossover_indpb,
+        mutation_indpb=mutation_indpb,
+        tournament_size=tournament_size,
         verbose=verbose,
         is_replay=args.is_replay,
     )

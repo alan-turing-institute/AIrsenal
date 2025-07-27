@@ -156,16 +156,11 @@ class SquadOptDEAP:
             "population", tools.initRepeat, list, self.toolbox.individual
         )
 
-        # Create bounds for mutation - each position has its own bounds
-        low_bounds, up_bounds = self._get_mutation_bounds()
-
-        # Register genetic operators using DEAP built-ins
+        # Register evaluation function
         self.toolbox.register("evaluate", self._evaluate_individual)
-        self.toolbox.register("mate", tools.cxUniform, indpb=0.5)
-        self.toolbox.register(
-            "mutate", tools.mutUniformInt, low=low_bounds, up=up_bounds, indpb=0.1
-        )
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
+
+        # Store mutation bounds for later use in optimize method
+        self.low_bounds, self.up_bounds = self._get_mutation_bounds()
 
     def _create_individual(self):
         """Create a valid individual (chromosome) representing a squad selection."""
@@ -302,6 +297,9 @@ class SquadOptDEAP:
         generations: int = 100,
         crossover_prob: float = 0.7,
         mutation_prob: float = 0.3,
+        crossover_indpb: float = 0.5,
+        mutation_indpb: float = 0.1,
+        tournament_size: int = 3,
         verbose: bool = True,
         random_state: Optional[int] = None,
     ) -> Tuple[List[int], float]:
@@ -317,6 +315,12 @@ class SquadOptDEAP:
             Probability of crossover
         mutation_prob : float
             Probability of mutation
+        crossover_indpb : float
+            Independent probability for each attribute to be exchanged in crossover
+        mutation_indpb : float
+            Independent probability for each attribute to be mutated
+        tournament_size : int
+            Size of tournament for tournament selection
         verbose : bool
             Whether to print progress
         random_state : int, optional
@@ -330,6 +334,17 @@ class SquadOptDEAP:
         if random_state is not None:
             random.seed(random_state)
             np.random.seed(random_state)
+
+        # Register genetic operators with configurable parameters
+        self.toolbox.register("mate", tools.cxUniform, indpb=crossover_indpb)
+        self.toolbox.register(
+            "mutate",
+            tools.mutUniformInt,
+            low=self.low_bounds,
+            up=self.up_bounds,
+            indpb=mutation_indpb,
+        )
+        self.toolbox.register("select", tools.selTournament, tournsize=tournament_size)
 
         # Create initial population
         population = self.toolbox.population(n=population_size)
@@ -379,6 +394,9 @@ def make_new_squad_deap(
     generations=100,
     crossover_prob=0.7,
     mutation_prob=0.3,
+    crossover_indpb=0.5,
+    mutation_indpb=0.1,
+    tournament_size=3,
     random_state=None,
     **kwargs,
 ):
@@ -422,6 +440,13 @@ def make_new_squad_deap(
         Probability of crossover between individuals, by default 0.7
     mutation_prob : float, optional
         Probability of mutation for each individual, by default 0.3
+    crossover_indpb : float, optional
+        Independent probability for each attribute to be exchanged in crossover,
+        by default 0.5
+    mutation_indpb : float, optional
+        Independent probability for each attribute to be mutated, by default 0.1
+    tournament_size : int, optional
+        Size of tournament for tournament selection, by default 3
     random_state : int, optional
         Random seed for reproducibility, by default None
 
@@ -450,6 +475,9 @@ def make_new_squad_deap(
         generations=generations,
         crossover_prob=crossover_prob,
         mutation_prob=mutation_prob,
+        crossover_indpb=crossover_indpb,
+        mutation_indpb=mutation_indpb,
+        tournament_size=tournament_size,
         verbose=verbose,
         random_state=random_state,
     )

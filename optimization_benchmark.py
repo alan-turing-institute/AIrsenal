@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """
-Comprehensive optimization benchmark script for AIrsenal squad optimization.
+DEAP optimization benchmark script for AIrsenal squad optimization.
 
-This script runs multiple optimization configurations with both pygmo and DEAP
-algorithms to find the best hyperparameters for squad optimization over 10 gameweeks.
+This script runs multiple DEAP optimization configurations to find the best
+hyperparameters for squad optimization over 10 gameweeks, including the new
+crossover_indpb, mutation_indpb, and tournament_size parameters.
 Results are saved to a CSV file for analysis.
 
-Focus: Long-running, high-quality optimizations for maximum performance.
+Focus: Comprehensive DEAP parameter exploration for maximum performance.
 """
 
 import argparse
@@ -19,7 +20,6 @@ from typing import Any, Dict, List
 # Add current directory to Python path for imports
 sys.path.insert(0, ".")
 
-from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
@@ -37,21 +37,26 @@ try:
 except ModuleNotFoundError:
     make_new_squad_deap = None
     DEAP_AVAILABLE = False
-    print("Warning: DEAP not available. Skipping DEAP optimizations.")
-
-try:
-    import pygmo as pg
-
-    PYGMO_AVAILABLE = True
-except ModuleNotFoundError:
-    pg = None
-    PYGMO_AVAILABLE = False
-    print("Warning: pygmo not available. Skipping pygmo optimizations.")
+    print("Error: DEAP not available. Please install with 'pip install deap'")
+    sys.exit(1)
 
 
-# High-performance optimization configurations
+# DEAP optimization configurations - comprehensive parameter exploration
 OPTIMIZATION_CONFIGS = [
-    # DEAP configurations - focused on high performance
+    # Baseline configurations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_BASELINE",
+        "population_size": 100,
+        "generations": 100,
+        "crossover_prob": 0.7,
+        "mutation_prob": 0.3,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.1,
+        "tournament_size": 3,
+        "description": "Baseline DEAP configuration",
+    },
+    # High quality configurations
     {
         "algorithm": "deap",
         "name": "DEAP_HIGH_QUALITY",
@@ -59,96 +64,173 @@ OPTIMIZATION_CONFIGS = [
         "generations": 200,
         "crossover_prob": 0.8,
         "mutation_prob": 0.2,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.1,
+        "tournament_size": 5,
         "description": "High quality DEAP optimization",
+    },
+    # Exploration vs exploitation variations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_HIGH_EXPLORATION",
+        "population_size": 120,
+        "generations": 150,
+        "crossover_prob": 0.6,
+        "mutation_prob": 0.4,
+        "crossover_indpb": 0.7,
+        "mutation_indpb": 0.2,
+        "tournament_size": 2,
+        "description": "High exploration - more mutation, larger crossover_indpb",
     },
     {
         "algorithm": "deap",
-        "name": "DEAP_MAXIMUM_PERFORMANCE",
-        "population_size": 200,
-        "generations": 400,
-        "crossover_prob": 0.65,
-        "mutation_prob": 0.35,
-        "description": "Maximum performance DEAP (very long)",
+        "name": "DEAP_HIGH_EXPLOITATION",
+        "population_size": 120,
+        "generations": 150,
+        "crossover_prob": 0.9,
+        "mutation_prob": 0.1,
+        "crossover_indpb": 0.3,
+        "mutation_indpb": 0.05,
+        "tournament_size": 7,
+        "description": "High exploitation - more crossover, larger tournament",
     },
+    # Tournament size variations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_SMALL_TOURNAMENT",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.75,
+        "mutation_prob": 0.25,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.1,
+        "tournament_size": 2,
+        "description": "Small tournament size for diversity",
+    },
+    {
+        "algorithm": "deap",
+        "name": "DEAP_LARGE_TOURNAMENT",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.75,
+        "mutation_prob": 0.25,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.1,
+        "tournament_size": 8,
+        "description": "Large tournament size for selection pressure",
+    },
+    # Crossover indpb variations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_LOW_CROSSOVER_INDPB",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.8,
+        "mutation_prob": 0.2,
+        "crossover_indpb": 0.2,
+        "mutation_indpb": 0.1,
+        "tournament_size": 3,
+        "description": "Low crossover indpb - conservative crossover",
+    },
+    {
+        "algorithm": "deap",
+        "name": "DEAP_HIGH_CROSSOVER_INDPB",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.8,
+        "mutation_prob": 0.2,
+        "crossover_indpb": 0.8,
+        "mutation_indpb": 0.1,
+        "tournament_size": 3,
+        "description": "High crossover indpb - aggressive crossover",
+    },
+    # Mutation indpb variations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_LOW_MUTATION_INDPB",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.7,
+        "mutation_prob": 0.3,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.05,
+        "tournament_size": 3,
+        "description": "Low mutation indpb - conservative mutation",
+    },
+    {
+        "algorithm": "deap",
+        "name": "DEAP_HIGH_MUTATION_INDPB",
+        "population_size": 100,
+        "generations": 120,
+        "crossover_prob": 0.7,
+        "mutation_prob": 0.3,
+        "crossover_indpb": 0.5,
+        "mutation_indpb": 0.3,
+        "tournament_size": 3,
+        "description": "High mutation indpb - aggressive mutation",
+    },
+    # Long-running configurations
     {
         "algorithm": "deap",
         "name": "DEAP_ULTRA_LONG",
-        "population_size": 300,
-        "generations": 600,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "description": "Ultra-long DEAP optimization",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_EXPLORATION_FOCUSED",
-        "population_size": 400,
+        "population_size": 200,
         "generations": 300,
-        "crossover_prob": 0.5,
-        "mutation_prob": 0.5,
-        "description": "Maximum exploration DEAP",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_BALANCED_LONG",
-        "population_size": 120,
-        "generations": 250,
         "crossover_prob": 0.75,
         "mutation_prob": 0.25,
-        "description": "Balanced long-running DEAP",
+        "crossover_indpb": 0.6,
+        "mutation_indpb": 0.15,
+        "tournament_size": 4,
+        "description": "Ultra-long DEAP optimization",
     },
-    # Pygmo configurations - focused on high performance
-    {
-        "algorithm": "pygmo",
-        "name": "PYGMO_HIGH_QUALITY",
-        "population_size": 150,
-        "generations": 200,
-        "description": "High quality pygmo optimization",
-    },
-    {
-        "algorithm": "pygmo",
-        "name": "PYGMO_MAXIMUM_PERFORMANCE",
-        "population_size": 200,
-        "generations": 400,
-        "description": "Maximum performance pygmo (very long)",
-    },
-    {
-        "algorithm": "pygmo",
-        "name": "PYGMO_ULTRA_LONG",
-        "population_size": 300,
-        "generations": 600,
-        "description": "Ultra-long pygmo optimization",
-    },
-    {
-        "algorithm": "pygmo",
-        "name": "PYGMO_EXPLORATION_FOCUSED",
-        "population_size": 400,
-        "generations": 300,
-        "description": "Maximum exploration pygmo",
-    },
-    {
-        "algorithm": "pygmo",
-        "name": "PYGMO_BALANCED_LONG",
-        "population_size": 120,
-        "generations": 250,
-        "description": "Balanced long-running pygmo",
-    },
-    # Additional experimental configurations
+    # Balanced configurations with different parameter combinations
     {
         "algorithm": "deap",
-        "name": "DEAP_EXTREME_EXPLORATION",
-        "population_size": 500,
-        "generations": 200,
-        "crossover_prob": 0.4,
-        "mutation_prob": 0.6,
-        "description": "Extreme exploration with large population",
+        "name": "DEAP_BALANCED_A",
+        "population_size": 120,
+        "generations": 150,
+        "crossover_prob": 0.7,
+        "mutation_prob": 0.3,
+        "crossover_indpb": 0.4,
+        "mutation_indpb": 0.12,
+        "tournament_size": 4,
+        "description": "Balanced configuration variant A",
     },
     {
-        "algorithm": "pygmo",
-        "name": "PYGMO_EXTREME_EXPLORATION",
-        "population_size": 500,
+        "algorithm": "deap",
+        "name": "DEAP_BALANCED_B",
+        "population_size": 120,
+        "generations": 150,
+        "crossover_prob": 0.8,
+        "mutation_prob": 0.2,
+        "crossover_indpb": 0.6,
+        "mutation_indpb": 0.08,
+        "tournament_size": 5,
+        "description": "Balanced configuration variant B",
+    },
+    # Extreme configurations
+    {
+        "algorithm": "deap",
+        "name": "DEAP_EXTREME_DIVERSITY",
+        "population_size": 200,
+        "generations": 150,
+        "crossover_prob": 0.5,
+        "mutation_prob": 0.5,
+        "crossover_indpb": 0.9,
+        "mutation_indpb": 0.4,
+        "tournament_size": 2,
+        "description": "Extreme diversity - maximum exploration",
+    },
+    {
+        "algorithm": "deap",
+        "name": "DEAP_EXTREME_CONVERGENCE",
+        "population_size": 80,
         "generations": 200,
-        "description": "Extreme exploration with large population",
+        "crossover_prob": 0.95,
+        "mutation_prob": 0.05,
+        "crossover_indpb": 0.2,
+        "mutation_indpb": 0.02,
+        "tournament_size": 10,
+        "description": "Extreme convergence - maximum exploitation",
     },
 ]
 
@@ -162,7 +244,7 @@ def run_optimization(
     verbose: bool = True,
 ) -> Dict[str, Any]:
     """
-    Run a single optimization configuration and return results.
+    Run a single DEAP optimization configuration and return results.
 
     Returns:
         Dictionary containing optimization results including score, timing, etc.
@@ -174,66 +256,32 @@ def run_optimization(
     start_time = time.time()
 
     try:
-        if config["algorithm"] == "deap":
-            if not DEAP_AVAILABLE or make_new_squad_deap is None:
-                return {
-                    "config_name": config["name"],
-                    "algorithm": config["algorithm"],
-                    "status": "FAILED",
-                    "error": "DEAP not available",
-                    "score": None,
-                    "runtime_seconds": None,
-                }
-
-            best_squad = make_new_squad_deap(
-                gw_range=gw_range,
-                tag=tag,
-                budget=budget,
-                season=season,
-                population_size=config["population_size"],
-                generations=config["generations"],
-                crossover_prob=config.get("crossover_prob", 0.7),
-                mutation_prob=config.get("mutation_prob", 0.3),
-                verbose=verbose,
-                remove_zero=True,
-                sub_weights=DEFAULT_SUB_WEIGHTS,
-            )
-
-        elif config["algorithm"] == "pygmo":
-            if not PYGMO_AVAILABLE or pg is None:
-                return {
-                    "config_name": config["name"],
-                    "algorithm": config["algorithm"],
-                    "status": "FAILED",
-                    "error": "pygmo not available",
-                    "score": None,
-                    "runtime_seconds": None,
-                }
-
-            # Use the correct pygmo algorithm name
-            uda = pg.sga(gen=config["generations"])
-            best_squad = make_new_squad(
-                gw_range=gw_range,
-                tag=tag,
-                budget=budget,
-                season=season,
-                algorithm="genetic",
-                uda=uda,
-                population_size=config["population_size"],
-                verbose=verbose,
-                remove_zero=True,
-                sub_weights=DEFAULT_SUB_WEIGHTS,
-            )
-
-        else:
+        if not DEAP_AVAILABLE or make_new_squad_deap is None:
             return {
                 "config_name": config["name"],
                 "algorithm": config["algorithm"],
                 "status": "FAILED",
-                "error": f"Unknown algorithm: {config['algorithm']}",
+                "error": "DEAP not available",
                 "score": None,
                 "runtime_seconds": None,
             }
+
+        best_squad = make_new_squad_deap(
+            gw_range=gw_range,
+            tag=tag,
+            budget=budget,
+            season=season,
+            population_size=config["population_size"],
+            generations=config["generations"],
+            crossover_prob=config.get("crossover_prob", 0.7),
+            mutation_prob=config.get("mutation_prob", 0.3),
+            crossover_indpb=config.get("crossover_indpb", 0.5),
+            mutation_indpb=config.get("mutation_indpb", 0.1),
+            tournament_size=config.get("tournament_size", 3),
+            verbose=verbose,
+            remove_zero=True,
+            sub_weights=DEFAULT_SUB_WEIGHTS,
+        )
 
         end_time = time.time()
         runtime = end_time - start_time
@@ -279,6 +327,9 @@ def run_optimization(
             "generations": config["generations"],
             "crossover_prob": config.get("crossover_prob", "N/A"),
             "mutation_prob": config.get("mutation_prob", "N/A"),
+            "crossover_indpb": config.get("crossover_indpb", "N/A"),
+            "mutation_indpb": config.get("mutation_indpb", "N/A"),
+            "tournament_size": config.get("tournament_size", "N/A"),
             "description": config["description"],
             "budget": budget,
             "gameweeks": f"{min(gw_range)}-{max(gw_range)}",
@@ -331,14 +382,14 @@ def print_summary(results: List[Dict[str, Any]]):
     failed_results = [r for r in results if r["status"] == "FAILED"]
 
     print(f"\n{'=' * 60}")
-    print("OPTIMIZATION BENCHMARK SUMMARY")
+    print("DEAP OPTIMIZATION BENCHMARK SUMMARY")
     print(f"{'=' * 60}")
     print(f"Total runs: {len(results)}")
     print(f"Successful: {len(successful_results)}")
     print(f"Failed: {len(failed_results)}")
 
     if successful_results:
-        print("\nTOP PERFORMING CONFIGURATIONS:")
+        print("\nTOP PERFORMING DEAP CONFIGURATIONS:")
         print("-" * 60)
         # Sort by score (descending)
         sorted_results = sorted(
@@ -355,15 +406,23 @@ def print_summary(results: List[Dict[str, Any]]):
                 f"{i:2d}. {result['config_name']:25s} | "
                 f"Score: {result['score']:7.2f} | "
                 f"Runtime: {runtime_str:8s} | "
-                f"Algorithm: {result['algorithm']}"
+                f"CX_indpb: {result.get('crossover_indpb', 'N/A'):4} | "
+                f"Mut_indpb: {result.get('mutation_indpb', 'N/A'):5} | "
+                f"Tour: {result.get('tournament_size', 'N/A'):2}"
             )
 
-        print("\nBEST OVERALL:")
+        print("\nBEST OVERALL DEAP CONFIGURATION:")
         best = sorted_results[0]
         print(f"  Config: {best['config_name']}")
-        print(f"  Algorithm: {best['algorithm']}")
         print(f"  Score: {best['score']:.2f} points")
         print(f"  Runtime: {best.get('runtime_minutes', 0):.1f} minutes")
+        print(f"  Population Size: {best.get('population_size', 'N/A')}")
+        print(f"  Generations: {best.get('generations', 'N/A')}")
+        print(f"  Crossover Prob: {best.get('crossover_prob', 'N/A')}")
+        print(f"  Mutation Prob: {best.get('mutation_prob', 'N/A')}")
+        print(f"  Crossover Indpb: {best.get('crossover_indpb', 'N/A')}")
+        print(f"  Mutation Indpb: {best.get('mutation_indpb', 'N/A')}")
+        print(f"  Tournament Size: {best.get('tournament_size', 'N/A')}")
         print(f"  Description: {best['description']}")
 
     if failed_results:
@@ -375,7 +434,7 @@ def print_summary(results: List[Dict[str, Any]]):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Comprehensive squad optimization benchmark for AIrsenal"
+        description="DEAP squad optimization benchmark for AIrsenal - comprehensive parameter exploration"
     )
     parser.add_argument(
         "--season", help="Season in format e.g. 2324", default=CURRENT_SEASON
@@ -419,7 +478,7 @@ def main():
     gw_range = list(range(gameweek_start, gameweek_start + args.num_gameweeks))
     budget = args.budget
 
-    print("AIrsenal Optimization Benchmark")
+    print("AIrsenal DEAP Optimization Benchmark")
     print(f"Season: {season}")
     print(f"Gameweeks: {min(gw_range)} to {max(gw_range)} ({len(gw_range)} gameweeks)")
     print(f"Budget: £{budget / 10:.1f}m")
@@ -438,15 +497,18 @@ def main():
     else:
         configs_to_run = OPTIMIZATION_CONFIGS
 
-    print(f"\nConfigurations to run: {len(configs_to_run)}")
+    print(f"\nDEAP configurations to run: {len(configs_to_run)}")
     for config in configs_to_run:
         runtime_est = (
             config["population_size"] * config["generations"]
         ) / 1000  # Rough estimate in minutes
         print(
-            f"  - {config['name']:25s} ({config['algorithm']:5s}) | "
+            f"  - {config['name']:25s} | "
             f"Pop: {config['population_size']:3d} | "
             f"Gen: {config['generations']:3d} | "
+            f"CX_indpb: {config['crossover_indpb']:4.2f} | "
+            f"Mut_indpb: {config['mutation_indpb']:5.2f} | "
+            f"Tour: {config['tournament_size']:2d} | "
             f"Est: ~{runtime_est:.0f}min"
         )
 
@@ -458,7 +520,7 @@ def main():
     )
 
     if args.dry_run:
-        print("\nDry run mode - exiting without running optimizations.")
+        print("\nDry run mode - exiting without running DEAP optimizations.")
         return
 
     # Check database
@@ -478,7 +540,7 @@ def main():
     print(f"Using prediction tag: {tag}")
 
     # Run optimizations
-    print("\nStarting optimization benchmark...")
+    print("\nStarting DEAP optimization benchmark...")
     print(f"Time started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     results = []
@@ -508,7 +570,7 @@ def main():
     save_results_to_csv(results, args.output)
     print_summary(results)
 
-    print(f"\n✓ Benchmark completed! Results saved to {args.output}")
+    print(f"\n✓ DEAP benchmark completed! Results saved to {args.output}")
 
 
 if __name__ == "__main__":
