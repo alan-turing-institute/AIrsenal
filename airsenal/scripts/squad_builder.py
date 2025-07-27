@@ -4,6 +4,7 @@ import argparse
 import sys
 from typing import List
 
+from airsenal.framework.optimization_deap import make_new_squad_deap
 from airsenal.framework.optimization_squad import Squad, make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -19,11 +20,6 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_max_gameweek,
 )
-
-try:
-    from airsenal.framework.optimization_deap import make_new_squad_deap
-except ModuleNotFoundError:
-    make_new_squad_deap = None
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -51,39 +47,29 @@ def fill_initial_squad(
     gw_start = gw_range[0]
 
     if algorithm == "deap":
-        if make_new_squad_deap is None:
-            print("DEAP not available. Defaulting to algorithm=normal instead")
-            algorithm = "normal"
-        else:
-            best_squad = make_new_squad_deap(
-                gw_range,
-                tag,
-                budget=budget,
-                season=season,
-                remove_zero=remove_zero,
-                sub_weights=sub_weights,
-                population_size=population_size,
-                generations=num_generations,
-                crossover_prob=crossover_prob,
-                mutation_prob=mutation_prob,
-                crossover_indpb=crossover_indpb,
-                mutation_indpb=mutation_indpb,
-                tournament_size=tournament_size,
-                verbose=verbose,
-            )
+        best_squad = make_new_squad_deap(
+            gw_range,
+            tag,
+            budget=budget,
+            season=season,
+            remove_zero=remove_zero,
+            sub_weights=sub_weights,
+            population_size=population_size,
+            generations=num_generations,
+            crossover_prob=crossover_prob,
+            mutation_prob=mutation_prob,
+            crossover_indpb=crossover_indpb,
+            mutation_indpb=mutation_indpb,
+            tournament_size=tournament_size,
+            verbose=verbose,
+        )
 
     if algorithm != "deap":
         if algorithm == "genetic":
-            try:
-                import pygmo as pg
-
-                uda = pg.sga(gen=num_generations)
-            except ModuleNotFoundError:
-                print("pygmo not available. Defaulting to algorithm=normal instead")
-                algorithm = "normal"
-                uda = None
-        else:
-            uda = None
+            print(
+                "genetic algorithm not available. Defaulting to algorithm=normal instead"
+            )
+            algorithm = "normal"
 
         best_squad = make_new_squad(
             gw_range,
@@ -93,7 +79,6 @@ def fill_initial_squad(
             algorithm=algorithm,
             remove_zero=remove_zero,
             sub_weights=sub_weights,
-            uda=uda,
             population_size=population_size,
             num_iterations=num_iterations,
             verbose=verbose,
@@ -154,9 +139,9 @@ def main():
     )
     parser.add_argument(
         "--algorithm",
-        help="Which optimization algorithm to use - 'normal', 'genetic' (pygmo), or 'deap'",
+        help="Which optimization algorithm to use - 'normal' or 'deap'",
         type=str,
-        default="genetic",
+        default="normal",
     )
     # parameters for "normal" optimization
     parser.add_argument(
@@ -165,16 +150,16 @@ def main():
         type=int,
         default=10,
     )
-    # parameters for "pygmo" optimization
+    # parameters for deap optimization
     parser.add_argument(
         "--num_generations",
-        help="number of generations (genetic and deap only)",
+        help="number of generations (deap only)",
         type=int,
         default=100,
     )
     parser.add_argument(
         "--population_size",
-        help="number of candidate solutions per generation (genetic and deap only)",
+        help="number of candidate solutions per generation (deap only)",
         type=int,
         default=100,
     )

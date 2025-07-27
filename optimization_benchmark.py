@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-DEAP optimization benchmark script for AIrsenal squad optimization.
+Comparative optimization benchmark script for AIrsenal squad optimization.
 
-This script runs multiple DEAP optimization configurations to find the best
-hyperparameters for squad optimization over 10 gameweeks, including the new
-crossover_indpb, mutation_indpb, and tournament_size parameters.
-Results are saved to a CSV file for analysis.
+This script runs DEAP optimizations with varying population sizes
+and generations (100-500 in steps of 100), repeating each configuration 10 times
+to compute statistical performance comparisons.
+Results are saved to CSV and plotted for comparison.
 
-Focus: Comprehensive DEAP parameter exploration for maximum performance.
+Focus: DEAP performance scaling analysis.
 """
 
 import argparse
@@ -20,6 +20,11 @@ from typing import Any, Dict, List
 # Add current directory to Python path for imports
 sys.path.insert(0, ".")
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+from airsenal.framework.optimization_deap import make_new_squad_deap
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
@@ -30,209 +35,38 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
 )
 
-try:
-    from airsenal.framework.optimization_deap import make_new_squad_deap
 
-    DEAP_AVAILABLE = True
-except ModuleNotFoundError:
-    make_new_squad_deap = None
-    DEAP_AVAILABLE = False
-    print("Error: DEAP not available. Please install with 'pip install deap'")
-    sys.exit(1)
+# Generate optimization configurations
+def generate_configurations():
+    """Generate configurations for population/generation size comparison."""
+    configs = []
+    sizes = [100, 200, 300, 400, 500]  # Population and generation sizes
+    n_repeats = 10  # Number of repetitions for each size
+
+    for size in sizes:
+        # DEAP configurations (always available now)
+        for repeat in range(n_repeats):
+            configs.append(
+                {
+                    "algorithm": "deap",
+                    "name": f"DEAP_SIZE_{size}_REP_{repeat + 1}",
+                    "population_size": size,
+                    "generations": size,
+                    "crossover_prob": 0.7,  # Default values
+                    "mutation_prob": 0.3,
+                    "crossover_indpb": 0.5,
+                    "mutation_indpb": 0.1,
+                    "tournament_size": 3,
+                    "size_category": size,
+                    "repeat": repeat + 1,
+                    "description": f"DEAP optimization with size {size}, repeat {repeat + 1}",
+                }
+            )
+
+    return configs
 
 
-# DEAP optimization configurations - comprehensive parameter exploration
-OPTIMIZATION_CONFIGS = [
-    # Baseline configurations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_BASELINE",
-        "population_size": 100,
-        "generations": 100,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.1,
-        "tournament_size": 3,
-        "description": "Baseline DEAP configuration",
-    },
-    # High quality configurations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_HIGH_QUALITY",
-        "population_size": 150,
-        "generations": 200,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.1,
-        "tournament_size": 5,
-        "description": "High quality DEAP optimization",
-    },
-    # Exploration vs exploitation variations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_HIGH_EXPLORATION",
-        "population_size": 120,
-        "generations": 150,
-        "crossover_prob": 0.6,
-        "mutation_prob": 0.4,
-        "crossover_indpb": 0.7,
-        "mutation_indpb": 0.2,
-        "tournament_size": 2,
-        "description": "High exploration - more mutation, larger crossover_indpb",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_HIGH_EXPLOITATION",
-        "population_size": 120,
-        "generations": 150,
-        "crossover_prob": 0.9,
-        "mutation_prob": 0.1,
-        "crossover_indpb": 0.3,
-        "mutation_indpb": 0.05,
-        "tournament_size": 7,
-        "description": "High exploitation - more crossover, larger tournament",
-    },
-    # Tournament size variations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_SMALL_TOURNAMENT",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.75,
-        "mutation_prob": 0.25,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.1,
-        "tournament_size": 2,
-        "description": "Small tournament size for diversity",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_LARGE_TOURNAMENT",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.75,
-        "mutation_prob": 0.25,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.1,
-        "tournament_size": 8,
-        "description": "Large tournament size for selection pressure",
-    },
-    # Crossover indpb variations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_LOW_CROSSOVER_INDPB",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "crossover_indpb": 0.2,
-        "mutation_indpb": 0.1,
-        "tournament_size": 3,
-        "description": "Low crossover indpb - conservative crossover",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_HIGH_CROSSOVER_INDPB",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "crossover_indpb": 0.8,
-        "mutation_indpb": 0.1,
-        "tournament_size": 3,
-        "description": "High crossover indpb - aggressive crossover",
-    },
-    # Mutation indpb variations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_LOW_MUTATION_INDPB",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.05,
-        "tournament_size": 3,
-        "description": "Low mutation indpb - conservative mutation",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_HIGH_MUTATION_INDPB",
-        "population_size": 100,
-        "generations": 120,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "crossover_indpb": 0.5,
-        "mutation_indpb": 0.3,
-        "tournament_size": 3,
-        "description": "High mutation indpb - aggressive mutation",
-    },
-    # Long-running configurations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_ULTRA_LONG",
-        "population_size": 200,
-        "generations": 300,
-        "crossover_prob": 0.75,
-        "mutation_prob": 0.25,
-        "crossover_indpb": 0.6,
-        "mutation_indpb": 0.15,
-        "tournament_size": 4,
-        "description": "Ultra-long DEAP optimization",
-    },
-    # Balanced configurations with different parameter combinations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_BALANCED_A",
-        "population_size": 120,
-        "generations": 150,
-        "crossover_prob": 0.7,
-        "mutation_prob": 0.3,
-        "crossover_indpb": 0.4,
-        "mutation_indpb": 0.12,
-        "tournament_size": 4,
-        "description": "Balanced configuration variant A",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_BALANCED_B",
-        "population_size": 120,
-        "generations": 150,
-        "crossover_prob": 0.8,
-        "mutation_prob": 0.2,
-        "crossover_indpb": 0.6,
-        "mutation_indpb": 0.08,
-        "tournament_size": 5,
-        "description": "Balanced configuration variant B",
-    },
-    # Extreme configurations
-    {
-        "algorithm": "deap",
-        "name": "DEAP_EXTREME_DIVERSITY",
-        "population_size": 200,
-        "generations": 150,
-        "crossover_prob": 0.5,
-        "mutation_prob": 0.5,
-        "crossover_indpb": 0.9,
-        "mutation_indpb": 0.4,
-        "tournament_size": 2,
-        "description": "Extreme diversity - maximum exploration",
-    },
-    {
-        "algorithm": "deap",
-        "name": "DEAP_EXTREME_CONVERGENCE",
-        "population_size": 80,
-        "generations": 200,
-        "crossover_prob": 0.95,
-        "mutation_prob": 0.05,
-        "crossover_indpb": 0.2,
-        "mutation_indpb": 0.02,
-        "tournament_size": 10,
-        "description": "Extreme convergence - maximum exploitation",
-    },
-]
+OPTIMIZATION_CONFIGS = generate_configurations()
 
 
 def run_optimization(
@@ -244,44 +78,45 @@ def run_optimization(
     verbose: bool = True,
 ) -> Dict[str, Any]:
     """
-    Run a single DEAP optimization configuration and return results.
+    Run a single optimization configuration (DEAP) and return results.
 
     Returns:
         Dictionary containing optimization results including score, timing, etc.
     """
     print(f"\n=== Running {config['name']} ===")
-    print(f"Description: {config['description']}")
-    print(f"Parameters: {config}")
+    print(f"Algorithm: {config['algorithm']}")
+    print(f"Size: {config['size_category']}, Repeat: {config['repeat']}")
 
     start_time = time.time()
 
     try:
-        if not DEAP_AVAILABLE or make_new_squad_deap is None:
+        if config["algorithm"] == "deap":
+            best_squad = make_new_squad_deap(
+                gw_range=gw_range,
+                tag=tag,
+                budget=budget,
+                season=season,
+                population_size=config["population_size"],
+                generations=config["generations"],
+                crossover_prob=config.get("crossover_prob", 0.7),
+                mutation_prob=config.get("mutation_prob", 0.3),
+                crossover_indpb=config.get("crossover_indpb", 0.5),
+                mutation_indpb=config.get("mutation_indpb", 0.1),
+                tournament_size=config.get("tournament_size", 3),
+                verbose=verbose,
+                remove_zero=True,
+                sub_weights=DEFAULT_SUB_WEIGHTS,
+            )
+
+        else:
             return {
                 "config_name": config["name"],
                 "algorithm": config["algorithm"],
                 "status": "FAILED",
-                "error": "DEAP not available",
+                "error": f"Unknown algorithm: {config['algorithm']}",
                 "score": None,
                 "runtime_seconds": None,
             }
-
-        best_squad = make_new_squad_deap(
-            gw_range=gw_range,
-            tag=tag,
-            budget=budget,
-            season=season,
-            population_size=config["population_size"],
-            generations=config["generations"],
-            crossover_prob=config.get("crossover_prob", 0.7),
-            mutation_prob=config.get("mutation_prob", 0.3),
-            crossover_indpb=config.get("crossover_indpb", 0.5),
-            mutation_indpb=config.get("mutation_indpb", 0.1),
-            tournament_size=config.get("tournament_size", 3),
-            verbose=verbose,
-            remove_zero=True,
-            sub_weights=DEFAULT_SUB_WEIGHTS,
-        )
 
         end_time = time.time()
         runtime = end_time - start_time
@@ -308,11 +143,7 @@ def run_optimization(
         next_points = best_squad.get_expected_points(gw_range[0], tag)
 
         print("✓ Optimization completed successfully!")
-        print(
-            f"  Total score (GW {min(gw_range)}-{max(gw_range)}): {optimized_score:.2f}"
-        )
-        print(f"  Expected points for GW {gw_range[0]}: {next_points:.2f}")
-        print(f"  Runtime: {runtime:.1f} seconds ({runtime / 60:.1f} minutes)")
+        print(f"  Score: {optimized_score:.2f}, Runtime: {runtime:.1f}s")
 
         return {
             "config_name": config["name"],
@@ -325,11 +156,8 @@ def run_optimization(
             "runtime_minutes": runtime / 60,
             "population_size": config["population_size"],
             "generations": config["generations"],
-            "crossover_prob": config.get("crossover_prob", "N/A"),
-            "mutation_prob": config.get("mutation_prob", "N/A"),
-            "crossover_indpb": config.get("crossover_indpb", "N/A"),
-            "mutation_indpb": config.get("mutation_indpb", "N/A"),
-            "tournament_size": config.get("tournament_size", "N/A"),
+            "size_category": config["size_category"],
+            "repeat": config["repeat"],
             "description": config["description"],
             "budget": budget,
             "gameweeks": f"{min(gw_range)}-{max(gw_range)}",
@@ -351,7 +179,187 @@ def run_optimization(
             "error": str(e),
             "score": None,
             "runtime_seconds": runtime,
+            "size_category": config.get("size_category"),
+            "repeat": config.get("repeat"),
         }
+
+
+def compute_statistics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute statistics for each algorithm and size combination."""
+    stats_data = {}
+
+    # Filter successful results
+    successful_results = [r for r in results if r["status"] == "SUCCESS"]
+
+    # Group by algorithm and size
+    for result in successful_results:
+        algorithm = result["algorithm"]
+        size = result["size_category"]
+        score = result["score"]
+        runtime = result["runtime_seconds"]
+
+        key = (algorithm, size)
+        if key not in stats_data:
+            stats_data[key] = {"scores": [], "runtimes": []}
+
+        stats_data[key]["scores"].append(score)
+        stats_data[key]["runtimes"].append(runtime)
+
+    # Compute statistics for each group
+    statistics = {}
+    for (algorithm, size), data in stats_data.items():
+        scores = np.array(data["scores"])
+        runtimes = np.array(data["runtimes"])
+
+        # Compute confidence intervals (95%)
+        score_mean = np.mean(scores)
+        score_std = np.std(scores, ddof=1)
+        score_ci = stats.t.interval(
+            0.95,
+            len(scores) - 1,
+            loc=score_mean,
+            scale=score_std / np.sqrt(len(scores)),
+        )
+
+        runtime_mean = np.mean(runtimes)
+        runtime_std = np.std(runtimes, ddof=1)
+        runtime_ci = stats.t.interval(
+            0.95,
+            len(runtimes) - 1,
+            loc=runtime_mean,
+            scale=runtime_std / np.sqrt(len(runtimes)),
+        )
+
+        statistics[(algorithm, size)] = {
+            "n_samples": len(scores),
+            "score_mean": score_mean,
+            "score_std": score_std,
+            "score_ci_lower": score_ci[0],
+            "score_ci_upper": score_ci[1],
+            "runtime_mean": runtime_mean,
+            "runtime_std": runtime_std,
+            "runtime_ci_lower": runtime_ci[0],
+            "runtime_ci_upper": runtime_ci[1],
+        }
+
+    return statistics
+
+
+def create_performance_plot(statistics: Dict[str, Any], output_filename: str):
+    """Create performance comparison plots."""
+    # Extract data for plotting
+    deap_sizes = []
+    deap_scores = []
+    deap_score_errors = []
+    deap_runtimes = []
+    deap_runtime_errors = []
+
+    for (algorithm, size), stat_dict in statistics.items():
+        if algorithm == "deap":
+            deap_sizes.append(size)
+            deap_scores.append(stat_dict["score_mean"])
+            deap_score_errors.append(
+                [
+                    stat_dict["score_mean"] - stat_dict["score_ci_lower"],
+                    stat_dict["score_ci_upper"] - stat_dict["score_mean"],
+                ]
+            )
+            deap_runtimes.append(stat_dict["runtime_mean"])
+            deap_runtime_errors.append(
+                [
+                    stat_dict["runtime_mean"] - stat_dict["runtime_ci_lower"],
+                    stat_dict["runtime_ci_upper"] - stat_dict["runtime_mean"],
+                ]
+            )
+
+    # Create subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Score comparison plot
+    if deap_sizes:
+        deap_score_errors_t = np.array(deap_score_errors).T
+        ax1.errorbar(
+            deap_sizes,
+            deap_scores,
+            yerr=deap_score_errors_t,
+            label="DEAP",
+            marker="o",
+            capsize=5,
+            capthick=2,
+        )
+
+    ax1.set_xlabel("Population Size / Generations")
+    ax1.set_ylabel("Squad Score (Points)")
+    ax1.set_title("Optimization Performance vs. Size")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+
+    # Runtime comparison plot
+    if deap_sizes:
+        deap_runtime_errors_t = np.array(deap_runtime_errors).T
+        ax2.errorbar(
+            deap_sizes,
+            deap_runtimes,
+            yerr=deap_runtime_errors_t,
+            label="DEAP",
+            marker="o",
+            capsize=5,
+            capthick=2,
+        )
+
+    ax2.set_xlabel("Population Size / Generations")
+    ax2.set_ylabel("Runtime (seconds)")
+    ax2.set_title("Runtime vs. Size")
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"✓ Performance plot saved to {output_filename}")
+
+
+def save_statistics_csv(statistics: Dict[str, Any], filename: str):
+    """Save statistics summary to CSV."""
+    stats_rows = []
+    for (algorithm, size), stat_dict in statistics.items():
+        stats_rows.append(
+            {
+                "algorithm": algorithm,
+                "size": size,
+                "n_samples": stat_dict["n_samples"],
+                "score_mean": stat_dict["score_mean"],
+                "score_std": stat_dict["score_std"],
+                "score_ci_lower": stat_dict["score_ci_lower"],
+                "score_ci_upper": stat_dict["score_ci_upper"],
+                "runtime_mean": stat_dict["runtime_mean"],
+                "runtime_std": stat_dict["runtime_std"],
+                "runtime_ci_lower": stat_dict["runtime_ci_lower"],
+                "runtime_ci_upper": stat_dict["runtime_ci_upper"],
+            }
+        )
+
+    stats_filename = filename.replace(".csv", "_statistics.csv")
+    fieldnames = [
+        "algorithm",
+        "size",
+        "n_samples",
+        "score_mean",
+        "score_std",
+        "score_ci_lower",
+        "score_ci_upper",
+        "runtime_mean",
+        "runtime_std",
+        "runtime_ci_lower",
+        "runtime_ci_upper",
+    ]
+
+    with open(stats_filename, "w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(stats_rows)
+
+    print(f"✓ Statistics saved to {stats_filename}")
 
 
 def save_results_to_csv(results: List[Dict[str, Any]], filename: str):
@@ -377,64 +385,26 @@ def save_results_to_csv(results: List[Dict[str, Any]], filename: str):
 
 
 def print_summary(results: List[Dict[str, Any]]):
-    """Print a summary of optimization results."""
+    """Print a basic summary of optimization results (kept for compatibility)."""
     successful_results = [r for r in results if r["status"] == "SUCCESS"]
     failed_results = [r for r in results if r["status"] == "FAILED"]
 
-    print(f"\n{'=' * 60}")
-    print("DEAP OPTIMIZATION BENCHMARK SUMMARY")
-    print(f"{'=' * 60}")
+    print("\nBASIC SUMMARY:")
     print(f"Total runs: {len(results)}")
     print(f"Successful: {len(successful_results)}")
     print(f"Failed: {len(failed_results)}")
 
-    if successful_results:
-        print("\nTOP PERFORMING DEAP CONFIGURATIONS:")
-        print("-" * 60)
-        # Sort by score (descending)
-        sorted_results = sorted(
-            successful_results, key=lambda x: x["score"], reverse=True
-        )
-
-        for i, result in enumerate(sorted_results[:10], 1):  # Top 10
-            runtime_str = (
-                f"{result['runtime_minutes']:.1f}min"
-                if result.get("runtime_minutes")
-                else "N/A"
-            )
-            print(
-                f"{i:2d}. {result['config_name']:25s} | "
-                f"Score: {result['score']:7.2f} | "
-                f"Runtime: {runtime_str:8s} | "
-                f"CX_indpb: {result.get('crossover_indpb', 'N/A'):4} | "
-                f"Mut_indpb: {result.get('mutation_indpb', 'N/A'):5} | "
-                f"Tour: {result.get('tournament_size', 'N/A'):2}"
-            )
-
-        print("\nBEST OVERALL DEAP CONFIGURATION:")
-        best = sorted_results[0]
-        print(f"  Config: {best['config_name']}")
-        print(f"  Score: {best['score']:.2f} points")
-        print(f"  Runtime: {best.get('runtime_minutes', 0):.1f} minutes")
-        print(f"  Population Size: {best.get('population_size', 'N/A')}")
-        print(f"  Generations: {best.get('generations', 'N/A')}")
-        print(f"  Crossover Prob: {best.get('crossover_prob', 'N/A')}")
-        print(f"  Mutation Prob: {best.get('mutation_prob', 'N/A')}")
-        print(f"  Crossover Indpb: {best.get('crossover_indpb', 'N/A')}")
-        print(f"  Mutation Indpb: {best.get('mutation_indpb', 'N/A')}")
-        print(f"  Tournament Size: {best.get('tournament_size', 'N/A')}")
-        print(f"  Description: {best['description']}")
-
     if failed_results:
         print("\nFAILED RUNS:")
-        print("-" * 60)
-        for result in failed_results:
+        for result in failed_results[:5]:  # Show first 5 failures
             print(f"  {result['config_name']:25s} | Error: {result['error']}")
+        if len(failed_results) > 5:
+            print(f"  ... and {len(failed_results) - 5} more failures")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="DEAP squad optimization benchmark for AIrsenal - comprehensive parameter exploration"
+        description="Comparative DEAP vs PyGMO optimization benchmark - statistical performance analysis"
     )
     parser.add_argument(
         "--season", help="Season in format e.g. 2324", default=CURRENT_SEASON
@@ -478,11 +448,20 @@ def main():
     gw_range = list(range(gameweek_start, gameweek_start + args.num_gameweeks))
     budget = args.budget
 
-    print("AIrsenal DEAP Optimization Benchmark")
+    print("AIrsenal DEAP vs PyGMO Optimization Benchmark")
     print(f"Season: {season}")
     print(f"Gameweeks: {min(gw_range)} to {max(gw_range)} ({len(gw_range)} gameweeks)")
     print(f"Budget: £{budget / 10:.1f}m")
     print(f"Output file: {args.output}")
+
+    # Check what algorithms are available
+    available_algorithms = ["DEAP"]  # DEAP is now required
+
+    print(f"Available algorithms: {', '.join(available_algorithms)}")
+
+    if not available_algorithms:
+        print("ERROR: DEAP is not available. Install DEAP.")
+        sys.exit(1)
 
     # Filter configurations if specified
     if args.configs != "all":
@@ -497,30 +476,35 @@ def main():
     else:
         configs_to_run = OPTIMIZATION_CONFIGS
 
-    print(f"\nDEAP configurations to run: {len(configs_to_run)}")
+    print(f"\nConfigurations to run: {len(configs_to_run)}")
+
+    # Group by size for summary
+    size_summary = {}
     for config in configs_to_run:
-        runtime_est = (
-            config["population_size"] * config["generations"]
-        ) / 1000  # Rough estimate in minutes
+        size = config["size_category"]
+        alg = config["algorithm"]
+        if size not in size_summary:
+            size_summary[size] = {"deap": 0, "pygmo": 0}
+        size_summary[size][alg] += 1
+
+    for size in sorted(size_summary.keys()):
+        deap_count = size_summary[size]["deap"]
+        pygmo_count = size_summary[size]["pygmo"]
+        total_est = (size * size * (deap_count + pygmo_count)) / 1000  # Rough estimate
         print(
-            f"  - {config['name']:25s} | "
-            f"Pop: {config['population_size']:3d} | "
-            f"Gen: {config['generations']:3d} | "
-            f"CX_indpb: {config['crossover_indpb']:4.2f} | "
-            f"Mut_indpb: {config['mutation_indpb']:5.2f} | "
-            f"Tour: {config['tournament_size']:2d} | "
-            f"Est: ~{runtime_est:.0f}min"
+            f"  Size {size}: {deap_count} DEAP + {pygmo_count} PyGMO runs (~{total_est:.0f}min estimated)"
         )
 
-    total_est_time = sum(
-        (c["population_size"] * c["generations"]) / 1000 for c in configs_to_run
+    total_configs = len(configs_to_run)
+    total_est_time = (
+        sum(c["population_size"] * c["generations"] for c in configs_to_run) / 1000
     )
     print(
-        f"\nEstimated total runtime: ~{total_est_time:.0f} minutes ({total_est_time / 60:.1f} hours)"
+        f"\nTotal: {total_configs} runs, estimated {total_est_time:.0f} minutes ({total_est_time / 60:.1f} hours)"
     )
 
     if args.dry_run:
-        print("\nDry run mode - exiting without running DEAP optimizations.")
+        print("\nDry run mode - exiting without running optimizations.")
         return
 
     # Check database
@@ -540,7 +524,7 @@ def main():
     print(f"Using prediction tag: {tag}")
 
     # Run optimizations
-    print("\nStarting DEAP optimization benchmark...")
+    print("\nStarting DEAP vs PyGMO benchmark...")
     print(f"Time started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     results = []
@@ -561,16 +545,80 @@ def main():
         results.append(result)
 
         # Save intermediate results
-        if i % 3 == 0 or i == len(configs_to_run):  # Save every 3 runs and at the end
+        if i % 5 == 0 or i == len(configs_to_run):  # Save every 5 runs and at the end
             save_results_to_csv(results, args.output)
 
     print(f"\nTime completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Final save and summary
+    # Final save and statistical analysis
     save_results_to_csv(results, args.output)
-    print_summary(results)
 
-    print(f"\n✓ DEAP benchmark completed! Results saved to {args.output}")
+    # Compute statistics and create plots
+    print("\nComputing statistics and creating plots...")
+    statistics = compute_statistics(results)
+
+    # Save statistics
+    save_statistics_csv(statistics, args.output)
+
+    # Create performance plot
+    plot_filename = args.output.replace(".csv", "_performance_plot.png")
+    try:
+        create_performance_plot(statistics, plot_filename)
+    except Exception as e:
+        print(f"Warning: Could not create plot: {e}")
+
+    # Print statistical summary
+    print_statistical_summary(statistics)
+
+    print(f"\n✓ Benchmark completed! Results saved to {args.output}")
+
+
+def print_statistical_summary(statistics: Dict[str, Any]):
+    """Print a summary of statistical results."""
+    print(f"\n{'=' * 70}")
+    print("STATISTICAL PERFORMANCE SUMMARY")
+    print(f"{'=' * 70}")
+
+    # Group by algorithm
+    deap_results = {
+        size: stat_data
+        for (alg, size), stat_data in statistics.items()
+        if alg == "deap"
+    }
+    pygmo_results = {
+        size: stat_data
+        for (alg, size), stat_data in statistics.items()
+        if alg == "pygmo"
+    }
+
+    print(
+        f"{'Size':<6} {'Algorithm':<8} {'Score (Mean±CI)':<20} {'Runtime (Mean±CI)':<20} {'N':<3}"
+    )
+    print("-" * 70)
+
+    sizes = sorted(set(size for (_, size) in statistics.keys()))
+
+    for size in sizes:
+        # DEAP results
+        if size in deap_results:
+            data = deap_results[size]
+            score_str = f"{data['score_mean']:.1f}±{(data['score_ci_upper'] - data['score_ci_lower']) / 2:.1f}"
+            runtime_str = f"{data['runtime_mean']:.0f}±{(data['runtime_ci_upper'] - data['runtime_ci_lower']) / 2:.0f}s"
+            print(
+                f"{size:<6} {'DEAP':<8} {score_str:<20} {runtime_str:<20} {data['n_samples']:<3}"
+            )
+
+        # PyGMO results
+        if size in pygmo_results:
+            data = pygmo_results[size]
+            score_str = f"{data['score_mean']:.1f}±{(data['score_ci_upper'] - data['score_ci_lower']) / 2:.1f}"
+            runtime_str = f"{data['runtime_mean']:.0f}±{(data['runtime_ci_upper'] - data['runtime_ci_lower']) / 2:.0f}s"
+            print(
+                f"{size:<6} {'PyGMO':<8} {score_str:<20} {runtime_str:<20} {data['n_samples']:<3}"
+            )
+
+        if size in deap_results or size in pygmo_results:
+            print("-" * 70)
 
 
 if __name__ == "__main__":

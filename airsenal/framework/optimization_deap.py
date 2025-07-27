@@ -22,13 +22,7 @@ import uuid
 from typing import List, Optional, Tuple
 
 import numpy as np
-
-try:
-    from deap import algorithms, base, creator, tools
-except ModuleNotFoundError as e:
-    raise ModuleNotFoundError(
-        "Optional dependency deap not installed. Run 'pip install deap' to install."
-    ) from e
+from deap import algorithms, base, creator, tools
 
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,

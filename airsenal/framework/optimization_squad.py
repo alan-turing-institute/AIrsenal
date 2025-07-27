@@ -4,7 +4,11 @@ Functions to optimise an initial squad or a squad for wildcards/free hits.
 
 import random
 
-from airsenal.framework.optimization_utils import get_discounted_squad_score, positions
+from airsenal.framework.optimization_utils import (
+    DEFAULT_SUB_WEIGHTS,
+    get_discounted_squad_score,
+    positions,
+)
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import CURRENT_SEASON, get_predicted_points
@@ -15,34 +19,17 @@ def make_new_squad(
     tag,
     budget=1000,
     season=CURRENT_SEASON,
-    verbose=1,
+    verbose=False,
+    remove_zero=True,
+    sub_weights=DEFAULT_SUB_WEIGHTS,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    algorithm="genetic",
+    algorithm="normal",
     **kwargs,
 ):
     """
-    Optimise a new squad from scratch with one of two algorithms:
-    - algorithm="normal" : airsenal.framework.optimization_squad.make_new_squad_iter
-    - algorithm="genetic": airsenal.framework.optimization_pygmo.make_new_squad_pygmo
+    Optimise a new squad from scratch with the normal iterative algorithm.
     """
-    if algorithm == "genetic":
-        try:
-            from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
-
-            return make_new_squad_pygmo(
-                gw_range=gw_range,
-                tag=tag,
-                budget=budget,
-                season=season,
-                bench_boost_gw=bench_boost_gw,
-                triple_captain_gw=triple_captain_gw,
-                verbose=verbose,
-                **kwargs,
-            )
-        except ModuleNotFoundError:
-            print("Running optimisation without pygmo instead...")
-
     return make_new_squad_iter(
         gw_range=gw_range,
         tag=tag,

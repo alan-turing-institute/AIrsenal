@@ -1,10 +1,10 @@
-# Migration from PyGMO to DEAP
+# Optimization with DEAP
 
-This document explains how to migrate from the PyGMO-based optimization to the new DEAP-based implementation.
+This document explains how to use the DEAP-based optimization, which has replaced the previous PyGMO implementation.
 
 ## Why DEAP?
 
-The DEAP (Distributed Evolutionary Algorithms in Python) package offers several advantages over PyGMO:
+The DEAP (Distributed Evolutionary Algorithms in Python) package offers several advantages:
 
 1. **Pure Python installation**: Can be installed with `pip install deap` without requiring conda
 2. **Better documentation**: More extensive documentation and examples
@@ -24,26 +24,11 @@ pip install deap
 poetry install --extras optimization
 ```
 
-## API Changes
+## API Usage
 
-The main function interface remains very similar, but there are some improvements:
+The DEAP optimization provides a clean interface for genetic algorithm-based optimization:
 
-### Old PyGMO API:
-```python
-from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
-import pygmo as pg
-
-squad = make_new_squad_pygmo(
-    gw_range=[1, 2, 3, 4, 5],
-    tag="my_prediction_tag",
-    budget=1000,
-    uda=pg.sga(gen=100),  # PyGMO-specific algorithm
-    population_size=100,
-    verbose=1,
-)
-```
-
-### New DEAP API:
+### DEAP API:
 ```python
 from airsenal.framework.optimization_deap import make_new_squad_deap
 
@@ -52,7 +37,7 @@ squad = make_new_squad_deap(
     tag="my_prediction_tag",
     budget=1000,
     population_size=100,
-    generations=100,      # More explicit control
+    generations=100,      # Number of generations to evolve
     crossover_prob=0.7,   # Genetic algorithm parameters
     mutation_prob=0.3,
     verbose=True,
@@ -163,15 +148,13 @@ print(f"Best fitness: {best_fitness}")
 print(f"Player indices: {best_individual}")
 ```
 
-## Migration Checklist
+## Usage Checklist
 
-- [ ] Install DEAP: `pip install deap` or `poetry install --extras optimization`
-- [ ] Replace import: `optimization_pygmo` → `optimization_deap`
-- [ ] Replace function: `make_new_squad_pygmo` → `make_new_squad_deap`
-- [ ] Update parameters:
-  - Remove `uda` parameter
-  - Replace with `generations`, `crossover_prob`, `mutation_prob`
-  - Add `random_state` for reproducibility
+- [ ] Install DEAP: `pip install deap` 
+- [ ] Use `optimization_deap` module
+- [ ] Use `make_new_squad_deap` function  
+- [ ] Set parameters: `generations`, `crossover_prob`, `mutation_prob`
+- [ ] Add `random_state` for reproducibility
 - [ ] Test with small population/generations first
 - [ ] Tune parameters for your specific use case
 
