@@ -1,4 +1,5 @@
-from typing import Dict, Iterable, Optional, Union
+from collections.abc import Iterable
+from typing import Dict, Optional, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -55,7 +56,7 @@ class RandomMatchPredictor(BaseMatchPredictor):
 
     def add_new_team(self, team_name: str, team_covariates: Optional[np.array] = None):
         if team_name in self.teams:
-            raise ValueError("Team {} already known to model.".format(team_name))
+            raise ValueError(f"Team {team_name} already known to model.")
 
         attack = np.random.randn(
             self.num_samples,

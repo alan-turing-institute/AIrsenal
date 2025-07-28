@@ -95,8 +95,7 @@ class Player(Base):
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
             ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw)
-        else:
-            return False
+        return False
 
     def get_gameweek_attributes(self, season, gameweek, before_and_after=False):
         """Get the PlayerAttributes object for this player in the given gameweek and
@@ -118,9 +117,9 @@ class Player(Base):
             if gameweek is None:
                 # trying to match season only
                 return attr
-            elif attr.gameweek == gameweek:
+            if attr.gameweek == gameweek:
                 return attr
-            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+            if (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
                 # update last available attr before specified gameweek
                 gw_before = attr.gameweek
                 attr_before = attr
@@ -133,18 +132,16 @@ class Player(Base):
         if attr_before is None and attr_after is None:
             # no attributes for this player in this season
             return None
-        elif not attr_after:
+        if not attr_after:
             return attr_before
-        elif not attr_before:
+        if not attr_before:
             return attr_after
-        elif before_and_after:
+        if before_and_after:
             return (attr_before, attr_after)
-        else:
-            # return attributes at gameweeek nearest to input gameweek
-            if (gw_after - gameweek) >= (gameweek - gw_before):
-                return attr_before
-            else:
-                return attr_after
+        # return attributes at gameweeek nearest to input gameweek
+        if (gw_after - gameweek) >= (gameweek - gw_before):
+            return attr_before
+        return attr_after
 
     def __str__(self):
         return self.name

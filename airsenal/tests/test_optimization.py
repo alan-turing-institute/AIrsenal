@@ -22,7 +22,7 @@ from airsenal.framework.squad import Squad
 pytestmark = pytest.mark.filterwarnings("ignore:Using purchase price as sale price")
 
 
-class DummyPlayer(object):
+class DummyPlayer:
     """
     fake player that we can add to a squad, giving a specified expected score.
     """

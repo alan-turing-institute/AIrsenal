@@ -33,7 +33,7 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name in detail_data.keys():
+    for player_name in detail_data:
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
@@ -227,7 +227,7 @@ def make_attributes_table(
             input_path = os.path.join(
                 os.path.dirname(__file__), f"../data/player_details_{season}.json"
             )
-            with open(input_path, "r") as f:
+            with open(input_path) as f:
                 input_data = json.load(f)
 
             fill_attributes_table_from_file(

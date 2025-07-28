@@ -211,7 +211,7 @@ def run_pipeline(
             raise RuntimeError("Problem running prediction")
         click.echo("Prediction complete..")
 
-        if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
+        if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
             click.echo("Generating a squad..")
             new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
             if not new_squad_ok:

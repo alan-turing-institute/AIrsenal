@@ -4,8 +4,9 @@ Use the BPL models to predict scores for upcoming fixtures.
 
 import os
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -284,15 +285,14 @@ def get_bonus_points(
     """
     if minutes >= 60 and player_id in df_bonus[0].index:
         return df_bonus[0].loc[player_id]
-    elif (
+    if (
         minutes >= 60
-        or minutes >= 30
-        and player_id not in df_bonus[1].index
+        or (minutes >= 30
+        and player_id not in df_bonus[1].index)
         or minutes < 30
     ):
         return 0
-    else:
-        return df_bonus[1].loc[player_id]
+    return df_bonus[1].loc[player_id]
 
 
 def get_save_points(
@@ -308,8 +308,7 @@ def get_save_points(
         return 0
     if minutes >= 60 and player_id in df_saves.index:
         return df_saves.loc[player_id]
-    else:
-        return 0
+    return 0
 
 
 def get_card_points(
@@ -323,8 +322,7 @@ def get_card_points(
     """
     if minutes >= 30 and player_id in df_cards.index:
         return df_cards.loc[player_id]
-    else:
-        return 0
+    return 0
 
 
 def calc_predicted_points_for_player(

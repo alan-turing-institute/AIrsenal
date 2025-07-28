@@ -86,9 +86,9 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
 
         if not found_home and found_away:
             raise ValueError(f"Can't find team(s) with id(s): {home_id}, {away_id}.")
-        elif not found_home:
+        if not found_home:
             raise ValueError(f"Can't find team(s) with id(s): {home_id}")
-        elif not found_away:
+        if not found_away:
             raise ValueError(f"Can't find team(s) with id(s): {away_id}")
         if not update:
             dbsession.add(f)

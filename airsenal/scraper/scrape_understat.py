@@ -71,11 +71,10 @@ def get_matches_info(season: str):
 
         matches_list = json.loads(json_string[1:-1])
         return matches_list
-    else:
-        raise ValueError(
-            f"Could not receive data for the given season. "
-            f"Error code: {response.status_code}"
-        )
+    raise ValueError(
+        f"Could not receive data for the given season. "
+        f"Error code: {response.status_code}"
+    )
 
 
 def parse_match(match_info: dict):
@@ -107,7 +106,7 @@ def parse_match(match_info: dict):
         lists of the form {"home": [], "away": []} with each entry of the
         form [player_in, player_out, time_of_substitution].
     """
-    match_id = match_info.get("id", None)
+    match_id = match_info.get("id")
     if not match_id:
         raise KeyError(
             "`id` not found. Please provide the id of the match in the dictionary."
@@ -199,7 +198,7 @@ def get_season_info(season: str, result: dict = {}):
     matches_info = get_matches_info(season)
 
     for match in tqdm(matches_info):
-        if match.get("id") not in result.keys():
+        if match.get("id") not in result:
             parsed_match = parse_match(match)
             if parsed_match:
                 result[match.get("id")] = parsed_match
@@ -233,7 +232,7 @@ def main():
             f"Data for {season} season already exists. Will only get data for new "
             "matches. To re-download data for all matches use --overwrite."
         )
-        with open(save_path, "r") as f:
+        with open(save_path) as f:
             result = json.load(f)
 
     goal_subs_data = get_season_info(season, result=result)

@@ -417,5 +417,4 @@ def make_best_transfers(
     if num_transfers == "F":
         # Free Hit changes don't apply to next gameweek, so return the original squad
         return squad, transfer_dict, points
-    else:
-        return new_squad, transfer_dict, points
+    return new_squad, transfer_dict, points

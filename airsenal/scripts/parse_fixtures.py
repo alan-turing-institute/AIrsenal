@@ -33,4 +33,4 @@ with open("../data/fixtures.csv", "w") as outfile:
             match_time = date_str + ko_time
             date = dateparser.parse(match_time)
             print(f"{home_team} vs {away_team} {match_time}")
-            outfile.write(f"{gameweek},{str(date)},{home_team},{away_team}\n")
+            outfile.write(f"{gameweek},{date!s},{home_team},{away_team}\n")

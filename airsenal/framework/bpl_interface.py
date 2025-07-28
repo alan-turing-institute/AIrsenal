@@ -79,9 +79,9 @@ def get_ratings_dict(
     if len(ratings_dict) != len(teams):
         raise ValueError(
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
-            + f"teams with FIFA ratings but {len(teams)} teams with results."
-            + " The teams involved are "
-            + f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
+             f"teams with FIFA ratings but {len(teams)} teams with results."
+             " The teams involved are "
+             f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
     return ratings_dict
 

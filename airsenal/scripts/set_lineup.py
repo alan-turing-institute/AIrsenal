@@ -22,8 +22,7 @@ def check_proceed(squad: Squad) -> bool:
     if proceed == "yes":
         print("Applying Changes...")
         return True
-    else:
-        return False
+    return False
 
 
 def build_lineup_payload(squad: Squad) -> list:
@@ -73,8 +72,7 @@ def get_lineup_from_payload(lineup: dict) -> Squad:
 
     if s.is_complete():
         return s
-    else:
-        raise RuntimeError("Squad incomplete")
+    raise RuntimeError("Squad incomplete")
 
 
 def make_squad_transfers(squad: Squad, priced_transfers: List[dict]) -> None:

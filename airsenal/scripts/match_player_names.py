@@ -82,7 +82,7 @@ if __name__ == "__main__":
                     f"Add {p} : {player}  (score (from ratio)={score})? (y/n):"
                 )
                 if add_player.lower() == "y":
-                    if p not in playerdict.keys():
+                    if p not in playerdict:
                         playerdict[p] = []
                     playerdict[p].append(player)
                     matched.add(player)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
                         "(y/n):"
                     )
                     if add_player.lower() == "y":
-                        if p not in playerdict.keys():
+                        if p not in playerdict:
                             playerdict[p] = []
                         playerdict[p].append(player)
                         matched.add(player)

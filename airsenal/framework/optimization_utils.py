@@ -419,18 +419,17 @@ def get_num_increments(num_transfers, num_iterations=100):
         # wildcard or free hit or >2 - needs num_iterations iterations
         return num_iterations
 
-    elif num_transfers == 0:
+    if num_transfers == 0:
         return 1
 
-    elif num_transfers == 1:
+    if num_transfers == 1:
         # single transfer - 15 increments (replace each player in turn)
         return 15
-    elif num_transfers == 2:
+    if num_transfers == 2:
         # remove each pair of players - 15*7=105 combinations
         return 105
-    else:
-        print(f"Unrecognized num_transfers: {num_transfers}")
-        return 1
+    print(f"Unrecognized num_transfers: {num_transfers}")
+    return 1
 
 
 def next_week_transfers(
@@ -583,7 +582,7 @@ def count_expected_outputs(
         new_strategies = []
         for s in strategies:
             free_transfers = s[0]
-            chips_for_gw = chip_gw_dict[gw] if gw in chip_gw_dict.keys() else {}
+            chips_for_gw = chip_gw_dict[gw] if gw in chip_gw_dict else {}
             possibilities = next_week_transfers(
                 s,
                 max_total_hit=max_total_hit,

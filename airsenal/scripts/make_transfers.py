@@ -229,8 +229,8 @@ def remove_duplicates(transfers_in: List[int], transfers_out: List[int]) -> Tupl
     t_in = [t["element_in"] for t in transfers_in]
     t_out = [t["element_out"] for t in transfers_out]
     dupes = list(set(t_in) & set(t_out))
-    transfers_in = [t for t in transfers_in if not t["element_in"] in dupes]
-    transfers_out = [t for t in transfers_out if not t["element_out"] in dupes]
+    transfers_in = [t for t in transfers_in if t["element_in"] not in dupes]
+    transfers_out = [t for t in transfers_out if t["element_out"] not in dupes]
     return transfers_in, transfers_out
 
 

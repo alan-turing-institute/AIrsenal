@@ -18,7 +18,7 @@ score files, rather than relying on the approach used here.
 
 
 def get_gameweek_deadlines(fpl_file_path):
-    with open(fpl_file_path, "r") as f:
+    with open(fpl_file_path) as f:
         fpl_json = json.load(f)
 
     deadlines = pd.Series({e["id"]: e["deadline_time"] for e in fpl_json["events"]})

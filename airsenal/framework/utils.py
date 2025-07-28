@@ -3,11 +3,12 @@ Useful commands to query the database.
 """
 
 import warnings
+from collections.abc import Iterable
 from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Dict, List, Optional, Tuple, TypeVar, Union
 
 import dateparser
 import pandas as pd
@@ -234,12 +235,11 @@ def get_start_end_dates_of_season(season: str) -> List[pd.Timestamp]:
     if season == "1920":
         # regular start, late end to season
         return [pd.Timestamp(2019, 7, 1), pd.Timestamp(2020, 7, 31)]
-    elif season == "2021":
+    if season == "2021":
         # late start to season, regular end
         return [pd.Timestamp(2020, 8, 1), pd.Timestamp(2021, 6, 30)]
-    else:
-        # regular season
-        return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
+    # regular season
+    return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
 
 
 def get_previous_season(season: str) -> str:
@@ -728,10 +728,10 @@ def is_future_gameweek(
     (or the same) as current_season and next_gameweek.
     """
     return (
-        season == current_season
-        and (gameweek is None or gameweek >= next_gameweek)
-        or season != current_season
-        and int(season) > int(current_season)
+        (season == current_season
+        and (gameweek is None or gameweek >= next_gameweek))
+        or (season != current_season
+        and int(season) > int(current_season))
     )
 
 
@@ -931,8 +931,7 @@ def get_player_scores(
             raise ValueError(
                 f"More than one score found for player {player} in fixture {fixture}"
             )
-        else:
-            return player_scores[0]
+        return player_scores[0]
     return player_scores
 
 
@@ -1027,13 +1026,13 @@ def get_predicted_points_for_player(
         # there is one prediction per fixture.
         # for double gameweeks, we need to add the two together
         gameweek = prediction.fixture.gameweek
-        if gameweek not in ppdict.keys():
+        if gameweek not in ppdict:
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
     # we still need to fill in zero for gameweeks that they're not playing.
     max_gw = get_max_gameweek(season, dbsession)
     for gw in range(1, max_gw + 1):
-        if gw not in ppdict.keys():
+        if gw not in ppdict:
             ppdict[gw] = 0.0
     return ppdict
 
@@ -1146,11 +1145,11 @@ def get_top_predicted_points(
 
         for i, p in enumerate(pts[:n_players]):
             print(
-                (
+
                     f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
                     f"(£{p[0].price(season, first_gw) / 10}m, {p[0].position(season)}, "
                     f"{p[0].team(season, first_gw)})"
-                )
+
             )
 
         # If a valid discord webhook URL has been stored
@@ -1198,11 +1197,11 @@ def get_top_predicted_points(
 
             for i, p in enumerate(pts[:n_players]):
                 print(
-                    (
+
                         f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
                         f"(£{p[0].price(season, first_gw) / 10}m, "
                         f"{p[0].team(season, first_gw)})"
-                    )
+
                 )
             print("-" * 25)
 
@@ -1512,8 +1511,7 @@ def was_historic_absence(
     )
     if absence:
         return True
-    else:
-        return False
+    return False
 
 
 def get_last_complete_gameweek_in_db(
@@ -1535,10 +1533,9 @@ def get_last_complete_gameweek_in_db(
     )
     if first_missing:
         return first_missing.gameweek - 1
-    elif season == CURRENT_SEASON:
+    if season == CURRENT_SEASON:
         return None
-    else:
-        return get_max_gameweek(season=season, dbsession=dbsession)
+    return get_max_gameweek(season=season, dbsession=dbsession)
 
 
 def get_last_finished_gameweek() -> int:
@@ -1654,11 +1651,11 @@ def find_fixture(
 
     if not fixtures or len(fixtures) == 0:
         raise ValueError(
-            (
+
                 f"No fixture with season={season}, gw={gameweek}, "
                 f"team_name={team_name}, was_home={was_home}, "
                 f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
-            )
+
         )
 
     if len(fixtures) == 1:
@@ -1676,11 +1673,11 @@ def find_fixture(
 
     if not fixture:
         raise ValueError(
-            (
+
                 f"No unique fixture with season={season}, gw={gameweek}, "
                 f"team_name={team_name}, was_home={was_home}, "
                 f"kickoff_time={kickoff_time}"
-            )
+
         )
 
     return fixture
@@ -1732,8 +1729,7 @@ def get_player_team_from_fixture(
 
     if return_fixture:
         return (player_team, fixture)
-    else:
-        return player_team
+    return player_team
 
 
 def is_transfer_deadline_today() -> bool:
@@ -1770,9 +1766,8 @@ def parse_team_model_from_str(
     """
     if team_model == "random":
         return RandomMatchPredictor()
-    elif team_model == "extended":
+    if team_model == "extended":
         return ExtendedDixonColesMatchPredictor()
-    elif team_model == "neutral":
+    if team_model == "neutral":
         return NeutralDixonColesMatchPredictor()
-    else:
-        raise ValueError("Unknown team model")
+    raise ValueError("Unknown team model")

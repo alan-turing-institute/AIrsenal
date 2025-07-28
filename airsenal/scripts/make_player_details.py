@@ -164,7 +164,7 @@ def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
 
         #  replace full team names with 3 letter codes
         for short_name, long_names in alternative_team_names.items():
-            replace_dict = {name: short_name for name in long_names}
+            replace_dict = dict.fromkeys(long_names, short_name)
             fixtures_df["home_team"].replace(replace_dict, inplace=True)
             fixtures_df["away_team"].replace(replace_dict, inplace=True)
 
@@ -185,13 +185,12 @@ def get_played_for_from_fixtures(
 
     if (not was_home) and (fixture["team_h"] == opponent_id):
         return fixture["team_a"]
-    elif was_home and (fixture["team_a"] == opponent_id):
+    if was_home and (fixture["team_a"] == opponent_id):
         return fixture["team_h"]
-    else:
-        raise ValueError(
-            f"""Error finding team played for with fixture id {fixture_id},
+    raise ValueError(
+        f"""Error finding team played for with fixture id {fixture_id},
                          opponent_id {opponent_id} and was_home {was_home}"""
-        )
+    )
 
 
 def get_played_for_from_results(player_row, results_df, teams_dict):
@@ -229,8 +228,7 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
     # Found a unique fixture corresponding to the input data.
     if was_home:
         return matches["home_team"].iloc[0]
-    else:
-        return matches["away_team"].iloc[0]
+    return matches["away_team"].iloc[0]
 
 
 def process_file(path, teams_dict, fixtures_df, got_fixtures):
@@ -337,7 +335,7 @@ def make_player_details(seasons: Optional[List[str]] = []):
             "1",
             GIT_REPO,
             REPO_DIR,
-        ]
+        ], check=False
     )
 
     if not seasons:

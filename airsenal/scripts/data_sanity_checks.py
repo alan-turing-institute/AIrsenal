@@ -24,8 +24,7 @@ def result_string(n_error: int) -> str:
     """
     if n_error == 0:
         return "OK!"
-    else:
-        return f"FAIL! {n_error} errors."
+    return f"FAIL! {n_error} errors."
 
 
 def season_num_teams(
@@ -187,10 +186,10 @@ def fixture_num_players(
                 ):
                     n_error += 1
                     print(
-                        (
+
                             f"{result}: {len(home_scores)} "
                             "players with minutes > 0 for home team."
-                        )
+
                     )
 
                 if not (
@@ -198,10 +197,10 @@ def fixture_num_players(
                 ):
                     n_error += 1
                     print(
-                        (
+
                             f"{result}: {len(away_scores)} "
                             "players with minutes > 0 for away team."
-                        )
+
                     )
 
     print("\n", result_string(n_error))
@@ -415,10 +414,10 @@ def run_all_checks(seasons: List[str] = CHECK_SEASONS) -> None:
     n_passed = sum(1 for _, r in results.items() if r == 0)
     n_total_errors = sum(r for _, r in results.items())
     print(
-        (
+
             f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
             f"{n_total_errors} errors."
-        )
+
     )
 
 

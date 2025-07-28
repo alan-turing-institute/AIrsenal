@@ -33,7 +33,7 @@ class DummyPlayer:
         # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
-        self.predicted_points = {tag: {gw: self.pts for gw in gw_range}}
+        self.predicted_points = {tag: dict.fromkeys(gw_range, self.pts)}
         self.player_id = str(uuid.uuid4())  # dummy id
         self.is_starting = False
         self.is_captain = False
@@ -44,7 +44,6 @@ class DummyPlayer:
         """
         Needed for compatibility with Squad/other Player classes
         """
-        pass
 
     def get_predicted_points(self, gameweek, tag):
         """

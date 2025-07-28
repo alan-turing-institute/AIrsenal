@@ -15,7 +15,7 @@ from airsenal.framework.env import get_env, save_env
 API_HOME = "https://fantasy.premierleague.com/api"
 
 
-class FPLDataFetcher(object):
+class FPLDataFetcher:
     """
     hold current and historic FPL data in memory,
     or retrieve it if not already cached.
@@ -127,14 +127,14 @@ class FPLDataFetcher(object):
             do_login = ""
             while do_login.lower() not in ["y", "n"]:
                 do_login = input(
-                    (
+
                         "\nWould you like to login to the FPL API?"
                         "\nThis is not necessary for most AIrsenal actions, "
                         "\nbut may improve accuracy of player sell values,"
                         "\nand free transfers for your team, and will also "
                         "\nenable AIrsenal to make transfers for you through "
                         "\nthe API. (y/n): "
-                    )
+
                 )
             if do_login.lower() == "y":
                 self.get_fpl_credentials()

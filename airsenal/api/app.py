@@ -41,8 +41,7 @@ def get_session_id():
     print(f"Session keys {session.keys()}")
     if "key" in session.keys():
         return session["key"]
-    else:
-        return "DEFAULT_SESSION_ID"
+    return "DEFAULT_SESSION_ID"
 
 
 # Use a flask blueprint rather than creating the app directly

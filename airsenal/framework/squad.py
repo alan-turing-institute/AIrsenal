@@ -34,7 +34,7 @@ FORMATIONS = [
 ]
 
 
-class Squad(object):
+class Squad:
     """
     Squad class.  Contains 15 players
     """
@@ -225,8 +225,7 @@ class Squad(object):
 
         if price_now > price_bought:
             return (price_now + price_bought) // 2
-        else:
-            return price_now
+        return price_now
 
     def check_no_duplicate_player(self, player):
         """

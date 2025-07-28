@@ -41,7 +41,6 @@ def lambda_handler(event, context):
                         "Hmmm that's a tough one.  Both Angus and Nick are pretty "
                         "good, but I think I am the best."
                     )
-                    pass
                 elif topic == "transfer":
                     response_text = get_suggestions_string()
                 elif topic == "score" or topic == "ranking":

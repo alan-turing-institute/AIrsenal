@@ -12,11 +12,10 @@ def get_overall_points(gameweek=None):
     data = fetcher.get_fpl_team_data()
     if not gameweek:
         return data["entry"]["summary_overall_points"]
-    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+    if isinstance(gameweek, int) and gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["points"]
-    else:
-        print("Unknown gameweek")
-        return 0
+    print("Unknown gameweek")
+    return 0
 
 
 def get_overall_ranking(gameweek=None):
@@ -26,11 +25,10 @@ def get_overall_ranking(gameweek=None):
     data = fetcher.get_fpl_team_data()
     if not gameweek:
         return data["entry"]["summary_overall_rank"]
-    elif isinstance(gameweek, int) and gameweek <= len(data["history"]):
+    if isinstance(gameweek, int) and gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["rank"]
-    else:
-        print("Unknown gameweek")
-        return 0
+    print("Unknown gameweek")
+    return 0
 
 
 def get_league_standings():

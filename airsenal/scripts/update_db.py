@@ -102,14 +102,13 @@ def update_players(season: str, dbsession: Session) -> int:
     if len(players_from_db) == len(players_from_api):
         print("Player table already up-to-date.")
         return 0
-    elif len(players_from_db) > len(players_from_api):
+    if len(players_from_db) > len(players_from_api):
         raise RuntimeError(
             "Something strange has happened - more players in DB than API"
         )
-    else:
-        return add_players_to_db(
-            players_from_db, players_from_api, player_data_from_api, dbsession
-        )
+    return add_players_to_db(
+        players_from_db, players_from_api, player_data_from_api, dbsession
+    )
 
 
 def add_players_to_db(

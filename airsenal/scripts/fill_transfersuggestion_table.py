@@ -301,10 +301,9 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> None:
     if not os.path.exists(filename):
         print(f"Couldn't find {filename}")
         return 0.0
-    else:
-        with open(filename) as inputfile:
-            strat = json.load(inputfile)
-            return strat["total_score"]
+    with open(filename) as inputfile:
+        strat = json.load(inputfile)
+        return strat["total_score"]
 
 
 def print_strat(strat: dict) -> None:
@@ -441,7 +440,7 @@ def run_optimization(
             fpl_team_id=fpl_team_id,
             num_iterations=num_iterations,
         )
-        return
+        return None
 
     print(f"Running optimization with fpl_team_id {fpl_team_id}")
     use_api = season == CURRENT_SEASON and not is_replay
@@ -464,7 +463,7 @@ def run_optimization(
             fpl_team_id=fpl_team_id,
             num_iterations=num_iterations,
         )
-        return
+        return None
     # if we got to here, we can assume we are optimizing an existing squad.
 
     # How many free transfers are we starting with?
@@ -677,10 +676,10 @@ def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
             # check we're not trying to play 2 chips
             if chip_dict[v]["chip_to_play"] is not None:
                 raise RuntimeError(
-                    (
+
                         f"Cannot play {chip_dict[v]['chip_to_play']} and {k} in the "
                         "same week"
-                    )
+
                 )
             chip_dict[v]["chip_to_play"] = k
             chip_dict[v]["chips_allowed"] = []
@@ -693,7 +692,7 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
     """
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
         raise RuntimeError("Please only specify weeks_ahead OR gameweek_start/end")
-    elif (args.gameweek_start and not args.gameweek_end) or (
+    if (args.gameweek_start and not args.gameweek_end) or (
         args.gameweek_end and not args.gameweek_start
     ):
         raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
