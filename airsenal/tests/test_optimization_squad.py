@@ -4,7 +4,7 @@ Tests for the DEAP-based optimization implementation.
 
 from unittest.mock import Mock, patch
 
-from airsenal.framework.optimization_deap import SquadOptDEAP
+from airsenal.framework.optimization_squad import SquadOpt
 
 
 def test_deap_class():
@@ -12,7 +12,7 @@ def test_deap_class():
 
     # Mock the dependencies that require database access
     with patch(
-        "airsenal.framework.optimization_deap.list_players"
+        "airsenal.framework.optimization_squad.list_players"
     ) as mock_list_players:
         # Create simple mock players
         mock_players = []
@@ -41,12 +41,12 @@ def test_deap_class():
 
         # Mock get_predicted_points_for_player
         with patch(
-            "airsenal.framework.optimization_deap.get_predicted_points_for_player"
+            "airsenal.framework.optimization_squad.get_predicted_points_for_player"
         ) as mock_get_points:
             mock_get_points.return_value = {1: 5.0, 2: 4.0, 3: 6.0}  # Some points
 
             # Initialize optimizer
-            optimizer = SquadOptDEAP(
+            optimizer = SquadOpt(
                 gw_range=[1, 2, 3],
                 tag="test_tag",
                 budget=1000,
@@ -65,7 +65,7 @@ def test_deap_optimization_creates_valid_squad():
 
     # Mock the dependencies that require database access
     with patch(
-        "airsenal.framework.optimization_deap.list_players"
+        "airsenal.framework.optimization_squad.list_players"
     ) as mock_list_players:
         # Create mock players with varying prices and teams to test constraints
         mock_players = []
@@ -115,7 +115,7 @@ def test_deap_optimization_creates_valid_squad():
 
         # Mock get_predicted_points_for_player with realistic variance
         with patch(
-            "airsenal.framework.optimization_deap.get_predicted_points_for_player"
+            "airsenal.framework.optimization_squad.get_predicted_points_for_player"
         ) as mock_get_points:
             # Premium players get more points
             def mock_points_side_effect(player, tag, season=None, dbsession=None):
@@ -183,10 +183,10 @@ def test_deap_optimization_creates_valid_squad():
 
             # Patch the _evaluate_individual method at the class level
             with patch.object(
-                SquadOptDEAP, "_evaluate_individual", mock_evaluate_individual
+                SquadOpt, "_evaluate_individual", mock_evaluate_individual
             ):
                 # Initialize optimizer
-                optimizer = SquadOptDEAP(
+                optimizer = SquadOpt(
                     gw_range=[1, 2, 3],
                     tag="test_tag",
                     budget=1000,  # £100.0m budget
