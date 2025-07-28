@@ -155,10 +155,10 @@ def main():
         "selected",
         "transfers_in",
         "transfers_out",
-        'expected_assists',
-        'expected_goals',
-        'expected_goal_involvements',
-        'expected_goals_conceded'
+        "expected_assists",
+        "expected_goals",
+        "expected_goal_involvements",
+        "expected_goals_conceded",
     ]
     save_table_fields(
         "../data/player_scores.csv",

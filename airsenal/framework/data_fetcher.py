@@ -157,7 +157,7 @@ class FPLDataFetcher(object):
         }
         tried = 0
         while tried < attempts:
-            print(f"Login attempt {tried+1}/{attempts}...", end=" ")
+            print(f"Login attempt {tried + 1}/{attempts}...", end=" ")
             response = self.rsession.post(
                 self.FPL_LOGIN_URL, data=data, headers=headers
             )

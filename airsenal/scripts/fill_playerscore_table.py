@@ -4,6 +4,7 @@
 Fill the "player_score" table with historic results
 (player_details_xxyy.json).
 """
+
 import json
 import os
 from typing import List, Optional

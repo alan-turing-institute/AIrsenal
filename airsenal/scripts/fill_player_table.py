@@ -3,6 +3,7 @@
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
+
 import json
 import os
 from typing import List, Optional

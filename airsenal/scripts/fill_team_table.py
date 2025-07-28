@@ -4,6 +4,7 @@
 Fill the "Team" table with list of teams for all seasons, and the team_id which will
 help fill other tables from raw json files
 """
+
 import os
 from typing import List, Optional
 

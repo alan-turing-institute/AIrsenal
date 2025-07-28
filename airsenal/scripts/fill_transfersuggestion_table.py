@@ -16,7 +16,6 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 """
 
-
 import argparse
 import cProfile
 import json

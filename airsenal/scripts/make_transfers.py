@@ -70,7 +70,7 @@ def print_output(
     print(f"{header} \n {line} \n")
 
     if pre_bank is not None:
-        print(f"Bank Balance Before transfers is: £{pre_bank/10}")
+        print(f"Bank Balance Before transfers is: £{pre_bank / 10}")
 
     t = PrettyTable(["Status", "Name", "Price"])
     for transfer in priced_transfers:
@@ -78,21 +78,21 @@ def print_output(
             [
                 "OUT",
                 get_player_from_api_id(transfer["element_out"]),
-                f"£{transfer['selling_price']/10}",
+                f"£{transfer['selling_price'] / 10}",
             ]
         )
         t.add_row(
             [
                 "IN",
                 get_player_from_api_id(transfer["element_in"]),
-                f"£{transfer['purchase_price']/10}",
+                f"£{transfer['purchase_price'] / 10}",
             ]
         )
 
     print(t)
 
     if post_bank is not None:
-        print(f"Bank Balance After transfers is: £{post_bank/10}")
+        print(f"Bank Balance After transfers is: £{post_bank / 10}")
     # print(f"Points Cost of Transfers: {points_cost}")
     print("\n")
 

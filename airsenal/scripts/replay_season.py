@@ -90,7 +90,7 @@ def replay_season(
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
-        print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
+        print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
         with session_scope() as session:
             gw_range = get_gameweeks_array(
                 weeks_ahead, gameweek_start=gw, season=season, dbsession=session

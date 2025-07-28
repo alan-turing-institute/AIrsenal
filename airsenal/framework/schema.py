@@ -249,9 +249,7 @@ class Fixture(Base):
     player_id = Column(Integer, ForeignKey("player.player_id"))
 
     def __str__(self):
-        return (
-            f"{self.season} GW{self.gameweek} " f"{self.home_team} vs. {self.away_team}"
-        )
+        return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
 class PlayerScore(Base):
@@ -292,9 +290,7 @@ class PlayerScore(Base):
     expected_goals_conceded = Column(Float, nullable=True)
 
     def __str__(self):
-        return (
-            f"{self.player} ({self.result}): " f"{self.points} pts, {self.minutes} mins"
-        )
+        return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
 
 class PlayerPrediction(Base):

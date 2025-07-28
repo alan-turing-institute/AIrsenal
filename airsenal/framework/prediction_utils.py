@@ -374,9 +374,7 @@ def calc_predicted_points_for_player(
     player_prob = (
         # fitted probability of scoring/assisting for this player
         # (we don't calculate this for goalkeepers)
-        df_player[position].loc[player.player_id]
-        if position != "GK"
-        else None
+        df_player[position].loc[player.player_id] if position != "GK" else None
     )
 
     # use same recent_minutes from previous gameweeks for all predictions
