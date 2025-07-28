@@ -18,37 +18,31 @@ Our own AIrsenal team's ID for the 2024/25 season is **[2004389](https://fantasy
 
 ## Installation
 
-We recommend running AIrsenal in a conda environment. For instructions on how to install conda go to this link: https://docs.anaconda.com/anaconda/install/, or the more lightweight MiniConda: https://docs.conda.io/en/latest/miniconda.html.
+We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/
 
-With conda installed, run these commands in a terminal to create a new conda environment and download and install AIrsenal:
+With uv installed, run these commands in a terminal to download and install AIrsenal:
 
 ### Linux and macOS
 
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
-conda env create
-conda activate airsenalenv
+uv sync
 ```
 
 ### Windows
 
 The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
 
-After installing WSL, if you'd like to use AIrsenal with conda run the following commands to install it from your WSL terminal (following the Linux instructions [here](https://docs.conda.io/en/latest/miniconda.html#linux-installers)):
+After installing WSL, you can install uv by following the instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
 
-```shell
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-```
-
-You can then follow the installation instructions for Linux and macOS above (or the instructions for without conda below).
+You can then follow the installation instructions for Linux and macOS above (or the instructions for without uv below).
 
 You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
 
-### Use AIrsenal without conda
+### Use AIrsenal without uv
 
-To use AIrsenal without conda:
+To use AIrsenal without uv:
 
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git

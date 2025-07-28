@@ -20,22 +20,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Set up pip and poetry
-        run: |
-          python -m pip install --upgrade pip
-          curl -sSL https://install.python-poetry.org | python3 -
+          version: "latest"
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
       - name: Install AIrsenal
-        run: poetry install --extras "api"
+        run: uv sync --extra api --extra dev
       - name: Code quality checks
         run: |
-          poetry run isort --check-only .
-          poetry run black --check .
-          poetry run flake8
+          uv run ruff check .
+          uv run ruff format --check .
       - name: Tests
         env:
           FPL_TEAM_ID: 1822891
-        run: poetry run pytest
+        run: uv run pytest

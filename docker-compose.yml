@@ -17,9 +17,9 @@ x-default: &default
   # https://github.com/compose-spec/compose-spec/blob/master/spec.md#interpolation
   command: &replay-season-command >
     bash -c "
-    poetry run airsenal_setup_initial_db --clean --no_current_season --n_previous $$AIRSENAL_N_PREVIOUS
+    uv run airsenal_setup_initial_db --clean --no_current_season --n_previous $$AIRSENAL_N_PREVIOUS
     &&
-    poetry run airsenal_replay_season --season $$AIRSENAL_SEASON --loop $$AIRSENAL_LOOP --num_thread $$AIRSENAL_NUM_THREAD --weeks_ahead $$WEEKS_AHEAD"
+    uv run airsenal_replay_season --season $$AIRSENAL_SEASON --loop $$AIRSENAL_LOOP --num_thread $$AIRSENAL_NUM_THREAD --weeks_ahead $$WEEKS_AHEAD"
 
 services:
   experiment-1:

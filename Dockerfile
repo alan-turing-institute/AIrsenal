@@ -1,13 +1,13 @@
-FROM python:3.11-slim-buster
+FROM python:3.12-slim-bookworm
 
 RUN apt-get update && \
     apt-get install build-essential git sqlite3 curl -y && \
-    pip install -U setuptools poetry
+    pip install -U uv
 
 WORKDIR /airsenal
 
 COPY . /airsenal
 
-RUN poetry install --extras "api"
+RUN uv sync --extra api
 
-CMD ["poetry", "run", "airsenal_run_pipeline"]
+CMD ["uv", "run", "airsenal_run_pipeline"]
