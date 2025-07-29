@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Plot the league
 """

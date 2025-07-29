@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 """
-get values from player_score and match tables to use as input to
-Empirical Bayes model.
+get values from player_score and match tables to use as input to Empirical Bayes model.
 """
 
 from airsenal.framework.schema import PlayerScore

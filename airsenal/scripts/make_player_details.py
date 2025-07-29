@@ -55,7 +55,7 @@ SAVE_NAME = os.path.join(SCRIPT_DIR, "../data/player_details_{}.json")
 # players with the same name
 DUPLICATE_PATH = os.path.join(SCRIPT_DIR, "../data/duplicate_player_names.csv")
 
-#  Dictionary of features to extract {name in files: name in database}
+# Dictionary of features to extract {name in files: name in database}
 key_dict = {
     "round": "gameweek",
     "total_points": "points",
@@ -152,16 +152,16 @@ def get_fixtures_df(season: str) -> tuple[pd.DataFrame, bool]:
     season_longname = get_long_season_name(season)
 
     if os.path.exists(FIXTURES_PATH.format(season_longname)):
-        #  fixtures file in vaastav/Fantasy-Premier-League repo
+        # fixtures file in vaastav/Fantasy-Premier-League repo
         # contains fixture ids
         fixtures_df = pd.read_csv(FIXTURES_PATH.format(season_longname), index_col="id")
         got_fixtures = True
     elif os.path.exists(RESULTS_PATH.format(season)):
-        #  match results files in airsenal data
+        # match results files in airsenal data
         # need to match teams by gameweek etc.
         fixtures_df = pd.read_csv(RESULTS_PATH.format(season))
 
-        #  replace full team names with 3 letter codes
+        # replace full team names with 3 letter codes
         for short_name, long_names in alternative_team_names.items():
             replace_dict = dict.fromkeys(long_names, short_name)
             fixtures_df["home_team"].replace(replace_dict, inplace=True)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
@@ -47,7 +45,8 @@ def fill_player_table_from_file(filename: str, season: str, dbsession: Session) 
     """
     use json file
     """
-    jplayers = json.load(open(filename))
+    with open(filename) as f:
+        jplayers = json.load(f)
     for jp in jplayers:
         new_entry = False
         name = jp["name"]

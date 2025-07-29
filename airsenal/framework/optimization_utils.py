@@ -615,17 +615,20 @@ def count_expected_outputs(
                     # add dummy values to transfer dict for 15 possible transfers
                     new_dict["players_in"][gw] = [1] * 15
                     new_dict["chips_played"][gw] = "free_hit"
-                else:
-                    if isinstance(n_transfers, str) and (
-                        n_transfers.startswith(("T", "B"))
-                    ):
-                        if n_transfers[0] == "T":
-                            new_dict["chips_played"][gw] = "triple_captain"
-                        elif n_transfers[0] == "B":
-                            new_dict["chips_played"][gw] = "bench_boost"
-                        n_transfers = int(n_transfers[1])
+                elif isinstance(n_transfers, str) and (
+                    n_transfers.startswith(("T", "B"))
+                ):
+                    if n_transfers[0] == "T":
+                        new_dict["chips_played"][gw] = "triple_captain"
+                    elif n_transfers[0] == "B":
+                        new_dict["chips_played"][gw] = "bench_boost"
+                    new_dict["players_in"][gw] = [1] * int(n_transfers[1])
+                elif isinstance(n_transfers, int):
                     # add dummy values to transfer dict for n_transfers transfers
                     new_dict["players_in"][gw] = [1] * n_transfers
+                else:
+                    msg = f"Unexpected value for n_transfers: {n_transfers}"
+                    raise ValueError(msg)
 
                 new_strategies.append((new_free_transfers, new_hit, new_dict))
 

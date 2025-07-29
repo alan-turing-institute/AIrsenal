@@ -470,7 +470,7 @@ def calc_predicted_points_for_pos(
     season: str,
     gw_range: Iterable[int] | None,
     tag: str,
-    model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> dict[int, list[PlayerPrediction]]:
     """
@@ -592,12 +592,14 @@ def fit_player_data(
     position: str,
     season: str,
     gameweek: int,
-    model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
     """
+    if model is None:
+        model = ConjugatePlayerModel()
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
     model = fastcopy(model)
@@ -615,7 +617,7 @@ def fit_player_data(
 def get_all_fitted_player_data(
     season: str,
     gameweek: int,
-    model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> dict[str, pd.DataFrame | None]:
     df_positions = {"GK": None}

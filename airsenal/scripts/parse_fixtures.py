@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 quick'n'dirty script to parse text cut'n'pasted off the FPL site,
 and put into a csv file.  Needs 'dateparser' package.
@@ -9,8 +7,10 @@ import re
 
 import dateparser
 
-infile = open("../data/gameweeks.txt")
-with open("../data/fixtures.csv", "w") as outfile:
+with (
+    open("../data/gameweeks.txt") as infile,
+    open("../data/fixtures.csv", "w") as outfile,
+):
     outfile.write("gameweek,date,home_team,away_team\n")
 
     fixture_regex = re.compile(r"([\w\s]+[\w])[\s]+([\d]{2}\:[\d]{2})([\w\s]+[\w])")

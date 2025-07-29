@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 """
-Fill the "fixture" table with info from this seasons FPL
-(fixtures.csv).
+Fill the "fixture" table with info from this seasons FPL (fixtures.csv).
 """
 
 import os
@@ -23,23 +20,23 @@ def fill_fixtures_from_file(
     """
     use the match results csv files to get a list of matches in a season,
     """
-    infile = open(filename)
-    for line in infile.readlines()[1:]:
-        fields = line.strip().split(",")
-        f = Fixture()
-        f.date = fields[0]
-        f.gameweek = fields[5]
-        home_team = fields[1]
-        away_team = fields[2]
-        for k, v in alternative_team_names.items():
-            if home_team in v:
-                f.home_team = k
-            elif away_team in v:
-                f.away_team = k
-        print(f" ==> Filling fixture {f.home_team} {f.away_team}")
-        f.season = season
-        f.tag = "latest"  # not really needed for past seasons
-        dbsession.add(f)
+    with open(filename) as infile:
+        for line in infile.readlines()[1:]:
+            fields = line.strip().split(",")
+            f = Fixture()
+            f.date = fields[0]
+            f.gameweek = fields[5]
+            home_team = fields[1]
+            away_team = fields[2]
+            for k, v in alternative_team_names.items():
+                if home_team in v:
+                    f.home_team = k
+                elif away_team in v:
+                    f.away_team = k
+            print(f" ==> Filling fixture {f.home_team} {f.away_team}")
+            f.season = season
+            f.tag = "latest"  # not really needed for past seasons
+            dbsession.add(f)
     dbsession.commit()
 
 

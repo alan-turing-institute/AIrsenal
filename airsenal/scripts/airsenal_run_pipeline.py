@@ -301,7 +301,8 @@ def run_prediction(
     gw_range: list[int],
     dbsession: Session,
     team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     team_model_args: dict | None = None,
 ) -> bool:
     """

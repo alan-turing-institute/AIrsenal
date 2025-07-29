@@ -132,7 +132,11 @@ class NumpyroPlayerModel(BasePlayerModel):
 
     @staticmethod
     def _model(
-        nplayer: int, nmatch: int, minutes: jnp.array, y: jnp.array, alpha: jnp.array
+        nplayer: int,
+        nmatch: int,  # noqa: ARG004
+        minutes: jnp.array,
+        y: jnp.array,
+        alpha: jnp.array,
     ):
         theta = dist.Dirichlet(concentration=alpha)
         # one sample from the prior per player
@@ -207,9 +211,9 @@ class NumpyroPlayerModel(BasePlayerModel):
     def get_probs_for_player(self, player_id):
         try:
             index = list(self.player_ids).index(player_id)
-        except ValueError:
+        except ValueError as e:
             msg = f"Unknown player_id {player_id}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
         prob_score = float(self.samples["probs"][:, index, 0].mean())
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
         prob_neither = float(self.samples["probs"][:, index, 2].mean())
@@ -274,7 +278,7 @@ class ConjugatePlayerModel(BasePlayerModel):
     def get_probs_for_player(self, player_id: int) -> np.ndarray:
         try:
             index = list(self.player_ids).index(player_id)
-        except ValueError:
+        except ValueError as e:
             msg = f"Unknown player_id {player_id}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
         return self.mean_probabilities[index, :]

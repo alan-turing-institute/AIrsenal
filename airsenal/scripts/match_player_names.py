@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Find alternative player names for all the players in the 2018/19 FPL.
 Write out a dict of the format
@@ -61,7 +59,8 @@ if __name__ == "__main__":
     history_players = set()
     for season in ["2122", "2021", "1920"]:
         filename = f"../data/player_summary_{season}.json"
-        player_data = json.load(open(filename))
+        with open(filename) as f:
+            player_data = json.load(f)
         for p in player_data:
             history_players.add(p["name"])
     count = 0

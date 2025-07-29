@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 """
-Fill the "player_score" table with historic results
-(player_details_xxyy.json).
+Fill the "player_score" table with historic results (player_details_xxyy.json).
 """
 
 import contextlib
@@ -222,7 +219,8 @@ def make_playerscore_table(
             input_path = os.path.join(
                 os.path.dirname(__file__), f"../data/player_details_{season}.json"
             )
-            input_data = json.load(open(input_path))
+            with open(input_path) as f:
+                input_data = json.load(f)
             fill_playerscores_from_json(input_data, season, dbsession=dbsession)
 
 

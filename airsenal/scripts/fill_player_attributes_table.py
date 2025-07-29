@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
@@ -32,7 +30,7 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name in detail_data:
+    for player_name, player_data in detail_data.items():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
@@ -42,10 +40,10 @@ def fill_attributes_table_from_file(
 
         print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
-        #  Only one attributes row per gameweek - create list of gameweeks
+        # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
         previous_gameweeks = []
-        for fixture_data in detail_data[player_name]:
+        for fixture_data in player_data:
             gameweek = int(fixture_data["gameweek"])
             if gameweek in previous_gameweeks:
                 # already done this gameweek
@@ -149,7 +147,7 @@ def fill_attributes_table_from_api(
 
         if not update:
             # only need to add to the dbsession for new entries, if we're doing
-            #  an update the final dbsession.commit() is enough
+            # an update the final dbsession.commit() is enough
             dbsession.add(pa)
 
         # now get data for previous gameweeks

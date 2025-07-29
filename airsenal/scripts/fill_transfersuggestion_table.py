@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 usage:
 python fill_transfersuggestions_table.py --weeks_ahead <num_weeks_ahead>
@@ -497,7 +495,7 @@ def run_optimization(
     procs = []
     # create one progress bar for each thread
     progress_bars = []
-    for i in range(num_thread):
+    for _ in range(num_thread):
         progress_bars.append(tqdm(total=100))
 
     # number of nodes in tree will be something like 3^num_weeks unless we allow
@@ -593,7 +591,7 @@ def run_optimization(
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
 
-    for i in range(len(procs)):
+    for _ in range(len(procs)):
         print("\n")
     print("\n====================================\n")
     print(f"Strategy for Team ID: {fpl_team_id}")
@@ -805,10 +803,7 @@ def main():
 
     num_iterations = args.num_iterations
 
-    if args.num_free_transfers:
-        num_free_transfers = args.num_free_transfers
-    else:
-        num_free_transfers = None  # will work it out in run_optimization
+    num_free_transfers = args.num_free_transfers
     tag = args.tag or get_latest_prediction_tag(season=season)
     max_total_hit = args.max_hit
     allow_unused_transfers = args.allow_unused

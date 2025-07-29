@@ -173,7 +173,7 @@ class FPLDataFetcher:
         except requests.HTTPError as e:
             self.login_failed = True
             msg = f"Error logging in to FPL API: {e}"
-            raise requests.HTTPError(msg)
+            raise requests.HTTPError(msg) from e
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
@@ -454,7 +454,7 @@ class FPLDataFetcher:
                 f"{e}\nLineup changes not made due to the error above! Make the "
                 "changes manually on the web-site if needed."
             )
-            raise requests.HTTPError(msg)
+            raise requests.HTTPError(msg) from e
         if resp.status_code == 200:
             print("SUCCESS....lineup made!")
             return
@@ -492,7 +492,7 @@ class FPLDataFetcher:
                 f"{e}\nMaking transfers failed due to the error above! Make the "
                 "changes manually on the web-site if needed."
             )
-            raise requests.HTTPError(msg)
+            raise requests.HTTPError(msg) from e
         if resp.status_code == 200:
             print("SUCCESS....transfers made!")
             return

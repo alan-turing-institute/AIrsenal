@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Find alternative team names for all the teams in the 2018/19 FPL.
 """
@@ -41,7 +39,9 @@ if __name__ == "__main__":
     history_teams = set()
     for season in ["1415", "1516", "1617", "1718"]:
         filename = f"../data/results_{season}.csv"
-        for line in open(filename).readlines()[1:]:
+        with open(filename) as f:
+            lines = f.readlines()
+        for line in lines[1:]:
             history_teams.add(line.split(",")[1])
             history_teams.add(line.split(",")[2])
 

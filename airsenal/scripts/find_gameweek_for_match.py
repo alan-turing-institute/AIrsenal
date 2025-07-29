@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import json
 import sys
 
@@ -40,8 +38,10 @@ def get_gameweek_from_date(date, deadlines):
 if __name__ == "__main__":
     season = sys.argv[-1]
 
-    results_file = open(f"../data/results_{season}.csv")
-    with open(f"../data/results_{season}_with_gw.csv", "w") as output_file:
+    with (
+        open(f"../data/results_{season}.csv") as results_file,
+        open(f"../data/results_{season}_with_gw.csv", "w") as output_file,
+    ):
         fpl_file_path = f"../data/FPL_{season}.json"
 
         deadlines = get_gameweek_deadlines(fpl_file_path)
@@ -55,5 +55,3 @@ if __name__ == "__main__":
             print(date, home_team, away_team)
             gameweek = get_gameweek_from_date(date, deadlines)
             output_file.write(line.strip() + "," + str(gameweek) + "\n")
-
-        results_file.close()

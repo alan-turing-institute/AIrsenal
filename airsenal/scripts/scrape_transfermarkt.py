@@ -46,9 +46,7 @@ def get_teams_for_season(
         if a team played in this season) for each team
     """
     if verbose:
-        print(
-            f"getting teams that played in {str(season)[2:]}/{str(season + 1)[2:]} season"
-        )
+        print(f"getting teams for {str(season)[2:]}/{str(season + 1)[2:]} season")
 
     # get list of teams
     url_season = (
@@ -422,7 +420,7 @@ def get_player_team_history(
     teams_df = pd.DataFrame()
     current_season = "".join(df.iloc[0]["season"].split("/"))
     diff = int(current_season[:2]) - int(end_season[2:])
-    for i in range(abs(diff)):
+    for _ in range(abs(diff)):
         season_df = df[df["season"] == f"{current_season[:2]}/{current_season[2:]}"]
         start, end = get_start_end_dates_of_season(current_season)
         if current_season not in pl_teams_in_season:

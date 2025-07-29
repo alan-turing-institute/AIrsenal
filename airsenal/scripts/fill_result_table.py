@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 """
-Fill the "result" table with historic results
-(results_xxyy_with_gw.csv).
+Fill the "result" table with historic results (results_xxyy_with_gw.csv).
 """
 
 import argparse
@@ -18,7 +15,9 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seaso
 
 
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
-    for line in input_file.readlines()[1:]:
+    with open(input_file) as f:
+        lines = f.readlines()
+    for line in lines[1:]:
         (
             date,
             home_team,
@@ -119,8 +118,7 @@ def make_result_table(
             inpath = os.path.join(
                 os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
             )
-            infile = open(inpath)
-            fill_results_from_csv(infile, season, dbsession)
+            fill_results_from_csv(inpath, season, dbsession)
 
 
 if __name__ == "__main__":

@@ -61,7 +61,6 @@ def print_output(
     priced_transfers: list[dict],
     pre_bank: float | None = None,
     post_bank: float | None = None,
-    points_cost: str = "TODO",
 ) -> None:
     print("\n")
     header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"

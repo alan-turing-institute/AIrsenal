@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 """
 query the transfer suggestion table and print the suggested strategy
-
 """
 
 from airsenal.framework.schema import TransferSuggestion

@@ -108,13 +108,16 @@ def get_training_data(
 def create_and_fit_team_model(
     training_data: dict,
     model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     **fit_args,
 ) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
     """
+    if model is None:
+        model = ExtendedDixonColesMatchPredictor()
     if not fit_args:
         fit_args = {}
     if "epsilon" in fit_args:
@@ -157,12 +160,15 @@ def get_fitted_team_model(
     dbsession: Session,
     ratings: bool = True,
     model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     **fit_args,
 ) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
+    if model is None:
+        model = ExtendedDixonColesMatchPredictor()
     print(f"Fitting team model ({type(model)})...")
     training_data = get_training_data(
         season=season,

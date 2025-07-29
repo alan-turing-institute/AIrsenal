@@ -16,8 +16,10 @@ from airsenal.scripts.make_player_details import (
 )
 
 
-def find_duplicate_names(seasons: str | list[str] = get_past_seasons(6)) -> None:
-    if isinstance(seasons, str):
+def find_duplicate_names(seasons: str | list[str] | None = None) -> None:
+    if seasons is None:
+        seasons = get_past_seasons(6)
+    elif isinstance(seasons, str):
         seasons = [seasons]
 
     output = []

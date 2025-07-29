@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Fill the "player_prediction" table with score predictions
 Usage:
@@ -88,9 +86,10 @@ def calc_all_predicted_points(
     include_saves: bool = True,
     num_thread: int = 4,
     tag: str = "",
-    player_model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     team_model_args: dict | None = None,
 ) -> None:
     """
@@ -189,9 +188,10 @@ def make_predictedscore_table(
     include_cards: bool = True,
     include_saves: bool = True,
     tag_prefix: str | None = None,
-    player_model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     team_model_args: dict | None = None,
     dbsession: Session = session,
 ) -> str:

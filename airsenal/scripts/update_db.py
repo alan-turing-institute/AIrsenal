@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 simple script, check whether recent matches have been played since
 the last entries in the DB, and update the transactions table with players

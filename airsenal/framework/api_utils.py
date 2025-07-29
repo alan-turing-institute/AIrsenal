@@ -33,7 +33,7 @@ def remove_db_session(dbsession=DBSESSION):
     dbsession.remove()
 
 
-def create_response(orig_response, dbsession=DBSESSION):
+def create_response(orig_response):
     """
     Add headers to the response
     """
@@ -244,9 +244,7 @@ def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
     return player_ids
 
 
-def get_session_prediction(
-    player_id, session_id, gw=None, pred_tag=None, dbsession=DBSESSION
-):
+def get_session_prediction(player_id, gw=None, pred_tag=None, dbsession=DBSESSION):
     """
     Query the fixture and predictedscore tables for a specified player
     """
@@ -270,10 +268,7 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     pids = [p["id"] for p in get_session_players(session_id, dbsession)]
     pred_tag = get_latest_prediction_tag()
     gw = NEXT_GAMEWEEK
-    return {
-        pid: get_session_prediction(pid, session_id, gw, pred_tag, dbsession)
-        for pid in pids
-    }
+    return {pid: get_session_prediction(pid, gw, pred_tag, dbsession) for pid in pids}
 
 
 def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
