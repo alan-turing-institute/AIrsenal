@@ -84,13 +84,13 @@ def test_deap_optimization_creates_valid_squad():
 
             # Create methods that can be called with or without parameters
             def make_position_func(pos):
-                return lambda season=None: pos
+                return lambda season=None: pos  # noqa: ARG005
 
             def make_team_func(team_name):
-                return lambda season=None, gameweek=None: team_name
+                return lambda season=None, gameweek=None: team_name  # noqa: ARG005
 
             def make_price_func(price):
-                return lambda season=None, gameweek=None: price
+                return lambda season=None, gameweek=None: price  # noqa: ARG005
 
             player.position = make_position_func(position)
             # Spread players across different teams (max 3 per team constraint)
@@ -227,9 +227,9 @@ def test_deap_optimization_creates_valid_squad():
 
                 # Check budget constraint
                 total_cost = sum(player.price() for player in selected_players)
-                assert total_cost <= 1000, (
-                    f"Total cost {total_cost} exceeds budget of 1000"
-                )
+                assert (
+                    total_cost <= 1000
+                ), f"Total cost {total_cost} exceeds budget of 1000"
 
                 # Check team constraint (max 3 players per team)
                 team_counts = {}
@@ -240,11 +240,11 @@ def test_deap_optimization_creates_valid_squad():
 
                 # Verify no duplicate players
                 player_ids = [p.player_id for p in selected_players]
-                assert len(player_ids) == len(set(player_ids)), (
-                    "Squad contains duplicate players"
-                )
+                assert len(player_ids) == len(
+                    set(player_ids)
+                ), "Squad contains duplicate players"
 
                 # Verify the optimization found a reasonable solution (non-zero fitness)
-                assert best_fitness > 0, (
-                    "Optimization should find a solution with positive fitness"
-                )
+                assert (
+                    best_fitness > 0
+                ), "Optimization should find a solution with positive fitness"

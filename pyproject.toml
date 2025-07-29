@@ -108,5 +108,20 @@ ignore = [
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]
-"*/tests/*" = ["B011"]
+"__init__.py" = [
+	"F401",  # allow unused imports in __init__.py files
+]
+"*/tests/*" = [
+	"B011",  # allow using assert statements in tests
+	"ARG001"  # allow unused arguments in tests, e.g. for pytest fixtures
+]
+
+[tool.mypy]
+files = ["airsenal/framework", "airsenal/scripts"]
+show_error_codes = true
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+strict = false
+ignore_missing_imports = true
