@@ -4,6 +4,5 @@ channels:
 dependencies:
   - python=3.12
   - pip
-  - pygmo=2.19.6
   - pip:
     - .
