@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 API for calling airsenal functions.
 HTTP requests to the endpoints defined here will give rise
@@ -58,7 +56,7 @@ def handle_exception(error):
 
 
 @blueprint.teardown_request
-def remove_session(ex=None):
+def remove_session(ex=None):  # noqa: ARG001
     remove_db_session()
 
 

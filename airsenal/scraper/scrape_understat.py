@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Use BeautifulSoup to follow links to scrape data from understat.com
 
@@ -56,12 +54,12 @@ def get_matches_info(season: str):
     """
     try:
         response = requests.get(base_url[season])
-    except KeyError:
+    except KeyError as e:
         msg = (
             f"Please provide valid season to scrape data: "
             f"{season} not in {list(base_url.keys())}"
         )
-        raise KeyError(msg)
+        raise KeyError(msg) from e
 
     if response.ok:
         html = response.text

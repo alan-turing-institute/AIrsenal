@@ -28,8 +28,8 @@ response_tmpl = {
 print("Loading AIrsenal function")
 
 
-def lambda_handler(event, context):
-    logger.info(f"got event{event}")
+def lambda_handler(event, context):  # noqa: ARG001
+    logger.info("got event %s", event)
 
     response_text = "A.I. Arsenal forever."
     if event["request"]["intent"]["name"] == "Question":
