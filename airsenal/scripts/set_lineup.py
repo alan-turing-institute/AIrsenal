@@ -4,7 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
-from typing import List, Optional
+from typing import Optional
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
@@ -44,7 +44,7 @@ def build_lineup_payload(squad: Squad) -> list:
                 payload.append(to_dict(p, position_integer))
                 position_integer += 1
 
-    sub_gk = [p for p in squad.players if not p.is_starting and p.position == "GK"][0]
+    sub_gk = next(p for p in squad.players if not p.is_starting and p.position == "GK")
     payload.append(to_dict(sub_gk, 12))
 
     available_sub_positions = list(range(4))
@@ -72,10 +72,11 @@ def get_lineup_from_payload(lineup: dict) -> Squad:
 
     if s.is_complete():
         return s
-    raise RuntimeError("Squad incomplete")
+    msg = "Squad incomplete"
+    raise RuntimeError(msg)
 
 
-def make_squad_transfers(squad: Squad, priced_transfers: List[dict]) -> None:
+def make_squad_transfers(squad: Squad, priced_transfers: list[dict]) -> None:
     for t in priced_transfers:
         squad.remove_player(t[0][0], price=t[0][1])
         squad.add_player(t[1][0], price=t[1][1])
@@ -115,10 +116,11 @@ def main():
     try:
         set_lineup(args.fpl_team_id, skip_check=args.confirm)
     except Exception as e:
-        raise Exception(
+        msg = (
             "Something went wrong when setting lineup. Check your lineup manually on "
             "the web-site. If the problem persists, let us know on GitHub."
-        ) from e
+        )
+        raise Exception(msg) from e
 
 
 if __name__ == "__main__":

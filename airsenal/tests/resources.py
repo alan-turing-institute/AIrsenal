@@ -3,7 +3,6 @@ A list of dummy players and utils for use in tests.
 """
 
 from pathlib import Path
-from typing import List
 
 
 def in_docker() -> bool:
@@ -12,14 +11,12 @@ def in_docker() -> bool:
     Reference: https://stackoverflow.com/a/73564246/678486
     """
     cgroup: Path = Path("/proc/self/cgroup")
-    return (
-        Path("/.dockerenv").is_file()
-        or (cgroup.is_file()
-        and "docker" in cgroup.read_text())
+    return Path("/.dockerenv").is_file() or (
+        cgroup.is_file() and "docker" in cgroup.read_text()
     )
 
 
-dummy_players: List[str] = [
+dummy_players: list[str] = [
     "Alice",
     "Bob",
     "Carla",

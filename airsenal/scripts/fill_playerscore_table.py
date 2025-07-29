@@ -5,9 +5,10 @@ Fill the "player_score" table with historic results
 (player_details_xxyy.json).
 """
 
+import contextlib
 import json
 import os
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -29,7 +30,7 @@ from airsenal.framework.utils import (
 def fill_playerscores_from_json(
     detail_data: list, season: str, dbsession: Session = session
 ) -> None:
-    for player_name in detail_data.keys():
+    for player_name in detail_data:
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
@@ -42,7 +43,7 @@ def fill_playerscores_from_json(
         for fixture_data in detail_data[player_name]:
             # try to find the result in the result table
             gameweek = int(fixture_data["gameweek"])
-            if "played_for" in fixture_data.keys():
+            if "played_for" in fixture_data:
                 played_for = fixture_data["played_for"]
             else:
                 played_for = player.team(season, gameweek)
@@ -86,7 +87,7 @@ def fill_playerscores_from_json(
             # get features excluding the core ones already populated above
             extended_feats = [
                 col
-                for col in ps.__table__.columns.keys()
+                for col in ps.__table__.columns
                 if col
                 not in [
                     "id",
@@ -104,10 +105,8 @@ def fill_playerscores_from_json(
                 ]
             ]
             for feat in extended_feats:
-                try:
+                with contextlib.suppress(KeyError):
                     ps.__setattr__(feat, fixture_data[feat])
-                except KeyError:
-                    pass
 
             dbsession.add(ps)
     dbsession.commit()
@@ -121,7 +120,7 @@ def fill_playerscores_from_api(
 ) -> None:
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
-    for player_api_id in input_data.keys():
+    for player_api_id in input_data:
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
             # If no player found with this API ID something has gone wrong with the
@@ -177,7 +176,7 @@ def fill_playerscores_from_api(
                 # get features excluding the core ones already populated above
                 extended_feats = [
                     col
-                    for col in ps.__table__.columns.keys()
+                    for col in ps.__table__.columns
                     if col
                     not in [
                         "id",
@@ -195,10 +194,8 @@ def fill_playerscores_from_api(
                     ]
                 ]
                 for feat in extended_feats:
-                    try:
+                    with contextlib.suppress(KeyError):
                         ps.__setattr__(feat, result[feat])
-                    except KeyError:
-                        pass
 
                 if add:
                     dbsession.add(ps)
@@ -210,9 +207,11 @@ def fill_playerscores_from_api(
 
 
 def make_playerscore_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     # previous seasons data from json files
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

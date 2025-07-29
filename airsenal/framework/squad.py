@@ -105,7 +105,8 @@ class Squad:
         if player.position == "MNG":
             warnings.warn(
                 f"Skipped adding manager {player}, assistant manager not implemented."
-                f"Reduced squad budget by {player.purchase_price}."
+                f"Reduced squad budget by {player.purchase_price}.",
+                stacklevel=2,
             )
             self.budget -= player.purchase_price
             return True
@@ -169,7 +170,8 @@ class Squad:
         for p in self.players:
             if p.player_id == player_id:
                 return p
-        raise ValueError(f"Player {player_id} not in squad")
+        msg = f"Player {player_id} not in squad"
+        raise ValueError(msg)
 
     def get_sell_price_for_player(
         self,
@@ -196,7 +198,8 @@ class Squad:
             except Exception as e:
                 warnings.warn(
                     f"Failed to login to get actual sale price for {player} from API:\n"
-                    f"{e}.\nWill estimate it based on the players current price instead"
+                    f"{e}.\nWill estimate it based on the players current price instead",
+                    stacklevel=2,
                 )
             # if not logged in, just get current price from API
             try:
@@ -204,7 +207,8 @@ class Squad:
             except Exception as e:
                 warnings.warn(
                     f"Failed to to get current price of {player} from API:\n"
-                    f"{e}.\nWill attempt to use latest price in DB instead."
+                    f"{e}.\nWill attempt to use latest price in DB instead.",
+                    stacklevel=2,
                 )
 
         # retrieve how much we originally bought the player for from db
@@ -219,7 +223,8 @@ class Squad:
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
             warnings.warn(
-                f"Using purchase price as sale price for {player.player_id}, {player}"
+                f"Using purchase price as sale price for {player.player_id}, {player}",
+                stacklevel=2,
             )
             price_now = price_bought
 
@@ -367,17 +372,17 @@ class Squad:
 
         return total
 
-    def total_points_for_subs(
-        self, gameweek, tag, sub_weights={"GK": 1, "Outfield": (1, 1, 1)}
-    ):
+    def total_points_for_subs(self, gameweek, tag, sub_weights=None):
+        if sub_weights is None:
+            sub_weights = {"GK": 1, "Outfield": (1, 1, 1)}
         outfield_subs = [
             p for p in self.players if (not p.is_starting) and (p.position != "GK")
         ]
         outfield_subs = sorted(outfield_subs, key=lambda p: p.sub_position)
 
-        gk_sub = [
+        gk_sub = next(
             p for p in self.players if (not p.is_starting) and (p.position == "GK")
-        ][0]
+        )
 
         total = sub_weights["GK"] * gk_sub.predicted_points[tag][gameweek]
 
@@ -388,7 +393,8 @@ class Squad:
 
     def optimize_lineup(self, gameweek, tag):
         if not self.is_complete():
-            raise RuntimeError("Squad is incomplete")
+            msg = "Squad is incomplete"
+            raise RuntimeError(msg)
 
         self._calc_expected_points(tag)
         self.optimize_subs(gameweek, tag)

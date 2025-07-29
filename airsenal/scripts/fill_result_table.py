@@ -7,7 +7,7 @@ Fill the "result" table with historic results
 
 import argparse
 import os
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -71,9 +71,11 @@ def fill_results_from_api(
             elif str(away_id) in v:
                 away_team = k
         if not home_team:
-            raise ValueError(f"Unable to find team with id {home_id}")
+            msg = f"Unable to find team with id {home_id}"
+            raise ValueError(msg)
         if not away_team:
-            raise ValueError(f"Unable to find team with id {away_id}")
+            msg = f"Unable to find team with id {away_id}"
+            raise ValueError(msg)
         home_score = m["team_h_score"]
         away_score = m["team_a_score"]
         f = find_fixture(
@@ -99,11 +101,13 @@ def fill_results_from_api(
 
 
 def make_result_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     """
     past seasons - read results from csv
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

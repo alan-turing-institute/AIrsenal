@@ -6,7 +6,7 @@ help fill other tables from raw json files
 """
 
 import os
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -34,12 +34,14 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
 
 
 def make_team_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     """
     Fill the db table containing the list of teams in the
     league for each season.
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

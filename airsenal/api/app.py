@@ -39,7 +39,7 @@ def get_session_id():
     will enable us to test some functionality just via python requests.
     """
     print(f"Session keys {session.keys()}")
-    if "key" in session.keys():
+    if "key" in session:
         return session["key"]
     return "DEFAULT_SESSION_ID"
 

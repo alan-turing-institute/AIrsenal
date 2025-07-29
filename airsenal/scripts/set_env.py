@@ -42,7 +42,8 @@ def main():
     args = parser.parse_args()
     if args.cmd == "get":
         if args.value:
-            raise ValueError("value should not be given if getting variables")
+            msg = "value should not be given if getting variables"
+            raise ValueError(msg)
         if args.key:
             print(f"{args.key}: {get_env(args.key)}")
         else:
@@ -51,17 +52,21 @@ def main():
         if args.key and args.value:
             save_env(args.key, args.value)
         else:
-            raise ValueError("key and value must not be given if getting variables")
+            msg = "key and value must not be given if getting variables"
+            raise ValueError(msg)
     if args.cmd == "del":
         if not args.key:
-            raise ValueError("key must be given if deleting variables")
+            msg = "key must be given if deleting variables"
+            raise ValueError(msg)
         if args.value:
-            raise ValueError("value should not be given if deleting variables")
+            msg = "value should not be given if deleting variables"
+            raise ValueError(msg)
         delete_env(args.key)
 
     if args.cmd == "names":
         if args.value or args.key:
-            raise ValueError("value should not be given if deleting variables")
+            msg = "value should not be given if deleting variables"
+            raise ValueError(msg)
         print(AIRSENAL_ENV_KEYS)
 
 

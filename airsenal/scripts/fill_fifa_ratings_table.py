@@ -6,7 +6,7 @@ Fill the "fifa_ratings" table with info from FIFA 19
 """
 
 import os
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -17,11 +17,13 @@ from airsenal.framework.utils import get_past_seasons
 
 
 def make_fifa_ratings_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     # make the fifa ratings table
     # TODO: scrape the data first rather than committing file to repo
 
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
@@ -53,7 +55,8 @@ def make_fifa_ratings_table(
                 elif team == k:
                     team_is_known = True
             if not team_is_known:
-                raise ValueError(f"Unknown team {team}.")
+                msg = f"Unknown team {team}."
+                raise ValueError(msg)
             dbsession.add(r)
     dbsession.commit()
 

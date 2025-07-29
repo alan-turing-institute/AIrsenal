@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 
 import jax.numpy as jnp
 import jax.random as random
@@ -93,7 +93,7 @@ class BasePlayerModel(ABC):
     """
 
     @abstractmethod
-    def fit(self, data: Dict[str, Any], **kwargs) -> BasePlayerModel:
+    def fit(self, data: dict[str, Any], **kwargs) -> BasePlayerModel:
         """Fit model. Data must have the following keys (at minimum):
         - "y": np.ndarray of shape (n_players, n_matches, 3) with player goal
         involvements in each match. Last axis is (no. goals, no. assists, no. neither)
@@ -104,7 +104,7 @@ class BasePlayerModel(ABC):
         ...
 
     @abstractmethod
-    def get_probs(self) -> Dict[str, np.ndarray]:
+    def get_probs(self) -> dict[str, np.ndarray]:
         """Get probability of all players scoring, assisting or doing neither for a
         goal. Returns dict with followinig keys:
         - "player_id": np.ndarray of shape (n_players,) with player ids
@@ -160,8 +160,8 @@ class NumpyroPlayerModel(BasePlayerModel):
         random_state: int = 42,
         num_warmup: int = 500,
         num_samples: int = 2000,
-        mcmc_kwargs: Optional[Dict[str, Any]] = None,
-        run_kwargs: Optional[Dict[str, Any]] = None,
+        mcmc_kwargs: dict[str, Any] | None = None,
+        run_kwargs: dict[str, Any] | None = None,
     ):
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
@@ -208,7 +208,8 @@ class NumpyroPlayerModel(BasePlayerModel):
         try:
             index = list(self.player_ids).index(player_id)
         except ValueError:
-            raise RuntimeError(f"Unknown player_id {player_id}")
+            msg = f"Unknown player_id {player_id}"
+            raise RuntimeError(msg)
         prob_score = float(self.samples["probs"][:, index, 0].mean())
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
         prob_neither = float(self.samples["probs"][:, index, 2].mean())
@@ -233,7 +234,7 @@ class ConjugatePlayerModel(BasePlayerModel):
         self.mean_probabilities = None
 
     def fit(
-        self, data: Dict[str, Any], n_goals_prior: int = 13
+        self, data: dict[str, Any], n_goals_prior: int = 13
     ) -> ConjugatePlayerModel:
         goals = data["y"]
         minutes = data["minutes"]
@@ -262,7 +263,7 @@ class ConjugatePlayerModel(BasePlayerModel):
         """
         return prior_alpha + scaled_goals
 
-    def get_probs(self) -> Dict[str, np.ndarray]:
+    def get_probs(self) -> dict[str, np.ndarray]:
         return {
             "player_id": self.player_ids,
             "prob_score": self.mean_probabilities[:, 0],
@@ -274,5 +275,6 @@ class ConjugatePlayerModel(BasePlayerModel):
         try:
             index = list(self.player_ids).index(player_id)
         except ValueError:
-            raise RuntimeError(f"Unknown player_id {player_id}")
+            msg = f"Unknown player_id {player_id}"
+            raise RuntimeError(msg)
         return self.mean_probabilities[index, :]

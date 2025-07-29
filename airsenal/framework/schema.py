@@ -398,9 +398,8 @@ class SessionBudget(Base):
 
 def get_connection_string():
     if get_env("AIRSENAL_DB_FILE") and get_env("AIRSENAL_DB_URI"):
-        raise RuntimeError(
-            "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
-        )
+        msg = "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
+        raise RuntimeError(msg)
 
     # postgres database specified by: AIRSENAL_DB{_URI, _USER, _PASSWORD}
     if get_env("AIRSENAL_DB_URI"):
@@ -410,7 +409,8 @@ def get_connection_string():
             if value := get_env(k):
                 params[k] = value
             else:
-                raise KeyError(f"{k} must be defined when using a postgres database")
+                msg = f"{k} must be defined when using a postgres database"
+                raise KeyError(msg)
 
         return (
             f"postgresql://{params['AIRSENAL_DB_USER']}:"

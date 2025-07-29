@@ -91,7 +91,8 @@ def make_optimum_single_transfer(
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid single transfer for squad")
+        msg = "Failed to find valid single transfer for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
@@ -186,7 +187,8 @@ def make_optimum_double_transfer(
                         break
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid double transfer for squad")
+        msg = "Failed to find valid double transfer for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
@@ -296,7 +298,8 @@ def make_random_transfers(
             # end of loop over n_iter
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid random transfers for squad")
+        msg = "Failed to find valid random transfers for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
@@ -402,7 +405,8 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:
-        raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
+        msg = f"Unrecognized value for num_transfers: {num_transfers}"
+        raise RuntimeError(msg)
 
     # get the expected points total for next gameweek
     points = get_discounted_squad_score(

@@ -7,7 +7,7 @@ Fill the "fixture" table with info from this seasons FPL
 
 import os
 import uuid
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -85,20 +85,25 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
                 break
 
         if not found_home and found_away:
-            raise ValueError(f"Can't find team(s) with id(s): {home_id}, {away_id}.")
+            msg = f"Can't find team(s) with id(s): {home_id}, {away_id}."
+            raise ValueError(msg)
         if not found_home:
-            raise ValueError(f"Can't find team(s) with id(s): {home_id}")
+            msg = f"Can't find team(s) with id(s): {home_id}"
+            raise ValueError(msg)
         if not found_away:
-            raise ValueError(f"Can't find team(s) with id(s): {away_id}")
+            msg = f"Can't find team(s) with id(s): {away_id}"
+            raise ValueError(msg)
         if not update:
             dbsession.add(f)
     dbsession.commit()
 
 
 def make_fixture_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     # fill the fixture table for past seasons
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

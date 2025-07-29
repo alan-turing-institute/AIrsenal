@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     response_text = "A.I. Arsenal forever."
     if event["request"]["intent"]["name"] == "Question":
         try:
-            if "value" in event["request"]["intent"]["slots"]["Topic"].keys():
+            if "value" in event["request"]["intent"]["slots"]["Topic"]:
                 topic = event["request"]["intent"]["slots"]["Topic"]["value"]
                 if topic == "best manager":
                     response_text = (
@@ -45,9 +45,8 @@ def lambda_handler(event, context):
                     response_text = get_suggestions_string()
                 elif topic == "score" or topic == "ranking":
                     if (
-                        "Gameweek" in event["request"]["intent"]["slots"].keys()
-                        and "value"
-                        in event["request"]["intent"]["slots"]["Gameweek"].keys()
+                        "Gameweek" in event["request"]["intent"]["slots"]
+                        and "value" in event["request"]["intent"]["slots"]["Gameweek"]
                     ):
                         gameweek = event["request"]["intent"]["slots"]["Gameweek"][
                             "value"

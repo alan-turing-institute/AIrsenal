@@ -7,7 +7,6 @@ bought or sold.
 """
 
 import argparse
-from typing import List
 
 from sqlalchemy.orm.session import Session
 
@@ -103,9 +102,8 @@ def update_players(season: str, dbsession: Session) -> int:
         print("Player table already up-to-date.")
         return 0
     if len(players_from_db) > len(players_from_api):
-        raise RuntimeError(
-            "Something strange has happened - more players in DB than API"
-        )
+        msg = "Something strange has happened - more players in DB than API"
+        raise RuntimeError(msg)
     return add_players_to_db(
         players_from_db, players_from_api, player_data_from_api, dbsession
     )
@@ -113,7 +111,7 @@ def update_players(season: str, dbsession: Session) -> int:
 
 def add_players_to_db(
     players_from_db: list,
-    players_from_api: List[int],
+    players_from_api: list[int],
     player_data_from_api: dict,
     dbsession: Session,
 ) -> int:

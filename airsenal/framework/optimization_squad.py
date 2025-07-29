@@ -6,7 +6,7 @@ algorithm.
 
 import random
 import uuid
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -175,7 +175,7 @@ class SquadOpt:
 
         return low_bounds, up_bounds
 
-    def _evaluate_individual(self, individual: List[int]) -> Tuple[float]:
+    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
         """Evaluate the fitness of an individual (squad)."""
         # Make squad from player IDs
         squad = Squad(budget=self.budget, season=self.season)
@@ -282,7 +282,7 @@ class SquadOpt:
         tournament_size: int = 3,
         verbose: bool = True,
         random_state: Optional[int] = None,
-    ) -> Tuple[List[int], float]:
+    ) -> tuple[list[int], float]:
         """Run the genetic algorithm optimization.
 
         Parameters

@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-from typing import List
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
@@ -26,7 +25,7 @@ positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 def fill_initial_squad(
     tag: str,
-    gw_range: List[int],
+    gw_range: list[int],
     season: str,
     fpl_team_id: int,
     budget: int = 1000,
@@ -60,10 +59,11 @@ def fill_initial_squad(
     )
 
     if best_squad is None:
-        raise RuntimeError(
+        msg = (
             "best_squad is None: make_new_squad failed to generate a valid team or "
             "something went wrong with the squad expected points calculation."
         )
+        raise RuntimeError(msg)
 
     gw_start = gw_range[0]
     optimised_score = get_discounted_squad_score(

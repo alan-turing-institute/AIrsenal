@@ -6,7 +6,7 @@ import argparse
 import contextlib
 import os
 from cmath import nan
-from typing import List, Tuple
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ HEADERS = {
 
 def get_teams_for_season(
     season: int, verbose: bool = False
-) -> List[Tuple[str, str, str, set]]:
+) -> list[tuple[str, str, str, set]]:
     """Get the names and TransferMarkt URLs for all the teams in this season.
 
     Parameters
@@ -71,7 +71,7 @@ def get_teams_for_season(
     ][:20]
 
 
-def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
+def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
     """Get all the players in a team's squad for a season.
     Example TransferMarkt page:
     https://www.transfermarkt.co.uk/manchester-city/startseite/verein/281/saison_id/2021
@@ -239,7 +239,7 @@ def get_player_suspensions(
     return tidy_df(suspended, days_name="Tage")
 
 
-def get_players_for_season(season: int) -> List[Tuple[str, str]]:
+def get_players_for_season(season: int) -> list[tuple[str, str]]:
     """Get all the players at any premier league club in a season
 
     Parameters
@@ -395,7 +395,9 @@ def get_player_transfers(
 
 
 def get_player_team_history(
-    df: pd.DataFrame, pl_teams_in_season: dict = {}, end_season: str = CURRENT_SEASON
+    df: pd.DataFrame,
+    pl_teams_in_season: Optional[dict] = None,
+    end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """Get a player's team/club history given their transfer data.
     Example TransferMarkt page:
@@ -416,6 +418,8 @@ def get_player_team_history(
     pd.DataFrame
         Player team history: season, team, from, until, in the premier league or not
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     teams_df = pd.DataFrame()
     current_season = "".join(df.iloc[0]["season"].split("/"))
     diff = int(current_season[:2]) - int(end_season[2:])
@@ -527,7 +531,7 @@ def get_player_team_history(
 
 def get_player_transfer_unavailability(
     player_profile_url: str,
-    pl_teams_in_season: dict = {},
+    pl_teams_in_season: Optional[dict] = None,
     end_season: str = CURRENT_SEASON,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -553,6 +557,8 @@ def get_player_transfer_unavailability(
         Player's unavailability due to transfers: season,
         details, reason, from, until, days, games missed
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     if verbose:
         print(f"getting player transfer unavailability for {player_profile_url}")
 
@@ -582,9 +588,9 @@ def get_player_transfer_unavailability(
 
 def get_season_absences(
     season: str,
-    pl_teams_in_season: dict = {},
+    pl_teams_in_season: Optional[dict] = None,
     verbose: bool = False,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Get injury and suspension data for a season
 
     Parameters
@@ -599,6 +605,8 @@ def get_season_absences(
     Tuple[pd.DataFrame, pd.DataFrame]
         Injury and suspension data frames for all players in this season
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     year = season_str_to_year(season)
     if verbose:
         print("Finding players...")
@@ -636,7 +644,7 @@ def get_season_absences(
     return filter_season(absences, season)
 
 
-def scrape_transfermarkt(seasons: List[str], verbose: bool = False):
+def scrape_transfermarkt(seasons: list[str], verbose: bool = False):
     """Get all player injury and suspension data for mutiple seasons
 
     Parameters

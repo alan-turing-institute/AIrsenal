@@ -10,7 +10,7 @@ import shutil
 import subprocess
 from functools import cache
 from glob import glob
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -145,7 +145,7 @@ def get_positions_df(season: str) -> pd.DataFrame:
     return raw_df
 
 
-def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
+def get_fixtures_df(season: str) -> tuple[pd.DataFrame, bool]:
     """Load fixture info (which teams played in which matches), either
     from vaastav/Fantasy-Premier-League repo or AIrsenal data depending
     on what's available.
@@ -170,7 +170,8 @@ def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
 
         got_fixtures = False
     else:
-        raise FileNotFoundError(f"Couldn't find fixtures file for {season} season")
+        msg = f"Couldn't find fixtures file for {season} season"
+        raise FileNotFoundError(msg)
 
     return fixtures_df, got_fixtures
 
@@ -187,10 +188,9 @@ def get_played_for_from_fixtures(
         return fixture["team_a"]
     if was_home and (fixture["team_a"] == opponent_id):
         return fixture["team_h"]
-    raise ValueError(
-        f"""Error finding team played for with fixture id {fixture_id},
+    msg = f"""Error finding team played for with fixture id {fixture_id},
                          opponent_id {opponent_id} and was_home {was_home}"""
-    )
+    raise ValueError(msg)
 
 
 def get_played_for_from_results(player_row, results_df, teams_dict):
@@ -220,10 +220,9 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
 
     if len(matches) != 1:
         # Couldn't find a unique fixture
-        raise ValueError(
-            f"""Found no matches with gw {gw}, was_home {was_home}
+        msg = f"""Found no matches with gw {gw}, was_home {was_home}
                                 and opponent {opponent}"""
-        )
+        raise ValueError(msg)
 
     # Found a unique fixture corresponding to the input data.
     if was_home:
@@ -325,7 +324,9 @@ def get_player_details(season: str) -> dict:
     return output
 
 
-def make_player_details(seasons: Optional[List[str]] = []):
+def make_player_details(seasons: Optional[list[str]] = None):
+    if seasons is None:
+        seasons = []
     print(f"Cloning {GIT_REPO}...")
     subprocess.run(
         [
@@ -335,7 +336,8 @@ def make_player_details(seasons: Optional[List[str]] = []):
             "1",
             GIT_REPO,
             REPO_DIR,
-        ], check=False
+        ],
+        check=False,
     )
 
     if not seasons:

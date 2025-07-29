@@ -25,7 +25,7 @@ import sys
 import time
 import warnings
 from multiprocessing import Process, Queue
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import regex as re
 import requests
@@ -83,7 +83,7 @@ def optimize(
     queue: Queue,
     pid: Process,
     num_expected_outputs: int,
-    gameweek_range: List[int],
+    gameweek_range: list[int],
     season: str,
     pred_tag: str,
     chips_gw_dict: dict,
@@ -277,7 +277,7 @@ def find_best_strat_from_json(tag: str) -> dict:
     return best_strat
 
 
-def save_baseline_score(squad: Squad, gameweeks: List[int], tag: str) -> None:
+def save_baseline_score(squad: Squad, gameweeks: list[int], tag: str) -> None:
     """When strategies with unused transfers are excluded the baseline strategy will
     normally not be part of the tree. In that case save it first with this function.
     """
@@ -323,16 +323,13 @@ def print_strat(strat: dict) -> None:
         for i in range(len(strat["players_in"][str(gw)])):
             pin = get_player_name(strat["players_in"][str(gw)][i])
             pout = get_player_name(strat["players_out"][str(gw)][i])
-            if len(pin) < 20:
-                subs = f"{pin}\t\t\t{pout}"
-            else:
-                subs = f"{pin}\t\t{pout}"
+            subs = f"{pin}\t\t\t{pout}" if len(pin) < 20 else f"{pin}\t\t{pout}"
             print(subs)
     print("\n==========================")
     print(f" Total score: {int(strat['total_score'])} \n")
 
 
-def discord_payload(strat: dict, lineup: List[str]) -> dict:
+def discord_payload(strat: dict, lineup: list[str]) -> dict:
     """
     json formated discord webhook content.
     """
@@ -369,12 +366,11 @@ def discord_payload(strat: dict, lineup: List[str]) -> dict:
                 },
             ]
         )
-    payload = {
+    return {
         "content": "\n".join(lineup),
         "username": "AIrsenal",
         "embeds": [discord_embed],
     }
-    return payload
 
 
 def print_team_for_next_gw(
@@ -398,11 +394,11 @@ def print_team_for_next_gw(
 
 
 def run_optimization(
-    gameweeks: List[int],
+    gameweeks: list[int],
     tag: str,
     season: str = CURRENT_SEASON,
     fpl_team_id: Optional[int] = None,
-    chip_gameweeks: dict = {},
+    chip_gameweeks: Optional[dict] = None,
     num_free_transfers: Optional[int] = None,
     max_total_hit: Optional[int] = None,
     allow_unused_transfers: bool = False,
@@ -421,6 +417,8 @@ def run_optimization(
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
     """
+    if chip_gameweeks is None:
+        chip_gameweeks = {}
     discord_webhook = fetcher.DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -653,7 +651,7 @@ def run_optimization(
     return best_squad, best_strategy
 
 
-def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
+def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     """
     Given a dict of form {<chip_name>: <chip_gw>,...}
     where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
@@ -675,12 +673,11 @@ def construct_chip_dict(gameweeks: List[int], chip_gameweeks: dict) -> dict:
         if v > 0 and v in gameweeks:  # v is the gameweek
             # check we're not trying to play 2 chips
             if chip_dict[v]["chip_to_play"] is not None:
-                raise RuntimeError(
-
-                        f"Cannot play {chip_dict[v]['chip_to_play']} and {k} in the "
-                        "same week"
-
+                msg = (
+                    f"Cannot play {chip_dict[v]['chip_to_play']} and {k} in the "
+                    "same week"
                 )
+                raise RuntimeError(msg)
             chip_dict[v]["chip_to_play"] = k
             chip_dict[v]["chips_allowed"] = []
     return chip_dict
@@ -691,13 +688,16 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
     Check that command-line arguments are self-consistent.
     """
     if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
-        raise RuntimeError("Please only specify weeks_ahead OR gameweek_start/end")
+        msg = "Please only specify weeks_ahead OR gameweek_start/end"
+        raise RuntimeError(msg)
     if (args.gameweek_start and not args.gameweek_end) or (
         args.gameweek_end and not args.gameweek_start
     ):
-        raise RuntimeError("Need to specify both gameweek_start and gameweek_end")
+        msg = "Need to specify both gameweek_start and gameweek_end"
+        raise RuntimeError(msg)
     if args.num_free_transfers and args.num_free_transfers not in range(6):
-        raise RuntimeError("Number of free transfers must be 0 to 5")
+        msg = "Number of free transfers must be 0 to 5"
+        raise RuntimeError(msg)
     return True
 
 

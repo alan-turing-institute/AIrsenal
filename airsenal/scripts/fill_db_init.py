@@ -1,7 +1,6 @@
 """Script to fill the database after install."""
 
 import argparse
-from typing import List
 
 from sqlalchemy.orm.session import Session
 
@@ -30,7 +29,7 @@ def check_clean_db(clean: bool, dbsession: Session) -> bool:
     return database_is_empty(dbsession)
 
 
-def make_init_db(fpl_team_id: int, seasons: List[str], dbsession: Session) -> bool:
+def make_init_db(fpl_team_id: int, seasons: list[str], dbsession: Session) -> bool:
     seasons = sort_seasons(seasons)
     make_team_table(seasons=seasons, dbsession=dbsession)
     make_fixture_table(seasons=seasons, dbsession=dbsession)
@@ -52,7 +51,8 @@ def make_init_db(fpl_team_id: int, seasons: List[str], dbsession: Session) -> bo
 def check_positive_int(value: int) -> int:
     ivalue = int(value)
     if ivalue <= 0:
-        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+        msg = f"{value} is an invalid positive int value"
+        raise argparse.ArgumentTypeError(msg)
     return ivalue
 
 
@@ -87,7 +87,7 @@ def main():
             if args.no_current_season:
                 seasons = get_past_seasons(args.n_previous)
             else:
-                seasons = [CURRENT_SEASON] + get_past_seasons(args.n_previous)
+                seasons = [CURRENT_SEASON, *get_past_seasons(args.n_previous)]
             make_init_db(args.fpl_team_id, seasons, dbsession)
         else:
             print(

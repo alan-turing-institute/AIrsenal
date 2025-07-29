@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -18,12 +18,12 @@ class RandomMatchPredictor(BaseMatchPredictor):
 
     def fit(
         self,
-        training_data: Dict[str, Union[Iterable[str], Iterable[float]]],
+        training_data: dict[str, Union[Iterable[str], Iterable[float]]],
         random_state: int = 42,
     ):
         home_team = training_data["home_team"]
         away_team = training_data["away_team"]
-        self.teams = sorted(list(set(home_team) | set(away_team)))
+        self.teams = sorted(set(home_team) | set(away_team))
 
         self.attack = np.random.randn(self.num_samples, len(self.teams))
         self.defence = np.random.randn(self.num_samples, len(self.teams))
@@ -56,7 +56,8 @@ class RandomMatchPredictor(BaseMatchPredictor):
 
     def add_new_team(self, team_name: str, team_covariates: Optional[np.array] = None):
         if team_name in self.teams:
-            raise ValueError(f"Team {team_name} already known to model.")
+            msg = f"Team {team_name} already known to model."
+            raise ValueError(msg)
 
         attack = np.random.randn(
             self.num_samples,

@@ -180,7 +180,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     season = args.season
     if season not in ["1516", "1617"]:
-        raise RuntimeError("Please specify the season - 1516 or 1617")
+        msg = "Please specify the season - 1516 or 1617"
+        raise RuntimeError(msg)
     if args.mode == "summary":
         output_file = open(f"player_summary_{season}.json", "w")
         player_data = []

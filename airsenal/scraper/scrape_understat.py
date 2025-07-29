@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 from datetime import datetime, timedelta
+from typing import Optional
 
 import pytz
 import requests
@@ -57,10 +58,11 @@ def get_matches_info(season: str):
     try:
         response = requests.get(base_url[season])
     except KeyError:
-        raise KeyError(
+        msg = (
             f"Please provide valid season to scrape data: "
             f"{season} not in {list(base_url.keys())}"
         )
+        raise KeyError(msg)
 
     if response.ok:
         html = response.text
@@ -69,12 +71,12 @@ def get_matches_info(season: str):
         json_string = html[start:end]
         json_string = json_string.encode("utf-8").decode("unicode_escape")
 
-        matches_list = json.loads(json_string[1:-1])
-        return matches_list
-    raise ValueError(
+        return json.loads(json_string[1:-1])
+    msg = (
         f"Could not receive data for the given season. "
         f"Error code: {response.status_code}"
     )
+    raise ValueError(msg)
 
 
 def parse_match(match_info: dict):
@@ -108,9 +110,8 @@ def parse_match(match_info: dict):
     """
     match_id = match_info.get("id")
     if not match_id:
-        raise KeyError(
-            "`id` not found. Please provide the id of the match in the dictionary."
-        )
+        msg = "`id` not found. Please provide the id of the match in the dictionary."
+        raise KeyError(msg)
 
     home_team = match_info.get("h").get("title")
     away_team = match_info.get("a").get("title")
@@ -125,11 +126,12 @@ def parse_match(match_info: dict):
     if response.ok:
         soup = BeautifulSoup(response.text, features="lxml")
     else:
-        raise RuntimeError(
+        msg = (
             f"Could not reach match {match_id} "
             f"({home_team} vs. {away_team}, {date}) "
             f"at understat.com: {response.status_code}"
         )
+        raise RuntimeError(msg)
 
     timeline = soup.find_all(
         "div", attrs={"class": "timiline-container"}, recursive=True
@@ -161,17 +163,16 @@ def parse_match(match_info: dict):
                     else:
                         subs["away"].append(sub_info)
 
-    result = {
+    return {
         "datetime": date,
         "home": home_team,
         "away": away_team,
         "goals": goals,
         "subs": subs,
     }
-    return result
 
 
-def get_season_info(season: str, result: dict = {}):
+def get_season_info(season: str, result: Optional[dict] = None):
     """Get statistics for whole season
 
     This function scrapes data for all the matches and returns a single
@@ -195,6 +196,8 @@ def get_season_info(season: str, result: dict = {}):
         substitutions made in the match.
     """
 
+    if result is None:
+        result = {}
     matches_info = get_matches_info(season)
 
     for match in tqdm(matches_info):

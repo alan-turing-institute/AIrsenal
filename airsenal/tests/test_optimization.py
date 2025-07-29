@@ -207,7 +207,6 @@ def test_double_transfer():
         "DEF": {
             2: 2,
             3: 2,
-            2: 2,
             5: 2,
             6: 2,  # in the orig squad
             103: 0,

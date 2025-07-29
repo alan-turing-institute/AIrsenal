@@ -10,7 +10,7 @@ get consistent sets of predictions from the database.
 
 import argparse
 from multiprocessing import Process, Queue
-from typing import List, Optional, Union
+from typing import Optional, Union
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -44,7 +44,7 @@ from airsenal.framework.utils import (
 
 def allocate_predictions(
     queue: Queue,
-    gw_range: List[int],
+    gw_range: list[int],
     fixture_goal_probs: dict,
     df_player: dict,
     df_bonus: tuple,
@@ -81,7 +81,7 @@ def allocate_predictions(
 
 
 def calc_all_predicted_points(
-    gw_range: List[int],
+    gw_range: list[int],
     season: str,
     dbsession: Session,
     include_bonus: bool = True,
@@ -95,11 +95,13 @@ def calc_all_predicted_points(
     team_model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: dict = {"epsilon": 0.0},
+    team_model_args: Optional[dict] = None,
 ) -> None:
     """
     Do the full prediction for players.
     """
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     model_team = get_fitted_team_model(
         season=season,
         gameweek=min(gw_range),
@@ -184,7 +186,7 @@ def calc_all_predicted_points(
 
 
 def make_predictedscore_table(
-    gw_range: Optional[List[int]] = None,
+    gw_range: Optional[list[int]] = None,
     season: str = CURRENT_SEASON,
     num_thread: int = 4,
     include_bonus: bool = True,
@@ -197,9 +199,11 @@ def make_predictedscore_table(
     team_model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: dict = {"epsilon": 0.0},
+    team_model_args: Optional[dict] = None,
     dbsession: Session = session,
 ) -> str:
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
@@ -280,10 +284,7 @@ def main():
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
-    if args.sampling:
-        player_model = NumpyroPlayerModel()
-    else:
-        player_model = ConjugatePlayerModel()
+    player_model = NumpyroPlayerModel() if args.sampling else ConjugatePlayerModel()
     if args.team_model == "extended":
         team_model = ExtendedDixonColesMatchPredictor()
     elif args.team_model == "neutral":

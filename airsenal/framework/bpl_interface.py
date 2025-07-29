@@ -3,7 +3,7 @@ Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
 
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,7 @@ np.random.seed(42)
 
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
-) -> Dict[str, np.array]:
+) -> dict[str, np.array]:
     """
     Query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -56,20 +56,20 @@ def get_result_dict(
         "away_goals": np.array([r.away_score for r in results]),
         "time_diff": time_diff,
         "neutral_venue": np.zeros(len(results)),
-        "time_diff": time_diff,
         "game_weights": np.ones(len(results)),
     }
 
 
 def get_ratings_dict(
-    season: str, teams: List[str], dbsession: Session
-) -> Dict[str, np.array]:
+    season: str, teams: list[str], dbsession: Session
+) -> dict[str, np.array]:
     """
     Create a dataframe containing the fifa team ratings.
     """
     ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
     if len(ratings) == 0:
-        raise ValueError(f"No FIFA ratings found for season {season}")
+        msg = f"No FIFA ratings found for season {season}"
+        raise ValueError(msg)
 
     ratings_dict = {
         s.team: np.array([s.att, s.mid, s.defn, s.ovr])
@@ -77,12 +77,13 @@ def get_ratings_dict(
         if s.team in teams
     }
     if len(ratings_dict) != len(teams):
-        raise ValueError(
+        msg = (
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
-             f"teams with FIFA ratings but {len(teams)} teams with results."
-             " The teams involved are "
-             f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
+            f"teams with FIFA ratings but {len(teams)} teams with results."
+            " The teams involved are "
+            f"{set(ratings_dict.keys()).symmetric_difference(teams)}"
         )
+        raise ValueError(msg)
     return ratings_dict
 
 
@@ -238,11 +239,12 @@ def fixture_probabilities(
             home_teams, away_teams, neutral_venue=np.zeros(len(home_teams))
         )
     else:
-        raise NotImplementedError(
+        msg = (
             "model must be either of type "
             "'ExtendedDixonColesMatchPredictor' or "
             "'NeutralDixonColesMatchPredictor'"
         )
+        raise NotImplementedError(msg)
     return pd.DataFrame(
         {
             "home_team": home_teams,
@@ -255,12 +257,12 @@ def fixture_probabilities(
 
 
 def get_goal_probabilities_for_fixtures(
-    fixtures: List[Fixture],
+    fixtures: list[Fixture],
     team_model: Union[
         ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
     ],
     max_goals: int = 10,
-) -> Dict[int, Dict[str, Dict[int, float]]]:
+) -> dict[int, dict[str, dict[int, float]]]:
     """
     Get the probability that each team in a fixture scores any number of goals up
     to max_goals.
@@ -275,7 +277,7 @@ def get_goal_probabilities_for_fixtures(
             goals, f.away_team, f.home_team, home=False
         )
         probs[f.fixture_id] = {
-            f.home_team: {g: p for g, p in zip(goals, home_team_goal_prob)},
-            f.away_team: {g: p for g, p in zip(goals, away_team_goal_prob)},
+            f.home_team: dict(zip(goals, home_team_goal_prob)),
+            f.away_team: dict(zip(goals, away_team_goal_prob)),
         }
     return probs

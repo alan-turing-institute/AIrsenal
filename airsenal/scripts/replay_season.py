@@ -62,10 +62,12 @@ def replay_season(
     transfers: bool = True,
     tag_prefix: str = "",
     team_model: str = "extended",
-    team_model_args: dict = {"epsilon": 0.0},
+    team_model_args: Optional[dict] = None,
     fpl_team_id: Optional[int] = None,
     max_opt_transfers: int = 2,
 ) -> None:
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
@@ -241,7 +243,8 @@ def main():
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
-        raise RuntimeError("fpl_team_id must be set to use the resume argument")
+        msg = "fpl_team_id must be set to use the resume argument"
+        raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 

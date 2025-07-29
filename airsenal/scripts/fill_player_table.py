@@ -6,7 +6,7 @@ Fill the "Player" table with info from this and past seasonss FPL
 
 import json
 import os
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -106,12 +106,14 @@ def make_init_player_table(season: str, dbsession: Session = session) -> None:
 
 
 def make_remaining_player_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
     """
     Fill remaining players for subsequent seasons (AFTER players from the most recent
     season)
     """
+    if seasons is None:
+        seasons = []
     for season in seasons:
         filename = os.path.join(
             os.path.join(
@@ -125,8 +127,10 @@ def make_remaining_player_table(
 
 
 def make_player_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: Optional[list[str]] = None, dbsession: Session = session
 ) -> None:
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

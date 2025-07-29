@@ -168,7 +168,8 @@ def get_session_budget(session_id, dbsession=DBSESSION):
 
     sb = dbsession.query(SessionBudget).filter_by(session_id=session_id).all()
     if len(sb) != 1:
-        raise RuntimeError(f"{len(sb)}  SessionBudgets for session key {session_id}")
+        msg = f"{len(sb)}  SessionBudgets for session key {session_id}"
+        raise RuntimeError(msg)
     return sb[0].budget
 
 
@@ -281,9 +282,11 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     """
     n_transfer = int(n_transfer)
     if n_transfer not in range(1, 3):
-        raise RuntimeError("Need to choose 1 or 2 transfers")
+        msg = "Need to choose 1 or 2 transfers"
+        raise RuntimeError(msg)
     if not validate_session_squad(session_id, dbsession):
-        raise RuntimeError("Cannot suggest transfer without complete squad")
+        msg = "Cannot suggest transfer without complete squad"
+        raise RuntimeError(msg)
 
     budget = get_session_budget(session_id, dbsession)
     players = [p["id"] for p in get_session_players(session_id, dbsession)]
@@ -291,7 +294,8 @@ def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
     for p in players:
         added_ok = t.add_player(p)
         if not added_ok:
-            raise RuntimeError(f"Cannot add player {p}")
+            msg = f"Cannot add player {p}"
+            raise RuntimeError(msg)
     pred_tag = get_latest_prediction_tag()
     if n_transfer == 1:
         _, pid_out, pid_in = make_optimum_single_transfer(t, pred_tag)
