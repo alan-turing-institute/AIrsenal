@@ -7,7 +7,6 @@ Fill the "fixture" table with info from this seasons FPL
 
 import os
 import uuid
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -99,7 +98,7 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
 
 
 def make_fixture_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     # fill the fixture table for past seasons
     if seasons is None:

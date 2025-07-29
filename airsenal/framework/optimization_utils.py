@@ -5,7 +5,6 @@ functions to optimize the transfers for N weeks ahead
 import warnings
 from copy import deepcopy
 from datetime import datetime
-from typing import Optional
 
 import requests
 
@@ -202,10 +201,10 @@ def get_discounted_squad_score(
     squad: Squad,
     gameweeks: list,
     tag: str,
-    root_gw: Optional[int] = None,
-    bench_boost_gw: Optional[int] = None,
-    triple_captain_gw: Optional[int] = None,
-    sub_weights: Optional[dict] = None,
+    root_gw: int | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    sub_weights: dict | None = None,
 ) -> float:
     """Get the number of points a squad is expected to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
@@ -547,17 +546,17 @@ def next_week_transfers(
 
     # return list of (num_transfers, free_transfers, hit_so_far) tuples for each new
     # strategy
-    return list(zip(new_transfers, new_ft_available, new_points_hits))
+    return list(zip(new_transfers, new_ft_available, new_points_hits, strict=False))
 
 
 def count_expected_outputs(
     gw_ahead: int,
     next_gw: int = NEXT_GAMEWEEK,
     free_transfers: int = 1,
-    max_total_hit: Optional[int] = None,
+    max_total_hit: int | None = None,
     allow_unused_transfers: bool = True,
     max_opt_transfers: int = 2,
-    chip_gw_dict: Optional[dict] = None,
+    chip_gw_dict: dict | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> tuple[int, bool]:
     """

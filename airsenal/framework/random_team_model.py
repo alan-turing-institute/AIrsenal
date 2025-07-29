@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Optional, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -18,7 +17,7 @@ class RandomMatchPredictor(BaseMatchPredictor):
 
     def fit(
         self,
-        training_data: dict[str, Union[Iterable[str], Iterable[float]]],
+        training_data: dict[str, Iterable[str] | Iterable[float]],
         random_state: int = 42,
     ):
         home_team = training_data["home_team"]
@@ -38,10 +37,10 @@ class RandomMatchPredictor(BaseMatchPredictor):
 
     def predict_score_proba(
         self,
-        home_team: Union[str, Iterable[str]],
-        away_team: Union[str, Iterable[str]],
-        home_goals: Union[int, Iterable[int]],
-        away_goals: Union[int, Iterable[int]],
+        home_team: str | Iterable[str],
+        away_team: str | Iterable[str],
+        home_goals: int | Iterable[int],
+        away_goals: int | Iterable[int],
     ) -> np.array:
         home_team = [home_team] if isinstance(home_team, str) else home_team
         away_team = [away_team] if isinstance(away_team, str) else away_team
@@ -54,7 +53,7 @@ class RandomMatchPredictor(BaseMatchPredictor):
         )
         return sampled_probs.mean(axis=0)
 
-    def add_new_team(self, team_name: str, team_covariates: Optional[np.array] = None):
+    def add_new_team(self, team_name: str, team_covariates: np.array | None = None):
         if team_name in self.teams:
             msg = f"Team {team_name} already known to model."
             raise ValueError(msg)

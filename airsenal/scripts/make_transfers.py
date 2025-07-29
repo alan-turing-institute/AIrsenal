@@ -8,7 +8,6 @@ https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
 import argparse
-from typing import Optional
 
 from prettytable import PrettyTable
 
@@ -60,8 +59,8 @@ def print_output(
     team_id: int,
     current_gw: int,
     priced_transfers: list[dict],
-    pre_bank: Optional[float] = None,
-    post_bank: Optional[float] = None,
+    pre_bank: float | None = None,
+    post_bank: float | None = None,
     points_cost: str = "TODO",
 ) -> None:
     print("\n")
@@ -108,8 +107,8 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
 
 
 def get_gw_transfer_suggestions(
-    fpl_team_id: Optional[int] = None,
-) -> Optional[tuple[list[list], int, int, str]]:
+    fpl_team_id: int | None = None,
+) -> tuple[list[list], int, int, str] | None:
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
@@ -146,7 +145,7 @@ def price_transfers(
     For most gameweeks, we get transfer suggestions from the db, including
     both players to be removed and added.
     """
-    transfers = list(zip(*transfer_player_ids))  # [(out,in),(out,in)]
+    transfers = list(zip(*transfer_player_ids, strict=False))  # [(out,in),(out,in)]
     priced_transfers = [
         [
             [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
@@ -233,7 +232,7 @@ def remove_duplicates(transfers_in: list[int], transfers_out: list[int]) -> tupl
 
 
 def build_init_priced_transfers(
-    fetcher: FPLDataFetcher, fpl_team_id: Optional[int] = None
+    fetcher: FPLDataFetcher, fpl_team_id: int | None = None
 ) -> list[dict]:
     """
     Before gameweek 1, there won't be any 'sell' transfer suggestions in the db.
@@ -292,8 +291,8 @@ def build_transfer_payload(
 
 
 def make_transfers(
-    fpl_team_id: Optional[int] = None, skip_check: bool = False
-) -> Optional[bool]:
+    fpl_team_id: int | None = None, skip_check: bool = False
+) -> bool | None:
     suggestions = get_gw_transfer_suggestions(fpl_team_id)
     if not suggestions:
         return None

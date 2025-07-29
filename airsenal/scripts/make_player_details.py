@@ -10,7 +10,6 @@ import shutil
 import subprocess
 from functools import cache
 from glob import glob
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -106,7 +105,7 @@ def path_to_name(path: str) -> str:
     return " ".join(x for x in dir_name.split("_") if not x.isdigit())
 
 
-def path_to_index(path: str) -> Optional[int]:
+def path_to_index(path: str) -> int | None:
     """function to take a sub directory path into a key for output json
     i.e. player name from directory path
     """
@@ -270,7 +269,7 @@ def get_duplicates_df() -> pd.DataFrame:
     return pd.read_csv(DUPLICATE_PATH)
 
 
-def check_duplicates(idx: int, season: str, name: str) -> Union[pd.DataFrame, str]:
+def check_duplicates(idx: int, season: str, name: str) -> pd.DataFrame | str:
     if name == "Danny Ward":
         print("Danny Ward")
     df = get_duplicates_df()
@@ -324,7 +323,7 @@ def get_player_details(season: str) -> dict:
     return output
 
 
-def make_player_details(seasons: Optional[list[str]] = None):
+def make_player_details(seasons: list[str] | None = None):
     if seasons is None:
         seasons = []
     print(f"Cloning {GIT_REPO}...")

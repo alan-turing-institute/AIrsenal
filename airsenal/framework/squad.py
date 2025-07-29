@@ -97,7 +97,7 @@ class Squad:
         current price as found in DB, but if one is specified, we override
         with that value.
         """
-        if isinstance(p, (int, str, Player)):
+        if isinstance(p, int | str | Player):
             player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p

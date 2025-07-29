@@ -6,7 +6,6 @@ algorithm.
 
 import random
 import uuid
-from typing import Optional
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -281,7 +280,7 @@ class SquadOpt:
         mutation_indpb: float = 0.1,
         tournament_size: int = 3,
         verbose: bool = True,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ) -> tuple[list[int], float]:
         """Run the genetic algorithm optimization.
 

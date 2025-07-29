@@ -6,7 +6,6 @@ import argparse
 import contextlib
 import os
 from cmath import nan
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -396,7 +395,7 @@ def get_player_transfers(
 
 def get_player_team_history(
     df: pd.DataFrame,
-    pl_teams_in_season: Optional[dict] = None,
+    pl_teams_in_season: dict | None = None,
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """Get a player's team/club history given their transfer data.
@@ -531,7 +530,7 @@ def get_player_team_history(
 
 def get_player_transfer_unavailability(
     player_profile_url: str,
-    pl_teams_in_season: Optional[dict] = None,
+    pl_teams_in_season: dict | None = None,
     end_season: str = CURRENT_SEASON,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -588,7 +587,7 @@ def get_player_transfer_unavailability(
 
 def get_season_absences(
     season: str,
-    pl_teams_in_season: Optional[dict] = None,
+    pl_teams_in_season: dict | None = None,
     verbose: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Get injury and suspension data for a season

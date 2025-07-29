@@ -186,7 +186,7 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
         row = {
             field: player[field]
             for field, value____ in player.items()
-            if isinstance(value____, (str, int, float))
+            if isinstance(value____, str | int | float)
         }
 
         writer.writerow(row)

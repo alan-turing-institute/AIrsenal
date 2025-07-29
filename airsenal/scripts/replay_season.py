@@ -7,7 +7,6 @@ import argparse
 import json
 import warnings
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
@@ -55,15 +54,15 @@ def print_replay_params(
 def replay_season(
     season: str,
     gameweek_start: int = 1,
-    gameweek_end: Optional[int] = None,
+    gameweek_end: int | None = None,
     new_squad: bool = True,
     weeks_ahead: int = 3,
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
     team_model: str = "extended",
-    team_model_args: Optional[dict] = None,
-    fpl_team_id: Optional[int] = None,
+    team_model_args: dict | None = None,
+    fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
 ) -> None:
     if team_model_args is None:

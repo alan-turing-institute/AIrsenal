@@ -4,7 +4,6 @@ Script to apply recommended squad changes after transfers are made
 """
 
 import argparse
-from typing import Optional
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
@@ -83,8 +82,8 @@ def make_squad_transfers(squad: Squad, priced_transfers: list[dict]) -> None:
 
 
 def set_lineup(
-    fpl_team_id: Optional[int] = None,
-    verbose: Optional[bool] = False,
+    fpl_team_id: int | None = None,
+    verbose: bool | None = False,
     skip_check: bool = False,
 ) -> None:
     """

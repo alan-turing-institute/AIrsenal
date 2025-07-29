@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
@@ -62,7 +61,7 @@ def load_absences(season: str, dbsession: Session) -> None:
 
 
 def make_absence_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     if seasons is None:
         seasons = []

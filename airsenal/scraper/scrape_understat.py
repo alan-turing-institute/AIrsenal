@@ -11,7 +11,6 @@ import argparse
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Optional
 
 import pytz
 import requests
@@ -172,7 +171,7 @@ def parse_match(match_info: dict):
     }
 
 
-def get_season_info(season: str, result: Optional[dict] = None):
+def get_season_info(season: str, result: dict | None = None):
     """Get statistics for whole season
 
     This function scrapes data for all the matches and returns a single

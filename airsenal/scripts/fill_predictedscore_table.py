@@ -10,7 +10,6 @@ get consistent sets of predictions from the database.
 
 import argparse
 from multiprocessing import Process, Queue
-from typing import Optional, Union
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -89,13 +88,10 @@ def calc_all_predicted_points(
     include_saves: bool = True,
     num_thread: int = 4,
     tag: str = "",
-    player_model: Union[
-        NumpyroPlayerModel, ConjugatePlayerModel
-    ] = ConjugatePlayerModel(),
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: Optional[dict] = None,
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    team_model_args: dict | None = None,
 ) -> None:
     """
     Do the full prediction for players.
@@ -186,20 +182,17 @@ def calc_all_predicted_points(
 
 
 def make_predictedscore_table(
-    gw_range: Optional[list[int]] = None,
+    gw_range: list[int] | None = None,
     season: str = CURRENT_SEASON,
     num_thread: int = 4,
     include_bonus: bool = True,
     include_cards: bool = True,
     include_saves: bool = True,
-    tag_prefix: Optional[str] = None,
-    player_model: Union[
-        NumpyroPlayerModel, ConjugatePlayerModel
-    ] = ConjugatePlayerModel(),
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: Optional[dict] = None,
+    tag_prefix: str | None = None,
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel = ConjugatePlayerModel(),
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    team_model_args: dict | None = None,
     dbsession: Session = session,
 ) -> str:
     if team_model_args is None:

@@ -6,7 +6,6 @@ Fill the "Player" table with info from this and past seasonss FPL
 
 import json
 import os
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -20,7 +19,7 @@ from airsenal.scripts.fill_player_mappings_table import (
 )
 
 
-def find_player_in_table(name: str, dbsession: Session) -> Optional[Player]:
+def find_player_in_table(name: str, dbsession: Session) -> Player | None:
     """
     see if we already have the player
     """
@@ -106,7 +105,7 @@ def make_init_player_table(season: str, dbsession: Session = session) -> None:
 
 
 def make_remaining_player_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """
     Fill remaining players for subsequent seasons (AFTER players from the most recent
@@ -127,7 +126,7 @@ def make_remaining_player_table(
 
 
 def make_player_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     if seasons is None:
         seasons = []

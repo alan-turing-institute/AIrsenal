@@ -1,7 +1,6 @@
 import multiprocessing
 import sys
 import warnings
-from typing import Optional, Union
 
 import click
 import requests
@@ -301,10 +300,9 @@ def run_prediction(
     num_thread: int,
     gw_range: list[int],
     dbsession: Session,
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: Optional[dict] = None,
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
+    team_model_args: dict | None = None,
 ) -> bool:
     """
     Run prediction
@@ -379,7 +377,7 @@ def run_optimize_squad(
     return True
 
 
-def set_starting_11(fpl_team_id: Optional[int] = None) -> bool:
+def set_starting_11(fpl_team_id: int | None = None) -> bool:
     """
     Set the lineup based on the latest optimization run.
 

@@ -8,7 +8,6 @@ Fill the "player_score" table with historic results
 import contextlib
 import json
 import os
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -207,7 +206,7 @@ def fill_playerscores_from_api(
 
 
 def make_playerscore_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     # previous seasons data from json files
     if seasons is None:

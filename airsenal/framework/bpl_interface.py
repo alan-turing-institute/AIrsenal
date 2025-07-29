@@ -3,8 +3,6 @@ Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -109,11 +107,10 @@ def get_training_data(
 
 def create_and_fit_team_model(
     training_data: dict,
-    model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
+    model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
     **fit_args,
-) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
+) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
@@ -132,13 +129,11 @@ def create_and_fit_team_model(
 
 
 def add_new_teams_to_model(
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ],
+    team_model: ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor,
     season: str,
     dbsession: Session,
     ratings: bool = True,
-) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
+) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
@@ -161,11 +156,10 @@ def get_fitted_team_model(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
+    model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor = ExtendedDixonColesMatchPredictor(),
     **fit_args,
-) -> Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]:
+) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
@@ -187,9 +181,9 @@ def get_fitted_team_model(
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    model: Optional[
-        Union[ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor]
-    ] = None,
+    model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | None = None,
     dbsession: Session = session,
     ratings: bool = True,
     **fit_args,
@@ -230,7 +224,7 @@ def fixture_probabilities(
     fixtures = get_fixture_teams(
         get_fixtures_for_gameweek(gameweek=gameweek, season=season, dbsession=dbsession)
     )
-    home_teams, away_teams = zip(*fixtures)
+    home_teams, away_teams = zip(*fixtures, strict=False)
     # obtain match probabilities
     if isinstance(model, ExtendedDixonColesMatchPredictor):
         probabilities = model.predict_outcome_proba(home_teams, away_teams)
@@ -258,9 +252,7 @@ def fixture_probabilities(
 
 def get_goal_probabilities_for_fixtures(
     fixtures: list[Fixture],
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ],
+    team_model: ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor,
     max_goals: int = 10,
 ) -> dict[int, dict[str, dict[int, float]]]:
     """
@@ -277,7 +269,7 @@ def get_goal_probabilities_for_fixtures(
             goals, f.away_team, f.home_team, home=False
         )
         probs[f.fixture_id] = {
-            f.home_team: dict(zip(goals, home_team_goal_prob)),
-            f.away_team: dict(zip(goals, away_team_goal_prob)),
+            f.home_team: dict(zip(goals, home_team_goal_prob, strict=False)),
+            f.away_team: dict(zip(goals, away_team_goal_prob, strict=False)),
         }
     return probs

@@ -9,7 +9,7 @@ Write out a dict of the format
 """
 
 import json
-from typing import Callable
+from collections.abc import Callable
 
 from fuzzywuzzy import fuzz
 

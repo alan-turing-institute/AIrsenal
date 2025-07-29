@@ -24,8 +24,8 @@ import shutil
 import sys
 import time
 import warnings
+from collections.abc import Callable
 from multiprocessing import Process, Queue
-from typing import Callable, Optional
 
 import regex as re
 import requests
@@ -87,12 +87,12 @@ def optimize(
     season: str,
     pred_tag: str,
     chips_gw_dict: dict,
-    max_total_hit: Optional[int] = None,
+    max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
     max_transfers: int = 2,
     num_iterations: int = 100,
-    updater: Optional[Callable] = None,
-    resetter: Optional[Callable] = None,
+    updater: Callable | None = None,
+    resetter: Callable | None = None,
     profile: bool = False,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> None:
@@ -374,7 +374,7 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
 
 
 def print_team_for_next_gw(
-    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: Optional[int] = None
+    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
 ) -> Squad:
     """
     Display the team (inc. subs and captain) for the next gameweek
@@ -397,10 +397,10 @@ def run_optimization(
     gameweeks: list[int],
     tag: str,
     season: str = CURRENT_SEASON,
-    fpl_team_id: Optional[int] = None,
-    chip_gameweeks: Optional[dict] = None,
-    num_free_transfers: Optional[int] = None,
-    max_total_hit: Optional[int] = None,
+    fpl_team_id: int | None = None,
+    chip_gameweeks: dict | None = None,
+    num_free_transfers: int | None = None,
+    max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
     max_opt_transfers: int = 2,
     num_iterations: int = 100,

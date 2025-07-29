@@ -7,7 +7,6 @@ Fill the "result" table with historic results
 
 import argparse
 import os
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -101,7 +100,7 @@ def fill_results_from_api(
 
 
 def make_result_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """
     past seasons - read results from csv

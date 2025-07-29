@@ -6,7 +6,6 @@ Fill the "Player" table with info from this and past seasonss FPL
 
 import json
 import os
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -211,7 +210,7 @@ def fill_attributes_table_from_api(
 
 
 def make_attributes_table(
-    seasons: Optional[list[str]] = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
