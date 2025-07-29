@@ -180,12 +180,11 @@ def get_player_history_df(
             )
             row_count += 1
 
-        if fill_blank:
+        if fill_blank and row_count < max_matches_per_player:
             # fill blank rows so they are all the same size
-            if row_count < max_matches_per_player:
-                player_data += [
-                    [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
-                ] * (max_matches_per_player - row_count)
+            player_data += [
+                [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
+            ] * (max_matches_per_player - row_count)
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -520,25 +519,23 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
     write output to a csv.
     """
     if not os.path.exists(csv_filename):
-        outfile = open(csv_filename, "w")
-        outfile.write("player_id,gameweek,EP\n")
-    else:
-        outfile = open(csv_filename, "a")
+        with open(csv_filename, "w") as outfile:
+            outfile.write("player_id,gameweek,EP\n")
 
     summary_data = fetcher.get_player_summary_data()
     gameweek = NEXT_GAMEWEEK
-    for k, v in summary_data.items():
-        player = get_player_from_api_id(k)
-        player_id = player.player_id
-        outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
-        pp = PlayerPrediction()
-        pp.player_id = player_id
-        pp.gameweek = gameweek
-        pp.predicted_points = v["ep_next"]
-        pp.method = "EP"
-        dbsession.add(pp)
+    with open(csv_filename, "a") as outfile:
+        for k, v in summary_data.items():
+            player = get_player_from_api_id(k)
+            player_id = player.player_id
+            outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
+            pp = PlayerPrediction()
+            pp.player_id = player_id
+            pp.gameweek = gameweek
+            pp.predicted_points = v["ep_next"]
+            pp.method = "EP"
+            dbsession.add(pp)
     dbsession.commit()
-    outfile.close()
 
 
 def process_player_data(
@@ -725,7 +722,7 @@ def fit_save_points(
     goalkeepers = [gk.player_id for gk in goalkeepers]
     df = df[df["player_id"].isin(goalkeepers)]
 
-    #  1pt per 3 saves
+    # 1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
 
     return mean_group_min_count(df, "player_id", "save_pts", min_count=min_matches)

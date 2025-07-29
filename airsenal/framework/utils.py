@@ -297,7 +297,7 @@ def get_current_players(
     )
 
     if len(transactions) == 0:
-        #  not updated the transactions table yet
+        # not updated the transactions table yet
         return []
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
@@ -402,8 +402,8 @@ def get_entry_start_gameweek(
             starting_gw += 1
         except requests.exceptions.ConnectionError as e:
             warnings.warn(
-                f"Failed to connect to the API:\n{e}\n. "
-                "Assuming team {fpl_team_id} was entered in GW1 which may be incorrect.",
+                f"Failed to connect to the API:\n{e}\n. Assuming team {fpl_team_id}"
+                " was entered in GW1 which may be incorrect.",
                 stacklevel=2,
             )
             return 1
@@ -696,7 +696,7 @@ def list_players(
         # exclude managers
         q = q.filter(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
-        #  Sort query results by order of gameweeks - i.e. make sure the input
+        # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
         _whens = {gw: i for i, gw in enumerate(gameweeks)}
         sort_order = case(_whens, value=PlayerAttributes.gameweek)
@@ -708,7 +708,7 @@ def list_players(
     for p in q.all():
         if p.player not in players:
             # might have queried multiple gameweeks with same player returned
-            #  multiple times - only add if it's a new player
+            # multiple times - only add if it's a new player
             players.append(p.player)
             prices.append(p.price)
             if verbose and (len(gameweeks) == 1 or order_by != "price"):
@@ -1738,8 +1738,8 @@ def is_transfer_deadline_today() -> bool:
     """
     deadlines = fetcher.get_transfer_deadlines()
     for deadline in deadlines:
-        deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
-        if (deadline - datetime.now()).days == 0:
+        deadline_datetime = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
+        if (deadline_datetime - datetime.now()).days == 0:
             return True
     return False
 

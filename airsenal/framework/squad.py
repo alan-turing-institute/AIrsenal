@@ -198,7 +198,7 @@ class Squad:
             except Exception as e:
                 warnings.warn(
                     f"Failed to login to get actual sale price for {player} from API:\n"
-                    f"{e}.\nWill estimate it based on the players current price instead",
+                    f"{e}.\nWill estimate based on the player's current price instead",
                     stacklevel=2,
                 )
             # if not logged in, just get current price from API

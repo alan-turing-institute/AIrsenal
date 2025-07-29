@@ -313,7 +313,6 @@ def make_best_transfers(
     season,
     num_iter=100,
     update_func_and_args=None,
-    algorithm="genetic",
 ):
     """
     Return a new squad and a dictionary {"in": [player_ids],

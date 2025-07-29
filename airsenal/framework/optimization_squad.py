@@ -44,7 +44,7 @@ class DummyPlayer:
         Needed for compatibility with Squad/other Player classes
         """
 
-    def get_predicted_points(self, gameweek, tag):
+    def get_predicted_points(self, gameweek, tag):  # noqa: ARG002
         """
         Get points for a specific gameweek -
         """
