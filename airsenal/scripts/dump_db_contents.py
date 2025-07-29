@@ -20,7 +20,7 @@ from airsenal.framework.utils import session
 
 def main():
     # Dump Player database
-    player_fieldnames = ["player_id", "name"]
+    player_fieldnames = ["player_id", "fpl_api_id", "name"]
     save_table_fields(
         "../data/players.csv",
         player_fieldnames,
@@ -34,6 +34,9 @@ def main():
         "player_id",
         "season",
         "gameweek",
+        "chance_of_playing_next_round",
+        "news",
+        "return_gameweek",
         "price",
         "team",
         "position",
@@ -93,7 +96,7 @@ def main():
 
     # Dump FifaTeamRating database
     # Add season to the fieldnames once the table creation is updated
-    fifa_team_rating_fieldnames = ["team", "att", "defn", "mid", "ovr"]
+    fifa_team_rating_fieldnames = ["id", "season", "team", "att", "defn", "mid", "ovr"]
     save_table_fields(
         "../data/fifa_team_ratings.csv",
         fifa_team_rating_fieldnames,
@@ -104,6 +107,9 @@ def main():
     # Dump Transaction database
     transaction_fieldnames = [
         "id",
+        "fpl_team_id",
+        "free_hit",
+        "time",
         "player_id",
         "gameweek",
         "bought_or_sold",
@@ -149,6 +155,10 @@ def main():
         "selected",
         "transfers_in",
         "transfers_out",
+        'expected_assists',
+        'expected_goals',
+        'expected_goal_involvements',
+        'expected_goals_conceded'
     ]
     save_table_fields(
         "../data/player_scores.csv",
@@ -170,6 +180,7 @@ def save_table_fields(path, fields, dbclass, msg):
 def write_rows_to_csv(csvfile, fieldnames, dbclass):
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
+    print(f"Writing table {dbclass}")
     for player in session.query(dbclass).all():
         player = vars(player)
         row = {
