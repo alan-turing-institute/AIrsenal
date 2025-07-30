@@ -540,7 +540,8 @@ def get_team_name(
 
 
 def get_player(
-    player_name_or_id: str | int, dbsession: Session | None = None
+    player_name_or_id: str | int,
+    dbsession: Session | None = None,
 ) -> Player | None:
     """
     Query the player table by name or id, return the player object (or None).
@@ -626,7 +627,7 @@ def list_players(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session | None = None,
     verbose: bool = False,
-) -> list[int]:
+) -> list[Player]:
     """
     Print list of players and return a list of player_ids.
     """
@@ -683,36 +684,36 @@ def list_players(
                 gameweeks.append(gw)
                 break
 
-    q = (
+    query = (
         dbsession.query(PlayerAttributes)
         .filter_by(season=season)
         .filter(PlayerAttributes.gameweek.in_(gameweeks))
     )
     if team != "all":
-        q = q.filter_by(team=team)
+        query = query.filter_by(team=team)
     if position != "all":
-        q = q.filter_by(position=position)
+        query = query.filter_by(position=position)
     else:
         # exclude managers
-        q = q.filter(PlayerAttributes.position != "MNG")
+        query = query.filter(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
         # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
         _whens = {gw: i for i, gw in enumerate(gameweeks)}
         sort_order = case(_whens, value=PlayerAttributes.gameweek)
-        q = q.order_by(sort_order)
+        query = query.order_by(sort_order)
     if order_by == "price":
-        q = q.order_by(PlayerAttributes.price.desc())
+        query = query.order_by(PlayerAttributes.price.desc())
     players = []
     prices = []
-    for p in q.all():
-        if p.player not in players:
+    for pa in query.all():
+        if pa.player not in players:
             # might have queried multiple gameweeks with same player returned
             # multiple times - only add if it's a new player
-            players.append(p.player)
-            prices.append(p.price)
+            players.append(pa.player)
+            prices.append(pa.price)
             if verbose and (len(gameweeks) == 1 or order_by != "price"):
-                print(p.player, p.team, p.position, p.price)
+                print(pa.player, pa.team, pa.position, pa.price)
     if len(gameweeks) > 1 and order_by == "price":
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
@@ -720,8 +721,8 @@ def list_players(
             zip(prices, players, strict=False), reverse=True, key=lambda p: p[0]
         )
         if verbose:
-            for p in sort_players:
-                print(p[1].name, p[0])
+            for pa in sort_players:
+                print(pa[1].name, pa[0])
         players = [p for _, p in sort_players]
     return players
 
@@ -1049,7 +1050,7 @@ def get_predicted_points(
     team: str = "all",
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
-) -> list[tuple[int, float]]:
+) -> list[tuple[Player, float]]:
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points

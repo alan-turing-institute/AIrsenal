@@ -14,6 +14,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
+from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -238,7 +239,7 @@ class SquadOpt:
 
     def _remove_zero_pts(self):
         """Exclude players with zero predicted points."""
-        players = []
+        players: list[Player] = []
         # change_idx stores the indices of where the player positions change in the new
         # player list
         change_idx = [0]

@@ -87,6 +87,9 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     """
     info_dict = {"player_id": player_id}
     p = get_player(player_id, dbsession=dbsession)
+    if p is None:
+        msg = f"Player with id {player_id} not found"
+        raise RuntimeError(msg)
     info_dict["player_name"] = p.name
     team = p.team(CURRENT_SEASON, NEXT_GAMEWEEK)
     info_dict["team"] = team

@@ -315,20 +315,22 @@ def fill_transaction_table(
             dbsession,
         )
     for player_id in best_strat["players_in"][str(fill_gw)]:
-        player = get_player(player_id, dbsession=dbsession)
-        price = player.price(season, fill_gw)
-        add_transaction(
-            player_id,
-            fill_gw,
-            1,
-            price,
-            season,
-            tag,
-            free_hit,
-            fpl_team_id,
-            time,
-            dbsession,
-        )
+        if player := get_player(player_id, dbsession=dbsession):
+            price = player.price(season, fill_gw)
+            add_transaction(
+                player_id,
+                fill_gw,
+                1,
+                price,
+                season,
+                tag,
+                free_hit,
+                fpl_team_id,
+                time,
+                dbsession,
+            )
+        else:
+            print(f"Failed to find player {player_id} in db for transaction")
 
 
 def fill_initial_suggestion_table(
@@ -516,7 +518,7 @@ def next_week_transfers(
     # if we are definitely going to play a wildcard or free_hit deal with
     # that first
     if "chip_to_play" in chips and chips["chip_to_play"] == "wildcard":
-        new_transfers = ["W"]
+        new_transfers: list[int | str] = ["W"]
     elif "chip_to_play" in chips and chips["chip_to_play"] == "free_hit":
         new_transfers = ["F"]
     # for triple captain or bench boost, we can still do ft_choices transfers
@@ -581,7 +583,7 @@ def count_expected_outputs(
 
     if chip_gw_dict is None:
         chip_gw_dict = {}
-    init_strat_dict = {
+    init_strat_dict: dict[str, dict[int, list[int] | str]] = {
         "players_in": {},
         "chips_played": {},
     }
@@ -636,7 +638,7 @@ def count_expected_outputs(
 
     # if allow_unused_transfers is False baseline of no transfers can be removed above.
     # Check whether 1st strategy is the baseline and if not add it back in here
-    baseline_strat_dict = {
+    baseline_strat_dict: dict[str, dict[int, list[int] | str]] = {
         "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
         "chips_played": {},
     }

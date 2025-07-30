@@ -11,22 +11,22 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
-    "bpl @ git+https://github.com/anguswilliams91/bpl-next",
-    "click>=8.1.7",
-    "pandas>=2.2.1",
-    "requests>=2.31.0",
-    "sqlalchemy>=2.0.27",
-    "tqdm>=4.66.2",
-    "dateparser>=1.2.0",
-    "prettytable>=3.10.0",
-    "beautifulsoup4>=4.12.3",
-    "platformdirs>=4.2.0",
-    "deap>=1.4.1",
-    "python-dateutil>=2.8.2",
-    "lxml>=5.1.0",
-    "html5lib>=1.1",
-    "jax==0.4.24",
-    "jaxlib==0.4.24",
+  "bpl @ git+https://github.com/anguswilliams91/bpl-next",
+  "click>=8.1.7",
+  "pandas>=2.2.1",
+  "requests>=2.31.0",
+  "sqlalchemy>=2.0.27",
+  "tqdm>=4.66.2",
+  "dateparser>=1.2.0",
+  "prettytable>=3.10.0",
+  "beautifulsoup4>=4.12.3",
+  "platformdirs>=4.2.0",
+  "deap>=1.4.1",
+  "python-dateutil>=2.8.2",
+  "lxml>=5.1.0",
+  "html5lib>=1.1",
+  "jax==0.4.24",
+  "jaxlib==0.4.24",
 	"numpy>1,<2"
 ]
 
@@ -43,6 +43,9 @@ dev = [
     "pre-commit>=3.6.2",
     "pytest>=8.0.1",
     "pytest-sugar>=1.0.0",
+    "types-dateparser>=1.2.2.20250627",
+    "types-requests>=2.32.4.20250611",
+     "mypy>=1.17.0",
 ]
 
 [project.scripts]

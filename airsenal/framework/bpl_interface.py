@@ -146,8 +146,8 @@ def add_new_teams_to_model(
         if t not in team_model.teams:
             if ratings:
                 print(f"Adding {t} to team model with covariates")
-                ratings = get_ratings_dict(season, [t], dbsession)
-                team_model.add_new_team(t, team_covariates=ratings[t])
+                covariates = get_ratings_dict(season, [t], dbsession)
+                team_model.add_new_team(t, team_covariates=covariates[t])
             else:
                 print(f"Adding {t} to team model without covariates")
                 team_model.add_new_team(t)
