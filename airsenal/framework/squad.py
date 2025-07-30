@@ -280,7 +280,12 @@ class Squad:
         choose the best starting 11, obeying constraints.
         """
         # first order all the players by expected points
-        player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        player_dict: dict[str, list[tuple[CandidatePlayer, float]]] = {
+            "GK": [],
+            "DEF": [],
+            "MID": [],
+            "FWD": [],
+        }
         for p in self.players:
             try:
                 points_prediction = p.predicted_points[tag][gameweek]
@@ -447,8 +452,8 @@ class Squad:
         need_vice_captain = False
         vice_captain_points = 0
 
-        # this will be an ordered list of subs - make it the right size beforehand
-        subs = [None, None, None, None]
+        # this will be used to make an ordered list of subs
+        subs: list[tuple[int, Player]] = []
         need_sub = []
         for p in self.players:
             if p.is_starting or bench_boost:
@@ -472,7 +477,10 @@ class Squad:
 
             else:  # player not in our initial starting 11
                 # put the subs in order
-                subs[p.sub_position] = p
+                subs.append((p.sub_position, p))
+
+        ordered_subs = [s[1] for s in sorted(subs, key=itemgetter(0))]
+
         # now take account of possibility that captain didn't play
         if need_vice_captain:
             total_points += vice_captain_points  # double them
@@ -482,7 +490,7 @@ class Squad:
         # UNLESS bench_boost (in which case we've already counted subs points)
         if need_sub and not bench_boost:
             for p_out in need_sub:
-                for p_in in subs:
+                for p_in in ordered_subs:
                     if not self.is_substitution_allowed(p_out, p_in):
                         continue
                     scores = get_playerscores_for_player_gameweek(
@@ -492,6 +500,6 @@ class Squad:
                     if minutes > 0:
                         for score in scores:
                             total_points += score.points
-                        subs.remove(p_in)
+                        ordered_subs.remove(p_in)
                         break
         return total_points

@@ -9,7 +9,7 @@ def get_overall_points(gameweek=None):
     """
     Get our total points
     """
-    data = fetcher.get_fpl_team_data()
+    data = fetcher.get_fpl_team_data(gameweek=gameweek)
     if not gameweek:
         return data["entry"]["summary_overall_points"]
     if isinstance(gameweek, int) and gameweek <= len(data["history"]):
@@ -22,7 +22,7 @@ def get_overall_ranking(gameweek=None):
     """
     Get our overall ranking
     """
-    data = fetcher.get_fpl_team_data()
+    data = fetcher.get_fpl_team_data(gameweek=gameweek)
     if not gameweek:
         return data["entry"]["summary_overall_rank"]
     if isinstance(gameweek, int) and gameweek <= len(data["history"]):

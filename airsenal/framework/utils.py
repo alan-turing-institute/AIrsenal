@@ -1399,7 +1399,7 @@ def get_playerscores_for_player_gameweek(
     gameweek: int,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
-) -> PlayerScore:
+) -> list[PlayerScore]:
     """
     FPL points for this player for selected match.
     Returns a PlayerScore object.

@@ -28,7 +28,7 @@ def get_teams_for_season(season, dbsession):
     Query the Team table and get a list of teams for a given
     season.
     """
-    teams = dbsession.query(Team).filter_by(season=season).all()
+    teams: list[Team] = dbsession.query(Team).filter_by(season=season).all()
     return [t.name for t in teams]
 
 

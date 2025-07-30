@@ -6,6 +6,7 @@ import contextlib
 import json
 import os
 
+from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -26,6 +27,28 @@ from airsenal.framework.utils import (
 def fill_playerscores_from_json(
     detail_data: list, season: str, dbsession: Session = session
 ) -> None:
+    # Get column metadata once for efficiency
+    mapper = sqla_inspect(PlayerScore)
+    extended_feats = [
+        col.key
+        for col in mapper.columns
+        if col.key
+        not in [
+            "id",
+            "player_team",
+            "opponent",
+            "goals",
+            "assists",
+            "bonus",
+            "points",
+            "conceded",
+            "minutes",
+            "player_id",
+            "result_id",
+            "fixture_id",
+        ]
+    ]
+
     for player_name in detail_data:
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
@@ -81,28 +104,9 @@ def fill_playerscores_from_json(
 
             # extended features
             # get features excluding the core ones already populated above
-            extended_feats = [
-                col
-                for col in ps.__table__.columns
-                if col
-                not in [
-                    "id",
-                    "player_team",
-                    "opponent",
-                    "goals",
-                    "assists",
-                    "bonus",
-                    "points",
-                    "conceded",
-                    "minutes",
-                    "player_id",
-                    "result_id",
-                    "fixture_id",
-                ]
-            ]
             for feat in extended_feats:
-                with contextlib.suppress(KeyError):
-                    ps.__setattr__(feat, fixture_data[feat])
+                # with contextlib.suppress(KeyError):
+                ps.__setattr__(feat, fixture_data[feat])
 
             dbsession.add(ps)
     dbsession.commit()
@@ -114,6 +118,28 @@ def fill_playerscores_from_api(
     gw_end: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
 ) -> None:
+    # Get column metadata once for efficiency
+    mapper = sqla_inspect(PlayerScore)
+    extended_feats = [
+        col.key
+        for col in mapper.columns
+        if col.key
+        not in [
+            "id",
+            "player_team",
+            "opponent",
+            "goals",
+            "assists",
+            "bonus",
+            "points",
+            "conceded",
+            "minutes",
+            "player_id",
+            "result_id",
+            "fixture_id",
+        ]
+    ]
+
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_api_id in input_data:
@@ -170,25 +196,6 @@ def fill_playerscores_from_api(
 
                 # extended features
                 # get features excluding the core ones already populated above
-                extended_feats = [
-                    col
-                    for col in ps.__table__.columns
-                    if col
-                    not in [
-                        "id",
-                        "player_team",
-                        "opponent",
-                        "goals",
-                        "assists",
-                        "bonus",
-                        "points",
-                        "conceded",
-                        "minutes",
-                        "player_id",
-                        "result_id",
-                        "fixture_id",
-                    ]
-                ]
                 for feat in extended_feats:
                     with contextlib.suppress(KeyError):
                         ps.__setattr__(feat, result[feat])

@@ -330,7 +330,7 @@ def calc_predicted_points_for_player(
     df_saves: pd.Series | None,
     df_cards: pd.Series | None,
     season: str,
-    gw_range: Iterable[int] | None = None,
+    gw_range: list[int] | None = None,
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
@@ -342,7 +342,7 @@ def calc_predicted_points_for_player(
     or assisting given that their team scores.
     """
     if isinstance(player, str | int):
-        player = get_player(player, dbsession=dbsession)
+        player: Player = get_player(player, dbsession=dbsession)
 
     message = f"Points prediction for player {player}"
 
@@ -531,7 +531,7 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
             outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
             pp = PlayerPrediction()
             pp.player_id = player_id
-            pp.gameweek = gameweek
+            pp.fixture.gameweek = gameweek
             pp.predicted_points = v["ep_next"]
             pp.method = "EP"
             dbsession.add(pp)
@@ -643,7 +643,7 @@ def get_player_scores(
         .filter(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
     )
-    df = pd.read_sql(query.statement, dbsession.bind)
+    df = pd.read_sql(query.statement, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
     exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
@@ -734,7 +734,7 @@ def fit_card_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     min_matches: int = 10,
-    min_minutes: int | float = 1,
+    min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
     """

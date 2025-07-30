@@ -21,7 +21,7 @@ np.random.seed(42)
 
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
-) -> dict[str, np.array]:
+) -> dict[str, np.ndarray]:
     """
     Query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -30,6 +30,7 @@ def get_result_dict(
         s
         for s in dbsession.query(Result).all()
         if s.fixture
+        and s.fixture.gameweek
         and not is_future_gameweek(
             s.fixture.season,
             s.fixture.gameweek,
@@ -60,7 +61,7 @@ def get_result_dict(
 
 def get_ratings_dict(
     season: str, teams: list[str], dbsession: Session
-) -> dict[str, np.array]:
+) -> dict[str, np.ndarray]:
     """
     Create a dataframe containing the fifa team ratings.
     """

@@ -4,6 +4,7 @@ Database can be either an sqlite file or a postgress server
 
 import os
 from pathlib import Path
+from typing import Any
 
 from platformdirs import user_data_dir
 
@@ -41,7 +42,7 @@ def check_valid_key(func):
 
 
 @check_valid_key
-def get_env(key, default=None):
+def get_env(key: str, default: Any = None) -> Any:
     if key in os.environ:
         return AIRSENAL_ENV_KEYS[key](os.environ[key])
     if os.path.exists(AIRSENAL_HOME / key):
