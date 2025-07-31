@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-
 """
-Fill the "fifa_ratings" table with info from FIFA 19
-(fifa_team_ratings.csv).
+Fill the "fifa_ratings" table with info from fifa_team_ratings CSV files.
 """
 
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -17,11 +13,13 @@ from airsenal.framework.utils import get_past_seasons
 
 
 def make_fifa_ratings_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     # make the fifa ratings table
     # TODO: scrape the data first rather than committing file to repo
 
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
@@ -30,31 +28,31 @@ def make_fifa_ratings_table(
         input_path = os.path.join(
             os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"
         )
-        try:
-            input_file = open(input_path)
-        except FileNotFoundError:
+        if not os.path.exists(input_path):
             print(f"!!! No FIFA ratings file found for {season}")
             continue
 
-        for line in input_file.readlines()[1:]:
-            team, att, mid, defn, ovr = line.strip().split(",")
-            r = FifaTeamRating()
-            r.season = season
-            r.team = team
-            r.att = int(att)
-            r.defn = int(defn)
-            r.mid = int(mid)
-            r.ovr = int(ovr)
-            team_is_known = False
-            for k, v in alternative_team_names.items():
-                if team in v:
-                    r.team = k
-                    team_is_known = True
-                elif team == k:
-                    team_is_known = True
-            if not team_is_known:
-                raise ValueError(f"Unknown team {team}.")
-            dbsession.add(r)
+        with open(input_path) as input_file:
+            for line in input_file.readlines()[1:]:
+                team, att, mid, defn, ovr = line.strip().split(",")
+                r = FifaTeamRating()
+                r.season = season
+                r.team = team
+                r.att = int(att)
+                r.defn = int(defn)
+                r.mid = int(mid)
+                r.ovr = int(ovr)
+                team_is_known = False
+                for k, v in alternative_team_names.items():
+                    if team in v:
+                        r.team = k
+                        team_is_known = True
+                    elif team == k:
+                        team_is_known = True
+                if not team_is_known:
+                    msg = f"Unknown team {team}."
+                    raise ValueError(msg)
+                dbsession.add(r)
     dbsession.commit()
 
 

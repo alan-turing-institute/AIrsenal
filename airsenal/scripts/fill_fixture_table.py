@@ -1,13 +1,9 @@
-#!/usr/bin/env python
-
 """
-Fill the "fixture" table with info from this seasons FPL
-(fixtures.csv).
+Fill the "fixture" table with info from this seasons FPL (fixtures.csv).
 """
 
 import os
 import uuid
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -24,23 +20,23 @@ def fill_fixtures_from_file(
     """
     use the match results csv files to get a list of matches in a season,
     """
-    infile = open(filename)
-    for line in infile.readlines()[1:]:
-        fields = line.strip().split(",")
-        f = Fixture()
-        f.date = fields[0]
-        f.gameweek = fields[5]
-        home_team = fields[1]
-        away_team = fields[2]
-        for k, v in alternative_team_names.items():
-            if home_team in v:
-                f.home_team = k
-            elif away_team in v:
-                f.away_team = k
-        print(f" ==> Filling fixture {f.home_team} {f.away_team}")
-        f.season = season
-        f.tag = "latest"  # not really needed for past seasons
-        dbsession.add(f)
+    with open(filename) as infile:
+        for line in infile.readlines()[1:]:
+            fields = line.strip().split(",")
+            f = Fixture()
+            f.date = fields[0]
+            f.gameweek = fields[5]
+            home_team = fields[1]
+            away_team = fields[2]
+            for k, v in alternative_team_names.items():
+                if home_team in v:
+                    f.home_team = k
+                elif away_team in v:
+                    f.away_team = k
+            print(f" ==> Filling fixture {f.home_team} {f.away_team}")
+            f.season = season
+            f.tag = "latest"  # not really needed for past seasons
+            dbsession.add(f)
     dbsession.commit()
 
 
@@ -85,20 +81,25 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
                 break
 
         if not found_home and found_away:
-            raise ValueError(f"Can't find team(s) with id(s): {home_id}, {away_id}.")
-        elif not found_home:
-            raise ValueError(f"Can't find team(s) with id(s): {home_id}")
-        elif not found_away:
-            raise ValueError(f"Can't find team(s) with id(s): {away_id}")
+            msg = f"Can't find team(s) with id(s): {home_id}, {away_id}."
+            raise ValueError(msg)
+        if not found_home:
+            msg = f"Can't find team(s) with id(s): {home_id}"
+            raise ValueError(msg)
+        if not found_away:
+            msg = f"Can't find team(s) with id(s): {away_id}"
+            raise ValueError(msg)
         if not update:
             dbsession.add(f)
     dbsession.commit()
 
 
 def make_fixture_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     # fill the fixture table for past seasons
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

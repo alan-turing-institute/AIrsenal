@@ -4,7 +4,6 @@ of the https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
 """
 
 from glob import glob
-from typing import List, Union
 
 import pandas as pd
 
@@ -17,8 +16,10 @@ from airsenal.scripts.make_player_details import (
 )
 
 
-def find_duplicate_names(seasons: Union[str, List[str]] = get_past_seasons(6)) -> None:
-    if isinstance(seasons, str):
+def find_duplicate_names(seasons: str | list[str] | None = None) -> None:
+    if seasons is None:
+        seasons = get_past_seasons(6)
+    elif isinstance(seasons, str):
         seasons = [seasons]
 
     output = []

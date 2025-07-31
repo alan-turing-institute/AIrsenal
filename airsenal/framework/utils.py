@@ -3,11 +3,12 @@ Useful commands to query the database.
 """
 
 import warnings
+from collections.abc import Iterable
 from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import Dict, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import TypeVar
 
 import dateparser
 import pandas as pd
@@ -111,7 +112,7 @@ def get_next_gameweek(
 
 
 @lru_cache(365)
-def parse_datetime(check_date: Union[datetime, str]) -> datetime:
+def parse_datetime(check_date: datetime | str) -> datetime:
     if type(check_date) is datetime:
         return check_date
     if isinstance(check_date, str):
@@ -119,19 +120,20 @@ def parse_datetime(check_date: Union[datetime, str]) -> datetime:
             return isoparse(check_date)
         except (ValueError, TypeError):
             return dateparser.parse(check_date)
-    raise TypeError(f"Don't know what to do with type {type(check_date)}")
+    msg = f"Don't know what to do with type {type(check_date)}"
+    raise TypeError(msg)
 
 
 @lru_cache(365)
-def parse_date(check_date: Union[date, datetime, str]) -> date:
+def parse_date(check_date: date | datetime | str) -> date:
     return check_date if type(check_date) is date else parse_datetime(check_date).date()
 
 
 @lru_cache(365)
 def get_next_gameweek_by_date(
-    check_date: Union[date, datetime, str],
+    check_date: date | datetime | str,
     season: str = CURRENT_SEASON,
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
 ) -> int:
     """
     Use a date, or easily parse-able date string to figure out which gameweek its in.
@@ -169,21 +171,23 @@ def get_next_gameweek_by_date(
 
 
 def get_gameweeks_array(
-    weeks_ahead: Optional[int] = None,
-    gameweek_start: Optional[int] = None,
-    gameweek_end: Optional[int] = None,
+    weeks_ahead: int | None = None,
+    gameweek_start: int | None = None,
+    gameweek_end: int | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
-) -> List[int]:
+) -> list[int]:
     """
     Returns the array containing only the valid (< max_gameweek) game-weeks
     or raise an exception if no game-weeks remaining.
     """
     # Check arguments are valid
     if gameweek_end is not None and weeks_ahead is not None:
-        raise RuntimeError("Only one of gameweek_end and weeks_ahead should be defined")
+        msg = "Only one of gameweek_end and weeks_ahead should be defined"
+        raise RuntimeError(msg)
     if gameweek_start is None and season != CURRENT_SEASON:
-        raise RuntimeError("gameweek_start must be defined if using previous seasons")
+        msg = "gameweek_start must be defined if using previous seasons"
+        raise RuntimeError(msg)
 
     # Set defaults for undefined arguments
     if weeks_ahead is None:
@@ -198,7 +202,8 @@ def get_gameweeks_array(
     gw_range = list(filter(lambda x: x <= max_gameweek, gw_range))
 
     if len(gw_range) == 0:
-        raise ValueError("No gameweeks in specified range")
+        msg = "No gameweeks in specified range"
+        raise ValueError(msg)
     if max(gw_range) < gameweek_end - 1:
         print(
             f"WARN: Last gameweek set to {max(gw_range)} ({len(gw_range)} weeks ahead)"
@@ -224,7 +229,7 @@ def get_next_season(season: str) -> str:
     return f"{next_start_year}{next_end_year}"
 
 
-def get_start_end_dates_of_season(season: str) -> List[pd.Timestamp]:
+def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
     """
     Obtains rough start and end dates for the season.
     Takes into account the shorter and longer seasons in 19/20 and 20/21.
@@ -234,12 +239,11 @@ def get_start_end_dates_of_season(season: str) -> List[pd.Timestamp]:
     if season == "1920":
         # regular start, late end to season
         return [pd.Timestamp(2019, 7, 1), pd.Timestamp(2020, 7, 31)]
-    elif season == "2021":
+    if season == "2021":
         # late start to season, regular end
         return [pd.Timestamp(2020, 8, 1), pd.Timestamp(2021, 6, 30)]
-    else:
-        # regular season
-        return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
+    # regular season
+    return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
 
 
 def get_previous_season(season: str) -> str:
@@ -253,7 +257,7 @@ def get_previous_season(season: str) -> str:
     return f"{prev_start_year}{prev_end_year}"
 
 
-def get_past_seasons(num_seasons: int) -> List[str]:
+def get_past_seasons(num_seasons: int) -> list[str]:
     """
     Go back num_seasons from the current one.
     """
@@ -266,11 +270,11 @@ def get_past_seasons(num_seasons: int) -> List[str]:
 
 
 def get_current_players(
-    gameweek: Optional[int] = None,
-    season: Optional[str] = None,
-    fpl_team_id: Optional[int] = None,
-    dbsession: Optional[Session] = None,
-) -> List[int]:
+    gameweek: int | None = None,
+    season: str | None = None,
+    fpl_team_id: int | None = None,
+    dbsession: Session | None = None,
+) -> list[int]:
     """
     Use the transactions table to find the team as of specified gameweek,
     then add up the values at that gameweek using the FPL API data.
@@ -293,7 +297,7 @@ def get_current_players(
     )
 
     if len(transactions) == 0:
-        #  not updated the transactions table yet
+        # not updated the transactions table yet
         return []
     for t in transactions:
         if gameweek and t.gameweek > gameweek:
@@ -327,22 +331,21 @@ def get_squad_value(
 
 def get_current_squad_from_api(
     fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher
-) -> List[Tuple[int, float]]:
+) -> list[tuple[int, float]]:
     """
     Return a list [(player_id, purchase_price)] from the current picks.
     Requires the data fetcher to be logged in.
     """
     picks = apifetcher.get_current_picks(fpl_team_id)
-    players_prices = [
+    return [
         (get_player_from_api_id(p["element"]).player_id, p["purchase_price"])
         for p in picks
     ]
-    return players_prices
 
 
 def get_bank(
-    fpl_team_id: Optional[int] = None,
-    gameweek: Optional[int] = None,
+    fpl_team_id: int | None = None,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     apifetcher: FPLDataFetcher = fetcher,
 ) -> float:
@@ -353,7 +356,8 @@ def get_bank(
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
     if season != CURRENT_SEASON:
-        raise RuntimeError("Calculating the bank for past seasons not yet implemented")
+        msg = "Calculating the bank for past seasons not yet implemented"
+        raise RuntimeError(msg)
 
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -364,10 +368,11 @@ def get_bank(
         warnings.warn(
             f"Failed to get actual bank from a logged in API:\n{e}\n"
             "Will try to estimate it from the API without logging in, which will "
-            "not include any transfers made in the current gameweek."
+            "not include any transfers made in the current gameweek.",
+            stacklevel=2,
         )
         data = apifetcher.get_fpl_team_history_data(fpl_team_id)
-        if "current" not in data.keys() or len(data["current"]) <= 0:
+        if "current" not in data or len(data["current"]) <= 0:
             return 0
 
         if gameweek and isinstance(gameweek, int):
@@ -397,8 +402,9 @@ def get_entry_start_gameweek(
             starting_gw += 1
         except requests.exceptions.ConnectionError as e:
             warnings.warn(
-                f"Failed to connect to the API:\n{e}\n. "
-                "Assuming team {fpl_team_id} was entered in GW1 which may be incorrect."
+                f"Failed to connect to the API:\n{e}\n. Assuming team {fpl_team_id}"
+                " was entered in GW1 which may be incorrect.",
+                stacklevel=2,
             )
             return 1
 
@@ -408,8 +414,8 @@ def get_entry_start_gameweek(
 
 
 def get_free_transfers(
-    fpl_team_id: Optional[int] = None,
-    gameweek: Optional[int] = None,
+    fpl_team_id: int | None = None,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
     apifetcher: FPLDataFetcher = fetcher,
@@ -433,13 +439,14 @@ def get_free_transfers(
             warnings.warn(
                 f"Failed to get actual free transfers from a logged in API:\n{e}\n"
                 "Will try to estimate it from the API without logging in, which will "
-                "not include any transfers used in the current gameweek."
+                "not include any transfers used in the current gameweek.",
+                stacklevel=2,
             )
         # try to calculate free transfers based on previous transfer history in API
         try:
             data = apifetcher.get_fpl_team_history_data(fpl_team_id)
             num_free_transfers = 1
-            if "current" in data.keys() and len(data["current"]) > 0:
+            if "current" in data and len(data["current"]) > 0:
                 starting_gw = get_entry_start_gameweek(
                     fpl_team_id, apifetcher=apifetcher
                 )
@@ -458,7 +465,8 @@ def get_free_transfers(
         except requests.exceptions.RequestException as e:
             warnings.warn(
                 f"Failed to estimate free transfers from the API:\n{e}\n"
-                "Will estimate from the DB instead, which may be out of date."
+                "Will estimate from the DB instead, which may be out of date.",
+                stacklevel=2,
             )
 
     # historical/simulated data or API failed - fetch from database
@@ -489,10 +497,10 @@ def get_free_transfers(
 
 @lru_cache(maxsize=365)
 def get_gameweek_by_fixture_date(
-    check_date: Union[date, datetime],
+    check_date: date | datetime,
     season: str = CURRENT_SEASON,
-    dbsession: Optional[Session] = None,
-) -> Optional[int]:
+    dbsession: Session | None = None,
+) -> int | None:
     """
     Use the dates of the fixtures to find the gameweek.
     """
@@ -515,7 +523,7 @@ def get_gameweek_by_fixture_date(
 
 
 def get_team_name(
-    team_id: int, season: str = CURRENT_SEASON, dbsession: Optional[Session] = None
+    team_id: int, season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> str:
     """
     Return 3-letter team name given a numerical id.
@@ -532,8 +540,9 @@ def get_team_name(
 
 
 def get_player(
-    player_name_or_id: Union[str, int], dbsession: Optional[Session] = None
-) -> Optional[Player]:
+    player_name_or_id: str | int,
+    dbsession: Session | None = None,
+) -> Player | None:
     """
     Query the player table by name or id, return the player object (or None).
     NOTE the player_id that can be passed as an argument here is NOT
@@ -564,15 +573,14 @@ def get_player(
         .filter_by(alt_name=player_name_or_id)
         .first()
     ):
-        p = dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
-        return p
+        return dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
 
     return None
 
 
 def get_player_from_api_id(
-    api_id: int, dbsession: Optional[Session] = None
-) -> Optional[Player]:
+    api_id: int, dbsession: Session | None = None
+) -> Player | None:
     """
     Query the database and return the player with corresponding attribute fpl_api_id.
     """
@@ -584,7 +592,7 @@ def get_player_from_api_id(
     return None
 
 
-def get_player_name(player_id: int, dbsession: Session = session) -> Optional[str]:
+def get_player_name(player_id: int, dbsession: Session = session) -> str | None:
     """
     Lookup player name, for human readability.
     """
@@ -594,7 +602,7 @@ def get_player_name(player_id: int, dbsession: Session = session) -> Optional[st
     return None
 
 
-def get_player_id(player_name: str, dbsession: Session = session) -> Optional[int]:
+def get_player_id(player_name: str, dbsession: Session = session) -> int | None:
     if p := get_player(player_name, dbsession):
         return p.player_id
     print(f"Unknown player_name {player_name}")
@@ -603,7 +611,7 @@ def get_player_id(player_name: str, dbsession: Session = session) -> Optional[in
 
 def list_teams(
     season: str = CURRENT_SEASON, dbsession: Session = session
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """
     Print all teams from current season.
     """
@@ -617,9 +625,9 @@ def list_players(
     order_by: str = "price",
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
     verbose: bool = False,
-) -> List[int]:
+) -> list[Player]:
     """
     Print list of players and return a list of player_ids.
     """
@@ -676,43 +684,45 @@ def list_players(
                 gameweeks.append(gw)
                 break
 
-    q = (
+    query = (
         dbsession.query(PlayerAttributes)
         .filter_by(season=season)
         .filter(PlayerAttributes.gameweek.in_(gameweeks))
     )
     if team != "all":
-        q = q.filter_by(team=team)
+        query = query.filter_by(team=team)
     if position != "all":
-        q = q.filter_by(position=position)
+        query = query.filter_by(position=position)
     else:
         # exclude managers
-        q = q.filter(PlayerAttributes.position != "MNG")
+        query = query.filter(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
-        #  Sort query results by order of gameweeks - i.e. make sure the input
+        # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
         _whens = {gw: i for i, gw in enumerate(gameweeks)}
         sort_order = case(_whens, value=PlayerAttributes.gameweek)
-        q = q.order_by(sort_order)
+        query = query.order_by(sort_order)
     if order_by == "price":
-        q = q.order_by(PlayerAttributes.price.desc())
+        query = query.order_by(PlayerAttributes.price.desc())
     players = []
     prices = []
-    for p in q.all():
-        if p.player not in players:
+    for pa in query.all():
+        if pa.player not in players:
             # might have queried multiple gameweeks with same player returned
-            #  multiple times - only add if it's a new player
-            players.append(p.player)
-            prices.append(p.price)
+            # multiple times - only add if it's a new player
+            players.append(pa.player)
+            prices.append(pa.price)
             if verbose and (len(gameweeks) == 1 or order_by != "price"):
-                print(p.player, p.team, p.position, p.price)
+                print(pa.player, pa.team, pa.position, pa.price)
     if len(gameweeks) > 1 and order_by == "price":
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
-        sort_players = sorted(zip(prices, players), reverse=True, key=lambda p: p[0])
+        sort_players = sorted(
+            zip(prices, players, strict=False), reverse=True, key=lambda p: p[0]
+        )
         if verbose:
-            for p in sort_players:
-                print(p[1].name, p[0])
+            for pa in sort_players:
+                print(pa[1].name, pa[0])
         players = [p for _, p in sort_players]
     return players
 
@@ -728,18 +738,15 @@ def is_future_gameweek(
     (or the same) as current_season and next_gameweek.
     """
     return (
-        season == current_season
-        and (gameweek is None or gameweek >= next_gameweek)
-        or season != current_season
-        and int(season) > int(current_season)
-    )
+        season == current_season and (gameweek is None or gameweek >= next_gameweek)
+    ) or (season != current_season and int(season) > int(current_season))
 
 
 def get_max_matches_per_player(
     position: str = "all",
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
 ) -> int:
     """
     Can be used e.g. in bpl_interface.get_player_history_df
@@ -765,10 +772,10 @@ def get_max_matches_per_player(
 
 
 def get_player_attributes(
-    player_name_or_id: Union[str, int],
+    player_name_or_id: str | int,
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
 ) -> PlayerAttributes:
     """
     Get a player's attributes for a given gameweek in a given season.
@@ -795,12 +802,12 @@ def get_player_attributes(
 
 
 def get_fixtures_for_player(
-    player: Union[Player, str, int],
+    player: Player | str | int,
     season: str = CURRENT_SEASON,
-    gw_range: Optional[List[int]] = None,
-    dbsession: Optional[Session] = None,
+    gw_range: list[int] | None = None,
+    dbsession: Session | None = None,
     verbose: bool = False,
-) -> List[Fixture]:
+) -> list[Fixture]:
     """
     Search for upcoming fixtures for a player, specified either by id or name.
     If gw_range not specified:
@@ -846,10 +853,10 @@ def get_fixtures_for_player(
 
 
 def get_next_fixture_for_player(
-    player: Union[Player, str, int],
+    player: Player | str | int,
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
 ) -> str:
     """
     Get a players next fixture as a string, for easy displaying.
@@ -857,7 +864,7 @@ def get_next_fixture_for_player(
     if not dbsession:
         dbsession = session
     # given a player name or id, convert to player object
-    if isinstance(player, (str, int)):
+    if isinstance(player, str | int):
         player = get_player(player, dbsession)
     team = player.team(season, gameweek)
     fixtures_for_player = get_fixtures_for_player(player, season, [gameweek], dbsession)
@@ -873,7 +880,7 @@ def get_next_fixture_for_player(
 
 def get_fixtures_for_season(
     season: str = CURRENT_SEASON, dbsession: Session = session
-) -> List[Fixture]:
+) -> list[Fixture]:
     """
     Return all fixtures for a season.
     """
@@ -881,10 +888,10 @@ def get_fixtures_for_season(
 
 
 def get_fixtures_for_gameweek(
-    gameweek: Union[List[int], int],
+    gameweek: list[int] | int,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
-) -> List[Fixture]:
+) -> list[Fixture]:
     """
     Get a list of fixtures for the specified gameweek(s).
     """
@@ -898,7 +905,7 @@ def get_fixtures_for_gameweek(
     )
 
 
-def get_fixture_teams(fixtures: Iterable[Fixture]) -> List[Tuple[str, str]]:
+def get_fixture_teams(fixtures: Iterable[Fixture]) -> list[tuple[str, str]]:
     """
     Get (home_team, away_team) tuples for each fixture in a list of fixtures.
     """
@@ -906,15 +913,16 @@ def get_fixture_teams(fixtures: Iterable[Fixture]) -> List[Tuple[str, str]]:
 
 
 def get_player_scores(
-    fixture: Optional[Fixture] = None,
-    player: Optional[Player] = None,
+    fixture: Fixture | None = None,
+    player: Player | None = None,
     dbsession: Session = session,
-) -> Union[List[PlayerScore], PlayerScore]:
+) -> list[PlayerScore] | PlayerScore:
     """
     Get player scores for a fixture.
     """
     if fixture is None and player is None:
-        raise ValueError("At least one of fixture and player must be defined")
+        msg = "At least one of fixture and player must be defined"
+        raise ValueError(msg)
 
     query = dbsession.query(PlayerScore)
     if fixture is not None:
@@ -928,19 +936,17 @@ def get_player_scores(
 
     if fixture is not None and player is not None:
         if len(player_scores) > 1:
-            raise ValueError(
-                f"More than one score found for player {player} in fixture {fixture}"
-            )
-        else:
-            return player_scores[0]
+            msg = f"More than one score found for player {player} in fixture {fixture}"
+            raise ValueError(msg)
+        return player_scores[0]
     return player_scores
 
 
 def get_players_for_gameweek(
     gameweek: int,
-    fpl_team_id: Optional[int] = None,
+    fpl_team_id: int | None = None,
     apifetcher: FPLDataFetcher = fetcher,
-) -> List[Player]:
+) -> list[Player]:
     """
     Use FPL API to get the players for a given gameweek.
     """
@@ -949,17 +955,16 @@ def get_players_for_gameweek(
 
     player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
     player_api_id_list = [p["element"] for p in player_data]
-    player_list = [
+    return [
         get_player_from_api_id(api_id).player_id
         for api_id in player_api_id_list
         if get_player_from_api_id(api_id)
     ]
-    return player_list
 
 
 def get_previous_points_for_same_fixture(
-    player: Union[str, int], fixture_id: int, dbsession: Session = session
-) -> Dict[int, float]:
+    player: str | int, fixture_id: int, dbsession: Session = session
+) -> dict[int, float]:
     """
     Search the past matches for same fixture in past seasons,
     and how many points the player got.
@@ -1002,18 +1007,18 @@ def get_previous_points_for_same_fixture(
 
 @lru_cache(maxsize=4096)
 def get_predicted_points_for_player(
-    player: Union[Player, str, int],
+    player: Player | str | int,
     tag: str,
     season: str = CURRENT_SEASON,
-    dbsession: Optional[Session] = None,
-) -> Dict[int, float]:
+    dbsession: Session | None = None,
+) -> dict[int, float]:
     """
     Query the player prediction table for a given player.
     Return a dict, keyed by gameweek.
     """
     if not dbsession:
         dbsession = session
-    if isinstance(player, (str, int)):
+    if isinstance(player, str | int):
         # we want the actual player object
         player = get_player(player, dbsession=dbsession)
     pps = (
@@ -1027,13 +1032,13 @@ def get_predicted_points_for_player(
         # there is one prediction per fixture.
         # for double gameweeks, we need to add the two together
         gameweek = prediction.fixture.gameweek
-        if gameweek not in ppdict.keys():
+        if gameweek not in ppdict:
             ppdict[gameweek] = 0
         ppdict[gameweek] += prediction.predicted_points
     # we still need to fill in zero for gameweeks that they're not playing.
     max_gw = get_max_gameweek(season, dbsession)
     for gw in range(1, max_gw + 1):
-        if gw not in ppdict.keys():
+        if gw not in ppdict:
             ppdict[gw] = 0.0
     return ppdict
 
@@ -1044,8 +1049,8 @@ def get_predicted_points(
     position: str = "all",
     team: str = "all",
     season: str = CURRENT_SEASON,
-    dbsession: Optional[Session] = None,
-) -> List[Tuple[int, float]]:
+    dbsession: Session | None = None,
+) -> list[tuple[Player, float]]:
     """
     Query the player_prediction table with selections, return
     list of tuples (player_id, predicted_points) ordered by predicted_points
@@ -1086,13 +1091,13 @@ def get_predicted_points(
 
 
 def get_top_predicted_points(
-    gameweek: Optional[int] = None,
-    tag: Optional[str] = None,
+    gameweek: int | None = None,
+    tag: str | None = None,
     position: str = "all",
     team: str = "all",
     n_players: int = 10,
     per_position: bool = False,
-    max_price: Optional[float] = None,
+    max_price: float | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
 ) -> None:
@@ -1125,7 +1130,7 @@ def get_top_predicted_points(
         "fields": [],
     }
 
-    first_gw = gameweek[0] if isinstance(gameweek, (list, tuple)) else gameweek
+    first_gw = gameweek[0] if isinstance(gameweek, list | tuple) else gameweek
     print("=" * 50)
     print(f"PREDICTED TOP {n_players} PLAYERS FOR GAMEWEEK(S) {gameweek}:")
     print("=" * 50)
@@ -1146,11 +1151,9 @@ def get_top_predicted_points(
 
         for i, p in enumerate(pts[:n_players]):
             print(
-                (
-                    f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
-                    f"(£{p[0].price(season, first_gw) / 10}m, {p[0].position(season)}, "
-                    f"{p[0].team(season, first_gw)})"
-                )
+                f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
+                f"(£{p[0].price(season, first_gw) / 10}m, {p[0].position(season)}, "
+                f"{p[0].team(season, first_gw)})"
             )
 
         # If a valid discord webhook URL has been stored
@@ -1198,11 +1201,9 @@ def get_top_predicted_points(
 
             for i, p in enumerate(pts[:n_players]):
                 print(
-                    (
-                        f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
-                        f"(£{p[0].price(season, first_gw) / 10}m, "
-                        f"{p[0].team(season, first_gw)})"
-                    )
+                    f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
+                    f"(£{p[0].price(season, first_gw) / 10}m, "
+                    f"{p[0].team(season, first_gw)})"
                 )
             print("-" * 25)
 
@@ -1274,17 +1275,16 @@ def predicted_points_discord_payload(
                 },
             ]
         )
-    payload = {
+    return {
         "content": "",
         "username": "AIrsenal",
         "embeds": [discord_embed],
     }
-    return payload
 
 
 def get_return_gameweek_from_news(
     news: str, season: str = CURRENT_SEASON, dbsession: Session = session
-) -> Optional[int]:
+) -> int | None:
     """
     Parse news strings from the FPL API for the return date of injured or
     suspended players. If a date is found, determine and return the gameweek it
@@ -1300,7 +1300,8 @@ def get_return_gameweek_from_news(
             return_str, settings={"PREFER_DATES_FROM": "future"}
         )
         if not return_date:
-            raise ValueError(f"Failed to parse date from string '{return_date}'")
+            msg = f"Failed to parse date from string '{return_date}'"
+            raise ValueError(msg)
 
         return get_next_gameweek_by_date(
             return_date.date(), season=season, dbsession=dbsession
@@ -1323,8 +1324,8 @@ def estimate_minutes_from_prev_season(
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
     n_games_to_use: int = 10,
-    dbsession: Optional[Session] = None,
-) -> List[int]:
+    dbsession: Session | None = None,
+) -> list[int]:
     """
     Take average of minutes from previous season if any, or else return [0]
     """
@@ -1357,9 +1358,9 @@ def get_recent_playerscore_rows(
     player: Player,
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gw: Optional[int] = None,
-    dbsession: Optional[Session] = None,
-) -> List[PlayerScore]:
+    last_gw: int | None = None,
+    dbsession: Session | None = None,
+) -> list[PlayerScore]:
     """
     Query the playerscore table in the database to retrieve
     the last num_match_to_use rows for this player.
@@ -1397,8 +1398,8 @@ def get_playerscores_for_player_gameweek(
     player: Player,
     gameweek: int,
     season: str = CURRENT_SEASON,
-    dbsession: Optional[Session] = None,
-) -> PlayerScore:
+    dbsession: Session | None = None,
+) -> list[PlayerScore]:
     """
     FPL points for this player for selected match.
     Returns a PlayerScore object.
@@ -1418,9 +1419,9 @@ def get_recent_scores_for_player(
     player: Player,
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gw: Optional[int] = None,
-    dbsession: Optional[Session] = None,
-) -> Dict[int, PlayerScore]:
+    last_gw: int | None = None,
+    dbsession: Session | None = None,
+) -> dict[int, PlayerScore]:
     """
     Look num_match_to_use matches back, and return the
     FPL points for this player for each of these matches.
@@ -1443,9 +1444,9 @@ def get_recent_minutes_for_player(
     player: Player,
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gw: Optional[int] = None,
+    last_gw: int | None = None,
     dbsession: Session = session,
-) -> List[int]:
+) -> list[int]:
     """
     Look back num_match_to_use matches, and return an array
     containing minutes played in each.
@@ -1476,9 +1477,8 @@ def get_recent_minutes_for_player(
     # of the season, also include a minutes estimate using last season's data
     if last_gw is None:
         if season != CURRENT_SEASON:
-            raise RuntimeError(
-                "last_gw muust be defined if running on previous seasons"
-            )
+            msg = "last_gw muust be defined if running on previous seasons"
+            raise RuntimeError(msg)
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
     if first_gw < 0:
@@ -1489,7 +1489,7 @@ def get_recent_minutes_for_player(
 
 
 def was_historic_absence(
-    player: Player, gameweek: int, season: str, dbsession: Optional[Session] = None
+    player: Player, gameweek: int, season: str, dbsession: Session | None = None
 ) -> bool:
     """
     For past seasons, query the Absence table for a given player and season,
@@ -1510,15 +1510,12 @@ def was_historic_absence(
         .filter(Absence.gw_until > gameweek)
         .first()
     )
-    if absence:
-        return True
-    else:
-        return False
+    return bool(absence)
 
 
 def get_last_complete_gameweek_in_db(
-    season: str = CURRENT_SEASON, dbsession: Optional[Session] = None
-) -> Optional[int]:
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> int | None:
     """
     Query the result table to see what was the last gameweek for which
     we have filled the data.
@@ -1535,10 +1532,9 @@ def get_last_complete_gameweek_in_db(
     )
     if first_missing:
         return first_missing.gameweek - 1
-    elif season == CURRENT_SEASON:
+    if season == CURRENT_SEASON:
         return None
-    else:
-        return get_max_gameweek(season=season, dbsession=dbsession)
+    return get_max_gameweek(season=season, dbsession=dbsession)
 
 
 def get_last_finished_gameweek() -> int:
@@ -1558,7 +1554,7 @@ def get_last_finished_gameweek() -> int:
 def get_latest_prediction_tag(
     season: str = CURRENT_SEASON,
     tag_prefix: str = "",
-    dbsession: Optional[Session] = None,
+    dbsession: Session | None = None,
 ) -> str:
     """
     Query the predicted_score table and get the tag field for the last row.
@@ -1571,19 +1567,20 @@ def get_latest_prediction_tag(
         .all()
     )
     if len(rows) == 0:
-        raise RuntimeError(
+        msg = (
             "No predicted points in database - has the database been filled?\n"
             "To calculate points predictions (and fill the database) use "
             "'airsenal_run_prediction'. This should be done before using "
             "'airsenal_make_squad' or 'airsenal_run_optimization'."
         )
+        raise RuntimeError(msg)
     if tag_prefix:
         rows = [r for r in rows if r.tag.startswith(tag_prefix)]
     return rows[-1].tag
 
 
 def get_latest_fixture_tag(
-    season: str = CURRENT_SEASON, dbsession: Optional[Session] = None
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> str:
     """
     Query the predicted_score table and get the tag field for the last row.
@@ -1595,14 +1592,14 @@ def get_latest_fixture_tag(
 
 
 def find_fixture(
-    team: Union[str, int],
-    was_home: Optional[bool] = None,
-    other_team: Optional[Union[str, int]] = None,
-    gameweek: Optional[int] = None,
+    team: str | int,
+    was_home: bool | None = None,
+    other_team: str | int | None = None,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
-    kickoff_time: Optional[Union[date, datetime, str]] = None,
+    kickoff_time: date | datetime | str | None = None,
     dbsession: Session = session,
-) -> Optional[Fixture]:
+) -> Fixture | None:
     """
     Get a fixture given a team and optionally whether the team was at home or away,
     the season, kickoff time and the other team in the fixture. Only returns the fixture
@@ -1616,7 +1613,8 @@ def find_fixture(
         team_name = team
 
     if not team_name:
-        raise ValueError(f"No team with id {team} in {season} season")
+        msg = f"No team with id {team} in {season} season"
+        raise ValueError(msg)
 
     if other_team and not isinstance(other_team, str):
         other_team_name = get_team_name(other_team, season=season, dbsession=dbsession)
@@ -1635,7 +1633,8 @@ def find_fixture(
             or_(Fixture.away_team == team_name, Fixture.home_team == team_name)
         )
     else:
-        raise ValueError("was_home must be True, False or None")
+        msg = "was_home must be True, False or None"
+        raise ValueError(msg)
 
     if other_team_name:
         if was_home is True:
@@ -1653,13 +1652,12 @@ def find_fixture(
     fixtures = query.all()
 
     if not fixtures or len(fixtures) == 0:
-        raise ValueError(
-            (
-                f"No fixture with season={season}, gw={gameweek}, "
-                f"team_name={team_name}, was_home={was_home}, "
-                f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
-            )
+        msg = (
+            f"No fixture with season={season}, gw={gameweek}, "
+            f"team_name={team_name}, was_home={was_home}, "
+            f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
         )
+        raise ValueError(msg)
 
     if len(fixtures) == 1:
         fixture = fixtures[0]
@@ -1675,26 +1673,25 @@ def find_fixture(
                 break
 
     if not fixture:
-        raise ValueError(
-            (
-                f"No unique fixture with season={season}, gw={gameweek}, "
-                f"team_name={team_name}, was_home={was_home}, "
-                f"kickoff_time={kickoff_time}"
-            )
+        msg = (
+            f"No unique fixture with season={season}, gw={gameweek}, "
+            f"team_name={team_name}, was_home={was_home}, "
+            f"kickoff_time={kickoff_time}"
         )
+        raise ValueError(msg)
 
     return fixture
 
 
 def get_player_team_from_fixture(
     gameweek: int,
-    opponent: Union[str, int],
-    player_at_home: Optional[bool] = None,
-    kickoff_time: Optional[Union[date, datetime, str]] = None,
+    opponent: str | int,
+    player_at_home: bool | None = None,
+    kickoff_time: date | datetime | str | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
     return_fixture: bool = False,
-) -> Union[str, Tuple[str, Fixture]]:
+) -> str | tuple[str, Fixture]:
     """
     Get the team a player played for given the gameweek, opponent, time and
     whether they were home or away.
@@ -1728,12 +1725,12 @@ def get_player_team_from_fixture(
         elif fixture.away_team == opponent_name:
             player_team = fixture.home_team
         else:
-            raise ValueError(f"Opponent {opponent_name} not in fixture")
+            msg = f"Opponent {opponent_name} not in fixture"
+            raise ValueError(msg)
 
     if return_fixture:
         return (player_team, fixture)
-    else:
-        return player_team
+    return player_team
 
 
 def is_transfer_deadline_today() -> bool:
@@ -1742,8 +1739,8 @@ def is_transfer_deadline_today() -> bool:
     """
     deadlines = fetcher.get_transfer_deadlines()
     for deadline in deadlines:
-        deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
-        if (deadline - datetime.now()).days == 0:
+        deadline_datetime = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
+        if (deadline_datetime - datetime.now()).days == 0:
             return True
     return False
 
@@ -1760,19 +1757,19 @@ def fastcopy(obj: T) -> T:
 
 def parse_team_model_from_str(
     team_model: str,
-) -> Union[
-    RandomMatchPredictor,
-    ExtendedDixonColesMatchPredictor,
-    NeutralDixonColesMatchPredictor,
-]:
+) -> (
+    RandomMatchPredictor
+    | ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+):
     """
     Returns the team model class corresponding to the given string.
     """
     if team_model == "random":
         return RandomMatchPredictor()
-    elif team_model == "extended":
+    if team_model == "extended":
         return ExtendedDixonColesMatchPredictor()
-    elif team_model == "neutral":
+    if team_model == "neutral":
         return NeutralDixonColesMatchPredictor()
-    else:
-        raise ValueError("Unknown team model")
+    msg = "Unknown team model"
+    raise ValueError(msg)

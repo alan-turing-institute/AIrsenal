@@ -31,7 +31,7 @@ keys_to_extract = {
 
 
 def make_player_summary(season: str) -> None:
-    with open(INPUT_FILE.format(season), "r") as f:
+    with open(INPUT_FILE.format(season)) as f:
         data = json.load(f)
 
     teams = {team["id"]: team["short_name"] for team in data["teams"]}

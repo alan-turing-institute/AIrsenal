@@ -12,7 +12,7 @@ from airsenal.framework.fpl_team_utils import (
     get_overall_points,
     get_overall_ranking,
 )
-from airsenal.framework.schema import Player, TransferSuggestion
+from airsenal.framework.schema import Player, TransferSuggestion, session
 
 
 def download_sqlite_file():
@@ -66,10 +66,6 @@ def get_suggestions_string():
         return result
 
     time.sleep(1)
-    try:
-        from airsenal.framework.schema import session
-    except Exception as e:
-        return f"Problem importing stuff {e}"
     try:
         return build_suggestion_string(session, TransferSuggestion, Player)
 

@@ -11,7 +11,7 @@ from airsenal.framework.utils import (
 )
 
 
-class CandidatePlayer(object):
+class CandidatePlayer:
     """
     player class
     """
@@ -47,7 +47,7 @@ class CandidatePlayer(object):
         get expected points from the db.
         Will be a dict of dicts, keyed by tag and gameweeek
         """
-        if tag not in self.predicted_points.keys():
+        if tag not in self.predicted_points:
             self.predicted_points[tag] = get_predicted_points_for_player(
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
@@ -56,9 +56,9 @@ class CandidatePlayer(object):
         """
         get points for a specific gameweek
         """
-        if tag not in self.predicted_points.keys():
+        if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
-        if gameweek not in self.predicted_points[tag].keys():
+        if gameweek not in self.predicted_points[tag]:
             print(f"No prediction available for {self.name} week {gameweek}")
             return 0.0
         return self.predicted_points[tag][gameweek]

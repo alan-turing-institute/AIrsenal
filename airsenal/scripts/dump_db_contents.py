@@ -155,10 +155,10 @@ def main():
         "selected",
         "transfers_in",
         "transfers_out",
-        'expected_assists',
-        'expected_goals',
-        'expected_goal_involvements',
-        'expected_goals_conceded'
+        "expected_assists",
+        "expected_goals",
+        "expected_goal_involvements",
+        "expected_goals_conceded",
     ]
     save_table_fields(
         "../data/player_scores.csv",
@@ -182,11 +182,11 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
     writer.writeheader()
     print(f"Writing table {dbclass}")
     for player in session.query(dbclass).all():
-        player = vars(player)
+        player_dict = vars(player)
         row = {
-            field: player[field]
-            for field, value____ in player.items()
-            if isinstance(value____, (str, int, float))
+            field: player_dict[field]
+            for field, value in player_dict.items()
+            if isinstance(value, str | int | float)
         }
 
         writer.writerow(row)

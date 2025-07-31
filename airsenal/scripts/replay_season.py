@@ -7,7 +7,6 @@ import argparse
 import json
 import warnings
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
@@ -55,17 +54,19 @@ def print_replay_params(
 def replay_season(
     season: str,
     gameweek_start: int = 1,
-    gameweek_end: Optional[int] = None,
+    gameweek_end: int | None = None,
     new_squad: bool = True,
     weeks_ahead: int = 3,
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
     team_model: str = "extended",
-    team_model_args: dict = {"epsilon": 0.0},
-    fpl_team_id: Optional[int] = None,
+    team_model_args: dict | None = None,
+    fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
 ) -> None:
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
@@ -90,7 +91,7 @@ def replay_season(
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
-        print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
+        print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
         with session_scope() as session:
             gw_range = get_gameweeks_array(
                 weeks_ahead, gameweek_start=gw, season=season, dbsession=session
@@ -241,7 +242,8 @@ def main():
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
-        raise RuntimeError("fpl_team_id must be set to use the resume argument")
+        msg = "fpl_team_id must be set to use the resume argument"
+        raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 

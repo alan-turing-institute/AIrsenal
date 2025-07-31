@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 use Selenium and BeautifulSoup to follow selected links and get
 information from fplarchives.com.
@@ -180,12 +178,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     season = args.season
     if season not in ["1516", "1617"]:
-        raise RuntimeError("Please specify the season - 1516 or 1617")
+        msg = "Please specify the season - 1516 or 1617"
+        raise RuntimeError(msg)
     if args.mode == "summary":
-        output_file = open(f"player_summary_{season}.json", "w")
+        output_path = f"player_summary_{season}.json"
         player_data = []
     else:
-        output_file = open(f"player_details_{season}.json", "w")
+        output_path = f"player_details_{season}.json"
         player_data = {}
 
     # go to the starting page
@@ -213,5 +212,5 @@ if __name__ == "__main__":
 
     # write to the output
     json_string = json.dumps(player_data)
-    output_file.write(json_string)  # .encode("utf-8"))
-    output_file.close()
+    with open(output_path, "w") as output_file:
+        output_file.write(json_string)

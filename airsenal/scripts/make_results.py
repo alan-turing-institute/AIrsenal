@@ -26,9 +26,9 @@ keys_to_extract = {
 
 
 def make_results(season):
-    with open(FIXTURE_DATA_FILE.format(season), "r") as f:
+    with open(FIXTURE_DATA_FILE.format(season)) as f:
         fixture_data = json.load(f)
-    with open(SUMMARY_DATA_FILE.format(season), "r") as f:
+    with open(SUMMARY_DATA_FILE.format(season)) as f:
         summary_data = json.load(f)
 
     teams = {team["id"]: team["name"] for team in summary_data["teams"]}

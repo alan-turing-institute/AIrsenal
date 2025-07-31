@@ -88,7 +88,7 @@ def test_get_fpl_team_data_gw1():
     fetcher = FPLDataFetcher()
     data = fetcher.get_fpl_team_data(1)
     assert isinstance(data, dict)
-    assert "picks" in data.keys()
+    assert "picks" in data
     players = [p["element"] for p in data["picks"]]
     assert len(players) == 15
 
