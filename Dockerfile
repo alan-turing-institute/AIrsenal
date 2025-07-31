@@ -5,6 +5,6 @@ COPY . /airsenal
 
 RUN apt-get update && \
     apt-get install build-essential git sqlite3 curl -y && \
-    pip install .
+    pip install .[dev,api]
 
 CMD ["airsenal_run_pipeline"]
