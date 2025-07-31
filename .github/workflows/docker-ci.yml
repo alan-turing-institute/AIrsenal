@@ -33,4 +33,4 @@ jobs:
           docker run airsenal uv run pre-commit run --all-files
       - name: Tests
         run: |
-          docker run -e "FPL_TEAM_ID=1822891" airsenal uv run pytest
+          docker run -e "FPL_TEAM_ID=742663" airsenal uv run pytest

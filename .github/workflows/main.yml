@@ -34,5 +34,5 @@ jobs:
           uv run ruff format --check .
       - name: Tests
         env:
-          FPL_TEAM_ID: 1822891
+          FPL_TEAM_ID: 742663
         run: uv run pytest
