@@ -16,7 +16,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fastcopy,
     get_predicted_points,
-    get_squad_value,
 )
 
 
@@ -372,7 +371,7 @@ def make_best_transfers(
 
     elif num_transfers in ["W", "F"]:
         _out = [p.player_id for p in squad.players]
-        budget = get_squad_value(squad)
+        budget = squad.sale_value(root_gw, use_api=False)
         if num_transfers == "F":
             gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
         new_squad = make_new_squad(

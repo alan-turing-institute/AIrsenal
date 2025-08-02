@@ -14,13 +14,12 @@ from airsenal.framework.schema import (
     Transaction,
     TransferSuggestion,
 )
-from airsenal.framework.squad import Squad
+from airsenal.framework.squad import Squad, get_current_squad_from_api
 from airsenal.framework.transaction_utils import add_transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
-    get_bank,
-    get_current_squad_from_api,
+    fetcher,
     get_player,
     session,
 )
@@ -107,7 +106,7 @@ def get_starting_squad(
     season=CURRENT_SEASON,
     fpl_team_id=None,
     use_api=False,
-    apifetcher=None,
+    apifetcher=fetcher,
 ):
     """
     use the transactions table in the db, or the API if requested
@@ -123,21 +122,8 @@ def get_starting_squad(
             msg = "Please specify fpl_team_id to get current squad from API"
             raise RuntimeError(msg)
         try:
-            players_prices = get_current_squad_from_api(
-                fpl_team_id, apifetcher=apifetcher
-            )
-            s = Squad(season=CURRENT_SEASON)
-            for pp in players_prices:
-                print(f"Adding player {pp}")
-                s.add_player(
-                    pp[0],
-                    price=pp[1],
-                    gameweek=next_gw - 1,
-                    check_budget=False,
-                    check_team=False,
-                )
-            s.budget = get_bank(fpl_team_id, season=CURRENT_SEASON)
-            return s
+            return get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
+
         except requests.exceptions.RequestException as e:
             warnings.warn(
                 f"Failed to get current squad from API:\n{e}\nUsing DB instead, which "

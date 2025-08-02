@@ -9,13 +9,16 @@ from operator import itemgetter
 
 import numpy as np
 
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
+    get_bank,
     get_player,
+    get_player_from_api_id,
     get_playerscores_for_player_gameweek,
 )
 
@@ -84,7 +87,7 @@ class Squad:
 
     def add_player(
         self,
-        p,
+        p: CandidatePlayer | int | str | Player,
         price=None,
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
@@ -503,3 +506,38 @@ class Squad:
                         ordered_subs.remove(p_in)
                         break
         return total_points
+
+    def sale_value(self, gameweek: int, use_api: bool) -> int:
+        total_value = self.budget  # initialise total to amount in the bank
+        for p in self.players:
+            total_value += self.get_sell_price_for_player(
+                p, use_api=use_api, gameweek=gameweek
+            )
+        return total_value
+
+
+def get_current_squad_from_api(
+    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int = NEXT_GAMEWEEK
+) -> Squad:
+    """
+    Return a list [(player_id, purchase_price)] from the current picks.
+    Requires the data fetcher to be logged in.
+    """
+    picks = apifetcher.get_current_picks(fpl_team_id)
+
+    squad = Squad(season=CURRENT_SEASON)
+    for p in picks:
+        player = get_player_from_api_id(p["element"])
+        if not player:
+            continue
+        print(f"Adding player {player}")
+        squad.add_player(
+            player,
+            price=p["purchase_price"],
+            gameweek=next_gw - 1,
+            check_budget=False,
+            check_team=False,
+        )
+    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, apifetcher=apifetcher)
+
+    return squad

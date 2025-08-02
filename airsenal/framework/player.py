@@ -26,16 +26,32 @@ class CandidatePlayer:
         if isinstance(player, Player):
             pdata = player
         else:
-            pdata = get_player(player, self.dbsession)
+            p = get_player(player, self.dbsession)
+            if p is None:
+                msg = f"Player {player} not found in database"
+                raise ValueError(msg)
+            pdata = p
         self.player_id = pdata.player_id
         self.name = pdata.name
         self.season = season
-        self.team = pdata.team(season, gameweek)
-        self.position = pdata.position(season)
-        self.purchase_price = pdata.price(season, gameweek)
-        self.is_starting = True  # by default
-        self.is_captain = False  # by default
-        self.is_vice_captain = False  # by default
+        team = pdata.team(season, gameweek)
+        if team is None:
+            msg = f"Player {self} has no team for season {season}, gameweek {gameweek}"
+            raise ValueError(msg)
+        self.team = team
+        position = pdata.position(season)
+        if position is None:
+            msg = f"Player {self} has no position for season {season}"
+            raise ValueError(msg)
+        self.position = position
+        price = pdata.price(season, gameweek)
+        if price is None:
+            msg = f"Player {self} has no price for season {season}, gameweek {gameweek}"
+            raise ValueError(msg)
+        self.purchase_price = price
+        self.is_starting = True
+        self.is_captain = False
+        self.is_vice_captain = False
         self.predicted_points = {}
         self.sub_position = None
 
