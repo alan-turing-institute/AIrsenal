@@ -99,7 +99,7 @@ def get_training_data(
     """
     training_data = get_result_dict(season, gameweek, dbsession)
     if ratings:
-        teams = set(training_data["home_team"]) | set(training_data["away_team"])
+        teams = list(set(training_data["home_team"]) | set(training_data["away_team"]))
         training_data["team_covariates"] = get_ratings_dict(
             season=season, teams=teams, dbsession=dbsession
         )

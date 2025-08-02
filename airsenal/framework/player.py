@@ -2,6 +2,8 @@
 Class for a player in FPL
 """
 
+import uuid
+
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
@@ -78,3 +80,35 @@ class CandidatePlayer:
             print(f"No prediction available for {self.name} week {gameweek}")
             return 0.0
         return self.predicted_points[tag][gameweek]
+
+
+class DummyPlayer:
+    """
+    To fill squads with placeholders for optimisation (if not optimising full squad).
+    """
+
+    def __init__(self, gw_range, tag, position, price=45, pts=0):
+        self.name = "DUMMY"
+        self.position = position
+        self.purchase_price = price
+        # set team to random string so we don't violate max players per team constraint
+        self.team = str(uuid.uuid4())
+        self.pts = pts
+        self.predicted_points = {tag: dict.fromkeys(gw_range, self.pts)}
+        self.player_id = str(uuid.uuid4())  # dummy id
+        self.is_starting = False
+        self.is_captain = False
+        self.is_vice_captain = False
+        self.sub_position = None
+        self.season = "DUMMY"
+
+    def calc_predicted_points(self, tag):
+        """
+        Needed for compatibility with Squad/other Player classes
+        """
+
+    def get_predicted_points(self, gameweek, tag):  # noqa: ARG002
+        """
+        Get points for a specific gameweek -
+        """
+        return self.pts

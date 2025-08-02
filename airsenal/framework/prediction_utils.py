@@ -731,8 +731,8 @@ def fit_save_points(
     goalkeepers = list_players(
         position="GK", gameweek=gameweek, season=season, dbsession=dbsession
     )
-    goalkeepers = [gk.player_id for gk in goalkeepers]
-    df = df[df["player_id"].isin(goalkeepers)]
+    gk_ids = [gk.player_id for gk in goalkeepers]
+    df = df[df["player_id"].isin(gk_ids)]
 
     # 1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)

@@ -10,7 +10,7 @@ from operator import itemgetter
 import numpy as np
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
@@ -87,7 +87,7 @@ class Squad:
 
     def add_player(
         self,
-        p: CandidatePlayer | int | str | Player,
+        p: CandidatePlayer | DummyPlayer | int | str | Player,
         price=None,
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
@@ -101,7 +101,9 @@ class Squad:
         with that value.
         """
         if isinstance(p, int | str | Player):
-            player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
+            player: CandidatePlayer | DummyPlayer = CandidatePlayer(
+                p, self.season, gameweek, dbsession=dbsession
+            )
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
             player.season = self.season
@@ -192,8 +194,14 @@ class Squad:
         player_id = player.player_id
 
         price_now = None
-        if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
-            player_db = get_player(player_id)
+        player_db = get_player(player_id, dbsession=dbsession)
+        if (
+            use_api
+            and self.season == CURRENT_SEASON
+            and gameweek >= NEXT_GAMEWEEK
+            and player_db is not None
+            and player_db.fpl_api_id is not None
+        ):
             api_id = player_db.fpl_api_id
             # first try getting the actual sale price from a logged in API
             try:
@@ -218,10 +226,8 @@ class Squad:
         price_bought = player.purchase_price
 
         # get player's current price from db if the API wasn't used
-        if not price_now:
-            player_db = get_player(player_id, dbsession=dbsession)
-            if player_db:
-                price_now = player_db.price(self.season, gameweek)
+        if not price_now and player_db:
+            price_now = player_db.price(self.season, gameweek)
 
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:

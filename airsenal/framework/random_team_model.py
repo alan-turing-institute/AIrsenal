@@ -16,10 +16,7 @@ class RandomMatchPredictor(BaseMatchPredictor):
         self.num_samples = num_samples
         self.rng = np.random.default_rng(random_state)
 
-    def fit(
-        self,
-        training_data: dict[str, Iterable[str] | Iterable[float]],
-    ):
+    def fit(self, training_data: dict[str, Iterable[str] | Iterable[float]], **kwargs):
         home_team = training_data["home_team"]
         away_team = training_data["away_team"]
         self.teams = sorted(set(home_team) | set(away_team))

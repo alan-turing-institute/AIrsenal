@@ -12,7 +12,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_entry_start_gameweek,
-    get_player,
     get_player_from_api_id,
     get_players_for_gameweek,
     session,
@@ -163,8 +162,8 @@ def fill_initial_squad(
     init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
     time = fetcher.get_event_data()[starting_gw]["deadline"]
-    for pid in init_players:
-        player_api_id = get_player(pid).fpl_api_id
+    for player in init_players:
+        player_api_id = player.fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
 
         if len(first_gw_data) == 0:
@@ -181,7 +180,7 @@ def fill_initial_squad(
             price = first_gw_data[0]["value"]
 
         add_transaction(
-            pid,
+            player,
             starting_gw,
             1,
             price,
@@ -225,10 +224,18 @@ def update_squad(
     for transfer in transfers:
         gameweek = transfer["event"]
         api_pid_out = transfer["element_out"]
-        pid_out = get_player_from_api_id(api_pid_out).player_id
+        player_out = get_player_from_api_id(api_pid_out, dbsession=dbsession)
+        if player_out is None:
+            msg = f"Player with API ID {api_pid_out} not found in database."
+            raise ValueError(msg)
+        pid_out = player_out.player_id
         price_out = transfer["element_out_cost"]
         api_pid_in = transfer["element_in"]
-        pid_in = get_player_from_api_id(api_pid_in).player_id
+        player_in = get_player_from_api_id(api_pid_in, dbsession=dbsession)
+        if player_in is None:
+            msg = f"Player with API ID {api_pid_in} not found in database."
+            raise ValueError(msg)
+        pid_in = player_in.player_id
         price_in = transfer["element_in_cost"]
         time = transfer["time"]
 
