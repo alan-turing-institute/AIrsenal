@@ -1120,7 +1120,7 @@ def get_top_predicted_points(
         season {str} -- Season to query (default: {CURRENT_SEASON})
         dbsession {SQLAlchemy session} -- Database session (default: {None})
     """
-    discord_webhook = getattr(fetcher, "DISCORD_WEBHOOK", "MISSING_ID")
+    discord_webhook = fetcher.DISCORD_WEBHOOK
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
@@ -1166,7 +1166,7 @@ def get_top_predicted_points(
 
         # If a valid discord webhook URL has been stored
         # in env variables, send a webhook message
-        if discord_webhook != "MISSING_ID":
+        if discord_webhook:
             # Use regex to check the discord webhook url is correctly formatted
             if re.match(
                 r"^.*(discord|discordapp)\.com\/api"
@@ -1227,7 +1227,7 @@ def get_top_predicted_points(
             discord_embed["fields"] = []
             # If a valid discord webhook URL has been stored
             # in env variables, send a webhook message
-            if discord_webhook != "MISSING_ID":
+            if discord_webhook is not None:
                 # Use regex to check the discord webhook url is correctly formatted
                 if re.match(
                     r"^.*(discord|discordapp)\.com\/api"

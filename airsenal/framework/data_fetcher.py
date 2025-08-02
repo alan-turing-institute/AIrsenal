@@ -103,12 +103,7 @@ class FPLDataFetcher:
                 "failed."
             )
             raise RuntimeError(msg)
-        if (
-            (not self.FPL_LOGIN)
-            or (not self.FPL_PASSWORD)
-            or (self.FPL_LOGIN == "MISSING_ID")
-            or (self.FPL_PASSWORD == "MISSING_ID")
-        ):
+        if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
             do_login = ""
             while do_login.lower() not in ["y", "n"]:
                 do_login = input(
@@ -299,12 +294,7 @@ class FPLDataFetcher:
             return self.fpl_league_data
 
         url = "https://users.premierleague.com/accounts/login/"
-        if (
-            (not self.FPL_LOGIN)
-            or (not self.FPL_PASSWORD)
-            or self.FPL_LOGIN == "MISSING_ID"
-            or self.FPL_PASSWORD == "MISSING_ID"
-        ):
+        if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
             # prompt the user for credentials
             self.get_fpl_credentials()
         headers = {

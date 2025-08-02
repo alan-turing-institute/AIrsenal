@@ -604,7 +604,7 @@ def run_optimization(
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
-    if discord_webhook != "MISSING_ID":
+    if discord_webhook:
         # Use regex to check the discord webhook url is correctly formatted
         if re.match(
             r"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",

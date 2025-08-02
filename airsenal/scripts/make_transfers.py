@@ -240,7 +240,7 @@ def build_init_priced_transfers(
     We can instead query the API for our current 'picks' (requires login).
     """
     if not fpl_team_id:
-        if (not fetcher.FPL_TEAM_ID) or fetcher.FPL_TEAM_ID == "MISSING_ID":
+        if not fetcher.FPL_TEAM_ID:
             fpl_team_id = int(input("Please enter FPL team ID: "))
         else:
             fpl_team_id = fetcher.FPL_TEAM_ID
