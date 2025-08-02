@@ -3,8 +3,9 @@ Database can be either an sqlite file or a postgress server
 """
 
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import TypeVar
 
 from platformdirs import user_data_dir
 
@@ -57,11 +58,11 @@ def delete_env(key):
         os.environ.pop(key)
 
 
-T = TypeVar("T", bound=Any)
+T = TypeVar("T")
 
 
 @check_valid_key
-def get_env(key: str, return_type: T) -> T | None:
+def get_env(key: str, return_type: Callable[[str], T]) -> T | None:
     if key in os.environ:
         return return_type(os.environ[key])
     if os.path.exists(AIRSENAL_HOME / key):
