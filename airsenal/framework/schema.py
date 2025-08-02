@@ -15,7 +15,14 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from airsenal.framework.env import AIRSENAL_HOME, get_env
+from airsenal.framework.env import (
+    AIRSENAL_DB_FILE,
+    AIRSENAL_DB_PASSWORD,
+    AIRSENAL_DB_URI,
+    AIRSENAL_DB_USER,
+    AIRSENAL_HOME,
+    save_env,
+)
 
 # Common type annotations using PEP 593 Annotated
 intpk = Annotated[int, mapped_column(primary_key=True)]
@@ -418,34 +425,38 @@ class SessionBudget(Base):
     budget: Mapped[int]
 
 
-def get_connection_string():
-    if get_env("AIRSENAL_DB_FILE") and get_env("AIRSENAL_DB_URI"):
+def get_connection_string() -> str:
+    if AIRSENAL_DB_FILE and AIRSENAL_DB_URI:
         msg = "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
         raise RuntimeError(msg)
 
     # postgres database specified by: AIRSENAL_DB{_URI, _USER, _PASSWORD}
-    if get_env("AIRSENAL_DB_URI"):
-        keys = ["AIRSENAL_DB_URI", "AIRSENAL_DB_USER", "AIRSENAL_DB_PASSWORD"]
-        params = {}
-        for k in keys:
-            if value := get_env(k):
-                params[k] = value
-            else:
-                msg = f"{k} must be defined when using a postgres database"
-                raise KeyError(msg)
+    if AIRSENAL_DB_URI:
+        if AIRSENAL_DB_PASSWORD is None:
+            msg = "AIRSENAL_DB_PASSWORD must be defined when using a postgres database"
+            raise KeyError(msg)
+        if AIRSENAL_DB_USER is None:
+            msg = "AIRSENAL_DB_USER must be defined when using a postgres database"
+            raise KeyError(msg)
 
         return (
-            f"postgresql://{params['AIRSENAL_DB_USER']}:"
-            f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
+            f"postgresql://{AIRSENAL_DB_USER}:"
+            f"{AIRSENAL_DB_PASSWORD}@{AIRSENAL_DB_URI}/airsenal"
         )
 
     # sqlite database in a local file with path specified by AIRSENAL_DB_FILE,
     # or AIRSENAL_HOME / data.db by default
-    return f"sqlite:///{get_env('AIRSENAL_DB_FILE', default=AIRSENAL_HOME / 'data.db')}"
+    if not AIRSENAL_DB_FILE:
+        db_file = str(AIRSENAL_HOME / "data.db")
+        save_env("AIRSENAL_DB_FILE", db_file)
+        return f"sqlite:///{db_file}"
+    return f"sqlite:///{AIRSENAL_DB_FILE}"
 
 
 def get_session():
-    engine = create_engine(get_connection_string())
+    conn_str = get_connection_string()
+    print(conn_str)
+    engine = create_engine(conn_str)
 
     Base.metadata.create_all(engine)
     # Bind the engine to the metadata of the Base class so that the
