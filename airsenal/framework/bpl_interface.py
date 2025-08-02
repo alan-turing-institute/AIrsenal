@@ -21,7 +21,7 @@ np.random.seed(42)
 
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
-) -> dict[str, np.ndarray]:
+) -> dict[str, np.ndarray | dict[str, np.ndarray]]:
     """
     Query the match table and put results into pandas dataframe,
     to train the team-level model.
@@ -41,12 +41,19 @@ def get_result_dict(
     # compute the time difference for each fixture in results
     # to the first fixture of the next gameweek
     result_dates = np.array(
-        [pd.Timestamp(r.fixture.date).replace(tzinfo=None) for r in results]
+        [
+            pd.Timestamp(r.fixture.date).replace(tzinfo=None)
+            for r in results
+            if r.fixture.date is not None
+        ]
     )
-    end_date = pd.to_datetime(
-        [f.date for f in get_fixtures_for_gameweek(gameweek, season, dbsession)]
+    end_date = np.array(
+        [
+            pd.Timestamp(f.date).replace(tzinfo=None)
+            for f in get_fixtures_for_gameweek(gameweek, season, dbsession)
+            if f.date is not None
+        ]
     ).min()
-    end_date = end_date.replace(tzinfo=None)
     time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
@@ -144,7 +151,7 @@ def add_new_teams_to_model(
     """
     teams = get_teams_for_season(season=season, dbsession=dbsession)
     for t in teams:
-        if t not in team_model.teams:
+        if team_model.teams is None or t not in team_model.teams:
             if ratings:
                 print(f"Adding {t} to team model with covariates")
                 covariates = get_ratings_dict(season, [t], dbsession)

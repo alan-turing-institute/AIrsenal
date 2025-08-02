@@ -217,7 +217,9 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
     return sorted(transfer_list, key=lambda k: _get_position(k[id_key]))
 
 
-def remove_duplicates(transfers_in: list[int], transfers_out: list[int]) -> tuple:
+def remove_duplicates(
+    transfers_in: list[dict[str, int]], transfers_out: list[dict[str, int]]
+) -> tuple:
     """
     If we are replacing lots of players (e.g. new team), need to make sure there
     are no duplicates - can't add a player if we already have them.
