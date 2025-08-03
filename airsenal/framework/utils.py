@@ -14,14 +14,12 @@ import dateparser
 import pandas as pd
 import regex as re
 import requests
-from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from dateutil.parser import isoparse
 from sqlalchemy import case, desc, or_
 from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import (
     Absence,
     Fixture,
@@ -1666,23 +1664,3 @@ def fastcopy(obj: T) -> T:
     Faster replacement for copy.deepcopy().
     """
     return loads(dumps(obj, -1))
-
-
-def parse_team_model_from_str(
-    team_model: str,
-) -> (
-    RandomMatchPredictor
-    | ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-):
-    """
-    Returns the team model class corresponding to the given string.
-    """
-    if team_model == "random":
-        return RandomMatchPredictor()
-    if team_model == "extended":
-        return ExtendedDixonColesMatchPredictor()
-    if team_model == "neutral":
-        return NeutralDixonColesMatchPredictor()
-    msg = "Unknown team model"
-    raise ValueError(msg)

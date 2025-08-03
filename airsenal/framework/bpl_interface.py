@@ -3,6 +3,8 @@ Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
 
+from typing import TypeAlias
+
 import numpy as np
 import pandas as pd
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -18,6 +20,26 @@ from airsenal.framework.utils import (
 )
 
 np.random.seed(42)
+
+TeamModel: TypeAlias = (
+    ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+)
+
+
+def parse_team_model_from_str(team_model: str) -> TeamModel:
+    """
+    Returns the team model class corresponding to the given string.
+    """
+    if team_model == "random":
+        return RandomMatchPredictor()
+    if team_model == "extended":
+        return ExtendedDixonColesMatchPredictor()
+    if team_model == "neutral":
+        return NeutralDixonColesMatchPredictor()
+    msg = "Unknown team model"
+    raise ValueError(msg)
 
 
 def get_result_dict(
@@ -95,11 +117,8 @@ def get_ratings_dict(
 
 
 def get_training_data(
-    season: str,
-    gameweek: int,
-    dbsession: Session,
-    ratings: bool = True,
-):
+    season: str, gameweek: int, dbsession: Session, ratings: bool = True
+) -> dict[str, np.ndarray | dict[str, np.ndarray]]:
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
     exponential time decay in model.
@@ -115,17 +134,8 @@ def get_training_data(
 
 
 def create_and_fit_team_model(
-    training_data: dict,
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
-    **fit_args,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+    training_data: dict, model: TeamModel | None = None, **fit_args
+) -> TeamModel:
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
@@ -146,17 +156,8 @@ def create_and_fit_team_model(
 
 
 def add_new_teams_to_model(
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor,
-    season: str,
-    dbsession: Session,
-    ratings: bool = True,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+    team_model: TeamModel, season: str, dbsession: Session, ratings: bool = True
+) -> TeamModel:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
@@ -179,16 +180,9 @@ def get_fitted_team_model(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    model: TeamModel | None = None,
     **fit_args,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+) -> TeamModel:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
@@ -212,10 +206,7 @@ def get_fitted_team_model(
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    model: TeamModel | None = None,
     dbsession: Session = session,
     ratings: bool = True,
     **fit_args,
@@ -283,11 +274,7 @@ def fixture_probabilities(
 
 
 def get_goal_probabilities_for_fixtures(
-    fixtures: list[Fixture],
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor,
-    max_goals: int = 10,
+    fixtures: list[Fixture], team_model: TeamModel, max_goals: int = 10
 ) -> dict[int, dict[str, dict[int, float]]]:
     """
     Get the probability that each team in a fixture scores any number of goals up

@@ -15,6 +15,7 @@ from pandas import Series
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.bpl_interface import (
+    TeamModel,
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
@@ -88,10 +89,7 @@ def calc_all_predicted_points(
     num_thread: int = 4,
     tag: str = "",
     player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    team_model: TeamModel | None = None,
     team_model_args: dict | None = None,
 ) -> None:
     """
@@ -191,10 +189,7 @@ def make_predictedscore_table(
     include_saves: bool = True,
     tag_prefix: str | None = None,
     player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    team_model: TeamModel | None = None,
     team_model_args: dict | None = None,
     dbsession: Session = session,
 ) -> str:
