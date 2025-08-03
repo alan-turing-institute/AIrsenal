@@ -18,7 +18,7 @@ def get_team_names(league_data):
 
 
 def get_team_history(team_data):
-    output_dict = {"history": {}}
+    output_dict: dict[str, dict[int, dict[str, int]]] = {"history": {}}
     for gw in team_data["current"]:
         output_dict["history"][gw["event"]] = {
             "points": gw["points"],

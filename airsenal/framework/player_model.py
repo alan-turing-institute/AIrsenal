@@ -58,7 +58,7 @@ def scale_goals_by_minutes(goals, minutes):
     (specifically: reduce the number of "neither" goals where the player is said
     to have had no involvement.
     goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
-    mo. assists and no. goals not involved in
+    no. assists, and no. goals not involved in
     minutes: np.array with shape (n_players, m_matches)
     """
     select_matches = (goals.sum(axis=2) > 0) & (minutes > 0)

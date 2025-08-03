@@ -1704,58 +1704,36 @@ def find_fixture(
 
 
 def get_player_team_from_fixture(
-    gameweek: int,
-    opponent: str | int,
+    fixture: Fixture,
+    opponent: str | int | None = None,
     player_at_home: bool | None = None,
-    kickoff_time: date | datetime | str | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session = session,
-    return_fixture: bool = False,
-) -> str | tuple[str, Fixture]:
+) -> str:
     """
     Get the team a player played for given the gameweek, opponent, time and
     whether they were home or away.
     If return_fixture is True, return a tuple of (team_name, fixture).
     """
-    if player_at_home is True:
-        opponent_was_home = False
-    elif player_at_home is False:
-        opponent_was_home = True
-    elif player_at_home is None:
-        opponent_was_home = None
-
-    fixture = find_fixture(
-        team=opponent,
-        was_home=opponent_was_home,
-        gameweek=gameweek,
-        season=season,
-        kickoff_time=kickoff_time,
-        dbsession=dbsession,
-    )
-    if fixture is None:
-        msg = f"No fixture found for team {opponent} in gameweek {gameweek}"
+    if opponent is None and player_at_home is None:
+        msg = "Either opponent or player_at_home must be specified"
         raise ValueError(msg)
 
-    player_team = None
-
     if player_at_home is not None:
-        player_team = fixture.home_team if player_at_home else fixture.away_team
-    else:
-        if not isinstance(opponent, str):
-            opponent_name = get_team_name(opponent, season=season, dbsession=dbsession)
-        else:
-            opponent_name = opponent
-        if fixture.home_team == opponent_name:
-            player_team = fixture.away_team
-        elif fixture.away_team == opponent_name:
-            player_team = fixture.home_team
-        else:
-            msg = f"Opponent {opponent_name} not in fixture"
-            raise ValueError(msg)
+        return fixture.home_team if player_at_home else fixture.away_team
 
-    if return_fixture:
-        return (player_team, fixture)
-    return player_team
+    if isinstance(opponent, int):
+        opponent_name = get_team_name(opponent, season=season, dbsession=dbsession)
+    else:
+        opponent_name = opponent
+
+    if fixture.home_team == opponent_name:
+        return fixture.away_team
+    if fixture.away_team == opponent_name:
+        return fixture.home_team
+
+    msg = f"Opponent {opponent_name} not in fixture"
+    raise ValueError(msg)
 
 
 def is_transfer_deadline_today() -> bool:

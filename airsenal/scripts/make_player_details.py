@@ -293,8 +293,11 @@ def get_player_details(season: str) -> dict:
     output = {}
     for directory in sub_dirs:
         name = path_to_name(directory)
-        idx = path_to_index(directory)
         print("Doing", name)
+        idx = path_to_index(directory)
+        if idx is None:
+            print("!!!FAILED!!! Could not find index for", name)
+            continue
 
         player_dict = process_file(
             os.path.join(directory, PLAYERS_FILE),

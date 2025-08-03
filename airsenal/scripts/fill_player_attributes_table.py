@@ -12,6 +12,7 @@ from airsenal.framework.mappings import positions
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
+    find_fixture,
     get_next_gameweek,
     get_past_seasons,
     get_player,
@@ -178,11 +179,24 @@ def fill_attributes_table_from_api(
                     opponent_id = result["opponent_team"]
                     was_home = result["was_home"]
                     kickoff_time = result["kickoff_time"]
-                    team = get_player_team_from_fixture(
-                        gameweek,
+                    fixture = find_fixture(
                         opponent_id,
-                        was_home,
-                        kickoff_time,
+                        was_home=not was_home,
+                        gameweek=gameweek,
+                        season=season,
+                        kickoff_time=kickoff_time,
+                        dbsession=dbsession,
+                    )
+                    if fixture is None:
+                        print(
+                            f"Couldn't find fixture for {player} vs {opponent_id} in "
+                            f"gameweek {gameweek}"
+                        )
+                        continue
+                    team = get_player_team_from_fixture(
+                        fixture,
+                        opponent_id,
+                        player_at_home=was_home,
                         season=season,
                         dbsession=dbsession,
                     )

@@ -102,7 +102,9 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p)
-    return None
+
+    msg = f"Player {player_id} not found in FPL team {team_id}"
+    raise ValueError(msg)
 
 
 def get_gw_transfer_suggestions(
@@ -145,6 +147,9 @@ def price_transfers(
     both players to be removed and added.
     """
     transfers = list(zip(*transfer_player_ids, strict=False))  # [(out,in),(out,in)]
+    if fetcher.FPL_TEAM_ID is None:
+        msg = "FPL team ID not set. Cannot price transfers."
+        raise RuntimeError(msg)
     priced_transfers = [
         [
             [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
@@ -159,10 +164,15 @@ def price_transfers(
     ]
 
     def to_dict(t):
+        p_out = get_player(t[0][0])
+        p_in = get_player(t[1][0])
+        if not p_out or not p_in:
+            msg = f"Player not found for transfer: {t}"
+            raise ValueError(msg)
         return {
-            "element_out": get_player(t[0][0]).fpl_api_id,
+            "element_out": p_out.fpl_api_id,
             "selling_price": t[0][1],
-            "element_in": get_player(t[1][0]).fpl_api_id,
+            "element_in": p_in.fpl_api_id,
             "purchase_price": t[1][1],
         }
 

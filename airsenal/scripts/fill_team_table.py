@@ -24,8 +24,9 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
                 first_line = False
                 continue
             t = Team()
-            t.name, t.full_name, t.season, t.team_id = line.strip().split(",")
-            print(t.name, t.full_name, t.season, t.team_id)
+            t.name, t.full_name, t.season, team_id = line.strip().split(",")
+            print(t.name, t.full_name, t.season, team_id)
+            t.team_id = int(team_id)
             dbsession.add(t)
     dbsession.commit()
 

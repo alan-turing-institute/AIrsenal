@@ -8,6 +8,7 @@ import pandas as pd
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import FifaTeamRating, Fixture, Result, session
 from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 from airsenal.framework.utils import (
@@ -117,9 +118,14 @@ def create_and_fit_team_model(
     training_data: dict,
     model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     **fit_args,
-) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
+) -> (
+    ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+):
     """
     Get the team-level stan model, which can give probabilities of
     each potential scoreline in a given fixture.
@@ -140,11 +146,17 @@ def create_and_fit_team_model(
 
 
 def add_new_teams_to_model(
-    team_model: ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor,
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor,
     season: str,
     dbsession: Session,
     ratings: bool = True,
-) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
+) -> (
+    ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+):
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
@@ -169,9 +181,14 @@ def get_fitted_team_model(
     ratings: bool = True,
     model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     **fit_args,
-) -> ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor:
+) -> (
+    ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+):
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
@@ -197,6 +214,7 @@ def fixture_probabilities(
     season: str = CURRENT_SEASON,
     model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     dbsession: Session = session,
     ratings: bool = True,
@@ -266,7 +284,9 @@ def fixture_probabilities(
 
 def get_goal_probabilities_for_fixtures(
     fixtures: list[Fixture],
-    team_model: ExtendedDixonColesMatchPredictor | NeutralDixonColesMatchPredictor,
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor,
     max_goals: int = 10,
 ) -> dict[int, dict[str, dict[int, float]]]:
     """

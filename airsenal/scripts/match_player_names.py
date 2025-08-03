@@ -9,14 +9,16 @@ Write out a dict of the format
 import json
 from collections.abc import Callable
 
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
 def find_best_match(
-    fpl_players: list[str], player: str, fuzz_method: Callable = fuzz.ratio
-) -> tuple[str, int]:
+    fpl_players: list[str],
+    player: str,
+    fuzz_method: Callable[[str, str], int] = fuzz.ratio,
+) -> tuple[str | None, int]:
     """
     use fuzzy matching to see if we can match names
 
@@ -32,7 +34,7 @@ def find_best_match(
                      historical one
     best_ratio: int, the score for the match, range 1-100.
     """
-    best_ratio = 0.0
+    best_ratio = 0
     best_match = None
     for p in fpl_players:
         if fuzz_method(p, player) > best_ratio:
@@ -45,7 +47,7 @@ def find_best_match(
 if __name__ == "__main__":
     # get the team names as used in FPL
     df = FPLDataFetcher()
-    playerdict = {}
+    playerdict: dict[str, list[str]] = {}
     playerdata = df.get_player_summary_data()
     fpl_players_to_match = []
     # from the API we construct the player name from first_name and second_name
@@ -54,9 +56,8 @@ if __name__ == "__main__":
         fpl_players_to_match.append(player_name)
 
     # get the player names from the fpl archives json
-    missing = set()
-    matched = set()
-    history_players = set()
+    matched: set[str] = set()
+    history_players: set[str] = set()
     for season in ["2122", "2021", "1920"]:
         filename = f"../data/player_summary_{season}.json"
         with open(filename) as f:
@@ -76,6 +77,9 @@ if __name__ == "__main__":
             p, score = find_best_match(
                 fpl_players_to_match, player, fuzz_method=fuzz.ratio
             )
+            if p is None:
+                print(f"Could not find match for {player}")
+                continue
             if score > 70:
                 add_player = input(
                     f"Add {p} : {player}  (score (from ratio)={score})? (y/n):"
@@ -92,6 +96,9 @@ if __name__ == "__main__":
                 p, score = find_best_match(
                     fpl_players_to_match, player, fuzz_method=fuzz.token_sort_ratio
                 )
+                if p is None:
+                    print(f"Could not find match for {player}")
+                    continue
                 if score > 80:
                     add_player = input(
                         f"Add {p} : {player}  (score (from token_sort_ratio)={score})? "

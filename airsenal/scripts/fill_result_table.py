@@ -33,15 +33,18 @@ def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> N
             elif away_team in v:
                 away_team = k
         # query database to find corresponding fixture
-        f = find_fixture(
+        fixture = find_fixture(
             home_team,
             was_home=True,
             other_team=away_team,
             season=season,
             dbsession=dbsession,
         )
+        if fixture is None:
+            print(f"Unable to find fixture for {home_team} vs {away_team} in {season}")
+            continue
         res = Result()
-        res.fixture = f
+        res.fixture = fixture
         res.home_score = int(home_score)
         res.away_score = int(away_score)
         dbsession.add(res)
@@ -84,6 +87,12 @@ def fill_results_from_api(
             season=season,
             dbsession=dbsession,
         )
+        if f is None:
+            print(
+                f"Unable to find fixture for {home_team} vs {away_team} in {season} "
+                f"gameweek {gameweek}"
+            )
+            continue
         if f.result is None:
             res = Result()
             add = True

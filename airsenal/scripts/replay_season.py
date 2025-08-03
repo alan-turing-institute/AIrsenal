@@ -84,7 +84,7 @@ def replay_season(
     team_model_class = parse_team_model_from_str(team_model)
 
     # store results in a dictionary, which we will later save to a json file
-    replay_results = {}
+    replay_results: dict[str, str | int | list] = {}
     replay_results["tag"] = tag_prefix
     replay_results["season"] = season
     replay_results["weeks_ahead"] = weeks_ahead

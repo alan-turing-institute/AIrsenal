@@ -159,20 +159,31 @@ def fill_playerscores_from_api(
             for result in results:
                 # try to find the match in the match table
                 opponent = get_team_name(result["opponent_team"])
+                if opponent is None:
+                    print(f"Couldn't find team {result['opponent_team']}")
+                    continue
 
-                played_for, fixture = get_player_team_from_fixture(
-                    gameweek,
+                fixture = find_fixture(
+                    opponent,
+                    was_home=not result["was_home"],
+                    gameweek=gameweek,
+                    season=season,
+                    kickoff_time=result["kickoff_time"],
+                    dbsession=dbsession,
+                )
+                if fixture is None or fixture.result is None:
+                    print(
+                        f"Couldn't find fixture for {player} vs {opponent} in "
+                        f"gameweek {gameweek}"
+                    )
+                    continue
+                played_for = get_player_team_from_fixture(
+                    fixture,
                     opponent,
                     player_at_home=result["was_home"],
-                    kickoff_time=result["kickoff_time"],
                     season=season,
                     dbsession=dbsession,
-                    return_fixture=True,
                 )
-
-                if not fixture or not played_for or not fixture.result:
-                    print(f"  Couldn't find match result for {player} in gw {gameweek}")
-                    continue
 
                 ps = get_player_scores(
                     fixture=fixture, player=player, dbsession=dbsession
@@ -180,6 +191,9 @@ def fill_playerscores_from_api(
                 if ps is None:
                     ps = PlayerScore()
                     add = True
+                elif isinstance(ps, list):
+                    msg = f"Multiple player scores found for {player} in {fixture}"
+                    raise ValueError(msg)
                 else:
                     add = False
                 ps.player_team = played_for
