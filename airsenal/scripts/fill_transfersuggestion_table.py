@@ -23,6 +23,7 @@ import sys
 import time
 import warnings
 from collections.abc import Callable
+from dataclasses import asdict
 from multiprocessing import Process, Queue
 
 import regex as re
@@ -37,6 +38,7 @@ from airsenal.framework.multiprocessing_utils import (
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
     MAX_FREE_TRANSFERS,
+    StratDict,
     calc_points_hit,
     check_tag_valid,
     count_expected_outputs,
@@ -144,18 +146,9 @@ def optimize(
         if sid == "starting":
             sid = ""
             depth = 0
-            strat_dict["total_score"] = 0
-            strat_dict["points_per_gw"] = {}
-            strat_dict["free_transfers"] = {}
-            strat_dict["num_transfers"] = {}
-            strat_dict["points_hit"] = {}
-            strat_dict["discount_factor"] = {}
-            strat_dict["players_in"] = {}
-            strat_dict["players_out"] = {}
-            strat_dict["chips_played"] = {}
+            strat_dict = StratDict(root_gw=gameweek_range[0])
             new_squad = squad
             gw = gameweek_range[0] - 1
-            strat_dict["root_gw"] = gameweek_range[0]
         else:
             if len(sid) > 0:
                 sid += "-"
@@ -164,27 +157,27 @@ def optimize(
                 resetter(pid, sid)
 
             # work out what gameweek we're in and how far down the tree we are.
-            depth = len(strat_dict["points_per_gw"])
+            depth = len(strat_dict.points_per_gw)
 
             # gameweeks from this point in strategy to end of window
             gameweeks = gameweek_range[depth:]
 
             # upcoming gameweek:
             gw = gameweeks[0]
-            root_gw = strat_dict["root_gw"]
+            root_gw = strat_dict.root_gw
 
             # check whether we're playing a chip this gameweek
             if isinstance(num_transfers, str):
                 if num_transfers.startswith("T"):
-                    strat_dict["chips_played"][gw] = "triple_captain"
+                    strat_dict.chips_played[gw] = "triple_captain"
                 elif num_transfers.startswith("B"):
-                    strat_dict["chips_played"][gw] = "bench_boost"
+                    strat_dict.chips_played[gw] = "bench_boost"
                 elif num_transfers == "W":
-                    strat_dict["chips_played"][gw] = "wildcard"
+                    strat_dict.chips_played[gw] = "wildcard"
                 elif num_transfers == "F":
-                    strat_dict["chips_played"][gw] = "free_hit"
+                    strat_dict.chips_played[gw] = "free_hit"
             else:
-                strat_dict["chips_played"][gw] = None
+                strat_dict.chips_played[gw] = None
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
@@ -206,14 +199,14 @@ def optimize(
             points_hit = calc_points_hit(num_transfers, free_transfers)
             discount_factor = get_discount_factor(root_gw, gw)
             points -= points_hit * discount_factor
-            strat_dict["total_score"] += points
-            strat_dict["points_per_gw"][gw] = points
-            strat_dict["free_transfers"][gw] = free_transfers
-            strat_dict["num_transfers"][gw] = num_transfers
-            strat_dict["points_hit"][gw] = points_hit
-            strat_dict["discount_factor"][gw] = discount_factor
-            strat_dict["players_in"][gw] = transfers["in"]
-            strat_dict["players_out"][gw] = transfers["out"]
+            strat_dict.total_score += points
+            strat_dict.points_per_gw[gw] = points
+            strat_dict.free_transfers[gw] = free_transfers
+            strat_dict.num_transfers[gw] = num_transfers
+            strat_dict.points_hit[gw] = points_hit
+            strat_dict.discount_factor[gw] = discount_factor
+            strat_dict.players_in[gw] = transfers["in"]
+            strat_dict.players_out[gw] = transfers["out"]
 
             depth += 1
 
@@ -222,7 +215,7 @@ def optimize(
                 os.path.join(OUTPUT_DIR, f"strategy_{pred_tag}_{sid}.json"),
                 "w",
             ) as outfile:
-                json.dump(strat_dict, outfile)
+                json.dump(asdict(strat_dict), outfile)
             # call function to update the main progress bar
             if updater is not None:
                 updater()
@@ -257,13 +250,13 @@ def optimize(
                 )
 
 
-def find_best_strat_from_json(tag: str) -> dict | None:
+def find_best_strat_from_json(tag: str) -> StratDict | None:
     """
     Look through all the files in our tmp directory that
     contain the prediction tag in their filename.
     Load the json, and find the strategy with the best 'total_score'.
     """
-    best_score = 0
+    best_score = 0.0
     best_strat = None
     file_list = os.listdir(OUTPUT_DIR)
     for filename in file_list:
@@ -271,9 +264,9 @@ def find_best_strat_from_json(tag: str) -> dict | None:
             continue
         full_filename = os.path.join(OUTPUT_DIR, filename)
         with open(full_filename) as strat_file:
-            strat = json.load(strat_file)
-            if strat["total_score"] > best_score:
-                best_score = strat["total_score"]
+            strat = StratDict(**json.load(strat_file))
+            if strat.total_score > best_score:
+                best_score = strat.total_score
                 best_strat = strat
 
     return best_strat
@@ -289,7 +282,7 @@ def save_baseline_score(squad: Squad, gameweeks: list[int], tag: str) -> None:
     zeros = ("0-" * num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
     with open(filename, "w") as f:
-        json.dump(strat_dict, f)
+        json.dump(asdict(strat_dict), f)
 
 
 def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
@@ -304,27 +297,26 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
         print(f"Couldn't find {filename}")
         return 0.0
     with open(filename) as inputfile:
-        strat = json.load(inputfile)
-        return strat["total_score"]
+        strat = StratDict(**json.load(inputfile))
+        return strat.total_score
 
 
-def print_strat(strat: dict) -> None:
+def print_strat(strat: StratDict) -> None:
     """
     nicely formatted printout as output of optimization.
     """
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
+    gameweeks = sorted(strat.points_per_gw.keys())
     print(" ===============================================")
     print(" ========= Optimum strategy ====================")
     print(" ===============================================")
-    for gw in gameweeks_as_int:
+    for gw in gameweeks:
         print(f"\n =========== Gameweek {gw} ================\n")
-        print(f"Chips played:  {strat['chips_played'][str(gw)]}\n")
+        print(f"Chips played:  {strat.chips_played[gw]}\n")
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
-        for i in range(len(strat["players_in"][str(gw)])):
-            pin = get_player_name(strat["players_in"][str(gw)][i])
-            pout = get_player_name(strat["players_out"][str(gw)][i])
+        for i in range(len(strat.players_in[gw])):
+            pin = get_player_name(strat.players_in[gw][i])
+            pout = get_player_name(strat.players_out[gw][i])
             subs = (
                 f"{pin}\t\t\t{pout}"
                 if pin is not None and len(pin) < 20
@@ -332,33 +324,32 @@ def print_strat(strat: dict) -> None:
             )
             print(subs)
     print("\n==========================")
-    print(f" Total score: {int(strat['total_score'])} \n")
+    print(f" Total score: {int(strat.total_score)} \n")
 
 
-def discord_payload(strat: dict, lineup: list[str]) -> dict:
+def discord_payload(strat: StratDict, lineup: list[str]) -> dict:
     """
     json formated discord webhook content.
     """
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
+    gameweeks = sorted(strat.points_per_gw.keys())
     discord_embed = {
         "title": "AIrsenal webhook",
         "description": "Optimum strategy for gameweek(S)"
-        f" {','.join(str(x) for x in gameweeks_as_int)}:",
+        f" {','.join(str(x) for x in gameweeks)}:",
         "color": 0x35A800,
         "fields": [],
     }
     fields: list[dict] = []
-    for gw in gameweeks_as_int:
+    for gw in gameweeks:
         fields.append(
             {
                 "name": f"GW{gw} chips:",
-                "value": f"Chips played:  {strat['chips_played'][str(gw)]}\n",
+                "value": f"Chips played:  {strat.chips_played[gw]}\n",
                 "inline": False,
             }
         )
-        pin = [str(get_player_name(p)) for p in strat["players_in"][str(gw)]]
-        pout = [str(get_player_name(p)) for p in strat["players_out"][str(gw)]]
+        pin = [str(get_player_name(p)) for p in strat.players_in[gw]]
+        pout = [str(get_player_name(p)) for p in strat.players_out[gw]]
         fields.extend(
             [
                 {
@@ -382,18 +373,17 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
 
 
 def print_team_for_next_gw(
-    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
+    strat: StratDict, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
 ) -> Squad:
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
-    next_gw = gameweeks_as_int[0]
+    gameweeks = sorted(strat.points_per_gw.keys())
+    next_gw = gameweeks[0]
     t = get_starting_squad(next_gw=next_gw, season=season, fpl_team_id=fpl_team_id)
-    for pidout in strat["players_out"][str(next_gw)]:
+    for pidout in strat.players_out[next_gw]:
         t.remove_player(pidout)
-    for pidin in strat["players_in"][str(next_gw)]:
+    for pidin in strat.players_in[next_gw]:
         t.add_player(pidin)
     tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
@@ -416,7 +406,7 @@ def run_optimization(
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
     max_free_transfers: int = MAX_FREE_TRANSFERS,
-) -> tuple[Squad, dict[str, dict[str, int | list[int]]] | None]:
+) -> tuple[Squad, StratDict | None]:
     """
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
@@ -591,37 +581,38 @@ def run_optimization(
         processor.start()
         procs.append(processor)
     # add starting node to the queue
-    squeue.put((0, num_free_transfers, 0, starting_squad, {}, "starting"))
+    squeue.put(("", num_free_transfers, 0, starting_squad, StratDict(), "starting"))
 
     for i, p in enumerate(procs):
         progress_bars[i].close()
         progress_bars[i] = None
         p.join()
 
-    # find the best from all the strategies tried
-    best_strategy = find_best_strat_from_json(tag)
+    for _ in range(len(procs)):
+        print("\n")
+    print("\n====================================\n")
+    print(f"Strategy for Team ID: {fpl_team_id}")
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
+    print(f"Baseline score: {baseline_score}")
+
+    # find the best from all the strategies tried
+    best_strategy = find_best_strat_from_json(tag)
+    if best_strategy is None:
+        msg = "Failed to find a strategy!"
+        raise ValueError(msg)
+    print(f"Best score: {best_strategy.total_score}")
+    print_strat(best_strategy)
+
+    best_squad = print_team_for_next_gw(
+        best_strategy, season=season, fpl_team_id=fpl_team_id
+    )
+
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     if is_replay:
         # simulating a previous season, so imitate applying transfers by adding
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
-
-    for _ in range(len(procs)):
-        print("\n")
-    print("\n====================================\n")
-    print(f"Strategy for Team ID: {fpl_team_id}")
-    print(f"Baseline score: {baseline_score}")
-    if best_strategy is None:
-        msg = "Failed to find a strategy!"
-        raise ValueError(msg)
-
-    print(f"Best score: {best_strategy['total_score']}")
-    print_strat(best_strategy)
-    best_squad = print_team_for_next_gw(
-        best_strategy, season=season, fpl_team_id=fpl_team_id
-    )
 
     # If a valid discord webhook URL has been stored
     # in env variables, send a webhook message
@@ -635,7 +626,7 @@ def run_optimization(
             lineup_strings = [
                 f"__Strategy for Team ID: **{fpl_team_id}**__",
                 f"Baseline score: *{int(baseline_score)}*",
-                f"Best score: *{int(best_strategy['total_score'])}*",
+                f"Best score: *{int(best_strategy.total_score)}*",
                 "\n__starting 11__",
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:

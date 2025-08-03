@@ -4,10 +4,13 @@ functions to optimize the transfers for N weeks ahead
 
 import warnings
 from copy import deepcopy
+from dataclasses import dataclass, field
 from datetime import datetime
 
 import requests
+from sqlalchemy.orm import Session
 
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import (
     Fixture,
     PlayerPrediction,
@@ -33,7 +36,12 @@ DEFAULT_SUB_WEIGHTS: dict[str, float | tuple[float, float, float]] = {
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 
-def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
+def check_tag_valid(
+    pred_tag: str,
+    gameweek_range: list[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session = session,
+) -> bool:
     """Check a prediction tag contains predictions for all the specified gameweeks."""
     # get unique gameweek and season values associated with pred_tag
     fixtures = (
@@ -54,7 +62,7 @@ def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=s
     return season_ok and gws_ok
 
 
-def calc_points_hit(num_transfers, free_transfers):
+def calc_points_hit(num_transfers: int | str, free_transfers: int) -> int:
     """
     Current rules say we lose 4 points for every transfer beyond
     the number of free transfers we have.
@@ -79,8 +87,10 @@ def calc_points_hit(num_transfers, free_transfers):
 
 
 def calc_free_transfers(
-    num_transfers, prev_free_transfers, max_free_transfers=MAX_FREE_TRANSFERS
-):
+    num_transfers: int | str,
+    prev_free_transfers: int,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> int:
     """
     We get one extra free transfer per week, unless we use a wildcard or
     free hit, but we can't have more than 5.  So we should only be able
@@ -105,12 +115,12 @@ def calc_free_transfers(
 
 
 def get_starting_squad(
-    next_gw=NEXT_GAMEWEEK,
-    season=CURRENT_SEASON,
-    fpl_team_id=None,
-    use_api=False,
-    apifetcher=fetcher,
-):
+    next_gw: int = NEXT_GAMEWEEK,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    use_api: bool = False,
+    apifetcher: FPLDataFetcher = fetcher,
+) -> Squad:
     """
     use the transactions table in the db, or the API if requested
     """
@@ -138,7 +148,9 @@ def get_starting_squad(
     return get_squad_from_transactions(next_gw - 1, season, fpl_team_id)
 
 
-def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
+def get_squad_from_transactions(
+    gameweek: int, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
+) -> Squad:
     if not fpl_team_id:
         # use the most recent transaction in the table
         most_recent = (
@@ -223,56 +235,86 @@ def get_discounted_squad_score(
     return total_points
 
 
-def get_baseline_strat(squad, gameweeks, tag, root_gw=None):
+@dataclass
+class StratDict:
+    total_score: float = 0
+    points_per_gw: dict[int, float] = field(default_factory=dict)
+    players_in: dict[int, list[int]] = field(default_factory=dict)
+    players_out: dict[int, list[int]] = field(default_factory=dict)
+    chips_played: dict[int, str | None] = field(default_factory=dict)
+    root_gw: int | None = None
+    free_transfers: dict[int, int] = field(default_factory=dict)
+    num_transfers: dict[int, int | str] = field(default_factory=dict)
+    points_hit: dict[int, int] = field(default_factory=dict)
+    discount_factor: dict[int, float] = field(default_factory=dict)
+
+
+def get_baseline_strat(
+    squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
+) -> StratDict:
     """
     Create the strategy dict used by the optimisation for the baseline of making no
     transfers.
     """
-    strat_dict = {
-        "total_score": 0,
-        "points_per_gw": {},
-        "players_in": {},
-        "players_out": {},
-        "chips_played": {},
-        "root_gw": root_gw,
-    }
+    strat_dict = StratDict()
     for gw in gameweeks:
         gw_score = get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw)
-        strat_dict["total_score"] += gw_score
-        strat_dict["points_per_gw"][gw] = gw_score
-        strat_dict["players_in"][gw] = []
-        strat_dict["players_out"][gw] = []
-        strat_dict["chips_played"][gw] = None
+        strat_dict.total_score += gw_score
+        strat_dict.points_per_gw[gw] = gw_score
+        strat_dict.players_in[gw] = []
+        strat_dict.players_out[gw] = []
+        strat_dict.chips_played[gw] = None
 
     return strat_dict
 
 
-def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
+def fill_suggestion_table(
+    baseline_score: float,
+    best_strat: StratDict,
+    season: str,
+    fpl_team_id: int,
+    dbsession: Session = session,
+):
     """
     Fill the optimized strategy into the table
     """
     timestamp = str(datetime.now())
-    best_score = best_strat["total_score"]
 
-    points_gain = best_score - baseline_score
-    for in_or_out in [("players_out", -1), ("players_in", 1)]:
-        for gameweek, players in best_strat[in_or_out[0]].items():
-            for player in players:
-                ts = TransferSuggestion()
-                ts.player_id = player
-                ts.in_or_out = in_or_out[1]
-                ts.gameweek = gameweek
-                ts.points_gain = points_gain
-                ts.timestamp = timestamp
-                ts.season = season
-                ts.fpl_team_id = fpl_team_id
-                ts.chip_played = best_strat["chips_played"][gameweek]
-                session.add(ts)
-    session.commit()
+    points_gain = best_strat.total_score - baseline_score
+    for gameweek, players in best_strat.players_out.items():
+        for player in players:
+            ts = TransferSuggestion()
+            ts.player_id = player
+            ts.in_or_out = -1
+            ts.gameweek = gameweek
+            ts.points_gain = points_gain
+            ts.timestamp = timestamp
+            ts.season = season
+            ts.fpl_team_id = fpl_team_id
+            ts.chip_played = best_strat.chips_played[gameweek]
+            dbsession.add(ts)
+    for gameweek, players in best_strat.players_in.items():
+        for player in players:
+            ts = TransferSuggestion()
+            ts.player_id = player
+            ts.in_or_out = 1
+            ts.gameweek = gameweek
+            ts.points_gain = points_gain
+            ts.timestamp = timestamp
+            ts.season = season
+            ts.fpl_team_id = fpl_team_id
+            ts.chip_played = best_strat.chips_played[gameweek]
+            dbsession.add(ts)
+    dbsession.commit()
 
 
 def fill_transaction_table(
-    starting_squad, best_strat, season, fpl_team_id, tag=None, dbsession=session
+    starting_squad: Squad,
+    best_strat: StratDict,
+    season: str,
+    fpl_team_id: int,
+    tag: str | None = None,
+    dbsession: Session = session,
 ):
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
@@ -281,13 +323,12 @@ def fill_transaction_table(
     table - it's assumed the strategy will be re-optimised after each week rather than
     sticking with the originally proposed future transfers.
     """
-    strat_gws = [int(gw) for gw in best_strat["players_in"]]
-    fill_gw = min(strat_gws)
+    fill_gw = min(best_strat.players_in)
     if tag is None:
         tag = f"AIrsenal{season}"
-    free_hit = int(best_strat["chips_played"][str(fill_gw)] == "free_hit")
+    free_hit = int(best_strat.chips_played[fill_gw] == "free_hit")
     time = datetime.now().isoformat()
-    for player_id in best_strat["players_out"][str(fill_gw)]:
+    for player_id in best_strat.players_out[fill_gw]:
         price = starting_squad.get_sell_price_for_player(
             player_id, gameweek=fill_gw, dbsession=dbsession
         )
@@ -303,7 +344,7 @@ def fill_transaction_table(
             time,
             dbsession,
         )
-    for player_id in best_strat["players_in"][str(fill_gw)]:
+    for player_id in best_strat.players_in[fill_gw]:
         if player := get_player(player_id, dbsession=dbsession):
             price = player.price(season, fill_gw)
             add_transaction(
@@ -323,12 +364,12 @@ def fill_transaction_table(
 
 
 def fill_initial_suggestion_table(
-    squad,
-    fpl_team_id,
-    tag,
-    season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    squad: Squad,
+    fpl_team_id: int,
+    tag: str,
+    season: str = CURRENT_SEASON,
+    gameweek: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
 ):
     """
     Fill an initial squad into the table
@@ -350,12 +391,12 @@ def fill_initial_suggestion_table(
 
 
 def fill_initial_transaction_table(
-    squad,
-    fpl_team_id,
-    tag,
-    season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    squad: Squad,
+    fpl_team_id: int,
+    tag: str,
+    season: str = CURRENT_SEASON,
+    gameweek: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
 ):
     """Add transactions from an initial squad optimisation to the transactions table
     in the database. Used for simulating seasons only, for playing the current FPL
@@ -378,7 +419,7 @@ def fill_initial_transaction_table(
         )
 
 
-def get_num_increments(num_transfers, num_iterations=100):
+def get_num_increments(num_transfers: str | int, num_iterations: int = 100) -> int:
     """
     how many steps for the progress bar for this strategy
     """
@@ -411,13 +452,13 @@ def get_num_increments(num_transfers, num_iterations=100):
 
 
 def next_week_transfers(
-    strat,
-    max_total_hit=None,
-    allow_unused_transfers=True,
-    max_opt_transfers=2,
-    chips=None,
-    max_free_transfers=MAX_FREE_TRANSFERS,
-):
+    strat: tuple[int, int, StratDict],
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chips: dict[str, list[str] | str | None] | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> list[tuple[int | str, int, int]]:
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or chip played) in the following gameweek.
 
@@ -436,9 +477,11 @@ def next_week_transfers(
     # check that the 'chips' dict we are given makes sense:
     if chips is None:
         chips = {"chips_allowed": [], "chip_to_play": None}
+    if not isinstance(chips["chips_allowed"], list):
+        msg = "chips['chips_allowed'] should be a list of chips allowed"
+        raise ValueError(msg)
     if (
-        "chips_allowed" in chips
-        and len(chips["chips_allowed"]) > 0
+        len(chips["chips_allowed"]) > 0
         and "chip_to_play" in chips
         and chips["chip_to_play"]
     ):
@@ -448,7 +491,7 @@ def next_week_transfers(
         )
         raise RuntimeError(msg)
     ft_available, hit_so_far, strat_dict = strat
-    chip_history = strat_dict["chips_played"]
+    chip_history = strat_dict.chips_played
 
     if not allow_unused_transfers and ft_available == max_free_transfers:
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
@@ -466,23 +509,17 @@ def next_week_transfers(
         ]
 
     allow_wildcard = (
-        "chips_allowed" in chips
-        and "wildcard" in chips["chips_allowed"]
-        and "wildcard" not in chip_history.values()
+        "wildcard" in chips["chips_allowed"] and "wildcard" not in chip_history.values()
     )
     allow_free_hit = (
-        "chips_allowed" in chips
-        and "free_hit" in chips["chips_allowed"]
-        and "free_hit" not in chip_history.values()
+        "free_hit" in chips["chips_allowed"] and "free_hit" not in chip_history.values()
     )
     allow_bench_boost = (
-        "chips_allowed" in chips
-        and "bench_boost" in chips["chips_allowed"]
+        "bench_boost" in chips["chips_allowed"]
         and "bench_boost" not in chip_history.values()
     )
     allow_triple_captain = (
-        "chips_allowed" in chips
-        and "triple_captain" in chips["chips_allowed"]
+        "triple_captain" in chips["chips_allowed"]
         and "triple_captain" not in chip_history.values()
     )
 
@@ -554,10 +591,7 @@ def count_expected_outputs(
 
     if chip_gw_dict is None:
         chip_gw_dict = {}
-    init_strat_dict: dict[str, dict[int, list[int] | str]] = {
-        "players_in": {},
-        "chips_played": {},
-    }
+    init_strat_dict = StratDict()
     init_free_transfers = free_transfers  # used below for baseline strategy logic
     strategies = [(init_free_transfers, 0, init_strat_dict)]
 
@@ -582,23 +616,23 @@ def count_expected_outputs(
                 # update dummy strat dict
                 if n_transfers == "W":
                     # add dummy values to transfer dict for 15 possible transfers
-                    new_dict["players_in"][gw] = [1] * 15
-                    new_dict["chips_played"][gw] = "wildcard"
+                    new_dict.players_in[gw] = [1] * 15
+                    new_dict.chips_played[gw] = "wildcard"
                 elif n_transfers == "F":
                     # add dummy values to transfer dict for 15 possible transfers
-                    new_dict["players_in"][gw] = [1] * 15
-                    new_dict["chips_played"][gw] = "free_hit"
+                    new_dict.players_in[gw] = [1] * 15
+                    new_dict.chips_played[gw] = "free_hit"
                 elif isinstance(n_transfers, str) and (
                     n_transfers.startswith(("T", "B"))
                 ):
                     if n_transfers[0] == "T":
-                        new_dict["chips_played"][gw] = "triple_captain"
+                        new_dict.chips_played[gw] = "triple_captain"
                     elif n_transfers[0] == "B":
-                        new_dict["chips_played"][gw] = "bench_boost"
-                    new_dict["players_in"][gw] = [1] * int(n_transfers[1])
+                        new_dict.chips_played[gw] = "bench_boost"
+                    new_dict.players_in[gw] = [1] * int(n_transfers[1])
                 elif isinstance(n_transfers, int):
                     # add dummy values to transfer dict for n_transfers transfers
-                    new_dict["players_in"][gw] = [1] * n_transfers
+                    new_dict.players_in[gw] = [1] * n_transfers
                 else:
                     msg = f"Unexpected value for n_transfers: {n_transfers}"
                     raise ValueError(msg)
@@ -609,10 +643,9 @@ def count_expected_outputs(
 
     # if allow_unused_transfers is False baseline of no transfers can be removed above.
     # Check whether 1st strategy is the baseline and if not add it back in here
-    baseline_strat_dict: dict[str, dict[int, list[int] | str]] = {
-        "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
-        "chips_played": {},
-    }
+    baseline_strat_dict = StratDict(
+        players_in={gw: [] for gw in range(next_gw, next_gw + gw_ahead)}
+    )
     if strategies[0][2] != baseline_strat_dict:
         baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
         strategies.insert(0, baseline_dict)
@@ -623,18 +656,15 @@ def count_expected_outputs(
     return len(strategies), baseline_excluded
 
 
-def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
+def get_discount_factor(
+    next_gw: int, pred_gw: int, discount_type: str = "exp", discount: float = 14 / 15
+) -> float:
     """
     given the next gw and a predicted gw, retrieve discount factor. Either:
         - exp: discount**n_ahead (discount reduces each gameweek)
         - const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to
           zero at gw 15 with default discount)
     """
-    allowed_types = ["exp", "const", "constant"]
-    if discount_type not in allowed_types:
-        msg = "unrecognised discount type, should be exp or const"
-        raise Exception(msg)
-
     if not next_gw:
         # during tests 'none' is passed as the root gw, default to zero so the
         # optimisation is done solely on pred_gw ahead.
@@ -645,5 +675,8 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
         score = discount**n_ahead
     elif discount_type in ["const", "constant"]:
         score = max(1 - (1 - discount) * n_ahead, 0)
+    else:
+        msg = f"unrecognised discount type {discount_type}, should be exp or const"
+        raise Exception(msg)
 
     return score

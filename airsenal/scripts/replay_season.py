@@ -13,6 +13,7 @@ from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.bpl_interface import parse_team_model_from_str
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.optimization_utils import StratDict
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
@@ -115,13 +116,13 @@ def replay_season(
                 tag, gw_range, season, fpl_team_id, is_replay=True
             )
             # no points hits due to unlimited transfers to initialise team
-            best_strategy: dict[str, dict[str, int | list[int]]] | None = {
-                "points_hit": {str(gw): 0},
-                "free_transfers": {str(gw): 0},
-                "num_transfers": {str(gw): 0},
-                "players_in": {str(gw): []},
-                "players_out": {str(gw): []},
-            }
+            best_strategy: StratDict | None = StratDict(
+                points_hit={gw: 0},
+                free_transfers={gw: 0},
+                num_transfers={gw: 0},
+                players_in={gw: []},
+                players_out={gw: []},
+            )
         else:
             print("Optimising transfers...")
             # find best squad and the strategy for this gameweek
@@ -150,17 +151,12 @@ def replay_season(
             elif p.is_vice_captain:
                 gw_result["vice_captain"] = p.name
         # obtain information about the strategy used for gameweek
-        gw_result["free_transfers"] = best_strategy["free_transfers"][str(gw)]
-        gw_result["num_transfers"] = best_strategy["num_transfers"][str(gw)]
-        gw_result["points_hit"] = best_strategy["points_hit"][str(gw)]
-        players_in = best_strategy["players_in"][str(gw)]
-        players_out = best_strategy["players_out"][str(gw)]
-        if not isinstance(players_in, list) or not isinstance(players_out, list):
-            msg = (
-                "players_in and players_out should be lists of player IDs, "
-                f"got {type(players_in)} and {type(players_out)}"
-            )
-            raise TypeError(msg)
+        gw_result["free_transfers"] = best_strategy.free_transfers[gw]
+        gw_result["num_transfers"] = best_strategy.num_transfers[gw]
+        gw_result["points_hit"] = best_strategy.points_hit[gw]
+        players_in = best_strategy.players_in[gw]
+        players_out = best_strategy.players_out[gw]
+
         gw_result["players_in"] = [get_player_name(p) for p in players_in]
         gw_result["players_out"] = [get_player_name(p) for p in players_out]
         # compute expected and actual points for gameweek
