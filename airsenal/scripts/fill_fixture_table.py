@@ -25,7 +25,7 @@ def fill_fixtures_from_file(
             fields = line.strip().split(",")
             f = Fixture()
             f.date = fields[0]
-            f.gameweek = fields[5]
+            f.gameweek = int(fields[5])
             home_team = fields[1]
             away_team = fields[2]
             for k, v in alternative_team_names.items():
@@ -48,18 +48,19 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
     fetcher = FPLDataFetcher()
     fixtures = fetcher.get_fixture_data()
     for fixture in fixtures:
-        try:
-            f = find_fixture(
-                fixture["team_h"],
-                was_home=True,
-                other_team=fixture["team_a"],
-                season=season,
-                dbsession=dbsession,
-            )
-            update = True
-        except ValueError:
+        f = find_fixture(
+            fixture["team_h"],
+            was_home=True,
+            other_team=fixture["team_a"],
+            season=season,
+            dbsession=dbsession,
+        )
+        if f is None:
+            print("Creating new fixture")
             f = Fixture()
             update = False
+        else:
+            update = True
 
         f.date = fixture["kickoff_time"]
         f.gameweek = fixture["event"]

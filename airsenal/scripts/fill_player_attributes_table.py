@@ -128,17 +128,24 @@ def fill_attributes_table_from_api(
         pa.season = season
         pa.gameweek = next_gw
         pa.price = int(p_summary["now_cost"])
-        pa.team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
+        team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
+        if team is None:
+            print(f"Couldn't find team {p_summary['team']} for player {player}")
+            continue
+        pa.team = team
         pa.position = positions[p_summary["element_type"]]
         pa.selected = int(float(p_summary["selected_by_percent"]) * n_players / 100)
-        pa.transfers_in = int(p_summary["transfers_in_event"])
-        pa.transfers_out = int(p_summary["transfers_out_event"])
-        pa.transfers_balance = pa.transfers_in - pa.transfers_out
-        pa.chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        transfers_in = int(p_summary["transfers_in"])
+        transfers_out = int(p_summary["transfers_out"])
+        pa.transfers_in = transfers_in
+        pa.transfers_out = transfers_out
+        pa.transfers_balance = transfers_in - transfers_out
         pa.news = p_summary["news"]
+        chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        pa.chance_of_playing_next_round = chance_of_playing_next_round
         if (
-            pa.chance_of_playing_next_round is not None
-            and pa.chance_of_playing_next_round <= 50
+            chance_of_playing_next_round is not None
+            and chance_of_playing_next_round <= 50
         ):
             pa.return_gameweek = get_return_gameweek_from_news(
                 p_summary["news"],

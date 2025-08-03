@@ -348,8 +348,9 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
         "color": 0x35A800,
         "fields": [],
     }
+    fields: list[dict] = []
     for gw in gameweeks_as_int:
-        discord_embed["fields"].append(
+        fields.append(
             {
                 "name": f"GW{gw} chips:",
                 "value": f"Chips played:  {strat['chips_played'][str(gw)]}\n",
@@ -358,7 +359,7 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
         )
         pin = [str(get_player_name(p)) for p in strat["players_in"][str(gw)]]
         pout = [str(get_player_name(p)) for p in strat["players_out"][str(gw)]]
-        discord_embed["fields"].extend(
+        fields.extend(
             [
                 {
                     "name": f"GW{gw} transfers out:",
@@ -372,6 +373,7 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
                 },
             ]
         )
+    discord_embed["fields"] = fields
     return {
         "content": "\n".join(lineup),
         "username": "AIrsenal",
@@ -414,7 +416,7 @@ def run_optimization(
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
     max_free_transfers: int = MAX_FREE_TRANSFERS,
-) -> tuple[Squad | None, dict[str, list[int]] | None]:
+) -> tuple[Squad, dict[str, list[int]] | None]:
     """
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every num_transfers/gameweek
@@ -612,8 +614,8 @@ def run_optimization(
     print(f"Strategy for Team ID: {fpl_team_id}")
     print(f"Baseline score: {baseline_score}")
     if best_strategy is None:
-        print("Failed to find a strategy!")
-        return None, None
+        msg = "Failed to find a strategy!"
+        raise ValueError(msg)
 
     print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
@@ -681,10 +683,15 @@ def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     chip_dict: dict[int, dict[str, str | None | list[str]]] = {}
     # first fill in any allowed chips
     for gw in gameweeks:
-        chip_dict[gw] = {"chip_to_play": None, "chips_allowed": []}
+        chip_to_play: str | None = None
+        chips_allowed: list[str] = []
         for k, v in chip_gameweeks.items():
             if int(v) == 0:
-                chip_dict[gw]["chips_allowed"].append(k)
+                chips_allowed.append(k)
+        chip_dict[gw] = {
+            "chip_to_play": chip_to_play,
+            "chips_allowed": chips_allowed,
+        }
     # now go through again, for any definite ones, and remove
     # other allowed chips from those gameweeks
     for k, v in chip_gameweeks.items():

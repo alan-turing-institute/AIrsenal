@@ -1628,8 +1628,6 @@ def find_fixture(
     the season, kickoff time and the other team in the fixture. Only returns the fixture
     if exactly one match is found, otherwise raises a ValueError.
     """
-    fixture = None
-
     if not isinstance(team, str):
         team_name = get_team_name(team, season=season, dbsession=dbsession)
     else:
@@ -1672,16 +1670,16 @@ def find_fixture(
     fixtures = query.all()
 
     if not fixtures or len(fixtures) == 0:
-        msg = (
+        print(
             f"No fixture with season={season}, gw={gameweek}, "
             f"team_name={team_name}, was_home={was_home}, "
             f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
         )
-        raise ValueError(msg)
+        return None
 
     if len(fixtures) == 1:
-        fixture = fixtures[0]
-    elif kickoff_time:
+        return fixtures[0]
+    if kickoff_time:
         # team played multiple games in the gameweek, determine the
         # fixture of interest using the kickoff time,
         kickoff_date = parse_date(kickoff_time)
@@ -1689,18 +1687,14 @@ def find_fixture(
         for f in fixtures:
             f_date = parse_date(f.date)
             if f_date == kickoff_date:
-                fixture = f
-                break
+                return f
 
-    if not fixture:
-        msg = (
-            f"No unique fixture with season={season}, gw={gameweek}, "
-            f"team_name={team_name}, was_home={was_home}, "
-            f"kickoff_time={kickoff_time}"
-        )
-        raise ValueError(msg)
-
-    return fixture
+    print(
+        f"No unique fixture with season={season}, gw={gameweek}, "
+        f"team_name={team_name}, was_home={was_home}, "
+        f"kickoff_time={kickoff_time}"
+    )
+    return None
 
 
 def get_player_team_from_fixture(

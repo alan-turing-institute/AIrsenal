@@ -44,7 +44,6 @@ class Player(Base):
     attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
     results: Mapped[list["Result"]] = relationship(back_populates="player")
-    fixtures: Mapped[list["Fixture"]] = relationship(back_populates="player")
     predictions: Mapped[list["PlayerPrediction"]] = relationship(
         back_populates="player"
     )
@@ -274,9 +273,7 @@ class Fixture(Base):
     away_team: Mapped[str100]
     season: Mapped[str100]
     tag: Mapped[str100]
-    result: Mapped["Result"] = relationship(back_populates="fixture")
-    player: Mapped["Player"] = relationship(back_populates="fixtures")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    result: Mapped["Result | None"] = relationship(back_populates="fixture")
 
     def __str__(self):
         return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
@@ -455,7 +452,6 @@ def get_connection_string() -> str:
 
 def get_session():
     conn_str = get_connection_string()
-    print(conn_str)
     engine = create_engine(conn_str)
 
     Base.metadata.create_all(engine)

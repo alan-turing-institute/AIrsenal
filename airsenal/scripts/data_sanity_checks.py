@@ -113,6 +113,11 @@ def fixture_player_teams(
         for fixture in fixtures:
             if fixture.result:
                 player_scores = get_player_scores(fixture=fixture, dbsession=dbsession)
+                if player_scores is None:
+                    print(f"Fixture {fixture} has no player scores")
+                    continue
+                if isinstance(player_scores, PlayerScore):
+                    player_scores = [player_scores]
 
                 for score in player_scores:
                     if score.player_team not in [
@@ -171,10 +176,11 @@ def fixture_num_players(
                     .all()
                 )
 
-                # Rule change due to shorter season and
-                if (fixture.season == "1920" and int(fixture.gameweek) >= 39) or (
-                    int(fixture.season[:2]) >= 22
-                ):
+                # No. subs changes during Covid and later rule changes
+                if (
+                    fixture.season == "1920"
+                    and (fixture.gameweek is not None and fixture.gameweek >= 39)
+                ) or (int(fixture.season[:2]) >= 22):
                     upper_team_limit = 16
                 else:
                     upper_team_limit = 14
@@ -234,11 +240,11 @@ def fixture_num_goals(
                 )
 
                 home_goals = sum(score.goals for score in home_scores) + sum(
-                    score.own_goals for score in away_scores
+                    score.own_goals or 0 for score in away_scores
                 )
 
                 away_goals = sum(score.goals for score in away_scores) + sum(
-                    score.own_goals for score in home_scores
+                    score.own_goals or 0 for score in home_scores
                 )
 
                 if home_goals != result.home_score:

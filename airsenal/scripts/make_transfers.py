@@ -150,18 +150,21 @@ def price_transfers(
     if fetcher.FPL_TEAM_ID is None:
         msg = "FPL team ID not set. Cannot price transfers."
         raise RuntimeError(msg)
-    priced_transfers = [
-        [
-            [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+    priced_transfers = []
+    for t in transfers:
+        player = get_player(t[1])
+        if player is None:
+            msg = f"Player with ID {t[1]} not found"
+            raise ValueError(msg)
+        priced_transfers.append(
             [
-                t[1],
-                fetcher.get_player_summary_data()[get_player(t[1]).fpl_api_id][
-                    "now_cost"
+                [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+                [
+                    t[1],
+                    fetcher.get_player_summary_data()[player.fpl_api_id]["now_cost"],
                 ],
-            ],
-        ]
-        for t in transfers
-    ]
+            ]
+        )
 
     def to_dict(t):
         p_out = get_player(t[0][0])
@@ -209,7 +212,15 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
     """
 
     def _get_position(api_id):
-        return get_player_from_api_id(api_id).position(CURRENT_SEASON)
+        player = get_player_from_api_id(api_id)
+        if player is None:
+            msg = f"Player with API ID {api_id} not found"
+            raise ValueError(msg)
+        pos = player.position(CURRENT_SEASON)
+        if pos is None:
+            msg = f"Player {player.name} has no position for season {CURRENT_SEASON}"
+            raise ValueError(msg)
+        return pos
 
     # key to the dict could be either 'element_in' or 'element_out'.
     id_key = None
@@ -269,7 +280,11 @@ def build_init_priced_transfers(
         raise RuntimeError(msg)
     transfers_in = []
     for t in transfer_in_suggestions:
-        api_id = get_player(t.player_id).fpl_api_id
+        player = get_player(t.player_id)
+        if player is None:
+            msg = f"Player with ID {t.player_id} not found"
+            raise ValueError(msg)
+        api_id = player.fpl_api_id
         price = fetcher.get_player_summary_data()[api_id]["now_cost"]
         transfers_in.append({"element_in": api_id, "purchase_price": price})
     # remove duplicates - can't add a player we already have

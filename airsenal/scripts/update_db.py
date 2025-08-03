@@ -204,7 +204,10 @@ def main():
 
     season = args.season
     do_attributes = not args.noattr
-    fpl_team_id = args.fpl_team_id or None
+    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    if not fpl_team_id:
+        msg = "FPL team ID must be specified in args, config, or env"
+        raise ValueError(msg)
 
     with session_scope() as session:
         if database_is_empty(session):
