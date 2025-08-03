@@ -56,13 +56,6 @@ def fill_initial_squad(
         verbose=verbose,
     )
 
-    if best_squad is None:
-        msg = (
-            "best_squad is None: make_new_squad failed to generate a valid team or "
-            "something went wrong with the squad expected points calculation."
-        )
-        raise RuntimeError(msg)
-
     gw_start = gw_range[0]
     optimised_score = get_discounted_squad_score(
         best_squad,

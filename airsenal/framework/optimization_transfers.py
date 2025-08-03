@@ -21,16 +21,16 @@ from airsenal.framework.utils import (
 
 
 def make_optimum_single_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    root_gw=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    verbose=False,
-):
+    squad: Squad,
+    tag: str,
+    gameweek_range: list[int] | None = None,
+    root_gw: int | None = None,
+    season: str = CURRENT_SEASON,
+    update_func_and_args: tuple[Callable, float, Process] | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    verbose: bool = False,
+) -> tuple[Squad, list[int], list[int]]:
     """
     If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
@@ -101,16 +101,16 @@ def make_optimum_single_transfer(
 
 
 def make_optimum_double_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    root_gw=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    verbose=False,
-):
+    squad: Squad,
+    tag: str,
+    gameweek_range: list[int] | None = None,
+    root_gw: int | None = None,
+    season: str = CURRENT_SEASON,
+    update_func_and_args: tuple[Callable, float, Process] | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    verbose: bool = False,
+) -> tuple[Squad, list[int], list[int]]:
     """
     If we want to just make two transfers, it's not infeasible to try all
     possibilities in turn.
@@ -197,17 +197,17 @@ def make_optimum_double_transfer(
 
 
 def make_random_transfers(
-    squad,
-    tag,
-    nsubs=1,
-    gw_range=None,
-    root_gw=None,
-    num_iter=1,
-    update_func_and_args=None,
-    season=CURRENT_SEASON,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-):
+    squad: Squad,
+    tag: str,
+    nsubs: int = 1,
+    gw_range: list[int] | None = None,
+    root_gw: int | None = None,
+    num_iter: int = 1,
+    update_func_and_args: tuple[Callable, float, Process] | None = None,
+    season: str = CURRENT_SEASON,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+) -> tuple[Squad, list[int], list[int]]:
     """
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select the replacements with

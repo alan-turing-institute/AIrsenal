@@ -26,7 +26,10 @@ from airsenal.framework.utils import (
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
-DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
+DEFAULT_SUB_WEIGHTS: dict[str, float | tuple[float, float, float]] = {
+    "GK": 0.03,
+    "Outfield": (0.65, 0.3, 0.1),
+}
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 

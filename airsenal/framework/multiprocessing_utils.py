@@ -11,6 +11,7 @@ https://stackoverflow.com/questions/41952413/get-length-of-queue-in-pythons-mult
 import multiprocessing
 import os
 from multiprocessing.queues import Queue
+from typing import Any
 
 
 def set_multiprocessing_start_method():
@@ -44,16 +45,16 @@ class SharedCounter:
     http://eli.thegreenplace.net/2012/01/04/shared-counter-with-pythons-multiprocessing/
     """
 
-    def __init__(self, n=0):
+    def __init__(self, n: int = 0):
         self.count = multiprocessing.Value("i", n)
 
-    def increment(self, n=1):
+    def increment(self, n: int = 1):
         """Increment the counter by n (default = 1)"""
         with self.count.get_lock():
             self.count.value += n
 
     @property
-    def value(self):
+    def value(self) -> int:
         """Return the value of the counter"""
         return self.count.value
 
@@ -79,11 +80,11 @@ class CustomQueue(Queue):
         self.size.increment(1)
         super().put(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> Any:
         self.size.increment(-1)
         return super().get(*args, **kwargs)
 
-    def qsize(self):
+    def qsize(self) -> int:
         """Reliable implementation of multiprocessing.Queue.qsize()"""
         return self.size.value
 

@@ -34,7 +34,7 @@ def check_valid_key(func):
     """decorator to pre-check whether we are using a valid AIrsenal key in env
     get/save/del functions"""
 
-    def wrapper(key, *args, **kwargs):
+    def wrapper(key: str, *args, **kwargs):
         if key not in AIRSENAL_ENV_KEYS:
             msg = f"{key} is not a known AIrsenal environment variable"
             raise KeyError(msg)
@@ -44,13 +44,13 @@ def check_valid_key(func):
 
 
 @check_valid_key
-def save_env(key, value):
+def save_env(key: str, value: str):
     with open(AIRSENAL_HOME / key, "w") as f:
         f.write(value)
 
 
 @check_valid_key
-def delete_env(key):
+def delete_env(key: str):
     if os.path.exists(AIRSENAL_HOME / key):
         os.remove(AIRSENAL_HOME / key)
     if key in os.environ:
