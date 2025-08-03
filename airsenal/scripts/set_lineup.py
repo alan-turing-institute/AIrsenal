@@ -85,12 +85,6 @@ def get_lineup_from_payload(lineup: dict) -> Squad:
     raise RuntimeError(msg)
 
 
-def make_squad_transfers(squad: Squad, priced_transfers: list[dict]) -> None:
-    for t in priced_transfers:
-        squad.remove_player(t[0][0], price=t[0][1])
-        squad.add_player(t[1][0], price=t[1][1])
-
-
 def set_lineup(
     fpl_team_id: int | None = None,
     verbose: bool | None = False,

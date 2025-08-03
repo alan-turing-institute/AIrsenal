@@ -48,14 +48,6 @@ def make_init_db(fpl_team_id: int, seasons: list[str], dbsession: Session) -> bo
     return not database_is_empty(dbsession)
 
 
-def check_positive_int(value: int) -> int:
-    ivalue = int(value)
-    if ivalue <= 0:
-        msg = f"{value} is an invalid positive int value"
-        raise argparse.ArgumentTypeError(msg)
-    return ivalue
-
-
 def main():
     parser = argparse.ArgumentParser(description="Customise fpl team id")
     parser.add_argument(

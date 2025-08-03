@@ -375,24 +375,6 @@ def fill_initial_transaction_table(
         )
 
 
-def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
-    """
-    Quick function to see if we need to do multiple iterations
-    for a strategy, or if the result is deterministic
-    (0 or 1 transfer for each gameweek).
-    """
-    strat_dict = strategy[0]
-    return any(isinstance(v, int) and v >= N for v in strat_dict.values())
-
-
-def make_strategy_id(strategy):
-    """
-    Return a string that will identify a strategy - just concatenate
-    the numbers of transfers per gameweek.
-    """
-    return ",".join(str(nt) for nt in strategy[0].values())
-
-
 def get_num_increments(num_transfers, num_iterations=100):
     """
     how many steps for the progress bar for this strategy

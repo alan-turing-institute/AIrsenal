@@ -2,8 +2,6 @@
 Use the BPL models to predict scores for upcoming fixtures.
 """
 
-import os
-import uuid
 from collections import defaultdict
 from functools import partial
 
@@ -38,11 +36,9 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fastcopy,
-    fetcher,
     get_fixtures_for_player,
     get_max_matches_per_player,
     get_player,
-    get_player_from_api_id,
     get_recent_minutes_for_player,
     is_future_gameweek,
     list_players,
@@ -470,42 +466,6 @@ def calc_predicted_points_for_player(
     return predictions
 
 
-def calc_predicted_points_for_pos(
-    pos: str,
-    fixture_goal_probs: dict,
-    df_bonus: tuple[pd.Series, pd.Series] | None,
-    df_saves: pd.Series | None,
-    df_cards: pd.Series | None,
-    season: str,
-    gw_range: list[int],
-    tag: str,
-    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    dbsession: Session = session,
-) -> dict[int, list[PlayerPrediction]]:
-    """
-    Calculate points predictions for all players in a given position and
-    put into the DB.
-    """
-    df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
-    return {
-        player.player_id: calc_predicted_points_for_player(
-            player=player,
-            fixture_goal_probs=fixture_goal_probs,
-            df_player=df_player,
-            df_bonus=df_bonus,
-            df_saves=df_saves,
-            df_cards=df_cards,
-            season=season,
-            gw_range=gw_range,
-            tag=tag,
-            dbsession=dbsession,
-        )
-        for player in list_players(
-            position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
-        )
-    }
-
-
 def make_prediction(
     player: Player, fixture: Fixture, points: float, tag: str
 ) -> PlayerPrediction:
@@ -518,34 +478,6 @@ def make_prediction(
     pp.player = player
     pp.fixture = fixture
     return pp
-
-
-def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
-    """
-    Fill the database with FPLs ep_next prediction, and also
-    write output to a csv.
-    """
-    if not os.path.exists(csv_filename):
-        with open(csv_filename, "w") as outfile:
-            outfile.write("player_id,gameweek,EP\n")
-    tag = f"EP-{uuid.uuid4()!s}"
-    summary_data = fetcher.get_player_summary_data()
-    gameweek = NEXT_GAMEWEEK
-    with open(csv_filename, "a") as outfile:
-        for k, v in summary_data.items():
-            player = get_player_from_api_id(k)
-            if player is None:
-                print(f"Player with API ID {k} not found in database")
-                continue
-            player_id = player.player_id
-            outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
-            pp = PlayerPrediction()
-            pp.player_id = player_id
-            pp.fixture.gameweek = gameweek
-            pp.predicted_points = v["ep_next"]
-            pp.tag = tag
-            dbsession.add(pp)
-    dbsession.commit()
 
 
 def process_player_data(

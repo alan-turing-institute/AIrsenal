@@ -279,47 +279,6 @@ def get_past_seasons(num_seasons: int) -> list[str]:
     return seasons
 
 
-def get_current_players(
-    gameweek: int | None = None,
-    season: str | None = None,
-    fpl_team_id: int | None = None,
-    dbsession: Session | None = None,
-) -> list[int]:
-    """
-    Use the transactions table to find the team as of specified gameweek,
-    then add up the values at that gameweek using the FPL API data.
-    If gameweek is None, get team for next gameweek.
-    """
-    if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    if not season:
-        season = CURRENT_SEASON
-    if not dbsession:
-        dbsession = session
-    current_players = []
-    transactions = (
-        dbsession.query(Transaction)
-        .order_by(Transaction.gameweek, Transaction.id)
-        .filter_by(fpl_team_id=fpl_team_id)
-        .filter_by(free_hit=0)  # free_hit players shouldn't be considered part of squad
-        .filter_by(season=season)
-        .all()
-    )
-
-    if len(transactions) == 0:
-        # not updated the transactions table yet
-        return []
-    for t in transactions:
-        if gameweek and t.gameweek > gameweek:
-            break
-        if t.bought_or_sold == 1:
-            current_players.append(t.player_id)
-        else:
-            current_players.remove(t.player_id)
-    assert len(current_players) == 15
-    return current_players
-
-
 def get_bank(
     fpl_team_id: int | None = None,
     gameweek: int | None = None,
@@ -954,49 +913,6 @@ def get_players_for_gameweek(
             continue
         players.append(player)
     return players
-
-
-def get_previous_points_for_same_fixture(
-    player: str | int, fixture_id: int, dbsession: Session = session
-) -> dict[str, int]:
-    """
-    Search the past matches for same fixture in past seasons,
-    and how many points the player got.
-    """
-    if isinstance(player, str):
-        player_record = dbsession.query(Player).filter_by(name=player).first()
-        if not player_record:
-            print(f"Can't find player {player}")
-            return {}
-        player_id = player_record.player_id
-    else:
-        player_id = player
-    fixture = dbsession.query(Fixture).filter_by(fixture_id=fixture_id).first()
-    if not fixture:
-        print(f"Couldn't find fixture_id {fixture_id}")
-        return {}
-    home_team = fixture.home_team
-    away_team = fixture.away_team
-
-    previous_matches = (
-        dbsession.query(Fixture)
-        .filter_by(home_team=home_team)
-        .filter_by(away_team=away_team)
-        .order_by(Fixture.season)
-        .all()
-    )
-    fixture_ids = [(f.fixture_id, f.season) for f in previous_matches]
-    previous_points = {}
-    for fid in fixture_ids:
-        scores = (
-            dbsession.query(PlayerScore)
-            .filter_by(player_id=player_id, fixture_id=fid[0])
-            .all()
-        )
-        for s in scores:
-            previous_points[fid[1]] = s.points
-
-    return previous_points
 
 
 @lru_cache(maxsize=4096)
