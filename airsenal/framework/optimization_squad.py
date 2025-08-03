@@ -69,7 +69,7 @@ class SquadOpt:
         sub_weights: dict[
             str, float | tuple[float, float, float]
         ] = DEFAULT_SUB_WEIGHTS,
-    ):
+    ) -> None:
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
@@ -94,7 +94,7 @@ class SquadOpt:
         # Setup DEAP toolbox
         self._setup_deap()
 
-    def _setup_deap(self):
+    def _setup_deap(self) -> None:
         """Setup DEAP genetic algorithm components."""
         # Create fitness and individual classes
         # We want to maximize fitness, so weights=(1.0,)
@@ -210,7 +210,7 @@ class SquadOpt:
         }
         return players, position_idx
 
-    def _remove_zero_pts(self):
+    def _remove_zero_pts(self) -> None:
         """Exclude players with zero predicted points."""
         players: list[Player] = []
         # change_idx stores the indices of where the player positions change in the new

@@ -44,13 +44,13 @@ def check_valid_key(func):
 
 
 @check_valid_key
-def save_env(key: str, value: str):
+def save_env(key: str, value: str) -> None:
     with open(AIRSENAL_HOME / key, "w") as f:
         f.write(value)
 
 
 @check_valid_key
-def delete_env(key: str):
+def delete_env(key: str) -> None:
     if os.path.exists(AIRSENAL_HOME / key):
         os.remove(AIRSENAL_HOME / key)
     if key in os.environ:

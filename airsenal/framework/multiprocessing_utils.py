@@ -45,10 +45,10 @@ class SharedCounter:
     http://eli.thegreenplace.net/2012/01/04/shared-counter-with-pythons-multiprocessing/
     """
 
-    def __init__(self, n: int = 0):
+    def __init__(self, n: int = 0) -> None:
         self.count = multiprocessing.Value("i", n)
 
-    def increment(self, n: int = 1):
+    def increment(self, n: int = 1) -> None:
         """Increment the counter by n (default = 1)"""
         with self.count.get_lock():
             self.count.value += n
@@ -72,11 +72,11 @@ class CustomQueue(Queue):
     qsize() and empty().
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(ctx=multiprocessing.get_context())
         self.size = SharedCounter(0)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> None:
         self.size.increment(1)
         super().put(*args, **kwargs)
 
@@ -88,6 +88,6 @@ class CustomQueue(Queue):
         """Reliable implementation of multiprocessing.Queue.qsize()"""
         return self.size.value
 
-    def empty(self):
+    def empty(self) -> bool:
         """Reliable implementation of multiprocessing.Queue.empty()"""
         return not self.qsize()

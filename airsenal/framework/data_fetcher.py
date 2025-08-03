@@ -30,7 +30,7 @@ class FPLDataFetcher:
 
     def __init__(
         self, fpl_team_id: int | None = None, rsession: requests.Session | None = None
-    ):
+    ) -> None:
         self.rsession = rsession or requests.session()
         self.logged_in = False
         self.login_failed = False
@@ -68,7 +68,7 @@ class FPLDataFetcher:
         self.FPL_LOGIN_REDIRECT_URL = "https://fantasy.premierleague.com/a/login"
         self.FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
 
-    def get_fpl_credentials(self):
+    def get_fpl_credentials(self) -> None:
         """
         If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
         AIRSENAL_HOME or as environment variables, prompt the user for them.
@@ -93,7 +93,7 @@ class FPLDataFetcher:
             save_env("FPL_LOGIN", self.FPL_LOGIN)
             save_env("FPL_PASSWORD", self.FPL_PASSWORD)
 
-    def login(self, attempts: int = 3):
+    def login(self, attempts: int = 3) -> None:
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
@@ -416,7 +416,7 @@ class FPLDataFetcher:
         team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
         return self._get_request(team_url)
 
-    def post_lineup(self, payload: list[dict]):
+    def post_lineup(self, payload: list[dict]) -> None:
         """
         Set the lineup for a specific team
         """
@@ -447,7 +447,7 @@ class FPLDataFetcher:
         )
         raise Exception(msg)
 
-    def post_transfers(self, transfer_payload: dict):
+    def post_transfers(self, transfer_payload: dict) -> None:
         self.login()
 
         # adapted from https://github.com/amosbastian/fpl/blob/master/fpl/utils.py

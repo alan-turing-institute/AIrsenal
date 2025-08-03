@@ -274,7 +274,7 @@ def fill_suggestion_table(
     season: str,
     fpl_team_id: int,
     dbsession: Session = session,
-):
+) -> None:
     """
     Fill the optimized strategy into the table
     """
@@ -315,7 +315,7 @@ def fill_transaction_table(
     fpl_team_id: int,
     tag: str | None = None,
     dbsession: Session = session,
-):
+) -> None:
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
     the transactions status is kept up to date with transfers using the FPL API.
@@ -370,7 +370,7 @@ def fill_initial_suggestion_table(
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
-):
+) -> None:
     """
     Fill an initial squad into the table
     """
@@ -397,7 +397,7 @@ def fill_initial_transaction_table(
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
-):
+) -> None:
     """Add transactions from an initial squad optimisation to the transactions table
     in the database. Used for simulating seasons only, for playing the current FPL
     season the transactions status is kepts up to date with transfers using the FPL API.
