@@ -371,7 +371,9 @@ class Squad:
         formation[player_in.position] += 1
         return (formation["DEF"], formation["MID"], formation["FWD"]) in FORMATIONS
 
-    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
+    def total_points_for_starting_11(
+        self, gameweek: int, tag: str, triple_captain: bool = False
+    ) -> float:
         """
         simple sum over starting players
         """
@@ -386,7 +388,9 @@ class Squad:
 
         return total
 
-    def total_points_for_subs(self, gameweek, tag, sub_weights=None):
+    def total_points_for_subs(
+        self, gameweek: int, tag: str, sub_weights: dict | None = None
+    ) -> float:
         if sub_weights is None:
             sub_weights = {"GK": 1, "Outfield": (1, 1, 1)}
         outfield_subs = [
@@ -405,7 +409,7 @@ class Squad:
 
         return total
 
-    def optimize_lineup(self, gameweek, tag):
+    def optimize_lineup(self, gameweek: int, tag: str):
         if not self.is_complete():
             msg = "Squad is incomplete"
             raise RuntimeError(msg)

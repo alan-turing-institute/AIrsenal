@@ -45,7 +45,8 @@ dev = [
     "pytest-sugar>=1.0.0",
     "types-dateparser>=1.2.2.20250627",
     "types-requests>=2.32.4.20250611",
-     "mypy>=1.17.0",
+    "mypy>=1.17.0",
+    "types-python-dateutil>=2.9.0.20250708",
 ]
 
 [project.scripts]

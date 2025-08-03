@@ -44,6 +44,7 @@ dev = [
     { name = "pytest-sugar" },
     { name = "ruff" },
     { name = "types-dateparser" },
+    { name = "types-python-dateutil" },
     { name = "types-requests" },
 ]
 notebook = [
@@ -84,6 +85,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.27" },
     { name = "tqdm", specifier = ">=4.66.2" },
     { name = "types-dateparser", marker = "extra == 'dev'", specifier = ">=1.2.2.20250627" },
+    { name = "types-python-dateutil", marker = "extra == 'dev'", specifier = ">=2.9.0.20250708" },
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.4.20250611" },
 ]
 provides-extras = ["api", "notebook", "plot", "dev"]
