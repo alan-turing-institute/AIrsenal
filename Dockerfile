@@ -1,4 +1,4 @@
-FROM python:3.11-slim-buster
+FROM python:3.11-slim-bullseye
 
 RUN apt-get update && \
     apt-get install build-essential git sqlite3 curl -y && \
