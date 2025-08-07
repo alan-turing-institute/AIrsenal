@@ -12,7 +12,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_entry_start_gameweek,
-    get_player,
     get_player_from_api_id,
     get_players_for_gameweek,
     session,
@@ -26,12 +25,11 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
     fpl_team_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)
     if (
         fpl_team_data
-        and "active_chip" in fpl_team_data.keys()
+        and "active_chip" in fpl_team_data
         and fpl_team_data["active_chip"] == "freehit"
     ):
         return 1
-    else:
-        return 0
+    return 0
 
 
 def count_transactions(season, fpl_team_id, dbsession=session):
@@ -88,14 +86,14 @@ def transaction_exists(
     )
     if len(transactions) == 2:  # row for player bought and player sold
         return True
-    elif len(transactions) == 0:
+    if len(transactions) == 0:
         return False
-    else:
-        raise ValueError(
-            f"Database error: {len(transactions)} transactions in the database with "
-            f"parameters:  fpl_team_id={fpl_team_id}, gameweek={gameweek}, "
-            f"time={time}, pid_in={pid_in}, pid_out={pid_out}. Should be 2."
-        )
+    msg = (
+        f"Database error: {len(transactions)} transactions in the database with "
+        f"parameters:  fpl_team_id={fpl_team_id}, gameweek={gameweek}, "
+        f"time={time}, pid_in={pid_in}, pid_out={pid_out}. Should be 2."
+    )
+    raise ValueError(msg)
 
 
 def add_transaction(
@@ -143,10 +141,8 @@ def fill_initial_squad(
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
     print(
-        (
-            "Getting initially selected players "
-            f"in squad {fpl_team_id} for first gameweek..."
-        )
+        "Getting initially selected players "
+        f"in squad {fpl_team_id} for first gameweek..."
     )
     if NEXT_GAMEWEEK == 1:
         print("Season hasn't started yet so nothing to add to the DB.")
@@ -166,8 +162,8 @@ def fill_initial_squad(
     init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
     time = fetcher.get_event_data()[starting_gw]["deadline"]
-    for pid in init_players:
-        player_api_id = get_player(pid).fpl_api_id
+    for player in init_players:
+        player_api_id = player.fpl_api_id
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
 
         if len(first_gw_data) == 0:
@@ -175,10 +171,8 @@ def fill_initial_squad(
             # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
             # API using current price and total price change.
             print(
-                (
-                    "Using current data to determine "
-                    f"starting price for player {player_api_id}"
-                )
+                "Using current data to determine "
+                f"starting price for player {player_api_id}"
             )
             pdata = fetcher.get_player_summary_data()[player_api_id]
             price = pdata["now_cost"] - pdata["cost_change_start"]
@@ -186,7 +180,7 @@ def fill_initial_squad(
             price = first_gw_data[0]["value"]
 
         add_transaction(
-            pid,
+            player,
             starting_gw,
             1,
             price,
@@ -230,10 +224,18 @@ def update_squad(
     for transfer in transfers:
         gameweek = transfer["event"]
         api_pid_out = transfer["element_out"]
-        pid_out = get_player_from_api_id(api_pid_out).player_id
+        player_out = get_player_from_api_id(api_pid_out, dbsession=dbsession)
+        if player_out is None:
+            msg = f"Player with API ID {api_pid_out} not found in database."
+            raise ValueError(msg)
+        pid_out = player_out.player_id
         price_out = transfer["element_out_cost"]
         api_pid_in = transfer["element_in"]
-        pid_in = get_player_from_api_id(api_pid_in).player_id
+        player_in = get_player_from_api_id(api_pid_in, dbsession=dbsession)
+        if player_in is None:
+            msg = f"Player with API ID {api_pid_in} not found in database."
+            raise ValueError(msg)
+        pid_in = player_in.player_id
         price_in = transfer["element_in_cost"]
         time = transfer["time"]
 
@@ -250,10 +252,8 @@ def update_squad(
         ):
             if verbose:
                 print(
-                    (
-                        f"Adding transaction: gameweek: {gameweek} "
-                        f"removing player {pid_out} for {price_out}"
-                    )
+                    f"Adding transaction: gameweek: {gameweek} "
+                    f"removing player {pid_out} for {price_out}"
                 )
             free_hit = free_hit_used_in_gameweek(gameweek)
             add_transaction(
@@ -271,10 +271,8 @@ def update_squad(
 
             if verbose:
                 print(
-                    (
-                        f"Adding transaction: gameweek: {gameweek} "
-                        f"adding player {pid_in} for {price_in}"
-                    )
+                    f"Adding transaction: gameweek: {gameweek} "
+                    f"adding player {pid_in} for {price_in}"
                 )
             add_transaction(
                 pid_in,

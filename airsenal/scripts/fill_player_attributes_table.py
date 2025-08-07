@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
 
 import json
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -15,6 +12,7 @@ from airsenal.framework.mappings import positions
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
+    find_fixture,
     get_next_gameweek,
     get_past_seasons,
     get_player,
@@ -33,7 +31,7 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name in detail_data.keys():
+    for player_name, player_data in detail_data.items():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
@@ -43,10 +41,10 @@ def fill_attributes_table_from_file(
 
         print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
-        #  Only one attributes row per gameweek - create list of gameweeks
+        # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
         previous_gameweeks = []
-        for fixture_data in detail_data[player_name]:
+        for fixture_data in player_data:
             gameweek = int(fixture_data["gameweek"])
             if gameweek in previous_gameweeks:
                 # already done this gameweek
@@ -100,7 +98,7 @@ def fill_attributes_table_from_api(
 
     input_data = fetcher.get_player_summary_data()
 
-    for player_api_id in input_data.keys():
+    for player_api_id in input_data:
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
@@ -130,17 +128,24 @@ def fill_attributes_table_from_api(
         pa.season = season
         pa.gameweek = next_gw
         pa.price = int(p_summary["now_cost"])
-        pa.team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
+        team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
+        if team is None:
+            print(f"Couldn't find team {p_summary['team']} for player {player}")
+            continue
+        pa.team = team
         pa.position = positions[p_summary["element_type"]]
         pa.selected = int(float(p_summary["selected_by_percent"]) * n_players / 100)
-        pa.transfers_in = int(p_summary["transfers_in_event"])
-        pa.transfers_out = int(p_summary["transfers_out_event"])
-        pa.transfers_balance = pa.transfers_in - pa.transfers_out
-        pa.chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        transfers_in = int(p_summary["transfers_in"])
+        transfers_out = int(p_summary["transfers_out"])
+        pa.transfers_in = transfers_in
+        pa.transfers_out = transfers_out
+        pa.transfers_balance = transfers_in - transfers_out
         pa.news = p_summary["news"]
+        chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        pa.chance_of_playing_next_round = chance_of_playing_next_round
         if (
-            pa.chance_of_playing_next_round is not None
-            and pa.chance_of_playing_next_round <= 50
+            chance_of_playing_next_round is not None
+            and chance_of_playing_next_round <= 50
         ):
             pa.return_gameweek = get_return_gameweek_from_news(
                 p_summary["news"],
@@ -150,7 +155,7 @@ def fill_attributes_table_from_api(
 
         if not update:
             # only need to add to the dbsession for new entries, if we're doing
-            #  an update the final dbsession.commit() is enough
+            # an update the final dbsession.commit() is enough
             dbsession.add(pa)
 
         # now get data for previous gameweeks
@@ -181,11 +186,24 @@ def fill_attributes_table_from_api(
                     opponent_id = result["opponent_team"]
                     was_home = result["was_home"]
                     kickoff_time = result["kickoff_time"]
-                    team = get_player_team_from_fixture(
-                        gameweek,
+                    fixture = find_fixture(
                         opponent_id,
-                        was_home,
-                        kickoff_time,
+                        was_home=not was_home,
+                        gameweek=gameweek,
+                        season=season,
+                        kickoff_time=kickoff_time,
+                        dbsession=dbsession,
+                    )
+                    if fixture is None:
+                        print(
+                            f"Couldn't find fixture for {player} vs {opponent_id} in "
+                            f"gameweek {gameweek}"
+                        )
+                        continue
+                    team = get_player_team_from_fixture(
+                        fixture,
+                        opponent_id,
+                        player_at_home=was_home,
                         season=season,
                         dbsession=dbsession,
                     )
@@ -211,11 +229,13 @@ def fill_attributes_table_from_api(
 
 
 def make_attributes_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
@@ -227,7 +247,7 @@ def make_attributes_table(
             input_path = os.path.join(
                 os.path.dirname(__file__), f"../data/player_details_{season}.json"
             )
-            with open(input_path, "r") as f:
+            with open(input_path) as f:
                 input_data = json.load(f)
 
             fill_attributes_table_from_file(

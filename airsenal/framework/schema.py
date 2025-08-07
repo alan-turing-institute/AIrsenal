@@ -4,30 +4,52 @@ Use SQLAlchemy to convert between DB tables and python objects.
 """
 
 from contextlib import contextmanager
+from typing import Annotated
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import ForeignKey, String, create_engine
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    sessionmaker,
+)
 
-from airsenal.framework.env import AIRSENAL_HOME, get_env
+from airsenal.framework.env import (
+    AIRSENAL_DB_FILE,
+    AIRSENAL_DB_PASSWORD,
+    AIRSENAL_DB_URI,
+    AIRSENAL_DB_USER,
+    AIRSENAL_HOME,
+    save_env,
+)
 
-Base = declarative_base()
+# Common type annotations using PEP 593 Annotated
+intpk = Annotated[int, mapped_column(primary_key=True)]
+str100 = Annotated[str, mapped_column(String(100))]
+str4 = Annotated[str, mapped_column(String(4))]
+str3 = Annotated[str, mapped_column(String(3))]
+str100_optional = Annotated[str | None, mapped_column(String(100))]
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class Player(Base):
     __tablename__ = "player"
-    player_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
-    fpl_api_id = Column(Integer, nullable=True)
-    name = Column(String(100), nullable=False)
-    attributes = relationship("PlayerAttributes", uselist=True, back_populates="player")
-    absences = relationship("Absence", uselist=True, back_populates="player")
-    results = relationship("Result", uselist=True, back_populates="player")
-    fixtures = relationship("Fixture", uselist=True, back_populates="player")
-    predictions = relationship(
-        "PlayerPrediction", uselist=True, back_populates="player"
+    player_id: Mapped[intpk] = mapped_column(autoincrement=True)
+    fpl_api_id: Mapped[int | None]
+    name: Mapped[str100]
+    attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
+    absences: Mapped[list["Absence"]] = relationship(back_populates="player")
+    results: Mapped[list["Result"]] = relationship(back_populates="player")
+    predictions: Mapped[list["PlayerPrediction"]] = relationship(
+        back_populates="player"
     )
-    scores = relationship("PlayerScore", uselist=True, back_populates="player")
+    scores: Mapped[list["PlayerScore"]] = relationship(back_populates="player")
 
-    def team(self, season, gameweek):
+    def team(self, season: str, gameweek: int) -> str | None:
         """
         Get player's team for given season and gameweek.
         If data not available for specified gameweek but data is available for
@@ -35,12 +57,12 @@ class Player(Base):
         based on data nearest to specified gameweek.
         """
         attr = self.get_gameweek_attributes(season, gameweek)
-        if attr is not None:
+        if attr is not None and not isinstance(attr, tuple):
             return attr.team
         print("No team found for", self.name, "in", season, "season.")
         return None
 
-    def price(self, season, gameweek):
+    def price(self, season: str, gameweek: int) -> int | None:
         """
         get player's price for given season and gameweek
         If data not available for specified gameweek but data is available for
@@ -53,7 +75,11 @@ class Player(Base):
         print("No price found for", self.name, "in", season, "season.")
         return None
 
-    def _calculate_price(self, attr, gameweek):
+    def _calculate_price(
+        self,
+        attr: "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes]",
+        gameweek: int,
+    ) -> int:
         """
         Either return price available for specified gameweek or interpolate based
         on nearest available price.
@@ -71,17 +97,19 @@ class Player(Base):
         price = gradient * gameweek + intercept
         return round(price)
 
-    def position(self, season):
+    def position(self, season: str) -> str | None:
         """
         get player's position for given season
         """
         attr = self.get_gameweek_attributes(season, None)
-        if attr is not None:
+        if attr is not None and not isinstance(attr, tuple):
             return attr.position
         print("No position found for", self.name, "in", season, "season.")
         return None
 
-    def is_injured_or_suspended(self, season, current_gw, fixture_gw):
+    def is_injured_or_suspended(
+        self, season: str, current_gw: int, fixture_gw: int
+    ) -> bool:
         """Check whether a player is injured or suspended (<=50% chance of playing).
         current_gw - The current gameweek, i.e. the gameweek when we are querying the
         player's status.
@@ -90,15 +118,16 @@ class Player(Base):
         future week "fixture_gw" at the previous point in time "current_gw".
         """
         attr = self.get_gameweek_attributes(season, current_gw)
-        if attr is not None:
+        if attr is not None and not isinstance(attr, tuple):
             return (
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
             ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw)
-        else:
-            return False
+        return False
 
-    def get_gameweek_attributes(self, season, gameweek, before_and_after=False):
+    def get_gameweek_attributes(
+        self, season: str, gameweek: int | None, before_and_after: bool = False
+    ) -> "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes] | None":
         """Get the PlayerAttributes object for this player in the given gameweek and
         season, or the nearest available gameweek(s) if the exact gameweek is not
         available.
@@ -118,9 +147,9 @@ class Player(Base):
             if gameweek is None:
                 # trying to match season only
                 return attr
-            elif attr.gameweek == gameweek:
+            if attr.gameweek == gameweek:
                 return attr
-            elif (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+            if (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
                 # update last available attr before specified gameweek
                 gw_before = attr.gameweek
                 attr_before = attr
@@ -133,18 +162,16 @@ class Player(Base):
         if attr_before is None and attr_after is None:
             # no attributes for this player in this season
             return None
-        elif not attr_after:
+        if not attr_after:
             return attr_before
-        elif not attr_before:
+        if not attr_before:
             return attr_after
-        elif before_and_after:
+        if before_and_after:
             return (attr_before, attr_after)
-        else:
-            # return attributes at gameweeek nearest to input gameweek
-            if (gw_after - gameweek) >= (gameweek - gw_before):
-                return attr_before
-            else:
-                return attr_after
+        # return attributes at gameweeek nearest to input gameweek
+        if gameweek is not None and (gw_after - gameweek) >= (gameweek - gw_before):
+            return attr_before
+        return attr_after
 
     def __str__(self):
         return self.name
@@ -153,29 +180,29 @@ class Player(Base):
 class PlayerMapping(Base):
     # alternative names for players
     __tablename__ = "player_mapping"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, ForeignKey("player.player_id"), nullable=False)
-    alt_name = Column(String(100), nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("player.player_id"))
+    alt_name: Mapped[str100]
 
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player = relationship("Player", back_populates="attributes")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
-    season = Column(String(100), nullable=False)
-    gameweek = Column(Integer, nullable=False)
-    price = Column(Integer, nullable=False)
-    team = Column(String(100), nullable=False)
-    position = Column(String(100), nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player: Mapped["Player"] = relationship(back_populates="attributes")
+    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    season: Mapped[str100]
+    gameweek: Mapped[int]
+    price: Mapped[int]
+    team: Mapped[str100]
+    position: Mapped[str100]
 
-    chance_of_playing_next_round = Column(Integer, nullable=True)
-    news = Column(String(100), nullable=True)
-    return_gameweek = Column(Integer, nullable=True)
-    transfers_balance = Column(Integer, nullable=True)
-    selected = Column(Integer, nullable=True)
-    transfers_in = Column(Integer, nullable=True)
-    transfers_out = Column(Integer, nullable=True)
+    chance_of_playing_next_round: Mapped[int | None]
+    news: Mapped[str100_optional]
+    return_gameweek: Mapped[int | None]
+    transfers_balance: Mapped[int | None]
+    selected: Mapped[int | None]
+    transfers_in: Mapped[int | None]
+    transfers_out: Mapped[int | None]
 
     def __str__(self):
         return (
@@ -186,18 +213,18 @@ class PlayerAttributes(Base):
 
 class Absence(Base):
     __tablename__ = "absence"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player = relationship("Player", back_populates="absences")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
-    season = Column(String(100), nullable=False)
-    reason = Column(String(100), nullable=False)  # high-level, e.g. injury/suspension
-    details = Column(String(100), nullable=True)
-    date_from = Column(String(100), nullable=False)
-    date_until = Column(String(100), nullable=True)
-    gw_from = Column(Integer, nullable=False)
-    gw_until = Column(Integer, nullable=True)
-    url = Column(String(100), nullable=True)
-    timestamp = Column(String(100), nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player: Mapped["Player"] = relationship(back_populates="absences")
+    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    season: Mapped[str100]
+    reason: Mapped[str100]  # high-level, e.g. injury/suspension
+    details: Mapped[str100_optional]
+    date_from: Mapped[str100]
+    date_until: Mapped[str100_optional]
+    gw_from: Mapped[int]
+    gw_until: Mapped[int | None]
+    url: Mapped[str100_optional]
+    timestamp: Mapped[str100]
 
     def __str__(self):
         return (
@@ -219,13 +246,13 @@ class Absence(Base):
 
 class Result(Base):
     __tablename__ = "result"
-    result_id = Column(Integer, primary_key=True, autoincrement=True)
-    fixture = relationship("Fixture", uselist=False, back_populates="result")
-    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
-    home_score = Column(Integer, nullable=False)
-    away_score = Column(Integer, nullable=False)
-    player = relationship("Player", back_populates="results")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
+    result_id: Mapped[intpk] = mapped_column(autoincrement=True)
+    fixture: Mapped["Fixture"] = relationship(back_populates="result")
+    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    home_score: Mapped[int]
+    away_score: Mapped[int]
+    player: Mapped["Player"] = relationship(back_populates="results")
+    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
     def __str__(self):
         return (
@@ -237,75 +264,71 @@ class Result(Base):
 
 class Fixture(Base):
     __tablename__ = "fixture"
-    fixture_id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String(100), nullable=True)  # In case fixture not yet scheduled!
-    gameweek = Column(Integer, nullable=True)  # In case fixture not yet scheduled!
-    home_team = Column(String(100), nullable=False)
-    away_team = Column(String(100), nullable=False)
-    season = Column(String(100), nullable=False)
-    tag = Column(String(100), nullable=False)
-    result = relationship("Result", uselist=False, back_populates="fixture")
-    player = relationship("Player", back_populates="fixtures")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
+    fixture_id: Mapped[intpk] = mapped_column(autoincrement=True)
+    date: Mapped[str | None] = mapped_column(
+        String(100)
+    )  # In case fixture not yet scheduled!
+    gameweek: Mapped[int | None]  # In case fixture not yet scheduled!
+    home_team: Mapped[str100]
+    away_team: Mapped[str100]
+    season: Mapped[str100]
+    tag: Mapped[str100]
+    result: Mapped["Result | None"] = relationship(back_populates="fixture")
 
     def __str__(self):
-        return (
-            f"{self.season} GW{self.gameweek} " f"{self.home_team} vs. {self.away_team}"
-        )
+        return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_team = Column(String(100), nullable=False)
-    opponent = Column(String(100), nullable=False)
-    points = Column(Integer, nullable=False)
-    goals = Column(Integer, nullable=False)
-    assists = Column(Integer, nullable=False)
-    bonus = Column(Integer, nullable=False)
-    conceded = Column(Integer, nullable=False)
-    minutes = Column(Integer, nullable=False)
-    player = relationship("Player", back_populates="scores")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
-    result = relationship("Result", uselist=False)
-    result_id = Column(Integer, ForeignKey("result.result_id"))
-    fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_team: Mapped[str100]
+    opponent: Mapped[str100]
+    points: Mapped[int]
+    goals: Mapped[int]
+    assists: Mapped[int]
+    bonus: Mapped[int]
+    conceded: Mapped[int]
+    minutes: Mapped[int]
+    player: Mapped["Player"] = relationship(back_populates="scores")
+    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    result: Mapped["Result"] = relationship()
+    result_id: Mapped[int | None] = mapped_column(ForeignKey("result.result_id"))
+    fixture: Mapped["Fixture"] = relationship()
+    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
 
     # extended features
-    clean_sheets = Column(Integer, nullable=True)
-    own_goals = Column(Integer, nullable=True)
-    penalties_saved = Column(Integer, nullable=True)
-    penalties_missed = Column(Integer, nullable=True)
-    yellow_cards = Column(Integer, nullable=True)
-    red_cards = Column(Integer, nullable=True)
-    saves = Column(Integer, nullable=True)
-    bps = Column(Integer, nullable=True)
-    influence = Column(Float, nullable=True)
-    creativity = Column(Float, nullable=True)
-    threat = Column(Float, nullable=True)
-    ict_index = Column(Float, nullable=True)
-    expected_goals = Column(Float, nullable=True)
-    expected_assists = Column(Float, nullable=True)
-    expected_goal_involvements = Column(Float, nullable=True)
-    expected_goals_conceded = Column(Float, nullable=True)
+    clean_sheets: Mapped[int | None]
+    own_goals: Mapped[int | None]
+    penalties_saved: Mapped[int | None]
+    penalties_missed: Mapped[int | None]
+    yellow_cards: Mapped[int | None]
+    red_cards: Mapped[int | None]
+    saves: Mapped[int | None]
+    bps: Mapped[int | None]
+    influence: Mapped[float | None]
+    creativity: Mapped[float | None]
+    threat: Mapped[float | None]
+    ict_index: Mapped[float | None]
+    expected_goals: Mapped[float | None]
+    expected_assists: Mapped[float | None]
+    expected_goal_involvements: Mapped[float | None]
+    expected_goals_conceded: Mapped[float | None]
 
     def __str__(self):
-        return (
-            f"{self.player} ({self.result}): " f"{self.points} pts, {self.minutes} mins"
-        )
+        return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    fixture = relationship("Fixture", uselist=False)
-    fixture_id = Column(Integer, ForeignKey("fixture.fixture_id"))
-    predicted_points = Column(Float, nullable=False)
-    tag = Column(String(100), nullable=False)
-    player = relationship("Player", back_populates="predictions")
-    player_id = Column(Integer, ForeignKey("player.player_id"))
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    fixture: Mapped["Fixture"] = relationship()
+    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    predicted_points: Mapped[float]
+    tag: Mapped[str100]
+    player: Mapped["Player"] = relationship(back_populates="predictions")
+    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
     def __str__(self):
         return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
@@ -313,16 +336,16 @@ class PlayerPrediction(Base):
 
 class Transaction(Base):
     __tablename__ = "transaction"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, nullable=False)
-    gameweek = Column(Integer, nullable=False)
-    bought_or_sold = Column(Integer, nullable=False)  # +1 for bought, -1 for sold
-    season = Column(String(100), nullable=False)
-    time = Column(String(100), nullable=False)
-    tag = Column(String(100), nullable=False)
-    price = Column(Integer, nullable=False)
-    free_hit = Column(Integer, nullable=False)  # 1 if transfer on Free Hit, 0 otherwise
-    fpl_team_id = Column(Integer, nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_id: Mapped[int]
+    gameweek: Mapped[int]
+    bought_or_sold: Mapped[int]  # +1 for bought, -1 for sold
+    season: Mapped[str100]
+    time: Mapped[str100]
+    tag: Mapped[str100]
+    price: Mapped[int]
+    free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
+    fpl_team_id: Mapped[int]
 
     def __str__(self):
         trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
@@ -337,17 +360,15 @@ class Transaction(Base):
 
 class TransferSuggestion(Base):
     __tablename__ = "transfer_suggestion"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_id = Column(Integer, nullable=False)
-    in_or_out = Column(Integer, nullable=False)  # +1 for buy, -1 for sell
-    gameweek = Column(Integer, nullable=False)
-    points_gain = Column(Float, nullable=False)
-    timestamp = Column(String(100), nullable=False)  # use this to group suggestions
-    season = Column(String(100), nullable=False)
-    fpl_team_id = Column(
-        Integer, nullable=False
-    )  # to identify team to apply transfers.
-    chip_played = Column(String(100), nullable=True)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_id: Mapped[int]
+    in_or_out: Mapped[int]  # +1 for buy, -1 for sell
+    gameweek: Mapped[int]
+    points_gain: Mapped[float]
+    timestamp: Mapped[str100]  # use this to group suggestions
+    season: Mapped[str100]
+    fpl_team_id: Mapped[int]  # to identify team to apply transfers.
+    chip_played: Mapped[str100_optional]
 
     def __str__(self):
         sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
@@ -360,13 +381,13 @@ class TransferSuggestion(Base):
 
 class FifaTeamRating(Base):
     __tablename__ = "fifa_rating"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    season = Column(String(4), nullable=False)
-    team = Column(String(100), nullable=False)
-    att = Column(Integer, nullable=False)
-    defn = Column(Integer, nullable=False)
-    mid = Column(Integer, nullable=False)
-    ovr = Column(Integer, nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    season: Mapped[str4]
+    team: Mapped[str100]
+    att: Mapped[int]
+    defn: Mapped[int]
+    mid: Mapped[int]
+    ovr: Mapped[int]
 
     def __str__(self):
         return (
@@ -377,13 +398,11 @@ class FifaTeamRating(Base):
 
 class Team(Base):
     __tablename__ = "team"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(3), nullable=False)
-    full_name = Column(String(100), nullable=False)
-    season = Column(String(4), nullable=False)
-    team_id = Column(
-        Integer, nullable=False
-    )  # the season-dependent team ID (from alphabetical order)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    name: Mapped[str3]
+    full_name: Mapped[str100]
+    season: Mapped[str4]
+    team_id: Mapped[int]  # the season-dependent team ID (from alphabetical order)
 
     def __str__(self):
         return f"{self.full_name} ({self.name})"
@@ -391,51 +410,54 @@ class Team(Base):
 
 class SessionSquad(Base):
     __tablename__ = "sessionteam"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(String(100), nullable=False)
-    player_id = Column(Integer, nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    session_id: Mapped[str100]
+    player_id: Mapped[int]
 
 
 class SessionBudget(Base):
     __tablename__ = "sessionbudget"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(String(100), nullable=False)
-    budget = Column(Integer, nullable=False)
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    session_id: Mapped[str100]
+    budget: Mapped[int]
 
 
-def get_connection_string():
-    if get_env("AIRSENAL_DB_FILE") and get_env("AIRSENAL_DB_URI"):
-        raise RuntimeError(
-            "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
-        )
+def get_connection_string() -> str:
+    if AIRSENAL_DB_FILE and AIRSENAL_DB_URI:
+        msg = "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
+        raise RuntimeError(msg)
 
     # postgres database specified by: AIRSENAL_DB{_URI, _USER, _PASSWORD}
-    if get_env("AIRSENAL_DB_URI"):
-        keys = ["AIRSENAL_DB_URI", "AIRSENAL_DB_USER", "AIRSENAL_DB_PASSWORD"]
-        params = {}
-        for k in keys:
-            if value := get_env(k):
-                params[k] = value
-            else:
-                raise KeyError(f"{k} must be defined when using a postgres database")
+    if AIRSENAL_DB_URI:
+        if AIRSENAL_DB_PASSWORD is None:
+            msg = "AIRSENAL_DB_PASSWORD must be defined when using a postgres database"
+            raise KeyError(msg)
+        if AIRSENAL_DB_USER is None:
+            msg = "AIRSENAL_DB_USER must be defined when using a postgres database"
+            raise KeyError(msg)
 
         return (
-            f"postgresql://{params['AIRSENAL_DB_USER']}:"
-            f"{params['AIRSENAL_DB_PASSWORD']}@{params['AIRSENAL_DB_URI']}/airsenal"
+            f"postgresql://{AIRSENAL_DB_USER}:"
+            f"{AIRSENAL_DB_PASSWORD}@{AIRSENAL_DB_URI}/airsenal"
         )
 
     # sqlite database in a local file with path specified by AIRSENAL_DB_FILE,
     # or AIRSENAL_HOME / data.db by default
-    return f"sqlite:///{get_env('AIRSENAL_DB_FILE', default=AIRSENAL_HOME / 'data.db')}"
+    if not AIRSENAL_DB_FILE:
+        db_file = str(AIRSENAL_HOME / "data.db")
+        save_env("AIRSENAL_DB_FILE", db_file)
+        return f"sqlite:///{db_file}"
+    return f"sqlite:///{AIRSENAL_DB_FILE}"
 
 
 def get_session():
-    engine = create_engine(get_connection_string())
+    conn_str = get_connection_string()
+    engine = create_engine(conn_str)
 
     Base.metadata.create_all(engine)
     # Bind the engine to the metadata of the Base class so that the
     # declaratives can be accessed through a DBSession instance
-    Base.metadata.bind = engine
+    # Note: Base.metadata.bind is deprecated in SQLAlchemy 2.0
 
     DBSession = sessionmaker(bind=engine, autoflush=False)
     return DBSession()

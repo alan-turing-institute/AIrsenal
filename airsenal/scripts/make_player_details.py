@@ -10,7 +10,6 @@ import shutil
 import subprocess
 from functools import cache
 from glob import glob
-from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -56,7 +55,7 @@ SAVE_NAME = os.path.join(SCRIPT_DIR, "../data/player_details_{}.json")
 # players with the same name
 DUPLICATE_PATH = os.path.join(SCRIPT_DIR, "../data/duplicate_player_names.csv")
 
-#  Dictionary of features to extract {name in files: name in database}
+# Dictionary of features to extract {name in files: name in database}
 key_dict = {
     "round": "gameweek",
     "total_points": "points",
@@ -106,7 +105,7 @@ def path_to_name(path: str) -> str:
     return " ".join(x for x in dir_name.split("_") if not x.isdigit())
 
 
-def path_to_index(path: str) -> Optional[int]:
+def path_to_index(path: str) -> int | None:
     """function to take a sub directory path into a key for output json
     i.e. player name from directory path
     """
@@ -145,7 +144,7 @@ def get_positions_df(season: str) -> pd.DataFrame:
     return raw_df
 
 
-def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
+def get_fixtures_df(season: str) -> tuple[pd.DataFrame, bool]:
     """Load fixture info (which teams played in which matches), either
     from vaastav/Fantasy-Premier-League repo or AIrsenal data depending
     on what's available.
@@ -153,24 +152,25 @@ def get_fixtures_df(season: str) -> Tuple[pd.DataFrame, bool]:
     season_longname = get_long_season_name(season)
 
     if os.path.exists(FIXTURES_PATH.format(season_longname)):
-        #  fixtures file in vaastav/Fantasy-Premier-League repo
+        # fixtures file in vaastav/Fantasy-Premier-League repo
         # contains fixture ids
         fixtures_df = pd.read_csv(FIXTURES_PATH.format(season_longname), index_col="id")
         got_fixtures = True
     elif os.path.exists(RESULTS_PATH.format(season)):
-        #  match results files in airsenal data
+        # match results files in airsenal data
         # need to match teams by gameweek etc.
         fixtures_df = pd.read_csv(RESULTS_PATH.format(season))
 
-        #  replace full team names with 3 letter codes
+        # replace full team names with 3 letter codes
         for short_name, long_names in alternative_team_names.items():
-            replace_dict = {name: short_name for name in long_names}
+            replace_dict = dict.fromkeys(long_names, short_name)
             fixtures_df["home_team"].replace(replace_dict, inplace=True)
             fixtures_df["away_team"].replace(replace_dict, inplace=True)
 
         got_fixtures = False
     else:
-        raise FileNotFoundError(f"Couldn't find fixtures file for {season} season")
+        msg = f"Couldn't find fixtures file for {season} season"
+        raise FileNotFoundError(msg)
 
     return fixtures_df, got_fixtures
 
@@ -185,13 +185,11 @@ def get_played_for_from_fixtures(
 
     if (not was_home) and (fixture["team_h"] == opponent_id):
         return fixture["team_a"]
-    elif was_home and (fixture["team_a"] == opponent_id):
+    if was_home and (fixture["team_a"] == opponent_id):
         return fixture["team_h"]
-    else:
-        raise ValueError(
-            f"""Error finding team played for with fixture id {fixture_id},
+    msg = f"""Error finding team played for with fixture id {fixture_id},
                          opponent_id {opponent_id} and was_home {was_home}"""
-        )
+    raise ValueError(msg)
 
 
 def get_played_for_from_results(player_row, results_df, teams_dict):
@@ -221,16 +219,14 @@ def get_played_for_from_results(player_row, results_df, teams_dict):
 
     if len(matches) != 1:
         # Couldn't find a unique fixture
-        raise ValueError(
-            f"""Found no matches with gw {gw}, was_home {was_home}
+        msg = f"""Found no matches with gw {gw}, was_home {was_home}
                                 and opponent {opponent}"""
-        )
+        raise ValueError(msg)
 
     # Found a unique fixture corresponding to the input data.
     if was_home:
         return matches["home_team"].iloc[0]
-    else:
-        return matches["away_team"].iloc[0]
+    return matches["away_team"].iloc[0]
 
 
 def process_file(path, teams_dict, fixtures_df, got_fixtures):
@@ -273,7 +269,7 @@ def get_duplicates_df() -> pd.DataFrame:
     return pd.read_csv(DUPLICATE_PATH)
 
 
-def check_duplicates(idx: int, season: str, name: str) -> Union[pd.DataFrame, str]:
+def check_duplicates(idx: int, season: str, name: str) -> pd.DataFrame | str:
     if name == "Danny Ward":
         print("Danny Ward")
     df = get_duplicates_df()
@@ -297,8 +293,11 @@ def get_player_details(season: str) -> dict:
     output = {}
     for directory in sub_dirs:
         name = path_to_name(directory)
-        idx = path_to_index(directory)
         print("Doing", name)
+        idx = path_to_index(directory)
+        if idx is None:
+            print("!!!FAILED!!! Could not find index for", name)
+            continue
 
         player_dict = process_file(
             os.path.join(directory, PLAYERS_FILE),
@@ -327,7 +326,9 @@ def get_player_details(season: str) -> dict:
     return output
 
 
-def make_player_details(seasons: Optional[List[str]] = []):
+def make_player_details(seasons: list[str] | None = None):
+    if seasons is None:
+        seasons = []
     print(f"Cloning {GIT_REPO}...")
     subprocess.run(
         [
@@ -337,7 +338,8 @@ def make_player_details(seasons: Optional[List[str]] = []):
             "1",
             GIT_REPO,
             REPO_DIR,
-        ]
+        ],
+        check=False,
     )
 
     if not seasons:

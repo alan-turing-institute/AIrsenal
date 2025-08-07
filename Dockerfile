@@ -1,13 +1,11 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bookworm
+
+WORKDIR /airsenal
+COPY . /airsenal
 
 RUN apt-get update && \
     apt-get install build-essential git sqlite3 curl -y && \
-    pip install -U setuptools poetry
+    pip install --upgrade pip && \
+    pip install .[dev,api]
 
-WORKDIR /airsenal
-
-COPY . /airsenal
-
-RUN poetry install --extras "api"
-
-CMD ["poetry", "run", "airsenal_run_pipeline"]
+CMD ["airsenal_run_pipeline"]

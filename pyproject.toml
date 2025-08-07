@@ -1,65 +1,55 @@
-[tool.poetry]
+[project]
 name = "airsenal"
-version = "1.10.0"
+version = "1.11.0"
 description = "AI manager for Fantasy Premier League"
 authors = [
-	"Angus Williams <anguswilliams91@gmail.com>",
-	"Jack Roberts <jroberts@turing.ac.uk>",
-	"Nick Barlow <nbarlow@turing.ac.uk>",
+    {name = "Angus Williams", email = "anguswilliams91@gmail.com"},
+    {name = "Jack Roberts", email = "jroberts@turing.ac.uk"},
+    {name = "Nick Barlow", email = "nbarlow@turing.ac.uk"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+  "bpl @ git+https://github.com/anguswilliams91/bpl-next",
+  "click>=8.1.7",
+  "pandas>=2.2.1",
+  "requests>=2.31.0",
+  "sqlalchemy>=2.0.27",
+  "tqdm>=4.66.2",
+  "dateparser>=1.2.0",
+  "prettytable>=3.10.0",
+  "beautifulsoup4>=4.12.3",
+  "platformdirs>=4.2.0",
+  "deap>=1.4.1",
+  "python-dateutil>=2.8.2",
+  "lxml>=5.1.0",
+  "html5lib>=1.1",
+  "jax==0.4.24",
+  "jaxlib==0.4.24",
+	"numpy>1,<2"
 ]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-bpl = { git = "https://github.com/anguswilliams91/bpl-next" }
-click = "^8.1.7"
-pandas = "^2.2.1"
-requests = "^2.31.0"
-sqlalchemy = "^2.0.27"
-tqdm = "^4.66.2"
-dateparser = "^1.2.0"
-prettytable = "^3.10.0"
-beautifulsoup4 = "^4.12.3"
-platformdirs = "^4.2.0"
-jupyterlab = {version = "^4.1.2", optional = true}
-matplotlib = {version = "^3.8.3", optional = true}
-Flask = {version = "^3.0.2", optional = true}
-numpyro = {version = "^0.13.2", optional = true}
-seaborn = {version = "^0.13.2", optional = true}
-python-dateutil = "^2.8.2"
-lxml = "^5.1.0"
-html5lib = "^1.1"
-jax = "^0.4.24"
-jaxlib = "^0.4.24"
+[tool.hatch.metadata]
+allow-direct-references = true
 
-[tool.poetry.group.dev.dependencies]
-pytest-cov = "^4.1.0"
-black = "^24.2.0"
-isort = "^5.13.2"
-flake8 = "^7.0.0"
-pre-commit = "^3.6.2"
-pytest = "^8.0.1"
-pytest-sugar = "^1.0.0"
+[project.optional-dependencies]
+api = ["Flask>=3.0.2"]
+notebook = ["jupyterlab>=4.1.2"]
+plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
+dev = [
+    "pytest-cov>=4.1.0",
+    "ruff>=0.6.0",
+    "pre-commit>=3.6.2",
+    "pytest>=8.0.1",
+    "pytest-sugar>=1.0.0",
+    "types-dateparser>=1.2.2.20250627",
+    "types-requests>=2.32.4.20250611",
+    "mypy>=1.17.0",
+    "types-python-dateutil>=2.9.0.20250708",
+]
 
-[tool.poetry.extras]
-api = ["Flask"]
-notebook = ["jupyterlab"]
-plot = ["matplotlib", "seaborn"]
-
-[build-system]
-requires = ["poetry-core>=1.0.0", "cython", "numpy", "setuptools"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-addopts = """
---cov=airsenal
---cov-report=term:skip-covered
---pdbcls=IPython.terminal.debugger:TerminalPdb
-"""
-
-[tool.isort]
-profile = "black"
-
-[tool.poetry.scripts]
+[project.scripts]
 airsenal_run_pipeline = "airsenal.scripts.airsenal_run_pipeline:run_pipeline"
 airsenal_setup_initial_db = "airsenal.scripts.fill_db_init:main"
 airsenal_update_db = "airsenal.scripts.update_db:main"
@@ -75,3 +65,67 @@ airsenal_dump_api = "airsenal.scripts.dump_api:main"
 airsenal_dump_db = "airsenal.scripts.dump_db_contents:main"
 airsenal_scrape_transfermarkt = "airsenal.scripts.scrape_transfermarkt:main"
 airsenal_plot = "airsenal.scripts.plot_league_standings:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+addopts = """
+--cov=airsenal
+--cov-report=term:skip-covered
+--pdbcls=IPython.terminal.debugger:TerminalPdb
+"""
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+docstring-code-format = true  # code snippets in docstrings will be formatted
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W", # flake8
+  "B",           # flake8-bugbear
+  "I",           # isort
+  "ARG",         # flake8-unused-arguments
+  "C4",          # flake8-comprehensions
+  "EM",          # flake8-errmsg
+  "ICN",         # flake8-import-conventions
+  "ISC",         # flake8-implicit-str-concat
+  "G",           # flake8-logging-format
+  "PGH",         # pygrep-hooks
+  "PIE",         # flake8-pie
+  "PL",          # pylint
+  "PT",          # flake8-pytest-style
+  "RET",         # flake8-return
+  "RUF",         # Ruff-specific
+  "SIM",         # flake8-simplify
+  "UP",          # pyupgrade
+  "YTT",         # flake8-2020
+  "EXE",         # flake8-executable
+]
+ignore = [
+  "PLR",    # Design related pylint codes
+  "ISC001", # Conflicts with formatter
+]
+flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+	"F401",  # allow unused imports in __init__.py files
+]
+"*/tests/*" = [
+	"B011",  # allow using assert statements in tests
+	"ARG001"  # allow unused arguments in tests, e.g. for pytest fixtures
+]
+
+[tool.mypy]
+files = ["airsenal/framework", "airsenal/scripts"]
+show_error_codes = true
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+strict = false
+ignore_missing_imports = true

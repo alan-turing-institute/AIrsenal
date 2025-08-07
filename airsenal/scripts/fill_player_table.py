@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
+
 import json
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -19,7 +17,7 @@ from airsenal.scripts.fill_player_mappings_table import (
 )
 
 
-def find_player_in_table(name: str, dbsession: Session) -> Optional[Player]:
+def find_player_in_table(name: str, dbsession: Session) -> Player | None:
     """
     see if we already have the player
     """
@@ -47,7 +45,8 @@ def fill_player_table_from_file(filename: str, season: str, dbsession: Session) 
     """
     use json file
     """
-    jplayers = json.load(open(filename))
+    with open(filename) as f:
+        jplayers = json.load(f)
     for jp in jplayers:
         new_entry = False
         name = jp["name"]
@@ -105,12 +104,14 @@ def make_init_player_table(season: str, dbsession: Session = session) -> None:
 
 
 def make_remaining_player_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """
     Fill remaining players for subsequent seasons (AFTER players from the most recent
     season)
     """
+    if seasons is None:
+        seasons = []
     for season in seasons:
         filename = os.path.join(
             os.path.join(
@@ -124,8 +125,10 @@ def make_remaining_player_table(
 
 
 def make_player_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

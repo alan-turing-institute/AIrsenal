@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-
 """
 Fill the "Team" table with list of teams for all seasons, and the team_id which will
 help fill other tables from raw json files
 """
+
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -19,26 +17,29 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
     use csv file
     """
     print(f"Filling Teams table from data in {filename}")
-    infile = open(filename)
-    first_line = True
-    for line in infile.readlines():
-        if first_line:
-            first_line = False
-            continue
-        t = Team()
-        t.name, t.full_name, t.season, t.team_id = line.strip().split(",")
-        print(t.name, t.full_name, t.season, t.team_id)
-        dbsession.add(t)
+    with open(filename) as infile:
+        first_line = True
+        for line in infile.readlines():
+            if first_line:
+                first_line = False
+                continue
+            t = Team()
+            t.name, t.full_name, t.season, team_id = line.strip().split(",")
+            print(t.name, t.full_name, t.season, team_id)
+            t.team_id = int(team_id)
+            dbsession.add(t)
     dbsession.commit()
 
 
 def make_team_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """
     Fill the db table containing the list of teams in the
     league for each season.
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

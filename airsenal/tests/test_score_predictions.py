@@ -114,38 +114,38 @@ def test_attacking_points_0_0():
 def test_attacking_points_1_0_top_scorer():
     """
     If team scores, and pr_score is 1, should get 4 points for FWD,
-    5 for MID, 6 for DEF.  We don't consider possibility of GK scoring.
+    5 for MID, 6 for DEF, 10 for GK.
     """
     team_score_prob = {0: 0.0, 1: 1.0}
     player_probs = {"prob_score": 1.0, "prob_assist": 0.0, "prob_neither": 0.0}
     assert get_attacking_points("FWD", 90, team_score_prob, player_probs) == 4
     assert get_attacking_points("MID", 90, team_score_prob, player_probs) == 5
     assert get_attacking_points("DEF", 90, team_score_prob, player_probs) == 6
-    assert get_attacking_points("GK", 90, team_score_prob, player_probs) == 0
+    assert get_attacking_points("GK", 90, team_score_prob, player_probs) == 10
 
     # play 45 mins - 50% chance that goal was scored while they were playing
     assert get_attacking_points("FWD", 45, team_score_prob, player_probs) == 2
     assert get_attacking_points("MID", 45, team_score_prob, player_probs) == 2.5
     assert get_attacking_points("DEF", 45, team_score_prob, player_probs) == 3
-    assert get_attacking_points("GK", 45, team_score_prob, player_probs) == 0
+    assert get_attacking_points("GK", 45, team_score_prob, player_probs) == 5
 
 
 def test_attacking_points_1_0_top_assister():
     """
-    FWD, MID, DEF all get 3 points for an assist.
+    FWD, MID, DEF, GK all get 3 points for an assist.
     """
     team_score_prob = {0: 0.0, 1: 1.0}
     player_probs = {"prob_score": 0.0, "prob_assist": 1.0, "prob_neither": 0.0}
     assert get_attacking_points("FWD", 90, team_score_prob, player_probs) == 3
     assert get_attacking_points("MID", 90, team_score_prob, player_probs) == 3
     assert get_attacking_points("DEF", 90, team_score_prob, player_probs) == 3
-    assert get_attacking_points("GK", 90, team_score_prob, player_probs) == 0
+    assert get_attacking_points("GK", 90, team_score_prob, player_probs) == 3
 
     # play 45 mins - 50% chance that goal was scored while they were playing
     assert get_attacking_points("FWD", 45, team_score_prob, player_probs) == 1.5
     assert get_attacking_points("MID", 45, team_score_prob, player_probs) == 1.5
     assert get_attacking_points("DEF", 45, team_score_prob, player_probs) == 1.5
-    assert get_attacking_points("GK", 45, team_score_prob, player_probs) == 0
+    assert get_attacking_points("GK", 45, team_score_prob, player_probs) == 1.5
 
 
 def test_get_bonus_points():

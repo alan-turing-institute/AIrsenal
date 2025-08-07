@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-
 """
 simple script, check whether recent matches have been played since
 the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
+
 import argparse
-from typing import List
 
 from sqlalchemy.orm.session import Session
 
@@ -101,19 +99,17 @@ def update_players(season: str, dbsession: Session) -> int:
     if len(players_from_db) == len(players_from_api):
         print("Player table already up-to-date.")
         return 0
-    elif len(players_from_db) > len(players_from_api):
-        raise RuntimeError(
-            "Something strange has happened - more players in DB than API"
-        )
-    else:
-        return add_players_to_db(
-            players_from_db, players_from_api, player_data_from_api, dbsession
-        )
+    if len(players_from_db) > len(players_from_api):
+        msg = "Something strange has happened - more players in DB than API"
+        raise RuntimeError(msg)
+    return add_players_to_db(
+        players_from_db, players_from_api, player_data_from_api, dbsession
+    )
 
 
 def add_players_to_db(
     players_from_db: list,
-    players_from_api: List[int],
+    players_from_api: list[int],
     player_data_from_api: dict,
     dbsession: Session,
 ) -> int:
@@ -208,7 +204,10 @@ def main():
 
     season = args.season
     do_attributes = not args.noattr
-    fpl_team_id = args.fpl_team_id or None
+    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    if not fpl_team_id:
+        msg = "FPL team ID must be specified in args, config, or env"
+        raise ValueError(msg)
 
     with session_scope() as session:
         if database_is_empty(session):

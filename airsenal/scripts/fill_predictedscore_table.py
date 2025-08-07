@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Fill the "player_prediction" table with score predictions
 Usage:
@@ -7,9 +5,9 @@ python fill_predictedscore_table.py --weeks_ahead <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
+
 import argparse
 from multiprocessing import Process, Queue
-from typing import List, Optional, Union
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -30,6 +28,7 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -43,7 +42,7 @@ from airsenal.framework.utils import (
 
 def allocate_predictions(
     queue: Queue,
-    gw_range: List[int],
+    gw_range: list[int],
     fixture_goal_probs: dict,
     df_player: dict,
     df_bonus: tuple,
@@ -80,7 +79,7 @@ def allocate_predictions(
 
 
 def calc_all_predicted_points(
-    gw_range: List[int],
+    gw_range: list[int],
     season: str,
     dbsession: Session,
     include_bonus: bool = True,
@@ -88,23 +87,24 @@ def calc_all_predicted_points(
     include_saves: bool = True,
     num_thread: int = 4,
     tag: str = "",
-    player_model: Union[
-        NumpyroPlayerModel, ConjugatePlayerModel
-    ] = ConjugatePlayerModel(),
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: dict = {"epsilon": 0.0},
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+    | None = None,
+    team_model_args: dict | None = None,
 ) -> None:
     """
     Do the full prediction for players.
     """
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     model_team = get_fitted_team_model(
         season=season,
         gameweek=min(gw_range),
         dbsession=dbsession,
         model=team_model,
-        **team_model_args
+        **team_model_args,
     )
     print("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
@@ -131,8 +131,8 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    if num_thread is not None and num_thread > 1:
-        queue = Queue()
+    if num_thread > 1:
+        queue: Queue = Queue()
         procs = []
         for _ in range(num_thread):
             processor = Process(
@@ -159,8 +159,8 @@ def calc_all_predicted_points(
         for _ in range(num_thread):
             queue.put("DONE")
 
-        for _, p in enumerate(procs):
-            p.join()
+        for _, pr in enumerate(procs):
+            pr.join()
     else:
         # single threaded
         for player in players:
@@ -176,29 +176,30 @@ def calc_all_predicted_points(
                 tag=tag,
                 dbsession=dbsession,
             )
-            for p in predictions:
-                dbsession.add(p)
+            for pred in predictions:
+                dbsession.add(pred)
         dbsession.commit()
         print("Finished adding predictions to db")
 
 
 def make_predictedscore_table(
-    gw_range: Optional[List[int]] = None,
+    gw_range: list[int] | None = None,
     season: str = CURRENT_SEASON,
     num_thread: int = 4,
     include_bonus: bool = True,
     include_cards: bool = True,
     include_saves: bool = True,
-    tag_prefix: Optional[str] = None,
-    player_model: Union[
-        NumpyroPlayerModel, ConjugatePlayerModel
-    ] = ConjugatePlayerModel(),
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: dict = {"epsilon": 0.0},
+    tag_prefix: str | None = None,
+    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+    | None = None,
+    team_model_args: dict | None = None,
     dbsession: Session = session,
 ) -> str:
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
@@ -232,7 +233,10 @@ def main():
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
     parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over", type=int
+        "--num_thread",
+        help="number of threads to parallelise over",
+        type=int,
+        default=4,
     )
     parser.add_argument(
         "--no_bonus",
@@ -258,7 +262,7 @@ def main():
         "--team_model",
         help="which team model to fit",
         type=str,
-        choices=["extended", "neutral"],
+        choices=["extended", "neutral", "random"],
         default="extended",
     )
     parser.add_argument(
@@ -275,18 +279,20 @@ def main():
         gameweek_end=args.gameweek_end,
         season=args.season,
     )
-    num_thread = args.num_thread or None
+    num_thread: int = args.num_thread
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
-    if args.sampling:
-        player_model = NumpyroPlayerModel()
-    else:
-        player_model = ConjugatePlayerModel()
+    player_model = NumpyroPlayerModel() if args.sampling else ConjugatePlayerModel()
     if args.team_model == "extended":
         team_model = ExtendedDixonColesMatchPredictor()
     elif args.team_model == "neutral":
         team_model = NeutralDixonColesMatchPredictor()
+    elif args.team_model == "random":
+        team_model = RandomMatchPredictor()
+    else:
+        msg = f"Unknown team model: {args.team_model}"
+        raise ValueError(msg)
 
     set_multiprocessing_start_method()
 

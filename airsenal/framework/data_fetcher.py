@@ -10,64 +10,48 @@ import warnings
 
 import requests
 
-from airsenal.framework.env import get_env, save_env
+from airsenal.framework.env import (
+    DISCORD_WEBHOOK,
+    FPL_LEAGUE_ID,
+    FPL_LOGIN,
+    FPL_PASSWORD,
+    FPL_TEAM_ID,
+    save_env,
+)
 
 API_HOME = "https://fantasy.premierleague.com/api"
 
 
-class FPLDataFetcher(object):
+class FPLDataFetcher:
     """
     hold current and historic FPL data in memory,
     or retrieve it if not already cached.
     """
 
-    def __init__(self, fpl_team_id=None, rsession=None):
+    def __init__(self, fpl_team_id: int | None = None, rsession=None):
         self.rsession = rsession or requests.session()
         self.logged_in = False
         self.login_failed = False
         self.continue_without_login = False
-        self.current_summary_data = None
-        self.current_event_data = None
-        self.current_player_data = None
-        self.current_team_data = None
-        self.current_squad_data = {}
-        self.player_gameweek_data = {}
-        self.fpl_team_history_data = None
+        self.current_summary_data: dict = {}
+        self.current_event_data: dict = {}
+        self.current_player_data: dict = {}
+        self.current_team_data: dict = {}
+        self.current_squad_data: dict = {}
+        self.player_gameweek_data: dict = {}
+        self.fpl_team_history_data: dict = {}
         # transfer history data is a dict, keyed by fpl_team_id
-        self.fpl_transfer_history_data = {}
-        self.fpl_league_data = None
-        self.fpl_team_data = {}  # players in squad, by gameweek
-        self.fixture_data = None
-        for ID in [
-            "FPL_LEAGUE_ID",
-            "FPL_TEAM_ID",
-            "FPL_LOGIN",
-            "FPL_PASSWORD",
-            "DISCORD_WEBHOOK",
-        ]:
-            self.__setattr__(
-                ID,
-                get_env(ID, default="MISSING_ID"),
-            )
+        self.fpl_transfer_history_data: dict = {}
+        self.fpl_league_data: dict = {}
+        self.fpl_team_data: dict = {}  # players in squad, by gameweek
+        self.fixture_data: dict = {}
 
-        if self.FPL_TEAM_ID is not None and self.FPL_TEAM_ID != "MISSING_ID":
-            try:
-                self.FPL_TEAM_ID = int(self.FPL_TEAM_ID)
-            except ValueError as e:
-                raise ValueError(
-                    f"FPL_TEAM_ID in environment variable and/or data/FPL_TEAM_ID "
-                    f"file should be a valid integer. Please correct it or remove "
-                    f" it if you're using the command line argument. "
-                    f"Found: {self.FPL_TEAM_ID}"
-                ) from e
+        self.FPL_TEAM_ID = FPL_TEAM_ID if fpl_team_id is None else fpl_team_id
+        self.FPL_LOGIN = FPL_LOGIN
+        self.FPL_PASSWORD = FPL_PASSWORD
+        self.FPL_LEAGUE_ID = FPL_LEAGUE_ID
+        self.DISCORD_WEBHOOK = DISCORD_WEBHOOK
 
-        if fpl_team_id is not None:
-            if isinstance(fpl_team_id, int):
-                self.FPL_TEAM_ID = fpl_team_id  # update entry with command line arg
-            else:
-                raise ValueError(
-                    f"FPL_TEAM_ID should be an integer. Found: {fpl_team_id}"
-                )
         self.FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
         self.FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
@@ -114,27 +98,21 @@ class FPLDataFetcher(object):
         if self.logged_in or self.continue_without_login:
             return
         if self.login_failed:
-            raise RuntimeError(
+            msg = (
                 "Attempted to use a function requiring login, but login previously "
                 "failed."
             )
-        if (
-            (not self.FPL_LOGIN)
-            or (not self.FPL_PASSWORD)
-            or (self.FPL_LOGIN == "MISSING_ID")
-            or (self.FPL_PASSWORD == "MISSING_ID")
-        ):
+            raise RuntimeError(msg)
+        if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
             do_login = ""
             while do_login.lower() not in ["y", "n"]:
                 do_login = input(
-                    (
-                        "\nWould you like to login to the FPL API?"
-                        "\nThis is not necessary for most AIrsenal actions, "
-                        "\nbut may improve accuracy of player sell values,"
-                        "\nand free transfers for your team, and will also "
-                        "\nenable AIrsenal to make transfers for you through "
-                        "\nthe API. (y/n): "
-                    )
+                    "\nWould you like to login to the FPL API?"
+                    "\nThis is not necessary for most AIrsenal actions, "
+                    "\nbut may improve accuracy of player sell values,"
+                    "\nand free transfers for your team, and will also "
+                    "\nenable AIrsenal to make transfers for you through "
+                    "\nthe API. (y/n): "
                 )
             if do_login.lower() == "y":
                 self.get_fpl_credentials()
@@ -143,7 +121,8 @@ class FPLDataFetcher(object):
                 self.continue_without_login = True
                 warnings.warn(
                     "Skipping login which means AIrsenal may have out of date "
-                    "information for your team."
+                    "information for your team.",
+                    stacklevel=2,
                 )
                 return
         headers = {
@@ -156,8 +135,9 @@ class FPLDataFetcher(object):
             "redirect_uri": self.FPL_LOGIN_REDIRECT_URL,
         }
         tried = 0
+        response = None
         while tried < attempts:
-            print(f"Login attempt {tried+1}/{attempts}...", end=" ")
+            print(f"Login attempt {tried + 1}/{attempts}...", end=" ")
             response = self.rsession.post(
                 self.FPL_LOGIN_URL, data=data, headers=headers
             )
@@ -168,24 +148,30 @@ class FPLDataFetcher(object):
             print("Failed")
             tried += 1
             time.sleep(1)
+        if response is None:
+            msg = "Failed to login to FPL API after multiple attempts."
+            return
         try:
             response.raise_for_status()
         except requests.HTTPError as e:
             self.login_failed = True
-            raise requests.HTTPError(f"Error logging in to FPL API: {e}")
+            msg = f"Error logging in to FPL API: {e}"
+            raise requests.HTTPError(msg) from e
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
         Requires login.  Return the current squad data, including
         "picks", bank, and free transfers.
         """
-        if not fpl_team_id:
-            if self.FPL_TEAM_ID and self.FPL_TEAM_ID != "MISSING_ID":
-                fpl_team_id = self.FPL_TEAM_ID
-            else:
-                raise RuntimeError("Please specify FPL team ID")
+        if fpl_team_id is None:
+            if self.FPL_TEAM_ID is None:
+                msg = "Please specify FPL team ID"
+                raise RuntimeError(msg)
+            fpl_team_id = self.FPL_TEAM_ID
+
         if fpl_team_id in self.current_squad_data:
             return self.current_squad_data[fpl_team_id]
+
         self.login()
         url = self.FPL_MYTEAM_URL.format(fpl_team_id)
         self.current_squad_data[fpl_team_id] = self._get_request(url)
@@ -244,7 +230,7 @@ class FPLDataFetcher(object):
         If no fpl_team_id is specified, we assume it is 'our' team
         $FPL_TEAM_ID, and cache the results in a dictionary.
         """
-        if (not fpl_team_id) and (gameweek in self.fpl_team_data.keys()):
+        if (not fpl_team_id) and (gameweek in self.fpl_team_data):
             return self.fpl_team_data[gameweek]
         if not fpl_team_id:
             fpl_team_id = self.FPL_TEAM_ID
@@ -279,7 +265,7 @@ class FPLDataFetcher(object):
         # return cached value if we already retrieved it.
         if (
             self.fpl_transfer_history_data
-            and fpl_team_id in self.fpl_transfer_history_data.keys()
+            and fpl_team_id in self.fpl_transfer_history_data
             and self.fpl_transfer_history_data[fpl_team_id] is not None
         ):
             return self.fpl_transfer_history_data[fpl_team_id]
@@ -308,12 +294,7 @@ class FPLDataFetcher(object):
             return self.fpl_league_data
 
         url = "https://users.premierleague.com/accounts/login/"
-        if (
-            (not self.FPL_LOGIN)
-            or (not self.FPL_PASSWORD)
-            or self.FPL_LOGIN == "MISSING_ID"
-            or self.FPL_PASSWORD == "MISSING_ID"
-        ):
+        if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
             # prompt the user for credentials
             self.get_fpl_credentials()
         headers = {
@@ -382,10 +363,10 @@ class FPLDataFetcher(object):
         Return a list, as in double-gameweeks, a player can play more than
         one match in a gameweek.
         """
-        if player_api_id not in self.player_gameweek_data.keys():
+        if player_api_id not in self.player_gameweek_data:
             self.player_gameweek_data[player_api_id] = {}
             if (not gameweek) or (
-                gameweek not in self.player_gameweek_data[player_api_id].keys()
+                gameweek not in self.player_gameweek_data[player_api_id]
             ):
                 player_detail = self._get_request(
                     self.FPL_DETAIL_URL.format(player_api_id),
@@ -393,13 +374,13 @@ class FPLDataFetcher(object):
                 )
                 for game in player_detail["history"]:
                     gw = game["round"]
-                    if gw not in self.player_gameweek_data[player_api_id].keys():
+                    if gw not in self.player_gameweek_data[player_api_id]:
                         self.player_gameweek_data[player_api_id][gw] = []
                     self.player_gameweek_data[player_api_id][gw].append(game)
         if not gameweek:
             return self.player_gameweek_data[player_api_id]
 
-        if gameweek not in self.player_gameweek_data[player_api_id].keys():
+        if gameweek not in self.player_gameweek_data[player_api_id]:
             print(f"Data not available for player {player_api_id} week {gameweek}")
             return []
         return self.player_gameweek_data[player_api_id][gameweek]
@@ -417,12 +398,11 @@ class FPLDataFetcher(object):
         Get a list of transfer deadlines.
         """
         summary_data = self._get_request(self.FPL_SUMMARY_API_URL)
-        deadlines = [
+        return [
             ev["deadline_time"]
             for ev in summary_data["events"]
-            if "deadline_time" in ev.keys()
+            if "deadline_time" in ev
         ]
-        return deadlines
 
     def get_lineup(self):
         """
@@ -449,17 +429,19 @@ class FPLDataFetcher(object):
         try:
             resp.raise_for_status()
         except requests.HTTPError as e:
-            raise requests.HTTPError(
+            msg = (
                 f"{e}\nLineup changes not made due to the error above! Make the "
                 "changes manually on the web-site if needed."
             )
+            raise requests.HTTPError(msg) from e
         if resp.status_code == 200:
             print("SUCCESS....lineup made!")
             return
-        raise Exception(
+        msg = (
             f"Unexpected error in post_lineup: "
-            f"code={resp.status_code}, content={resp.content}"
+            f"code={resp.status_code}, content={resp.content.decode('utf-8')}"
         )
+        raise Exception(msg)
 
     def post_transfers(self, transfer_payload):
         self.login()
@@ -476,28 +458,32 @@ class FPLDataFetcher(object):
         resp = self.rsession.post(
             transfer_url, data=json.dumps(transfer_payload), headers=headers
         )
-        if "non_form_errors" in resp:
-            raise requests.RequestException(
-                f"{resp['non_form_errors']}\nMaking transfers failed due to the "
+        if "non_form_errors" in resp.json():
+            msg = (
+                f"{resp.json()['non_form_errors']}\nMaking transfers failed due to the "
                 "error above! Make the changes manually on the web-site if needed."
             )
+            raise requests.RequestException(msg)
         try:
             resp.raise_for_status()
         except requests.HTTPError as e:
-            raise requests.HTTPError(
+            msg = (
                 f"{e}\nMaking transfers failed due to the error above! Make the "
                 "changes manually on the web-site if needed."
             )
+            raise requests.HTTPError(msg) from e
         if resp.status_code == 200:
             print("SUCCESS....transfers made!")
             return
-        raise Exception(
+        msg = (
             f"Unexpected error in post_transfers: "
-            f"code={resp.status_code}, content={resp.content}"
+            f"code={resp.status_code}, content={resp.content.decode('utf-8')}"
         )
+        raise Exception(msg)
 
     def _get_request(self, url, err_msg="Unable to access FPL API", attempts=3):
         tries = 0
+        r = None
         while tries < attempts:
             try:
                 r = self.rsession.get(url)
@@ -505,10 +491,15 @@ class FPLDataFetcher(object):
             except requests.exceptions.ConnectionError as e:
                 tries += 1
                 if tries == attempts:
-                    raise requests.exceptions.ConnectionError(
+                    msg = (
                         f"{err_msg}: Failed to connect to FPL API when requesting {url}"
-                    ) from e
+                    )
+                    raise requests.exceptions.ConnectionError(msg) from e
                 time.sleep(1)
+
+        if r is None:
+            msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
+            raise RuntimeError(msg)
 
         if r.status_code == 200:
             return json.loads(r.content.decode("utf-8"))
@@ -516,8 +507,10 @@ class FPLDataFetcher(object):
         try:
             r.raise_for_status()
         except requests.HTTPError as e:
-            raise requests.HTTPError(f"{err_msg}: {e}") from e
-        raise Exception(
+            msg = f"{err_msg}: {e}"
+            raise requests.HTTPError(msg) from e
+        msg = (
             f"Unexpected error in _get_request to {url}: "
-            f"code={r.status_code}, content={r.content}"
+            f"code={r.status_code}, content={r.content.decode('utf-8')}"
         )
+        raise RuntimeError(msg)

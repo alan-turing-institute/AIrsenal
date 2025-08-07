@@ -1,10 +1,9 @@
-#!/usr/bin/env python
-
 """
 API for calling airsenal functions.
 HTTP requests to the endpoints defined here will give rise
 to calls to functions in api_utils.py
 """
+
 import json
 from uuid import uuid4
 
@@ -38,10 +37,9 @@ def get_session_id():
     will enable us to test some functionality just via python requests.
     """
     print(f"Session keys {session.keys()}")
-    if "key" in session.keys():
+    if "key" in session:
         return session["key"]
-    else:
-        return "DEFAULT_SESSION_ID"
+    return "DEFAULT_SESSION_ID"
 
 
 # Use a flask blueprint rather than creating the app directly
@@ -58,7 +56,7 @@ def handle_exception(error):
 
 
 @blueprint.teardown_request
-def remove_session(ex=None):
+def remove_session(ex=None):  # noqa: ARG001
     remove_db_session()
 
 

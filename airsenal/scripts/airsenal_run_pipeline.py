@@ -1,7 +1,6 @@
 import multiprocessing
 import sys
 import warnings
-from typing import List, Optional, Union
 
 import click
 import requests
@@ -10,6 +9,7 @@ from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -134,7 +134,7 @@ from airsenal.scripts.update_db import update_db
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
-    fpl_team_id: int,
+    fpl_team_id: int | None,
     clean: bool,
     apply_transfers: bool,
     wildcard_week: int,
@@ -157,6 +157,9 @@ def run_pipeline(
     the best squad.
     """
     if fpl_team_id is None:
+        if not fetcher.FPL_TEAM_ID:
+            msg = "FPL Team ID not provided and not found in environment variables."
+            raise RuntimeError(msg)
         fpl_team_id = fetcher.FPL_TEAM_ID
     print(f"Running for FPL Team ID {fpl_team_id}")
     if not num_thread:
@@ -174,7 +177,8 @@ def run_pipeline(
                 fpl_team_id, n_previous, no_current_season, dbsession
             )
             if not setup_ok:
-                raise RuntimeError("Problem setting up initial db")
+                msg = "Problem setting up initial db"
+                raise RuntimeError(msg)
             click.echo("Database setup complete..")
             update_attr = False
         else:
@@ -185,7 +189,7 @@ def run_pipeline(
         try:
             update_ok = update_database(fpl_team_id, update_attr, dbsession)
         except requests.exceptions.RequestException as e:
-            warnings.warn(f"Database updated failed: {e}")
+            warnings.warn(f"Database updated failed: {e}", stacklevel=2)
             update_ok = False
 
         if not update_ok:
@@ -208,14 +212,16 @@ def run_pipeline(
             team_model_args={"epsilon": epsilon},
         )
         if not predict_ok:
-            raise RuntimeError("Problem running prediction")
+            msg = "Problem running prediction"
+            raise RuntimeError(msg)
         click.echo("Prediction complete..")
 
-        if NEXT_GAMEWEEK == get_entry_start_gameweek(fpl_team_id, fetcher):
+        if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
             click.echo("Generating a squad..")
             new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
             if not new_squad_ok:
-                raise RuntimeError("Problem creating a new squad")
+                msg = "Problem creating a new squad"
+                raise RuntimeError(msg)
         else:
             click.echo("Running optimization..")
             chips_played = setup_chips(
@@ -235,18 +241,21 @@ def run_pipeline(
                 allow_unused=allow_unused,
             )
             if not opt_ok:
-                raise RuntimeError("Problem running optimization")
+                msg = "Problem running optimization"
+                raise RuntimeError(msg)
 
         click.echo("Optimization complete..")
         if apply_transfers:
             click.echo("Applying suggested transfers...")
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
-                raise RuntimeError("Problem applying the transfers")
+                msg = "Problem applying the transfers"
+                raise RuntimeError(msg)
             click.echo("Setting Lineup...")
             lineup_ok = set_starting_11(fpl_team_id)
             if not lineup_ok:
-                raise RuntimeError("Problem setting the lineup")
+                msg = "Problem setting the lineup"
+                raise RuntimeError(msg)
 
         click.echo("Pipeline finished OK!")
 
@@ -260,7 +269,7 @@ def setup_database(
     if no_current_season:
         seasons = get_past_seasons(n_previous)
     else:
-        seasons = [CURRENT_SEASON] + get_past_seasons(n_previous)
+        seasons = [CURRENT_SEASON, *get_past_seasons(n_previous)]
 
     return make_init_db(fpl_team_id, seasons, dbsession)
 
@@ -293,16 +302,19 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
 
 def run_prediction(
     num_thread: int,
-    gw_range: List[int],
+    gw_range: list[int],
     dbsession: Session,
-    team_model: Union[
-        ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-    ] = ExtendedDixonColesMatchPredictor(),
-    team_model_args: dict = {"epsilon": 0.0},
+    team_model: ExtendedDixonColesMatchPredictor
+    | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
+    | None = None,
+    team_model_args: dict | None = None,
 ) -> bool:
     """
     Run prediction
     """
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     season = CURRENT_SEASON
     tag = make_predictedscore_table(
         gw_range=gw_range,
@@ -328,7 +340,7 @@ def run_prediction(
     return True
 
 
-def run_make_squad(gw_range: List[int], fpl_team_id: int, dbsession: Session) -> bool:
+def run_make_squad(gw_range: list[int], fpl_team_id: int, dbsession: Session) -> bool:
     """
     Build the initial squad
     """
@@ -342,7 +354,7 @@ def run_make_squad(gw_range: List[int], fpl_team_id: int, dbsession: Session) ->
 
 def run_optimize_squad(
     num_thread: int,
-    gw_range: List[int],
+    gw_range: list[int],
     fpl_team_id: int,
     dbsession: Session,
     chips_played: dict,
@@ -371,7 +383,7 @@ def run_optimize_squad(
     return True
 
 
-def set_starting_11(fpl_team_id: Optional[int] = None) -> bool:
+def set_starting_11(fpl_team_id: int | None = None) -> bool:
     """
     Set the lineup based on the latest optimization run.
 

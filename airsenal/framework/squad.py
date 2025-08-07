@@ -9,13 +9,16 @@ from operator import itemgetter
 
 import numpy as np
 
-from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
+    get_bank,
     get_player,
+    get_player_from_api_id,
     get_playerscores_for_player_gameweek,
 )
 
@@ -34,7 +37,7 @@ FORMATIONS = [
 ]
 
 
-class Squad(object):
+class Squad:
     """
     Squad class.  Contains 15 players
     """
@@ -84,7 +87,7 @@ class Squad(object):
 
     def add_player(
         self,
-        p,
+        p: CandidatePlayer | DummyPlayer | int | str | Player,
         price=None,
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
@@ -97,15 +100,18 @@ class Squad(object):
         current price as found in DB, but if one is specified, we override
         with that value.
         """
-        if isinstance(p, (int, str, Player)):
-            player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
+        if isinstance(p, int | str | Player):
+            player: CandidatePlayer | DummyPlayer = CandidatePlayer(
+                p, self.season, gameweek, dbsession=dbsession
+            )
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
             player.season = self.season
         if player.position == "MNG":
             warnings.warn(
                 f"Skipped adding manager {player}, assistant manager not implemented."
-                f"Reduced squad budget by {player.purchase_price}."
+                f"Reduced squad budget by {player.purchase_price}.",
+                stacklevel=2,
             )
             self.budget -= player.purchase_price
             return True
@@ -169,7 +175,8 @@ class Squad(object):
         for p in self.players:
             if p.player_id == player_id:
                 return p
-        raise ValueError(f"Player {player_id} not in squad")
+        msg = f"Player {player_id} not in squad"
+        raise ValueError(msg)
 
     def get_sell_price_for_player(
         self,
@@ -187,8 +194,14 @@ class Squad(object):
         player_id = player.player_id
 
         price_now = None
-        if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
-            player_db = get_player(player_id)
+        player_db = get_player(player_id, dbsession=dbsession)
+        if (
+            use_api
+            and self.season == CURRENT_SEASON
+            and gameweek >= NEXT_GAMEWEEK
+            and player_db is not None
+            and player_db.fpl_api_id is not None
+        ):
             api_id = player_db.fpl_api_id
             # first try getting the actual sale price from a logged in API
             try:
@@ -196,7 +209,8 @@ class Squad(object):
             except Exception as e:
                 warnings.warn(
                     f"Failed to login to get actual sale price for {player} from API:\n"
-                    f"{e}.\nWill estimate it based on the players current price instead"
+                    f"{e}.\nWill estimate based on the player's current price instead",
+                    stacklevel=2,
                 )
             # if not logged in, just get current price from API
             try:
@@ -204,29 +218,28 @@ class Squad(object):
             except Exception as e:
                 warnings.warn(
                     f"Failed to to get current price of {player} from API:\n"
-                    f"{e}.\nWill attempt to use latest price in DB instead."
+                    f"{e}.\nWill attempt to use latest price in DB instead.",
+                    stacklevel=2,
                 )
 
         # retrieve how much we originally bought the player for from db
         price_bought = player.purchase_price
 
         # get player's current price from db if the API wasn't used
-        if not price_now:
-            player_db = get_player(player_id, dbsession=dbsession)
-            if player_db:
-                price_now = player_db.price(self.season, gameweek)
+        if not price_now and player_db:
+            price_now = player_db.price(self.season, gameweek)
 
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
             warnings.warn(
-                f"Using purchase price as sale price for {player.player_id}, {player}"
+                f"Using purchase price as sale price for {player.player_id}, {player}",
+                stacklevel=2,
             )
             price_now = price_bought
 
         if price_now > price_bought:
             return (price_now + price_bought) // 2
-        else:
-            return price_now
+        return price_now
 
     def check_no_duplicate_player(self, player):
         """
@@ -276,7 +289,12 @@ class Squad(object):
         choose the best starting 11, obeying constraints.
         """
         # first order all the players by expected points
-        player_dict = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        player_dict: dict[str, list[tuple[CandidatePlayer, float]]] = {
+            "GK": [],
+            "DEF": [],
+            "MID": [],
+            "FWD": [],
+        }
         for p in self.players:
             try:
                 points_prediction = p.predicted_points[tag][gameweek]
@@ -353,7 +371,9 @@ class Squad(object):
         formation[player_in.position] += 1
         return (formation["DEF"], formation["MID"], formation["FWD"]) in FORMATIONS
 
-    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
+    def total_points_for_starting_11(
+        self, gameweek: int, tag: str, triple_captain: bool = False
+    ) -> float:
         """
         simple sum over starting players
         """
@@ -369,16 +389,18 @@ class Squad(object):
         return total
 
     def total_points_for_subs(
-        self, gameweek, tag, sub_weights={"GK": 1, "Outfield": (1, 1, 1)}
-    ):
+        self, gameweek: int, tag: str, sub_weights: dict | None = None
+    ) -> float:
+        if sub_weights is None:
+            sub_weights = {"GK": 1, "Outfield": (1, 1, 1)}
         outfield_subs = [
             p for p in self.players if (not p.is_starting) and (p.position != "GK")
         ]
         outfield_subs = sorted(outfield_subs, key=lambda p: p.sub_position)
 
-        gk_sub = [
+        gk_sub = next(
             p for p in self.players if (not p.is_starting) and (p.position == "GK")
-        ][0]
+        )
 
         total = sub_weights["GK"] * gk_sub.predicted_points[tag][gameweek]
 
@@ -387,9 +409,10 @@ class Squad(object):
 
         return total
 
-    def optimize_lineup(self, gameweek, tag):
+    def optimize_lineup(self, gameweek: int, tag: str):
         if not self.is_complete():
-            raise RuntimeError("Squad is incomplete")
+            msg = "Squad is incomplete"
+            raise RuntimeError(msg)
 
         self._calc_expected_points(tag)
         self.optimize_subs(gameweek, tag)
@@ -442,8 +465,8 @@ class Squad(object):
         need_vice_captain = False
         vice_captain_points = 0
 
-        # this will be an ordered list of subs - make it the right size beforehand
-        subs = [None, None, None, None]
+        # this will be used to make an ordered list of subs
+        subs: list[tuple[int, Player]] = []
         need_sub = []
         for p in self.players:
             if p.is_starting or bench_boost:
@@ -467,7 +490,10 @@ class Squad(object):
 
             else:  # player not in our initial starting 11
                 # put the subs in order
-                subs[p.sub_position] = p
+                subs.append((p.sub_position, p))
+
+        ordered_subs = [s[1] for s in sorted(subs, key=itemgetter(0))]
+
         # now take account of possibility that captain didn't play
         if need_vice_captain:
             total_points += vice_captain_points  # double them
@@ -477,7 +503,7 @@ class Squad(object):
         # UNLESS bench_boost (in which case we've already counted subs points)
         if need_sub and not bench_boost:
             for p_out in need_sub:
-                for p_in in subs:
+                for p_in in ordered_subs:
                     if not self.is_substitution_allowed(p_out, p_in):
                         continue
                     scores = get_playerscores_for_player_gameweek(
@@ -487,6 +513,41 @@ class Squad(object):
                     if minutes > 0:
                         for score in scores:
                             total_points += score.points
-                        subs.remove(p_in)
+                        ordered_subs.remove(p_in)
                         break
         return total_points
+
+    def sale_value(self, gameweek: int, use_api: bool) -> int:
+        total_value = self.budget  # initialise total to amount in the bank
+        for p in self.players:
+            total_value += self.get_sell_price_for_player(
+                p, use_api=use_api, gameweek=gameweek
+            )
+        return total_value
+
+
+def get_current_squad_from_api(
+    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int = NEXT_GAMEWEEK
+) -> Squad:
+    """
+    Return a list [(player_id, purchase_price)] from the current picks.
+    Requires the data fetcher to be logged in.
+    """
+    picks = apifetcher.get_current_picks(fpl_team_id)
+
+    squad = Squad(season=CURRENT_SEASON)
+    for p in picks:
+        player = get_player_from_api_id(p["element"])
+        if not player:
+            continue
+        print(f"Adding player {player}")
+        squad.add_player(
+            player,
+            price=p["purchase_price"],
+            gameweek=next_gw - 1,
+            check_budget=False,
+            check_team=False,
+        )
+    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, apifetcher=apifetcher)
+
+    return squad

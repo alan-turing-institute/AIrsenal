@@ -1,6 +1,5 @@
-from typing import Dict, Iterable, Optional, Union
+from collections.abc import Iterable
 
-import jax.numpy as jnp
 import numpy as np
 from bpl.base import BaseMatchPredictor
 
@@ -8,42 +7,39 @@ from bpl.base import BaseMatchPredictor
 class RandomMatchPredictor(BaseMatchPredictor):
     """A Random model for predicting match outcomes."""
 
-    def __init__(self, num_samples=1000):
-        self.teams = None
-        self.attack = None
-        self.defence = None
-        self.home_advantage = None
+    def __init__(self, num_samples: int = 1000, random_state: int = 42):
+        self.teams: list[str] | None = None
+        self.attack: np.ndarray | None = None
+        self.defence: np.ndarray | None = None
+        self.home_advantage: np.ndarray | None = None
         self.num_samples = num_samples
+        self.rng = np.random.default_rng(random_state)
 
-    def fit(
-        self,
-        training_data: Dict[str, Union[Iterable[str], Iterable[float]]],
-        random_state: int = 42,
-    ):
+    def fit(self, training_data: dict[str, Iterable[str] | Iterable[float]], **kwargs):
         home_team = training_data["home_team"]
         away_team = training_data["away_team"]
-        self.teams = sorted(list(set(home_team) | set(away_team)))
+        unique_teams = set(home_team) | set(away_team)
+        self.teams = sorted([str(t) for t in unique_teams])
+        if self.teams is None or len(self.teams) == 0:
+            msg = "No teams found in training data."
+            raise ValueError(msg)
 
-        self.attack = np.random.randn(self.num_samples, len(self.teams))
-        self.defence = np.random.randn(self.num_samples, len(self.teams))
-        self.home_advantage = np.random.randn(self.num_samples, len(self.teams))
-        self.corr_coef = np.random.randn(
-            self.num_samples,
-        )
-        self.rho = np.random.randn(
-            self.num_samples,
-        )
+        self.attack = self.rng.normal(size=(self.num_samples, len(self.teams)))
+        self.defence = self.rng.normal(size=(self.num_samples, len(self.teams)))
+        self.home_advantage = self.rng.normal(size=(self.num_samples, len(self.teams)))
+        self.corr_coef = self.rng.normal(size=(self.num_samples, len(self.teams)))
+        self.rho = self.rng.normal(size=(self.num_samples,))
         return self
 
     def predict_score_proba(
         self,
-        home_team: Union[str, Iterable[str]],
-        away_team: Union[str, Iterable[str]],
-        home_goals: Union[int, Iterable[int]],
-        away_goals: Union[int, Iterable[int]],
-    ) -> np.array:
-        home_team = [home_team] if isinstance(home_team, str) else home_team
-        away_team = [away_team] if isinstance(away_team, str) else away_team
+        home_team: str | Iterable[str],
+        away_team: str | Iterable[str],
+        home_goals: int | Iterable[int],  # noqa: ARG002
+        away_goals: int | Iterable[int],  # noqa: ARG002
+    ) -> np.ndarray:
+        home_team = [home_team] if isinstance(home_team, str) else list(home_team)
+        away_team = [away_team] if isinstance(away_team, str) else list(away_team)
 
         home_probs = np.random.randn(self.num_samples, len(home_team))
         away_probs = np.random.randn(self.num_samples, len(away_team))
@@ -53,9 +49,22 @@ class RandomMatchPredictor(BaseMatchPredictor):
         )
         return sampled_probs.mean(axis=0)
 
-    def add_new_team(self, team_name: str, team_covariates: Optional[np.array] = None):
-        if team_name in self.teams:
-            raise ValueError("Team {} already known to model.".format(team_name))
+    def add_new_team(
+        self,
+        team_name: str,
+        team_covariates: np.ndarray | None = None,  # noqa: ARG002
+    ):
+        if self.teams is None:
+            self.teams = []
+        elif team_name in self.teams:
+            msg = f"Team {team_name} already known to model."
+            raise ValueError(msg)
+        if self.attack is None:
+            self.attack = np.empty((self.num_samples, 0))
+        if self.defence is None:
+            self.defence = np.empty((self.num_samples, 0))
+        if self.home_advantage is None:
+            self.home_advantage = np.empty((self.num_samples, 0))
 
         attack = np.random.randn(
             self.num_samples,
@@ -68,8 +77,8 @@ class RandomMatchPredictor(BaseMatchPredictor):
         )
 
         self.teams.append(team_name)
-        self.attack = jnp.concatenate((self.attack, attack[:, None]), axis=1)
-        self.defence = jnp.concatenate((self.defence, defence[:, None]), axis=1)
-        self.home_advantage = jnp.concatenate(
+        self.attack = np.concatenate((self.attack, attack[:, None]), axis=1)
+        self.defence = np.concatenate((self.defence, defence[:, None]), axis=1)
+        self.home_advantage = np.concatenate(
             (self.home_advantage, home_advantage[:, None]), axis=1
         )

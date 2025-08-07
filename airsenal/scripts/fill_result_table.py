@@ -1,13 +1,9 @@
-#!/usr/bin/env python
-
 """
-Fill the "result" table with historic results
-(results_xxyy_with_gw.csv).
+Fill the "result" table with historic results (results_xxyy_with_gw.csv).
 """
 
 import argparse
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -19,7 +15,9 @@ from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seaso
 
 
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
-    for line in input_file.readlines()[1:]:
+    with open(input_file) as f:
+        lines = f.readlines()
+    for line in lines[1:]:
         (
             date,
             home_team,
@@ -35,15 +33,18 @@ def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> N
             elif away_team in v:
                 away_team = k
         # query database to find corresponding fixture
-        f = find_fixture(
+        fixture = find_fixture(
             home_team,
             was_home=True,
             other_team=away_team,
             season=season,
             dbsession=dbsession,
         )
+        if fixture is None:
+            print(f"Unable to find fixture for {home_team} vs {away_team} in {season}")
+            continue
         res = Result()
-        res.fixture = f
+        res.fixture = fixture
         res.home_score = int(home_score)
         res.away_score = int(away_score)
         dbsession.add(res)
@@ -71,9 +72,11 @@ def fill_results_from_api(
             elif str(away_id) in v:
                 away_team = k
         if not home_team:
-            raise ValueError(f"Unable to find team with id {home_id}")
+            msg = f"Unable to find team with id {home_id}"
+            raise ValueError(msg)
         if not away_team:
-            raise ValueError(f"Unable to find team with id {away_id}")
+            msg = f"Unable to find team with id {away_id}"
+            raise ValueError(msg)
         home_score = m["team_h_score"]
         away_score = m["team_a_score"]
         f = find_fixture(
@@ -84,6 +87,12 @@ def fill_results_from_api(
             season=season,
             dbsession=dbsession,
         )
+        if f is None:
+            print(
+                f"Unable to find fixture for {home_team} vs {away_team} in {season} "
+                f"gameweek {gameweek}"
+            )
+            continue
         if f.result is None:
             res = Result()
             add = True
@@ -99,11 +108,13 @@ def fill_results_from_api(
 
 
 def make_result_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """
     past seasons - read results from csv
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
@@ -116,8 +127,7 @@ def make_result_table(
             inpath = os.path.join(
                 os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
             )
-            infile = open(inpath)
-            fill_results_from_csv(infile, season, dbsession)
+            fill_results_from_csv(inpath, season, dbsession)
 
 
 if __name__ == "__main__":

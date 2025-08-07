@@ -1,144 +1,471 @@
 """
-Functions to optimise an initial squad or a squad for wildcards/free hits.
+Optimization using DEAP (Distributed Evolutionary Algorithms in Python) to optimize a
+full squad for the start of the season, wildcards, or free hits with a genetic
+algorithm.
 """
 
 import random
 
-from airsenal.framework.optimization_utils import get_discounted_squad_score, positions
-from airsenal.framework.player import CandidatePlayer
+import numpy as np
+from deap import algorithms, base, creator, tools
+
+from airsenal.framework.optimization_utils import (
+    DEFAULT_SUB_WEIGHTS,
+    get_discounted_squad_score,
+)
+from airsenal.framework.player import DummyPlayer
+from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
-from airsenal.framework.utils import CURRENT_SEASON, get_predicted_points
+from airsenal.framework.utils import (
+    CURRENT_SEASON,
+    get_predicted_points_for_player,
+    list_players,
+)
+
+
+class SquadOpt:
+    """DEAP-based optimization class for optimising a fantasy football squad
+
+    Parameters
+    ----------
+    gw_range : list
+        Gameweeks to optimize squad for
+    tag : str
+        Points prediction tag to use
+    budget : int, optional
+        Total budget for squad times 10,  by default 1000
+    players_per_position : dict
+        No. of players to optimize in each position, by default
+        airsenal.framework.squad.TOTAL_PER_POSITION
+    season : str
+        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+    bench_boost_gw : int
+        Gameweek to play bench boost, by default None
+    triple_captain_gw : int
+        Gameweek to play triple captain, by default None,
+    remove_zero : bool
+        If True don't consider players with predicted pts of zero, by default True
+    sub_weights : dict
+        Weighting to give to substitutes in optimization, by default
+        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    dummy_sub_cost : int, optional
+        If not optimizing a full squad the price of each player that is not being
+        optimized. For example, if you are optimizing 12 out of 15 players, the
+        effective budget for optimizing the squad will be
+        budget - (15 -12) * dummy_sub_cost, by default 45
+    """
+
+    def __init__(
+        self,
+        gw_range,
+        tag,
+        budget=1000,
+        dummy_sub_cost=45,
+        season=CURRENT_SEASON,
+        bench_boost_gw=None,
+        triple_captain_gw=None,
+        remove_zero=True,  # don't consider players with predicted pts of zero
+        players_per_position=TOTAL_PER_POSITION,
+        sub_weights=DEFAULT_SUB_WEIGHTS,
+    ):
+        self.season = season
+        self.gw_range = gw_range
+        self.start_gw = min(gw_range)
+        self.bench_boost_gw = bench_boost_gw
+        self.triple_captain_gw = triple_captain_gw
+
+        self.tag = tag
+        self.positions = ["GK", "DEF", "MID", "FWD"]
+        self.players_per_position = players_per_position
+        self.n_opt_players = sum(self.players_per_position.values())
+        # no. players each position that won't be optimised (just filled with dummies)
+        self.dummy_per_position = self._get_dummy_per_position()
+        self.dummy_sub_cost = dummy_sub_cost
+        self.budget = budget
+        self.sub_weights = sub_weights
+
+        self.players, self.position_idx = self._get_player_list()
+        if remove_zero:
+            self._remove_zero_pts()
+        self.n_available_players = len(self.players)
+
+        # Setup DEAP toolbox
+        self._setup_deap()
+
+    def _setup_deap(self):
+        """Setup DEAP genetic algorithm components."""
+        # Create fitness and individual classes
+        # We want to maximize fitness, so weights=(1.0,)
+        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMax)
+
+        self.toolbox = base.Toolbox()
+
+        # Register functions for creating individuals and population
+        self.toolbox.register("individual", self._create_individual)
+        self.toolbox.register(
+            "population", tools.initRepeat, list, self.toolbox.individual
+        )
+
+        # Register evaluation function
+        self.toolbox.register("evaluate", self._evaluate_individual)
+
+        # Store mutation bounds for later use in optimize method
+        self.low_bounds, self.up_bounds = self._get_mutation_bounds()
+
+    def _create_individual(self):
+        """Create a valid individual (chromosome) representing a squad selection."""
+        individual = []
+
+        # For each position, select the required number of players
+        for pos in self.positions:
+            pos_min, pos_max = self.position_idx[pos]
+            n_players = self.players_per_position[pos]
+
+            # Randomly select players for this position
+            selected_players = random.sample(
+                range(pos_min, pos_max + 1), min(n_players, pos_max - pos_min + 1)
+            )
+            individual.extend(selected_players)
+
+        return creator.Individual(individual)
+
+    def _get_mutation_bounds(self):
+        """Get lower and upper bounds for each gene for mutation."""
+        low_bounds = []
+        up_bounds = []
+
+        # For each position, add bounds for each player slot
+        for pos in self.positions:
+            pos_min, pos_max = self.position_idx[pos]
+            n_players = self.players_per_position[pos]
+
+            # Add bounds for each player in this position
+            low_bounds.extend([pos_min] * n_players)
+            up_bounds.extend([pos_max] * n_players)
+
+        return low_bounds, up_bounds
+
+    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
+        """Evaluate the fitness of an individual (squad)."""
+        # Make squad from player IDs
+        squad = Squad(budget=self.budget, season=self.season)
+
+        # Add selected players to squad
+        for idx in individual:
+            add_ok = squad.add_player(
+                self.players[int(idx)].player_id,
+                gameweek=self.start_gw,
+            )
+            if not add_ok:
+                return (0.0,)  # Invalid squad
+
+        # Fill empty slots with dummy players (if chosen not to optimise full squad)
+        for pos in self.positions:
+            if self.dummy_per_position[pos] > 0:
+                for _ in range(self.dummy_per_position[pos]):
+                    dp = DummyPlayer(
+                        self.gw_range, self.tag, pos, price=self.dummy_sub_cost
+                    )
+                    add_ok = squad.add_player(dp)
+                    if not add_ok:
+                        return (0.0,)  # Invalid squad
+
+        # Check squad is valid, if not return fitness of zero
+        if not squad.is_complete():
+            return (0.0,)
+
+        # Calculate expected points for all gameweeks
+        score = get_discounted_squad_score(
+            squad,
+            self.gw_range,
+            self.tag,
+            self.gw_range[0],
+            self.bench_boost_gw,
+            self.triple_captain_gw,
+            sub_weights=self.sub_weights,
+        )
+
+        return (score,)
+
+    def _get_player_list(self):
+        """Get list of active players at the start of the gameweek range,
+        and the id range of players for each position.
+        """
+        players = []
+        change_idx = [0]
+        # build players list by position (i.e. all GK, then all DEF etc.)
+        for pos in self.positions:
+            players += list_players(
+                position=pos, season=self.season, gameweek=self.start_gw
+            )
+            change_idx.append(len(players))
+
+        # min and max idx of players for each position
+        position_idx = {
+            self.positions[i - 1]: (change_idx[i - 1], change_idx[i] - 1)
+            for i in range(1, len(change_idx))
+        }
+        return players, position_idx
+
+    def _remove_zero_pts(self):
+        """Exclude players with zero predicted points."""
+        players: list[Player] = []
+        # change_idx stores the indices of where the player positions change in the new
+        # player list
+        change_idx = [0]
+        last_pos = self.positions[0]
+        for p in self.players:
+            gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
+            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gw_range)
+            if total_pts > 0:
+                if p.position(self.season) != last_pos:
+                    change_idx.append(len(players))
+                    last_pos = p.position(self.season)
+                players.append(p)
+        change_idx.append(len(players))
+
+        position_idx = {
+            self.positions[i - 1]: (change_idx[i - 1], change_idx[i] - 1)
+            for i in range(1, len(change_idx))
+        }
+
+        self.players = players
+        self.position_idx = position_idx
+
+    def _get_dummy_per_position(self):
+        """No. of dummy players per position needed to complete the squad (if not
+        optimising the full squad)
+        """
+        return {
+            pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
+            for pos in self.positions
+        }
+
+    def optimize(
+        self,
+        population_size: int = 100,
+        generations: int = 100,
+        crossover_prob: float = 0.7,
+        mutation_prob: float = 0.3,
+        crossover_indpb: float = 0.5,
+        mutation_indpb: float = 0.1,
+        tournament_size: int = 3,
+        verbose: bool = True,
+        random_state: int | None = None,
+    ) -> tuple[list[int], float]:
+        """Run the genetic algorithm optimization.
+
+        Parameters
+        ----------
+        population_size : int
+            Size of the population
+        generations : int
+            Number of generations to run
+        crossover_prob : float
+            Probability of crossover
+        mutation_prob : float
+            Probability of mutation
+        crossover_indpb : float
+            Independent probability for each attribute to be exchanged in crossover
+        mutation_indpb : float
+            Independent probability for each attribute to be mutated
+        tournament_size : int
+            Size of tournament for tournament selection
+        verbose : bool
+            Whether to print progress
+        random_state : int, optional
+            Random seed for reproducibility
+
+        Returns
+        -------
+        Tuple[List[int], float]
+            Best individual (player indices) and its fitness score
+        """
+        if random_state is not None:
+            random.seed(random_state)
+            np.random.seed(random_state)
+
+        # Register genetic operators with configurable parameters
+        self.toolbox.register("mate", tools.cxUniform, indpb=crossover_indpb)
+        self.toolbox.register(
+            "mutate",
+            tools.mutUniformInt,
+            low=self.low_bounds,
+            up=self.up_bounds,
+            indpb=mutation_indpb,
+        )
+        self.toolbox.register("select", tools.selTournament, tournsize=tournament_size)
+
+        # Create initial population
+        population = self.toolbox.population(n=population_size)
+
+        # Statistics tracking
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
+        stats.register("min", np.min)
+        stats.register("max", np.max)
+
+        # Hall of fame to track best individuals
+        hall_of_fame = tools.HallOfFame(1)
+
+        # Run the genetic algorithm
+        population, logbook = algorithms.eaSimple(
+            population,
+            self.toolbox,
+            cxpb=crossover_prob,
+            mutpb=mutation_prob,
+            ngen=generations,
+            stats=stats,
+            halloffame=hall_of_fame,
+            verbose=verbose,
+        )
+
+        # Return best individual and its fitness
+        best_individual = hall_of_fame[0]
+        best_fitness = best_individual.fitness.values[0]
+
+        return best_individual, best_fitness
 
 
 def make_new_squad(
     gw_range,
     tag,
     budget=1000,
+    players_per_position=TOTAL_PER_POSITION,
     season=CURRENT_SEASON,
-    verbose=1,
+    verbose=True,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    algorithm="genetic",
-    **kwargs,
+    remove_zero=True,  # don't consider players with predicted pts of zero
+    sub_weights=DEFAULT_SUB_WEIGHTS,
+    dummy_sub_cost=45,
+    population_size=100,
+    generations=100,
+    crossover_prob=0.7,
+    mutation_prob=0.3,
+    crossover_indpb=0.5,
+    mutation_indpb=0.1,
+    tournament_size=3,
+    random_state=None,
 ):
-    """
-    Optimise a new squad from scratch with one of two algorithms:
-    - algorithm="normal" : airsenal.framework.optimization_squad.make_new_squad_iter
-    - algorithm="genetic": airsenal.framework.optimization_pygmo.make_new_squad_pygmo
-    """
-    if algorithm == "genetic":
-        try:
-            from airsenal.framework.optimization_pygmo import make_new_squad_pygmo
+    """Optimize a full initial squad using DEAP genetic algorithm.
 
-            return make_new_squad_pygmo(
-                gw_range=gw_range,
-                tag=tag,
-                budget=budget,
-                season=season,
-                bench_boost_gw=bench_boost_gw,
-                triple_captain_gw=triple_captain_gw,
-                verbose=verbose,
-                **kwargs,
-            )
-        except ModuleNotFoundError:
-            print("Running optimisation without pygmo instead...")
+    Parameters
+    ----------
+    gw_range : list
+        Gameweeks to optimize squad for
+    tag : str
+        Points prediction tag to use
+    budget : int, optional
+        Total budget for squad times 10,  by default 1000
+    players_per_position : dict
+        No. of players to optimize in each position, by default
+        airsenal.framework.squad.TOTAL_PER_POSITION
+    season : str
+        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+    verbose : bool
+        Whether to print optimization progress, by default True
+    bench_boost_gw : int
+        Gameweek to play bench boost, by default None
+    triple_captain_gw : int
+        Gameweek to play triple captain, by default None,
+    remove_zero : bool
+        If True don't consider players with predicted pts of zero, by default True
+    sub_weights : dict
+        Weighting to give to substitutes in optimization, by default
+        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+    dummy_sub_cost : int, optional
+        If not optimizing a full squad the price of each player that is not being
+        optimized. For example, if you are optimizing 12 out of 15 players, the
+        effective budget for optimizing the squad will be
+        budget - (15 -12) * dummy_sub_cost, by default 45
+    population_size : int, optional
+        Number of candidate solutions in each generation of the optimization,
+        by default 100
+    generations : int, optional
+        Number of generations to run the genetic algorithm, by default 100
+    crossover_prob : float, optional
+        Probability of crossover between individuals, by default 0.7
+    mutation_prob : float, optional
+        Probability of mutation for each individual, by default 0.3
+    crossover_indpb : float, optional
+        Independent probability for each attribute to be exchanged in crossover,
+        by default 0.5
+    mutation_indpb : float, optional
+        Independent probability for each attribute to be mutated, by default 0.1
+    tournament_size : int, optional
+        Size of tournament for tournament selection, by default 3
+    random_state : int, optional
+        Random seed for reproducibility, by default None
 
-    return make_new_squad_iter(
-        gw_range=gw_range,
-        tag=tag,
+    Returns
+    -------
+    airsenal.framework.squad.Squad
+        The optimized squad
+    """
+    # Build optimization problem
+    opt_squad = SquadOpt(
+        gw_range,
+        tag,
         budget=budget,
+        players_per_position=players_per_position,
+        dummy_sub_cost=dummy_sub_cost,
         season=season,
         bench_boost_gw=bench_boost_gw,
         triple_captain_gw=triple_captain_gw,
-        verbose=verbose,
-        **kwargs,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
     )
 
-
-def make_new_squad_iter(
-    gw_range,
-    tag,
-    budget=1000,
-    season=CURRENT_SEASON,
-    num_iterations=100,
-    update_func_and_args=None,
-    verbose=False,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    **kwargs,
-):
-    """
-    Make a squad from scratch, i.e. for gameweek 1, or for wildcard, or free hit, by
-    selecting high scoring players and then iteratively replacing them with cheaper
-    options until we have a valid squad.
-    """
-    transfer_gw = min(gw_range)  # the gw we're making the new squad
-    best_score = 0.0
-    best_squad = None
-
-    for iteration in range(num_iterations):
-        if verbose:
-            print(f"Choosing new squad: iteration {iteration}")
-        if update_func_and_args:
-            # call function to update progress bar.
-            # this was passed as a tuple (func, increment, pid)
-            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-        predicted_points = {}
-        t = Squad(budget, season=season)
-        # first iteration - fill up from the front
-        for pos in positions:
-            predicted_points[pos] = get_predicted_points(
-                gameweek=gw_range, position=pos, tag=tag, season=season
-            )
-            for pp in predicted_points[pos]:
-                t.add_player(pp[0], gameweek=transfer_gw)
-                if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
-                    break
-
-        # presumably we didn't get a complete squad now
-        excluded_player_ids = []
-        while not t.is_complete():
-            # randomly swap out a player and replace with a cheaper one in the
-            # same position
-            player_to_remove = t.players[random.randint(0, len(t.players) - 1)]
-            remove_cost = player_to_remove.purchase_price
-            t.remove_player(player_to_remove.player_id, gameweek=transfer_gw)
-            excluded_player_ids.append(player_to_remove.player_id)
-            for pp in predicted_points[player_to_remove.position]:
-                if (
-                    pp[0] not in excluded_player_ids or random.random() < 0.3
-                ):  # some chance to put player back
-                    cp = CandidatePlayer(pp[0], gameweek=transfer_gw, season=season)
-                    if cp.purchase_price >= remove_cost:
-                        continue
-                    else:
-                        t.add_player(pp[0], gameweek=transfer_gw)
-            # now try again to fill up the rest of the squad
-            for pos in positions:
-                num_missing = TOTAL_PER_POSITION[pos] - t.num_position[pos]
-                if num_missing == 0:
-                    continue
-                for pp in predicted_points[pos]:
-                    if pp[0] in excluded_player_ids:
-                        continue
-                    t.add_player(pp[0], gameweek=transfer_gw)
-                    if t.num_position[pos] == TOTAL_PER_POSITION[pos]:
-                        break
-        # we have a complete squad
-        score = get_discounted_squad_score(
-            t,
-            gw_range,
-            tag,
-            gw_range[0],
-            bench_boost_gw,
-            triple_captain_gw,
-        )
-        if score > best_score:
-            best_score = score
-            best_squad = t
+    # Run optimization
+    best_individual, best_fitness = opt_squad.optimize(
+        population_size=population_size,
+        generations=generations,
+        crossover_prob=crossover_prob,
+        mutation_prob=mutation_prob,
+        crossover_indpb=crossover_indpb,
+        mutation_indpb=mutation_indpb,
+        tournament_size=tournament_size,
+        verbose=verbose,
+        random_state=random_state,
+    )
 
     if verbose:
-        print("====================================\n")
-        print(best_squad)
-        print(best_score)
-    return best_squad
+        print(f"Best score: {best_fitness} pts")
+
+    # Construct optimal squad
+    squad = Squad(budget=opt_squad.budget, season=season)
+    for idx in best_individual:
+        if verbose:
+            player = opt_squad.players[int(idx)]
+            print(
+                player.position(season),
+                player.name,
+                player.team(season, 1),
+                player.price(season, 1) / 10,
+            )
+        squad.add_player(
+            opt_squad.players[int(idx)].player_id,
+            gameweek=opt_squad.start_gw,
+        )
+
+    # Fill empty slots with dummy players (if chosen not to optimise full squad)
+    for pos in opt_squad.positions:
+        if opt_squad.dummy_per_position[pos] > 0:
+            for _ in range(opt_squad.dummy_per_position[pos]):
+                dp = DummyPlayer(
+                    opt_squad.gw_range,
+                    opt_squad.tag,
+                    pos,
+                    price=opt_squad.dummy_sub_cost,
+                )
+                squad.add_player(dp)
+                if verbose:
+                    print(dp.position, dp.name, dp.purchase_price / 10)
+
+    if verbose:
+        print(f"£{squad.budget / 10}m in the bank")
+
+    return squad

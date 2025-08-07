@@ -1,23 +1,20 @@
-#!/usr/bin/env python
-
 """
 Find alternative team names for all the teams in the 2018/19 FPL.
 """
 
 import json
-from typing import List, Tuple
 
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def find_best_match(fpl_teams: List[str], team: str) -> Tuple[str, int]:
+def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:
     """
     use fuzzy matching to see if we can match
     names
     """
-    best_ratio = 0.0
+    best_ratio = 0
     best_match = None
     for t in fpl_teams:
         if fuzz.partial_ratio(t, team) > best_ratio:
@@ -31,9 +28,7 @@ if __name__ == "__main__":
     # get the team names as used in FPL
     df = FPLDataFetcher()
     teamdata = df.get_current_team_data()
-    teamdict = {
-        teamdata[k]["name"]: [teamdata[k]["short_name"]] for k in teamdata.keys()
-    }
+    teamdict = {teamdata[k]["name"]: [teamdata[k]["short_name"]] for k in teamdata}
 
     #    teamdicts = [{teamdata[k]['name']:[teamdata[k]['short_name']]} \
     #                for k in teamdata.keys()]
@@ -44,7 +39,9 @@ if __name__ == "__main__":
     history_teams = set()
     for season in ["1415", "1516", "1617", "1718"]:
         filename = f"../data/results_{season}.csv"
-        for line in open(filename).readlines()[1:]:
+        with open(filename) as f:
+            lines = f.readlines()
+        for line in lines[1:]:
             history_teams.add(line.split(",")[1])
             history_teams.add(line.split(",")[2])
 

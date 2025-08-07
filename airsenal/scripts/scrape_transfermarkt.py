@@ -6,12 +6,11 @@ import argparse
 import contextlib
 import os
 from cmath import nan
-from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from tqdm import tqdm
 
 from airsenal.framework.season import CURRENT_SEASON, season_str_to_year
@@ -28,7 +27,7 @@ HEADERS = {
 
 def get_teams_for_season(
     season: int, verbose: bool = False
-) -> List[Tuple[str, str, str, set]]:
+) -> list[tuple[str, str, str, set]]:
     """Get the names and TransferMarkt URLs for all the teams in this season.
 
     Parameters
@@ -47,9 +46,7 @@ def get_teams_for_season(
         if a team played in this season) for each team
     """
     if verbose:
-        print(
-            f"getting teams that played in {str(season)[2:]}/{str(season + 1)[2:]} season"
-        )
+        print(f"getting teams for {str(season)[2:]}/{str(season + 1)[2:]} season")
 
     # get list of teams
     url_season = (
@@ -62,16 +59,17 @@ def get_teams_for_season(
 
     return [
         (
-            r.a.get("title"),
-            r.a.get("href"),
-            r.a.get("href").split("/")[1],
-            set(r.a.get("href").split("/")[1].split("-")),
+            str(r.a.get("title")),
+            str(r.a.get("href")),
+            str(r.a.get("href")).split("/")[1],
+            set(str(r.a.get("href")).split("/")[1].split("-")),
         )
         for r in rows
+        if isinstance(r, Tag) and r.a is not None
     ][:20]
 
 
-def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
+def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
     """Get all the players in a team's squad for a season.
     Example TransferMarkt page:
     https://www.transfermarkt.co.uk/manchester-city/startseite/verein/281/saison_id/2021
@@ -92,9 +90,13 @@ def get_team_players(team_season_url: str) -> List[Tuple[str, str]]:
 
     player_names_urls = []
     for r in player_rows:
+        if not isinstance(r, Tag):
+            continue
         last_a_tag = r.find_all("a")[-1]
-        name = last_a_tag.contents[0].strip()
-        url = last_a_tag.get("href")
+        if not isinstance(last_a_tag, Tag):
+            continue
+        name = str(last_a_tag.contents[0]).strip()
+        url = str(last_a_tag.get("href"))
         player_names_urls.append((name, url))
 
     return player_names_urls
@@ -180,7 +182,7 @@ def get_player_injuries(player_profile_url: str, verbose: bool = False) -> pd.Da
     if verbose:
         print(f"processing player injuries for {player_profile_url}")
 
-    injuries = pd.read_html(page.content, match="Injury")[0]
+    injuries = pd.read_html(str(page.content), match="Injury")[0]
     injuries = injuries.rename(columns={"Injury": "Details"})
     injuries["Reason"] = "injury"
 
@@ -223,13 +225,25 @@ def get_player_suspensions(
     if verbose:
         print(f"processing player suspensions for {player_profile_url}")
 
-    suspended = pd.read_html(p.content, match="Absence/Suspension")[0]
+    suspended = pd.read_html(str(p.content), match="Absence/Suspension")[0]
     player_soup = BeautifulSoup(p.content, features="lxml")
 
+    table = player_soup.find_all("table")[0]
+    if not isinstance(table, Tag):
+        print("Could not find table with suspensions/absences")
+        return pd.DataFrame()
+    rows = table.find_all("tr")[1:]  # skip header row
     comp = []
-    for row in player_soup.find_all("table")[0].find_all("tr")[1:]:
+    for row in rows:
+        if not isinstance(row, Tag):
+            print("Skipping row that is not a Tag")
+            continue
         try:
-            comp.append(row.find_all("img")[0].get("title"))
+            img = row.find_all("img")[0]
+            if not isinstance(img, Tag):
+                msg = "Image tag not found"
+                raise IndexError(msg)
+            comp.append(img.get("title"))
         except IndexError:
             comp.append("")
     suspended["Competition"] = comp
@@ -239,7 +253,7 @@ def get_player_suspensions(
     return tidy_df(suspended, days_name="Tage")
 
 
-def get_players_for_season(season: int) -> List[Tuple[str, str]]:
+def get_players_for_season(season: int) -> list[tuple[str, str]]:
     """Get all the players at any premier league club in a season
 
     Parameters
@@ -349,15 +363,33 @@ def get_player_transfers(
         old = soup.find_all("div", class_="tm-player-transfer-history-grid__old-club")[
             i
         ]
+        if not isinstance(old, Tag):
+            print(f"Old club details is unexpected type {type(old)}")
+            continue
         old_club = " ".join(old.getText().split())
+        if old.a is None:
+            print("Old club link is missing")
+            continue
         old_link = old.a.get("href")
+        if not isinstance(old_link, str):
+            print(f"Old club link returned type {type(old_link)}")
+            continue
         old_tm_identifier = old_link.split("/")[1]
         # new club details
         new = soup.find_all("div", class_="tm-player-transfer-history-grid__new-club")[
             i
         ]
+        if not isinstance(new, Tag):
+            print(f"New club details is unexpected type {type(new)}")
+            continue
         new_club = " ".join(new.getText().split())
+        if new.a is None:
+            print("New club link is missing")
+            continue
         new_link = new.a.get("href")
+        if not isinstance(new_link, str):
+            print(f"New club link returned type {type(new_link)}")
+            continue
         new_tm_identifier = new_link.split("/")[1]
         raw = pd.concat(
             [
@@ -395,7 +427,9 @@ def get_player_transfers(
 
 
 def get_player_team_history(
-    df: pd.DataFrame, pl_teams_in_season: dict = {}, end_season: str = CURRENT_SEASON
+    df: pd.DataFrame,
+    pl_teams_in_season: dict | None = None,
+    end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """Get a player's team/club history given their transfer data.
     Example TransferMarkt page:
@@ -416,10 +450,12 @@ def get_player_team_history(
     pd.DataFrame
         Player team history: season, team, from, until, in the premier league or not
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     teams_df = pd.DataFrame()
     current_season = "".join(df.iloc[0]["season"].split("/"))
     diff = int(current_season[:2]) - int(end_season[2:])
-    for i in range(abs(diff)):
+    for _ in range(abs(diff)):
         season_df = df[df["season"] == f"{current_season[:2]}/{current_season[2:]}"]
         start, end = get_start_end_dates_of_season(current_season)
         if current_season not in pl_teams_in_season:
@@ -527,7 +563,7 @@ def get_player_team_history(
 
 def get_player_transfer_unavailability(
     player_profile_url: str,
-    pl_teams_in_season: dict = {},
+    pl_teams_in_season: dict | None = None,
     end_season: str = CURRENT_SEASON,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -553,6 +589,8 @@ def get_player_transfer_unavailability(
         Player's unavailability due to transfers: season,
         details, reason, from, until, days, games missed
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     if verbose:
         print(f"getting player transfer unavailability for {player_profile_url}")
 
@@ -581,10 +619,8 @@ def get_player_transfer_unavailability(
 
 
 def get_season_absences(
-    season: str,
-    pl_teams_in_season: dict = {},
-    verbose: bool = False,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    season: str, pl_teams_in_season: dict | None = None, verbose: bool = False
+) -> pd.DataFrame:
     """Get injury and suspension data for a season
 
     Parameters
@@ -599,6 +635,8 @@ def get_season_absences(
     Tuple[pd.DataFrame, pd.DataFrame]
         Injury and suspension data frames for all players in this season
     """
+    if pl_teams_in_season is None:
+        pl_teams_in_season = {}
     year = season_str_to_year(season)
     if verbose:
         print("Finding players...")
@@ -636,7 +674,7 @@ def get_season_absences(
     return filter_season(absences, season)
 
 
-def scrape_transfermarkt(seasons: List[str], verbose: bool = False):
+def scrape_transfermarkt(seasons: list[str], verbose: bool = False):
     """Get all player injury and suspension data for mutiple seasons
 
     Parameters

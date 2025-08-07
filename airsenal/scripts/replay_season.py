@@ -7,7 +7,6 @@ import argparse
 import json
 import warnings
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
@@ -55,17 +54,19 @@ def print_replay_params(
 def replay_season(
     season: str,
     gameweek_start: int = 1,
-    gameweek_end: Optional[int] = None,
+    gameweek_end: int | None = None,
     new_squad: bool = True,
     weeks_ahead: int = 3,
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
     team_model: str = "extended",
-    team_model_args: dict = {"epsilon": 0.0},
-    fpl_team_id: Optional[int] = None,
+    team_model_args: dict | None = None,
+    fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
 ) -> None:
+    if team_model_args is None:
+        team_model_args = {"epsilon": 0.0}
     start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
@@ -83,14 +84,14 @@ def replay_season(
     team_model_class = parse_team_model_from_str(team_model)
 
     # store results in a dictionary, which we will later save to a json file
-    replay_results = {}
+    replay_results: dict[str, str | int | float | list] = {}
     replay_results["tag"] = tag_prefix
     replay_results["season"] = season
     replay_results["weeks_ahead"] = weeks_ahead
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
-        print(f"GW{gw} ({idx+1} out of {len(replay_range)})...")
+        print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
         with session_scope() as session:
             gw_range = get_gameweeks_array(
                 weeks_ahead, gameweek_start=gw, season=season, dbsession=session
@@ -114,7 +115,7 @@ def replay_season(
                 tag, gw_range, season, fpl_team_id, is_replay=True
             )
             # no points hits due to unlimited transfers to initialise team
-            best_strategy = {
+            best_strategy: dict[str, dict[str, int | list[int]]] | None = {
                 "points_hit": {str(gw): 0},
                 "free_transfers": {str(gw): 0},
                 "num_transfers": {str(gw): 0},
@@ -133,6 +134,10 @@ def replay_season(
                 is_replay=True,
                 max_opt_transfers=max_opt_transfers,
             )
+        if best_strategy is None:
+            msg = f"Failed to find a strategy for GW{gw}!"
+            raise ValueError(msg)
+
         gw_result["starting_11"] = []
         gw_result["subs"] = []
         for p in squad.players:
@@ -148,17 +153,35 @@ def replay_season(
         gw_result["free_transfers"] = best_strategy["free_transfers"][str(gw)]
         gw_result["num_transfers"] = best_strategy["num_transfers"][str(gw)]
         gw_result["points_hit"] = best_strategy["points_hit"][str(gw)]
-        gw_result["players_in"] = [
-            get_player_name(p) for p in best_strategy["players_in"][str(gw)]
-        ]
-        gw_result["players_out"] = [
-            get_player_name(p) for p in best_strategy["players_out"][str(gw)]
-        ]
+        players_in = best_strategy["players_in"][str(gw)]
+        players_out = best_strategy["players_out"][str(gw)]
+        if not isinstance(players_in, list) or not isinstance(players_out, list):
+            msg = (
+                "players_in and players_out should be lists of player IDs, "
+                f"got {type(players_in)} and {type(players_out)}"
+            )
+            raise TypeError(msg)
+        gw_result["players_in"] = [get_player_name(p) for p in players_in]
+        gw_result["players_out"] = [get_player_name(p) for p in players_out]
         # compute expected and actual points for gameweek
+        hit_points = gw_result["points_hit"]
+        if not isinstance(hit_points, int):
+            msg = (
+                f"points_hit should be an integer, got {type(hit_points)}: {hit_points}"
+            )
+            raise TypeError(msg)
+        gw_result["points_hit"] = hit_points
+        # expected points minus points hit gives the expected points for the gameweek
         exp_points = squad.get_expected_points(gw, tag)
-        gw_result["expected_points"] = exp_points - gw_result["points_hit"]
+        gw_result["expected_points"] = exp_points
         actual_points = squad.get_actual_points(gw, season)
         gw_result["actual_points"] = actual_points - gw_result["points_hit"]
+        if not isinstance(replay_results["gameweeks"], list):
+            msg = (
+                f"replay_results['gameweeks'] should be a list, "
+                f"got {type(replay_results['gameweeks'])}"
+            )
+            raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
         print("-" * 30)
 
@@ -241,7 +264,8 @@ def main():
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
-        raise RuntimeError("fpl_team_id must be set to use the resume argument")
+        msg = "fpl_team_id must be set to use the resume argument"
+        raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 

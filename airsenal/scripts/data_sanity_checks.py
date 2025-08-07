@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import PlayerScore
@@ -12,7 +10,7 @@ from airsenal.framework.utils import (
     session,
 )
 
-CHECK_SEASONS = [CURRENT_SEASON] + get_past_seasons(3)
+CHECK_SEASONS = [CURRENT_SEASON, *get_past_seasons(3)]
 SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements
 
 
@@ -24,12 +22,11 @@ def result_string(n_error: int) -> str:
     """
     if n_error == 0:
         return "OK!"
-    else:
-        return f"FAIL! {n_error} errors."
+    return f"FAIL! {n_error} errors."
 
 
 def season_num_teams(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check whether each season has 20 teams.
 
@@ -39,7 +36,7 @@ def season_num_teams(
     print("Checking seasons have 20 teams...\n")
     n_error = 0
     for season in seasons:
-        teams = get_teams_for_season(season, session)
+        teams = get_teams_for_season(season, dbsession)
         if len(teams) != 20:
             n_error += 1
             print(f"Number of teams in {season} season is {len(teams)} (not 20)")
@@ -49,7 +46,7 @@ def season_num_teams(
 
 
 def season_num_new_teams(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check each season has 3 new teams.
 
@@ -59,7 +56,7 @@ def season_num_new_teams(
     print("Checking seasons have 3 new teams...\n")
     n_error = 0
 
-    teams = [get_teams_for_season(season, session) for season in seasons]
+    teams = [get_teams_for_season(season, dbsession) for season in seasons]
     for i in range(1, len(teams)):
         new_teams = [team for team in teams[i] if team not in teams[i - 1]]
         if len(new_teams) != 3:
@@ -74,7 +71,7 @@ def season_num_new_teams(
 
 
 def season_num_fixtures(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check each season has 380 fixtures.
 
@@ -87,7 +84,7 @@ def season_num_fixtures(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
         if len(fixtures) != 380:
             n_error += 1
             print(f"Number of fixtures in {season} season is {len(fixtures)} (not 380)")
@@ -97,7 +94,7 @@ def season_num_fixtures(
 
 
 def fixture_player_teams(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check players who played in a match are labelled as playing for either
     the home team or the away team.
@@ -111,11 +108,16 @@ def fixture_player_teams(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
 
         for fixture in fixtures:
             if fixture.result:
-                player_scores = get_player_scores(fixture=fixture)
+                player_scores = get_player_scores(fixture=fixture, dbsession=dbsession)
+                if player_scores is None:
+                    print(f"Fixture {fixture} has no player scores")
+                    continue
+                if isinstance(player_scores, PlayerScore):
+                    player_scores = [player_scores]
 
                 for score in player_scores:
                     if score.player_team not in [
@@ -134,7 +136,7 @@ def fixture_player_teams(
 
 
 def fixture_num_players(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check each fixture has between 11 and 14 players  with at least 1 minute
     in player_scores. For season 19/20 it can be up to 16 players.
@@ -154,30 +156,31 @@ def fixture_num_players(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
 
         for fixture in fixtures:
             result = fixture.result
 
             if result:
                 home_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
                     .filter(PlayerScore.minutes > 0)
                     .all()
                 )
 
                 away_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.away_team)
                     .filter(PlayerScore.minutes > 0)
                     .all()
                 )
 
-                # Rule change due to shorter season and
-                if (fixture.season == "1920" and int(fixture.gameweek) >= 39) or (
-                    int(fixture.season[:2]) >= 22
-                ):
+                # No. subs changes during Covid and later rule changes
+                if (
+                    fixture.season == "1920"
+                    and (fixture.gameweek is not None and fixture.gameweek >= 39)
+                ) or (int(fixture.season[:2]) >= 22):
                     upper_team_limit = 16
                 else:
                     upper_team_limit = 14
@@ -187,10 +190,8 @@ def fixture_num_players(
                 ):
                     n_error += 1
                     print(
-                        (
-                            f"{result}: {len(home_scores)} "
-                            "players with minutes > 0 for home team."
-                        )
+                        f"{result}: {len(home_scores)} "
+                        "players with minutes > 0 for home team."
                     )
 
                 if not (
@@ -198,10 +199,8 @@ def fixture_num_players(
                 ):
                     n_error += 1
                     print(
-                        (
-                            f"{result}: {len(away_scores)} "
-                            "players with minutes > 0 for away team."
-                        )
+                        f"{result}: {len(away_scores)} "
+                        "players with minutes > 0 for away team."
                     )
 
     print("\n", result_string(n_error))
@@ -209,7 +208,7 @@ def fixture_num_players(
 
 
 def fixture_num_goals(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check individual player goals sum to match result for each fixture.
 
@@ -222,30 +221,30 @@ def fixture_num_goals(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
 
         for fixture in fixtures:
             result = fixture.result
 
             if result:
                 home_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
                     .all()
                 )
 
                 away_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.away_team)
                     .all()
                 )
 
                 home_goals = sum(score.goals for score in home_scores) + sum(
-                    score.own_goals for score in away_scores
+                    score.own_goals or 0 for score in away_scores
                 )
 
                 away_goals = sum(score.goals for score in away_scores) + sum(
-                    score.own_goals for score in home_scores
+                    score.own_goals or 0 for score in home_scores
                 )
 
                 if home_goals != result.home_score:
@@ -269,7 +268,7 @@ def fixture_num_goals(
 
 
 def fixture_num_assists(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check number of assists is less than or equal to number of goals
     for home and away team in each fixture.
@@ -285,19 +284,19 @@ def fixture_num_assists(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
 
         for fixture in fixtures:
             result = fixture.result
             if result:
                 home_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.home_team)
                     .all()
                 )
 
                 away_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(fixture=fixture, player_team=fixture.away_team)
                     .all()
                 )
@@ -326,7 +325,7 @@ def fixture_num_assists(
 
 
 def fixture_num_conceded(
-    seasons: List[str] = CHECK_SEASONS, session: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
 ) -> int:
     """Check number of goals concdeded equals goals scored by opposition if
     player played whole match (90 minutes).
@@ -342,13 +341,13 @@ def fixture_num_conceded(
     n_error = 0
 
     for season in seasons:
-        fixtures = get_fixtures_for_season(season=season)
+        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
 
         for fixture in fixtures:
             result = fixture.result
             if result:
                 home_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(
                         fixture=fixture, player_team=fixture.home_team, minutes=90
                     )
@@ -356,7 +355,7 @@ def fixture_num_conceded(
                 )
 
                 away_scores = (
-                    session.query(PlayerScore)
+                    dbsession.query(PlayerScore)
                     .filter_by(
                         fixture=fixture, player_team=fixture.away_team, minutes=90
                     )
@@ -386,7 +385,7 @@ def fixture_num_conceded(
     return n_error
 
 
-def run_all_checks(seasons: List[str] = CHECK_SEASONS) -> None:
+def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
     print("Running checks for seasons:", seasons)
     print(SEPARATOR)
 
@@ -415,10 +414,8 @@ def run_all_checks(seasons: List[str] = CHECK_SEASONS) -> None:
     n_passed = sum(1 for _, r in results.items() if r == 0)
     n_total_errors = sum(r for _, r in results.items())
     print(
-        (
-            f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
-            f"{n_total_errors} errors."
-        )
+        f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
+        f"{n_total_errors} errors."
     )
 
 
