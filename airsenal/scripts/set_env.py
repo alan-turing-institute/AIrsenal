@@ -8,15 +8,15 @@ from airsenal.framework.env import (
     get_env,
     save_env,
 )
-from airsenal.framework.schema import session
+from airsenal.framework.schema import get_connection_string
 
 
 def print_env():
     print(f"AIRSENAL_VERSION: {__version__}")
     print(f"AIRSENAL_HOME: {AIRSENAL_HOME}")
-    print(f"DB_CONNECTION_STRING: {session.bind.url}")
+    print(f"DB_CONNECTION_STRING: {get_connection_string()}")
     for k in AIRSENAL_ENV_KEYS:
-        if value := get_env(k):
+        if value := get_env(k, str):
             print(f"{k}: {value}")
 
 
@@ -45,7 +45,7 @@ def main():
             msg = "value should not be given if getting variables"
             raise ValueError(msg)
         if args.key:
-            print(f"{args.key}: {get_env(args.key)}")
+            print(f"{args.key}: {get_env(args.key, str)}")
         else:
             print_env()
     if args.cmd == "set":

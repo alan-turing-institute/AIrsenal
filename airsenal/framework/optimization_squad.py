@@ -5,7 +5,6 @@ algorithm.
 """
 
 import random
-import uuid
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -14,6 +13,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
+from airsenal.framework.player import DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import (
@@ -21,35 +21,6 @@ from airsenal.framework.utils import (
     get_predicted_points_for_player,
     list_players,
 )
-
-
-class DummyPlayer:
-    """To fill squads with placeholders (if not optimising full squad)."""
-
-    def __init__(self, gw_range, tag, position, price=45, pts=0):
-        self.name = "DUMMY"
-        self.position = position
-        self.purchase_price = price
-        # set team to random string so we don't violate max players per team constraint
-        self.team = str(uuid.uuid4())
-        self.pts = pts
-        self.predicted_points = {tag: dict.fromkeys(gw_range, self.pts)}
-        self.player_id = str(uuid.uuid4())  # dummy id
-        self.is_starting = False
-        self.is_captain = False
-        self.is_vice_captain = False
-        self.sub_position = None
-
-    def calc_predicted_points(self, tag):
-        """
-        Needed for compatibility with Squad/other Player classes
-        """
-
-    def get_predicted_points(self, gameweek, tag):  # noqa: ARG002
-        """
-        Get points for a specific gameweek -
-        """
-        return self.pts
 
 
 class SquadOpt:

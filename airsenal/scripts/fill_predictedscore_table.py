@@ -28,6 +28,7 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -89,6 +90,7 @@ def calc_all_predicted_points(
     player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     team_model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     team_model_args: dict | None = None,
 ) -> None:
@@ -129,8 +131,8 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    if num_thread is not None and num_thread > 1:
-        queue = Queue()
+    if num_thread > 1:
+        queue: Queue = Queue()
         procs = []
         for _ in range(num_thread):
             processor = Process(
@@ -157,8 +159,8 @@ def calc_all_predicted_points(
         for _ in range(num_thread):
             queue.put("DONE")
 
-        for _, p in enumerate(procs):
-            p.join()
+        for _, pr in enumerate(procs):
+            pr.join()
     else:
         # single threaded
         for player in players:
@@ -174,8 +176,8 @@ def calc_all_predicted_points(
                 tag=tag,
                 dbsession=dbsession,
             )
-            for p in predictions:
-                dbsession.add(p)
+            for pred in predictions:
+                dbsession.add(pred)
         dbsession.commit()
         print("Finished adding predictions to db")
 
@@ -191,6 +193,7 @@ def make_predictedscore_table(
     player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     team_model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     team_model_args: dict | None = None,
     dbsession: Session = session,
@@ -230,7 +233,10 @@ def main():
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
     parser.add_argument(
-        "--num_thread", help="number of threads to parallelise over", type=int
+        "--num_thread",
+        help="number of threads to parallelise over",
+        type=int,
+        default=4,
     )
     parser.add_argument(
         "--no_bonus",
@@ -256,7 +262,7 @@ def main():
         "--team_model",
         help="which team model to fit",
         type=str,
-        choices=["extended", "neutral"],
+        choices=["extended", "neutral", "random"],
         default="extended",
     )
     parser.add_argument(
@@ -273,7 +279,7 @@ def main():
         gameweek_end=args.gameweek_end,
         season=args.season,
     )
-    num_thread = args.num_thread or None
+    num_thread: int = args.num_thread
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
@@ -282,6 +288,11 @@ def main():
         team_model = ExtendedDixonColesMatchPredictor()
     elif args.team_model == "neutral":
         team_model = NeutralDixonColesMatchPredictor()
+    elif args.team_model == "random":
+        team_model = RandomMatchPredictor()
+    else:
+        msg = f"Unknown team model: {args.team_model}"
+        raise ValueError(msg)
 
     set_multiprocessing_start_method()
 

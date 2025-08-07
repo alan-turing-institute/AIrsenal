@@ -9,6 +9,7 @@ from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -133,7 +134,7 @@ from airsenal.scripts.update_db import update_db
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
-    fpl_team_id: int,
+    fpl_team_id: int | None,
     clean: bool,
     apply_transfers: bool,
     wildcard_week: int,
@@ -156,6 +157,9 @@ def run_pipeline(
     the best squad.
     """
     if fpl_team_id is None:
+        if not fetcher.FPL_TEAM_ID:
+            msg = "FPL Team ID not provided and not found in environment variables."
+            raise RuntimeError(msg)
         fpl_team_id = fetcher.FPL_TEAM_ID
     print(f"Running for FPL Team ID {fpl_team_id}")
     if not num_thread:
@@ -302,6 +306,7 @@ def run_prediction(
     dbsession: Session,
     team_model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
+    | RandomMatchPredictor
     | None = None,
     team_model_args: dict | None = None,
 ) -> bool:

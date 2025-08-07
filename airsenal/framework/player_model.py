@@ -58,7 +58,7 @@ def scale_goals_by_minutes(goals, minutes):
     (specifically: reduce the number of "neither" goals where the player is said
     to have had no involvement.
     goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
-    mo. assists and no. goals not involved in
+    no. assists, and no. goals not involved in
     minutes: np.array with shape (n_players, m_matches)
     """
     select_matches = (goals.sum(axis=2) > 0) & (minutes > 0)
@@ -134,15 +134,17 @@ class NumpyroPlayerModel(BasePlayerModel):
     def _model(
         nplayer: int,
         nmatch: int,  # noqa: ARG004
-        minutes: jnp.array,
-        y: jnp.array,
-        alpha: jnp.array,
+        minutes: jnp.ndarray,
+        y: jnp.ndarray,
+        alpha: jnp.ndarray,
     ):
         theta = dist.Dirichlet(concentration=alpha)
         # one sample from the prior per player
         with numpyro.plate("nplayer", nplayer):
             dprobs = numpyro.sample("probs", theta)
             # now it's all about how to broadcast in the right dimensions.....
+        if not isinstance(dprobs, jnp.ndarray):
+            dprobs = jnp.array(dprobs)
         prob_score = numpyro.deterministic(
             "prob_score", dprobs[:, 0, None] * (minutes / 90.0)
         )
@@ -166,6 +168,7 @@ class NumpyroPlayerModel(BasePlayerModel):
         num_samples: int = 2000,
         mcmc_kwargs: dict[str, Any] | None = None,
         run_kwargs: dict[str, Any] | None = None,
+        **kwargs,
     ):
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
@@ -190,25 +193,27 @@ class NumpyroPlayerModel(BasePlayerModel):
         self.samples = mcmc.get_samples()
         return self
 
-    def get_probs(self):
+    def get_probs(self) -> dict[str, np.ndarray]:
+        if self.samples is None or self.player_ids is None:
+            msg = "Model samples or player_ids have not been set yet."
+            raise RuntimeError(msg)
         prob_dict = {
-            "player_id": [],
-            "prob_score": [],
-            "prob_assist": [],
-            "prob_neither": [],
+            "player_id": np.zeros_like(self.player_ids, dtype=int),
+            "prob_score": np.zeros_like(self.player_ids, dtype=float),
+            "prob_assist": np.zeros_like(self.player_ids, dtype=float),
+            "prob_neither": np.zeros_like(self.player_ids, dtype=float),
         }
         for i, pid in enumerate(self.player_ids):
-            prob_dict["player_id"].append(pid)
-            prob_dict["prob_score"].append(float(self.samples["probs"][:, i, 0].mean()))
-            prob_dict["prob_assist"].append(
-                float(self.samples["probs"][:, i, 1].mean())
-            )
-            prob_dict["prob_neither"].append(
-                float(self.samples["probs"][:, i, 2].mean())
-            )
+            prob_dict["player_id"][i] = pid
+            prob_dict["prob_score"][i] = float(self.samples["probs"][:, i, 0].mean())
+            prob_dict["prob_assist"][i] = float(self.samples["probs"][:, i, 1].mean())
+            prob_dict["prob_neither"][i] = float(self.samples["probs"][:, i, 2].mean())
         return prob_dict
 
-    def get_probs_for_player(self, player_id):
+    def get_probs_for_player(self, player_id: int) -> np.ndarray:
+        if self.samples is None or self.player_ids is None:
+            msg = "Model samples or player_ids have not been set yet."
+            raise RuntimeError(msg)
         try:
             index = list(self.player_ids).index(player_id)
         except ValueError as e:
@@ -217,7 +222,7 @@ class NumpyroPlayerModel(BasePlayerModel):
         prob_score = float(self.samples["probs"][:, index, 0].mean())
         prob_assist = float(self.samples["probs"][:, index, 1].mean())
         prob_neither = float(self.samples["probs"][:, index, 2].mean())
-        return (prob_score, prob_assist, prob_neither)
+        return np.array([prob_score, prob_assist, prob_neither])
 
 
 class ConjugatePlayerModel(BasePlayerModel):
@@ -238,7 +243,7 @@ class ConjugatePlayerModel(BasePlayerModel):
         self.mean_probabilities = None
 
     def fit(
-        self, data: dict[str, Any], n_goals_prior: int = 13
+        self, data: dict[str, Any], n_goals_prior: int = 13, **kwargs
     ) -> ConjugatePlayerModel:
         goals = data["y"]
         minutes = data["minutes"]
@@ -268,6 +273,9 @@ class ConjugatePlayerModel(BasePlayerModel):
         return prior_alpha + scaled_goals
 
     def get_probs(self) -> dict[str, np.ndarray]:
+        if self.player_ids is None or self.mean_probabilities is None:
+            msg = "Model player_ids or mean_probabilities have not been set yet."
+            raise RuntimeError(msg)
         return {
             "player_id": self.player_ids,
             "prob_score": self.mean_probabilities[:, 0],
@@ -276,6 +284,9 @@ class ConjugatePlayerModel(BasePlayerModel):
         }
 
     def get_probs_for_player(self, player_id: int) -> np.ndarray:
+        if self.player_ids is None or self.mean_probabilities is None:
+            msg = "Model player_ids or mean_probabilities have not been set yet."
+            raise RuntimeError(msg)
         try:
             index = list(self.player_ids).index(player_id)
         except ValueError as e:

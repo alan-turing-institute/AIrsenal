@@ -5,6 +5,7 @@ of using chips.
 
 import random
 from collections.abc import Callable
+from multiprocessing import Process
 from operator import itemgetter
 
 from airsenal.framework.optimization_squad import make_new_squad
@@ -16,7 +17,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fastcopy,
     get_predicted_points,
-    get_squad_value,
 )
 
 
@@ -315,7 +315,7 @@ def make_best_transfers(
     root_gw: int,
     season: str,
     num_iter: int = 100,
-    update_func_and_args: tuple[Callable, int, int] | None = None,
+    update_func_and_args: tuple[Callable, float, Process] | None = None,
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -372,7 +372,7 @@ def make_best_transfers(
 
     elif num_transfers in ["W", "F"]:
         _out = [p.player_id for p in squad.players]
-        budget = get_squad_value(squad)
+        budget = squad.sale_value(root_gw, use_api=False)
         if num_transfers == "F":
             gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
         new_squad = make_new_squad(

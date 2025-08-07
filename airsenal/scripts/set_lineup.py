@@ -26,8 +26,15 @@ def check_proceed(squad: Squad) -> bool:
 
 def build_lineup_payload(squad: Squad) -> list:
     def to_dict(player, pos_int):
+        p = get_player(player.player_id)
+        if p is None:
+            msg = f"Player with ID {player.player_id} not found"
+            raise ValueError(msg)
+        if p.fpl_api_id is None:
+            msg = f"Player {p.name} has no FPL API ID"
+            raise ValueError(msg)
         return {
-            "element": get_player(player.player_id).fpl_api_id,
+            "element": p.fpl_api_id,
             "position": pos_int,
             "is_captain": player.is_captain,
             "is_vice_captain": player.is_vice_captain,
@@ -67,6 +74,9 @@ def get_lineup_from_payload(lineup: dict) -> Squad:
     s = Squad()
     for p in lineup["picks"]:
         player = get_player_from_api_id(p["element"])
+        if player is None:
+            msg = f"Player with API ID {p['element']} not found"
+            raise ValueError(msg)
         s.add_player(player, check_budget=False)
 
     if s.is_complete():

@@ -102,7 +102,9 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p)
-    return None
+
+    msg = f"Player {player_id} not found in FPL team {team_id}"
+    raise ValueError(msg)
 
 
 def get_gw_transfer_suggestions(
@@ -145,24 +147,35 @@ def price_transfers(
     both players to be removed and added.
     """
     transfers = list(zip(*transfer_player_ids, strict=False))  # [(out,in),(out,in)]
-    priced_transfers = [
-        [
-            [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+    if fetcher.FPL_TEAM_ID is None:
+        msg = "FPL team ID not set. Cannot price transfers."
+        raise RuntimeError(msg)
+    priced_transfers = []
+    for t in transfers:
+        player = get_player(t[1])
+        if player is None:
+            msg = f"Player with ID {t[1]} not found"
+            raise ValueError(msg)
+        priced_transfers.append(
             [
-                t[1],
-                fetcher.get_player_summary_data()[get_player(t[1]).fpl_api_id][
-                    "now_cost"
+                [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
+                [
+                    t[1],
+                    fetcher.get_player_summary_data()[player.fpl_api_id]["now_cost"],
                 ],
-            ],
-        ]
-        for t in transfers
-    ]
+            ]
+        )
 
     def to_dict(t):
+        p_out = get_player(t[0][0])
+        p_in = get_player(t[1][0])
+        if not p_out or not p_in:
+            msg = f"Player not found for transfer: {t}"
+            raise ValueError(msg)
         return {
-            "element_out": get_player(t[0][0]).fpl_api_id,
+            "element_out": p_out.fpl_api_id,
             "selling_price": t[0][1],
-            "element_in": get_player(t[1][0]).fpl_api_id,
+            "element_in": p_in.fpl_api_id,
             "purchase_price": t[1][1],
         }
 
@@ -199,7 +212,15 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
     """
 
     def _get_position(api_id):
-        return get_player_from_api_id(api_id).position(CURRENT_SEASON)
+        player = get_player_from_api_id(api_id)
+        if player is None:
+            msg = f"Player with API ID {api_id} not found"
+            raise ValueError(msg)
+        pos = player.position(CURRENT_SEASON)
+        if pos is None:
+            msg = f"Player {player.name} has no position for season {CURRENT_SEASON}"
+            raise ValueError(msg)
+        return pos
 
     # key to the dict could be either 'element_in' or 'element_out'.
     id_key = None
@@ -217,7 +238,9 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
     return sorted(transfer_list, key=lambda k: _get_position(k[id_key]))
 
 
-def remove_duplicates(transfers_in: list[int], transfers_out: list[int]) -> tuple:
+def remove_duplicates(
+    transfers_in: list[dict[str, int]], transfers_out: list[dict[str, int]]
+) -> tuple:
     """
     If we are replacing lots of players (e.g. new team), need to make sure there
     are no duplicates - can't add a player if we already have them.
@@ -238,7 +261,7 @@ def build_init_priced_transfers(
     We can instead query the API for our current 'picks' (requires login).
     """
     if not fpl_team_id:
-        if (not fetcher.FPL_TEAM_ID) or fetcher.FPL_TEAM_ID == "MISSING_ID":
+        if not fetcher.FPL_TEAM_ID:
             fpl_team_id = int(input("Please enter FPL team ID: "))
         else:
             fpl_team_id = fetcher.FPL_TEAM_ID
@@ -257,7 +280,11 @@ def build_init_priced_transfers(
         raise RuntimeError(msg)
     transfers_in = []
     for t in transfer_in_suggestions:
-        api_id = get_player(t.player_id).fpl_api_id
+        player = get_player(t.player_id)
+        if player is None:
+            msg = f"Player with ID {t.player_id} not found"
+            raise ValueError(msg)
+        api_id = player.fpl_api_id
         price = fetcher.get_player_summary_data()[api_id]["now_cost"]
         transfers_in.append({"element_in": api_id, "purchase_price": price})
     # remove duplicates - can't add a player we already have

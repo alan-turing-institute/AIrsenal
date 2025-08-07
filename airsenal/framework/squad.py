@@ -9,13 +9,16 @@ from operator import itemgetter
 
 import numpy as np
 
-from airsenal.framework.player import CandidatePlayer
+from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
+    get_bank,
     get_player,
+    get_player_from_api_id,
     get_playerscores_for_player_gameweek,
 )
 
@@ -84,7 +87,7 @@ class Squad:
 
     def add_player(
         self,
-        p,
+        p: CandidatePlayer | DummyPlayer | int | str | Player,
         price=None,
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
@@ -98,7 +101,9 @@ class Squad:
         with that value.
         """
         if isinstance(p, int | str | Player):
-            player = CandidatePlayer(p, self.season, gameweek, dbsession=dbsession)
+            player: CandidatePlayer | DummyPlayer = CandidatePlayer(
+                p, self.season, gameweek, dbsession=dbsession
+            )
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
             player.season = self.season
@@ -189,8 +194,14 @@ class Squad:
         player_id = player.player_id
 
         price_now = None
-        if use_api and self.season == CURRENT_SEASON and gameweek >= NEXT_GAMEWEEK:
-            player_db = get_player(player_id)
+        player_db = get_player(player_id, dbsession=dbsession)
+        if (
+            use_api
+            and self.season == CURRENT_SEASON
+            and gameweek >= NEXT_GAMEWEEK
+            and player_db is not None
+            and player_db.fpl_api_id is not None
+        ):
             api_id = player_db.fpl_api_id
             # first try getting the actual sale price from a logged in API
             try:
@@ -215,10 +226,8 @@ class Squad:
         price_bought = player.purchase_price
 
         # get player's current price from db if the API wasn't used
-        if not price_now:
-            player_db = get_player(player_id, dbsession=dbsession)
-            if player_db:
-                price_now = player_db.price(self.season, gameweek)
+        if not price_now and player_db:
+            price_now = player_db.price(self.season, gameweek)
 
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
@@ -362,7 +371,9 @@ class Squad:
         formation[player_in.position] += 1
         return (formation["DEF"], formation["MID"], formation["FWD"]) in FORMATIONS
 
-    def total_points_for_starting_11(self, gameweek, tag, triple_captain=False):
+    def total_points_for_starting_11(
+        self, gameweek: int, tag: str, triple_captain: bool = False
+    ) -> float:
         """
         simple sum over starting players
         """
@@ -377,7 +388,9 @@ class Squad:
 
         return total
 
-    def total_points_for_subs(self, gameweek, tag, sub_weights=None):
+    def total_points_for_subs(
+        self, gameweek: int, tag: str, sub_weights: dict | None = None
+    ) -> float:
         if sub_weights is None:
             sub_weights = {"GK": 1, "Outfield": (1, 1, 1)}
         outfield_subs = [
@@ -396,7 +409,7 @@ class Squad:
 
         return total
 
-    def optimize_lineup(self, gameweek, tag):
+    def optimize_lineup(self, gameweek: int, tag: str):
         if not self.is_complete():
             msg = "Squad is incomplete"
             raise RuntimeError(msg)
@@ -503,3 +516,38 @@ class Squad:
                         ordered_subs.remove(p_in)
                         break
         return total_points
+
+    def sale_value(self, gameweek: int, use_api: bool) -> int:
+        total_value = self.budget  # initialise total to amount in the bank
+        for p in self.players:
+            total_value += self.get_sell_price_for_player(
+                p, use_api=use_api, gameweek=gameweek
+            )
+        return total_value
+
+
+def get_current_squad_from_api(
+    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int = NEXT_GAMEWEEK
+) -> Squad:
+    """
+    Return a list [(player_id, purchase_price)] from the current picks.
+    Requires the data fetcher to be logged in.
+    """
+    picks = apifetcher.get_current_picks(fpl_team_id)
+
+    squad = Squad(season=CURRENT_SEASON)
+    for p in picks:
+        player = get_player_from_api_id(p["element"])
+        if not player:
+            continue
+        print(f"Adding player {player}")
+        squad.add_player(
+            player,
+            price=p["purchase_price"],
+            gameweek=next_gw - 1,
+            check_budget=False,
+            check_team=False,
+        )
+    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, apifetcher=apifetcher)
+
+    return squad

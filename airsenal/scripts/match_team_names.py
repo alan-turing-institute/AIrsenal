@@ -4,17 +4,17 @@ Find alternative team names for all the teams in the 2018/19 FPL.
 
 import json
 
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 
 
-def find_best_match(fpl_teams: list[str], team: str) -> tuple[str, int]:
+def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:
     """
     use fuzzy matching to see if we can match
     names
     """
-    best_ratio = 0.0
+    best_ratio = 0
     best_match = None
     for t in fpl_teams:
         if fuzz.partial_ratio(t, team) > best_ratio:
