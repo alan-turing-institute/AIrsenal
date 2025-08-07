@@ -11,7 +11,7 @@ We welcome contributions and comments - if you'd like to join the AIrsenal commu
 ## Mini-league for 2025/26 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
-The code to join is: **gvibwu**.
+The code to join is: **xoz7vm**.
 Hope to see your AI team there!! :)
 
 Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.premierleague.com/entry/742663/history)**.
@@ -144,11 +144,13 @@ See `airsenal_env --help` for other options.
 
 ## Getting Started
 
-If you installed AIrsenal with conda, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To activate the environment use:
+If you installed AIrsenal with `pip`, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To create and activate the environment use:
 
 ```shell
-uv run source airsenal_env/bin/activate
+python3 -m venv airsenalenv
+source airsenalenv/bin/activate
 ```
+If installed using `uv`, all the following commands can be run with `uv run` before them.
 
 Note: Most the commands below can be run with the `--help` flag to see additional options and information.
 
