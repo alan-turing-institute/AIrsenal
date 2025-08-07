@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 """
 Fill the "Player" table with info from this and past seasonss FPL
 """
 
 import json
 import os
-from typing import List, Optional
 
 from sqlalchemy.orm.session import Session
 
@@ -33,7 +30,7 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name in detail_data.keys():
+    for player_name, player_data in detail_data.items():
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name, dbsession=dbsession)
@@ -43,10 +40,10 @@ def fill_attributes_table_from_file(
 
         print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
-        #  Only one attributes row per gameweek - create list of gameweeks
+        # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
         previous_gameweeks = []
-        for fixture_data in detail_data[player_name]:
+        for fixture_data in player_data:
             gameweek = int(fixture_data["gameweek"])
             if gameweek in previous_gameweeks:
                 # already done this gameweek
@@ -100,7 +97,7 @@ def fill_attributes_table_from_api(
 
     input_data = fetcher.get_player_summary_data()
 
-    for player_api_id in input_data.keys():
+    for player_api_id in input_data:
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
@@ -150,7 +147,7 @@ def fill_attributes_table_from_api(
 
         if not update:
             # only need to add to the dbsession for new entries, if we're doing
-            #  an update the final dbsession.commit() is enough
+            # an update the final dbsession.commit() is enough
             dbsession.add(pa)
 
         # now get data for previous gameweeks
@@ -211,11 +208,13 @@ def fill_attributes_table_from_api(
 
 
 def make_attributes_table(
-    seasons: Optional[List[str]] = [], dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
+    if seasons is None:
+        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
@@ -227,7 +226,7 @@ def make_attributes_table(
             input_path = os.path.join(
                 os.path.dirname(__file__), f"../data/player_details_{season}.json"
             )
-            with open(input_path, "r") as f:
+            with open(input_path) as f:
                 input_data = json.load(f)
 
             fill_attributes_table_from_file(

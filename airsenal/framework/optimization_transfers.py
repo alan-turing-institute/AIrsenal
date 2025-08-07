@@ -4,10 +4,13 @@ of using chips.
 """
 
 import random
+from collections.abc import Callable
 from operator import itemgetter
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
+from airsenal.framework.schema import Player
+from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -41,7 +44,7 @@ def make_optimum_single_transfer(
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
 
-    best_score = -1
+    best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
 
@@ -91,7 +94,8 @@ def make_optimum_single_transfer(
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid single transfer for squad")
+        msg = "Failed to find valid single transfer for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
@@ -118,7 +122,7 @@ def make_optimum_double_transfer(
         root_gw = NEXT_GAMEWEEK
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
-    best_score = -1
+    best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
     ordered_player_lists = {
@@ -186,7 +190,8 @@ def make_optimum_double_transfer(
                         break
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid double transfer for squad")
+        msg = "Failed to find valid double transfer for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
@@ -209,7 +214,7 @@ def make_random_transfers(
     the best expected score to fill their place.
     Do this num_iter times and choose the best total score over gw_range gameweeks.
     """
-    best_score = -1
+    best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
     max_tries = 100
@@ -226,10 +231,10 @@ def make_random_transfers(
             root_gw = NEXT_GAMEWEEK
 
         transfer_gw = min(gw_range)  # the week we're making the transfer
-        players_to_remove = []  # this is the index within the squad
-        removed_players = []  # this is the player_ids
+        players_to_remove: list[int] = []  # this is the index within the squad
+        removed_players: list[int] = []  # this is the player_ids
         # order the players in the squad by predicted_points - least-to-most
-        player_list = []
+        player_list: list[tuple[int, float]] = []
         for p in squad.players:
             p.calc_predicted_points(tag)
             player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
@@ -251,7 +256,7 @@ def make_random_transfers(
             for pos in set(positions_needed)
         }
         complete_squad = False
-        added_players = []
+        added_players: list[Player] = []
         attempt = 0
         while not complete_squad:
             # sample with a triangular PDF - preferentially select players near
@@ -259,10 +264,10 @@ def make_random_transfers(
             added_players = []
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
-                pid_to_add = predicted_points[pos][index][0]
-                added_ok = new_squad.add_player(pid_to_add, gameweek=transfer_gw)
+                player_to_add = predicted_points[pos][index][0]
+                added_ok = new_squad.add_player(player_to_add, gameweek=transfer_gw)
                 if added_ok:
-                    added_players.append(pid_to_add)
+                    added_players.append(player_to_add)
             complete_squad = new_squad.is_complete()
             if not complete_squad:
                 # try to avoid getting stuck in a loop
@@ -296,27 +301,27 @@ def make_random_transfers(
             # end of loop over n_iter
 
     if best_squad is None:
-        raise RuntimeError("Failed to find valid random transfers for squad")
+        msg = "Failed to find valid random transfers for squad"
+        raise RuntimeError(msg)
 
     return best_squad, best_pid_out, best_pid_in
 
 
 def make_best_transfers(
-    num_transfers,
-    squad,
-    tag,
-    gameweeks,
-    root_gw,
-    season,
-    num_iter=100,
-    update_func_and_args=None,
-    algorithm="genetic",
-):
+    num_transfers: str | int,
+    squad: Squad,
+    tag: str,
+    gameweeks: list[int],
+    root_gw: int,
+    season: str,
+    num_iter: int = 100,
+    update_func_and_args: tuple[Callable, int, int] | None = None,
+) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
     """
-    transfer_dict = {}
+    transfer_dict: dict[str, list[int]] = {}
     # deal with triple_captain or free_hit
     triple_captain_gw = None
     bench_boost_gw = None
@@ -402,7 +407,8 @@ def make_best_transfers(
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:
-        raise RuntimeError(f"Unrecognized value for num_transfers: {num_transfers}")
+        msg = f"Unrecognized value for num_transfers: {num_transfers}"
+        raise RuntimeError(msg)
 
     # get the expected points total for next gameweek
     points = get_discounted_squad_score(
@@ -417,5 +423,4 @@ def make_best_transfers(
     if num_transfers == "F":
         # Free Hit changes don't apply to next gameweek, so return the original squad
         return squad, transfer_dict, points
-    else:
-        return new_squad, transfer_dict, points
+    return new_squad, transfer_dict, points

@@ -4,8 +4,8 @@ Use the BPL models to predict scores for upcoming fixtures.
 
 import os
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
-from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -180,12 +180,11 @@ def get_player_history_df(
             )
             row_count += 1
 
-        if fill_blank:
+        if fill_blank and row_count < max_matches_per_player:
             # fill blank rows so they are all the same size
-            if row_count < max_matches_per_player:
-                player_data += [
-                    [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
-                ] * (max_matches_per_player - row_count)
+            player_data += [
+                [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
+            ] * (max_matches_per_player - row_count)
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -196,8 +195,8 @@ def get_player_history_df(
 
 def get_attacking_points(
     position: str,
-    minutes: Union[int, float],
-    team_score_prob: Dict[int, float],
+    minutes: int | float,
+    team_score_prob: dict[int, float],
     player_prob: pd.Series,
 ) -> float:
     """
@@ -239,13 +238,15 @@ def get_attacking_points(
                 partitions, n=[ngoals] * len(partitions), p=multinom_probs
             )
             scores = map(_get_partition_score, partitions)
-            exp_score_inner = sum(pi * si for pi, si in zip(probabilities, scores))
+            exp_score_inner = sum(
+                pi * si for pi, si in zip(probabilities, scores, strict=False)
+            )
             exp_points += exp_score_inner * score_n_prob
     return exp_points
 
 
 def get_defending_points(
-    position: str, minutes: Union[int, float], team_concede_prob: Dict[int, float]
+    position: str, minutes: int | float, team_concede_prob: dict[int, float]
 ) -> float:
     """
     Only need the team-level model.
@@ -270,7 +271,7 @@ def get_defending_points(
 
 
 def get_bonus_points(
-    player_id: int, minutes: Union[int, float], df_bonus: List[float]
+    player_id: int, minutes: int | float, df_bonus: list[float]
 ) -> float:
     """
     Returns expected bonus points scored by player_id when playing minutes minutes.
@@ -284,19 +285,17 @@ def get_bonus_points(
     """
     if minutes >= 60 and player_id in df_bonus[0].index:
         return df_bonus[0].loc[player_id]
-    elif (
+    if (
         minutes >= 60
-        or minutes >= 30
-        and player_id not in df_bonus[1].index
+        or (minutes >= 30 and player_id not in df_bonus[1].index)
         or minutes < 30
     ):
         return 0
-    else:
-        return df_bonus[1].loc[player_id]
+    return df_bonus[1].loc[player_id]
 
 
 def get_save_points(
-    position: str, player_id: int, minutes: Union[int, float], df_saves: pd.Series
+    position: str, player_id: int, minutes: int | float, df_saves: pd.Series
 ) -> float:
     """
     Returns average save points scored by player_id when playing minutes minutes (or
@@ -308,13 +307,10 @@ def get_save_points(
         return 0
     if minutes >= 60 and player_id in df_saves.index:
         return df_saves.loc[player_id]
-    else:
-        return 0
+    return 0
 
 
-def get_card_points(
-    player_id: int, minutes: Union[int, float], df_cards: pd.Series
-) -> float:
+def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -> float:
     """
     Returns average points lost by player_id due to yellow and red cards in matches
     they played at least 1 minute.
@@ -323,31 +319,30 @@ def get_card_points(
     """
     if minutes >= 30 and player_id in df_cards.index:
         return df_cards.loc[player_id]
-    else:
-        return 0
+    return 0
 
 
 def calc_predicted_points_for_player(
-    player: Union[Player, str, int],
+    player: Player | str | int,
     fixture_goal_probs: dict,
-    df_player: Optional[Dict[str, Optional[pd.DataFrame]]],
-    df_bonus: Optional[Tuple[pd.Series, pd.Series]],
-    df_saves: Optional[pd.Series],
-    df_cards: Optional[pd.Series],
+    df_player: dict[str, pd.DataFrame | None] | None,
+    df_bonus: tuple[pd.Series, pd.Series] | None,
+    df_saves: pd.Series | None,
+    df_cards: pd.Series | None,
     season: str,
-    gw_range: Optional[Iterable[int]] = None,
-    fixtures_behind: Optional[int] = None,
+    gw_range: list[int] | None = None,
+    fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
     dbsession: Session = session,
-) -> List[PlayerPrediction]:
+) -> list[PlayerPrediction]:
     """
     Use the team-level model to get the probs of scoring or conceding
     N goals, and player-level model to get the chance of player scoring
     or assisting given that their team scores.
     """
-    if isinstance(player, (str, int)):
-        player = get_player(player, dbsession=dbsession)
+    if isinstance(player, str | int):
+        player: Player = get_player(player, dbsession=dbsession)
 
     message = f"Points prediction for player {player}"
 
@@ -374,9 +369,7 @@ def calc_predicted_points_for_player(
     player_prob = (
         # fitted probability of scoring/assisting for this player
         # (we don't calculate this for goalkeepers)
-        df_player[position].loc[player.player_id]
-        if position != "GK"
-        else None
+        df_player[position].loc[player.player_id] if position != "GK" else None
     )
 
     # use same recent_minutes from previous gameweeks for all predictions
@@ -394,7 +387,8 @@ def calc_predicted_points_for_player(
         # recent_minutes = estimate_minutes_from_prev_season(
         #    player, season=season, dbsession: Session = session
         # )
-        raise ValueError("Recent minutes is empty.")
+        msg = "Recent minutes is empty."
+        raise ValueError(msg)
 
     expected_points = defaultdict(float)  # default value is 0.
     predictions = []  # list that will hold PlayerPrediction objects
@@ -456,7 +450,8 @@ def calc_predicted_points_for_player(
 
         # create the PlayerPrediction for this player+fixture
         if np.isnan(points):
-            raise ValueError(f"nan points for {player} {fixture} {points} {tag}")
+            msg = f"nan points for {player} {fixture} {points} {tag}"
+            raise ValueError(msg)
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
         # and return the per-gameweek predictions as a dict
@@ -469,15 +464,15 @@ def calc_predicted_points_for_player(
 def calc_predicted_points_for_pos(
     pos: str,
     fixture_goal_probs: dict,
-    df_bonus: Optional[Tuple[pd.Series, pd.Series]],
-    df_saves: Optional[pd.Series],
-    df_cards: Optional[pd.Series],
+    df_bonus: tuple[pd.Series, pd.Series] | None,
+    df_saves: pd.Series | None,
+    df_cards: pd.Series | None,
     season: str,
-    gw_range: Optional[Iterable[int]],
+    gw_range: Iterable[int] | None,
     tag: str,
-    model: Union[NumpyroPlayerModel, ConjugatePlayerModel] = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-) -> Dict[int, List[PlayerPrediction]]:
+) -> dict[int, list[PlayerPrediction]]:
     """
     Calculate points predictions for all players in a given position and
     put into the DB.
@@ -524,25 +519,23 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
     write output to a csv.
     """
     if not os.path.exists(csv_filename):
-        outfile = open(csv_filename, "w")
-        outfile.write("player_id,gameweek,EP\n")
-    else:
-        outfile = open(csv_filename, "a")
+        with open(csv_filename, "w") as outfile:
+            outfile.write("player_id,gameweek,EP\n")
 
     summary_data = fetcher.get_player_summary_data()
     gameweek = NEXT_GAMEWEEK
-    for k, v in summary_data.items():
-        player = get_player_from_api_id(k)
-        player_id = player.player_id
-        outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
-        pp = PlayerPrediction()
-        pp.player_id = player_id
-        pp.gameweek = gameweek
-        pp.predicted_points = v["ep_next"]
-        pp.method = "EP"
-        dbsession.add(pp)
+    with open(csv_filename, "a") as outfile:
+        for k, v in summary_data.items():
+            player = get_player_from_api_id(k)
+            player_id = player.player_id
+            outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
+            pp = PlayerPrediction()
+            pp.player_id = player_id
+            pp.fixture.gameweek = gameweek
+            pp.predicted_points = v["ep_next"]
+            pp.method = "EP"
+            dbsession.add(pp)
     dbsession.commit()
-    outfile.close()
 
 
 def process_player_data(
@@ -585,26 +578,28 @@ def process_player_data(
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
-    return dict(
-        player_ids=player_ids,
-        nplayer=nplayer,
-        nmatch=nmatch,
-        minutes=minutes.astype("int64"),
-        y=y.astype("int64"),
-        alpha=alpha,
-    )
+    return {
+        "player_ids": player_ids,
+        "nplayer": nplayer,
+        "nmatch": nmatch,
+        "minutes": minutes.astype("int64"),
+        "y": y.astype("int64"),
+        "alpha": alpha,
+    }
 
 
 def fit_player_data(
     position: str,
     season: str,
     gameweek: int,
-    model: Union[NumpyroPlayerModel, ConjugatePlayerModel] = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
     """
+    if model is None:
+        model = ConjugatePlayerModel()
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
     model = fastcopy(model)
@@ -612,20 +607,19 @@ def fit_player_data(
     df = pd.DataFrame(fitted_model.get_probs())
 
     df["pos"] = position
-    df = (
+    return (
         df.rename(columns={"index": "player_id"})
         .sort_values("player_id")
         .set_index("player_id")
     )
-    return df
 
 
 def get_all_fitted_player_data(
     season: str,
     gameweek: int,
-    model: Union[NumpyroPlayerModel, ConjugatePlayerModel] = ConjugatePlayerModel(),
+    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-) -> Dict[str, Optional[pd.DataFrame]]:
+) -> dict[str, pd.DataFrame | None]:
     df_positions = {"GK": None}
     for pos in ["DEF", "MID", "FWD"]:
         df_positions[pos] = fit_player_data(pos, season, gameweek, model, dbsession)
@@ -649,12 +643,11 @@ def get_player_scores(
         .filter(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
     )
-    df = pd.read_sql(query.statement, dbsession.bind)
+    df = pd.read_sql(query.statement, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
     exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
-    df = df[~exclude]
-    return df
+    return df[~exclude]
 
 
 def mean_group_min_count(
@@ -676,7 +669,7 @@ def fit_bonus_points(
     season: str = CURRENT_SEASON,
     min_matches: int = 10,
     dbsession: Session = session,
-) -> Tuple[pd.Series, pd.Series]:
+) -> tuple[pd.Series, pd.Series]:
     """
     Calculate the average bonus points scored by each player for matches they play
     between 60 and 90 minutes, and matches they play between 30 and 59 minutes.
@@ -710,7 +703,7 @@ def fit_save_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     min_matches: int = 10,
-    min_minutes: Union[int, float] = 90,
+    min_minutes: int | float = 90,
     dbsession: Session = session,
 ) -> pd.Series:
     """
@@ -731,7 +724,7 @@ def fit_save_points(
     goalkeepers = [gk.player_id for gk in goalkeepers]
     df = df[df["player_id"].isin(goalkeepers)]
 
-    #  1pt per 3 saves
+    # 1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
 
     return mean_group_min_count(df, "player_id", "save_pts", min_count=min_matches)
@@ -741,7 +734,7 @@ def fit_card_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     min_matches: int = 10,
-    min_minutes: Union[int, float] = 1,
+    min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
     """

@@ -6,7 +6,6 @@ algorithm.
 
 import random
 import uuid
-from typing import List, Optional, Tuple
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -15,6 +14,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
+from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -33,7 +33,7 @@ class DummyPlayer:
         # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
-        self.predicted_points = {tag: {gw: self.pts for gw in gw_range}}
+        self.predicted_points = {tag: dict.fromkeys(gw_range, self.pts)}
         self.player_id = str(uuid.uuid4())  # dummy id
         self.is_starting = False
         self.is_captain = False
@@ -44,9 +44,8 @@ class DummyPlayer:
         """
         Needed for compatibility with Squad/other Player classes
         """
-        pass
 
-    def get_predicted_points(self, gameweek, tag):
+    def get_predicted_points(self, gameweek, tag):  # noqa: ARG002
         """
         Get points for a specific gameweek -
         """
@@ -176,7 +175,7 @@ class SquadOpt:
 
         return low_bounds, up_bounds
 
-    def _evaluate_individual(self, individual: List[int]) -> Tuple[float]:
+    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
         """Evaluate the fitness of an individual (squad)."""
         # Make squad from player IDs
         squad = Squad(budget=self.budget, season=self.season)
@@ -240,7 +239,7 @@ class SquadOpt:
 
     def _remove_zero_pts(self):
         """Exclude players with zero predicted points."""
-        players = []
+        players: list[Player] = []
         # change_idx stores the indices of where the player positions change in the new
         # player list
         change_idx = [0]
@@ -282,8 +281,8 @@ class SquadOpt:
         mutation_indpb: float = 0.1,
         tournament_size: int = 3,
         verbose: bool = True,
-        random_state: Optional[int] = None,
-    ) -> Tuple[List[int], float]:
+        random_state: int | None = None,
+    ) -> tuple[list[int], float]:
         """Run the genetic algorithm optimization.
 
         Parameters

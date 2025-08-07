@@ -84,13 +84,13 @@ def test_deap_optimization_creates_valid_squad():
 
             # Create methods that can be called with or without parameters
             def make_position_func(pos):
-                return lambda season=None: pos
+                return lambda season=None: pos  # noqa: ARG005
 
             def make_team_func(team_name):
-                return lambda season=None, gameweek=None: team_name
+                return lambda season=None, gameweek=None: team_name  # noqa: ARG005
 
             def make_price_func(price):
-                return lambda season=None, gameweek=None: price
+                return lambda season=None, gameweek=None: price  # noqa: ARG005
 
             player.position = make_position_func(position)
             # Spread players across different teams (max 3 per team constraint)
@@ -121,10 +121,10 @@ def test_deap_optimization_creates_valid_squad():
             def mock_points_side_effect(player, tag, season=None, dbsession=None):
                 if player.price() == 130:  # Premium players
                     return {1: 8.0, 2: 7.5, 3: 8.5}
-                elif player.price() == 80:  # Mid-price players
+                if player.price() == 80:  # Mid-price players
                     return {1: 5.5, 2: 5.0, 3: 6.0}
-                else:  # Budget players
-                    return {1: 3.0, 2: 2.5, 3: 3.5}
+                # Budget players
+                return {1: 3.0, 2: 2.5, 3: 3.5}
 
             mock_get_points.side_effect = mock_points_side_effect
 

@@ -5,7 +5,6 @@ Season details
 """
 
 from datetime import datetime
-from typing import List
 
 from airsenal.framework.schema import Team, session
 
@@ -15,10 +14,7 @@ def get_current_season():
     use the current time to find what season we're in.
     """
     current_time = datetime.now()
-    if current_time.month > 5:
-        start_year = current_time.year
-    else:
-        start_year = current_time.year - 1
+    start_year = current_time.year if current_time.month > 5 else current_time.year - 1
     end_year = start_year + 1
     return f"{str(start_year)[2:]}{str(end_year)[2:]}"
 
@@ -32,7 +28,7 @@ def get_teams_for_season(season, dbsession):
     Query the Team table and get a list of teams for a given
     season.
     """
-    teams = dbsession.query(Team).filter_by(season=season).all()
+    teams: list[Team] = dbsession.query(Team).filter_by(season=season).all()
     return [t.name for t in teams]
 
 
@@ -56,7 +52,7 @@ def season_str_to_year(season: str) -> int:
     return int(f"20{season[:2]}")
 
 
-def sort_seasons(seasons: List[str], desc: bool = True) -> List[str]:
+def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
     """_summary_
 
     Parameters

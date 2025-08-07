@@ -31,7 +31,7 @@ def set_multiprocessing_start_method():
 # Necessary modification is made to make the code compatible with Python3.
 
 
-class SharedCounter(object):
+class SharedCounter:
     """
     A synchronized shared counter.
     The locking done by multiprocessing.Value ensures that only a single

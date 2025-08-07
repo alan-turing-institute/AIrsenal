@@ -23,10 +23,9 @@ The naming convention for branches should generally be something like
 
 ## Developer Dependencies
 
-Packages used for developing AIrsenal but not needed to run AIrsenal (such as those in the code style and formatting section below) are included in
-`requirements-dev.txt`. To install them run the following command from the `AIrsenal` directory (with your AIrsenal virtual environment activated if you are using one, for example with `conda activate airsenalenv`):
+Packages used for developing AIrsenal but not needed to run AIrsenal (such as those in the code style and formatting section below) are included in the `dev` optional dependencies group. To install them run the following command from the `AIrsenal` directory:
 ```
-pip install -r requirements-dev.txt
+uv sync --extra dev
 ```
 
 ## Code style, formatting, code quality
@@ -38,20 +37,10 @@ We encourage extensive documentation.
 
 Although there are not many in the current codebase, we also encourage the use of type hints, as provided by the [typing](link_typing) module. Examples of functions using this can be found in `airsenal/framework/player_model.py`.
 
-For code formatting, we use the `black` linter before pushing our changes to Github - this can be run from the main "AIrsenal" directory by doing:
+For code formatting and linting, we use [ruff](https://docs.astral.sh/ruff/) which combines the functionality of black, isort, and flake8. This can be run from the main "AIrsenal" directory by doing:
 ```
-black .
-```
-and it will reformat any python files it finds.
-
-We also use [isort](https://pycqa.github.io/isort/index.html) to have a consistent alphabetical order on imports. This can be run from the "AIrsenal" directory with:
-```
-isort .
-```
-
-We furthermore use the "flake8" style checker - this will flag up any unused imports, or undefined variables, for you to fix.  This can be run, again from the main AIrsenal directory, via:
-```
-flake8
+ruff check --fix .  # Linting with automatic fixes
+ruff format .       # Code formatting
 ```
 
 Finally, we have a [pre-commit](https://pre-commit.com/) setup that you can use to run all the steps above whenever commiting something to the AIrsenal repo. To set these up run this from the AIrsenal directory:

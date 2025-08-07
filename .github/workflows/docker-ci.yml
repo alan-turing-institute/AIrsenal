@@ -30,7 +30,7 @@ jobs:
 
       - name: Code quality checks
         run: |
-          docker run airsenal poetry run pre-commit run --all-files
+          docker run airsenal pre-commit run --all-files
       - name: Tests
         run: |
-          docker run -e "FPL_TEAM_ID=1822891" airsenal poetry run pytest
+          docker run -e "FPL_TEAM_ID=742663" airsenal pytest

@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-
 """
 simple script, check whether recent matches have been played since
 the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
+
 import argparse
-from typing import List
 
 from sqlalchemy.orm.session import Session
 
@@ -101,19 +99,17 @@ def update_players(season: str, dbsession: Session) -> int:
     if len(players_from_db) == len(players_from_api):
         print("Player table already up-to-date.")
         return 0
-    elif len(players_from_db) > len(players_from_api):
-        raise RuntimeError(
-            "Something strange has happened - more players in DB than API"
-        )
-    else:
-        return add_players_to_db(
-            players_from_db, players_from_api, player_data_from_api, dbsession
-        )
+    if len(players_from_db) > len(players_from_api):
+        msg = "Something strange has happened - more players in DB than API"
+        raise RuntimeError(msg)
+    return add_players_to_db(
+        players_from_db, players_from_api, player_data_from_api, dbsession
+    )
 
 
 def add_players_to_db(
     players_from_db: list,
-    players_from_api: List[int],
+    players_from_api: list[int],
     player_data_from_api: dict,
     dbsession: Session,
 ) -> int:

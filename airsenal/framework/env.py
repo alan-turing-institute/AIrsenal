@@ -4,6 +4,7 @@ Database can be either an sqlite file or a postgress server
 
 import os
 from pathlib import Path
+from typing import Any
 
 from platformdirs import user_data_dir
 
@@ -20,7 +21,7 @@ AIRSENAL_ENV_KEYS = {  # dict of name then function to  convert str to correct t
 }
 
 # Cross-platform data directory
-if "AIRSENAL_HOME" in os.environ.keys():
+if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
     AIRSENAL_HOME = Path(user_data_dir("airsenal"))
@@ -33,15 +34,16 @@ def check_valid_key(func):
 
     def wrapper(key, *args, **kwargs):
         if key not in AIRSENAL_ENV_KEYS:
-            raise KeyError(f"{key} is not a known AIrsenal environment variable")
+            msg = f"{key} is not a known AIrsenal environment variable"
+            raise KeyError(msg)
         return func(key, *args, **kwargs)
 
     return wrapper
 
 
 @check_valid_key
-def get_env(key, default=None):
-    if key in os.environ.keys():
+def get_env(key: str, default: Any = None) -> Any:
+    if key in os.environ:
         return AIRSENAL_ENV_KEYS[key](os.environ[key])
     if os.path.exists(AIRSENAL_HOME / key):
         with open(AIRSENAL_HOME / key) as f:
@@ -59,6 +61,6 @@ def save_env(key, value):
 def delete_env(key):
     if os.path.exists(AIRSENAL_HOME / key):
         os.remove(AIRSENAL_HOME / key)
-    if key in os.environ.keys():
+    if key in os.environ:
         os.unsetenv(key)
         os.environ.pop(key)

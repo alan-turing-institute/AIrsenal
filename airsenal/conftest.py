@@ -15,7 +15,7 @@ env.AIRSENAL_HOME = Path(mkdtemp())
 from airsenal.framework.mappings import alternative_team_names  # noqa: E402
 from airsenal.framework.schema import Base, Player, PlayerAttributes  # noqa: E402
 from airsenal.framework.utils import CURRENT_SEASON  # noqa: E402
-from airsenal.tests.resources import dummy_players  # noqa: E402
+from airsenal.tests.test_resources import dummy_players  # noqa: E402
 
 API_SESSION_ID = "TESTSESSION"
 TEST_PAST_SEASON = "2021"
