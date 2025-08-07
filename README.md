@@ -8,13 +8,13 @@ For some background information and details see https://www.turing.ac.uk/researc
 
 We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
 
-## Mini-league for 2024/25 season
+## Mini-league for 2025/26 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
-The code to join is: **yli1zg**.
+The code to join is: **gvibwu**.
 Hope to see your AI team there!! :)
 
-Our own AIrsenal team's ID for the 2024/25 season is **[2004389](https://fantasy.premierleague.com/entry/2004389/history)**.
+Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.premierleague.com/entry/742663/history)**.
 
 ## Installation
 
@@ -147,7 +147,7 @@ See `airsenal_env --help` for other options.
 If you installed AIrsenal with conda, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To activate the environment use:
 
 ```shell
-conda activate airsenalenv
+uv run source airsenal_env/bin/activate
 ```
 
 Note: Most the commands below can be run with the `--help` flag to see additional options and information.
