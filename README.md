@@ -53,11 +53,8 @@ To use AIrsenal without conda:
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
-pip install pygmo  # Linux only
 pip install .
 ```
-
-AIrsenal has an optional optimisation algorithm using the PyGMO package, which is only pip-installable on Linux (either use conda or don't install pygmo on other platforms). However, we have also occasionally seen errors when using conda (e.g. [#81](https://github.com/alan-turing-institute/AIrsenal/issues/81))
 
 ### Docker
 
@@ -253,7 +250,7 @@ If you're developing AIrsenal you may find it helpful to install it in editable 
 pip install -e .
 ```
 
-We're in the process of migrating to [Poetry](https://python-poetry.org/docs/), but as `PyGMO` is not available on `PyPI` on all platforms this is a work on progress. However, you can set up a development environment without `PyGMO` by running `poetry install` and then `poetry shell` to enter the environment.
+We're in the process of migrating to [Poetry](https://python-poetry.org/docs/). You can set up a development environment by running `poetry install` and then `poetry shell` to enter the environment.
 
 We also have a [pre-commit](https://pre-commit.com/) config to run the code quality tools we use (`flake8`, `isort`, and `black`) automatically when making commits. If you're using `poetry` it will be installed as a dev dependency, otherwise run `pip install pre-commit`. Then to setup the commit hooks:
 

@@ -375,13 +375,11 @@ def make_best_transfers(
             tag=tag,
             budget=budget,
             season=season,
-            verbose=0,
+            verbose=False,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
-            algorithm=algorithm,
             population_size=num_iter,
-            num_iter=num_iter,
-            update_func_and_args=update_func_and_args,
+            generations=num_iter,
         )
         _in = [p.player_id for p in new_squad.players]
         players_in = [p for p in _in if p not in _out]  # remove duplicates
