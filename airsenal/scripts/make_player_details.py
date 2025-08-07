@@ -355,4 +355,4 @@ def make_player_details(seasons: Optional[List[str]] = []):
 
 
 if __name__ == "__main__":
-    make_player_details(["2223"])
+    make_player_details(["2425"])

@@ -126,6 +126,7 @@ def get_starting_squad(
             )
             s = Squad(season=CURRENT_SEASON)
             for pp in players_prices:
+                print(f"Adding player {pp}")
                 s.add_player(
                     pp[0],
                     price=pp[1],
