@@ -18,6 +18,19 @@ Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.
 
 ## Installation
 
+### _New!_ AIrsenal on PyPi!
+
+<details>
+
+You can now do `pip install airsenal` in your Python virtual environment of choice, and it should work out-of-the-box, allowing you to run all the `airsenal_*` commands listed in the [Getting Started section](#getting-started).
+However, a couple of caveats:
+ * Due to a dependency using an older version of `jaxlib` this currently doesn't work on Python 3.13 or later.
+ * We will aim to keep the version on PyPi relatively up-to-date, but if you want the very latest developments, they will appear first in Github (on the `develop` branch if you're feeling brave, or `main` if you want a more stable version), which would require [building from source](#installation-from-source)
+  
+</details>
+
+## Installation from source
+
 We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/
 
 With uv installed, run these commands in a terminal to download and install AIrsenal:
