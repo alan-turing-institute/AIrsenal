@@ -19,6 +19,11 @@ from airsenal.framework.utils import (
 
 np.random.seed(42)
 
+# Default time weighting for team model, calculated using best on average across 20/21
+# to 24/25 season, assuming 3 seasons of history before the current season in the DB and
+# predicting 5 weeks ahead.
+DEFAULT_EPSILON = 1.5
+
 
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
@@ -138,9 +143,10 @@ def create_and_fit_team_model(
         print(f"Fitting {type(model)} model with epsilon = {fit_args['epsilon']}")
     else:
         print(
-            f"Fitting {type(model)} model but no epsilon passed, "
-            "so using the default epsilon = 0"
+            f"Fitting {type(model)} model but no epsilon passed, so using the default"
+            f"epsilon = {DEFAULT_EPSILON}"
         )
+        fit_args["epsilon"] = DEFAULT_EPSILON
 
     return model.fit(training_data=training_data, **fit_args)
 

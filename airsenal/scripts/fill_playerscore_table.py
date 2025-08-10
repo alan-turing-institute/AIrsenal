@@ -105,8 +105,8 @@ def fill_playerscores_from_json(
             # extended features
             # get features excluding the core ones already populated above
             for feat in extended_feats:
-                # with contextlib.suppress(KeyError):
-                ps.__setattr__(feat, fixture_data[feat])
+                with contextlib.suppress(KeyError):
+                    ps.__setattr__(feat, fixture_data[feat])
 
             dbsession.add(ps)
     dbsession.commit()
