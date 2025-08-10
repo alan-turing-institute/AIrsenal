@@ -11,6 +11,7 @@ from datetime import datetime
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
 
+from airsenal.framework.bpl_interface import DEFAULT_EPSILON
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
@@ -66,7 +67,7 @@ def replay_season(
     max_opt_transfers: int = 2,
 ) -> None:
     if team_model_args is None:
-        team_model_args = {"epsilon": 0.0}
+        team_model_args = {"epsilon": DEFAULT_EPSILON}
     start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)

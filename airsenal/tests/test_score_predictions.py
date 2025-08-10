@@ -9,6 +9,7 @@ from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredicto
 
 from airsenal.conftest import past_data_session_scope
 from airsenal.framework.bpl_interface import (
+    DEFAULT_EPSILON,
     fixture_probabilities,
     get_fitted_team_model,
     get_ratings_dict,
@@ -308,11 +309,11 @@ def test_get_fitted_team_model():
         extended = ExtendedDixonColesMatchPredictor()
         model_team = get_fitted_team_model("1819", 10, ts, model=extended)
         assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
-    # extended model with epsilon = 0.0 by default
+    # extended model with default epsilon
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model("1819", 10, ts)
         assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
-        assert model_team.epsilon is None
+        assert model_team.epsilon == DEFAULT_EPSILON
     # extended model with epsilon = 0.5
     with past_data_session_scope() as ts:
         extended = ExtendedDixonColesMatchPredictor()
@@ -330,7 +331,7 @@ def test_get_fitted_team_model():
         neutral = NeutralDixonColesMatchPredictor()
         model_team = get_fitted_team_model("1819", 10, ts, model=neutral)
         assert isinstance(model_team, NeutralDixonColesMatchPredictor)
-        assert model_team.epsilon is None
+        assert model_team.epsilon == DEFAULT_EPSILON
 
 
 def test_fixture_probabilities():
