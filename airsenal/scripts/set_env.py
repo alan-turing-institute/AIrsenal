@@ -17,14 +17,14 @@ def redact_db_password(conn_str: str) -> str:
         # Format: postgresql://user:password@host/dbname
         # Find the user:password part
         prefix = "postgresql://"
-        rest = conn_str[len(prefix):]
+        rest = conn_str[len(prefix) :]
         if "@" in rest:
             creds, host_db = rest.split("@", 1)
             if ":" in creds:
                 user, _ = creds.split(":", 1)
-                redacted = f"{prefix}{user}:***@{host_db}"
-                return redacted
+                return f"{prefix}{user}:***@{host_db}"
     return conn_str
+
 
 def print_env():
     print(f"AIRSENAL_VERSION: {__version__}")
