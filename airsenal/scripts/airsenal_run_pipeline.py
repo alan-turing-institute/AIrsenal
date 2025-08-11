@@ -29,6 +29,7 @@ from airsenal.scripts.fill_predictedscore_table import (
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.make_transfers import make_transfers
+from airsenal.scripts.save_expected_absences import main as save_expected_absences
 from airsenal.scripts.set_lineup import set_lineup
 from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.scripts.update_db import update_db
@@ -132,6 +133,11 @@ from airsenal.scripts.update_db import update_db
     help="If set, include strategies that waste free transfers",
     is_flag=True,
 )
+@click.option(
+    "--save_absences",
+    help="If set, save expected absences to 'absences_yyyy.csv' file",
+    is_flag=True,
+)
 def run_pipeline(
     num_thread: int,
     weeks_ahead: int,
@@ -149,6 +155,7 @@ def run_pipeline(
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
+    save_absences: bool,
 ) -> None:
     """
     Run the full pipeline, from setting up the database and filling
@@ -257,7 +264,9 @@ def run_pipeline(
             if not lineup_ok:
                 msg = "Problem setting the lineup"
                 raise RuntimeError(msg)
-
+        if save_absences:
+            click.echo("Saving absences to csv...")
+            save_expected_absences()
         click.echo("Pipeline finished OK!")
 
 

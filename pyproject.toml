@@ -65,6 +65,7 @@ airsenal_dump_api = "airsenal.scripts.dump_api:main"
 airsenal_dump_db = "airsenal.scripts.dump_db_contents:main"
 airsenal_scrape_transfermarkt = "airsenal.scripts.scrape_transfermarkt:main"
 airsenal_plot = "airsenal.scripts.plot_league_standings:main"
+airsenal_save_absences = "airsenal.scripts.save_expected_absences:main"
 
 [build-system]
 requires = ["hatchling"]
