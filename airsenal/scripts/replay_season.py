@@ -251,7 +251,7 @@ def main():
         "--epsilon",
         help="how much to downweight games by in exponential time weighting",
         type=float,
-        default=0.0,
+        default=DEFAULT_EPSILON,
     )
     parser.add_argument(
         "--max_transfers",
