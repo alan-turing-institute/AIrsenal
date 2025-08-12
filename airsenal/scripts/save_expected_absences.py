@@ -73,7 +73,7 @@ def main():
     pas = (
         session.query(PlayerAttributes)
         .filter(PlayerAttributes.season == CURRENT_SEASON)
-        .filter(PlayerAttributes.chance_of_playing_next_round != None)
+        .filter(PlayerAttributes.chance_of_playing_next_round != None)  # noqa: E711
         .all()
     )
     print(f"Found {len(pas)} player absences.")
