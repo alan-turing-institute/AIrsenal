@@ -22,7 +22,11 @@ np.random.seed(42)
 # Default time weighting for team model, calculated using best on average across 20/21
 # to 24/25 season, assuming 3 seasons of history before the current season in the DB and
 # predicting 5 weeks ahead.
-DEFAULT_EPSILON = 1.5
+DEFAULT_EPSILON = 0.9
+# Rescale weights to sum to number of matches in training data (what they would sum to
+# if no time weighting would apply to the model). The optimal value of epsilon above is
+# for the case where this is True.
+DEFAULT_RESCALE_WEIGHTS = True
 
 
 def get_result_dict(
@@ -139,15 +143,11 @@ def create_and_fit_team_model(
         model = ExtendedDixonColesMatchPredictor()
     if not fit_args:
         fit_args = {}
-    if "epsilon" in fit_args:
-        print(f"Fitting {type(model)} model with epsilon = {fit_args['epsilon']}")
-    else:
-        print(
-            f"Fitting {type(model)} model but no epsilon passed, so using the default "
-            f"epsilon = {DEFAULT_EPSILON}"
-        )
+    if "epsilon" not in fit_args:
         fit_args["epsilon"] = DEFAULT_EPSILON
-
+    if "rescale_weights" not in fit_args:
+        fit_args["rescale_weights"] = DEFAULT_RESCALE_WEIGHTS
+    print(f"Using {type(model).__name__} model with args {fit_args}")
     return model.fit(training_data=training_data, **fit_args)
 
 
@@ -200,7 +200,7 @@ def get_fitted_team_model(
     """
     if model is None:
         model = ExtendedDixonColesMatchPredictor()
-    print(f"Fitting team model ({type(model)})...")
+    print("Fitting team model...")
     training_data = get_training_data(
         season=season,
         gameweek=gameweek,
