@@ -27,7 +27,8 @@ dependencies = [
   "html5lib>=1.1",
   "jax==0.4.24",
   "jaxlib==0.4.24",
-	"numpy>1,<2"
+  "numpy>1,<2",
+  "ruff>=0.12.5",
 ]
 
 [tool.hatch.metadata]
