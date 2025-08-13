@@ -25,7 +25,7 @@ With uv installed, run these commands in a terminal to download and install AIrs
 ### Linux and macOS
 
 <details>
-  
+
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
@@ -37,7 +37,7 @@ uv sync
 ### Windows
 
 <details>
-  
+
 The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
 
 After installing WSL, you can install uv by following the instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
@@ -67,7 +67,7 @@ pip install .
 <details>
 
 Rather than building and running natively on your machine, you can instead use a Docker image if you prefer.
-  
+
 Build the docker-image:
 
 ```console
