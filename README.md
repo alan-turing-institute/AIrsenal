@@ -24,13 +24,19 @@ With uv installed, run these commands in a terminal to download and install AIrs
 
 ### Linux and macOS
 
+<details>
+
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
 uv sync
 ```
 
+</details>
+
 ### Windows
+
+<details>
 
 The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
 
@@ -40,9 +46,13 @@ You can then follow the installation instructions for Linux and macOS above (or 
 
 You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
 
+</details>
+
 ### Use AIrsenal without uv
 
-To use AIrsenal without uv:
+<details>
+
+  To use AIrsenal without uv:
 
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
@@ -50,7 +60,13 @@ cd AIrsenal
 pip install .
 ```
 
+</details>
+
 ### Docker
+
+<details>
+
+Rather than building and running natively on your machine, you can instead use a Docker image if you prefer.
 
 Build the docker-image:
 
@@ -100,13 +116,19 @@ $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRS
 
 `airsenal_run_pipeline` is the default command.
 
+</details>
+
 ## Optional dependencies
 
-AIrsenal has optional dependencies for plotting, running notebooks, and an in development AIrsenal API. To install them run:
+<details>
+
+  AIrsenal has optional dependencies for plotting, running notebooks, and an in development AIrsenal API. To install them run:
 
 ```shell
 pip install ".[api,notebook,plot]"
 ```
+
+</details>
 
 ## Configuration
 
@@ -245,8 +267,6 @@ If you're developing AIrsenal you may find it helpful to install it in editable 
 ```shell
 pip install -e .
 ```
-
-We're in the process of migrating to [Poetry](https://python-poetry.org/docs/). You can set up a development environment by running `poetry install` and then `poetry shell` to enter the environment.
 
 We also have a [pre-commit](https://pre-commit.com/) config to run the code quality tools we use (`flake8`, `isort`, and `black`) automatically when making commits. If you're using `poetry` it will be installed as a dev dependency, otherwise run `pip install pre-commit`. Then to setup the commit hooks:
 
