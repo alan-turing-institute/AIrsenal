@@ -28,7 +28,6 @@ dependencies = [
   "jax==0.4.24",
   "jaxlib==0.4.24",
   "numpy>1,<2",
-  "ruff>=0.12.5",
 ]
 
 [tool.hatch.metadata]
@@ -40,7 +39,7 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest-cov>=4.1.0",
-    "ruff>=0.6.0",
+    "ruff>=0.12.5",
     "pre-commit>=3.6.2",
     "pytest>=8.0.1",
     "pytest-sugar>=1.0.0",
