@@ -79,6 +79,7 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
 
         print(f"PLAYER {season} {name}")
         p.name = name
+        p.opta_code = v["opta_code"]
         dbsession.add(p)
     dbsession.commit()
 

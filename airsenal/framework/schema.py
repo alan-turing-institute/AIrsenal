@@ -41,6 +41,7 @@ class Player(Base):
     player_id: Mapped[intpk] = mapped_column(autoincrement=True)
     fpl_api_id: Mapped[int | None]
     name: Mapped[str100]
+    opta_code: Mapped[str | None]
     attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
     results: Mapped[list["Result"]] = relationship(back_populates="player")
