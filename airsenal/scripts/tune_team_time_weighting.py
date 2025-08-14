@@ -34,6 +34,7 @@ from airsenal.framework.utils import (
 @dataclass
 class EpsilonResult:
     epsilon: float
+    rescale_weights: bool
     total_log_prob: float
     num_fixtures: int
 
@@ -75,6 +76,7 @@ def _score_fixtures(
 
 def evaluate_epsilon(
     epsilon: float,
+    rescale_weights: bool,
     seasons: list[str],
     horizon: int,
     dbsession: Session,
@@ -111,6 +113,7 @@ def evaluate_epsilon(
                 dbsession=dbsession,
                 model=ExtendedDixonColesMatchPredictor(),
                 epsilon=epsilon,
+                rescale_weights=rescale_weights,
             )
 
             # Evaluate on the next `horizon` gameweeks
@@ -125,7 +128,10 @@ def evaluate_epsilon(
             print("------")
 
     return EpsilonResult(
-        epsilon=epsilon, total_log_prob=total_logp, num_fixtures=total_n
+        epsilon=epsilon,
+        rescale_weights=rescale_weights,
+        total_log_prob=total_logp,
+        num_fixtures=total_n,
     )
 
 
@@ -197,6 +203,19 @@ def main() -> None:
             "in the current directory."
         ),
     )
+    parser.add_argument(
+        "--rescale-weights",
+        nargs="*",
+        default=[True],
+        help="Whether to rescale weights for each gameweek (default: False)",
+    )
+    parser.add_argument(
+        "--rescale-factors",
+        type=float,
+        nargs="*",
+        default=[1.0],
+        help="List of rescale factors to use for each gameweek (default: [1.0])",
+    )
 
     args = parser.parse_args()
 
@@ -214,45 +233,57 @@ def main() -> None:
     )
     with out_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["epsilon", "total_log_prob", "num_fixtures", "avg_log_prob"])
+        writer.writerow(
+            [
+                "epsilon",
+                "rescale_weights",
+                "total_log_prob",
+                "num_fixtures",
+                "avg_log_prob",
+            ]
+        )
 
     results: list[EpsilonResult] = []
 
     with session_scope() as db:
         db.expire_on_commit = False
-        for eps in tqdm(eps_grid, desc="Epsilon"):
-            res = evaluate_epsilon(
-                epsilon=eps,
-                seasons=args.seasons,
-                horizon=args.horizon,
-                dbsession=db,
-                first_gw=args.first_gw,
-                last_gw=args.last_gw,
-            )
-            print("\n========================================\n")
-            print(
-                "epsilon="
-                f"{res.epsilon:.5f}  total_log_prob={res.total_log_prob:.3f}  "
-                f"fixtures={res.num_fixtures}"
-            )
-            avg = (
-                res.total_log_prob / res.num_fixtures
-                if res.num_fixtures
-                else float("nan")
-            )
-            with out_path.open("a", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(
-                    [
-                        f"{res.epsilon:.6f}",
-                        f"{res.total_log_prob:.6f}",
-                        res.num_fixtures,
-                        f"{avg:.6f}",
-                    ]
+        for rescale in tqdm(args.rescale_weights, desc="Rescale Bool"):
+            for eps in tqdm(eps_grid, desc="Epsilon"):
+                res = evaluate_epsilon(
+                    epsilon=eps,
+                    rescale_weights=rescale,
+                    seasons=args.seasons,
+                    horizon=args.horizon,
+                    dbsession=db,
+                    first_gw=args.first_gw,
+                    last_gw=args.last_gw,
                 )
+                print("\n========================================\n")
+                print(
+                    f"epsilon={res.epsilon:.5f}, "
+                    f"rescale_weights={res.rescale_weights}, "
+                    f"total_log_prob={res.total_log_prob:.3f}  "
+                    f"fixtures={res.num_fixtures}"
+                )
+                avg = (
+                    res.total_log_prob / res.num_fixtures
+                    if res.num_fixtures
+                    else float("nan")
+                )
+                with out_path.open("a", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(
+                        [
+                            f"{res.epsilon:.6f}",
+                            res.rescale_weights,
+                            f"{res.total_log_prob:.6f}",
+                            res.num_fixtures,
+                            f"{avg:.6f}",
+                        ]
+                    )
 
-            print("\n========================================")
-            results.append(res)
+                print("\n========================================")
+                results.append(res)
 
     if not results:
         msg = "No results computed - check DB contents and arguments."
