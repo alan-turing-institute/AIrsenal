@@ -315,10 +315,10 @@ class PlayerScore(Base):
     expected_assists: Mapped[float | None]
     expected_goal_involvements: Mapped[float | None]
     expected_goals_conceded: Mapped[float | None]
-    defensive_contribution: Mapped[float | None]
-    clearances_blocks_interceptions: Mapped[float | None]
-    tackles: Mapped[float | None]
-    recoveries: Mapped[float | None]
+    defensive_contribution: Mapped[int | None]
+    clearances_blocks_interceptions: Mapped[int | None]
+    tackles: Mapped[int | None]
+    recoveries: Mapped[int | None]
 
     def __str__(self):
         return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
