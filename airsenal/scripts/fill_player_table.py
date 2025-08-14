@@ -17,20 +17,31 @@ from airsenal.scripts.fill_player_mappings_table import (
 )
 
 
-def find_player_in_table(name: str, dbsession: Session) -> Player | None:
+def find_player_in_table(
+    name: str, dbsession: Session, opta_code: str | None = None
+) -> Player | None:
     """
     see if we already have the player
     """
-    player = dbsession.query(Player).filter_by(name=name).first()
-    if not player:
-        # see if we have an alternative name for this player
-        mapping = dbsession.query(PlayerMapping).filter_by(alt_name=name).first()
-        if mapping:
-            player = (
-                dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
-            )
+    # look for an opta code match
+    if opta_code and (
+        player := dbsession.query(Player).filter_by(opta_code=opta_code).first()
+    ):
+        print(f"Found {player} by opta code")
+        return player
 
-    return player or None
+    # look for an exact name match
+    if player := dbsession.query(Player).filter_by(name=name).first():
+        print(f"Found {player} by exact name")
+        return player
+
+    # look for an alternative name
+    mapping = dbsession.query(PlayerMapping).filter_by(alt_name=name).first()
+    if mapping:
+        print(f"Found {player} by alternative name")
+        return dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+
+    return None
 
 
 def num_players_in_table(dbsession: Session) -> int:
@@ -50,12 +61,15 @@ def fill_player_table_from_file(filename: str, season: str, dbsession: Session) 
     for jp in jplayers:
         new_entry = False
         name = jp["name"]
+        opta_code = jp.get("opta_code")
         print(f"PLAYER {season} {name}")
-        p = find_player_in_table(name, dbsession)
+        p = find_player_in_table(name, dbsession, opta_code=opta_code)
         if not p:
+            print(f"Adding new player {name}")
             new_entry = True
             p = Player()
             p.name = name
+            p.opta_code = opta_code
         if new_entry:
             dbsession.add(p)
             dbsession.commit()
