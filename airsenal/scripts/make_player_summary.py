@@ -5,7 +5,7 @@ Make player summary files from FPL season data json
 import json
 import os
 
-from airsenal.framework.utils import get_past_seasons
+from airsenal.framework.utils import get_past_seasons, is_future_gameweek
 
 SCRIPT_DIR = os.path.dirname(__file__)
 INPUT_FILE = os.path.join(SCRIPT_DIR, "../data/FPL_{}.json")
@@ -27,6 +27,7 @@ keys_to_extract = {
     "team": "team",  # need to convert index to string
     "element_type": "position",  # need to convert index to string
     "now_cost": "cost",
+    "opta_code": "opta_code",  # only from 24/25 season
 }
 
 
@@ -44,6 +45,11 @@ def make_player_summary(season: str) -> None:
         print(player["first_name"] + " " + player["second_name"])
         player_dict = {"name": name}
         for input_key, output_key in keys_to_extract.items():
+            if input_key == "opta_code" and not is_future_gameweek(
+                season, 1, "2324", 38
+            ):
+                # opta code only introduced from 24/25 season
+                continue
             player_dict[output_key] = player[input_key]
 
         player_dict["team"] = teams[player_dict["team"]]
