@@ -180,7 +180,7 @@ def fill_initial_squad(
             price = first_gw_data[0]["value"]
 
         add_transaction(
-            player,
+            player.player_id,
             starting_gw,
             1,
             price,
