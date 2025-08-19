@@ -39,6 +39,7 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fastcopy,
     fetcher,
+    get_fixtures_for_gameweek,
     get_fixtures_for_player,
     get_max_matches_per_player,
     get_player,
@@ -588,6 +589,28 @@ def process_player_data(
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
+
+    # compute the time difference for each fixture in results to the first fixture of
+    # the next gameweek
+    now_date = np.array(
+        [
+            pd.Timestamp(f.date).replace(tzinfo=None).date()
+            for f in get_fixtures_for_gameweek(gameweek, season, dbsession)
+            if f.date is not None
+        ]
+    ).min()
+    # df has blank placeholder rows with NaT "date" to ensure the same number of rows
+    # per player. Fill these with the earliest match date as a placeholder, but they
+    # will get ignored when fitting the model.
+    match_date = df["date"].fillna(df["date"].min()).dt.date
+    df["time_diff"] = (now_date - match_date) / pd.Timedelta(days=365)
+    time_diff = df.sort_values("player_id")[["time_diff"]].values.reshape(
+        (
+            df["player_id"].nunique(),
+            df.groupby("player_id").count().iloc[0]["player_name"],
+        )
+    )
+
     return {
         "player_ids": player_ids,
         "nplayer": nplayer,
@@ -595,6 +618,7 @@ def process_player_data(
         "minutes": minutes.astype("int64"),
         "y": y.astype("int64"),
         "alpha": alpha,
+        "time_diff": time_diff,
     }
 
 
@@ -604,6 +628,7 @@ def fit_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
+    epsilon=0.2,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
@@ -613,7 +638,7 @@ def fit_player_data(
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
     model = fastcopy(model)
-    fitted_model = model.fit(data)
+    fitted_model = model.fit(data, epsilon=epsilon)
     df = pd.DataFrame(fitted_model.get_probs())
 
     df["pos"] = position
@@ -629,9 +654,10 @@ def get_all_fitted_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
+    epsilon=0.2,
 ) -> dict[str, pd.DataFrame]:
     return {
-        pos: fit_player_data(pos, season, gameweek, model, dbsession)
+        pos: fit_player_data(pos, season, gameweek, model, dbsession, epsilon=epsilon)
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
 
