@@ -52,7 +52,9 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
     return alpha
 
 
-def scale_goals_by_minutes(goals, minutes):
+def scale_goals_by_minutes(
+    goals, minutes, time_diff=None, epsilon=None, rescale_weights=True
+):
     """
     Scale player goal involvements by the proportion of minutes they played
     (specifically: reduce the number of "neither" goals where the player is said
@@ -60,7 +62,18 @@ def scale_goals_by_minutes(goals, minutes):
     goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
     no. assists, and no. goals not involved in
     minutes: np.array with shape (n_players, m_matches)
+    time_diff: np.array with shape (n_players, m_matches)
+    epsilon: float for weight decay rate with time
+    rescale_weights: bool indicating whether to rescale weights to sum to n_matches for
+    each player (n_matches the player appeared in where a goal was scored)
     """
+    if epsilon is not None and time_diff is None:
+        msg = "time_diff must be provided if using time weighting."
+        raise ValueError(msg)
+    if time_diff is not None and epsilon is not None:
+        weights = np.exp(-epsilon * time_diff)
+    else:
+        weights = np.ones_like(minutes)
     select_matches = (goals.sum(axis=2) > 0) & (minutes > 0)
     n_players, _, _ = goals.shape
     scaled_goals = np.zeros((n_players, 3))
@@ -70,11 +83,18 @@ def scale_goals_by_minutes(goals, minutes):
             scaled_goals[p, :] = [0, 0, 0]
             continue
 
-        team_goals = goals[p, select_matches[p, :], :].sum()
-        team_mins = 90 * select_matches[p, :].sum()
-        player_mins = minutes[p, select_matches[p, :]].sum()
-        player_goals = goals[p, select_matches[p, :], 0].sum()
-        player_assists = goals[p, select_matches[p, :], 1].sum()
+        match_weights = weights[p, select_matches[p, :]]
+        if rescale_weights:
+            match_weights = (
+                select_matches[p, :].sum() * match_weights / match_weights.sum()
+            )
+        team_goals = (
+            goals[p, select_matches[p, :], :].sum(axis=1) * match_weights
+        ).sum()
+        team_mins = (90 * match_weights).sum()
+        player_mins = (minutes[p, select_matches[p, :]] * match_weights).sum()
+        player_goals = (goals[p, select_matches[p, :], 0] * match_weights).sum()
+        player_assists = (goals[p, select_matches[p, :], 1] * match_weights).sum()
         player_neither = (
             team_goals * (player_mins / team_mins) - player_goals - player_assists
         )
@@ -242,14 +262,34 @@ class ConjugatePlayerModel(BasePlayerModel):
         self.posterior = None
         self.mean_probabilities = None
 
+        # optional time weighting parameter
+        self.epsilon = None
+        self.time_diff = None
+        self.rescale_weights = None
+
     def fit(
-        self, data: dict[str, Any], n_goals_prior: int = 13, **kwargs
+        self,
+        data: dict[str, Any],
+        n_goals_prior: int = 13,
+        epsilon: float | None = None,
+        rescale_weights: bool = True,
+        **kwargs,
     ) -> ConjugatePlayerModel:
+        print(f"Fitting ConjugatePlayerModel with {epsilon=}, {rescale_weights=}")
         goals = data["y"]
         minutes = data["minutes"]
+        time_diff = data["time_diff"]
+        self.epsilon = epsilon
+        self.rescale_weights = rescale_weights
         self.player_ids = data["player_ids"]
 
-        scaled_goals = scale_goals_by_minutes(goals, minutes)
+        scaled_goals = scale_goals_by_minutes(
+            goals=goals,
+            minutes=minutes,
+            time_diff=time_diff,
+            epsilon=epsilon,
+            rescale_weights=rescale_weights,
+        )
         self.prior = self.get_prior(scaled_goals, n_goals_prior=n_goals_prior)
         posterior = self.get_posterior(self.prior, scaled_goals)
         self.posterior = posterior
