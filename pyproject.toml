@@ -28,6 +28,7 @@ dependencies = [
   "jax==0.4.24",
   "jaxlib==0.4.24",
   "numpy>1,<2",
+  "curl-cffi>=0.13.0",
 ]
 
 [tool.hatch.metadata]
