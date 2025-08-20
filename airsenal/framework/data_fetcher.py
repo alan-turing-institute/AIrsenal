@@ -577,7 +577,7 @@ class FPLDataFetcher:
         )
         resp = self._post_data(
             self.FPL_SET_TRANSFERS_URL,
-            data=json.dumps(transfer_payload),
+            data=transfer_payload,
             err_msg=err_msg,
         )
         if "non_form_errors" in resp.json():
