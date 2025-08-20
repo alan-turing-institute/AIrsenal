@@ -550,7 +550,7 @@ class FPLDataFetcher:
     def post_lineup(self, payload):
         """Set the lineup for a specific team"""
         self.login()
-        payload = json.dumps({"chip": None, "picks": payload})
+        payload = {"chip": None, "picks": payload}
         team_url = self.FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
         self._post_data(
             team_url,
@@ -628,6 +628,8 @@ class FPLDataFetcher:
             **self.headers,
         }
         resp = self.rsession.post(url, json=data, headers=headers)
+        print(resp)
+        print(json.loads(resp.content.decode("utf-8")))
         if resp.status_code == 200:
             return json.loads(resp.content.decode("utf-8"))
         try:
