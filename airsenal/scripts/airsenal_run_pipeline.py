@@ -3,8 +3,8 @@ import sys
 import warnings
 
 import click
-import requests
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 

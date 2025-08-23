@@ -575,14 +575,11 @@ class FPLDataFetcher:
             "Failed to set transfers. Make the changes manually on the web-site if "
             "needed."
         )
-        resp = self._post_data(
+        self._post_data(
             self.FPL_SET_TRANSFERS_URL,
             data=transfer_payload,
             err_msg=err_msg,
         )
-        if "non_form_errors" in resp.json():
-            msg = f"{resp.json()['non_form_errors']}\n{err_msg}"
-            raise requests.exceptions.RequestException(msg)
         print("Transfers made!")
 
     def _get_request(
@@ -628,17 +625,11 @@ class FPLDataFetcher:
             **self.headers,
         }
         resp = self.rsession.post(url, json=data, headers=headers)
-        print(resp)
-        print(json.loads(resp.content.decode("utf-8")))
-        if resp.status_code == 200:
-            return json.loads(resp.content.decode("utf-8"))
+        if "non_form_errors" in resp.text or "non_field_errors" in resp.text:
+            msg = f"{resp.text}\n{err_msg}"
+            raise requests.exceptions.RequestException(msg)
         try:
             resp.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            msg = f"{err_msg}: {e}"
+            msg = f"{err_msg}: {e} {resp.text}"
             raise requests.exceptions.HTTPError(msg) from e
-        msg = (
-            f"{err_msg} Unexpected error in _post_request to {url}: "
-            f"code={resp.status_code}, content={resp.content.decode('utf-8')}"
-        )
-        raise RuntimeError(msg)

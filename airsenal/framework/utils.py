@@ -13,8 +13,8 @@ from typing import TypeVar
 import dateparser
 import pandas as pd
 import regex as re
-import requests
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+from curl_cffi import requests
 from dateutil.parser import isoparse
 from sqlalchemy import case, desc, or_
 from sqlalchemy.orm import InstrumentedAttribute
