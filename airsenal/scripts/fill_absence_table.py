@@ -19,9 +19,7 @@ def load_absences(season: str, dbsession: Session) -> None:
     path = os.path.join(
         os.path.dirname(__file__), "..", "data", f"absences_{season}.csv"
     )
-    absences = pd.read_csv(
-        path, parse_dates=["from", "until"], infer_datetime_format=True
-    )
+    absences = pd.read_csv(path, parse_dates=["from", "until"]) 
 
     for _, row in tqdm(absences.iterrows(), total=absences.shape[0]):
         p = get_player(row["player"], dbsession=dbsession)
