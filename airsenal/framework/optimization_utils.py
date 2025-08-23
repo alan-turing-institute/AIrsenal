@@ -6,7 +6,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime
 
-import requests
+from curl_cffi import requests
 
 from airsenal.framework.schema import (
     Fixture,

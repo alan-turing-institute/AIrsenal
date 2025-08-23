@@ -112,9 +112,12 @@ def set_lineup(
 
     squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
 
-    if check_proceed(squad) and not skip_check:
-        payload = build_lineup_payload(squad)
-        fetcher.post_lineup(payload)
+    if not skip_check and not check_proceed(squad):
+        print("Not proceeding with lineup update")
+        return
+
+    payload = build_lineup_payload(squad)
+    fetcher.post_lineup(payload)
 
 
 def main():
