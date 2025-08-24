@@ -10,6 +10,8 @@ import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
+DEFAULT_PLAYER_EPSILON = 0.2
+
 
 def get_empirical_bayes_estimates(df_emp, prior_goals=None):
     """
@@ -271,7 +273,7 @@ class ConjugatePlayerModel(BasePlayerModel):
         self,
         data: dict[str, Any],
         n_goals_prior: int = 13,
-        epsilon: float | None = None,
+        epsilon: float | None = DEFAULT_PLAYER_EPSILON,
         rescale_weights: bool = True,
         **kwargs,
     ) -> ConjugatePlayerModel:
