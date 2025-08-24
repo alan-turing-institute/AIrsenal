@@ -26,7 +26,7 @@ You can now do `pip install airsenal` in your Python virtual environment of choi
 However, a couple of caveats:
  * Due to a dependency using an older version of `jaxlib` this currently doesn't work on Python 3.13 or later.
  * We will aim to keep the version on PyPi relatively up-to-date, but if you want the very latest developments, they will appear first in Github (on the `develop` branch if you're feeling brave, or `main` if you want a more stable version), which would require [building from source](#installation-from-source)
-  
+
 </details>
 
 ## Installation from source
