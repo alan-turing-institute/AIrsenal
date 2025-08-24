@@ -14,6 +14,7 @@ import json
 import re
 import secrets
 import time
+import traceback
 import uuid
 import warnings
 
@@ -64,7 +65,6 @@ class FPLDataFetcher:
         self.headers: dict[str, str] = {}
         self.logged_in = False
         self.login_failed = False
-        self.continue_without_login = False
         self.current_summary_data: dict = {}
         self.current_event_data: dict = {}
         self.current_player_data: dict = {}
@@ -126,14 +126,15 @@ class FPLDataFetcher:
         """
         only needed for accessing mini-league data, or team info for current gw.
         """
-        if self.logged_in or self.continue_without_login:
+        if self.logged_in:
             return
         if self.login_failed:
-            msg = (
+            warnings.warn(
                 "Attempted to use a function requiring login, but login previously "
-                "failed."
+                "failed.",
+                stacklevel=2,
             )
-            raise RuntimeError(msg)
+            return
         if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
             do_login = ""
             while do_login.lower() not in ["y", "n"]:
@@ -148,13 +149,7 @@ class FPLDataFetcher:
             if do_login.lower() == "y":
                 self.get_fpl_credentials()
             else:
-                self.login_failed = True
-                self.continue_without_login = True
-                warnings.warn(
-                    "Skipping login which means AIrsenal may have out of date "
-                    "information for your team.",
-                    stacklevel=2,
-                )
+                self._set_login_failed(msg="Credentials not provided.")
                 return
 
         code_verifier = generate_code_verifier()  # code_verifier for PKCE
@@ -179,25 +174,33 @@ class FPLDataFetcher:
         if match := re.search(r'"accessToken":"([^"]+)"', login_html):
             access_token = match.group(1)
         else:
-            msg = "Login failed. Failed to extract access token."
-            raise RuntimeError(msg)
+            self._set_login_failed(msg="Failed to extract access token.")
+            return
         # need to read state here for when we resume the OAuth flow later on
         if match := re.search(
             r'<input[^>]+name="state"[^>]+value="([^"]+)"', login_html
         ):
             new_state = match.group(1)
         else:
-            msg = "Login failed. Failed to extract state."
-            raise RuntimeError(msg)
+            self._set_login_failed(msg="Failed to extract state.")
+            return
 
         # Step 2: Use accessToken to get interaction id and token
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
         }
-        response = self.rsession.post(LOGIN_URLS["start"], headers=headers).json()
-        interaction_id = response["interactionId"]
-        interaction_token = response["interactionToken"]
+        response = self.rsession.post(LOGIN_URLS["start"], headers=headers)
+        try:
+            r_json = response.json()
+            interaction_id = r_json["interactionId"]
+            interaction_token = r_json["interactionToken"]
+            response_id = r_json["id"]
+        except (json.JSONDecodeError, KeyError) as e:
+            self._set_login_failed(
+                exception=e, msg="Failed to extract interaction token."
+            )
+            return
 
         # Step 3: log in with interaction tokens (requires 3 post requests)
         response = self.rsession.post(
@@ -207,7 +210,7 @@ class FPLDataFetcher:
                 "interactionToken": interaction_token,
             },
             json={
-                "id": response["id"],
+                "id": response_id,
                 "eventName": "continue",
                 "parameters": {"eventType": "polling"},
                 "pollProps": {
@@ -218,6 +221,13 @@ class FPLDataFetcher:
                 },
             },
         )
+        try:
+            response_id = response.json()["id"]
+        except (json.JSONDecodeError, KeyError) as e:
+            self._set_login_failed(
+                exception=e, msg="Interaction token Post 1 Failed (id generation)"
+            )
+            return
 
         response = self.rsession.post(
             LOGIN_URLS["login"].format(STANDARD_CONNECTION_ID),
@@ -226,7 +236,7 @@ class FPLDataFetcher:
                 "interactionToken": interaction_token,
             },
             json={
-                "id": response.json()["id"],
+                "id": response_id,
                 "nextEvent": {
                     "constructType": "skEvent",
                     "eventName": "continue",
@@ -242,15 +252,23 @@ class FPLDataFetcher:
                 },
                 "eventName": "continue",
             },
-        ).json()
+        )
+        try:
+            r_json = response.json()
+            response_id = r_json["id"]
+            connection_id = r_json["connectionId"]
+        except (json.JSONDecodeError, KeyError) as e:
+            self._set_login_failed(
+                exception=e,
+                msg="Interaction token Post 2 Failed (connectionID generation)",
+            )
+            return
 
         response = self.rsession.post(
-            LOGIN_URLS["login"].format(
-                response["connectionId"]
-            ),  # need to use new connectionId from prev response
+            LOGIN_URLS["login"].format(connection_id),
             headers=headers,
             json={
-                "id": response["id"],
+                "id": response_id,
                 "nextEvent": {
                     "constructType": "skEvent",
                     "eventName": "continue",
@@ -265,24 +283,28 @@ class FPLDataFetcher:
                 "eventName": "continue",
             },
         )
+        try:
+            dvResponse = response.json()["dvResponse"]
+        except (json.JSONDecodeError, KeyError) as e:
+            self._set_login_failed(
+                exception=e,
+                msg="Interaction token Post 3 Failed (dvResponse generation)",
+            )
+            return
 
         # Step 4: Resume the login using the dv_response and handle redirect
         response = self.rsession.post(
             LOGIN_URLS["resume"],
-            data={
-                "dvResponse": response.json()["dvResponse"],
-                "state": new_state,
-            },
+            data={"dvResponse": dvResponse, "state": new_state},
             allow_redirects=False,
         )
-
         if (location := response.headers.get("Location")) and (
             match := re.search(r"[?&]code=([^&]+)", location)
         ):
             auth_code = match.group(1)
         else:
-            msg = "Login failed. Failed to extract auth code."
-            raise RuntimeError(msg)
+            self._set_login_failed(msg="Failed to extract auth code.")
+            return
 
         # Step 5: Exchange auth code for access token
         response = self.rsession.post(
@@ -295,14 +317,36 @@ class FPLDataFetcher:
                 "client_id": "bfcbaf69-aade-4c1b-8f00-c1cb8a193030",
             },
         )
+        try:
+            access_token = response.json()["access_token"]
+        except (json.JSONDecodeError, KeyError) as e:
+            self._set_login_failed(exception=e, msg="Failed to retrieve access token.")
+            return
 
-        access_token = response.json()["access_token"]
         self.headers = {"X-API-Authorization": f"Bearer {access_token}"}
         response = self._get_request(LOGIN_URLS["me"])
         if "player" in response:
             self.logged_in = True
         else:
-            self.login_failed = True
+            self._set_login_failed(
+                msg="All login steps succeeded but team data retrieval failed."
+            )
+            return
+
+    def _set_login_failed(self, exception: Exception | None = None, msg: str = ""):
+        self.login_failed = True
+        exc_str = (
+            "".join(traceback.TracebackException.from_exception(exception).format())
+            if exception
+            else ""
+        )
+        help = (
+            "Login failed due to the error above. Continuing without login but this "
+            "may cause issues later due to not having your latest team details. Login "
+            "failures could be caused by issues with your username and password, "
+            "connection problems, or changes to the API."
+        )
+        warnings.warn(f"{msg}\n{exc_str}\n{help}", stacklevel=3)
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
