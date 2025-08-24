@@ -280,7 +280,7 @@ class ConjugatePlayerModel(BasePlayerModel):
         print(f"Fitting ConjugatePlayerModel with {epsilon=}, {rescale_weights=}")
         goals = data["y"]
         minutes = data["minutes"]
-        time_diff = data["time_diff"]
+        time_diff = data.get("time_diff")
         self.epsilon = epsilon
         self.rescale_weights = rescale_weights
         self.player_ids = data["player_ids"]
