@@ -22,6 +22,7 @@ from airsenal.framework.FPL_scoring_rules import (
     saves_for_point,
 )
 from airsenal.framework.player_model import (
+    DEFAULT_PLAYER_EPSILON,
     ConjugatePlayerModel,
     NumpyroPlayerModel,
     get_empirical_bayes_estimates,
@@ -628,7 +629,7 @@ def fit_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-    epsilon=0.2,
+    epsilon=DEFAULT_PLAYER_EPSILON,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
@@ -654,7 +655,7 @@ def get_all_fitted_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-    epsilon=0.2,
+    epsilon=DEFAULT_PLAYER_EPSILON,
 ) -> dict[str, pd.DataFrame]:
     return {
         pos: fit_player_data(pos, season, gameweek, model, dbsession, epsilon=epsilon)

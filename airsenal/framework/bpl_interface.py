@@ -22,7 +22,7 @@ np.random.seed(42)
 # Default time weighting for team model, calculated using best on average across 20/21
 # to 24/25 season, assuming 3 seasons of history before the current season in the DB and
 # predicting 5 weeks ahead.
-DEFAULT_EPSILON = 0.9
+DEFAULT_TEAM_EPSILON = 0.9
 # Rescale weights to sum to number of matches in training data (what they would sum to
 # if no time weighting would apply to the model). The optimal value of epsilon above is
 # for the case where this is True.
@@ -144,7 +144,7 @@ def create_and_fit_team_model(
     if not fit_args:
         fit_args = {}
     if "epsilon" not in fit_args:
-        fit_args["epsilon"] = DEFAULT_EPSILON
+        fit_args["epsilon"] = DEFAULT_TEAM_EPSILON
     if "rescale_weights" not in fit_args:
         fit_args["rescale_weights"] = DEFAULT_RESCALE_WEIGHTS
     print(f"Using {type(model).__name__} model with args {fit_args}")
