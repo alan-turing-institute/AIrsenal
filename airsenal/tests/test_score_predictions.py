@@ -256,10 +256,10 @@ def test_fit_conjugate_player_model():
         "minutes": 90 * np.ones((2, 2)),
     }
 
-    pm = pm.fit(data, n_goals_prior=0)
+    pm = pm.fit(data, n_goals_prior=0, epsilon=None)
     assert (pm.posterior == np.array([[1, 2, 3], [3, 2, 1]])).all()
 
-    pm = pm.fit(data, n_goals_prior=3)
+    pm = pm.fit(data, n_goals_prior=3, epsilon=None)
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
