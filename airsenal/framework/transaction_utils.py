@@ -179,6 +179,8 @@ def fill_initial_squad(
         else:
             price = first_gw_data[0]["value"]
 
+        print(f"Adding player {player} in GW{starting_gw} for £{price / 10}m")
+
         add_transaction(
             player.player_id,
             starting_gw,
