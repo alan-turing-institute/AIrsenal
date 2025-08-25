@@ -4,13 +4,13 @@
 
 *AIrsenal* is a package for using Machine learning to pick a Fantasy Premier League team.
 
+## Background and News
+
 For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
 
-We welcome contributions and comments - if you'd like to join the AIrsenal community please refer to our [contribution guidelines](https://github.com/alan-turing-institute/AIrsenal/blob/master/CONTRIBUTING.md)
+#### AIrsenal Details for 2025/26 season
 
-## Mini-league for 2025/26 season
-
-We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues/create-join then click "join a league or cup".
+We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues then click "Join a League".
 The code to join is: **xoz7vm**.
 Hope to see your AI team there!! :)
 
@@ -29,15 +29,17 @@ However, a couple of caveats:
 
 </details>
 
-## Installation from source
+### Installation from source
 
 We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/
 
 With uv installed, run these commands in a terminal to download and install AIrsenal:
 
-### Linux and macOS
+#### Linux and macOS
 
 <details>
+
+**With uv (recommended):**
 
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
@@ -45,37 +47,33 @@ cd AIrsenal
 uv sync
 ```
 
-</details>
+**With pip:**
 
-### Windows
-
-<details>
-
-The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
-
-After installing WSL, you can install uv by following the instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
-
-You can then follow the installation instructions for Linux and macOS above (or the instructions for without uv below).
-
-You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
-
-</details>
-
-### Use AIrsenal without uv
-
-<details>
-
-  To use AIrsenal without uv:
+If not using `uv` you can replace `uv sync` with `pip install .` above, but we recommend you do so in a virtual environment, e.g.
 
 ```shell
 git clone https://github.com/alan-turing-institute/AIrsenal.git
 cd AIrsenal
+python -m venv .venv
+source .venv/bin/activate
 pip install .
 ```
 
 </details>
 
-### Docker
+#### Windows
+
+<details>
+
+The best ways to run AIrsenal on Windows are either to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) (WSL), which allows you to run AIrsenal in a Linux environment on your Windows system, or Docker (see below).
+
+You can then follow the installation instructions for Linux and macOS above.
+
+You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
+
+</details>
+
+#### Docker
 
 <details>
 
@@ -86,28 +84,6 @@ Build the docker-image:
 ```console
 $ docker build -t airsenal .
 ```
-
-If `docker build` fails due to a `RuntimeError` like
-
-```console
-Unable to find installation candidates for jaxlib (0.4.11)
-```
-
-this may be a lack of maintained versions of a package for `m1` on Linux.
-
-A slow solution for this error is to force a `linux/amd64` build like
-
-```console
-$ docker build --platform linux/amd64 -t airsenal .
-```
-
-If that fails try
-
-```console
-$ docker build --platform linux/amd64 --no-cache -t airsenal .
-```
-
-See ticket [#547](https://github.com/alan-turing-institute/AIrsenal/issues/574) for latest on this issue.
 
 Create a volume for data persistance:
 
@@ -131,17 +107,19 @@ $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRS
 
 </details>
 
-## Optional dependencies
+### Optional dependencies
 
 <details>
 
   AIrsenal has optional dependencies for plotting, running notebooks, and an in development AIrsenal API. To install them run:
-
-```shell
-pip install ".[api,notebook,plot]"
-```
+  - With uv: `uv sync --all-extras`
+  - Without uv: `pip install ".[api,notebook,plot]"`
 
 </details>
+
+## Running Python commands with uv
+
+If using AIrsenal with uv you must either prepend `uv run` to all the AIrsenal commands below (e.g. `uv run airsenal_setup_initial_db`), or activate the virtual environment created by uv and then run them as normal. By default the virtual environment can be activated with `source .venv/bin/activate`.
 
 ## Configuration
 
@@ -151,11 +129,13 @@ Once you've installed the module, you will need to set the following parameters:
 
 1. `FPL_TEAM_ID`: the team ID for your FPL side.
 
+**Recommended:**
+
+2. `FPL_LOGIN`: your FPL login, usually email (this is required to get any changes made to your team since the last gameweek deadline).
+
+3. `FPL_PASSWORD`: your FPL password (this is required to get any changes made to your team since the last gameweek deadline).
+
 **Optional:**
-
-2. `FPL_LOGIN`: your FPL login, usually email (this is only required to get FPL league standings, or automating transfers via the API).
-
-3. `FPL_PASSWORD`: your FPL password (this is only required to get FPL league standings, or automating transfers via the API).
 
 4. `FPL_LEAGUE_ID`: a league ID for FPL (this is only required for plotting FPL league standings).
 
@@ -179,53 +159,51 @@ See `airsenal_env --help` for other options.
 
 ## Getting Started
 
-If you installed AIrsenal with `pip`, you should always make sure the `airsenalenv` virtual environment is activated before running AIrsenal commands. To create and activate the environment use:
+**Note:** Most the commands below can be run with the `--help` flag to see additional options and information.
+
+### Run the Full AIrsenal Pipeline
+
+The easiest way to run AIrsenal is to use the pipeline script:
 
 ```shell
-python3 -m venv airsenalenv
-source airsenalenv/bin/activate
+airsenal_run_pipeline
 ```
-If installed using `uv`, all the following commands can be run with `uv run` before them.
 
-Note: Most the commands below can be run with the `--help` flag to see additional options and information.
+This will create or update the database, compute points predictions, and suggest transfers.  Add `--help` to see the available options, by default predictions and transfers are calculated for the next 3 gameweeks.
+
+Alternatively, you can run each step of AIrsenal independently, as follows:
 
 ### 1. Creating the database
 
-Once the module has been installed and your team ID configured, run the following command to create the AIrsenal database:
+Run the following command to create the AIrsenal database:
 
 ```shell
 airsenal_setup_initial_db
 ```
 
 This will fill the database with data from the last 3 seasons, as well as all available fixtures and results for the current season.
-On Linux/Mac you should get a file ```/tmp/data.db``` containing the database (on Windows you will get a `data.db` file in a the temporary directory returned by the python [tempfile module](https://docs.python.org/3/library/tempfile.html) on your system).
 
-You can run sanity checks on the data using the following command:
+### 2. Updating the database
 
-```shell
-airsenal_check_data
-```
-
-### 2. Updating and Running Predictions
-
-To stay up to date in the future, you will need to fill three tables: ```match```, ```player_score```, and ```transaction```
-with more recent data, using the command
+Once the database has been created, you just need to update it each time before you run predictions or optimisations. This pulls all the latest data from the FPL API, such as recent match results, changes to fixtures, new players, and player injury/suspension statuses.
 
 ```shell
 airsenal_update_db
 ```
 
-The next step is to use the team- and player-level NumPyro models to predict the expected points for all players for the next fixtures.  This is done using the command
+### 3. Running predictions
+
+The next step is to predict the expected points for all players for the next fixtures. Player points predictions are computed using two models, a team-level model to predict match scorelines, and a player level model to predict player goal involvements, as well as several heuristics based on historical averages.
+
+This is done using the command
 
 ```shell
 airsenal_run_prediction --weeks_ahead 3
 ```
 
-(we normally look 3 weeks ahead, as this is an achievable horizon to run the optimization over, but also because things like form and injuries can change a lot in 3 weeks!)
+Predicting the next 3 gameweeks of fixtures is the default but this can be configured with the argument above.
 
-Predicted points must be generated before running the transfer or squad optimization (see below).
-
-### 3. Transfer or Squad Optimization
+### 4. Transfer or Squad Optimization
 
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 
@@ -241,21 +219,15 @@ Note that `airsenal_run_optimization` should only be used for transfer suggestio
 airsenal_make_squad --num_gameweeks 3
 ```
 
-### 4. Apply Transfers and Lineup
+### 5. Apply Transfers and Lineup
 
 To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers). Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for these to work (as described in the "Configuration" section above).
 
-Also note that this command can't currently apply chips such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline via the FPL website.
+⚠️ Also note that this command can't currently apply chips such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline via the FPL website.
 
-### Run the Full AIrsenal Pipeline
+## Contributing
 
-Instead of running the commands above individually you can use:
-
-```shell
-airsenal_run_pipeline
-```
-
-This will update the database and then run the points predictions and transfer optimization.  Add `--help` to see the available options.
+We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
 
 ## Issues and New Features
 
@@ -266,23 +238,23 @@ You may also like to try the development version of AIrsenal, which has the late
 ```shell
 git checkout develop
 git pull
-pip install --force-reinstall .
+uv sync  # or "pip install --force-reinstall ." if not using uv
 ```
 
-## Contributing
-
-We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
+If there have been database changes you may also need to run `airsenal_setup_initial_db --clean` after the above.
 
 ## Development
 
-If you're developing AIrsenal you may find it helpful to install it in editable mode:
+If you're developing AIrsenal we further recommend using uv.
 
-```shell
-pip install -e .
-```
-
-We also have a [pre-commit](https://pre-commit.com/) config to run the code quality tools we use (`flake8`, `isort`, and `black`) automatically when making commits. If you're using `poetry` it will be installed as a dev dependency, otherwise run `pip install pre-commit`. Then to setup the commit hooks:
+We also have a [pre-commit](https://pre-commit.com/) config to run the code quality tools we use automatically when making commits. To setup the commit hooks run:
 
 ```shell
 pre-commit install --install-hooks
+```
+
+And tests can be run with
+
+```shell
+pytest airsenal/tests
 ```
