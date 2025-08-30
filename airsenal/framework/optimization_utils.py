@@ -132,7 +132,7 @@ def get_starting_squad(
             )
 
     # otherwise, we use the Transaction table in the DB
-    return get_squad_from_transactions(next_gw - 1, season, fpl_team_id)
+    return get_squad_from_transactions(next_gw, season, fpl_team_id)
 
 
 def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
@@ -159,7 +159,7 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(free_hit=0)
         .filter_by(season=season)
-        .filter(Transaction.gameweek <= gameweek)
+        .filter(Transaction.gameweek < gameweek)
         .all()
     )
     if len(transactions) == 0:
@@ -176,7 +176,7 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
             s.add_player(
                 trans.player_id,
                 price=trans.price,
-                gameweek=trans.gameweek,
+                gameweek=gameweek,  # not trans.gameweek, to get player's current club
                 check_budget=False,
                 check_team=False,
             )
