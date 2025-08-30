@@ -8,7 +8,7 @@
 
 For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
 
-#### AIrsenal Details for 2025/26 season
+### AIrsenal Details for 2025/26 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues then click "Join a League".
 The code to join is: **xoz7vm**.
@@ -20,11 +20,9 @@ Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.
 
 ⚠️ Due to a dependency that currently forces AIrsenal to use an older version of `jaxlib`, AIrsenal doesn't work on Python 3.13 or later.
 
+We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/.
+
 ### Installation from source [Recommended]
-
-We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/
-
-With uv installed, run these commands in a terminal to download and install AIrsenal:
 
 #### Linux and macOS
 
@@ -120,7 +118,7 @@ We will aim to keep the version on PyPi relatively up-to-date, but if you want t
 
 </details>
 
-## Running Python commands with uv
+## Running commands with uv
 
 If using AIrsenal with uv you must either prepend `uv run` to all the AIrsenal commands below (e.g. `uv run airsenal_setup_initial_db`), or activate the virtual environment created by uv and then run them as normal. By default the virtual environment can be activated with `source .venv/bin/activate`.
 
