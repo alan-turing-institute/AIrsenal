@@ -22,6 +22,7 @@ from airsenal.framework.FPL_scoring_rules import (
     saves_for_point,
 )
 from airsenal.framework.player_model import (
+    DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,
     ConjugatePlayerModel,
     NumpyroPlayerModel,
@@ -630,6 +631,7 @@ def fit_player_data(
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
     epsilon=DEFAULT_PLAYER_EPSILON,
+    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
@@ -639,7 +641,7 @@ def fit_player_data(
     data = process_player_data(position, season, gameweek, dbsession)
     print("Fitting player model for", position, "...")
     model = fastcopy(model)
-    fitted_model = model.fit(data, epsilon=epsilon)
+    fitted_model = model.fit(data, epsilon=epsilon, n_goals_prior=n_goals_prior)
     df = pd.DataFrame(fitted_model.get_probs())
 
     df["pos"] = position
@@ -656,9 +658,18 @@ def get_all_fitted_player_data(
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
     epsilon=DEFAULT_PLAYER_EPSILON,
+    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> dict[str, pd.DataFrame]:
     return {
-        pos: fit_player_data(pos, season, gameweek, model, dbsession, epsilon=epsilon)
+        pos: fit_player_data(
+            pos,
+            season,
+            gameweek,
+            model,
+            dbsession,
+            epsilon=epsilon,
+            n_goals_prior=n_goals_prior,
+        )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }
 

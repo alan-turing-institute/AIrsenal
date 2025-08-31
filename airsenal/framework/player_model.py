@@ -11,6 +11,7 @@ import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
 DEFAULT_PLAYER_EPSILON = 0.2
+DEFAULT_N_GOALS_PRIOR = 35
 
 
 def get_empirical_bayes_estimates(df_emp, prior_goals=None):
@@ -272,12 +273,15 @@ class ConjugatePlayerModel(BasePlayerModel):
     def fit(
         self,
         data: dict[str, Any],
-        n_goals_prior: int = 13,
+        n_goals_prior: int = DEFAULT_N_GOALS_PRIOR,
         epsilon: float | None = DEFAULT_PLAYER_EPSILON,
         rescale_weights: bool = True,
         **kwargs,
     ) -> ConjugatePlayerModel:
-        print(f"Fitting ConjugatePlayerModel with {epsilon=}, {rescale_weights=}")
+        print(
+            f"Fitting ConjugatePlayerModel with {epsilon=}, {rescale_weights=}, "
+            f"{n_goals_prior=}"
+        )
         goals = data["y"]
         minutes = data["minutes"]
         time_diff = data.get("time_diff")
