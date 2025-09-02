@@ -5,6 +5,7 @@ Is able to check that it obeys all constraints.
 """
 
 import warnings
+from collections import defaultdict
 from operator import itemgetter
 
 import numpy as np
@@ -54,6 +55,7 @@ class Squad:
         self.free_subs = 0
         self.subs_this_week = 0
         self.verbose = False
+        self.count_per_team = defaultdict(int)
 
     def __repr__(self):
         """
@@ -102,11 +104,13 @@ class Squad:
         """
         if isinstance(p, int | str | Player):
             player: CandidatePlayer | DummyPlayer = CandidatePlayer(
-                p, self.season, gameweek, dbsession=dbsession
+                p, self.season, gameweek, purchase_price=price, dbsession=dbsession
             )
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
             player.season = self.season
+            if price is not None:
+                player.purchase_price = price
         if player.position == "MNG":
             warnings.warn(
                 f"Skipped adding manager {player}, assistant manager not implemented."
@@ -115,9 +119,7 @@ class Squad:
             )
             self.budget -= player.purchase_price
             return True
-        # set the price if one was specified.
-        if price:
-            player.purchase_price = price
+
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
             if self.verbose:
@@ -136,6 +138,7 @@ class Squad:
                 print(f"Cannot add {player} - too many players from {player.team}")
             return False
         self.players.append(player)
+        self.count_per_team[player.team] += 1
         self.num_position[player.position] += 1
         self.budget -= player.purchase_price
         return True
@@ -167,6 +170,7 @@ class Squad:
                         dbsession=dbsession,
                     )
                 self.num_position[p.position] -= 1
+                self.count_per_team[p.team] -= 1
                 self.players.remove(p)
                 return True
         return False
@@ -257,17 +261,13 @@ class Squad:
 
     def check_num_per_team(self, player):
         """
-        check we have fewer than 3 players from the same
-        team as the specified player.
+        Check that the squad currently has a maximum of 3 players from the same team,
+        and that adding the specified player would not exceed this limit.
         """
-        num_same_team = 0
-        new_player_team = player.team
-        for p in self.players:
-            if p.team == new_player_team:
-                num_same_team += 1
-                if num_same_team == 3:
-                    return False
-        return True
+        return (
+            self.count_per_team[player.team] < 3
+            and max(self.count_per_team.values()) < 4
+        )
 
     def check_cost(self, player):
         """
@@ -544,7 +544,7 @@ def get_current_squad_from_api(
         squad.add_player(
             player,
             price=p["purchase_price"],
-            gameweek=next_gw - 1,
+            gameweek=next_gw,
             check_budget=False,
             check_team=False,
         )

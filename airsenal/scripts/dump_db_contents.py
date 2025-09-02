@@ -20,7 +20,7 @@ from airsenal.framework.utils import session
 
 def main():
     # Dump Player database
-    player_fieldnames = ["player_id", "fpl_api_id", "name"]
+    player_fieldnames = ["player_id", "fpl_api_id", "name", "opta_code"]
     save_table_fields(
         "../data/players.csv",
         player_fieldnames,
@@ -159,6 +159,10 @@ def main():
         "expected_goals",
         "expected_goal_involvements",
         "expected_goals_conceded",
+        "clearances_blocks_interceptions",
+        "defensive_contribution",
+        "recoveries",
+        "tackles",
     ]
     save_table_fields(
         "../data/player_scores.csv",

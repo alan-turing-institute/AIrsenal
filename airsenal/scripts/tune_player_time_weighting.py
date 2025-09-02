@@ -20,6 +20,7 @@ from airsenal.framework.utils import (
 @dataclass
 class EpsilonResult:
     epsilon: float
+    n_goals_prior: int
     total_log_prob: float
     num_goals: int
 
@@ -85,8 +86,9 @@ def _eval_player_scores(player_scores, player_probs):
     return logp, n
 
 
-def evaluate_epsilon(
+def evaluate_params(
     epsilon: float,
+    n_goals_prior: int,
     seasons: list[str],
     horizon: int,
     dbsession: Session,
@@ -123,6 +125,7 @@ def evaluate_epsilon(
                     gameweek=gw,
                     dbsession=dbsession,
                     epsilon=epsilon,
+                    n_goals_prior=n_goals_prior,
                 ).values()
             )
             # Evaluate on the next `horizon` gameweeks
@@ -143,6 +146,7 @@ def evaluate_epsilon(
 
     return EpsilonResult(
         epsilon=epsilon,
+        n_goals_prior=n_goals_prior,
         total_log_prob=total_logp,
         num_goals=total_n,
     )
@@ -192,6 +196,12 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--n_goals_priors",
+        type=float,
+        nargs="*",
+        help="Explicit list of n_goals_prior values to try",
+    )
+    parser.add_argument(
         "--first-gw",
         type=int,
         default=None,
@@ -238,6 +248,7 @@ def main() -> None:
         writer.writerow(
             [
                 "epsilon",
+                "n_goals_prior",
                 "total_log_prob",
                 "num_goals",
                 "avg_log_prob",
@@ -247,34 +258,38 @@ def main() -> None:
     results: list[EpsilonResult] = []
 
     for eps in tqdm(eps_grid, desc="Epsilon"):
-        res = evaluate_epsilon(
-            epsilon=eps,
-            seasons=args.seasons,
-            horizon=args.horizon,
-            dbsession=session,
-            first_gw=args.first_gw,
-            last_gw=args.last_gw,
-        )
-        print("\n========================================\n")
-        print(
-            f"epsilon={res.epsilon:.5f}, "
-            f"total_log_prob={res.total_log_prob:.3f}  "
-            f"num_goals={res.num_goals}"
-        )
-        avg = res.total_log_prob / res.num_goals if res.num_goals else float("nan")
-        with out_path.open("a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(
-                [
-                    f"{res.epsilon:.6f}",
-                    f"{res.total_log_prob:.6f}",
-                    res.num_goals,
-                    f"{avg:.6f}",
-                ]
+        for n_goals_prior in args.n_goals_priors:
+            res = evaluate_params(
+                epsilon=eps,
+                n_goals_prior=n_goals_prior,
+                seasons=args.seasons,
+                horizon=args.horizon,
+                dbsession=session,
+                first_gw=args.first_gw,
+                last_gw=args.last_gw,
             )
+            print("\n========================================\n")
+            print(
+                f"epsilon={res.epsilon:.5f}, "
+                f"n_goals_prior={res.n_goals_prior}  "
+                f"total_log_prob={res.total_log_prob:.3f}  "
+                f"num_goals={res.num_goals}"
+            )
+            avg = res.total_log_prob / res.num_goals if res.num_goals else float("nan")
+            with out_path.open("a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    [
+                        f"{res.epsilon:.6f}",
+                        f"{res.n_goals_prior}",
+                        f"{res.total_log_prob:.6f}",
+                        res.num_goals,
+                        f"{avg:.6f}",
+                    ]
+                )
 
-        print("\n========================================")
-        results.append(res)
+            print("\n========================================")
+            results.append(res)
 
     if not results:
         msg = "No results computed - check DB contents and arguments."
@@ -284,9 +299,8 @@ def main() -> None:
     print()
     print("=" * 60)
     print(
-        "Best epsilon = "
-        f"{best.epsilon:.5f} with total log-probability "
-        f"{best.total_log_prob:.3f}"
+        f"Best: epsilon = {best.epsilon:.5f}, n_goals_prior = {best.n_goals_prior} "
+        f"with total log-probability {best.total_log_prob:.3f}"
     )
     print("=" * 60)
 

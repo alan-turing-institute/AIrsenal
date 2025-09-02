@@ -19,7 +19,12 @@ class CandidatePlayer:
     """
 
     def __init__(
-        self, player, season=CURRENT_SEASON, gameweek=NEXT_GAMEWEEK, dbsession=None
+        self,
+        player,
+        season=CURRENT_SEASON,
+        gameweek=NEXT_GAMEWEEK,
+        purchase_price: int | None = None,
+        dbsession=None,
     ):
         """
         initialize either by name or by ID
@@ -46,15 +51,16 @@ class CandidatePlayer:
             msg = f"Player {self} has no position for season {season}"
             raise ValueError(msg)
         self.position = position
-        price = pdata.price(season, gameweek)
-        if price is None:
-            msg = f"Player {self} has no price for season {season}, gameweek {gameweek}"
-            raise ValueError(msg)
-        self.purchase_price = price
+        if purchase_price is None:
+            purchase_price = pdata.price(season, gameweek)
+            if purchase_price is None:
+                msg = f"{self} has no price for season {season}, gameweek {gameweek}"
+                raise ValueError(msg)
+        self.purchase_price = purchase_price
         self.is_starting = True
         self.is_captain = False
         self.is_vice_captain = False
-        self.predicted_points = {}
+        self.predicted_points: dict[str, dict[int, float]] = {}
         self.sub_position = None
 
     def __str__(self):
@@ -87,10 +93,10 @@ class DummyPlayer:
     To fill squads with placeholders for optimisation (if not optimising full squad).
     """
 
-    def __init__(self, gw_range, tag, position, price=45, pts=0):
+    def __init__(self, gw_range, tag, position, purchase_price=45, pts=0):
         self.name = "DUMMY"
         self.position = position
-        self.purchase_price = price
+        self.purchase_price = purchase_price
         # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
