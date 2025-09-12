@@ -149,6 +149,7 @@ def fill_attributes_table_from_api(
         ):
             pa.return_gameweek = get_return_gameweek_from_news(
                 p_summary["news"],
+                team=team,
                 season=season,
                 dbsession=dbsession,
             )

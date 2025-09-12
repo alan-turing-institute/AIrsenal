@@ -8,9 +8,10 @@ from tqdm import tqdm
 from airsenal.framework.schema import Absence, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
-    get_next_gameweek_by_date,
+    get_gameweek_by_date,
     get_past_seasons,
     get_player,
+    get_return_gameweek_by_date,
 )
 
 
@@ -26,18 +27,35 @@ def load_absences(season: str, dbsession: Session) -> None:
         if not p:
             print(f"Couldn't find player {row['player']}")
             continue
+
         date_from = row["from"].date()
         if date_from is pd.NaT:
             print(f"{row['player']} {row['details']} has no from date")
             continue
-        date_until = None if row["until"] is pd.NaT else row["until"].date()
 
-        gw_from = get_next_gameweek_by_date(date_from, season, dbsession)
-        gw_until = (
-            get_next_gameweek_by_date(date_until, season, dbsession)
-            if date_until
-            else None
+        # first check approx gameweek to determine player's team at that time
+        gw_date = get_gameweek_by_date(
+            check_date=date_from, season=season, dbsession=dbsession
         )
+        if gw_date is None:
+            print(f"Couldn't find gameweek for {row['player']} from date {date_from}")
+            continue
+        team_from = p.team(season, gw_date)
+        # then get actual return gameweek using the player's team
+        gw_from = get_return_gameweek_by_date(date_from, team_from, season, dbsession)
+
+        date_until = None if row["until"] is pd.NaT else row["until"].date()
+        if date_until is not None and (
+            gw_date := get_gameweek_by_date(
+                check_date=date_until, season=season, dbsession=dbsession
+            )
+        ):
+            team_until = p.team(season, gw_date)
+            gw_until = get_return_gameweek_by_date(
+                date_until, team_until, season, dbsession
+            )
+        else:
+            gw_until = None
 
         url = row["url"]
         timestamp = datetime.now().isoformat()
