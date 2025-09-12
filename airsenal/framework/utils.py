@@ -39,6 +39,7 @@ from airsenal.framework.season import CURRENT_SEASON
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
+@lru_cache(1)
 def get_max_gameweek(season: str = CURRENT_SEASON, dbsession: Session = session) -> int:
     """
     Return the maximum gameweek number across all scheduled fixtures. This should
@@ -140,44 +141,45 @@ def parse_date(check_date: date | datetime | str) -> date:
 
 
 @lru_cache(365)
-def get_next_gameweek_by_date(
-    check_date: date | datetime | str,
+def get_return_gameweek_by_date(
+    return_date: date | datetime | str,
+    team: str,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> int:
     """
-    Use a date, or easily parse-able date string to figure out which gameweek its in.
+    Use a date, or easily parse-able date string, and team name to determine the
+    gameweek of the next match for that team on or after that date. If no match
+    is found, return a placeholder gameweek after the end of the season.
     """
     if not dbsession:
         dbsession = session
-    check_date = parse_date(check_date)
-    fixtures = dbsession.query(Fixture).filter_by(season=season).all()
-    earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
 
-    if len(fixtures) > 0:
-        for fixture in fixtures:
-            if fixture.date is None or fixture.gameweek is None:
-                # date could be null if fixture not scheduled
-                continue
-            fixture_date = parse_date(fixture.date)
-            if (
-                fixture_date > check_date
-                and fixture.gameweek < earliest_future_gameweek
-            ):
-                earliest_future_gameweek = fixture.gameweek
+    return_date = parse_date(return_date)
 
-        # now make sure we aren't in the middle of a gameweek
-        for fixture in fixtures:
-            if not fixture.date:
-                # date could be null if fixture not scheduled
-                continue
-            if (
-                parse_date(fixture.date) < check_date
-                and fixture.gameweek == earliest_future_gameweek
-            ):
-                earliest_future_gameweek += 1
+    fixtures = (
+        dbsession.query(Fixture)
+        .filter_by(season=season)
+        .filter(or_(Fixture.away_team == team, Fixture.home_team == team))
+        .filter(Fixture.date.isnot(None))
+        .order_by(Fixture.date)
+    ).all()
 
-    return earliest_future_gameweek
+    # default return if no fixture found after the date
+    end_season_gw = get_max_gameweek(season, dbsession) + 1
+
+    if len(fixtures) == 0:
+        return end_season_gw
+
+    for fixture in fixtures:
+        if fixture.date is None or fixture.gameweek is None:
+            # should be filtered out by query, but to keep mypy happy
+            continue
+        fixture_date = parse_date(fixture.date)
+        if fixture_date >= return_date:
+            return fixture.gameweek
+
+    return end_season_gw
 
 
 def get_gameweeks_array(
@@ -477,28 +479,32 @@ def get_free_transfers(
 
 
 @lru_cache(maxsize=365)
-def get_gameweek_by_fixture_date(
+def get_gameweek_by_date(
     check_date: date | datetime,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> int | None:
     """
-    Use the dates of the fixtures to find the gameweek.
+    Gameweek of the next fixture on or after the specified date.
     """
     # convert date to a datetime object if it isn't already one.
     if not dbsession:
         dbsession = session
     check_date = parse_date(check_date)
-    query = dbsession.query(Fixture)
-    if season is not None:
-        query = query.filter_by(season=season)
-    fixtures = query.all()
+
+    fixtures = (
+        dbsession.query(Fixture)
+        .filter_by(season=season)
+        .filter(Fixture.date.isnot(None))
+        .order_by(Fixture.date)
+    ).all()
+
     for fixture in fixtures:
         if not fixture.date:
-            # NULL date if fixture not scheduled
+            # to keep mypy happy
             continue
         fixture_date = parse_date(fixture.date)
-        if fixture_date == check_date:
+        if fixture_date >= check_date:
             return fixture.gameweek
     return None
 
@@ -1306,7 +1312,7 @@ def predicted_points_discord_payload(
 
 
 def get_return_gameweek_from_news(
-    news: str, season: str = CURRENT_SEASON, dbsession: Session = session
+    news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session = session
 ) -> int | None:
     """
     Parse news strings from the FPL API for the return date of injured or
@@ -1327,8 +1333,8 @@ def get_return_gameweek_from_news(
         msg = f"Failed to parse date from string '{return_date}'"
         raise ValueError(msg)
 
-    return get_next_gameweek_by_date(
-        return_date.date(), season=season, dbsession=dbsession
+    return get_return_gameweek_by_date(
+        return_date.date(), team=team, season=season, dbsession=dbsession
     )
 
 

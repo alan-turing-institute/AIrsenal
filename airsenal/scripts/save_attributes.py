@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+from collections import defaultdict
 from datetime import date, datetime
 
 import dateparser
@@ -8,24 +9,36 @@ import dateparser
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
 from airsenal.framework.season import CURRENT_SEASON
-from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
-    parse_date,
-)
+from airsenal.framework.utils import NEXT_GAMEWEEK, parse_date
 
 
 def get_return_gameweek_by_date(
-    check_date: datetime | None, ordered_deadlines: list[tuple[int, date]]
+    return_date: datetime | None,
+    team: str,
+    ordered_deadlines: list[tuple[int, date]],
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]],
 ) -> int | None:
     """
-    Use a date, or easily parse-able date string to figure out which gameweek its in.
+    Use a date to figure out which gameweek its in.
     """
-    if check_date is None:
+    if return_date is None:
         return None
 
+    gameweek = None
     for gw, deadline in ordered_deadlines:
-        if deadline >= check_date.date():
-            return gw
+        if deadline >= return_date.date():
+            gameweek = gw - 1
+            break
+    if gameweek is None:
+        return None
+    if gameweek == 0:
+        return 1
+
+    for kickoff, teams in fixtures[gameweek]:
+        if team in teams:
+            if return_date.date() <= kickoff:
+                return gameweek
+            return gameweek + 1
 
     return None
 
@@ -73,6 +86,16 @@ def save_attributes_from_api(
             for gw in summary_data["events"]
         ]
     )
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
+    for f in fetcher.get_fixture_data():
+        if (
+            (gw := f["event"])
+            and (kickoff_str := f["kickoff_time"])
+            and (kickoff := parse_date(kickoff_str))
+        ):
+            fixtures[gw].append((kickoff, (teams[f["team_h"]], teams[f["team_a"]])))
+    for gw, kickoffs in fixtures.items():
+        fixtures[gw] = sorted(kickoffs)
 
     input_data = fetcher.get_player_summary_data()
 
@@ -105,7 +128,7 @@ def save_attributes_from_api(
                         return_str, settings={"PREFER_DATES_FROM": "future"}
                     )
                     return_gameweek = get_return_gameweek_by_date(
-                        return_date, deadlines
+                        return_date, team, deadlines, fixtures
                     )
                 else:
                     return_gameweek = None
