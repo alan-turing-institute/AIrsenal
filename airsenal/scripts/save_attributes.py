@@ -43,13 +43,42 @@ def get_return_gameweek_by_date(
     return None
 
 
-def save_attributes_from_api(
-    file_path: str, season: str = CURRENT_SEASON, gameweek: int = NEXT_GAMEWEEK
-) -> None:
+def save_attributes_from_api(max_days_until_deadline: int = 15) -> None:
     """
     use the FPL API to get player attributes info for the current season
     """
+    now = datetime.now()
+    timestamp = datetime.isoformat(now)
+    if now.month in [6, 7]:
+        print("It's the off-season - not saving attributes")
+        return
 
+    fetcher = FPLDataFetcher()
+    summary_data = fetcher.get_current_summary_data()
+    deadlines = sorted(
+        [
+            (int(gw["id"]), parse_date(gw["deadline_time"]))
+            for gw in summary_data["events"]
+        ]
+    )
+    future_deadlines = [d[1] for d in deadlines if d[1] >= now.date()]
+    if not future_deadlines:
+        print("No future deadlines - not saving attributes")
+        return
+    next_deadline = min(future_deadlines)
+    if (next_deadline - now.date()).days > max_days_until_deadline:
+        print(
+            f"Next deadline {next_deadline} is more than {max_days_until_deadline} "
+            "days away - not saving attributes"
+        )
+        return
+
+    file_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "data",
+        f"player_attributes_history_{CURRENT_SEASON}.csv",
+    )
     if not os.path.isfile(file_path):
         with open(file_path, "w") as f:
             writer = csv.writer(f, delimiter=",")
@@ -74,18 +103,8 @@ def save_attributes_from_api(
                 ]
             )
 
-    fetcher = FPLDataFetcher()
-    timestamp = datetime.isoformat(datetime.now())
-    # needed for selected by calculation from percentage below
-    summary_data = fetcher.get_current_summary_data()
     n_players = summary_data["total_players"]
     teams = {team["id"]: team["short_name"] for team in summary_data["teams"]}
-    deadlines = sorted(
-        [
-            (int(gw["id"]), parse_date(gw["deadline_time"]))
-            for gw in summary_data["events"]
-        ]
-    )
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
     for f in fetcher.get_fixture_data():
         if (
@@ -138,8 +157,8 @@ def save_attributes_from_api(
             writer.writerow(
                 [
                     timestamp,
-                    season,
-                    gameweek,
+                    CURRENT_SEASON,
+                    NEXT_GAMEWEEK,
                     team,
                     position,
                     player_api_id,
@@ -158,10 +177,4 @@ def save_attributes_from_api(
 
 
 if __name__ == "__main__":
-    file_path = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "data",
-        f"player_attributes_history_{CURRENT_SEASON}.csv",
-    )
-    save_attributes_from_api(file_path)
+    save_attributes_from_api()
