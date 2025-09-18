@@ -16,6 +16,10 @@ points_for_own_goal = -2
 
 saves_for_point = 3
 
+def_cons_required = {"GK": 999, "DEF": 10, "MID": 12, "FWD": 12}
+
+points_for_def_cons = 2
+
 
 def get_appearance_points(minutes):
     """

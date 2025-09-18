@@ -10,12 +10,15 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from scipy.stats import multinomial
+from sqlalchemy import and_
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.FPL_scoring_rules import (
+    def_cons_required,
     get_appearance_points,
     points_for_assist,
     points_for_cs,
+    points_for_def_cons,
     points_for_goal,
     points_for_red_card,
     points_for_yellow_card,
@@ -296,6 +299,33 @@ def get_bonus_points(
     return df_bonus[1].loc[player_id]
 
 
+def get_def_con_points(
+    player_id: int, minutes: int | float, df_def_con: tuple[pd.Series, pd.Series]
+) -> float:
+    """
+    Returns expected defensive contribution points scored by player_id when playing
+    minutes minutes.
+
+    df_def_con : Tuple containing df of average def_con_pts scored when playing at least
+    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index
+    (as calculated by fit_def_con_points()).
+
+    NOTE: Minutes values are currently hardcoded - this function and fit_def_con_points
+    must be changed together.
+    """
+    if minutes >= 60 and player_id in df_def_con[0].index:
+        print("Def cons points for", player_id, df_def_con[0].loc[player_id])  # DEBUG
+        return df_def_con[0].loc[player_id]
+    if (
+        minutes >= 60
+        or (minutes >= 30 and player_id not in df_def_con[1].index)
+        or minutes < 30
+    ):
+        return 0
+    print("Def cons points for", player_id, df_def_con[1].loc[player_id])  # DEBUG
+    return df_def_con[1].loc[player_id]
+
+
 def get_save_points(
     position: str, player_id: int, minutes: int | float, df_saves: pd.Series
 ) -> float:
@@ -331,6 +361,7 @@ def calc_predicted_points_for_player(
     df_bonus: tuple[pd.Series, pd.Series] | None,
     df_saves: pd.Series | None,
     df_cards: pd.Series | None,
+    df_def_con: tuple[pd.Series, pd.Series] | None,
     season: str,
     gw_range: list[int] | None = None,
     fixtures_behind: int | None = None,
@@ -457,6 +488,8 @@ def calc_predicted_points_for_player(
                     points += get_save_points(
                         position, player.player_id, mins, df_saves
                     )
+                if df_def_con is not None:
+                    points += get_def_con_points(player.player_id, mins, df_def_con)
 
             points /= len(recent_minutes)
 
@@ -479,6 +512,7 @@ def calc_predicted_points_for_pos(
     df_bonus: tuple[pd.Series, pd.Series] | None,
     df_saves: pd.Series | None,
     df_cards: pd.Series | None,
+    df_def_con: tuple[pd.Series, pd.Series] | None,
     season: str,
     gw_range: list[int],
     tag: str,
@@ -498,6 +532,7 @@ def calc_predicted_points_for_pos(
             df_bonus=df_bonus,
             df_saves=df_saves,
             df_cards=df_cards,
+            df_def_con=df_def_con,
             season=season,
             gw_range=gw_range,
             tag=tag,
@@ -679,6 +714,7 @@ def get_player_scores(
     gameweek: int,
     min_minutes: int = 0,
     max_minutes: int = 90,
+    position: str | None = None,
     dbsession: Session = session,
 ) -> pd.DataFrame:
     """
@@ -691,6 +727,16 @@ def get_player_scores(
         .filter(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
     )
+    if position:
+        query = query.join(
+            PlayerAttributes,
+            and_(
+                PlayerAttributes.player_id == PlayerScore.player_id,
+                PlayerAttributes.season == Fixture.season,
+                PlayerAttributes.gameweek == Fixture.gameweek,
+            ),
+        ).filter(PlayerAttributes.position == position)
+
     df = pd.read_sql(query.statement, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
@@ -805,3 +851,47 @@ def fit_card_points(
     )
 
     return mean_group_min_count(df, "player_id", "card_pts", min_count=min_matches)
+
+
+def fit_def_con(
+    gameweek: int = NEXT_GAMEWEEK,
+    season: str = CURRENT_SEASON,
+    min_matches: int = 10,
+    dbsession: Session = session,
+) -> tuple[pd.Series, pd.Series]:
+    """
+    Calculate the average defensive contribution points scored by each player for
+    matches they play between 60 and 90 minutes, and matches they play between 30 and
+    59 minutes.
+    Mean is calculated as sum of all bonus points divided by either the number of
+    maches the player has played in or min_matches, whichever is greater.
+
+    Returns tuple of dataframes - first index bonus points for 60 to 90 mins, second
+    index bonus points for 30 to 59 mins.
+    """
+
+    def get_def_con_df(min_minutes, max_minutes):
+        dfs = []
+        for position in ["DEF", "MID", "FWD"]:
+            df = get_player_scores(
+                season,
+                gameweek,
+                min_minutes=min_minutes,
+                max_minutes=max_minutes,
+                position=position,
+                dbsession=dbsession,
+            ).dropna(subset="defensive_contribution")
+            df["def_con_pts"] = (
+                df["defensive_contribution"] / def_cons_required[position]
+            ).astype(int) * points_for_def_cons
+            dfs.append(df)
+
+        df = pd.concat(dfs)
+        return mean_group_min_count(
+            df, "player_id", "def_con_pts", min_count=min_matches
+        )
+
+    df_90 = get_def_con_df(60, 90)
+    df_60 = get_def_con_df(30, 59)
+
+    return (df_90, df_60)
