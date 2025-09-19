@@ -12,7 +12,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.10,<4"
 dependencies = [
   "beautifulsoup4>=4.13.5",
-  "bpl",
+  "bpl @ git+https://github.com/anguswilliams91/bpl-next",
   "click>=8.3.0",
   "curl-cffi>=0.13.0",
   "dateparser>=1.2.2",
@@ -30,9 +30,6 @@ dependencies = [
   "sqlalchemy>=2.0.43",
   "tqdm>=4.67.1",
 ]
-
-[tool.uv.sources]
-bpl = {git = "https://github.com/anguswilliams91/bpl-next"}
 
 [tool.hatch.metadata]
 allow-direct-references = true

@@ -63,7 +63,7 @@ plot = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.5" },
-    { name = "bpl", git = "https://github.com/anguswilliams91/bpl-next?branch=update-migrate-uv" },
+    { name = "bpl", git = "https://github.com/anguswilliams91/bpl-next" },
     { name = "click", specifier = ">=8.3.0" },
     { name = "curl-cffi", specifier = ">=0.13.0" },
     { name = "dateparser", specifier = ">=1.2.2" },
@@ -262,10 +262,8 @@ wheels = [
 [[package]]
 name = "bpl"
 version = "0.3.0"
-source = { git = "https://github.com/anguswilliams91/bpl-next?branch=update-migrate-uv#80748911a6c7408b1dc26ba82eb8101c2a27f014" }
+source = { git = "https://github.com/anguswilliams91/bpl-next#55b338a83cfbb4d64a26e1f7167e82cd7afe6090" }
 dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "numpyro" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.16.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -2275,7 +2273,7 @@ wheels = [
 
 [[package]]
 name = "numpyro"
-version = "0.19.0"
+version = "0.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -2287,9 +2285,9 @@ dependencies = [
     { name = "numpy", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/7c/5d1b55401b023b58f792483c71690315d4d5cd1653fd3631fa5bcbd68601/numpyro-0.19.0.tar.gz", hash = "sha256:bbf5b772a6ba8b7a79448fa6787afb069e5eb2dff8295078c3ec04d3e6276742", size = 404421, upload-time = "2025-08-05T10:26:33.055Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/15/71770619d502ec081855c55e990ed6f2f18814d391330ea98093c4bb42e8/numpyro-0.13.2.tar.gz", hash = "sha256:526f0b15518094c78e68df6e330c9c1c9cea1274dac69f05617224fa6d954ee8", size = 340523, upload-time = "2023-09-24T02:05:36.795Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/31/9b5da5995988437756bc3f1eead2e314d8916259875c6924cb41692f2b41/numpyro-0.19.0-py3-none-any.whl", hash = "sha256:1063a2c131a0785719e13c8e55f1b82e41850d814df149418097531f4dbdeda8", size = 370906, upload-time = "2025-08-05T10:26:31.35Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/e1/545f037aa1d119d83bebb6816d9e01138bb2a2ee5878cdd1c1e76fe3a239/numpyro-0.13.2-py3-none-any.whl", hash = "sha256:1fa54dc75733a7520ae975bc76d1f2e04ba6f798d55b16401ee18f6e99ca4b21", size = 312725, upload-time = "2023-09-24T02:05:34.572Z" },
 ]
 
 [[package]]
