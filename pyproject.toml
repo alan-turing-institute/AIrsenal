@@ -9,27 +9,30 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<4"
 dependencies = [
-  "bpl @ git+https://github.com/anguswilliams91/bpl-next",
-  "click>=8.1.7",
-  "pandas>=2.2.1",
-  "requests>=2.31.0",
-  "sqlalchemy>=2.0.27",
-  "tqdm>=4.66.2",
-  "dateparser>=1.2.0",
-  "prettytable>=3.10.0",
-  "beautifulsoup4>=4.12.3",
-  "platformdirs>=4.2.0",
-  "deap>=1.4.1",
-  "python-dateutil>=2.8.2",
-  "lxml>=5.1.0",
-  "html5lib>=1.1",
-  "jax==0.4.24",
-  "jaxlib==0.4.24",
-  "numpy>1,<2",
+  "beautifulsoup4>=4.13.5",
+  "bpl",
+  "click>=8.3.0",
   "curl-cffi>=0.13.0",
+  "dateparser>=1.2.2",
+  "deap>=1.4.3",
+  "html5lib>=1.1",
+  "jax>=0.6.2",
+  "jaxlib>=0.6.2",
+  "lxml>=6.0.1",
+  "numpy>=2.2.6",
+  "pandas>=2.3.2",
+  "platformdirs>=4.4.0",
+  "prettytable>=3.16.0",
+  "python-dateutil>=2.9.0.post0",
+  "requests>=2.32.5",
+  "sqlalchemy>=2.0.43",
+  "tqdm>=4.67.1",
 ]
+
+[tool.uv.sources]
+bpl = {git = "https://github.com/anguswilliams91/bpl-next"}
 
 [tool.hatch.metadata]
 allow-direct-references = true
