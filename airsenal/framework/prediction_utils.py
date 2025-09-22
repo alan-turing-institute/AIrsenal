@@ -314,7 +314,6 @@ def get_def_con_points(
     must be changed together.
     """
     if minutes >= 60 and player_id in df_def_con[0].index:
-        print("Def cons points for", player_id, df_def_con[0].loc[player_id])  # DEBUG
         return df_def_con[0].loc[player_id]
     if (
         minutes >= 60
@@ -322,7 +321,6 @@ def get_def_con_points(
         or minutes < 30
     ):
         return 0
-    print("Def cons points for", player_id, df_def_con[1].loc[player_id])  # DEBUG
     return df_def_con[1].loc[player_id]
 
 
