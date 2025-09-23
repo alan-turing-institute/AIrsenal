@@ -1,6 +1,6 @@
 [project]
 name = "airsenal"
-version = "1.14.0"
+version = "1.14.1"
 description = "AI manager for Fantasy Premier League"
 authors = [
     {name = "Angus Williams", email = "anguswilliams91@gmail.com"},
@@ -29,15 +29,6 @@ dependencies = [
   "jaxlib==0.4.24",
   "numpy>1,<2",
   "curl-cffi>=0.13.0",
-  "pytest[dev]>=8.4.2",
-  "ruff[dev]>=0.13.1",
-  "pre-commit[dev]>=4.3.0",
-  "mypy[dev]>=1.18.2",
-  "pytest-cov[dev]>=7.0.0",
-  "pytest-sugar[dev]>=1.1.1",
-  "types-dateparser[dev]>=1.2.2.20250809",
-  "types-requests[dev]>=2.32.4.20250913",
-  "types-python-dateutil[dev]>=2.9.0.20250822",
 ]
 
 [tool.hatch.metadata]
@@ -48,15 +39,15 @@ api = ["Flask>=3.0.2"]
 notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
-    "pytest-cov>=4.1.0",
-    "ruff>=0.12.5",
-    "pre-commit>=3.6.2",
-    "pytest>=8.0.1",
-    "pytest-sugar>=1.0.0",
-    "types-dateparser>=1.2.2.20250627",
-    "types-requests>=2.32.4.20250611",
-    "mypy>=1.17.0",
-    "types-python-dateutil>=2.9.0.20250708",
+    "pytest>=8.4.2",
+    "ruff>=0.13.1",
+    "pre-commit>=4.3.0",
+    "mypy>=1.18.2",
+    "pytest-cov>=7.0.0",
+    "pytest-sugar>=1.1.1",
+    "types-dateparser>=1.2.2.20250809",
+    "types-requests>=2.32.4.20250913",
+    "types-python-dateutil>=2.9.0.20250822",
 ]
 
 [project.scripts]
