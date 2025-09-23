@@ -16,7 +16,7 @@ import regex as re
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from dateutil.parser import isoparse
-from sqlalchemy import case, desc, or_
+from sqlalchemy import case, or_
 from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
 
@@ -1353,6 +1353,8 @@ def estimate_minutes_from_prev_season(
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
     n_games_to_use: int = 10,
+    exclude_unavailable: bool = True,
+    current_team_only: bool = True,
     dbsession: Session | None = None,
 ) -> list[float]:
     """
@@ -1364,29 +1366,35 @@ def estimate_minutes_from_prev_season(
 
     # Only consider minutes the player played with his current team
     current_team = player.team(season, gameweek)
-    player_scores = (
+    query = (
         dbsession.query(PlayerScore)
         .filter_by(player_id=player.player_id)
         .filter(PlayerScore.fixture.has(season=previous_season))
-        .filter_by(player_team=current_team)
         .join(Fixture, PlayerScore.fixture)
-        .order_by(desc(Fixture.gameweek))
-        .all()
     )
+
+    if current_team_only:
+        current_team = player.team(season, gameweek)
+        query = query.filter(PlayerScore.player_team == current_team)
+
+    if exclude_unavailable:
+        query = query.filter(
+            or_(
+                PlayerScore.minutes >= 60,
+                PlayerScore.chance_of_playing == 100,
+                PlayerScore.chance_of_playing.is_(None),  # for backwards compatibility
+            )
+        )
+
+    player_scores = query.order_by(Fixture.gameweek.desc()).limit(n_games_to_use).all()
 
     if len(player_scores) == 0:
         # no FPL history / didn't play for current team last season
         return [0]
 
-    # Use average of last n games and all games from last season. Attempts to balance
-    # whether player was first choice at the end of the season vs. whether they were
-    # only not playing at the end of the season due to rotation/injury. First-choice
-    # players with long-term injuries early in the season will be underestimated.
-    average_mins_last_n = calc_average_minutes(player_scores[-n_games_to_use:])
-    average_mins_season = calc_average_minutes(player_scores)
-    average_mins = (average_mins_last_n + average_mins_season) / 2
-
-    return [average_mins]
+    # Return average minutes. A weakness of this is increased rotation at the end of the
+    # season when teams don't have anything to play for.
+    return [calc_average_minutes(player_scores)]
 
 
 def get_recent_playerscore_rows(
@@ -1394,6 +1402,8 @@ def get_recent_playerscore_rows(
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
+    exclude_unavailable: bool = False,
+    current_team_only: bool = False,
     dbsession: Session | None = None,
 ) -> list[PlayerScore]:
     """
@@ -1410,23 +1420,35 @@ def get_recent_playerscore_rows(
         # e.g. before this season has started
         return []
 
+    if last_gw is None and season != CURRENT_SEASON:
+        msg = "last_gw must be specified is running on previous seasons"
+        raise ValueError(msg)
+
     if last_gw is None or last_gw > last_available_gameweek:
         last_gw = last_available_gameweek
 
-    first_gw = last_gw - num_match_to_use
     # get the playerscore rows from the db
-    rows = (
+    query = (
         dbsession.query(PlayerScore)
-        .filter(PlayerScore.fixture.has(season=season))
-        .filter_by(player_id=player.player_id)
-        .filter(PlayerScore.fixture.has(Fixture.gameweek > first_gw))
+        .join(Fixture, PlayerScore.fixture_id == Fixture.fixture_id)
+        .filter(Fixture.season == season)
+        .filter(PlayerScore.player_id == player.player_id)
         .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
-        .all()
+        # minutes at least 60 or minutes less 60 and not unavailable
     )
-    # for speed, we use the fact that matches from this season
-    # are uploaded in order, so we can just take the last n
-    # rows, no need to look up dates and sort.
-    return rows[-num_match_to_use:]
+    if exclude_unavailable:
+        query = query.filter(
+            or_(
+                PlayerScore.minutes >= 60,
+                PlayerScore.chance_of_playing == 100,
+                PlayerScore.chance_of_playing.is_(None),  # for backwards compatibility
+            )
+        )
+    if current_team_only:
+        team = player.team(season, last_gw)
+        query = query.filter_by(played_for=team)
+
+    return query.order_by(Fixture.gameweek.desc()).limit(num_match_to_use).all()
 
 
 def get_playerscores_for_player_gameweek(
@@ -1455,6 +1477,8 @@ def get_recent_scores_for_player(
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
+    exclude_unavailable: bool = False,
+    current_team_only: bool = False,
     dbsession: Session | None = None,
 ) -> dict[int, int]:
     """
@@ -1462,12 +1486,21 @@ def get_recent_scores_for_player(
     FPL points for this player for each of these matches.
     Return a dict {gameweek: score, }
     """
-    if not last_gw:
+    if last_gw is None:
+        if season != CURRENT_SEASON:
+            msg = "last_gw must be specified if running on previous seasons"
+            raise ValueError(msg)
         last_gw = NEXT_GAMEWEEK
     first_gw = last_gw - num_match_to_use
 
     playerscores = get_recent_playerscore_rows(
-        player, num_match_to_use, season, last_gw, dbsession
+        player,
+        num_match_to_use,
+        season,
+        last_gw,
+        exclude_unavailable,
+        current_team_only,
+        dbsession,
     )
     if not playerscores:  # e.g. start of season
         return {}
@@ -1480,6 +1513,8 @@ def get_recent_minutes_for_player(
     num_match_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
+    exclude_unavailable: bool = True,
+    current_team_only: bool = True,
     dbsession: Session = session,
 ) -> list[float]:
     """
@@ -1488,35 +1523,28 @@ def get_recent_minutes_for_player(
     If current_gw is not given, we take it to be the most
     recent finished gameweek.
     """
+    if last_gw is None:
+        if season != CURRENT_SEASON:
+            msg = "last_gw must be defined if running on previous seasons"
+            raise ValueError(msg)
+        last_gw = NEXT_GAMEWEEK
+
     playerscores = (
         get_recent_playerscore_rows(
-            player, num_match_to_use, season, last_gw, dbsession
+            player,
+            num_match_to_use,
+            season,
+            last_gw,
+            exclude_unavailable,
+            current_team_only,
+            dbsession,
         )
         or []
     )
-    # If the player has not played a match or two in the last
-    # `num_matches_to_use` matches, then we check a couple of gameweeks further
-    # back.
-    if len(playerscores) < num_match_to_use:
-        playerscores = (
-            get_recent_playerscore_rows(
-                player, num_match_to_use + 2, season, last_gw, dbsession
-            )
-            or []
-        )
-    if len(playerscores) > num_match_to_use:
-        playerscores = playerscores[-num_match_to_use:]
 
     minutes = [float(r.minutes) for r in playerscores]
-    # if going back num_matches_to_use from last_gw takes us before the start
-    # of the season, also include a minutes estimate using last season's data
-    if last_gw is None:
-        if season != CURRENT_SEASON:
-            msg = "last_gw muust be defined if running on previous seasons"
-            raise RuntimeError(msg)
-        last_gw = NEXT_GAMEWEEK
-    first_gw = last_gw - num_match_to_use
-    if first_gw < 0:
+
+    if len(minutes) < num_match_to_use:
         minutes += estimate_minutes_from_prev_season(
             player, season, gameweek=last_gw, dbsession=dbsession
         )
