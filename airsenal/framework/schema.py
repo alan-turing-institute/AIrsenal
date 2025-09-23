@@ -321,6 +321,10 @@ class PlayerScore(Base):
     tackles: Mapped[int | None]
     recoveries: Mapped[int | None]
 
+    # populated from PlayerAttributes history from the morning of the match
+    chance_of_playing: Mapped[int | None]
+    news: Mapped[str100_optional]
+
     def __str__(self):
         return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
