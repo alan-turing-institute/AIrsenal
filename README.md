@@ -18,8 +18,6 @@ Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.
 
 ## Installation
 
-⚠️ Due to a dependency that currently forces AIrsenal to use an older version of `jaxlib`, AIrsenal doesn't work on Python 3.13 or later.
-
 We recommend using [uv](https://docs.astral.sh/uv/) for managing Python versions and dependencies. For instructions on how to install uv, go to: https://docs.astral.sh/uv/getting-started/installation/.
 
 ### Installation from source [Recommended]
