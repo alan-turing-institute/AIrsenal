@@ -1446,7 +1446,7 @@ def get_recent_playerscore_rows(
         )
     if current_team_only:
         team = player.team(season, last_gw)
-        query = query.filter_by(played_for=team)
+        query = query.filter(PlayerScore.player_team == team)
 
     return query.order_by(Fixture.gameweek.desc()).limit(num_match_to_use).all()
 
