@@ -95,3 +95,7 @@ def main():
                 "Run 'airsenal_setup_initial_db --clean' to delete and recreate it,\n"
                 "or keep the current database and continue to 'airsenal_update_db'."
             )
+
+
+if __name__ == "__main__":
+    main()
