@@ -184,7 +184,7 @@ def test_single_transfer():
         "airsenal.framework.optimization_transfers.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_squad, pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
+        new_squad, _pid_out, pid_in = make_optimum_single_transfer(t, "DUMMY", [1])
         # we should expect - player 115 to be transfered in, and to be captain.
     assert pid_in[0] == 115
     for p in new_squad.players:
@@ -245,7 +245,7 @@ def test_double_transfer():
         "airsenal.framework.optimization_transfers.get_predicted_points",
         side_effect=mock_pred_points,
     ):
-        new_squad, pid_out, pid_in = make_optimum_double_transfer(t, "DUMMY", [1])
+        new_squad, _pid_out, pid_in = make_optimum_double_transfer(t, "DUMMY", [1])
         # we should expect 201 and 115 to be transferred in, and 1,15 to
         # be transferred out.   115 should be captain
         assert 201 in pid_in
