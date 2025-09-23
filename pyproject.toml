@@ -1,6 +1,6 @@
 [project]
 name = "airsenal"
-version = "1.13.0"
+version = "1.14.0"
 description = "AI manager for Fantasy Premier League"
 authors = [
     {name = "Angus Williams", email = "anguswilliams91@gmail.com"},
