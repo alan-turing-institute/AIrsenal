@@ -29,6 +29,15 @@ dependencies = [
   "jaxlib==0.4.24",
   "numpy>1,<2",
   "curl-cffi>=0.13.0",
+  "pytest[dev]>=8.4.2",
+  "ruff[dev]>=0.13.1",
+  "pre-commit[dev]>=4.3.0",
+  "mypy[dev]>=1.18.2",
+  "pytest-cov[dev]>=7.0.0",
+  "pytest-sugar[dev]>=1.1.1",
+  "types-dateparser[dev]>=1.2.2.20250809",
+  "types-requests[dev]>=2.32.4.20250913",
+  "types-python-dateutil[dev]>=2.9.0.20250822",
 ]
 
 [tool.hatch.metadata]

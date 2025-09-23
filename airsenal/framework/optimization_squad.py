@@ -311,7 +311,7 @@ class SquadOpt:
         hall_of_fame = tools.HallOfFame(1)
 
         # Run the genetic algorithm
-        population, logbook = algorithms.eaSimple(
+        population, _logbook = algorithms.eaSimple(
             population,
             self.toolbox,
             cxpb=crossover_prob,

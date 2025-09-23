@@ -19,12 +19,12 @@ def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> N
         lines = f.readlines()
     for line in lines[1:]:
         (
-            date,
+            _date,
             home_team,
             away_team,
             home_score,
             away_score,
-            gameweek,
+            _gameweek,
         ) = line.strip().split(",")
         print(line.strip())
         for k, v in alternative_team_names.items():

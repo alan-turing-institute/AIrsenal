@@ -203,7 +203,7 @@ class NumpyroPlayerModel(BasePlayerModel):
             progress_bar=True,
             **(mcmc_kwargs or {}),
         )
-        rng_key, rng_key_predict = random.split(random.PRNGKey(random_state))
+        rng_key, _rng_key_predict = random.split(random.PRNGKey(random_state))
         mcmc.run(
             rng_key,
             data["nplayer"],
