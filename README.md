@@ -222,13 +222,12 @@ airsenal_make_squad --num_gameweeks 3
 
 ### 5. Apply Transfers and Lineup
 
-To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`. This can't be undone! You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers). Note that you must have created the `FPL_LOGIN` and `FPL_PASSWORD` files for these to work (as described in the "Configuration" section above).
+Note that you must have set `FPL_LOGIN` and `FPL_PASSWORD` for these to work (as described in the "Configuration" section above).
 
-⚠️ Also note that this command can't currently apply chips such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline via the FPL website.
+To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`.
+- **🚨 This can't be undone and may incur points hits! 🚨** Also, this command **can't currently apply chips** such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline **via the FPL website**.
 
-## Contributing
-
-We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
+You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
 
 ## Issues and New Features
 
@@ -243,6 +242,11 @@ uv sync  # or "pip install --force-reinstall ." if not using uv
 ```
 
 If there have been database changes you may also need to run `airsenal_setup_initial_db --clean` after the above.
+
+## Contributing
+
+We welcome all types of contribution to AIrsenal, for example questions, documentation, bug fixes, new features and more. Please see our [contributing guidelines](CONTRIBUTING.md). If you're contributing for the first time but not sure what to do a good place to start may be to look at our [current issues](https://github.com/alan-turing-institute/AIrsenal/issues), particularly any with the ["Good first issue" tag](https://github.com/alan-turing-institute/AIrsenal/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Also feel free to just say hello!
+
 
 ## Development
 
