@@ -109,6 +109,10 @@ def fill_attributes_table_from_api(
 
         # First update the current gameweek using the summary data
         p_summary = input_data[player_api_id]
+
+        if player.opta_code is None and "opta_code" in p_summary:
+            player.opta_code = p_summary["opta_code"]
+
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
