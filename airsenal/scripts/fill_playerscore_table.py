@@ -64,15 +64,17 @@ def get_status_from_attributes_history(
     if fixture.season != df_attributes["season"].iloc[0]:
         msg = "Attributes dataframe season does not match fixture season"
         raise ValueError(msg)
-    matchday = parse_date(fixture.date)
-    opta_code = player.opta_code
-    if opta_code is None:
-        msg = f"Player {player} has no opta_code"
-        raise ValueError(msg)
 
-    mask = (df_attributes["day"] == matchday) & (
-        df_attributes["opta_code"] == opta_code
-    )
+    matchday = parse_date(fixture.date)
+    mask = df_attributes["day"] == matchday
+
+    if (opta_code := player.opta_code) is not None:
+        mask = mask & (df_attributes["opta_code"] == opta_code)
+    else:
+        msg = f"Player {player} has no opta_code"
+        warnings.warn(msg, stacklevel=2)
+        mask = mask & (df_attributes["player"] == player.name)
+
     if mask.sum() != 1 and is_future_gameweek(
         fixture.season,
         fixture.gameweek,
