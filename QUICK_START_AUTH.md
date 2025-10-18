@@ -14,18 +14,18 @@ The FPL API changed in October 2025 and now blocks automated logins. I've create
 uv run python extract_browser_auth.py
 ```
 
-Tip: If validation seems slow or you don't see output right away, you can try:
+**OR** if pasting doesn't work, pass the token directly:
 
-- Increase timeout: `uv run python extract_browser_auth.py --timeout 20`
-- Skip validation: `uv run python extract_browser_auth.py --no-validate`
-- Show errors: `uv run python extract_browser_auth.py --debug`
+```bash
+uv run python extract_browser_auth.py --token YOUR_TOKEN_HERE
+```
 
 **Step 2** - Follow the prompts:
 
 1. Login to FPL in your browser (https://fantasy.premierleague.com/)
-2. Use browser DevTools to extract your token (detailed instructions provided)
-3. Paste the token when prompted
-4. Script validates (may take up to 10s by default) and saves it
+2. Extract your token using browser DevTools (instructions provided by the script)
+3. If prompted, paste the token and press ENTER
+4. Script validates and saves it
 
 **Step 3** - Use AIrsenal normally:
 
@@ -60,53 +60,24 @@ I've created the following helper files:
 
 If you want to do it manually without the script:
 
-### Method 1: Using Network Tab (Most Reliable)
+### Using Network Tab
 
 1. Login to https://fantasy.premierleague.com/
-2. Press **F12** (or Cmd+Option+I on Mac)
+2. Press **F12** (or Cmd+Option+I on Mac) to open Developer Tools
 3. Click **Network** tab
-4. Navigate to your team: https://fantasy.premierleague.com/my-team
-5. In the Network tab, look for a request to **`me`** or **`my-team`**
-6. Click on it, then click **Headers** section
-7. Scroll down to find **Request Headers**
-8. Find `X-API-Authorization: Bearer <very-long-token>`
-9. Copy everything AFTER `Bearer ` (the long token string)
+4. Refresh the page (F5 or Cmd+R)
+5. In the Network list, look for a request that shows **your team ID number**
+   - It will be a 7-digit number like `1234567`
+   - This is usually one of the first requests
+6. Click on that request
+7. In the right panel, click the **Headers** tab
+8. Scroll down to **Request Headers** section
+9. Find `X-API-Authorization: Bearer <very-long-token>`
+10. Copy ONLY the token part (everything after `Bearer `)
+    - Don't include the word "Bearer"
+    - The token should be a very long string of random characters
 
-### Method 2: Using Local Storage (If Available)
-
-1. Login to https://fantasy.premierleague.com/
-2. Press **F12** (or Cmd+Option+I on Mac)
-3. Click **Application** tab (Chrome) or **Storage** tab (Firefox)
-4. In the sidebar, expand **Local Storage**
-5. Click on `https://fantasy.premierleague.com`
-6. Look for a key starting with `oidc.user:`
-7. Click on it and look at the JSON value
-8. Find and copy the `access_token` value
-
-### Method 3: Using Console (Alternative)
-
-1. Login to https://fantasy.premierleague.com/
-2. Press **F12** (or Cmd+Option+I on Mac)
-3. Click **Console** tab
-4. Try this first:
-
-```javascript
-JSON.parse(
-  localStorage.getItem(
-    "oidc.user:https://account.premierleague.com/:bfcbaf69-aade-4c1b-8f00-c1cb8a193030"
-  )
-).access_token;
-```
-
-5. If that gives an error, try listing all localStorage keys:
-
-```javascript
-Object.keys(localStorage).filter((k) => k.includes("oidc"));
-```
-
-6. Then use the correct key name in the first command
-
-### Save it:
+### Save it manually:
 
 Create/edit `~/.airsenal/.fpl_auth_token` (on Mac: `~/Library/Application Support/airsenal/.fpl_auth_token`):
 
@@ -180,12 +151,15 @@ uv run airsenal_run_optimization --weeks_ahead 3
 **"ModuleNotFoundError: No module named 'airsenal'"**
 → Always use: `uv run python extract_browser_auth.py` (not just `python`)
 
-**Pasted token and nothing happens**
-→ Validation can take up to the timeout (default 10s). You can:
+**Pasting token doesn't work**
+→ Use the --token parameter instead:
+```bash
+uv run python extract_browser_auth.py --token YOUR_TOKEN_HERE
+```
 
-- Increase timeout, e.g. `uv run python extract_browser_auth.py --timeout 20`
-- Skip validation and just save with `--no-validate`
-- Run with `--debug` to see detailed errors
+**Can't find the network request**
+→ The request name is your team ID (a 7-digit number), not "me" or "my-team"
+→ Try refreshing the page to see new requests appear
 
 **Token doesn't work after saving**
 → Restart any running AIrsenal processes

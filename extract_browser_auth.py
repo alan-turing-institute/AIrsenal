@@ -93,44 +93,34 @@ to use with AIrsenal, working around the new FPL API restrictions.
     
     print_step(2, "Extract the authentication token")
     print("""
-Now we need to extract your access token from the browser.
+Now we need to extract your access token from the browser using the Network tab.
 
-    OPTION A - Using Network Tab (MOST RELIABLE):
+    Using Network Tab:
     1. Press F12 (or Cmd+Option+I on Mac) to open Developer Tools
     2. Click the 'Network' tab
-        3. Refresh the page (F5 or Cmd+R) or click around (e.g., My Team)
-        4. Look for a request to 'me' or 'my-team' in the list
-        5. Click on it, then go to 'Headers' section
-        6. Scroll down to 'Request Headers'
-        7. Find 'X-API-Authorization: Bearer <very-long-token>'
-        8. Copy everything AFTER 'Bearer ' (not including 'Bearer ')
-    
-    OPTION B - Using Console (May not work for everyone):
-        1. Press F12 (or Cmd+Option+I on Mac) to open Developer Tools
-        2. Click the 'Console' tab
-        3. Paste this JavaScript code and press ENTER:
-
-            JSON.parse(localStorage.getItem('oidc.user:https://account.premierleague.com/:bfcbaf69-aade-4c1b-8f00-c1cb8a193030')).access_token
-
-        4. If you get an error, the token might not be in localStorage
-        5. Use OPTION A or OPTION C instead
-    
-    OPTION C - Using Application/Storage Tab:
-        1. Press F12 to open Developer Tools
-        2. Click 'Application' tab (Chrome) or 'Storage' tab (Firefox)
-        3. Expand 'Local Storage' in the sidebar
-        4. Click on 'https://fantasy.premierleague.com'
-        5. Look for a key starting with 'oidc.user:'
-        6. Click on it and find 'access_token' in the JSON value
-    7. Copy everything after 'Bearer '
+    3. Refresh the page (F5 or Cmd+R)
+    4. In the Network list, look for a request that shows your team ID number
+       (it will be a 7-digit number like '1234567')
+    5. Click on that request
+    6. In the right panel, click the 'Headers' tab
+    7. Scroll down to the 'Request Headers' section
+    8. Find the line 'X-API-Authorization: Bearer <very-long-token>'
+    9. Copy ONLY the token part (everything after 'Bearer ')
+       - Don't include the word 'Bearer' itself
+       - The token should be a very long string of random characters
     """)
     
     print("\n" + "-" * 70)
+    print("\nIMPORTANT: If pasting the token interactively doesn't work,")
+    print("you can pass it as a parameter instead:")
+    print("  uv run python extract_browser_auth.py --token YOUR_TOKEN_HERE")
+    print("-" * 70)
+    
     if args.token:
         token = args.token.strip()
         print("\nToken provided via --token flag.")
     else:
-        token = input("\nPaste your access token here: ").strip()
+        token = input("\nPaste your access token here and press ENTER: ").strip()
     
     # Clean up the token (remove quotes if present)
     token = token.strip('"').strip("'").strip()

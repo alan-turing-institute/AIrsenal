@@ -100,37 +100,20 @@ The AIrsenal maintainers will need to implement one of:
 
 If you prefer not to use the script, you can manually extract tokens:
 
-### Method 1: Network Tab (Most Reliable)
+### Using Network Tab (Recommended Method)
 
 1. Login to https://fantasy.premierleague.com/
-2. Press F12 → Network tab
-3. Refresh the page or navigate to https://fantasy.premierleague.com/my-team
-4. Look for a request to `me` or `my-team`
-5. Click it → Headers → Request Headers
-6. Find `X-API-Authorization: Bearer <token>`
-7. Copy everything after `Bearer `
-
-### Method 2: Console (May not work)
-
-1. Login to https://fantasy.premierleague.com/
-2. Press F12 → Console tab
-3. Try pasting and running:
-   ```javascript
-   JSON.parse(
-     localStorage.getItem(
-       "oidc.user:https://account.premierleague.com/:bfcbaf69-aade-4c1b-8f00-c1cb8a193030"
-     )
-   ).access_token;
-   ```
-4. If you get an error about `null`, use Method 1 instead
-
-### Method 3: Application/Storage Tab
-
-1. Login to https://fantasy.premierleague.com/
-2. Press F12 → Application tab (Chrome) or Storage tab (Firefox)
-3. Expand Local Storage → https://fantasy.premierleague.com
-4. Find key starting with `oidc.user:`
-5. Copy the `access_token` value
+2. Press F12 to open Developer Tools
+3. Click the **Network** tab
+4. Refresh the page (F5 or Cmd+R)
+5. In the Network list, look for a request that shows **your team ID number**
+   - It will be a 7-digit number like `1234567`
+   - This is usually one of the first requests
+6. Click on that request
+7. In the right panel, click **Headers**
+8. Scroll down to **Request Headers**
+9. Find `X-API-Authorization: Bearer <very-long-token>`
+10. Copy ONLY the token (everything after `Bearer `, not including "Bearer" itself)
 
 Then create `~/.airsenal/.fpl_auth_token`:
 
@@ -160,6 +143,18 @@ Then create `~/.airsenal/.fpl_auth_token`:
 
 - Run from the AIrsenal directory
 - Always use: `uv run python extract_browser_auth.py`
+
+**Pasting token doesn't work:**
+
+- Use the --token parameter instead:
+  ```bash
+  uv run python extract_browser_auth.py --token YOUR_TOKEN_HERE
+  ```
+
+**Can't find the network request:**
+
+- The request name is your team ID (a 7-digit number), not "me" or "my-team"
+- Try refreshing the page to see new requests appear
 
 ## Questions?
 
