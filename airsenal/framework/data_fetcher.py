@@ -61,10 +61,11 @@ class FPLDataFetcher:
     """
 
     def __init__(self, fpl_team_id: int | None = None, rsession=None):
-        self.rsession = rsession or requests.Session(impersonate="chrome")
+        self.rsession = rsession or requests.Session(impersonate="chrome131")
         self.headers: dict[str, str] = {}
         self.logged_in = False
         self.login_failed = False
+        self._try_load_cached_token()
         self.current_summary_data: dict = {}
         self.current_event_data: dict = {}
         self.current_player_data: dict = {}
@@ -96,6 +97,47 @@ class FPLDataFetcher:
         )
         self.FPL_FIXTURE_URL = f"{API_HOME}/fixtures/"
         self.FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
+
+    def _try_load_cached_token(self):
+        """
+        Try to load a cached authentication token from browser extraction.
+        This is a workaround for the new FPL API that blocks automated logins.
+        """
+        import os
+        from airsenal.framework.env import AIRSENAL_HOME
+        
+        token_file = os.path.join(AIRSENAL_HOME, ".fpl_auth_token")
+        
+        if os.path.exists(token_file):
+            try:
+                with open(token_file, "r") as f:
+                    auth_data = json.load(f)
+                
+                access_token = auth_data.get("access_token")
+                if access_token:
+                    # Test if the token is still valid
+                    self.headers = {"X-API-Authorization": f"Bearer {access_token}"}
+                    try:
+                        response = self._get_request(LOGIN_URLS["me"])
+                        if "player" in response:
+                            self.logged_in = True
+                            warnings.warn(
+                                f"Using cached authentication token for team "
+                                f"{auth_data.get('team_id', 'unknown')}. "
+                                f"If this fails, run extract_browser_auth.py to get a new token.",
+                                stacklevel=2,
+                            )
+                            return True
+                    except Exception:
+                        # Token is invalid/expired
+                        pass
+                
+                # Token is invalid, remove the headers
+                self.headers = {}
+            except (json.JSONDecodeError, IOError):
+                pass
+        
+        return False
 
     def get_fpl_credentials(self):
         """
@@ -185,7 +227,8 @@ class FPLDataFetcher:
             self._set_login_failed(msg="Failed to extract state.")
             return
 
-        # Step 2: Use accessToken to get interaction id and token
+        # Step 2: Use accessToken to get interaction id
+        # Note: As of Oct 2025, the API no longer returns interactionToken in the initial response
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
@@ -194,47 +237,53 @@ class FPLDataFetcher:
         try:
             r_json = response.json()
             interaction_id = r_json["interactionId"]
-            interaction_token = r_json["interactionToken"]
             response_id = r_json["id"]
+            # interactionToken no longer provided in Oct 2025 API update
+            interaction_token = r_json.get("interactionToken")
         except (json.JSONDecodeError, KeyError) as e:
             self._set_login_failed(
-                exception=e, msg="Failed to extract interaction token."
+                exception=e, msg="Failed to extract interaction ID."
             )
             return
 
-        # Step 3: log in with interaction tokens (requires 3 post requests)
-        response = self.rsession.post(
-            LOGIN_URLS["login"].format(STANDARD_CONNECTION_ID),
-            headers={
-                "interactionId": interaction_id,
-                "interactionToken": interaction_token,
-            },
-            json={
-                "id": response_id,
-                "eventName": "continue",
-                "parameters": {"eventType": "polling"},
-                "pollProps": {
-                    "status": "continue",
-                    "delayInMs": 10,
-                    "retriesAllowed": 1,
-                    "pollChallengeStatus": False,
+        # Step 3: log in with interaction ID (updated flow for Oct 2025 API)
+        # If we have interactionToken (old API), use it; otherwise proceed without it (new API)
+        if interaction_token:
+            # Old API flow with interactionToken
+            response = self.rsession.post(
+                LOGIN_URLS["login"].format(STANDARD_CONNECTION_ID),
+                headers={
+                    "interactionId": interaction_id,
+                    "interactionToken": interaction_token,
                 },
-            },
-        )
-        try:
-            response_id = response.json()["id"]
-        except (json.JSONDecodeError, KeyError) as e:
-            self._set_login_failed(
-                exception=e, msg="Interaction token Post 1 Failed (id generation)"
+                json={
+                    "id": response_id,
+                    "eventName": "continue",
+                    "parameters": {"eventType": "polling"},
+                    "pollProps": {
+                        "status": "continue",
+                        "delayInMs": 10,
+                        "retriesAllowed": 1,
+                        "pollChallengeStatus": False,
+                    },
+                },
             )
-            return
+            try:
+                response_id = response.json()["id"]
+            except (json.JSONDecodeError, KeyError) as e:
+                self._set_login_failed(
+                    exception=e, msg="Login Post 1 Failed (id generation)"
+                )
+                return
+
+        # Post credentials (works with or without interactionToken)
+        login_headers = {"interactionId": interaction_id, "Content-Type": "application/json"}
+        if interaction_token:
+            login_headers["interactionToken"] = interaction_token
 
         response = self.rsession.post(
             LOGIN_URLS["login"].format(STANDARD_CONNECTION_ID),
-            headers={
-                "interactionId": interaction_id,
-                "interactionToken": interaction_token,
-            },
+            headers=login_headers,
             json={
                 "id": response_id,
                 "nextEvent": {
@@ -256,11 +305,11 @@ class FPLDataFetcher:
         try:
             r_json = response.json()
             response_id = r_json["id"]
-            connection_id = r_json["connectionId"]
+            connection_id = r_json.get("connectionId", STANDARD_CONNECTION_ID)
         except (json.JSONDecodeError, KeyError) as e:
             self._set_login_failed(
                 exception=e,
-                msg="Interaction token Post 2 Failed (connectionID generation)",
+                msg="Login Post 2 Failed (connectionID generation)",
             )
             return
 
@@ -278,7 +327,7 @@ class FPLDataFetcher:
                 },
                 "parameters": {
                     "buttonType": "form-submit",
-                    "buttonValue": "SIGNON",
+                    "buttonValue": "CONTINUE",
                 },
                 "eventName": "continue",
             },
@@ -288,7 +337,7 @@ class FPLDataFetcher:
         except (json.JSONDecodeError, KeyError) as e:
             self._set_login_failed(
                 exception=e,
-                msg="Interaction token Post 3 Failed (dvResponse generation)",
+                msg="Login Post 3 Failed (dvResponse generation)",
             )
             return
 
@@ -344,7 +393,12 @@ class FPLDataFetcher:
             "Login failed due to the error above. Continuing without login but this "
             "may cause issues later due to not having your latest team details. Login "
             "failures could be caused by issues with your username and password, "
-            "connection problems, or changes to the API."
+            "connection problems, or changes to the API.\n\n"
+            "WORKAROUND: Due to FPL API changes (Oct 2025), automated login may not work. "
+            "You can extract your browser authentication token instead:\n"
+            "  1. Run: python extract_browser_auth.py\n"
+            "  2. Follow the instructions to extract your token from the browser\n"
+            "  3. The token will be cached and used automatically"
         )
         warnings.warn(f"{msg}\n{exc_str}\n{help}", stacklevel=3)
 
@@ -484,11 +538,8 @@ class FPLDataFetcher:
             return self.fpl_league_data
 
         self.login()
-        r = self._get_request(self.FPL_LEAGUE_URL)
-        if r.status_code != 200:
-            print("Unable to access FPL league API")
-            return None
-        self.fpl_league_data = json.loads(r.content.decode("utf-8"))
+        # _get_request returns the parsed JSON on success or raises on failure
+        self.fpl_league_data = self._get_request(self.FPL_LEAGUE_URL)
         return self.fpl_league_data
 
     def get_event_data(self):
