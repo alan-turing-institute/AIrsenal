@@ -186,7 +186,6 @@ class FPLDataFetcher:
             return
 
         # Step 2: Use accessToken to get interaction id
-        # NOTE: interactionToken has been deprecated by PingOne DaVinci
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
@@ -197,13 +196,10 @@ class FPLDataFetcher:
             interaction_id = r_json["interactionId"]
             response_id = r_json["id"]
         except (json.JSONDecodeError, KeyError) as e:
-            self._set_login_failed(
-                exception=e, msg="Failed to extract interaction ID."
-            )
+            self._set_login_failed(exception=e, msg="Failed to extract interaction ID.")
             return
 
         # Step 3: log in with interaction ID (requires 3 post requests)
-        # NOTE: interactionToken header is no longer needed (deprecated by PingOne DaVinci)
         response = self.rsession.post(
             LOGIN_URLS["login"].format(STANDARD_CONNECTION_ID),
             headers={
