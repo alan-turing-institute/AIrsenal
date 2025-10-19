@@ -40,7 +40,7 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.13.1",
+    "ruff>=0.14.1",
     "pre-commit>=4.3.0",
     "mypy>=1.18.2",
     "pytest-cov>=7.0.0",
