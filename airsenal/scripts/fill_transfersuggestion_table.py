@@ -382,7 +382,10 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
 
 
 def print_team_for_next_gw(
-    strat: dict, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
+    strat: dict,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    use_api: bool = False,
 ) -> Squad:
     """
     Display the team (inc. subs and captain) for the next gameweek
@@ -390,7 +393,9 @@ def print_team_for_next_gw(
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     next_gw = gameweeks_as_int[0]
-    t = get_starting_squad(next_gw=next_gw, season=season, fpl_team_id=fpl_team_id)
+    t = get_starting_squad(
+        next_gw=next_gw, season=season, fpl_team_id=fpl_team_id, use_api=use_api
+    )
     for pidout in strat["players_out"][str(next_gw)]:
         t.remove_player(pidout)
     for pidin in strat["players_in"][str(next_gw)]:
@@ -620,7 +625,7 @@ def run_optimization(
     print(f"Best score: {best_strategy['total_score']}")
     print_strat(best_strategy)
     best_squad = print_team_for_next_gw(
-        best_strategy, season=season, fpl_team_id=fpl_team_id
+        best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
 
     # If a valid discord webhook URL has been stored
