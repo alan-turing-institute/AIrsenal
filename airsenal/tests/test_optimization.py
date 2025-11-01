@@ -283,8 +283,38 @@ def test_next_week_transfers_no_chips_no_constraints():
         allow_unused_transfers=True,
         max_opt_transfers=2,
     )
-    # (no. transfers, free transfers following week, points hit)
-    expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4)]
+    # (no. transfers, free transfers next week, total points hit, points hit this gw)
+    expected = [(0, 2, 0, 0), (1, 1, 0, 0), (2, 1, 4, 4)]
+    assert actual == expected
+
+
+def test_next_week_transfers_no_free_transfers_available():
+    # First week (blank starting strat with no free transfer available)
+    strat = (0, 0, {"players_in": {}, "chips_played": {}})
+    # No chips or constraints
+    actual = next_week_transfers(
+        strat,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        max_opt_transfers=2,
+    )
+    # (no. transfers, free transfers next week, total points hit, points hit this gw)
+    expected = [(0, 1, 0, 0), (1, 1, 4, 4), (2, 1, 8, 8)]
+    assert actual == expected
+
+
+def test_next_week_transfers_with_hits_already_taken():
+    # First week (blank starting strat with 4 points hits already taken)
+    strat = (1, 4, {"players_in": {}, "chips_played": {}})
+    # No chips or constraints
+    actual = next_week_transfers(
+        strat,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        max_opt_transfers=2,
+    )
+    # (no. transfers, free transfers next week, total points hit, points hit this gw)
+    expected = [(0, 2, 4, 0), (1, 1, 4, 0), (2, 1, 8, 4)]
     assert actual == expected
 
 
@@ -298,8 +328,15 @@ def test_next_week_transfers_no_chips_no_constraints_max5():
         allow_unused_transfers=True,
         max_opt_transfers=5,
     )
-    # (no. transfers, free transfers following week, points hit)
-    expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4), (3, 1, 8), (4, 1, 12), (5, 1, 16)]
+    # (no. transfers, free transfers next week, total points hit, points hit this gw)
+    expected = [
+        (0, 2, 0, 0),
+        (1, 1, 0, 0),
+        (2, 1, 4, 4),
+        (3, 1, 8, 8),
+        (4, 1, 12, 12),
+        (5, 1, 16, 16),
+    ]
     assert actual == expected
 
 
@@ -316,17 +353,17 @@ def test_next_week_transfers_any_chip_no_constraints():
         },
     )
     expected = [
-        (0, 2, 0),
-        (1, 1, 0),
-        (2, 1, 4),
-        ("W", 1, 0),
-        ("F", 1, 0),
-        ("B0", 2, 0),
-        ("B1", 1, 0),
-        ("B2", 1, 4),
-        ("T0", 2, 0),
-        ("T1", 1, 0),
-        ("T2", 1, 4),
+        (0, 2, 0, 0),
+        (1, 1, 0, 0),
+        (2, 1, 4, 4),
+        ("W", 1, 0, 0),
+        ("F", 1, 0, 0),
+        ("B0", 2, 0, 0),
+        ("B1", 1, 0, 0),
+        ("B2", 1, 4, 4),
+        ("T0", 2, 0, 0),
+        ("T1", 1, 0, 0),
+        ("T2", 1, 4, 4),
     ]
     assert actual == expected
 
@@ -344,26 +381,26 @@ def test_next_week_transfers_any_chip_no_constraints_max5():
         },
     )
     expected = [
-        (0, 2, 0),
-        (1, 1, 0),
-        (2, 1, 4),
-        (3, 1, 8),
-        (4, 1, 12),
-        (5, 1, 16),
-        ("W", 1, 0),
-        ("F", 1, 0),
-        ("B0", 2, 0),
-        ("B1", 1, 0),
-        ("B2", 1, 4),
-        ("B3", 1, 8),
-        ("B4", 1, 12),
-        ("B5", 1, 16),
-        ("T0", 2, 0),
-        ("T1", 1, 0),
-        ("T2", 1, 4),
-        ("T3", 1, 8),
-        ("T4", 1, 12),
-        ("T5", 1, 16),
+        (0, 2, 0, 0),
+        (1, 1, 0, 0),
+        (2, 1, 4, 4),
+        (3, 1, 8, 8),
+        (4, 1, 12, 12),
+        (5, 1, 16, 16),
+        ("W", 1, 0, 0),
+        ("F", 1, 0, 0),
+        ("B0", 2, 0, 0),
+        ("B1", 1, 0, 0),
+        ("B2", 1, 4, 4),
+        ("B3", 1, 8, 8),
+        ("B4", 1, 12, 12),
+        ("B5", 1, 16, 16),
+        ("T0", 2, 0, 0),
+        ("T1", 1, 0, 0),
+        ("T2", 1, 4, 4),
+        ("T3", 1, 8, 8),
+        ("T4", 1, 12, 12),
+        ("T5", 1, 16, 16),
     ]
     assert actual == expected
 
@@ -377,7 +414,7 @@ def test_next_week_transfers_no_chips_zero_hit():
         allow_unused_transfers=True,
         max_opt_transfers=2,
     )
-    expected = [(0, 2, 0), (1, 1, 0)]
+    expected = [(0, 2, 0, 0), (1, 1, 0, 0)]
     assert actual == expected
 
 
@@ -390,7 +427,7 @@ def test_next_week_transfers_no_chips_zero_hit_max5():
         allow_unused_transfers=True,
         max_opt_transfers=5,
     )
-    expected = [(0, 2, 0), (1, 1, 0)]
+    expected = [(0, 2, 0, 0), (1, 1, 0, 0)]
     assert actual == expected
 
 
@@ -404,7 +441,7 @@ def test_next_week_transfers_2ft_no_unused():
         max_opt_transfers=2,
         max_free_transfers=2,
     )
-    expected = [(1, 2, 0), (2, 1, 0)]
+    expected = [(1, 2, 0, 0), (2, 1, 0, 0)]
     assert actual == expected
 
 
@@ -418,7 +455,7 @@ def test_next_week_transfers_5ft_no_unused_max5():
         max_opt_transfers=5,
         max_free_transfers=5,
     )
-    expected = [(1, 5, 0), (2, 4, 0), (3, 3, 0), (4, 2, 0), (5, 1, 0)]
+    expected = [(1, 5, 0, 0), (2, 4, 0, 0), (3, 3, 0, 0), (4, 2, 0, 0), (5, 1, 0, 0)]
     assert actual == expected
 
 
@@ -432,7 +469,7 @@ def test_next_week_transfers_3ft_no_hit_max5():
         max_opt_transfers=5,
         max_free_transfers=5,
     )
-    expected = [(0, 4, 0), (1, 3, 0), (2, 2, 0), (3, 1, 0)]
+    expected = [(0, 4, 0, 0), (1, 3, 0, 0), (2, 2, 0, 0), (3, 1, 0, 0)]
     assert actual == expected
 
 
@@ -456,7 +493,7 @@ def test_next_week_transfers_chips_already_used():
         max_total_hit=None,
         max_opt_transfers=2,
     )
-    expected = [(0, 2, 0), (1, 1, 0), (2, 1, 4)]
+    expected = [(0, 2, 0, 0), (1, 1, 0, 0), (2, 1, 4, 4)]
     assert actual == expected
 
 
@@ -468,7 +505,7 @@ def test_next_week_transfers_play_wildcard():
         max_opt_transfers=2,
         chips={"chips_allowed": [], "chip_to_play": "wildcard"},
     )
-    expected = [("W", 1, 0)]
+    expected = [("W", 1, 0, 0)]
     assert actual == expected
 
 
@@ -481,7 +518,7 @@ def test_next_week_transfers_2ft_allow_wildcard():
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
         max_free_transfers=2,
     )
-    expected = [(0, 2, 0), (1, 2, 0), (2, 1, 0), ("W", 2, 0)]
+    expected = [(0, 2, 0, 0), (1, 2, 0, 0), (2, 1, 0, 0), ("W", 2, 0, 0)]
     assert actual == expected
 
 
@@ -495,13 +532,13 @@ def test_next_week_transfers_5ft_allow_wildcard():
         max_free_transfers=5,
     )
     expected = [
-        (0, 5, 0),
-        (1, 5, 0),
-        (2, 4, 0),
-        (3, 3, 0),
-        (4, 2, 0),
-        (5, 1, 0),
-        ("W", 5, 0),
+        (0, 5, 0, 0),
+        (1, 5, 0, 0),
+        (2, 4, 0, 0),
+        (3, 3, 0, 0),
+        (4, 2, 0, 0),
+        (5, 1, 0, 0),
+        ("W", 5, 0, 0),
     ]
     assert actual == expected
 
@@ -516,7 +553,7 @@ def test_next_week_transfers_2ft_allow_wildcard_no_unused():
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
         max_free_transfers=2,
     )
-    expected = [(1, 2, 0), (2, 1, 0), ("W", 2, 0)]
+    expected = [(1, 2, 0, 0), (2, 1, 0, 0), ("W", 2, 0, 0)]
     assert actual == expected
 
 
@@ -528,7 +565,7 @@ def test_next_week_transfers_2ft_play_wildcard():
         max_opt_transfers=2,
         chips={"chips_allowed": [], "chip_to_play": "wildcard"},
     )
-    expected = [("W", 2, 0)]
+    expected = [("W", 2, 0, 0)]
     assert actual == expected
 
 
@@ -542,7 +579,7 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
         chips={"chips_allowed": [], "chip_to_play": "bench_boost"},
         max_free_transfers=2,
     )
-    expected = [("B1", 2, 0), ("B2", 1, 0)]
+    expected = [("B1", 2, 0, 0), ("B2", 1, 0, 0)]
     assert actual == expected
 
 
@@ -555,7 +592,7 @@ def test_next_week_transfers_play_triple_captain_max_transfers_3():
         max_opt_transfers=3,
         chips={"chips_allowed": [], "chip_to_play": "triple_captain"},
     )
-    expected = [("T0", 2, 0), ("T1", 1, 0), ("T2", 1, 4), ("T3", 1, 8)]
+    expected = [("T0", 2, 0, 0), ("T1", 1, 0, 0), ("T2", 1, 4, 4), ("T3", 1, 8, 8)]
     assert actual == expected
 
 
