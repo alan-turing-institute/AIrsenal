@@ -436,7 +436,7 @@ def next_week_transfers(
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or chip played) in the following gameweek.
 
-    strat is a tuple (free_transfers, total_points_hits, strat_dict)
+    strat is a tuple (free_transfers, total_points_hit, strat_dict)
     strat_dict must have key chips_played, which is a dict indexed by gameweek with
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
 
@@ -446,8 +446,8 @@ def next_week_transfers(
     max_free_transfers - maximum number of free transfers saved in the game rules
     (2 before 2024/25, 5 from 2024/25 season)
 
-    Returns (new_transfers, new_ft_available, total_points_hits, hit_this_gw) tuples.
-        - total_points_hits is the total points hit so far including this gw
+    Returns (new_transfers, new_ft_available, total_points_hit, hit_this_gw) tuples.
+        - total_points_hit is the total points hit so far including this gw
         - hit_this_gw is the points hit incurred this gameweek
     """
     # check that the 'chips' dict we are given makes sense:
@@ -527,7 +527,7 @@ def next_week_transfers(
             new_transfers += [f"T{nt}" for nt in ft_choices]
 
     hit_this_gw = [calc_points_hit(nt, ft_available) for nt in new_transfers]
-    total_points_hits = [hit_so_far + hit for hit in hit_this_gw]
+    total_points_hit = [hit_so_far + hit for hit in hit_this_gw]
     new_ft_available = [
         calc_free_transfers(nt, ft_available, max_free_transfers)
         for nt in new_transfers
@@ -536,9 +536,7 @@ def next_week_transfers(
     # return list of (num_transfers, free_transfers, hit_so_far) tuples for each new
     # strategy
     return list(
-        zip(
-            new_transfers, new_ft_available, total_points_hits, hit_this_gw, strict=True
-        )
+        zip(new_transfers, new_ft_available, total_points_hit, hit_this_gw, strict=True)
     )
 
 
