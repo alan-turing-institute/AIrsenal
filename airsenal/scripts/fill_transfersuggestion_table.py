@@ -210,7 +210,6 @@ def optimize(
                 (updater, increment, pid) if updater is not None else None,
             )
 
-            # points_hit = calc_points_hit(num_transfers, free_transfers)
             discount_factor = get_discount_factor(root_gw, gw)
             points -= hit_this_gw * discount_factor
             strat_dict["total_score"] += points
