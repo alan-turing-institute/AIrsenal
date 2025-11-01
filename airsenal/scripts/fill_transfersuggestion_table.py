@@ -37,7 +37,6 @@ from airsenal.framework.multiprocessing_utils import (
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
     MAX_FREE_TRANSFERS,
-    calc_points_hit,
     check_tag_valid,
     count_expected_outputs,
     fill_suggestion_table,
@@ -131,7 +130,15 @@ def optimize(
         else:
             profiler = None
 
-        num_transfers, free_transfers, hit_so_far, squad, strat_dict, sid = status
+        (
+            num_transfers,
+            free_transfers,
+            hit_so_far,
+            hit_this_gw,
+            squad,
+            strat_dict,
+            sid,
+        ) = status
         # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
         # OR 'B0', 'B1', or 'B2' (the latter six represent triple captain or
         # bench boost along with 0, 1, or 2 transfers).
@@ -203,18 +210,17 @@ def optimize(
                 (updater, increment, pid) if updater is not None else None,
             )
 
-            points_hit = calc_points_hit(num_transfers, free_transfers)
+            # points_hit = calc_points_hit(num_transfers, free_transfers)
             discount_factor = get_discount_factor(root_gw, gw)
-            points -= points_hit * discount_factor
+            points -= hit_this_gw * discount_factor
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
             strat_dict["free_transfers"][gw] = free_transfers
             strat_dict["num_transfers"][gw] = num_transfers
-            strat_dict["points_hit"][gw] = points_hit
+            strat_dict["points_hit"][gw] = hit_this_gw
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
-
             depth += 1
 
         if depth >= len(gameweek_range):
@@ -240,16 +246,15 @@ def optimize(
                 chips=chips_gw_dict[gw + 1],
                 max_free_transfers=max_free_transfers,
             )
-
             for strat in strategies:
-                # strat: (num_transfers, free_transfers, hit_so_far)
-                num_transfers, free_transfers, hit_so_far = strat
+                num_transfers, free_transfers, hit_so_far, hit_this_gw = strat
 
                 queue.put(
                     (
                         num_transfers,
                         free_transfers,
                         hit_so_far,
+                        hit_this_gw,
                         new_squad,
                         strat_dict,
                         sid,
@@ -319,7 +324,8 @@ def print_strat(strat: dict) -> None:
     print(" ===============================================")
     for gw in gameweeks_as_int:
         print(f"\n =========== Gameweek {gw} ================\n")
-        print(f"Chips played:  {strat['chips_played'][str(gw)]}\n")
+        print(f"Chips played: {strat['chips_played'][str(gw)]}")
+        print(f"Points Hits: {strat['points_hit'][str(gw)]}\n")
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat["players_in"][str(gw)])):
@@ -493,6 +499,7 @@ def run_optimization(
             apifetcher=fetcher,
             is_replay=is_replay,
         )
+    print(f"Starting with {num_free_transfers} free transfers")
 
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
@@ -596,7 +603,7 @@ def run_optimization(
         processor.start()
         procs.append(processor)
     # add starting node to the queue
-    squeue.put((0, num_free_transfers, 0, starting_squad, {}, "starting"))
+    squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
 
     for i, p in enumerate(procs):
         progress_bars[i].close()
