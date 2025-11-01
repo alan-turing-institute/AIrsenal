@@ -27,6 +27,7 @@ from multiprocessing import Process, Queue
 
 import regex as re
 import requests
+from prettytable import PrettyTable
 from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.env import AIRSENAL_HOME
@@ -318,26 +319,22 @@ def print_strat(strat: dict) -> None:
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
-    print(" ===============================================")
-    print(" ========= Optimum strategy ====================")
-    print(" ===============================================")
+
     for gw in gameweeks_as_int:
-        print(f"\n =========== Gameweek {gw} ================\n")
-        print(f"Chips played: {strat['chips_played'][str(gw)]}")
-        print(f"Points Hit: {strat['points_hit'][str(gw)]}\n")
-        print("Players in:\t\t\tPlayers out:")
-        print("-----------\t\t\t------------")
-        for i in range(len(strat["players_in"][str(gw)])):
-            pin = get_player_name(strat["players_in"][str(gw)][i])
-            pout = get_player_name(strat["players_out"][str(gw)][i])
-            subs = (
-                f"{pin}\t\t\t{pout}"
-                if pin is not None and len(pin) < 20
-                else f"{pin}\t\t{pout}"
-            )
-            print(subs)
-    print("\n==========================")
-    print(f" Total score: {int(strat['total_score'])} \n")
+        print(f"\nGAMEWEEK {gw}:\n")
+        table = PrettyTable(["Players Out", "Players In"])
+        table.align = "l"
+        for pin, pout in zip(
+            strat["players_in"][str(gw)], strat["players_out"][str(gw)], strict=True
+        ):
+            table.add_row([get_player_name(pout), get_player_name(pin)])
+        if len(table.rows) == 0:
+            table.add_row(["None", "None"])
+        print(table)
+        print(f"Chip Played: {strat['chips_played'][str(gw)]}")
+        print(f"Points Hit: {strat['points_hit'][str(gw)]}")
+        pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
+        print(f"Predicted Score: {pred_pts:.1f}pts")
 
 
 def discord_payload(strat: dict, lineup: list[str]) -> dict:
@@ -407,6 +404,9 @@ def print_team_for_next_gw(
         t.add_player(pidin)
     tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
+    print("\n--------------------------------")
+    print(f"Starting Lineup for Gameweek {next_gw}:")
+    print("--------------------------------")
     print(t)
     return t
 
@@ -621,14 +621,17 @@ def run_optimization(
 
     for _ in range(len(procs)):
         print("\n")
-    print("\n====================================\n")
-    print(f"Strategy for Team ID: {fpl_team_id}")
-    print(f"Baseline score: {baseline_score}")
+
     if best_strategy is None:
         msg = "Failed to find a strategy!"
         raise ValueError(msg)
 
-    print(f"Best score: {best_strategy['total_score']}")
+    print("================")
+    print("OPTIMUM STRATEGY")
+    print("================\n")
+    print(f"Team ID: {fpl_team_id}")
+    print(f"Baseline Score: {baseline_score:.1f}pts")
+    print(f"Score with Transfers: {best_strategy['total_score']:.1f}pts")
     print_strat(best_strategy)
     best_squad = print_team_for_next_gw(
         best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api

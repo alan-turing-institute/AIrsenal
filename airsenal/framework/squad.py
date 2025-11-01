@@ -61,7 +61,6 @@ class Squad:
         """
         Display the squad
         """
-        print("\n=== starting 11 ===\n")
         for position in ["GK", "DEF", "MID", "FWD"]:
             print(f"\n== {position} ==\n")
             for p in self.players:
@@ -72,7 +71,7 @@ class Squad:
                     elif p.is_vice_captain:
                         player_line += "(VC)"
                     print(player_line)
-        print("\n=== subs ===\n")
+        print("\n=== Subs ===\n")
 
         subs = [p for p in self.players if not p.is_starting]
         subs.sort(key=lambda p: p.sub_position)
@@ -111,6 +110,10 @@ class Squad:
             player.season = self.season
             if price is not None:
                 player.purchase_price = price
+
+        if self.verbose:
+            print(f"Adding player {p}")
+
         if player.position == "MNG":
             warnings.warn(
                 f"Skipped adding manager {player}, assistant manager not implemented."
@@ -540,7 +543,6 @@ def get_current_squad_from_api(
         player = get_player_from_api_id(p["element"])
         if not player:
             continue
-        print(f"Adding player {player}")
         squad.add_player(
             player,
             price=p["purchase_price"],
