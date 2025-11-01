@@ -533,8 +533,8 @@ def next_week_transfers(
         for nt in new_transfers
     ]
 
-    # return list of (num_transfers, free_transfers, total_points_hit, hit_this_gw) tuples for each new
-    # strategy
+    # return list of (num_transfers, free_transfers, total_points_hit, hit_this_gw)
+    #  tuples for each new strategy
     return list(
         zip(new_transfers, new_ft_available, total_points_hit, hit_this_gw, strict=True)
     )
