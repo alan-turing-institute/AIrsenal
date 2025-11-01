@@ -377,7 +377,9 @@ class FPLDataFetcher:
         Requires login
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
-        return squad_data["transfers"]["limit"]
+        return max(
+            0, squad_data["transfers"]["limit"] - squad_data["transfers"]["made"]
+        )
 
     def get_current_bank(self, fpl_team_id=None):
         """
