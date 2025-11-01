@@ -324,7 +324,7 @@ def print_strat(strat: dict) -> None:
     for gw in gameweeks_as_int:
         print(f"\n =========== Gameweek {gw} ================\n")
         print(f"Chips played: {strat['chips_played'][str(gw)]}")
-        print(f"Points Hits: {strat['points_hit'][str(gw)]}\n")
+        print(f"Points Hit: {strat['points_hit'][str(gw)]}\n")
         print("Players in:\t\t\tPlayers out:")
         print("-----------\t\t\t------------")
         for i in range(len(strat["players_in"][str(gw)])):
