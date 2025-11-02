@@ -332,7 +332,7 @@ def print_strat(strat: dict) -> None:
             table.add_row(["None", "None"])
         print(table)
         print(f"Chip Played: {strat['chips_played'][str(gw)]}")
-        print(f"Points Hit: {strat['points_hit'][str(gw)]}")
+        print(f"Points Hit: {strat['points_hit'][str(gw)]}pts")
         pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
         print(f"Predicted Score: {pred_pts:.1f}pts")
 
@@ -631,7 +631,7 @@ def run_optimization(
     print("================\n")
     print(f"Team ID: {fpl_team_id}")
     print(f"Baseline Score: {baseline_score:.1f}pts")
-    print(f"Score with Transfers: {best_strategy['total_score']:.1f}pts")
+    print(f"Score with Strategy: {best_strategy['total_score']:.1f}pts")
     print_strat(best_strategy)
     best_squad = print_team_for_next_gw(
         best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
