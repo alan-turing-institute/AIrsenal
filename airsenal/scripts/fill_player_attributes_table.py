@@ -105,7 +105,7 @@ def fill_attributes_table_from_api(
             print(f"ATTRIBUTES {season} No player found with id {player_api_id}")
             continue
 
-        print(f"ATTRIBUTES {season} {player.name}")
+        print(f"ATTRIBUTES {season} {player}")
 
         # First update the current gameweek using the summary data
         p_summary = input_data[player_api_id]
@@ -167,7 +167,7 @@ def fill_attributes_table_from_api(
         if next_gw > 1:
             player_data = fetcher.get_gameweek_data_for_player(player_api_id)
             if not player_data:
-                print("Failed to get data for", player.name)
+                print(f"Failed to get data for {player}")
                 continue
             for gameweek, data in player_data.items():
                 if gameweek < gw_start:

@@ -89,7 +89,7 @@ def make_optimum_single_transfer(
                     best_squad = new_squad
                 break
             if verbose:
-                print(f"Failed to add {p_in[0].name}")
+                print(f"Failed to add {p_in[0]}")
         if not new_squad.is_complete() and verbose:
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
@@ -281,7 +281,7 @@ def make_random_transfers(
                         ap.player_id, gameweek=transfer_gw
                     )
                     if not removed_ok:
-                        print(f"Problem removing {ap.name}")
+                        print(f"Problem removing {ap}")
                 added_players = []
 
         # calculate the score

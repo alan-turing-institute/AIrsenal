@@ -40,6 +40,7 @@ class CandidatePlayer:
             pdata = p
         self.player_id = pdata.player_id
         self.name = pdata.name
+        self.display_name = pdata.display_name
         self.season = season
         team = pdata.team(season, gameweek)
         if team is None:
@@ -64,7 +65,7 @@ class CandidatePlayer:
         self.sub_position = None
 
     def __str__(self):
-        return self.name
+        return self.display_name or self.name
 
     def calc_predicted_points(self, tag):
         """
@@ -83,7 +84,7 @@ class CandidatePlayer:
         if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
         if gameweek not in self.predicted_points[tag]:
-            print(f"No prediction available for {self.name} week {gameweek}")
+            print(f"No prediction available for {self} week {gameweek}")
             return 0.0
         return self.predicted_points[tag][gameweek]
 
@@ -95,6 +96,7 @@ class DummyPlayer:
 
     def __init__(self, gw_range, tag, position, purchase_price=45, pts=0):
         self.name = "DUMMY"
+        self.display_name = "DUMMY"
         self.position = position
         self.purchase_price = purchase_price
         # set team to random string so we don't violate max players per team constraint

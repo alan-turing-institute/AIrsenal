@@ -41,6 +41,7 @@ class Player(Base):
     player_id: Mapped[intpk] = mapped_column(autoincrement=True)
     fpl_api_id: Mapped[int | None]
     name: Mapped[str100]
+    display_name: Mapped[str100 | None]
     opta_code: Mapped[str | None]
     attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
@@ -60,7 +61,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek)
         if attr is not None and not isinstance(attr, tuple):
             return attr.team
-        print("No team found for", self.name, "in", season, "season.")
+        print(f"No team found for {self} in {season} season.")
         return None
 
     def price(self, season: str, gameweek: int) -> int | None:
@@ -73,7 +74,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
         if attr is not None:
             return self._calculate_price(attr, gameweek)
-        print("No price found for", self.name, "in", season, "season.")
+        print(f"No price found for {self} in {season} season.")
         return None
 
     def _calculate_price(
@@ -105,7 +106,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, None)
         if attr is not None and not isinstance(attr, tuple):
             return attr.position
-        print("No position found for", self.name, "in", season, "season.")
+        print(f"No position found for {self} in {season} season.")
         return None
 
     def is_injured_or_suspended(
@@ -175,7 +176,7 @@ class Player(Base):
         return attr_after
 
     def __str__(self):
-        return self.name
+        return self.display_name or self.name
 
 
 class PlayerMapping(Base):
