@@ -31,7 +31,7 @@ def build_lineup_payload(squad: Squad) -> list:
             msg = f"Player with ID {player.player_id} not found"
             raise ValueError(msg)
         if p.fpl_api_id is None:
-            msg = f"Player {p.name} has no FPL API ID"
+            msg = f"Player {p} has no FPL API ID"
             raise ValueError(msg)
         return {
             "element": p.fpl_api_id,

@@ -656,7 +656,7 @@ def run_optimization(
                 lineup_strings.append(f"== **{position}** ==\n```")
                 for p in best_squad.players:
                     if p.position == position and p.is_starting:
-                        player_line = f"{p.name} ({p.team})"
+                        player_line = f"{p} ({p.team})"
                         if p.is_captain:
                             player_line += "(C)"
                         elif p.is_vice_captain:
@@ -668,7 +668,7 @@ def run_optimization(
             subs = [p for p in best_squad.players if not p.is_starting]
             subs.sort(key=lambda p: p.sub_position)
             for p in subs:
-                lineup_strings.append(f"{p.name} ({p.team})")
+                lineup_strings.append(f"{p} ({p.team})")
             lineup_strings.append("```\n")
 
             # generate a discord embed json and send to webhook

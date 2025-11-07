@@ -65,7 +65,7 @@ class Squad:
             print(f"\n== {position} ==\n")
             for p in self.players:
                 if p.position == position and p.is_starting:
-                    player_line = f"{p.name} ({p.team})"
+                    player_line = f"{p} ({p.team})"
                     if p.is_captain:
                         player_line += "(C)"
                     elif p.is_vice_captain:
@@ -76,7 +76,7 @@ class Squad:
         subs = [p for p in self.players if not p.is_starting]
         subs.sort(key=lambda p: p.sub_position)
         for p in subs:
-            print(f"{p.name} ({p.team})")
+            print(f"{p} ({p.team})")
         return ""
 
     def is_complete(self):

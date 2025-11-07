@@ -90,9 +90,11 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
         first_name = v["first_name"]  # .encode("utf-8")
         second_name = v["second_name"]  # .encode("utf-8")
         name = f"{first_name} {second_name}"
+        display_name = v.get("web_name")
 
         print(f"PLAYER {season} {name}")
         p.name = name
+        p.display_name = display_name
         p.opta_code = v["opta_code"]
         dbsession.add(p)
     dbsession.commit()

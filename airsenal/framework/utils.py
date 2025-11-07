@@ -584,7 +584,7 @@ def get_player_name(player_id: int, dbsession: Session = session) -> str | None:
     Lookup player name, for human readability.
     """
     if p := get_player(player_id, dbsession):
-        return p.name
+        return str(p)
     print(f"Unknown player_id {player_id}")
     return None
 
@@ -709,7 +709,7 @@ def list_players(
         )
         if verbose:
             for pa in sort_players:
-                print(pa[1].name, pa[0])
+                print(pa[1], pa[0])
         players = [p for _, p in sort_players]
     return players
 
@@ -1037,9 +1037,7 @@ def get_predicted_points_for_player(
         # for double gameweeks, we need to add the two together
         gameweek = prediction.fixture.gameweek
         if gameweek is None:
-            print(
-                f"Player {player.name} has no gameweek for fixture {prediction.fixture}"
-            )
+            print(f"Player {player} has no gameweek for fixture {prediction.fixture}")
             continue
         if gameweek not in ppdict:
             ppdict[gameweek] = 0.0
@@ -1165,7 +1163,7 @@ def get_top_predicted_points(
             price = p[0].price(season, first_gw)
             price_str = str(price / 10) if price is not None else "UNKNOWN_PRICE"
             print(
-                f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
+                f"{i + 1}. {p[0]}, {p[1]:.2f}pts "
                 f"(£{price_str}m, {p[0].position(season)}, "
                 f"{p[0].team(season, first_gw)})"
             )
@@ -1224,7 +1222,7 @@ def get_top_predicted_points(
                     else "UNKNOWN_PRICE"
                 )
                 print(
-                    f"{i + 1}. {p[0].name}, {p[1]:.2f}pts "
+                    f"{i + 1}. {p[0]}, {p[1]:.2f}pts "
                     f"(£{price_str}m, "
                     f"{p[0].team(season, first_gw)})"
                 )
@@ -1286,7 +1284,7 @@ def predicted_points_discord_payload(
             [
                 {
                     "name": "Player",
-                    "value": f"{i + 1}. {p[0].name}",
+                    "value": f"{i + 1}. {p[0]}",
                     "inline": True,
                 },
                 {

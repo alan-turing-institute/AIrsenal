@@ -218,7 +218,7 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
             raise ValueError(msg)
         pos = player.position(CURRENT_SEASON)
         if pos is None:
-            msg = f"Player {player.name} has no position for season {CURRENT_SEASON}"
+            msg = f"Player {player} has no position for season {CURRENT_SEASON}"
             raise ValueError(msg)
         return pos
 

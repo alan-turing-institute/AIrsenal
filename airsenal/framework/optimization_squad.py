@@ -442,7 +442,7 @@ def make_new_squad(
             player = opt_squad.players[int(idx)]
             print(
                 player.position(season),
-                player.name,
+                player,
                 player.team(season, 1),
                 player.price(season, 1) / 10,
             )
