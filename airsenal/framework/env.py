@@ -1,6 +1,4 @@
-"""
-Database can be either an sqlite file or a postgress server
-"""
+"""Module to handle AIrsenal environment variables and storage."""
 
 import os
 from collections.abc import Callable
