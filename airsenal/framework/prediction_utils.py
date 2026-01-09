@@ -117,6 +117,8 @@ def get_player_history_df(
         "assists",
         "minutes",
         "team_goals",
+        "expected_goals",
+        "expected_assists",
         "absence_reason",
         "absence_detail",
     ]
@@ -165,6 +167,8 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
+            expected_goals = row.expected_goals
+            expected_assists = row.expected_assists
             absence_reason, absence_detail = check_absence(
                 player, row.fixture.gameweek, row.fixture.season, session
             )
@@ -180,6 +184,8 @@ def get_player_history_df(
                     assists,
                     minutes,
                     team_goals,
+                    expected_goals,
+                    expected_assists,
                     absence_reason,
                     absence_detail,
                 ]
@@ -189,7 +195,22 @@ def get_player_history_df(
         if fill_blank and row_count < max_matches_per_player:
             # fill blank rows so they are all the same size
             player_data += [
-                [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
+                [
+                    player.player_id,
+                    player.name,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    None,
+                    None,
+                ]
             ] * (max_matches_per_player - row_count)
 
     df = pd.DataFrame(player_data, columns=col_names)
