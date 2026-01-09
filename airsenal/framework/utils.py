@@ -926,9 +926,9 @@ def get_player_scores(
 
     query = dbsession.query(PlayerScore)
     if fixture is not None:
-        query = query.filter(PlayerScore.fixture == fixture)
+        query = query.filter(PlayerScore.fixture.has(fixture_id=fixture.fixture_id))
     if player is not None:
-        query = query.filter(PlayerScore.player == player)
+        query = query.filter(PlayerScore.player.has(player_id=player.player_id))
 
     player_scores = query.all()
     if not player_scores:
