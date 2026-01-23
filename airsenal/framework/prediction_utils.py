@@ -901,7 +901,7 @@ def fit_def_con(
                 dbsession=dbsession,
             ).dropna(subset="defensive_contribution")
             df["def_con_pts"] = (
-                df["defensive_contribution"] / def_cons_required[position]
+                df["defensive_contribution"] >= def_cons_required[position]
             ).astype(int) * points_for_def_cons
             dfs.append(df)
 
