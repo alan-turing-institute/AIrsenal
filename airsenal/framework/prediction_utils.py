@@ -741,20 +741,24 @@ def get_player_scores(
     gameweek as a dataframe
     """
     query = (
-        dbsession.query(PlayerScore, Fixture.season, Fixture.gameweek)
+        dbsession.query(
+            PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position
+        )
         .filter(PlayerScore.minutes >= min_minutes)
         .filter(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
-    )
-    if position:
-        query = query.join(
+        .join(
             PlayerAttributes,
             and_(
                 PlayerAttributes.player_id == PlayerScore.player_id,
                 PlayerAttributes.season == Fixture.season,
                 PlayerAttributes.gameweek == Fixture.gameweek,
             ),
-        ).filter(PlayerAttributes.position == position)
+        )
+        .order_by(Fixture.season, Fixture.gameweek, PlayerAttributes.player_id)
+    )
+    if position:
+        query = query.filter(PlayerAttributes.position == position)
 
     df = pd.read_sql(query.statement, dbsession.connection())
 
@@ -763,24 +767,37 @@ def get_player_scores(
     return df[~exclude]
 
 
-def mean_group_min_count(
-    df: pd.DataFrame, group_col: str, mean_col: str, min_count: int = 10
+def mean_group_prior(
+    df: pd.DataFrame,
+    group_col: str,
+    mean_col: str,
+    n_prior: int = 10,
+    prior_by_position: bool = False,
 ) -> pd.Series:
     """
-    Calculate mean of column col in df, grouped by group_col, but normalising the
-    sum by either the actual number of rows in the group or min_count, whichever is
-    larger.
+    Calculate mean of column col in df, grouped by group_col, mixed with n_prior matches
+    worth of data using the overall mean of mean_col.
     """
-    counts = df.groupby(group_col)[mean_col].count()
-    counts[counts < min_count] = min_count
-    sums = df.groupby(group_col)[mean_col].sum()
-    return sums / counts
+    group_counts = df.groupby(group_col)[mean_col].count()
+    group_sums = df.groupby(group_col)[mean_col].sum()
+    group_position = (
+        df.sort_values(by=["season", "gameweek"]).groupby(group_col)["position"].last()
+    )
+
+    if prior_by_position:
+        prior_sum = df.groupby("position")[mean_col].mean() * n_prior
+        return (group_sums + prior_sum.loc[group_position].values) / (
+            group_counts + n_prior
+        )
+
+    prior_sum = n_prior * df[mean_col].mean()
+    return (group_sums + prior_sum) / (group_counts + n_prior)
 
 
 def fit_bonus_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
     """
@@ -804,7 +821,9 @@ def fit_bonus_points(
             max_minutes=max_minutes,
             dbsession=dbsession,
         )
-        return mean_group_min_count(df, "player_id", "bonus", min_count=min_matches)
+        return mean_group_prior(
+            df, "player_id", "bonus", n_prior=n_prior, prior_by_position=True
+        )
 
     df_90 = get_bonus_df(60, 90)
     df_60 = get_bonus_df(30, 59)
@@ -815,7 +834,7 @@ def fit_bonus_points(
 def fit_save_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     min_minutes: int = 90,
     dbsession: Session = session,
 ) -> pd.Series:
@@ -828,33 +847,24 @@ def fit_save_points(
     Returns pandas series index by player ID, values average save points.
     """
     df = get_player_scores(
-        season, gameweek, min_minutes=min_minutes, dbsession=dbsession
+        season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
     )
 
-    goalkeepers = list_players(
-        position="GK", gameweek=gameweek, season=season, dbsession=dbsession
-    )
-    gk_ids = [gk.player_id for gk in goalkeepers]
-    df = df[df["player_id"].isin(gk_ids)]
-
-    # 1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
 
-    return mean_group_min_count(df, "player_id", "save_pts", min_count=min_matches)
+    return mean_group_prior(df, "player_id", "save_pts", n_prior=n_prior)
 
 
 def fit_card_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
     """
     Calculate the average points per match lost to yellow or red cards
     for each player.
-    Mean is calculated as sum of all card points divided by either the number of
-    matches the player has played in or min_matches, whichever is greater.
 
     Returns pandas series index by player ID, values average card points.
     """
@@ -862,20 +872,20 @@ def fit_card_points(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
 
-    # TODO: different values for different minutes (remember minutes < 90 for red cards
-    # though)
     df["card_pts"] = (
         points_for_yellow_card * df["yellow_cards"]
         + points_for_red_card * df["red_cards"]
     )
 
-    return mean_group_min_count(df, "player_id", "card_pts", min_count=min_matches)
+    return mean_group_prior(
+        df, "player_id", "card_pts", n_prior=n_prior, prior_by_position=False
+    )
 
 
 def fit_def_con(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
     """
@@ -905,9 +915,12 @@ def fit_def_con(
             ).astype(int) * points_for_def_cons
             dfs.append(df)
 
-        df = pd.concat(dfs)
-        return mean_group_min_count(
-            df, "player_id", "def_con_pts", min_count=min_matches
+        return mean_group_prior(
+            pd.concat(dfs),
+            "player_id",
+            "def_con_pts",
+            n_prior=n_prior,
+            prior_by_position=True,
         )
 
     df_90 = get_def_con_df(60, 90)
