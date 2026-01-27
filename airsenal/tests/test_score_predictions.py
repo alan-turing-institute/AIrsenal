@@ -33,7 +33,7 @@ from airsenal.framework.prediction_utils import (
     get_player_history_df,
     get_player_scores,
     get_save_points,
-    mean_group_min_count,
+    mean_group_prior,
 )
 from airsenal.framework.schema import Fixture, Result
 
@@ -378,11 +378,11 @@ def test_mean_group_min_count():
     """Test mean for groups in df, normalising by a minimum valuee"""
     df = pd.DataFrame({"idx": [1, 1, 1, 1, 2, 2], "value": [1, 1, 1, 1, 2, 2]})
 
-    mean_1 = mean_group_min_count(df, "idx", "value", min_count=1)
+    mean_1 = mean_group_prior(df, "idx", "value", n_prior=1)
     assert mean_1.loc[1] == 1
     assert mean_1.loc[2] == 2
 
-    mean_4 = mean_group_min_count(df, "idx", "value", min_count=4)
+    mean_4 = mean_group_prior(df, "idx", "value", n_prior=4)
     assert mean_4.loc[1] == 1
     assert mean_4.loc[2] == 1
 

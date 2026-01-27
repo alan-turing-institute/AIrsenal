@@ -161,6 +161,7 @@ def optimize(
             strat_dict["players_in"] = {}
             strat_dict["players_out"] = {}
             strat_dict["chips_played"] = {}
+            strat_dict["bank"] = {}
             new_squad = squad
             gw = gameweek_range[0] - 1
             strat_dict["root_gw"] = gameweek_range[0]
@@ -221,6 +222,7 @@ def optimize(
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
             strat_dict["players_out"][gw] = transfers["out"]
+            strat_dict["bank"][gw] = new_squad.budget
             depth += 1
 
         if depth >= len(gameweek_range):
@@ -333,6 +335,7 @@ def print_strat(strat: dict) -> None:
         print(table)
         print(f"Chip Played: {strat['chips_played'][str(gw)]}")
         print(f"Points Hit: {strat['points_hit'][str(gw)]}pts")
+        print(f"Bank: £{float(strat['bank'][str(gw)]) / 10}m")
         pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
         print(f"Predicted Score: {pred_pts:.1f}pts")
 
