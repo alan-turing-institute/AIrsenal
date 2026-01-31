@@ -17,7 +17,6 @@ from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredicto
 from curl_cffi import requests
 from dateutil.parser import isoparse
 from sqlalchemy import case, or_
-from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -540,21 +539,21 @@ def get_player(
     """
     if not dbsession:
         dbsession = session
+
+    # ID field match
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
         player_name_or_id = int(player_name_or_id)
-    if isinstance(player_name_or_id, int):
-        filter_attr: InstrumentedAttribute[str | int] = Player.player_id
-    else:
-        filter_attr = Player.name
 
-    if p := dbsession.query(Player).filter(filter_attr == player_name_or_id).first():
-        return p
-
-    # failed to find player by ID
     if isinstance(player_name_or_id, int):
+        if p := dbsession.query(Player).filter_by(player_id=player_name_or_id).first():
+            return p
+        # failed to find player by ID
         return None
 
-    # search for matching alternative name
+    # String field matches
+    if p := dbsession.query(Player).filter_by(name=player_name_or_id).first():
+        return p
+
     if (
         mapping := dbsession.query(PlayerMapping)
         .filter_by(alt_name=player_name_or_id)
@@ -562,6 +561,10 @@ def get_player(
     ):
         return dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
 
+    if p := dbsession.query(Player).filter_by(display_name=player_name_or_id).first():
+        return p
+
+    # No match found
     return None
 
 
@@ -923,9 +926,9 @@ def get_player_scores(
 
     query = dbsession.query(PlayerScore)
     if fixture is not None:
-        query = query.filter(PlayerScore.fixture == fixture)
+        query = query.filter(PlayerScore.fixture.has(fixture_id=fixture.fixture_id))
     if player is not None:
-        query = query.filter(PlayerScore.player == player)
+        query = query.filter(PlayerScore.player.has(player_id=player.player_id))
 
     player_scores = query.all()
     if not player_scores:
@@ -1432,9 +1435,9 @@ def get_recent_playerscore_rows(
         .filter(Fixture.season == season)
         .filter(PlayerScore.player_id == player.player_id)
         .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
-        # minutes at least 60 or minutes less 60 and not unavailable
     )
     if exclude_unavailable:
+        # minutes at least 60 or no flag status (100% chance of playing)
         query = query.filter(
             or_(
                 PlayerScore.minutes >= 60,
