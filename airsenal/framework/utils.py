@@ -519,7 +519,9 @@ def get_team_name(
     """
     if not dbsession:
         dbsession = session
-    team = dbsession.query(Team).filter_by(season=season, team_id=team_id).first()
+    team = dbsession.scalars(
+        select(Team).where(Team.season == season, Team.team_id == team_id).limit(1)
+    ).first()
     if team:
         return team.name
     print(f"Unknown team_id {team_id} for {season} season")
@@ -546,23 +548,31 @@ def get_player(
         player_name_or_id = int(player_name_or_id)
 
     if isinstance(player_name_or_id, int):
-        if p := dbsession.query(Player).filter_by(player_id=player_name_or_id).first():
+        if p := dbsession.scalars(
+            select(Player).where(Player.player_id == player_name_or_id).limit(1)
+        ).first():
             return p
         # failed to find player by ID
         return None
 
     # String field matches
-    if p := dbsession.query(Player).filter_by(name=player_name_or_id).first():
+    if p := dbsession.scalars(
+        select(Player).where(Player.name == player_name_or_id).limit(1)
+    ).first():
         return p
 
-    if (
-        mapping := dbsession.query(PlayerMapping)
-        .filter_by(alt_name=player_name_or_id)
-        .first()
-    ):
-        return dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+    if mapping := dbsession.scalars(
+        select(PlayerMapping)
+        .where(PlayerMapping.alt_name == player_name_or_id)
+        .limit(1)
+    ).first():
+        return dbsession.scalars(
+            select(Player).where(Player.player_id == mapping.player_id).limit(1)
+        ).first()
 
-    if p := dbsession.query(Player).filter_by(display_name=player_name_or_id).first():
+    if p := dbsession.scalars(
+        select(Player).where(Player.display_name == player_name_or_id).limit(1)
+    ).first():
         return p
 
     # No match found
@@ -577,7 +587,9 @@ def get_player_from_api_id(
     """
     if not dbsession:
         dbsession = session
-    if p := dbsession.query(Player).filter_by(fpl_api_id=api_id).first():
+    if p := dbsession.scalars(
+        select(Player).where(Player.fpl_api_id == api_id).limit(1)
+    ).first():
         return p
     print(f"Unable to find player with fpl_api_id {api_id}")
     return None
@@ -606,7 +618,7 @@ def list_teams(
     """
     Print all teams from current season.
     """
-    rows = dbsession.query(Team).filter_by(season=season).all()
+    rows = dbsession.scalars(select(Team).where(Team.season == season)).all()
     return [{"name": row.name, "full_name": row.full_name} for row in rows]
 
 
