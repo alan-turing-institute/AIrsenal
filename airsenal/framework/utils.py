@@ -1468,7 +1468,7 @@ def get_recent_playerscore_rows(
         .join(Fixture, PlayerScore.fixture_id == Fixture.fixture_id)
         .filter(Fixture.season == season)
         .filter(PlayerScore.player_id == player.player_id)
-        .filter(PlayerScore.fixture.has(Fixture.gameweek <= last_gw))
+        .filter(Fixture.gameweek <= last_gw)
     )
     if exclude_unavailable:
         # minutes at least 60 or no flag status (100% chance of playing)
@@ -1500,9 +1500,10 @@ def get_playerscores_for_player_gameweek(
         dbsession = session
     return (
         dbsession.query(PlayerScore)
-        .filter(PlayerScore.fixture.has(season=season))
+        .join(Fixture, PlayerScore.fixture_id == Fixture.fixture_id)
+        .filter(Fixture.season == season)
         .filter_by(player_id=player.player_id)
-        .filter(PlayerScore.fixture.has(Fixture.gameweek == gameweek))
+        .filter(Fixture.gameweek == gameweek)
         .all()
     )
 
