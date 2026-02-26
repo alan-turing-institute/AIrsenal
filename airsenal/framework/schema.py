@@ -175,7 +175,7 @@ class Player(Base):
             return attr_before
         return attr_after
 
-    def __str__(self):
+    def __repr__(self):
         return self.display_name or self.name
 
 
@@ -206,7 +206,7 @@ class PlayerAttributes(Base):
     transfers_in: Mapped[int | None]
     transfers_out: Mapped[int | None]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
@@ -228,7 +228,7 @@ class Absence(Base):
     url: Mapped[str100_optional]
     timestamp: Mapped[str100]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"Absence(\n"
             f"  player='{self.player}',\n"
@@ -256,7 +256,7 @@ class Result(Base):
     player: Mapped["Player"] = relationship(back_populates="results")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.fixture.season} GW{self.fixture.gameweek} "
             f"{self.fixture.home_team} {self.home_score} - "
@@ -277,7 +277,7 @@ class Fixture(Base):
     tag: Mapped[str100]
     result: Mapped["Result | None"] = relationship(back_populates="fixture")
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
@@ -326,7 +326,7 @@ class PlayerScore(Base):
     chance_of_playing: Mapped[int | None]
     news: Mapped[str100_optional]
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
 
@@ -340,7 +340,7 @@ class PlayerPrediction(Base):
     player: Mapped["Player"] = relationship(back_populates="predictions")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
 
 
@@ -357,7 +357,7 @@ class Transaction(Base):
     free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
     fpl_team_id: Mapped[int]
 
-    def __str__(self):
+    def __repr__(self):
         trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
         if self.bought_or_sold == 1:
             trans_str += f"bought player {self.player_id}"
@@ -380,7 +380,7 @@ class TransferSuggestion(Base):
     fpl_team_id: Mapped[int]  # to identify team to apply transfers.
     chip_played: Mapped[str100_optional]
 
-    def __str__(self):
+    def __repr__(self):
         sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
         if self.in_or_out == 1:
             sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
@@ -399,7 +399,7 @@ class FifaTeamRating(Base):
     mid: Mapped[int]
     ovr: Mapped[int]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.team} {self.season} FIFA rating: "
             f"ovr {self.ovr}, def {self.defn}, mid {self.mid}, att {self.att}"
@@ -414,7 +414,7 @@ class Team(Base):
     season: Mapped[str4]
     team_id: Mapped[int]  # the season-dependent team ID (from alphabetical order)
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.full_name} ({self.name})"
 
 
