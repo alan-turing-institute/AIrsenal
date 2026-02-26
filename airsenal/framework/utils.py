@@ -1654,12 +1654,16 @@ def get_latest_prediction_tag(
     """
     if not dbsession:
         dbsession = session
-    rows = (
-        dbsession.query(PlayerPrediction)
-        .filter(PlayerPrediction.fixture.has(Fixture.season == season))
-        .all()
+    query = select(PlayerPrediction).where(
+        PlayerPrediction.fixture.has(Fixture.season == season)
     )
-    if len(rows) == 0:
+    if tag_prefix:
+        query = query.where(PlayerPrediction.tag.startswith(tag_prefix))
+
+    latest_prediction = dbsession.scalars(
+        query.order_by(PlayerPrediction.id.desc()).limit(1)
+    ).first()
+    if latest_prediction is None:
         msg = (
             "No predicted points in database - has the database been filled?\n"
             "To calculate points predictions (and fill the database) use "
@@ -1667,9 +1671,7 @@ def get_latest_prediction_tag(
             "'airsenal_make_squad' or 'airsenal_run_optimization'."
         )
         raise RuntimeError(msg)
-    if tag_prefix:
-        rows = [r for r in rows if r.tag.startswith(tag_prefix)]
-    return rows[-1].tag
+    return latest_prediction.tag
 
 
 def get_latest_fixture_tag(
@@ -1680,8 +1682,16 @@ def get_latest_fixture_tag(
     """
     if not dbsession:
         dbsession = session
-    rows = dbsession.query(Fixture).filter_by(season=season).all()
-    return rows[-1].tag
+    latest_fixture = dbsession.scalars(
+        select(Fixture)
+        .where(Fixture.season == season)
+        .order_by(Fixture.fixture_id.desc())
+        .limit(1)
+    ).first()
+    if latest_fixture is None:
+        msg = f"No fixtures found in database for season {season}"
+        raise RuntimeError(msg)
+    return latest_fixture.tag
 
 
 def find_fixture(
