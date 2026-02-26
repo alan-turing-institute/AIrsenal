@@ -6,7 +6,7 @@ Use SQLAlchemy to convert between DB tables and python objects.
 from contextlib import contextmanager
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, String, create_engine
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, create_engine
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -43,7 +43,12 @@ class Player(Base):
     name: Mapped[str100]
     display_name: Mapped[str100 | None]
     opta_code: Mapped[str | None]
-    attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
+    attributes: Mapped[list["PlayerAttributes"]] = relationship(
+        back_populates="player",
+        lazy="selectin",
+        order_by="(PlayerAttributes.season.desc(), PlayerAttributes.gameweek.desc())",
+    )
+
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
     results: Mapped[list["Result"]] = relationship(back_populates="player")
     predictions: Mapped[list["PlayerPrediction"]] = relationship(
@@ -189,6 +194,20 @@ class PlayerMapping(Base):
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            "gameweek",
+            name="uq_player_attributes_player_season_gw",
+        ),
+        Index(
+            "ix_player_attributes_player_season_gw",
+            "player_id",
+            "season",
+            "gameweek",
+        ),
+    )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="attributes")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
@@ -266,6 +285,7 @@ class Result(Base):
 
 class Fixture(Base):
     __tablename__ = "fixture"
+    __table_args__ = (Index("ix_fixture_season_gameweek", "season", "gameweek"),)
     fixture_id: Mapped[intpk] = mapped_column(autoincrement=True)
     date: Mapped[str | None] = mapped_column(
         String(100)
@@ -283,7 +303,10 @@ class Fixture(Base):
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
-
+    __table_args__ = (
+        Index("ix_player_score_fixture_id", "fixture_id"),
+        Index("ix_player_score_player_fixture", "player_id", "fixture_id"),
+    )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player_team: Mapped[str100]
     opponent: Mapped[str100]
