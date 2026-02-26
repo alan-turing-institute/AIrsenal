@@ -3,6 +3,7 @@ Functions used by the AIrsenal API
 """
 
 from flask import jsonify
+from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
 
 from airsenal.framework.optimization_transfers import (
@@ -195,14 +196,20 @@ def get_session_players(session_id, dbsession=DBSESSION):
     """
     query the dbsession for the list of players with the requested player_id
     """
-    players = dbsession.query(SessionSquad).filter_by(session_id=session_id).all()
+    players = dbsession.scalars(
+        select(SessionSquad).where(SessionSquad.session_id == session_id)
+    ).all()
+    player_ids = [p.player_id for p in players]
+    players_by_id = {
+        p.player_id: p
+        for p in dbsession.scalars(
+            select(Player).where(Player.player_id.in_(player_ids))
+        ).all()
+    }
     return [
         {
             "id": p.player_id,
-            "name": dbsession.query(Player)
-            .filter_by(player_id=p.player_id)
-            .first()
-            .name,
+            "name": players_by_id[p.player_id].name,
         }
         for p in players
     ]
