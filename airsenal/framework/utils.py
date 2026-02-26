@@ -1096,35 +1096,40 @@ def get_predicted_points(
     "gameweek" argument can either be a single integer for one gameweek, or a
     list of gameweeks, in which case we will get the sum over all of them.
     """
-    if isinstance(gameweek, int):  # predictions for a single gameweek
-        players = list_players(
-            position, team, season=season, gameweek=gameweek, dbsession=dbsession
-        )
-        output_list = [
-            (
-                p,
-                get_predicted_points_for_player(
-                    p, tag=tag, season=season, dbsession=dbsession
-                )[gameweek],
+    if not dbsession:
+        dbsession = session
+
+    gameweeks = [gameweek] if isinstance(gameweek, int) else gameweek
+    players = list_players(
+        position,
+        team,
+        season=season,
+        gameweek=gameweeks[0],
+        dbsession=dbsession,
+    )
+    player_ids = [p.player_id for p in players if p.player_id is not None]
+    points_by_player = dict.fromkeys(player_ids, 0.0)
+
+    if player_ids:
+        rows = dbsession.execute(
+            select(
+                PlayerPrediction.player_id,
+                Fixture.gameweek,
+                PlayerPrediction.predicted_points,
             )
-            for p in players
-        ]
-    else:  # predictions for a list of gameweeks
-        players = list_players(
-            position, team, season=season, gameweek=gameweek[0], dbsession=dbsession
-        )
-        output_list = [
-            (
-                p,
-                sum(
-                    get_predicted_points_for_player(
-                        p, tag=tag, season=season, dbsession=dbsession
-                    )[gw]
-                    for gw in gameweek
-                ),
+            .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
+            .where(
+                PlayerPrediction.player_id.in_(player_ids),
+                PlayerPrediction.tag == tag,
+                Fixture.season == season,
+                Fixture.gameweek.in_(gameweeks),
             )
-            for p in players
-        ]
+        ).all()
+        for row in rows:
+            if row.player_id is not None:
+                points_by_player[row.player_id] += row.predicted_points
+
+    output_list = [(p, points_by_player.get(p.player_id, 0.0)) for p in players]
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
 
