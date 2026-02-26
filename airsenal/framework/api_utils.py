@@ -170,7 +170,9 @@ def get_session_budget(session_id, dbsession=DBSESSION):
     be one and only one row for this session_id
     """
 
-    sb = dbsession.query(SessionBudget).filter_by(session_id=session_id).all()
+    sb = dbsession.scalars(
+        select(SessionBudget).where(SessionBudget.session_id == session_id)
+    ).all()
     if len(sb) != 1:
         msg = f"{len(sb)}  SessionBudgets for session key {session_id}"
         raise RuntimeError(msg)
