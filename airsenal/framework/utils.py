@@ -977,37 +977,46 @@ def get_previous_points_for_same_fixture(
     and how many points the player got.
     """
     if isinstance(player, str):
-        player_record = dbsession.query(Player).filter_by(name=player).first()
+        player_record = dbsession.scalars(
+            select(Player).where(Player.name == player).limit(1)
+        ).first()
         if not player_record:
             print(f"Can't find player {player}")
             return {}
         player_id = player_record.player_id
     else:
         player_id = player
-    fixture = dbsession.query(Fixture).filter_by(fixture_id=fixture_id).first()
+    fixture = dbsession.scalars(
+        select(Fixture).where(Fixture.fixture_id == fixture_id).limit(1)
+    ).first()
     if not fixture:
         print(f"Couldn't find fixture_id {fixture_id}")
         return {}
     home_team = fixture.home_team
     away_team = fixture.away_team
 
-    previous_matches = (
-        dbsession.query(Fixture)
-        .filter_by(home_team=home_team)
-        .filter_by(away_team=away_team)
+    previous_matches = dbsession.scalars(
+        select(Fixture)
+        .where(Fixture.home_team == home_team, Fixture.away_team == away_team)
         .order_by(Fixture.season)
-        .all()
-    )
-    fixture_ids = [(f.fixture_id, f.season) for f in previous_matches]
+    ).all()
+    fixture_seasons = {
+        f.fixture_id: f.season for f in previous_matches if f.fixture_id is not None
+    }
+    if not fixture_seasons:
+        return {}
+
     previous_points = {}
-    for fid in fixture_ids:
-        scores = (
-            dbsession.query(PlayerScore)
-            .filter_by(player_id=player_id, fixture_id=fid[0])
-            .all()
+    scores = dbsession.scalars(
+        select(PlayerScore).where(
+            PlayerScore.player_id == player_id,
+            PlayerScore.fixture_id.in_(fixture_seasons.keys()),
         )
-        for s in scores:
-            previous_points[fid[1]] = s.points
+    ).all()
+    for score in scores:
+        season = fixture_seasons.get(score.fixture_id)
+        if season is not None:
+            previous_points[season] = score.points
 
     return previous_points
 
@@ -1032,12 +1041,15 @@ def get_predicted_points_for_player(
             raise ValueError(msg)
         player = maybe_player
 
-    pps = (
-        dbsession.query(PlayerPrediction)
-        .filter(PlayerPrediction.fixture.has(Fixture.season == season))
-        .filter_by(player_id=player.player_id, tag=tag)
-        .all()
-    )
+    pps = dbsession.scalars(
+        select(PlayerPrediction)
+        .options(selectinload(PlayerPrediction.fixture))
+        .where(
+            PlayerPrediction.fixture.has(Fixture.season == season),
+            PlayerPrediction.player_id == player.player_id,
+            PlayerPrediction.tag == tag,
+        )
+    ).all()
     ppdict = {}
     for prediction in pps:
         # there is one prediction per fixture.
