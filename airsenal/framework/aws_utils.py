@@ -6,6 +6,7 @@ import os
 import time
 
 import boto3
+from sqlalchemy import select
 
 from airsenal.framework.fpl_team_utils import (
     get_league_standings,
@@ -74,14 +75,18 @@ def get_suggestions_string():
 
 
 def build_suggestion_string(session, TransferSuggestion, Player):
-    all_rows = session.query(TransferSuggestion).all()
+    all_rows = session.scalars(select(TransferSuggestion)).all()
     last_timestamp = all_rows[-1].timestamp
-    rows = (
-        session.query(TransferSuggestion)
-        .filter_by(timestamp=last_timestamp)
+    rows = session.scalars(
+        select(TransferSuggestion)
+        .where(TransferSuggestion.timestamp == last_timestamp)
         .order_by(TransferSuggestion.gameweek)
-        .all()
-    )
+    ).all()
+    player_ids = {row.player_id for row in rows}
+    players_by_id = {
+        p.player_id: p.name
+        for p in session.scalars(select(Player).where(Player.player_id.in_(player_ids)))
+    }
     output_string = "Suggested transfer strategy: \n"
     current_gw = 0
     for row in rows:
@@ -89,10 +94,7 @@ def build_suggestion_string(session, TransferSuggestion, Player):
             output_string += f" gameweek {row.gameweek}: "
             current_gw = row.gameweek
         output_string += " sell " if row.in_or_out < 0 else " buy "
-        player_name = (
-            session.query(Player).filter_by(player_id=row.player_id).first().name
-        )
-        output_string += player_name + ","
+        output_string += players_by_id[row.player_id] + ","
 
     points_gain = round(rows[0].points_gain, 1)
     output_string += f" for a total gain of {points_gain} points."

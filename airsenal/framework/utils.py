@@ -16,7 +16,8 @@ import regex as re
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from dateutil.parser import isoparse
-from sqlalchemy import case, or_
+from sqlalchemy import case, or_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -625,12 +626,13 @@ def list_players(
         dbsession = session
     # if trying to get players from after DB has filled, return most recent players
     if season == CURRENT_SEASON:
-        last_pa = (
-            dbsession.query(PlayerAttributes)
-            .filter_by(season=season)
+        last_pa = dbsession.scalars(
+            select(PlayerAttributes)
+            .where(PlayerAttributes.season == season)
             .order_by(PlayerAttributes.gameweek.desc())
-            .first()
+            .limit(1)
         )
+        last_pa = last_pa.first()
         if last_pa and gameweek > last_pa.gameweek:
             if verbose:
                 print(
@@ -674,18 +676,17 @@ def list_players(
                 gameweeks.append(gw)
                 break
 
-    query = (
-        dbsession.query(PlayerAttributes)
-        .filter_by(season=season)
-        .filter(PlayerAttributes.gameweek.in_(gameweeks))
+    query = select(PlayerAttributes).where(
+        PlayerAttributes.season == season,
+        PlayerAttributes.gameweek.in_(gameweeks),
     )
     if team != "all":
-        query = query.filter_by(team=team)
+        query = query.where(PlayerAttributes.team == team)
     if position != "all":
-        query = query.filter_by(position=position)
+        query = query.where(PlayerAttributes.position == position)
     else:
         # exclude managers
-        query = query.filter(PlayerAttributes.position != "MNG")
+        query = query.where(PlayerAttributes.position != "MNG")
     if len(gameweeks) > 1:
         # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
@@ -696,14 +697,17 @@ def list_players(
         query = query.order_by(PlayerAttributes.price.desc())
     players = []
     prices = []
-    for pa in query.all():
-        if pa.player not in players:
-            # might have queried multiple gameweeks with same player returned
-            # multiple times - only add if it's a new player
-            players.append(pa.player)
-            prices.append(pa.price)
-            if verbose and (len(gameweeks) == 1 or order_by != "price"):
-                print(pa.player, pa.team, pa.position, pa.price)
+    seen_player_ids = set()
+    for pa in dbsession.scalars(query.options(selectinload(PlayerAttributes.player))):
+        # might have queried multiple gameweeks with same player returned
+        # multiple times - only add if it's a new player
+        if pa.player_id in seen_player_ids:
+            continue
+        seen_player_ids.add(pa.player_id)
+        players.append(pa.player)
+        prices.append(pa.price)
+        if verbose and (len(gameweeks) == 1 or order_by != "price"):
+            print(pa.player, pa.team, pa.position, pa.price)
     if len(gameweeks) > 1 and order_by == "price":
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
