@@ -75,8 +75,15 @@ def get_suggestions_string():
 
 
 def build_suggestion_string(session, TransferSuggestion, Player):
-    all_rows = session.scalars(select(TransferSuggestion)).all()
-    last_timestamp = all_rows[-1].timestamp
+    latest_row = session.scalars(
+        select(TransferSuggestion)
+        .order_by(TransferSuggestion.timestamp.desc())
+        .limit(1)
+    ).first()
+    if latest_row is None:
+        return "No transfer suggestions found."
+
+    last_timestamp = latest_row.timestamp
     rows = session.scalars(
         select(TransferSuggestion)
         .where(TransferSuggestion.timestamp == last_timestamp)
