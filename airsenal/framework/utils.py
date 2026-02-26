@@ -746,23 +746,34 @@ def get_max_matches_per_player(
     Can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
+    if not dbsession:
+        dbsession = session
     players = list_players(
         position=position, season=season, gameweek=gameweek, dbsession=dbsession
     )
-    max_matches = 0
-    for p in players:
-        num_match = sum(
-            not is_future_gameweek(
-                score.fixture.season,
-                score.fixture.gameweek,
-                current_season=season,
-                next_gameweek=gameweek,
-            )
-            for score in p.scores
-        )
-        if num_match > max_matches:
-            max_matches = num_match
-    return max_matches
+    player_ids = [p.player_id for p in players if p.player_id is not None]
+    if not player_ids:
+        return 0
+
+    scores = dbsession.scalars(
+        select(PlayerScore)
+        .options(selectinload(PlayerScore.fixture))
+        .where(PlayerScore.player_id.in_(player_ids))
+    ).all()
+
+    matches_per_player = dict.fromkeys(player_ids, 0)
+    for score in scores:
+        if score.fixture is None or score.player_id is None:
+            continue
+        if not is_future_gameweek(
+            score.fixture.season,
+            score.fixture.gameweek,
+            current_season=season,
+            next_gameweek=gameweek,
+        ):
+            matches_per_player[score.player_id] += 1
+
+    return max(matches_per_player.values(), default=0)
 
 
 def get_player_attributes(
@@ -1014,6 +1025,8 @@ def get_previous_points_for_same_fixture(
         )
     ).all()
     for score in scores:
+        if score.fixture_id is None:
+            continue
         season = fixture_seasons.get(score.fixture_id)
         if season is not None:
             previous_points[season] = score.points
