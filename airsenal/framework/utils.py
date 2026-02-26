@@ -408,12 +408,16 @@ def get_free_transfers(
     """
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
-        if not fpl_team_id:
-            fpl_team_id = apifetcher.FPL_TEAM_ID
+        resolved_fpl_team_id = (
+            fpl_team_id if fpl_team_id is not None else apifetcher.FPL_TEAM_ID
+        )
+        if resolved_fpl_team_id is None:
+            msg = "FPL team ID is required to estimate free transfers from the API"
+            raise RuntimeError(msg)
 
         # try to get the most up-to-date info from logged in api
         try:
-            return apifetcher.get_num_free_transfers(fpl_team_id)
+            return apifetcher.get_num_free_transfers(resolved_fpl_team_id)
         except requests.exceptions.RequestException as e:
             warnings.warn(
                 f"Failed to get actual free transfers from a logged in API:\n{e}\n"
@@ -423,11 +427,11 @@ def get_free_transfers(
             )
         # try to calculate free transfers based on previous transfer history in API
         try:
-            data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+            data = apifetcher.get_fpl_team_history_data(resolved_fpl_team_id)
             num_free_transfers = 1
             if "current" in data and len(data["current"]) > 0:
                 starting_gw = get_entry_start_gameweek(
-                    fpl_team_id, apifetcher=apifetcher
+                    resolved_fpl_team_id, apifetcher=apifetcher
                 )
                 for gw in data["current"]:
                     if gw["event"] <= starting_gw:
