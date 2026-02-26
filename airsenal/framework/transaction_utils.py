@@ -4,7 +4,7 @@ hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via envir
 variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_
 
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
@@ -39,13 +39,13 @@ def count_transactions(season, fpl_team_id, dbsession=session):
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
 
-    transactions = (
-        dbsession.query(Transaction)
+    return (
+        dbsession.query(func.count(Transaction.id))
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(season=season)
-        .all()
+        .scalar()
+        or 0
     )
-    return len(transactions)
 
 
 def transaction_exists(
@@ -62,8 +62,8 @@ def transaction_exists(
     """Check whether the transactions related to transferring a player in and out
     in a gameweek at a specific time already exist in the database.
     """
-    transactions = (
-        dbsession.query(Transaction)
+    transaction_count = (
+        dbsession.query(func.count(Transaction.id))
         .filter_by(fpl_team_id=fpl_team_id)
         .filter_by(gameweek=gameweek)
         .filter_by(season=season)
@@ -82,14 +82,15 @@ def transaction_exists(
                 ),
             )
         )
-        .all()
+        .scalar()
+        or 0
     )
-    if len(transactions) == 2:  # row for player bought and player sold
+    if transaction_count == 2:  # row for player bought and player sold
         return True
-    if len(transactions) == 0:
+    if transaction_count == 0:
         return False
     msg = (
-        f"Database error: {len(transactions)} transactions in the database with "
+        f"Database error: {transaction_count} transactions in the database with "
         f"parameters:  fpl_team_id={fpl_team_id}, gameweek={gameweek}, "
         f"time={time}, pid_in={pid_in}, pid_out={pid_out}. Should be 2."
     )
