@@ -86,7 +86,9 @@ def get_ratings_dict(
     """
     Create a dataframe containing the fifa team ratings.
     """
-    ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
+    ratings = dbsession.scalars(
+        select(FifaTeamRating).where(FifaTeamRating.season == season)
+    ).all()
     if len(ratings) == 0:
         msg = f"No FIFA ratings found for season {season}"
         raise ValueError(msg)
