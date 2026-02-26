@@ -374,17 +374,35 @@ def test_get_player_scores():
         assert all(df["minutes"] <= 10)
 
 
-def test_mean_group_min_count():
-    """Test mean for groups in df, normalising by a minimum valuee"""
-    df = pd.DataFrame({"idx": [1, 1, 1, 1, 2, 2], "value": [1, 1, 1, 1, 2, 2]})
+def test_mean_group_prior():
+    """Test mean calculation with prior"""
+    df = pd.DataFrame(
+        {
+            "player_id": [1, 1, 1, 1, 2, 2],
+            "bonus": [1, 1, 1, 1, 2, 2],
+            "season": ["2526"] * 6,
+            "gameweek": [1] * 6,
+            "position": ["MID"] * 4 + ["FWD"] * 2,
+        }
+    )
 
-    mean_1 = mean_group_prior(df, "idx", "value", n_prior=1)
+    mean_1 = mean_group_prior(df, "player_id", "bonus", n_prior=0)
     assert mean_1.loc[1] == 1
     assert mean_1.loc[2] == 2
 
-    mean_4 = mean_group_prior(df, "idx", "value", n_prior=4)
-    assert mean_4.loc[1] == 1
-    assert mean_4.loc[2] == 1
+    n_prior = 6
+    prior = 8 / 6
+    mean_1_exp = (1 * 4 + n_prior * prior) / (4 + n_prior)
+    mean_2_exp = (2 * 2 + n_prior * prior) / (2 + n_prior)
+    mean_actual = mean_group_prior(df, "player_id", "bonus", n_prior=n_prior)
+    assert mean_actual.loc[1] == mean_1_exp
+    assert mean_actual.loc[2] == mean_2_exp
+
+    mean_pos = mean_group_prior(
+        df, "player_id", "bonus", n_prior=n_prior, prior_by_position=True
+    )
+    assert mean_pos.loc[1] == 1
+    assert mean_pos.loc[2] == 2
 
 
 def test_fit_bonus():
