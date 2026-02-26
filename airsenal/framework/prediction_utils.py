@@ -10,7 +10,8 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from scipy.stats import multinomial
-from sqlalchemy import and_
+from sqlalchemy import and_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.FPL_scoring_rules import (
@@ -124,22 +125,41 @@ def get_player_history_df(
     ]
     player_data = []
     if all_players:
-        q = session.query(PlayerAttributes)
+        q = dbsession.scalars(
+            select(PlayerAttributes).options(selectinload(PlayerAttributes.player))
+        )
         players = []
-        for p in q.all():
-            if p.player not in players:
-                # only add if it's a new player
-                players.append(p.player)
+        seen_player_ids = set()
+        for p in q:
+            if p.player_id in seen_player_ids:
+                continue
+            seen_player_ids.add(p.player_id)
+            players.append(p.player)
     else:
         players = list_players(
             position=position, season=season, gameweek=gameweek, dbsession=dbsession
         )
+
+    player_ids = [p.player_id for p in players]
+    scores_by_player = defaultdict(list)
+    if player_ids:
+        all_scores = dbsession.scalars(
+            select(PlayerScore)
+            .options(
+                selectinload(PlayerScore.fixture),
+                selectinload(PlayerScore.result),
+            )
+            .where(PlayerScore.player_id.in_(player_ids))
+        ).all()
+        for score in all_scores:
+            scores_by_player[score.player_id].append(score)
+
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     for counter, player in enumerate(players):
         print(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
-        results = player.scores
+        results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
             if is_future_gameweek(
@@ -170,7 +190,7 @@ def get_player_history_df(
             expected_goals = row.expected_goals
             expected_assists = row.expected_assists
             absence_reason, absence_detail = check_absence(
-                player, row.fixture.gameweek, row.fixture.season, session
+                player, row.fixture.gameweek, row.fixture.season, dbsession
             )
             player_data.append(
                 [
