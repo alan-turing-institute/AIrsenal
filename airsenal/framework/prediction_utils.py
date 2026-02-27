@@ -10,7 +10,8 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from scipy.stats import multinomial
-from sqlalchemy import and_
+from sqlalchemy import and_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.FPL_scoring_rules import (
@@ -68,12 +69,13 @@ def check_absence(player, gameweek, season, dbsession=session):
 
     Returns: the Absence object (which may be empty if there was no absence)
     """
-    absence = (
-        dbsession.query(Absence)
-        .filter_by(season=season)
-        .filter_by(player=player)
-        .filter(Absence.gw_from < gameweek)
-        .filter(Absence.gw_until > gameweek)
+    absence = dbsession.scalars(
+        select(Absence).where(
+            Absence.season == season,
+            Absence.player_id == player.player_id,
+            Absence.gw_from < gameweek,
+            Absence.gw_until > gameweek,
+        )
     ).all()
     # save the reasons and details - there may be more than 1 reason for absence
     reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
@@ -124,22 +126,63 @@ def get_player_history_df(
     ]
     player_data = []
     if all_players:
-        q = session.query(PlayerAttributes)
+        q = dbsession.scalars(
+            select(PlayerAttributes).options(selectinload(PlayerAttributes.player))
+        )
         players = []
-        for p in q.all():
-            if p.player not in players:
-                # only add if it's a new player
-                players.append(p.player)
+        seen_player_ids = set()
+        for p in q:
+            if p.player_id in seen_player_ids:
+                continue
+            seen_player_ids.add(p.player_id)
+            players.append(p.player)
     else:
         players = list_players(
             position=position, season=season, gameweek=gameweek, dbsession=dbsession
         )
+
+    player_ids = [p.player_id for p in players]
+    scores_by_player = defaultdict(list)
+    absences_by_player_season = defaultdict(list)
+    if player_ids:
+        all_scores = dbsession.scalars(
+            select(PlayerScore)
+            .options(
+                selectinload(PlayerScore.fixture),
+                selectinload(PlayerScore.result),
+            )
+            .where(PlayerScore.player_id.in_(player_ids))
+        ).all()
+        for score in all_scores:
+            scores_by_player[score.player_id].append(score)
+
+        score_seasons = {
+            score.fixture.season
+            for score in all_scores
+            if score.fixture is not None and score.fixture.season is not None
+        }
+        if score_seasons:
+            absences = dbsession.scalars(
+                select(Absence)
+                .where(
+                    Absence.player_id.in_(player_ids),
+                    Absence.season.in_(score_seasons),
+                )
+                .order_by(Absence.id)
+            ).all()
+            for absence in absences:
+                if absence.player_id is None:
+                    continue
+                absences_by_player_season[(absence.player_id, absence.season)].append(
+                    absence
+                )
+
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     for counter, player in enumerate(players):
         print(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
-        results = player.scores
+        results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
             if is_future_gameweek(
@@ -169,9 +212,25 @@ def get_player_history_df(
                 team_goals = -1
             expected_goals = row.expected_goals
             expected_assists = row.expected_assists
-            absence_reason, absence_detail = check_absence(
-                player, row.fixture.gameweek, row.fixture.season, session
+            matching_absences = [
+                ab
+                for ab in absences_by_player_season.get(
+                    (player.player_id, row.fixture.season), []
+                )
+                if ab.gw_until is not None
+                and ab.gw_from < row.fixture.gameweek
+                and ab.gw_until > row.fixture.gameweek
+            ]
+            absence_reason = (
+                [ab.reason for ab in matching_absences] if matching_absences else None
             )
+            absence_detail = (
+                [ab.details for ab in matching_absences] if matching_absences else None
+            )
+            if absence_reason is not None and len(absence_reason) == 1:
+                absence_reason = absence_reason[0]
+            if absence_detail is not None and len(absence_detail) == 1:
+                absence_detail = absence_detail[0]
             player_data.append(
                 [
                     player.player_id,
@@ -741,11 +800,9 @@ def get_player_scores(
     gameweek as a dataframe
     """
     query = (
-        dbsession.query(
-            PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position
-        )
-        .filter(PlayerScore.minutes >= min_minutes)
-        .filter(PlayerScore.minutes <= max_minutes)
+        select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
+        .where(PlayerScore.minutes >= min_minutes)
+        .where(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
         .join(
             PlayerAttributes,
@@ -758,9 +815,9 @@ def get_player_scores(
         .order_by(Fixture.season, Fixture.gameweek, PlayerAttributes.player_id)
     )
     if position:
-        query = query.filter(PlayerAttributes.position == position)
+        query = query.where(PlayerAttributes.position == position)
 
-    df = pd.read_sql(query.statement, dbsession.connection())
+    df = pd.read_sql(query, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
     exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)

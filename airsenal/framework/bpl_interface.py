@@ -6,6 +6,8 @@ https://github.com/anguswilliams91/bpl-next
 import numpy as np
 import pandas as pd
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.random_team_model import RandomMatchPredictor
@@ -38,7 +40,9 @@ def get_result_dict(
     """
     results = [
         s
-        for s in dbsession.query(Result).all()
+        for s in dbsession.scalars(
+            select(Result).options(selectinload(Result.fixture))
+        ).all()
         if s.fixture
         and s.fixture.gameweek
         and not is_future_gameweek(
@@ -82,7 +86,9 @@ def get_ratings_dict(
     """
     Create a dataframe containing the fifa team ratings.
     """
-    ratings = dbsession.query(FifaTeamRating).filter_by(season=season).all()
+    ratings = dbsession.scalars(
+        select(FifaTeamRating).where(FifaTeamRating.season == season)
+    ).all()
     if len(ratings) == 0:
         msg = f"No FIFA ratings found for season {season}"
         raise ValueError(msg)
