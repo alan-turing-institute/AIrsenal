@@ -12,6 +12,8 @@ same format, but will be the actual FPL API data.
 import datetime
 import os
 
+from sqlalchemy import select
+
 from airsenal.framework.schema import Absence, PlayerAttributes
 from airsenal.framework.utils import CURRENT_SEASON, session
 
@@ -70,12 +72,12 @@ def main():
     """
     main function, to be used as entrypoint.
     """
-    pas = (
-        session.query(PlayerAttributes)
-        .filter(PlayerAttributes.season == CURRENT_SEASON)
-        .filter(PlayerAttributes.chance_of_playing_next_round != None)  # noqa: E711
-        .all()
-    )
+    pas = session.scalars(
+        select(PlayerAttributes).where(
+            PlayerAttributes.season == CURRENT_SEASON,
+            PlayerAttributes.chance_of_playing_next_round != None,  # noqa: E711
+        )
+    ).all()
     print(f"Found {len(pas)} player absences.")
     absences = [player_attribute_to_absence(pa) for pa in pas]
     save_absences(absences)

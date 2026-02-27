@@ -7,6 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 
 from curl_cffi import requests
+from sqlalchemy import select
 
 from airsenal.framework.schema import (
     Fixture,
@@ -33,15 +34,12 @@ MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay s
 def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
     """Check a prediction tag contains predictions for all the specified gameweeks."""
     # get unique gameweek and season values associated with pred_tag
-    fixtures = (
-        (
-            dbsession.query(Fixture.season, Fixture.gameweek)
-            .filter(PlayerPrediction.tag == pred_tag)
-            .join(PlayerPrediction)
-        )
+    fixtures = dbsession.execute(
+        select(Fixture.season, Fixture.gameweek)
+        .join(PlayerPrediction)
+        .where(PlayerPrediction.tag == pred_tag)
         .distinct()
-        .all()
-    )
+    ).all()
     pred_seasons = [f[0] for f in fixtures]
     pred_gws = [f[1] for f in fixtures]
 
@@ -138,13 +136,12 @@ def get_starting_squad(
 def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
     if not fpl_team_id:
         # use the most recent transaction in the table
-        most_recent = (
-            session.query(Transaction)
+        most_recent = session.scalars(
+            select(Transaction)
+            .where(Transaction.free_hit == 0, Transaction.season == season)
             .order_by(Transaction.id.desc())
-            .filter_by(free_hit=0)
-            .filter_by(season=season)
-            .first()
-        )
+            .limit(1)
+        ).first()
         if most_recent is None:
             msg = "No transactions in database."
             raise ValueError(msg)
@@ -153,15 +150,16 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
 
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
-    transactions = (
-        session.query(Transaction)
+    transactions = session.scalars(
+        select(Transaction)
+        .where(
+            Transaction.fpl_team_id == fpl_team_id,
+            Transaction.free_hit == 0,
+            Transaction.season == season,
+            Transaction.gameweek < gameweek,
+        )
         .order_by(Transaction.gameweek, Transaction.id)
-        .filter_by(fpl_team_id=fpl_team_id)
-        .filter_by(free_hit=0)
-        .filter_by(season=season)
-        .filter(Transaction.gameweek < gameweek)
-        .all()
-    )
+    ).all()
     if len(transactions) == 0:
         msg = f"No transactions in database for team ID {fpl_team_id}"
         raise ValueError(msg)
