@@ -69,12 +69,13 @@ def check_absence(player, gameweek, season, dbsession=session):
 
     Returns: the Absence object (which may be empty if there was no absence)
     """
-    absence = (
-        dbsession.query(Absence)
-        .filter_by(season=season)
-        .filter_by(player=player)
-        .filter(Absence.gw_from < gameweek)
-        .filter(Absence.gw_until > gameweek)
+    absence = dbsession.scalars(
+        select(Absence).where(
+            Absence.season == season,
+            Absence.player_id == player.player_id,
+            Absence.gw_from < gameweek,
+            Absence.gw_until > gameweek,
+        )
     ).all()
     # save the reasons and details - there may be more than 1 reason for absence
     reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
@@ -799,11 +800,9 @@ def get_player_scores(
     gameweek as a dataframe
     """
     query = (
-        dbsession.query(
-            PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position
-        )
-        .filter(PlayerScore.minutes >= min_minutes)
-        .filter(PlayerScore.minutes <= max_minutes)
+        select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
+        .where(PlayerScore.minutes >= min_minutes)
+        .where(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
         .join(
             PlayerAttributes,
@@ -816,9 +815,9 @@ def get_player_scores(
         .order_by(Fixture.season, Fixture.gameweek, PlayerAttributes.player_id)
     )
     if position:
-        query = query.filter(PlayerAttributes.position == position)
+        query = query.where(PlayerAttributes.position == position)
 
-    df = pd.read_sql(query.statement, dbsession.connection())
+    df = pd.read_sql(query, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
     exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)

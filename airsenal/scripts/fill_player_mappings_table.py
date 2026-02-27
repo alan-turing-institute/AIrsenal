@@ -5,6 +5,7 @@ Fill the "PlayerMapping" table with alternative names for players
 import csv
 import os
 
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Player, PlayerMapping
@@ -39,6 +40,6 @@ def add_mappings(player: Player, dbsession: Session) -> None:
 
 
 def make_player_mappings_table(dbsession: Session) -> None:
-    players = dbsession.query(Player).all()
+    players = dbsession.scalars(select(Player)).all()
     for p in players:
         add_mappings(p, dbsession)
