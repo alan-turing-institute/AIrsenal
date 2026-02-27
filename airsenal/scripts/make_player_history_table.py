@@ -2,6 +2,8 @@
 get values from player_score and match tables to use as input to Empirical Bayes model.
 """
 
+from sqlalchemy import select
+
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import list_players, session
 
@@ -17,9 +19,9 @@ def get_player_history_table(position: str = "all") -> None:
         players = list_players(position)
         for player in players:
             player_name = player.name
-            results = (
-                session.query(PlayerScore).filter_by(player_id=player.player_id).all()
-            )
+            results = session.scalars(
+                select(PlayerScore).where(PlayerScore.player_id == player.player_id)
+            ).all()
             row_count = 0
             for player_score in results:
                 minutes = player_score.minutes

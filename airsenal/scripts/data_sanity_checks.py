@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import PlayerScore
@@ -162,19 +163,21 @@ def fixture_num_players(
             result = fixture.result
 
             if result:
-                home_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.home_team)
-                    .filter(PlayerScore.minutes > 0)
-                    .all()
-                )
+                home_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.home_team,
+                        PlayerScore.minutes > 0,
+                    )
+                ).all()
 
-                away_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.away_team)
-                    .filter(PlayerScore.minutes > 0)
-                    .all()
-                )
+                away_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.away_team,
+                        PlayerScore.minutes > 0,
+                    )
+                ).all()
 
                 # No. subs changes during Covid and later rule changes
                 if (
@@ -227,17 +230,19 @@ def fixture_num_goals(
             result = fixture.result
 
             if result:
-                home_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.home_team)
-                    .all()
-                )
+                home_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.home_team,
+                    )
+                ).all()
 
-                away_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.away_team)
-                    .all()
-                )
+                away_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.away_team,
+                    )
+                ).all()
 
                 home_goals = sum(score.goals for score in home_scores) + sum(
                     score.own_goals or 0 for score in away_scores
@@ -289,17 +294,19 @@ def fixture_num_assists(
         for fixture in fixtures:
             result = fixture.result
             if result:
-                home_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.home_team)
-                    .all()
-                )
+                home_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.home_team,
+                    )
+                ).all()
 
-                away_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(fixture=fixture, player_team=fixture.away_team)
-                    .all()
-                )
+                away_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.away_team,
+                    )
+                ).all()
 
                 home_assists = sum(score.assists for score in home_scores)
                 away_assists = sum(score.assists for score in away_scores)
@@ -346,21 +353,21 @@ def fixture_num_conceded(
         for fixture in fixtures:
             result = fixture.result
             if result:
-                home_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(
-                        fixture=fixture, player_team=fixture.home_team, minutes=90
+                home_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.home_team,
+                        PlayerScore.minutes == 90,
                     )
-                    .all()
-                )
+                ).all()
 
-                away_scores = (
-                    dbsession.query(PlayerScore)
-                    .filter_by(
-                        fixture=fixture, player_team=fixture.away_team, minutes=90
+                away_scores = dbsession.scalars(
+                    select(PlayerScore).where(
+                        PlayerScore.fixture_id == fixture.fixture_id,
+                        PlayerScore.player_team == fixture.away_team,
+                        PlayerScore.minutes == 90,
                     )
-                    .all()
-                )
+                ).all()
 
                 home_conceded = max(score.conceded for score in home_scores)
                 away_conceded = max(score.conceded for score in away_scores)

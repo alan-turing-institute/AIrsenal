@@ -4,6 +4,8 @@ test that functions supporting our API work.
 
 import re
 
+from sqlalchemy import select
+
 from airsenal.conftest import API_SESSION_ID, session_scope
 from airsenal.framework.api_utils import (
     add_session_player,
@@ -21,9 +23,13 @@ from airsenal.framework.schema import SessionBudget, SessionSquad
 def test_reset_session_squad():
     with session_scope() as ts:
         assert reset_session_squad(session_id=API_SESSION_ID, dbsession=ts)
-        st = ts.query(SessionSquad).filter_by(session_id=API_SESSION_ID).all()
+        st = ts.scalars(
+            select(SessionSquad).where(SessionSquad.session_id == API_SESSION_ID)
+        ).all()
         assert len(st) == 0
-        sb = ts.query(SessionBudget).filter_by(session_id=API_SESSION_ID).all()
+        sb = ts.scalars(
+            select(SessionBudget).where(SessionBudget.session_id == API_SESSION_ID)
+        ).all()
         assert len(sb) == 1
         assert sb[0].budget == 1000
         assert get_session_budget(API_SESSION_ID, ts) == 1000

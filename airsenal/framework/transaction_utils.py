@@ -4,7 +4,7 @@ hopefully with the correct price.  Needs FPL_TEAM_ID to be set, either via envir
 variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, select
 
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
@@ -40,10 +40,12 @@ def count_transactions(season, fpl_team_id, dbsession=session):
         fpl_team_id = fetcher.FPL_TEAM_ID
 
     return (
-        dbsession.query(func.count(Transaction.id))
-        .filter_by(fpl_team_id=fpl_team_id)
-        .filter_by(season=season)
-        .scalar()
+        dbsession.scalar(
+            select(func.count(Transaction.id)).where(
+                Transaction.fpl_team_id == fpl_team_id,
+                Transaction.season == season,
+            )
+        )
         or 0
     )
 
@@ -63,26 +65,26 @@ def transaction_exists(
     in a gameweek at a specific time already exist in the database.
     """
     transaction_count = (
-        dbsession.query(func.count(Transaction.id))
-        .filter_by(fpl_team_id=fpl_team_id)
-        .filter_by(gameweek=gameweek)
-        .filter_by(season=season)
-        .filter_by(time=time)
-        .filter(
-            or_(
-                and_(
-                    Transaction.player_id == pid_in,
-                    Transaction.price == price_in,
-                    Transaction.bought_or_sold == 1,
-                ),
-                and_(
-                    Transaction.player_id == pid_out,
-                    Transaction.price == price_out,
-                    Transaction.bought_or_sold == -1,
+        dbsession.scalar(
+            select(func.count(Transaction.id)).where(
+                Transaction.fpl_team_id == fpl_team_id,
+                Transaction.gameweek == gameweek,
+                Transaction.season == season,
+                Transaction.time == time,
+                or_(
+                    and_(
+                        Transaction.player_id == pid_in,
+                        Transaction.price == price_in,
+                        Transaction.bought_or_sold == 1,
+                    ),
+                    and_(
+                        Transaction.player_id == pid_out,
+                        Transaction.price == price_out,
+                        Transaction.bought_or_sold == -1,
+                    ),
                 ),
             )
         )
-        .scalar()
         or 0
     )
     if transaction_count == 2:  # row for player bought and player sold
@@ -211,12 +213,12 @@ def update_squad(
         fpl_team_id = fetcher.FPL_TEAM_ID
     print(f"Updating db with squad with fpl_team_id={fpl_team_id}")
     # do we already have the initial squad for this fpl_team_id?
-    existing_transfers = (
-        dbsession.query(Transaction)
-        .filter_by(fpl_team_id=fpl_team_id)
-        .filter_by(season=season)
-        .all()
-    )
+    existing_transfers = dbsession.scalars(
+        select(Transaction).where(
+            Transaction.fpl_team_id == fpl_team_id,
+            Transaction.season == season,
+        )
+    ).all()
     if len(existing_transfers) == 0:
         # need to put the initial squad into the db
         fill_initial_squad(
