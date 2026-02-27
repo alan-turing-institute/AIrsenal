@@ -50,7 +50,6 @@ class Player(Base):
     )
 
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
-    results: Mapped[list["Result"]] = relationship(back_populates="player")
     predictions: Mapped[list["PlayerPrediction"]] = relationship(
         back_populates="player"
     )
@@ -210,7 +209,9 @@ class PlayerAttributes(Base):
     )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="attributes")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
     season: Mapped[str100]
     gameweek: Mapped[int]
     price: Mapped[int]
@@ -269,11 +270,11 @@ class Result(Base):
     __tablename__ = "result"
     result_id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship(back_populates="result")
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
     home_score: Mapped[int]
     away_score: Mapped[int]
-    player: Mapped["Player"] = relationship(back_populates="results")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
     def __repr__(self):
         return (
@@ -317,11 +318,17 @@ class PlayerScore(Base):
     conceded: Mapped[int]
     minutes: Mapped[int]
     player: Mapped["Player"] = relationship(back_populates="scores")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
     result: Mapped["Result"] = relationship()
-    result_id: Mapped[int | None] = mapped_column(ForeignKey("result.result_id"))
+    result_id: Mapped[int] = mapped_column(
+        ForeignKey("result.result_id"), nullable=False
+    )
     fixture: Mapped["Fixture"] = relationship()
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
 
     # extended features
     clean_sheets: Mapped[int | None]
@@ -357,11 +364,15 @@ class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship()
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
     predicted_points: Mapped[float]
     tag: Mapped[str100]
     player: Mapped["Player"] = relationship(back_populates="predictions")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
 
     def __repr__(self):
         return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
