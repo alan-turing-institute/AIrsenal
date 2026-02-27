@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+from sqlalchemy import select
 
 from airsenal.conftest import past_data_session_scope
 from airsenal.framework.bpl_interface import (
@@ -209,12 +210,19 @@ def test_get_player_history_df():
         for result_id in result_ids:
             if result_id == 0:
                 continue
-            fixture_id = (
-                ts.query(Result).filter_by(result_id=int(result_id)).first().fixture_id
+            result = ts.scalars(
+                select(Result).where(Result.result_id == int(result_id)).limit(1)
             )
-            fixture = ts.query(Fixture).filter_by(fixture_id=fixture_id).first()
+            result_row = result.first()
+            assert result_row is not None
+            fixture_id = result_row.fixture_id
+            fixture = ts.scalars(
+                select(Fixture).where(Fixture.fixture_id == fixture_id).limit(1)
+            ).first()
+            assert fixture is not None
             assert fixture.season in ["1718", "1819"]
             if fixture.season == "1819":
+                assert fixture.gameweek is not None
                 assert fixture.gameweek < 12
 
 

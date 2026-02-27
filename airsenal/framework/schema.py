@@ -6,7 +6,14 @@ Use SQLAlchemy to convert between DB tables and python objects.
 from contextlib import contextmanager
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, create_engine
+from sqlalchemy import (
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    create_engine,
+    select,
+)
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -538,4 +545,4 @@ def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    return dbsession.query(Team).first() is None
+    return dbsession.scalars(select(Team).limit(1)).first() is None

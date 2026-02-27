@@ -2,6 +2,8 @@
 query the transfer suggestion table and print the suggested strategy
 """
 
+from sqlalchemy import select
+
 from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.utils import get_player_name, session
 
@@ -13,21 +15,19 @@ def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=
     therefore need to group together all the rows that correspond
     to the same transfer strategy.  We do this using the "timestamp".
     """
-    all_rows = dbsession.query(TransferSuggestion).all()
+    all_rows = dbsession.scalars(select(TransferSuggestion)).all()
     last_timestamp = all_rows[-1].timestamp
-    query = (
-        session.query(TransferSuggestion)
-        .filter_by(timestamp=last_timestamp)
-        .order_by(TransferSuggestion.gameweek)
+    query = select(TransferSuggestion).where(
+        TransferSuggestion.timestamp == last_timestamp
     )
     if gameweek:
-        query = query.filter_by(gameweek=gameweek)
+        query = query.where(TransferSuggestion.gameweek == gameweek)
     if season:
-        query = query.filter_by(season=season)
+        query = query.where(TransferSuggestion.season == season)
     if fpl_team_id:
-        query = query.filter_by(fpl_team_id=fpl_team_id)
+        query = query.where(TransferSuggestion.fpl_team_id == fpl_team_id)
 
-    return query.all()
+    return dbsession.scalars(query.order_by(TransferSuggestion.gameweek)).all()
 
 
 def build_strategy_string(rows):

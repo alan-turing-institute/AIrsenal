@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.framework import env
@@ -86,7 +86,7 @@ def fill_players():
     season = CURRENT_SEASON
     gameweek = 1
     with session_scope() as ts:
-        if len(ts.query(Player).all()) > 0:
+        if len(ts.scalars(select(Player)).all()) > 0:
             return
         for i, n in enumerate(dummy_players):
             p = Player()
@@ -119,7 +119,9 @@ def fill_players():
             pa.gameweek = gameweek
             pa.price = price
             pa.position = pos
-            player = ts.query(Player).filter_by(player_id=i).first()
+            player = ts.scalars(
+                select(Player).where(Player.player_id == i).limit(1)
+            ).first()
             pa.player = player
             ts.add(pa)
         ts.commit()

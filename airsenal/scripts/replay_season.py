@@ -8,6 +8,7 @@ import json
 import warnings
 from datetime import datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
 
@@ -26,13 +27,9 @@ from airsenal.scripts.squad_builder import fill_initial_squad
 
 
 def get_dummy_id(season: str, dbsession: Session) -> int:
-    team_ids = [
-        item[0]
-        for item in dbsession.query(Transaction.fpl_team_id)
-        .filter_by(season=season)
-        .distinct()
-        .all()
-    ]
+    team_ids = dbsession.scalars(
+        select(Transaction.fpl_team_id).where(Transaction.season == season).distinct()
+    ).all()
     if not team_ids or min(team_ids) > 0:
         return -1
     return min(team_ids) - 1

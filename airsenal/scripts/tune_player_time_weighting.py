@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import multinomial
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from tqdm import tqdm
 
@@ -129,13 +130,15 @@ def evaluate_params(
                 ).values()
             )
             # Evaluate on the next `horizon` gameweeks
-            player_scores = (
-                dbsession.query(PlayerScore)
+            player_scores = dbsession.scalars(
+                select(PlayerScore)
                 .join(Fixture)
-                .filter(Fixture.season == season)
-                .filter(Fixture.gameweek >= gw)
-                .filter(Fixture.gameweek < gw + horizon)
-                .filter(PlayerScore.minutes > 0)
+                .where(
+                    Fixture.season == season,
+                    Fixture.gameweek >= gw,
+                    Fixture.gameweek < gw + horizon,
+                    PlayerScore.minutes > 0,
+                )
             ).all()
             print(len(player_scores), "player scores found")
             logp, n = _eval_player_scores(player_scores, player_probs)

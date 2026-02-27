@@ -3,7 +3,7 @@ Functions used by the AIrsenal API
 """
 
 from flask import jsonify
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import scoped_session
 
 from airsenal.framework.optimization_transfers import (
@@ -52,10 +52,12 @@ def reset_session_squad(session_id, dbsession=DBSESSION):
     100M
     """
     # remove all players with this session id
-    dbsession.query(SessionSquad).filter_by(session_id=session_id).delete()
+    dbsession.execute(delete(SessionSquad).where(SessionSquad.session_id == session_id))
     dbsession.commit()
     # now remove the budget, and make a new one
-    dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
+    dbsession.execute(
+        delete(SessionBudget).where(SessionBudget.session_id == session_id)
+    )
     dbsession.commit()
     sb = SessionBudget(session_id=session_id, budget=1000)
     dbsession.add(sb)
@@ -137,10 +139,11 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
     player_id = int(player_id)
     if player_id not in pids:  # player not there
         return False
-    (
-        dbsession.query(SessionSquad)
-        .filter_by(session_id=session_id, player_id=player_id)
-        .delete()
+    dbsession.execute(
+        delete(SessionSquad).where(
+            SessionSquad.session_id == session_id,
+            SessionSquad.player_id == player_id,
+        )
     )
     dbsession.commit()
     return True
@@ -185,7 +188,9 @@ def set_session_budget(budget, session_id, dbsession=DBSESSION):
     then enter a new row
     """
     print("Deleting old budget")
-    dbsession.query(SessionBudget).filter_by(session_id=session_id).delete()
+    dbsession.execute(
+        delete(SessionBudget).where(SessionBudget.session_id == session_id)
+    )
     dbsession.commit()
     print(f"Setting budget for {session_id} to {budget}")
     sb = SessionBudget(session_id=session_id, budget=budget)
