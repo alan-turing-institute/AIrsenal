@@ -27,7 +27,7 @@ dependencies = [
   "html5lib>=1.1",
   "jax==0.4.24",
   "jaxlib==0.4.24",
-  "numpy>1,<2",
+  "numpy>1,<3",
   "curl-cffi>=0.13.0",
 ]
 
