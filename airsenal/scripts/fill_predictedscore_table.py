@@ -334,3 +334,7 @@ def main():
             n_players=5,
             dbsession=session,
         )
+
+
+if __name__ == "__main__":
+    main()
