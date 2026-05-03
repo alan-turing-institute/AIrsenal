@@ -2,8 +2,8 @@
 Functions used by the AIrsenal API
 """
 
-from flask import jsonify
-from sqlalchemy.orm import scoped_session
+from flask import Response, jsonify
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
@@ -26,14 +26,12 @@ from airsenal.framework.utils import (
     list_teams,
 )
 
-DBSESSION = scoped_session(session)
+
+def remove_db_session(dbsession: Session = session) -> None:
+    dbsession.close()
 
 
-def remove_db_session(dbsession=DBSESSION):
-    dbsession.remove()
-
-
-def create_response(orig_response):
+def create_response(orig_response: dict | list) -> Response:
     """
     Add headers to the response
     """
@@ -45,7 +43,7 @@ def create_response(orig_response):
     return response
 
 
-def reset_session_squad(session_id, dbsession=DBSESSION):
+def reset_session_squad(session_id: str, dbsession: Session = session) -> bool:
     """
     remove any rows with the given session ID and add a new budget of
     100M
@@ -62,7 +60,9 @@ def reset_session_squad(session_id, dbsession=DBSESSION):
     return True
 
 
-def list_players_for_api(team, position, dbsession=DBSESSION):
+def list_players_for_api(
+    team: str, position: str, dbsession: Session = session
+) -> list:
     """
     List players.  Just pass on to utils.list_players but
     specify the dbsession.
@@ -70,7 +70,7 @@ def list_players_for_api(team, position, dbsession=DBSESSION):
     return list_players(team=team, position=position, dbsession=dbsession)
 
 
-def list_teams_for_api(dbsession=DBSESSION):
+def list_teams_for_api(dbsession: Session = session) -> list:
     """
     List teams.  Just pass on to utils.list_teams but
     specify the season and  dbsession.
@@ -80,12 +80,12 @@ def list_teams_for_api(dbsession=DBSESSION):
     return all_teams
 
 
-def combine_player_info(player_id, dbsession=DBSESSION):
+def combine_player_info(player_id: int, dbsession: Session = session) -> dict:
     """
     Get player's name, club, recent scores, upcoming fixtures, and
     upcoming predictions if available
     """
-    info_dict = {"player_id": player_id}
+    info_dict: dict = {"player_id": player_id}
     p = get_player(player_id, dbsession=dbsession)
     if p is None:
         msg = f"Player with id {player_id} not found"
@@ -115,7 +115,9 @@ def combine_player_info(player_id, dbsession=DBSESSION):
     return info_dict
 
 
-def add_session_player(player_id, session_id, dbsession=DBSESSION):
+def add_session_player(
+    player_id: int, session_id: str, dbsession: Session = session
+) -> bool:
     """
     Add a row in the SessionSquad table.
     """
@@ -128,7 +130,9 @@ def add_session_player(player_id, session_id, dbsession=DBSESSION):
     return True
 
 
-def remove_session_player(player_id, session_id, dbsession=DBSESSION):
+def remove_session_player(
+    player_id: int | str, session_id: str, dbsession: Session = session
+) -> bool:
     """
     Remove row from SessionSquad table.
     """
@@ -146,8 +150,11 @@ def remove_session_player(player_id, session_id, dbsession=DBSESSION):
 
 
 def list_players_teams_prices(
-    position="all", team="all", dbsession=DBSESSION, gameweek=NEXT_GAMEWEEK
-):
+    position: str = "all",
+    team: str = "all",
+    dbsession: Session = session,
+    gameweek: int = NEXT_GAMEWEEK,
+) -> list[str]:
     """
     Return a list of players, each with their current team and price
     """
@@ -163,7 +170,7 @@ def list_players_teams_prices(
     ]
 
 
-def get_session_budget(session_id, dbsession=DBSESSION):
+def get_session_budget(session_id: str, dbsession: Session = session) -> int:
     """
     query the sessionbudget table in the db - there should hopefully
     be one and only one row for this session_id
@@ -176,7 +183,9 @@ def get_session_budget(session_id, dbsession=DBSESSION):
     return sb[0].budget
 
 
-def set_session_budget(budget, session_id, dbsession=DBSESSION):
+def set_session_budget(
+    budget: int, session_id: str, dbsession: Session = session
+) -> bool:
     """
     delete the existing entry for this session_id in the sessionbudget table,
     then enter a new row
@@ -191,24 +200,21 @@ def set_session_budget(budget, session_id, dbsession=DBSESSION):
     return True
 
 
-def get_session_players(session_id, dbsession=DBSESSION):
+def get_session_players(session_id: str, dbsession: Session = session) -> list[dict]:
     """
     query the dbsession for the list of players with the requested player_id
     """
     players = dbsession.query(SessionSquad).filter_by(session_id=session_id).all()
-    return [
-        {
-            "id": p.player_id,
-            "name": dbsession.query(Player)
-            .filter_by(player_id=p.player_id)
-            .first()
-            .name,
-        }
-        for p in players
-    ]
+    result = []
+    for p in players:
+        player_row = dbsession.query(Player).filter_by(player_id=p.player_id).first()
+        result.append(
+            {"id": p.player_id, "name": player_row.name if player_row else ""}
+        )
+    return result
 
 
-def validate_session_squad(session_id, dbsession=DBSESSION):
+def validate_session_squad(session_id: str, dbsession: Session = session) -> bool:
     """
     get the list of player_ids for this session_id, and see if we can
     make a valid 15-player squad out of it
@@ -226,7 +232,9 @@ def validate_session_squad(session_id, dbsession=DBSESSION):
     return True
 
 
-def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
+def fill_session_squad(
+    team_id: int, session_id: str, dbsession: Session = session
+) -> list[int]:
     """
     Use the FPL API to get list of players in an FPL squad with id=team_id,
     then fill the session squad with these players.
@@ -247,7 +255,12 @@ def fill_session_squad(team_id, session_id, dbsession=DBSESSION):
     return player_ids
 
 
-def get_session_prediction(player_id, gw=None, pred_tag=None, dbsession=DBSESSION):
+def get_session_prediction(
+    player_id: int,
+    gw: int | None = None,
+    pred_tag: str | None = None,
+    dbsession: Session = session,
+) -> dict:
     """
     Query the fixture and predictedscore tables for a specified player
     """
@@ -259,11 +272,13 @@ def get_session_prediction(player_id, gw=None, pred_tag=None, dbsession=DBSESSIO
         "predicted_score": get_predicted_points_for_player(
             player_id, pred_tag, CURRENT_SEASON, dbsession
         )[gw],
-        "fixture": get_next_fixture_for_player(player_id, CURRENT_SEASON, dbsession),
+        "fixture": get_next_fixture_for_player(
+            player_id, CURRENT_SEASON, dbsession=dbsession
+        ),
     }
 
 
-def get_session_predictions(session_id, dbsession=DBSESSION):
+def get_session_predictions(session_id: str, dbsession: Session = session) -> dict:
     """
     Query the fixture and predictedscore tables for all
     players in our session squad
@@ -274,7 +289,9 @@ def get_session_predictions(session_id, dbsession=DBSESSION):
     return {pid: get_session_prediction(pid, gw, pred_tag, dbsession) for pid in pids}
 
 
-def best_transfer_suggestions(n_transfer, session_id, dbsession=DBSESSION):
+def best_transfer_suggestions(
+    n_transfer: int | str, session_id: str, dbsession: Session = session
+) -> dict:
     """
     Use our predicted playerscores to suggest the best transfers.
     """

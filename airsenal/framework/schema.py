@@ -3,6 +3,7 @@ Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
 
+from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Annotated
 
@@ -10,6 +11,7 @@ from sqlalchemy import ForeignKey, String, create_engine
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
+    Session,
     mapped_column,
     relationship,
     sessionmaker,
@@ -175,7 +177,7 @@ class Player(Base):
             return attr_before
         return attr_after
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.display_name or self.name
 
 
@@ -206,7 +208,7 @@ class PlayerAttributes(Base):
     transfers_in: Mapped[int | None]
     transfers_out: Mapped[int | None]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
@@ -228,7 +230,7 @@ class Absence(Base):
     url: Mapped[str100_optional]
     timestamp: Mapped[str100]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Absence(\n"
             f"  player='{self.player}',\n"
@@ -256,7 +258,7 @@ class Result(Base):
     player: Mapped["Player"] = relationship(back_populates="results")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.fixture.season} GW{self.fixture.gameweek} "
             f"{self.fixture.home_team} {self.home_score} - "
@@ -277,7 +279,7 @@ class Fixture(Base):
     tag: Mapped[str100]
     result: Mapped["Result | None"] = relationship(back_populates="fixture")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
@@ -326,7 +328,7 @@ class PlayerScore(Base):
     chance_of_playing: Mapped[int | None]
     news: Mapped[str100_optional]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
 
@@ -340,7 +342,7 @@ class PlayerPrediction(Base):
     player: Mapped["Player"] = relationship(back_populates="predictions")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
 
 
@@ -357,7 +359,7 @@ class Transaction(Base):
     free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
     fpl_team_id: Mapped[int]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
         if self.bought_or_sold == 1:
             trans_str += f"bought player {self.player_id}"
@@ -380,7 +382,7 @@ class TransferSuggestion(Base):
     fpl_team_id: Mapped[int]  # to identify team to apply transfers.
     chip_played: Mapped[str100_optional]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
         if self.in_or_out == 1:
             sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
@@ -399,7 +401,7 @@ class FifaTeamRating(Base):
     mid: Mapped[int]
     ovr: Mapped[int]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.team} {self.season} FIFA rating: "
             f"ovr {self.ovr}, def {self.defn}, mid {self.mid}, att {self.att}"
@@ -414,7 +416,7 @@ class Team(Base):
     season: Mapped[str4]
     team_id: Mapped[int]  # the season-dependent team ID (from alphabetical order)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.full_name} ({self.name})"
 
 
@@ -460,7 +462,7 @@ def get_connection_string() -> str:
     return f"sqlite:///{AIRSENAL_DB_FILE}"
 
 
-def get_session():
+def get_session() -> Session:
     conn_str = get_connection_string()
     engine = create_engine(conn_str)
 
@@ -478,7 +480,7 @@ session = get_session()
 
 
 @contextmanager
-def session_scope():
+def session_scope() -> Generator[Session]:
     """Provide a transactional scope around a series of operations."""
     session = get_session()
     try:
@@ -491,7 +493,7 @@ def session_scope():
         session.close()
 
 
-def clean_database():
+def clean_database() -> None:
     """
     Clean up database
     """
@@ -500,7 +502,7 @@ def clean_database():
     Base.metadata.create_all(bind=engine)
 
 
-def database_is_empty(dbsession):
+def database_is_empty(dbsession: Session) -> bool:
     """
     Basic check to determine whether the database is empty
     """

@@ -5,37 +5,39 @@ Functions to get data on specified FPL teams and leagues
 from airsenal.framework.utils import fetcher
 
 
-def get_overall_points(gameweek=None):
+def get_overall_points(gameweek: int | None = None) -> int:
     """
     Get our total points
     """
     data = fetcher.get_fpl_team_data(gameweek=gameweek)
-    if not gameweek:
+    if gameweek is None:
         return data["entry"]["summary_overall_points"]
-    if isinstance(gameweek, int) and gameweek <= len(data["history"]):
+    if gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["points"]
     print("Unknown gameweek")
     return 0
 
 
-def get_overall_ranking(gameweek=None):
+def get_overall_ranking(gameweek: int | None = None) -> int:
     """
     Get our overall ranking
     """
     data = fetcher.get_fpl_team_data(gameweek=gameweek)
-    if not gameweek:
+    if gameweek is None:
         return data["entry"]["summary_overall_rank"]
-    if isinstance(gameweek, int) and gameweek <= len(data["history"]):
+    if gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["rank"]
     print("Unknown gameweek")
     return 0
 
 
-def get_league_standings():
+def get_league_standings() -> tuple[str, list[dict]]:
     """
     Get stuff about our mini-league
     """
     data = fetcher.get_fpl_league_data()
+    if data is None:
+        return "", []
     team_name = data["league"]["name"]
     standings = [
         {"name": s["entry_name"], "manager": s["player_name"], "points": s["total"]}

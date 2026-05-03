@@ -5,6 +5,7 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
 from sqlalchemy import and_, or_
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
@@ -18,7 +19,7 @@ from airsenal.framework.utils import (
 )
 
 
-def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
+def free_hit_used_in_gameweek(gameweek: int, fpl_team_id: int | None = None) -> int:
     """Use FPL API to determine whether a chip was played in the given gameweek"""
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -32,7 +33,9 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
     return 0
 
 
-def count_transactions(season, fpl_team_id, dbsession=session):
+def count_transactions(
+    season: str, fpl_team_id: int | None, dbsession: Session = session
+) -> int:
     """Count the number of transactions we have in the database for a given team ID
     and season.
     """
@@ -49,16 +52,16 @@ def count_transactions(season, fpl_team_id, dbsession=session):
 
 
 def transaction_exists(
-    fpl_team_id,
-    gameweek,
-    season,
-    time,
-    pid_out,
-    price_out,
-    pid_in,
-    price_in,
-    dbsession=session,
-):
+    fpl_team_id: int,
+    gameweek: int,
+    season: str,
+    time: str,
+    pid_out: int,
+    price_out: int,
+    pid_in: int,
+    price_in: int,
+    dbsession: Session = session,
+) -> bool:
     """Check whether the transactions related to transferring a player in and out
     in a gameweek at a specific time already exist in the database.
     """
@@ -97,17 +100,17 @@ def transaction_exists(
 
 
 def add_transaction(
-    player_id,
-    gameweek,
-    in_or_out,
-    price,
-    season,
-    tag,
-    free_hit,
-    fpl_team_id,
-    time,
-    dbsession=session,
-):
+    player_id: int,
+    gameweek: int,
+    in_or_out: int,
+    price: int,
+    season: str,
+    tag: str,
+    free_hit: int,
+    fpl_team_id: int,
+    time: str,
+    dbsession: Session = session,
+) -> None:
     """
     add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
     """
@@ -127,19 +130,22 @@ def add_transaction(
 
 
 def fill_initial_squad(
-    season=CURRENT_SEASON,
-    tag="AIrsenal" + CURRENT_SEASON,
-    fpl_team_id=None,
-    dbsession=session,
-):
+    season: str = CURRENT_SEASON,
+    tag: str = "AIrsenal" + CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    dbsession: Session = session,
+) -> None:
     """
     Fill the Transactions table in the database with the initial 15 players, and their
     costs, getting the information from the team history API endpoint (for the list of
     players in our team) and the player history API endpoint (for their price in gw1).
     """
 
-    if not fpl_team_id:
+    if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
+    if fpl_team_id is None:
+        msg = "fpl_team_id must be provided or set in environment"
+        raise ValueError(msg)
     print(
         "Getting initially selected players "
         f"in squad {fpl_team_id} for first gameweek..."
@@ -164,6 +170,9 @@ def fill_initial_squad(
     time = fetcher.get_event_data()[starting_gw]["deadline"]
     for player in init_players:
         player_api_id = player.fpl_api_id
+        if player_api_id is None:
+            print(f"Skipping player with no fpl_api_id: {player}")
+            continue
         first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
 
         if len(first_gw_data) == 0:
@@ -196,18 +205,21 @@ def fill_initial_squad(
 
 
 def update_squad(
-    season=CURRENT_SEASON,
-    tag="AIrsenal" + CURRENT_SEASON,
-    fpl_team_id=None,
-    dbsession=session,
-    verbose=True,
-):
+    season: str = CURRENT_SEASON,
+    tag: str = "AIrsenal" + CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    dbsession: Session = session,
+    verbose: bool = True,
+) -> None:
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
     using the transfers API endpoint which has the correct buy and sell prices.
     """
-    if not fpl_team_id:
+    if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
+    if fpl_team_id is None:
+        msg = "fpl_team_id must be provided or set in environment"
+        raise ValueError(msg)
     print(f"Updating db with squad with fpl_team_id={fpl_team_id}")
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = (

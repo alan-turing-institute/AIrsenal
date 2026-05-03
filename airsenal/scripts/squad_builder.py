@@ -56,13 +56,6 @@ def fill_initial_squad(
         verbose=verbose,
     )
 
-    if best_squad is None:
-        msg = (
-            "best_squad is None: make_new_squad failed to generate a valid team or "
-            "something went wrong with the squad expected points calculation."
-        )
-        raise RuntimeError(msg)
-
     gw_start = gw_range[0]
     optimised_score = get_discounted_squad_score(
         best_squad,
@@ -208,7 +201,11 @@ def main():
     mutation_indpb = args.mutation_indpb
     tournament_size = args.tournament_size
     remove_zero = not args.include_zero
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    _fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+    if _fpl_team_id is None:
+        msg = "fpl_team_id must be provided via --fpl_team_id or FPL_TEAM_ID env var"
+        raise ValueError(msg)
+    fpl_team_id: int = _fpl_team_id
     if args.no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:

@@ -59,7 +59,6 @@ def player_attribute_to_absence(player_attribute):
     a.season = player_attribute.season
     a.gw_from = player_attribute.gameweek
     a.gw_until = player_attribute.return_gameweek
-    a.chance_of_playing = player_attribute.chance_of_playing_next_round
     a.reason = player_attribute.news
     a.timestamp = datetime.datetime.now().isoformat()
 

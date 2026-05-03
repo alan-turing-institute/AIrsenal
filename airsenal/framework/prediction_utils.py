@@ -61,7 +61,12 @@ np.random.seed(42)
 MAX_GOALS = 10
 
 
-def check_absence(player, gameweek, season, dbsession=session):
+def check_absence(
+    player: Player,
+    gameweek: int,
+    season: str,
+    dbsession: Session = session,
+) -> tuple[str | list[str] | None, str | list[str | None] | None]:
     """
     Query the Absence table for a given player and season to see if the
     gameweek is within the period of absence. If so, return the details of absence.
@@ -75,24 +80,22 @@ def check_absence(player, gameweek, season, dbsession=session):
         .filter(Absence.gw_from < gameweek)
         .filter(Absence.gw_until > gameweek)
     ).all()
-    # save the reasons and details - there may be more than 1 reason for absence
-    reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
-    details = [ab.details for ab in absence] if len(absence) > 0 else None
-    # for those that just have one reason, just take first element of list
-    if reasons is not None:
-        reasons = reasons[0] if len(reasons) == 1 else reasons
-    if details is not None:
-        details = details[0] if len(details) == 1 else details
+    if len(absence) == 0:
+        return None, None
+    if len(absence) == 1:
+        return absence[0].reason, absence[0].details
+    reasons: list[str] = [ab.reason for ab in absence]
+    details: list[str | None] = [ab.details for ab in absence]
     return reasons, details
 
 
 def get_player_history_df(
-    position="all",
-    all_players=False,
-    fill_blank=True,
-    season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    position: str = "all",
+    all_players: bool = False,
+    fill_blank: bool = True,
+    season: str = CURRENT_SEASON,
+    gameweek: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
 ) -> pd.DataFrame:
     """
     Query the player_score table to get goals/assists/minutes, and then
@@ -169,9 +172,13 @@ def get_player_history_df(
                 team_goals = -1
             expected_goals = row.expected_goals
             expected_assists = row.expected_assists
-            absence_reason, absence_detail = check_absence(
-                player, row.fixture.gameweek, row.fixture.season, session
-            )
+            fixture_gw = row.fixture.gameweek
+            if fixture_gw is None:
+                absence_reason, absence_detail = None, None
+            else:
+                absence_reason, absence_detail = check_absence(
+                    player, fixture_gw, row.fixture.season, session
+                )
             player_data.append(
                 [
                     player.player_id,
@@ -684,8 +691,8 @@ def fit_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-    epsilon=DEFAULT_PLAYER_EPSILON,
-    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
+    epsilon: float | None = DEFAULT_PLAYER_EPSILON,
+    n_goals_prior: int = DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
     """
     Fit the data for a particular position (FWD, MID, DEF).
@@ -711,8 +718,8 @@ def get_all_fitted_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
-    epsilon=DEFAULT_PLAYER_EPSILON,
-    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
+    epsilon: float | None = DEFAULT_PLAYER_EPSILON,
+    n_goals_prior: int = DEFAULT_N_GOALS_PRIOR,
 ) -> dict[str, pd.DataFrame]:
     return {
         pos: fit_player_data(

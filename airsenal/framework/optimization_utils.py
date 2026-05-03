@@ -7,6 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 
 from curl_cffi import requests
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import (
     Fixture,
@@ -30,7 +31,12 @@ DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 
-def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
+def check_tag_valid(
+    pred_tag: str,
+    gameweek_range: list[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session = session,
+) -> bool:
     """Check a prediction tag contains predictions for all the specified gameweeks."""
     # get unique gameweek and season values associated with pred_tag
     fixtures = (
@@ -51,7 +57,7 @@ def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=s
     return season_ok and gws_ok
 
 
-def calc_points_hit(num_transfers, free_transfers):
+def calc_points_hit(num_transfers: int | str, free_transfers: int) -> int:
     """
     Current rules say we lose 4 points for every transfer beyond
     the number of free transfers we have.
@@ -76,8 +82,10 @@ def calc_points_hit(num_transfers, free_transfers):
 
 
 def calc_free_transfers(
-    num_transfers, prev_free_transfers, max_free_transfers=MAX_FREE_TRANSFERS
-):
+    num_transfers: int | str,
+    prev_free_transfers: int,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> int:
     """
     We get one extra free transfer per week, unless we use a wildcard or
     free hit, but we can't have more than 5.  So we should only be able
@@ -102,12 +110,12 @@ def calc_free_transfers(
 
 
 def get_starting_squad(
-    next_gw=NEXT_GAMEWEEK,
-    season=CURRENT_SEASON,
-    fpl_team_id=None,
-    use_api=False,
+    next_gw: int = NEXT_GAMEWEEK,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    use_api: bool = False,
     apifetcher=fetcher,
-):
+) -> Squad:
     """
     use the transactions table in the db, or the API if requested
     """
@@ -135,7 +143,9 @@ def get_starting_squad(
     return get_squad_from_transactions(next_gw, season, fpl_team_id)
 
 
-def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
+def get_squad_from_transactions(
+    gameweek: int, season: str = CURRENT_SEASON, fpl_team_id: int | None = None
+) -> Squad:
     if not fpl_team_id:
         # use the most recent transaction in the table
         most_recent = (
@@ -198,7 +208,7 @@ def get_discounted_squad_score(
     """
     if root_gw is None:
         root_gw = gameweeks[0]
-    total_points = 0
+    total_points = 0.0
     for gw in gameweeks:
         gw_weight = get_discount_factor(root_gw, gw)
         if gw == bench_boost_gw:
@@ -220,31 +230,40 @@ def get_discounted_squad_score(
     return total_points
 
 
-def get_baseline_strat(squad, gameweeks, tag, root_gw=None):
+def get_baseline_strat(
+    squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
+) -> dict:
     """
     Create the strategy dict used by the optimisation for the baseline of making no
     transfers.
     """
-    strat_dict = {
-        "total_score": 0,
-        "points_per_gw": {},
-        "players_in": {},
-        "players_out": {},
-        "chips_played": {},
-        "root_gw": root_gw,
-    }
+    total_score: float = 0
+    points_per_gw: dict[int, float] = {}
+    players_in: dict[int, list] = {}
+    players_out: dict[int, list] = {}
+    chips_played: dict[int, None] = {}
+
     for gw in gameweeks:
         gw_score = get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw)
-        strat_dict["total_score"] += gw_score
-        strat_dict["points_per_gw"][gw] = gw_score
-        strat_dict["players_in"][gw] = []
-        strat_dict["players_out"][gw] = []
-        strat_dict["chips_played"][gw] = None
+        total_score += gw_score
+        points_per_gw[gw] = gw_score
+        players_in[gw] = []
+        players_out[gw] = []
+        chips_played[gw] = None
 
-    return strat_dict
+    return {
+        "total_score": total_score,
+        "points_per_gw": points_per_gw,
+        "players_in": players_in,
+        "players_out": players_out,
+        "chips_played": chips_played,
+        "root_gw": root_gw,
+    }
 
 
-def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
+def fill_suggestion_table(
+    baseline_score: float, best_strat: dict, season: str, fpl_team_id: int
+) -> None:
     """
     Fill the optimized strategy into the table
     """
@@ -269,8 +288,13 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
 
 
 def fill_transaction_table(
-    starting_squad, best_strat, season, fpl_team_id, tag=None, dbsession=session
-):
+    starting_squad: Squad,
+    best_strat: dict,
+    season: str,
+    fpl_team_id: int,
+    tag: str | None = None,
+    dbsession: Session = session,
+) -> None:
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
     the transactions status is kept up to date with transfers using the FPL API.
@@ -302,12 +326,15 @@ def fill_transaction_table(
         )
     for player_id in best_strat["players_in"][str(fill_gw)]:
         if player := get_player(player_id, dbsession=dbsession):
-            price = player.price(season, fill_gw)
+            price_in: int | None = player.price(season, fill_gw)
+            if price_in is None:
+                print(f"No price found for player {player_id} in gw {fill_gw}")
+                continue
             add_transaction(
                 player_id,
                 fill_gw,
                 1,
-                price,
+                price_in,
                 season,
                 tag,
                 free_hit,
@@ -320,13 +347,13 @@ def fill_transaction_table(
 
 
 def fill_initial_suggestion_table(
-    squad,
-    fpl_team_id,
-    tag,
-    season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
-):
+    squad: Squad,
+    fpl_team_id: int,
+    tag: str,
+    season: str = CURRENT_SEASON,
+    gameweek: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
+) -> None:
     """
     Fill an initial squad into the table
     """
@@ -334,7 +361,7 @@ def fill_initial_suggestion_table(
     score = squad.get_expected_points(gameweek, tag)
     for player in squad.players:
         ts = TransferSuggestion()
-        ts.player_id = player.player_id
+        ts.player_id = player.player_id  # type: ignore[assignment]
         ts.in_or_out = 1
         ts.gameweek = NEXT_GAMEWEEK
         ts.points_gain = score
@@ -347,13 +374,13 @@ def fill_initial_suggestion_table(
 
 
 def fill_initial_transaction_table(
-    squad,
-    fpl_team_id,
-    tag,
-    season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
-):
+    squad: Squad,
+    fpl_team_id: int,
+    tag: str,
+    season: str = CURRENT_SEASON,
+    gameweek: int = NEXT_GAMEWEEK,
+    dbsession: Session = session,
+) -> None:
     """Add transactions from an initial squad optimisation to the transactions table
     in the database. Used for simulating seasons only, for playing the current FPL
     season the transactions status is kepts up to date with transfers using the FPL API.
@@ -362,7 +389,7 @@ def fill_initial_transaction_table(
     time = datetime.now().isoformat()
     for player in squad.players:
         add_transaction(
-            player.player_id,
+            player.player_id,  # type: ignore[arg-type]
             gameweek,
             1,
             player.purchase_price,
@@ -375,7 +402,7 @@ def fill_initial_transaction_table(
         )
 
 
-def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
+def strategy_involves_N_or_more_transfers_in_gw(strategy: tuple, N: int) -> bool:
     """
     Quick function to see if we need to do multiple iterations
     for a strategy, or if the result is deterministic
@@ -385,7 +412,7 @@ def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
     return any(isinstance(v, int) and v >= N for v in strat_dict.values())
 
 
-def make_strategy_id(strategy):
+def make_strategy_id(strategy: tuple) -> str:
     """
     Return a string that will identify a strategy - just concatenate
     the numbers of transfers per gameweek.
@@ -393,7 +420,7 @@ def make_strategy_id(strategy):
     return ",".join(str(nt) for nt in strategy[0].values())
 
 
-def get_num_increments(num_transfers, num_iterations=100):
+def get_num_increments(num_transfers: int | str, num_iterations: int = 100) -> int:
     """
     how many steps for the progress bar for this strategy
     """
@@ -426,13 +453,13 @@ def get_num_increments(num_transfers, num_iterations=100):
 
 
 def next_week_transfers(
-    strat,
-    max_total_hit=None,
-    allow_unused_transfers=True,
-    max_opt_transfers=2,
-    chips=None,
-    max_free_transfers=MAX_FREE_TRANSFERS,
-):
+    strat: tuple,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chips: dict | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> list[tuple]:
     """Given a previous strategy and some optimisation constraints, determine the valid
     options for the number of transfers (or chip played) in the following gameweek.
 
@@ -641,7 +668,12 @@ def count_expected_outputs(
     return len(strategies), baseline_excluded
 
 
-def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
+def get_discount_factor(
+    next_gw: int | None,
+    pred_gw: int,
+    discount_type: str = "exp",
+    discount: float = 14 / 15,
+) -> float:
     """
     given the next gw and a predicted gw, retrieve discount factor. Either:
         - exp: discount**n_ahead (discount reduces each gameweek)

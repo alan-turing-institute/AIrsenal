@@ -13,7 +13,7 @@ import os
 from multiprocessing.queues import Queue
 
 
-def set_multiprocessing_start_method():
+def set_multiprocessing_start_method() -> None:
     """To fix change of default behaviour in multiprocessing on Python 3.8 and later
     on MacOS. Python 3.8 and later start processess using spawn by default, see:
     https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
@@ -44,16 +44,16 @@ class SharedCounter:
     http://eli.thegreenplace.net/2012/01/04/shared-counter-with-pythons-multiprocessing/
     """
 
-    def __init__(self, n=0):
+    def __init__(self, n: int = 0) -> None:
         self.count = multiprocessing.Value("i", n)
 
-    def increment(self, n=1):
+    def increment(self, n: int = 1) -> None:
         """Increment the counter by n (default = 1)"""
         with self.count.get_lock():
             self.count.value += n
 
     @property
-    def value(self):
+    def value(self) -> int:
         """Return the value of the counter"""
         return self.count.value
 
@@ -71,22 +71,22 @@ class CustomQueue(Queue):
     qsize() and empty().
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(ctx=multiprocessing.get_context())
         self.size = SharedCounter(0)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> None:
         self.size.increment(1)
         super().put(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> object:
         self.size.increment(-1)
         return super().get(*args, **kwargs)
 
-    def qsize(self):
+    def qsize(self) -> int:
         """Reliable implementation of multiprocessing.Queue.qsize()"""
         return self.size.value
 
-    def empty(self):
+    def empty(self) -> bool:
         """Reliable implementation of multiprocessing.Queue.empty()"""
         return not self.qsize()

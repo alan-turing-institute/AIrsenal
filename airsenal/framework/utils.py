@@ -407,8 +407,11 @@ def get_free_transfers(
     """
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
-        if not fpl_team_id:
+        if fpl_team_id is None:
             fpl_team_id = apifetcher.FPL_TEAM_ID
+        if fpl_team_id is None:
+            msg = "fpl_team_id must be provided or set in environment"
+            raise ValueError(msg)
 
         # try to get the most up-to-date info from logged in api
         try:
@@ -711,8 +714,8 @@ def list_players(
             zip(prices, players, strict=False), reverse=True, key=lambda p: p[0]
         )
         if verbose:
-            for pa in sort_players:
-                print(pa[1], pa[0])
+            for price_pa, player_pa in sort_players:
+                print(player_pa, price_pa)
         players = [p for _, p in sort_players]
     return players
 

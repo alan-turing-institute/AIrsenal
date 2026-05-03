@@ -21,7 +21,7 @@ def_cons_required = {"GK": 999, "DEF": 10, "MID": 12, "FWD": 12}
 points_for_def_cons = 2
 
 
-def get_appearance_points(minutes):
+def get_appearance_points(minutes: int | float) -> float:
     """
     get points for being on the pitch at all, and more for being on
     for most of the match.

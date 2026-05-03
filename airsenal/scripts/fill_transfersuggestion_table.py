@@ -616,6 +616,11 @@ def run_optimization(
     best_strategy = find_best_strat_from_json(tag)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
+
+    if best_strategy is None:
+        msg = "Failed to find a strategy!"
+        raise ValueError(msg)
+
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     if is_replay:
         # simulating a previous season, so imitate applying transfers by adding
@@ -624,10 +629,6 @@ def run_optimization(
 
     for _ in range(len(procs)):
         print("\n")
-
-    if best_strategy is None:
-        msg = "Failed to find a strategy!"
-        raise ValueError(msg)
 
     print("================")
     print("OPTIMUM STRATEGY")
@@ -657,21 +658,25 @@ def run_optimization(
             ]
             for position in ["GK", "DEF", "MID", "FWD"]:
                 lineup_strings.append(f"== **{position}** ==\n```")
-                for p in best_squad.players:
-                    if p.position == position and p.is_starting:
-                        player_line = f"{p} ({p.team})"
-                        if p.is_captain:
+                for player in best_squad.players:
+                    if player.position == position and player.is_starting:
+                        player_line = f"{player} ({player.team})"
+                        if player.is_captain:
                             player_line += "(C)"
-                        elif p.is_vice_captain:
+                        elif player.is_vice_captain:
                             player_line += "(VC)"
                         lineup_strings.append(player_line)
                 lineup_strings.append("```\n")
             lineup_strings.append("__subs__")
             lineup_strings.append("```")
-            subs = [p for p in best_squad.players if not p.is_starting]
-            subs.sort(key=lambda p: p.sub_position)
-            for p in subs:
-                lineup_strings.append(f"{p} ({p.team})")
+            subs = [player for player in best_squad.players if not player.is_starting]
+            subs.sort(
+                key=lambda player: player.sub_position
+                if player.sub_position is not None
+                else 0
+            )
+            for player in subs:
+                lineup_strings.append(f"{player} ({player.team})")
             lineup_strings.append("```\n")
 
             # generate a discord embed json and send to webhook

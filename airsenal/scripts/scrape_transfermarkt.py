@@ -91,10 +91,10 @@ def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
     player_names_urls = []
     for r in player_rows:
         if not isinstance(r, Tag):
-            continue
+            continue  # type: ignore[unreachable]
         last_a_tag = r.find_all("a")[-1]
         if not isinstance(last_a_tag, Tag):
-            continue
+            continue  # type: ignore[unreachable]
         name = str(last_a_tag.contents[0]).strip()
         url = str(last_a_tag.get("href"))
         player_names_urls.append((name, url))
@@ -230,18 +230,18 @@ def get_player_suspensions(
 
     table = player_soup.find_all("table")[0]
     if not isinstance(table, Tag):
-        print("Could not find table with suspensions/absences")
+        print("Could not find table with suspensions/absences")  # type: ignore[unreachable]
         return pd.DataFrame()
     rows = table.find_all("tr")[1:]  # skip header row
     comp = []
     for row in rows:
         if not isinstance(row, Tag):
-            print("Skipping row that is not a Tag")
+            print("Skipping row that is not a Tag")  # type: ignore[unreachable]
             continue
         try:
             img = row.find_all("img")[0]
             if not isinstance(img, Tag):
-                msg = "Image tag not found"
+                msg = "Image tag not found"  # type: ignore[unreachable]
                 raise IndexError(msg)
             comp.append(img.get("title"))
         except IndexError:
@@ -364,7 +364,7 @@ def get_player_transfers(
             i
         ]
         if not isinstance(old, Tag):
-            print(f"Old club details is unexpected type {type(old)}")
+            print(f"Old club details is unexpected type {type(old)}")  # type: ignore[unreachable]
             continue
         old_club = " ".join(old.getText().split())
         if old.a is None:
@@ -380,7 +380,7 @@ def get_player_transfers(
             i
         ]
         if not isinstance(new, Tag):
-            print(f"New club details is unexpected type {type(new)}")
+            print(f"New club details is unexpected type {type(new)}")  # type: ignore[unreachable]
             continue
         new_club = " ".join(new.getText().split())
         if new.a is None:

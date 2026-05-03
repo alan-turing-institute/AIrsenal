@@ -54,11 +54,13 @@ def build_lineup_payload(squad: Squad) -> list:
     payload.append(to_dict(sub_gk, 12))
 
     available_sub_positions = list(range(4))
+    assert sub_gk.sub_position is not None, "sub_gk has no sub_position"
     available_sub_positions.remove(sub_gk.sub_position)
     subs_outfield = [
         p for p in squad.players if not p.is_starting and p.position != "GK"
     ]
     for s in subs_outfield:
+        assert s.sub_position is not None, f"outfield sub {s} has no sub_position"
         payload.append(to_dict(s, 13 + available_sub_positions.index(s.sub_position)))
 
     return payload

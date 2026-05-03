@@ -7,6 +7,8 @@ from typing import TypeVar
 
 from platformdirs import user_data_dir
 
+_R = TypeVar("_R")
+
 # Cross-platform data directory
 if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
@@ -28,11 +30,11 @@ AIRSENAL_ENV_KEYS = [
 ]
 
 
-def check_valid_key(func):
+def check_valid_key(func: Callable[..., _R]) -> Callable[..., _R]:
     """decorator to pre-check whether we are using a valid AIrsenal key in env
     get/save/del functions"""
 
-    def wrapper(key, *args, **kwargs):
+    def wrapper(key: str, *args, **kwargs) -> _R:
         if key not in AIRSENAL_ENV_KEYS:
             msg = f"{key} is not a known AIrsenal environment variable"
             raise KeyError(msg)
@@ -42,13 +44,13 @@ def check_valid_key(func):
 
 
 @check_valid_key
-def save_env(key, value):
+def save_env(key: str, value: str) -> None:
     with open(AIRSENAL_HOME / key, "w") as f:
         f.write(value)
 
 
 @check_valid_key
-def delete_env(key):
+def delete_env(key: str) -> None:
     if os.path.exists(AIRSENAL_HOME / key):
         os.remove(AIRSENAL_HOME / key)
     if key in os.environ:

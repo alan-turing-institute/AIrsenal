@@ -57,17 +57,17 @@ class SquadOpt:
 
     def __init__(
         self,
-        gw_range,
-        tag,
-        budget=1000,
-        dummy_sub_cost=45,
-        season=CURRENT_SEASON,
-        bench_boost_gw=None,
-        triple_captain_gw=None,
-        remove_zero=True,  # don't consider players with predicted pts of zero
-        players_per_position=TOTAL_PER_POSITION,
-        sub_weights=DEFAULT_SUB_WEIGHTS,
-    ):
+        gw_range: list[int],
+        tag: str,
+        budget: int = 1000,
+        dummy_sub_cost: int = 45,
+        season: str = CURRENT_SEASON,
+        bench_boost_gw: int | None = None,
+        triple_captain_gw: int | None = None,
+        remove_zero: bool = True,
+        players_per_position: dict[str, int] = TOTAL_PER_POSITION,
+        sub_weights: dict = DEFAULT_SUB_WEIGHTS,
+    ) -> None:
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
@@ -92,7 +92,7 @@ class SquadOpt:
         # Setup DEAP toolbox
         self._setup_deap()
 
-    def _setup_deap(self):
+    def _setup_deap(self) -> None:
         """Setup DEAP genetic algorithm components."""
         # Create fitness and individual classes
         # We want to maximize fitness, so weights=(1.0,)
@@ -113,7 +113,7 @@ class SquadOpt:
         # Store mutation bounds for later use in optimize method
         self.low_bounds, self.up_bounds = self._get_mutation_bounds()
 
-    def _create_individual(self):
+    def _create_individual(self) -> list:
         """Create a valid individual (chromosome) representing a squad selection."""
         individual = []
 
@@ -130,7 +130,7 @@ class SquadOpt:
 
         return creator.Individual(individual)
 
-    def _get_mutation_bounds(self):
+    def _get_mutation_bounds(self) -> tuple[list[int], list[int]]:
         """Get lower and upper bounds for each gene for mutation."""
         low_bounds = []
         up_bounds = []
@@ -188,7 +188,7 @@ class SquadOpt:
 
         return (score,)
 
-    def _get_player_list(self):
+    def _get_player_list(self) -> tuple[list[Player], dict[str, tuple[int, int]]]:
         """Get list of active players at the start of the gameweek range,
         and the id range of players for each position.
         """
@@ -208,20 +208,21 @@ class SquadOpt:
         }
         return players, position_idx
 
-    def _remove_zero_pts(self):
+    def _remove_zero_pts(self) -> None:
         """Exclude players with zero predicted points."""
         players: list[Player] = []
         # change_idx stores the indices of where the player positions change in the new
         # player list
         change_idx = [0]
-        last_pos = self.positions[0]
+        last_pos: str = self.positions[0]
         for p in self.players:
             gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
             total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gw_range)
             if total_pts > 0:
-                if p.position(self.season) != last_pos:
+                p_pos = p.position(self.season)
+                if p_pos is not None and p_pos != last_pos:
                     change_idx.append(len(players))
-                    last_pos = p.position(self.season)
+                    last_pos = p_pos
                 players.append(p)
         change_idx.append(len(players))
 
@@ -233,7 +234,7 @@ class SquadOpt:
         self.players = players
         self.position_idx = position_idx
 
-    def _get_dummy_per_position(self):
+    def _get_dummy_per_position(self) -> dict[str, int]:
         """No. of dummy players per position needed to complete the squad (if not
         optimising the full squad)
         """
@@ -330,26 +331,26 @@ class SquadOpt:
 
 
 def make_new_squad(
-    gw_range,
-    tag,
-    budget=1000,
-    players_per_position=TOTAL_PER_POSITION,
-    season=CURRENT_SEASON,
-    verbose=True,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    remove_zero=True,  # don't consider players with predicted pts of zero
-    sub_weights=DEFAULT_SUB_WEIGHTS,
-    dummy_sub_cost=45,
-    population_size=100,
-    generations=100,
-    crossover_prob=0.7,
-    mutation_prob=0.3,
-    crossover_indpb=0.5,
-    mutation_indpb=0.1,
-    tournament_size=3,
-    random_state=None,
-):
+    gw_range: list[int],
+    tag: str,
+    budget: int = 1000,
+    players_per_position: dict[str, int] = TOTAL_PER_POSITION,
+    season: str = CURRENT_SEASON,
+    verbose: bool = True,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    remove_zero: bool = True,
+    sub_weights: dict = DEFAULT_SUB_WEIGHTS,
+    dummy_sub_cost: int = 45,
+    population_size: int = 100,
+    generations: int = 100,
+    crossover_prob: float = 0.7,
+    mutation_prob: float = 0.3,
+    crossover_indpb: float = 0.5,
+    mutation_indpb: float = 0.1,
+    tournament_size: int = 3,
+    random_state: int | None = None,
+) -> Squad:
     """Optimize a full initial squad using DEAP genetic algorithm.
 
     Parameters
@@ -440,11 +441,12 @@ def make_new_squad(
     for idx in best_individual:
         if verbose:
             player = opt_squad.players[int(idx)]
+            player_price = player.price(season, 1)
             print(
                 player.position(season),
                 player,
                 player.team(season, 1),
-                player.price(season, 1) / 10,
+                player_price / 10 if player_price is not None else "N/A",
             )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,

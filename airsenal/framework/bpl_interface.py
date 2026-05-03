@@ -108,7 +108,7 @@ def get_training_data(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-):
+) -> dict[str, np.ndarray | dict[str, np.ndarray]]:
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
     exponential time decay in model.

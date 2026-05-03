@@ -15,7 +15,7 @@ from airsenal.framework.fpl_team_utils import (
 from airsenal.framework.schema import Player, TransferSuggestion, session
 
 
-def download_sqlite_file():
+def download_sqlite_file() -> str:
     """
     get from S3 using boto3
     """
@@ -35,7 +35,7 @@ def download_sqlite_file():
         return f"Problem downloading file {e}"
 
 
-def get_league_standings_string():
+def get_league_standings_string() -> str:
     """
     Query the FPL API for our mini-league.
     """
@@ -55,7 +55,7 @@ def get_league_standings_string():
         return f"Problem {e}"
 
 
-def get_suggestions_string():
+def get_suggestions_string() -> str:
     """
     Query the suggested_transfers table and format the output.
     """
@@ -73,7 +73,7 @@ def get_suggestions_string():
         return f"Problem with the query {e}"
 
 
-def build_suggestion_string(session, TransferSuggestion, Player):
+def build_suggestion_string(session, TransferSuggestion, Player) -> str:
     all_rows = session.query(TransferSuggestion).all()
     last_timestamp = all_rows[-1].timestamp
     rows = (
@@ -99,7 +99,7 @@ def build_suggestion_string(session, TransferSuggestion, Player):
     return output_string
 
 
-def get_score_ranking_string(query, gameweek=None):
+def get_score_ranking_string(query: str, gameweek: int | None = None) -> str:
     """
     query the FPL API for team history.
     """

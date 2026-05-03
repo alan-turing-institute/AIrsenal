@@ -8,13 +8,16 @@ import jax.random as random
 import numpy as np
 import numpyro
 import numpyro.distributions as dist
+import pandas as pd
 from numpyro.infer import MCMC, NUTS
 
 DEFAULT_PLAYER_EPSILON = 0.2
 DEFAULT_N_GOALS_PRIOR = 35
 
 
-def get_empirical_bayes_estimates(df_emp, prior_goals=None):
+def get_empirical_bayes_estimates(
+    df_emp: pd.DataFrame, prior_goals: int | None = None
+) -> np.ndarray:
     """
     Get values to use either for Dirichlet prior alphas in the original Stan and numpyro
     player models. Returns number of goals, assists and neither scaled by the
@@ -56,8 +59,12 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
 
 
 def scale_goals_by_minutes(
-    goals, minutes, time_diff=None, epsilon=None, rescale_weights=True
-):
+    goals: np.ndarray,
+    minutes: np.ndarray,
+    time_diff: np.ndarray | None = None,
+    epsilon: float | None = None,
+    rescale_weights: bool = True,
+) -> np.ndarray:
     """
     Scale player goal involvements by the proportion of minutes they played
     (specifically: reduce the number of "neither" goals where the player is said
@@ -149,9 +156,9 @@ class NumpyroPlayerModel(BasePlayerModel):
     numpyro implementation of the AIrsenal player model.
     """
 
-    def __init__(self):
-        self.player_ids = None
-        self.samples = None
+    def __init__(self) -> None:
+        self.player_ids: np.ndarray | None = None
+        self.samples: dict | None = None
 
     @staticmethod
     def _model(
@@ -185,14 +192,14 @@ class NumpyroPlayerModel(BasePlayerModel):
 
     def fit(
         self,
-        data,
+        data: dict[str, Any],
         random_state: int = 42,
         num_warmup: int = 500,
         num_samples: int = 2000,
         mcmc_kwargs: dict[str, Any] | None = None,
         run_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ):
+    ) -> NumpyroPlayerModel:
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
         mcmc = MCMC(
@@ -259,16 +266,16 @@ class ConjugatePlayerModel(BasePlayerModel):
     from average goal involvements for all players in that position.
     """
 
-    def __init__(self):
-        self.player_ids = None
-        self.prior = None
-        self.posterior = None
-        self.mean_probabilities = None
+    def __init__(self) -> None:
+        self.player_ids: np.ndarray | None = None
+        self.prior: np.ndarray | None = None
+        self.posterior: np.ndarray | None = None
+        self.mean_probabilities: np.ndarray | None = None
 
         # optional time weighting parameter
-        self.epsilon = None
-        self.time_diff = None
-        self.rescale_weights = None
+        self.epsilon: float | None = None
+        self.time_diff: np.ndarray | None = None
+        self.rescale_weights: bool | None = None
 
     def fit(
         self,

@@ -9,6 +9,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 import numpy as np
+from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
@@ -43,21 +44,21 @@ class Squad:
     Squad class.  Contains 15 players
     """
 
-    def __init__(self, budget=1000, season=CURRENT_SEASON):
+    def __init__(self, budget: float = 1000, season: str = CURRENT_SEASON) -> None:
         """
         constructor - start with an initial empty player list,
         and £100M
         """
-        self.players = []
+        self.players: list[CandidatePlayer | DummyPlayer] = []
         self.budget = budget
         self.season = season
-        self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        self.num_position: dict[str, int] = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         self.free_subs = 0
         self.subs_this_week = 0
         self.verbose = False
-        self.count_per_team = defaultdict(int)
+        self.count_per_team: defaultdict[str, int] = defaultdict(int)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Display the squad
         """
@@ -74,12 +75,12 @@ class Squad:
         print("\n=== Subs ===\n")
 
         subs = [p for p in self.players if not p.is_starting]
-        subs.sort(key=lambda p: p.sub_position)
+        subs.sort(key=lambda p: p.sub_position if p.sub_position is not None else 0)
         for p in subs:
             print(f"{p} ({p.team})")
         return ""
 
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """
         See if we have 15 players.
         """
@@ -89,12 +90,12 @@ class Squad:
     def add_player(
         self,
         p: CandidatePlayer | DummyPlayer | int | str | Player,
-        price=None,
-        gameweek=NEXT_GAMEWEEK,
-        check_budget=True,
-        check_team=True,
-        dbsession=None,
-    ):
+        price: int | None = None,
+        gameweek: int = NEXT_GAMEWEEK,
+        check_budget: bool = True,
+        check_team: bool = True,
+        dbsession: "Session | None" = None,
+    ) -> bool:
         """
         Add a player.  Can do it by name or by player_id.
         If no price is specified, CandidatePlayer constructor will use the
@@ -148,12 +149,12 @@ class Squad:
 
     def remove_player(
         self,
-        player_id,
-        price=None,
-        gameweek=NEXT_GAMEWEEK,
-        use_api=False,
-        dbsession=None,
-    ):
+        player_id: int | str,
+        price: int | None = None,
+        gameweek: int = NEXT_GAMEWEEK,
+        use_api: bool = False,
+        dbsession: "Session | None" = None,
+    ) -> bool:
         """
         Remove player from our list.
         If a price is specified, we use that, otherwise we
@@ -178,7 +179,7 @@ class Squad:
                 return True
         return False
 
-    def get_player_from_id(self, player_id):
+    def get_player_from_id(self, player_id: int | str) -> CandidatePlayer | DummyPlayer:
         for p in self.players:
             if p.player_id == player_id:
                 return p
@@ -187,12 +188,12 @@ class Squad:
 
     def get_sell_price_for_player(
         self,
-        player,
-        use_api=False,
-        gameweek=NEXT_GAMEWEEK,
-        dbsession=None,
-        apifetcher=fetcher,
-    ):
+        player: CandidatePlayer | DummyPlayer | int,
+        use_api: bool = False,
+        gameweek: int = NEXT_GAMEWEEK,
+        dbsession: "Session | None" = None,
+        apifetcher: FPLDataFetcher = fetcher,
+    ) -> int:
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
@@ -248,13 +249,13 @@ class Squad:
             return (price_now + price_bought) // 2
         return price_now
 
-    def check_no_duplicate_player(self, player):
+    def check_no_duplicate_player(self, player: CandidatePlayer | DummyPlayer) -> bool:
         """
         Check we don't already have the player.
         """
         return all(p.player_id != player.player_id for p in self.players)
 
-    def check_num_in_position(self, player):
+    def check_num_in_position(self, player: CandidatePlayer | DummyPlayer) -> bool:
         """
         check we have fewer than the limit of
         num players in the chosen players position.
@@ -262,7 +263,7 @@ class Squad:
         position = player.position
         return self.num_position[position] < TOTAL_PER_POSITION[position]
 
-    def check_num_per_team(self, player):
+    def check_num_per_team(self, player: CandidatePlayer | DummyPlayer) -> bool:
         """
         Check that the squad currently has a maximum of 3 players from the same team,
         and that adding the specified player would not exceed this limit.
@@ -272,13 +273,13 @@ class Squad:
             and max(self.count_per_team.values()) < 4
         )
 
-    def check_cost(self, player):
+    def check_cost(self, player: CandidatePlayer | DummyPlayer) -> bool:
         """
         check we can afford the player.
         """
         return player.purchase_price <= self.budget
 
-    def _calc_expected_points(self, tag):
+    def _calc_expected_points(self, tag: str) -> None:
         """
         estimate the expected points for the specified gameweek.
         If no gameweek is specified, it will be the next fixture
@@ -286,13 +287,13 @@ class Squad:
         for p in self.players:
             p.calc_predicted_points(tag)
 
-    def optimize_subs(self, gameweek, tag):
+    def optimize_subs(self, gameweek: int, tag: str) -> float:
         """
         based on pre-calculated expected points,
         choose the best starting 11, obeying constraints.
         """
         # first order all the players by expected points
-        player_dict: dict[str, list[tuple[CandidatePlayer, float]]] = {
+        player_dict: dict[str, list[tuple[CandidatePlayer | DummyPlayer, float]]] = {
             "GK": [],
             "DEF": [],
             "MID": [],
@@ -322,12 +323,13 @@ class Squad:
                 best_formation = f
         if self.verbose:
             print(f"Best formation is {best_formation}")
+        assert best_formation is not None
         self.apply_formation(player_dict, best_formation)
         self.order_substitutes(gameweek, tag)
 
         return best_score
 
-    def order_substitutes(self, gameweek, tag):
+    def order_substitutes(self, gameweek: int, tag: str) -> None:
         # order substitutes by expected points (descending)
         subs = [p for p in self.players if not p.is_starting]
 
@@ -343,7 +345,11 @@ class Squad:
         for sub_position, sub_ind in enumerate(ordered_sub_inds):
             subs[sub_ind].sub_position = sub_position
 
-    def apply_formation(self, player_dict, formation):
+    def apply_formation(
+        self,
+        player_dict: dict[str, list[tuple[CandidatePlayer | DummyPlayer, float]]],
+        formation: tuple[int, int, int],
+    ) -> None:
         """
         set players' is_starting to True or False
         depending on specified formation in format e.g.
@@ -353,18 +359,22 @@ class Squad:
             for index, player in enumerate(player_dict[pos]):
                 player[0].is_starting = index < formation[i]
 
-    def get_formation(self):
+    def get_formation(self) -> dict[str, int]:
         """
         Return the formation of a starting 11 in the form
         of a dict {"DEF": nDEF, "MID": nMID, "FWD": nFWD}
         """
-        formation = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        formation: dict[str, int] = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         for player in self.players:
             if player.is_starting:
                 formation[player.position] += 1
         return formation
 
-    def is_substitution_allowed(self, player_out, player_in):
+    def is_substitution_allowed(
+        self,
+        player_out: CandidatePlayer | DummyPlayer,
+        player_in: CandidatePlayer | DummyPlayer,
+    ) -> bool:
         """
         for a given player out and player in, would the substitution result in a
         valid formation?
@@ -399,7 +409,10 @@ class Squad:
         outfield_subs = [
             p for p in self.players if (not p.is_starting) and (p.position != "GK")
         ]
-        outfield_subs = sorted(outfield_subs, key=lambda p: p.sub_position)
+        outfield_subs = sorted(
+            outfield_subs,
+            key=lambda p: p.sub_position if p.sub_position is not None else 0,
+        )
 
         gk_sub = next(
             p for p in self.players if (not p.is_starting) and (p.position == "GK")
@@ -412,7 +425,7 @@ class Squad:
 
         return total
 
-    def optimize_lineup(self, gameweek: int, tag: str):
+    def optimize_lineup(self, gameweek: int, tag: str) -> None:
         if not self.is_complete():
             msg = "Squad is incomplete"
             raise RuntimeError(msg)
@@ -422,8 +435,12 @@ class Squad:
         self.pick_captains(gameweek, tag)
 
     def get_expected_points(
-        self, gameweek, tag, bench_boost=False, triple_captain=False
-    ):
+        self,
+        gameweek: int,
+        tag: str,
+        bench_boost: bool = False,
+        triple_captain: bool = False,
+    ) -> float:
         """
         expected points for the starting 11.
         """
@@ -439,7 +456,7 @@ class Squad:
 
         return total_score
 
-    def pick_captains(self, gameweek, tag):
+    def pick_captains(self, gameweek: int, tag: str) -> None:
         """
         pick the highest two expected points for captain and vice-captain
         """
@@ -454,8 +471,12 @@ class Squad:
         player_list[1][0].is_vice_captain = True
 
     def get_actual_points(
-        self, gameweek, season, triple_captain=False, bench_boost=False
-    ):
+        self,
+        gameweek: int,
+        season: str,
+        triple_captain: bool = False,
+        bench_boost: bool = False,
+    ) -> int:
         """
         Calculate the actual points a squad stored in a historical gameweek/season.
         """
@@ -469,11 +490,11 @@ class Squad:
         vice_captain_points = 0
 
         # this will be used to make an ordered list of subs
-        subs: list[tuple[int, Player]] = []
+        subs: list[tuple[int | None, CandidatePlayer | DummyPlayer]] = []
         need_sub = []
         for p in self.players:
             if p.is_starting or bench_boost:
-                scores = get_playerscores_for_player_gameweek(p, gameweek, season)
+                scores = get_playerscores_for_player_gameweek(p, gameweek, season)  # type: ignore[arg-type]
                 minutes = sum(s.minutes for s in scores)
                 if minutes > 0:
                     for score in scores:
@@ -495,7 +516,9 @@ class Squad:
                 # put the subs in order
                 subs.append((p.sub_position, p))
 
-        ordered_subs = [s[1] for s in sorted(subs, key=itemgetter(0))]
+        ordered_subs = [
+            s[1] for s in sorted(subs, key=lambda x: x[0] if x[0] is not None else 0)
+        ]
 
         # now take account of possibility that captain didn't play
         if need_vice_captain:
@@ -510,7 +533,9 @@ class Squad:
                     if not self.is_substitution_allowed(p_out, p_in):
                         continue
                     scores = get_playerscores_for_player_gameweek(
-                        p_in, gameweek, season
+                        p_in,  # type: ignore[arg-type]
+                        gameweek,
+                        season,
                     )
                     minutes = sum(s.minutes for s in scores)
                     if minutes > 0:
@@ -520,7 +545,7 @@ class Squad:
                         break
         return total_points
 
-    def sale_value(self, gameweek: int, use_api: bool) -> int:
+    def sale_value(self, gameweek: int, use_api: bool) -> float:
         total_value = self.budget  # initialise total to amount in the bank
         for p in self.players:
             total_value += self.get_sell_price_for_player(

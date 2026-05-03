@@ -21,16 +21,16 @@ from airsenal.framework.utils import (
 
 
 def make_optimum_single_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    root_gw=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    verbose=False,
-):
+    squad: Squad,
+    tag: str,
+    gameweek_range: list[int] | None = None,
+    root_gw: int | None = None,
+    season: str = CURRENT_SEASON,
+    update_func_and_args: tuple | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    verbose: bool = False,
+) -> tuple[Squad, list[int | str], list[int | str]]:
     """
     If we want to just make one transfer, it's not unfeasible to try all
     possibilities in turn.
@@ -46,7 +46,8 @@ def make_optimum_single_transfer(
 
     best_score = -1.0
     best_squad = None
-    best_pid_out, best_pid_in = [], []
+    best_pid_out: list[int | str] = []
+    best_pid_in: list[int | str] = []
 
     if verbose:
         print("Creating ordered player lists")
@@ -101,16 +102,16 @@ def make_optimum_single_transfer(
 
 
 def make_optimum_double_transfer(
-    squad,
-    tag,
-    gameweek_range=None,
-    root_gw=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    verbose=False,
-):
+    squad: Squad,
+    tag: str,
+    gameweek_range: list[int] | None = None,
+    root_gw: int | None = None,
+    season: str = CURRENT_SEASON,
+    update_func_and_args: tuple | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    verbose: bool = False,
+) -> tuple[Squad, list[int | str], list[int | str]]:
     """
     If we want to just make two transfers, it's not infeasible to try all
     possibilities in turn.
@@ -124,7 +125,8 @@ def make_optimum_double_transfer(
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = -1.0
     best_squad = None
-    best_pid_out, best_pid_in = [], []
+    best_pid_out: list[int | str] = []
+    best_pid_in: list[int | str] = []
     ordered_player_lists = {
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
@@ -197,17 +199,17 @@ def make_optimum_double_transfer(
 
 
 def make_random_transfers(
-    squad,
-    tag,
-    nsubs=1,
-    gw_range=None,
-    root_gw=None,
-    num_iter=1,
-    update_func_and_args=None,
-    season=CURRENT_SEASON,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-):
+    squad: Squad,
+    tag: str,
+    nsubs: int = 1,
+    gw_range: list[int] | None = None,
+    root_gw: int | None = None,
+    num_iter: int = 1,
+    update_func_and_args: tuple | None = None,
+    season: str = CURRENT_SEASON,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+) -> tuple[Squad, list[int | str], list[int | str]]:
     """
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select the replacements with
@@ -216,7 +218,8 @@ def make_random_transfers(
     """
     best_score = -1.0
     best_squad = None
-    best_pid_out, best_pid_in = [], []
+    best_pid_out: list[int | str] = []
+    best_pid_in: list[int | str] = []
     max_tries = 100
     for _ in range(num_iter):
         if update_func_and_args:
@@ -232,9 +235,9 @@ def make_random_transfers(
 
         transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove: list[int] = []  # this is the index within the squad
-        removed_players: list[int] = []  # this is the player_ids
+        removed_players: list[int | str] = []  # this is the player_ids
         # order the players in the squad by predicted_points - least-to-most
-        player_list: list[tuple[int, float]] = []
+        player_list: list[tuple[int | str, float]] = []
         for p in squad.players:
             p.calc_predicted_points(tag)
             player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
@@ -245,9 +248,9 @@ def make_random_transfers(
                 players_to_remove.append(index)
 
         positions_needed = []
-        for p in players_to_remove:
-            positions_needed.append(squad.players[p].position)
-            removed_players.append(squad.players[p].player_id)
+        for idx in players_to_remove:
+            positions_needed.append(squad.players[idx].position)
+            removed_players.append(squad.players[idx].player_id)
             new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {
             pos: get_predicted_points(
@@ -316,12 +319,12 @@ def make_best_transfers(
     season: str,
     num_iter: int = 100,
     update_func_and_args: tuple[Callable, float, Process] | None = None,
-) -> tuple[Squad, dict[str, list[int]], float]:
+) -> tuple[Squad, dict[str, list[int | str]], float]:
     """
     Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
     """
-    transfer_dict: dict[str, list[int]] = {}
+    transfer_dict: dict[str, list[int | str]] = {}
     # deal with triple_captain or free_hit
     triple_captain_gw = None
     bench_boost_gw = None
@@ -372,7 +375,7 @@ def make_best_transfers(
 
     elif num_transfers in ["W", "F"]:
         _out = [p.player_id for p in squad.players]
-        budget = squad.sale_value(root_gw, use_api=False)
+        budget = int(squad.sale_value(root_gw, use_api=False))
         if num_transfers == "F":
             gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
         new_squad = make_new_squad(

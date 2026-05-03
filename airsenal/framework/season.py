@@ -6,10 +6,12 @@ Season details
 
 from datetime import datetime
 
+from sqlalchemy.orm.session import Session
+
 from airsenal.framework.schema import Team, session
 
 
-def get_current_season():
+def get_current_season() -> str:
     """
     use the current time to find what season we're in.
     """
@@ -23,7 +25,7 @@ def get_current_season():
 CURRENT_SEASON = get_current_season()
 
 
-def get_teams_for_season(season, dbsession):
+def get_teams_for_season(season: str, dbsession: Session) -> list[str]:
     """
     Query the Team table and get a list of teams for a given
     season.
