@@ -10,7 +10,6 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     String,
-    UniqueConstraint,
     create_engine,
     select,
 )
@@ -199,20 +198,6 @@ class PlayerMapping(Base):
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
-    __table_args__ = (
-        UniqueConstraint(
-            "player_id",
-            "season",
-            "gameweek",
-            name="uq_player_attributes_player_season_gw",
-        ),
-        Index(
-            "ix_player_attributes_player_season_gw",
-            "player_id",
-            "season",
-            "gameweek",
-        ),
-    )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="attributes")
     player_id: Mapped[int] = mapped_column(
