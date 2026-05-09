@@ -15,13 +15,11 @@ def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=
     therefore need to group together all the rows that correspond
     to the same transfer strategy.  We do this using the "timestamp".
     """
-    latest_row = dbsession.scalars(
-        select(TransferSuggestion).order_by(TransferSuggestion.timestamp.desc())
+    last_timestamp = dbsession.scalars(
+        select(TransferSuggestion.timestamp).order_by(TransferSuggestion.timestamp.desc())
     ).first()
-    if latest_row is None:
+    if last_timestamp is None:
         return []
-
-    last_timestamp = latest_row.timestamp
     query = select(TransferSuggestion).where(
         TransferSuggestion.timestamp == last_timestamp
     )
@@ -49,6 +47,9 @@ def build_strategy_string(rows):
 
 
 if __name__ == "__main__":
-    rows = get_transfer_suggestions(session, TransferSuggestion)
-    output_string = build_strategy_string(rows)
-    print(output_string)
+    rows = get_transfer_suggestions(session)
+    if rows:
+        output_string = build_strategy_string(rows)
+        print(output_string)
+    else:
+        print("No transfer suggestions found.")
