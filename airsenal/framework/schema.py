@@ -52,7 +52,6 @@ class Player(Base):
     opta_code: Mapped[str | None]
     attributes: Mapped[list["PlayerAttributes"]] = relationship(
         back_populates="player",
-        lazy="selectin",
         order_by="(PlayerAttributes.season.desc(), PlayerAttributes.gameweek.desc())",
     )
 
