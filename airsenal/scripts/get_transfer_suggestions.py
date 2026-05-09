@@ -16,7 +16,9 @@ def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=
     to the same transfer strategy.  We do this using the "timestamp".
     """
     last_timestamp = dbsession.scalars(
-        select(TransferSuggestion.timestamp).order_by(TransferSuggestion.timestamp.desc())
+        select(TransferSuggestion.timestamp).order_by(
+            TransferSuggestion.timestamp.desc()
+        )
     ).first()
     if last_timestamp is None:
         return []
