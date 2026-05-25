@@ -6,6 +6,7 @@ import argparse
 import contextlib
 import os
 from cmath import nan
+from io import StringIO
 
 import numpy as np
 import pandas as pd
@@ -122,8 +123,8 @@ def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
         # can fail with AttributeError if all values are missing
         df["season"] = df["season"].str.replace("/", "")
     df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
-    df["from"] = pd.to_datetime(df["from"], format="%b %d, %Y", errors="coerce")
-    df["until"] = pd.to_datetime(df["until"], format="%b %d, %Y", errors="coerce")
+    df["from"] = pd.to_datetime(df["from"], format="%d/%m/%Y", errors="coerce")
+    df["until"] = pd.to_datetime(df["until"], format="%d/%m/%Y", errors="coerce")
 
     with contextlib.suppress(AttributeError):
         # can fail with AttributeError if all values are missing
@@ -182,7 +183,7 @@ def get_player_injuries(player_profile_url: str, verbose: bool = False) -> pd.Da
     if verbose:
         print(f"processing player injuries for {player_profile_url}")
 
-    injuries = pd.read_html(str(page.content), match="Injury")[0]
+    injuries = pd.read_html(StringIO(str(page.content)), match="Injury")[0]
     injuries = injuries.rename(columns={"Injury": "Details"})
     injuries["Reason"] = "injury"
 
@@ -225,7 +226,7 @@ def get_player_suspensions(
     if verbose:
         print(f"processing player suspensions for {player_profile_url}")
 
-    suspended = pd.read_html(str(p.content), match="Absence/Suspension")[0]
+    suspended = pd.read_html(StringIO(str(p.content)), match="Absence/Suspension")[0]
     player_soup = BeautifulSoup(p.content, features="lxml")
 
     table = player_soup.find_all("table")[0]
@@ -421,7 +422,7 @@ def get_player_transfers(
         "old_link",
         "new_link",
     ]
-    raw["date"] = pd.to_datetime(raw["date"], format="%b %d, %Y", errors="coerce")
+    raw["date"] = pd.to_datetime(raw["date"], format="%d/%m/%Y", errors="coerce")
 
     return raw.iloc[::-1]
 
