@@ -92,6 +92,14 @@ def get_status_from_attributes_history(
     idx = mask.argmax()
     news = df_attributes.iloc[idx]["news"]
     chance_of_playing = df_attributes.iloc[idx]["chance_of_playing_next_round"]
+
+    # Deal with known future unavailability, e.g. international duty, in which case a
+    # a player might be flagged as unavailable on match day, but are actually available
+    # for the current match. In this case, look back to status on the gameweek deadline
+    # date, which is more likely to reflect the player's status for the match.
+    # if known_unavailability:
+    #     news, chance_of_playing = check_availability_on_gw_deadline()
+
     return news, chance_of_playing
 
 

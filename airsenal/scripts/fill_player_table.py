@@ -5,6 +5,7 @@ Fill the "Player" table with info from this and past seasonss FPL
 import json
 import os
 
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -25,21 +26,29 @@ def find_player_in_table(
     """
     # look for an opta code match
     if opta_code and (
-        player := dbsession.query(Player).filter_by(opta_code=opta_code).first()
+        player := dbsession.scalars(
+            select(Player).where(Player.opta_code == opta_code).limit(1)
+        ).first()
     ):
         print(f"Found {player} by opta code")
         return player
 
     # look for an exact name match
-    if player := dbsession.query(Player).filter_by(name=name).first():
+    if player := dbsession.scalars(
+        select(Player).where(Player.name == name).limit(1)
+    ).first():
         print(f"Found {player} by exact name")
         return player
 
     # look for an alternative name
-    mapping = dbsession.query(PlayerMapping).filter_by(alt_name=name).first()
+    mapping = dbsession.scalars(
+        select(PlayerMapping).where(PlayerMapping.alt_name == name).limit(1)
+    ).first()
     if mapping:
         print(f"Found {player} by alternative name")
-        return dbsession.query(Player).filter_by(player_id=mapping.player_id).first()
+        return dbsession.scalars(
+            select(Player).where(Player.player_id == mapping.player_id).limit(1)
+        ).first()
 
     return None
 
@@ -48,7 +57,7 @@ def num_players_in_table(dbsession: Session) -> int:
     """
     how many players already in player table
     """
-    players = dbsession.query(Player).all()
+    players = dbsession.scalars(select(Player)).all()
     return len(players)
 
 

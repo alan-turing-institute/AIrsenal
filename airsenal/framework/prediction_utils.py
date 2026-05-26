@@ -10,7 +10,8 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from scipy.stats import multinomial
-from sqlalchemy import and_
+from sqlalchemy import and_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.FPL_scoring_rules import (
@@ -68,12 +69,13 @@ def check_absence(player, gameweek, season, dbsession=session):
 
     Returns: the Absence object (which may be empty if there was no absence)
     """
-    absence = (
-        dbsession.query(Absence)
-        .filter_by(season=season)
-        .filter_by(player=player)
-        .filter(Absence.gw_from < gameweek)
-        .filter(Absence.gw_until > gameweek)
+    absence = dbsession.scalars(
+        select(Absence).where(
+            Absence.season == season,
+            Absence.player_id == player.player_id,
+            Absence.gw_from < gameweek,
+            Absence.gw_until > gameweek,
+        )
     ).all()
     # save the reasons and details - there may be more than 1 reason for absence
     reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
@@ -117,27 +119,70 @@ def get_player_history_df(
         "assists",
         "minutes",
         "team_goals",
+        "expected_goals",
+        "expected_assists",
         "absence_reason",
         "absence_detail",
     ]
     player_data = []
     if all_players:
-        q = session.query(PlayerAttributes)
+        q = dbsession.scalars(
+            select(PlayerAttributes).options(selectinload(PlayerAttributes.player))
+        )
         players = []
-        for p in q.all():
-            if p.player not in players:
-                # only add if it's a new player
-                players.append(p.player)
+        seen_player_ids = set()
+        for p in q:
+            if p.player_id in seen_player_ids:
+                continue
+            seen_player_ids.add(p.player_id)
+            players.append(p.player)
     else:
         players = list_players(
             position=position, season=season, gameweek=gameweek, dbsession=dbsession
         )
+
+    player_ids = [p.player_id for p in players]
+    scores_by_player = defaultdict(list)
+    absences_by_player_season = defaultdict(list)
+    if player_ids:
+        all_scores = dbsession.scalars(
+            select(PlayerScore)
+            .options(
+                selectinload(PlayerScore.fixture),
+                selectinload(PlayerScore.result),
+            )
+            .where(PlayerScore.player_id.in_(player_ids))
+        ).all()
+        for score in all_scores:
+            scores_by_player[score.player_id].append(score)
+
+        score_seasons = {
+            score.fixture.season
+            for score in all_scores
+            if score.fixture is not None and score.fixture.season is not None
+        }
+        if score_seasons:
+            absences = dbsession.scalars(
+                select(Absence)
+                .where(
+                    Absence.player_id.in_(player_ids),
+                    Absence.season.in_(score_seasons),
+                )
+                .order_by(Absence.id)
+            ).all()
+            for absence in absences:
+                if absence.player_id is None:
+                    continue
+                absences_by_player_season[(absence.player_id, absence.season)].append(
+                    absence
+                )
+
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
     for counter, player in enumerate(players):
         print(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
-        results = player.scores
+        results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
             if is_future_gameweek(
@@ -165,9 +210,27 @@ def get_player_history_df(
             else:
                 print("Unknown opponent!")
                 team_goals = -1
-            absence_reason, absence_detail = check_absence(
-                player, row.fixture.gameweek, row.fixture.season, session
+            expected_goals = row.expected_goals
+            expected_assists = row.expected_assists
+            matching_absences = [
+                ab
+                for ab in absences_by_player_season.get(
+                    (player.player_id, row.fixture.season), []
+                )
+                if ab.gw_until is not None
+                and ab.gw_from < row.fixture.gameweek
+                and ab.gw_until > row.fixture.gameweek
+            ]
+            absence_reason = (
+                [ab.reason for ab in matching_absences] if matching_absences else None
             )
+            absence_detail = (
+                [ab.details for ab in matching_absences] if matching_absences else None
+            )
+            if absence_reason is not None and len(absence_reason) == 1:
+                absence_reason = absence_reason[0]
+            if absence_detail is not None and len(absence_detail) == 1:
+                absence_detail = absence_detail[0]
             player_data.append(
                 [
                     player.player_id,
@@ -180,6 +243,8 @@ def get_player_history_df(
                     assists,
                     minutes,
                     team_goals,
+                    expected_goals,
+                    expected_assists,
                     absence_reason,
                     absence_detail,
                 ]
@@ -189,7 +254,22 @@ def get_player_history_df(
         if fill_blank and row_count < max_matches_per_player:
             # fill blank rows so they are all the same size
             player_data += [
-                [player.player_id, player.name, 0, 0, 0, 0, 0, 0, 0, 0, None, None]
+                [
+                    player.player_id,
+                    player.name,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    None,
+                    None,
+                ]
             ] * (max_matches_per_player - row_count)
 
     df = pd.DataFrame(player_data, columns=col_names)
@@ -720,46 +800,61 @@ def get_player_scores(
     gameweek as a dataframe
     """
     query = (
-        dbsession.query(PlayerScore, Fixture.season, Fixture.gameweek)
-        .filter(PlayerScore.minutes >= min_minutes)
-        .filter(PlayerScore.minutes <= max_minutes)
+        select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
+        .where(PlayerScore.minutes >= min_minutes)
+        .where(PlayerScore.minutes <= max_minutes)
         .join(Fixture)
-    )
-    if position:
-        query = query.join(
+        .join(
             PlayerAttributes,
             and_(
                 PlayerAttributes.player_id == PlayerScore.player_id,
                 PlayerAttributes.season == Fixture.season,
                 PlayerAttributes.gameweek == Fixture.gameweek,
             ),
-        ).filter(PlayerAttributes.position == position)
+        )
+        .order_by(Fixture.season, Fixture.gameweek, PlayerAttributes.player_id)
+    )
+    if position:
+        query = query.where(PlayerAttributes.position == position)
 
-    df = pd.read_sql(query.statement, dbsession.connection())
+    df = pd.read_sql(query, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
     exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
     return df[~exclude]
 
 
-def mean_group_min_count(
-    df: pd.DataFrame, group_col: str, mean_col: str, min_count: int = 10
+def mean_group_prior(
+    df: pd.DataFrame,
+    group_col: str,
+    mean_col: str,
+    n_prior: int = 10,
+    prior_by_position: bool = False,
 ) -> pd.Series:
     """
-    Calculate mean of column col in df, grouped by group_col, but normalising the
-    sum by either the actual number of rows in the group or min_count, whichever is
-    larger.
+    Calculate mean of column col in df, grouped by group_col, mixed with n_prior matches
+    worth of data using the overall mean of mean_col.
     """
-    counts = df.groupby(group_col)[mean_col].count()
-    counts[counts < min_count] = min_count
-    sums = df.groupby(group_col)[mean_col].sum()
-    return sums / counts
+    group_counts = df.groupby(group_col)[mean_col].count()
+    group_sums = df.groupby(group_col)[mean_col].sum()
+    group_position = (
+        df.sort_values(by=["season", "gameweek"]).groupby(group_col)["position"].last()
+    )
+
+    if prior_by_position:
+        prior_sum = df.groupby("position")[mean_col].mean() * n_prior
+        return (group_sums + prior_sum.loc[group_position].values) / (
+            group_counts + n_prior
+        )
+
+    prior_sum = n_prior * df[mean_col].mean()
+    return (group_sums + prior_sum) / (group_counts + n_prior)
 
 
 def fit_bonus_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
     """
@@ -783,7 +878,9 @@ def fit_bonus_points(
             max_minutes=max_minutes,
             dbsession=dbsession,
         )
-        return mean_group_min_count(df, "player_id", "bonus", min_count=min_matches)
+        return mean_group_prior(
+            df, "player_id", "bonus", n_prior=n_prior, prior_by_position=True
+        )
 
     df_90 = get_bonus_df(60, 90)
     df_60 = get_bonus_df(30, 59)
@@ -794,7 +891,7 @@ def fit_bonus_points(
 def fit_save_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     min_minutes: int = 90,
     dbsession: Session = session,
 ) -> pd.Series:
@@ -807,33 +904,24 @@ def fit_save_points(
     Returns pandas series index by player ID, values average save points.
     """
     df = get_player_scores(
-        season, gameweek, min_minutes=min_minutes, dbsession=dbsession
+        season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
     )
 
-    goalkeepers = list_players(
-        position="GK", gameweek=gameweek, season=season, dbsession=dbsession
-    )
-    gk_ids = [gk.player_id for gk in goalkeepers]
-    df = df[df["player_id"].isin(gk_ids)]
-
-    # 1pt per 3 saves
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
 
-    return mean_group_min_count(df, "player_id", "save_pts", min_count=min_matches)
+    return mean_group_prior(df, "player_id", "save_pts", n_prior=n_prior)
 
 
 def fit_card_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
     """
     Calculate the average points per match lost to yellow or red cards
     for each player.
-    Mean is calculated as sum of all card points divided by either the number of
-    matches the player has played in or min_matches, whichever is greater.
 
     Returns pandas series index by player ID, values average card points.
     """
@@ -841,20 +929,20 @@ def fit_card_points(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
 
-    # TODO: different values for different minutes (remember minutes < 90 for red cards
-    # though)
     df["card_pts"] = (
         points_for_yellow_card * df["yellow_cards"]
         + points_for_red_card * df["red_cards"]
     )
 
-    return mean_group_min_count(df, "player_id", "card_pts", min_count=min_matches)
+    return mean_group_prior(
+        df, "player_id", "card_pts", n_prior=n_prior, prior_by_position=False
+    )
 
 
 def fit_def_con(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
-    min_matches: int = 10,
+    n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
     """
@@ -880,13 +968,16 @@ def fit_def_con(
                 dbsession=dbsession,
             ).dropna(subset="defensive_contribution")
             df["def_con_pts"] = (
-                df["defensive_contribution"] / def_cons_required[position]
+                df["defensive_contribution"] >= def_cons_required[position]
             ).astype(int) * points_for_def_cons
             dfs.append(df)
 
-        df = pd.concat(dfs)
-        return mean_group_min_count(
-            df, "player_id", "def_con_pts", min_count=min_matches
+        return mean_group_prior(
+            pd.concat(dfs),
+            "player_id",
+            "def_con_pts",
+            n_prior=n_prior,
+            prior_by_position=True,
         )
 
     df_90 = get_def_con_df(60, 90)

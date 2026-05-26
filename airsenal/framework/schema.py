@@ -6,7 +6,14 @@ Use SQLAlchemy to convert between DB tables and python objects.
 from contextlib import contextmanager
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, String, create_engine
+from sqlalchemy import (
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    create_engine,
+    select,
+)
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -43,9 +50,12 @@ class Player(Base):
     name: Mapped[str100]
     display_name: Mapped[str100 | None]
     opta_code: Mapped[str | None]
-    attributes: Mapped[list["PlayerAttributes"]] = relationship(back_populates="player")
+    attributes: Mapped[list["PlayerAttributes"]] = relationship(
+        back_populates="player",
+        order_by="(PlayerAttributes.season.desc(), PlayerAttributes.gameweek.desc())",
+    )
+
     absences: Mapped[list["Absence"]] = relationship(back_populates="player")
-    results: Mapped[list["Result"]] = relationship(back_populates="player")
     predictions: Mapped[list["PlayerPrediction"]] = relationship(
         back_populates="player"
     )
@@ -175,7 +185,7 @@ class Player(Base):
             return attr_before
         return attr_after
 
-    def __str__(self):
+    def __repr__(self):
         return self.display_name or self.name
 
 
@@ -189,9 +199,25 @@ class PlayerMapping(Base):
 
 class PlayerAttributes(Base):
     __tablename__ = "player_attributes"
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            "gameweek",
+            name="uq_player_attributes_player_season_gw",
+        ),
+        Index(
+            "ix_player_attributes_player_season_gw",
+            "player_id",
+            "season",
+            "gameweek",
+        ),
+    )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="attributes")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
     season: Mapped[str100]
     gameweek: Mapped[int]
     price: Mapped[int]
@@ -206,7 +232,7 @@ class PlayerAttributes(Base):
     transfers_in: Mapped[int | None]
     transfers_out: Mapped[int | None]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
@@ -228,7 +254,7 @@ class Absence(Base):
     url: Mapped[str100_optional]
     timestamp: Mapped[str100]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"Absence(\n"
             f"  player='{self.player}',\n"
@@ -250,13 +276,13 @@ class Result(Base):
     __tablename__ = "result"
     result_id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship(back_populates="result")
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
     home_score: Mapped[int]
     away_score: Mapped[int]
-    player: Mapped["Player"] = relationship(back_populates="results")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.fixture.season} GW{self.fixture.gameweek} "
             f"{self.fixture.home_team} {self.home_score} - "
@@ -266,6 +292,7 @@ class Result(Base):
 
 class Fixture(Base):
     __tablename__ = "fixture"
+    __table_args__ = (Index("ix_fixture_season_gameweek", "season", "gameweek"),)
     fixture_id: Mapped[intpk] = mapped_column(autoincrement=True)
     date: Mapped[str | None] = mapped_column(
         String(100)
@@ -277,13 +304,16 @@ class Fixture(Base):
     tag: Mapped[str100]
     result: Mapped["Result | None"] = relationship(back_populates="fixture")
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
 
 
 class PlayerScore(Base):
     __tablename__ = "player_score"
-
+    __table_args__ = (
+        Index("ix_player_score_fixture_id", "fixture_id"),
+        Index("ix_player_score_player_fixture", "player_id", "fixture_id"),
+    )
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player_team: Mapped[str100]
     opponent: Mapped[str100]
@@ -294,11 +324,17 @@ class PlayerScore(Base):
     conceded: Mapped[int]
     minutes: Mapped[int]
     player: Mapped["Player"] = relationship(back_populates="scores")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
     result: Mapped["Result"] = relationship()
-    result_id: Mapped[int | None] = mapped_column(ForeignKey("result.result_id"))
+    result_id: Mapped[int] = mapped_column(
+        ForeignKey("result.result_id"), nullable=False
+    )
     fixture: Mapped["Fixture"] = relationship()
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
 
     # extended features
     clean_sheets: Mapped[int | None]
@@ -326,7 +362,7 @@ class PlayerScore(Base):
     chance_of_playing: Mapped[int | None]
     news: Mapped[str100_optional]
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
 
 
@@ -334,13 +370,17 @@ class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship()
-    fixture_id: Mapped[int | None] = mapped_column(ForeignKey("fixture.fixture_id"))
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
     predicted_points: Mapped[float]
     tag: Mapped[str100]
     player: Mapped["Player"] = relationship(back_populates="predictions")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
 
 
@@ -357,7 +397,7 @@ class Transaction(Base):
     free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
     fpl_team_id: Mapped[int]
 
-    def __str__(self):
+    def __repr__(self):
         trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
         if self.bought_or_sold == 1:
             trans_str += f"bought player {self.player_id}"
@@ -380,7 +420,7 @@ class TransferSuggestion(Base):
     fpl_team_id: Mapped[int]  # to identify team to apply transfers.
     chip_played: Mapped[str100_optional]
 
-    def __str__(self):
+    def __repr__(self):
         sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
         if self.in_or_out == 1:
             sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
@@ -399,7 +439,7 @@ class FifaTeamRating(Base):
     mid: Mapped[int]
     ovr: Mapped[int]
 
-    def __str__(self):
+    def __repr__(self):
         return (
             f"{self.team} {self.season} FIFA rating: "
             f"ovr {self.ovr}, def {self.defn}, mid {self.mid}, att {self.att}"
@@ -414,7 +454,7 @@ class Team(Base):
     season: Mapped[str4]
     team_id: Mapped[int]  # the season-dependent team ID (from alphabetical order)
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.full_name} ({self.name})"
 
 
@@ -504,4 +544,4 @@ def database_is_empty(dbsession):
     """
     Basic check to determine whether the database is empty
     """
-    return dbsession.query(Team).first() is None
+    return dbsession.scalars(select(Team).limit(1)).first() is None
