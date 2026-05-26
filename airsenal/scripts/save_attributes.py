@@ -43,35 +43,42 @@ def get_return_gameweek_by_date(
     return None
 
 
-def save_attributes_from_api(max_days_until_deadline: int = 15) -> None:
-    """
-    use the FPL API to get player attributes info for the current season
-    """
-    now = datetime.now()
-    timestamp = datetime.isoformat(now)
+def season_is_active(
+    now: datetime, fetcher: FPLDataFetcher, max_days_until_deadline: int = 14
+) -> bool:
     if now.month in [6, 7]:
-        print("It's the off-season - not saving attributes")
-        return
+        print("It's the off-season (June or July)")
+        return False
 
-    fetcher = FPLDataFetcher()
     summary_data = fetcher.get_current_summary_data()
-    deadlines = sorted(
-        [
-            (int(gw["id"]), parse_date(gw["deadline_time"]))
-            for gw in summary_data["events"]
-        ]
-    )
-    future_deadlines = [d[1] for d in deadlines if d[1] >= now.date()]
+    for gw in summary_data["events"]:
+        if gw["is_current"] and not gw["finished"]:
+            print(f"Gameweek {gw['id']} is currently active")
+            return True
+
+    deadlines = [parse_date(gw["deadline_time"]) for gw in summary_data["events"]]
+    future_deadlines = [d for d in deadlines if d >= now.date()]
     if not future_deadlines:
-        print("No future deadlines - not saving attributes")
-        return
+        print("No future deadlines - season is over")
+        return False
+
     next_deadline = min(future_deadlines)
     if (next_deadline - now.date()).days > max_days_until_deadline:
         print(
             f"Next deadline {next_deadline} is more than {max_days_until_deadline} "
-            "days away - not saving attributes"
+            "days away"
         )
-        return
+        return False
+
+    return True
+
+
+def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
+    """
+    use the FPL API to get player attributes info for the current season
+    """
+    timestamp = datetime.isoformat(now)
+    summary_data = fetcher.get_current_summary_data()
 
     file_path = os.path.join(
         os.path.dirname(__file__),
@@ -103,6 +110,12 @@ def save_attributes_from_api(max_days_until_deadline: int = 15) -> None:
                 ]
             )
 
+    deadlines = sorted(
+        [
+            (int(gw["id"]), parse_date(gw["deadline_time"]))
+            for gw in summary_data["events"]
+        ]
+    )
     n_players = summary_data["total_players"]
     teams = {team["id"]: team["short_name"] for team in summary_data["teams"]}
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
@@ -176,5 +189,16 @@ def save_attributes_from_api(max_days_until_deadline: int = 15) -> None:
             )
 
 
+def main() -> None:
+    now = datetime.now()
+    fetcher = FPLDataFetcher()
+
+    if not season_is_active(now, fetcher):
+        print("Season is not active - not saving attributes")
+        return
+
+    save_attributes_from_api(now, fetcher)
+
+
 if __name__ == "__main__":
-    save_attributes_from_api()
+    main()
