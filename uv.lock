@@ -22,7 +22,7 @@ resolution-markers = [
 
 [[package]]
 name = "airsenal"
-version = "1.14.4"
+version = "1.15.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
