@@ -1,53 +1,25 @@
 """
-Find multiple players with the same name in the same season from a locally cloned copy
-of the https://github.com/vaastav/Fantasy-Premier-League repository on GitHub.
+Find multiple players with the same name in the same season using player summary data.
 """
-
-from glob import glob
 
 import pandas as pd
 
-from airsenal.framework.utils import get_past_seasons
-from airsenal.scripts.make_player_details import (
-    PLAYERS_DIR,
-    get_long_season_name,
-    path_to_index,
-    path_to_name,
-)
+from airsenal.framework.season import CURRENT_SEASON
+from airsenal.scripts.make_player_summary import SAVE_FILE as SUMMARY_FILE
 
 
-def find_duplicate_names(seasons: str | list[str] | None = None) -> None:
-    if seasons is None:
-        seasons = get_past_seasons(6)
-    elif isinstance(seasons, str):
-        seasons = [seasons]
+def find_duplicate_names(season: str = CURRENT_SEASON) -> None:
+    df = pd.read_json(SUMMARY_FILE.format(season))
+    name_groups = df.groupby("name")
+    name_counts = name_groups["opta_code"].nunique()
+    dup = name_counts > 1
 
-    output = []
-
-    for season in seasons:
-        season_longname = get_long_season_name(season)
-        print(f"Doing {season}...")
-
-        # names of all player directories for this season
-        sub_dirs = glob(PLAYERS_DIR.format(season_longname) + "/*/")
-
-        for directory in sub_dirs:
-            name = path_to_name(directory)
-            idx = path_to_index(directory)
-
-            player_dict = {
-                "name": name,
-                "season": season,
-                "id": idx,
-            }
-            output.append(player_dict)
-
-    print("\nDuplicated player names (and their IDs):\n")
-    df = pd.DataFrame(output)
-    nunique = df.groupby(["season", "name"])["id"].nunique()
-    dup = nunique > 1
-    ids = df.groupby(["season", "name"])["id"].unique()
-    print(ids[dup])
+    if dup.sum() > 0:
+        print("\nDuplicated player names (and their Opta IDs):\n")
+        codes = name_groups["opta_code"].unique()
+        print(codes[dup])
+    else:
+        print(f"No duplicated player names found in {season} season.")
 
 
 if __name__ == "__main__":

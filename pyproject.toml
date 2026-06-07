@@ -40,9 +40,9 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.14.1",
+    "ruff>=0.15.16",
     "pre-commit>=4.3.0",
-    "mypy>=1.18.2",
+    "mypy>=2.1.0",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "types-dateparser>=1.2.2.20250809",

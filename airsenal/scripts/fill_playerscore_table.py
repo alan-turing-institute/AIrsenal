@@ -3,6 +3,7 @@ Fill the "player_score" table with historic results (player_details_xxyy.json).
 """
 
 import contextlib
+import datetime
 import json
 import os
 import urllib.error
@@ -24,6 +25,7 @@ from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     find_fixture,
+    get_fixtures_for_gameweek,
     get_past_seasons,
     get_player,
     get_player_from_api_id,
@@ -54,8 +56,41 @@ def load_attributes_history(season: str) -> pd.DataFrame | None:
     return None
 
 
+def _get_availability_on_date(
+    date: datetime.date, player: Player, df_attributes: pd.DataFrame
+) -> tuple[None | str, None | int]:
+    if date < df_attributes["day"].min() or date > df_attributes["day"].max():
+        msg = f"Date {date} is out of range for attributes history"
+        warnings.warn(msg, stacklevel=2)
+        return None, None
+
+    mask = df_attributes["day"] == date
+    if (opta_code := player.opta_code) is not None:
+        mask = mask & (df_attributes["opta_code"] == opta_code)
+    else:
+        msg = f"Player {player} has no opta_code"
+        warnings.warn(msg, stacklevel=2)
+        mask = mask & (df_attributes["player"] == player.name)
+
+    if mask.sum() != 1:
+        msg = (
+            f"Found {mask.sum()} attributes for {player} on {date}, expected 1 so "
+            "skipping"
+        )
+        warnings.warn(msg, stacklevel=2)
+        return None, None
+
+    idx = mask.argmax()
+    news = df_attributes.iloc[idx]["news"]
+    chance_of_playing = df_attributes.iloc[idx]["chance_of_playing_next_round"]
+    return news, chance_of_playing
+
+
 def get_status_from_attributes_history(
-    player: Player, fixture: Fixture, df_attributes: pd.DataFrame
+    player: Player,
+    fixture: Fixture,
+    df_attributes: pd.DataFrame,
+    dbsession: Session = session,
 ) -> tuple[None | str, None | int]:
     """
     Get the player's news and chance_of_playing from their attributes history
@@ -66,40 +101,25 @@ def get_status_from_attributes_history(
         raise ValueError(msg)
 
     matchday = parse_date(fixture.date)
-    mask = df_attributes["day"] == matchday
-
-    if (opta_code := player.opta_code) is not None:
-        mask = mask & (df_attributes["opta_code"] == opta_code)
-    else:
-        msg = f"Player {player} has no opta_code"
-        warnings.warn(msg, stacklevel=2)
-        mask = mask & (df_attributes["player"] == player.name)
-
-    if mask.sum() != 1 and is_future_gameweek(
-        fixture.season,
-        fixture.gameweek,
-        "2526",
-        4,  # gw started saving history
-    ):
-        warnings.warn(
-            (
-                f"Found {mask.sum()} attributes for {player} on {matchday}, expected "
-                "1 so skipping"
-            ),
-            stacklevel=2,
-        )
-        return None, None
-    idx = mask.argmax()
-    news = df_attributes.iloc[idx]["news"]
-    chance_of_playing = df_attributes.iloc[idx]["chance_of_playing_next_round"]
+    news, chance_of_playing = _get_availability_on_date(matchday, player, df_attributes)
 
     # Deal with known future unavailability, e.g. international duty, in which case a
-    # a player might be flagged as unavailable on match day, but are actually available
-    # for the current match. In this case, look back to status on the gameweek deadline
-    # date, which is more likely to reflect the player's status for the match.
-    # if known_unavailability:
-    #     news, chance_of_playing = check_availability_on_gw_deadline()
-
+    # a player might be flagged as unavailable on match day, but that unavailability
+    # doesn't apply until the next gameweek. In this case, look back to their status on
+    # the gameweek deadline date.
+    if (
+        news is not None
+        and chance_of_playing is not None
+        and chance_of_playing < 100
+        and fixture.gameweek is not None
+    ):
+        for known_unavailability in ["international duty", "parent club"]:
+            if known_unavailability in news.lower():
+                gw_fixtures = get_fixtures_for_gameweek(
+                    fixture.gameweek, fixture.season, dbsession
+                )
+                gw_deadline = min(parse_date(f.date) for f in gw_fixtures)
+                return _get_availability_on_date(gw_deadline, player, df_attributes)
     return news, chance_of_playing
 
 
@@ -193,7 +213,7 @@ def fill_playerscores_from_json(
             # get injury/suspension status from attributes history
             if df_attributes is not None:
                 news, chance_of_playing = get_status_from_attributes_history(
-                    player, fixture, df_attributes
+                    player, fixture, df_attributes, dbsession
                 )
                 ps.news = news
                 ps.chance_of_playing = chance_of_playing
@@ -309,7 +329,7 @@ def fill_playerscores_from_api(
                 # get injury/suspension status from attributes history
                 if df_attributes is not None:
                     news, chance_of_playing = get_status_from_attributes_history(
-                        player, fixture, df_attributes
+                        player, fixture, df_attributes, dbsession
                     )
                     ps.news = news
                     ps.chance_of_playing = chance_of_playing

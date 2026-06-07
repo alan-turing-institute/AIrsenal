@@ -48,7 +48,7 @@ def main():
     make_player_summary(CURRENT_SEASON)
 
     print("Making player details data file...")
-    make_player_details([CURRENT_SEASON])
+    make_player_details(CURRENT_SEASON)
 
     print("Making results file...")
     make_results(CURRENT_SEASON)
