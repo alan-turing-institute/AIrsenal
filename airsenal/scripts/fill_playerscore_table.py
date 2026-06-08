@@ -151,17 +151,17 @@ def fill_playerscores_from_json(
     ]
     df_attributes = load_attributes_history(season)
 
-    for player_name in detail_data:
+    for player_name_or_id in detail_data:
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
-        player = get_player(player_name, dbsession=dbsession)
+        player = get_player(player_name_or_id, dbsession=dbsession)
         if not player:
-            print(f"Couldn't find player {player_name}")
+            print(f"Couldn't find player {player_name_or_id}")
             continue
 
         print(f"SCORES {season} {player}")
         # now loop through all the fixtures that player played in
-        for fixture_data in detail_data[player_name]:
+        for fixture_data in detail_data[player_name_or_id]:
             # try to find the result in the result table
             gameweek = int(fixture_data["gameweek"])
             if "played_for" in fixture_data:

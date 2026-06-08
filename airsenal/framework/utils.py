@@ -537,7 +537,9 @@ def get_player(
     dbsession: Session | None = None,
 ) -> Player | None:
     """
-    Query the player table by name or id, return the player object (or None).
+    Query the player table by name, id, or opta_code, and return the player object
+    (or None).
+
     NOTE the player_id that can be passed as an argument here is NOT
     guaranteed to be the id for that player in the FPL API. The one here
     is the entry (primary key) in our database.
@@ -559,12 +561,20 @@ def get_player(
         # failed to find player by ID
         return None
 
-    # String field matches
+    # Name or Opta code match
     if p := dbsession.scalars(
-        select(Player).where(Player.name == player_name_or_id).limit(1)
+        select(Player)
+        .where(
+            or_(
+                Player.name == player_name_or_id,
+                Player.opta_code == player_name_or_id,
+            )
+        )
+        .limit(1)
     ).first():
         return p
 
+    # Alternative name match
     if mapping := dbsession.scalars(
         select(PlayerMapping)
         .where(PlayerMapping.alt_name == player_name_or_id)
