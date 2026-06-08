@@ -75,7 +75,7 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 addopts = """
 --cov=airsenal
---cov-report=term:skip-covered
+--cov-report=xml
 --pdbcls=IPython.terminal.debugger:TerminalPdb
 """
 
