@@ -110,8 +110,8 @@ def parse_match(match_info: dict):
         msg = "`id` not found. Please provide the id of the match in the dictionary."
         raise KeyError(msg)
 
-    home_team = match_info.get("h").get("title")
-    away_team = match_info.get("a").get("title")
+    home_team = match_info.get("h").get("title")  # type: ignore[union-attr]
+    away_team = match_info.get("a").get("title")  # type: ignore[union-attr]
     date = match_info.get("datetime")
     if not date or datetime.fromisoformat(date) + timedelta(hours=3) > datetime.now(
         pytz.utc
@@ -133,8 +133,8 @@ def parse_match(match_info: dict):
     timeline = soup.find_all(
         "div", attrs={"class": "timiline-container"}, recursive=True
     )
-    goals = {"home": [], "away": []}
-    subs = {"home": [], "away": []}
+    goals = {"home": [], "away": []}  # type: ignore[var-annotated]
+    subs = {"home": [], "away": []}  # type: ignore[var-annotated]
     for event in timeline:
         if event.find("i", attrs={"class": "fa-futbol"}):
             scorer = event.find("a", attrs={"class": "player-name"}).text

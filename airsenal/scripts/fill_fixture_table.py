@@ -113,7 +113,7 @@ def make_fixture_table(
                 os.path.dirname(__file__),
                 "..",
                 "data",
-                f"results_{season}_with_gw.csv",
+                f"results_{season}.csv",
             )
             fill_fixtures_from_file(filename, season, dbsession=dbsession)
 

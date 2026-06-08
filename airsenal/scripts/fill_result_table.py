@@ -125,7 +125,7 @@ def make_result_table(
             fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
         else:
             inpath = os.path.join(
-                os.path.dirname(__file__), f"../data/results_{season}_with_gw.csv"
+                os.path.dirname(__file__), f"../data/results_{season}.csv"
             )
             fill_results_from_csv(inpath, season, dbsession)
 

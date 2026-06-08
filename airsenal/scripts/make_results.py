@@ -13,7 +13,6 @@ SCRIPT_DIR = os.path.dirname(__file__)
 FIXTURE_DATA_FILE = os.path.join(SCRIPT_DIR, "../data/fixture_data_{}.json")
 SUMMARY_DATA_FILE = os.path.join(SCRIPT_DIR, "../data/FPL_{}.json")
 RESULTS_FILE = os.path.join(SCRIPT_DIR, "../data/results_{}.csv")
-RESULTS_WITH_GW_FILE = os.path.join(SCRIPT_DIR, "../data/results_{}_with_gw.csv")
 
 keys_to_extract = {
     "kickoff_time": "date",
@@ -40,11 +39,7 @@ def make_results(season):
     fixtures_df["home_team"].replace(teams, inplace=True)
     fixtures_df["away_team"].replace(teams, inplace=True)
 
-    fixtures_df.to_csv(RESULTS_WITH_GW_FILE.format(season), index=False)
-    fixtures_df.drop("gameweek", axis=1).to_csv(
-        RESULTS_FILE.format(season), index=False
-    )
-
+    fixtures_df.to_csv(RESULTS_FILE.format(season), index=False)
     print(f"Made results file for {season} season!")
 
 
