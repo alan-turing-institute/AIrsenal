@@ -6,6 +6,7 @@ from airsenal.conftest import TEST_PAST_SEASON, past_data_session_scope, session
 from airsenal.framework.schema import Player
 from airsenal.framework.utils import (
     get_gameweek_by_date,
+    get_last_complete_gameweek_in_db,
     get_player,
     get_player_id,
     get_player_name,
@@ -58,3 +59,9 @@ def test_get_gameweek_by_date():
             "2020-09-20T12:34:00Z", season=TEST_PAST_SEASON, dbsession=ts
         )
         assert gw == 2
+
+
+def test_get_last_complete_gameweek_in_db():
+    with past_data_session_scope() as ts:
+        gw = get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts)
+        assert gw == 5
