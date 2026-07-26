@@ -89,10 +89,6 @@ SQLite, default location: `$AIRSENAL_HOME/data.db` (configurable via `AIRSENAL_D
 
 Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal_env set` to persist these under `AIRSENAL_HOME`.
 
-### Python version
-
-Python 3.10–3.12. Python 3.13+ is not supported (jaxlib dependency constraint).
-
 ## Code conventions
 
 - **Branch naming:** `feature/<issue>-<description>` or `bugfix/<issue>-<description>`; all new branches should be made from `develop`, and all pull requests should be made to merge into `develop`
