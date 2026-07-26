@@ -171,10 +171,13 @@ def fill_playerscores_from_json(
             if not played_for:
                 continue
 
-            if fixture_data["was_home"] == "True":
-                was_home = True
-            elif fixture_data["was_home"] == "False":
-                was_home = False
+            if "was_home" in fixture_data:
+                if fixture_data["was_home"] == "True":
+                    was_home = True
+                elif fixture_data["was_home"] == "False":
+                    was_home = False
+                else:
+                    was_home = None
             else:
                 was_home = None
 
