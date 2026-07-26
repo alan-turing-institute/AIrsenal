@@ -7,11 +7,9 @@ get consistent sets of predictions from the database.
 """
 
 import argparse
-from multiprocessing import Process, Queue
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-from pandas import Series
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.bpl_interface import (
@@ -19,7 +17,6 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -42,46 +39,6 @@ from airsenal.framework.utils import (
 )
 
 
-def allocate_predictions(
-    queue: Queue,
-    gw_range: list[int],
-    fixture_goal_probs: dict,
-    df_player: dict,
-    df_bonus: tuple,
-    df_saves: Series,
-    df_cards: Series,
-    df_def_con: tuple[Series, Series],
-    season: str,
-    tag: str,
-    dbsession: Session,
-) -> None:
-    """
-    Take positions off the queue and call function to calculate predictions
-    """
-    while True:
-        player = queue.get()
-        if player == "DONE":
-            print("Finished processing")
-            break
-
-        predictions = calc_predicted_points_for_player(
-            player,
-            fixture_goal_probs,
-            df_player,
-            df_bonus,
-            df_saves,
-            df_cards,
-            df_def_con,
-            season,
-            gw_range=gw_range,
-            tag=tag,
-            dbsession=dbsession,
-        )
-        for p in predictions:
-            dbsession.add(p)
-        dbsession.commit()
-
-
 def calc_all_predicted_points(
     gw_range: list[int],
     season: str,
@@ -90,7 +47,6 @@ def calc_all_predicted_points(
     include_cards: bool = True,
     include_saves: bool = True,
     include_def_con: bool = True,
-    num_thread: int = 4,
     tag: str = "",
     player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     team_model: ExtendedDixonColesMatchPredictor
@@ -140,63 +96,29 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    if num_thread > 1:
-        queue: Queue = Queue()
-        procs = []
-        for _ in range(num_thread):
-            processor = Process(
-                target=allocate_predictions,
-                args=(
-                    queue,
-                    gw_range,
-                    fixture_goal_probs,
-                    df_player,
-                    df_bonus,
-                    df_saves,
-                    df_cards,
-                    df_def_con,
-                    season,
-                    tag,
-                    dbsession,
-                ),
-            )
-            processor.daemon = True
-            processor.start()
-            procs.append(processor)
-
-        for p in players:
-            queue.put(p.player_id)
-        for _ in range(num_thread):
-            queue.put("DONE")
-
-        for _, pr in enumerate(procs):
-            pr.join()
-    else:
-        # single threaded
-        for player in players:
-            predictions = calc_predicted_points_for_player(
-                player,
-                fixture_goal_probs,
-                df_player,
-                df_bonus,
-                df_saves,
-                df_cards,
-                df_def_con,
-                season,
-                gw_range=gw_range,
-                tag=tag,
-                dbsession=dbsession,
-            )
-            for pred in predictions:
-                dbsession.add(pred)
-        dbsession.commit()
-        print("Finished adding predictions to db")
+    for player in players:
+        predictions = calc_predicted_points_for_player(
+            player,
+            fixture_goal_probs,
+            df_player,
+            df_bonus,
+            df_saves,
+            df_cards,
+            df_def_con,
+            season,
+            gw_range=gw_range,
+            tag=tag,
+            dbsession=dbsession,
+        )
+        for pred in predictions:
+            dbsession.add(pred)
+    dbsession.commit()
+    print("Finished adding predictions to db")
 
 
 def make_predictedscore_table(
     gw_range: list[int] | None = None,
     season: str = CURRENT_SEASON,
-    num_thread: int = 4,
     include_bonus: bool = True,
     include_cards: bool = True,
     include_saves: bool = True,
@@ -224,7 +146,6 @@ def make_predictedscore_table(
         include_cards=include_cards,
         include_saves=include_saves,
         include_def_con=include_def_con,
-        num_thread=num_thread,
         tag=tag,
         player_model=player_model,
         team_model=team_model,
@@ -244,12 +165,6 @@ def main():
     parser.add_argument("--ep_filename", help="csv filename for FPL expected points")
     parser.add_argument(
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--num_thread",
-        help="number of threads to parallelise over",
-        type=int,
-        default=4,
     )
     parser.add_argument(
         "--no_bonus",
@@ -292,7 +207,6 @@ def main():
         gameweek_end=args.gameweek_end,
         season=args.season,
     )
-    num_thread: int = args.num_thread
     include_bonus = not args.no_bonus
     include_cards = not args.no_cards
     include_saves = not args.no_saves
@@ -307,15 +221,12 @@ def main():
         msg = f"Unknown team model: {args.team_model}"
         raise ValueError(msg)
 
-    set_multiprocessing_start_method()
-
     with session_scope() as session:
         session.expire_on_commit = False
 
         tag = make_predictedscore_table(
             gw_range=gw_range,
             season=args.season,
-            num_thread=num_thread,
             include_bonus=include_bonus,
             include_cards=include_cards,
             include_saves=include_saves,

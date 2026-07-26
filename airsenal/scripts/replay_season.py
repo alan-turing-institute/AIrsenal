@@ -97,7 +97,6 @@ def replay_season(
             tag = make_predictedscore_table(
                 gw_range=gw_range,
                 season=season,
-                num_thread=num_thread,
                 tag_prefix=tag_prefix,
                 team_model=team_model_class,
                 team_model_args=team_model_args,
