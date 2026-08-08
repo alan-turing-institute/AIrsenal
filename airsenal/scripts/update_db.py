@@ -142,6 +142,9 @@ def add_players_to_db(
         p.name = name
         if not update:
             dbsession.add(p)
+            # the mappings reference player_id, which the database only assigns
+            # on flush - without this they are written with a null player_id
+            dbsession.flush()
             add_mappings(p, dbsession=dbsession)
 
     dbsession.commit()
