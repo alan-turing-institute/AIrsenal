@@ -77,6 +77,16 @@ eye.** Turning them on untested is a guess dressed up as a setting.
 | `--seed` | pipeline | none | Reproducible suggestions; without it the search varies run to run |
 | `--check_data` | pipeline | off | Run the sanity checks after the DB update |
 | `--consider_available_chips` | pipeline | off | Consider any chip the API says you still hold |
+| `--seed` | make_squad | none | Reproducible squad from the genetic algorithm |
+
+**The squad builder's answer is much less determinate than it looks.** On 2026/27
+gameweek 1 data, six seeds at the default 100 population x 100 generations agreed on
+only 3 of 15 players while scoring within 4 points of each other. Raising both to 200
+tightened the spread and lifted every score. Run several seeds and take the best
+rather than trusting one run:
+```bash
+airsenal_make_squad --season 2627 --num_gameweeks 5 --seed 99 --population_size 200 --num_generations 200
+```
 
 ## Architecture
 
@@ -188,6 +198,37 @@ scanned 4,000 extra files. Both it and `.claude/worktrees/` are gitignored now.
 IDs return 200 means the ID is wrong or the team doesn't exist for this season. The
 configured `6321674` currently 404s. Squad, bank and transfer history are all public
 for a valid ID — only chips-remaining and applying transfers need a login.
+
+**FPL reassigns element IDs every season, and so `Player.fpl_api_id` is only ever
+about the current one.** In August 2026 this had silently corrupted the database:
+219 IDs were held by two players at once, and `get_player_from_api_id` returns the
+first match, so this season's price, team and position landed on whoever was found
+first — Salah showed up as a £5.0m Liverpool player after leaving the league, and
+206 players not in the game became selectable. `sync_api_ids` in `update_db.py`
+repairs this and now runs before every other fill step. If squad suggestions ever
+contain someone who obviously isn't playing, check for duplicate `fpl_api_id`
+first.
+
+**Don't fork after fitting a model.** Prediction workers use an explicit `spawn`
+context, and must keep doing so. The team and player models are fitted before the
+workers start, so the parent holds live JAX thread pools; forking that leaves each
+child deadlocked on a mutex with no owning thread. The failure mode is silent —
+workers at 0% CPU and a parent blocked in `waitpid`, so the run hangs rather than
+crashing. Anything passed to those workers must be picklable, which is why they
+open their own DB session instead of receiving one.
+
+**A new season needs three things the repo doesn't ship.** `teams_<season>.csv`,
+`fifa_team_ratings_<season>.csv` and player data are all hand-curated per season
+upstream. Teams are now filled from the API automatically, and missing ratings fall
+back to the most recent season that has them, printing a warning. Adding a real
+`fifa_team_ratings_<season>.csv` is still worth doing — it's the only prior a
+promoted team has.
+
+**Tests share one dummy database, and `fill_players` gives up if any player already
+exists.** So a test that inserts a `Player` of its own empties the player list for
+every test that runs after it — with failures appearing in an unrelated file
+(`test_api_utils.py`) that passes when run alone. Use the `isolated_session`
+fixture for anything that writes rows.
 
 ## Scheduled cloud run
 
