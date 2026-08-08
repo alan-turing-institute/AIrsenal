@@ -219,7 +219,10 @@ def main():
     if args.no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
-        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+        # the same valuation of bench points the transfer optimiser uses - building
+        # the initial squad against a different one optimises for a season you then
+        # never play
+        sub_weights = DEFAULT_SUB_WEIGHTS
 
     fill_initial_squad(
         tag=tag,
