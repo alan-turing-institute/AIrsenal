@@ -1698,7 +1698,8 @@ def get_last_complete_gameweek_in_db(
         select(Fixture)
         .where(
             Fixture.season == season,
-            Fixture.result.is_(None),
+            # result is a relationship, not a column - is_(None) raises
+            ~Fixture.result.has(),
             Fixture.gameweek.is_not(None),
         )
         .order_by(Fixture.gameweek)
