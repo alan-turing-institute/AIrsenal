@@ -7,7 +7,8 @@ get consistent sets of predictions from the database.
 """
 
 import argparse
-from multiprocessing import Process, Queue
+import multiprocessing
+from multiprocessing.queues import Queue
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -54,39 +55,42 @@ def allocate_predictions(
     df_def_con: tuple[Series, Series],
     season: str,
     tag: str,
-    dbsession: Session,
     min_fixtures_behind: int = 3,
     use_availability: bool = True,
     condition_bonus_on_fixture: bool = False,
 ) -> None:
     """
-    Take positions off the queue and call function to calculate predictions
-    """
-    while True:
-        player = queue.get()
-        if player == "DONE":
-            print("Finished processing")
-            break
+    Take positions off the queue and call function to calculate predictions.
 
-        predictions = calc_predicted_points_for_player(
-            player,
-            fixture_goal_probs,
-            df_player,
-            df_bonus,
-            df_saves,
-            df_cards,
-            df_def_con,
-            season,
-            gw_range=gw_range,
-            tag=tag,
-            dbsession=dbsession,
-            min_fixtures_behind=min_fixtures_behind,
-            use_availability=use_availability,
-            condition_bonus_on_fixture=condition_bonus_on_fixture,
-        )
-        for p in predictions:
-            dbsession.add(p)
-        dbsession.commit()
+    Each worker opens its own database session: a Session cannot be shared across
+    processes, and it is not picklable, so it cannot be passed in either.
+    """
+    with session_scope() as dbsession:
+        while True:
+            player = queue.get()
+            if player == "DONE":
+                print("Finished processing")
+                break
+
+            predictions = calc_predicted_points_for_player(
+                player,
+                fixture_goal_probs,
+                df_player,
+                df_bonus,
+                df_saves,
+                df_cards,
+                df_def_con,
+                season,
+                gw_range=gw_range,
+                tag=tag,
+                dbsession=dbsession,
+                min_fixtures_behind=min_fixtures_behind,
+                use_availability=use_availability,
+                condition_bonus_on_fixture=condition_bonus_on_fixture,
+            )
+            for p in predictions:
+                dbsession.add(p)
+            dbsession.commit()
 
 
 def calc_all_predicted_points(
@@ -156,10 +160,15 @@ def calc_all_predicted_points(
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
     if num_thread > 1:
-        queue: Queue = Queue()
+        # spawn, not fork: the team and player models have already been fitted by
+        # the time we get here, and forking a process with live JAX thread pools
+        # leaves the children deadlocked on a mutex that no thread will release.
+        # The workers then sit at 0% CPU forever rather than failing.
+        ctx = multiprocessing.get_context("spawn")
+        queue: Queue = ctx.Queue()
         procs = []
         for _ in range(num_thread):
-            processor = Process(
+            processor = ctx.Process(
                 target=allocate_predictions,
                 args=(
                     queue,
@@ -172,7 +181,6 @@ def calc_all_predicted_points(
                     df_def_con,
                     season,
                     tag,
-                    dbsession,
                     min_fixtures_behind,
                     use_availability,
                     condition_bonus_on_fixture,
