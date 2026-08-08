@@ -80,25 +80,58 @@ def get_result_dict(
     }
 
 
+def get_ratings_season(season: str, dbsession: Session) -> str | None:
+    """
+    The season whose FIFA ratings to use: this one if we have them, otherwise the
+    most recent earlier season that we do.
+
+    The ratings are a hand-curated CSV per season, so a new season has none until
+    someone adds one. They are only a prior on team strength and move very little
+    year to year, so last year's are much closer to right than nothing at all.
+    """
+    if dbsession.scalars(
+        select(FifaTeamRating).where(FifaTeamRating.season == season).limit(1)
+    ).first():
+        return season
+
+    earlier = [
+        s
+        for s in dbsession.scalars(select(FifaTeamRating.season).distinct()).all()
+        if s < season
+    ]
+    return max(earlier) if earlier else None
+
+
 def get_ratings_dict(
-    season: str, teams: list[str], dbsession: Session
+    season: str, teams: list[str], dbsession: Session, strict: bool = True
 ) -> dict[str, np.ndarray]:
     """
     Create a dataframe containing the fifa team ratings.
+
+    With strict=False, teams we have no rating for are simply left out, for callers
+    that can fall back to fitting them without covariates.
     """
-    ratings = dbsession.scalars(
-        select(FifaTeamRating).where(FifaTeamRating.season == season)
-    ).all()
-    if len(ratings) == 0:
-        msg = f"No FIFA ratings found for season {season}"
+    ratings_season = get_ratings_season(season, dbsession)
+    if ratings_season is None:
+        msg = f"No FIFA ratings found for season {season} or any earlier season"
         raise ValueError(msg)
+    if ratings_season != season:
+        print(
+            f"No FIFA ratings for {season} - falling back to {ratings_season}. "
+            "Add airsenal/data/fifa_team_ratings_"
+            f"{season}.csv to use this season's own ratings."
+        )
+
+    ratings = dbsession.scalars(
+        select(FifaTeamRating).where(FifaTeamRating.season == ratings_season)
+    ).all()
 
     ratings_dict = {
         s.team: np.array([s.att, s.mid, s.defn, s.ovr])
         for s in ratings
         if s.team in teams
     }
-    if len(ratings_dict) != len(teams):
+    if strict and len(ratings_dict) != len(teams):
         msg = (
             f"Must have FIFA ratings and results for all teams. {len(ratings_dict)} "
             f"teams with FIFA ratings but {len(teams)} teams with results."
@@ -176,9 +209,15 @@ def add_new_teams_to_model(
     teams = get_teams_for_season(season=season, dbsession=dbsession)
     for t in teams:
         if team_model.teams is None or t not in team_model.teams:
-            if ratings:
+            # a promoted team long out of the top flight may have no rating at all,
+            # and refusing to model them would block the whole season
+            covariates = (
+                get_ratings_dict(season, [t], dbsession, strict=False)
+                if ratings
+                else {}
+            )
+            if t in covariates:
                 print(f"Adding {t} to team model with covariates")
-                covariates = get_ratings_dict(season, [t], dbsession)
                 team_model.add_new_team(t, team_covariates=covariates[t])
             else:
                 print(f"Adding {t} to team model without covariates")
