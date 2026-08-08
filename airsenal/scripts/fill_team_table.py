@@ -5,8 +5,10 @@ help fill other tables from raw json files
 
 import os
 
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.schema import Team, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
@@ -31,6 +33,45 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
     dbsession.commit()
 
 
+def fill_team_table_from_api(
+    season: str = CURRENT_SEASON,
+    dbsession: Session = session,
+    apifetcher: FPLDataFetcher | None = None,
+) -> int:
+    """
+    Fill the teams for a season from the FPL API.
+
+    The data directory only carries a CSV for seasons someone has already written
+    one for, so a new season would otherwise have no teams at all - and every
+    fixture lookup goes through team_id, so nothing else can be filled either.
+    """
+    if apifetcher is None:
+        apifetcher = FPLDataFetcher()
+    teams = apifetcher.get_current_summary_data()["teams"]
+    if not teams:
+        msg = f"No teams returned by the API for {season}"
+        raise RuntimeError(msg)
+
+    existing = {
+        t.team_id: t
+        for t in dbsession.scalars(select(Team).where(Team.season == season)).all()
+    }
+    added = 0
+    for team in teams:
+        t = existing.get(team["id"])
+        if t is None:
+            t = Team()
+            t.team_id = team["id"]
+            t.season = season
+            dbsession.add(t)
+            added += 1
+        t.name = team["short_name"]
+        t.full_name = team["name"]
+    dbsession.commit()
+    print(f"Filled {added} teams for {season} from the API")
+    return added
+
+
 def make_team_table(
     seasons: list[str] | None = None, dbsession: Session = session
 ) -> None:
@@ -47,7 +88,16 @@ def make_team_table(
         filename = os.path.join(
             os.path.join(os.path.dirname(__file__), "..", "data", f"teams_{season}.csv")
         )
-        fill_team_table_from_file(filename, dbsession=dbsession)
+        if os.path.exists(filename):
+            fill_team_table_from_file(filename, dbsession=dbsession)
+        elif season == CURRENT_SEASON:
+            fill_team_table_from_api(season, dbsession=dbsession)
+        else:
+            msg = (
+                f"No teams CSV for {season}, and only the current season is "
+                "available from the API"
+            )
+            raise FileNotFoundError(msg)
 
 
 if __name__ == "__main__":

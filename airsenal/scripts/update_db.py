@@ -6,10 +6,12 @@ bought or sold.
 
 import argparse
 
+from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import (
     Player,
+    Team,
     backup_db,
     database_is_empty,
     session_scope,
@@ -29,6 +31,7 @@ from airsenal.scripts.fill_player_mappings_table import add_mappings
 from airsenal.scripts.fill_player_table import find_player_in_table
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
+from airsenal.scripts.fill_team_table import fill_team_table_from_api
 
 
 def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
@@ -88,6 +91,21 @@ def update_results(season: str, dbsession: Session) -> bool:
     else:
         print("Matches and player-scores already up-to-date")
     return True
+
+
+def update_teams(season: str, dbsession: Session) -> int:
+    """
+    Make sure the team table has this season's teams. Three go down and three come
+    up every year, and the team_ids are reassigned alphabetically, so a season with
+    no teams in the table cannot have its fixtures filled either.
+    """
+    n_teams = dbsession.scalar(
+        select(func.count()).select_from(Team).where(Team.season == season)
+    )
+    if n_teams:
+        return 0
+    print(f"No teams in the database for {season} - filling from the API")
+    return fill_team_table_from_api(season, dbsession=dbsession)
 
 
 def update_players(season: str, dbsession: Session) -> int:
@@ -180,6 +198,10 @@ def update_db(
         backup_path = backup_db()
         if backup_path is not None:
             print(f"Backed up database to {backup_path}")
+
+    # teams change every season with promotion and relegation, and everything else
+    # is looked up by team_id, so this has to come first
+    update_teams(season, session)
 
     # see if any new players have been added
     num_new_players = update_players(season, session)
