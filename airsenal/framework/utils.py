@@ -1347,7 +1347,11 @@ def predicted_points_discord_payload(
     json formated discord webhook contentent.
     """
     discord_embed["fields"].append(
-        {"name": "Position", "value": str(position), "inline": False}
+        {
+            "name": "Position",
+            "value": str(position),
+            "inline": False,
+        }
     )
     for i, p in enumerate(pts):
         price = p[0].price(season, first_gw)

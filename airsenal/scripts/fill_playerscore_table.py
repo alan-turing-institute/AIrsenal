@@ -6,10 +6,12 @@ import contextlib
 import datetime
 import json
 import os
-import urllib.error
+import tempfile
 import warnings
+from pathlib import Path
 
 import pandas as pd
+from curl_cffi import requests
 from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
@@ -26,6 +28,8 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     find_fixture,
     get_fixtures_for_gameweek,
+    get_last_complete_gameweek_in_db,
+    get_last_finished_gameweek,
     get_past_seasons,
     get_player,
     get_player_from_api_id,
@@ -37,41 +41,100 @@ from airsenal.framework.utils import (
 )
 
 
-def load_attributes_history(season: str) -> pd.DataFrame | None:
-    """
-    Load the PlayerAttributes history for a given season from the relevant CSV file.
-    """
-    try:
-        df_attributes = pd.read_csv(
-            "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
-            f"heads/main/airsenal/data/player_attributes_history_{season}.csv"
+def download_with_resume(
+    url: str,
+    dest: Path,
+    attempts: int = 5,
+    timeout: float = 30.0,
+    chunk_size: int = 1024 * 1024,
+) -> Path:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    session = requests.Session()
+
+    for attempt in range(1, attempts + 1):
+        existing = dest.stat().st_size if dest.exists() else 0
+        headers = {"Range": f"bytes={existing}-"} if existing > 0 else {}
+        resp = session.get(
+            url,
+            headers=headers,
+            stream=True,
+            timeout=timeout,
         )
+        try:
+            resp.raise_for_status()
+
+            # If server ignored Range (status 200), restart file from scratch.
+            if existing > 0 and resp.status_code == 200:
+                mode = "wb"
+            else:
+                mode = "ab" if existing > 0 else "wb"
+
+            with open(dest, mode) as f:
+                for chunk in resp.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        f.write(chunk)
+
+            return dest
+
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            requests.exceptions.RequestException,
+        ):
+            if attempt == attempts:
+                raise
+        finally:
+            resp.close()
+
+    return dest
+
+
+def load_attributes_history(season: str) -> pd.DataFrame | None:
+    if not is_future_gameweek(season, 1, "2526", 0):
+        print("Player attributes history not available before 2526 season, skipping")
+        return None
+
+    print(f"Downloading player attributes history for season {season}")
+    url = (
+        "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
+        f"heads/main/airsenal/data/player_attributes_history_{season}.csv"
+    )
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
+            tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
+            download_with_resume(url=url, dest=tmp_csv)
+            df_attributes = pd.read_csv(tmp_csv)
         df_attributes["day"] = pd.to_datetime(df_attributes["timestamp"]).dt.date
         df_attributes["season"] = df_attributes["season"].astype(str)
         return df_attributes
-    except urllib.error.HTTPError as e:
-        if is_future_gameweek(season, 1, "2526", 1):  # got history from 2526 season
-            msg = f"Could not load player attributes history for season {season}"
-            warnings.warn(f"{e}\n{msg}", stacklevel=2)
+
+    except requests.exceptions.RequestException as e:
+        msg = f"Could not load player attributes history for season {season}"
+        warnings.warn(f"{e}\n{msg}", stacklevel=2)
     return None
 
 
-def _get_availability_on_date(
-    date: datetime.date, player: Player, df_attributes: pd.DataFrame
-) -> tuple[None | str, None | int]:
-    if date < df_attributes["day"].min() or date > df_attributes["day"].max():
-        msg = f"Date {date} is out of range for attributes history"
-        warnings.warn(msg, stacklevel=2)
-        return None, None
+def _filter_attributes_for_player(
+    df_attributes: pd.DataFrame, player: Player
+) -> pd.DataFrame:
 
-    mask = df_attributes["day"] == date
     if (opta_code := player.opta_code) is not None:
-        mask = mask & (df_attributes["opta_code"] == opta_code)
+        mask = df_attributes["opta_code"] == opta_code
     else:
         msg = f"Player {player} has no opta_code"
         warnings.warn(msg, stacklevel=2)
-        mask = mask & (df_attributes["player"] == player.name)
+        mask = df_attributes["player"] == player.name
+    return df_attributes.loc[mask]
 
+
+def _get_availability_on_date(
+    date: datetime.date, player: Player, player_attributes: pd.DataFrame
+) -> tuple[str | None, int | None]:
+    if date < datetime.date(2025, 9, 12):
+        # no player attributes history available before this date
+        return None, None
+    mask = player_attributes["day"] == date
     if mask.sum() != 1:
         msg = (
             f"Found {mask.sum()} attributes for {player} on {date}, expected 1 so "
@@ -81,27 +144,25 @@ def _get_availability_on_date(
         return None, None
 
     idx = mask.argmax()
-    news = df_attributes.iloc[idx]["news"]
-    chance_of_playing = df_attributes.iloc[idx]["chance_of_playing_next_round"]
+    news = player_attributes.iloc[idx]["news"]
+    chance_of_playing = player_attributes.iloc[idx]["chance_of_playing_next_round"]
     return news, chance_of_playing
 
 
 def get_status_from_attributes_history(
     player: Player,
     fixture: Fixture,
-    df_attributes: pd.DataFrame,
+    player_attributes: pd.DataFrame,
     dbsession: Session = session,
-) -> tuple[None | str, None | int]:
+) -> tuple[str | None, int | None]:
     """
     Get the player's news and chance_of_playing from their attributes history
     as of the morning of the fixture kickoff time.
     """
-    if fixture.season != df_attributes["season"].iloc[0]:
-        msg = "Attributes dataframe season does not match fixture season"
-        raise ValueError(msg)
-
     matchday = parse_date(fixture.date)
-    news, chance_of_playing = _get_availability_on_date(matchday, player, df_attributes)
+    news, chance_of_playing = _get_availability_on_date(
+        matchday, player, player_attributes
+    )
 
     # Deal with known future unavailability, e.g. international duty, in which case a
     # a player might be flagged as unavailable on match day, but that unavailability
@@ -119,7 +180,7 @@ def get_status_from_attributes_history(
                     fixture.gameweek, fixture.season, dbsession
                 )
                 gw_deadline = min(parse_date(f.date) for f in gw_fixtures)
-                return _get_availability_on_date(gw_deadline, player, df_attributes)
+                return _get_availability_on_date(gw_deadline, player, player_attributes)
     return news, chance_of_playing
 
 
@@ -158,6 +219,12 @@ def fill_playerscores_from_json(
         if not player:
             print(f"Couldn't find player {player_name_or_id}")
             continue
+
+        player_attributes = (
+            _filter_attributes_for_player(df_attributes, player)
+            if df_attributes is not None
+            else None
+        )
 
         print(f"SCORES {season} {player}")
         # now loop through all the fixtures that player played in
@@ -214,9 +281,9 @@ def fill_playerscores_from_json(
                     ps.__setattr__(feat, fixture_data[feat])
 
             # get injury/suspension status from attributes history
-            if df_attributes is not None:
+            if player_attributes is not None and len(player_attributes) > 0:
                 news, chance_of_playing = get_status_from_attributes_history(
-                    player, fixture, df_attributes, dbsession
+                    player, fixture, player_attributes, dbsession
                 )
                 ps.news = news
                 ps.chance_of_playing = chance_of_playing
@@ -232,6 +299,17 @@ def fill_playerscores_from_api(
     dbsession: Session = session,
 ) -> None:
     # Get column metadata once for efficiency
+    if get_last_finished_gameweek() == 0:
+        print(
+            f"No complete gameweeks, skipping player scores update for {season} season"
+        )
+        return
+    if (
+        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
+        == get_last_finished_gameweek()
+    ):
+        print(f"Player scores up-to-date, skipping update for {season} season")
+        return
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key
@@ -264,6 +342,12 @@ def fill_playerscores_from_api(
             # Player table, e.g. clashes between players with the same name
             print(f"ERROR! No player with API id {player_api_id}. Skipped.")
             continue
+
+        player_attributes = (
+            _filter_attributes_for_player(df_attributes, player)
+            if df_attributes is not None
+            else None
+        )
 
         print(f"SCORES {season} {player}")
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
@@ -330,9 +414,9 @@ def fill_playerscores_from_api(
                         ps.__setattr__(feat, result[feat])
 
                 # get injury/suspension status from attributes history
-                if df_attributes is not None:
+                if player_attributes is not None and len(player_attributes) > 0:
                     news, chance_of_playing = get_status_from_attributes_history(
-                        player, fixture, df_attributes, dbsession
+                        player, fixture, player_attributes, dbsession
                     )
                     ps.news = news
                     ps.chance_of_playing = chance_of_playing

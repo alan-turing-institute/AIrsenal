@@ -11,7 +11,13 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Result, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
-from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seasons
+from airsenal.framework.utils import (
+    NEXT_GAMEWEEK,
+    find_fixture,
+    get_last_complete_gameweek_in_db,
+    get_last_finished_gameweek,
+    get_past_seasons,
+)
 
 
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
@@ -56,6 +62,17 @@ def fill_results_from_api(
 ) -> None:
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
+    if get_last_finished_gameweek() == 0:
+        print(
+            f"No complete gameweeks, skipping match result update for {season} season"
+        )
+        return
+    if (
+        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
+        == get_last_finished_gameweek()
+    ):
+        print(f"Match results up-to-date, skipping update for {season} season")
+        return
     for m in matches:
         if not m["finished"]:
             continue
