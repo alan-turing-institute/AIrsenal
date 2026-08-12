@@ -216,7 +216,6 @@ def make_optimum_transfers_ga(
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
         root_gw = NEXT_GAMEWEEK
-    transfer_gw = min(gameweek_range)  # the week we're making the transfer
 
     if update_func_and_args:
         # call function to update progress bar.
@@ -240,26 +239,11 @@ def make_optimum_transfers_ga(
         verbose=False,
     )
 
+    new_squad = opt.decode_individual(best_individual)
     base_ids = {p.player_id for p in squad.players}
-    candidate_ids = [opt.players[int(idx)].player_id for idx in best_individual]
-    players_out = sorted(base_ids - set(candidate_ids))
-    players_in = sorted(set(candidate_ids) - base_ids)
-
-    budget = squad.budget + sum(
-        squad.get_sell_price_for_player(pid, gameweek=transfer_gw)
-        for pid in players_out
-    )
-    new_squad = Squad(budget=budget, season=season)
-    for pid in candidate_ids:
-        # kept players cost nothing - they're already owned, not re-bought
-        price = 0 if pid in base_ids else None
-        add_ok = new_squad.add_player(pid, price=price, gameweek=transfer_gw)
-        if not add_ok:
-            msg = f"GA optimization returned an invalid squad (failed to add {pid})"
-            raise RuntimeError(msg)
-    if not new_squad.is_complete():
-        msg = f"Failed to find valid transfers (max {num_transfers}) for squad"
-        raise RuntimeError(msg)
+    new_ids = {p.player_id for p in new_squad.players}
+    players_out = sorted(base_ids - new_ids)
+    players_in = sorted(new_ids - base_ids)
 
     return new_squad, players_out, players_in
 

@@ -124,8 +124,44 @@ class SquadOpt:
             self._remove_zero_pts()
         self.n_available_players = len(self.players)
 
+        # one entry per genome slot, in the same position-block order _create_individual
+        # and _get_mutation_bounds lay genes out in
+        self._slot_positions = [
+            pos for pos in self.positions for _ in range(self.players_per_position[pos])
+        ]
+        if self.base_squad is not None:
+            self._seed_indices = self._get_seed_indices()
+
         # Setup DEAP toolbox
         self._setup_deap()
+
+    def _get_seed_indices(self) -> list[int]:
+        """One genome index per slot, matching base_squad's own players where
+        possible (falling back to a random player in that position if a base squad
+        player isn't in the candidate pool, e.g. filtered out by remove_zero). Used
+        to seed the initial population close to base_squad - see
+        `_create_seeded_individual` for why that's necessary.
+        """
+        id_to_index = {p.player_id: i for i, p in enumerate(self.players)}
+        remaining_by_position: dict[str, list[int]] = {
+            pos: [] for pos in self.positions
+        }
+        for p in self.base_squad.players:
+            remaining_by_position[p.position].append(p.player_id)
+
+        seed_indices = []
+        for pos in self._slot_positions:
+            pos_min, pos_max = self.position_idx[pos]
+            idx = None
+            while remaining_by_position[pos]:
+                pid = remaining_by_position[pos].pop()
+                if pid in id_to_index:
+                    idx = id_to_index[pid]
+                    break
+            if idx is None:
+                idx = random.randint(pos_min, pos_max)
+            seed_indices.append(idx)
+        return seed_indices
 
     def _setup_deap(self):
         """Setup DEAP genetic algorithm components."""
@@ -156,6 +192,9 @@ class SquadOpt:
 
     def _create_individual(self):
         """Create a valid individual (chromosome) representing a squad selection."""
+        if self.base_squad is not None:
+            return self._create_seeded_individual()
+
         individual = []
 
         # For each position, select the required number of players
@@ -169,6 +208,27 @@ class SquadOpt:
             )
             individual.extend(selected_players)
 
+        return creator.Individual(individual)
+
+    def _create_seeded_individual(self):
+        """Individual seeded from base_squad (see _get_seed_indices), with a random
+        number (0 to max_transfers) of slots swapped for a different player in the
+        same position slot.
+
+        Without this, individuals are generated the same way as the from-scratch
+        case (_create_individual) - entirely at random per position slot. Against a
+        real candidate pool that's very unlikely to happen to match most of a
+        15-player squad by chance, so with max_transfers small relative to squad
+        size, the whole population could end up with zero individuals satisfying
+        the transfer cap at all, leaving the GA with no fitness gradient to search
+        with.
+        """
+        individual = list(self._seed_indices)
+        n_swaps = random.randint(0, self.max_transfers)
+        for slot in random.sample(range(len(individual)), n_swaps):
+            pos = self._slot_positions[slot]
+            pos_min, pos_max = self.position_idx[pos]
+            individual[slot] = random.randint(pos_min, pos_max)
         return creator.Individual(individual)
 
     def _get_mutation_bounds(self):
@@ -187,34 +247,37 @@ class SquadOpt:
 
         return low_bounds, up_bounds
 
-    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
-        """Evaluate the fitness of an individual (squad)."""
-        candidate_ids = [self.players[int(idx)].player_id for idx in individual]
+    def _build_squad(self, candidate_ids: list) -> Squad | None:
+        """Build the Squad represented by a list of player IDs, applying the
+        budget/transfer-cap/position rules for this optimization. Returns None if
+        any constraint is violated. Used both to score individuals during the GA
+        search and to decode the final chosen individual (see `decode_individual`),
+        so the two can never disagree about whether a given squad is valid/what it
+        costs - they're the same code, not two hand-duplicated copies of it.
+        """
         if len(set(candidate_ids)) != len(candidate_ids):
-            return (0.0,)  # same player picked more than once
+            return None  # same player picked more than once
 
         if self.base_squad is not None:
             new_in = [pid for pid in candidate_ids if pid not in self._base_ids]
             sold_out = self._base_ids - set(candidate_ids)
             if len(new_in) > self.max_transfers:
-                return (0.0,)  # too many transfers
+                return None  # too many transfers
             budget = self.bank + sum(self._sale_prices[pid] for pid in sold_out)
             squad = Squad(budget=budget, season=self.season)
             for pid in candidate_ids:
                 # kept players cost nothing - they're already owned, not re-bought
                 price = 0 if pid in self._base_ids else None
-                add_ok = squad.add_player(pid, price=price, gameweek=self.start_gw)
-                if not add_ok:
-                    return (0.0,)  # Invalid squad
+                if not squad.add_player(pid, price=price, gameweek=self.start_gw):
+                    return None
         else:
             # Make squad from player IDs
             squad = Squad(budget=self.budget, season=self.season)
 
             # Add selected players to squad
             for pid in candidate_ids:
-                add_ok = squad.add_player(pid, gameweek=self.start_gw)
-                if not add_ok:
-                    return (0.0,)  # Invalid squad
+                if not squad.add_player(pid, gameweek=self.start_gw):
+                    return None
 
         # Fill empty slots with dummy players (if chosen not to optimise full squad)
         for pos in self.positions:
@@ -223,12 +286,18 @@ class SquadOpt:
                     dp = DummyPlayer(
                         self.gw_range, self.tag, pos, purchase_price=self.dummy_sub_cost
                     )
-                    add_ok = squad.add_player(dp)
-                    if not add_ok:
-                        return (0.0,)  # Invalid squad
+                    if not squad.add_player(dp):
+                        return None
 
-        # Check squad is valid, if not return fitness of zero
         if not squad.is_complete():
+            return None
+        return squad
+
+    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
+        """Evaluate the fitness of an individual (squad)."""
+        candidate_ids = [self.players[int(idx)].player_id for idx in individual]
+        squad = self._build_squad(candidate_ids)
+        if squad is None:
             return (0.0,)
 
         # Calculate expected points for all gameweeks
@@ -243,6 +312,19 @@ class SquadOpt:
         )
 
         return (score,)
+
+    def decode_individual(self, individual: list[int]) -> Squad:
+        """Build the Squad represented by a DEAP individual, e.g. the best_individual
+        returned by `optimize()`. Raises RuntimeError if it's not valid - shouldn't
+        happen for anything optimize() reports as the best individual, since this
+        applies the exact same construction used to score it during the search.
+        """
+        candidate_ids = [self.players[int(idx)].player_id for idx in individual]
+        squad = self._build_squad(candidate_ids)
+        if squad is None:
+            msg = "Individual does not represent a valid squad"
+            raise RuntimeError(msg)
+        return squad
 
     def _get_player_list(self):
         """Get list of active players at the start of the gameweek range,

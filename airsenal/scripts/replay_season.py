@@ -62,6 +62,7 @@ def replay_season(
     team_model_args: dict | None = None,
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
+    max_points_hit: int | None = None,
 ) -> None:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -130,6 +131,7 @@ def replay_season(
                 num_thread=num_thread,
                 is_replay=True,
                 max_opt_transfers=max_opt_transfers,
+                max_total_hit=max_points_hit,
             )
         if best_strategy is None:
             msg = f"Failed to find a strategy for GW{gw}!"
@@ -258,6 +260,15 @@ def main():
         type=int,
         default=2,
     )
+    parser.add_argument(
+        "--max_points_hit",
+        help=(
+            "maximum number of points to spend on additional transfers each "
+            "gameweek (default no limit)"
+        ),
+        type=int,
+        default=None,
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -284,6 +295,7 @@ def main():
                 team_model=args.team_model,
                 team_model_args={"epsilon": args.epsilon},
                 max_opt_transfers=args.max_transfers,
+                max_points_hit=args.max_points_hit,
             )
             n_completed += 1
 
