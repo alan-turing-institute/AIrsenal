@@ -53,6 +53,24 @@ class SquadOpt:
         optimized. For example, if you are optimizing 12 out of 15 players, the
         effective budget for optimizing the squad will be
         budget - (15 -12) * dummy_sub_cost, by default 45
+    base_squad : Squad, optional
+        If given, search for the best squad reachable from this existing squad by
+        transferring in at most `max_transfers` new players, rather than building a
+        squad from scratch. Players kept from `base_squad` cost nothing (they're
+        already owned); players sold contribute their real sale price to the budget
+        available for new purchases. By default None (build from scratch).
+    bank : int, optional
+        Cash in the bank, used together with sale proceeds to fund new purchases when
+        `base_squad` is given. Ignored otherwise. By default None.
+    max_transfers : int, optional
+        Maximum number of players that may differ from `base_squad`. Ignored unless
+        `base_squad` is given. By default None.
+    root_gw : int, optional
+        Gameweek to discount future gameweeks in `gw_range` relative to. Useful when
+        `gw_range` represents the remaining weeks of a longer, already-underway
+        planning horizon (e.g. a node partway down a multi-week tree search), so
+        future points are discounted relative to the true start of that horizon
+        rather than to `gw_range[0]`. By default None (falls back to `gw_range[0]`).
     """
 
     def __init__(
@@ -67,10 +85,15 @@ class SquadOpt:
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
         sub_weights=DEFAULT_SUB_WEIGHTS,
+        base_squad=None,
+        bank=None,
+        max_transfers=None,
+        root_gw=None,
     ):
         self.season = season
         self.gw_range = gw_range
         self.start_gw = min(gw_range)
+        self.root_gw = root_gw if root_gw is not None else self.start_gw
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
 
@@ -84,6 +107,18 @@ class SquadOpt:
         self.budget = budget
         self.sub_weights = sub_weights
 
+        self.base_squad = base_squad
+        self.bank = bank
+        self.max_transfers = max_transfers
+        if self.base_squad is not None:
+            self._base_ids = {p.player_id for p in self.base_squad.players}
+            self._sale_prices = {
+                p.player_id: self.base_squad.get_sell_price_for_player(
+                    p, gameweek=self.start_gw
+                )
+                for p in self.base_squad.players
+            }
+
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
             self._remove_zero_pts()
@@ -96,8 +131,14 @@ class SquadOpt:
         """Setup DEAP genetic algorithm components."""
         # Create fitness and individual classes
         # We want to maximize fitness, so weights=(1.0,)
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMax)
+        # Guard against re-registering these with DEAP's process-global creator
+        # registry, which happens whenever more than one SquadOpt is constructed in
+        # the same process (e.g. once per transfer decision in a tree search) and
+        # otherwise emits a RuntimeWarning on every subsequent construction.
+        if not hasattr(creator, "FitnessMax"):
+            creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        if not hasattr(creator, "Individual"):
+            creator.create("Individual", list, fitness=creator.FitnessMax)
 
         self.toolbox = base.Toolbox()
 
@@ -148,17 +189,32 @@ class SquadOpt:
 
     def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
         """Evaluate the fitness of an individual (squad)."""
-        # Make squad from player IDs
-        squad = Squad(budget=self.budget, season=self.season)
+        candidate_ids = [self.players[int(idx)].player_id for idx in individual]
+        if len(set(candidate_ids)) != len(candidate_ids):
+            return (0.0,)  # same player picked more than once
 
-        # Add selected players to squad
-        for idx in individual:
-            add_ok = squad.add_player(
-                self.players[int(idx)].player_id,
-                gameweek=self.start_gw,
-            )
-            if not add_ok:
-                return (0.0,)  # Invalid squad
+        if self.base_squad is not None:
+            new_in = [pid for pid in candidate_ids if pid not in self._base_ids]
+            sold_out = self._base_ids - set(candidate_ids)
+            if len(new_in) > self.max_transfers:
+                return (0.0,)  # too many transfers
+            budget = self.bank + sum(self._sale_prices[pid] for pid in sold_out)
+            squad = Squad(budget=budget, season=self.season)
+            for pid in candidate_ids:
+                # kept players cost nothing - they're already owned, not re-bought
+                price = 0 if pid in self._base_ids else None
+                add_ok = squad.add_player(pid, price=price, gameweek=self.start_gw)
+                if not add_ok:
+                    return (0.0,)  # Invalid squad
+        else:
+            # Make squad from player IDs
+            squad = Squad(budget=self.budget, season=self.season)
+
+            # Add selected players to squad
+            for pid in candidate_ids:
+                add_ok = squad.add_player(pid, gameweek=self.start_gw)
+                if not add_ok:
+                    return (0.0,)  # Invalid squad
 
         # Fill empty slots with dummy players (if chosen not to optimise full squad)
         for pos in self.positions:
@@ -180,7 +236,7 @@ class SquadOpt:
             squad,
             self.gw_range,
             self.tag,
-            self.gw_range[0],
+            self.root_gw,
             self.bench_boost_gw,
             self.triple_captain_gw,
             sub_weights=self.sub_weights,

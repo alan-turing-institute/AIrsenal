@@ -402,12 +402,8 @@ def get_num_increments(num_transfers, num_iterations=100):
     ):
         num_transfers = int(num_transfers[1])
 
-    if (
-        num_transfers == "W"
-        or num_transfers == "F"
-        or (isinstance(num_transfers, int) and num_transfers > 2)
-    ):
-        # wildcard or free hit or >2 - needs num_iterations iterations
+    if num_transfers == "W" or num_transfers == "F":
+        # wildcard or free hit - needs num_iterations iterations
         return num_iterations
 
     if num_transfers == 0:
@@ -419,8 +415,27 @@ def get_num_increments(num_transfers, num_iterations=100):
     if num_transfers == 2:
         # remove each pair of players - 15*7=105 combinations
         return 105
+    if isinstance(num_transfers, int) and num_transfers > 2:
+        # GA-based transfer search only reports progress once per call
+        return 1
     print(f"Unrecognized num_transfers: {num_transfers}")
     return 1
+
+
+def _transfer_count_candidates(ft_available, max_opt_transfers, min_transfers=0):
+    """Coarse set of transfer counts worth branching on in the multi-week tree search:
+    1 and 2 (cheap to search exhaustively via the deterministic single/double-transfer
+    functions), plus using all of the currently-available free transfers - rather than
+    every integer up to max_opt_transfers, which is what makes higher transfer counts
+    intractable for the tree search (both because it multiplies the branching factor,
+    and because those extra counts are searched with a much more expensive GA). 0 is
+    included unless min_transfers=1 (forcing at least one transfer this gameweek).
+    Identical to range(max_opt_transfers + 1) whenever max_opt_transfers <= 2.
+    """
+    candidates = {1, 2, min(ft_available, max_opt_transfers)}
+    if min_transfers == 0:
+        candidates.add(0)
+    return sorted(c for c in candidates if min_transfers <= c <= max_opt_transfers)
 
 
 def next_week_transfers(
@@ -469,9 +484,11 @@ def next_week_transfers(
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
         # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
         # this function in that case.
-        ft_choices = list(range(1, max_opt_transfers + 1))
+        ft_choices = _transfer_count_candidates(
+            ft_available, max_opt_transfers, min_transfers=1
+        )
     else:
-        ft_choices = list(range(max_opt_transfers + 1))
+        ft_choices = _transfer_count_candidates(ft_available, max_opt_transfers)
 
     if max_total_hit is not None:
         ft_choices = [

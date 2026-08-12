@@ -3,14 +3,11 @@ Functions for optimising transfers across multiple gameweeks, including the poss
 of using chips.
 """
 
-import random
 from collections.abc import Callable
 from multiprocessing import Process
-from operator import itemgetter
 
-from airsenal.framework.optimization_squad import make_new_squad
+from airsenal.framework.optimization_squad import SquadOpt, make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
-from airsenal.framework.schema import Player
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -196,115 +193,75 @@ def make_optimum_double_transfer(
     return best_squad, best_pid_out, best_pid_in
 
 
-def make_random_transfers(
+def make_optimum_transfers_ga(
     squad,
     tag,
-    nsubs=1,
-    gw_range=None,
+    num_transfers,
+    gameweek_range=None,
     root_gw=None,
-    num_iter=1,
-    update_func_and_args=None,
     season=CURRENT_SEASON,
+    num_iter=100,
+    update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
 ):
     """
-    choose nsubs random players to sub out, and then select players
-    using a triangular PDF to preferentially select the replacements with
-    the best expected score to fill their place.
-    Do this num_iter times and choose the best total score over gw_range gameweeks.
+    Search for the best squad reachable from `squad` by transferring in at most
+    `num_transfers` new players, using the DEAP genetic algorithm (see
+    airsenal.framework.optimization_squad.SquadOpt) rather than exhaustively or
+    randomly enumerating combinations. This scales to the higher transfer counts
+    allowed by saving up free transfers (currently up to 5), where exhaustive
+    search over combinations of incoming players is infeasible.
     """
-    best_score = -1.0
-    best_squad = None
-    best_pid_out, best_pid_in = [], []
-    max_tries = 100
-    for _ in range(num_iter):
-        if update_func_and_args:
-            # call function to update progress bar.
-            # this was passed as a tuple (func, increment, pid)
-            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
+    if not gameweek_range:
+        gameweek_range = [NEXT_GAMEWEEK]
+        root_gw = NEXT_GAMEWEEK
+    transfer_gw = min(gameweek_range)  # the week we're making the transfer
 
-        new_squad = fastcopy(squad)
+    if update_func_and_args:
+        # call function to update progress bar.
+        # this was passed as a tuple (func, increment, pid)
+        update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
-        if not gw_range:
-            gw_range = [NEXT_GAMEWEEK]
-            root_gw = NEXT_GAMEWEEK
+    opt = SquadOpt(
+        gw_range=gameweek_range,
+        tag=tag,
+        season=season,
+        bench_boost_gw=bench_boost_gw,
+        triple_captain_gw=triple_captain_gw,
+        base_squad=squad,
+        bank=squad.budget,
+        max_transfers=num_transfers,
+        root_gw=root_gw,
+    )
+    best_individual, _best_fitness = opt.optimize(
+        population_size=num_iter,
+        generations=num_iter,
+        verbose=False,
+    )
 
-        transfer_gw = min(gw_range)  # the week we're making the transfer
-        players_to_remove: list[int] = []  # this is the index within the squad
-        removed_players: list[int] = []  # this is the player_ids
-        # order the players in the squad by predicted_points - least-to-most
-        player_list: list[tuple[int, float]] = []
-        for p in squad.players:
-            p.calc_predicted_points(tag)
-            player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
-        player_list.sort(key=itemgetter(1), reverse=False)
-        while len(players_to_remove) < nsubs:
-            index = int(random.triangular(0, len(player_list), 0))
-            if index not in players_to_remove:
-                players_to_remove.append(index)
+    base_ids = {p.player_id for p in squad.players}
+    candidate_ids = [opt.players[int(idx)].player_id for idx in best_individual]
+    players_out = sorted(base_ids - set(candidate_ids))
+    players_in = sorted(set(candidate_ids) - base_ids)
 
-        positions_needed = []
-        for p in players_to_remove:
-            positions_needed.append(squad.players[p].position)
-            removed_players.append(squad.players[p].player_id)
-            new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
-        predicted_points = {
-            pos: get_predicted_points(
-                position=pos, gameweek=gw_range, tag=tag, season=season
-            )
-            for pos in set(positions_needed)
-        }
-        complete_squad = False
-        added_players: list[Player] = []
-        attempt = 0
-        while not complete_squad:
-            # sample with a triangular PDF - preferentially select players near
-            # the start
-            added_players = []
-            for pos in positions_needed:
-                index = int(random.triangular(0, len(predicted_points[pos]), 0))
-                player_to_add = predicted_points[pos][index][0]
-                added_ok = new_squad.add_player(player_to_add, gameweek=transfer_gw)
-                if added_ok:
-                    added_players.append(player_to_add)
-            complete_squad = new_squad.is_complete()
-            if not complete_squad:
-                # try to avoid getting stuck in a loop
-                attempt += 1
-                if attempt > max_tries:
-                    new_squad = fastcopy(squad)
-                    break
-                # take those players out again.
-                for ap in added_players:
-                    removed_ok = new_squad.remove_player(
-                        ap.player_id, gameweek=transfer_gw
-                    )
-                    if not removed_ok:
-                        print(f"Problem removing {ap}")
-                added_players = []
-
-        # calculate the score
-        total_points = get_discounted_squad_score(
-            new_squad,
-            gw_range,
-            tag,
-            root_gw=root_gw,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
-        )
-        if total_points > best_score:
-            best_score = total_points
-            best_pid_out = removed_players
-            best_pid_in = [ap.player_id for ap in added_players]
-            best_squad = new_squad
-            # end of loop over n_iter
-
-    if best_squad is None:
-        msg = "Failed to find valid random transfers for squad"
+    budget = squad.budget + sum(
+        squad.get_sell_price_for_player(pid, gameweek=transfer_gw)
+        for pid in players_out
+    )
+    new_squad = Squad(budget=budget, season=season)
+    for pid in candidate_ids:
+        # kept players cost nothing - they're already owned, not re-bought
+        price = 0 if pid in base_ids else None
+        add_ok = new_squad.add_player(pid, price=price, gameweek=transfer_gw)
+        if not add_ok:
+            msg = f"GA optimization returned an invalid squad (failed to add {pid})"
+            raise RuntimeError(msg)
+    if not new_squad.is_complete():
+        msg = f"Failed to find valid transfers (max {num_transfers}) for squad"
         raise RuntimeError(msg)
 
-    return best_squad, best_pid_out, best_pid_in
+    return new_squad, players_out, players_in
 
 
 def make_best_transfers(
@@ -370,6 +327,24 @@ def make_best_transfers(
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
+    elif isinstance(num_transfers, int) and num_transfers > 2:
+        # N or 'TN' or 'BN' (i.e. N transfers, possibly with chip) - GA-based search,
+        # scales to the higher transfer counts allowed by saving up free transfers
+        # where exhaustive/greedy search over combinations of incoming players isn't.
+        new_squad, players_out, players_in = make_optimum_transfers_ga(
+            squad,
+            tag,
+            num_transfers,
+            gameweeks,
+            root_gw,
+            season,
+            num_iter=num_iter,
+            update_func_and_args=update_func_and_args,
+            triple_captain_gw=triple_captain_gw,
+            bench_boost_gw=bench_boost_gw,
+        )
+        transfer_dict = {"in": players_in, "out": players_out}
+
     elif num_transfers in ["W", "F"]:
         _out = [p.player_id for p in squad.players]
         budget = squad.sale_value(root_gw, use_api=False)
@@ -389,21 +364,6 @@ def make_best_transfers(
         _in = [p.player_id for p in new_squad.players]
         players_in = [p for p in _in if p not in _out]  # remove duplicates
         players_out = [p for p in _out if p not in _in]  # remove duplicates
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif isinstance(num_transfers, int) and num_transfers > 2:
-        new_squad, players_out, players_in = make_random_transfers(
-            squad,
-            tag,
-            nsubs=num_transfers,
-            gw_range=gameweeks,
-            root_gw=root_gw,
-            num_iter=num_iter,
-            update_func_and_args=update_func_and_args,
-            season=season,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
-        )
         transfer_dict = {"in": players_in, "out": players_out}
 
     else:
