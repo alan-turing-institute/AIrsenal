@@ -22,7 +22,10 @@ from airsenal.framework.utils import (
     parse_team_model_from_str,
 )
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
-from airsenal.scripts.fill_transfersuggestion_table import run_optimization
+from airsenal.scripts.fill_transfersuggestion_table import (
+    run_mcts_optimization,
+    run_optimization,
+)
 from airsenal.scripts.squad_builder import fill_initial_squad
 
 
@@ -63,6 +66,8 @@ def replay_season(
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
     max_points_hit: int | None = None,
+    search_method: str = "tree",
+    mcts_iterations: int = 500,
 ) -> None:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -123,16 +128,28 @@ def replay_season(
         else:
             print("Optimising transfers...")
             # find best squad and the strategy for this gameweek
-            squad, best_strategy = run_optimization(
-                gw_range,
-                tag,
-                season=season,
-                fpl_team_id=fpl_team_id,
-                num_thread=num_thread,
-                is_replay=True,
-                max_opt_transfers=max_opt_transfers,
-                max_total_hit=max_points_hit,
-            )
+            if search_method == "mcts":
+                squad, best_strategy = run_mcts_optimization(
+                    gw_range,
+                    tag,
+                    season=season,
+                    fpl_team_id=fpl_team_id,
+                    num_thread=num_thread,
+                    is_replay=True,
+                    max_total_hit=max_points_hit,
+                    mcts_iterations=mcts_iterations,
+                )
+            else:
+                squad, best_strategy = run_optimization(
+                    gw_range,
+                    tag,
+                    season=season,
+                    fpl_team_id=fpl_team_id,
+                    num_thread=num_thread,
+                    is_replay=True,
+                    max_opt_transfers=max_opt_transfers,
+                    max_total_hit=max_points_hit,
+                )
         if best_strategy is None:
             msg = f"Failed to find a strategy for GW{gw}!"
             raise ValueError(msg)
@@ -269,6 +286,23 @@ def main():
         type=int,
         default=None,
     )
+    parser.add_argument(
+        "--search_method",
+        help=(
+            "'tree' (default) exhaustively enumerates transfer-count/chip "
+            "combinations; 'mcts' uses Monte Carlo Tree Search instead, which "
+            "scales better once chips and higher transfer counts are both allowed"
+        ),
+        type=str,
+        choices=["tree", "mcts"],
+        default="tree",
+    )
+    parser.add_argument(
+        "--mcts_iterations",
+        help="[mcts only] number of search iterations per worker",
+        type=int,
+        default=500,
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -296,6 +330,8 @@ def main():
                 team_model_args={"epsilon": args.epsilon},
                 max_opt_transfers=args.max_transfers,
                 max_points_hit=args.max_points_hit,
+                search_method=args.search_method,
+                mcts_iterations=args.mcts_iterations,
             )
             n_completed += 1
 

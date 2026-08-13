@@ -22,7 +22,7 @@ import shutil
 import sys
 import warnings
 from collections.abc import Callable
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 import regex as re
 import requests
@@ -30,6 +30,11 @@ from prettytable import PrettyTable
 from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.env import AIRSENAL_HOME
+from airsenal.framework.mcts_optimization import (
+    DEFAULT_EXPLORATION_CONSTANT,
+    extract_best_trajectory,
+    run_mcts_tree,
+)
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
     set_multiprocessing_start_method,
@@ -604,16 +609,49 @@ def run_optimization(
 
     # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
-
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
+
+    for _ in range(len(procs)):
+        print("\n")
+
+    best_squad, best_strategy = _report_and_save_strategy(
+        starting_squad,
+        best_strategy,
+        baseline_score,
+        season,
+        fpl_team_id,
+        tag,
+        is_replay,
+        use_api,
+        discord_webhook,
+    )
+
+    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+    return best_squad, best_strategy
+
+
+def _report_and_save_strategy(
+    starting_squad: Squad,
+    best_strategy: dict | None,
+    baseline_score: float,
+    season: str,
+    fpl_team_id: int,
+    tag: str,
+    is_replay: bool,
+    use_api: bool,
+    discord_webhook: str | None,
+) -> tuple[Squad, dict]:
+    """Shared tail for run_optimization/run_mcts_optimization: save the chosen
+    strategy to the database, print it, and optionally post it to Discord. Both
+    searches produce a `best_strategy` dict in the same shape (see MCTSNode's
+    docstring in airsenal.framework.mcts_optimization), so this needs no changes
+    to work with either.
+    """
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     if is_replay:
         # simulating a previous season, so imitate applying transfers by adding
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
-
-    for _ in range(len(procs)):
-        print("\n")
 
     if best_strategy is None:
         msg = "Failed to find a strategy!"
@@ -674,8 +712,211 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return best_squad, best_strategy
+
+
+def _mcts_worker(
+    result_queue: Queue,
+    progress_bar: tqdm,
+    starting_squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    season: str,
+    chip_gw_dict: dict,
+    num_free_transfers: int,
+    mcts_iterations: int,
+    max_total_hit: int | None,
+    allow_unused_transfers: bool,
+    max_free_transfers: int,
+    num_iterations: int,
+    exploration_constant: float,
+    seed: int,
+) -> None:
+    """Run one independent, self-contained MCTS search (root parallelization - see
+    airsenal.framework.mcts_optimization), updating its own progress bar once per
+    search iteration, and put its best trajectory onto result_queue.
+    """
+
+    def progress_callback() -> None:
+        progress_bar.update(1)
+        progress_bar.refresh()
+
+    root = run_mcts_tree(
+        starting_squad,
+        gameweeks,
+        tag,
+        season,
+        chip_gw_dict,
+        num_free_transfers,
+        mcts_iterations,
+        max_total_hit=max_total_hit,
+        allow_unused_transfers=allow_unused_transfers,
+        max_free_transfers=max_free_transfers,
+        num_iterations=num_iterations,
+        exploration_constant=exploration_constant,
+        random_state=seed,
+        progress_callback=progress_callback,
+    )
+    trajectory = extract_best_trajectory(
+        root,
+        tag,
+        season,
+        chip_gw_dict,
+        max_total_hit,
+        allow_unused_transfers,
+        max_free_transfers,
+        num_iterations,
+    )
+    progress_bar.close()
+    result_queue.put(trajectory)
+
+
+def run_mcts_optimization(
+    gameweeks: list[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    chip_gameweeks: dict | None = None,
+    num_free_transfers: int | None = None,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = False,
+    mcts_iterations: int = 500,
+    num_iterations: int = 100,
+    num_thread: int = 4,
+    exploration_constant: float = DEFAULT_EXPLORATION_CONSTANT,
+    is_replay: bool = False,  # for replaying seasons
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> tuple[Squad, dict[str, dict[str, int | list[int]]] | None]:
+    """
+    Alternative to run_optimization() using Monte Carlo Tree Search (see
+    airsenal.framework.mcts_optimization) instead of exhaustively enumerating every
+    transfer-count/chip branch. Root-parallelized: each of num_thread workers runs
+    its own independent MCTS search of mcts_iterations iterations from the same
+    starting squad, and the best trajectory found across all of them is used. Same
+    setup and output contract as run_optimization, so it's a drop-in alternative.
+    """
+    if chip_gameweeks is None:
+        chip_gameweeks = {}
+    discord_webhook = fetcher.DISCORD_WEBHOOK
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    if fpl_team_id is None:  # still None after trying env vars
+        msg = (
+            "fpl_team_id must be set as argument, environment variables or config file."
+        )
+        raise ValueError(msg)
+
+    if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
+        fpl_team_id, apifetcher=fetcher
+    ):
+        print(
+            "This is the start of the season or a new team - will make a squad "
+            "from scratch"
+        )
+        squad = fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_generations=num_iterations,
+            population_size=num_iterations,
+        )
+        return squad, None
+
+    print(f"Running MCTS optimization with fpl_team_id {fpl_team_id}")
+    use_api = season == CURRENT_SEASON and not is_replay
+    try:
+        starting_squad = get_starting_squad(
+            next_gw=gameweeks[0],
+            season=season,
+            fpl_team_id=fpl_team_id,
+            use_api=use_api,
+            apifetcher=fetcher,
+        )
+    except (ValueError, TypeError):
+        print(f"No existing squad or transfers found for team_id {fpl_team_id}")
+        print("Will suggest a new starting squad:")
+        squad = fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_generations=num_iterations,
+            population_size=num_iterations,
+        )
+        return squad, None
+
+    if num_free_transfers is None:
+        num_free_transfers = get_free_transfers(
+            fpl_team_id,
+            gameweeks[0],
+            season=season,
+            apifetcher=fetcher,
+            is_replay=is_replay,
+        )
+    print(f"Starting with {num_free_transfers} free transfers")
+
+    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
+
+    # Specific fix (aka hack) for the 2022 World Cup, where everyone
+    # gets a free wildcard
+    if season == "2223" and gameweeks[0] == 17:
+        chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
+        num_free_transfers = 1
+
+    # one progress bar per worker, showing its own iteration count - rather than a
+    # single bar counting workers finished (which stays empty until a worker
+    # completes its whole search, then jumps)
+    progress_bars = [
+        tqdm(total=mcts_iterations, desc=f"MCTS worker {i}") for i in range(num_thread)
+    ]
+    result_queue: Queue = Queue()
+    procs = []
+    for i in range(num_thread):
+        processor = Process(
+            target=_mcts_worker,
+            args=(
+                result_queue,
+                progress_bars[i],
+                starting_squad,
+                gameweeks,
+                tag,
+                season,
+                chip_gw_dict,
+                num_free_transfers,
+                mcts_iterations,
+                max_total_hit,
+                allow_unused_transfers,
+                max_free_transfers,
+                num_iterations,
+                exploration_constant,
+                i,
+            ),
+        )
+        processor.daemon = True
+        processor.start()
+        procs.append(processor)
+
+    trajectories = [result_queue.get() for _ in range(num_thread)]
+    for p in procs:
+        p.join()
+
+    best_strategy = max(trajectories, key=lambda strat: strat["total_score"])
+    baseline_score = get_baseline_strat(
+        starting_squad, gameweeks, tag, root_gw=gameweeks[0]
+    )["total_score"]
+
+    return _report_and_save_strategy(
+        starting_squad,
+        best_strategy,
+        baseline_score,
+        season,
+        fpl_team_id,
+        tag,
+        is_replay,
+        use_api,
+        discord_webhook,
+    )
 
 
 def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
@@ -822,6 +1063,23 @@ def main():
         help="Add suggested squad to the database (for replaying seasons)",
         action="store_true",
     )
+    parser.add_argument(
+        "--search_method",
+        help=(
+            "'tree' (default) exhaustively enumerates transfer-count/chip "
+            "combinations; 'mcts' uses Monte Carlo Tree Search instead, which "
+            "scales better once chips and higher transfer counts are both allowed"
+        ),
+        type=str,
+        choices=["tree", "mcts"],
+        default="tree",
+    )
+    parser.add_argument(
+        "--mcts_iterations",
+        help="[mcts only] number of search iterations per worker",
+        type=int,
+        default=500,
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -863,18 +1121,34 @@ def main():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks,
-            tag,
-            season,
-            fpl_team_id,
-            chip_gameweeks,
-            num_free_transfers,
-            max_total_hit,
-            allow_unused_transfers,
-            args.max_transfers,
-            num_iterations,
-            num_thread,
-            profile,
-            is_replay=args.is_replay,
-        )
+        if args.search_method == "mcts":
+            run_mcts_optimization(
+                gameweeks,
+                tag,
+                season,
+                fpl_team_id,
+                chip_gameweeks,
+                num_free_transfers,
+                max_total_hit,
+                allow_unused_transfers,
+                args.mcts_iterations,
+                num_iterations,
+                num_thread,
+                is_replay=args.is_replay,
+            )
+        else:
+            run_optimization(
+                gameweeks,
+                tag,
+                season,
+                fpl_team_id,
+                chip_gameweeks,
+                num_free_transfers,
+                max_total_hit,
+                allow_unused_transfers,
+                args.max_transfers,
+                num_iterations,
+                num_thread,
+                profile,
+                is_replay=args.is_replay,
+            )
