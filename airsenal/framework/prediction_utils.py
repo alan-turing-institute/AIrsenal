@@ -25,6 +25,11 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
+from airsenal.framework.minutes_model import (
+    MinutesModel,
+    fit_minutes_model,
+    predict_expected_minutes,
+)
 from airsenal.framework.player_model import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,
@@ -441,6 +446,7 @@ def calc_predicted_points_for_player(
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
     season: str,
+    minutes_model: MinutesModel,
     gw_range: list[int] | None = None,
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
@@ -490,23 +496,19 @@ def calc_predicted_points_for_player(
         msg = f"player_prob for {player} is not a Series, but {type(player_prob)}"
         raise RuntimeError(msg)
 
-    # use same recent_minutes from previous gameweeks for all predictions
-    recent_minutes = get_recent_minutes_for_player(
+    # own recent minutes don't vary match to match within gw_range - compute once
+    # and reuse (predict_expected_minutes still re-checks teammate availability per
+    # fixture below, since that can change gameweek to gameweek).
+    own_recent_minutes_list = get_recent_minutes_for_player(
         player,
         num_match_to_use=fixtures_behind,
         season=season,
         last_gw=min(gw_range) - 1,
         dbsession=dbsession,
     )
-    if len(recent_minutes) == 0:
-        # e.g. for gameweek 1
-        # this should now be dealt with in get_recent_minutes_for_player, so
-        # throw error if not.
-        # recent_minutes = estimate_minutes_from_prev_season(
-        #    player, season=season, dbsession: Session = session
-        # )
-        msg = "Recent minutes is empty."
-        raise ValueError(msg)
+    own_recent_minutes = (
+        float(np.mean(own_recent_minutes_list)) if own_recent_minutes_list else 0.0
+    )
 
     expected_points = defaultdict(float)  # default value is 0.
     predictions = []  # list that will hold PlayerPrediction objects
@@ -526,14 +528,7 @@ def calc_predicted_points_for_player(
         points = 0.0
         expected_points[gameweek] = points
 
-        if sum(recent_minutes) == 0:
-            # 'recent_minutes' contains the number of minutes that player played for
-            # in the past few matches. If these are all zero, we will for sure predict
-            # zero points for this player, so we don't need to call all the functions to
-            # calculate appearance points, defending points, attacking points.
-            points = 0.0
-
-        elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
+        if player.is_injured_or_suspended(season, gw_range[0], gameweek):
             # Points for fixture will be zero if suspended or injured
             points = 0.0
         elif was_historic_absence(
@@ -545,31 +540,33 @@ def calc_predicted_points_for_player(
             # Points will be zero if player was suspended or injured (in past season)
             points = 0.0
         else:
-            # now loop over recent minutes and average
-            points = 0
-            for mins in recent_minutes:
-                points += (
-                    get_appearance_points(mins)
-                    + get_attacking_points(
-                        position,
-                        mins,
-                        team_score_prob,
-                        player_prob,
-                    )
-                    + get_defending_points(position, mins, team_concede_prob)
+            mins = predict_expected_minutes(
+                minutes_model,
+                player,
+                season,
+                current_gw=gw_range[0],
+                fixture_gw=gameweek,
+                own_recent_minutes=own_recent_minutes,
+                dbsession=dbsession,
+            )
+            points = (
+                get_appearance_points(mins)
+                + get_attacking_points(
+                    position,
+                    mins,
+                    team_score_prob,
+                    player_prob,
                 )
-                if df_bonus is not None:
-                    points += get_bonus_points(player.player_id, mins, df_bonus)
-                if df_cards is not None:
-                    points += get_card_points(player.player_id, mins, df_cards)
-                if df_saves is not None:
-                    points += get_save_points(
-                        position, player.player_id, mins, df_saves
-                    )
-                if df_def_con is not None:
-                    points += get_def_con_points(player.player_id, mins, df_def_con)
-
-            points /= len(recent_minutes)
+                + get_defending_points(position, mins, team_concede_prob)
+            )
+            if df_bonus is not None:
+                points += get_bonus_points(player.player_id, mins, df_bonus)
+            if df_cards is not None:
+                points += get_card_points(player.player_id, mins, df_cards)
+            if df_saves is not None:
+                points += get_save_points(position, player.player_id, mins, df_saves)
+            if df_def_con is not None:
+                points += get_def_con_points(player.player_id, mins, df_def_con)
 
         # create the PlayerPrediction for this player+fixture
         if np.isnan(points):
@@ -595,6 +592,7 @@ def calc_predicted_points_for_pos(
     gw_range: list[int],
     tag: str,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    minutes_model: MinutesModel | None = None,
     dbsession: Session = session,
 ) -> dict[int, list[PlayerPrediction]]:
     """
@@ -602,6 +600,10 @@ def calc_predicted_points_for_pos(
     put into the DB.
     """
     df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
+    if minutes_model is None:
+        minutes_model = fit_minutes_model(
+            season=season, gameweek=min(gw_range), dbsession=dbsession
+        )
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
@@ -612,6 +614,7 @@ def calc_predicted_points_for_pos(
             df_cards=df_cards,
             df_def_con=df_def_con,
             season=season,
+            minutes_model=minutes_model,
             gw_range=gw_range,
             tag=tag,
             dbsession=dbsession,

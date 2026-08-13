@@ -17,6 +17,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
+from airsenal.framework.minutes_model import fit_minutes_model
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -76,6 +77,9 @@ def calc_all_predicted_points(
     df_player = get_all_fitted_player_data(
         season, gw_range[0], model=player_model, dbsession=dbsession
     )
+    minutes_model = fit_minutes_model(
+        season=season, gameweek=gw_range[0], dbsession=dbsession
+    )
 
     if include_bonus:
         df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
@@ -106,6 +110,7 @@ def calc_all_predicted_points(
             df_cards,
             df_def_con,
             season,
+            minutes_model,
             gw_range=gw_range,
             tag=tag,
             dbsession=dbsession,
