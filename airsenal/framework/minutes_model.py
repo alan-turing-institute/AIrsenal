@@ -9,20 +9,34 @@ that competitor is now injured or suspended, the player is likely to inherit
 significant minutes despite a zero-heavy recent history, and the old approach would
 still predict zero.
 
-This model adds that missing signal: for each player/fixture, in addition to their
-own recent minutes, it uses a count of same-team, same-(FPL-)position teammates who
-are currently unavailable. Trained on past-season PlayerScore/Absence data via
-build_minutes_training_data(). Note FPL positions are coarse (e.g. left-back and
-centre-back aren't distinguished), so "same position" is an approximation of "direct
-competitor for the same starting slot", not a precise depth chart - the best
-available given the data, not a precise one.
-"""
+This model adds that missing signal: for each player/fixture, in addition to their own
+recent minutes, it uses the summed "typical minutes when playing" of same-team, same-
+(FPL-)position teammates who are currently unavailable - so a nailed-on starter being
+absent counts for much more than a fringe player being absent. Trained on past-season
+PlayerScore/Absence data via build_minutes_training_data(). Note FPL positions are
+coarse (e.g. left-back and centre-back aren't distinguished), so "same position" is an
+approximation of "direct competitor for the same starting slot", not a precise depth
+chart - the best available given the data, not a precise one.
 
-from typing import Any
+Predicting a single number that's bimodal in reality (most matches a player plays
+either ~0 or ~90 minutes) with one regressor tends to regress every prediction toward
+the middle, since squared-error loss is minimised by the conditional mean, not by
+being confidently right about the common cases (confirmed via backtest - see
+notebooks/minutes_model_2526_backtest.ipynb). MinutesModel is instead a two-stage
+model: a classifier over minutes buckets (0, 1-59, 60-89, 90) - matching the actual
+kinks in the points-scoring rules, see FPL_scoring_rules.get_appearance_points - plus a
+regressor within each of the two partial buckets, combined into one continuous number
+as a probability-weighted mixture (see MinutesModel.predict). This keeps the single
+"drop-in" output prediction_utils.py relies on, while letting the model stay confident
+near 0/90 for the (large) majority of "obvious" rows.
+"""
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+)
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
@@ -31,21 +45,43 @@ from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
     get_recent_minutes_for_player,
+    get_recent_playerscore_rows,
     list_players,
     was_historic_absence,
 )
 
-FEATURE_COLUMNS = ["own_recent_minutes", "n_teammates_absent", "position"]
+FEATURE_COLUMNS = ["own_recent_minutes", "absent_teammates_typical_minutes", "position"]
 OWN_RECENT_MINUTES_WINDOW = 3
+TEAMMATE_TYPICAL_MINUTES_WINDOW = 8
+
+MINUTES_BUCKETS = ["0", "1-59", "60-89", "90"]
+_MINUTES_BUCKET_BINS = [-1, 0, 59, 89, 200]
+
+
+def _minutes_bucket(minutes: pd.Series) -> pd.Series:
+    return pd.cut(minutes, bins=_MINUTES_BUCKET_BINS, labels=MINUTES_BUCKETS)
 
 
 class MinutesModel:
-    """Thin wrapper around a fitted regressor plus the feature-building logic needed
-    at both train and predict time (kept together so the two can't drift apart).
+    """Classifier over minutes buckets (0, 1-59, 60-89, 90) plus a regressor within
+    each of the two partial buckets, combined into a single expected-minutes number
+    (see module docstring for why). Feature-building logic is kept alongside the
+    models themselves so train and predict time can't drift apart.
     """
 
-    def __init__(self, estimator: HistGradientBoostingRegressor | None = None) -> None:
-        self.estimator = estimator or HistGradientBoostingRegressor(
+    def __init__(
+        self,
+        classifier: HistGradientBoostingClassifier | None = None,
+        regressor_low: HistGradientBoostingRegressor | None = None,
+        regressor_high: HistGradientBoostingRegressor | None = None,
+    ) -> None:
+        self.classifier = classifier or HistGradientBoostingClassifier(
+            categorical_features=["position"], random_state=42
+        )
+        self.regressor_low = regressor_low or HistGradientBoostingRegressor(
+            categorical_features=["position"], random_state=42
+        )
+        self.regressor_high = regressor_high or HistGradientBoostingRegressor(
             categorical_features=["position"], random_state=42
         )
 
@@ -54,23 +90,49 @@ class MinutesModel:
         build_minutes_training_data().
         """
         x = _prepare_feature_frame(df[FEATURE_COLUMNS])
-        self.estimator.fit(x, df["minutes"])
+        bucket = _minutes_bucket(df["minutes"])
+        self.classifier.fit(x, bucket)
+
+        low_mask = (bucket == "1-59").to_numpy()
+        high_mask = (bucket == "60-89").to_numpy()
+        self.regressor_low.fit(x[low_mask], df["minutes"][low_mask])
+        self.regressor_high.fit(x[high_mask], df["minutes"][high_mask])
         return self
 
     def predict(self, df: pd.DataFrame) -> np.ndarray:
         """Vectorised prediction for many rows at once - df must have the
         FEATURE_COLUMNS (see predict_one for a single-row convenience wrapper).
+
+        Returns a probability-weighted mixture of each bucket's point estimate
+        (0.0 / regressor_low / regressor_high / 90.0), not a hard classification -
+        this is what lets the output stay a single continuous number.
         """
         x = _prepare_feature_frame(df[FEATURE_COLUMNS])
-        return np.clip(self.estimator.predict(x), 0.0, 90.0)
+        proba = self.classifier.predict_proba(x)
+        classes = self.classifier.classes_
+
+        low_pred = self.regressor_low.predict(x)
+        high_pred = self.regressor_high.predict(x)
+        point_estimates = {
+            "0": np.zeros(len(x)),
+            "1-59": low_pred,
+            "60-89": high_pred,
+            "90": np.full(len(x), 90.0),
+        }
+        estimates = np.column_stack([point_estimates[c] for c in classes])
+        expected = (proba * estimates).sum(axis=1)
+        return np.clip(expected, 0.0, 90.0)
 
     def predict_one(
-        self, own_recent_minutes: float, n_teammates_absent: int, position: str | None
+        self,
+        own_recent_minutes: float,
+        absent_teammates_typical_minutes: float,
+        position: str | None,
     ) -> float:
         df = pd.DataFrame(
             {
                 "own_recent_minutes": [own_recent_minutes],
-                "n_teammates_absent": [n_teammates_absent],
+                "absent_teammates_typical_minutes": [absent_teammates_typical_minutes],
                 "position": [position],
             }
         )
@@ -103,21 +165,46 @@ def get_position_teammates(
     return [p for p in teammates if p.player_id != player.player_id]
 
 
-def count_absent_teammates(
+def get_teammate_typical_minutes(
+    teammate: Player,
+    season: str,
+    current_gw: int,
+    dbsession: Session = session,
+) -> float:
+    """Mean minutes played across `teammate`'s last TEAMMATE_TYPICAL_MINUTES_WINDOW
+    appearances in which they actually featured (minutes > 0). Zero-minute rows are
+    dropped before averaging (rather than just taking their literal last N matches),
+    so a teammate who's been out for a few weeks still reports their pre-absence
+    playing time instead of decaying toward 0 - the whole point of this feature is to
+    weight an absence by how much game time it's likely to free up.
+    """
+    recent = get_recent_playerscore_rows(
+        teammate,
+        num_match_to_use=TEAMMATE_TYPICAL_MINUTES_WINDOW,
+        season=season,
+        last_gw=current_gw - 1,
+        dbsession=dbsession,
+    )
+    minutes_played = [float(r.minutes) for r in recent if r.minutes > 0]
+    return float(np.mean(minutes_played)) if minutes_played else 0.0
+
+
+def sum_absent_teammates_typical_minutes(
     teammates: list[Player],
     season: str,
     current_gw: int,
     fixture_gw: int,
     dbsession: Session = session,
-) -> int:
-    """How many of `teammates` are unavailable for the fixture at `fixture_gw`, as
-    known as of `current_gw`. Mirrors the same current-vs-historic dispatch already
-    used for the predicted player themselves in
-    prediction_utils.calc_predicted_points_for_player (is_injured_or_suspended for
-    the live current season, was_historic_absence for completed seasons) - applied to
-    teammates here instead of the player being predicted.
+) -> float:
+    """Sum of get_teammate_typical_minutes() over the subset of `teammates` who are
+    unavailable for the fixture at `fixture_gw`, as known as of `current_gw`. Mirrors
+    the same current-vs-historic dispatch already used for the predicted player
+    themselves in prediction_utils.calc_predicted_points_for_player
+    (is_injured_or_suspended for the live current season, was_historic_absence for
+    completed seasons) - applied to teammates here instead of the player being
+    predicted.
     """
-    count = 0
+    total = 0.0
     for teammate in teammates:
         if season == CURRENT_SEASON:
             unavailable = teammate.is_injured_or_suspended(
@@ -128,8 +215,10 @@ def count_absent_teammates(
                 teammate, gameweek=fixture_gw, season=season, dbsession=dbsession
             )
         if unavailable:
-            count += 1
-    return count
+            total += get_teammate_typical_minutes(
+                teammate, season, current_gw, dbsession=dbsession
+            )
+    return total
 
 
 def predict_expected_minutes(
@@ -158,10 +247,12 @@ def predict_expected_minutes(
 
     position = player.position(season)
     teammates = get_position_teammates(player, season, current_gw, dbsession=dbsession)
-    n_absent = count_absent_teammates(
+    absent_teammates_typical_minutes = sum_absent_teammates_typical_minutes(
         teammates, season, current_gw, fixture_gw, dbsession=dbsession
     )
-    return model.predict_one(own_recent_minutes, n_absent, position)
+    return model.predict_one(
+        own_recent_minutes, absent_teammates_typical_minutes, position
+    )
 
 
 def _fetch_team_position_lookup(seasons: list[str], dbsession: Session) -> pd.DataFrame:
@@ -188,12 +279,13 @@ def build_minutes_feature_frame(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
 ) -> pd.DataFrame:
-    """Build a (player_id, season, gameweek, own_recent_minutes, n_teammates_absent,
-    position, minutes) frame from PlayerScore/Absence data up to (season, gameweek).
-    Uses bulk queries plus vectorised pandas operations throughout, rather than a
-    query per player-match row, since this gets rerun on every prediction run
-    (matching how the existing player/team models are refit each time rather than
-    persisted - see player_model.py/prediction_utils.fit_player_data).
+    """Build a (player_id, season, gameweek, own_recent_minutes,
+    absent_teammates_typical_minutes, position, minutes) frame from PlayerScore/
+    Absence data up to (season, gameweek). Uses bulk queries plus vectorised pandas
+    operations throughout, rather than a query per player-match row, since this gets
+    rerun on every prediction run (matching how the existing player/team models are
+    refit each time rather than persisted - see player_model.py/
+    prediction_utils.fit_player_data).
 
     Keeps player_id/season/gameweek (unlike build_minutes_training_data's
     FEATURE_COLUMNS-only output) so callers can split rows by season themselves -
@@ -235,20 +327,42 @@ def build_minutes_feature_frame(
         _rolling_own_minutes
     )
 
-    # for each (team, position, season, gameweek), which players were absent - used
-    # below to count *other* players' absences for each row, i.e. competitors for
-    # the same slot, not the row's own player.
-    absentees = (
-        history[history["absence_reason"].notna()]
-        .groupby(["team", "position", "season", "gameweek"])["player_id"]
-        .apply(set)
+    def _rolling_typical_minutes_when_playing(s: pd.Series) -> pd.Series:
+        # mask zero-minute rows to NaN first - rolling().mean() ignores NaN entries
+        # within the window, so this naturally skips rest/injury weeks rather than
+        # decaying toward 0 the way own_recent_minutes above would.
+        masked = s.where(s > 0)
+        return (
+            masked.shift(1)
+            .rolling(window=TEAMMATE_TYPICAL_MINUTES_WINDOW, min_periods=1)
+            .mean()
+        )
+
+    history["typical_minutes_when_playing"] = (
+        history.groupby("player_id")["minutes"]
+        .transform(_rolling_typical_minutes_when_playing)
+        .fillna(0.0)
     )
 
-    def _count_absent_teammates(row: Any) -> int:
-        absent_here = absentees.get(
-            (row["team"], row["position"], row["season"], row["gameweek"]), set()
+    # for each (team, position, season, gameweek), the typical-minutes-when-playing
+    # of each absent player - used below to weight *other* players' absences for
+    # each row by how significant they are, not just count them.
+    absentees = (
+        history[history["absence_reason"].notna()]
+        .groupby(["team", "position", "season", "gameweek"])
+        .apply(
+            lambda g: dict(
+                zip(g["player_id"], g["typical_minutes_when_playing"], strict=True)
+            ),
+            include_groups=False,
         )
-        return len(absent_here - {row["player_id"]})
+    )
+
+    def _absent_teammates_typical_minutes(row: pd.Series) -> float:
+        absent_here = absentees.get(
+            (row["team"], row["position"], row["season"], row["gameweek"]), {}
+        )
+        return sum(v for pid, v in absent_here.items() if pid != row["player_id"])
 
     # training examples: only rows where the player themselves was available - the
     # only scenario the model is ever actually consulted for (see
@@ -256,7 +370,9 @@ def build_minutes_feature_frame(
     # short-circuits, which handle the player's own absence deterministically
     # upstream and never call into this model in that case).
     train_df = history[history["absence_reason"].isna()].copy()
-    train_df["n_teammates_absent"] = train_df.apply(_count_absent_teammates, axis=1)
+    train_df["absent_teammates_typical_minutes"] = train_df.apply(
+        _absent_teammates_typical_minutes, axis=1
+    )
 
     return train_df[
         ["player_id", "season", "gameweek", *FEATURE_COLUMNS, "minutes"]
@@ -268,13 +384,13 @@ def build_minutes_training_data(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
 ) -> pd.DataFrame:
-    """Build a (own_recent_minutes, n_teammates_absent, position, minutes) training
-    frame from completed-season PlayerScore/Absence data up to (season, gameweek).
-    See build_minutes_feature_frame() for the underlying feature engineering - this
-    just excludes the current (in-progress) season, which has no reliable
-    retrospective Absence record (matches was_historic_absence's own restriction to
-    non-current seasons), and drops the player_id/season/gameweek columns that a
-    training set doesn't need.
+    """Build a (own_recent_minutes, absent_teammates_typical_minutes, position,
+    minutes) training frame from completed-season PlayerScore/Absence data up to
+    (season, gameweek). See build_minutes_feature_frame() for the underlying feature
+    engineering - this just excludes the current (in-progress) season, which has no
+    reliable retrospective Absence record (matches was_historic_absence's own
+    restriction to non-current seasons), and drops the player_id/season/gameweek
+    columns that a training set doesn't need.
     """
     df = build_minutes_feature_frame(
         season=season, gameweek=gameweek, dbsession=dbsession
