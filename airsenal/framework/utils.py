@@ -8,7 +8,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
 import dateparser
 import pandas as pd
@@ -33,17 +33,6 @@ from airsenal.framework.schema import (
     session,
 )
 from airsenal.framework.season import CURRENT_SEASON
-
-if TYPE_CHECKING:
-    # bpl (and airsenal.framework.random_team_model, which imports from it) pulls in
-    # jax as soon as it's imported - keep that out of the module-level import graph
-    # so processes that only need to read already-computed predictions (e.g. the
-    # transfer optimizer) never load jax, and don't hit its fork-safety warning when
-    # they later use multiprocessing. Only parse_team_model_from_str actually needs
-    # these, imported lazily there instead.
-    from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
-
-    from airsenal.framework.random_team_model import RandomMatchPredictor
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
@@ -1903,32 +1892,3 @@ def fastcopy(obj: T) -> T:
     Faster replacement for copy.deepcopy().
     """
     return loads(dumps(obj, -1))
-
-
-def parse_team_model_from_str(
-    team_model: str,
-) -> (
-    "RandomMatchPredictor | ExtendedDixonColesMatchPredictor | "
-    "NeutralDixonColesMatchPredictor"
-):
-    """
-    Returns the team model class corresponding to the given string.
-    """
-    # imported lazily - see the TYPE_CHECKING block at the top of this module for why
-    from bpl import (  # noqa: PLC0415
-        ExtendedDixonColesMatchPredictor,
-        NeutralDixonColesMatchPredictor,
-    )
-
-    from airsenal.framework.random_team_model import (  # noqa: PLC0415
-        RandomMatchPredictor,
-    )
-
-    if team_model == "random":
-        return RandomMatchPredictor()
-    if team_model == "extended":
-        return ExtendedDixonColesMatchPredictor()
-    if team_model == "neutral":
-        return NeutralDixonColesMatchPredictor()
-    msg = "Unknown team model"
-    raise ValueError(msg)

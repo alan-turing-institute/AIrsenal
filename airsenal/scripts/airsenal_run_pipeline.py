@@ -8,7 +8,10 @@ from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
-from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
+from airsenal.framework.bpl_interface import (
+    DEFAULT_TEAM_EPSILON,
+    parse_team_model_from_str,
+)
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
@@ -20,7 +23,6 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_latest_prediction_tag,
     get_past_seasons,
-    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
