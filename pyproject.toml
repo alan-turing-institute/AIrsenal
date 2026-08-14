@@ -1,6 +1,6 @@
 [project]
 name = "airsenal"
-version = "1.15.0"
+version = "1.16.0"
 description = "AI manager for Fantasy Premier League"
 authors = [
     {name = "Angus Williams", email = "anguswilliams91@gmail.com"},
@@ -12,12 +12,13 @@ license = {file = "LICENSE"}
 requires-python = ">=3.10,<4"
 dependencies = [
   "beautifulsoup4>=4.13.5",
-  "bpl @ git+https://github.com/anguswilliams91/bpl-next",
+  "bpl-next>=0.5.0",
   "click>=8.3.0",
   "curl-cffi>=0.13.0",
   "dateparser>=1.2.2",
   "deap>=1.4.3",
   "html5lib>=1.1",
+  "identify>=2.6.19",
   "jax>=0.6.2",
   "jaxlib>=0.6.2",
   "lxml>=6.0.1",
@@ -25,6 +26,8 @@ dependencies = [
   "pandas>=2.3.2",
   "platformdirs>=4.4.0",
   "prettytable>=3.16.0",
+  "pytest>=9.1.1",
+  "pytest-cov>=7.1.0",
   "python-dateutil>=2.9.0.post0",
   "requests>=2.32.5",
   "sqlalchemy>=2.0.43",

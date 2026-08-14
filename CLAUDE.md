@@ -55,7 +55,6 @@ uv run airsenal_run_pipeline
 - **`airsenal/tests/`** — pytest tests for framework code
 - **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
 - **`airsenal/api/`** — optional Flask API (work in progress)
-- **`airsenal/scraper/`** — web scraping utilities (e.g., Transfermarkt)
 
 ### Data flow
 
@@ -88,6 +87,10 @@ SQLite, default location: `$AIRSENAL_HOME/data.db` (configurable via `AIRSENAL_D
 ### Configuration
 
 Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal_env set` to persist these under `AIRSENAL_HOME`.
+
+### Prediction is single-threaded by design
+
+`fill_predictedscore_table.py` used to parallelize player predictions with a thread/process pool; this was removed because jax deadlocks under multi-threading, and prediction is fast enough without it. Don't reintroduce multi-threading/multiprocessing there (or in code that calls jax-based models) unless the deadlock issue is independently resolved.
 
 ## Code conventions
 

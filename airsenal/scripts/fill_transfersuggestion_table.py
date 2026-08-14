@@ -20,10 +20,9 @@ import json
 import os
 import shutil
 import sys
-import time
 import warnings
 from collections.abc import Callable
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 import regex as re
 import requests
@@ -63,24 +62,9 @@ from airsenal.scripts.squad_builder import fill_initial_squad
 OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
 
-def is_finished(final_expected_num: int) -> bool:
-    """
-    Count the number of json files in the output directory, and see if the number
-    matches the final expected number, which should be pre-calculated by the
-    count_expected_points function based on the number of weeks optimising for, chips
-    available and other constraints.
-    Return True if output files are all there, False otherwise.
-    """
-
-    # count the json files in the output dir
-    json_count = len(os.listdir(OUTPUT_DIR))
-    return json_count == final_expected_num
-
-
 def optimize(
-    queue: Queue,
+    queue: CustomQueue,
     pid: Process,
-    num_expected_outputs: int,
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
@@ -102,7 +86,8 @@ def optimize(
 
     The rest of the parameters needed for prediction are from the queue.
 
-    Things on the queue will either be "FINISHED", or a tuple:
+    Things on the queue will either be None (shutdown sentinel, sent once all
+    strategies have been processed), or a tuple:
     (
      num_transfers,
      free_transfers,
@@ -113,13 +98,9 @@ def optimize(
     )
     """
     while True:
-        if queue.qsize() > 0:
-            status = queue.get()
-        else:
-            if is_finished(num_expected_outputs):
-                break
-            time.sleep(5)
-            continue
+        status = queue.get()
+        if status is None:
+            break
 
         # now assume we have set of parameters to do an optimization
         # from the queue.
@@ -262,6 +243,10 @@ def optimize(
                         sid,
                     )
                 )
+
+        # mark this task as done only now that any children have been queued,
+        # so queue.join() can't return before the whole tree is processed.
+        queue.task_done()
 
 
 def find_best_strat_from_json(tag: str) -> dict | None:
@@ -556,13 +541,8 @@ def run_optimization(
     def update_progress(increment=1, index=None):
         if index is None:
             # outer progress bar
-            nfiles = len(os.listdir(OUTPUT_DIR))
-            total_progress.n = nfiles
+            total_progress.n = len(os.listdir(OUTPUT_DIR))
             total_progress.refresh()
-            if nfiles == num_expected_outputs:
-                total_progress.close()
-                for pb in progress_bars:
-                    pb.close()
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
@@ -587,7 +567,6 @@ def run_optimization(
             args=(
                 squeue,
                 i,
-                num_expected_outputs,
                 gameweeks,
                 season,
                 tag,
@@ -607,9 +586,20 @@ def run_optimization(
     # add starting node to the queue
     squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
 
-    for i, p in enumerate(procs):
-        progress_bars[i].close()
-        progress_bars[i] = None
+    # block until every node in the (dynamically-grown) strategy tree has been
+    # processed - i.e. the queue is empty and no worker is still processing an
+    # item that could enqueue further children.
+    squeue.join()
+
+    update_progress()
+    total_progress.close()
+    for pb in progress_bars:
+        pb.close()
+
+    # tell each worker to shut down, then wait for them to exit
+    for _ in procs:
+        squeue.put(None)
+    for p in procs:
         p.join()
 
     # find the best from all the strategies tried
