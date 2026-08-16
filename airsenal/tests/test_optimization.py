@@ -17,6 +17,7 @@ from airsenal.framework.optimization_utils import (
     get_discount_factor,
     next_week_transfers,
 )
+from airsenal.framework.output import print
 from airsenal.framework.squad import Squad
 
 pytestmark = pytest.mark.filterwarnings("ignore:Using purchase price as sale price")

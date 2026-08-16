@@ -7,10 +7,9 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
-from prettytable import PrettyTable
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
+from airsenal.framework.output import console, print, table
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -40,7 +39,7 @@ def check_proceed(num_transfers: int = 0) -> bool:
         )
         if proceed != "yes":
             return False
-    print("Applying Transfers...")
+    console.print("Applying Transfers...")
     return True
 
 
@@ -59,37 +58,33 @@ def print_output(
     pre_bank: float | None = None,
     post_bank: float | None = None,
 ) -> None:
-    print("\n")
+    console.print()
     header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
     line = "=" * len(header)
-    print(f"{header} \n {line} \n")
+    console.print(f"{header}\n{line}")
 
     if pre_bank is not None:
-        print(f"Bank Balance Before transfers is: £{pre_bank / 10}")
+        console.print(f"Bank Balance Before transfers is: £{pre_bank / 10}")
 
-    t = PrettyTable(["Status", "Name", "Price"])
+    transfer_table = table("Status", "Name", "Price")
     for transfer in priced_transfers:
-        t.add_row(
-            [
-                "OUT",
-                get_player_from_api_id(transfer["element_out"]),
-                f"£{transfer['selling_price'] / 10}",
-            ]
+        transfer_table.add_row(
+            "OUT",
+            str(get_player_from_api_id(transfer["element_out"])),
+            f"£{transfer['selling_price'] / 10}",
         )
-        t.add_row(
-            [
-                "IN",
-                get_player_from_api_id(transfer["element_in"]),
-                f"£{transfer['purchase_price'] / 10}",
-            ]
+        transfer_table.add_row(
+            "IN",
+            str(get_player_from_api_id(transfer["element_in"])),
+            f"£{transfer['purchase_price'] / 10}",
         )
 
-    print(t)
+    console.print(transfer_table)
 
     if post_bank is not None:
-        print(f"Bank Balance After transfers is: £{post_bank / 10}")
+        console.print(f"Bank Balance After transfers is: £{post_bank / 10}")
     # print(f"Points Cost of Transfers: {points_cost}")
-    print("\n")
+    console.print()
 
 
 def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:

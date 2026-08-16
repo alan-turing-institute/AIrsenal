@@ -4,6 +4,7 @@ Class for a player in FPL
 
 import uuid
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (

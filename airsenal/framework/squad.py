@@ -11,6 +11,7 @@ from operator import itemgetter
 import numpy as np
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON

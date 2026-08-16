@@ -2,6 +2,7 @@
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad

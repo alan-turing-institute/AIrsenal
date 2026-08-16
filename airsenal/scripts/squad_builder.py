@@ -8,6 +8,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
+from airsenal.framework.output import print
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (

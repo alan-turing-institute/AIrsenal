@@ -2,6 +2,7 @@
 Functions to get data on specified FPL teams and leagues
 """
 
+from airsenal.framework.output import print
 from airsenal.framework.utils import fetcher
 
 

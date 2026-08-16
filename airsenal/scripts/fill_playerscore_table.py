@@ -16,6 +16,7 @@ from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 from airsenal.framework.schema import (
     Fixture,
     Player,

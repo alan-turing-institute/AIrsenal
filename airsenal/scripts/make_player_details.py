@@ -6,9 +6,8 @@ import json
 import os
 from typing import Any
 
-from tqdm import tqdm
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import track as tqdm
 from airsenal.framework.season import CURRENT_SEASON
 
 RENAME_KEYS = {

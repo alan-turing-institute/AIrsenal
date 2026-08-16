@@ -11,7 +11,8 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 from bs4 import BeautifulSoup
-from tqdm import tqdm
+
+from airsenal.framework.output import track as tqdm
 
 LEAGUE_URL = "https://understat.com/league/epl/{}"
 MATCH_URL = "https://understat.com/match/{}"

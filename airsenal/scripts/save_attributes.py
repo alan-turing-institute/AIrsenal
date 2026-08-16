@@ -8,6 +8,7 @@ import dateparser
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
+from airsenal.framework.output import print
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import NEXT_GAMEWEEK, parse_date
 

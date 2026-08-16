@@ -4,6 +4,7 @@ get values from player_score and match tables to use as input to Empirical Bayes
 
 from sqlalchemy import select
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import list_players, session
 

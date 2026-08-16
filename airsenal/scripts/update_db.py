@@ -6,6 +6,7 @@ bought or sold.
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (

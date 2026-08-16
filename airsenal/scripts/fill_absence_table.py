@@ -3,8 +3,9 @@ from datetime import datetime
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
-from tqdm import tqdm
 
+from airsenal.framework.output import print
+from airsenal.framework.output import track as tqdm
 from airsenal.framework.schema import Absence, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (

@@ -7,6 +7,8 @@ import re
 
 import dateparser
 
+from airsenal.framework.output import print
+
 with (
     open("../data/gameweeks.txt") as infile,
     open("../data/fixtures.csv", "w") as outfile,

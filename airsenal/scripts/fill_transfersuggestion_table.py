@@ -19,14 +19,12 @@ import json
 import os
 import shutil
 import sys
-import warnings
 from collections.abc import Callable
 from multiprocessing import Process
 
 import regex as re
 import requests
-from prettytable import PrettyTable
-from tqdm import TqdmWarning, tqdm
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
@@ -46,6 +44,7 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
+from airsenal.framework.output import console, print, table
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -307,21 +306,22 @@ def print_strat(strat: dict) -> None:
     gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
 
     for gw in gameweeks_as_int:
-        print(f"\nGAMEWEEK {gw}:\n")
-        table = PrettyTable(["Players Out", "Players In"])
-        table.align = "l"
+        console.print(f"\n[bold]GAMEWEEK {gw}:[/bold]\n")
+        transfer_table = table("Players Out", "Players In")
+        transfer_count = 0
         for pin, pout in zip(
             strat["players_in"][str(gw)], strat["players_out"][str(gw)], strict=True
         ):
-            table.add_row([get_player_name(pout), get_player_name(pin)])
-        if len(table.rows) == 0:
-            table.add_row(["None", "None"])
-        print(table)
-        print(f"Chip Played: {strat['chips_played'][str(gw)]}")
-        print(f"Points Hit: {strat['points_hit'][str(gw)]}pts")
-        print(f"Bank: £{float(strat['bank'][str(gw)]) / 10}m")
+            transfer_table.add_row(get_player_name(pout), get_player_name(pin))
+            transfer_count += 1
+        if transfer_count == 0:
+            transfer_table.add_row("None", "None")
+        console.print(transfer_table)
+        console.print(f"Chip Played: {strat['chips_played'][str(gw)]}")
+        console.print(f"Points Hit: {strat['points_hit'][str(gw)]}pts")
+        console.print(f"Bank: £{float(strat['bank'][str(gw)]) / 10}m")
         pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
-        print(f"Predicted Score: {pred_pts:.1f}pts")
+        console.print(f"Predicted Score: {pred_pts:.1f}pts")
 
 
 def discord_payload(strat: dict, lineup: list[str]) -> dict:
@@ -508,15 +508,10 @@ def run_optimization(
     # things off it
     squeue = CustomQueue()
     procs = []
-    # create one progress bar for each thread
-    progress_bars = []
-    for _ in range(num_thread):
-        progress_bars.append(tqdm(total=100))
-
     # number of nodes in tree will be something like 3^num_weeks unless we allow
     # a "chip" such as wildcard or free hit, in which case it gets complicated
     num_weeks = len(gameweeks)
-    num_expected_outputs, baseline_excluded = count_expected_outputs(
+    _, baseline_excluded = count_expected_outputs(
         num_weeks,
         next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
@@ -526,31 +521,18 @@ def run_optimization(
         chip_gw_dict=chip_gw_dict,
         max_free_transfers=max_free_transfers,
     )
-    total_progress = tqdm(total=num_expected_outputs, desc="Total progress")
-
-    # functions to be passed to subprocess to update or reset progress bars
-    def reset_progress(index, strategy_string):
-        if strategy_string == "DONE":
-            progress_bars[index].close()
-        else:
-            progress_bars[index].n = 0
-            progress_bars[index].desc = "strategy: " + strategy_string
-            progress_bars[index].refresh()
-
-    def update_progress(increment=1, index=None):
-        if index is None:
-            # outer progress bar
-            total_progress.n = len(os.listdir(OUTPUT_DIR))
-            total_progress.refresh()
-        else:
-            progress_bars[index].update(increment)
-            progress_bars[index].refresh()
-
     if baseline_excluded:
         # if we are excluding unused transfers the tree may not include the baseline
         # strategy. In those cases quickly calculate and save it here first.
         save_baseline_score(starting_squad, gameweeks, tag)
-        update_progress()
+
+    progress = Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    )
+    progress.start()
+    progress_task = progress.add_task("Optimizing transfer strategies...", total=None)
 
     # Add Processes to run the target 'optimize' function.
     # This target function needs to know:
@@ -574,8 +556,8 @@ def run_optimization(
                 allow_unused_transfers,
                 max_opt_transfers,
                 num_iterations,
-                update_progress,
-                reset_progress,
+                None,
+                None,
                 profile,
             ),
         )
@@ -590,10 +572,8 @@ def run_optimization(
     # item that could enqueue further children.
     squeue.join()
 
-    update_progress()
-    total_progress.close()
-    for pb in progress_bars:
-        pb.close()
+    progress.update(progress_task, description="Transfer optimization complete")
+    progress.stop()
 
     # tell each worker to shut down, then wait for them to exit
     for _ in procs:
@@ -787,20 +767,18 @@ def run_transfer_optimization(
 
     set_multiprocessing_start_method()
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks,
-            tag,
-            season,
-            fpl_team_id,
-            chip_gameweeks,
-            num_free_transfers,
-            max_hit,
-            allow_unused,
-            max_transfers,
-            num_iterations,
-            num_thread,
-            profile,
-            is_replay=is_replay,
-        )
+    run_optimization(
+        gameweeks,
+        tag,
+        season,
+        fpl_team_id,
+        chip_gameweeks,
+        num_free_transfers,
+        max_hit,
+        allow_unused,
+        max_transfers,
+        num_iterations,
+        num_thread,
+        profile,
+        is_replay=is_replay,
+    )
