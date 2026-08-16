@@ -1,5 +1,7 @@
 """Commands for predicting player scores."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
@@ -8,23 +10,36 @@ from airsenal.scripts.fill_predictedscore_table import run_prediction
 
 
 def predict(
-    weeks_ahead: int | None = typer.Option(
-        None, help="Number of gameweeks to predict."
-    ),
-    gameweek_start: int | None = typer.Option(None, help="First gameweek to predict."),
-    gameweek_end: int | None = typer.Option(None, help="Last gameweek to predict."),
-    season: str = typer.Option(CURRENT_SEASON, help="Season in the form 2526."),
-    no_bonus: bool = typer.Option(False, help="Exclude bonus-point predictions."),
-    no_cards: bool = typer.Option(False, help="Exclude card-point deductions."),
-    no_saves: bool = typer.Option(False, help="Exclude goalkeeper save points."),
-    sampling: bool = typer.Option(False, help="Fit the player model with Numpyro."),
-    team_model: str = typer.Option(
-        "extended", help="Team model: extended, neutral, or random."
-    ),
-    epsilon: float = typer.Option(
-        DEFAULT_TEAM_EPSILON,
-        help="Exponential time-weighting downweight factor.",
-    ),
+    weeks_ahead: Annotated[
+        int | None, typer.Option(help="Number of gameweeks to predict.")
+    ] = None,
+    gameweek_start: Annotated[
+        int | None, typer.Option(help="First gameweek to predict.")
+    ] = None,
+    gameweek_end: Annotated[
+        int | None, typer.Option(help="Last gameweek to predict.")
+    ] = None,
+    season: Annotated[
+        str, typer.Option(help="Season in the form 2526.")
+    ] = CURRENT_SEASON,
+    no_bonus: Annotated[
+        bool, typer.Option(help="Exclude bonus-point predictions.")
+    ] = False,
+    no_cards: Annotated[
+        bool, typer.Option(help="Exclude card-point deductions.")
+    ] = False,
+    no_saves: Annotated[
+        bool, typer.Option(help="Exclude goalkeeper save points.")
+    ] = False,
+    sampling: Annotated[
+        bool, typer.Option(help="Fit the player model with Numpyro.")
+    ] = False,
+    team_model: Annotated[
+        str, typer.Option(help="Team model: extended, neutral, or random.")
+    ] = "extended",
+    epsilon: Annotated[
+        float, typer.Option(help="Exponential time-weighting downweight factor.")
+    ] = DEFAULT_TEAM_EPSILON,
 ) -> None:
     """Predict player scores for a gameweek range."""
     run_prediction(

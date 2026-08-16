@@ -1,5 +1,7 @@
 """Commands for optimizing transfers and squads."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.season import CURRENT_SEASON
@@ -11,40 +13,58 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def transfers(
-    weeks_ahead: int | None = typer.Option(
-        None, help="Number of gameweeks to optimize."
-    ),
-    gameweek_start: int | None = typer.Option(None, help="First gameweek to optimize."),
-    gameweek_end: int | None = typer.Option(None, help="Last gameweek to optimize."),
-    tag: str | None = typer.Option(
-        None, help="Prediction tag; defaults to the latest."
-    ),
-    wildcard_week: int = typer.Option(-1, help="Wildcard week; use 0 for any week."),
-    free_hit_week: int = typer.Option(-1, help="Free hit week; use 0 for any week."),
-    triple_captain_week: int = typer.Option(
-        -1, help="Triple captain week; use 0 for any week."
-    ),
-    bench_boost_week: int = typer.Option(
-        -1, help="Bench boost week; use 0 for any week."
-    ),
-    num_free_transfers: int | None = typer.Option(
-        None, min=0, max=5, help="Free transfers available."
-    ),
-    max_hit: int = typer.Option(8, min=0, help="Maximum points to spend on transfers."),
-    allow_unused: bool = typer.Option(
-        False, help="Allow strategies that waste free transfers."
-    ),
-    max_transfers: int = typer.Option(2, min=0, help="Maximum transfers per gameweek."),
-    num_iterations: int = typer.Option(
-        100, min=1, help="Wildcard/free-hit optimization iterations."
-    ),
-    num_thread: int = typer.Option(4, min=1, help="Worker processes to use."),
-    season: str = typer.Option(CURRENT_SEASON, help="Season in the form 2526."),
-    profile: bool = typer.Option(False, help="Profile strategy execution time."),
-    fpl_team_id: int | None = typer.Option(None, help="FPL team ID."),
-    is_replay: bool = typer.Option(
-        False, help="Store suggestions as replay transactions."
-    ),
+    weeks_ahead: Annotated[
+        int | None, typer.Option(help="Number of gameweeks to optimize.")
+    ] = None,
+    gameweek_start: Annotated[
+        int | None, typer.Option(help="First gameweek to optimize.")
+    ] = None,
+    gameweek_end: Annotated[
+        int | None, typer.Option(help="Last gameweek to optimize.")
+    ] = None,
+    tag: Annotated[
+        str | None, typer.Option(help="Prediction tag; defaults to the latest.")
+    ] = None,
+    wildcard_week: Annotated[
+        int, typer.Option(help="Wildcard week; use 0 for any week.")
+    ] = -1,
+    free_hit_week: Annotated[
+        int, typer.Option(help="Free hit week; use 0 for any week.")
+    ] = -1,
+    triple_captain_week: Annotated[
+        int, typer.Option(help="Triple captain week; use 0 for any week.")
+    ] = -1,
+    bench_boost_week: Annotated[
+        int, typer.Option(help="Bench boost week; use 0 for any week.")
+    ] = -1,
+    num_free_transfers: Annotated[
+        int | None, typer.Option(min=0, max=5, help="Free transfers available.")
+    ] = None,
+    max_hit: Annotated[
+        int, typer.Option(min=0, help="Maximum points to spend on transfers.")
+    ] = 8,
+    allow_unused: Annotated[
+        bool, typer.Option(help="Allow strategies that waste free transfers.")
+    ] = False,
+    max_transfers: Annotated[
+        int, typer.Option(min=0, help="Maximum transfers per gameweek.")
+    ] = 2,
+    num_iterations: Annotated[
+        int, typer.Option(min=1, help="Wildcard/free-hit optimization iterations.")
+    ] = 100,
+    num_thread: Annotated[
+        int, typer.Option(min=1, help="Worker processes to use.")
+    ] = 4,
+    season: Annotated[
+        str, typer.Option(help="Season in the form 2526.")
+    ] = CURRENT_SEASON,
+    profile: Annotated[
+        bool, typer.Option(help="Profile strategy execution time.")
+    ] = False,
+    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
+    is_replay: Annotated[
+        bool, typer.Option(help="Store suggestions as replay transactions.")
+    ] = False,
 ) -> None:
     """Optimize a transfer strategy."""
     run_transfer_optimization(
@@ -71,37 +91,47 @@ def transfers(
 
 @app.command()
 def squad(
-    budget: int = typer.Option(1000, min=0, help="Budget in 0.1 million units."),
-    season: str | None = typer.Option(None, help="Season in the form 2526."),
-    gameweek_start: int | None = typer.Option(None, help="Starting gameweek."),
-    num_gameweeks: int = typer.Option(
-        3, min=1, help="Number of gameweeks to optimize."
-    ),
-    num_generations: int = typer.Option(
-        100, min=1, help="Genetic algorithm generations."
-    ),
-    population_size: int = typer.Option(
-        100, min=1, help="Candidate squads per generation."
-    ),
-    crossover_prob: float = typer.Option(
-        0.7, min=0, max=1, help="Crossover probability."
-    ),
-    mutation_prob: float = typer.Option(
-        0.3, min=0, max=1, help="Mutation probability."
-    ),
-    crossover_indpb: float = typer.Option(
-        0.5, min=0, max=1, help="Per-attribute crossover probability."
-    ),
-    mutation_indpb: float = typer.Option(
-        0.1, min=0, max=1, help="Per-attribute mutation probability."
-    ),
-    tournament_size: int = typer.Option(3, min=1, help="Tournament selection size."),
-    no_subs: bool = typer.Option(False, help="Exclude substitute-point contributions."),
-    include_zero: bool = typer.Option(False, help="Include zero-point players."),
-    fpl_team_id: int | None = typer.Option(None, help="FPL team ID."),
-    is_replay: bool = typer.Option(
-        False, help="Store suggestions as replay transactions."
-    ),
+    budget: Annotated[
+        int, typer.Option(min=0, help="Budget in 0.1 million units.")
+    ] = 1000,
+    season: Annotated[str | None, typer.Option(help="Season in the form 2526.")] = None,
+    gameweek_start: Annotated[
+        int | None, typer.Option(help="Starting gameweek.")
+    ] = None,
+    num_gameweeks: Annotated[
+        int, typer.Option(min=1, help="Number of gameweeks to optimize.")
+    ] = 3,
+    num_generations: Annotated[
+        int, typer.Option(min=1, help="Genetic algorithm generations.")
+    ] = 100,
+    population_size: Annotated[
+        int, typer.Option(min=1, help="Candidate squads per generation.")
+    ] = 100,
+    crossover_prob: Annotated[
+        float, typer.Option(min=0, max=1, help="Crossover probability.")
+    ] = 0.7,
+    mutation_prob: Annotated[
+        float, typer.Option(min=0, max=1, help="Mutation probability.")
+    ] = 0.3,
+    crossover_indpb: Annotated[
+        float, typer.Option(min=0, max=1, help="Per-attribute crossover probability.")
+    ] = 0.5,
+    mutation_indpb: Annotated[
+        float, typer.Option(min=0, max=1, help="Per-attribute mutation probability.")
+    ] = 0.1,
+    tournament_size: Annotated[
+        int, typer.Option(min=1, help="Tournament selection size.")
+    ] = 3,
+    no_subs: Annotated[
+        bool, typer.Option(help="Exclude substitute-point contributions.")
+    ] = False,
+    include_zero: Annotated[
+        bool, typer.Option(help="Include zero-point players.")
+    ] = False,
+    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
+    is_replay: Annotated[
+        bool, typer.Option(help="Store suggestions as replay transactions.")
+    ] = False,
 ) -> None:
     """Optimize an initial squad."""
     run_squad_optimization(

@@ -1,5 +1,7 @@
 """Commands for creating and updating the AIrsenal database."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.season import CURRENT_SEASON
@@ -12,14 +14,16 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def create(
-    fpl_team_id: int | None = typer.Option(None, help="FPL team ID."),
-    clean: bool = typer.Option(False, help="Delete and recreate an existing database."),
-    n_previous: int = typer.Option(
-        3, min=1, help="Number of previous seasons to include."
-    ),
-    no_current_season: bool = typer.Option(
-        False, help="Exclude the current season from the database."
-    ),
+    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
+    clean: Annotated[
+        bool, typer.Option(help="Delete and recreate an existing database.")
+    ] = False,
+    n_previous: Annotated[
+        int, typer.Option(min=1, help="Number of previous seasons to include.")
+    ] = 3,
+    no_current_season: Annotated[
+        bool, typer.Option(help="Exclude the current season from the database.")
+    ] = False,
 ) -> None:
     """Create the AIrsenal database."""
     create_database(
@@ -32,9 +36,13 @@ def create(
 
 @app.command()
 def update(
-    season: str = typer.Option(CURRENT_SEASON, help="Season in the form 2526."),
-    noattr: bool = typer.Option(False, help="Do not update player attributes."),
-    fpl_team_id: int | None = typer.Option(None, help="FPL team ID."),
+    season: Annotated[
+        str, typer.Option(help="Season in the form 2526.")
+    ] = CURRENT_SEASON,
+    noattr: Annotated[
+        bool, typer.Option(help="Do not update player attributes.")
+    ] = False,
+    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
 ) -> None:
     """Update the AIrsenal database from current FPL data."""
     update_database(season=season, noattr=noattr, fpl_team_id=fpl_team_id)

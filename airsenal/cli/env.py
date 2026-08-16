@@ -1,5 +1,7 @@
 """Commands for AIrsenal environment configuration."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.env import AIRSENAL_ENV_KEYS, delete_env, get_env, save_env
@@ -10,7 +12,9 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def get(
-    key: str | None = typer.Option(None, help="Environment variable name."),
+    key: Annotated[
+        str | None, typer.Argument(help="Environment variable name.")
+    ] = None,
 ) -> None:
     """Show one environment value or all configured values."""
     if key:
@@ -21,15 +25,17 @@ def get(
 
 @app.command()
 def set(
-    key: str = typer.Option(..., help="Environment variable name."),
-    value: str = typer.Option(..., help="Environment variable value."),
+    key: Annotated[str, typer.Argument(help="Environment variable name.")],
+    value: Annotated[str, typer.Argument(help="Environment variable value.")],
 ) -> None:
     """Save an environment value."""
     save_env(key, value)
 
 
 @app.command("delete")
-def delete(key: str = typer.Option(..., help="Environment variable name.")) -> None:
+def delete(
+    key: Annotated[str, typer.Argument(help="Environment variable name.")],
+) -> None:
     """Delete an environment value."""
     delete_env(key)
 

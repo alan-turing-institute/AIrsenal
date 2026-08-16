@@ -1,5 +1,7 @@
 """Commands for archiving AIrsenal and FPL data."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.season import CURRENT_SEASON
@@ -25,8 +27,12 @@ def db() -> None:
 
 @app.command()
 def transfermarkt(
-    season: str = typer.Option(CURRENT_SEASON, help="Season in the form 2526."),
-    verbose: bool = typer.Option(False, help="Print detailed scraping output."),
+    season: Annotated[
+        str, typer.Option(help="Season in the form 2526.")
+    ] = CURRENT_SEASON,
+    verbose: Annotated[
+        bool, typer.Option(help="Print detailed scraping output.")
+    ] = False,
 ) -> None:
     """Save Transfermarkt absence data."""
     scrape_transfermarkt([season], verbose=verbose)

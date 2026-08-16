@@ -1,5 +1,7 @@
 """Commands for running the full AIrsenal pipeline."""
 
+from typing import Annotated
+
 import typer
 
 from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
@@ -7,58 +9,66 @@ from airsenal.scripts.airsenal_run_pipeline import run_pipeline
 
 
 def run(
-    num_thread: int | None = typer.Option(
-        None, help="Number of threads to use for the pipeline run."
-    ),
-    weeks_ahead: int = typer.Option(
-        3, help="Number of gameweeks to include in the pipeline run."
-    ),
-    fpl_team_id: int | None = typer.Option(
-        None, help="FPL team ID for the pipeline run."
-    ),
-    clean: bool = typer.Option(
-        False, help="Delete and recreate the AIrsenal database."
-    ),
-    apply_transfers: bool = typer.Option(
-        False, help="Apply suggested transfers and set the lineup through the API."
-    ),
-    wildcard_week: int = typer.Option(
-        -1, help="Wildcard week; use 0 to consider any gameweek."
-    ),
-    free_hit_week: int = typer.Option(
-        -1, help="Free hit week; use 0 to consider any gameweek."
-    ),
-    triple_captain_week: int = typer.Option(
-        -1, help="Triple captain week; use 0 to consider any gameweek."
-    ),
-    bench_boost_week: int = typer.Option(
-        -1, help="Bench boost week; use 0 to consider any gameweek."
-    ),
-    n_previous: int = typer.Option(
-        3, help="Number of previous seasons to include when creating the database."
-    ),
-    no_current_season: bool = typer.Option(
-        False, help="Exclude the current season when creating the database."
-    ),
-    team_model: str = typer.Option(
-        "extended", help="Team model to fit: extended or neutral."
-    ),
-    epsilon: float = typer.Option(
-        DEFAULT_TEAM_EPSILON,
-        help="Exponential time-weighting downweight factor.",
-    ),
-    max_transfers: int = typer.Option(
-        2, min=0, max=5, help="Maximum transfers to consider per gameweek."
-    ),
-    max_hit: int = typer.Option(
-        8, min=0, help="Maximum points to spend on additional transfers."
-    ),
-    allow_unused: bool = typer.Option(
-        False, help="Include strategies that waste free transfers."
-    ),
-    save_absences: bool = typer.Option(
-        False, help="Save expected absences to a CSV file."
-    ),
+    num_thread: Annotated[
+        int | None, typer.Option(help="Number of threads to use for the pipeline run.")
+    ] = None,
+    weeks_ahead: Annotated[
+        int, typer.Option(help="Number of gameweeks to include in the pipeline run.")
+    ] = 3,
+    fpl_team_id: Annotated[
+        int | None, typer.Option(help="FPL team ID for the pipeline run.")
+    ] = None,
+    clean: Annotated[
+        bool, typer.Option(help="Delete and recreate the AIrsenal database.")
+    ] = False,
+    apply_transfers: Annotated[
+        bool,
+        typer.Option(
+            help="Apply suggested transfers and set the lineup through the API."
+        ),
+    ] = False,
+    wildcard_week: Annotated[
+        int, typer.Option(help="Wildcard week; use 0 to consider any gameweek.")
+    ] = -1,
+    free_hit_week: Annotated[
+        int, typer.Option(help="Free hit week; use 0 to consider any gameweek.")
+    ] = -1,
+    triple_captain_week: Annotated[
+        int, typer.Option(help="Triple captain week; use 0 to consider any gameweek.")
+    ] = -1,
+    bench_boost_week: Annotated[
+        int, typer.Option(help="Bench boost week; use 0 to consider any gameweek.")
+    ] = -1,
+    n_previous: Annotated[
+        int,
+        typer.Option(
+            help="Number of previous seasons to include when creating the database."
+        ),
+    ] = 3,
+    no_current_season: Annotated[
+        bool,
+        typer.Option(help="Exclude the current season when creating the database."),
+    ] = False,
+    team_model: Annotated[
+        str, typer.Option(help="Team model to fit: extended or neutral.")
+    ] = "extended",
+    epsilon: Annotated[
+        float, typer.Option(help="Exponential time-weighting downweight factor.")
+    ] = DEFAULT_TEAM_EPSILON,
+    max_transfers: Annotated[
+        int,
+        typer.Option(min=0, max=5, help="Maximum transfers to consider per gameweek."),
+    ] = 2,
+    max_hit: Annotated[
+        int,
+        typer.Option(min=0, help="Maximum points to spend on additional transfers."),
+    ] = 8,
+    allow_unused: Annotated[
+        bool, typer.Option(help="Include strategies that waste free transfers.")
+    ] = False,
+    save_absences: Annotated[
+        bool, typer.Option(help="Save expected absences to a CSV file.")
+    ] = False,
 ) -> None:
     """Run the full AIrsenal pipeline."""
     run_pipeline(
