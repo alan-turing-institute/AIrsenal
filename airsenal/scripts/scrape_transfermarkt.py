@@ -2,7 +2,6 @@
 Get player injury, suspension and availability data from TransferMarkt
 """
 
-import argparse
 import contextlib
 import os
 from cmath import nan
@@ -702,33 +701,3 @@ def scrape_transfermarkt(seasons: list[str], verbose: bool = False):
             season, pl_teams_in_season=pl_teams, verbose=verbose
         )
         absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Get injury, suspension and other absence data from Transfermarkt"
-    )
-    parser.add_argument(
-        "--season",
-        help=(
-            "Which season(s) to update (comma separated, e.g. 2021,2122 "
-            "for 2020/21 and 2021/22 seasons)"
-        ),
-        type=str,
-        default=CURRENT_SEASON,
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        help="Print more information on progress if set",
-        action="store_true",
-        default=False,
-    )
-    args = parser.parse_args()
-    seasons = args.season.split(",")
-    seasons = [s.strip() for s in seasons]
-    scrape_transfermarkt(seasons, args.verbose)
-
-
-if __name__ == "__main__":
-    main()

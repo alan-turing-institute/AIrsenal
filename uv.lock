@@ -27,7 +27,6 @@ source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "bpl-next" },
-    { name = "click" },
     { name = "curl-cffi" },
     { name = "dateparser" },
     { name = "deap" },
@@ -84,7 +83,6 @@ plot = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.5" },
     { name = "bpl-next", specifier = ">=0.5.0" },
-    { name = "click", specifier = ">=8.3.0" },
     { name = "curl-cffi", specifier = ">=0.13.0" },
     { name = "dateparser", specifier = ">=1.2.2" },
     { name = "deap", specifier = ">=1.4.3" },

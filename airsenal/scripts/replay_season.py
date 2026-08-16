@@ -3,7 +3,6 @@ Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
 
-import argparse
 import json
 import warnings
 from datetime import datetime
@@ -233,78 +232,3 @@ def run_replays(
                 max_opt_transfers=max_transfers,
             )
             n_completed += 1
-
-
-def main():
-    """Parse arguments and replay a particular FPL season."""
-    parser = argparse.ArgumentParser(description="replay a particular FPL season")
-    parser.add_argument(
-        "--gameweek_start", help="first gameweek to look at", type=int, default=1
-    )
-    parser.add_argument(
-        "--gameweek_end", help="last gameweek to look at", type=int, default=None
-    )
-    parser.add_argument(
-        "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=3
-    )
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", type=str, required=True
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="FPL team ID (defaults to a unique, negative value)",
-        type=int,
-        default=None,
-    )
-    parser.add_argument(
-        "--resume",
-        help="Use an existing squad and transactions for this team ID.",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--num_thread",
-        help="number of threads to parallelise over",
-        type=int,
-        default=4,
-    )
-    parser.add_argument(
-        "--loop", help="Repeat count; -1 loops continuously.", type=int, default=1
-    )
-    parser.add_argument(
-        "--team_model",
-        help="Specify name of the team model.",
-        type=str,
-        default="extended",
-        choices=["extended", "random"],
-    )
-    parser.add_argument(
-        "--epsilon",
-        help="exponential time weighting",
-        type=float,
-        default=DEFAULT_TEAM_EPSILON,
-    )
-    parser.add_argument(
-        "--max_transfers",
-        help="maximum transfers to consider each gameweek",
-        type=int,
-        default=2,
-    )
-    args = parser.parse_args()
-
-    run_replays(
-        season=args.season,
-        gameweek_start=args.gameweek_start,
-        gameweek_end=args.gameweek_end,
-        weeks_ahead=args.weeks_ahead,
-        fpl_team_id=args.fpl_team_id,
-        resume=args.resume,
-        num_thread=args.num_thread,
-        loop=args.loop,
-        team_model=args.team_model,
-        epsilon=args.epsilon,
-        max_transfers=args.max_transfers,
-    )
-
-
-if __name__ == "__main__":
-    main()

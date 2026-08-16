@@ -5,9 +5,7 @@ To setup -
 `pip install bs4`
 """
 
-import argparse
 import json
-import os
 from datetime import datetime, timedelta
 
 import pytz
@@ -204,42 +202,3 @@ def get_season_info(season: str, result: dict | None = None):
                 result[match.get("id")] = parsed_match
 
     return result
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Scrape understat archives")
-    parser.add_argument(
-        "--season",
-        help="Season to scrape data for",
-        choices=list(base_url.keys()),
-        required=True,
-    )
-    parser.add_argument(
-        "--overwrite",
-        help="Force overwriting previously saved data if set",
-        action="store_true",
-    )
-    args = parser.parse_args()
-    season = args.season
-    overwrite = args.overwrite
-
-    result = {}
-    save_path = os.path.join(
-        os.path.dirname(__file__), f"../data/goals_subs_data_{season}.json"
-    )
-    if os.path.exists(save_path) and not overwrite:
-        print(
-            f"Data for {season} season already exists. Will only get data for new "
-            "matches. To re-download data for all matches use --overwrite."
-        )
-        with open(save_path) as f:
-            result = json.load(f)
-
-    goal_subs_data = get_season_info(season, result=result)
-
-    with open(save_path, "w") as f:
-        json.dump(goal_subs_data, f, indent=4)
-
-
-if __name__ == "__main__":
-    main()

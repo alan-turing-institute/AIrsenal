@@ -1,7 +1,5 @@
 """Script to fill the database after install."""
 
-import argparse
-
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
@@ -53,14 +51,6 @@ def make_init_db(
     return not database_is_empty(dbsession)
 
 
-def check_positive_int(value: int) -> int:
-    ivalue = int(value)
-    if ivalue <= 0:
-        msg = f"{value} is an invalid positive int value"
-        raise argparse.ArgumentTypeError(msg)
-    return ivalue
-
-
 def create_database(
     fpl_team_id: int | None,
     clean: bool,
@@ -81,43 +71,6 @@ def create_database(
         else:
             print(
                 "AIrsenal database already exists. "
-                "Run 'airsenal_setup_initial_db --clean' to delete and recreate it,\n"
-                "or keep the current database and continue to 'airsenal_update_db'."
+                "Run 'airsenal db create --clean' to delete and recreate it,\n"
+                "or keep the current database and continue to 'airsenal db update'."
             )
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Customise fpl team id")
-    parser.add_argument(
-        "--fpl_team_id", help="specify fpl team id", type=int, required=False
-    )
-    parser.add_argument(
-        "--clean",
-        help="If set, delete and re-create any pre-existing AIrsenal database",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--n_previous",
-        help="specify how many seasons to look back into the past for (defaults to 3)",
-        type=int,
-        choices=range(1, int(CURRENT_SEASON[2:]) - 16 + 1),  # years since 1516 season
-        default=3,
-        required=False,
-    )
-    parser.add_argument(
-        "--no_current_season",
-        help="If set, does not include CURRENT_SEASON in database",
-        action="store_true",
-    )
-    args = parser.parse_args()
-
-    create_database(
-        fpl_team_id=args.fpl_team_id,
-        clean=args.clean,
-        n_previous=args.n_previous,
-        no_current_season=args.no_current_season,
-    )
-
-
-if __name__ == "__main__":
-    main()

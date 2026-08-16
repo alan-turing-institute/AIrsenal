@@ -7,8 +7,6 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
-import argparse
-
 from prettytable import PrettyTable
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -22,7 +20,6 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.scripts.set_lineup import set_lineup
 
 """
 TODO:
@@ -361,26 +358,3 @@ def make_transfers(
         print("Not applying transfers.  Can still choose starting 11 and captain.")
         return False
     return True
-
-
-def main():
-    parser = argparse.ArgumentParser("Make transfers via the FPL API")
-    parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
-    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
-
-    args = parser.parse_args()
-    confirm = args.confirm or False
-    try:
-        make_transfers(args.fpl_team_id, confirm)
-        set_lineup(args.fpl_team_id, skip_check=confirm)
-    except Exception as e:
-        msg = (
-            "Something went wrong when making transfers. Check your team and make "
-            "transfers and lineup changes manually on the web-site. If the problem "
-            "persists, let us know on GitHub."
-        )
-        raise Exception(msg) from e
-
-
-if __name__ == "__main__":
-    main()

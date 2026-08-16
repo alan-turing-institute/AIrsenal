@@ -6,7 +6,6 @@ Generates a "tag" string which is stored so it can later be used by team-optimiz
 get consistent sets of predictions from the database.
 """
 
-import argparse
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -211,66 +210,3 @@ def run_prediction(
             n_players=5,
             dbsession=session,
         )
-
-
-def main():
-    """Parse arguments and fill the player prediction database table."""
-    parser = argparse.ArgumentParser(description="fill player predictions")
-    parser.add_argument("--weeks_ahead", help="how many weeks ahead to fill", type=int)
-    parser.add_argument("--gameweek_start", help="first gameweek to look at", type=int)
-    parser.add_argument("--gameweek_end", help="last gameweek to look at", type=int)
-    parser.add_argument("--ep_filename", help="csv filename for FPL expected points")
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--no_bonus",
-        help="don't include bonus points",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_cards",
-        help="don't include points lost to yellow and red cards",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_saves",
-        help="don't include save points for goalkeepers",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--sampling",
-        help="If set use fit the model using sampling with numpyro",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--team_model",
-        help="which team model to fit",
-        type=str,
-        choices=["extended", "neutral", "random"],
-        default="extended",
-    )
-    parser.add_argument(
-        "--epsilon",
-        help="how much to downweight games by in exponential time weighting",
-        type=float,
-        default=DEFAULT_TEAM_EPSILON,
-    )
-    args = parser.parse_args()
-
-    run_prediction(
-        weeks_ahead=args.weeks_ahead,
-        gameweek_start=args.gameweek_start,
-        gameweek_end=args.gameweek_end,
-        season=args.season,
-        no_bonus=args.no_bonus,
-        no_cards=args.no_cards,
-        no_saves=args.no_saves,
-        sampling=args.sampling,
-        team_model_name=args.team_model,
-        epsilon=args.epsilon,
-    )
-
-
-if __name__ == "__main__":
-    main()
