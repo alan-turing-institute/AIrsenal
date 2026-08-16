@@ -733,6 +733,79 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
     return True
 
 
+def run_transfer_optimization(
+    weeks_ahead: int | None,
+    gameweek_start: int | None,
+    gameweek_end: int | None,
+    tag: str | None,
+    wildcard_week: int,
+    free_hit_week: int,
+    triple_captain_week: int,
+    bench_boost_week: int,
+    num_free_transfers: int | None,
+    max_hit: int,
+    allow_unused: bool,
+    max_transfers: int,
+    num_iterations: int,
+    num_thread: int,
+    season: str,
+    profile: bool,
+    fpl_team_id: int | None,
+    is_replay: bool,
+) -> None:
+    """Run transfer optimization for a gameweek range."""
+    sanity_check_args(
+        argparse.Namespace(
+            weeks_ahead=weeks_ahead,
+            gameweek_start=gameweek_start,
+            gameweek_end=gameweek_end,
+            num_free_transfers=num_free_transfers,
+        )
+    )
+    gameweeks = get_gameweeks_array(
+        weeks_ahead=weeks_ahead,
+        gameweek_start=gameweek_start,
+        gameweek_end=gameweek_end,
+        season=season,
+    )
+    tag = tag or get_latest_prediction_tag(season=season)
+    chip_gameweeks = {
+        "wildcard": wildcard_week,
+        "free_hit": free_hit_week,
+        "triple_captain": triple_captain_week,
+        "bench_boost": bench_boost_week,
+    }
+
+    if not check_tag_valid(tag, gameweeks, season=season):
+        print(
+            "ERROR: Database does not contain predictions",
+            "for all the specified optimsation gameweeks.\n",
+            "Please run 'airsenal_run_prediction' first with the",
+            "same input gameweeks and season you specified here.",
+        )
+        sys.exit(1)
+
+    set_multiprocessing_start_method()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", TqdmWarning)
+        run_optimization(
+            gameweeks,
+            tag,
+            season,
+            fpl_team_id,
+            chip_gameweeks,
+            num_free_transfers,
+            max_hit,
+            allow_unused,
+            max_transfers,
+            num_iterations,
+            num_thread,
+            profile,
+            is_replay=is_replay,
+        )
+
+
 def main():
     """
     The main function, to be used as entrypoint.
@@ -824,57 +897,23 @@ def main():
     )
     args = parser.parse_args()
 
-    fpl_team_id = args.fpl_team_id or None
-
-    sanity_check_args(args)
-    season = args.season
-    gameweeks = get_gameweeks_array(
+    run_transfer_optimization(
         weeks_ahead=args.weeks_ahead,
         gameweek_start=args.gameweek_start,
         gameweek_end=args.gameweek_end,
-        season=season,
+        tag=args.tag,
+        wildcard_week=args.wildcard_week,
+        free_hit_week=args.free_hit_week,
+        triple_captain_week=args.triple_captain_week,
+        bench_boost_week=args.bench_boost_week,
+        num_free_transfers=args.num_free_transfers,
+        max_hit=args.max_hit,
+        allow_unused=args.allow_unused,
+        max_transfers=args.max_transfers,
+        num_iterations=args.num_iterations,
+        num_thread=args.num_thread,
+        season=args.season,
+        profile=args.profile,
+        fpl_team_id=args.fpl_team_id,
+        is_replay=args.is_replay,
     )
-
-    num_iterations = args.num_iterations
-
-    num_free_transfers = args.num_free_transfers
-    tag = args.tag or get_latest_prediction_tag(season=season)
-    max_total_hit = args.max_hit
-    allow_unused_transfers = args.allow_unused
-    num_thread = args.num_thread
-    profile = args.profile or False
-    chip_gameweeks = {
-        "wildcard": args.wildcard_week,
-        "free_hit": args.free_hit_week,
-        "triple_captain": args.triple_captain_week,
-        "bench_boost": args.bench_boost_week,
-    }
-
-    if not check_tag_valid(tag, gameweeks, season=season):
-        print(
-            "ERROR: Database does not contain predictions",
-            "for all the specified optimsation gameweeks.\n",
-            "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here.",
-        )
-        sys.exit(1)
-
-    set_multiprocessing_start_method()
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks,
-            tag,
-            season,
-            fpl_team_id,
-            chip_gameweeks,
-            num_free_transfers,
-            max_total_hit,
-            allow_unused_transfers,
-            args.max_transfers,
-            num_iterations,
-            num_thread,
-            profile,
-            is_replay=args.is_replay,
-        )
