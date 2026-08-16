@@ -4,14 +4,11 @@ the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
 
-import argparse
-
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
     get_last_complete_gameweek_in_db,
@@ -204,33 +201,3 @@ def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
             return
 
         update_db(season, do_attributes, fpl_team_id, session)
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="fill db tables with recent scores and transactions"
-    )
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--noattr", help="don't update player attributes", action="store_true"
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="specify fpl team id",
-        type=int,
-        required=False,
-    )
-    args = parser.parse_args()
-
-    update_database(
-        season=args.season,
-        noattr=args.noattr,
-        fpl_team_id=args.fpl_team_id,
-    )
-
-
-if __name__ == "__main__":
-    print(" ==== updating results and transactions === ")
-    main()

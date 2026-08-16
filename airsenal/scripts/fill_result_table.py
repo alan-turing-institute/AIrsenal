@@ -2,14 +2,13 @@
 Fill the "result" table with historic results (results_xxyy_with_gw.csv).
 """
 
-import argparse
 import os
 
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.schema import Result, session, session_scope
+from airsenal.framework.schema import Result, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -132,23 +131,3 @@ def make_result_table(
                 os.path.dirname(__file__), f"../data/results_{season}.csv"
             )
             fill_results_from_csv(inpath, season, dbsession)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="fill table of match results")
-    parser.add_argument("--input_type", help="csv or api", default="csv")
-    parser.add_argument("--input_file", help="input csv filename")
-    parser.add_argument(
-        "--season",
-        help="if using a single csv, specify the season",
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        "--gw_start", help="if using api, which gameweeks", type=int, default=1
-    )
-    parser.add_argument("--gw_end", help="if using api, which gameweeks", type=int)
-    args = parser.parse_args()
-
-    with session_scope() as dbsession:
-        make_result_table(dbsession=dbsession)

@@ -1,4 +1,3 @@
-import argparse
 import sys
 
 from airsenal.framework.optimization_squad import make_new_squad
@@ -168,84 +167,4 @@ def run_squad_optimization(
         tournament_size=tournament_size,
         verbose=True,
         is_replay=is_replay,
-    )
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Make a squad from scratch")
-    parser.add_argument(
-        "--budget", help="budget, in 0.1 millions", type=int, default=1000
-    )
-    parser.add_argument("--season", help="season, in format e.g. 1819")
-    parser.add_argument("--gameweek_start", help="gameweek to start from", type=int)
-    parser.add_argument(
-        "--num_gameweeks", help="how many gameweeks to consider", type=int, default=3
-    )
-    parser.add_argument(
-        "--num_generations", help="number of generations", type=int, default=100
-    )
-    parser.add_argument(
-        "--population_size",
-        help="number of candidate solutions per generation",
-        type=int,
-        default=100,
-    )
-    parser.add_argument(
-        "--crossover_prob", help="crossover probability", type=float, default=0.7
-    )
-    parser.add_argument(
-        "--mutation_prob", help="mutation probability", type=float, default=0.3
-    )
-    parser.add_argument(
-        "--crossover_indpb",
-        help="independent probability for each attribute to be exchanged in crossover",
-        type=float,
-        default=0.5,
-    )
-    parser.add_argument(
-        "--mutation_indpb",
-        help="independent probability for each attribute to be mutated",
-        type=float,
-        default=0.1,
-    )
-    parser.add_argument(
-        "--tournament_size",
-        help="size of tournament for tournament selection",
-        type=int,
-        default=3,
-    )
-    parser.add_argument(
-        "--no_subs",
-        help="Don't include points contribution from substitutes",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--include_zero",
-        help="Include players with zero predicted points",
-        action="store_true",
-    )
-    parser.add_argument("--fpl_team_id", help="ID for your FPL team", type=int)
-    parser.add_argument(
-        "--is_replay",
-        help="Add suggested squad to the database (for replaying seasons)",
-        action="store_true",
-    )
-    args = parser.parse_args()
-
-    run_squad_optimization(
-        budget=args.budget,
-        season=args.season,
-        gameweek_start=args.gameweek_start,
-        num_gameweeks=args.num_gameweeks,
-        num_generations=args.num_generations,
-        population_size=args.population_size,
-        crossover_prob=args.crossover_prob,
-        mutation_prob=args.mutation_prob,
-        crossover_indpb=args.crossover_indpb,
-        mutation_indpb=args.mutation_indpb,
-        tournament_size=args.tournament_size,
-        no_subs=args.no_subs,
-        include_zero=args.include_zero,
-        fpl_team_id=args.fpl_team_id,
-        is_replay=args.is_replay,
     )

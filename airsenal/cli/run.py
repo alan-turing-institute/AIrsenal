@@ -61,11 +61,7 @@ def run(
     ),
 ) -> None:
     """Run the full AIrsenal pipeline."""
-    callback = run_pipeline.callback
-    if callback is None:
-        msg = "Pipeline command has no callback."
-        raise RuntimeError(msg)
-    callback(
+    run_pipeline(
         num_thread=num_thread,
         weeks_ahead=weeks_ahead,
         fpl_team_id=fpl_team_id,

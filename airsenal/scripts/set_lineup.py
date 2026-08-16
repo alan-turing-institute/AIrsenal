@@ -3,8 +3,6 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-import argparse
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -118,22 +116,3 @@ def set_lineup(
 
     payload = build_lineup_payload(squad)
     fetcher.post_lineup(payload)
-
-
-def main():
-    parser = argparse.ArgumentParser("Set the starting 11 and captain")
-    parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API", type=int)
-    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
-    args = parser.parse_args()
-    try:
-        set_lineup(args.fpl_team_id, skip_check=args.confirm)
-    except Exception as e:
-        msg = (
-            "Something went wrong when setting lineup. Check your lineup manually on "
-            "the web-site. If the problem persists, let us know on GitHub."
-        )
-        raise Exception(msg) from e
-
-
-if __name__ == "__main__":
-    main()

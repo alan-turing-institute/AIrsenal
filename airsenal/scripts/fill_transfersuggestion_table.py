@@ -14,7 +14,6 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 """
 
-import argparse
 import cProfile
 import json
 import os
@@ -715,19 +714,22 @@ def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     return chip_dict
 
 
-def sanity_check_args(args: argparse.Namespace) -> bool:
+def sanity_check_args(
+    weeks_ahead: int | None,
+    gameweek_start: int | None,
+    gameweek_end: int | None,
+    num_free_transfers: int | None,
+) -> bool:
     """
     Check that command-line arguments are self-consistent.
     """
-    if args.weeks_ahead and (args.gameweek_start or args.gameweek_end):
+    if weeks_ahead and (gameweek_start or gameweek_end):
         msg = "Please only specify weeks_ahead OR gameweek_start/end"
         raise RuntimeError(msg)
-    if (args.gameweek_start and not args.gameweek_end) or (
-        args.gameweek_end and not args.gameweek_start
-    ):
+    if (gameweek_start and not gameweek_end) or (gameweek_end and not gameweek_start):
         msg = "Need to specify both gameweek_start and gameweek_end"
         raise RuntimeError(msg)
-    if args.num_free_transfers and args.num_free_transfers not in range(6):
+    if num_free_transfers and num_free_transfers not in range(6):
         msg = "Number of free transfers must be 0 to 5"
         raise RuntimeError(msg)
     return True
@@ -755,12 +757,10 @@ def run_transfer_optimization(
 ) -> None:
     """Run transfer optimization for a gameweek range."""
     sanity_check_args(
-        argparse.Namespace(
-            weeks_ahead=weeks_ahead,
-            gameweek_start=gameweek_start,
-            gameweek_end=gameweek_end,
-            num_free_transfers=num_free_transfers,
-        )
+        weeks_ahead,
+        gameweek_start,
+        gameweek_end,
+        num_free_transfers,
     )
     gameweeks = get_gameweeks_array(
         weeks_ahead=weeks_ahead,
@@ -804,116 +804,3 @@ def run_transfer_optimization(
             profile,
             is_replay=is_replay,
         )
-
-
-def main():
-    """
-    The main function, to be used as entrypoint.
-    """
-    parser = argparse.ArgumentParser(
-        description="Try some different transfer strategies"
-    )
-    parser.add_argument("--weeks_ahead", help="how many weeks ahead", type=int)
-    parser.add_argument("--gameweek_start", help="first gameweek to consider", type=int)
-    parser.add_argument("--gameweek_end", help="last gameweek to consider", type=int)
-    parser.add_argument("--tag", help="specify a string identifying prediction set")
-    parser.add_argument(
-        "--wildcard_week",
-        help="play wildcard in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--free_hit_week",
-        help="play free hit in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--triple_captain_week",
-        help="play triple captain in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--bench_boost_week",
-        help="play bench_boost in the specified week. Choose 0 for 'any week'.",
-        type=int,
-        default=-1,
-    )
-    parser.add_argument(
-        "--num_free_transfers", help="how many free transfers do we have", type=int
-    )
-    parser.add_argument(
-        "--max_hit",
-        help="maximum number of points to spend on additional transfers",
-        type=int,
-        default=8,
-    )
-    parser.add_argument(
-        "--allow_unused",
-        help="if set, include strategies that waste free transfers",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--max_transfers",
-        help=(
-            "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-            "increasing this value above 2 make the optimisation very slow!]"
-        ),
-        type=int,
-        default=2,
-    )
-    parser.add_argument(
-        "--num_iterations",
-        help="how many iterations to use for Wildcard/Free Hit optimization",
-        type=int,
-        default=100,
-    )
-    parser.add_argument(
-        "--num_thread", help="how many threads to use", type=int, default=4
-    )
-    parser.add_argument(
-        "--season",
-        help="what season, in format e.g. '2021'",
-        type=str,
-        default=CURRENT_SEASON,
-    )
-    parser.add_argument(
-        "--profile",
-        help="For developers: Profile strategy execution time",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="specify fpl team id",
-        type=int,
-        required=False,
-    )
-    parser.add_argument(
-        "--is_replay",
-        help="Add suggested squad to the database (for replaying seasons)",
-        action="store_true",
-    )
-    args = parser.parse_args()
-
-    run_transfer_optimization(
-        weeks_ahead=args.weeks_ahead,
-        gameweek_start=args.gameweek_start,
-        gameweek_end=args.gameweek_end,
-        tag=args.tag,
-        wildcard_week=args.wildcard_week,
-        free_hit_week=args.free_hit_week,
-        triple_captain_week=args.triple_captain_week,
-        bench_boost_week=args.bench_boost_week,
-        num_free_transfers=args.num_free_transfers,
-        max_hit=args.max_hit,
-        allow_unused=args.allow_unused,
-        max_transfers=args.max_transfers,
-        num_iterations=args.num_iterations,
-        num_thread=args.num_thread,
-        season=args.season,
-        profile=args.profile,
-        fpl_team_id=args.fpl_team_id,
-        is_replay=args.is_replay,
-    )
