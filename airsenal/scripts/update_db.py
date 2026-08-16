@@ -190,6 +190,22 @@ def update_db(
     return True
 
 
+def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
+    """Update database tables from current FPL data."""
+    do_attributes = not noattr
+    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+    if not fpl_team_id:
+        msg = "FPL team ID must be specified in args, config, or env"
+        raise ValueError(msg)
+
+    with session_scope() as session:
+        if database_is_empty(session):
+            print("Database is empty, run 'airsenal_setup_initial_db' first")
+            return
+
+        update_db(season, do_attributes, fpl_team_id, session)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="fill db tables with recent scores and transactions"
@@ -208,19 +224,11 @@ def main():
     )
     args = parser.parse_args()
 
-    season = args.season
-    do_attributes = not args.noattr
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
-    if not fpl_team_id:
-        msg = "FPL team ID must be specified in args, config, or env"
-        raise ValueError(msg)
-
-    with session_scope() as session:
-        if database_is_empty(session):
-            print("Database is empty, run 'airsenal_setup_initial_db' first")
-            return
-
-        update_db(season, do_attributes, fpl_team_id, session)
+    update_database(
+        season=args.season,
+        noattr=args.noattr,
+        fpl_team_id=args.fpl_team_id,
+    )
 
 
 if __name__ == "__main__":

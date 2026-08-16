@@ -154,10 +154,67 @@ def make_predictedscore_table(
     return tag
 
 
+def run_prediction(
+    weeks_ahead: int | None,
+    gameweek_start: int | None,
+    gameweek_end: int | None,
+    season: str,
+    no_bonus: bool,
+    no_cards: bool,
+    no_saves: bool,
+    sampling: bool,
+    team_model_name: str,
+    epsilon: float,
+) -> None:
+    """Fill the player prediction database table."""
+    gw_range = get_gameweeks_array(
+        weeks_ahead=weeks_ahead,
+        gameweek_start=gameweek_start,
+        gameweek_end=gameweek_end,
+        season=season,
+    )
+    include_bonus = not no_bonus
+    include_cards = not no_cards
+    include_saves = not no_saves
+    player_model = NumpyroPlayerModel() if sampling else ConjugatePlayerModel()
+    if team_model_name == "extended":
+        team_model = ExtendedDixonColesMatchPredictor()
+    elif team_model_name == "neutral":
+        team_model = NeutralDixonColesMatchPredictor()
+    elif team_model_name == "random":
+        team_model = RandomMatchPredictor()
+    else:
+        msg = f"Unknown team model: {team_model_name}"
+        raise ValueError(msg)
+
+    with session_scope() as session:
+        session.expire_on_commit = False
+
+        tag = make_predictedscore_table(
+            gw_range=gw_range,
+            season=season,
+            include_bonus=include_bonus,
+            include_cards=include_cards,
+            include_saves=include_saves,
+            player_model=player_model,
+            team_model=team_model,
+            team_model_args={"epsilon": epsilon},
+            dbsession=session,
+        )
+
+        # print players with top predicted points
+        get_top_predicted_points(
+            gameweek=gw_range,
+            tag=tag,
+            season=season,
+            per_position=True,
+            n_players=5,
+            dbsession=session,
+        )
+
+
 def main():
-    """
-    fill the player_prediction db table
-    """
+    """Parse arguments and fill the player prediction database table."""
     parser = argparse.ArgumentParser(description="fill player predictions")
     parser.add_argument("--weeks_ahead", help="how many weeks ahead to fill", type=int)
     parser.add_argument("--gameweek_start", help="first gameweek to look at", type=int)
@@ -199,52 +256,20 @@ def main():
         type=float,
         default=DEFAULT_TEAM_EPSILON,
     )
-
     args = parser.parse_args()
-    gw_range = get_gameweeks_array(
+
+    run_prediction(
         weeks_ahead=args.weeks_ahead,
         gameweek_start=args.gameweek_start,
         gameweek_end=args.gameweek_end,
         season=args.season,
+        no_bonus=args.no_bonus,
+        no_cards=args.no_cards,
+        no_saves=args.no_saves,
+        sampling=args.sampling,
+        team_model_name=args.team_model,
+        epsilon=args.epsilon,
     )
-    include_bonus = not args.no_bonus
-    include_cards = not args.no_cards
-    include_saves = not args.no_saves
-    player_model = NumpyroPlayerModel() if args.sampling else ConjugatePlayerModel()
-    if args.team_model == "extended":
-        team_model = ExtendedDixonColesMatchPredictor()
-    elif args.team_model == "neutral":
-        team_model = NeutralDixonColesMatchPredictor()
-    elif args.team_model == "random":
-        team_model = RandomMatchPredictor()
-    else:
-        msg = f"Unknown team model: {args.team_model}"
-        raise ValueError(msg)
-
-    with session_scope() as session:
-        session.expire_on_commit = False
-
-        tag = make_predictedscore_table(
-            gw_range=gw_range,
-            season=args.season,
-            include_bonus=include_bonus,
-            include_cards=include_cards,
-            include_saves=include_saves,
-            player_model=player_model,
-            team_model=team_model,
-            team_model_args={"epsilon": args.epsilon},
-            dbsession=session,
-        )
-
-        # print players with top predicted points
-        get_top_predicted_points(
-            gameweek=gw_range,
-            tag=tag,
-            season=args.season,
-            per_position=True,
-            n_players=5,
-            dbsession=session,
-        )
 
 
 if __name__ == "__main__":

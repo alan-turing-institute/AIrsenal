@@ -101,9 +101,78 @@ def fill_initial_squad(
     return best_squad
 
 
+def run_squad_optimization(
+    budget: int,
+    season: str | None,
+    gameweek_start: int | None,
+    num_gameweeks: int,
+    num_generations: int,
+    population_size: int,
+    crossover_prob: float,
+    mutation_prob: float,
+    crossover_indpb: float,
+    mutation_indpb: float,
+    tournament_size: int,
+    no_subs: bool,
+    include_zero: bool,
+    fpl_team_id: int | None,
+    is_replay: bool,
+) -> None:
+    """Generate an initial squad using prediction data."""
+    season = season or CURRENT_SEASON
+    if gameweek_start:
+        resolved_gameweek_start = gameweek_start
+    elif season == CURRENT_SEASON:
+        resolved_gameweek_start = NEXT_GAMEWEEK
+    else:
+        resolved_gameweek_start = 1
+    gw_range = list(
+        range(
+            resolved_gameweek_start,
+            min(
+                get_max_gameweek(season) + 1,
+                resolved_gameweek_start + num_gameweeks,
+            ),
+        )
+    )
+    tag = get_latest_prediction_tag(season)
+    if not check_tag_valid(tag, gw_range, season=season):
+        print(
+            "ERROR: Database does not contain predictions",
+            "for all the specified optimsation gameweeks.\n",
+            "Please run 'airsenal_run_prediction' first with the",
+            "same input gameweeks and season you specified here.",
+        )
+        sys.exit(1)
+    remove_zero = not include_zero
+    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+    if no_subs:
+        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
+    else:
+        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+
+    fill_initial_squad(
+        tag=tag,
+        gw_range=gw_range,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        budget=budget,
+        remove_zero=remove_zero,
+        sub_weights=sub_weights,
+        num_generations=num_generations,
+        population_size=population_size,
+        crossover_prob=crossover_prob,
+        mutation_prob=mutation_prob,
+        crossover_indpb=crossover_indpb,
+        mutation_indpb=mutation_indpb,
+        tournament_size=tournament_size,
+        verbose=True,
+        is_replay=is_replay,
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Make a squad from scratch")
-    # General parameters
     parser.add_argument(
         "--budget", help="budget, in 0.1 millions", type=int, default=1000
     )
@@ -112,12 +181,8 @@ def main():
     parser.add_argument(
         "--num_gameweeks", help="how many gameweeks to consider", type=int, default=3
     )
-    # parameters for deap optimization
     parser.add_argument(
-        "--num_generations",
-        help="number of generations",
-        type=int,
-        default=100,
+        "--num_generations", help="number of generations", type=int, default=100
     )
     parser.add_argument(
         "--population_size",
@@ -125,18 +190,11 @@ def main():
         type=int,
         default=100,
     )
-    # parameters for "deap" optimization
     parser.add_argument(
-        "--crossover_prob",
-        help="crossover probability",
-        type=float,
-        default=0.7,
+        "--crossover_prob", help="crossover probability", type=float, default=0.7
     )
     parser.add_argument(
-        "--mutation_prob",
-        help="mutation probability",
-        type=float,
-        default=0.3,
+        "--mutation_prob", help="mutation probability", type=float, default=0.3
     )
     parser.add_argument(
         "--crossover_indpb",
@@ -166,69 +224,28 @@ def main():
         help="Include players with zero predicted points",
         action="store_true",
     )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="ID for your FPL team",
-        type=int,
-    )
+    parser.add_argument("--fpl_team_id", help="ID for your FPL team", type=int)
     parser.add_argument(
         "--is_replay",
         help="Add suggested squad to the database (for replaying seasons)",
         action="store_true",
     )
     args = parser.parse_args()
-    season = args.season or CURRENT_SEASON
-    budget = args.budget
-    if args.gameweek_start:
-        gameweek_start = args.gameweek_start
-    elif season == CURRENT_SEASON:
-        gameweek_start = NEXT_GAMEWEEK
-    else:
-        gameweek_start = 1
-    gw_range = list(
-        range(
-            gameweek_start,
-            min(get_max_gameweek(season) + 1, gameweek_start + args.num_gameweeks),
-        )
-    )
-    tag = get_latest_prediction_tag(season)
-    if not check_tag_valid(tag, gw_range, season=season):
-        print(
-            "ERROR: Database does not contain predictions",
-            "for all the specified optimsation gameweeks.\n",
-            "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here.",
-        )
-        sys.exit(1)
-    num_generations = args.num_generations
-    population_size = args.population_size
-    crossover_prob = args.crossover_prob
-    mutation_prob = args.mutation_prob
-    crossover_indpb = args.crossover_indpb
-    mutation_indpb = args.mutation_indpb
-    tournament_size = args.tournament_size
-    remove_zero = not args.include_zero
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
-    if args.no_subs:
-        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
-    else:
-        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
 
-    fill_initial_squad(
-        tag=tag,
-        gw_range=gw_range,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        budget=budget,
-        remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        num_generations=num_generations,
-        population_size=population_size,
-        crossover_prob=crossover_prob,
-        mutation_prob=mutation_prob,
-        crossover_indpb=crossover_indpb,
-        mutation_indpb=mutation_indpb,
-        tournament_size=tournament_size,
-        verbose=True,
+    run_squad_optimization(
+        budget=args.budget,
+        season=args.season,
+        gameweek_start=args.gameweek_start,
+        num_gameweeks=args.num_gameweeks,
+        num_generations=args.num_generations,
+        population_size=args.population_size,
+        crossover_prob=args.crossover_prob,
+        mutation_prob=args.mutation_prob,
+        crossover_indpb=args.crossover_indpb,
+        mutation_indpb=args.mutation_indpb,
+        tournament_size=args.tournament_size,
+        no_subs=args.no_subs,
+        include_zero=args.include_zero,
+        fpl_team_id=args.fpl_team_id,
         is_replay=args.is_replay,
     )

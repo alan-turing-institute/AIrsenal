@@ -32,6 +32,7 @@ dependencies = [
   "requests>=2.32.5",
   "sqlalchemy>=2.0.43",
   "tqdm>=4.67.1",
+  "typer>=0.16.0",
 ]
 
 [tool.hatch.metadata]
@@ -54,22 +55,7 @@ dev = [
 ]
 
 [project.scripts]
-airsenal_run_pipeline = "airsenal.scripts.airsenal_run_pipeline:run_pipeline"
-airsenal_setup_initial_db = "airsenal.scripts.fill_db_init:main"
-airsenal_update_db = "airsenal.scripts.update_db:main"
-airsenal_run_prediction = "airsenal.scripts.fill_predictedscore_table:main"
-airsenal_make_squad = "airsenal.scripts.squad_builder:main"
-airsenal_run_optimization = "airsenal.scripts.fill_transfersuggestion_table:main"
-airsenal_make_transfers = "airsenal.scripts.make_transfers:main"
-airsenal_set_lineup = "airsenal.scripts.set_lineup:main"
-airsenal_replay_season = "airsenal.scripts.replay_season:main"
-airsenal_env = "airsenal.scripts.set_env:main"
-airsenal_check_data = "airsenal.scripts.data_sanity_checks:run_all_checks"
-airsenal_dump_api = "airsenal.scripts.dump_api:main"
-airsenal_dump_db = "airsenal.scripts.dump_db_contents:main"
-airsenal_scrape_transfermarkt = "airsenal.scripts.scrape_transfermarkt:main"
-airsenal_plot = "airsenal.scripts.plot_league_standings:main"
-airsenal_save_absences = "airsenal.scripts.save_expected_absences:main"
+airsenal = "airsenal.cli.main:app"
 
 [build-system]
 requires = ["hatchling"]
