@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons

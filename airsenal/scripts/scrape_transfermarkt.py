@@ -11,8 +11,9 @@ import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup, Tag
-from tqdm import tqdm
 
+from airsenal.framework.output import print
+from airsenal.framework.output import track as tqdm
 from airsenal.framework.season import CURRENT_SEASON, season_str_to_year
 from airsenal.framework.utils import get_next_season, get_start_end_dates_of_season
 

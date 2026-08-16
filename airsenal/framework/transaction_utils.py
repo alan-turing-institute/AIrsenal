@@ -6,6 +6,7 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 
 from sqlalchemy import and_, func, or_, select
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,

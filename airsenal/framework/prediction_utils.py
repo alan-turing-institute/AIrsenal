@@ -26,6 +26,7 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
+from airsenal.framework.output import print
 from airsenal.framework.player_model import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,

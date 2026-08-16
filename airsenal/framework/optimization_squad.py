@@ -13,6 +13,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
+from airsenal.framework.output import print
 from airsenal.framework.player import DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad

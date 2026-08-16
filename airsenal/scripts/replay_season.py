@@ -4,18 +4,18 @@ code and strategies.
 """
 
 import json
-import warnings
 from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
-from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.output import print
+from airsenal.framework.output import track as tqdm
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
@@ -212,23 +212,21 @@ def run_replays(
 
     set_multiprocessing_start_method()
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        n_completed = 0
-        while (loop == -1) or (n_completed < loop):
-            print("*" * 15)
-            print(f"RUNNING REPLAY {n_completed + 1}")
-            print("*" * 15)
-            replay_season(
-                season=season,
-                gameweek_start=gameweek_start,
-                gameweek_end=gameweek_end,
-                new_squad=not resume,
-                weeks_ahead=weeks_ahead,
-                num_thread=num_thread,
-                fpl_team_id=fpl_team_id,
-                team_model=team_model,
-                team_model_args={"epsilon": epsilon},
-                max_opt_transfers=max_transfers,
-            )
-            n_completed += 1
+    n_completed = 0
+    while (loop == -1) or (n_completed < loop):
+        print("*" * 15)
+        print(f"RUNNING REPLAY {n_completed + 1}")
+        print("*" * 15)
+        replay_season(
+            season=season,
+            gameweek_start=gameweek_start,
+            gameweek_end=gameweek_end,
+            new_squad=not resume,
+            weeks_ahead=weeks_ahead,
+            num_thread=num_thread,
+            fpl_team_id=fpl_team_id,
+            team_model=team_model,
+            team_model_args={"epsilon": epsilon},
+            max_opt_transfers=max_transfers,
+        )
+        n_completed += 1

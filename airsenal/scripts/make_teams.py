@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 
+from airsenal.framework.output import print
 from airsenal.framework.utils import CURRENT_SEASON, fetcher
 
 SCRIPT_DIR = os.path.dirname(__file__)

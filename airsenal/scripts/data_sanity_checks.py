@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (

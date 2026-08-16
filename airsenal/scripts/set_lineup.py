@@ -4,6 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,

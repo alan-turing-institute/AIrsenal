@@ -7,6 +7,7 @@ import os
 
 from sqlalchemy import select
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import (
     FifaTeamRating,
     Fixture,

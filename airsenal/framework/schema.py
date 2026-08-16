@@ -30,6 +30,7 @@ from airsenal.framework.env import (
     AIRSENAL_HOME,
     save_env,
 )
+from airsenal.framework.output import print
 
 # Common type annotations using PEP 593 Annotated
 intpk = Annotated[int, mapped_column(primary_key=True)]

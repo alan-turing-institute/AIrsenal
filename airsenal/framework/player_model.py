@@ -10,6 +10,8 @@ import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
+from airsenal.framework.output import print
+
 DEFAULT_PLAYER_EPSILON = 0.2
 DEFAULT_N_GOALS_PRIOR = 35
 

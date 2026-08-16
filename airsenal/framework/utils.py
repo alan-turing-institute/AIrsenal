@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 from airsenal.framework.schema import (
     Absence,
     Fixture,

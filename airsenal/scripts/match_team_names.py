@@ -7,6 +7,7 @@ import json
 from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 
 
 def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:

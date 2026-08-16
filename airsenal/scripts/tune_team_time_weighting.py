@@ -21,9 +21,10 @@ from pathlib import Path
 import numpy as np
 from bpl import ExtendedDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
-from tqdm import tqdm
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
+from airsenal.framework.output import print
+from airsenal.framework.output import track as tqdm
 from airsenal.framework.schema import Fixture, session_scope
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,

@@ -12,6 +12,7 @@ from collections.abc import Callable
 from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import print
 
 
 def find_best_match(

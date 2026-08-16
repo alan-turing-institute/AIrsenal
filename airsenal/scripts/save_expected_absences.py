@@ -14,6 +14,7 @@ import os
 
 from sqlalchemy import select
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import Absence, PlayerAttributes
 from airsenal.framework.utils import CURRENT_SEASON, session
 

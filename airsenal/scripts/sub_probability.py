@@ -9,6 +9,8 @@ TODO: Take into account different formations and sub (position) orders
 
 import numpy as np
 
+from airsenal.framework.output import print
+
 # number of random trials
 n_samples = int(1e6)
 

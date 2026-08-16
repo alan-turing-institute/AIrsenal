@@ -5,13 +5,13 @@ import warnings
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
-from tqdm import TqdmWarning
 
 from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.output import print
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
@@ -272,19 +272,17 @@ def run_optimize_squad(
     """
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks=gw_range,
-            tag=tag,
-            season=season,
-            fpl_team_id=fpl_team_id,
-            num_thread=num_thread,
-            chip_gameweeks=chips_played,
-            max_opt_transfers=max_transfers,
-            max_total_hit=max_hit,
-            allow_unused_transfers=allow_unused,
-        )
+    run_optimization(
+        gameweeks=gw_range,
+        tag=tag,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        num_thread=num_thread,
+        chip_gameweeks=chips_played,
+        max_opt_transfers=max_transfers,
+        max_total_hit=max_hit,
+        allow_unused_transfers=allow_unused,
+    )
     return True
 
 

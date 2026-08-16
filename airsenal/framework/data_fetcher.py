@@ -28,6 +28,7 @@ from airsenal.framework.env import (
     FPL_TEAM_ID,
     save_env,
 )
+from airsenal.framework.output import print
 
 API_HOME = "https://fantasy.premierleague.com/api"
 

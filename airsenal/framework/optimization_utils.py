@@ -9,6 +9,7 @@ from datetime import datetime
 from curl_cffi import requests
 from sqlalchemy import select
 
+from airsenal.framework.output import print
 from airsenal.framework.schema import (
     Fixture,
     PlayerPrediction,

@@ -1,6 +1,7 @@
 import json
 import os
 
+from airsenal.framework.output import print
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import fetcher
 from airsenal.scripts.make_player_details import make_player_details

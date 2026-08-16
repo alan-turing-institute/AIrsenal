@@ -4,6 +4,7 @@ from airsenal.framework.env import (
     AIRSENAL_HOME,
     get_env,
 )
+from airsenal.framework.output import print
 from airsenal.framework.schema import get_connection_string
 
 
