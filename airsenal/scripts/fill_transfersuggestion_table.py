@@ -390,11 +390,15 @@ def print_team_for_next_gw(
     for pidin in strat["players_in"][str(next_gw)]:
         t.add_player(pidin)
     tag = get_latest_prediction_tag(season=season)
-    t.get_expected_points(next_gw, tag)
-    print("\n--------------------------------")
-    print(f"Starting Lineup for Gameweek {next_gw}:")
-    print("--------------------------------")
-    print(t)
+    chip_played = strat["chips_played"].get(str(next_gw))
+    console.print(
+        t.formation_table(
+            tag,
+            next_gw,
+            bench_boost=chip_played == "bench_boost",
+            triple_captain=chip_played == "triple_captain",
+        )
+    )
     return t
 
 
@@ -448,6 +452,7 @@ def run_optimization(
             fpl_team_id=fpl_team_id,
             num_generations=num_iterations,
             population_size=num_iterations,
+            chip_gameweeks=chip_gameweeks,
         )
         return squad, None
 
@@ -472,6 +477,7 @@ def run_optimization(
             fpl_team_id=fpl_team_id,
             num_generations=num_iterations,
             population_size=num_iterations,
+            chip_gameweeks=chip_gameweeks,
         )
         return squad, None
     # if we got to here, we can assume we are optimizing an existing squad.

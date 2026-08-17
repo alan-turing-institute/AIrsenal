@@ -3,12 +3,24 @@ test various methods of the Team class.
 """
 
 import pytest
+from rich.console import Console
 
 from airsenal.conftest import session_scope
-from airsenal.framework.squad import Squad
+from airsenal.framework.squad import FORMATION_SLOTS, Squad
 from airsenal.framework.utils import CURRENT_SEASON
 
 TEST_SEASON = CURRENT_SEASON
+
+
+def test_formation_slots():
+    assert FORMATION_SLOTS == {
+        0: (),
+        1: (2,),
+        2: (1, 3),
+        3: (1, 2, 3),
+        4: (0, 1, 3, 4),
+        5: (0, 1, 2, 3, 4),
+    }
 
 
 def test_add_player_by_id(fill_players):
@@ -156,6 +168,78 @@ def test_order_substitutes():
     expected_names = ["a", "b", "c"]
     for player, expected_name in zip(subs, expected_names, strict=False):
         assert player.name == expected_name
+
+
+def test_formation_table():
+    t = Squad()
+
+    class MockPlayer:
+        def __init__(
+            self,
+            name: str,
+            position: str,
+            is_starting: bool,
+            sub_position: int | None = None,
+        ):
+            self.name = name
+            self.team = "TEST"
+            self.position = position
+            self.is_starting = is_starting
+            self.is_captain = name == "Captain"
+            self.is_vice_captain = name == "Vice"
+            self.sub_position = sub_position
+            self.predicted_points = {"tag": {1: 5.0}}
+
+        def __str__(self) -> str:
+            return self.name
+
+    t.players = [
+        MockPlayer("Keeper", "GK", True),
+        MockPlayer("Defender One", "DEF", True),
+        MockPlayer("Defender Two", "DEF", True),
+        MockPlayer("Defender Three", "DEF", True),
+        MockPlayer("Midfielder One", "MID", True),
+        MockPlayer("Midfielder Two", "MID", True),
+        MockPlayer("Midfielder Three", "MID", True),
+        MockPlayer("Midfielder Four", "MID", True),
+        MockPlayer("Captain", "FWD", True),
+        MockPlayer("Vice", "FWD", True),
+        MockPlayer("Forward Three", "FWD", True),
+        MockPlayer("Sub Keeper", "GK", False, 0),
+        MockPlayer("Sub One", "DEF", False, 0),
+        MockPlayer("Sub Two", "MID", False, 1),
+        MockPlayer("Sub Three", "FWD", False, 2),
+    ]
+    scoring_calls = []
+
+    def get_expected_points(gameweek, tag, bench_boost=False, triple_captain=False):
+        scoring_calls.append((gameweek, tag, bench_boost, triple_captain))
+        return 60.0 + 20.0 * bench_boost + 5.0 * triple_captain
+
+    t.get_expected_points = get_expected_points
+    console = Console(record=True, width=100)
+
+    console.print(t.formation_table("tag", 1))
+    console.print(t.formation_table("tag", 1, bench_boost=True))
+    console.print(t.formation_table("tag", 1, triple_captain=True))
+
+    output = console.export_text()
+    assert "Captain" in output
+    assert "(C)" in output
+    assert "Substitutes" in output
+    assert "5.0 pts" in output
+    assert "GAMEWEEK 1" in output
+    assert "60.00pts" in output
+    assert "80.00pts" in output
+    assert "with bench boost" in output
+    assert "65.00pts" in output
+    assert "with triple captain" in output
+    assert "(TC)" in output
+    assert scoring_calls == [
+        (1, "tag", False, False),
+        (1, "tag", True, False),
+        (1, "tag", False, True),
+    ]
 
 
 def test_get_expected_points():
