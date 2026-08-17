@@ -16,7 +16,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import print, track
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -96,7 +96,7 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    for player in players:
+    for player in track(players, description="Predicting player points:"):
         predictions = calc_predicted_points_for_player(
             player,
             fixture_goal_probs,

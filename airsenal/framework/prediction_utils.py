@@ -26,7 +26,7 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import print, track
 from airsenal.framework.player_model import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,
@@ -185,14 +185,9 @@ def get_player_history_df(
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
-
-    for counter, player in enumerate(players):
-        # Use logging and periodic updates instead of printing at every step
-        if counter % 50 == 0 or counter == len(players) - 1:
-            logger.info(
-                f"Filling history dataframe for {player}: {counter}/{len(players)} done"
-            )
-
+    for player in track(
+        players, description=f"Filling player history dataframe for {position}:"
+    ):
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
@@ -431,8 +426,6 @@ def calc_predicted_points_for_player(
             raise ValueError(msg)
         player = p
 
-    message = f"Points prediction for player {player}"
-
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38)))
 
@@ -478,8 +471,6 @@ def calc_predicted_points_for_player(
 
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
-        home_or_away = "at home" if is_home else "away"
-        message += f"\ngameweek: {gameweek} vs {opponent}  {home_or_away}"
         team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
         team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
 
@@ -529,9 +520,6 @@ def calc_predicted_points_for_player(
 
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
-        message += f"\nExpected points: {points:.2f}"
-
-    logger.debug(message)
     return predictions
 
 
