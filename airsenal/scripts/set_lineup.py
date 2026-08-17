@@ -4,7 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import console, print
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -14,8 +14,8 @@ from airsenal.framework.utils import (
 )
 
 
-def check_proceed(squad: Squad) -> bool:
-    print(squad)
+def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
+    console.print(squad.formation_table(tag, gameweek))
     proceed = input("Apply changes to lineup? (yes/no) ")
     if proceed == "yes":
         print("Applying Changes...")
@@ -109,9 +109,10 @@ def set_lineup(
     if verbose:
         print(f"got squad: {squad}")
 
-    squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
+    tag = get_latest_prediction_tag()
+    squad.optimize_lineup(NEXT_GAMEWEEK, tag)
 
-    if not skip_check and not check_proceed(squad):
+    if not skip_check and not check_proceed(squad, tag, NEXT_GAMEWEEK):
         print("Not proceeding with lineup update")
         return
 

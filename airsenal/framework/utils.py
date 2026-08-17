@@ -20,7 +20,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import console, print, table
 from airsenal.framework.schema import (
     Absence,
     Fixture,
@@ -1209,9 +1209,24 @@ def get_top_predicted_points(
     }
 
     first_gw = gameweek[0] if isinstance(gameweek, list) else gameweek
-    print("=" * 50)
-    print(f"PREDICTED TOP {n_players} PLAYERS FOR GAMEWEEK(S) {gameweek}:")
-    print("=" * 50)
+    table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gameweek}"
+
+    def print_predictions(predictions: list[tuple[Player, float]], title: str) -> None:
+        prediction_table = table(
+            "#", "Player", "Team", "Position", "Price", "Predicted Points", title=title
+        )
+        for rank, (player, predicted_points) in enumerate(predictions[:n_players], 1):
+            price = player.price(season, first_gw)
+            price_string = f"£{price / 10}m" if price is not None else "Unknown"
+            prediction_table.add_row(
+                str(rank),
+                str(player),
+                str(player.team(season, first_gw)),
+                str(player.position(season)),
+                price_string,
+                f"{predicted_points:.2f}",
+            )
+        console.print(prediction_table)
 
     if not per_position:
         pts = get_predicted_points(
@@ -1230,14 +1245,7 @@ def get_top_predicted_points(
 
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
 
-        for i, p in enumerate(pts[:n_players]):
-            price = p[0].price(season, first_gw)
-            price_str = str(price / 10) if price is not None else "UNKNOWN_PRICE"
-            print(
-                f"{i + 1}. {p[0]}, {p[1]:.2f}pts "
-                f"(£{price_str}m, {p[0].position(season)}, "
-                f"{p[0].team(season, first_gw)})"
-            )
+        print_predictions(pts, table_title)
 
         # If a valid discord webhook URL has been stored
         # in env variables, send a webhook message
@@ -1267,7 +1275,7 @@ def get_top_predicted_points(
             else:
                 print("Warning: Discord webhook url is malformed!\n", discord_webhook)
     else:
-        for position in ["GK", "DEF", "MID", "FWD"]:
+        for i, position in enumerate(["GK", "DEF", "MID", "FWD"]):
             pts = get_predicted_points(
                 gameweek,
                 tag,
@@ -1283,21 +1291,8 @@ def get_top_predicted_points(
                         pts.remove(p)
 
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
-            print(f"{position}:")
-
-            for i, p in enumerate(pts[:n_players]):
-                maybe_price = p[0].price(season, first_gw)
-                price_str = (
-                    str(maybe_price / 10)
-                    if maybe_price is not None
-                    else "UNKNOWN_PRICE"
-                )
-                print(
-                    f"{i + 1}. {p[0]}, {p[1]:.2f}pts "
-                    f"(£{price_str}m, "
-                    f"{p[0].team(season, first_gw)})"
-                )
-            print("-" * 25)
+            title = f"{table_title}\n{position}" if i == 0 else position
+            print_predictions(pts, title)
 
             discord_embed["fields"] = []
             # If a valid discord webhook URL has been stored

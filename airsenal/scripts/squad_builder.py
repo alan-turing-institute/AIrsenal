@@ -8,7 +8,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import console, print
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -38,6 +38,7 @@ def fill_initial_squad(
     tournament_size: int = 3,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
+    chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
     best_squad = make_new_squad(
         gw_range,
@@ -71,15 +72,21 @@ def fill_initial_squad(
         gw_start,
         sub_weights=sub_weights,
     )
-    next_points = best_squad.get_expected_points(gw_start, tag)
     print("---------------------")
     print(
         "Optimised total score (gameweeks",
         f"{min(gw_range)} to {max(gw_range)}): {optimised_score:.2f}",
     )
-    print(f"Expected points for gameweek {gw_start}: {next_points:.2f}")
     print("---------------------")
-    print(best_squad)
+    chip_gameweeks = chip_gameweeks or {}
+    console.print(
+        best_squad.formation_table(
+            tag,
+            gw_start,
+            bench_boost=chip_gameweeks.get("bench_boost") == gw_start,
+            triple_captain=chip_gameweeks.get("triple_captain") == gw_start,
+        )
+    )
 
     fill_initial_suggestion_table(
         best_squad,

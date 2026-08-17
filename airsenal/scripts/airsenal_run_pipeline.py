@@ -121,20 +121,25 @@ def run_pipeline(
             raise RuntimeError(msg)
         print("Prediction complete..")
 
+        chips_played = setup_chips(
+            wildcard_week=wildcard_week,
+            free_hit_week=free_hit_week,
+            triple_captain_week=triple_captain_week,
+            bench_boost_week=bench_boost_week,
+        )
         if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
             print("Generating a squad..")
-            new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
+            new_squad_ok = run_make_squad(
+                gw_range,
+                fpl_team_id,
+                dbsession,
+                chip_gameweeks=chips_played,
+            )
             if not new_squad_ok:
                 msg = "Problem creating a new squad"
                 raise RuntimeError(msg)
         else:
             print("Running optimization..")
-            chips_played = setup_chips(
-                wildcard_week=wildcard_week,
-                free_hit_week=free_hit_week,
-                triple_captain_week=triple_captain_week,
-                bench_boost_week=bench_boost_week,
-            )
             opt_ok = run_optimize_squad(
                 num_thread=num_thread,
                 gw_range=gw_range,
@@ -245,14 +250,23 @@ def run_prediction(
     return True
 
 
-def run_make_squad(gw_range: list[int], fpl_team_id: int, dbsession: Session) -> bool:
-    """
-    Build the initial squad
-    """
+def run_make_squad(
+    gw_range: list[int],
+    fpl_team_id: int,
+    dbsession: Session,
+    chip_gameweeks: dict[str, int] | None = None,
+) -> bool:
+    """Build the initial squad."""
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
-    fill_initial_squad(tag, gw_range, season, fpl_team_id)
+    fill_initial_squad(
+        tag,
+        gw_range,
+        season,
+        fpl_team_id,
+        chip_gameweeks=chip_gameweeks,
+    )
 
     return True
 
