@@ -7,7 +7,9 @@ import typer
 from airsenal.framework.env import AIRSENAL_ENV_KEYS, delete_env, get_env, save_env
 from airsenal.scripts.set_env import print_env
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True, help="Configure AIrsenal environment variables."
+)
 
 
 @app.command()

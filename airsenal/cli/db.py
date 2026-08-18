@@ -9,7 +9,7 @@ from airsenal.scripts.data_sanity_checks import run_all_checks
 from airsenal.scripts.fill_db_init import create_database
 from airsenal.scripts.update_db import update_database
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, help="Create and update the AIrsenal database.")
 
 
 @app.command()

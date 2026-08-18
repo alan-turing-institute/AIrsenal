@@ -8,7 +8,9 @@ from airsenal.framework.season import CURRENT_SEASON
 from airsenal.scripts.fill_transfersuggestion_table import run_transfer_optimization
 from airsenal.scripts.squad_builder import run_squad_optimization
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True, help="Optimize transfers or full squads for your FPL team."
+)
 
 
 @app.command()
