@@ -1209,7 +1209,12 @@ def get_top_predicted_points(
     }
 
     first_gw = gameweek[0] if isinstance(gameweek, list) else gameweek
-    table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gameweek}"
+    gw_range = (
+        f"{first_gw}–{gameweek[-1]}"  # noqa: RUF001
+        if isinstance(gameweek, list) and gameweek[-1] != first_gw
+        else f"{first_gw}"
+    )
+    table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gw_range}"
 
     def print_predictions(predictions: list[tuple[Player, float]], title: str) -> None:
         prediction_table = table(
