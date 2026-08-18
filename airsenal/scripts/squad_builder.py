@@ -1,5 +1,7 @@
 import sys
 
+from rich.panel import Panel
+
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -8,7 +10,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import console, print
+from airsenal.framework.output import print
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -72,14 +74,15 @@ def fill_initial_squad(
         gw_start,
         sub_weights=sub_weights,
     )
-    print("---------------------")
     print(
-        "Optimised total score (gameweeks",
-        f"{min(gw_range)} to {max(gw_range)}): {optimised_score:.2f}",
+        Panel(
+            f"Optimised total score (Gameweeks {min(gw_range)} to {max(gw_range)}): "
+            f"{optimised_score:.2f}",
+            expand=False,
+        )
     )
-    print("---------------------")
     chip_gameweeks = chip_gameweeks or {}
-    console.print(
+    print(
         best_squad.formation_table(
             tag,
             gw_start,

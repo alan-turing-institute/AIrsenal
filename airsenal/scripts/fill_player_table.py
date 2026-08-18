@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import track
 from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
@@ -31,14 +31,12 @@ def find_player_in_table(
             select(Player).where(Player.opta_code == opta_code).limit(1)
         ).first()
     ):
-        print(f"Found {player} by opta code")
         return player
 
     # look for an exact name match
     if player := dbsession.scalars(
         select(Player).where(Player.name == name).limit(1)
     ).first():
-        print(f"Found {player} by exact name")
         return player
 
     # look for an alternative name
@@ -46,7 +44,6 @@ def find_player_in_table(
         select(PlayerMapping).where(PlayerMapping.alt_name == name).limit(1)
     ).first()
     if mapping:
-        print(f"Found {player} by alternative name")
         return dbsession.scalars(
             select(Player).where(Player.player_id == mapping.player_id).limit(1)
         ).first()
@@ -68,14 +65,12 @@ def fill_player_table_from_file(filename: str, season: str, dbsession: Session) 
     """
     with open(filename) as f:
         jplayers = json.load(f)
-    for jp in jplayers:
+    for jp in track(jplayers, description=f"PLAYERS {season}"):
         new_entry = False
         name = jp["name"]
         opta_code = jp.get("opta_code")
-        print(f"PLAYER {season} {name}")
         p = find_player_in_table(name, dbsession, opta_code=opta_code)
         if not p:
-            print(f"Adding new player {name}")
             new_entry = True
             p = Player()
             p.name = name
@@ -94,7 +89,7 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
     df = FPLDataFetcher()
     pd = df.get_player_summary_data()
 
-    for k, v in pd.items():
+    for k, v in track(pd.items(), description=f"PLAYERS {season}"):
         p = Player()
         p.fpl_api_id = k
         first_name = v["first_name"]  # .encode("utf-8")
@@ -102,7 +97,6 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
         name = f"{first_name} {second_name}"
         display_name = v.get("web_name")
 
-        print(f"PLAYER {season} {name}")
         p.name = name
         p.display_name = display_name
         p.opta_code = v["opta_code"]

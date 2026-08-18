@@ -4,6 +4,7 @@ import warnings
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
+from rich.panel import Panel
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.bpl_interface import (
@@ -78,20 +79,20 @@ def run_pipeline(
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
-            print("Setting up Database..")
+            print(Panel("Database Setup"))
             setup_ok = setup_database(
                 fpl_team_id, n_previous, no_current_season, dbsession
             )
             if not setup_ok:
                 msg = "Problem setting up initial db"
                 raise RuntimeError(msg)
-            print("Database setup complete..")
+            print("[green]Database setup complete![/green]")
             update_attr = False
         else:
             print("Found pre-existing AIrsenal database.")
             update_attr = True
 
-        print("Updating database..")
+        print(Panel("Updating database"))
         try:
             update_ok = update_database(fpl_team_id, update_attr, dbsession)
         except requests.exceptions.RequestException as e:
@@ -107,9 +108,9 @@ def run_pipeline(
             if confirmed == "n":
                 sys.exit()
         else:
-            print("Database update complete..")
+            print("[green]Database update complete![/green]")
 
-        print("Running prediction..")
+        print(Panel("Points Prediction"))
         predict_ok = run_prediction(
             gw_range=gw_range,
             dbsession=dbsession,
@@ -119,7 +120,7 @@ def run_pipeline(
         if not predict_ok:
             msg = "Problem running prediction"
             raise RuntimeError(msg)
-        print("Prediction complete..")
+        print("[green]Prediction complete![/green]")
 
         chips_played = setup_chips(
             wildcard_week=wildcard_week,
@@ -128,7 +129,7 @@ def run_pipeline(
             bench_boost_week=bench_boost_week,
         )
         if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
-            print("Generating a squad..")
+            print(Panel("Generating Squad"))
             new_squad_ok = run_make_squad(
                 gw_range,
                 fpl_team_id,
@@ -139,7 +140,7 @@ def run_pipeline(
                 msg = "Problem creating a new squad"
                 raise RuntimeError(msg)
         else:
-            print("Running optimization..")
+            print(Panel("Optimising Transfers"))
             opt_ok = run_optimize_squad(
                 num_thread=num_thread,
                 gw_range=gw_range,
@@ -154,22 +155,22 @@ def run_pipeline(
                 msg = "Problem running optimization"
                 raise RuntimeError(msg)
 
-        print("Optimization complete..")
+        print("[green]Optimization complete![/green]")
         if apply_transfers:
-            print("Applying suggested transfers...")
+            print(Panel("Applying Transfers"))
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
                 msg = "Problem applying the transfers"
                 raise RuntimeError(msg)
-            print("Setting Lineup...")
+            print(Panel("Setting Lineup"))
             lineup_ok = set_starting_11(fpl_team_id)
             if not lineup_ok:
                 msg = "Problem setting the lineup"
                 raise RuntimeError(msg)
         if save_absences:
-            print("Saving absences to csv...")
+            print(Panel("Saving Absences"))
             save_expected_absences()
-        print("Pipeline finished OK!")
+        print("[green]Pipeline finished![/green]")
 
 
 def setup_database(

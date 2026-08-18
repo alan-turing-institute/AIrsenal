@@ -1765,6 +1765,7 @@ def find_fixture(
     season: str = CURRENT_SEASON,
     kickoff_time: date | datetime | str | None = None,
     dbsession: Session = session,
+    verbose: bool = True,
 ) -> Fixture | None:
     """
     Get a fixture given a team and optionally whether the team was at home or away,
@@ -1813,11 +1814,12 @@ def find_fixture(
     fixtures = dbsession.scalars(query).all()
 
     if not fixtures or len(fixtures) == 0:
-        print(
-            f"No fixture with season={season}, gw={gameweek}, "
-            f"team_name={team_name}, was_home={was_home}, "
-            f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
-        )
+        if verbose:
+            print(
+                f"No fixture with season={season}, gw={gameweek}, "
+                f"team_name={team_name}, was_home={was_home}, "
+                f"other_team_name={other_team_name}, kickoff_time={kickoff_time}"
+            )
         return None
 
     if len(fixtures) == 1:

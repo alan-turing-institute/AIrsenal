@@ -9,7 +9,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
-from airsenal.framework.output import print
+from airsenal.framework.output import print, track
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -32,7 +32,9 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name_or_id, player_data in detail_data.items():
+    for player_name_or_id, player_data in track(
+        detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
+    ):
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name_or_id, dbsession=dbsession)
@@ -40,7 +42,6 @@ def fill_attributes_table_from_file(
             print(f"Couldn't find player {player_name_or_id}")
             continue
 
-        print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
         # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
@@ -99,14 +100,12 @@ def fill_attributes_table_from_api(
 
     input_data = fetcher.get_player_summary_data()
 
-    for player_api_id in input_data:
+    for player_api_id in track(input_data, description=f"PLAYER ATTRIBUTES {season}"):
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
             print(f"ATTRIBUTES {season} No player found with id {player_api_id}")
             continue
-
-        print(f"ATTRIBUTES {season} {player}")
 
         # First update the current gameweek using the summary data
         p_summary = input_data[player_api_id]

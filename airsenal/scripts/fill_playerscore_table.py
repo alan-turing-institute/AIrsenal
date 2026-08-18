@@ -16,7 +16,7 @@ from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import print, track
 from airsenal.framework.schema import (
     Fixture,
     Player,
@@ -213,7 +213,7 @@ def fill_playerscores_from_json(
     ]
     df_attributes = load_attributes_history(season)
 
-    for player_name_or_id in detail_data:
+    for player_name_or_id in track(detail_data, description=f"PLAYER SCORES {season}"):
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name_or_id, dbsession=dbsession)
@@ -227,7 +227,6 @@ def fill_playerscores_from_json(
             else None
         )
 
-        print(f"SCORES {season} {player}")
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name_or_id]:
             # try to find the result in the result table
@@ -336,7 +335,7 @@ def fill_playerscores_from_api(
     df_attributes = load_attributes_history(season)
     fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
-    for player_api_id in input_data:
+    for player_api_id in track(input_data, description=f"PLAYER SCORES {season}"):
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
             # If no player found with this API ID something has gone wrong with the
@@ -350,7 +349,6 @@ def fill_playerscores_from_api(
             else None
         )
 
-        print(f"SCORES {season} {player}")
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
@@ -424,10 +422,7 @@ def fill_playerscores_from_api(
 
                 if add:
                     dbsession.add(ps)
-                print(
-                    f"  got {result['total_points']} points vs {opponent} in gameweek "
-                    f"{gameweek}"
-                )
+                print(ps)
     dbsession.commit()
 
 
