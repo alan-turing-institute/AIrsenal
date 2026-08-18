@@ -4,8 +4,7 @@ from datetime import datetime
 import pandas as pd
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import print
-from airsenal.framework.output import track as tqdm
+from airsenal.framework.output import print, track
 from airsenal.framework.schema import Absence, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -23,7 +22,9 @@ def load_absences(season: str, dbsession: Session) -> None:
     )
     absences = pd.read_csv(path, parse_dates=["from", "until"])
 
-    for _, row in tqdm(absences.iterrows(), total=absences.shape[0]):
+    for _, row in track(
+        absences.iterrows(), total=absences.shape[0], description=f"ABSENCES {season}"
+    ):
         p = get_player(row["player"], dbsession=dbsession)
         if not p:
             print(f"Couldn't find player {row['player']}")

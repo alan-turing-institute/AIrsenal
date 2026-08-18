@@ -23,7 +23,7 @@ def check_clean_db(clean: bool, dbsession: Session) -> bool:
     empty.
     """
     if clean:
-        print("Cleaning database..")
+        print("Cleaning database...")
         clean_database()
     return database_is_empty(dbsession)
 

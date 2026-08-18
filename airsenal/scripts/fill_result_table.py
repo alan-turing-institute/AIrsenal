@@ -8,7 +8,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.output import print
+from airsenal.framework.output import print, track
 from airsenal.framework.schema import Result, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -21,7 +21,7 @@ from airsenal.framework.utils import (
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
     with open(input_file) as f:
         lines = f.readlines()
-    for line in lines[1:]:
+    for line in track(lines[1:], description=f"RESULTS {season}"):
         (
             _date,
             home_team,
@@ -30,7 +30,6 @@ def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> N
             away_score,
             _gameweek,
         ) = line.strip().split(",")
-        print(line.strip())
         for k, v in alternative_team_names.items():
             if home_team in v:
                 home_team = k
@@ -60,7 +59,18 @@ def fill_results_from_api(
 ) -> None:
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
-    for m in matches:
+    if get_last_finished_gameweek() == 0:
+        print(
+            f"No complete gameweeks, skipping match result update for {season} season"
+        )
+        return
+    if (
+        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
+        == get_last_finished_gameweek()
+    ):
+        print(f"Match results up-to-date, skipping update for {season} season")
+        return
+    for m in track(matches, description=f"RESULTS {season}"):
         if not m["finished"]:
             continue
         gameweek = m["event"]
