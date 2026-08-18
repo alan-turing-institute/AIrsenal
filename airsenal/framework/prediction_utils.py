@@ -2,6 +2,7 @@
 Use the BPL models to predict scores for upcoming fixtures.
 """
 
+import logging
 import os
 import uuid
 from collections import defaultdict
@@ -57,17 +58,26 @@ from airsenal.framework.utils import (
     was_historic_absence,
 )
 
+logger = logging.getLogger(__name__)
+
 np.random.seed(42)
-# consider probabilities of scoring/conceding up to this many goals
+
+# Global Sabitler
 MAX_GOALS = 10
+MIN_MINUTES_SHORT = 30
+MIN_MINUTES_FULL = 60
+MAX_MINUTES_MATCH = 90
 
 
-def check_absence(player, gameweek, season, dbsession=session):
+def check_absence(
+    player: Player,
+    gameweek: int,
+    season: str,
+    dbsession: Session = session,
+) -> tuple[str | list[str] | None, str | list[str] | None]:
     """
     Query the Absence table for a given player and season to see if the
     gameweek is within the period of absence. If so, return the details of absence.
-
-    Returns: the Absence object (which may be empty if there was no absence)
     """
     absence = dbsession.scalars(
         select(Absence).where(
@@ -77,14 +87,15 @@ def check_absence(player, gameweek, season, dbsession=session):
             Absence.gw_until > gameweek,
         )
     ).all()
-    # save the reasons and details - there may be more than 1 reason for absence
+
     reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
     details = [ab.details for ab in absence] if len(absence) > 0 else None
-    # for those that just have one reason, just take first element of list
+
     if reasons is not None:
         reasons = reasons[0] if len(reasons) == 1 else reasons
     if details is not None:
         details = details[0] if len(details) == 1 else details
+
     return reasons, details
 
 
@@ -96,18 +107,6 @@ def get_player_history_df(
     gameweek=NEXT_GAMEWEEK,
     dbsession=session,
 ) -> pd.DataFrame:
-    """
-    Query the player_score table to get goals/assists/minutes, and then
-    get the team_goals from the match table.
-    If all_players=True, will get the player history for every player available in the
-    PlayerAttributes table, otherwise will only get players available for the season
-    and gameweek.
-    If fill_blank=True, will fill blank rows for players that do not have enough data
-    to have the same number of rows as the maximum number of matches for player in the
-    season and gameweek.
-    The 'season' argument defined the set of players that will be considered, but
-    for those players, all results will be used.
-    """
     col_names = [
         "player_id",
         "player_name",
@@ -125,6 +124,7 @@ def get_player_history_df(
         "absence_detail",
     ]
     player_data = []
+
     if all_players:
         q = dbsession.scalars(
             select(PlayerAttributes).options(selectinload(PlayerAttributes.player))
@@ -144,6 +144,7 @@ def get_player_history_df(
     player_ids = [p.player_id for p in players]
     scores_by_player = defaultdict(list)
     absences_by_player_season = defaultdict(list)
+
     if player_ids:
         all_scores = dbsession.scalars(
             select(PlayerScore)
@@ -180,8 +181,12 @@ def get_player_history_df(
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
+
     for counter, player in enumerate(players):
-        print(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
+        # Her adımda print etmek yerine logging ve periyodik bildirim kullanımı
+        if counter % 50 == 0 or counter == len(players) - 1:
+            logger.info(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
+
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
@@ -195,21 +200,23 @@ def get_player_history_df(
 
             match_id = row.result_id
             if not match_id:
-                print(f" Couldn't find result for {row.fixture}")
+                logger.warning(f"Couldn't find result for {row.fixture}")
                 continue
+
             minutes = row.minutes
             goals = row.goals
             assists = row.assists
-            # find the match, in order to get team goals
             match_result = row.result
             match_date = row.fixture.date
+
             if row.fixture.home_team == row.opponent:
                 team_goals = match_result.away_score
             elif row.fixture.away_team == row.opponent:
                 team_goals = match_result.home_score
             else:
-                print("Unknown opponent!")
+                logger.warning("Unknown opponent!")
                 team_goals = -1
+
             expected_goals = row.expected_goals
             expected_assists = row.expected_assists
             matching_absences = [
@@ -231,6 +238,7 @@ def get_player_history_df(
                 absence_reason = absence_reason[0]
             if absence_detail is not None and len(absence_detail) == 1:
                 absence_detail = absence_detail[0]
+
             player_data.append(
                 [
                     player.player_id,
@@ -252,25 +260,13 @@ def get_player_history_df(
             row_count += 1
 
         if fill_blank and row_count < max_matches_per_player:
-            # fill blank rows so they are all the same size
-            player_data += [
-                [
-                    player.player_id,
-                    player.name,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    None,
-                    None,
-                ]
-            ] * (max_matches_per_player - row_count)
+            blank_row = [
+                player.player_id,
+                player.name,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                None, None,
+            ]
+            player_data.extend([list(blank_row) for _ in range(max_matches_per_player - row_count)])
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -285,22 +281,15 @@ def get_attacking_points(
     team_score_prob: dict[int, float],
     player_prob: pd.Series,
 ) -> float:
-    """
-    Use team-level and player-level models.
-    """
     if minutes == 0.0:
-        # if no minutes are played, can't score any points
         return 0.0
 
-    # compute multinomial probabilities given time spent on pitch
     pr_score = (minutes / 90.0) * player_prob["prob_score"]
     pr_assist = (minutes / 90.0) * player_prob["prob_assist"]
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
     def _get_partitions(n):
-        # partition n goals into possible combinations of
-        # [n_goals, n_assists, n_neither]
         partitions = []
         for i in range(n + 1):
             for j in range(n - i + 1):
@@ -308,13 +297,10 @@ def get_attacking_points(
         return partitions
 
     def _get_partition_score(partition):
-        # calculate the points scored for a given partition
         return (
             points_for_goal[position] * partition[0] + points_for_assist * partition[1]
         )
 
-    # compute the weighted sum of terms like:
-    #   points(ng, na, nn) * p(ng, na, nn | Ng, T) * p(Ng)
     exp_points = 0.0
     for ngoals, score_n_prob in team_score_prob.items():
         if ngoals > 0:
@@ -333,21 +319,14 @@ def get_attacking_points(
 def get_defending_points(
     position: str, minutes: int | float, team_concede_prob: dict[int, float]
 ) -> float:
-    """
-    Only need the team-level model.
-    """
     if position == "FWD" or minutes == 0.0:
-        # forwards don't get defending points
-        # if no minutes are played, can't get any points
         return 0.0
+
     defending_points = 0.0
-    if minutes >= 60:
-        # TODO - what about if the team concedes only after player comes off?
+    if minutes >= MIN_MINUTES_FULL:
         defending_points = points_for_cs[position] * team_concede_prob[0]
+
     if position in ["DEF", "GK"]:
-        # lose 1 point per 2 goals conceded if player is on pitch for both
-        # lets simplify, say that its only the last goal that matters, and
-        # chance that player was on pitch for that is expected_minutes/90
         defending_points -= sum(
             (ngoals // 2) * (minutes / 90) * concede_n_prob
             for ngoals, concede_n_prob in team_concede_prob.items()
@@ -359,77 +338,42 @@ def get_bonus_points(
     player_id: int, minutes: int | float, df_bonus: tuple[pd.Series, pd.Series]
 ) -> float:
     """
-    Returns expected bonus points scored by player_id when playing minutes minutes.
-
-    df_bonus : Tuple containing df of average bonus pts scored when playing at least
-    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index
-    (as calculated by fit_bonus_points()).
-
-    NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
-    must be changed together.
+    Sadeleştirilmiş ve güvenli bonus puan hesaplaması.
     """
-    if minutes >= 60 and player_id in df_bonus[0].index:
-        return df_bonus[0].loc[player_id]
-    if (
-        minutes >= 60
-        or (minutes >= 30 and player_id not in df_bonus[1].index)
-        or minutes < 30
-    ):
-        return 0
-    return df_bonus[1].loc[player_id]
+    if minutes >= MIN_MINUTES_FULL:
+        return float(df_bonus[0].get(player_id, 0.0))
+    if minutes >= MIN_MINUTES_SHORT:
+        return float(df_bonus[1].get(player_id, 0.0))
+    return 0.0
 
 
 def get_def_con_points(
     player_id: int, minutes: int | float, df_def_con: tuple[pd.Series, pd.Series]
 ) -> float:
     """
-    Returns expected defensive contribution points scored by player_id when playing
-    minutes minutes.
-
-    df_def_con : Tuple containing df of average def_con_pts scored when playing at least
-    60 minutes in 1st index, and when playing between 30 and 60 minutes in 2nd index
-    (as calculated by fit_def_con_points()).
-
-    NOTE: Minutes values are currently hardcoded - this function and fit_def_con_points
-    must be changed together.
+    Sadeleştirilmiş ve güvenli savunma katkısı puan hesaplaması.
     """
-    if minutes >= 60 and player_id in df_def_con[0].index:
-        return df_def_con[0].loc[player_id]
-    if (
-        minutes >= 60
-        or (minutes >= 30 and player_id not in df_def_con[1].index)
-        or minutes < 30
-    ):
-        return 0
-    return df_def_con[1].loc[player_id]
+    if minutes >= MIN_MINUTES_FULL:
+        return float(df_def_con[0].get(player_id, 0.0))
+    if minutes >= MIN_MINUTES_SHORT:
+        return float(df_def_con[1].get(player_id, 0.0))
+    return 0.0
 
 
 def get_save_points(
     position: str, player_id: int, minutes: int | float, df_saves: pd.Series
 ) -> float:
-    """
-    Returns average save points scored by player_id when playing minutes minutes (or
-    zero if this player's position is not GK).
-
-    df_saves - as calculated by fit_save_points()
-    """
     if position != "GK":
         return 0.0
-    if minutes >= 60 and player_id in df_saves.index:
-        return df_saves.loc[player_id]
+    if minutes >= MIN_MINUTES_FULL:
+        return float(df_saves.get(player_id, 0.0))
     return 0.0
 
 
 def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -> float:
-    """
-    Returns average points lost by player_id due to yellow and red cards in matches
-    they played at least 1 minute.
-
-    df_cards - as calculated by fit_card_points().
-    """
-    if minutes >= 30 and player_id in df_cards.index:
-        return df_cards.loc[player_id]
-    return 0
+    if minutes >= MIN_MINUTES_SHORT:
+        return float(df_cards.get(player_id, 0.0))
+    return 0.0
 
 
 def calc_predicted_points_for_player(
@@ -447,11 +391,6 @@ def calc_predicted_points_for_player(
     tag: str = "",
     dbsession: Session = session,
 ) -> list[PlayerPrediction]:
-    """
-    Use the team-level model to get the probs of scoring or conceding
-    N goals, and player-level model to get the chance of player scoring
-    or assisting given that their team scores.
-    """
     if isinstance(player, str | int):
         p = get_player(player, dbsession=dbsession)
         if p is None:
@@ -462,35 +401,28 @@ def calc_predicted_points_for_player(
     message = f"Points prediction for player {player}"
 
     if not gw_range:
-        # by default, go for next three matches
-        gw_range = list(
-            range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38))
-        )  # don't go beyond gw 38!
+        gw_range = list(range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38)))
 
     if fixtures_behind is None:
-        # default to getting recent minutes from the same number of matches we're
-        # predicting for
         fixtures_behind = len(gw_range)
 
     fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
-    team = player.team(
-        season, gw_range[0]
-    )  # assume player stays with same team from first gameweek in range
+    team = player.team(season, gw_range[0])
     position = player.position(season)
     if position is None or team is None:
         msg = f"Player {player} has missing team or position for season {season}"
         raise ValueError(msg)
+
     fixtures = get_fixtures_for_player(
         player, season, gw_range=gw_range, dbsession=dbsession
     )
-    # fitted probability of scoring/assisting for this player
+
     player_prob = df_player[position].loc[player.player_id]
     if not isinstance(player_prob, pd.Series):
         msg = f"player_prob for {player} is not a Series, but {type(player_prob)}"
         raise RuntimeError(msg)
 
-    # use same recent_minutes from previous gameweeks for all predictions
     recent_minutes = get_recent_minutes_for_player(
         player,
         num_match_to_use=fixtures_behind,
@@ -499,23 +431,18 @@ def calc_predicted_points_for_player(
         dbsession=dbsession,
     )
     if len(recent_minutes) == 0:
-        # e.g. for gameweek 1
-        # this should now be dealt with in get_recent_minutes_for_player, so
-        # throw error if not.
-        # recent_minutes = estimate_minutes_from_prev_season(
-        #    player, season=season, dbsession: Session = session
-        # )
         msg = "Recent minutes is empty."
         raise ValueError(msg)
 
-    expected_points = defaultdict(float)  # default value is 0.
-    predictions = []  # list that will hold PlayerPrediction objects
+    expected_points = defaultdict(float)
+    predictions = []
 
     for fixture in fixtures:
         gameweek = fixture.gameweek
         if gameweek is None:
-            print(f"Skipping fixture {fixture} with no gameweek")
+            logger.info(f"Skipping fixture {fixture} with no gameweek")
             continue
+
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
         home_or_away = "at home" if is_home else "away"
@@ -527,14 +454,8 @@ def calc_predicted_points_for_player(
         expected_points[gameweek] = points
 
         if sum(recent_minutes) == 0:
-            # 'recent_minutes' contains the number of minutes that player played for
-            # in the past few matches. If these are all zero, we will for sure predict
-            # zero points for this player, so we don't need to call all the functions to
-            # calculate appearance points, defending points, attacking points.
             points = 0.0
-
         elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
-            # Points for fixture will be zero if suspended or injured
             points = 0.0
         elif was_historic_absence(
             player,
@@ -542,10 +463,8 @@ def calc_predicted_points_for_player(
             season=season,
             dbsession=dbsession,
         ):
-            # Points will be zero if player was suspended or injured (in past season)
             points = 0.0
         else:
-            # now loop over recent minutes and average
             points = 0
             for mins in recent_minutes:
                 points += (
@@ -571,16 +490,15 @@ def calc_predicted_points_for_player(
 
             points /= len(recent_minutes)
 
-        # create the PlayerPrediction for this player+fixture
         if np.isnan(points):
             msg = f"nan points for {player} {fixture} {points} {tag}"
             raise ValueError(msg)
+
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
-        # and return the per-gameweek predictions as a dict
         message += f"\nExpected points: {points:.2f}"
 
-    print(message)
+    logger.debug(message)
     return predictions
 
 
@@ -597,10 +515,6 @@ def calc_predicted_points_for_pos(
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> dict[int, list[PlayerPrediction]]:
-    """
-    Calculate points predictions for all players in a given position and
-    put into the DB.
-    """
     df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
     return {
         player.player_id: calc_predicted_points_for_player(
@@ -625,9 +539,6 @@ def calc_predicted_points_for_pos(
 def make_prediction(
     player: Player, fixture: Fixture, points: float, tag: str
 ) -> PlayerPrediction:
-    """
-    Fill one row in the player_prediction table.
-    """
     pp = PlayerPrediction()
     pp.predicted_points = points
     pp.tag = tag
@@ -637,30 +548,31 @@ def make_prediction(
 
 
 def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
-    """
-    Fill the database with FPLs ep_next prediction, and also
-    write output to a csv.
-    """
     if not os.path.exists(csv_filename):
         with open(csv_filename, "w") as outfile:
             outfile.write("player_id,gameweek,EP\n")
+
     tag = f"EP-{uuid.uuid4()!s}"
     summary_data = fetcher.get_player_summary_data()
     gameweek = NEXT_GAMEWEEK
+
     with open(csv_filename, "a") as outfile:
         for k, v in summary_data.items():
             player = get_player_from_api_id(k)
             if player is None:
-                print(f"Player with API ID {k} not found in database")
+                logger.warning(f"Player with API ID {k} not found in database")
                 continue
+
             player_id = player.player_id
             outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
+
             pp = PlayerPrediction()
             pp.player_id = player_id
             pp.fixture.gameweek = gameweek
             pp.predicted_points = v["ep_next"]
             pp.tag = tag
             dbsession.add(pp)
+
     dbsession.commit()
 
 
@@ -670,11 +582,6 @@ def process_player_data(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
 ) -> dict:
-    """
-    Transform the player dataframe, basically giving a list (for each player)
-    of lists of minutes (for each match, and a list (for each player) of
-    lists of ["goals","assists","neither"] (for each match).
-    """
     df = get_player_history_df(
         prefix, season=season, gameweek=gameweek, dbsession=dbsession
     )
@@ -686,7 +593,9 @@ def process_player_data(
         0.0,
     ]
     alpha = get_empirical_bayes_estimates(df)
-    y = df.sort_values("player_id")[["goals", "assists", "neither"]].values.reshape(
+
+    # .values yerine modern Pandas standardı olan .to_numpy() kullanımı
+    y = df.sort_values("player_id")[["goals", "assists", "neither"]].to_numpy().reshape(
         (
             df["player_id"].nunique(),
             df.groupby("player_id").count().iloc[0]["player_name"],
@@ -694,7 +603,7 @@ def process_player_data(
         )
     )
 
-    minutes = df.sort_values("player_id")[["minutes"]].values.reshape(
+    minutes = df.sort_values("player_id")[["minutes"]].to_numpy().reshape(
         (
             df["player_id"].nunique(),
             df.groupby("player_id").count().iloc[0]["player_name"],
@@ -705,8 +614,6 @@ def process_player_data(
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
 
-    # compute the time difference for each fixture in results to the first fixture of
-    # the next gameweek
     now_date = np.array(
         [
             pd.Timestamp(f.date).replace(tzinfo=None).date()
@@ -714,12 +621,10 @@ def process_player_data(
             if f.date is not None
         ]
     ).min()
-    # df has blank placeholder rows with NaT "date" to ensure the same number of rows
-    # per player. Fill these with the earliest match date as a placeholder, but they
-    # will get ignored when fitting the model.
+
     match_date = df["date"].fillna(df["date"].min()).dt.date
     df["time_diff"] = (now_date - match_date) / pd.Timedelta(days=365)
-    time_diff = df.sort_values("player_id")[["time_diff"]].values.reshape(
+    time_diff = df.sort_values("player_id")[["time_diff"]].to_numpy().reshape(
         (
             df["player_id"].nunique(),
             df.groupby("player_id").count().iloc[0]["player_name"],
@@ -746,13 +651,12 @@ def fit_player_data(
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
-    """
-    Fit the data for a particular position (FWD, MID, DEF).
-    """
     if model is None:
         model = ConjugatePlayerModel()
+
     data = process_player_data(position, season, gameweek, dbsession)
-    print("Fitting player model for", position, "...")
+    logger.info(f"Fitting player model for {position} ...")
+
     model = fastcopy(model)
     fitted_model = model.fit(data, epsilon=epsilon, n_goals_prior=n_goals_prior)
     df = pd.DataFrame(fitted_model.get_probs())
@@ -791,14 +695,10 @@ def get_player_scores(
     season: str,
     gameweek: int,
     min_minutes: int = 0,
-    max_minutes: int = 90,
+    max_minutes: int = MAX_MINUTES_MATCH,
     position: str | None = None,
     dbsession: Session = session,
 ) -> pd.DataFrame:
-    """
-    Utility function to get player scores rows up to (or the same as) season and
-    gameweek as a dataframe
-    """
     query = (
         select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
         .where(PlayerScore.minutes >= min_minutes)
@@ -831,10 +731,6 @@ def mean_group_prior(
     n_prior: int = 10,
     prior_by_position: bool = False,
 ) -> pd.Series:
-    """
-    Calculate mean of column col in df, grouped by group_col, mixed with n_prior matches
-    worth of data using the overall mean of mean_col.
-    """
     group_counts = df.groupby(group_col)[mean_col].count()
     group_sums = df.groupby(group_col)[mean_col].sum()
     group_position = (
@@ -857,19 +753,6 @@ def fit_bonus_points(
     n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
-    """
-    Calculate the average bonus points scored by each player for matches they play
-    between 60 and 90 minutes, and matches they play between 30 and 59 minutes.
-    Mean is calculated as sum of all bonus points divided by either the number of
-    maches the player has played in or min_matches, whichever is greater.
-
-    Returns tuple of dataframes - first index bonus points for 60 to 90 mins, second
-    index bonus points for 30 to 59 mins.
-
-    NOTE: Minutes values are currently hardcoded - this function and fit_bonus_points
-    must be changed together.
-    """
-
     def get_bonus_df(min_minutes, max_minutes):
         df = get_player_scores(
             season,
@@ -882,8 +765,8 @@ def fit_bonus_points(
             df, "player_id", "bonus", n_prior=n_prior, prior_by_position=True
         )
 
-    df_90 = get_bonus_df(60, 90)
-    df_60 = get_bonus_df(30, 59)
+    df_90 = get_bonus_df(MIN_MINUTES_FULL, MAX_MINUTES_MATCH)
+    df_60 = get_bonus_df(MIN_MINUTES_SHORT, MIN_MINUTES_FULL - 1)
 
     return (df_90, df_60)
 
@@ -892,17 +775,9 @@ def fit_save_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
-    min_minutes: int = 90,
+    min_minutes: int = MAX_MINUTES_MATCH,
     dbsession: Session = session,
 ) -> pd.Series:
-    """
-    Calculate the average save points scored by each goalkeeper for matches they
-    played at least min_minutes in.
-    Mean is calculated as sum of all save points divided by either the number of
-    matches the player has played in or min_matches, whichever is greater.
-
-    Returns pandas series index by player ID, values average save points.
-    """
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
     )
@@ -919,12 +794,6 @@ def fit_card_points(
     min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
-    """
-    Calculate the average points per match lost to yellow or red cards
-    for each player.
-
-    Returns pandas series index by player ID, values average card points.
-    """
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
@@ -945,17 +814,6 @@ def fit_def_con(
     n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
-    """
-    Calculate the average defensive contribution points scored by each player for
-    matches they play between 60 and 90 minutes, and matches they play between 30 and
-    59 minutes.
-    Mean is calculated as sum of all bonus points divided by either the number of
-    maches the player has played in or min_matches, whichever is greater.
-
-    Returns tuple of dataframes - first index bonus points for 60 to 90 mins, second
-    index bonus points for 30 to 59 mins.
-    """
-
     def get_def_con_df(min_minutes, max_minutes):
         dfs = []
         for position in ["DEF", "MID", "FWD"]:
@@ -980,7 +838,7 @@ def fit_def_con(
             prior_by_position=True,
         )
 
-    df_90 = get_def_con_df(60, 90)
-    df_60 = get_def_con_df(30, 59)
+    df_90 = get_def_con_df(MIN_MINUTES_FULL, MAX_MINUTES_MATCH)
+    df_60 = get_def_con_df(MIN_MINUTES_SHORT, MIN_MINUTES_FULL - 1)
 
     return (df_90, df_60)
