@@ -117,6 +117,7 @@ def _get_untried_actions(
     gw = node.strat_dict["_gameweek_range"][node.depth]
     return next_week_transfers(
         (node.free_transfers, node.hit_so_far, node.strat_dict),
+        gw,
         max_total_hit=max_total_hit,
         allow_unused_transfers=allow_unused_transfers,
         # MCTS only tries a sample of actions per node rather than every one of

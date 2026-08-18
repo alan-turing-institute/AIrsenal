@@ -97,6 +97,7 @@ def test_actions_never_fall_outside_next_week_transfers():
     valid_root_actions = set(
         next_week_transfers(
             (root.free_transfers, root.hit_so_far, root.strat_dict),
+            1,
             max_opt_transfers=2,
             max_free_transfers=2,
             chips={},
@@ -110,6 +111,7 @@ def test_actions_never_fall_outside_next_week_transfers():
         valid_child_actions = set(
             next_week_transfers(
                 (child.free_transfers, child.hit_so_far, child.strat_dict),
+                2,
                 max_opt_transfers=2,
                 max_free_transfers=2,
                 chips={},

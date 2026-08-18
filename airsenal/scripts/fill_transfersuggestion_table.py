@@ -228,6 +228,7 @@ def optimize(
             # add children to the queue
             strategies = next_week_transfers(
                 (free_transfers, hit_so_far, strat_dict),
+                gw + 1,
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_opt_transfers=max_transfers,
@@ -771,12 +772,62 @@ def _mcts_worker(
     result_queue.put(trajectory)
 
 
+# FPL API chip name -> AIrsenal's internal chip name. Confirmed against a real live
+# get_current_squad_data() response ("bboost"/"3xc" seen directly; "wildcard"/
+# "freehit" already used elsewhere in this codebase, e.g. transaction_utils.py's
+# active_chip check). If get_available_chips ever returns a name not in this mapping
+# (e.g. FPL renames a chip), _detect_available_chip_gameweeks raises rather than
+# silently under-offering chips.
+_FPL_API_CHIP_NAMES = {
+    "wildcard": "wildcard",
+    "freehit": "free_hit",
+    "bboost": "bench_boost",
+    "3xc": "triple_captain",
+}
+
+
+def _detect_available_chip_gameweeks(fpl_team_id: int, use_api: bool) -> dict[str, int]:
+    """Build a chip_gameweeks dict (see construct_chip_dict) reflecting which chips
+    are genuinely still available, for run_mcts_optimization's auto_detect_chips=True
+    - MCTS (unlike the exhaustive tree) can afford to consider any available chip at
+    any gameweek, so this replaces the need to manually specify --wildcard_week 0 etc.
+
+    Live current season (use_api=True): asks the FPL API directly
+    (FPLDataFetcher.get_available_chips), which already reflects real usage history
+    including FPL's one-chip-per-half-of-season rule - no need to model that here.
+
+    Replay/past season (use_api=False): no live API access and no DB record of
+    historical chip usage exists (Transaction only tracks a free_hit flag), so this
+    assumes a fresh, fully unused allocation as of the start of the search window -
+    relying on next_week_transfers' half-aware reuse check (_chip_half in
+    optimization_utils.py) to correctly cap each chip at one use per half as the
+    search crosses gameweek 19/20 on its own.
+    """
+    if not use_api:
+        return dict.fromkeys(_FPL_API_CHIP_NAMES.values(), 0)
+
+    available = fetcher.get_available_chips(fpl_team_id)
+    unknown = set(available) - set(_FPL_API_CHIP_NAMES)
+    if unknown:
+        msg = (
+            f"get_available_chips returned unrecognised chip name(s) {unknown} - "
+            "the FPL API -> AIrsenal chip name mapping in _FPL_API_CHIP_NAMES needs "
+            "updating."
+        )
+        raise RuntimeError(msg)
+    return {
+        internal_name: (0 if api_name in available else -1)
+        for api_name, internal_name in _FPL_API_CHIP_NAMES.items()
+    }
+
+
 def run_mcts_optimization(
     gameweeks: list[int],
     tag: str,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     chip_gameweeks: dict | None = None,
+    auto_detect_chips: bool = False,
     num_free_transfers: int | None = None,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -794,9 +845,12 @@ def run_mcts_optimization(
     its own independent MCTS search of mcts_iterations iterations from the same
     starting squad, and the best trajectory found across all of them is used. Same
     setup and output contract as run_optimization, so it's a drop-in alternative.
+
+    auto_detect_chips - if True, ignore `chip_gameweeks` and instead consider every
+    still-available chip at any gameweek in the window (see
+    _detect_available_chip_gameweeks) - MCTS (unlike the exhaustive tree) can afford
+    this rather than needing chips manually restricted to specific gameweeks.
     """
-    if chip_gameweeks is None:
-        chip_gameweeks = {}
     discord_webhook = fetcher.DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -856,6 +910,10 @@ def run_mcts_optimization(
         )
     print(f"Starting with {num_free_transfers} free transfers")
 
+    if auto_detect_chips:
+        chip_gameweeks = _detect_available_chip_gameweeks(fpl_team_id, use_api)
+    elif chip_gameweeks is None:
+        chip_gameweeks = {}
     chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
 
     # Specific fix (aka hack) for the 2022 World Cup, where everyone
@@ -928,7 +986,7 @@ def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     { <gw>: {"chip_to_play": [<chip_name>],
              "chips_allowed": [<chip_name>,...]},...}
     """
-    chip_dict: dict[int, dict[str, str | None | list[str]]] = {}
+    chip_dict: dict[int, dict[str, str | list[str] | None]] = {}
     # first fill in any allowed chips
     for gw in gameweeks:
         chip_to_play: str | None = None
@@ -970,6 +1028,9 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
         raise RuntimeError(msg)
     if args.num_free_transfers and args.num_free_transfers not in range(6):
         msg = "Number of free transfers must be 0 to 5"
+        raise RuntimeError(msg)
+    if args.auto_chips and args.search_method != "mcts":
+        msg = "--auto_chips is only supported with --search_method mcts"
         raise RuntimeError(msg)
     return True
 
@@ -1080,6 +1141,15 @@ def main():
         type=int,
         default=500,
     )
+    parser.add_argument(
+        "--auto_chips",
+        help=(
+            "[mcts only] ignore --wildcard_week etc. and instead consider any "
+            "still-available chip at any gameweek - see "
+            "_detect_available_chip_gameweeks in this file"
+        ),
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -1128,12 +1198,13 @@ def main():
                 season,
                 fpl_team_id,
                 chip_gameweeks,
-                num_free_transfers,
-                max_total_hit,
-                allow_unused_transfers,
-                args.mcts_iterations,
-                num_iterations,
-                num_thread,
+                num_free_transfers=num_free_transfers,
+                max_total_hit=max_total_hit,
+                allow_unused_transfers=allow_unused_transfers,
+                mcts_iterations=args.mcts_iterations,
+                num_iterations=num_iterations,
+                num_thread=num_thread,
+                auto_detect_chips=args.auto_chips,
                 is_replay=args.is_replay,
             )
         else:
