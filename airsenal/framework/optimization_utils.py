@@ -438,7 +438,7 @@ def _transfer_count_candidates(ft_available, max_opt_transfers, min_transfers=0)
     return sorted(c for c in candidates if min_transfers <= c <= max_opt_transfers)
 
 
-def _chip_half(gameweek: int) -> int:
+def chip_half(gameweek: int) -> int:
     """Which of the two chip-allocation halves a gameweek falls in - FPL has given
     two of each chip (wildcard, free hit, bench boost, triple captain) per season
     since 2023/24, one usable up to and including gameweek 19, a second from gameweek
@@ -464,7 +464,7 @@ def next_week_transfers(
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
 
     gameweek - the gameweek this call is deciding transfers/chips for, used to check
-    chip reuse against the correct half of the season (see _chip_half) - a chip can be
+    chip reuse against the correct half of the season (see chip_half) - a chip can be
     played once in each half, not just once ever.
 
     max_opt_transfers - maximum number of transfers to play each week as part of
@@ -511,12 +511,12 @@ def next_week_transfers(
             if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
         ]
 
-    # a chip can be played once per half of the season (see _chip_half), not just
+    # a chip can be played once per half of the season (see chip_half), not just
     # once ever - so only chips played in the *same* half as `gameweek` count as used.
     used_this_half = {
         chip
         for played_gw, chip in chip_history.items()
-        if chip and _chip_half(played_gw) == _chip_half(gameweek)
+        if chip and chip_half(played_gw) == chip_half(gameweek)
     }
     allow_wildcard = (
         "chips_allowed" in chips
@@ -596,7 +596,7 @@ def count_expected_outputs(
     * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
     are available), if allow_unused_transfers is False.
     * Make a maximum of max_opt_transfers transfers each gameweek.
-    * Each chip only allowed once per half of the season (see _chip_half).
+    * Each chip only allowed once per half of the season (see chip_half).
 
     Returns
     -------

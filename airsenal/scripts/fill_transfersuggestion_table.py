@@ -799,7 +799,7 @@ def _detect_available_chip_gameweeks(fpl_team_id: int, use_api: bool) -> dict[st
     Replay/past season (use_api=False): no live API access and no DB record of
     historical chip usage exists (Transaction only tracks a free_hit flag), so this
     assumes a fresh, fully unused allocation as of the start of the search window -
-    relying on next_week_transfers' half-aware reuse check (_chip_half in
+    relying on next_week_transfers' half-aware reuse check (chip_half in
     optimization_utils.py) to correctly cap each chip at one use per half as the
     search crosses gameweek 19/20 on its own.
     """
