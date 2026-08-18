@@ -10,7 +10,9 @@ from airsenal.scripts.dump_db_contents import main as dump_db
 from airsenal.scripts.save_expected_absences import main as save_absences
 from airsenal.scripts.scrape_transfermarkt import scrape_transfermarkt
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True, help="Archive AIrsenal and FPL data for the current season."
+)
 
 
 @app.command()

@@ -7,7 +7,9 @@ import typer
 from airsenal.scripts.make_transfers import make_transfers
 from airsenal.scripts.set_lineup import set_lineup
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True, help="Apply AIrsenal recommendations to your FPL team."
+)
 
 
 @app.command()
