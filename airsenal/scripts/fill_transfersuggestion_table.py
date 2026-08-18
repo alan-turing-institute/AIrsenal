@@ -29,6 +29,7 @@ import requests
 from prettytable import PrettyTable
 from tqdm import TqdmWarning, tqdm
 
+from airsenal.framework.chip_heuristics import suggest_chip_gameweeks
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.mcts_optimization import (
     DEFAULT_EXPLORATION_CONSTANT,
@@ -411,6 +412,8 @@ def run_optimization(
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     chip_gameweeks: dict | None = None,
+    use_chip_heuristic: bool = False,
+    chips_played_history: dict[int, str] | None = None,
     num_free_transfers: int | None = None,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -428,9 +431,13 @@ def run_optimization(
     The chip-related variables e.g. wildcard_week are -1 if that chip
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
+
+    use_chip_heuristic - if True, ignore `chip_gameweeks` and instead compute it
+    via airsenal.framework.chip_heuristics.suggest_chip_gameweeks() once the
+    starting squad is known. `chips_played_history` (gameweek -> chip name, from
+    calls prior to this one - e.g. earlier gameweeks in a replay_season.py run) is
+    passed through so a chip already played isn't suggested again.
     """
-    if chip_gameweeks is None:
-        chip_gameweeks = {}
     discord_webhook = fetcher.DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -500,6 +507,17 @@ def run_optimization(
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     # first get a baseline prediction
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
+
+    if use_chip_heuristic:
+        chip_gameweeks = suggest_chip_gameweeks(
+            starting_squad,
+            gameweeks,
+            tag,
+            season,
+            chips_played=chips_played_history,
+        )
+    elif chip_gameweeks is None:
+        chip_gameweeks = {}
 
     # Get a dict of what chips we definitely or possibly will play
     # in each gw
@@ -828,6 +846,8 @@ def run_mcts_optimization(
     fpl_team_id: int | None = None,
     chip_gameweeks: dict | None = None,
     auto_detect_chips: bool = False,
+    use_chip_heuristic: bool = False,
+    chips_played_history: dict[int, str] | None = None,
     num_free_transfers: int | None = None,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -850,7 +870,18 @@ def run_mcts_optimization(
     still-available chip at any gameweek in the window (see
     _detect_available_chip_gameweeks) - MCTS (unlike the exhaustive tree) can afford
     this rather than needing chips manually restricted to specific gameweeks.
+
+    use_chip_heuristic - if True, ignore `chip_gameweeks` and instead compute it via
+    airsenal.framework.chip_heuristics.suggest_chip_gameweeks() once the starting
+    squad is known - mutually exclusive with auto_detect_chips (they're different
+    strategies for producing the same chip_gameweeks output, not composable as
+    written). `chips_played_history` (gameweek -> chip name, from calls prior to
+    this one) is passed through so a chip already played isn't suggested again.
     """
+    if auto_detect_chips and use_chip_heuristic:
+        msg = "auto_detect_chips and use_chip_heuristic are mutually exclusive"
+        raise RuntimeError(msg)
+
     discord_webhook = fetcher.DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -912,6 +943,14 @@ def run_mcts_optimization(
 
     if auto_detect_chips:
         chip_gameweeks = _detect_available_chip_gameweeks(fpl_team_id, use_api)
+    elif use_chip_heuristic:
+        chip_gameweeks = suggest_chip_gameweeks(
+            starting_squad,
+            gameweeks,
+            tag,
+            season,
+            chips_played=chips_played_history,
+        )
     elif chip_gameweeks is None:
         chip_gameweeks = {}
     chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
@@ -1032,6 +1071,9 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
     if args.auto_chips and args.search_method != "mcts":
         msg = "--auto_chips is only supported with --search_method mcts"
         raise RuntimeError(msg)
+    if args.auto_chips and args.use_chip_heuristic:
+        msg = "--auto_chips and --use_chip_heuristic are mutually exclusive"
+        raise RuntimeError(msg)
     return True
 
 
@@ -1150,6 +1192,16 @@ def main():
         ),
         action="store_true",
     )
+    parser.add_argument(
+        "--use_chip_heuristic",
+        help=(
+            "ignore --wildcard_week etc. and instead force chip gameweeks decided "
+            "by the rule-based baseline in airsenal.framework.chip_heuristics "
+            "(see chip_timing_heuristic.svg/.pdf) - mutually exclusive with "
+            "--auto_chips. Works with either --search_method."
+        ),
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -1205,6 +1257,7 @@ def main():
                 num_iterations=num_iterations,
                 num_thread=num_thread,
                 auto_detect_chips=args.auto_chips,
+                use_chip_heuristic=args.use_chip_heuristic,
                 is_replay=args.is_replay,
             )
         else:
@@ -1214,12 +1267,13 @@ def main():
                 season,
                 fpl_team_id,
                 chip_gameweeks,
-                num_free_transfers,
-                max_total_hit,
-                allow_unused_transfers,
-                args.max_transfers,
-                num_iterations,
-                num_thread,
-                profile,
+                num_free_transfers=num_free_transfers,
+                max_total_hit=max_total_hit,
+                allow_unused_transfers=allow_unused_transfers,
+                max_opt_transfers=args.max_transfers,
+                num_iterations=num_iterations,
+                num_thread=num_thread,
+                profile=profile,
+                use_chip_heuristic=args.use_chip_heuristic,
                 is_replay=args.is_replay,
             )

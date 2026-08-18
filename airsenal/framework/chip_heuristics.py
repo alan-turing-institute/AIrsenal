@@ -272,6 +272,7 @@ def simulate_chip_decisions(
     tag: str,
     season: str,
     dbsession: Session = session,
+    chips_played: dict[int, str] | None = None,
 ) -> list[dict]:
     """Walk `gameweek_range` one gameweek at a time, applying the chip-timing
     flowchart (see chip_timing_heuristic.svg/.pdf) at each step. Returns one trace
@@ -279,8 +280,13 @@ def simulate_chip_decisions(
     str} - the full trace rather than just the final answer, so a run can be
     inspected (which branch fired and why), not just which gameweek was ultimately
     chosen for each chip.
+
+    `chips_played` seeds the walk with chips already used in gameweeks before
+    `gameweek_range` - needed when this is called repeatedly over a rolling window
+    (e.g. once per gameweek in replay_season.py) so a chip already played in an
+    earlier call isn't suggested again. Defaults to none used yet.
     """
-    chips_played: dict[int, str] = {}
+    chips_played = dict(chips_played) if chips_played else {}
     trace = []
 
     for gw in gameweek_range:
@@ -319,13 +325,17 @@ def suggest_chip_gameweeks(
     tag: str,
     season: str,
     dbsession: Session = session,
+    chips_played: dict[int, str] | None = None,
 ) -> dict[str, int]:
     """Reduce simulate_chip_decisions()'s trace to the {chip_name: gameweek} shape
     construct_chip_dict (airsenal.scripts.fill_transfersuggestion_table) expects -
     -1 for any chip never triggered within gameweek_range, ready to pass straight
-    into run_optimization()/run_mcts_optimization().
+    into run_optimization()/run_mcts_optimization(). See simulate_chip_decisions
+    for `chips_played`.
     """
-    trace = simulate_chip_decisions(squad, gameweek_range, tag, season, dbsession)
+    trace = simulate_chip_decisions(
+        squad, gameweek_range, tag, season, dbsession, chips_played=chips_played
+    )
     result = dict.fromkeys(CHIP_TYPES, -1)
     for entry in trace:
         chip_played = entry["chip_played"]

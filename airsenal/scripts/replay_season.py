@@ -68,6 +68,7 @@ def replay_season(
     max_points_hit: int | None = None,
     search_method: str = "tree",
     mcts_iterations: int = 500,
+    use_chip_heuristic: bool = False,
 ) -> None:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -93,6 +94,11 @@ def replay_season(
     replay_results["season"] = season
     replay_results["weeks_ahead"] = weeks_ahead
     replay_results["gameweeks"] = []
+    # gameweek -> chip name, accumulated across the loop below so a chip already
+    # played in an earlier gameweek isn't suggested again by use_chip_heuristic -
+    # each run_optimization()/run_mcts_optimization() call below only sees a short
+    # gw_range window, not the whole season, so this history has to be tracked here.
+    chips_played_history: dict[int, str] = {}
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
@@ -138,6 +144,8 @@ def replay_season(
                     is_replay=True,
                     max_total_hit=max_points_hit,
                     mcts_iterations=mcts_iterations,
+                    use_chip_heuristic=use_chip_heuristic,
+                    chips_played_history=chips_played_history,
                 )
             else:
                 squad, best_strategy = run_optimization(
@@ -149,10 +157,21 @@ def replay_season(
                     is_replay=True,
                     max_opt_transfers=max_opt_transfers,
                     max_total_hit=max_points_hit,
+                    use_chip_heuristic=use_chip_heuristic,
+                    chips_played_history=chips_played_history,
                 )
         if best_strategy is None:
             msg = f"Failed to find a strategy for GW{gw}!"
             raise ValueError(msg)
+
+        # chips_played values are actually str | None at runtime (chip name or
+        # nothing played that gameweek) - best_strategy's dict[str, int | list[int]]
+        # value type is imprecise here, doesn't reflect this field specifically.
+        played_this_gw: str | None = best_strategy.get("chips_played", {}).get(  # type: ignore[assignment]
+            str(gw)
+        )
+        if played_this_gw:
+            chips_played_history[gw] = played_this_gw
 
         gw_result["starting_11"] = []
         gw_result["subs"] = []
@@ -303,6 +322,16 @@ def main():
         type=int,
         default=500,
     )
+    parser.add_argument(
+        "--use_chip_heuristic",
+        help=(
+            "force chip gameweeks decided by the rule-based baseline in "
+            "airsenal.framework.chip_heuristics (see "
+            "chip_timing_heuristic.svg/.pdf) instead of never considering chips. "
+            "Works with either --search_method."
+        ),
+        action="store_true",
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -332,6 +361,7 @@ def main():
                 max_points_hit=args.max_points_hit,
                 search_method=args.search_method,
                 mcts_iterations=args.mcts_iterations,
+                use_chip_heuristic=args.use_chip_heuristic,
             )
             n_completed += 1
 
