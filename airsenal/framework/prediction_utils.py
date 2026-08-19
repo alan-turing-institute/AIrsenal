@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 np.random.seed(42)
 
-# Global Sabitler
+# Global Constants
 MAX_GOALS = 10
 MIN_MINUTES_SHORT = 30
 MIN_MINUTES_FULL = 60
@@ -107,6 +107,9 @@ def get_player_history_df(
     gameweek=NEXT_GAMEWEEK,
     dbsession=session,
 ) -> pd.DataFrame:
+    """
+    Fetch historical player performance data and build a structured DataFrame.
+    """
     col_names = [
         "player_id",
         "player_name",
@@ -183,7 +186,7 @@ def get_player_history_df(
     )
 
     for counter, player in enumerate(players):
-        # Her adımda print etmek yerine logging ve periyodik bildirim kullanımı
+        # Use logging and periodic updates instead of printing at every step
         if counter % 50 == 0 or counter == len(players) - 1:
             logger.info(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
 
@@ -281,6 +284,9 @@ def get_attacking_points(
     team_score_prob: dict[int, float],
     player_prob: pd.Series,
 ) -> float:
+    """
+    Calculate expected attacking points (goals and assists) for a player.
+    """
     if minutes == 0.0:
         return 0.0
 
@@ -319,6 +325,9 @@ def get_attacking_points(
 def get_defending_points(
     position: str, minutes: int | float, team_concede_prob: dict[int, float]
 ) -> float:
+    """
+    Calculate expected defending points (clean sheets and conceded goals) for a player.
+    """
     if position == "FWD" or minutes == 0.0:
         return 0.0
 
@@ -338,7 +347,7 @@ def get_bonus_points(
     player_id: int, minutes: int | float, df_bonus: tuple[pd.Series, pd.Series]
 ) -> float:
     """
-    Sadeleştirilmiş ve güvenli bonus puan hesaplaması.
+    Calculate expected bonus points based on played minutes.
     """
     if minutes >= MIN_MINUTES_FULL:
         return float(df_bonus[0].get(player_id, 0.0))
@@ -351,7 +360,7 @@ def get_def_con_points(
     player_id: int, minutes: int | float, df_def_con: tuple[pd.Series, pd.Series]
 ) -> float:
     """
-    Sadeleştirilmiş ve güvenli savunma katkısı puan hesaplaması.
+    Calculate expected defensive contribution points based on played minutes.
     """
     if minutes >= MIN_MINUTES_FULL:
         return float(df_def_con[0].get(player_id, 0.0))
@@ -363,6 +372,9 @@ def get_def_con_points(
 def get_save_points(
     position: str, player_id: int, minutes: int | float, df_saves: pd.Series
 ) -> float:
+    """
+    Calculate expected save points for goalkeepers.
+    """
     if position != "GK":
         return 0.0
     if minutes >= MIN_MINUTES_FULL:
@@ -371,6 +383,9 @@ def get_save_points(
 
 
 def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -> float:
+    """
+    Calculate expected penalty points for yellow and red cards.
+    """
     if minutes >= MIN_MINUTES_SHORT:
         return float(df_cards.get(player_id, 0.0))
     return 0.0
@@ -391,6 +406,9 @@ def calc_predicted_points_for_player(
     tag: str = "",
     dbsession: Session = session,
 ) -> list[PlayerPrediction]:
+    """
+    Calculate predicted total points for a single player across target gameweeks.
+    """
     if isinstance(player, str | int):
         p = get_player(player, dbsession=dbsession)
         if p is None:
@@ -515,6 +533,9 @@ def calc_predicted_points_for_pos(
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
 ) -> dict[int, list[PlayerPrediction]]:
+    """
+    Calculate predicted points for all players in a specific position.
+    """
     df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
     return {
         player.player_id: calc_predicted_points_for_player(
@@ -539,6 +560,9 @@ def calc_predicted_points_for_pos(
 def make_prediction(
     player: Player, fixture: Fixture, points: float, tag: str
 ) -> PlayerPrediction:
+    """
+    Instantiate and populate a PlayerPrediction schema object.
+    """
     pp = PlayerPrediction()
     pp.predicted_points = points
     pp.tag = tag
@@ -548,6 +572,9 @@ def make_prediction(
 
 
 def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
+    """
+    Fetch predicted points from the API and write to CSV and database.
+    """
     if not os.path.exists(csv_filename):
         with open(csv_filename, "w") as outfile:
             outfile.write("player_id,gameweek,EP\n")
@@ -582,6 +609,9 @@ def process_player_data(
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
 ) -> dict:
+    """
+    Process and structure historical player data for model fitting.
+    """
     df = get_player_history_df(
         prefix, season=season, gameweek=gameweek, dbsession=dbsession
     )
@@ -594,7 +624,7 @@ def process_player_data(
     ]
     alpha = get_empirical_bayes_estimates(df)
 
-    # .values yerine modern Pandas standardı olan .to_numpy() kullanımı
+    # Use modern Pandas standard .to_numpy() instead of .values
     y = df.sort_values("player_id")[["goals", "assists", "neither"]].to_numpy().reshape(
         (
             df["player_id"].nunique(),
@@ -651,6 +681,9 @@ def fit_player_data(
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
+    """
+    Fit the player model for a given position and return calculated probabilities.
+    """
     if model is None:
         model = ConjugatePlayerModel()
 
@@ -677,6 +710,9 @@ def get_all_fitted_player_data(
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> dict[str, pd.DataFrame]:
+    """
+    Fit player models for all positions (GK, DEF, MID, FWD).
+    """
     return {
         pos: fit_player_data(
             pos,
@@ -699,6 +735,9 @@ def get_player_scores(
     position: str | None = None,
     dbsession: Session = session,
 ) -> pd.DataFrame:
+    """
+    Query player scores filtered by played minutes and position.
+    """
     query = (
         select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
         .where(PlayerScore.minutes >= min_minutes)
@@ -731,6 +770,9 @@ def mean_group_prior(
     n_prior: int = 10,
     prior_by_position: bool = False,
 ) -> pd.Series:
+    """
+    Compute empirical Bayes group means with a prior weight.
+    """
     group_counts = df.groupby(group_col)[mean_col].count()
     group_sums = df.groupby(group_col)[mean_col].sum()
     group_position = (
@@ -753,6 +795,9 @@ def fit_bonus_points(
     n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
+    """
+    Fit bonus points model using historical player scores.
+    """
     def get_bonus_df(min_minutes, max_minutes):
         df = get_player_scores(
             season,
@@ -778,6 +823,9 @@ def fit_save_points(
     min_minutes: int = MAX_MINUTES_MATCH,
     dbsession: Session = session,
 ) -> pd.Series:
+    """
+    Fit goalkeeper save points model using historical player scores.
+    """
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
     )
@@ -794,6 +842,9 @@ def fit_card_points(
     min_minutes: int = 1,
     dbsession: Session = session,
 ) -> pd.Series:
+    """
+    Fit card penalty points model using historical player scores.
+    """
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
@@ -814,6 +865,9 @@ def fit_def_con(
     n_prior: int = 10,
     dbsession: Session = session,
 ) -> tuple[pd.Series, pd.Series]:
+    """
+    Fit defensive contribution points model across positions.
+    """
     def get_def_con_df(min_minutes, max_minutes):
         dfs = []
         for position in ["DEF", "MID", "FWD"]:
