@@ -4,9 +4,11 @@ Find multiple players with the same name in the same season using player summary
 
 import pandas as pd
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.scripts.make_player_summary import SAVE_FILE as SUMMARY_FILE
+
+logger = get_logger(__name__)
 
 
 def find_duplicate_names(season: str = CURRENT_SEASON) -> None:
@@ -16,11 +18,11 @@ def find_duplicate_names(season: str = CURRENT_SEASON) -> None:
     dup = name_counts > 1
 
     if dup.sum() > 0:
-        print("\nDuplicated player names (and their Opta IDs):\n")
+        logger.info("Duplicated player names (and their Opta IDs):")
         codes = name_groups["opta_code"].unique()
-        print(codes[dup])
+        logger.info(codes[dup])
     else:
-        print(f"No duplicated player names found in {season} season.")
+        logger.info("No duplicated player names found in %s season.", season)
 
 
 if __name__ == "__main__":

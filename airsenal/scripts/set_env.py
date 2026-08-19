@@ -4,8 +4,10 @@ from airsenal.framework.env import (
     AIRSENAL_HOME,
     get_env,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import get_connection_string
+
+logger = get_logger(__name__)
 
 
 def redact_db_password(conn_str: str) -> str:
@@ -24,10 +26,10 @@ def redact_db_password(conn_str: str) -> str:
 
 
 def print_env():
-    print(f"AIRSENAL_VERSION: {__version__}")
-    print(f"AIRSENAL_HOME: {AIRSENAL_HOME}")
+    logger.info("AIRSENAL_VERSION: %s", __version__)
+    logger.info("AIRSENAL_HOME: %s", AIRSENAL_HOME)
     conn_str = get_connection_string()
-    print(f"DB_CONNECTION_STRING: {redact_db_password(conn_str)}")
+    logger.info("DB_CONNECTION_STRING: %s", redact_db_password(conn_str))
     for k in AIRSENAL_ENV_KEYS:
         if value := get_env(k, str):
-            print(f"{k}: {value}")
+            logger.info("%s: %s", k, value)

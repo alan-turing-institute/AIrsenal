@@ -9,7 +9,7 @@ https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
-from airsenal.framework.output import console, print, table
+from airsenal.framework.output import console, get_logger, table
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -25,6 +25,8 @@ TODO:
 - confirm points loss
 - write a test.
 """
+
+logger = get_logger(__name__)
 
 
 def check_proceed(num_transfers: int = 0) -> bool:
@@ -111,9 +113,11 @@ def get_gw_transfer_suggestions(
         fpl_team_id=fpl_team_id,
     )
     if not rows:
-        print(
-            f"No transfer suggestions found for GW {NEXT_GAMEWEEK}, "
-            f"{CURRENT_SEASON} season, FPL team id {fpl_team_id}"
+        logger.warning(
+            "No transfer suggestions found for GW %s, %s season, FPL team id %s",
+            NEXT_GAMEWEEK,
+            CURRENT_SEASON,
+            fpl_team_id,
         )
         return None
 
@@ -304,7 +308,7 @@ def build_transfer_payload(
     if chip_played:
         transfer_payload[chip_played.replace("_", "")] = True
 
-    print(transfer_payload)
+    logger.debug("%s", transfer_payload)
     return transfer_payload
 
 
@@ -319,7 +323,7 @@ def make_transfers(
     fetcher = FPLDataFetcher(team_id)
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
-        print("Making transfer list for starting team")
+        logger.info("Making transfer list for starting team")
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
         pre_transfer_bank = None
         post_transfer_bank = None
@@ -350,6 +354,8 @@ def make_transfers(
         )
         fetcher.post_transfers(transfer_req)
     else:
-        print("Not applying transfers.  Can still choose starting 11 and captain.")
+        logger.info(
+            "Not applying transfers.  Can still choose starting 11 and captain."
+        )
         return False
     return True

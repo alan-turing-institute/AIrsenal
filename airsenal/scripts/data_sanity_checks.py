@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (
@@ -12,8 +12,9 @@ from airsenal.framework.utils import (
     session,
 )
 
+logger = get_logger(__name__)
+
 CHECK_SEASONS = [CURRENT_SEASON, *get_past_seasons(3)]
-SEPARATOR = "\n" + ("=" * 50) + "\n"  # used to separate groups of print statements
 
 
 def result_string(n_error: int) -> str:
@@ -35,15 +36,17 @@ def season_num_teams(
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
-    print("Checking seasons have 20 teams...\n")
+    logger.info("Checking seasons have 20 teams...")
     n_error = 0
     for season in seasons:
         teams = get_teams_for_season(season, dbsession)
         if len(teams) != 20:
             n_error += 1
-            print(f"Number of teams in {season} season is {len(teams)} (not 20)")
+            logger.warning(
+                "Number of teams in %s season is %s (not 20)", season, len(teams)
+            )
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -55,7 +58,7 @@ def season_num_new_teams(
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
-    print("Checking seasons have 3 new teams...\n")
+    logger.info("Checking seasons have 3 new teams...")
     n_error = 0
 
     teams = [get_teams_for_season(season, dbsession) for season in seasons]
@@ -63,12 +66,14 @@ def season_num_new_teams(
         new_teams = [team for team in teams[i] if team not in teams[i - 1]]
         if len(new_teams) != 3:
             n_error += 1
-            print(
-                f"Number of teams changed between {seasons[i - 1]} "
-                f"and {seasons[i]} is {len(new_teams)} (not 3)"
+            logger.warning(
+                "Number of teams changed between %s and %s is %s (not 3)",
+                seasons[i - 1],
+                seasons[i],
+                len(new_teams),
             )
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -82,16 +87,20 @@ def season_num_fixtures(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking seasons have 380 fixtures...\n")
+    logger.info("Checking seasons have 380 fixtures...")
     n_error = 0
 
     for season in seasons:
         fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
         if len(fixtures) != 380:
             n_error += 1
-            print(f"Number of fixtures in {season} season is {len(fixtures)} (not 380)")
+            logger.warning(
+                "Number of fixtures in %s season is %s (not 380)",
+                season,
+                len(fixtures),
+            )
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -106,7 +115,7 @@ def fixture_player_teams(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking player teams match fixture teams...\n")
+    logger.info("Checking player teams match fixture teams...")
     n_error = 0
 
     for season in seasons:
@@ -116,7 +125,7 @@ def fixture_player_teams(
             if fixture.result:
                 player_scores = get_player_scores(fixture=fixture, dbsession=dbsession)
                 if player_scores is None:
-                    print(f"Fixture {fixture} has no player scores")
+                    logger.warning("Fixture %s has no player scores", fixture)
                     continue
                 if isinstance(player_scores, PlayerScore):
                     player_scores = [player_scores]
@@ -131,9 +140,9 @@ def fixture_player_teams(
                             f"{fixture}: {score.player} in player_scores but labelled "
                             f"as playing for {score.player_team}."
                         )
-                        print(msg)
+                        logger.warning(msg)
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -148,12 +157,12 @@ def fixture_num_players(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print(
+    logger.info(
         "Checking 11 to 14 players play per team in each fixture...\n"
         "Note:\n"
         "- 2019/20: 5 subs allowed after Covid-19 lockdown (accounted for in checks)\n"
         "- From 2020/21: Concussion subs allowed (may cause false errors)\n"
-        "- From 2022/22: 5 subs allowed due to rule change (accounted for in checks)\n"
+        "- From 2022/22: 5 subs allowed due to rule change (accounted for in checks)"
     )
     n_error = 0
 
@@ -193,21 +202,23 @@ def fixture_num_players(
                     (len(home_scores) > 10) and (len(home_scores) <= upper_team_limit)
                 ):
                     n_error += 1
-                    print(
-                        f"{result}: {len(home_scores)} "
-                        "players with minutes > 0 for home team."
+                    logger.warning(
+                        "%s: %s players with minutes > 0 for home team.",
+                        result,
+                        len(home_scores),
                     )
 
                 if not (
                     (len(away_scores) > 10) and (len(away_scores) <= upper_team_limit)
                 ):
                     n_error += 1
-                    print(
-                        f"{result}: {len(away_scores)} "
-                        "players with minutes > 0 for away team."
+                    logger.warning(
+                        "%s: %s players with minutes > 0 for away team.",
+                        result,
+                        len(away_scores),
                     )
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -221,7 +232,7 @@ def fixture_num_goals(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking sum of player goals equals match results...\n")
+    logger.info("Checking sum of player goals equals match results...")
     n_error = 0
 
     for season in seasons:
@@ -259,7 +270,7 @@ def fixture_num_goals(
                         f"{result}: Player scores sum to {home_goals} "
                         f"but {result.home_score} goals in result for home team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
                 if away_goals != result.away_score:
                     n_error += 1
@@ -267,9 +278,9 @@ def fixture_num_goals(
                         f"{result}: Player scores sum to {away_goals} but "
                         f"{result.away_score} goals in result for away team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -286,7 +297,7 @@ def fixture_num_assists(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking no. assists less than or equal to no. goals...\n")
+    logger.info("Checking no. assists less than or equal to no. goals...")
     n_error = 0
 
     for season in seasons:
@@ -318,7 +329,7 @@ def fixture_num_assists(
                         f"{result}: Player assists sum to {home_assists} but "
                         f"{result.home_score} goals in result for home team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
                 if away_assists > result.away_score:
                     n_error += 1
@@ -326,9 +337,9 @@ def fixture_num_assists(
                         f"{result}: Player assists sum to {away_assists} but "
                         f"{result.away_score} goals in result for away team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
@@ -345,7 +356,7 @@ def fixture_num_conceded(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
-    print("Checking no. goals conceded matches goals scored by opponent...\n")
+    logger.info("Checking no. goals conceded matches goals scored by opponent...")
     n_error = 0
 
     for season in seasons:
@@ -379,7 +390,7 @@ def fixture_num_conceded(
                         f"{result}: Player conceded {home_conceded} but "
                         f"{result.away_score} goals in result for home team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
                 if away_conceded != result.home_score:
                     n_error += 1
@@ -387,15 +398,14 @@ def fixture_num_conceded(
                         f"{result}: Player conceded {away_conceded} but "
                         f"{result.home_score} goals in result for away team"
                     )
-                    print(msg)
+                    logger.warning(msg)
 
-    print("\n", result_string(n_error))
+    logger.info(result_string(n_error))
     return n_error
 
 
 def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
-    print("Running checks for seasons:", seasons)
-    print(SEPARATOR)
+    logger.info("Running checks for seasons: %s", seasons)
 
     functions = {
         "season_num_teams": season_num_teams,
@@ -407,23 +417,21 @@ def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
         "fixture_num_assists": fixture_num_assists,
         "fixture_num_conceded": fixture_num_conceded,
     }
-    results = {}
+    results = {name: fn(seasons) for name, fn in functions.items()}
 
-    for name, fn in functions.items():
-        results[name] = fn(seasons)
-        print(SEPARATOR)
-
-    print("SUMMARY\n-------")
-    print("Seasons:", seasons, "\n")
+    logger.info("[bold]SUMMARY[/bold]")
+    logger.info("Seasons: %s", seasons)
     for name, res in results.items():
-        print(f"{name}: {result_string(res)}")
+        logger.info("%s: %s", name, result_string(res))
 
     n_tests = len(functions)
     n_passed = sum(1 for _, r in results.items() if r == 0)
     n_total_errors = sum(r for _, r in results.items())
-    print(
-        f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
-        f"{n_total_errors} errors."
+    logger.info(
+        "OVERALL: Passed %s out of %s tests with %s errors.",
+        n_passed,
+        n_tests,
+        n_total_errors,
     )
 
 

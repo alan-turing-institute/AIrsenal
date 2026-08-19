@@ -6,7 +6,7 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 
 from sqlalchemy import and_, func, or_, select
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -17,6 +17,8 @@ from airsenal.framework.utils import (
     get_players_for_gameweek,
     session,
 )
+
+logger = get_logger(__name__)
 
 
 def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
@@ -144,24 +146,24 @@ def fill_initial_squad(
 
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
-    print(
-        "Getting initially selected players "
-        f"in squad {fpl_team_id} for first gameweek..."
+    logger.info(
+        "Getting initially selected players in squad %s for first gameweek...",
+        fpl_team_id,
     )
     if NEXT_GAMEWEEK == 1:
-        print("Season hasn't started yet so nothing to add to the DB.")
+        logger.info("Season hasn't started yet so nothing to add to the DB.")
         return
 
     starting_gw = get_entry_start_gameweek(fpl_team_id)
-    print(f"Got starting squad from gameweek {starting_gw}.")
+    logger.info("Got starting squad from gameweek %s.", starting_gw)
     if starting_gw == NEXT_GAMEWEEK:
-        print(
+        logger.info(
             "This is team {fpl_team_id}'s first gameweek so nothing to add to the DB "
             "yet."
         )
         return
 
-    print("Adding player data...")
+    logger.info("Adding player data...")
 
     init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
@@ -174,16 +176,18 @@ def fill_initial_squad(
             # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
             # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
             # API using current price and total price change.
-            print(
-                "Using current data to determine "
-                f"starting price for player {player_api_id}"
+            logger.warning(
+                "Using current data to determine starting price for player %s",
+                player_api_id,
             )
             pdata = fetcher.get_player_summary_data()[player_api_id]
             price = pdata["now_cost"] - pdata["cost_change_start"]
         else:
             price = first_gw_data[0]["value"]
 
-        print(f"Adding player {player} in GW{starting_gw} for £{price / 10}m")
+        logger.info(
+            "Adding player %s in GW%s for £%sm", player, starting_gw, price / 10
+        )
 
         add_transaction(
             player.player_id,
@@ -204,7 +208,6 @@ def update_squad(
     tag="AIrsenal" + CURRENT_SEASON,
     fpl_team_id=None,
     dbsession=session,
-    verbose=True,
 ):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
@@ -212,7 +215,7 @@ def update_squad(
     """
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
-    print(f"Updating db with squad with fpl_team_id={fpl_team_id}")
+    logger.info("Updating db with squad with fpl_team_id=%s", fpl_team_id)
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = dbsession.scalars(
         select(Transaction).where(
@@ -256,11 +259,12 @@ def update_squad(
             price_in,
             dbsession=dbsession,
         ):
-            if verbose:
-                print(
-                    f"Adding transaction: gameweek: {gameweek} "
-                    f"removing player {pid_out} for {price_out}"
-                )
+            logger.debug(
+                "Adding transaction: gameweek: %s removing player %s for %s",
+                gameweek,
+                pid_out,
+                price_out,
+            )
             free_hit = free_hit_used_in_gameweek(gameweek)
             add_transaction(
                 pid_out,
@@ -275,11 +279,12 @@ def update_squad(
                 dbsession,
             )
 
-            if verbose:
-                print(
-                    f"Adding transaction: gameweek: {gameweek} "
-                    f"adding player {pid_in} for {price_in}"
-                )
+            logger.debug(
+                "Adding transaction: gameweek: %s adding player %s for %s",
+                gameweek,
+                pid_in,
+                price_in,
+            )
             add_transaction(
                 pid_in,
                 gameweek,

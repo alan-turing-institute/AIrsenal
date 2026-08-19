@@ -32,12 +32,9 @@ def transfermarkt(
     season: Annotated[
         str, typer.Option(help="Season in the form 2526.")
     ] = CURRENT_SEASON,
-    verbose: Annotated[
-        bool, typer.Option(help="Print detailed scraping output.")
-    ] = False,
 ) -> None:
     """Save Transfermarkt absence data."""
-    scrape_transfermarkt([season], verbose=verbose)
+    scrape_transfermarkt([season])
 
 
 @app.command()

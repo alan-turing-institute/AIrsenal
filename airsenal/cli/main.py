@@ -1,5 +1,8 @@
 """Root command-line application."""
 
+import logging
+from typing import Annotated
+
 import typer
 
 import airsenal
@@ -12,6 +15,7 @@ from airsenal.cli.plot import plot
 from airsenal.cli.predict import predict
 from airsenal.cli.replay import replay
 from airsenal.cli.run import run
+from airsenal.framework.output import configure_logging
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -21,6 +25,25 @@ app = typer.Typer(
         f"Version: {airsenal.__version__}"
     ),
 )
+
+
+@app.callback()
+def main(
+    verbose: Annotated[
+        bool, typer.Option("--verbose", "-v", help="Show debug-level output.")
+    ] = False,
+    quiet: Annotated[
+        bool, typer.Option("--quiet", "-q", help="Only show warnings and errors.")
+    ] = False,
+) -> None:
+    """AIrsenal command-line interface."""
+    if verbose and quiet:
+        msg = "--verbose and --quiet cannot be used together."
+        raise typer.BadParameter(msg)
+    level = logging.DEBUG if verbose else logging.WARNING if quiet else logging.INFO
+    configure_logging(level)
+
+
 app.command()(run)
 app.add_typer(db_app, name="db")
 app.command()(predict)

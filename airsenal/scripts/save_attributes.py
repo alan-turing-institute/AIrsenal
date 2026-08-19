@@ -8,9 +8,11 @@ import dateparser
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import NEXT_GAMEWEEK, parse_date
+
+logger = get_logger(__name__)
 
 
 def get_return_gameweek_by_date(
@@ -48,26 +50,27 @@ def season_is_active(
     now: datetime, fetcher: FPLDataFetcher, max_days_until_deadline: int = 14
 ) -> bool:
     if now.month in [6, 7]:
-        print("It's the off-season (June or July)")
+        logger.info("It's the off-season (June or July)")
         return False
 
     summary_data = fetcher.get_current_summary_data()
     for gw in summary_data["events"]:
         if gw["is_current"] and not gw["finished"]:
-            print(f"Gameweek {gw['id']} is currently active")
+            logger.info("Gameweek %s is currently active", gw["id"])
             return True
 
     deadlines = [parse_date(gw["deadline_time"]) for gw in summary_data["events"]]
     future_deadlines = [d for d in deadlines if d >= now.date()]
     if not future_deadlines:
-        print("No future deadlines - season is over")
+        logger.info("No future deadlines - season is over")
         return False
 
     next_deadline = min(future_deadlines)
     if (next_deadline - now.date()).days > max_days_until_deadline:
-        print(
-            f"Next deadline {next_deadline} is more than {max_days_until_deadline} "
-            "days away"
+        logger.info(
+            "Next deadline %s is more than %s days away",
+            next_deadline,
+            max_days_until_deadline,
         )
         return False
 
@@ -136,7 +139,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
         writer = csv.writer(f, delimiter=",")
         for player_api_id, player_data in input_data.items():
             name = f"{player_data['first_name']} {player_data['second_name']}"
-            print(name)
+            logger.debug("%s", name)
             opta_code = player_data["opta_code"]
             position = positions[player_data["element_type"]]
             price = int(player_data["now_cost"])
@@ -195,7 +198,7 @@ def main() -> None:
     fetcher = FPLDataFetcher()
 
     if not season_is_active(now, fetcher):
-        print("Season is not active - not saving attributes")
+        logger.info("Season is not active - not saving attributes")
         return
 
     save_attributes_from_api(now, fetcher)

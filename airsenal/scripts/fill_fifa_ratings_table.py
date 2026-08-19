@@ -7,10 +7,12 @@ import os
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import FifaTeamRating, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
+
+logger = get_logger(__name__)
 
 
 def make_fifa_ratings_table(
@@ -29,7 +31,7 @@ def make_fifa_ratings_table(
             os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"
         )
         if not os.path.exists(input_path):
-            print(f"!!! No FIFA ratings file found for {season}")
+            logger.warning("No FIFA ratings file found for %s", season)
             continue
 
         with open(input_path) as input_file:

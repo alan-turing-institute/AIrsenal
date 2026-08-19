@@ -7,7 +7,6 @@ import datetime
 import json
 import os
 import tempfile
-import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -16,7 +15,7 @@ from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import (
     Fixture,
     Player,
@@ -38,6 +37,8 @@ from airsenal.framework.utils import (
     is_future_gameweek,
     parse_date,
 )
+
+logger = get_logger(__name__)
 
 
 def download_with_resume(
@@ -90,10 +91,12 @@ def download_with_resume(
 
 def load_attributes_history(season: str) -> pd.DataFrame | None:
     if not is_future_gameweek(season, 1, "2526", 0):
-        print("Player attributes history not available before 2526 season, skipping")
+        logger.info(
+            "Player attributes history not available before 2526 season, skipping"
+        )
         return None
 
-    print(f"Downloading player attributes history for season {season}")
+    logger.info("Downloading player attributes history for season %s", season)
     url = (
         "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
         f"heads/main/airsenal/data/player_attributes_history_{season}.csv"
@@ -108,9 +111,12 @@ def load_attributes_history(season: str) -> pd.DataFrame | None:
         df_attributes["season"] = df_attributes["season"].astype(str)
         return df_attributes
 
-    except requests.exceptions.RequestException as e:
-        msg = f"Could not load player attributes history for season {season}"
-        warnings.warn(f"{e}\n{msg}", stacklevel=2)
+    except requests.exceptions.RequestException:
+        logger.warning(
+            "Could not load player attributes history for season %s",
+            season,
+            exc_info=True,
+        )
     return None
 
 
@@ -121,8 +127,7 @@ def _filter_attributes_for_player(
     if (opta_code := player.opta_code) is not None:
         mask = df_attributes["opta_code"] == opta_code
     else:
-        msg = f"Player {player} has no opta_code"
-        warnings.warn(msg, stacklevel=2)
+        logger.warning("Player %s has no opta_code", player)
         mask = df_attributes["player"] == player.name
     return df_attributes.loc[mask]
 
@@ -135,11 +140,12 @@ def _get_availability_on_date(
         return None, None
     mask = player_attributes["day"] == date
     if mask.sum() != 1:
-        msg = (
-            f"Found {mask.sum()} attributes for {player} on {date}, expected 1 so "
-            "skipping"
+        logger.warning(
+            "Found %s attributes for %s on %s, expected 1 so skipping",
+            mask.sum(),
+            player,
+            date,
         )
-        warnings.warn(msg, stacklevel=2)
         return None, None
 
     idx = mask.argmax()
@@ -216,7 +222,7 @@ def fill_playerscores_from_json(
         # there, then we don't care (probably not a current player).
         player = get_player(player_name_or_id, dbsession=dbsession)
         if not player:
-            print(f"Couldn't find player {player_name_or_id}")
+            logger.warning("Couldn't find player %s", player_name_or_id)
             continue
 
         player_attributes = (
@@ -257,7 +263,7 @@ def fill_playerscores_from_json(
             )
 
             if not fixture or not fixture.result:
-                print(f"  Couldn't find result for {player} in gw {gameweek}")
+                logger.warning("Couldn't find result for %s in gw %s", player, gameweek)
                 continue
             ps = PlayerScore()
             ps.player_team = played_for
@@ -297,6 +303,18 @@ def fill_playerscores_from_api(
     dbsession: Session = session,
 ) -> None:
     # Get column metadata once for efficiency
+    if get_last_finished_gameweek() == 0:
+        logger.info(
+            "No complete gameweeks, skipping player scores update for %s season",
+            season,
+        )
+        return
+    if (
+        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
+        == get_last_finished_gameweek()
+    ):
+        logger.info("Player scores up-to-date, skipping update for %s season", season)
+        return
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key
@@ -327,7 +345,7 @@ def fill_playerscores_from_api(
         if not player:
             # If no player found with this API ID something has gone wrong with the
             # Player table, e.g. clashes between players with the same name
-            print(f"ERROR! No player with API id {player_api_id}. Skipped.")
+            logger.error("No player with API id %s. Skipped.", player_api_id)
             continue
 
         player_attributes = (
@@ -345,7 +363,7 @@ def fill_playerscores_from_api(
                 # try to find the match in the match table
                 opponent = get_team_name(result["opponent_team"])
                 if opponent is None:
-                    print(f"Couldn't find team {result['opponent_team']}")
+                    logger.warning("Couldn't find team %s", result["opponent_team"])
                     continue
 
                 fixture = find_fixture(
@@ -357,9 +375,11 @@ def fill_playerscores_from_api(
                     dbsession=dbsession,
                 )
                 if fixture is None or fixture.result is None:
-                    print(
-                        f"Couldn't find fixture for {player} vs {opponent} in "
-                        f"gameweek {gameweek}"
+                    logger.warning(
+                        "Couldn't find fixture for %s vs %s in gameweek %s",
+                        player,
+                        opponent,
+                        gameweek,
                     )
                     continue
                 played_for = get_player_team_from_fixture(
@@ -409,7 +429,7 @@ def fill_playerscores_from_api(
 
                 if add:
                     dbsession.add(ps)
-                print(ps)
+                logger.debug(ps)
     dbsession.commit()
 
 

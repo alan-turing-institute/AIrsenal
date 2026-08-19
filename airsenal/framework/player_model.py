@@ -10,7 +10,9 @@ import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 DEFAULT_PLAYER_EPSILON = 0.2
 DEFAULT_N_GOALS_PRIOR = 35
@@ -280,9 +282,12 @@ class ConjugatePlayerModel(BasePlayerModel):
         rescale_weights: bool = True,
         **kwargs,
     ) -> ConjugatePlayerModel:
-        print(
-            f"Fitting ConjugatePlayerModel with {epsilon=}, {rescale_weights=}, "
-            f"{n_goals_prior=}"
+        logger.info(
+            "Fitting ConjugatePlayerModel with epsilon=%s, rescale_weights=%s, "
+            "n_goals_prior=%s",
+            epsilon,
+            rescale_weights,
+            n_goals_prior,
         )
         goals = data["y"]
         minutes = data["minutes"]

@@ -7,7 +7,7 @@ import os
 
 from sqlalchemy import select
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import (
     FifaTeamRating,
     Fixture,
@@ -19,6 +19,8 @@ from airsenal.framework.schema import (
     Transaction,
 )
 from airsenal.framework.utils import session
+
+logger = get_logger(__name__)
 
 
 def main():
@@ -179,7 +181,7 @@ def save_table_fields(path, fields, dbclass, msg):
     result = os.path.join(os.path.dirname(__file__), path)
     with open(result, "w") as csvfile:
         write_rows_to_csv(csvfile, fields, dbclass)
-    print(msg)
+    logger.info(msg)
 
     return result
 
@@ -187,7 +189,7 @@ def save_table_fields(path, fields, dbclass, msg):
 def write_rows_to_csv(csvfile, fieldnames, dbclass):
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
-    print(f"Writing table {dbclass}")
+    logger.info("Writing table %s", dbclass)
     for player in session.scalars(select(dbclass)).all():
         player_dict = vars(player)
         row = {
@@ -200,5 +202,5 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
 
 
 if __name__ == "__main__":
-    print(" ==== dumping database contents === ")
+    logger.info(" ==== dumping database contents === ")
     main()

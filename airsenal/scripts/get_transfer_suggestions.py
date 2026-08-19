@@ -4,9 +4,11 @@ query the transfer suggestion table and print the suggested strategy
 
 from sqlalchemy import select
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import TransferSuggestion
 from airsenal.framework.utils import get_player_name, session
+
+logger = get_logger(__name__)
 
 
 def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=None):
@@ -53,6 +55,6 @@ if __name__ == "__main__":
     rows = get_transfer_suggestions(session)
     if rows:
         output_string = build_strategy_string(rows)
-        print(output_string)
+        logger.info(output_string)
     else:
-        print("No transfer suggestions found.")
+        logger.info("No transfer suggestions found.")

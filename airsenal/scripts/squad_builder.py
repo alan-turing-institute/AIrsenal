@@ -1,7 +1,5 @@
 import sys
 
-from rich.panel import Panel
-
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -10,7 +8,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import console, get_logger
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -19,6 +17,8 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_max_gameweek,
 )
+
+logger = get_logger(__name__)
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -74,15 +74,14 @@ def fill_initial_squad(
         gw_start,
         sub_weights=sub_weights,
     )
-    print(
-        Panel(
-            f"Optimised total score (Gameweeks {min(gw_range)} to {max(gw_range)}): "
-            f"{optimised_score:.2f}",
-            expand=False,
-        )
+    logger.info(
+        "[bold]Optimised total score (Gameweeks %s to %s): %.2f[/bold]",
+        min(gw_range),
+        max(gw_range),
+        optimised_score,
     )
     chip_gameweeks = chip_gameweeks or {}
-    print(
+    console.print(
         best_squad.formation_table(
             tag,
             gw_start,
@@ -147,11 +146,10 @@ def run_squad_optimization(
     )
     tag = get_latest_prediction_tag(season)
     if not check_tag_valid(tag, gw_range, season=season):
-        print(
-            "ERROR: Database does not contain predictions",
-            "for all the specified optimsation gameweeks.\n",
-            "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here.",
+        logger.error(
+            "Database does not contain predictions for all the specified "
+            "optimsation gameweeks.\nPlease run 'airsenal_run_prediction' first "
+            "with the same input gameweeks and season you specified here."
         )
         sys.exit(1)
     remove_zero = not include_zero

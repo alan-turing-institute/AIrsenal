@@ -4,7 +4,6 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 
-import warnings
 from collections import defaultdict
 from operator import itemgetter
 
@@ -15,7 +14,7 @@ from rich.table import Table
 from rich.text import Text
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
@@ -27,6 +26,8 @@ from airsenal.framework.utils import (
     get_player_from_api_id,
     get_playerscores_for_player_gameweek,
 )
+
+logger = get_logger(__name__)
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -68,7 +69,6 @@ class Squad:
         self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         self.free_subs = 0
         self.subs_this_week = 0
-        self.verbose = False
         self.count_per_team = defaultdict(int)
 
     def __repr__(self) -> str:
@@ -220,34 +220,34 @@ class Squad:
             if price is not None:
                 player.purchase_price = price
 
-        if self.verbose:
-            print(f"Adding player {p}")
+        logger.debug("Adding player %s", p)
 
         if player.position == "MNG":
-            warnings.warn(
-                f"Skipped adding manager {player}, assistant manager not implemented."
-                f"Reduced squad budget by {player.purchase_price}.",
-                stacklevel=2,
+            logger.warning(
+                "Skipped adding manager %s, assistant manager not implemented. "
+                "Reduced squad budget by %s.",
+                player,
+                player.purchase_price,
             )
             self.budget -= player.purchase_price
             return True
 
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
-            if self.verbose:
-                print(f"Already have {player} in team")
+            logger.debug("Already have %s in team", player)
             return False
         if not self.check_num_in_position(player):
-            if self.verbose:
-                print(f"Unable to add player {player} - too many {player.position}")
+            logger.debug(
+                "Unable to add player %s - too many %s", player, player.position
+            )
             return False
         if check_budget and not self.check_cost(player):
-            if self.verbose:
-                print(f"Cannot afford player {player}")
+            logger.debug("Cannot afford player %s", player)
             return False
         if check_team and not self.check_num_per_team(player):
-            if self.verbose:
-                print(f"Cannot add {player} - too many players from {player.team}")
+            logger.debug(
+                "Cannot add %s - too many players from %s", player, player.team
+            )
             return False
         self.players.append(player)
         self.count_per_team[player.team] += 1
@@ -322,20 +322,22 @@ class Squad:
             # first try getting the actual sale price from a logged in API
             try:
                 return apifetcher.get_current_picks()[api_id]["selling_price"]
-            except Exception as e:
-                warnings.warn(
-                    f"Failed to login to get actual sale price for {player} from API:\n"
-                    f"{e}.\nWill estimate based on the player's current price instead",
-                    stacklevel=2,
+            except Exception:
+                logger.warning(
+                    "Failed to login to get actual sale price for %s from API. "
+                    "Will estimate based on the player's current price instead",
+                    player,
+                    exc_info=True,
                 )
             # if not logged in, just get current price from API
             try:
                 price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
-            except Exception as e:
-                warnings.warn(
-                    f"Failed to to get current price of {player} from API:\n"
-                    f"{e}.\nWill attempt to use latest price in DB instead.",
-                    stacklevel=2,
+            except Exception:
+                logger.warning(
+                    "Failed to get current price of %s from API. "
+                    "Will attempt to use latest price in DB instead.",
+                    player,
+                    exc_info=True,
                 )
 
         # retrieve how much we originally bought the player for from db
@@ -347,9 +349,10 @@ class Squad:
 
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
-            warnings.warn(
-                f"Using purchase price as sale price for {player.player_id}, {player}",
-                stacklevel=2,
+            logger.warning(
+                "Using purchase price as sale price for %s, %s",
+                player.player_id,
+                player,
             )
             price_now = price_bought
 
@@ -429,8 +432,7 @@ class Squad:
             if score >= best_score:
                 best_score = score
                 best_formation = f
-        if self.verbose:
-            print(f"Best formation is {best_formation}")
+        logger.debug("Best formation is %s", best_formation)
         self.apply_formation(player_dict, best_formation)
         self.order_substitutes(gameweek, tag)
 

@@ -14,9 +14,7 @@ import json
 import re
 import secrets
 import time
-import traceback
 import uuid
-import warnings
 
 from curl_cffi import requests
 
@@ -28,7 +26,9 @@ from airsenal.framework.env import (
     FPL_TEAM_ID,
     save_env,
 )
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 API_HOME = "https://fantasy.premierleague.com/api"
 
@@ -103,11 +103,10 @@ class FPLDataFetcher:
         If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
         AIRSENAL_HOME or as environment variables, prompt the user for them.
         """
-        print(
-            """
-            Accessing the most up-to-date data on your squad, or automatic transfers,
-            requires the login (email address) and password for your FPL account.
-            """
+        logger.info(
+            "Accessing the most up-to-date data on your squad, or automatic "
+            "transfers, requires the login (email address) and password for your "
+            "FPL account."
         )
 
         self.FPL_LOGIN = input("Please enter FPL login: ")
@@ -130,10 +129,9 @@ class FPLDataFetcher:
         if self.logged_in:
             return
         if self.login_failed:
-            warnings.warn(
+            logger.warning(
                 "Attempted to use a function requiring login, but login previously "
-                "failed.",
-                stacklevel=2,
+                "failed."
             )
             return
         if (not self.FPL_LOGIN) or (not self.FPL_PASSWORD):
@@ -331,18 +329,13 @@ class FPLDataFetcher:
 
     def _set_login_failed(self, exception: Exception | None = None, msg: str = ""):
         self.login_failed = True
-        exc_str = (
-            "".join(traceback.TracebackException.from_exception(exception).format())
-            if exception
-            else ""
-        )
         help = (
             "Login failed due to the error above. Continuing without login but this "
             "may cause issues later due to not having your latest team details. Login "
             "failures could be caused by issues with your username and password, "
             "connection problems, or changes to the API."
         )
-        warnings.warn(f"{msg}\n{exc_str}\n{help}", stacklevel=3)
+        logger.warning("%s\n%s", msg, help, exc_info=exception)
 
     def get_current_squad_data(self, fpl_team_id=None):
         """
@@ -484,7 +477,7 @@ class FPLDataFetcher:
         self.login()
         r = self._get_request(self.FPL_LEAGUE_URL)
         if r.status_code != 200:
-            print("Unable to access FPL league API")
+            logger.warning("Unable to access FPL league API")
             return None
         self.fpl_league_data = json.loads(r.content.decode("utf-8"))
         return self.fpl_league_data
@@ -558,7 +551,9 @@ class FPLDataFetcher:
             return self.player_gameweek_data[player_api_id]
 
         if gameweek not in self.player_gameweek_data[player_api_id]:
-            print(f"Data not available for player {player_api_id} week {gameweek}")
+            logger.warning(
+                "Data not available for player %s week %s", player_api_id, gameweek
+            )
             return []
         return self.player_gameweek_data[player_api_id][gameweek]
 
@@ -602,7 +597,7 @@ class FPLDataFetcher:
                 "needed"
             ),
         )
-        print("Lineup set!")
+        logger.info("Lineup set!")
 
     def post_transfers(self, transfer_payload):
         """Make transfers via the API.
@@ -622,7 +617,7 @@ class FPLDataFetcher:
             data=transfer_payload,
             err_msg=err_msg,
         )
-        print("Transfers made!")
+        logger.info("Transfers made!")
 
     def _get_request(
         self, url, err_msg="Unable to access FPL API", attempts=3, **params

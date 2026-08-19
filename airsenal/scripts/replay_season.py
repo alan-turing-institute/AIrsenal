@@ -14,8 +14,7 @@ from airsenal.framework.bpl_interface import (
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
-from airsenal.framework.output import print
-from airsenal.framework.output import track as tqdm
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
@@ -25,6 +24,8 @@ from airsenal.framework.utils import (
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.squad_builder import fill_initial_squad
+
+logger = get_logger(__name__)
 
 
 def get_dummy_id(season: str, dbsession: Session) -> int:
@@ -43,11 +44,13 @@ def print_replay_params(
     tag_prefix: str,
     fpl_team_id: int,
 ) -> None:
-    print("=" * 30)
-    print(f"Replay {season} season from GW{gameweek_start} to GW{gameweek_end}")
-    print(f"tag_prefix = {tag_prefix}")
-    print(f"fpl_team_id = {fpl_team_id}")
-    print("=" * 30)
+    logger.info("=" * 30)
+    logger.info(
+        "Replay %s season from GW%s to GW%s", season, gameweek_start, gameweek_end
+    )
+    logger.info("tag_prefix = %s", tag_prefix)
+    logger.info("fpl_team_id = %s", fpl_team_id)
+    logger.info("=" * 30)
 
 
 def replay_season(
@@ -89,8 +92,8 @@ def replay_season(
     replay_results["weeks_ahead"] = weeks_ahead
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
-    for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
-        print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
+    for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
+        logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
         with session_scope() as session:
             gw_range = get_gameweeks_array(
                 weeks_ahead, gameweek_start=gw, season=season, dbsession=session
@@ -108,7 +111,7 @@ def replay_season(
         if not transfers:
             continue
         if gw == gameweek_start and new_squad:
-            print("Creating initial squad...")
+            logger.info("Creating initial squad...")
             squad = fill_initial_squad(
                 tag, gw_range, season, fpl_team_id, is_replay=True
             )
@@ -121,7 +124,7 @@ def replay_season(
                 "players_out": {str(gw): []},
             }
         else:
-            print("Optimising transfers...")
+            logger.info("Optimising transfers...")
             # find best squad and the strategy for this gameweek
             squad, best_strategy = run_optimization(
                 gw_range,
@@ -181,7 +184,7 @@ def replay_season(
             )
             raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
-        print("-" * 30)
+        logger.info("-" * 30)
 
     end = datetime.now()
     elapsed = end - start
@@ -189,7 +192,7 @@ def replay_season(
     with open(f"{tag_prefix}.json", "w") as outfile:
         json.dump(replay_results, outfile)
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
-    print("DONE!")
+    logger.info("DONE!")
 
 
 def run_replays(
@@ -214,9 +217,9 @@ def run_replays(
 
     n_completed = 0
     while (loop == -1) or (n_completed < loop):
-        print("*" * 15)
-        print(f"RUNNING REPLAY {n_completed + 1}")
-        print("*" * 15)
+        logger.info("*" * 15)
+        logger.info("RUNNING REPLAY %s", n_completed + 1)
+        logger.info("*" * 15)
         replay_season(
             season=season,
             gameweek_start=gameweek_start,
