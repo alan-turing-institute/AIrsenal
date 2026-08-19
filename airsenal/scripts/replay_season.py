@@ -182,6 +182,8 @@ def replay_season(
             )
             raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
+        with open(f"{tag_prefix}_gw{gw}.json", "w") as outfile:
+            json.dump(gw_result, outfile)
         print("-" * 30)
 
     end = datetime.now()
