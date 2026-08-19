@@ -12,14 +12,16 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning, tqdm
 
-from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
+from airsenal.framework.bpl_interface import (
+    DEFAULT_TEAM_EPSILON,
+    parse_team_model_from_str,
+)
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
     get_max_gameweek,
     get_player_name,
-    parse_team_model_from_str,
 )
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import (
@@ -218,6 +220,8 @@ def replay_season(
             )
             raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
+        with open(f"{tag_prefix}_gw{gw}.json", "w") as outfile:
+            json.dump(gw_result, outfile)
         print("-" * 30)
 
     end = datetime.now()

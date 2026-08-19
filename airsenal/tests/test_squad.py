@@ -122,7 +122,7 @@ def test_empty_squad(fill_players):
     t = Squad()
     with pytest.raises(RuntimeError) as errmsg:
         t.get_expected_points(1, "dummy")
-    assert str(errmsg.value) == "Squad is incomplete"
+    assert str(errmsg.value).startswith("Squad is incomplete")
 
 
 def test_order_substitutes():

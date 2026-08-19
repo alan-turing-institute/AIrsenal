@@ -319,3 +319,32 @@ def get_goal_probabilities_for_fixtures(
             f.away_team: dict(zip(goals, away_team_goal_prob, strict=False)),
         }
     return probs
+
+
+def parse_team_model_from_str(
+    team_model: str,
+) -> (
+    "RandomMatchPredictor | ExtendedDixonColesMatchPredictor | "
+    "NeutralDixonColesMatchPredictor"
+):
+    """
+    Returns the team model class corresponding to the given string.
+    """
+    # imported lazily - see the TYPE_CHECKING block at the top of this module for why
+    from bpl import (  # noqa: PLC0415
+        ExtendedDixonColesMatchPredictor,
+        NeutralDixonColesMatchPredictor,
+    )
+
+    from airsenal.framework.random_team_model import (  # noqa: PLC0415
+        RandomMatchPredictor,
+    )
+
+    if team_model == "random":
+        return RandomMatchPredictor()
+    if team_model == "extended":
+        return ExtendedDixonColesMatchPredictor()
+    if team_model == "neutral":
+        return NeutralDixonColesMatchPredictor()
+    msg = "Unknown team model"
+    raise ValueError(msg)
