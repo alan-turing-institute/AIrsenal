@@ -231,7 +231,21 @@ def _path_bb(
     have_free_hit = "free_hit" in available_chip_types
 
     if not have_wildcard and not have_free_hit:
-        return None, "path BB: neither wildcard nor free hit available"
+        have_bench_boost = "bench_boost" in available_chip_types
+        have_triple_captain = "triple_captain" in available_chip_types
+        if (
+            have_bench_boost or have_triple_captain
+        ) and is_biggest_fixture_pileup_before_boundary(gameweek, season, dbsession):
+            # same bench_boost-before-triple_captain priority as the checks above
+            fallback_chip = "bench_boost" if have_bench_boost else "triple_captain"
+            return (
+                fallback_chip,
+                (
+                    "path BB: neither wildcard nor free hit - falling back to "
+                    "bench boost/triple captain on the biggest pile-up"
+                ),
+            )
+        return None, "path BB: no chip fits"
 
     if have_wildcard != have_free_hit:
         only_chip = "wildcard" if have_wildcard else "free_hit"

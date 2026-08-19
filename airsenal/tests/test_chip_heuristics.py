@@ -310,3 +310,75 @@ def test_simulate_chip_decisions_blank_triggers_free_hit(fill_players):
         assert chip_gameweeks["wildcard"] == -1
         assert chip_gameweeks["bench_boost"] == -1
         assert chip_gameweeks["triple_captain"] == -1
+
+
+def test_simulate_chip_decisions_bench_boost_fallback_on_biggest_pileup(fill_players):
+    with session_scope() as ts:
+        star_id = _make_player(ts, 92601, "Star Player", "F1", "FWD", gameweek=16)
+        mate_id = _make_player(ts, 92602, "Squad Mate", "F2", "MID", gameweek=16)
+        ts.commit()
+
+        # gw16: double gameweek league-wide (11 fixtures among 22 distinct teams)
+        # but no individual team is personally doubled - so neither BB1 (bench
+        # boost, needs >14 doubled squad players) nor BB2 (triple captain, needs
+        # the captain doubled) trigger on their own conditions.
+        gw16_fixture = _make_fixture(ts, "F1", "F2", 16)
+        for i in range(10):
+            _make_fixture(ts, f"P{i}A", f"P{i}B", 16)
+        # gw17/19 stay empty - gw16 remains the biggest pile-up before the GW19
+        # boundary despite leftover fixtures at gw18 from another test.
+        ts.commit()
+
+        tag = "test-bb-fallback-tag"
+        _make_prediction(ts, star_id, gw16_fixture, tag, 5.0)
+        _make_prediction(ts, mate_id, gw16_fixture, tag, 3.0)
+        ts.commit()
+
+        squad = Squad(season=SEASON)
+        squad.add_player(star_id, price=40, gameweek=16, dbsession=ts)
+        squad.add_player(mate_id, price=40, gameweek=16, dbsession=ts)
+
+        trace = simulate_chip_decisions(
+            squad,
+            [16],
+            tag,
+            SEASON,
+            dbsession=ts,
+            chips_played={1: "wildcard", 2: "free_hit"},
+        )
+
+        assert trace[0]["chip_played"] == "bench_boost"
+
+
+def test_simulate_chip_decisions_triple_captain_fallback_when_bench_boost_used(
+    fill_players,
+):
+    with session_scope() as ts:
+        star_id = _make_player(ts, 92701, "Star Player", "G1", "FWD", gameweek=17)
+        mate_id = _make_player(ts, 92702, "Squad Mate", "G2", "MID", gameweek=17)
+        ts.commit()
+
+        gw17_fixture = _make_fixture(ts, "G1", "G2", 17)
+        for i in range(10):
+            _make_fixture(ts, f"Q{i}A", f"Q{i}B", 17)
+        ts.commit()
+
+        tag = "test-tc-fallback-tag"
+        _make_prediction(ts, star_id, gw17_fixture, tag, 5.0)
+        _make_prediction(ts, mate_id, gw17_fixture, tag, 3.0)
+        ts.commit()
+
+        squad = Squad(season=SEASON)
+        squad.add_player(star_id, price=40, gameweek=17, dbsession=ts)
+        squad.add_player(mate_id, price=40, gameweek=17, dbsession=ts)
+
+        trace = simulate_chip_decisions(
+            squad,
+            [17],
+            tag,
+            SEASON,
+            dbsession=ts,
+            chips_played={1: "wildcard", 2: "free_hit", 3: "bench_boost"},
+        )
+
+        assert trace[0]["chip_played"] == "triple_captain"
