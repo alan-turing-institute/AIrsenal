@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad
@@ -16,6 +16,8 @@ from airsenal.scripts.fill_playerscore_table import make_playerscore_table
 from airsenal.scripts.fill_result_table import make_result_table
 from airsenal.scripts.fill_team_table import make_team_table
 
+logger = get_logger(__name__)
+
 
 def check_clean_db(clean: bool, dbsession: Session) -> bool:
     """Check whether an AIrsenal database already exists. If clean is True attempt to
@@ -23,7 +25,7 @@ def check_clean_db(clean: bool, dbsession: Session) -> bool:
     empty.
     """
     if clean:
-        print("Cleaning database...")
+        logger.info("Cleaning database...")
         clean_database()
     return database_is_empty(dbsession)
 
@@ -48,7 +50,7 @@ def make_init_db(
             raise ValueError(msg)
         fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
 
-    print("DONE!")
+    logger.info("DONE!")
     return not database_is_empty(dbsession)
 
 
@@ -70,7 +72,7 @@ def create_database(
                 seasons = [CURRENT_SEASON, *get_past_seasons(n_previous)]
             make_init_db(fpl_team_id, seasons, dbsession)
         else:
-            print(
+            logger.info(
                 "AIrsenal database already exists. "
                 "Run 'airsenal db create --clean' to delete and recreate it,\n"
                 "or keep the current database and continue to 'airsenal db update'."

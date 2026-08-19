@@ -2,14 +2,13 @@
 functions to optimize the transfers for N weeks ahead
 """
 
-import warnings
 from copy import deepcopy
 from datetime import datetime
 
 from curl_cffi import requests
 from sqlalchemy import select
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import (
     Fixture,
     PlayerPrediction,
@@ -25,6 +24,8 @@ from airsenal.framework.utils import (
     get_player,
     session,
 )
+
+logger = get_logger(__name__)
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -123,11 +124,11 @@ def get_starting_squad(
         try:
             return get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
 
-        except requests.exceptions.RequestException as e:
-            warnings.warn(
-                f"Failed to get current squad from API:\n{e}\nUsing DB instead, which "
+        except requests.exceptions.RequestException:
+            logger.warning(
+                "Failed to get current squad from API. Using DB instead, which "
                 "may be out of date.",
-                stacklevel=2,
+                exc_info=True,
             )
 
     # otherwise, we use the Transaction table in the DB
@@ -147,7 +148,7 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
             msg = "No transactions in database."
             raise ValueError(msg)
         fpl_team_id = most_recent.fpl_team_id
-    print(f"Getting starting squad for {fpl_team_id}")
+    logger.info("Getting starting squad for %s", fpl_team_id)
 
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
@@ -315,7 +316,7 @@ def fill_transaction_table(
                 dbsession,
             )
         else:
-            print(f"Failed to find player {player_id} in db for transaction")
+            logger.warning("Failed to find player %s in db for transaction", player_id)
 
 
 def fill_initial_suggestion_table(
@@ -420,7 +421,7 @@ def get_num_increments(num_transfers, num_iterations=100):
     if num_transfers == 2:
         # remove each pair of players - 15*7=105 combinations
         return 105
-    print(f"Unrecognized num_transfers: {num_transfers}")
+    logger.warning("Unrecognized num_transfers: %s", num_transfers)
     return 1
 
 

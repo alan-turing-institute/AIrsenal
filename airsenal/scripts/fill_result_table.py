@@ -8,7 +8,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Result, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -18,6 +18,8 @@ from airsenal.framework.utils import (
     get_last_finished_gameweek,
     get_past_seasons,
 )
+
+logger = get_logger(__name__)
 
 
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
@@ -46,7 +48,12 @@ def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> N
             dbsession=dbsession,
         )
         if fixture is None:
-            print(f"Unable to find fixture for {home_team} vs {away_team} in {season}")
+            logger.warning(
+                "Unable to find fixture for %s vs %s in %s",
+                home_team,
+                away_team,
+                season,
+            )
             continue
         res = Result()
         res.fixture = fixture
@@ -62,15 +69,16 @@ def fill_results_from_api(
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
     if get_last_finished_gameweek() == 0:
-        print(
-            f"No complete gameweeks, skipping match result update for {season} season"
+        logger.info(
+            "No complete gameweeks, skipping match result update for %s season",
+            season,
         )
         return
     if (
         get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
         == get_last_finished_gameweek()
     ):
-        print(f"Match results up-to-date, skipping update for {season} season")
+        logger.info("Match results up-to-date, skipping update for %s season", season)
         return
     for m in track(matches, description=f"RESULTS {season}"):
         if not m["finished"]:
@@ -104,9 +112,12 @@ def fill_results_from_api(
             dbsession=dbsession,
         )
         if f is None:
-            print(
-                f"Unable to find fixture for {home_team} vs {away_team} in {season} "
-                f"gameweek {gameweek}"
+            logger.warning(
+                "Unable to find fixture for %s vs %s in %s gameweek %s",
+                home_team,
+                away_team,
+                season,
+                gameweek,
             )
             continue
         if f.result is None:

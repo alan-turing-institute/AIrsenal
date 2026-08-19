@@ -7,7 +7,9 @@ import json
 from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 
 def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:
@@ -21,7 +23,7 @@ def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:
         if fuzz.partial_ratio(t, team) > best_ratio:
             best_ratio = fuzz.partial_ratio(t, team)
             best_match = t
-    print(f"Best match {best_match}/{team}, score {best_ratio}")
+    logger.debug("Best match %s/%s, score %s", best_match, team, best_ratio)
     return best_match, best_ratio
 
 
@@ -68,10 +70,10 @@ if __name__ == "__main__":
                 missing.add(team)
     # matched teams should be all except promoted ones that haven't
     # been in the prem recently
-    print(f"Num matched: {len(matched)}")
+    logger.info("Num matched: %s", len(matched))
 
     # print missing teams (should be the relegated ones
-    print(f"Teams not in this seasons FPL: {missing}")
+    logger.warning("Teams not in this seasons FPL: %s", missing)
 
     with open("../data/alternative_team_names.json", "w") as outfile:
         outfile.write(json.dumps(teamdict))

@@ -12,7 +12,7 @@ import pytz
 import requests
 from bs4 import BeautifulSoup
 
-from airsenal.framework.output import track as tqdm
+from airsenal.framework.output import track
 
 LEAGUE_URL = "https://understat.com/league/epl/{}"
 MATCH_URL = "https://understat.com/match/{}"
@@ -196,7 +196,7 @@ def get_season_info(season: str, result: dict | None = None):
         result = {}
     matches_info = get_matches_info(season)
 
-    for match in tqdm(matches_info):
+    for match in track(matches_info):
         if match.get("id") not in result:
             parsed_match = parse_match(match)
             if parsed_match:

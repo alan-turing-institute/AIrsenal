@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import track as tqdm
+from airsenal.framework.output import track
 from airsenal.framework.season import CURRENT_SEASON
 
 RENAME_KEYS = {
@@ -41,7 +41,7 @@ def make_player_details(season: str = CURRENT_SEASON) -> None:
     fixture_teams = get_fixture_teams(fetcher)
 
     player_details: dict[str, list[dict[str, Any]]] = {}
-    for player_id, player_meta in tqdm(player_summary_data.items()):
+    for player_id, player_meta in track(player_summary_data.items()):
         player_details[player_meta["opta_code"]] = []
         for gw in gameweeks:
             gw_details = fetcher.get_gameweek_data_for_player(player_id, gw)

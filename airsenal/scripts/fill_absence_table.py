@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Absence, session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -14,9 +14,11 @@ from airsenal.framework.utils import (
     get_return_gameweek_by_date,
 )
 
+logger = get_logger(__name__)
+
 
 def load_absences(season: str, dbsession: Session) -> None:
-    print(f"ABSENCES {season}")
+    logger.info("ABSENCES %s", season)
     path = os.path.join(
         os.path.dirname(__file__), "..", "data", f"absences_{season}.csv"
     )
@@ -27,12 +29,12 @@ def load_absences(season: str, dbsession: Session) -> None:
     ):
         p = get_player(row["player"], dbsession=dbsession)
         if not p:
-            print(f"Couldn't find player {row['player']}")
+            logger.warning("Couldn't find player %s", row["player"])
             continue
 
         date_from = row["from"].date()
         if date_from is pd.NaT:
-            print(f"{row['player']} {row['details']} has no from date")
+            logger.warning("%s %s has no from date", row["player"], row["details"])
             continue
 
         # first check approx gameweek to determine player's team at that time
@@ -40,7 +42,9 @@ def load_absences(season: str, dbsession: Session) -> None:
             check_date=date_from, season=season, dbsession=dbsession
         )
         if gw_date is None:
-            print(f"Couldn't find gameweek for {row['player']} from date {date_from}")
+            logger.warning(
+                "Couldn't find gameweek for %s from date %s", row["player"], date_from
+            )
             continue
         team_from = p.team(season, gw_date)
         # then get actual return gameweek using the player's team

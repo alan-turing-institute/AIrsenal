@@ -16,7 +16,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -37,6 +37,8 @@ from airsenal.framework.utils import (
     get_top_predicted_points,
     list_players,
 )
+
+logger = get_logger(__name__)
 
 
 def calc_all_predicted_points(
@@ -67,7 +69,7 @@ def calc_all_predicted_points(
         model=team_model,
         **team_model_args,
     )
-    print("Calculating fixture score probabilities...")
+    logger.info("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
     fixture_goal_probs = get_goal_probabilities_for_fixtures(
         fixtures, model_team, max_goals=MAX_GOALS
@@ -113,7 +115,7 @@ def calc_all_predicted_points(
         for pred in predictions:
             dbsession.add(pred)
     dbsession.commit()
-    print("Finished adding predictions to db")
+    logger.info("Finished adding predictions to db")
 
 
 def make_predictedscore_table(

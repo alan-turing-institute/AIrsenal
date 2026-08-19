@@ -26,7 +26,7 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
-from airsenal.framework.output import print, track
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.player_model import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,
@@ -59,7 +59,7 @@ from airsenal.framework.utils import (
     was_historic_absence,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 np.random.seed(42)
 
@@ -201,7 +201,7 @@ def get_player_history_df(
 
             match_id = row.result_id
             if not match_id:
-                logger.warning(f"Couldn't find result for {row.fixture}")
+                logger.warning("Couldn't find result for %s", row.fixture)
                 continue
 
             minutes = row.minutes
@@ -466,7 +466,7 @@ def calc_predicted_points_for_player(
     for fixture in fixtures:
         gameweek = fixture.gameweek
         if gameweek is None:
-            logger.info(f"Skipping fixture {fixture} with no gameweek")
+            logger.warning("Skipping fixture %s with no gameweek", fixture)
             continue
 
         is_home = fixture.home_team == team
@@ -590,7 +590,7 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
         for k, v in summary_data.items():
             player = get_player_from_api_id(k)
             if player is None:
-                logger.warning(f"Player with API ID {k} not found in database")
+                logger.warning("Player with API ID %s not found in database", k)
                 continue
 
             player_id = player.player_id
@@ -703,8 +703,7 @@ def fit_player_data(
         model = ConjugatePlayerModel()
 
     data = process_player_data(position, season, gameweek, dbsession)
-    logger.info(f"Fitting player model for {position} ...")
-
+    logger.info("Fitting player model for %s...", position)
     model = fastcopy(model)
     fitted_model = model.fit(data, epsilon=epsilon, n_goals_prior=n_goals_prior)
     df = pd.DataFrame(fitted_model.get_probs())

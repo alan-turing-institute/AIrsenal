@@ -9,6 +9,9 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.framework import env
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 env.AIRSENAL_HOME = Path(mkdtemp())
 # AIRSENAL_DB_FILE/URI/USER/PASSWORD are resolved once, at env.py import time, from
@@ -102,11 +105,11 @@ def fill_players():
             p.player_id = i
             p.fpl_api_id = i
             p.name = n
-            print(f"Filling {i} {n}")
+            logger.debug("Filling %d %s", i, n)
             try:
                 ts.add(p)
             except Exception:
-                print(f"Error adding {i} {n}")
+                logger.exception("Error adding %d %s", i, n)
             # now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"

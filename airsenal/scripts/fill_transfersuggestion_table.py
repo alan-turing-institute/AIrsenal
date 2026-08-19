@@ -44,7 +44,7 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
-from airsenal.framework.output import console, print, progress_bar, table
+from airsenal.framework.output import console, get_logger, progress_bar, table
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -56,6 +56,8 @@ from airsenal.framework.utils import (
     get_player_name,
 )
 from airsenal.scripts.squad_builder import fill_initial_squad
+
+logger = get_logger(__name__)
 
 OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
@@ -291,7 +293,7 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
     zeros = ("0-" * num_gameweeks)[:-1]
     filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
     if not os.path.exists(filename):
-        print(f"Couldn't find {filename}")
+        logger.warning("Couldn't find %s", filename)
         return 0.0
     with open(filename) as inputfile:
         strat = json.load(inputfile)
@@ -441,7 +443,7 @@ def run_optimization(
     if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
         fpl_team_id, apifetcher=fetcher
     ):
-        print(
+        logger.info(
             "This is the start of the season or a new team - will make a squad "
             "from scratch"
         )
@@ -456,7 +458,7 @@ def run_optimization(
         )
         return squad, None
 
-    print(f"Running optimization with fpl_team_id {fpl_team_id}")
+    logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
     use_api = season == CURRENT_SEASON and not is_replay
     try:
         starting_squad = get_starting_squad(
@@ -468,8 +470,10 @@ def run_optimization(
         )
     except (ValueError, TypeError):
         # first week for this squad?
-        print(f"No existing squad or transfers found for team_id {fpl_team_id}")
-        print("Will suggest a new starting squad:")
+        logger.warning(
+            "No existing squad or transfers found for team_id %s", fpl_team_id
+        )
+        logger.info("Will suggest a new starting squad:")
         squad = fill_initial_squad(
             tag=tag,
             gw_range=gameweeks,
@@ -491,7 +495,7 @@ def run_optimization(
             apifetcher=fetcher,
             is_replay=is_replay,
         )
-    print(f"Starting with {num_free_transfers} free transfers")
+    logger.info("Starting with %s free transfers", num_free_transfers)
 
     # create the output directory for temporary json files
     # giving the points prediction for each strategy
@@ -629,19 +633,16 @@ def run_optimization(
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
 
-    for _ in range(len(procs)):
-        print("\n")
+    console.print()
 
     if best_strategy is None:
         msg = "Failed to find a strategy!"
         raise ValueError(msg)
 
-    print("================")
-    print("OPTIMUM STRATEGY")
-    print("================\n")
-    print(f"Team ID: {fpl_team_id}")
-    print(f"Baseline Score: {baseline_score:.1f}pts")
-    print(f"Score with Strategy: {best_strategy['total_score']:.1f}pts")
+    logger.info("[bold]OPTIMUM STRATEGY[/bold]")
+    logger.info("Team ID: %s", fpl_team_id)
+    logger.info("Baseline Score: %.1fpts", baseline_score)
+    logger.info("Score with Strategy: %.1fpts", best_strategy["total_score"])
     print_strat(best_strategy)
     best_squad = print_team_for_next_gw(
         best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
@@ -685,11 +686,15 @@ def run_optimization(
             payload = discord_payload(best_strategy, lineup_strings)
             result = requests.post(discord_webhook, json=payload)
             if 200 <= result.status_code < 300:
-                print(f"Discord webhook sent, status code: {result.status_code}")
+                logger.info("Discord webhook sent, status code: %s", result.status_code)
             else:
-                print(f"Not sent with {result.status_code}, response:\n{result.json()}")
+                logger.warning(
+                    "Not sent with %s, response:\n%s",
+                    result.status_code,
+                    result.json(),
+                )
         else:
-            print("Warning: Discord webhook url is malformed!\n", discord_webhook)
+            logger.warning("Discord webhook url is malformed: %s", discord_webhook)
 
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return best_squad, best_strategy
@@ -795,11 +800,10 @@ def run_transfer_optimization(
     }
 
     if not check_tag_valid(tag, gameweeks, season=season):
-        print(
-            "ERROR: Database does not contain predictions",
-            "for all the specified optimsation gameweeks.\n",
-            "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here.",
+        logger.error(
+            "Database does not contain predictions for all the specified "
+            "optimsation gameweeks. Please run 'airsenal_run_prediction' first "
+            "with the same input gameweeks and season you specified here."
         )
         sys.exit(1)
 

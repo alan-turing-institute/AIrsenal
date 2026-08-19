@@ -14,9 +14,11 @@ import os
 
 from sqlalchemy import select
 
-from airsenal.framework.output import print
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Absence, PlayerAttributes
 from airsenal.framework.utils import CURRENT_SEASON, session
+
+logger = get_logger(__name__)
 
 
 def save_absences(absence_list):
@@ -79,6 +81,6 @@ def main():
             PlayerAttributes.chance_of_playing_next_round != None,  # noqa: E711
         )
     ).all()
-    print(f"Found {len(pas)} player absences.")
+    logger.info("Found %s player absences.", len(pas))
     absences = [player_attribute_to_absence(pa) for pa in pas]
     save_absences(absences)
