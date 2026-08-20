@@ -414,7 +414,8 @@ class Squad:
 
     def optimize_lineup(self, gameweek: int, tag: str):
         if not self.is_complete():
-            msg = f"Squad is incomplete - current players: {self.players}"
+            current_players = [p.name for p in self.players]
+            msg = f"Squad is incomplete - current players: {current_players}"
             raise RuntimeError(msg)
 
         self._calc_expected_points(tag)
