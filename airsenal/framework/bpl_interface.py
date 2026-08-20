@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import console, get_logger
+from airsenal.framework.output import get_logger
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import FifaTeamRating, Fixture, Result, session
 from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
@@ -157,13 +157,7 @@ def create_and_fit_team_model(
     if "rescale_weights" not in fit_args:
         fit_args["rescale_weights"] = DEFAULT_RESCALE_WEIGHTS
     logger.info("Using %s model with args %s", type(model).__name__, fit_args)
-    # bpl's fit() runs a NumPyro MCMC sampler with its own tqdm-based progress bar.
-    # Wrapping it in a Rich status spinner here (rather than leaving it to whichever
-    # caller happens to already have a Rich progress bar open) means that bar always
-    # renders consistently, regardless of whether create_and_fit_team_model() is
-    # called from a script that has its own Rich progress bar active or not.
-    with console.status(f"Fitting {type(model).__name__}..."):
-        return model.fit(training_data=training_data, **fit_args)
+    return model.fit(training_data=training_data, **fit_args)
 
 
 def add_new_teams_to_model(

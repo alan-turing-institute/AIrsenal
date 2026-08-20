@@ -13,7 +13,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import console, get_logger
+from airsenal.framework.output import get_logger
 from airsenal.framework.player import DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
@@ -314,23 +314,17 @@ class SquadOpt:
         # Hall of fame to track best individuals
         hall_of_fame = tools.HallOfFame(1)
 
-        # Run the genetic algorithm. DEAP's own per-generation stats table is
-        # printed directly via print(), regardless of whether this call happens
-        # to already be inside one of our own Rich progress displays or not.
-        # Wrapping it in a status spinner here - rather than leaving it to
-        # whichever caller happens to have a Rich display open - means those rows
-        # are always routed through Rich consistently.
-        with console.status(f"Optimising squad ({generations} generations)..."):
-            population, _logbook = algorithms.eaSimple(
-                population,
-                self.toolbox,
-                cxpb=crossover_prob,
-                mutpb=mutation_prob,
-                ngen=generations,
-                stats=stats,
-                halloffame=hall_of_fame,
-                verbose=verbose,
-            )
+        # Run the genetic algorithm
+        population, _logbook = algorithms.eaSimple(
+            population,
+            self.toolbox,
+            cxpb=crossover_prob,
+            mutpb=mutation_prob,
+            ngen=generations,
+            stats=stats,
+            halloffame=hall_of_fame,
+            verbose=verbose,
+        )
 
         # Return best individual and its fitness
         best_individual = hall_of_fame[0]

@@ -42,22 +42,23 @@ def fill_initial_squad(
     is_replay: bool = False,  # for replaying seasons
     chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
-    best_squad = make_new_squad(
-        gw_range,
-        tag,
-        budget=budget,
-        season=season,
-        remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        population_size=population_size,
-        generations=num_generations,
-        crossover_prob=crossover_prob,
-        mutation_prob=mutation_prob,
-        crossover_indpb=crossover_indpb,
-        mutation_indpb=mutation_indpb,
-        tournament_size=tournament_size,
-        verbose=verbose,
-    )
+    with console.status("Optimising full squad..."):
+        best_squad = make_new_squad(
+            gw_range,
+            tag,
+            budget=budget,
+            season=season,
+            remove_zero=remove_zero,
+            sub_weights=sub_weights,
+            population_size=population_size,
+            generations=num_generations,
+            crossover_prob=crossover_prob,
+            mutation_prob=mutation_prob,
+            crossover_indpb=crossover_indpb,
+            mutation_indpb=mutation_indpb,
+            tournament_size=tournament_size,
+            verbose=verbose,
+        )
 
     if best_squad is None:
         msg = (

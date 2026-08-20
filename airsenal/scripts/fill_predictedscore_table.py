@@ -16,7 +16,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.framework.output import get_logger, track
+from airsenal.framework.output import console, get_logger, track
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -140,19 +140,20 @@ def make_predictedscore_table(
     tag += str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    calc_all_predicted_points(
-        gw_range=gw_range,
-        season=season,
-        dbsession=dbsession,
-        include_bonus=include_bonus,
-        include_cards=include_cards,
-        include_saves=include_saves,
-        include_def_con=include_def_con,
-        tag=tag,
-        player_model=player_model,
-        team_model=team_model,
-        team_model_args=team_model_args,
-    )
+    with console.status("Predicting points..."):
+        calc_all_predicted_points(
+            gw_range=gw_range,
+            season=season,
+            dbsession=dbsession,
+            include_bonus=include_bonus,
+            include_cards=include_cards,
+            include_saves=include_saves,
+            include_def_con=include_def_con,
+            tag=tag,
+            player_model=player_model,
+            team_model=team_model,
+            team_model_args=team_model_args,
+        )
     return tag
 
 

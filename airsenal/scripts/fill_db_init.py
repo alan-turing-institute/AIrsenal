@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import get_logger
+from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad
@@ -33,22 +33,23 @@ def check_clean_db(clean: bool, dbsession: Session) -> bool:
 def make_init_db(
     fpl_team_id: int | None, seasons: list[str], dbsession: Session
 ) -> bool:
-    seasons = sort_seasons(seasons)
-    make_team_table(seasons=seasons, dbsession=dbsession)
-    make_fixture_table(seasons=seasons, dbsession=dbsession)
-    make_result_table(seasons=seasons, dbsession=dbsession)
-    make_fifa_ratings_table(seasons=seasons, dbsession=dbsession)
+    with console.status("Creating the database..."):
+        seasons = sort_seasons(seasons)
+        make_team_table(seasons=seasons, dbsession=dbsession)
+        make_fixture_table(seasons=seasons, dbsession=dbsession)
+        make_result_table(seasons=seasons, dbsession=dbsession)
+        make_fifa_ratings_table(seasons=seasons, dbsession=dbsession)
 
-    make_player_table(seasons=seasons, dbsession=dbsession)
-    make_attributes_table(seasons=seasons, dbsession=dbsession)
-    make_playerscore_table(seasons=seasons, dbsession=dbsession)
-    make_absence_table(seasons=seasons, dbsession=dbsession)
+        make_player_table(seasons=seasons, dbsession=dbsession)
+        make_attributes_table(seasons=seasons, dbsession=dbsession)
+        make_playerscore_table(seasons=seasons, dbsession=dbsession)
+        make_absence_table(seasons=seasons, dbsession=dbsession)
 
-    if CURRENT_SEASON in seasons:
-        if fpl_team_id is None:
-            msg = "FPL team ID must be specified in args, config, or env"
-            raise ValueError(msg)
-        fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
+        if CURRENT_SEASON in seasons:
+            if fpl_team_id is None:
+                msg = "FPL team ID must be specified in args, config, or env"
+                raise ValueError(msg)
+            fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
 
     logger.info("DONE!")
     return not database_is_empty(dbsession)

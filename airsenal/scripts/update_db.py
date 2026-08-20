@@ -6,7 +6,7 @@ bought or sold.
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import get_logger
+from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
@@ -157,23 +157,24 @@ def update_attributes(season: str, dbsession: Session) -> None:
 def update_db(
     season: str, do_attributes: bool, fpl_team_id: int, session: Session
 ) -> bool:
-    # see if any new players have been added
-    num_new_players = update_players(season, session)
+    with console.status("Updating the database..."):
+        # see if any new players have been added
+        num_new_players = update_players(season, session)
 
-    # update player attributes (if requested)
-    if not do_attributes and num_new_players > 0:
-        logger.info("New players added - enforcing update of attributes table")
-        do_attributes = True
-    if do_attributes:
-        update_attributes(season, session)
+        # update player attributes (if requested)
+        if not do_attributes and num_new_players > 0:
+            logger.info("New players added - enforcing update of attributes table")
+            do_attributes = True
+        if do_attributes:
+            update_attributes(season, session)
 
-    # update fixtures (which may have been rescheduled)
-    logger.info("Updating fixture table...")
-    fill_fixtures_from_api(season, session)
-    # update results and playerscores
-    update_results(season, session)
-    # update our squad
-    update_transactions(season, fpl_team_id, session)
+        # update fixtures (which may have been rescheduled)
+        logger.info("Updating fixture table...")
+        fill_fixtures_from_api(season, session)
+        # update results and playerscores
+        update_results(season, session)
+        # update our squad
+        update_transactions(season, fpl_team_id, session)
     return True
 
 
