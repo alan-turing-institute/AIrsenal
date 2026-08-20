@@ -458,180 +458,188 @@ def run_optimization(
         )
         return squad, None
 
-    logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
-    use_api = season == CURRENT_SEASON and not is_replay
-    try:
-        starting_squad = get_starting_squad(
-            next_gw=gameweeks[0],
-            season=season,
-            fpl_team_id=fpl_team_id,
-            use_api=use_api,
-            apifetcher=fetcher,
-        )
-    except (ValueError, TypeError):
-        # first week for this squad?
-        logger.warning(
-            "No existing squad or transfers found for team_id %s", fpl_team_id
-        )
-        logger.info("Will suggest a new starting squad:")
-        squad = fill_initial_squad(
-            tag=tag,
-            gw_range=gameweeks,
-            season=season,
-            fpl_team_id=fpl_team_id,
-            num_generations=num_iterations,
-            population_size=num_iterations,
-            chip_gameweeks=chip_gameweeks,
-        )
-        return squad, None
-    # if we got to here, we can assume we are optimizing an existing squad.
-
-    # How many free transfers are we starting with?
-    if num_free_transfers is None:
-        num_free_transfers = get_free_transfers(
-            fpl_team_id,
-            gameweeks[0],
-            season=season,
-            apifetcher=fetcher,
-            is_replay=is_replay,
-        )
-    logger.info("Starting with %s free transfers", num_free_transfers)
-
-    # create the output directory for temporary json files
-    # giving the points prediction for each strategy
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    # first get a baseline prediction
-    # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
-
-    # Get a dict of what chips we definitely or possibly will play
-    # in each gw
-    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
-
-    # Specific fix (aka hack) for the 2022 World Cup, where everyone
-    # gets a free wildcard
-    if season == "2223" and gameweeks[0] == 17:
-        chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
-        num_free_transfers = 1
-
-    # create a queue that we will add nodes to, and some processes to take
-    # things off it
-    squeue = CustomQueue()
-    procs = []
-    # number of nodes in tree will be something like 3^num_weeks unless we allow
-    # a "chip" such as wildcard or free hit, in which case it gets complicated
-    num_weeks = len(gameweeks)
-    num_expected_outputs, baseline_excluded = count_expected_outputs(
-        num_weeks,
-        next_gw=gameweeks[0],
-        free_transfers=num_free_transfers,
-        max_total_hit=max_total_hit,
-        allow_unused_transfers=allow_unused_transfers,
-        max_opt_transfers=max_opt_transfers,
-        chip_gw_dict=chip_gw_dict,
-        max_free_transfers=max_free_transfers,
-    )
-
-    with progress_bar(transient=True) as progress:
-        # one progress bar per worker process, plus one for overall progress
-        worker_tasks = [
-            progress.add_task(f"Worker {i}: idle", total=100) for i in range(num_thread)
-        ]
-        total_task = progress.add_task("Total strategies", total=num_expected_outputs)
-
-        # workers report progress back to this process (which owns the Rich
-        # display) via a queue, rather than updating the progress bars directly
-        # - the worker processes only ever see a fork-time copy of them.
-        progress_queue: Queue = Queue()
-
-        def update_progress(increment: float = 1, index: int | None = None) -> None:
-            progress_queue.put(("increment", index, increment))
-
-        def reset_progress(index: int, strategy_string: str) -> None:
-            progress_queue.put(("reset", index, strategy_string))
-
-        def consume_progress_updates() -> None:
-            while True:
-                message = progress_queue.get()
-                if message is None:
-                    break
-                kind, index, value = message
-                if kind == "reset":
-                    progress.reset(
-                        worker_tasks[index], description=f"Worker {index}: {value}"
-                    )
-                elif index is None:
-                    progress.advance(total_task, value)
-                else:
-                    progress.advance(worker_tasks[index], value)
-
-        progress_thread = threading.Thread(target=consume_progress_updates, daemon=True)
-        progress_thread.start()
-
-        if baseline_excluded:
-            # if we are excluding unused transfers the tree may not include the
-            # baseline strategy. In those cases quickly calculate and save it
-            # here first.
-            save_baseline_score(starting_squad, gameweeks, tag)
-            progress.advance(total_task, 1)
-
-        # Add Processes to run the target 'optimize' function.
-        # This target function needs to know:
-        #  num_transfers
-        #  current_team (list of player_ids)
-        #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
-        #  total_score
-        #  num_free_transfers
-        #  budget
-        for i in range(num_thread):
-            processor = Process(
-                target=optimize,
-                args=(
-                    squeue,
-                    i,
-                    gameweeks,
-                    season,
-                    tag,
-                    chip_gw_dict,
-                    max_total_hit,
-                    allow_unused_transfers,
-                    max_opt_transfers,
-                    num_iterations,
-                    update_progress,
-                    reset_progress,
-                    profile,
-                ),
+    with console.status("Optimising transfers..."):
+        logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
+        use_api = season == CURRENT_SEASON and not is_replay
+        try:
+            starting_squad = get_starting_squad(
+                next_gw=gameweeks[0],
+                season=season,
+                fpl_team_id=fpl_team_id,
+                use_api=use_api,
+                apifetcher=fetcher,
             )
-            processor.daemon = True
-            processor.start()
-            procs.append(processor)
-        # add starting node to the queue
-        squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
+        except (ValueError, TypeError):
+            # first week for this squad?
+            logger.warning(
+                "No existing squad or transfers found for team_id %s", fpl_team_id
+            )
+            logger.info("Will suggest a new starting squad:")
+            squad = fill_initial_squad(
+                tag=tag,
+                gw_range=gameweeks,
+                season=season,
+                fpl_team_id=fpl_team_id,
+                num_generations=num_iterations,
+                population_size=num_iterations,
+                chip_gameweeks=chip_gameweeks,
+            )
+            return squad, None
+        # if we got to here, we can assume we are optimizing an existing squad.
 
-        # block until every node in the (dynamically-grown) strategy tree has
-        # been processed - i.e. the queue is empty and no worker is still
-        # processing an item that could enqueue further children.
-        squeue.join()
+        # How many free transfers are we starting with?
+        if num_free_transfers is None:
+            num_free_transfers = get_free_transfers(
+                fpl_team_id,
+                gameweeks[0],
+                season=season,
+                apifetcher=fetcher,
+                is_replay=is_replay,
+            )
+        logger.info("Starting with %s free transfers", num_free_transfers)
 
-        progress_queue.put(None)
-        progress_thread.join()
-        progress.update(total_task, description="Transfer optimization complete")
+        # create the output directory for temporary json files
+        # giving the points prediction for each strategy
+        shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        # first get a baseline prediction
+        # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
-    # tell each worker to shut down, then wait for them to exit
-    for _ in procs:
-        squeue.put(None)
-    for p in procs:
-        p.join()
+        # Get a dict of what chips we definitely or possibly will play
+        # in each gw
+        chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
 
-    # find the best from all the strategies tried
-    best_strategy = find_best_strat_from_json(tag)
+        # Specific fix (aka hack) for the 2022 World Cup, where everyone
+        # gets a free wildcard
+        if season == "2223" and gameweeks[0] == 17:
+            chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
+            num_free_transfers = 1
 
-    baseline_score = find_baseline_score_from_json(tag, num_weeks)
-    fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
-    if is_replay:
-        # simulating a previous season, so imitate applying transfers by adding
-        # the suggestions to the Transaction table
-        fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
+        # create a queue that we will add nodes to, and some processes to take
+        # things off it
+        squeue = CustomQueue()
+        procs = []
+        # number of nodes in tree will be something like 3^num_weeks unless we allow
+        # a "chip" such as wildcard or free hit, in which case it gets complicated
+        num_weeks = len(gameweeks)
+        num_expected_outputs, baseline_excluded = count_expected_outputs(
+            num_weeks,
+            next_gw=gameweeks[0],
+            free_transfers=num_free_transfers,
+            max_total_hit=max_total_hit,
+            allow_unused_transfers=allow_unused_transfers,
+            max_opt_transfers=max_opt_transfers,
+            chip_gw_dict=chip_gw_dict,
+            max_free_transfers=max_free_transfers,
+        )
+
+        with progress_bar(transient=True) as progress:
+            # one progress bar per worker process, plus one for overall progress
+            worker_tasks = [
+                progress.add_task(f"Worker {i}: idle", total=100)
+                for i in range(num_thread)
+            ]
+            total_task = progress.add_task(
+                "Total strategies", total=num_expected_outputs
+            )
+
+            # workers report progress back to this process (which owns the Rich
+            # display) via a queue, rather than updating the progress bars directly
+            # - the worker processes only ever see a fork-time copy of them.
+            progress_queue: Queue = Queue()
+
+            def update_progress(increment: float = 1, index: int | None = None) -> None:
+                progress_queue.put(("increment", index, increment))
+
+            def reset_progress(index: int, strategy_string: str) -> None:
+                progress_queue.put(("reset", index, strategy_string))
+
+            def consume_progress_updates() -> None:
+                while True:
+                    message = progress_queue.get()
+                    if message is None:
+                        break
+                    kind, index, value = message
+                    if kind == "reset":
+                        progress.reset(
+                            worker_tasks[index], description=f"Worker {index}: {value}"
+                        )
+                    elif index is None:
+                        progress.advance(total_task, value)
+                    else:
+                        progress.advance(worker_tasks[index], value)
+
+            progress_thread = threading.Thread(
+                target=consume_progress_updates, daemon=True
+            )
+            progress_thread.start()
+
+            if baseline_excluded:
+                # if we are excluding unused transfers the tree may not include the
+                # baseline strategy. In those cases quickly calculate and save it
+                # here first.
+                save_baseline_score(starting_squad, gameweeks, tag)
+                progress.advance(total_task, 1)
+
+            # Add Processes to run the target 'optimize' function.
+            # This target function needs to know:
+            #  num_transfers
+            #  current_team (list of player_ids)
+            #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
+            #  total_score
+            #  num_free_transfers
+            #  budget
+            for i in range(num_thread):
+                processor = Process(
+                    target=optimize,
+                    args=(
+                        squeue,
+                        i,
+                        gameweeks,
+                        season,
+                        tag,
+                        chip_gw_dict,
+                        max_total_hit,
+                        allow_unused_transfers,
+                        max_opt_transfers,
+                        num_iterations,
+                        update_progress,
+                        reset_progress,
+                        profile,
+                    ),
+                )
+                processor.daemon = True
+                processor.start()
+                procs.append(processor)
+            # add starting node to the queue
+            squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
+
+            # block until every node in the (dynamically-grown) strategy tree has
+            # been processed - i.e. the queue is empty and no worker is still
+            # processing an item that could enqueue further children.
+            squeue.join()
+
+            progress_queue.put(None)
+            progress_thread.join()
+            progress.update(total_task, description="Transfer optimization complete")
+
+        # tell each worker to shut down, then wait for them to exit
+        for _ in procs:
+            squeue.put(None)
+        for p in procs:
+            p.join()
+
+        # find the best from all the strategies tried
+        best_strategy = find_best_strat_from_json(tag)
+
+        baseline_score = find_baseline_score_from_json(tag, num_weeks)
+        fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
+        if is_replay:
+            # simulating a previous season, so imitate applying transfers by adding
+            # the suggestions to the Transaction table
+            fill_transaction_table(
+                starting_squad, best_strategy, season, fpl_team_id, tag
+            )
 
     console.print()
 

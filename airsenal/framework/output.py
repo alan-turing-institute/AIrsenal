@@ -68,7 +68,14 @@ def table(*columns: str, title: str | None = None) -> Table:
 
 
 def _new_progress(*, transient: bool = False) -> Progress:
-    """Build a Progress instance with AIrsenal's standard styling."""
+    """Build a Progress instance with AIrsenal's standard styling.
+
+    Explicitly bound to our shared `console` rather than Rich's own global
+    default - otherwise this Progress's Live display and any other Live
+    display elsewhere in AIrsenal (e.g. `console.status(...)`) end up on two
+    separate, uncoordinated Live stacks that both try to control the
+    terminal at once, which shows up as flickering between the two.
+    """
     return Progress(
         TextColumn("[progress.description]{task.description}"),
         MofNCompleteColumn(),
@@ -77,6 +84,7 @@ def _new_progress(*, transient: bool = False) -> Progress:
         TimeElapsedColumn(),
         TimeRemainingColumn(),
         transient=transient,
+        console=console,
     )
 
 
