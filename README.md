@@ -8,13 +8,13 @@
 
 For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
 
-### AIrsenal Details for 2025/26 season
+### AIrsenal Details for 2026/27 season
 
 We have made a mini-league **"Prem-AI League"** for players using this software.  To join, login to the FPL website, and navigate to the page to join a league: https://fantasy.premierleague.com/leagues then click "Join a League".
-The code to join is: **xoz7vm**.
+The code to join is: **bancts**.
 Hope to see your AI team there!! :)
 
-Our own AIrsenal team's ID for the 2025/26 season is **[742663](https://fantasy.premierleague.com/entry/742663/history)**.
+Our own AIrsenal team's ID for the 2026/27 season is **[1598585](https://fantasy.premierleague.com/entry/1598585/history)**.
 
 ## Installation
 
