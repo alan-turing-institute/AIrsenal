@@ -188,7 +188,9 @@ def get_player_history_df(
     for counter, player in enumerate(players):
         # Use logging and periodic updates instead of printing at every step
         if counter % 50 == 0 or counter == len(players) - 1:
-            logger.info(f"Filling history dataframe for {player}: {counter}/{len(players)} done")
+            logger.info(
+                f"Filling history dataframe for {player}: {counter}/{len(players)} done"
+            )
 
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
@@ -266,10 +268,22 @@ def get_player_history_df(
             blank_row = [
                 player.player_id,
                 player.name,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                None, None,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                None,
+                None,
             ]
-            player_data.extend([list(blank_row) for _ in range(max_matches_per_player - row_count)])
+            player_data.extend(
+                [list(blank_row) for _ in range(max_matches_per_player - row_count)]
+            )
 
     df = pd.DataFrame(player_data, columns=col_names)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -471,15 +485,15 @@ def calc_predicted_points_for_player(
         points = 0.0
         expected_points[gameweek] = points
 
-        if sum(recent_minutes) == 0:
-            points = 0.0
-        elif player.is_injured_or_suspended(season, gw_range[0], gameweek):
-            points = 0.0
-        elif was_historic_absence(
-            player,
-            gameweek=gameweek,
-            season=season,
-            dbsession=dbsession,
+        if (
+            sum(recent_minutes) == 0
+            or player.is_injured_or_suspended(season, gw_range[0], gameweek)
+            or was_historic_absence(
+                player,
+                gameweek=gameweek,
+                season=season,
+                dbsession=dbsession,
+            )
         ):
             points = 0.0
         else:
@@ -625,18 +639,26 @@ def process_player_data(
     alpha = get_empirical_bayes_estimates(df)
 
     # Use modern Pandas standard .to_numpy() instead of .values
-    y = df.sort_values("player_id")[["goals", "assists", "neither"]].to_numpy().reshape(
-        (
-            df["player_id"].nunique(),
-            df.groupby("player_id").count().iloc[0]["player_name"],
-            3,
+    y = (
+        df.sort_values("player_id")[["goals", "assists", "neither"]]
+        .to_numpy()
+        .reshape(
+            (
+                df["player_id"].nunique(),
+                df.groupby("player_id").count().iloc[0]["player_name"],
+                3,
+            )
         )
     )
 
-    minutes = df.sort_values("player_id")[["minutes"]].to_numpy().reshape(
-        (
-            df["player_id"].nunique(),
-            df.groupby("player_id").count().iloc[0]["player_name"],
+    minutes = (
+        df.sort_values("player_id")[["minutes"]]
+        .to_numpy()
+        .reshape(
+            (
+                df["player_id"].nunique(),
+                df.groupby("player_id").count().iloc[0]["player_name"],
+            )
         )
     )
 
@@ -654,10 +676,14 @@ def process_player_data(
 
     match_date = df["date"].fillna(df["date"].min()).dt.date
     df["time_diff"] = (now_date - match_date) / pd.Timedelta(days=365)
-    time_diff = df.sort_values("player_id")[["time_diff"]].to_numpy().reshape(
-        (
-            df["player_id"].nunique(),
-            df.groupby("player_id").count().iloc[0]["player_name"],
+    time_diff = (
+        df.sort_values("player_id")[["time_diff"]]
+        .to_numpy()
+        .reshape(
+            (
+                df["player_id"].nunique(),
+                df.groupby("player_id").count().iloc[0]["player_name"],
+            )
         )
     )
 
@@ -798,6 +824,7 @@ def fit_bonus_points(
     """
     Fit bonus points model using historical player scores.
     """
+
     def get_bonus_df(min_minutes, max_minutes):
         df = get_player_scores(
             season,
@@ -868,6 +895,7 @@ def fit_def_con(
     """
     Fit defensive contribution points model across positions.
     """
+
     def get_def_con_df(min_minutes, max_minutes):
         dfs = []
         for position in ["DEF", "MID", "FWD"]:

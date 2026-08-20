@@ -113,6 +113,7 @@ select = [
 ignore = [
   "PLR",    # Design related pylint codes
   "ISC001", # Conflicts with formatter
+  "G004",   # f-strings with logger
 ]
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
 

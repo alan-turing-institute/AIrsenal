@@ -687,7 +687,7 @@ def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     { <gw>: {"chip_to_play": [<chip_name>],
              "chips_allowed": [<chip_name>,...]},...}
     """
-    chip_dict: dict[int, dict[str, str | None | list[str]]] = {}
+    chip_dict: dict[int, dict[str, str | list[str] | None]] = {}
     # first fill in any allowed chips
     for gw in gameweeks:
         chip_to_play: str | None = None
