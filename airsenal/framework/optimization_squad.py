@@ -437,6 +437,14 @@ class SquadOpt:
 
         # Create initial population
         population = self.toolbox.population(n=population_size)
+        if self.base_squad is not None:
+            # Guarantee at least one individual is exactly base_squad unchanged (0
+            # transfers) - always valid regardless of budget/max_transfers, unlike
+            # the randomly swapped individuals _create_seeded_individual produces
+            # (see its docstring). Without this, an unlucky population/generation
+            # budget can end up with every individual scoring 0.0 fitness, and
+            # hall_of_fame[0] below silently ends up invalid.
+            population[0] = creator.Individual(self._seed_indices)
 
         # Statistics tracking
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -463,6 +471,19 @@ class SquadOpt:
         # Return best individual and its fitness
         best_individual = hall_of_fame[0]
         best_fitness = best_individual.fitness.values[0]
+        if best_fitness <= 0.0:
+            # Every individual across every generation scored 0.0, i.e. no valid
+            # squad was ever found - raise here, at the actual point of failure,
+            # rather than letting a confusing RuntimeError surface later from
+            # decode_individual on this same (invalid) individual.
+            msg = (
+                "GA optimization failed to find any valid squad "
+                f"(population_size={population_size}, generations={generations}, "
+                f"max_transfers={self.max_transfers}). This usually means the "
+                "budget/transfer constraints are infeasible, or the search needs "
+                "a larger population_size/generations."
+            )
+            raise RuntimeError(msg)
 
         return best_individual, best_fitness
 
