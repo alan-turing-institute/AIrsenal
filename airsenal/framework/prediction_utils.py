@@ -2,7 +2,6 @@
 Use the BPL models to predict scores for upcoming fixtures.
 """
 
-import logging
 import os
 import uuid
 from collections import defaultdict
