@@ -8,6 +8,13 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
+# Typer forces rich's terminal/color output on when GITHUB_ACTIONS is set (so CLI
+# help looks nice in workflow logs), which injects ANSI escape codes into
+# captured stdout and breaks plain substring assertions against CLI output.
+# Disable that forcing so tests behave the same locally and on GitHub Actions.
+os.environ["_TYPER_FORCE_DISABLE_TERMINAL"] = "1"
+
+
 from airsenal.framework import env
 from airsenal.framework.output import get_logger
 
