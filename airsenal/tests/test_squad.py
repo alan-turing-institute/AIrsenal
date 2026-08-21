@@ -229,10 +229,10 @@ def test_formation_table():
     assert "Substitutes" in output
     assert "5.0 pts" in output
     assert "GAMEWEEK 1" in output
-    assert "60.00pts" in output
-    assert "80.00pts" in output
+    assert "60.0pts" in output
+    assert "80.0pts" in output
     assert "with bench boost" in output
-    assert "65.00pts" in output
+    assert "65.0pts" in output
     assert "with triple captain" in output
     assert "(TC)" in output
     assert scoring_calls == [
