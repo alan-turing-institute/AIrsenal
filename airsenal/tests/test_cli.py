@@ -1,6 +1,14 @@
+import os
+
 from typer.testing import CliRunner
 
 from airsenal.cli.main import app
+
+# Typer forces rich's terminal/color output on when GITHUB_ACTIONS is set (so CLI
+# help looks nice in workflow logs), which injects ANSI escape codes into
+# result.stdout and breaks the plain substring assertions below. Disable that
+# forcing so these tests behave the same locally and on GitHub Actions.
+os.environ["_TYPER_FORCE_DISABLE_TERMINAL"] = "1"
 
 
 def test_run_help():
