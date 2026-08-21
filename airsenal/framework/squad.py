@@ -160,8 +160,6 @@ class Squad:
         )
         substitutes_table = Table(
             show_header=False,
-            # box=box.SQUARE if bench_boost else None,
-            # border_style="green" if bench_boost else None,
             box=None,
             border_style=None,
             expand=True,
