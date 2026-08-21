@@ -67,6 +67,11 @@ def table(*columns: str, title: str | None = None) -> Table:
     return output_table
 
 
+def price_str(price: int | None) -> str:
+    """Format a player price (in tenths of a million) as e.g. ``£5.5m``."""
+    return f"£{price / 10}m" if price is not None else "-"
+
+
 def _new_progress(*, transient: bool = False) -> Progress:
     """Build a Progress instance with AIrsenal's standard styling.
 

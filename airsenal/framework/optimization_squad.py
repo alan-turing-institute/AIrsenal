@@ -437,7 +437,7 @@ def make_new_squad(
         random_state=random_state,
     )
 
-    logger.info("Best score: %s pts", best_fitness)
+    logger.debug("Best score: %s pts", best_fitness)
 
     # Construct optimal squad
     squad = Squad(budget=opt_squad.budget, season=season)
@@ -468,6 +468,6 @@ def make_new_squad(
                 squad.add_player(dp)
                 logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
 
-    logger.info("£%sm in the bank", squad.budget / 10)
+    logger.debug("£%sm in the bank", squad.budget / 10)
 
     return squad
