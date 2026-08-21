@@ -25,6 +25,8 @@ from multiprocessing import Process, Queue
 
 import regex as re
 import requests
+from rich.panel import Panel
+from rich.text import Text
 
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
@@ -45,6 +47,7 @@ from airsenal.framework.optimization_utils import (
     next_week_transfers,
 )
 from airsenal.framework.output import console, get_logger, progress_bar, table
+from airsenal.framework.schema import session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -53,6 +56,7 @@ from airsenal.framework.utils import (
     get_free_transfers,
     get_gameweeks_array,
     get_latest_prediction_tag,
+    get_player,
     get_player_name,
 )
 from airsenal.scripts.squad_builder import fill_initial_squad
@@ -300,30 +304,126 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
         return strat["total_score"]
 
 
-def print_strat(strat: dict) -> None:
+def _price_str(price: int | None) -> str:
+    return f"£{price / 10}m" if price is not None else "-"
+
+
+def print_optimization_summary(
+    strat: dict,
+    baseline_score: float,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    use_api: bool = False,
+    dbsession=session,
+) -> None:
     """
-    nicely formatted printout as output of optimization.
+    Rich-formatted summary of an optimisation result: total score, the
+    chosen strategy (transfers/chips/points hits per gameweek), a table of
+    the transfers in/out (with purchase/sale prices), and the resulting
+    bank balance.
     """
     gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
+    gameweeks_as_int = sorted(int(gw) for gw in gameweeks_as_str)
+    first_gw, last_gw = gameweeks_as_int[0], gameweeks_as_int[-1]
 
+    total_score = strat["total_score"]
+    total_hits = sum(strat["points_hit"][str(gw)] for gw in gameweeks_as_int)
+
+    summary = Text()
+    summary.append(
+        f"Gameweeks {first_gw}-{last_gw}\n"
+        if first_gw != last_gw
+        else f"Gameweek {first_gw}\n",
+        style="bold",
+    )
+    summary.append(f"Team ID: {fpl_team_id}\n")
+    summary.append(f"Baseline Score: {baseline_score:.1f}pts\n")
+    summary.append(f"Optimised Score: {total_score:.1f}pts\n", style="bold green")
+    summary.append(f"Points Gained: {total_score - baseline_score:+.1f}pts\n")
+    if total_hits:
+        summary.append(f"Total Points Hits: -{total_hits}pts", style="red")
+    console.print(Panel(summary, title="Optimum Strategy", expand=False))
+
+    strategy_table = table(
+        "Gameweek",
+        "Transfers",
+        "Chip",
+        "Points Hit",
+        "Predicted Score",
+        title="Transfer Strategy",
+    )
     for gw in gameweeks_as_int:
-        console.print(f"\n[bold]GAMEWEEK {gw}:[/bold]\n")
-        transfer_table = table("Players Out", "Players In")
-        transfer_count = 0
-        for pin, pout in zip(
-            strat["players_in"][str(gw)], strat["players_out"][str(gw)], strict=True
-        ):
-            transfer_table.add_row(get_player_name(pout), get_player_name(pin))
-            transfer_count += 1
-        if transfer_count == 0:
-            transfer_table.add_row("None", "None")
-        console.print(transfer_table)
-        console.print(f"Chip Played: {strat['chips_played'][str(gw)]}")
-        console.print(f"Points Hit: {strat['points_hit'][str(gw)]}pts")
-        console.print(f"Bank: £{float(strat['bank'][str(gw)]) / 10}m")
+        chip = strat["chips_played"][str(gw)] or "-"
+        points_hit = strat["points_hit"][str(gw)]
         pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
-        console.print(f"Predicted Score: {pred_pts:.1f}pts")
+        strategy_table.add_row(
+            str(gw),
+            str(strat["num_transfers"][str(gw)]),
+            chip,
+            f"-{points_hit}pts" if points_hit else "0pts",
+            f"{pred_pts:.1f}pts",
+        )
+    console.print(strategy_table)
+
+    transfer_table = table(
+        "GW",
+        "Player Out",
+        "Pos",
+        "Team",
+        "Sale Price",
+        "Player In",
+        "Pos",
+        "Team",
+        "Purchase Price",
+        title="Transfers In / Out",
+    )
+    any_transfers = False
+    squad = get_starting_squad(
+        next_gw=first_gw,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        use_api=use_api,
+    )
+    for gw in gameweeks_as_int:
+        players_out = strat["players_out"][str(gw)]
+        players_in = strat["players_in"][str(gw)]
+        for pid_out, pid_in in zip(players_out, players_in, strict=True):
+            any_transfers = True
+            out_player = squad.get_player_from_id(pid_out)
+            sale_price = squad.get_sell_price_for_player(
+                pid_out, use_api=use_api, gameweek=gw, dbsession=dbsession
+            )
+            squad.remove_player(pid_out, price=sale_price, gameweek=gw)
+
+            in_player_db = get_player(pid_in, dbsession=dbsession)
+            purchase_price = in_player_db.price(season, gw) if in_player_db else None
+            squad.add_player(
+                pid_in,
+                price=purchase_price,
+                gameweek=gw,
+                check_budget=False,
+                check_team=False,
+                dbsession=dbsession,
+            )
+            in_name = str(in_player_db) if in_player_db else get_player_name(pid_in)
+            transfer_table.add_row(
+                str(gw),
+                str(out_player),
+                out_player.position,
+                out_player.team,
+                _price_str(sale_price),
+                in_name,
+                in_player_db.position(season) if in_player_db else "-",
+                in_player_db.team(season, gw) if in_player_db else "-",
+                _price_str(purchase_price),
+            )
+    if any_transfers:
+        console.print(transfer_table)
+    else:
+        console.print(f"{transfer_table.title}: no transfers made.")
+    console.print(
+        f"Bank after GW{first_gw} transfers: {_price_str(strat['bank'][str(first_gw)])}"
+    )
 
 
 def discord_payload(strat: dict, lineup: list[str]) -> dict:
@@ -647,11 +747,13 @@ def run_optimization(
         msg = "Failed to find a strategy!"
         raise ValueError(msg)
 
-    logger.info("[bold]OPTIMUM STRATEGY[/bold]")
-    logger.info("Team ID: %s", fpl_team_id)
-    logger.info("Baseline Score: %.1fpts", baseline_score)
-    logger.info("Score with Strategy: %.1fpts", best_strategy["total_score"])
-    print_strat(best_strategy)
+    print_optimization_summary(
+        best_strategy,
+        baseline_score,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        use_api=use_api,
+    )
     best_squad = print_team_for_next_gw(
         best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
