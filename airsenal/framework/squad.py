@@ -175,7 +175,11 @@ class Squad:
 
         renderables: list[RenderableType] = []
         if predicted_points is not None and gameweek is not None:
-            heading = f"GAMEWEEK {gameweek}\n{predicted_points:.2f}pts"
+            heading = (
+                f"GAMEWEEK {gameweek}\n"
+                f"{predicted_points:.1f}pts predicted, "
+                f"£{self.budget / 10:.1f}M in the bank"
+            )
             renderables.append(
                 Text(f"{heading}{chip_description}", style="bold", justify="center")
             )

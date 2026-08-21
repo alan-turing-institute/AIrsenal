@@ -148,7 +148,7 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
             msg = "No transactions in database."
             raise ValueError(msg)
         fpl_team_id = most_recent.fpl_team_id
-    logger.info("Getting starting squad for %s", fpl_team_id)
+    logger.debug("Getting starting squad for %s", fpl_team_id)
 
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated

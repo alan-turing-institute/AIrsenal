@@ -1,5 +1,8 @@
 import sys
 
+from rich.panel import Panel
+from rich.text import Text
+
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -8,7 +11,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import console, get_logger
+from airsenal.framework.output import console, get_logger, price_str, table
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -75,13 +78,68 @@ def fill_initial_squad(
         gw_start,
         sub_weights=sub_weights,
     )
-    logger.info(
-        "[bold]Optimised total score (Gameweeks %s to %s): %.2f[/bold]",
-        min(gw_range),
-        max(gw_range),
-        optimised_score,
-    )
+
     chip_gameweeks = chip_gameweeks or {}
+
+    summary = Text()
+    summary.append(
+        f"Gameweeks: {min(gw_range)}-{max(gw_range)}\n"
+        if min(gw_range) != max(gw_range)
+        else f"Gameweek: {min(gw_range)}\n",
+        style="bold",
+    )
+    summary.append(f"Team ID: {fpl_team_id}\n")
+    summary.append(f"Optimised Score: {optimised_score:.1f}pts\n", style="bold green")
+    console.print(Panel(summary, title="Optimisation Result", expand=False))
+
+    strategy_table = table(
+        "Gameweek",
+        "Transfers",
+        "Chip",
+        "Points Hit",
+        "Predicted Score",
+        title="Strategy",
+    )
+    for gw in gw_range:
+        bench_boost = chip_gameweeks.get("bench_boost") == gw
+        triple_captain = chip_gameweeks.get("triple_captain") == gw
+        chip = (
+            "bench_boost"
+            if bench_boost
+            else "triple_captain"
+            if triple_captain
+            else "-"
+        )
+        pred_pts = best_squad.get_expected_points(
+            gw, tag, bench_boost=bench_boost, triple_captain=triple_captain
+        )
+        strategy_table.add_row(
+            str(gw),
+            str(len(best_squad.players)) if gw == gw_start else "0",
+            chip,
+            "0pts",
+            f"{pred_pts:.1f}pts",
+        )
+    console.print(strategy_table)
+
+    transfer_table = table(
+        "Player In",
+        "Pos",
+        "Team",
+        "Purchase Price",
+        title="Transfers",
+    )
+    for player in sorted(
+        best_squad.players, key=lambda player: positions.index(player.position)
+    ):
+        transfer_table.add_row(
+            str(player),
+            player.position,
+            player.team,
+            price_str(player.purchase_price),
+        )
+    console.print(transfer_table)
+
     console.print(
         best_squad.formation_table(
             tag,

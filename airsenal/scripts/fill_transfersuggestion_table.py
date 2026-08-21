@@ -46,7 +46,13 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
-from airsenal.framework.output import console, get_logger, progress_bar, table
+from airsenal.framework.output import (
+    console,
+    get_logger,
+    price_str,
+    progress_bar,
+    table,
+)
 from airsenal.framework.schema import session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -304,10 +310,6 @@ def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
         return strat["total_score"]
 
 
-def _price_str(price: int | None) -> str:
-    return f"£{price / 10}m" if price is not None else "-"
-
-
 def print_optimization_summary(
     strat: dict,
     baseline_score: float,
@@ -331,18 +333,17 @@ def print_optimization_summary(
 
     summary = Text()
     summary.append(
-        f"Gameweeks {first_gw}-{last_gw}\n"
+        f"Gameweeks: {first_gw}-{last_gw}\n"
         if first_gw != last_gw
-        else f"Gameweek {first_gw}\n",
+        else f"Gameweek: {first_gw}\n",
         style="bold",
     )
     summary.append(f"Team ID: {fpl_team_id}\n")
     summary.append(f"Baseline Score: {baseline_score:.1f}pts\n")
     summary.append(f"Optimised Score: {total_score:.1f}pts\n", style="bold green")
     summary.append(f"Points Gained: {total_score - baseline_score:+.1f}pts\n")
-    if total_hits:
-        summary.append(f"Total Points Hits: -{total_hits}pts", style="red")
-    console.print(Panel(summary, title="Optimum Strategy", expand=False))
+    summary.append(f"Total Points Hits: -{total_hits}pts", style="red")
+    console.print(Panel(summary, title="Optimisation Result", expand=False))
 
     strategy_table = table(
         "Gameweek",
@@ -350,7 +351,7 @@ def print_optimization_summary(
         "Chip",
         "Points Hit",
         "Predicted Score",
-        title="Transfer Strategy",
+        title="Strategy",
     )
     for gw in gameweeks_as_int:
         chip = strat["chips_played"][str(gw)] or "-"
@@ -375,7 +376,7 @@ def print_optimization_summary(
         "Pos",
         "Team",
         "Purchase Price",
-        title="Transfers In / Out",
+        title="Transfers",
     )
     any_transfers = False
     squad = get_starting_squad(
@@ -411,19 +412,16 @@ def print_optimization_summary(
                 str(out_player),
                 out_player.position,
                 out_player.team,
-                _price_str(sale_price),
+                price_str(sale_price),
                 in_name,
                 in_player_db.position(season) if in_player_db else "-",
                 in_player_db.team(season, gw) if in_player_db else "-",
-                _price_str(purchase_price),
+                price_str(purchase_price),
             )
     if any_transfers:
         console.print(transfer_table)
     else:
         console.print(f"{transfer_table.title}: no transfers made.")
-    console.print(
-        f"Bank after GW{first_gw} transfers: {_price_str(strat['bank'][str(first_gw)])}"
-    )
 
 
 def discord_payload(strat: dict, lineup: list[str]) -> dict:
