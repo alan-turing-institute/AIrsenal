@@ -394,9 +394,19 @@ def print_team_for_next_gw(
         next_gw=next_gw, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
     for pidout in strat["players_out"][str(next_gw)]:
-        t.remove_player(pidout)
+        t.remove_player(pidout, gameweek=next_gw, use_api=use_api)
     for pidin in strat["players_in"][str(next_gw)]:
-        t.add_player(pidin)
+        # not silently ignoring a failed add: without this, a stale sell price
+        # (see below) can leave the squad short of budget partway through a
+        # wildcard/free hit's full 15-player rebuild, and the resulting
+        # incomplete squad only surfaces much later as a confusing crash in
+        # Squad.optimize_lineup rather than here, at the actual point of failure.
+        if not t.add_player(pidin, gameweek=next_gw):
+            msg = (
+                f"Failed to add player {pidin} to the GW{next_gw} squad - "
+                "possibly an incorrect sell price left the squad short of budget."
+            )
+            raise RuntimeError(msg)
     tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
     print("\n--------------------------------")
