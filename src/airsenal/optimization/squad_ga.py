@@ -9,6 +9,7 @@ from dataclasses import replace
 
 import numpy as np
 from deap import algorithms, base, creator, tools
+from sqlalchemy.orm import Session
 
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
@@ -86,7 +87,11 @@ class SquadOpt:
         remove_zero=True,  # don't consider players with predicted pts of zero
         players_per_position=TOTAL_PER_POSITION,
         sub_weights=DEFAULT_SUB_WEIGHTS,
+        dbsession: Session | None = None,
     ):
+        # Held on the optimiser, never on a Squad: a Squad crosses the
+        # multiprocessing queue and a Session cannot be pickled.
+        self.dbsession = dbsession
         self.season = season
         self.gameweeks = gameweeks
         self.start_gw = min(gameweeks)
@@ -172,6 +177,7 @@ class SquadOpt:
             add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
                 gameweek=self.start_gw,
+                dbsession=self.dbsession,
             )
             if not add_ok:
                 return (0.0,)  # Invalid squad
@@ -216,7 +222,10 @@ class SquadOpt:
         # build players list by position (i.e. all GK, then all DEF etc.)
         for pos in self.positions:
             players += list_players(
-                position=pos, season=self.season, gameweek=self.start_gw
+                position=pos,
+                season=self.season,
+                gameweek=self.start_gw,
+                dbsession=self.dbsession,
             )
             change_idx.append(len(players))
 
@@ -235,7 +244,9 @@ class SquadOpt:
         change_idx = [0]
         last_pos = self.positions[0]
         for p in self.players:
-            gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
+            gw_pts = get_predicted_points_for_player(
+                p, self.tag, season=self.season, dbsession=self.dbsession
+            )
             total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gameweeks)
             if total_pts > 0:
                 if p.position(self.season) != last_pos:
@@ -341,6 +352,7 @@ def make_new_squad(
     sub_weights=DEFAULT_SUB_WEIGHTS,
     dummy_sub_cost=45,
     ga_config: GeneticAlgorithmConfig | None = None,
+    dbsession: Session | None = None,
 ):
     """Optimize a full initial squad using DEAP genetic algorithm.
 
@@ -394,6 +406,7 @@ def make_new_squad(
         triple_captain_gw=triple_captain_gw,
         remove_zero=remove_zero,
         sub_weights=sub_weights,
+        dbsession=dbsession,
     )
 
     # Run optimization
@@ -418,6 +431,7 @@ def make_new_squad(
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
             gameweek=opt_squad.start_gw,
+            dbsession=dbsession,
         )
 
     # Fill empty slots with dummy players (if chosen not to optimise full squad)

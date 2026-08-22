@@ -158,7 +158,7 @@ def run_prediction(
     no_cards: bool,
     no_saves: bool,
     team_model_name: str,
-    epsilon: float,
+    epsilon: float | None = None,
     player_model_name: str = "conjugate",
     player_model_options: dict[str, str] | None = None,
     team_model_options: dict[str, str] | None = None,
@@ -177,8 +177,11 @@ def run_prediction(
         player_model_name, player_model_options or {}
     )
     # --epsilon stays a first-class option because it is the knob people actually
-    # tune; anything else goes through --set-team.
-    team_options = {"epsilon": str(epsilon), **(team_model_options or {})}
+    # tune; anything else goes through --set-team. It is only forwarded when
+    # given, so selecting a model that has no epsilon is not an error.
+    team_options = dict(team_model_options or {})
+    if epsilon is not None:
+        team_options = {"epsilon": str(epsilon), **team_options}
     team_model, team_config = TEAM_MODELS.build(team_model_name, team_options)
 
     with session_scope() as session:

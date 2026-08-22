@@ -11,6 +11,8 @@ from typing import Any
 from airsenal.core.registry import Registry
 from airsenal.prediction.config import (
     ConjugatePlayerConfig,
+    ConstantPlayerConfig,
+    ConstantTeamModelConfig,
     DixonColesConfig,
     NumpyroPlayerConfig,
     RandomTeamModelConfig,
@@ -60,3 +62,19 @@ def _random(_config: RandomTeamModelConfig) -> Any:
     )
 
     return RandomMatchPredictor()
+
+
+@PLAYER_MODELS.register("constant", ConstantPlayerConfig)
+def _constant_player(config: ConstantPlayerConfig) -> Any:
+    from airsenal.prediction.player_models import ConstantPlayerModel  # noqa: PLC0415
+
+    return ConstantPlayerModel(config)
+
+
+@TEAM_MODELS.register("constant", ConstantTeamModelConfig)
+def _constant_team(config: ConstantTeamModelConfig) -> Any:
+    from airsenal.prediction.team_models.constant import (  # noqa: PLC0415
+        ConstantTeamModel,
+    )
+
+    return ConstantTeamModel(config.max_goals)

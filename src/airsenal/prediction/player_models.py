@@ -11,7 +11,11 @@ import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
 from airsenal.core.logging import get_logger
-from airsenal.prediction.config import ConjugatePlayerConfig, NumpyroPlayerConfig
+from airsenal.prediction.config import (
+    ConjugatePlayerConfig,
+    ConstantPlayerConfig,
+    NumpyroPlayerConfig,
+)
 
 logger = get_logger(__name__)
 
@@ -343,3 +347,46 @@ class ConjugatePlayerModel(BasePlayerModel):
             msg = f"Unknown player_id {player_id}"
             raise RuntimeError(msg) from e
         return self.mean_probabilities[index, :]
+
+
+class ConstantPlayerModel(BasePlayerModel):
+    """
+    Every player equally likely to score, assist, or do neither.
+
+    A null baseline: a real player model that cannot beat "everyone is the same"
+    is not earning its keep. Also a fast path when debugging something downstream
+    of prediction, since it does no fitting at all.
+    """
+
+    def __init__(self, config: ConstantPlayerConfig | None = None) -> None:
+        self.config = config or ConstantPlayerConfig()
+        self.player_ids: np.ndarray | None = None
+
+    def fit(self, data: dict[str, Any]) -> ConstantPlayerModel:
+        self.player_ids = data["player_ids"]
+        return self
+
+    def _probabilities(self) -> np.ndarray:
+        return np.array(
+            [
+                self.config.prob_score,
+                self.config.prob_assist,
+                1.0 - self.config.prob_score - self.config.prob_assist,
+            ]
+        )
+
+    def get_probs(self) -> dict[str, np.ndarray]:
+        if self.player_ids is None:
+            msg = "Model has not been fitted yet."
+            raise RuntimeError(msg)
+        probs = self._probabilities()
+        n = len(self.player_ids)
+        return {
+            "player_id": self.player_ids,
+            "prob_score": np.full(n, probs[0]),
+            "prob_assist": np.full(n, probs[1]),
+            "prob_neither": np.full(n, probs[2]),
+        }
+
+    def get_probs_for_player(self, player_id: int) -> np.ndarray:  # noqa: ARG002
+        return self._probabilities()

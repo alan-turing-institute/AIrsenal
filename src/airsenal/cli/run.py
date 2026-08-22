@@ -7,7 +7,6 @@ import typer
 from airsenal.cli.options import parse_options
 from airsenal.pipeline.run import run_pipeline
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
-from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
 def run(
@@ -58,8 +57,14 @@ def run(
         str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
     ] = "extended",
     epsilon: Annotated[
-        float, typer.Option(help="Exponential time-weighting downweight factor.")
-    ] = DEFAULT_TEAM_EPSILON,
+        float | None,
+        typer.Option(
+            help=(
+                "Exponential time-weighting downweight factor. "
+                "Defaults to the team model's own value."
+            )
+        ),
+    ] = None,
     max_transfers: Annotated[
         int,
         typer.Option(min=0, max=5, help="Maximum transfers to consider per gameweek."),

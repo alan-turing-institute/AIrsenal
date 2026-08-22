@@ -136,7 +136,7 @@ class TestModelSelection:
             assert name in text
 
     def test_unknown_player_model_lists_the_available_ones(self):
-        with pytest.raises(ConfigError, match="Choose from: conjugate, numpyro"):
+        with pytest.raises(ConfigError, match="Choose from: conjugate, constant"):
             PLAYER_MODELS.create_with("nope", {})
 
     def test_unknown_option_lists_the_available_ones(self):

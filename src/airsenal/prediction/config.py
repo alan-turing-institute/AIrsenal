@@ -55,3 +55,35 @@ class RandomTeamModelConfig:
 
     def fit_args(self) -> dict[str, object]:
         return {}
+
+
+@dataclass(frozen=True)
+class ConstantPlayerConfig:
+    """
+    Settings for the null player model.
+
+    The defaults are roughly the league-wide split of goal involvements, so the
+    baseline is uninformative rather than obviously wrong.
+    """
+
+    prob_score: float = 0.25
+    prob_assist: float = 0.2
+
+    def __post_init__(self) -> None:
+        if self.prob_score + self.prob_assist > 1:
+            msg = (
+                f"prob_score + prob_assist must not exceed 1, got "
+                f"{self.prob_score} + {self.prob_assist}"
+            )
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class ConstantTeamModelConfig:
+    """Settings for the null team model."""
+
+    max_goals: int = 10
+
+    def fit_args(self) -> dict[str, object]:
+        """Nothing to pass at fit time."""
+        return {}

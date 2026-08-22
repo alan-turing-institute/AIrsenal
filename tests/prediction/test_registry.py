@@ -18,11 +18,11 @@ from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 
 
 def test_registered_player_models():
-    assert PLAYER_MODELS.names() == ("conjugate", "numpyro")
+    assert PLAYER_MODELS.names() == ("conjugate", "constant", "numpyro")
 
 
 def test_registered_team_models():
-    assert TEAM_MODELS.names() == ("extended", "neutral", "random")
+    assert TEAM_MODELS.names() == ("constant", "extended", "neutral", "random")
 
 
 @pytest.mark.parametrize("name", PLAYER_MODELS.names())

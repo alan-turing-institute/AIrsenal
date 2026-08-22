@@ -8,7 +8,6 @@ from airsenal.cli.options import parse_options
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.run import run_prediction
-from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
 def predict(
@@ -43,8 +42,14 @@ def predict(
         typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}."),
     ] = "extended",
     epsilon: Annotated[
-        float, typer.Option(help="Exponential time-weighting downweight factor.")
-    ] = DEFAULT_TEAM_EPSILON,
+        float | None,
+        typer.Option(
+            help=(
+                "Exponential time-weighting downweight factor. "
+                "Defaults to the team model's own value."
+            )
+        ),
+    ] = None,
     set_player: Annotated[
         list[str] | None,
         typer.Option(

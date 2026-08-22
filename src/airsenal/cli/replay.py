@@ -7,7 +7,6 @@ import typer
 from airsenal.cli.options import parse_options
 from airsenal.pipeline.replay import run_replays
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
-from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
 def replay(
@@ -38,8 +37,11 @@ def replay(
         str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
     ] = "extended",
     epsilon: Annotated[
-        float, typer.Option(help="Time-weighting factor.")
-    ] = DEFAULT_TEAM_EPSILON,
+        float | None,
+        typer.Option(
+            help="Time-weighting factor. Defaults to the team model's own value."
+        ),
+    ] = None,
     max_transfers: Annotated[
         int, typer.Option(min=0, help="Maximum transfers per gameweek.")
     ] = 2,

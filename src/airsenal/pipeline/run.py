@@ -43,7 +43,7 @@ def run_pipeline(
     n_previous: int,
     no_current_season: bool,
     team_model: str,
-    epsilon: float,
+    epsilon: float | None,
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
@@ -75,10 +75,12 @@ def run_pipeline(
         player_model, player_model_options or {}
     )
     # --epsilon stays first-class because it is the knob people actually tune;
-    # anything else goes through --set-team.
-    fitted_team_model, team_config = TEAM_MODELS.build(
-        team_model, {"epsilon": str(epsilon), **(team_model_options or {})}
-    )
+    # anything else goes through --set-team. Only forwarded when given, so a
+    # model without an epsilon is not an error.
+    team_options = dict(team_model_options or {})
+    if epsilon is not None:
+        team_options = {"epsilon": str(epsilon), **team_options}
+    fitted_team_model, team_config = TEAM_MODELS.build(team_model, team_options)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
