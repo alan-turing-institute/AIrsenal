@@ -17,10 +17,9 @@ from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session, session_scope
+from airsenal.domain.scoring import MAX_GOALS
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.framework.prediction_utils import (
-    MAX_GOALS,
-    calc_predicted_points_for_player,
+from airsenal.prediction.features import (
     fit_bonus_points,
     fit_card_points,
     fit_def_con,
@@ -31,6 +30,7 @@ from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,
 )
+from airsenal.prediction.points import calc_predicted_points_for_player
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,

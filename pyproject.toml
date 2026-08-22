@@ -152,7 +152,7 @@ type = "layers"
 layers = [
     "airsenal.cli",
     "airsenal.scripts",
-    "airsenal.framework",
+    "airsenal.optimization",
     "airsenal.reporting : airsenal.squad : airsenal.prediction",
     "airsenal.db",
     "airsenal.fetch",

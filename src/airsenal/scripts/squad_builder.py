@@ -10,8 +10,8 @@ from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.optimization_squad import make_new_squad
-from airsenal.framework.optimization_utils import (
+from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.utils import (
     DEFAULT_SUB_WEIGHTS,
     check_tag_valid,
     fill_initial_suggestion_table,

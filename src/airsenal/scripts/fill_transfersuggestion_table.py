@@ -43,8 +43,8 @@ from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.optimization_transfers import make_best_transfers
-from airsenal.framework.optimization_utils import (
+from airsenal.optimization.transfers import make_best_transfers
+from airsenal.optimization.utils import (
     MAX_FREE_TRANSFERS,
     check_tag_valid,
     count_expected_outputs,

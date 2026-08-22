@@ -15,7 +15,7 @@ from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.framework.optimization_utils import (
+from airsenal.optimization.utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )

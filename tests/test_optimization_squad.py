@@ -4,16 +4,14 @@ Tests for the DEAP-based optimization implementation.
 
 from unittest.mock import Mock, patch
 
-from airsenal.framework.optimization_squad import SquadOpt
+from airsenal.optimization.squad_ga import SquadOpt
 
 
 def test_deap_class():
     """Basic test of DEAP optimization."""
 
     # Mock the dependencies that require database access
-    with patch(
-        "airsenal.framework.optimization_squad.list_players"
-    ) as mock_list_players:
+    with patch("airsenal.optimization.squad_ga.list_players") as mock_list_players:
         # Create simple mock players
         mock_players = []
         for i in range(40):  # 40 total players
@@ -41,7 +39,7 @@ def test_deap_class():
 
         # Mock get_predicted_points_for_player
         with patch(
-            "airsenal.framework.optimization_squad.get_predicted_points_for_player"
+            "airsenal.optimization.squad_ga.get_predicted_points_for_player"
         ) as mock_get_points:
             mock_get_points.return_value = {1: 5.0, 2: 4.0, 3: 6.0}  # Some points
 
@@ -64,9 +62,7 @@ def test_deap_optimization_creates_valid_squad():
     """Test that DEAP optimization creates a valid squad that meets all constraints."""
 
     # Mock the dependencies that require database access
-    with patch(
-        "airsenal.framework.optimization_squad.list_players"
-    ) as mock_list_players:
+    with patch("airsenal.optimization.squad_ga.list_players") as mock_list_players:
         # Create mock players with varying prices and teams to test constraints
         mock_players = []
         for i in range(60):  # More players to give algorithm choice
@@ -115,7 +111,7 @@ def test_deap_optimization_creates_valid_squad():
 
         # Mock get_predicted_points_for_player with realistic variance
         with patch(
-            "airsenal.framework.optimization_squad.get_predicted_points_for_player"
+            "airsenal.optimization.squad_ga.get_predicted_points_for_player"
         ) as mock_get_points:
             # Premium players get more points
             def mock_points_side_effect(player, tag, season=None, dbsession=None):

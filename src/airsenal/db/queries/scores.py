@@ -1,15 +1,20 @@
 """Recorded player performances."""
 
-from sqlalchemy import or_, select
+from functools import partial
+
+import pandas as pd
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Fixture, Player, PlayerScore
+from airsenal.db.models import Fixture, Player, PlayerAttributes, PlayerScore
 from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
+    is_future_gameweek,
     next_gameweek,
 )
 from airsenal.db.session import get_session
+from airsenal.domain.scoring import MAX_MINUTES_MATCH
 from airsenal.domain.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
@@ -219,3 +224,40 @@ def get_recent_scores_for_player(
         return {}
 
     return {range(first_gw, last_gw)[i]: ps.points for i, ps in enumerate(playerscores)}
+
+
+def get_player_scores_df(
+    season: str,
+    gameweek: int,
+    min_minutes: int = 0,
+    max_minutes: int = MAX_MINUTES_MATCH,
+    position: str | None = None,
+    dbsession: Session | None = None,
+) -> pd.DataFrame:
+    """
+    Query player scores filtered by played minutes and position.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    query = (
+        select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
+        .where(PlayerScore.minutes >= min_minutes)
+        .where(PlayerScore.minutes <= max_minutes)
+        .join(Fixture)
+        .join(
+            PlayerAttributes,
+            and_(
+                PlayerAttributes.player_id == PlayerScore.player_id,
+                PlayerAttributes.season == Fixture.season,
+                PlayerAttributes.gameweek == Fixture.gameweek,
+            ),
+        )
+        .order_by(Fixture.season, Fixture.gameweek, PlayerAttributes.player_id)
+    )
+    if position:
+        query = query.where(PlayerAttributes.position == position)
+
+    df = pd.read_sql(query, dbsession.connection())
+
+    is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
+    exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
+    return df[~exclude]

@@ -32,3 +32,12 @@ def get_appearance_points(minutes):
         if minutes >= 60:
             app_points += 1
     return app_points
+
+
+# Match and modelling limits. These live here rather than with the prediction
+# code because the database query layer needs them too, and db must not depend
+# on prediction.
+MAX_GOALS = 10
+MIN_MINUTES_SHORT = 30
+MIN_MINUTES_FULL = 60
+MAX_MINUTES_MATCH = 90

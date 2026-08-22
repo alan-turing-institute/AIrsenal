@@ -9,26 +9,28 @@ from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredicto
 from sqlalchemy import select
 
 from airsenal.db.models import Fixture, Result
+from airsenal.db.queries.scores import get_player_scores_df
 from airsenal.domain.scoring import get_appearance_points
-from airsenal.framework.prediction_utils import (
+from airsenal.prediction.config import ConjugatePlayerConfig
+from airsenal.prediction.features import (
     fit_bonus_points,
     fit_card_points,
     fit_player_data,
     fit_save_points,
-    get_attacking_points,
-    get_bonus_points,
-    get_card_points,
-    get_defending_points,
     get_player_history_df,
-    get_player_scores,
-    get_save_points,
     mean_group_prior,
 )
-from airsenal.prediction.config import ConjugatePlayerConfig
 from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,
     scale_goals_by_minutes,
+)
+from airsenal.prediction.points import (
+    get_attacking_points,
+    get_bonus_points,
+    get_card_points,
+    get_defending_points,
+    get_save_points,
 )
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
@@ -352,11 +354,11 @@ def test_fixture_probabilities():
         assert len(df) == 10
 
 
-def test_get_player_scores():
+def test_get_player_scores_df():
     """Test utility function used by fit bonus, save and card points to get player
     scores rows filtered by season, gameweek and minutese played values"""
     with past_data_session_scope() as ts:
-        df = get_player_scores(season="1819", gameweek=12, dbsession=ts)
+        df = get_player_scores_df(season="1819", gameweek=12, dbsession=ts)
         # check type and columns
         assert len(df) > 0
         assert isinstance(df, pd.DataFrame)
@@ -376,11 +378,15 @@ def test_get_player_scores():
             if row["season"] == "1819":
                 assert row["gameweek"] < 12
         # test filtering on min minutes
-        df = get_player_scores(season="1819", gameweek=12, min_minutes=10, dbsession=ts)
+        df = get_player_scores_df(
+            season="1819", gameweek=12, min_minutes=10, dbsession=ts
+        )
         assert len(df) > 0
         assert all(df["minutes"] >= 10)
         # test filtering on max minutes
-        df = get_player_scores(season="1819", gameweek=12, max_minutes=10, dbsession=ts)
+        df = get_player_scores_df(
+            season="1819", gameweek=12, max_minutes=10, dbsession=ts
+        )
         assert len(df) > 0
         assert all(df["minutes"] <= 10)
 
