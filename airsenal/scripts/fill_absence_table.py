@@ -17,11 +17,17 @@ from airsenal.framework.utils import (
 logger = get_logger(__name__)
 
 
-def load_absences(season: str, dbsession: Session) -> None:
-    logger.info("ABSENCES %s", season)
-    path = os.path.join(
+def get_absences_path(season: str) -> str:
+    """Path of the absences csv file for a season."""
+    return os.path.join(
         os.path.dirname(__file__), "..", "data", f"absences_{season}.csv"
     )
+
+
+def load_absences(season: str, dbsession: Session, path: str | None = None) -> None:
+    logger.info("ABSENCES %s", season)
+    if path is None:
+        path = get_absences_path(season)
     absences = pd.read_csv(path, parse_dates=["from", "until"])
 
     for _, row in track(
