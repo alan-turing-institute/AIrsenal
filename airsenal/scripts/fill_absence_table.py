@@ -77,8 +77,11 @@ def load_absences(season: str, dbsession: Session, path: str | None = None) -> N
             season=season,
             reason=row["reason"],
             details=row["details"],
-            date_from=date_from,
-            date_until=date_until,
+            # These columns are VARCHAR, so write ISO-8601 text rather than date
+            # objects. Passing a date relied on sqlite3's default date adapter, which
+            # is deprecated in Python 3.12 and produces exactly this string anyway.
+            date_from=date_from.isoformat(),
+            date_until=date_until.isoformat() if date_until is not None else None,
             gw_from=gw_from,
             gw_until=gw_until,
             url=url,

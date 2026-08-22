@@ -4,7 +4,9 @@ fill_absence_table. The two used to disagree about the file's columns, so anythi
 written by the exporter was unreadable by the importer.
 """
 
+import warnings
 from contextlib import contextmanager
+from datetime import date
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -169,8 +171,8 @@ def test_save_absences_round_trips_through_load_absences(dbsession, tmp_path):
     assert bob.player.name == "Bob"
     assert bob.reason == "injury"
     assert bob.details == "Knee injury - Expected back 30 Aug"
-    assert str(bob.date_from) == "2025-08-16"
-    assert str(bob.date_until) == "2025-08-30"
+    assert bob.date_from == "2025-08-16"
+    assert bob.date_until == "2025-08-30"
 
     assert alice.player.name == "Alice"
     assert alice.details == "Ankle injury, out indefinitely"
@@ -195,3 +197,46 @@ def test_save_absences_does_not_write_duplicates(dbsession, tmp_path):
 def test_reader_and_writer_agree_on_the_path():
     """Both modules resolve the csv path through the same helper."""
     assert get_absences_path(TEST_SEASON).endswith(f"absences_{TEST_SEASON}.csv")
+
+
+def test_absence_dates_are_stored_as_iso_strings(dbsession, tmp_path):
+    """
+    date_from/date_until are VARCHAR columns, so they must receive ISO-8601 text.
+
+    Passing datetime.date objects worked only through sqlite3's default date adapter,
+    which is deprecated in Python 3.12 and slated for removal - and would not work at
+    all against the postgres backend, whose columns are also VARCHAR.
+    """
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", 3)
+    _add_player(dbsession, 2, "Alice", 2, "Ankle injury", None)
+    dbsession.commit()
+
+    attributes = dbsession.scalars(select(PlayerAttributes)).all()
+    rows = [player_attribute_to_row(pa, dbsession) for pa in attributes]
+    path = str(tmp_path / f"absences_{TEST_SEASON}.csv")
+    save_absences(rows, TEST_SEASON, path)
+    load_absences(TEST_SEASON, dbsession, path)
+
+    for absence in dbsession.scalars(select(Absence)).all():
+        assert isinstance(absence.date_from, str), (
+            f"date_from is {type(absence.date_from).__name__}, not str"
+        )
+        assert date.fromisoformat(absence.date_from)
+        assert absence.date_until is None or isinstance(absence.date_until, str)
+        if absence.date_until is not None:
+            assert date.fromisoformat(absence.date_until)
+
+
+def test_loading_absences_emits_no_deprecated_date_adapter_warning(dbsession, tmp_path):
+    """Writing dates as text means sqlite3's deprecated adapter is never reached."""
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", 3)
+    dbsession.commit()
+
+    attributes = dbsession.scalars(select(PlayerAttributes)).all()
+    rows = [player_attribute_to_row(pa, dbsession) for pa in attributes]
+    path = str(tmp_path / f"absences_{TEST_SEASON}.csv")
+    save_absences(rows, TEST_SEASON, path)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        load_absences(TEST_SEASON, dbsession, path)

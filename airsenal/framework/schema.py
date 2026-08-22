@@ -252,6 +252,10 @@ class Absence(Base):
     season: Mapped[str100]
     reason: Mapped[str100]  # high-level, e.g. injury/suspension
     details: Mapped[str100_optional]
+    # ISO-8601 dates ("2025-08-16") held as text, not DATE columns. Changing the
+    # column type would need a migration, and this repo has no Alembic: create_all
+    # does not alter existing tables, so sqlite and postgres users alike would keep
+    # the VARCHAR columns their database already has.
     date_from: Mapped[str100]
     date_until: Mapped[str100_optional]
     gw_from: Mapped[int]
