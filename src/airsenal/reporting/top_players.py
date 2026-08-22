@@ -115,11 +115,11 @@ def get_top_predicted_points(
             discord_webhook,
         )
     else:
-        for i, position in enumerate(list(Position.back_to_front())):
+        for i, each_position in enumerate(list(Position.back_to_front())):
             pts = get_predicted_points(
                 gameweeks,
                 tag,
-                position=position,
+                position=each_position,
                 team=team,
                 season=season,
                 dbsession=dbsession,
@@ -131,7 +131,7 @@ def get_top_predicted_points(
                         pts.remove(p)
 
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
-            title = f"{table_title}\n{position}" if i == 0 else position
+            title = f"{table_title}\n{each_position}" if i == 0 else str(each_position)
             print_predictions(pts, title)
 
             discord_embed["fields"] = []
@@ -139,7 +139,7 @@ def get_top_predicted_points(
             post_webhook(
                 predicted_points_discord_payload(
                     discord_embed=discord_embed,
-                    position=position,
+                    position=each_position,
                     pts=pts[: min(n_players, 8)],
                     season=season,
                     first_gw=first_gw,

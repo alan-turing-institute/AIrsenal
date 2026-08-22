@@ -645,7 +645,7 @@ def scrape_transfermarkt(seasons: list[str]):
     seasons : List[str]
         seasons to query in format "1819" (for 2018/19 season)
     """
-    REPO_HOME = resource_dir()
+    repo_home = resource_dir()
 
     # get the teams that played in each season we want to scrape
     pl_teams = {}
@@ -658,4 +658,4 @@ def scrape_transfermarkt(seasons: list[str]):
         logger.info("Season: %s", season)
 
         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
-        absences.to_csv(os.path.join(REPO_HOME, f"absences_{season}.csv"), index=False)
+        absences.to_csv(os.path.join(repo_home, f"absences_{season}.csv"), index=False)

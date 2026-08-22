@@ -11,10 +11,13 @@ happens once, on the way in.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from airsenal.core.enums import Chip
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 # Chips that are given a letter of their own because they replace the squad
 # outright, so the number of transfers is not a meaningful part of the move.

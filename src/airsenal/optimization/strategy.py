@@ -15,10 +15,12 @@ cannot disturb the copy its siblings were handed.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
+
+if TYPE_CHECKING:
+    from airsenal.core.enums import Chip
 
 
 @dataclass(frozen=True, slots=True)

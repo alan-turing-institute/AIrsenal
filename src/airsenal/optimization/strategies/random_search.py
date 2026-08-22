@@ -7,10 +7,10 @@ so this samples random swaps and keeps the best squad it finds.
 
 import random
 from operator import itemgetter
+from typing import TYPE_CHECKING
 
 from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.domain.season import CURRENT_SEASON
@@ -18,6 +18,9 @@ from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferPlan, TransferRequest
 from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
 from airsenal.optimization.utils import get_discounted_squad_score
+
+if TYPE_CHECKING:
+    from airsenal.db.models import Player
 
 logger = get_logger(__name__)
 

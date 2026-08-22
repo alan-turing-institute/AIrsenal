@@ -10,13 +10,13 @@ the same place.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 from airsenal.core.enums import Chip
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from multiprocessing import Process
 
     from airsenal.optimization.moves import GameweekMove

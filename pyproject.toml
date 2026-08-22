@@ -133,13 +133,35 @@ select = [
   "UP",          # pyupgrade
   "YTT",         # flake8-2020
   "EXE",         # flake8-executable
+  "TC",          # flake8-type-checking
+  "N",           # pep8-naming
 ]
 ignore = [
-  "PLR",    # Design related pylint codes
+  # PLR0913/0917/0912/0915 (too many arguments, branches, statements) are
+  # deliberately NOT here. Ignoring the whole PLR family is why a 300-line
+  # function with 20 parameters passed lint. They are enabled with the limits set
+  # to today's worst offender, so nothing can get worse while the remaining ones
+  # are split up; the numbers below are a ratchet and should only ever go down.
+  # What stays ignored is design advice about magic values and comparison style.
+  #
+  # flake8-annotations (ANN) is deliberately not enabled: mypy's strict mode
+  # already requires annotations, module by module, against the migration list
+  # in [tool.mypy]. Enabling ANN as well would mean a second list of the same
+  # modules, and two lists drift.
+  "PLR2004", "PLR0402", "PLR1702", "PLR5501", "PLR6301",
   "ISC001", # Conflicts with formatter
   "G004",   # f-strings with logger
 ]
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
+
+# A ratchet, not a target: each number is today's worst offender, so nothing can
+# get worse while the rest are split up. Lower them as that happens; never raise.
+[tool.ruff.lint.pylint]
+max-args = 20          # run_pipeline
+max-positional-args = 20
+max-branches = 19      # get_fixtures, get_recent_scores, FPLDataFetcher.get_...
+max-statements = 82    # fill_attributes_table_from_api
+max-returns = 12       # FPLDataFetcher._get_request
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [

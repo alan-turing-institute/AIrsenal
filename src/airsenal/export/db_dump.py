@@ -193,7 +193,7 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
     for player in get_session().scalars(select(dbclass)).all():
         player_dict = vars(player)
         row = {
-            field: player_dict[field]
+            field: value
             for field, value in player_dict.items()
             if isinstance(value, str | int | float)
         }

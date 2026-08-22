@@ -6,6 +6,7 @@ algorithm.
 
 import random
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -13,7 +14,6 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.domain.season import CURRENT_SEASON
@@ -24,6 +24,9 @@ from airsenal.optimization.utils import (
 )
 from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
+
+if TYPE_CHECKING:
+    from airsenal.db.models import Player
 
 logger = get_logger(__name__)
 

@@ -8,7 +8,6 @@ from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session
 
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
@@ -20,6 +19,8 @@ from airsenal.domain.season import CURRENT_SEASON
 if TYPE_CHECKING:
     # Annotation only: db must not depend on fetch at runtime. A caller supplies a
     # fetcher when the database has no fixtures to derive the gameweek from.
+    from sqlalchemy.orm import Session
+
     from airsenal.fetch.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
