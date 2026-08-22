@@ -30,9 +30,9 @@ from airsenal.domain.scoring import (
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
-    NumpyroPlayerModel,
     get_empirical_bayes_estimates,
 )
+from airsenal.prediction.protocols import PlayerModel
 
 logger = get_logger(__name__)
 
@@ -314,7 +314,7 @@ def fit_player_data(
     position: str,
     season: str,
     gameweek: int,
-    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """
@@ -344,7 +344,7 @@ def fit_player_data(
 def get_all_fitted_player_data(
     season: str,
     gameweek: int,
-    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> dict[str, pd.DataFrame]:
     """

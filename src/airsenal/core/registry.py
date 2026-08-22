@@ -15,6 +15,15 @@ from typing import Any, Generic, TypeVar
 T = TypeVar("T")
 
 
+class ConfigError(ValueError):
+    """
+    An unusable name or option came from the command line.
+
+    Distinct from a plain ValueError so the CLI can report it as a bad option
+    rather than as a crash, without also swallowing genuine bugs.
+    """
+
+
 @dataclass(frozen=True)
 class _Entry(Generic[T]):
     factory: Callable[..., T]
@@ -66,9 +75,9 @@ class Registry(Generic[T]):
         entry = self._lookup(name)
         try:
             config = self._config_from(entry, overrides)
-        except ValueError as e:
+        except ConfigError as e:
             msg = str(e).replace(f"{self._kind} has", f"{self._kind} '{name}' has")
-            raise ValueError(msg) from None
+            raise ConfigError(msg) from None
         return entry.factory(config)
 
     def build(
@@ -88,16 +97,7 @@ class Registry(Generic[T]):
         return entry.factory(config), config
 
     def _config_from(self, entry: "_Entry[T]", overrides: Mapping[str, str]) -> object:
-        spec = {f.name: f.type for f in fields(entry.config_cls)}
-        unknown = sorted(set(overrides) - set(spec))
-        if unknown:
-            msg = (
-                f"{self._kind} has no option(s) {', '.join(unknown)}. "
-                f"Available: {', '.join(sorted(spec))}"
-            )
-            raise ValueError(msg)
-        values = {k: _coerce(spec[k], v) for k, v in overrides.items()}
-        return entry.config_cls(**values)
+        return config_from_overrides(entry.config_cls, overrides, kind=self._kind)
 
     def _lookup(self, name: str) -> _Entry[T]:
         try:
@@ -106,7 +106,28 @@ class Registry(Generic[T]):
             msg = (
                 f"Unknown {self._kind} '{name}'. Choose from: {', '.join(self.names())}"
             )
-            raise ValueError(msg) from None
+            raise ConfigError(msg) from None
+
+
+def config_from_overrides(
+    config_cls: type, overrides: Mapping[str, str], kind: str = "config"
+) -> Any:
+    """
+    Build a config dataclass from `key=value` strings, as given on the command line.
+
+    An unknown key is an error naming the valid ones, rather than being silently
+    ignored - which is how player-model hyperparameters came to be quietly dropped
+    when the sampling model was selected.
+    """
+    spec = {f.name: f.type for f in fields(config_cls)}
+    unknown = sorted(set(overrides) - set(spec))
+    if unknown:
+        msg = (
+            f"{kind} has no option(s) {', '.join(unknown)}. "
+            f"Available: {', '.join(sorted(spec))}"
+        )
+        raise ConfigError(msg)
+    return config_cls(**{k: _coerce(spec[k], v) for k, v in overrides.items()})
 
 
 def _coerce(annotation: object, value: str) -> object:
@@ -129,7 +150,7 @@ def _coerce(annotation: object, value: str) -> object:
         if lowered in ("false", "0", "no"):
             return False
         msg = f"expected a boolean, got {value!r}"
-        raise ValueError(msg)
+        raise ConfigError(msg)
     if "int" in text and "float" not in text:
         return int(value)
     if "float" in text:

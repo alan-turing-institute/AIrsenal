@@ -4,7 +4,9 @@ from typing import Annotated
 
 import typer
 
+from airsenal.cli.options import parse_options
 from airsenal.pipeline.replay import run_replays
+from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
@@ -32,7 +34,7 @@ def replay(
         int, typer.Option(help="Replay count; -1 repeats indefinitely.")
     ] = 1,
     team_model: Annotated[
-        str, typer.Option(help="Team model: extended or random.")
+        str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
     ] = "extended",
     epsilon: Annotated[
         float, typer.Option(help="Time-weighting factor.")
@@ -40,6 +42,14 @@ def replay(
     max_transfers: Annotated[
         int, typer.Option(min=0, help="Maximum transfers per gameweek.")
     ] = 2,
+    player_model: Annotated[
+        str,
+        typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
+    ] = "conjugate",
+    set_player: Annotated[
+        list[str] | None,
+        typer.Option("--set-player", help="Player model option as key=value."),
+    ] = None,
 ) -> None:
     """Replay a historical FPL season."""
     run_replays(
@@ -54,4 +64,6 @@ def replay(
         team_model,
         epsilon,
         max_transfers,
+        player_model,
+        parse_options(set_player),
     )

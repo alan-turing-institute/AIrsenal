@@ -39,6 +39,7 @@ from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
@@ -484,8 +485,7 @@ def new_squad_from_scratch(
         gw_range=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
-        num_generations=num_iterations,
-        population_size=num_iterations,
+        ga_config=GeneticAlgorithmConfig().scaled(num_iterations),
         chip_gameweeks=chip_gameweeks,
     )
 

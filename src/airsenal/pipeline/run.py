@@ -1,7 +1,6 @@
 import multiprocessing
 import sys
 
-from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 
@@ -19,15 +18,13 @@ from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
+from airsenal.prediction.protocols import PlayerModel, TeamModel
+from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.run import (
     get_top_predicted_points,
     make_predictedscore_table,
 )
-from airsenal.prediction.team_models.dixon_coles import (
-    DEFAULT_TEAM_EPSILON,
-    parse_team_model_from_str,
-)
-from airsenal.prediction.team_models.random_model import RandomMatchPredictor
+from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 from airsenal.squad.state import get_entry_start_gameweek
 
 logger = get_logger(__name__)
@@ -51,6 +48,9 @@ def run_pipeline(
     max_hit: int,
     allow_unused: bool,
     save_absences: bool,
+    player_model: str = "conjugate",
+    player_model_options: dict[str, str] | None = None,
+    team_model_options: dict[str, str] | None = None,
 ) -> None:
     """
     Run the full pipeline, from setting up the database and filling
@@ -71,7 +71,14 @@ def run_pipeline(
 
     gw_range = get_gameweeks_array(weeks_ahead=weeks_ahead)
 
-    team_model_class = parse_team_model_from_str(team_model)
+    fitted_player_model = PLAYER_MODELS.create_with(
+        player_model, player_model_options or {}
+    )
+    # --epsilon stays first-class because it is the knob people actually tune;
+    # anything else goes through --set-team.
+    fitted_team_model, team_config = TEAM_MODELS.build(
+        team_model, {"epsilon": str(epsilon), **(team_model_options or {})}
+    )
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
@@ -110,8 +117,9 @@ def run_pipeline(
         predict_ok = run_prediction(
             gw_range=gw_range,
             dbsession=dbsession,
-            team_model=team_model_class,
-            team_model_args={"epsilon": epsilon},
+            player_model=fitted_player_model,
+            team_model=fitted_team_model,
+            team_model_args=team_config.fit_args(),
         )
         if not predict_ok:
             msg = "Problem running prediction"
@@ -212,10 +220,8 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
 def run_prediction(
     gw_range: list[int],
     dbsession: Session,
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    player_model: PlayerModel | None = None,
+    team_model: TeamModel | None = None,
     team_model_args: dict | None = None,
 ) -> bool:
     """
@@ -230,6 +236,7 @@ def run_prediction(
         include_bonus=True,
         include_cards=True,
         include_saves=True,
+        player_model=player_model,
         team_model=team_model,
         team_model_args=team_model_args,
         dbsession=dbsession,

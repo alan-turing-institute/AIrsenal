@@ -322,16 +322,3 @@ def get_goal_probabilities_for_fixtures(
             f.away_team: dict(zip(goals, away_team_goal_prob, strict=False)),
         }
     return probs
-
-
-def parse_team_model_from_str(team_model: str) -> object:
-    """
-    The team model registered under a name.
-
-    Kept as a thin wrapper over TEAM_MODELS so that existing callers keep working;
-    it used to be a second copy of the if/elif chain in run_prediction, and the two
-    could drift.
-    """
-    from airsenal.prediction.registry import TEAM_MODELS  # noqa: PLC0415
-
-    return TEAM_MODELS.create(team_model)

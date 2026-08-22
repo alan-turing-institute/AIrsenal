@@ -1,11 +1,14 @@
 """Commands for optimizing transfers and squads."""
 
+from dataclasses import fields
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
+from airsenal.cli.options import parse_options
 from airsenal.domain.season import CURRENT_SEASON
+from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.run_squad import run_squad_optimization
 from airsenal.optimization.run_transfers import run_transfer_optimization
 
@@ -110,26 +113,23 @@ def squad(
         int, typer.Option(min=1, help="Number of gameweeks to optimize.")
     ] = 3,
     num_generations: Annotated[
-        int, typer.Option(min=1, help="Genetic algorithm generations.")
-    ] = 100,
+        int | None,
+        typer.Option(min=1, help="Genetic algorithm generations."),
+    ] = None,
     population_size: Annotated[
-        int, typer.Option(min=1, help="Candidate squads per generation.")
-    ] = 100,
-    crossover_prob: Annotated[
-        float, typer.Option(min=0, max=1, help="Crossover probability.")
-    ] = 0.7,
-    mutation_prob: Annotated[
-        float, typer.Option(min=0, max=1, help="Mutation probability.")
-    ] = 0.3,
-    crossover_indpb: Annotated[
-        float, typer.Option(min=0, max=1, help="Per-attribute crossover probability.")
-    ] = 0.5,
-    mutation_indpb: Annotated[
-        float, typer.Option(min=0, max=1, help="Per-attribute mutation probability.")
-    ] = 0.1,
-    tournament_size: Annotated[
-        int, typer.Option(min=1, help="Tournament selection size.")
-    ] = 3,
+        int | None,
+        typer.Option(min=1, help="Candidate squads per generation."),
+    ] = None,
+    set_ga: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--set-ga",
+            help=(
+                "Genetic algorithm option as key=value. Repeatable. Available: "
+                + ", ".join(f.name for f in fields(GeneticAlgorithmConfig))
+            ),
+        ),
+    ] = None,
     no_subs: Annotated[
         bool, typer.Option(help="Exclude substitute-point contributions.")
     ] = False,
@@ -149,11 +149,7 @@ def squad(
         num_gameweeks,
         num_generations,
         population_size,
-        crossover_prob,
-        mutation_prob,
-        crossover_indpb,
-        mutation_indpb,
-        tournament_size,
+        parse_options(set_ga),
         no_subs,
         include_zero,
         fpl_team_id,

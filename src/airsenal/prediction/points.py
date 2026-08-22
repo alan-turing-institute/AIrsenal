@@ -24,7 +24,7 @@ from airsenal.domain.scoring import (
 )
 from airsenal.prediction.features import fit_player_data
 from airsenal.prediction.minutes import get_recent_minutes_for_player
-from airsenal.prediction.player_models import ConjugatePlayerModel, NumpyroPlayerModel
+from airsenal.prediction.protocols import PlayerModel
 
 logger = get_logger(__name__)
 
@@ -275,7 +275,7 @@ def calc_predicted_points_for_pos(
     season: str,
     gw_range: list[int],
     tag: str,
-    model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
+    model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> dict[int, list[PlayerPrediction]]:
     """

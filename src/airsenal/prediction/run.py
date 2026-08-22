@@ -8,7 +8,6 @@ get consistent sets of predictions from the database.
 
 from uuid import uuid4
 
-from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import console, track
@@ -26,18 +25,14 @@ from airsenal.prediction.features import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.prediction.player_models import (
-    ConjugatePlayerModel,
-    NumpyroPlayerModel,
-)
 from airsenal.prediction.points import calc_predicted_points_for_player
+from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 from airsenal.reporting.top_players import get_top_predicted_points
 
 logger = get_logger(__name__)
@@ -52,11 +47,8 @@ def calc_all_predicted_points(
     include_saves: bool = True,
     include_def_con: bool = True,
     tag: str = "",
-    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    player_model: PlayerModel | None = None,
+    team_model: TeamModel | None = None,
     team_model_args: dict | None = None,
 ) -> None:
     """
@@ -128,11 +120,8 @@ def make_predictedscore_table(
     include_saves: bool = True,
     include_def_con: bool = True,
     tag_prefix: str | None = None,
-    player_model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    player_model: PlayerModel | None = None,
+    team_model: TeamModel | None = None,
     team_model_args: dict | None = None,
     dbsession: Session | None = None,
 ) -> str:

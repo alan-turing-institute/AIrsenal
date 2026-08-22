@@ -4,6 +4,7 @@ from typing import Annotated
 
 import typer
 
+from airsenal.cli.options import parse_options
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.run import run_prediction
@@ -70,15 +71,3 @@ def predict(
         player_model_options=parse_options(set_player),
         team_model_options=parse_options(set_team),
     )
-
-
-def parse_options(values: list[str] | None) -> dict[str, str]:
-    """Turn repeated `--set-x key=value` options into a dict."""
-    options = {}
-    for item in values or []:
-        key, sep, value = item.partition("=")
-        if not sep:
-            msg = f"Expected key=value, got {item!r}"
-            raise typer.BadParameter(msg)
-        options[key.strip()] = value.strip()
-    return options

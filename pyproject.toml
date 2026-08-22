@@ -61,7 +61,7 @@ tools = [
 ]
 
 [project.scripts]
-airsenal = "airsenal.cli.main:app"
+airsenal = "airsenal.cli.main:main_cli"
 
 [build-system]
 requires = ["hatchling"]

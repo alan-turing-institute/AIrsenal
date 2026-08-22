@@ -1,6 +1,7 @@
 """Root command-line application."""
 
 import logging
+import sys
 from typing import Annotated
 
 import typer
@@ -16,6 +17,7 @@ from airsenal.cli.predict import predict
 from airsenal.cli.replay import replay
 from airsenal.cli.run import run
 from airsenal.core.logging import configure_logging
+from airsenal.core.registry import ConfigError
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -53,3 +55,17 @@ app.add_typer(apply_app, name="apply")
 app.add_typer(dump_app, name="dump")
 app.command()(replay)
 app.command()(plot)
+
+
+def main_cli() -> None:
+    """
+    Entry point: report an unusable model or option as a bad option.
+
+    Without this, `--set-player nope=1` exits with a full traceback, which reads
+    as a crash rather than as "you typed something I do not recognise".
+    """
+    try:
+        app()
+    except ConfigError as e:
+        typer.secho(f"Error: {e}", err=True, fg=typer.colors.RED)
+        sys.exit(2)

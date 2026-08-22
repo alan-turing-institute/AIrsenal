@@ -1,4 +1,5 @@
 import sys
+from dataclasses import replace
 
 from rich.panel import Panel
 from rich.text import Text
@@ -6,6 +7,7 @@ from rich.text import Text
 from airsenal.core.console import console, price_str, table
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
+from airsenal.core.registry import config_from_overrides
 from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.domain.season import CURRENT_SEASON
@@ -35,17 +37,12 @@ def fill_initial_squad(
     budget: int = 1000,
     remove_zero: bool = True,
     sub_weights: dict = DEFAULT_SUB_WEIGHTS,
-    num_generations: int = 100,
-    population_size: int = 100,
-    crossover_prob: float = 0.7,
-    mutation_prob: float = 0.3,
-    crossover_indpb: float = 0.5,
-    mutation_indpb: float = 0.1,
-    tournament_size: int = 3,
+    ga_config: GeneticAlgorithmConfig | None = None,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
     chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
+    ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
     with console.status("Optimising full squad..."):
         best_squad = make_new_squad(
             gw_range,
@@ -54,16 +51,7 @@ def fill_initial_squad(
             season=season,
             remove_zero=remove_zero,
             sub_weights=sub_weights,
-            ga_config=GeneticAlgorithmConfig(
-                population_size=population_size,
-                generations=num_generations,
-                crossover_prob=crossover_prob,
-                mutation_prob=mutation_prob,
-                crossover_indpb=crossover_indpb,
-                mutation_indpb=mutation_indpb,
-                tournament_size=tournament_size,
-                verbose=verbose,
-            ),
+            ga_config=replace(ga_config, verbose=verbose),
             verbose=verbose,
         )
 
@@ -179,13 +167,9 @@ def run_squad_optimization(
     season: str | None,
     gameweek_start: int | None,
     num_gameweeks: int,
-    num_generations: int,
-    population_size: int,
-    crossover_prob: float,
-    mutation_prob: float,
-    crossover_indpb: float,
-    mutation_indpb: float,
-    tournament_size: int,
+    num_generations: int | None,
+    population_size: int | None,
+    ga_options: dict[str, str] | None,
     no_subs: bool,
     include_zero: bool,
     fpl_team_id: int | None,
@@ -220,6 +204,12 @@ def run_squad_optimization(
     fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     sub_weights = (SubWeights.none() if no_subs else SubWeights()).as_dict()
 
+    # --population-size and --generations are first-class because they are the two
+    # people actually reach for; the rest go through --set-ga, so their defaults
+    # live in GeneticAlgorithmConfig only. They used to be restated in the CLI
+    # signature, in this function, in fill_initial_squad and in make_new_squad.
+    ga_config = build_ga_config(num_generations, population_size, ga_options)
+
     fill_initial_squad(
         tag=tag,
         gw_range=gw_range,
@@ -228,13 +218,23 @@ def run_squad_optimization(
         budget=budget,
         remove_zero=remove_zero,
         sub_weights=sub_weights,
-        num_generations=num_generations,
-        population_size=population_size,
-        crossover_prob=crossover_prob,
-        mutation_prob=mutation_prob,
-        crossover_indpb=crossover_indpb,
-        mutation_indpb=mutation_indpb,
-        tournament_size=tournament_size,
+        ga_config=ga_config,
         verbose=True,
         is_replay=is_replay,
+    )
+
+
+def build_ga_config(
+    num_generations: int | None,
+    population_size: int | None,
+    ga_options: dict[str, str] | None,
+) -> GeneticAlgorithmConfig:
+    """Build the GA settings from the first-class flags plus any --set-ga overrides."""
+    overrides = dict(ga_options or {})
+    if num_generations is not None:
+        overrides["generations"] = str(num_generations)
+    if population_size is not None:
+        overrides["population_size"] = str(population_size)
+    return config_from_overrides(
+        GeneticAlgorithmConfig, overrides, kind="genetic algorithm"
     )

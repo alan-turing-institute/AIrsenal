@@ -4,7 +4,9 @@ from typing import Annotated
 
 import typer
 
+from airsenal.cli.options import parse_options
 from airsenal.pipeline.run import run_pipeline
+from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
@@ -50,7 +52,7 @@ def run(
         typer.Option(help="Exclude the current season when creating the database."),
     ] = False,
     team_model: Annotated[
-        str, typer.Option(help="Team model to fit: extended or neutral.")
+        str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
     ] = "extended",
     epsilon: Annotated[
         float, typer.Option(help="Exponential time-weighting downweight factor.")
@@ -69,6 +71,18 @@ def run(
     save_absences: Annotated[
         bool, typer.Option(help="Save expected absences to a CSV file.")
     ] = False,
+    player_model: Annotated[
+        str,
+        typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
+    ] = "conjugate",
+    set_player: Annotated[
+        list[str] | None,
+        typer.Option("--set-player", help="Player model option as key=value."),
+    ] = None,
+    set_team: Annotated[
+        list[str] | None,
+        typer.Option("--set-team", help="Team model option as key=value."),
+    ] = None,
 ) -> None:
     """Run the full AIrsenal pipeline."""
     run_pipeline(
@@ -89,4 +103,7 @@ def run(
         max_hit=max_hit,
         allow_unused=allow_unused,
         save_absences=save_absences,
+        player_model=player_model,
+        player_model_options=parse_options(set_player),
+        team_model_options=parse_options(set_team),
     )

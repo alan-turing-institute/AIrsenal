@@ -20,11 +20,9 @@ from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
+from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.run import make_predictedscore_table
-from airsenal.prediction.team_models.dixon_coles import (
-    DEFAULT_TEAM_EPSILON,
-    parse_team_model_from_str,
-)
+from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 logger = get_logger(__name__)
 
@@ -67,6 +65,8 @@ def replay_season(
     team_model_args: dict | None = None,
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
+    player_model: str = "conjugate",
+    player_model_options: dict[str, str] | None = None,
 ) -> None:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -84,7 +84,10 @@ def replay_season(
         )
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
 
-    team_model_class = parse_team_model_from_str(team_model)
+    fitted_player_model = PLAYER_MODELS.create_with(
+        player_model, player_model_options or {}
+    )
+    fitted_team_model = TEAM_MODELS.create(team_model)
 
     # store results in a dictionary, which we will later save to a json file
     replay_results: dict[str, str | int | float | list] = {}
@@ -103,7 +106,8 @@ def replay_season(
                 gw_range=gw_range,
                 season=season,
                 tag_prefix=tag_prefix,
-                team_model=team_model_class,
+                player_model=fitted_player_model,
+                team_model=fitted_team_model,
                 team_model_args=team_model_args,
                 dbsession=session,
             )
@@ -198,6 +202,8 @@ def run_replays(
     team_model: str,
     epsilon: float,
     max_transfers: int,
+    player_model: str = "conjugate",
+    player_model_options: dict[str, str] | None = None,
 ) -> None:
     """Replay a season one or more times."""
     if resume and not fpl_team_id:
@@ -222,5 +228,7 @@ def run_replays(
             team_model=team_model,
             team_model_args={"epsilon": epsilon},
             max_opt_transfers=max_transfers,
+            player_model=player_model,
+            player_model_options=player_model_options,
         )
         n_completed += 1
