@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import Player, get_session
+from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -34,7 +34,12 @@ class CandidatePlayer:
         """
         initialize either by name or by ID
         """
-        dbsession = dbsession if dbsession is not None else get_session()
+        # Deliberately NOT resolved to a real session here. CandidatePlayer instances
+        # are held by Squad, and Squad is pickled onto the multiprocessing queue by the
+        # transfer optimiser (and by fastcopy). A live Session cannot be pickled, and
+        # eagerly resolving one here would also open a database connection for every
+        # candidate player considered during the search. Callees resolve None
+        # themselves, in whichever process ends up needing a session.
         self.dbsession = dbsession
         if isinstance(player, Player):
             pdata = player
@@ -72,6 +77,19 @@ class CandidatePlayer:
 
     def __str__(self):
         return self.display_name or self.name
+
+    def __getstate__(self) -> dict:
+        """
+        Drop the database session when pickling.
+
+        A Session is bound to a connection and cannot be pickled, but Squad - which
+        holds CandidatePlayers - is pickled onto the transfer optimiser's
+        multiprocessing queue and by fastcopy. The session is process-local anyway, so
+        an unpickled player resolves one in whichever process it wakes up in.
+        """
+        state = self.__dict__.copy()
+        state["dbsession"] = None
+        return state
 
     def calc_predicted_points(self, tag):
         """

@@ -211,7 +211,8 @@ class Squad:
         current price as found in DB, but if one is specified, we override
         with that value.
         """
-        dbsession = dbsession if dbsession is not None else get_session()
+        # dbsession is passed through unresolved: CandidatePlayer keeps it, and this
+        # Squad gets pickled onto the optimiser's multiprocessing queue.
         if isinstance(p, int | str | Player):
             player: CandidatePlayer | DummyPlayer = CandidatePlayer(
                 p, self.season, gameweek, purchase_price=price, dbsession=dbsession
