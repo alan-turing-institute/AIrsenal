@@ -645,15 +645,23 @@ def search_transfer_tree(
         # no indication of what went wrong. Watch the workers while waiting.
         _wait_for_queue(squeue, procs)
 
+        # Shut the workers down before the progress consumer, not after. A
+        # worker cannot exit until its queue feeder threads have flushed, and
+        # stopping the consumer first leaves nothing draining progress_queue
+        # while p.join() waits: a worker with a full pipe can then never finish
+        # writing, and the join waits for ever. Joining first costs nothing and
+        # removes the window.
+        for _ in procs:
+            squeue.put(None)
+        for p in procs:
+            p.join()
+
+        # No worker is left to write to either queue, and everything they wrote
+        # has been flushed, so these sentinels cannot overtake real messages.
         progress_queue.put(None)
         progress_thread.join()
         progress.update(total_task, description="Transfer optimization complete")
 
-    # tell each worker to shut down, then wait for them to exit
-    for _ in procs:
-        squeue.put(None)
-    for p in procs:
-        p.join()
     result_queue.put(None)
     result_thread.join()
 
