@@ -108,6 +108,12 @@ markers = [
 
 [tool.ruff]
 line-length = 88
+# Exploratory notebooks, not package code. They were already failing lint before
+# this refactor (the same 10 findings on main), so the pre-commit --all-files job
+# in CI was failing on them; and they still import from `airsenal.framework.*`,
+# which no longer exists, so linting them says nothing useful until they are
+# updated or deleted.
+exclude = ["notebooks"]
 
 [tool.ruff.format]
 docstring-code-format = true  # code snippets in docstrings will be formatted

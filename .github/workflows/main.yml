@@ -48,12 +48,20 @@ jobs:
       - name: Install package
         run: python -m pip install .[dev]
 
+      # The default selection: offline, and without the two jax-heavy fits that
+      # used to be 60% of the runtime. Coverage is opt-in, and scoped to src/
+      # rather than measuring the tests as well.
       - name: Test package
         env:
           FPL_TEAM_ID: 742663
         run: >-
           python -m pytest -ra --cov --cov-report=xml --cov-report=term
           --durations=20
+
+      - name: Run the slow tests
+        env:
+          FPL_TEAM_ID: 742663
+        run: python -m pytest -ra -m slow --durations=20
 
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
