@@ -17,11 +17,11 @@ uv sync --extra dev
 
 **Run tests:**
 ```bash
-uv run pytest airsenal/tests
+uv run pytest tests
 # Single test file:
-uv run pytest airsenal/tests/test_utils.py
+uv run pytest tests/test_utils.py
 # Single test:
-uv run pytest airsenal/tests/test_utils.py::test_function_name
+uv run pytest tests/test_utils.py::test_function_name
 ```
 
 **Lint and format:**
@@ -32,7 +32,7 @@ uv run ruff format .
 
 **Type checking:**
 ```bash
-uv run mypy airsenal/framework airsenal/scripts
+uv run mypy
 ```
 
 **Pre-commit hooks:**
@@ -50,15 +50,15 @@ uv run airsenal run
 
 ### Package layout
 
-- **`airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
-- **`airsenal/cli/`** — Typer command definitions and CLI-only argument handling
-- **`airsenal/scripts/`** — operational workflow implementations used by the CLI
-- **`airsenal/tests/`** — pytest tests for framework code
-- **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
+- **`src/airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
+- **`src/airsenal/cli/`** — Typer command definitions and CLI-only argument handling
+- **`src/airsenal/scripts/`** — operational workflow implementations used by the CLI
+- **`tests/`** — pytest tests for framework code
+- **`src/airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
 
 ### Data flow
 
-1. **Database init** (`fill_db_init.py`) — loads historical season data from `airsenal/data/` into a local SQLite database
+1. **Database init** (`fill_db_init.py`) — loads historical season data from `src/airsenal/data/` into a local SQLite database
 2. **Database update** (`update_db.py`) — fetches current-season fixtures, results, and player attributes from the FPL API via `curl_cffi`
 3. **Prediction** (`fill_predictedscore_table.py`) — runs BPL (Bayesian Premier League) team models and player-level models to predict points; writes to `PlayerPrediction` table
 4. **Optimization** (`fill_transfersuggestion_table.py`) — uses a greedy/brute-force search to find optimal transfers; writes to `TransferSuggestion` table

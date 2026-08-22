@@ -21,7 +21,8 @@ from pathlib import Path
 
 import pytest
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_ROOT = REPO_ROOT / "src" / "airsenal"
 
 # Modules that fail to import for reasons unrelated to I/O (missing optional
 # third-party packages). They are reported, not failed.
@@ -81,8 +82,6 @@ _GUARD_SCRIPT = textwrap.dedent(
 
     for module in pkgutil.walk_packages(airsenal.__path__, "airsenal."):
         name = module.name
-        if name.startswith("airsenal.tests") or name == "airsenal.conftest":
-            continue
         try:
             importlib.import_module(name)
         except BaseException:
@@ -102,7 +101,7 @@ def _run_import_guard():
         [sys.executable, "-c", _GUARD_SCRIPT],
         capture_output=True,
         text=True,
-        cwd=PACKAGE_ROOT.parent,
+        cwd=REPO_ROOT,
         check=False,
     )
     if result.returncode != 0:
@@ -143,8 +142,6 @@ def _cached_functions_with_session_params():
     """
     offenders = []
     for path in sorted(PACKAGE_ROOT.rglob("*.py")):
-        if "tests" in path.parts:
-            continue
         tree = ast.parse(path.read_text(), filename=str(path))
         for node in ast.walk(tree):
             if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
@@ -166,7 +163,7 @@ def _cached_functions_with_session_params():
             args = node.args
             names = {a.arg for a in [*args.posonlyargs, *args.args, *args.kwonlyargs]}
             if names & {"dbsession", "session"}:
-                rel = path.relative_to(PACKAGE_ROOT.parent)
+                rel = path.relative_to(REPO_ROOT)
                 offenders.append(f"{rel}:{node.lineno} {node.name}")
     return offenders
 

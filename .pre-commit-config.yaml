@@ -33,7 +33,7 @@ repos:
     rev: "v2.1.0"
     hooks:
       - id: mypy
-        files: "airsenal/framework|airsenal/scripts"
+        files: "^src/airsenal/"
         additional_dependencies:
           - pytest
           - types-dateparser

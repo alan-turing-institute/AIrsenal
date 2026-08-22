@@ -8,7 +8,6 @@ import pytest
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy import select
 
-from airsenal.conftest import past_data_session_scope
 from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     fixture_probabilities,
@@ -37,6 +36,7 @@ from airsenal.framework.prediction_utils import (
     mean_group_prior,
 )
 from airsenal.framework.schema import Fixture, Result
+from tests.conftest import past_data_session_scope
 
 
 def generate_player_df(prob_score, prob_assist):

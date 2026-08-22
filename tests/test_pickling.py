@@ -12,10 +12,10 @@ import pickle
 
 from sqlalchemy.orm import Session
 
-from airsenal.conftest import session_scope
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import fastcopy
+from tests.conftest import session_scope
 
 
 def _session_attributes(obj, seen=None, path="squad"):

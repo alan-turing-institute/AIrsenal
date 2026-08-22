@@ -58,7 +58,17 @@ airsenal = "airsenal.cli.main:app"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/airsenal"]
+# Stray files written into the source tree (replay output, caches) must never be
+# packaged just because they happen to sit inside the package directory.
+exclude = ["**/Replay_*.json", "**/__pycache__", "**/*.pyc"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/airsenal", "tests", "pyproject.toml", "README.md", "LICENSE"]
+
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 addopts = """
 --cov=airsenal
 --cov-report=xml
@@ -108,13 +118,13 @@ flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwa
 "__init__.py" = [
 	"F401",  # allow unused imports in __init__.py files
 ]
-"*/tests/*" = [
+"tests/**" = [
 	"B011",  # allow using assert statements in tests
 	"ARG001"  # allow unused arguments in tests, e.g. for pytest fixtures
 ]
 
 [tool.mypy]
-files = ["airsenal/framework", "airsenal/scripts"]
+files = ["src/airsenal"]
 show_error_codes = true
 warn_unreachable = true
 disallow_untyped_defs = false
@@ -122,3 +132,7 @@ disallow_incomplete_defs = false
 check_untyped_defs = true
 strict = false
 ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src/airsenal"]
+branch = true

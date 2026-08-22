@@ -44,7 +44,7 @@ from airsenal.framework.utils import (  # noqa: E402
 # empty database. Pin it explicitly instead: same value, no network, no import-time
 # side effect.
 set_next_gameweek(1)
-from airsenal.tests.test_resources import dummy_players  # noqa: E402
+from tests.test_resources import dummy_players  # noqa: E402
 
 API_SESSION_ID = "TESTSESSION"
 TEST_PAST_SEASON = "2021"
@@ -52,7 +52,7 @@ TEST_PAST_SEASON = "2021"
 testengine_dummy = create_engine(f"sqlite:///{env.AIRSENAL_HOME}/test.db")
 
 testengine_past = create_engine(
-    f"sqlite:///{os.path.dirname(__file__)}/tests/testdata/testdata_1718_1819.db"
+    f"sqlite:///{os.path.dirname(__file__)}/data/testdata_1718_1819.db"
 )
 
 

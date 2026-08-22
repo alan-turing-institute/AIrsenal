@@ -2,7 +2,6 @@
 test some db access helper functions
 """
 
-from airsenal.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
 from airsenal.framework.schema import Player
 from airsenal.framework.utils import (
     get_gameweek_by_date,
@@ -12,6 +11,7 @@ from airsenal.framework.utils import (
     get_player_name,
     get_return_gameweek_by_date,
 )
+from tests.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
 
 
 def test_get_player_name(fill_players):
