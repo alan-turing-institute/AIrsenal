@@ -253,6 +253,31 @@ def optimize(
         queue.task_done()
 
 
+def _wait_for_queue(queue: CustomQueue, procs: list[Process]) -> None:
+    """
+    Wait for every queued task to be marked done, failing if a worker dies first.
+
+    JoinableQueue.join() has no timeout and no interest in whether the workers are
+    still alive, so a worker that raises leaves the parent blocked indefinitely.
+    Workers are only asked to exit after this returns, so any worker that has
+    already exited here has died prematurely.
+    """
+    joiner = threading.Thread(target=queue.join, daemon=True)
+    joiner.start()
+    while joiner.is_alive():
+        joiner.join(timeout=2)
+        if not joiner.is_alive():
+            return
+        dead = [(i, p.exitcode) for i, p in enumerate(procs) if p.exitcode is not None]
+        if dead:
+            detail = ", ".join(f"worker {i} exited with {code}" for i, code in dead)
+            msg = (
+                f"Transfer optimisation stopped: {detail}. The remaining strategies "
+                "cannot be evaluated. Re-run with --num-thread 1 to see the error."
+            )
+            raise RuntimeError(msg)
+
+
 def find_best_strat_from_json(tag: str) -> dict | None:
     """
     Look through all the files in our tmp directory that
@@ -708,10 +733,15 @@ def run_optimization(
             # add starting node to the queue
             squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
 
-            # block until every node in the (dynamically-grown) strategy tree has
+            # Block until every node in the (dynamically-grown) strategy tree has
             # been processed - i.e. the queue is empty and no worker is still
             # processing an item that could enqueue further children.
-            squeue.join()
+            #
+            # A bare squeue.join() waits forever if a worker dies mid-task, because
+            # the task it had taken is never marked done. That turns any worker
+            # crash into a silent hang with the progress bar stopped part-way, and
+            # no indication of what went wrong. Watch the workers while waiting.
+            _wait_for_queue(squeue, procs)
 
             progress_queue.put(None)
             progress_thread.join()
