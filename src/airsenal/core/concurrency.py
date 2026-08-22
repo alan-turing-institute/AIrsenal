@@ -8,9 +8,29 @@ by Fanchen Bao, based on this Stack Overflow thread:
 https://stackoverflow.com/questions/41952413/get-length-of-queue-in-pythons-multiprocessing-library
 """
 
+import faulthandler
 import multiprocessing
 import os
+import threading
+import time
 from multiprocessing.queues import JoinableQueue
+from pathlib import Path
+
+from airsenal.core.env import AIRSENAL_HOME
+
+DEFAULT_STALL_SECONDS = 120
+STALL_SECONDS_ENV = "AIRSENAL_STALL_SECONDS"
+
+
+def stall_seconds() -> int:
+    """How long one task may take before `StallWatchdog` calls it stalled."""
+    raw = os.environ.get(STALL_SECONDS_ENV)
+    return int(raw) if raw else DEFAULT_STALL_SECONDS
+
+
+def stall_dump_dir() -> Path:
+    """Where `StallWatchdog` writes its tracebacks."""
+    return AIRSENAL_HOME / "stalls"
 
 
 def set_multiprocessing_start_method():
@@ -97,3 +117,84 @@ class CustomQueue(JoinableQueue):
     def empty(self):
         """Reliable implementation of multiprocessing.Queue.empty()"""
         return not self.qsize()
+
+
+class StallWatchdog:
+    """
+    Write this process's stacks to a file if it stops making progress.
+
+    A worker that deadlocks - on a lock inherited across `fork`, say - stays
+    alive, so the parent cannot tell it apart from one doing slow work: the run
+    simply stops, with no error and no clue as to where. The watchdog notices
+    that a single task has taken implausibly long and dumps the worker's own
+    tracebacks, which is the only way to see where it stopped from the inside.
+
+    Nothing is logged from the watchdog thread on purpose. If the process is
+    wedged on the console lock, logging is exactly what would wedge the
+    watchdog too; the file is written first and stands on its own.
+
+    Parameters
+    ----------
+    name : str
+        Used in the dump's filename, e.g. ``worker-3``.
+    seconds : int or None
+        How long one task may take before it counts as stalled. Defaults to
+        ``AIRSENAL_STALL_SECONDS``, or `DEFAULT_STALL_SECONDS`.
+    directory : Path or None
+        Where to write dumps. Defaults to `stall_dump_dir()`.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        seconds: int | None = None,
+        directory: Path | None = None,
+    ) -> None:
+        self.name = name
+        self.seconds = seconds if seconds is not None else stall_seconds()
+        self.directory = directory if directory is not None else stall_dump_dir()
+        self._last = time.monotonic()
+        self._dumped = False
+        self._lock = threading.Lock()
+
+    def mark(self) -> None:
+        """Record that progress has been made, i.e. a task started or finished."""
+        with self._lock:
+            self._last = time.monotonic()
+            self._dumped = False
+
+    def _stalled_for(self) -> float:
+        with self._lock:
+            return time.monotonic() - self._last
+
+    def _should_dump(self) -> bool:
+        with self._lock:
+            if self._dumped or time.monotonic() - self._last < self.seconds:
+                return False
+            self._dumped = True
+            return True
+
+    def dump(self) -> Path:
+        """Write every thread's traceback to a file, and return its path."""
+        self.directory.mkdir(parents=True, exist_ok=True)
+        path = self.directory / f"stalled_{self.name}_{os.getpid()}.txt"
+        with path.open("w") as dump_file:
+            dump_file.write(
+                f"{self.name} (pid {os.getpid()}) made no progress for "
+                f"{self._stalled_for():.0f}s\n\n"
+            )
+            faulthandler.dump_traceback(file=dump_file, all_threads=True)
+        return path
+
+    def start(self) -> None:
+        """Begin watching, on a daemon thread that dies with the process."""
+
+        def watch() -> None:
+            while True:
+                time.sleep(min(5, max(1, self.seconds // 10)))
+                if self._should_dump():
+                    self.dump()
+
+        threading.Thread(
+            target=watch, daemon=True, name=f"{self.name}-watchdog"
+        ).start()

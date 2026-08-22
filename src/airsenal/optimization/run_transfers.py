@@ -28,6 +28,7 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.concurrency import (
     CustomQueue,
+    StallWatchdog,
     set_multiprocessing_start_method,
 )
 from airsenal.core.console import console, price_str, progress_bar, table
@@ -98,8 +99,15 @@ def optimize(
     `strategy` is None for the root node, which exists only to add children to
     the queue. Finished strategies are put on the `results` queue.
     """
+    # A worker that wedges - on a lock inherited across fork, say - stays alive,
+    # so the parent cannot distinguish it from one doing slow work and the run
+    # just stops. Have the worker say where it stopped, from the inside.
+    watchdog = StallWatchdog(f"worker-{pid}")
+    watchdog.start()
+
     while True:
         status = queue.get()
+        watchdog.mark()
         if status is None:
             break
 
