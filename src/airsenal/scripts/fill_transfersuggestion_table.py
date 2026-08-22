@@ -22,8 +22,6 @@ from collections.abc import Callable
 from multiprocessing import Process, Queue
 from pathlib import Path
 
-import regex as re
-import requests
 from rich.panel import Panel
 from rich.text import Text
 from sqlalchemy.orm import Session
@@ -58,6 +56,7 @@ from airsenal.optimization.utils import (
     get_starting_squad,
     next_week_transfers,
 )
+from airsenal.reporting.discord import post_webhook
 from airsenal.reporting.squad_view import formation_table
 from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.squad.squad import Squad
@@ -437,6 +436,230 @@ def print_team_for_next_gw(
     return t
 
 
+def lineup_strings(
+    squad: Squad, strategy: Strategy, baseline_score: float, fpl_team_id: int
+) -> list[str]:
+    """The squad, formatted as Discord markdown."""
+    lines = [
+        f"__Strategy for Team ID: **{fpl_team_id}**__",
+        f"Baseline score: *{int(baseline_score)}*",
+        f"Best score: *{int(strategy.total_score)}*",
+        "\n__starting 11__",
+    ]
+    for position in list(Position.back_to_front()):
+        lines.append(f"== **{position}** ==\n```")
+        for p in squad.players:
+            if p.position == position and p.is_starting:
+                player_line = f"{p} ({p.team})"
+                if p.is_captain:
+                    player_line += "(C)"
+                elif p.is_vice_captain:
+                    player_line += "(VC)"
+                lines.append(player_line)
+        lines.append("```\n")
+    lines += ["__subs__", "```"]
+    subs = sorted(
+        (p for p in squad.players if not p.is_starting), key=lambda p: p.sub_position
+    )
+    lines += [f"{p} ({p.team})" for p in subs]
+    lines.append("```\n")
+    return lines
+
+
+def new_squad_from_scratch(
+    gameweeks: list[int],
+    tag: str,
+    season: str,
+    fpl_team_id: int,
+    num_iterations: int,
+    chip_gameweeks: dict,
+) -> Squad:
+    """
+    Build a squad from nothing, for the start of a season or a brand new team.
+
+    There is nothing to transfer from, so the transfer search has nothing to do.
+    """
+    return fill_initial_squad(
+        tag=tag,
+        gw_range=gameweeks,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        num_generations=num_iterations,
+        population_size=num_iterations,
+        chip_gameweeks=chip_gameweeks,
+    )
+
+
+def search_transfer_tree(
+    starting_squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    season: str,
+    chip_schedule: ChipSchedule,
+    num_free_transfers: int,
+    max_total_hit: int | None,
+    allow_unused_transfers: bool,
+    max_opt_transfers: int,
+    num_iterations: int,
+    num_thread: int,
+    profile: bool,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> list[Strategy]:
+    """
+    Walk the tree of possible transfer strategies and return every finished one.
+
+    The tree is grown dynamically: a worker that has not reached the end of the
+    gameweek window puts its children back on the same queue. That is why the
+    queue is joinable and why the workers outlive any single strategy.
+    """
+    # create a queue that we will add nodes to, and some processes to take
+    # things off it
+    squeue = CustomQueue()
+    # workers put finished strategies here for the parent to compare
+    result_queue: Queue[Strategy | None] = Queue()
+    procs = []
+    # number of nodes in tree will be something like 3^num_weeks unless we allow
+    # a "chip" such as wildcard or free hit, in which case it gets complicated
+    num_weeks = len(gameweeks)
+    num_expected_outputs, baseline_excluded = count_expected_outputs(
+        num_weeks,
+        next_gw=gameweeks[0],
+        free_transfers=num_free_transfers,
+        max_total_hit=max_total_hit,
+        allow_unused_transfers=allow_unused_transfers,
+        max_opt_transfers=max_opt_transfers,
+        chip_schedule=chip_schedule,
+        max_free_transfers=max_free_transfers,
+    )
+
+    with progress_bar(transient=True) as progress:
+        # one progress bar per worker process, plus one for overall progress
+        worker_tasks = [
+            progress.add_task(f"Worker {i}: idle", total=100) for i in range(num_thread)
+        ]
+        total_task = progress.add_task("Total strategies", total=num_expected_outputs)
+
+        # workers report progress back to this process (which owns the Rich
+        # display) via a queue, rather than updating the progress bars directly
+        # - the worker processes only ever see a fork-time copy of them.
+        progress_queue: Queue = Queue()
+
+        def update_progress(increment: float = 1, index: int | None = None) -> None:
+            progress_queue.put(("increment", index, increment))
+
+        def reset_progress(index: int, strategy_string: str) -> None:
+            progress_queue.put(("reset", index, strategy_string))
+
+        def consume_progress_updates() -> None:
+            while True:
+                message = progress_queue.get()
+                if message is None:
+                    break
+                kind, index, value = message
+                if kind == "reset":
+                    progress.reset(
+                        worker_tasks[index], description=f"Worker {index}: {value}"
+                    )
+                elif index is None:
+                    progress.advance(total_task, value)
+                else:
+                    progress.advance(worker_tasks[index], value)
+
+        progress_thread = threading.Thread(target=consume_progress_updates, daemon=True)
+        progress_thread.start()
+
+        # Drain the results queue as strategies finish. A worker blocks once
+        # the pipe fills, so this cannot wait until the search is over.
+        finished: list[Strategy] = []
+
+        def collect_results() -> None:
+            while True:
+                strategy = result_queue.get()
+                if strategy is None:
+                    break
+                finished.append(strategy)
+
+        result_thread = threading.Thread(target=collect_results, daemon=True)
+        result_thread.start()
+
+        if baseline_excluded:
+            # if we are excluding unused transfers the tree may not include the
+            # baseline strategy, so compute it here instead.
+            baseline_strategy = get_baseline_strat(
+                starting_squad, gameweeks, tag, root_gw=gameweeks[0]
+            )
+            progress.advance(total_task, 1)
+        else:
+            baseline_strategy = None
+
+        # Add Processes to run the target 'optimize' function.
+        # This target function needs to know:
+        #  the move (transfers and chip) to make
+        #  current_team (list of player_ids)
+        #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
+        #  total_score
+        #  num_free_transfers
+        #  budget
+        for i in range(num_thread):
+            processor = Process(
+                target=optimize,
+                args=(
+                    squeue,
+                    i,
+                    result_queue,
+                    gameweeks,
+                    season,
+                    tag,
+                    chip_schedule,
+                    max_total_hit,
+                    allow_unused_transfers,
+                    max_opt_transfers,
+                    num_iterations,
+                    update_progress,
+                    reset_progress,
+                    profile,
+                ),
+            )
+            processor.daemon = True
+            processor.start()
+            procs.append(processor)
+        # add starting node to the queue
+        squeue.put(
+            (
+                GameweekMove(),
+                num_free_transfers,
+                0,
+                0,
+                starting_squad,
+                None,
+            )
+        )
+
+        # Block until every node in the (dynamically-grown) strategy tree has
+        # been processed - i.e. the queue is empty and no worker is still
+        # processing an item that could enqueue further children.
+        #
+        # A bare squeue.join() waits forever if a worker dies mid-task, because
+        # the task it had taken is never marked done. That turns any worker
+        # crash into a silent hang with the progress bar stopped part-way, and
+        # no indication of what went wrong. Watch the workers while waiting.
+        _wait_for_queue(squeue, procs)
+
+        progress_queue.put(None)
+        progress_thread.join()
+        progress.update(total_task, description="Transfer optimization complete")
+
+    # tell each worker to shut down, then wait for them to exit
+    for _ in procs:
+        squeue.put(None)
+    for p in procs:
+        p.join()
+    result_queue.put(None)
+    result_thread.join()
+
+    return finished + ([baseline_strategy] if baseline_strategy else [])
+
+
 def run_optimization(
     gameweeks: list[int],
     tag: str,
@@ -464,7 +687,6 @@ def run_optimization(
     """
     if chip_gameweeks is None:
         chip_gameweeks = {}
-    discord_webhook = get_fetcher().DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = get_fetcher().FPL_TEAM_ID
     if fpl_team_id is None:  # still None after trying env vars
@@ -481,16 +703,9 @@ def run_optimization(
             "This is the start of the season or a new team - will make a squad "
             "from scratch"
         )
-        squad = fill_initial_squad(
-            tag=tag,
-            gw_range=gameweeks,
-            season=season,
-            fpl_team_id=fpl_team_id,
-            num_generations=num_iterations,
-            population_size=num_iterations,
-            chip_gameweeks=chip_gameweeks,
-        )
-        return squad, None
+        return new_squad_from_scratch(
+            gameweeks, tag, season, fpl_team_id, num_iterations, chip_gameweeks
+        ), None
 
     with console.status("Optimising transfers..."):
         logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
@@ -509,16 +724,9 @@ def run_optimization(
                 "No existing squad or transfers found for team_id %s", fpl_team_id
             )
             logger.info("Will suggest a new starting squad:")
-            squad = fill_initial_squad(
-                tag=tag,
-                gw_range=gameweeks,
-                season=season,
-                fpl_team_id=fpl_team_id,
-                num_generations=num_iterations,
-                population_size=num_iterations,
-                chip_gameweeks=chip_gameweeks,
-            )
-            return squad, None
+            return new_squad_from_scratch(
+                gameweeks, tag, season, fpl_team_id, num_iterations, chip_gameweeks
+            ), None
         # if we got to here, we can assume we are optimizing an existing squad.
 
         # How many free transfers are we starting with?
@@ -535,167 +743,31 @@ def run_optimization(
         # Work out what chips we definitely or possibly will play in each gw
         chip_schedule = ChipSchedule.from_weeks(gameweeks, chip_gameweeks)
 
-        # create a queue that we will add nodes to, and some processes to take
-        # things off it
-        squeue = CustomQueue()
-        # workers put finished strategies here for the parent to compare
-        result_queue: Queue[Strategy | None] = Queue()
-        procs = []
-        # number of nodes in tree will be something like 3^num_weeks unless we allow
-        # a "chip" such as wildcard or free hit, in which case it gets complicated
-        num_weeks = len(gameweeks)
-        num_expected_outputs, baseline_excluded = count_expected_outputs(
-            num_weeks,
-            next_gw=gameweeks[0],
-            free_transfers=num_free_transfers,
-            max_total_hit=max_total_hit,
-            allow_unused_transfers=allow_unused_transfers,
-            max_opt_transfers=max_opt_transfers,
-            chip_schedule=chip_schedule,
-            max_free_transfers=max_free_transfers,
+        finished = search_transfer_tree(
+            starting_squad,
+            gameweeks,
+            tag,
+            season,
+            chip_schedule,
+            num_free_transfers,
+            max_total_hit,
+            allow_unused_transfers,
+            max_opt_transfers,
+            num_iterations,
+            num_thread,
+            profile,
+            max_free_transfers,
         )
 
-        with progress_bar(transient=True) as progress:
-            # one progress bar per worker process, plus one for overall progress
-            worker_tasks = [
-                progress.add_task(f"Worker {i}: idle", total=100)
-                for i in range(num_thread)
-            ]
-            total_task = progress.add_task(
-                "Total strategies", total=num_expected_outputs
-            )
-
-            # workers report progress back to this process (which owns the Rich
-            # display) via a queue, rather than updating the progress bars directly
-            # - the worker processes only ever see a fork-time copy of them.
-            progress_queue: Queue = Queue()
-
-            def update_progress(increment: float = 1, index: int | None = None) -> None:
-                progress_queue.put(("increment", index, increment))
-
-            def reset_progress(index: int, strategy_string: str) -> None:
-                progress_queue.put(("reset", index, strategy_string))
-
-            def consume_progress_updates() -> None:
-                while True:
-                    message = progress_queue.get()
-                    if message is None:
-                        break
-                    kind, index, value = message
-                    if kind == "reset":
-                        progress.reset(
-                            worker_tasks[index], description=f"Worker {index}: {value}"
-                        )
-                    elif index is None:
-                        progress.advance(total_task, value)
-                    else:
-                        progress.advance(worker_tasks[index], value)
-
-            progress_thread = threading.Thread(
-                target=consume_progress_updates, daemon=True
-            )
-            progress_thread.start()
-
-            # Drain the results queue as strategies finish. A worker blocks once
-            # the pipe fills, so this cannot wait until the search is over.
-            finished: list[Strategy] = []
-
-            def collect_results() -> None:
-                while True:
-                    strategy = result_queue.get()
-                    if strategy is None:
-                        break
-                    finished.append(strategy)
-
-            result_thread = threading.Thread(target=collect_results, daemon=True)
-            result_thread.start()
-
-            if baseline_excluded:
-                # if we are excluding unused transfers the tree may not include the
-                # baseline strategy, so compute it here instead.
-                baseline_strategy = get_baseline_strat(
-                    starting_squad, gameweeks, tag, root_gw=gameweeks[0]
-                )
-                progress.advance(total_task, 1)
-            else:
-                baseline_strategy = None
-
-            # Add Processes to run the target 'optimize' function.
-            # This target function needs to know:
-            #  the move (transfers and chip) to make
-            #  current_team (list of player_ids)
-            #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
-            #  total_score
-            #  num_free_transfers
-            #  budget
-            for i in range(num_thread):
-                processor = Process(
-                    target=optimize,
-                    args=(
-                        squeue,
-                        i,
-                        result_queue,
-                        gameweeks,
-                        season,
-                        tag,
-                        chip_schedule,
-                        max_total_hit,
-                        allow_unused_transfers,
-                        max_opt_transfers,
-                        num_iterations,
-                        update_progress,
-                        reset_progress,
-                        profile,
-                    ),
-                )
-                processor.daemon = True
-                processor.start()
-                procs.append(processor)
-            # add starting node to the queue
-            squeue.put(
-                (
-                    GameweekMove(),
-                    num_free_transfers,
-                    0,
-                    0,
-                    starting_squad,
-                    None,
-                )
-            )
-
-            # Block until every node in the (dynamically-grown) strategy tree has
-            # been processed - i.e. the queue is empty and no worker is still
-            # processing an item that could enqueue further children.
-            #
-            # A bare squeue.join() waits forever if a worker dies mid-task, because
-            # the task it had taken is never marked done. That turns any worker
-            # crash into a silent hang with the progress bar stopped part-way, and
-            # no indication of what went wrong. Watch the workers while waiting.
-            _wait_for_queue(squeue, procs)
-
-            progress_queue.put(None)
-            progress_thread.join()
-            progress.update(total_task, description="Transfer optimization complete")
-
-        # tell each worker to shut down, then wait for them to exit
-        for _ in procs:
-            squeue.put(None)
-        for p in procs:
-            p.join()
-        result_queue.put(None)
-        result_thread.join()
-
-        # find the best from all the strategies tried
-        candidates = finished + ([baseline_strategy] if baseline_strategy else [])
         if save_strategies is not None:
-            save_strategy_dump(candidates, save_strategies, tag)
-        if not candidates:
+            save_strategy_dump(finished, save_strategies, tag)
+        if not finished:
             msg = "Failed to find a strategy!"
             raise ValueError(msg)
-        best_strategy = max(candidates, key=lambda s: s.total_score)
+        best_strategy = max(finished, key=lambda s: s.total_score)
 
         # the baseline is the strategy that makes no transfers in any gameweek
-        baseline = next((s for s in candidates if is_baseline(s)), None)
+        baseline = next((s for s in finished if is_baseline(s)), None)
         if baseline is None:
             logger.warning("No baseline strategy was evaluated")
         baseline_score = baseline.total_score if baseline is not None else 0.0
@@ -720,53 +792,12 @@ def run_optimization(
         best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
 
-    # If a valid discord webhook URL has been stored
-    # in env variables, send a webhook message
-    if discord_webhook:
-        # Use regex to check the discord webhook url is correctly formatted
-        if re.match(
-            r"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
-            discord_webhook,
-        ):
-            # create a formatted team lineup message for the discord webhook
-            lineup_strings = [
-                f"__Strategy for Team ID: **{fpl_team_id}**__",
-                f"Baseline score: *{int(baseline_score)}*",
-                f"Best score: *{int(best_strategy.total_score)}*",
-                "\n__starting 11__",
-            ]
-            for position in list(Position.back_to_front()):
-                lineup_strings.append(f"== **{position}** ==\n```")
-                for p in best_squad.players:
-                    if p.position == position and p.is_starting:
-                        player_line = f"{p} ({p.team})"
-                        if p.is_captain:
-                            player_line += "(C)"
-                        elif p.is_vice_captain:
-                            player_line += "(VC)"
-                        lineup_strings.append(player_line)
-                lineup_strings.append("```\n")
-            lineup_strings.append("__subs__")
-            lineup_strings.append("```")
-            subs = [p for p in best_squad.players if not p.is_starting]
-            subs.sort(key=lambda p: p.sub_position)
-            for p in subs:
-                lineup_strings.append(f"{p} ({p.team})")
-            lineup_strings.append("```\n")
-
-            # generate a discord embed json and send to webhook
-            payload = discord_payload(best_strategy, lineup_strings)
-            result = requests.post(discord_webhook, json=payload)
-            if 200 <= result.status_code < 300:
-                logger.info("Discord webhook sent, status code: %s", result.status_code)
-            else:
-                logger.warning(
-                    "Not sent with %s, response:\n%s",
-                    result.status_code,
-                    result.json(),
-                )
-        else:
-            logger.warning("Discord webhook url is malformed: %s", discord_webhook)
+    post_webhook(
+        discord_payload(
+            best_strategy,
+            lineup_strings(best_squad, best_strategy, baseline_score, fpl_team_id),
+        )
+    )
 
     return best_squad, best_strategy
 

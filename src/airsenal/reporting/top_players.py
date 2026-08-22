@@ -1,7 +1,5 @@
 """Presenting predicted points: Rich tables and Discord payloads."""
 
-import regex as re
-from curl_cffi import requests
 from sqlalchemy.orm import Session
 
 from airsenal.core.console import console, table
@@ -13,7 +11,7 @@ from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.reporting.discord import get_webhook_url, post_webhook
 
 logger = get_logger(__name__)
 
@@ -46,7 +44,7 @@ def get_top_predicted_points(
         dbsession {SQLAlchemy session} -- Database session (default: {None})
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    discord_webhook = get_fetcher().DISCORD_WEBHOOK
+    discord_webhook = get_webhook_url()
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
@@ -103,35 +101,17 @@ def get_top_predicted_points(
 
         print_predictions(pts, table_title)
 
-        # If a valid discord webhook URL has been stored
-        # in env variables, send a webhook message
-        if discord_webhook:
-            # Use regex to check the discord webhook url is correctly formatted
-            if re.match(
-                r"^.*(discord|discordapp)\.com\/api"
-                r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
-                discord_webhook,
-            ):
-                # Maximum fields on a discord embed is 25, so limit this to n_players=8
-                payload = predicted_points_discord_payload(
-                    discord_embed=discord_embed,
-                    position=position,
-                    pts=pts[: min(n_players, 8)],
-                    season=season,
-                    first_gw=first_gw,
-                )
-                result = requests.post(discord_webhook, json=payload)
-                if 200 <= result.status_code < 300:
-                    logger.info(
-                        "Discord webhook sent, status code: %s", result.status_code
-                    )
-                else:
-                    logger.warning(
-                        "Not sent with %s,response:\n{result.json()}",
-                        result.status_code,
-                    )
-            else:
-                logger.warning("Discord webhook url is malformed!\n%s", discord_webhook)
+        # Maximum fields on a discord embed is 25, so limit this to n_players=8
+        post_webhook(
+            predicted_points_discord_payload(
+                discord_embed=discord_embed,
+                position=position,
+                pts=pts[: min(n_players, 8)],
+                season=season,
+                first_gw=first_gw,
+            ),
+            discord_webhook,
+        )
     else:
         for i, position in enumerate(list(Position.back_to_front())):
             pts = get_predicted_points(
@@ -153,40 +133,17 @@ def get_top_predicted_points(
             print_predictions(pts, title)
 
             discord_embed["fields"] = []
-            # If a valid discord webhook URL has been stored
-            # in env variables, send a webhook message
-            if discord_webhook is not None:
-                # Use regex to check the discord webhook url is correctly formatted
-                if re.match(
-                    r"^.*(discord|discordapp)\.com\/api"
-                    r"\/webhooks\/([\d]+)\/([a-zA-Z0-9_-]+)$",
-                    discord_webhook,
-                ):
-                    # create a formatted team lineup message for the discord webhook
-                    # Maximum fields on a discord embed is 25
-                    # limit this to n_players=8
-                    payload = predicted_points_discord_payload(
-                        discord_embed=discord_embed,
-                        position=position,
-                        pts=pts[: min(n_players, 8)],
-                        season=season,
-                        first_gw=first_gw,
-                    )
-                    result = requests.post(discord_webhook, json=payload)
-                    if 200 <= result.status_code < 300:
-                        logger.info(
-                            "Discord webhook sent, status code: %s", result.status_code
-                        )
-                    else:
-                        logger.warning(
-                            "Not sent with %s, response:\n%s",
-                            result.status_code,
-                            result.json(),
-                        )
-                else:
-                    logger.warning(
-                        "Discord webhook url is malformed!\n%s", discord_webhook
-                    )
+            # Maximum fields on a discord embed is 25, so limit this to n_players=8
+            post_webhook(
+                predicted_points_discord_payload(
+                    discord_embed=discord_embed,
+                    position=position,
+                    pts=pts[: min(n_players, 8)],
+                    season=season,
+                    first_gw=first_gw,
+                ),
+                discord_webhook,
+            )
 
 
 def predicted_points_discord_payload(
