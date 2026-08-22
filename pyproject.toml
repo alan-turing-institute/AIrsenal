@@ -67,6 +67,11 @@ airsenal = "airsenal.cli.main:main_cli"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "pytest-socket>=0.8.1",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/airsenal"]
 # Stray files written into the source tree (replay output, caches) must never be
@@ -78,14 +83,25 @@ include = ["src/airsenal", "tests", "pyproject.toml", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Coverage is deliberately not here: it ran on every local invocation, and
+# --cov=airsenal measured the tests as well as the package, which is what made
+# the headline number meaningless. Ask for it explicitly, and [tool.coverage.run]
+# below scopes it to src/ with the tests outside the package.
+#
+# --disable-socket makes "the suite runs offline" enforced rather than
+# aspirational; unix sockets stay allowed because SQLite and multiprocessing
+# need them.
 addopts = """
---cov=airsenal
---cov-report=xml
 --strict-markers
--m 'not live'
+--strict-config
+--disable-socket
+--allow-unix-socket
+-m 'not live and not slow'
 """
+xfail_strict = true
 markers = [
   "live: makes real requests to the FPL API; deselected by default, run with -m live",
+  "slow: takes more than a couple of seconds; deselected by default, run with -m slow",
 ]
 
 [tool.ruff]

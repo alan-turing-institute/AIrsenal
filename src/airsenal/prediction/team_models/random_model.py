@@ -1,84 +1,85 @@
+"""
+A team model whose predictions are random but well-formed.
+
+Used as a control in `airsenal replay`: a season played on random scorelines is
+the floor a real model has to clear.
+
+It used to subclass `bpl.base.BaseMatchPredictor` while implementing only part
+of the interface, so it inherited `predict_score_n_proba`, which reaches for a
+`_teams_dict` this model never builds. Anything that asked it for a scoreline
+probability - `fixture_probabilities`, and therefore `--team-model random` in
+any real run - died with an AttributeError about a private bpl attribute.
+It is now standalone and implements the whole of our own `TeamModel` protocol,
+so the parts it does not support are the parts it does not claim.
+"""
+
 from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
-from bpl.base import BaseMatchPredictor
+
+# Goals per team per match are modelled as a random distribution over 0..MAX_GOALS.
+MAX_GOALS = 10
 
 
-class RandomMatchPredictor(BaseMatchPredictor):
-    """A Random model for predicting match outcomes."""
+class RandomMatchPredictor:
+    """Random, but valid, scoreline probabilities."""
 
-    def __init__(self, num_samples: int = 1000, random_state: int = 42):
+    def __init__(self, max_goals: int = MAX_GOALS, random_state: int = 42) -> None:
+        self.max_goals = max_goals
         self.teams: list[str] | None = None
-        self.attack: np.ndarray | None = None
-        self.defence: np.ndarray | None = None
-        self.home_advantage: np.ndarray | None = None
-        self.num_samples = num_samples
         self.rng = np.random.default_rng(random_state)
+        # per-team probability of scoring 0..max_goals, drawn once at fit time
+        self._goal_probabilities: dict[str, np.ndarray] = {}
 
-    def fit(self, training_data: dict[str, Iterable[str] | Iterable[float]], **kwargs):
-        home_team = training_data["home_team"]
-        away_team = training_data["away_team"]
-        unique_teams = set(home_team) | set(away_team)
-        self.teams = sorted([str(t) for t in unique_teams])
-        if self.teams is None or len(self.teams) == 0:
+    def _draw(self) -> np.ndarray:
+        """A random probability vector over 0..max_goals."""
+        weights = self.rng.random(self.max_goals + 1)
+        return weights / weights.sum()
+
+    def fit(
+        self, training_data: dict[str, Iterable[Any]], **kwargs: Any
+    ) -> "RandomMatchPredictor":
+        del kwargs
+        home = training_data.get("home_team", [])
+        away = training_data.get("away_team", [])
+        self.teams = sorted({str(t) for t in [*home, *away]})
+        if not self.teams:
             msg = "No teams found in training data."
             raise ValueError(msg)
-
-        self.attack = self.rng.normal(size=(self.num_samples, len(self.teams)))
-        self.defence = self.rng.normal(size=(self.num_samples, len(self.teams)))
-        self.home_advantage = self.rng.normal(size=(self.num_samples, len(self.teams)))
-        self.corr_coef = self.rng.normal(size=(self.num_samples, len(self.teams)))
-        self.rho = self.rng.normal(size=(self.num_samples,))
+        self._goal_probabilities = {team: self._draw() for team in self.teams}
         return self
 
-    def predict_score_proba(
-        self,
-        home_team: str | Iterable[str],
-        away_team: str | Iterable[str],
-        home_goals: int | Iterable[int],  # noqa: ARG002
-        away_goals: int | Iterable[int],  # noqa: ARG002
-    ) -> np.ndarray:
-        home_team = [home_team] if isinstance(home_team, str) else list(home_team)
-        away_team = [away_team] if isinstance(away_team, str) else list(away_team)
-
-        home_probs = np.random.randn(self.num_samples, len(home_team))
-        away_probs = np.random.randn(self.num_samples, len(away_team))
-
-        sampled_probs = (
-            np.random.randn(self.num_samples, len(home_team)) * home_probs * away_probs
-        )
-        return sampled_probs.mean(axis=0)
-
-    def add_new_team(
-        self,
-        team_name: str,
-        team_covariates: np.ndarray | None = None,  # noqa: ARG002
-    ):
+    def add_new_team(self, team_name: str, **kwargs: Any) -> None:
+        del kwargs
         if self.teams is None:
             self.teams = []
-        elif team_name in self.teams:
-            msg = f"Team {team_name} already known to model."
-            raise ValueError(msg)
-        if self.attack is None:
-            self.attack = np.empty((self.num_samples, 0))
-        if self.defence is None:
-            self.defence = np.empty((self.num_samples, 0))
-        if self.home_advantage is None:
-            self.home_advantage = np.empty((self.num_samples, 0))
-
-        attack = np.random.randn(
-            self.num_samples,
-        )
-        defence = np.random.randn(
-            self.num_samples,
-        )
-        home_advantage = np.random.randn(
-            self.num_samples,
-        )
-
+        if team_name in self.teams:
+            return
         self.teams.append(team_name)
-        self.attack = np.concatenate((self.attack, attack[:, None]), axis=1)
-        self.defence = np.concatenate((self.defence, defence[:, None]), axis=1)
-        self.home_advantage = np.concatenate(
-            (self.home_advantage, home_advantage[:, None]), axis=1
-        )
+        self._goal_probabilities[team_name] = self._draw()
+
+    def predict_score_n_proba(
+        self,
+        n: int | Iterable[int],
+        team: str | Iterable[str],
+        opponent: str | Iterable[str] = "",
+        home: bool | None = True,
+        **kwargs: Any,
+    ) -> np.ndarray:
+        """
+        Probability that `team` scores each of `n` goals.
+
+        The opponent and home advantage are ignored: this model is deliberately
+        indifferent to who is playing.
+        """
+        del opponent, home, kwargs
+        team_name = team if isinstance(team, str) else next(iter(team))
+        probabilities = self._goal_probabilities.get(str(team_name))
+        if probabilities is None:
+            probabilities = self._draw()
+            self._goal_probabilities[str(team_name)] = probabilities
+
+        goals = np.atleast_1d(np.asarray(n))
+        in_range = (goals >= 0) & (goals <= self.max_goals)
+        return np.where(in_range, probabilities[np.clip(goals, 0, self.max_goals)], 0.0)

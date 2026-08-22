@@ -316,7 +316,16 @@ def test_get_ratings_dict():
         assert len(d) >= 20
 
 
+@pytest.mark.slow
 def test_get_fitted_team_model():
+    """
+    Fit every team model against two full seasons.
+
+    22 seconds, and almost all of it is jax. The shape and coverage assertions
+    are worth having on every run, so they are duplicated against the small e2e
+    database in tests/e2e/test_team_models.py; this stays as the "does it still
+    work on real data" check for the nightly job.
+    """
     # extended model
     with past_data_session_scope() as ts:
         extended = ExtendedDixonColesMatchPredictor()
@@ -347,6 +356,7 @@ def test_get_fitted_team_model():
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
 
 
+@pytest.mark.slow
 def test_fixture_probabilities():
     with past_data_session_scope() as ts:
         df = fixture_probabilities(20, "1819", dbsession=ts)
