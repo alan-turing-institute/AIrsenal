@@ -389,22 +389,6 @@ def fill_initial_transaction_table(
         )
 
 
-def get_num_increments(move: GameweekMove, num_iterations: int = 100) -> int:
-    """
-    how many steps for the progress bar for this strategy
-    """
-    if move.rebuilds_squad or move.n_transfers > 2:
-        # wildcard, free hit, or >2 transfers - all search num_iterations candidates
-        return num_iterations
-    if move.n_transfers == 0:
-        return 1
-    if move.n_transfers == 1:
-        # single transfer - 15 increments (replace each player in turn)
-        return 15
-    # two transfers - remove each pair of players, 15*7=105 combinations
-    return 105
-
-
 def next_week_transfers(
     strat: tuple[int, int, dict],
     max_total_hit: int | None = None,

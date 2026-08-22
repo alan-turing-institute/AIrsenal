@@ -44,7 +44,10 @@ from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
-from airsenal.optimization.transfers import make_best_transfers
+from airsenal.optimization.transfers import (
+    get_num_increments,
+    make_best_transfers,
+)
 from airsenal.optimization.utils import (
     MAX_FREE_TRANSFERS,
     check_tag_valid,
@@ -53,7 +56,6 @@ from airsenal.optimization.utils import (
     fill_transaction_table,
     get_baseline_strat,
     get_discount_factor,
-    get_num_increments,
     get_starting_squad,
     next_week_transfers,
 )
