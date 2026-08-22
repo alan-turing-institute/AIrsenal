@@ -324,30 +324,14 @@ def get_goal_probabilities_for_fixtures(
     return probs
 
 
-def parse_team_model_from_str(
-    team_model: str,
-) -> (
-    "RandomMatchPredictor | ExtendedDixonColesMatchPredictor | "
-    "NeutralDixonColesMatchPredictor"
-):
+def parse_team_model_from_str(team_model: str) -> object:
     """
-    Returns the team model class corresponding to the given string.
+    The team model registered under a name.
+
+    Kept as a thin wrapper over TEAM_MODELS so that existing callers keep working;
+    it used to be a second copy of the if/elif chain in run_prediction, and the two
+    could drift.
     """
-    # imported lazily - see the TYPE_CHECKING block at the top of this module for why
-    from bpl import (  # noqa: PLC0415
-        ExtendedDixonColesMatchPredictor,
-        NeutralDixonColesMatchPredictor,
-    )
+    from airsenal.prediction.registry import TEAM_MODELS  # noqa: PLC0415
 
-    from airsenal.prediction.team_models.random_model import (  # noqa: PLC0415
-        RandomMatchPredictor,
-    )
-
-    if team_model == "random":
-        return RandomMatchPredictor()
-    if team_model == "extended":
-        return ExtendedDixonColesMatchPredictor()
-    if team_model == "neutral":
-        return NeutralDixonColesMatchPredictor()
-    msg = "Unknown team model"
-    raise ValueError(msg)
+    return TEAM_MODELS.create(team_model)

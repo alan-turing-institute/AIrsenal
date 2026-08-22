@@ -11,6 +11,7 @@ import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
 from airsenal.core.logging import get_logger
+from airsenal.prediction.config import ConjugatePlayerConfig, NumpyroPlayerConfig
 
 logger = get_logger(__name__)
 
@@ -120,8 +121,14 @@ class BasePlayerModel(ABC):
     """
 
     @abstractmethod
-    def fit(self, data: dict[str, Any], **kwargs) -> BasePlayerModel:
-        """Fit model. Data must have the following keys (at minimum):
+    def fit(self, data: dict[str, Any]) -> BasePlayerModel:
+        """Fit model, using the hyperparameters this model was constructed with.
+
+        Deliberately takes no **kwargs. It used to, and NumpyroPlayerModel silently
+        swallowed the epsilon and n_goals_prior that the caller passed for every
+        model, so selecting the sampling model quietly disabled time weighting.
+
+        Data must have the following keys (at minimum):
         - "y": np.ndarray of shape (n_players, n_matches, 3) with player goal
         involvements in each match. Last axis is (no. goals, no. assists, no. neither)
         - "player_ids": np.ndarray of shape (n_players,) with player ids
@@ -153,9 +160,10 @@ class NumpyroPlayerModel(BasePlayerModel):
     numpyro implementation of the AIrsenal player model.
     """
 
-    def __init__(self):
-        self.player_ids = None
-        self.samples = None
+    def __init__(self, config: NumpyroPlayerConfig | None = None):
+        self.config = config or NumpyroPlayerConfig()
+        self.player_ids: np.ndarray | None = None
+        self.samples: dict[str, Any] | None = None
 
     @staticmethod
     def _model(
@@ -187,27 +195,19 @@ class NumpyroPlayerModel(BasePlayerModel):
         )
         return numpyro.sample("obs", theta_mins, obs=y)
 
-    def fit(
-        self,
-        data,
-        random_state: int = 42,
-        num_warmup: int = 500,
-        num_samples: int = 2000,
-        mcmc_kwargs: dict[str, Any] | None = None,
-        run_kwargs: dict[str, Any] | None = None,
-        **kwargs,
-    ):
+    def fit(self, data: dict[str, Any]) -> NumpyroPlayerModel:
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
         mcmc = MCMC(
             kernel,
-            num_warmup=num_warmup,
-            num_samples=num_samples,
-            num_chains=1,
+            num_warmup=self.config.num_warmup,
+            num_samples=self.config.num_samples,
+            num_chains=self.config.num_chains,
             progress_bar=True,
-            **(mcmc_kwargs or {}),
         )
-        rng_key, _rng_key_predict = random.split(random.PRNGKey(random_state))
+        rng_key, _rng_key_predict = random.split(
+            random.PRNGKey(self.config.random_state)
+        )
         mcmc.run(
             rng_key,
             data["nplayer"],
@@ -215,7 +215,6 @@ class NumpyroPlayerModel(BasePlayerModel):
             data["minutes"],
             data["y"],
             data["alpha"],
-            **(run_kwargs or {}),
         )
         self.samples = mcmc.get_samples()
         return self
@@ -263,47 +262,45 @@ class ConjugatePlayerModel(BasePlayerModel):
     from average goal involvements for all players in that position.
     """
 
-    def __init__(self):
-        self.player_ids = None
-        self.prior = None
-        self.posterior = None
-        self.mean_probabilities = None
+    def __init__(self, config: ConjugatePlayerConfig | None = None):
+        self.config = config or ConjugatePlayerConfig()
+        self.player_ids: np.ndarray | None = None
+        self.prior: np.ndarray | None = None
+        self.posterior: np.ndarray | None = None
+        self.mean_probabilities: np.ndarray | None = None
+        self.time_diff: np.ndarray | None = None
 
-        # optional time weighting parameter
-        self.epsilon = None
-        self.time_diff = None
-        self.rescale_weights = None
+    @property
+    def epsilon(self) -> float | None:
+        return self.config.epsilon
 
-    def fit(
-        self,
-        data: dict[str, Any],
-        n_goals_prior: int = DEFAULT_N_GOALS_PRIOR,
-        epsilon: float | None = DEFAULT_PLAYER_EPSILON,
-        rescale_weights: bool = True,
-        **kwargs,
-    ) -> ConjugatePlayerModel:
+    @property
+    def rescale_weights(self) -> bool:
+        return self.config.rescale_weights
+
+    def fit(self, data: dict[str, Any]) -> ConjugatePlayerModel:
         logger.info(
             "Fitting ConjugatePlayerModel with epsilon=%s, rescale_weights=%s, "
             "n_goals_prior=%s",
-            epsilon,
-            rescale_weights,
-            n_goals_prior,
+            self.config.epsilon,
+            self.config.rescale_weights,
+            self.config.n_goals_prior,
         )
         goals = data["y"]
         minutes = data["minutes"]
         time_diff = data.get("time_diff")
-        self.epsilon = epsilon
-        self.rescale_weights = rescale_weights
         self.player_ids = data["player_ids"]
 
         scaled_goals = scale_goals_by_minutes(
             goals=goals,
             minutes=minutes,
             time_diff=time_diff,
-            epsilon=epsilon,
-            rescale_weights=rescale_weights,
+            epsilon=self.config.epsilon,
+            rescale_weights=self.config.rescale_weights,
         )
-        self.prior = self.get_prior(scaled_goals, n_goals_prior=n_goals_prior)
+        self.prior = self.get_prior(
+            scaled_goals, n_goals_prior=self.config.n_goals_prior
+        )
         posterior = self.get_posterior(self.prior, scaled_goals)
         self.posterior = posterior
         self.mean_probabilities = self.posterior / self.posterior.sum(axis=1)[:, None]

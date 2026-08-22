@@ -16,6 +16,8 @@ from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import get_session
 from airsenal.framework.prediction_utils import get_all_fitted_player_data
+from airsenal.prediction.config import ConjugatePlayerConfig
+from airsenal.prediction.player_models import ConjugatePlayerModel
 
 logger = get_logger(__name__)
 
@@ -128,9 +130,12 @@ def evaluate_params(
                 get_all_fitted_player_data(
                     season=season,
                     gameweek=gw,
+                    model=ConjugatePlayerModel(
+                        ConjugatePlayerConfig(
+                            epsilon=epsilon, n_goals_prior=n_goals_prior
+                        )
+                    ),
                     dbsession=dbsession,
-                    epsilon=epsilon,
-                    n_goals_prior=n_goals_prior,
                 ).values()
             )
             # Evaluate on the next `horizon` gameweeks

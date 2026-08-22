@@ -10,7 +10,7 @@ an error that lists the valid ones.
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -64,16 +64,40 @@ class Registry(Generic[T]):
         dropped when the sampling model was selected.
         """
         entry = self._lookup(name)
+        try:
+            config = self._config_from(entry, overrides)
+        except ValueError as e:
+            msg = str(e).replace(f"{self._kind} has", f"{self._kind} '{name}' has")
+            raise ValueError(msg) from None
+        return entry.factory(config)
+
+    def build(
+        self, name: str, overrides: Mapping[str, str] | None = None
+    ) -> tuple[T, Any]:
+        """
+        The instance and the config it was built from.
+
+        Some libraries take their settings at fit time rather than construction, so
+        the caller needs the config as well as the object. The config type varies
+        per registered entry, which one type parameter cannot express, hence Any.
+        """
+        entry = self._lookup(name)
+        config = (
+            entry.config_cls() if not overrides else self._config_from(entry, overrides)
+        )
+        return entry.factory(config), config
+
+    def _config_from(self, entry: "_Entry[T]", overrides: Mapping[str, str]) -> object:
         spec = {f.name: f.type for f in fields(entry.config_cls)}
         unknown = sorted(set(overrides) - set(spec))
         if unknown:
             msg = (
-                f"{self._kind} '{name}' has no option(s) {', '.join(unknown)}. "
+                f"{self._kind} has no option(s) {', '.join(unknown)}. "
                 f"Available: {', '.join(sorted(spec))}"
             )
             raise ValueError(msg)
         values = {k: _coerce(spec[k], v) for k, v in overrides.items()}
-        return entry.factory(entry.config_cls(**values))
+        return entry.config_cls(**values)
 
     def _lookup(self, name: str) -> _Entry[T]:
         try:
@@ -86,12 +110,18 @@ class Registry(Generic[T]):
 
 
 def _coerce(annotation: object, value: str) -> object:
-    """Turn a command-line string into the type the config field declares."""
-    text = (
-        annotation
-        if isinstance(annotation, str)
-        else getattr(annotation, "__name__", str(annotation))
-    )
+    """
+    Turn a command-line string into the type the config field declares.
+
+    Both spellings of the annotation are inspected: a plain class reports its name
+    via __name__, while `float | None` reports "Union" there and only reveals the
+    member types via str().
+    """
+    text = f"{getattr(annotation, '__name__', '')} {annotation}"
+    optional = "None" in text or "Optional" in text
+
+    if optional and value.strip().lower() in ("none", "null", ""):
+        return None
     if "bool" in text:
         lowered = value.strip().lower()
         if lowered in ("true", "1", "yes"):
@@ -100,7 +130,7 @@ def _coerce(annotation: object, value: str) -> object:
             return False
         msg = f"expected a boolean, got {value!r}"
         raise ValueError(msg)
-    if "int" in text:
+    if "int" in text and "float" not in text:
         return int(value)
     if "float" in text:
         return float(value)

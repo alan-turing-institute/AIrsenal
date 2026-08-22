@@ -9,7 +9,7 @@ from airsenal.core.registry import Registry
 
 @dataclass(frozen=True)
 class DummyConfig:
-    epsilon: float = 0.5
+    epsilon: float | None = 0.5
     n_prior: int = 10
     rescale: bool = True
     label: str = "default"
@@ -88,3 +88,24 @@ def test_create_with_rejects_an_unknown_option(registry):
 def test_create_with_reports_a_bad_value(registry):
     with pytest.raises(ValueError, match="expected a boolean"):
         registry.create_with("basic", {"rescale": "maybe"})
+
+
+def test_optional_float_is_coerced_not_left_as_a_string(registry):
+    """
+    Regression test. The coercion looked at __name__, which for `float | None` is
+    "Union" on 3.14, so the value came through as the string "0.25" and every
+    downstream arithmetic operation would have been wrong.
+    """
+    config = registry.create_with("basic", {"epsilon": "0.25"}).config
+    assert config.epsilon == 0.25
+    assert isinstance(config.epsilon, float)
+
+
+@pytest.mark.parametrize("value", ["none", "None", "null", ""])
+def test_optional_field_accepts_none(registry, value):
+    assert registry.create_with("basic", {"epsilon": value}).config.epsilon is None
+
+
+def test_non_optional_field_does_not_accept_none(registry):
+    with pytest.raises(ValueError, match=r"could not convert|invalid literal"):
+        registry.create_with("basic", {"n_prior": "none"})

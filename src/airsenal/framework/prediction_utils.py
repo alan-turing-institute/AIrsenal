@@ -54,8 +54,6 @@ from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.prediction.minutes import get_recent_minutes_for_player
 from airsenal.prediction.player_models import (
-    DEFAULT_N_GOALS_PRIOR,
-    DEFAULT_PLAYER_EPSILON,
     ConjugatePlayerModel,
     NumpyroPlayerModel,
     get_empirical_bayes_estimates,
@@ -672,11 +670,12 @@ def fit_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session | None = None,
-    epsilon=DEFAULT_PLAYER_EPSILON,
-    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
     """
     Fit the player model for a given position and return calculated probabilities.
+
+    Hyperparameters live on the model, not here: pass a model constructed with the
+    config you want, e.g. PLAYER_MODELS.create("conjugate", ConjugatePlayerConfig(...)).
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
@@ -685,7 +684,7 @@ def fit_player_data(
     data = process_player_data(position, season, gameweek, dbsession)
     logger.info("Fitting player model for %s...", position)
     model = fastcopy(model)
-    fitted_model = model.fit(data, epsilon=epsilon, n_goals_prior=n_goals_prior)
+    fitted_model = model.fit(data)
     df = pd.DataFrame(fitted_model.get_probs())
 
     df["pos"] = position
@@ -701,23 +700,13 @@ def get_all_fitted_player_data(
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session | None = None,
-    epsilon=DEFAULT_PLAYER_EPSILON,
-    n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> dict[str, pd.DataFrame]:
     """
     Fit player models for all positions (GK, DEF, MID, FWD).
     """
     dbsession = dbsession if dbsession is not None else get_session()
     return {
-        pos: fit_player_data(
-            pos,
-            season,
-            gameweek,
-            model,
-            dbsession,
-            epsilon=epsilon,
-            n_goals_prior=n_goals_prior,
-        )
+        pos: fit_player_data(pos, season, gameweek, model, dbsession)
         for pos in list(Position.back_to_front())
     }
 

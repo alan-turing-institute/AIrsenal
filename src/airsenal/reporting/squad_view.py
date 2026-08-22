@@ -102,8 +102,11 @@ def formation_table(
     for _ in substitutes:
         substitutes_table.add_column(justify="center", ratio=1)
     substitutes_table.add_row(*(player_cell(player) for player in substitutes))
+    # Highlighted with a border when the bench counts, so the name has to widen from
+    # Table to any renderable.
+    bench: RenderableType = substitutes_table
     if bench_boost:
-        substitutes_table = Panel(substitutes_table, border_style="green")
+        bench = Panel(substitutes_table, border_style="green")
 
     renderables: list[RenderableType] = []
     if predicted_points is not None and gameweek is not None:
@@ -117,7 +120,7 @@ def formation_table(
     renderables.extend(
         [
             Panel(formation, title="Starting Lineup"),
-            Panel(substitutes_table, title="Substitutes"),
+            Panel(bench, title="Substitutes"),
         ]
     )
     return Group(*renderables)

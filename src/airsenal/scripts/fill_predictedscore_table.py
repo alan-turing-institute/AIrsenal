@@ -27,7 +27,11 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.prediction.player_models import ConjugatePlayerModel, NumpyroPlayerModel
+from airsenal.prediction.player_models import (
+    ConjugatePlayerModel,
+    NumpyroPlayerModel,
+)
+from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     get_fitted_team_model,
@@ -164,9 +168,11 @@ def run_prediction(
     no_bonus: bool,
     no_cards: bool,
     no_saves: bool,
-    sampling: bool,
     team_model_name: str,
     epsilon: float,
+    player_model_name: str = "conjugate",
+    player_model_options: dict[str, str] | None = None,
+    team_model_options: dict[str, str] | None = None,
 ) -> None:
     """Fill the player prediction database table."""
     gw_range = get_gameweeks_array(
@@ -178,16 +184,13 @@ def run_prediction(
     include_bonus = not no_bonus
     include_cards = not no_cards
     include_saves = not no_saves
-    player_model = NumpyroPlayerModel() if sampling else ConjugatePlayerModel()
-    if team_model_name == "extended":
-        team_model = ExtendedDixonColesMatchPredictor()
-    elif team_model_name == "neutral":
-        team_model = NeutralDixonColesMatchPredictor()
-    elif team_model_name == "random":
-        team_model = RandomMatchPredictor()
-    else:
-        msg = f"Unknown team model: {team_model_name}"
-        raise ValueError(msg)
+    player_model = PLAYER_MODELS.create_with(
+        player_model_name, player_model_options or {}
+    )
+    # --epsilon stays a first-class option because it is the knob people actually
+    # tune; anything else goes through --set-team.
+    team_options = {"epsilon": str(epsilon), **(team_model_options or {})}
+    team_model, team_config = TEAM_MODELS.build(team_model_name, team_options)
 
     with session_scope() as session:
         session.expire_on_commit = False
@@ -200,7 +203,7 @@ def run_prediction(
             include_saves=include_saves,
             player_model=player_model,
             team_model=team_model,
-            team_model_args={"epsilon": epsilon},
+            team_model_args=team_config.fit_args(),
             dbsession=session,
         )
 

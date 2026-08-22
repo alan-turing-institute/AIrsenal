@@ -24,6 +24,7 @@ from airsenal.framework.prediction_utils import (
     get_save_points,
     mean_group_prior,
 )
+from airsenal.prediction.config import ConjugatePlayerConfig
 from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,
@@ -238,7 +239,7 @@ def test_scale_goals_by_minutes():
 
 
 def test_get_conjugate_prior():
-    pm = ConjugatePlayerModel()
+    pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=0, epsilon=None))
     goals = np.zeros((2, 2, 3))
     goals[0, :, :] = np.array([[0, 0, 0], [2, 2, 5]])
     goals[1, :, :] = np.array([[0, 1, 2], [1, 0, 2]])
@@ -254,7 +255,7 @@ def test_get_conjugate_prior():
 
 def test_fit_conjugate_player_model():
     """Test results of fitting ConjugatePlayerModel"""
-    pm = ConjugatePlayerModel()
+    pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=0, epsilon=None))
     y = np.zeros((2, 2, 3))
     y[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])  # all y add to 4
     y[1, :, :] = np.array([[1, 2, 1], [2, 0, 0]])
@@ -264,10 +265,12 @@ def test_fit_conjugate_player_model():
         "minutes": 90 * np.ones((2, 2)),
     }
 
-    pm = pm.fit(data, n_goals_prior=0, epsilon=None)
+    pm = pm.fit(data)
     assert (pm.posterior == np.array([[1, 2, 3], [3, 2, 1]])).all()
 
-    pm = pm.fit(data, n_goals_prior=3, epsilon=None)
+    # A different prior is now a different model, not a different fit call.
+    pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=3, epsilon=None))
+    pm = pm.fit(data)
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
