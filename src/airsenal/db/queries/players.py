@@ -21,6 +21,27 @@ from airsenal.domain.season import CURRENT_SEASON
 logger = get_logger(__name__)
 
 
+# list_players is called once per candidate player per strategy, so an unguarded
+# warning here fires ~90 times in a single `optimize transfers` run and buries
+# everything else. The condition is a property of the database, not of the call, so
+# say it once.
+_warned_incomplete: set[tuple[str, int, int]] = set()
+
+
+def _warn_incomplete_data(season: str, gameweek: int, latest: int) -> None:
+    key = (season, gameweek, latest)
+    if key in _warned_incomplete:
+        return
+    _warned_incomplete.add(key)
+    logger.warning(
+        "Incomplete data in DB for %s GW%s, returning players from GW%s. "
+        "Run 'airsenal db update' to fetch the latest player attributes.",
+        season,
+        gameweek,
+        latest,
+    )
+
+
 def get_player(
     player_name_or_id: str | int,
     dbsession: Session | None = None,
@@ -134,11 +155,7 @@ def list_players(
             .limit(1)
         ).first()
         if last_pa and gameweek > last_pa.gameweek:
-            logger.warning(
-                "Incomplete data in DB for GW%s, returning players from GW%s.",
-                gameweek,
-                last_pa.gameweek,
-            )
+            _warn_incomplete_data(season, gameweek, last_pa.gameweek)
             gameweek = last_pa.gameweek
 
     gameweeks = [gameweek]
