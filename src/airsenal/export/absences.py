@@ -21,7 +21,7 @@ from airsenal.core.resources import FilePath
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.scripts.fill_absence_table import get_absences_path
+from airsenal.ingest.absences import get_absences_path
 
 logger = get_logger(__name__)
 

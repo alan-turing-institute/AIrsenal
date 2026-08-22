@@ -40,6 +40,7 @@ from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
+from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
 from airsenal.optimization.transfers import (
     get_num_increments,
@@ -58,7 +59,6 @@ from airsenal.optimization.utils import (
 )
 from airsenal.reporting.discord import post_webhook
 from airsenal.reporting.squad_view import formation_table
-from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 

@@ -5,11 +5,11 @@ from typing import Annotated
 import typer
 
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.scripts.dump_api import main as dump_api
-from airsenal.scripts.dump_db_contents import main as dump_db
-from airsenal.scripts.save_attributes import main as save_attributes
-from airsenal.scripts.save_expected_absences import main as save_absences
-from airsenal.scripts.scrape_transfermarkt import scrape_transfermarkt
+from airsenal.export.absences import main as save_absences
+from airsenal.export.api_dump import main as dump_api
+from airsenal.export.attributes import main as save_attributes
+from airsenal.export.db_dump import main as dump_db
+from airsenal.fetch.scrape.transfermarkt import scrape_transfermarkt
 
 app = typer.Typer(
     no_args_is_help=True, help="Archive AIrsenal and FPL data for the current season."

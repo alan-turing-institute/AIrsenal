@@ -6,7 +6,7 @@ import pandas as pd
 
 from airsenal.core.logging import get_logger
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.scripts.make_player_summary import SAVE_FILE as SUMMARY_FILE
+from airsenal.export.player_summary import SAVE_FILE as SUMMARY_FILE
 
 logger = get_logger(__name__)
 

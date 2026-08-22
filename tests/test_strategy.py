@@ -12,8 +12,8 @@ import pytest
 
 from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.run_transfers import is_baseline
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
-from airsenal.scripts.fill_transfersuggestion_table import is_baseline
 
 
 def outcome(gameweek, move=None, points=10.0, **kwargs):

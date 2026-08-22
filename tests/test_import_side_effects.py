@@ -27,9 +27,7 @@ PACKAGE_ROOT = REPO_ROOT / "src" / "airsenal"
 # Modules that fail to import for reasons unrelated to I/O (missing optional
 # third-party packages). They are reported, not failed.
 OPTIONAL_DEPENDENCY_MODULES = {
-    "airsenal.scripts.match_player_names",  # thefuzz
-    "airsenal.scripts.match_team_names",  # thefuzz
-    "airsenal.scripts.plot_league_standings",  # matplotlib, in the "plot" extra
+    "airsenal.reporting.plots",  # matplotlib, in the "plot" extra
 }
 
 _GUARD_SCRIPT = textwrap.dedent(

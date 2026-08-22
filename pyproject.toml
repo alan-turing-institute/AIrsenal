@@ -51,6 +51,14 @@ dev = [
     "types-python-dateutil>=2.9.0.20250822",
     "import-linter>=2.0",
 ]
+# One-off scripts under tools/, run from a checkout. Not packaged, and not
+# needed to use AIrsenal - thefuzz in particular was imported by two of them
+# while being declared nowhere, so they had simply been broken for a while.
+tools = [
+    "thefuzz>=0.22.1",
+    "matplotlib>=3.8.3",
+    "scipy>=1.15.3",
+]
 
 [project.scripts]
 airsenal = "airsenal.cli.main:app"
@@ -151,8 +159,10 @@ name = "Stage packages form a one-way dependency chain"
 type = "layers"
 layers = [
     "airsenal.cli",
-    "airsenal.scripts",
+    "airsenal.pipeline",
+    "airsenal.apply",
     "airsenal.optimization",
+    "airsenal.ingest : airsenal.export",
     "airsenal.reporting : airsenal.squad : airsenal.prediction",
     "airsenal.db",
     "airsenal.fetch",

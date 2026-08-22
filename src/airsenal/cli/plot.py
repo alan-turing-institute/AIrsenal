@@ -13,7 +13,5 @@ def plot(
     ] = "total_points",
 ) -> None:
     """Plot a mini-league metric by gameweek."""
-    plot_standings = import_module(
-        "airsenal.scripts.plot_league_standings"
-    ).plot_standings
+    plot_standings = import_module("airsenal.reporting.plots").plot_standings
     plot_standings(metric)

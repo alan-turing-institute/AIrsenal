@@ -52,7 +52,11 @@ uv run airsenal run
 
 - **`src/airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
 - **`src/airsenal/cli/`** — Typer command definitions and CLI-only argument handling
-- **`src/airsenal/scripts/`** — operational workflow implementations used by the CLI
+- **`src/airsenal/ingest/`** — filling the database from packaged data and the FPL API
+- **`src/airsenal/export/`** — writing data back out (API dumps, DB dumps, attribute history)
+- **`src/airsenal/apply/`** — the only code that writes to the real FPL entry
+- **`src/airsenal/pipeline/`** — top-level orchestration (`run`, `replay`)
+- **`tools/`** — dev one-offs, not packaged; install with the `tools` extra
 - **`tests/`** — pytest tests for framework code
 - **`src/airsenal/resources/`** — static historical FPL data (multiple seasons, used to seed the database); resolve paths with `airsenal.core.resources.resource()`, never with `__file__`
 

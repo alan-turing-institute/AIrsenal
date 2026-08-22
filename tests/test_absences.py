@@ -13,14 +13,14 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.db.models import Absence, Base, Fixture, Player, PlayerAttributes
-from airsenal.scripts.fill_absence_table import get_absences_path, load_absences
-from airsenal.scripts.save_expected_absences import (
+from airsenal.export.absences import (
     ABSENCE_CSV_COLUMNS,
     classify_reason,
     get_gameweek_start_date,
     player_attribute_to_row,
     save_absences,
 )
+from airsenal.ingest.absences import get_absences_path, load_absences
 
 TEST_SEASON = "2526"
 TEAM = "ARS"

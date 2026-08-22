@@ -15,7 +15,7 @@ from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.optimization.utils import get_starting_squad
-from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
+from airsenal.reporting.suggestions import get_transfer_suggestions
 from airsenal.squad.state import get_bank
 
 """

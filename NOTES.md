@@ -54,13 +54,13 @@ To setup the AIrsenal database: (in a terminal)
   `rm /tmp/data.db`
 2. Run  `airsenal_setup_initial_db` (previously `setup_airsenal_database`).
 
-This runs the function `main()` in `airsenal.scripts.fill_db_init`, which calls functions in other scripts to fill the individual tables from the data files and API. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
+This runs the function `main()` in `airsenal.ingest.init_db`, which calls functions in other scripts to fill the individual tables from the data files and API. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
 
 Run the update script afterwards to add the latest status of your FPL team (transfers made etc.) to the database - see below.
 
 ### Updating the Database
 
-To update the AIrsenal database run `airsenal_update_db` (previously `update_airsenal_database`) in a terminal. This calls the function `main()` in `airsenal.scripts.update_results_transactions_db`.
+To update the AIrsenal database run `airsenal_update_db` (previously `update_airsenal_database`) in a terminal. This calls the function `main()` in `airsenal.ingest.update`.
 
 It does the following:
 1. Update player attributes with their latest values.
@@ -74,7 +74,7 @@ Note we don't currently have a way to update the list of currently active _playe
 
 ### Data Sanity Checks
 
-Use `airsenal_check_data` (previously `check_airsenal_data`) from the command-line, which runs the `run_all_checks` function in `airsenal.scripts.data_sanity_checks`, performs the following sanity checks on the AIrsenal database:
+Use `airsenal_check_data` (previously `check_airsenal_data`) from the command-line, which runs the `run_all_checks` function in `airsenal.ingest.checks`, performs the following sanity checks on the AIrsenal database:
 - All seasons have 20 teams.
 - Each season has 3 new teams (promoted teams).
 - Each season has 380 fixtures.
@@ -152,15 +152,15 @@ We currently don't have predictions for the points contribution from bonus point
 
 ### Running Points Predictions
 
-Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the command-line, which runs the function `main()` in `airsenal.scripts.fill_predictedscore_table`.
+Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the command-line, which runs the function `main()` in `airsenal.prediction.run`.
 
 ## Creating a Team for the Start of the Season
 
-Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.scripts.team_builder`.
+Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.optimization.run_squad`.
 
 ## Transfer & Squad Optimisation
 
-Run `airsenal_run_optimization` (previously `run_airsenal_optimization`) to generate transfer suggestions. This calls the function `main()` in `airsenal.scripts.fill_transfersuggestion_table`.
+Run `airsenal_run_optimization` (previously `run_airsenal_optimization`) to generate transfer suggestions. This calls the function `main()` in `airsenal.optimization.run_transfers`.
 
 Starting XI, captain & subs
 

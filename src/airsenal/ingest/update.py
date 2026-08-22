@@ -19,12 +19,12 @@ from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.fetch.gameweeks import get_last_finished_gameweek
-from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
-from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
-from airsenal.scripts.fill_player_mappings_table import add_mappings
-from airsenal.scripts.fill_player_table import find_player_in_table
-from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
-from airsenal.scripts.fill_result_table import fill_results_from_api
+from airsenal.ingest.fixtures import fill_fixtures_from_api
+from airsenal.ingest.player_attributes import fill_attributes_table_from_api
+from airsenal.ingest.player_mappings import add_mappings
+from airsenal.ingest.player_scores import fill_playerscores_from_api
+from airsenal.ingest.players import find_player_in_table
+from airsenal.ingest.results import fill_results_from_api
 from airsenal.squad.history import update_squad
 
 logger = get_logger(__name__)

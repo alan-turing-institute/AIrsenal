@@ -4,8 +4,8 @@ from typing import Annotated
 
 import typer
 
+from airsenal.pipeline.run import run_pipeline
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
-from airsenal.scripts.airsenal_run_pipeline import run_pipeline
 
 
 def run(

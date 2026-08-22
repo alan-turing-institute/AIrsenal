@@ -13,7 +13,7 @@ from airsenal.db.models import Player, PlayerMapping
 from airsenal.db.session import get_session, session_scope
 from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.scripts.fill_player_mappings_table import (
+from airsenal.ingest.player_mappings import (
     add_mappings,
     make_player_mappings_table,
 )

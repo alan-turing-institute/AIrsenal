@@ -8,14 +8,14 @@ from airsenal.db.admin import clean_database, database_is_empty
 from airsenal.db.session import session_scope
 from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.scripts.fill_absence_table import make_absence_table
-from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
-from airsenal.scripts.fill_fixture_table import make_fixture_table
-from airsenal.scripts.fill_player_attributes_table import make_attributes_table
-from airsenal.scripts.fill_player_table import make_player_table
-from airsenal.scripts.fill_playerscore_table import make_playerscore_table
-from airsenal.scripts.fill_result_table import make_result_table
-from airsenal.scripts.fill_team_table import make_team_table
+from airsenal.ingest.absences import make_absence_table
+from airsenal.ingest.fifa_ratings import make_fifa_ratings_table
+from airsenal.ingest.fixtures import make_fixture_table
+from airsenal.ingest.player_attributes import make_attributes_table
+from airsenal.ingest.player_scores import make_playerscore_table
+from airsenal.ingest.players import make_player_table
+from airsenal.ingest.results import make_result_table
+from airsenal.ingest.teams import make_team_table
 from airsenal.squad.history import fill_initial_squad
 
 logger = get_logger(__name__)

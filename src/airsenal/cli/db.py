@@ -5,9 +5,9 @@ from typing import Annotated
 import typer
 
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.scripts.data_sanity_checks import run_all_checks
-from airsenal.scripts.fill_db_init import create_database
-from airsenal.scripts.update_db import update_database
+from airsenal.ingest.checks import run_all_checks
+from airsenal.ingest.init_db import create_database
+from airsenal.ingest.update import update_database
 
 app = typer.Typer(no_args_is_help=True, help="Create and update the AIrsenal database.")
 

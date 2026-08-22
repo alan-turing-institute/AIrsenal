@@ -6,8 +6,8 @@ import typer
 
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.run import run_prediction
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
-from airsenal.scripts.fill_predictedscore_table import run_prediction
 
 
 def predict(

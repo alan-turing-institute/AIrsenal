@@ -4,8 +4,8 @@ from typing import Annotated
 
 import typer
 
+from airsenal.pipeline.replay import run_replays
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
-from airsenal.scripts.replay_season import run_replays
 
 
 def replay(

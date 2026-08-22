@@ -4,8 +4,8 @@ from typing import Annotated
 
 import typer
 
-from airsenal.scripts.make_transfers import make_transfers
-from airsenal.scripts.set_lineup import set_lineup
+from airsenal.apply.lineup import set_lineup
+from airsenal.apply.transfers import make_transfers
 
 app = typer.Typer(
     no_args_is_help=True, help="Apply AIrsenal recommendations to your FPL team."

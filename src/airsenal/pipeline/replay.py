@@ -17,14 +17,14 @@ from airsenal.db.queries.gameweeks import get_gameweeks_array, get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
 from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.run_squad import fill_initial_squad
+from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
+from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
-from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
-from airsenal.scripts.fill_transfersuggestion_table import run_optimization
-from airsenal.scripts.squad_builder import fill_initial_squad
 
 logger = get_logger(__name__)
 
