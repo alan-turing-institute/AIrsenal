@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.framework.utils import CURRENT_SEASON
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 from airsenal.scripts.fill_predictedscore_table import run_prediction
 

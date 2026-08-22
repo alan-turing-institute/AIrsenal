@@ -16,10 +16,10 @@ from datetime import date, datetime
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session
-from airsenal.framework.utils import CURRENT_SEASON
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.scripts.fill_absence_table import get_absences_path
 
 logger = get_logger(__name__)

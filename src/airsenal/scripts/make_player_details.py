@@ -6,7 +6,7 @@ import json
 import os
 from typing import Any
 
-from airsenal.core.output import track
+from airsenal.core.console import track
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 

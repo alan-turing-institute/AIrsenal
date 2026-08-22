@@ -3,14 +3,12 @@ test some db access helper functions
 """
 
 from airsenal.db.models import Player
-from airsenal.framework.utils import (
+from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
     get_last_complete_gameweek_in_db,
-    get_player,
-    get_player_id,
-    get_player_name,
     get_return_gameweek_by_date,
 )
+from airsenal.db.queries.players import get_player, get_player_id, get_player_name
 from tests.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
 
 

@@ -27,7 +27,7 @@ from airsenal.core.env import (
     FPL_TEAM_ID,
     save_env,
 )
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 
 logger = get_logger(__name__)
 

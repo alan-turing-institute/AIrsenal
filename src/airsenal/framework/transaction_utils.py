@@ -7,17 +7,14 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.session import get_session
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_entry_start_gameweek,
-    get_player_from_api_id,
-    get_players_for_gameweek,
-    next_gameweek,
-)
+from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
 
 logger = get_logger(__name__)
 

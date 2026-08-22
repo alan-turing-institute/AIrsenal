@@ -7,7 +7,7 @@ import os
 
 from sqlalchemy import select
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.models import (
     FifaTeamRating,
     Fixture,

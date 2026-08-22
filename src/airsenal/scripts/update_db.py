@@ -6,18 +6,19 @@ bought or sold.
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import console, get_logger
+from airsenal.core.console import console
+from airsenal.core.logging import get_logger
 from airsenal.db.admin import database_is_empty
 from airsenal.db.models import Player
-from airsenal.db.session import session_scope
-from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.transaction_utils import count_transactions, update_squad
-from airsenal.framework.utils import (
+from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
-    get_last_finished_gameweek,
-    list_players,
     next_gameweek,
 )
+from airsenal.db.queries.players import list_players
+from airsenal.db.session import session_scope
+from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.fetch.gameweeks import get_last_finished_gameweek
+from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
 from airsenal.scripts.fill_player_mappings_table import add_mappings

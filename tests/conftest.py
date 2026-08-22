@@ -16,7 +16,7 @@ os.environ["_TYPER_FORCE_DISABLE_TERMINAL"] = "1"
 
 
 from airsenal.core import env
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -32,11 +32,9 @@ env.AIRSENAL_DB_USER = None
 env.AIRSENAL_DB_PASSWORD = None
 
 from airsenal.db.models import Base, Player, PlayerAttributes  # noqa: E402
+from airsenal.db.queries.gameweeks import set_next_gameweek  # noqa: E402
 from airsenal.domain.mappings import alternative_team_names  # noqa: E402
-from airsenal.framework.utils import (  # noqa: E402
-    CURRENT_SEASON,
-    set_next_gameweek,
-)
+from airsenal.domain.season import CURRENT_SEASON  # noqa: E402
 
 # The dummy test database has players but no fixtures, so the next gameweek cannot be
 # derived from it. It used to come out as 1 anyway, because utils computed

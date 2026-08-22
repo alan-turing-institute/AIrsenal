@@ -3,15 +3,13 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-from airsenal.core.output import console, get_logger
+from airsenal.core.console import console
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.framework.squad import Squad
-from airsenal.framework.utils import (
-    get_latest_prediction_tag,
-    get_player,
-    get_player_from_api_id,
-    next_gameweek,
-)
 
 logger = get_logger(__name__)
 

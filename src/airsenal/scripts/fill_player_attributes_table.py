@@ -7,23 +7,22 @@ import os
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
 from airsenal.db.models import PlayerAttributes
-from airsenal.db.session import get_session, session_scope
-from airsenal.domain.mappings import positions
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.framework.utils import (
-    find_fixture,
-    get_next_gameweek,
-    get_past_seasons,
+from airsenal.db.queries.fixtures import find_fixture, get_player_team_from_fixture
+from airsenal.db.queries.gameweeks import get_next_gameweek
+from airsenal.db.queries.players import (
     get_player,
     get_player_attributes,
     get_player_from_api_id,
-    get_player_team_from_fixture,
-    get_return_gameweek_from_news,
-    get_team_name,
 )
+from airsenal.db.queries.teams import get_team_name
+from airsenal.db.session import get_session, session_scope
+from airsenal.domain.mappings import positions
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.prediction.absence import get_return_gameweek_from_news
 
 logger = get_logger(__name__)
 

@@ -12,9 +12,9 @@ import pickle
 
 from sqlalchemy.orm import Session
 
+from airsenal.core.copy import fastcopy
 from airsenal.framework.player import CandidatePlayer
 from airsenal.framework.squad import Squad
-from airsenal.framework.utils import fastcopy
 from tests.conftest import session_scope
 
 

@@ -6,19 +6,19 @@ import os
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Result
-from airsenal.db.session import get_session
-from airsenal.domain.mappings import alternative_team_names
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.utils import (
-    find_fixture,
+from airsenal.db.queries.fixtures import find_fixture
+from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
-    get_last_finished_gameweek,
-    get_past_seasons,
     next_gameweek,
 )
+from airsenal.db.session import get_session
+from airsenal.domain.mappings import alternative_team_names
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.fetch.gameweeks import get_last_finished_gameweek
 
 logger = get_logger(__name__)
 

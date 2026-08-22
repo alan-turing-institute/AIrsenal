@@ -8,17 +8,15 @@ from collections.abc import Callable
 from multiprocessing import Process
 from operator import itemgetter
 
-from airsenal.core.output import get_logger
+from airsenal.core.copy import fastcopy
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.predictions import get_predicted_points
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
 from airsenal.framework.squad import Squad
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    fastcopy,
-    get_predicted_points,
-    next_gameweek,
-)
 
 logger = get_logger(__name__)
 

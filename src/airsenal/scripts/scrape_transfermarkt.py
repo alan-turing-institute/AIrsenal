@@ -12,9 +12,14 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup, Tag
 
-from airsenal.core.output import get_logger, track
-from airsenal.domain.season import CURRENT_SEASON, season_str_to_year
-from airsenal.framework.utils import get_next_season, get_start_end_dates_of_season
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
+from airsenal.domain.season import (
+    CURRENT_SEASON,
+    get_next_season,
+    get_start_end_dates_of_season,
+    season_str_to_year,
+)
 
 logger = get_logger(__name__)
 

@@ -4,7 +4,7 @@ from airsenal.core.env import (
     AIRSENAL_HOME,
     get_env,
 )
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.engine import get_connection_string
 
 logger = get_logger(__name__)

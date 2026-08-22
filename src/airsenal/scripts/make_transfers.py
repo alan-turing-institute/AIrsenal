@@ -7,18 +7,16 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
-from airsenal.core.output import console, get_logger, table
+from airsenal.core.console import console, table
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.session import get_session
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_bank,
-    get_player,
-    get_player_from_api_id,
-    next_gameweek,
-)
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
+from airsenal.squad.state import get_bank
 
 """
 TODO:

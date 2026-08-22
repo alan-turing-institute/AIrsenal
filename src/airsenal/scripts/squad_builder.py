@@ -3,7 +3,10 @@ import sys
 from rich.panel import Panel
 from rich.text import Text
 
-from airsenal.core.output import console, get_logger, price_str, table
+from airsenal.core.console import console, price_str, table
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
+from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.optimization_squad import make_new_squad
@@ -15,11 +18,6 @@ from airsenal.framework.optimization_utils import (
     get_discounted_squad_score,
 )
 from airsenal.framework.squad import Squad
-from airsenal.framework.utils import (
-    get_latest_prediction_tag,
-    get_max_gameweek,
-    next_gameweek,
-)
 
 logger = get_logger(__name__)
 

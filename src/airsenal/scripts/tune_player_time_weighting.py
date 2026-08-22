@@ -9,14 +9,13 @@ from scipy.stats import multinomial
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, PlayerScore
+from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
+from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import get_session
 from airsenal.framework.prediction_utils import get_all_fitted_player_data
-from airsenal.framework.utils import (
-    get_fixtures_for_gameweek,
-    get_max_gameweek,
-)
 
 logger = get_logger(__name__)
 

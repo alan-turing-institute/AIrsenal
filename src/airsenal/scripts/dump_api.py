@@ -1,7 +1,7 @@
 import json
 import os
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.scripts.make_player_details import make_player_details

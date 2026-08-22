@@ -14,26 +14,27 @@ from curl_cffi import requests
 from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.dates import parse_date
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, Player, PlayerScore
-from airsenal.db.session import get_session, session_scope
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.utils import (
+from airsenal.db.queries.fixtures import (
     find_fixture,
     get_fixtures_for_gameweek,
-    get_last_complete_gameweek_in_db,
-    get_last_finished_gameweek,
-    get_past_seasons,
-    get_player,
-    get_player_from_api_id,
-    get_player_scores,
     get_player_team_from_fixture,
-    get_team_name,
+)
+from airsenal.db.queries.gameweeks import (
+    get_last_complete_gameweek_in_db,
     is_future_gameweek,
     next_gameweek,
-    parse_date,
 )
+from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.scores import get_player_scores
+from airsenal.db.queries.teams import get_team_name
+from airsenal.db.session import get_session, session_scope
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.fetch.gameweeks import get_last_finished_gameweek
 
 logger = get_logger(__name__)
 

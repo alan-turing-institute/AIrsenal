@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.models.base import Base, intpk, str100, str100_optional
 
 if TYPE_CHECKING:

@@ -7,13 +7,13 @@ import uuid
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import track
+from airsenal.core.console import track
 from airsenal.db.models import Fixture
+from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session, session_scope
 from airsenal.domain.mappings import alternative_team_names
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.framework.utils import find_fixture, get_past_seasons
 
 
 def fill_fixtures_from_file(

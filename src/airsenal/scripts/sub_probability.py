@@ -9,7 +9,7 @@ TODO: Take into account different formations and sub (position) orders
 
 import numpy as np
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 
 logger = get_logger(__name__)
 

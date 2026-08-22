@@ -49,6 +49,7 @@ dev = [
     "types-dateparser>=1.2.2.20250809",
     "types-requests>=2.32.4.20250913",
     "types-python-dateutil>=2.9.0.20250822",
+    "import-linter>=2.0",
 ]
 
 [project.scripts]
@@ -136,3 +137,49 @@ ignore_missing_imports = true
 [tool.coverage.run]
 source = ["src/airsenal"]
 branch = true
+
+[tool.importlinter]
+root_package = "airsenal"
+include_external_packages = true
+
+# The point of the refactor is that these packages form a one-way chain. Without a
+# check, a single convenience import quietly reintroduces the tangle that made
+# framework/utils.py the module everything depended on - and it does not fail at
+# runtime, so nothing catches it for months.
+[[tool.importlinter.contracts]]
+name = "Stage packages form a one-way dependency chain"
+type = "layers"
+layers = [
+    "airsenal.cli",
+    "airsenal.scripts",
+    "airsenal.framework",
+    "airsenal.reporting : airsenal.squad : airsenal.prediction",
+    "airsenal.db",
+    "airsenal.fetch",
+    "airsenal.domain",
+    "airsenal.core",
+]
+ignore_imports = [
+    # Annotation only, under TYPE_CHECKING: a caller passes a fetcher when the
+    # database has no fixtures to work the gameweek out from.
+    "airsenal.db.queries.gameweeks -> airsenal.fetch.fpl_api",
+]
+
+# Query code returns data; rendering it and posting it anywhere belongs in
+# reporting. framework/utils.py used to do all three in one function, which is why
+# the data layer imported both Rich and an HTTP client.
+#
+# allow_indirect_imports: db may use a logger, and configuring that logger happens
+# to involve Rich. What must not happen is db reaching for a renderer or an HTTP
+# client itself.
+[[tool.importlinter.contracts]]
+name = "The database layer neither renders nor talks to the network"
+type = "forbidden"
+source_modules = ["airsenal.db"]
+forbidden_modules = [
+    "airsenal.core.console",
+    "airsenal.reporting",
+    "curl_cffi",
+    "requests",
+]
+allow_indirect_imports = true

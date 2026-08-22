@@ -10,14 +10,12 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.concurrency import set_multiprocessing_start_method
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
+from airsenal.db.queries.gameweeks import get_gameweeks_array, get_max_gameweek
+from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
-from airsenal.framework.utils import (
-    get_gameweeks_array,
-    get_max_gameweek,
-    get_player_name,
-)
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,

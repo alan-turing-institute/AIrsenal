@@ -6,17 +6,12 @@ from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.concurrency import set_multiprocessing_start_method
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
+from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import session_scope
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_entry_start_gameweek,
-    get_gameweeks_array,
-    get_latest_prediction_tag,
-    get_past_seasons,
-    next_gameweek,
-)
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
@@ -33,6 +28,7 @@ from airsenal.scripts.save_expected_absences import main as save_expected_absenc
 from airsenal.scripts.set_lineup import set_lineup
 from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.scripts.update_db import update_db
+from airsenal.squad.state import get_entry_start_gameweek
 
 logger = get_logger(__name__)
 

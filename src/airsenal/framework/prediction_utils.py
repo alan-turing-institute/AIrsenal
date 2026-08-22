@@ -14,7 +14,9 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.copy import fastcopy
+from airsenal.core.logging import get_logger
 from airsenal.db.models import (
     Absence,
     Fixture,
@@ -22,6 +24,18 @@ from airsenal.db.models import (
     PlayerAttributes,
     PlayerPrediction,
     PlayerScore,
+)
+from airsenal.db.queries.absences import was_historic_absence
+from airsenal.db.queries.fixtures import (
+    get_fixtures_for_gameweek,
+    get_fixtures_for_player,
+)
+from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
+from airsenal.db.queries.players import (
+    get_max_matches_per_player,
+    get_player,
+    get_player_from_api_id,
+    list_players,
 )
 from airsenal.db.session import get_session
 from airsenal.domain.scoring import (
@@ -35,21 +49,9 @@ from airsenal.domain.scoring import (
     points_for_yellow_card,
     saves_for_point,
 )
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    fastcopy,
-    get_fixtures_for_gameweek,
-    get_fixtures_for_player,
-    get_max_matches_per_player,
-    get_player,
-    get_player_from_api_id,
-    get_recent_minutes_for_player,
-    is_future_gameweek,
-    list_players,
-    next_gameweek,
-    was_historic_absence,
-)
+from airsenal.prediction.minutes import get_recent_minutes_for_player
 from airsenal.prediction.player_models import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,

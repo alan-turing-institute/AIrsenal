@@ -9,19 +9,17 @@ import random
 import numpy as np
 from deap import algorithms, base, creator, tools
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
+from airsenal.db.queries.players import list_players
+from airsenal.db.queries.predictions import get_predicted_points_for_player
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
 from airsenal.framework.player import DummyPlayer
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_predicted_points_for_player,
-    list_players,
-)
 
 logger = get_logger(__name__)
 
@@ -41,7 +39,7 @@ class SquadOpt:
         No. of players to optimize in each position, by default
         airsenal.framework.squad.TOTAL_PER_POSITION
     season : str
-        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+        Season to optimize for, by default airsenal.domain.season.CURRENT_SEASON
     bench_boost_gw : int
         Gameweek to play bench boost, by default None
     triple_captain_gw : int
@@ -368,7 +366,7 @@ def make_new_squad(
         No. of players to optimize in each position, by default
         airsenal.framework.squad.TOTAL_PER_POSITION
     season : str
-        Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
+        Season to optimize for, by default airsenal.domain.season.CURRENT_SEASON
     verbose : bool
         Whether the underlying DEAP genetic algorithm should print its own
         per-generation progress to stdout, by default True

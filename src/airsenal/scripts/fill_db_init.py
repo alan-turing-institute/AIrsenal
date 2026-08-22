@@ -2,13 +2,13 @@
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import console, get_logger
+from airsenal.core.console import console
+from airsenal.core.logging import get_logger
 from airsenal.db.admin import clean_database, database_is_empty
 from airsenal.db.session import session_scope
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.transaction_utils import fill_initial_squad
-from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_absence_table import make_absence_table
 from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.scripts.fill_fixture_table import make_fixture_table

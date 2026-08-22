@@ -2,9 +2,9 @@ import os
 
 import pandas as pd
 
-from airsenal.core.output import get_logger
+from airsenal.core.logging import get_logger
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.utils import CURRENT_SEASON
 
 SCRIPT_DIR = os.path.dirname(__file__)
 

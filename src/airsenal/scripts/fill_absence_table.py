@@ -4,16 +4,16 @@ from datetime import datetime
 import pandas as pd
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.output import get_logger, track
+from airsenal.core.console import track
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Absence
-from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.framework.utils import (
+from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
-    get_past_seasons,
-    get_player,
     get_return_gameweek_by_date,
 )
+from airsenal.db.queries.players import get_player
+from airsenal.db.session import get_session
+from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 
 logger = get_logger(__name__)
 

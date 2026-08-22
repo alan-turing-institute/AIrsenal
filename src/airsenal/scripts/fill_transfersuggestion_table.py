@@ -33,15 +33,14 @@ from airsenal.core.concurrency import (
     CustomQueue,
     set_multiprocessing_start_method,
 )
+from airsenal.core.console import console, price_str, progress_bar, table
 from airsenal.core.env import AIRSENAL_HOME
-from airsenal.core.output import (
-    console,
-    get_logger,
-    price_str,
-    progress_bar,
-    table,
-)
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import get_gameweeks_array
+from airsenal.db.queries.players import get_player, get_player_name
+from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
@@ -57,16 +56,8 @@ from airsenal.framework.optimization_utils import (
     next_week_transfers,
 )
 from airsenal.framework.squad import Squad
-from airsenal.framework.utils import (
-    CURRENT_SEASON,
-    get_entry_start_gameweek,
-    get_free_transfers,
-    get_gameweeks_array,
-    get_latest_prediction_tag,
-    get_player,
-    get_player_name,
-)
 from airsenal.scripts.squad_builder import fill_initial_squad
+from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
 logger = get_logger(__name__)
 
