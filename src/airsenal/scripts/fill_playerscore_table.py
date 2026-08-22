@@ -5,7 +5,6 @@ Fill the "player_score" table with historic results (player_details_xxyy.json).
 import contextlib
 import datetime
 import json
-import os
 import tempfile
 from pathlib import Path
 
@@ -17,6 +16,7 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import track
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.fixtures import (
     find_fixture,
@@ -450,10 +450,7 @@ def make_playerscore_table(
             # current season - use API
             fill_playerscores_from_api(CURRENT_SEASON, dbsession=dbsession)
         else:
-            input_path = os.path.join(
-                os.path.dirname(__file__), f"../data/player_details_{season}.json"
-            )
-            with open(input_path) as f:
+            with resource(f"player_details_{season}.json").open() as f:
                 input_data = json.load(f)
             fill_playerscores_from_json(input_data, season, dbsession=dbsession)
 

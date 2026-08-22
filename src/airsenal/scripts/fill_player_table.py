@@ -3,12 +3,12 @@ Fill the "Player" table with info from this and past seasonss FPL
 """
 
 import json
-import os
 
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
+from airsenal.core.resources import FilePath, resource
 from airsenal.db.models import Player, PlayerMapping
 from airsenal.db.session import get_session, session_scope
 from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
@@ -59,7 +59,9 @@ def num_players_in_table(dbsession: Session) -> int:
     return len(players)
 
 
-def fill_player_table_from_file(filename: str, season: str, dbsession: Session) -> None:
+def fill_player_table_from_file(
+    filename: FilePath, season: str, dbsession: Session
+) -> None:
     """
     use json file
     """
@@ -114,15 +116,9 @@ def make_init_player_table(season: str, dbsession: Session | None = None) -> Non
         # current season - use API
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
     else:
-        filename = os.path.join(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "data",
-                f"player_summary_{season}.json",
-            )
+        fill_player_table_from_file(
+            resource(f"player_summary_{season}.json"), season, dbsession
         )
-        fill_player_table_from_file(filename, season, dbsession)
 
 
 def make_remaining_player_table(
@@ -136,15 +132,9 @@ def make_remaining_player_table(
     if seasons is None:
         seasons = []
     for season in seasons:
-        filename = os.path.join(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "data",
-                f"player_summary_{season}.json",
-            )
+        fill_player_table_from_file(
+            resource(f"player_summary_{season}.json"), season, dbsession
         )
-        fill_player_table_from_file(filename, season, dbsession)
 
 
 def make_player_table(

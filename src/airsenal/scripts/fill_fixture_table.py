@@ -2,12 +2,12 @@
 Fill the "fixture" table with info from this seasons FPL (fixtures.csv).
 """
 
-import os
 import uuid
 
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
+from airsenal.core.resources import FilePath, resource
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session, session_scope
@@ -17,7 +17,7 @@ from airsenal.fetch.fpl_api import FPLDataFetcher
 
 
 def fill_fixtures_from_file(
-    filename: str, season: str, dbsession: Session | None = None
+    filename: FilePath, season: str, dbsession: Session | None = None
 ) -> None:
     """
     use the match results csv files to get a list of matches in a season,
@@ -113,13 +113,9 @@ def make_fixture_table(
             # current season - use API
             fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)
         else:
-            filename = os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "data",
-                f"results_{season}.csv",
+            fill_fixtures_from_file(
+                resource(f"results_{season}.csv"), season, dbsession=dbsession
             )
-            fill_fixtures_from_file(filename, season, dbsession=dbsession)
 
 
 if __name__ == "__main__":

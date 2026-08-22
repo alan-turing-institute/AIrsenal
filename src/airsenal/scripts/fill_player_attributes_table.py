@@ -3,12 +3,12 @@ Fill the "Player" table with info from this and past seasonss FPL
 """
 
 import json
-import os
 
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.db.models import PlayerAttributes
 from airsenal.db.queries.fixtures import find_fixture, get_player_team_from_fixture
 from airsenal.db.queries.gameweeks import get_next_gameweek
@@ -260,10 +260,7 @@ def make_attributes_table(
             # current season - use API
             fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
         else:
-            input_path = os.path.join(
-                os.path.dirname(__file__), f"../data/player_details_{season}.json"
-            )
-            with open(input_path) as f:
+            with resource(f"player_details_{season}.json").open() as f:
                 input_data = json.load(f)
 
             fill_attributes_table_from_file(

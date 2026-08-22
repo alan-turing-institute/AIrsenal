@@ -2,6 +2,7 @@ import json
 import os
 
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource_dir
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.scripts.make_player_details import make_player_details
@@ -16,7 +17,7 @@ def main():
     """
     Save all data from the FPL API and other sources, e.g. at the end of the season.
     """
-    REPO_HOME = os.path.join(os.path.dirname(__file__), "..", "data")
+    REPO_HOME = resource_dir()
 
     logger.info("Saving summary data...")
     sdata = get_fetcher().get_current_summary_data()

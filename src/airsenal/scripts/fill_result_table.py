@@ -2,12 +2,11 @@
 Fill the "result" table with historic results (results_xxyy_with_gw.csv).
 """
 
-import os
-
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import FilePath, resource
 from airsenal.db.models import Result
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.queries.gameweeks import (
@@ -23,7 +22,9 @@ from airsenal.fetch.gameweeks import get_last_finished_gameweek
 logger = get_logger(__name__)
 
 
-def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
+def fill_results_from_csv(
+    input_file: FilePath, season: str, dbsession: Session
+) -> None:
     with open(input_file) as f:
         lines = f.readlines()
     for line in track(lines[1:], description=f"RESULTS {season}"):
@@ -153,7 +154,4 @@ def make_result_table(
             gw_end = next_gameweek(fetcher=get_fetcher())
             fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
         else:
-            inpath = os.path.join(
-                os.path.dirname(__file__), f"../data/results_{season}.csv"
-            )
-            fill_results_from_csv(inpath, season, dbsession)
+            fill_results_from_csv(resource(f"results_{season}.csv"), season, dbsession)

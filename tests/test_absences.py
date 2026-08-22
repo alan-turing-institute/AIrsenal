@@ -190,7 +190,7 @@ def test_save_absences_does_not_write_duplicates(dbsession, tmp_path):
 
 def test_reader_and_writer_agree_on_the_path():
     """Both modules resolve the csv path through the same helper."""
-    assert get_absences_path(TEST_SEASON).endswith(f"absences_{TEST_SEASON}.csv")
+    assert get_absences_path(TEST_SEASON).name == f"absences_{TEST_SEASON}.csv"
 
 
 def test_absence_dates_are_stored_as_iso_strings(dbsession, tmp_path):

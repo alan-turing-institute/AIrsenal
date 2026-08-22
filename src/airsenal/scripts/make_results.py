@@ -3,19 +3,18 @@ Generate results CSV files from saved JSON files from fetcher.get_fixture_data()
 """
 
 import json
-import os
 
 import pandas as pd
 
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.domain.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 
-SCRIPT_DIR = os.path.dirname(__file__)
-FIXTURE_DATA_FILE = os.path.join(SCRIPT_DIR, "../data/fixture_data_{}.json")
-SUMMARY_DATA_FILE = os.path.join(SCRIPT_DIR, "../data/FPL_{}.json")
-RESULTS_FILE = os.path.join(SCRIPT_DIR, "../data/results_{}.csv")
+FIXTURE_DATA_FILE = str(resource("fixture_data_{}.json"))
+SUMMARY_DATA_FILE = str(resource("FPL_{}.json"))
+RESULTS_FILE = str(resource("results_{}.csv"))
 
 keys_to_extract = {
     "kickoff_time": "date",

@@ -54,11 +54,11 @@ uv run airsenal run
 - **`src/airsenal/cli/`** — Typer command definitions and CLI-only argument handling
 - **`src/airsenal/scripts/`** — operational workflow implementations used by the CLI
 - **`tests/`** — pytest tests for framework code
-- **`src/airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
+- **`src/airsenal/resources/`** — static historical FPL data (multiple seasons, used to seed the database); resolve paths with `airsenal.core.resources.resource()`, never with `__file__`
 
 ### Data flow
 
-1. **Database init** (`fill_db_init.py`) — loads historical season data from `src/airsenal/data/` into a local SQLite database
+1. **Database init** (`fill_db_init.py`) — loads historical season data from `src/airsenal/resources/` into a local SQLite database
 2. **Database update** (`update_db.py`) — fetches current-season fixtures, results, and player attributes from the FPL API via `curl_cffi`
 3. **Prediction** (`fill_predictedscore_table.py`) — runs BPL (Bayesian Premier League) team models and player-level models to predict points; writes to `PlayerPrediction` table
 4. **Optimization** (`fill_transfersuggestion_table.py`) — uses a greedy/brute-force search to find optimal transfers; writes to `TransferSuggestion` table

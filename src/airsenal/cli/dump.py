@@ -7,6 +7,7 @@ import typer
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.scripts.dump_api import main as dump_api
 from airsenal.scripts.dump_db_contents import main as dump_db
+from airsenal.scripts.save_attributes import main as save_attributes
 from airsenal.scripts.save_expected_absences import main as save_absences
 from airsenal.scripts.scrape_transfermarkt import scrape_transfermarkt
 
@@ -41,3 +42,9 @@ def transfermarkt(
 def absences() -> None:
     """Save expected player absences for the current season."""
     save_absences()
+
+
+@app.command()
+def attributes() -> None:
+    """Append the current player attributes to the packaged history file."""
+    save_attributes()

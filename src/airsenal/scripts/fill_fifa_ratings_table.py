@@ -2,12 +2,11 @@
 Fill the "fifa_ratings" table with info from fifa_team_ratings CSV files.
 """
 
-import os
-
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.db.models import FifaTeamRating
 from airsenal.db.session import get_session, session_scope
 from airsenal.domain.mappings import alternative_team_names
@@ -29,10 +28,8 @@ def make_fifa_ratings_table(
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
     for season in track(sort_seasons(seasons), description="FIFA RATINGS"):
-        input_path = os.path.join(
-            os.path.dirname(__file__), f"../data/fifa_team_ratings_{season}.csv"
-        )
-        if not os.path.exists(input_path):
+        input_path = resource(f"fifa_team_ratings_{season}.csv")
+        if not input_path.exists():
             logger.warning("No FIFA ratings file found for %s", season)
             continue
 

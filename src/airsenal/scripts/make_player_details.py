@@ -3,10 +3,10 @@ Save all player gameweek scores for the current season from the API
 """
 
 import json
-import os
 from typing import Any
 
 from airsenal.core.console import track
+from airsenal.core.resources import resource
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 
@@ -25,8 +25,7 @@ REMOVE_KEYS = [
     "team_a_score",
     "was_home",
 ]
-SCRIPT_DIR = os.path.dirname(__file__)
-SAVE_FILE = os.path.join(SCRIPT_DIR, "../data/player_details_{}.json")
+SAVE_FILE = str(resource("player_details_{}.json"))
 
 
 def make_player_details(season: str = CURRENT_SEASON) -> None:

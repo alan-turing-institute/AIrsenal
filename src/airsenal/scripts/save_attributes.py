@@ -1,5 +1,4 @@
 import csv
-import os
 import re
 from collections import defaultdict
 from datetime import date, datetime
@@ -8,6 +7,7 @@ import dateparser
 
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.domain.mappings import positions
 from airsenal.domain.season import CURRENT_SEASON
@@ -85,13 +85,8 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
     timestamp = datetime.isoformat(now)
     summary_data = fetcher.get_current_summary_data()
 
-    file_path = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "data",
-        f"player_attributes_history_{CURRENT_SEASON}.csv",
-    )
-    if not os.path.isfile(file_path):
+    file_path = resource(f"player_attributes_history_{CURRENT_SEASON}.csv")
+    if not file_path.is_file():
         with open(file_path, "w") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow(

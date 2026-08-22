@@ -3,11 +3,11 @@ Script to dump the database contents.
 """
 
 import csv
-import os
 
 from sqlalchemy import select
 
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import resource
 from airsenal.db.models import (
     FifaTeamRating,
     Fixture,
@@ -27,7 +27,7 @@ def main():
     # Dump Player database
     player_fieldnames = ["player_id", "fpl_api_id", "name", "opta_code"]
     save_table_fields(
-        "../data/players.csv",
+        "players.csv",
         player_fieldnames,
         Player,
         " ==== dumped Player database === ",
@@ -51,7 +51,7 @@ def main():
         "transfers_out",
     ]
     save_table_fields(
-        "../data/player_attributes.csv",
+        "player_attributes.csv",
         player_attributes_fieldnames,
         PlayerAttributes,
         " ==== dumped PlayerAttributes database === ",
@@ -69,7 +69,7 @@ def main():
         "player_id",
     ]
     save_table_fields(
-        "../data/fixtures.csv",
+        "fixtures.csv",
         fixture_fieldnames,
         Fixture,
         " ==== dumped Fixture database === ",
@@ -84,7 +84,7 @@ def main():
         "player_id",
     ]
     save_table_fields(
-        "../data/results.csv",
+        "results.csv",
         result_fieldnames,
         Result,
         " ==== dumped Result database === ",
@@ -93,7 +93,7 @@ def main():
     # Dump Team database
     team_fieldnames = ["id", "name", "full_name", "season", "team_id"]
     save_table_fields(
-        "../data/teams.csv",
+        "teams.csv",
         team_fieldnames,
         Team,
         " ==== dumped Team database === ",
@@ -103,7 +103,7 @@ def main():
     # Add season to the fieldnames once the table creation is updated
     fifa_team_rating_fieldnames = ["id", "season", "team", "att", "defn", "mid", "ovr"]
     save_table_fields(
-        "../data/fifa_team_ratings.csv",
+        "fifa_team_ratings.csv",
         fifa_team_rating_fieldnames,
         FifaTeamRating,
         " ==== dumped FifaTeamRating database === ",
@@ -123,7 +123,7 @@ def main():
         "price",
     ]
     save_table_fields(
-        "../data/transactions.csv",
+        "transactions.csv",
         transaction_fieldnames,
         Transaction,
         " ==== dumped Transaction database === ",
@@ -170,16 +170,16 @@ def main():
         "tackles",
     ]
     save_table_fields(
-        "../data/player_scores.csv",
+        "player_scores.csv",
         player_score_fieldnames,
         PlayerScore,
         " ==== dumped PlayerScore database === ",
     )
 
 
-def save_table_fields(path, fields, dbclass, msg):
-    result = os.path.join(os.path.dirname(__file__), path)
-    with open(result, "w") as csvfile:
+def save_table_fields(filename, fields, dbclass, msg):
+    result = resource(filename)
+    with result.open("w") as csvfile:
         write_rows_to_csv(csvfile, fields, dbclass)
     logger.info(msg)
 

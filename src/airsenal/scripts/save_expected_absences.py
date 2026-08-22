@@ -17,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.resources import FilePath
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
@@ -96,7 +97,7 @@ def get_gameweek_start_date(
     return min(parsed) if parsed else None
 
 
-def read_existing_keys(path: str) -> set[tuple[str, str]]:
+def read_existing_keys(path: FilePath) -> set[tuple[str, str]]:
     """
     (player, from) pairs already present in an absences csv file, so that repeated runs
     of this script don't append duplicate rows.
@@ -165,7 +166,7 @@ def player_attribute_to_row(
 
 
 def save_absences(
-    rows: list[dict[str, str]], season: str, path: str | None = None
+    rows: list[dict[str, str]], season: str, path: FilePath | None = None
 ) -> int:
     """
     Append rows to the absences_yyyy.csv file, creating it with a header if needed and
