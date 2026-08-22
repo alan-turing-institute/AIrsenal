@@ -8,10 +8,6 @@ from collections import defaultdict
 from operator import itemgetter
 
 import numpy as np
-from rich.console import Group, RenderableType
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
@@ -22,7 +18,7 @@ from airsenal.db.queries.scores import get_playerscores_for_player_gameweek
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.player import CandidatePlayer, DummyPlayer
+from airsenal.squad.player import CandidatePlayer, DummyPlayer
 from airsenal.squad.state import get_bank
 
 logger = get_logger(__name__)
@@ -72,119 +68,6 @@ class Squad:
     def __repr__(self) -> str:
         """Return a concise representation without rendering to the console."""
         return f"Squad(players={len(self.players)}, budget={self.budget})"
-
-    def formation_table(
-        self,
-        tag: str | None = None,
-        gameweek: int | None = None,
-        bench_boost: bool = False,
-        triple_captain: bool = False,
-    ) -> Group:
-        """Render the squad in a football formation layout.
-
-        Prediction values are displayed when both ``tag`` and ``gameweek`` are
-        supplied. Set ``bench_boost`` or ``triple_captain`` to reflect a chip.
-        """
-        if (tag is None) != (gameweek is None):
-            msg = "tag and gameweek must be provided together"
-            raise ValueError(msg)
-        if bench_boost and triple_captain:
-            msg = "bench_boost and triple_captain cannot both be active"
-            raise ValueError(msg)
-
-        predicted_points = None
-        chip_description = ""
-        if tag is not None and gameweek is not None:
-            predicted_points = self.get_expected_points(
-                gameweek,
-                tag,
-                bench_boost=bench_boost,
-                triple_captain=triple_captain,
-            )
-            chip_description = (
-                " with bench boost"
-                if bench_boost
-                else " with triple captain"
-                if triple_captain
-                else ""
-            )
-
-        def player_cell(player):
-            lines = [f"[bold]{player}[/bold]", f"[dim]({player.team})[/dim]"]
-            if tag is not None and gameweek is not None:
-                points = (
-                    getattr(player, "predicted_points", {}).get(tag, {}).get(gameweek)
-                )
-                lines.append(
-                    f"[dim]{points:.1f} pts[/dim]"
-                    if points is not None
-                    else "[dim]-[/dim]"
-                )
-            if player.is_captain:
-                marker = "(TC)" if triple_captain else "(C)"
-                lines.append(f"[yellow]{marker}[/yellow]")
-            elif player.is_vice_captain:
-                lines.append("[cyan](VC)[/cyan]")
-            player_display = "\n".join(lines)
-            if triple_captain and player.is_captain:
-                return Panel(player_display, border_style="green", padding=(0, 1))
-            return player_display
-
-        formation = Table.grid(expand=True, padding=(0, 1))
-        for _ in range(5):
-            formation.add_column(justify="center", ratio=1)
-
-        positions = ["GK", "DEF", "MID", "FWD"]
-        for index, position in enumerate(positions):
-            starters = [
-                player
-                for player in self.players
-                if player.position == position and player.is_starting
-            ]
-            slots = FORMATION_SLOTS[len(starters)]
-            cells = iter(player_cell(player) for player in starters)
-            formation.add_row(
-                *(next(cells) if slot in slots else "" for slot in range(5)),
-            )
-            if index < len(positions) - 1:
-                formation.add_row(*([""] * 5))
-
-        substitutes = [player for player in self.players if not player.is_starting]
-        substitutes.sort(
-            key=lambda player: (
-                player.sub_position is None,
-                player.sub_position if player.sub_position is not None else 0,
-            )
-        )
-        substitutes_table = Table(
-            show_header=False,
-            box=None,
-            border_style=None,
-            expand=True,
-            padding=(0, 1),
-        )
-        for _ in substitutes:
-            substitutes_table.add_column(justify="center", ratio=1)
-        substitutes_table.add_row(*(player_cell(player) for player in substitutes))
-        if bench_boost:
-            substitutes_table = Panel(substitutes_table, border_style="green")
-
-        renderables: list[RenderableType] = []
-        if predicted_points is not None and gameweek is not None:
-            heading = (
-                f"GAMEWEEK {gameweek}\n"
-                f"{predicted_points:.1f}pts predicted {chip_description}, "
-                f"£{self.budget / 10:.1f}M in the bank"
-            )
-            renderables.append(Text(f"{heading}", style="bold", justify="center"))
-
-        renderables.extend(
-            [
-                Panel(formation, title="Starting Lineup"),
-                Panel(substitutes_table, title="Substitutes"),
-            ]
-        )
-        return Group(*renderables)
 
     def is_complete(self):
         """

@@ -9,13 +9,14 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.framework.squad import Squad
+from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
 
 def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
-    console.print(squad.formation_table(tag, gameweek))
+    console.print(formation_table(squad, tag, gameweek))
     proceed = input("Apply changes to lineup? (yes/no) ")
     if proceed == "yes":
         logger.info("Applying Changes...")

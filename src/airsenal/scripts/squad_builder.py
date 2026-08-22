@@ -17,7 +17,8 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
-from airsenal.framework.squad import Squad
+from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
@@ -139,7 +140,8 @@ def fill_initial_squad(
     console.print(transfer_table)
 
     console.print(
-        best_squad.formation_table(
+        formation_table(
+            best_squad,
             tag,
             gw_start,
             bench_boost=chip_gameweeks.get("bench_boost") == gw_start,

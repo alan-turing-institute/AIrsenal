@@ -16,7 +16,7 @@ from airsenal.framework.optimization_utils import (
     get_discount_factor,
     next_week_transfers,
 )
-from airsenal.framework.squad import Squad
+from airsenal.squad.squad import Squad
 
 
 class DummyPlayer:

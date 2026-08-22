@@ -18,8 +18,8 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
-from airsenal.framework.player import DummyPlayer
-from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
+from airsenal.squad.player import DummyPlayer
+from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
 
@@ -37,7 +37,7 @@ class SquadOpt:
         Total budget for squad times 10,  by default 1000
     players_per_position : dict
         No. of players to optimize in each position, by default
-        airsenal.framework.squad.TOTAL_PER_POSITION
+        airsenal.squad.squad.TOTAL_PER_POSITION
     season : str
         Season to optimize for, by default airsenal.domain.season.CURRENT_SEASON
     bench_boost_gw : int
@@ -364,7 +364,7 @@ def make_new_squad(
         Total budget for squad times 10,  by default 1000
     players_per_position : dict
         No. of players to optimize in each position, by default
-        airsenal.framework.squad.TOTAL_PER_POSITION
+        airsenal.squad.squad.TOTAL_PER_POSITION
     season : str
         Season to optimize for, by default airsenal.domain.season.CURRENT_SEASON
     verbose : bool
@@ -405,7 +405,7 @@ def make_new_squad(
 
     Returns
     -------
-    airsenal.framework.squad.Squad
+    airsenal.squad.squad.Squad
         The optimized squad
     """
     # Build optimization problem

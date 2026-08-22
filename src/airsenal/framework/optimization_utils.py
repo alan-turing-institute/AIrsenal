@@ -19,10 +19,10 @@ from airsenal.db.models import (
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.session import get_session
+from airsenal.db.writes.transactions import add_transaction
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.squad import Squad, get_current_squad_from_api
-from airsenal.framework.transaction_utils import add_transaction
+from airsenal.squad.squad import Squad, get_current_squad_from_api
 
 logger = get_logger(__name__)
 

@@ -6,7 +6,8 @@ import pytest
 from rich.console import Console
 
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.framework.squad import FORMATION_SLOTS, Squad
+from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.squad import FORMATION_SLOTS, Squad
 from tests.conftest import session_scope
 
 TEST_SEASON = CURRENT_SEASON
@@ -219,9 +220,9 @@ def test_formation_table():
     t.get_expected_points = get_expected_points
     console = Console(record=True, width=100)
 
-    console.print(t.formation_table("tag", 1))
-    console.print(t.formation_table("tag", 1, bench_boost=True))
-    console.print(t.formation_table("tag", 1, triple_captain=True))
+    console.print(formation_table(t, "tag", 1))
+    console.print(formation_table(t, "tag", 1, bench_boost=True))
+    console.print(formation_table(t, "tag", 1, triple_captain=True))
 
     output = console.export_text()
     assert "Captain" in output

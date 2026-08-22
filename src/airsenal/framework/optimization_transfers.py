@@ -16,7 +16,7 @@ from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
-from airsenal.framework.squad import Squad
+from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 

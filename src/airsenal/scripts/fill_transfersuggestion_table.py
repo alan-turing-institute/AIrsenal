@@ -55,8 +55,9 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
-from airsenal.framework.squad import Squad
+from airsenal.reporting.squad_view import formation_table
 from airsenal.scripts.squad_builder import fill_initial_squad
+from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
 logger = get_logger(__name__)
@@ -485,7 +486,8 @@ def print_team_for_next_gw(
     tag = get_latest_prediction_tag(season=season)
     chip_played = strat["chips_played"].get(str(next_gw))
     console.print(
-        t.formation_table(
+        formation_table(
+            t,
             tag,
             next_gw,
             bench_boost=chip_played == "bench_boost",
