@@ -684,3 +684,21 @@ def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     importing utils, which is what made utils the package's import chokepoint.
     """
     return FPLDataFetcher(fpl_team_id)
+
+
+def require_fpl_team_id(fpl_team_id: int | None = None) -> int:
+    """
+    The FPL team id to act for, or a clear error saying how to set one.
+
+    Three commands resolved this themselves and only one of them checked the
+    result, so `airsenal run` with no FPL_TEAM_ID configured passed None all the
+    way down into the database setup.
+    """
+    resolved = fpl_team_id if fpl_team_id is not None else get_fetcher().FPL_TEAM_ID
+    if resolved is None:
+        msg = (
+            "fpl_team_id must be set as an argument, an environment variable, or "
+            "in the config file (see `airsenal env set FPL_TEAM_ID`)."
+        )
+        raise ValueError(msg)
+    return resolved

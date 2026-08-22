@@ -3,7 +3,7 @@
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import TypeVar
+from typing import Concatenate, ParamSpec, TypeVar
 
 from platformdirs import user_data_dir
 
@@ -28,16 +28,25 @@ AIRSENAL_ENV_KEYS = [
 ]
 
 
-def check_valid_key(func):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def check_valid_key(
+    func: Callable[Concatenate[str, P], R],
+) -> Callable[Concatenate[str, P], R]:
     """decorator to pre-check whether we are using a valid AIrsenal key in env
     get/save/del functions"""
 
-    def wrapper(key, *args, **kwargs):
+    def wrapper(key: str, /, *args: P.args, **kwargs: P.kwargs) -> R:
         if key not in AIRSENAL_ENV_KEYS:
             msg = f"{key} is not a known AIrsenal environment variable"
             raise KeyError(msg)
         return func(key, *args, **kwargs)
 
+    # functools.wraps would erase the Concatenate signature mypy needs here
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
     return wrapper
 
 

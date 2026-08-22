@@ -100,11 +100,7 @@ def get_player_history_df(
         for score in all_scores:
             scores_by_player[score.player_id].append(score)
 
-        score_seasons = {
-            score.fixture.season
-            for score in all_scores
-            if score.fixture is not None and score.fixture.season is not None
-        }
+        score_seasons = {score.fixture.season for score in all_scores}
         if score_seasons:
             absences = dbsession.scalars(
                 select(Absence)
@@ -379,8 +375,8 @@ def mean_group_prior(
             group_counts + n_prior
         )
 
-    prior_sum = n_prior * df[mean_col].mean()
-    return (group_sums + prior_sum) / (group_counts + n_prior)
+    overall_prior = n_prior * float(df[mean_col].mean())
+    return (group_sums + overall_prior) / (group_counts + n_prior)
 
 
 def fit_bonus_points(

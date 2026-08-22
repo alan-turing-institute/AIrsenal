@@ -10,7 +10,7 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
@@ -68,7 +68,7 @@ def get_teams_for_season(season: int) -> list[tuple[str, str, str, set]]:
             set(str(r.a.get("href")).split("/")[1].split("-")),
         )
         for r in rows
-        if isinstance(r, Tag) and r.a is not None
+        if r.a is not None
     ][:20]
 
 
@@ -93,11 +93,7 @@ def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
 
     player_names_urls = []
     for r in player_rows:
-        if not isinstance(r, Tag):
-            continue
         last_a_tag = r.find_all("a")[-1]
-        if not isinstance(last_a_tag, Tag):
-            continue
         name = str(last_a_tag.contents[0]).strip()
         url = str(last_a_tag.get("href"))
         player_names_urls.append((name, url))
@@ -223,24 +219,19 @@ def get_player_suspensions(
     player_soup = BeautifulSoup(p.content, features="lxml")
 
     table = player_soup.find_all("table")[0]
-    if not isinstance(table, Tag):
-        logger.warning("Could not find table with suspensions/absences")
-        return pd.DataFrame()
     rows = table.find_all("tr")[1:]  # skip header row
-    comp = []
+    # a Tag attribute can be a list when the HTML repeats it; the column wants
+    # one string per row, so take the first value
+    competitions: list[str] = []
     for row in rows:
-        if not isinstance(row, Tag):
-            logger.warning("Skipping row that is not a Tag")
-            continue
         try:
-            img = row.find_all("img")[0]
-            if not isinstance(img, Tag):
-                msg = "Image tag not found"
-                raise IndexError(msg)
-            comp.append(img.get("title"))
+            title = row.find_all("img")[0].get("title")
         except IndexError:
-            comp.append("")
-    suspended["Competition"] = comp
+            title = None
+        if isinstance(title, list):
+            title = title[0] if title else None
+        competitions.append(str(title) if title is not None else "")
+    suspended["Competition"] = competitions
     suspended = suspended.rename(columns={"Absence/Suspension": "Details"})
     suspended["Reason"] = [get_reason(detail) for detail in suspended["Details"]]
 
@@ -352,9 +343,6 @@ def get_player_transfers(
         old = soup.find_all("div", class_="tm-player-transfer-history-grid__old-club")[
             i
         ]
-        if not isinstance(old, Tag):
-            logger.warning("Old club details is unexpected type %s", type(old))
-            continue
         old_club = " ".join(old.getText().split())
         if old.a is None:
             logger.warning("Old club link is missing")
@@ -368,9 +356,6 @@ def get_player_transfers(
         new = soup.find_all("div", class_="tm-player-transfer-history-grid__new-club")[
             i
         ]
-        if not isinstance(new, Tag):
-            logger.warning("New club details is unexpected type %s", type(new))
-            continue
         new_club = " ".join(new.getText().split())
         if new.a is None:
             logger.warning("New club link is missing")
@@ -649,8 +634,7 @@ def get_season_absences(
             tran["url"] = player_url
             absences.append(tran)
 
-    absences = pd.concat(absences)
-    return filter_season(absences, season)
+    return filter_season(pd.concat(absences), season)
 
 
 def scrape_transfermarkt(seasons: list[str]):

@@ -123,7 +123,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
         if (
             (gw := f["event"])
             and (kickoff_str := f["kickoff_time"])
-            and (kickoff := parse_date(kickoff_str))
+            and (kickoff := parse_date(kickoff_str)) is not None
         ):
             fixtures[gw].append((kickoff, (teams[f["team_h"]], teams[f["team_a"]])))
     for gw, kickoffs in fixtures.items():

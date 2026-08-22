@@ -69,7 +69,9 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "pandas-stubs>=2.3.3.260113",
     "pytest-socket>=0.8.1",
+    "types-regex>=2026.7.19.20260720",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -150,13 +152,119 @@ flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwa
 
 [tool.mypy]
 files = ["src/airsenal"]
+strict = true
 show_error_codes = true
 warn_unreachable = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+    "possibly-undefined",
+]
+
+# Named rather than a blanket ignore_missing_imports, so a *new* untyped
+# dependency is a decision rather than something that slips in unnoticed.
+[[tool.mypy.overrides]]
+module = [
+    "bpl.*",
+    "deap.*",
+    "numpyro.*",
+    "jax.*",
+    "curl_cffi.*",
+    "html5lib.*",
+    "dateparser.*",
+    "thefuzz.*",
+    "scipy.*",
+    # only installed with the "plot" extra
+    "matplotlib.*",
+    "seaborn.*",
+]
+ignore_missing_imports = true
+
+# The only modules allowed to call into those untyped libraries. Everything else
+# reaches them through our own typed wrappers.
+[[tool.mypy.overrides]]
+module = [
+    "airsenal.prediction.team_models.dixon_coles",
+    "airsenal.prediction.player_models",
+    "airsenal.optimization.squad_ga",
+]
+disallow_untyped_calls = false
+warn_return_any = false
+
+# MIGRATION LIST. Every module here still needs annotating. The list can only
+# shrink, and CI stays green while it does, so progress is enforced by the build
+# rather than by remembering - "turn strict on at the end" is the version that
+# stalls behind 400 errors. Delete this block once it is empty.
+[[tool.mypy.overrides]]
+module = [
+    "airsenal.apply.lineup",
+    "airsenal.apply.transfers",
+    "airsenal.cli.dump",
+    "airsenal.cli.env",
+    "airsenal.core.concurrency",
+    "airsenal.core.copy",
+    "airsenal.core.env",
+    "airsenal.db.models.match",
+    "airsenal.db.models.performance",
+    "airsenal.db.models.player",
+    "airsenal.db.models.squad",
+    "airsenal.db.queries.gameweeks",
+    "airsenal.db.queries.players",
+    "airsenal.db.queries.scores",
+    "airsenal.db.queries.teams",
+    "airsenal.db.queries.transactions",
+    "airsenal.db.writes.transactions",
+    "airsenal.domain.scoring",
+    "airsenal.domain.season",
+    "airsenal.export.api_dump",
+    "airsenal.export.attributes",
+    "airsenal.export.db_dump",
+    "airsenal.export.player_details",
+    "airsenal.export.results",
+    "airsenal.fetch.fpl_api",
+    "airsenal.fetch.gameweeks",
+    "airsenal.fetch.scrape.transfermarkt",
+    "airsenal.ingest.checks",
+    "airsenal.ingest.fixtures",
+    "airsenal.ingest.player_attributes",
+    "airsenal.ingest.player_attributes_ep",
+    "airsenal.ingest.player_scores",
+    "airsenal.ingest.players",
+    "airsenal.ingest.results",
+    "airsenal.ingest.update",
+    "airsenal.optimization.protocols",
+    "airsenal.optimization.run_squad",
+    "airsenal.optimization.run_transfers",
+    "airsenal.optimization.squad_ga",
+    "airsenal.optimization.strategies.double",
+    "airsenal.optimization.strategies.random_search",
+    "airsenal.optimization.strategies.single",
+    "airsenal.optimization.transfers",
+    "airsenal.optimization.utils",
+    "airsenal.pipeline.replay",
+    "airsenal.pipeline.run",
+    "airsenal.prediction.features",
+    "airsenal.prediction.player_models",
+    "airsenal.prediction.points",
+    "airsenal.prediction.run",
+    "airsenal.prediction.team_models.dixon_coles",
+    "airsenal.reporting.discord",
+    "airsenal.reporting.env",
+    "airsenal.reporting.plots",
+    "airsenal.reporting.squad_view",
+    "airsenal.reporting.suggestions",
+    "airsenal.reporting.top_players",
+    "airsenal.squad.history",
+    "airsenal.squad.player",
+    "airsenal.squad.squad",
+    "airsenal.squad.state",
+]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
-check_untyped_defs = true
-strict = false
-ignore_missing_imports = true
+disallow_untyped_calls = false
+disallow_any_generics = false
+warn_return_any = false
 
 [tool.coverage.run]
 source = ["src/airsenal"]

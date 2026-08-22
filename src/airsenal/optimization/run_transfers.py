@@ -38,7 +38,7 @@ from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.run_squad import fill_initial_squad
@@ -687,13 +687,7 @@ def run_optimization(
     """
     if chip_gameweeks is None:
         chip_gameweeks = {}
-    if fpl_team_id is None:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
-    if fpl_team_id is None:  # still None after trying env vars
-        msg = (
-            "fpl_team_id must be set as argument, environment variables or config file."
-        )
-        raise ValueError(msg)
+    fpl_team_id = require_fpl_team_id(fpl_team_id)
 
     # see if we are at the start of a season, or
     if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(

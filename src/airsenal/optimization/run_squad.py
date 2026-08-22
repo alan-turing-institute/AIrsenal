@@ -11,7 +11,7 @@ from airsenal.core.registry import config_from_overrides
 from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.fetch.fpl_api import require_fpl_team_id
 from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.utils import (
@@ -201,7 +201,7 @@ def run_squad_optimization(
         )
         sys.exit(1)
     remove_zero = not include_zero
-    fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
+    fpl_team_id = require_fpl_team_id(fpl_team_id)
     sub_weights = (SubWeights.none() if no_subs else SubWeights()).as_dict()
 
     # --population-size and --generations are first-class because they are the two

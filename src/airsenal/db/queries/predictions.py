@@ -114,7 +114,7 @@ def get_predicted_points(
         gameweek=gameweeks[0],
         dbsession=dbsession,
     )
-    player_ids = [p.player_id for p in players if p.player_id is not None]
+    player_ids = [p.player_id for p in players]
     points_by_player = dict.fromkeys(player_ids, 0.0)
 
     if player_ids:

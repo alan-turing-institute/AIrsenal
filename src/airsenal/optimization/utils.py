@@ -557,9 +557,6 @@ def get_discount_factor(
 
     n_ahead = pred_gw - next_gw
 
-    if discount_type in ["exp"]:
-        score = discount**n_ahead
-    elif discount_type in ["const", "constant"]:
-        score = max(1 - (1 - discount) * n_ahead, 0)
-
-    return score
+    if discount_type == "exp":
+        return discount**n_ahead
+    return max(1 - (1 - discount) * n_ahead, 0)

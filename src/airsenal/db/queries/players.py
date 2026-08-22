@@ -314,7 +314,7 @@ def get_max_matches_per_player(
     players = list_players(
         position=position, season=season, gameweek=gameweek, dbsession=dbsession
     )
-    player_ids = [p.player_id for p in players if p.player_id is not None]
+    player_ids = [p.player_id for p in players]
     if not player_ids:
         return 0
 
@@ -326,8 +326,6 @@ def get_max_matches_per_player(
 
     matches_per_player = dict.fromkeys(player_ids, 0)
     for score in scores:
-        if score.fixture is None or score.player_id is None:
-            continue
         if not is_future_gameweek(
             score.fixture.season,
             score.fixture.gameweek,

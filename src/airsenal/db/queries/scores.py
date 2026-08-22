@@ -83,9 +83,7 @@ def get_previous_points_for_same_fixture(
         .where(Fixture.home_team == home_team, Fixture.away_team == away_team)
         .order_by(Fixture.season)
     ).all()
-    fixture_seasons = {
-        f.fixture_id: f.season for f in previous_matches if f.fixture_id is not None
-    }
+    fixture_seasons = {f.fixture_id: f.season for f in previous_matches}
     if not fixture_seasons:
         return {}
 
@@ -97,8 +95,6 @@ def get_previous_points_for_same_fixture(
         )
     ).all()
     for score in scores:
-        if score.fixture_id is None:
-            continue
         season = fixture_seasons.get(score.fixture_id)
         if season is not None:
             previous_points[season] = score.points

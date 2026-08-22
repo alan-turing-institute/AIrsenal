@@ -13,18 +13,16 @@ from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import session_scope
 from airsenal.domain.season import CURRENT_SEASON, get_past_seasons
 from airsenal.export.absences import main as save_expected_absences
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
-from airsenal.prediction.run import (
-    get_top_predicted_points,
-    make_predictedscore_table,
-)
+from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
+from airsenal.reporting.top_players import get_top_predicted_points
 from airsenal.squad.state import get_entry_start_gameweek
 
 logger = get_logger(__name__)
@@ -59,11 +57,7 @@ def run_pipeline(
     score estimate for every player, and finally optimization, to choose
     the best squad.
     """
-    if fpl_team_id is None:
-        if not get_fetcher().FPL_TEAM_ID:
-            msg = "FPL Team ID not provided and not found in environment variables."
-            raise RuntimeError(msg)
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
+    fpl_team_id = require_fpl_team_id(fpl_team_id)
     logger.info("Running for FPL Team ID %s", fpl_team_id)
     if not num_thread:
         num_thread = multiprocessing.cpu_count()

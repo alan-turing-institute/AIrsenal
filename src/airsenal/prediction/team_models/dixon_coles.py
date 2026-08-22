@@ -48,8 +48,7 @@ def get_result_dict(
         for s in dbsession.scalars(
             select(Result).options(selectinload(Result.fixture))
         ).all()
-        if s.fixture
-        and s.fixture.gameweek
+        if s.fixture.gameweek
         and not is_future_gameweek(
             s.fixture.season,
             s.fixture.gameweek,
