@@ -18,8 +18,9 @@ def replay(
     gameweek_end: Annotated[
         int | None, typer.Option(help="Last gameweek to replay.")
     ] = None,
-    weeks_ahead: Annotated[
-        int, typer.Option(min=1, help="Prediction horizon per gameweek.")
+    n_gameweeks: Annotated[
+        int,
+        typer.Option("--weeks-ahead", min=1, help="Prediction horizon per gameweek."),
     ] = 3,
     fpl_team_id: Annotated[
         int | None, typer.Option(help="FPL team ID for the replay.")
@@ -56,7 +57,7 @@ def replay(
         season,
         gameweek_start,
         gameweek_end,
-        weeks_ahead,
+        n_gameweeks,
         fpl_team_id,
         resume,
         num_thread,

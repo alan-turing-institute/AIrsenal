@@ -108,7 +108,7 @@ def get_previous_points_for_same_fixture(
 
 def get_recent_playerscore_rows(
     player: Player,
-    num_match_to_use: int = 3,
+    n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
     exclude_unavailable: bool = False,
@@ -117,7 +117,7 @@ def get_recent_playerscore_rows(
 ) -> list[PlayerScore]:
     """
     Query the playerscore table in the database to retrieve
-    the last num_match_to_use rows for this player.
+    the last n_matches_to_use rows for this player.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     # If asking for gameweeks without results in DB, revert to most recent results.
@@ -160,7 +160,7 @@ def get_recent_playerscore_rows(
 
     return list(
         dbsession.scalars(
-            query.order_by(Fixture.gameweek.desc()).limit(num_match_to_use)
+            query.order_by(Fixture.gameweek.desc()).limit(n_matches_to_use)
         ).all()
     )
 
@@ -191,7 +191,7 @@ def get_playerscores_for_player_gameweek(
 
 def get_recent_scores_for_player(
     player: Player,
-    num_match_to_use: int = 3,
+    n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
     exclude_unavailable: bool = False,
@@ -199,7 +199,7 @@ def get_recent_scores_for_player(
     dbsession: Session | None = None,
 ) -> dict[int, int]:
     """
-    Look num_match_to_use matches back, and return the
+    Look n_matches_to_use matches back, and return the
     FPL points for this player for each of these matches.
     Return a dict {gameweek: score, }
     """
@@ -209,11 +209,11 @@ def get_recent_scores_for_player(
             msg = "last_gw must be specified if running on previous seasons"
             raise ValueError(msg)
         last_gw = next_gameweek()
-    first_gw = last_gw - num_match_to_use
+    first_gw = last_gw - n_matches_to_use
 
     playerscores = get_recent_playerscore_rows(
         player,
-        num_match_to_use,
+        n_matches_to_use,
         season,
         last_gw,
         exclude_unavailable,

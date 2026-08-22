@@ -19,8 +19,11 @@ app = typer.Typer(
 
 @app.command()
 def transfers(
-    weeks_ahead: Annotated[
-        int | None, typer.Option(help="Number of gameweeks to optimize.")
+    n_gameweeks: Annotated[
+        int | None,
+        # The flag name is public, so it is pinned rather than derived from the
+        # parameter, which was renamed for consistency with everything else.
+        typer.Option("--weeks-ahead", help="Number of gameweeks to optimize."),
     ] = None,
     gameweek_start: Annotated[
         int | None, typer.Option(help="First gameweek to optimize.")
@@ -78,7 +81,7 @@ def transfers(
 ) -> None:
     """Optimize a transfer strategy."""
     run_transfer_optimization(
-        weeks_ahead,
+        n_gameweeks,
         gameweek_start,
         gameweek_end,
         tag,
@@ -109,8 +112,16 @@ def squad(
     gameweek_start: Annotated[
         int | None, typer.Option(help="Starting gameweek.")
     ] = None,
-    num_gameweeks: Annotated[
-        int, typer.Option(min=1, help="Number of gameweeks to optimize.")
+    n_gameweeks: Annotated[
+        int,
+        # --num-gameweeks is what this command has always been called; it keeps
+        # working, but --weeks-ahead is what every other command uses.
+        typer.Option(
+            "--weeks-ahead",
+            "--num-gameweeks",
+            min=1,
+            help="Number of gameweeks to optimize.",
+        ),
     ] = 3,
     num_generations: Annotated[
         int | None,
@@ -146,7 +157,7 @@ def squad(
         budget,
         season,
         gameweek_start,
-        num_gameweeks,
+        n_gameweeks,
         num_generations,
         population_size,
         parse_options(set_ga),

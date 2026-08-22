@@ -117,7 +117,7 @@ class DummyPlayer:
     To fill squads with placeholders for optimisation (if not optimising full squad).
     """
 
-    def __init__(self, gw_range, tag, position, purchase_price=45, pts=0):
+    def __init__(self, gameweeks, tag, position, purchase_price=45, pts=0):
         self.name = "DUMMY"
         self.display_name = "DUMMY"
         self.position = position
@@ -125,7 +125,7 @@ class DummyPlayer:
         # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
-        self.predicted_points = {tag: dict.fromkeys(gw_range, self.pts)}
+        self.predicted_points = {tag: dict.fromkeys(gameweeks, self.pts)}
         self.player_id = str(uuid.uuid4())  # dummy id
         self.is_starting = False
         self.is_captain = False

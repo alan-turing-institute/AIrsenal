@@ -76,7 +76,7 @@ def predicted_point_mock_generator(point_dict):
     """
 
     def mock_get_predicted_points(
-        gameweek, tag, position, team=None, season=None, dbsession=None
+        gameweeks, tag, position, team=None, season=None, dbsession=None
     ):
         """
         return an ordered list in the same way as the real
@@ -85,9 +85,7 @@ def predicted_point_mock_generator(point_dict):
         """
         output_pid_list = [(k, v) for k, v in point_dict[position].items()]
         output_pid_list.sort(key=itemgetter(1), reverse=True)
-        #        return output_pid_list
-        if isinstance(gameweek, list):
-            gameweek = gameweek[0]
+        gameweek = next(iter(gameweeks))
         return [
             (DummyPlayer(entry[0], position, {gameweek: entry[1]}), entry[1])
             for entry in output_pid_list
@@ -682,7 +680,7 @@ def test_next_week_transfers_play_triple_captain_max_transfers_3():
 
 
 def test_count_expected_outputs_no_chips_no_constraints():
-    # No constraints or chips, expect 3**num_gameweeks strategies
+    # No constraints or chips, expect 3**n_gameweeks strategies
     count, _ = count_expected_outputs(
         3,
         free_transfers=1,
@@ -696,7 +694,7 @@ def test_count_expected_outputs_no_chips_no_constraints():
 
 
 def test_count_expected_outputs_no_chips_no_constraints_max5():
-    # No constraints or chips, expect 6**num_gameweeks strategies (0 to 5 transfers
+    # No constraints or chips, expect 6**n_gameweeks strategies (0 to 5 transfers
     # each week)
     count, _ = count_expected_outputs(
         3,

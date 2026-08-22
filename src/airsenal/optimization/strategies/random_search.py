@@ -26,7 +26,7 @@ def make_random_transfers(
     squad,
     tag,
     nsubs=1,
-    gw_range=None,
+    gameweeks=None,
     root_gw=None,
     num_iter=1,
     update_func_and_args=None,
@@ -38,7 +38,7 @@ def make_random_transfers(
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select the replacements with
     the best expected score to fill their place.
-    Do this num_iter times and choose the best total score over gw_range gameweeks.
+    Do this num_iter times and choose the best total score over gameweeks gameweeks.
     """
     best_score = -1.0
     best_squad = None
@@ -52,18 +52,18 @@ def make_random_transfers(
 
         new_squad = fastcopy(squad)
 
-        if not gw_range:
-            gw_range = [next_gameweek()]
+        if not gameweeks:
+            gameweeks = [next_gameweek()]
             root_gw = next_gameweek()
 
-        transfer_gw = min(gw_range)  # the week we're making the transfer
+        transfer_gw = min(gameweeks)  # the week we're making the transfer
         players_to_remove: list[int] = []  # this is the index within the squad
         removed_players: list[int] = []  # this is the player_ids
         # order the players in the squad by predicted_points - least-to-most
         player_list: list[tuple[int, float]] = []
         for p in squad.players:
             p.calc_predicted_points(tag)
-            player_list.append((p.player_id, p.predicted_points[tag][gw_range[0]]))
+            player_list.append((p.player_id, p.predicted_points[tag][gameweeks[0]]))
         player_list.sort(key=itemgetter(1), reverse=False)
         while len(players_to_remove) < nsubs:
             index = int(random.triangular(0, len(player_list), 0))
@@ -77,7 +77,7 @@ def make_random_transfers(
             new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {
             pos: get_predicted_points(
-                position=pos, gameweek=gw_range, tag=tag, season=season
+                position=pos, gameweeks=gameweeks, tag=tag, season=season
             )
             for pos in set(positions_needed)
         }
@@ -113,7 +113,7 @@ def make_random_transfers(
         # calculate the score
         total_points = get_discounted_squad_score(
             new_squad,
-            gw_range,
+            gameweeks,
             tag,
             root_gw=root_gw,
             bench_boost_gw=bench_boost_gw,
@@ -144,7 +144,7 @@ class RandomTransferStrategy:
             request.squad,
             request.tag,
             nsubs=request.move.n_transfers,
-            gw_range=request.gameweeks,
+            gameweeks=request.gameweeks,
             root_gw=request.root_gw,
             num_iter=request.num_iterations,
             update_func_and_args=request.progress,

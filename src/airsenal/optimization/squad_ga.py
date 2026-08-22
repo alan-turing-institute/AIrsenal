@@ -47,7 +47,7 @@ class SquadOpt:
 
     Parameters
     ----------
-    gw_range : list
+    gameweeks : list
         Gameweeks to optimize squad for
     tag : str
         Points prediction tag to use
@@ -76,7 +76,7 @@ class SquadOpt:
 
     def __init__(
         self,
-        gw_range,
+        gameweeks,
         tag,
         budget=1000,
         dummy_sub_cost=45,
@@ -88,8 +88,8 @@ class SquadOpt:
         sub_weights=DEFAULT_SUB_WEIGHTS,
     ):
         self.season = season
-        self.gw_range = gw_range
-        self.start_gw = min(gw_range)
+        self.gameweeks = gameweeks
+        self.start_gw = min(gameweeks)
         self.bench_boost_gw = bench_boost_gw
         self.triple_captain_gw = triple_captain_gw
 
@@ -181,7 +181,10 @@ class SquadOpt:
             if self.dummy_per_position[pos] > 0:
                 for _ in range(self.dummy_per_position[pos]):
                     dp = DummyPlayer(
-                        self.gw_range, self.tag, pos, purchase_price=self.dummy_sub_cost
+                        self.gameweeks,
+                        self.tag,
+                        pos,
+                        purchase_price=self.dummy_sub_cost,
                     )
                     add_ok = squad.add_player(dp)
                     if not add_ok:
@@ -194,9 +197,9 @@ class SquadOpt:
         # Calculate expected points for all gameweeks
         score = get_discounted_squad_score(
             squad,
-            self.gw_range,
+            self.gameweeks,
             self.tag,
-            self.gw_range[0],
+            self.gameweeks[0],
             self.bench_boost_gw,
             self.triple_captain_gw,
             sub_weights=self.sub_weights,
@@ -233,7 +236,7 @@ class SquadOpt:
         last_pos = self.positions[0]
         for p in self.players:
             gw_pts = get_predicted_points_for_player(p, self.tag, season=self.season)
-            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gw_range)
+            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gameweeks)
             if total_pts > 0:
                 if p.position(self.season) != last_pos:
                     change_idx.append(len(players))
@@ -326,7 +329,7 @@ class SquadOpt:
 
 
 def make_new_squad(
-    gw_range,
+    gameweeks,
     tag,
     budget=1000,
     players_per_position=TOTAL_PER_POSITION,
@@ -343,7 +346,7 @@ def make_new_squad(
 
     Parameters
     ----------
-    gw_range : list
+    gameweeks : list
         Gameweeks to optimize squad for
     tag : str
         Points prediction tag to use
@@ -381,7 +384,7 @@ def make_new_squad(
     """
     # Build optimization problem
     opt_squad = SquadOpt(
-        gw_range,
+        gameweeks,
         tag,
         budget=budget,
         players_per_position=players_per_position,
@@ -422,7 +425,7 @@ def make_new_squad(
         if opt_squad.dummy_per_position[pos] > 0:
             for _ in range(opt_squad.dummy_per_position[pos]):
                 dp = DummyPlayer(
-                    opt_squad.gw_range,
+                    opt_squad.gameweeks,
                     opt_squad.tag,
                     pos,
                     purchase_price=opt_squad.dummy_sub_cost,

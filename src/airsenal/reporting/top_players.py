@@ -1,5 +1,7 @@
 """Presenting predicted points: Rich tables and Discord payloads."""
 
+from collections.abc import Iterable
+
 from sqlalchemy.orm import Session
 
 from airsenal.core.console import console, table
@@ -17,7 +19,7 @@ logger = get_logger(__name__)
 
 
 def get_top_predicted_points(
-    gameweek: int | list[int] | None = None,
+    gameweeks: Iterable[int] | None = None,
     tag: str | None = None,
     position: str = "all",
     team: str = "all",
@@ -31,9 +33,8 @@ def get_top_predicted_points(
     Print players with the top predicted points.
 
     Keyword Arguments:
-        gameweek {int or list} -- Single gameweek or list of gameweeks in which
-        case returned totals are sums across all gameweeks (default: next
-        gameweek).
+        gameweeks {iterable of int} -- Gameweeks to total over (default: the
+        next gameweek only).
         tag {str} -- Prediction tag to query (default: latest prediction tag)
         position {str} -- Player position to query (default: {"all"})
         per_position {boolean} -- If True print top n_players players for
@@ -47,23 +48,24 @@ def get_top_predicted_points(
     discord_webhook = get_webhook_url()
     if not tag:
         tag = get_latest_prediction_tag()
-    if not gameweek:
-        gameweek = next_gameweek()
+    gameweeks = list(gameweeks) if gameweeks else [next_gameweek()]
 
     discord_embed = {
         "title": "AIrsenal webhook",
-        "description": f"PREDICTED TOP {n_players} PLAYERS FOR GAMEWEEK(S) {gameweek}:",
+        "description": (
+            f"PREDICTED TOP {n_players} PLAYERS FOR GAMEWEEK(S) {gameweeks}:"
+        ),
         "color": 0x35A800,
         "fields": [],
     }
 
-    first_gw = gameweek[0] if isinstance(gameweek, list) else gameweek
-    gw_range = (
-        f"{first_gw}–{gameweek[-1]}"  # noqa: RUF001
-        if isinstance(gameweek, list) and gameweek[-1] != first_gw
+    first_gw, last_gw = gameweeks[0], gameweeks[-1]
+    gameweek_label = (
+        f"{first_gw}–{last_gw}"  # noqa: RUF001
+        if last_gw != first_gw
         else f"{first_gw}"
     )
-    table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gw_range}"
+    table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gameweek_label}"
 
     def print_predictions(predictions: list[tuple[Player, float]], title: str) -> None:
         prediction_table = table(
@@ -84,7 +86,7 @@ def get_top_predicted_points(
 
     if not per_position:
         pts = get_predicted_points(
-            gameweek,
+            gameweeks,
             tag,
             position=position,
             team=team,
@@ -115,7 +117,7 @@ def get_top_predicted_points(
     else:
         for i, position in enumerate(list(Position.back_to_front())):
             pts = get_predicted_points(
-                gameweek,
+                gameweeks,
                 tag,
                 position=position,
                 team=team,

@@ -151,7 +151,7 @@ def calc_predicted_points_for_player(
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
     season: str,
-    gw_range: list[int] | None = None,
+    gameweeks: list[int] | None = None,
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
@@ -168,22 +168,22 @@ def calc_predicted_points_for_player(
             raise ValueError(msg)
         player = p
 
-    if not gw_range:
-        gw_range = list(range(next_gameweek(), min(next_gameweek() + 3, 38)))
+    if not gameweeks:
+        gameweeks = list(range(next_gameweek(), min(next_gameweek() + 3, 38)))
 
     if fixtures_behind is None:
-        fixtures_behind = len(gw_range)
+        fixtures_behind = len(gameweeks)
 
     fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
-    team = player.team(season, gw_range[0])
+    team = player.team(season, gameweeks[0])
     position = player.position(season)
     if position is None or team is None:
         msg = f"Player {player} has missing team or position for season {season}"
         raise ValueError(msg)
 
     fixtures = get_fixtures_for_player(
-        player, season, gw_range=gw_range, dbsession=dbsession
+        player, season, gameweeks=gameweeks, dbsession=dbsession
     )
 
     player_prob = df_player[position].loc[player.player_id]
@@ -193,9 +193,9 @@ def calc_predicted_points_for_player(
 
     recent_minutes = get_recent_minutes_for_player(
         player,
-        num_match_to_use=fixtures_behind,
+        n_matches_to_use=fixtures_behind,
         season=season,
-        last_gw=min(gw_range) - 1,
+        last_gw=min(gameweeks) - 1,
         dbsession=dbsession,
     )
     if len(recent_minutes) == 0:
@@ -221,7 +221,7 @@ def calc_predicted_points_for_player(
 
         if (
             sum(recent_minutes) == 0
-            or player.is_injured_or_suspended(season, gw_range[0], gameweek)
+            or player.is_injured_or_suspended(season, gameweeks[0], gameweek)
             or was_historic_absence(
                 player,
                 gameweek=gameweek,
@@ -273,7 +273,7 @@ def calc_predicted_points_for_pos(
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
     season: str,
-    gw_range: list[int],
+    gameweeks: list[int],
     tag: str,
     model: PlayerModel | None = None,
     dbsession: Session | None = None,
@@ -282,7 +282,7 @@ def calc_predicted_points_for_pos(
     Calculate predicted points for all players in a specific position.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
+    df_player = {pos: fit_player_data(pos, season, min(gameweeks), model, dbsession)}
     return {
         player.player_id: calc_predicted_points_for_player(
             player=player,
@@ -293,12 +293,12 @@ def calc_predicted_points_for_pos(
             df_cards=df_cards,
             df_def_con=df_def_con,
             season=season,
-            gw_range=gw_range,
+            gameweeks=gameweeks,
             tag=tag,
             dbsession=dbsession,
         )
         for player in list_players(
-            position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
+            position=pos, season=season, gameweek=min(gameweeks), dbsession=dbsession
         )
     }
 

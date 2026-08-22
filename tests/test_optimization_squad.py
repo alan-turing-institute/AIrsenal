@@ -46,14 +46,14 @@ def test_deap_class():
 
             # Initialize optimizer
             optimizer = SquadOpt(
-                gw_range=[1, 2, 3],
+                gameweeks=[1, 2, 3],
                 tag="test_tag",
                 budget=1000,
                 players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
             )
 
             # Check basic properties
-            assert optimizer.gw_range == [1, 2, 3]
+            assert optimizer.gameweeks == [1, 2, 3]
             assert optimizer.tag == "test_tag"
             assert optimizer.budget == 1000
             assert optimizer.n_opt_players == 15
@@ -184,7 +184,7 @@ def test_deap_optimization_creates_valid_squad():
             ):
                 # Initialize optimizer
                 optimizer = SquadOpt(
-                    gw_range=[1, 2, 3],
+                    gameweeks=[1, 2, 3],
                     tag="test_tag",
                     budget=1000,  # £100.0m budget
                     players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},

@@ -21,12 +21,12 @@ logger = get_logger(__name__)
 def get_fixtures_for_player(
     player: Player | str | int,
     season: str = CURRENT_SEASON,
-    gw_range: list[int] | None = None,
+    gameweeks: list[int] | None = None,
     dbsession: Session | None = None,
 ) -> list[Fixture]:
     """
     Search for upcoming fixtures for a player, specified either by id or name.
-    If gw_range not specified:
+    If gameweeks not specified:
        for current season: return fixtures from now to end of season
        for past seasons: return all fixtures in the season
     """
@@ -44,13 +44,13 @@ def get_fixtures_for_player(
     if not player_record:
         logger.warning("Couldn't find %s in database", player)
         return []
-    if not gw_range and season != CURRENT_SEASON:
+    if not gameweeks and season != CURRENT_SEASON:
         msg = "Gameweek range must be specified for past seasons"
         raise ValueError(msg)
-    if not gw_range:
+    if not gameweeks:
         team = player_record.team(season, next_gameweek())
     else:
-        team = player_record.team(season, gw_range[0])  # same team for whole gw_range
+        team = player_record.team(season, gameweeks[0])  # same team for whole gameweeks
     tag = get_latest_fixture_tag(season, dbsession)
     fixture_rows = dbsession.scalars(
         select(Fixture)
@@ -65,8 +65,8 @@ def get_fixtures_for_player(
     for fixture in fixture_rows:
         if not fixture.gameweek:  # fixture not scheduled yet
             continue
-        if gw_range:
-            if fixture.gameweek in gw_range:
+        if gameweeks:
+            if fixture.gameweek in gameweeks:
                 fixtures.append(fixture)
         else:
             if season == CURRENT_SEASON and fixture.gameweek < next_gameweek():
@@ -88,21 +88,23 @@ def get_fixtures_for_season(
     )
 
 
-def get_fixtures_for_gameweek(
-    gameweek: list[int] | int,
+def get_fixtures_for_gameweeks(
+    gameweeks: Iterable[int],
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[Fixture]:
     """
-    Get a list of fixtures for the specified gameweek(s).
+    Get a list of fixtures for the specified gameweeks.
+
+    Callers with a single gameweek pass `[gameweek]`. This used to accept either
+    and branch on the type, which meant the reader had to check the call site to
+    know which was meant.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    if isinstance(gameweek, int):
-        gameweek = [gameweek]
     return list(
         dbsession.scalars(
             select(Fixture).where(
-                Fixture.season == season, Fixture.gameweek.in_(gameweek)
+                Fixture.season == season, Fixture.gameweek.in_(list(gameweeks))
             )
         ).all()
     )

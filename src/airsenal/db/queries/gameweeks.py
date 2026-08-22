@@ -334,7 +334,7 @@ def is_future_gameweek(
 
 
 def get_gameweeks_array(
-    weeks_ahead: int | None = None,
+    n_gameweeks: int | None = None,
     gameweek_start: int | None = None,
     gameweek_end: int | None = None,
     season: str = CURRENT_SEASON,
@@ -346,31 +346,31 @@ def get_gameweeks_array(
     """
     # Check arguments are valid
     dbsession = dbsession if dbsession is not None else get_session()
-    if gameweek_end is not None and weeks_ahead is not None:
-        msg = "Only one of gameweek_end and weeks_ahead should be defined"
+    if gameweek_end is not None and n_gameweeks is not None:
+        msg = "Only one of gameweek_end and n_gameweeks should be defined"
         raise RuntimeError(msg)
     if gameweek_start is None and season != CURRENT_SEASON:
         msg = "gameweek_start must be defined if using previous seasons"
         raise RuntimeError(msg)
 
     # Set defaults for undefined arguments
-    if weeks_ahead is None:
-        weeks_ahead = 3
+    if n_gameweeks is None:
+        n_gameweeks = 3
     if gameweek_start is None:
         gameweek_start = next_gameweek()
     if gameweek_end is None:
-        gameweek_end = gameweek_start + weeks_ahead
+        gameweek_end = gameweek_start + n_gameweeks
 
-    gw_range = list(range(gameweek_start, gameweek_end))
+    gameweeks = list(range(gameweek_start, gameweek_end))
     max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
-    gw_range = list(filter(lambda x: x <= max_gameweek, gw_range))
+    gameweeks = list(filter(lambda x: x <= max_gameweek, gameweeks))
 
-    if len(gw_range) == 0:
+    if len(gameweeks) == 0:
         msg = "No gameweeks in specified range"
         raise ValueError(msg)
-    if max(gw_range) < gameweek_end - 1:
+    if max(gameweeks) < gameweek_end - 1:
         logger.warning(
-            "Last gameweek set to %s (%s weeks ahead)", max(gw_range), len(gw_range)
+            "Last gameweek set to %s (%s weeks ahead)", max(gameweeks), len(gameweeks)
         )
 
-    return gw_range
+    return gameweeks

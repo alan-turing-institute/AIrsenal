@@ -20,7 +20,7 @@ from airsenal.core.resources import resource
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.fixtures import (
     find_fixture,
-    get_fixtures_for_gameweek,
+    get_fixtures_for_gameweeks,
     get_player_team_from_fixture,
 )
 from airsenal.db.queries.gameweeks import (
@@ -180,8 +180,8 @@ def get_status_from_attributes_history(
     ):
         for known_unavailability in ["international duty", "parent club"]:
             if known_unavailability in news.lower():
-                gw_fixtures = get_fixtures_for_gameweek(
-                    fixture.gameweek, fixture.season, dbsession
+                gw_fixtures = get_fixtures_for_gameweeks(
+                    [fixture.gameweek], fixture.season, dbsession
                 )
                 gw_deadline = min(parse_date(f.date) for f in gw_fixtures)
                 return _get_availability_on_date(gw_deadline, player, player_attributes)

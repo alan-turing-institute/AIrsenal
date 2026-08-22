@@ -7,7 +7,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Player, PlayerAttributes, PlayerMapping, PlayerScore
 from airsenal.db.queries.fixtures import (
     get_fixture_teams,
-    get_fixtures_for_gameweek,
+    get_fixtures_for_gameweeks,
     get_fixtures_for_player,
 )
 from airsenal.db.queries.gameweeks import (
@@ -162,7 +162,7 @@ def list_players(
     # check if the team (or all teams) play in the specified gameweek, if not
     # attributes might be missing
     fixtures = get_fixture_teams(
-        get_fixtures_for_gameweek(gameweek, season=season, dbsession=dbsession)
+        get_fixtures_for_gameweeks([gameweek], season=season, dbsession=dbsession)
     )
     teams_with_fixture = {t for fixture in fixtures for t in fixture}
 
@@ -176,7 +176,7 @@ def list_players(
 
         for gw in gws_to_try:
             fixtures = get_fixture_teams(
-                get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession)
+                get_fixtures_for_gameweeks([gw], season=season, dbsession=dbsession)
             )
             new_teams = [t for fixture in fixtures for t in fixture]
 

@@ -57,7 +57,7 @@ def replay_season(
     gameweek_start: int = 1,
     gameweek_end: int | None = None,
     new_squad: bool = True,
-    weeks_ahead: int = 3,
+    n_gameweeks: int = 3,
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
@@ -93,17 +93,17 @@ def replay_season(
     replay_results: dict[str, str | int | float | list] = {}
     replay_results["tag"] = tag_prefix
     replay_results["season"] = season
-    replay_results["weeks_ahead"] = weeks_ahead
+    replay_results["n_gameweeks"] = n_gameweeks
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
         with session_scope() as session:
-            gw_range = get_gameweeks_array(
-                weeks_ahead, gameweek_start=gw, season=season, dbsession=session
+            gameweeks = get_gameweeks_array(
+                n_gameweeks, gameweek_start=gw, season=season, dbsession=session
             )
             tag = make_predictedscore_table(
-                gw_range=gw_range,
+                gameweeks=gameweeks,
                 season=season,
                 tag_prefix=tag_prefix,
                 player_model=fitted_player_model,
@@ -118,7 +118,7 @@ def replay_season(
         if gw == gameweek_start and new_squad:
             logger.info("Creating initial squad...")
             squad = fill_initial_squad(
-                tag, gw_range, season, fpl_team_id, is_replay=True
+                tag, gameweeks, season, fpl_team_id, is_replay=True
             )
             # no points hits due to unlimited transfers to initialise team
             best_strategy: Strategy | None = Strategy(
@@ -138,7 +138,7 @@ def replay_season(
             logger.info("Optimising transfers...")
             # find best squad and the strategy for this gameweek
             squad, best_strategy = run_optimization(
-                gw_range,
+                gameweeks,
                 tag,
                 season=season,
                 fpl_team_id=fpl_team_id,
@@ -194,7 +194,7 @@ def run_replays(
     season: str,
     gameweek_start: int,
     gameweek_end: int | None,
-    weeks_ahead: int,
+    n_gameweeks: int,
     fpl_team_id: int | None,
     resume: bool,
     num_thread: int,
@@ -222,7 +222,7 @@ def run_replays(
             gameweek_start=gameweek_start,
             gameweek_end=gameweek_end,
             new_squad=not resume,
-            weeks_ahead=weeks_ahead,
+            n_gameweeks=n_gameweeks,
             num_thread=num_thread,
             fpl_team_id=fpl_team_id,
             team_model=team_model,

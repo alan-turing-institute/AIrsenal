@@ -1,7 +1,7 @@
 """
 Fill the "player_prediction" table with score predictions
 Usage:
-python fill_predictedscore_table.py --weeks_ahead <nweeks>
+python fill_predictedscore_table.py --n_gameweeks <nweeks>
 Generates a "tag" string which is stored so it can later be used by team-optimizers to
 get consistent sets of predictions from the database.
 """
@@ -12,7 +12,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import console, track
 from airsenal.core.logging import get_logger
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
+from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session, session_scope
@@ -39,7 +39,7 @@ logger = get_logger(__name__)
 
 
 def calc_all_predicted_points(
-    gw_range: list[int],
+    gameweeks: list[int],
     season: str,
     dbsession: Session,
     include_bonus: bool = True,
@@ -58,39 +58,39 @@ def calc_all_predicted_points(
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     model_team = get_fitted_team_model(
         season=season,
-        gameweek=min(gw_range),
+        gameweek=min(gameweeks),
         dbsession=dbsession,
         model=team_model,
         **team_model_args,
     )
     logger.info("Calculating fixture score probabilities...")
-    fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
+    fixtures = get_fixtures_for_gameweeks(gameweeks, season=season, dbsession=dbsession)
     fixture_goal_probs = get_goal_probabilities_for_fixtures(
         fixtures, model_team, max_goals=MAX_GOALS
     )
 
     df_player = get_all_fitted_player_data(
-        season, gw_range[0], model=player_model, dbsession=dbsession
+        season, gameweeks[0], model=player_model, dbsession=dbsession
     )
 
     if include_bonus:
-        df_bonus = fit_bonus_points(gameweek=gw_range[0], season=season)
+        df_bonus = fit_bonus_points(gameweek=gameweeks[0], season=season)
     else:
         df_bonus = None
     if include_saves:
-        df_saves = fit_save_points(gameweek=gw_range[0], season=season)
+        df_saves = fit_save_points(gameweek=gameweeks[0], season=season)
     else:
         df_saves = None
     if include_cards:
-        df_cards = fit_card_points(gameweek=gw_range[0], season=season)
+        df_cards = fit_card_points(gameweek=gameweeks[0], season=season)
     else:
         df_cards = None
     if include_def_con:
-        df_def_con = fit_def_con(gameweek=gw_range[0], season=season)
+        df_def_con = fit_def_con(gameweek=gameweeks[0], season=season)
     else:
         df_def_con = None
 
-    players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
+    players = list_players(season=season, gameweek=gameweeks[0], dbsession=dbsession)
 
     for player in track(players, description="Predicting player points:"):
         predictions = calc_predicted_points_for_player(
@@ -102,7 +102,7 @@ def calc_all_predicted_points(
             df_cards,
             df_def_con,
             season,
-            gw_range=gw_range,
+            gameweeks=gameweeks,
             tag=tag,
             dbsession=dbsession,
         )
@@ -113,7 +113,7 @@ def calc_all_predicted_points(
 
 
 def make_predictedscore_table(
-    gw_range: list[int] | None = None,
+    gameweeks: list[int] | None = None,
     season: str = CURRENT_SEASON,
     include_bonus: bool = True,
     include_cards: bool = True,
@@ -130,11 +130,11 @@ def make_predictedscore_table(
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     tag = tag_prefix or ""
     tag += str(uuid4())
-    if not gw_range:
-        gw_range = list(range(next_gameweek(), next_gameweek() + 3))
+    if not gameweeks:
+        gameweeks = list(range(next_gameweek(), next_gameweek() + 3))
     with console.status("Predicting points..."):
         calc_all_predicted_points(
-            gw_range=gw_range,
+            gameweeks=gameweeks,
             season=season,
             dbsession=dbsession,
             include_bonus=include_bonus,
@@ -150,7 +150,7 @@ def make_predictedscore_table(
 
 
 def run_prediction(
-    weeks_ahead: int | None,
+    n_gameweeks: int | None,
     gameweek_start: int | None,
     gameweek_end: int | None,
     season: str,
@@ -164,8 +164,8 @@ def run_prediction(
     team_model_options: dict[str, str] | None = None,
 ) -> None:
     """Fill the player prediction database table."""
-    gw_range = get_gameweeks_array(
-        weeks_ahead=weeks_ahead,
+    gameweeks = get_gameweeks_array(
+        n_gameweeks=n_gameweeks,
         gameweek_start=gameweek_start,
         gameweek_end=gameweek_end,
         season=season,
@@ -185,7 +185,7 @@ def run_prediction(
         session.expire_on_commit = False
 
         tag = make_predictedscore_table(
-            gw_range=gw_range,
+            gameweeks=gameweeks,
             season=season,
             include_bonus=include_bonus,
             include_cards=include_cards,
@@ -198,7 +198,7 @@ def run_prediction(
 
         # print players with top predicted points
         get_top_predicted_points(
-            gameweek=gw_range,
+            gameweeks=gameweeks,
             tag=tag,
             season=season,
             per_position=True,

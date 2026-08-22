@@ -20,7 +20,7 @@ SQUAD_SIZE = 15
 def make_optimum_single_transfer(
     squad,
     tag,
-    gameweek_range=None,
+    gameweeks=None,
     root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
@@ -34,11 +34,11 @@ def make_optimum_single_transfer(
     We will order the list of potential transfers via the sum of
     expected points over a specified range of gameweeks.
     """
-    if not gameweek_range:
-        gameweek_range = [next_gameweek()]
+    if not gameweeks:
+        gameweeks = [next_gameweek()]
         root_gw = next_gameweek()
 
-    transfer_gw = min(gameweek_range)  # the week we're making the transfer
+    transfer_gw = min(gameweeks)  # the week we're making the transfer
 
     best_score = -1.0
     best_squad = None
@@ -47,7 +47,7 @@ def make_optimum_single_transfer(
     logger.debug("Creating ordered player lists")
     ordered_player_lists = {
         pos: get_predicted_points(
-            gameweek=gameweek_range, position=pos, tag=tag, season=season
+            gameweeks=gameweeks, position=pos, tag=tag, season=season
         )
         for pos in list(Position.back_to_front())
     }
@@ -69,7 +69,7 @@ def make_optimum_single_transfer(
                 logger.debug("Added player %s", p_in[0])
                 total_points = get_discounted_squad_score(
                     new_squad,
-                    gameweek_range,
+                    gameweeks,
                     tag,
                     root_gw=root_gw,
                     bench_boost_gw=bench_boost_gw,

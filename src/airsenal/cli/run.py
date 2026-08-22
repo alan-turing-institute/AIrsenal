@@ -14,8 +14,11 @@ def run(
     num_thread: Annotated[
         int | None, typer.Option(help="Number of threads to use for the pipeline run.")
     ] = None,
-    weeks_ahead: Annotated[
-        int, typer.Option(help="Number of gameweeks to include in the pipeline run.")
+    n_gameweeks: Annotated[
+        int,
+        typer.Option(
+            "--weeks-ahead", help="Number of gameweeks to include in the pipeline run."
+        ),
     ] = 3,
     fpl_team_id: Annotated[
         int | None, typer.Option(help="FPL team ID for the pipeline run.")
@@ -87,7 +90,7 @@ def run(
     """Run the full AIrsenal pipeline."""
     run_pipeline(
         num_thread=num_thread,
-        weeks_ahead=weeks_ahead,
+        n_gameweeks=n_gameweeks,
         fpl_team_id=fpl_team_id,
         clean=clean,
         apply_transfers=apply_transfers,

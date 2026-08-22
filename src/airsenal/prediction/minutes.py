@@ -24,7 +24,7 @@ def estimate_minutes_from_prev_season(
     player: Player,
     season: str = CURRENT_SEASON,
     gameweek: int | None = None,
-    n_games_to_use: int = 10,
+    n_matches_to_use: int = 10,
     exclude_unavailable: bool = True,
     current_team_only: bool = True,
     dbsession: Session | None = None,
@@ -62,7 +62,7 @@ def estimate_minutes_from_prev_season(
 
     player_scores = list(
         dbsession.scalars(
-            query.order_by(Fixture.gameweek.desc()).limit(n_games_to_use)
+            query.order_by(Fixture.gameweek.desc()).limit(n_matches_to_use)
         ).all()
     )
 
@@ -77,7 +77,7 @@ def estimate_minutes_from_prev_season(
 
 def get_recent_minutes_for_player(
     player: Player,
-    num_match_to_use: int = 3,
+    n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
     last_gw: int | None = None,
     exclude_unavailable: bool = True,
@@ -85,7 +85,7 @@ def get_recent_minutes_for_player(
     dbsession: Session | None = None,
 ) -> list[float]:
     """
-    Look back num_match_to_use matches, and return an array
+    Look back n_matches_to_use matches, and return an array
     containing minutes played in each.
     If current_gw is not given, we take it to be the most
     recent finished gameweek.
@@ -100,7 +100,7 @@ def get_recent_minutes_for_player(
     playerscores = (
         get_recent_playerscore_rows(
             player,
-            num_match_to_use,
+            n_matches_to_use,
             season,
             last_gw,
             exclude_unavailable,
@@ -112,7 +112,7 @@ def get_recent_minutes_for_player(
 
     minutes = [float(r.minutes) for r in playerscores]
 
-    if len(minutes) < num_match_to_use:
+    if len(minutes) < n_matches_to_use:
         minutes += estimate_minutes_from_prev_season(
             player, season, gameweek=last_gw, dbsession=dbsession
         )

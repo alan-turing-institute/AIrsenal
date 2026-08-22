@@ -1,5 +1,6 @@
 """Reading predicted points back out of the database."""
 
+from collections.abc import Iterable
 from functools import lru_cache
 from operator import itemgetter
 
@@ -66,7 +67,7 @@ def get_predicted_points_for_player(
 
 
 def get_predicted_points(
-    gameweek: int | list[int],
+    gameweeks: Iterable[int],
     tag: str,
     position: str = "all",
     team: str = "all",
@@ -75,12 +76,12 @@ def get_predicted_points(
 ) -> list[tuple[Player, float]]:
     """
     Query the player_prediction table with selections, return
-    list of tuples (player_id, predicted_points) ordered by predicted_points
-    "gameweek" argument can either be a single integer for one gameweek, or a
-    list of gameweeks, in which case we will get the sum over all of them.
+    list of tuples (player_id, predicted_points) ordered by predicted_points.
+    Points are summed over the gameweeks given; callers wanting one gameweek
+    pass `[gameweek]`.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    gameweeks = [gameweek] if isinstance(gameweek, int) else gameweek
+    gameweeks = list(gameweeks)
     players = list_players(
         position,
         team,

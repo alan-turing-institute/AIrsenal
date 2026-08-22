@@ -12,8 +12,9 @@ from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 
 def predict(
-    weeks_ahead: Annotated[
-        int | None, typer.Option(help="Number of gameweeks to predict.")
+    n_gameweeks: Annotated[
+        int | None,
+        typer.Option("--weeks-ahead", help="Number of gameweeks to predict."),
     ] = None,
     gameweek_start: Annotated[
         int | None, typer.Option(help="First gameweek to predict.")
@@ -58,7 +59,7 @@ def predict(
 ) -> None:
     """Predict player scores for a gameweek range."""
     run_prediction(
-        weeks_ahead=weeks_ahead,
+        n_gameweeks=n_gameweeks,
         gameweek_start=gameweek_start,
         gameweek_end=gameweek_end,
         season=season,

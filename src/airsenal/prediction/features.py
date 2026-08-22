@@ -12,7 +12,7 @@ from airsenal.core.copy import fastcopy
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
+from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
 from airsenal.db.queries.players import get_max_matches_per_player, list_players
 from airsenal.db.queries.scores import get_player_scores_df
@@ -281,7 +281,7 @@ def process_player_data(
     now_date = np.array(
         [
             pd.Timestamp(f.date).replace(tzinfo=None).date()
-            for f in get_fixtures_for_gameweek(gameweek, season, dbsession)
+            for f in get_fixtures_for_gameweeks([gameweek], season, dbsession)
             if f.date is not None
         ]
     ).min()

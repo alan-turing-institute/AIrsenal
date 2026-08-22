@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 def run_pipeline(
     num_thread: int | None,
-    weeks_ahead: int,
+    n_gameweeks: int,
     fpl_team_id: int | None,
     clean: bool,
     apply_transfers: bool,
@@ -69,7 +69,7 @@ def run_pipeline(
         num_thread = multiprocessing.cpu_count()
     set_multiprocessing_start_method()
 
-    gw_range = get_gameweeks_array(weeks_ahead=weeks_ahead)
+    gameweeks = get_gameweeks_array(n_gameweeks=n_gameweeks)
 
     fitted_player_model = PLAYER_MODELS.create_with(
         player_model, player_model_options or {}
@@ -115,7 +115,7 @@ def run_pipeline(
 
         logger.info("[bold]Points Prediction[/bold]")
         predict_ok = run_prediction(
-            gw_range=gw_range,
+            gameweeks=gameweeks,
             dbsession=dbsession,
             player_model=fitted_player_model,
             team_model=fitted_team_model,
@@ -135,7 +135,7 @@ def run_pipeline(
         if get_entry_start_gameweek(fpl_team_id, get_fetcher()) == next_gameweek():
             logger.info("[bold]Generating Squad[/bold]")
             new_squad_ok = run_make_squad(
-                gw_range,
+                gameweeks,
                 fpl_team_id,
                 dbsession,
                 chip_gameweeks=chips_played,
@@ -147,7 +147,7 @@ def run_pipeline(
             logger.info("[bold]Optimising Transfers[/bold]")
             opt_ok = run_optimize_squad(
                 num_thread=num_thread,
-                gw_range=gw_range,
+                gameweeks=gameweeks,
                 fpl_team_id=fpl_team_id,
                 dbsession=dbsession,
                 chips_played=chips_played,
@@ -218,7 +218,7 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
 
 
 def run_prediction(
-    gw_range: list[int],
+    gameweeks: list[int],
     dbsession: Session,
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
@@ -231,7 +231,7 @@ def run_prediction(
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     season = CURRENT_SEASON
     tag = make_predictedscore_table(
-        gw_range=gw_range,
+        gameweeks=gameweeks,
         season=season,
         include_bonus=True,
         include_cards=True,
@@ -244,7 +244,7 @@ def run_prediction(
 
     # print players with top predicted points
     get_top_predicted_points(
-        gameweek=gw_range,
+        gameweeks=gameweeks,
         tag=tag,
         season=season,
         per_position=True,
@@ -255,7 +255,7 @@ def run_prediction(
 
 
 def run_make_squad(
-    gw_range: list[int],
+    gameweeks: list[int],
     fpl_team_id: int,
     dbsession: Session,
     chip_gameweeks: dict[str, int] | None = None,
@@ -266,7 +266,7 @@ def run_make_squad(
 
     fill_initial_squad(
         tag,
-        gw_range,
+        gameweeks,
         season,
         fpl_team_id,
         chip_gameweeks=chip_gameweeks,
@@ -277,7 +277,7 @@ def run_make_squad(
 
 def run_optimize_squad(
     num_thread: int,
-    gw_range: list[int],
+    gameweeks: list[int],
     fpl_team_id: int,
     dbsession: Session,
     chips_played: dict,
@@ -291,7 +291,7 @@ def run_optimize_squad(
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
     run_optimization(
-        gameweeks=gw_range,
+        gameweeks=gameweeks,
         tag=tag,
         season=season,
         fpl_team_id=fpl_team_id,

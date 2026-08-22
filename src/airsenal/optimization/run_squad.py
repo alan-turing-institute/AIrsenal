@@ -31,7 +31,7 @@ positions = list(Position.front_to_back())  # front-to-back
 
 def fill_initial_squad(
     tag: str,
-    gw_range: list[int],
+    gameweeks: list[int],
     season: str,
     fpl_team_id: int,
     budget: int = 1000,
@@ -45,7 +45,7 @@ def fill_initial_squad(
     ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
     with console.status("Optimising full squad..."):
         best_squad = make_new_squad(
-            gw_range,
+            gameweeks,
             tag,
             budget=budget,
             season=season,
@@ -62,10 +62,10 @@ def fill_initial_squad(
         )
         raise RuntimeError(msg)
 
-    gw_start = gw_range[0]
+    gw_start = gameweeks[0]
     optimised_score = get_discounted_squad_score(
         best_squad,
-        gw_range,
+        gameweeks,
         tag,
         gw_start,
         sub_weights=sub_weights,
@@ -75,9 +75,9 @@ def fill_initial_squad(
 
     summary = Text()
     summary.append(
-        f"Gameweeks: {min(gw_range)}-{max(gw_range)}\n"
-        if min(gw_range) != max(gw_range)
-        else f"Gameweek: {min(gw_range)}\n",
+        f"Gameweeks: {min(gameweeks)}-{max(gameweeks)}\n"
+        if min(gameweeks) != max(gameweeks)
+        else f"Gameweek: {min(gameweeks)}\n",
         style="bold",
     )
     summary.append(f"Team ID: {fpl_team_id}\n")
@@ -92,7 +92,7 @@ def fill_initial_squad(
         "Predicted Score",
         title="Strategy",
     )
-    for gw in gw_range:
+    for gw in gameweeks:
         bench_boost = chip_gameweeks.get("bench_boost") == gw
         triple_captain = chip_gameweeks.get("triple_captain") == gw
         chip = (
@@ -166,7 +166,7 @@ def run_squad_optimization(
     budget: int,
     season: str | None,
     gameweek_start: int | None,
-    num_gameweeks: int,
+    n_gameweeks: int,
     num_generations: int | None,
     population_size: int | None,
     ga_options: dict[str, str] | None,
@@ -183,17 +183,17 @@ def run_squad_optimization(
         resolved_gameweek_start = next_gameweek()
     else:
         resolved_gameweek_start = 1
-    gw_range = list(
+    gameweeks = list(
         range(
             resolved_gameweek_start,
             min(
                 get_max_gameweek(season) + 1,
-                resolved_gameweek_start + num_gameweeks,
+                resolved_gameweek_start + n_gameweeks,
             ),
         )
     )
     tag = get_latest_prediction_tag(season)
-    if not check_tag_valid(tag, gw_range, season=season):
+    if not check_tag_valid(tag, gameweeks, season=season):
         logger.error(
             "Database does not contain predictions for all the specified "
             "optimsation gameweeks.\nPlease run 'airsenal_run_prediction' first "
@@ -212,7 +212,7 @@ def run_squad_optimization(
 
     fill_initial_squad(
         tag=tag,
-        gw_range=gw_range,
+        gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
         budget=budget,

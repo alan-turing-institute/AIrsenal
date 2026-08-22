@@ -20,7 +20,7 @@ NUM_PAIRS = 105
 def make_optimum_double_transfer(
     squad,
     tag,
-    gameweek_range=None,
+    gameweeks=None,
     root_gw=None,
     season=CURRENT_SEASON,
     update_func_and_args=None,
@@ -33,17 +33,17 @@ def make_optimum_double_transfer(
     We will order the list of potential subs via the sum of expected points
     over a specified range of gameweeks.
     """
-    if not gameweek_range:
-        gameweek_range = [next_gameweek()]
+    if not gameweeks:
+        gameweeks = [next_gameweek()]
         root_gw = next_gameweek()
 
-    transfer_gw = min(gameweek_range)  # the week we're making the transfer
+    transfer_gw = min(gameweeks)  # the week we're making the transfer
     best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
     ordered_player_lists = {
         pos: get_predicted_points(
-            gameweek=gameweek_range, position=pos, tag=tag, season=season
+            gameweeks=gameweeks, position=pos, tag=tag, season=season
         )
         for pos in list(Position.back_to_front())
     }
@@ -91,7 +91,7 @@ def make_optimum_double_transfer(
                         # calculate the score
                         total_points = get_discounted_squad_score(
                             new_squad_add_2,
-                            gameweek_range,
+                            gameweeks,
                             tag,
                             root_gw=root_gw,
                             bench_boost_gw=bench_boost_gw,

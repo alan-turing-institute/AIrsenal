@@ -12,7 +12,10 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.logging import get_logger
 from airsenal.db.models import FifaTeamRating, Fixture, Result
-from airsenal.db.queries.fixtures import get_fixture_teams, get_fixtures_for_gameweek
+from airsenal.db.queries.fixtures import (
+    get_fixture_teams,
+    get_fixtures_for_gameweeks,
+)
 from airsenal.db.queries.gameweeks import is_future_gameweek
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
@@ -66,7 +69,7 @@ def get_result_dict(
     end_date = np.array(
         [
             pd.Timestamp(f.date).replace(tzinfo=None)
-            for f in get_fixtures_for_gameweek(gameweek, season, dbsession)
+            for f in get_fixtures_for_gameweeks([gameweek], season, dbsession)
             if f.date is not None
         ]
     ).min()
@@ -269,7 +272,9 @@ def fixture_probabilities(
 
     # obtain fixtures
     fixtures = get_fixture_teams(
-        get_fixtures_for_gameweek(gameweek=gameweek, season=season, dbsession=dbsession)
+        get_fixtures_for_gameweeks(
+            gameweeks=[gameweek], season=season, dbsession=dbsession
+        )
     )
     home_teams, away_teams = zip(*fixtures, strict=False)
     # obtain match probabilities

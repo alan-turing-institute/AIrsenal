@@ -1,6 +1,6 @@
 """
 usage:
-python fill_transfersuggestions_table.py --weeks_ahead <num_weeks_ahead>
+python fill_transfersuggestions_table.py --n_gameweeks <num_weeks_ahead>
                                           --num_iterations <num_iterations>
 output for each strategy tried is going to be a dict
 { "total_points": <float>,
@@ -70,9 +70,9 @@ def optimize(
     queue: CustomQueue,
     pid: Process,
     results: "Queue[Strategy]",
-    gameweek_range: list[int],
+    gameweeks: list[int],
     season: str,
-    pred_tag: str,
+    prediction_tag: str,
     chip_schedule: ChipSchedule,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -125,14 +125,14 @@ def optimize(
         if strategy is None:
             # the root node, which exists only to add children to the queue
             new_squad = squad
-            strategy = Strategy(root_gameweek=gameweek_range[0])
+            strategy = Strategy(root_gameweek=gameweeks[0])
         else:
             if resetter is not None:
                 resetter(pid, f"{strategy.label()}-{move.label()}".lstrip("-"))
 
             # how far down the tree we are, and so which gameweeks are left
-            gameweeks = gameweek_range[len(strategy) :]
-            gw = gameweeks[0]
+            remaining_gameweeks = gameweeks[len(strategy) :]
+            gw = remaining_gameweeks[0]
             root_gw = strategy.root_gameweek
 
             # calculate best transfers to make this gameweek (to maximise points across
@@ -141,8 +141,8 @@ def optimize(
             new_squad, transfers, points = make_best_transfers(
                 move,
                 squad,
-                pred_tag,
-                gameweeks,
+                prediction_tag,
+                remaining_gameweeks,
                 root_gw,
                 season,
                 num_iterations,
@@ -164,7 +164,7 @@ def optimize(
                 )
             )
 
-        if len(strategy) >= len(gameweek_range):
+        if len(strategy) >= len(gameweeks):
             results.put(strategy)
             # call function to update the main progress bar
             if updater is not None:
@@ -172,7 +172,7 @@ def optimize(
 
             if profile and profiler is not None:
                 profiler.dump_stats(
-                    f"process_strat_{pred_tag}_{strategy.label()}.pstat"
+                    f"process_strat_{prediction_tag}_{strategy.label()}.pstat"
                 )
 
         else:
@@ -184,7 +184,7 @@ def optimize(
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_opt_transfers=max_transfers,
-                chips=chip_schedule.for_gameweek(gameweek_range[len(strategy)]),
+                chips=chip_schedule.for_gameweek(gameweeks[len(strategy)]),
                 max_free_transfers=max_free_transfers,
             )
             for strat in strategies:
@@ -482,7 +482,7 @@ def new_squad_from_scratch(
     """
     return fill_initial_squad(
         tag=tag,
-        gw_range=gameweeks,
+        gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
         ga_config=GeneticAlgorithmConfig().scaled(num_iterations),
@@ -803,7 +803,7 @@ def run_optimization(
 
 
 def sanity_check_args(
-    weeks_ahead: int | None,
+    n_gameweeks: int | None,
     gameweek_start: int | None,
     gameweek_end: int | None,
     num_free_transfers: int | None,
@@ -811,8 +811,8 @@ def sanity_check_args(
     """
     Check that command-line arguments are self-consistent.
     """
-    if weeks_ahead and (gameweek_start or gameweek_end):
-        msg = "Please only specify weeks_ahead OR gameweek_start/end"
+    if n_gameweeks and (gameweek_start or gameweek_end):
+        msg = "Please only specify n_gameweeks OR gameweek_start/end"
         raise RuntimeError(msg)
     if (gameweek_start and not gameweek_end) or (gameweek_end and not gameweek_start):
         msg = "Need to specify both gameweek_start and gameweek_end"
@@ -824,7 +824,7 @@ def sanity_check_args(
 
 
 def run_transfer_optimization(
-    weeks_ahead: int | None,
+    n_gameweeks: int | None,
     gameweek_start: int | None,
     gameweek_end: int | None,
     tag: str | None,
@@ -846,13 +846,13 @@ def run_transfer_optimization(
 ) -> None:
     """Run transfer optimization for a gameweek range."""
     sanity_check_args(
-        weeks_ahead,
+        n_gameweeks,
         gameweek_start,
         gameweek_end,
         num_free_transfers,
     )
     gameweeks = get_gameweeks_array(
-        weeks_ahead=weeks_ahead,
+        n_gameweeks=n_gameweeks,
         gameweek_start=gameweek_start,
         gameweek_end=gameweek_end,
         season=season,

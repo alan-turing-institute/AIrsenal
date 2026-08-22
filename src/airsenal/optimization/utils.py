@@ -48,22 +48,22 @@ DEFAULT_DISCOUNT = 14 / 15  # weight applied per gameweek into the future
 
 
 def check_tag_valid(
-    pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession: Session | None = None
+    prediction_tag, gameweeks, season=CURRENT_SEASON, dbsession: Session | None = None
 ):
     """Check a prediction tag contains predictions for all the specified gameweeks."""
-    # get unique gameweek and season values associated with pred_tag
+    # get unique gameweek and season values associated with prediction_tag
     dbsession = dbsession if dbsession is not None else get_session()
     fixtures = dbsession.execute(
         select(Fixture.season, Fixture.gameweek)
         .join(PlayerPrediction)
-        .where(PlayerPrediction.tag == pred_tag)
+        .where(PlayerPrediction.tag == prediction_tag)
         .distinct()
     ).all()
     pred_seasons = [f[0] for f in fixtures]
     pred_gws = [f[1] for f in fixtures]
 
     season_ok = all(s == season for s in pred_seasons)
-    gws_ok = all(gw in pred_gws for gw in gameweek_range)
+    gws_ok = all(gw in pred_gws for gw in gameweeks)
 
     return season_ok and gws_ok
 
