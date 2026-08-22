@@ -23,13 +23,18 @@ from airsenal.db.session import get_session
 from airsenal.db.writes.transactions import add_transaction
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.optimization.config import SubWeights
 from airsenal.squad.squad import Squad, get_current_squad_from_api
 
 logger = get_logger(__name__)
 
 positions = list(Position.front_to_back())  # front-to-back
 
-DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
+# Derived from SubWeights so there is one definition. The squad builder used to
+# hard-code {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)} instead, so `optimize
+# squad` and `optimize transfers` scored benches differently - unintentionally,
+# and the docstrings advertised the other set again.
+DEFAULT_SUB_WEIGHTS = SubWeights().as_dict()
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 

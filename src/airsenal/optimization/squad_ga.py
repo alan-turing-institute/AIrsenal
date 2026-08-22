@@ -5,6 +5,7 @@ algorithm.
 """
 
 import random
+from dataclasses import replace
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -15,6 +16,7 @@ from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.domain.season import CURRENT_SEASON
+from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
@@ -23,6 +25,21 @@ from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
+
+
+def _ensure_deap_types() -> None:
+    """
+    Register the DEAP fitness and individual classes, once per process.
+
+    creator.create writes into module-level state, so calling it per SquadOpt
+    instance made DEAP warn about overwriting an existing class on every
+    instantiation, and left the result dependent on which test ran first. The names
+    are prefixed to avoid colliding with any other DEAP user in the process.
+    """
+    if not hasattr(creator, "AirsenalFitnessMax"):
+        creator.create("AirsenalFitnessMax", base.Fitness, weights=(1.0,))
+    if not hasattr(creator, "AirsenalIndividual"):
+        creator.create("AirsenalIndividual", list, fitness=creator.AirsenalFitnessMax)
 
 
 class SquadOpt:
@@ -49,7 +66,7 @@ class SquadOpt:
         If True don't consider players with predicted pts of zero, by default True
     sub_weights : dict
         Weighting to give to substitutes in optimization, by default
-        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+        SubWeights() - see airsenal.optimization.config.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the
@@ -96,10 +113,7 @@ class SquadOpt:
 
     def _setup_deap(self):
         """Setup DEAP genetic algorithm components."""
-        # Create fitness and individual classes
-        # We want to maximize fitness, so weights=(1.0,)
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMax)
+        _ensure_deap_types()
 
         self.toolbox = base.Toolbox()
 
@@ -130,7 +144,7 @@ class SquadOpt:
             )
             individual.extend(selected_players)
 
-        return creator.Individual(individual)
+        return creator.AirsenalIndividual(individual)
 
     def _get_mutation_bounds(self):
         """Get lower and upper bounds for each gene for mutation."""
@@ -245,63 +259,42 @@ class SquadOpt:
         }
 
     def optimize(
-        self,
-        population_size: int = 100,
-        generations: int = 100,
-        crossover_prob: float = 0.7,
-        mutation_prob: float = 0.3,
-        crossover_indpb: float = 0.5,
-        mutation_indpb: float = 0.1,
-        tournament_size: int = 3,
-        verbose: bool = True,
-        random_state: int | None = None,
+        self, config: GeneticAlgorithmConfig | None = None
     ) -> tuple[list[int], float]:
-        """Run the genetic algorithm optimization.
+        """
+        Run the genetic algorithm.
 
         Parameters
         ----------
-        population_size : int
-            Size of the population
-        generations : int
-            Number of generations to run
-        crossover_prob : float
-            Probability of crossover
-        mutation_prob : float
-            Probability of mutation
-        crossover_indpb : float
-            Independent probability for each attribute to be exchanged in crossover
-        mutation_indpb : float
-            Independent probability for each attribute to be mutated
-        tournament_size : int
-            Size of tournament for tournament selection
-        verbose : bool
-            Whether DEAP's own `algorithms.eaSimple` should print its per-generation
-            progress to stdout
-        random_state : int, optional
-            Random seed for reproducibility
+        config : GeneticAlgorithmConfig, optional
+            Population size, generations, operator probabilities and seed. Defaults
+            to GeneticAlgorithmConfig(); see airsenal.optimization.config.
 
         Returns
         -------
-        Tuple[List[int], float]
-            Best individual (player indices) and its fitness score
+        tuple[list[int], float]
+            The best individual found and its fitness.
         """
-        if random_state is not None:
-            random.seed(random_state)
-            np.random.seed(random_state)
+        config = config if config is not None else GeneticAlgorithmConfig()
+        if config.random_state is not None:
+            random.seed(config.random_state)
+            np.random.seed(config.random_state)
 
         # Register genetic operators with configurable parameters
-        self.toolbox.register("mate", tools.cxUniform, indpb=crossover_indpb)
+        self.toolbox.register("mate", tools.cxUniform, indpb=config.crossover_indpb)
         self.toolbox.register(
             "mutate",
             tools.mutUniformInt,
             low=self.low_bounds,
             up=self.up_bounds,
-            indpb=mutation_indpb,
+            indpb=config.mutation_indpb,
         )
-        self.toolbox.register("select", tools.selTournament, tournsize=tournament_size)
+        self.toolbox.register(
+            "select", tools.selTournament, tournsize=config.tournament_size
+        )
 
         # Create initial population
-        population = self.toolbox.population(n=population_size)
+        population = self.toolbox.population(n=config.population_size)
 
         # Statistics tracking
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -317,12 +310,12 @@ class SquadOpt:
         population, _logbook = algorithms.eaSimple(
             population,
             self.toolbox,
-            cxpb=crossover_prob,
-            mutpb=mutation_prob,
-            ngen=generations,
+            cxpb=config.crossover_prob,
+            mutpb=config.mutation_prob,
+            ngen=config.generations,
             stats=stats,
             halloffame=hall_of_fame,
-            verbose=verbose,
+            verbose=config.verbose,
         )
 
         # Return best individual and its fitness
@@ -344,14 +337,7 @@ def make_new_squad(
     remove_zero=True,  # don't consider players with predicted pts of zero
     sub_weights=DEFAULT_SUB_WEIGHTS,
     dummy_sub_cost=45,
-    population_size=100,
-    generations=100,
-    crossover_prob=0.7,
-    mutation_prob=0.3,
-    crossover_indpb=0.5,
-    mutation_indpb=0.1,
-    tournament_size=3,
-    random_state=None,
+    ga_config: GeneticAlgorithmConfig | None = None,
 ):
     """Optimize a full initial squad using DEAP genetic algorithm.
 
@@ -379,30 +365,14 @@ def make_new_squad(
         If True don't consider players with predicted pts of zero, by default True
     sub_weights : dict
         Weighting to give to substitutes in optimization, by default
-        {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)},
+        SubWeights() - see airsenal.optimization.config.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the
         effective budget for optimizing the squad will be
         budget - (15 -12) * dummy_sub_cost, by default 45
-    population_size : int, optional
-        Number of candidate solutions in each generation of the optimization,
-        by default 100
-    generations : int, optional
-        Number of generations to run the genetic algorithm, by default 100
-    crossover_prob : float, optional
-        Probability of crossover between individuals, by default 0.7
-    mutation_prob : float, optional
-        Probability of mutation for each individual, by default 0.3
-    crossover_indpb : float, optional
-        Independent probability for each attribute to be exchanged in crossover,
-        by default 0.5
-    mutation_indpb : float, optional
-        Independent probability for each attribute to be mutated, by default 0.1
-    tournament_size : int, optional
-        Size of tournament for tournament selection, by default 3
-    random_state : int, optional
-        Random seed for reproducibility, by default None
+    ga_config : GeneticAlgorithmConfig, optional
+        Genetic algorithm settings; see airsenal.optimization.config.
 
     Returns
     -------
@@ -424,17 +394,10 @@ def make_new_squad(
     )
 
     # Run optimization
-    best_individual, best_fitness = opt_squad.optimize(
-        population_size=population_size,
-        generations=generations,
-        crossover_prob=crossover_prob,
-        mutation_prob=mutation_prob,
-        crossover_indpb=crossover_indpb,
-        mutation_indpb=mutation_indpb,
-        tournament_size=tournament_size,
-        verbose=verbose,
-        random_state=random_state,
-    )
+    ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
+    if verbose != ga_config.verbose:
+        ga_config = replace(ga_config, verbose=verbose)
+    best_individual, best_fitness = opt_squad.optimize(ga_config)
 
     logger.debug("Best score: %s pts", best_fitness)
 

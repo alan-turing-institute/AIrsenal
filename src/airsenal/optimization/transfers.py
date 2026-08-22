@@ -15,6 +15,7 @@ from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.domain.season import CURRENT_SEASON
+from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.utils import get_discounted_squad_score
 from airsenal.squad.squad import Squad
@@ -378,8 +379,7 @@ def make_best_transfers(
             verbose=False,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
-            population_size=num_iter,
-            generations=num_iter,
+            ga_config=GeneticAlgorithmConfig().scaled(num_iter),
         )
         _in = [p.player_id for p in new_squad.players]
         players_in = [p for p in _in if p not in _out]  # remove duplicates

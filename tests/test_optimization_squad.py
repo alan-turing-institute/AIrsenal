@@ -4,6 +4,7 @@ Tests for the DEAP-based optimization implementation.
 
 from unittest.mock import Mock, patch
 
+from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.squad_ga import SquadOpt
 
 
@@ -191,10 +192,12 @@ def test_deap_optimization_creates_valid_squad():
 
                 # Run optimization with small parameters for fast test
                 best_individual, best_fitness = optimizer.optimize(
-                    population_size=20,
-                    generations=10,
-                    verbose=False,
-                    random_state=42,  # For reproducible results
+                    GeneticAlgorithmConfig(
+                        population_size=20,
+                        generations=10,
+                        verbose=False,
+                        random_state=42,  # For reproducible results
+                    )
                 )
 
                 # Verify optimization returns valid results

@@ -10,6 +10,7 @@ from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -53,13 +54,16 @@ def fill_initial_squad(
             season=season,
             remove_zero=remove_zero,
             sub_weights=sub_weights,
-            population_size=population_size,
-            generations=num_generations,
-            crossover_prob=crossover_prob,
-            mutation_prob=mutation_prob,
-            crossover_indpb=crossover_indpb,
-            mutation_indpb=mutation_indpb,
-            tournament_size=tournament_size,
+            ga_config=GeneticAlgorithmConfig(
+                population_size=population_size,
+                generations=num_generations,
+                crossover_prob=crossover_prob,
+                mutation_prob=mutation_prob,
+                crossover_indpb=crossover_indpb,
+                mutation_indpb=mutation_indpb,
+                tournament_size=tournament_size,
+                verbose=verbose,
+            ),
             verbose=verbose,
         )
 
@@ -214,10 +218,7 @@ def run_squad_optimization(
         sys.exit(1)
     remove_zero = not include_zero
     fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
-    if no_subs:
-        sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
-    else:
-        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+    sub_weights = (SubWeights.none() if no_subs else SubWeights()).as_dict()
 
     fill_initial_squad(
         tag=tag,
