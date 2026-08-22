@@ -17,18 +17,18 @@ dependencies = [
   "dateparser>=1.2.2",
   "deap>=1.4.3",
   "html5lib>=1.1",
-  "identify>=2.6.19",
   "jax>=0.6.2",
   "jaxlib>=0.6.2",
   "lxml>=6.0.1",
   "numpy>=2.2.6",
+  "numpyro>=0.19.0",
   "pandas>=2.3.2",
   "platformdirs>=4.4.0",
-  "pytest>=9.1.1",
-  "pytest-cov>=7.1.0",
   "python-dateutil>=2.9.0.post0",
+  "regex>=2024.11.6",
   "rich>=13.0.0",
   "requests>=2.32.5",
+  "scipy>=1.15.3",
   "sqlalchemy>=2.0.43",
   "typer>=0.16.0",
 ]
@@ -37,7 +37,6 @@ dependencies = [
 allow-direct-references = true
 
 [project.optional-dependencies]
-api = ["Flask>=3.0.2"]
 notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [

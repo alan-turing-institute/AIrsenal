@@ -55,7 +55,6 @@ uv run airsenal run
 - **`airsenal/scripts/`** — operational workflow implementations used by the CLI
 - **`airsenal/tests/`** — pytest tests for framework code
 - **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
-- **`airsenal/api/`** — optional Flask API (work in progress)
 
 ### Data flow
 

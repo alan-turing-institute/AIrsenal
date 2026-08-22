@@ -69,36 +69,6 @@ MIN_MINUTES_FULL = 60
 MAX_MINUTES_MATCH = 90
 
 
-def check_absence(
-    player: Player,
-    gameweek: int,
-    season: str,
-    dbsession: Session = session,
-) -> tuple[str | list[str] | None, str | list[str] | None]:
-    """
-    Query the Absence table for a given player and season to see if the
-    gameweek is within the period of absence. If so, return the details of absence.
-    """
-    absence = dbsession.scalars(
-        select(Absence).where(
-            Absence.season == season,
-            Absence.player_id == player.player_id,
-            Absence.gw_from < gameweek,
-            Absence.gw_until > gameweek,
-        )
-    ).all()
-
-    reasons = [ab.reason for ab in absence] if len(absence) > 0 else None
-    details = [ab.details for ab in absence] if len(absence) > 0 else None
-
-    if reasons is not None:
-        reasons = reasons[0] if len(reasons) == 1 else reasons
-    if details is not None:
-        details = details[0] if len(details) == 1 else details
-
-    return reasons, details
-
-
 def get_player_history_df(
     position="all",
     all_players=False,
