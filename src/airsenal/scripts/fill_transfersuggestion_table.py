@@ -43,6 +43,7 @@ from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.transfers import make_best_transfers
 from airsenal.optimization.utils import (
     MAX_FREE_TRANSFERS,
@@ -72,7 +73,7 @@ def optimize(
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
-    chips_gw_dict: dict,
+    chip_schedule: ChipSchedule,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
     max_transfers: int = 2,
@@ -93,7 +94,7 @@ def optimize(
     Things on the queue will either be None (shutdown sentinel, sent once all
     strategies have been processed), or a tuple:
     (
-     num_transfers,
+     move,
      free_transfers,
      hit_so_far,
      current_team,
@@ -117,7 +118,7 @@ def optimize(
             profiler = None
 
         (
-            num_transfers,
+            move,
             free_transfers,
             hit_so_far,
             hit_this_gw,
@@ -125,9 +126,6 @@ def optimize(
             strat_dict,
             sid,
         ) = status
-        # num_transfers will be 0, 1, 2, OR 'W' or 'F', OR 'T0', T1', 'T2',
-        # OR 'B0', 'B1', or 'B2' (the latter six represent triple captain or
-        # bench boost along with 0, 1, or 2 transfers).
 
         # sid (status id) is just a string e.g. "0-0-2" representing how many
         # transfers to be made in each gameweek.
@@ -153,7 +151,7 @@ def optimize(
         else:
             if len(sid) > 0:
                 sid += "-"
-            sid += str(num_transfers)
+            sid += move.label()
             if resetter is not None:
                 resetter(pid, sid)
 
@@ -167,27 +165,14 @@ def optimize(
             gw = gameweeks[0]
             root_gw = strat_dict["root_gw"]
 
-            # check whether we're playing a chip this gameweek
-            if isinstance(num_transfers, str):
-                if num_transfers.startswith("T"):
-                    strat_dict["chips_played"][gw] = "triple_captain"
-                elif num_transfers.startswith("B"):
-                    strat_dict["chips_played"][gw] = "bench_boost"
-                elif num_transfers == "W":
-                    strat_dict["chips_played"][gw] = "wildcard"
-                elif num_transfers == "F":
-                    strat_dict["chips_played"][gw] = "free_hit"
-            else:
-                strat_dict["chips_played"][gw] = None
+            strat_dict["chips_played"][gw] = str(move.chip) if move.chip else None
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
-            num_increments_for_updater = get_num_increments(
-                num_transfers, num_iterations
-            )
+            num_increments_for_updater = get_num_increments(move, num_iterations)
             increment = 100 / num_increments_for_updater
             new_squad, transfers, points = make_best_transfers(
-                num_transfers,
+                move,
                 squad,
                 pred_tag,
                 gameweeks,
@@ -202,7 +187,7 @@ def optimize(
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
             strat_dict["free_transfers"][gw] = free_transfers
-            strat_dict["num_transfers"][gw] = num_transfers
+            strat_dict["num_transfers"][gw] = move.label()
             strat_dict["points_hit"][gw] = hit_this_gw
             strat_dict["discount_factor"][gw] = discount_factor
             strat_dict["players_in"][gw] = transfers["in"]
@@ -230,15 +215,15 @@ def optimize(
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_opt_transfers=max_transfers,
-                chips=chips_gw_dict[gw + 1],
+                chips=chip_schedule.for_gameweek(gw + 1),
                 max_free_transfers=max_free_transfers,
             )
             for strat in strategies:
-                num_transfers, free_transfers, hit_so_far, hit_this_gw = strat
+                move, free_transfers, hit_so_far, hit_this_gw = strat
 
                 queue.put(
                     (
-                        num_transfers,
+                        move,
                         free_transfers,
                         hit_so_far,
                         hit_this_gw,
@@ -624,15 +609,8 @@ def run_optimization(
         # first get a baseline prediction
         # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
-        # Get a dict of what chips we definitely or possibly will play
-        # in each gw
-        chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
-
-        # Specific fix (aka hack) for the 2022 World Cup, where everyone
-        # gets a free wildcard
-        if season == "2223" and gameweeks[0] == 17:
-            chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
-            num_free_transfers = 1
+        # Work out what chips we definitely or possibly will play in each gw
+        chip_schedule = ChipSchedule.from_weeks(gameweeks, chip_gameweeks)
 
         # create a queue that we will add nodes to, and some processes to take
         # things off it
@@ -648,7 +626,7 @@ def run_optimization(
             max_total_hit=max_total_hit,
             allow_unused_transfers=allow_unused_transfers,
             max_opt_transfers=max_opt_transfers,
-            chip_gw_dict=chip_gw_dict,
+            chip_schedule=chip_schedule,
             max_free_transfers=max_free_transfers,
         )
 
@@ -702,7 +680,7 @@ def run_optimization(
 
             # Add Processes to run the target 'optimize' function.
             # This target function needs to know:
-            #  num_transfers
+            #  the move (transfers and chip) to make
             #  current_team (list of player_ids)
             #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
             #  total_score
@@ -717,7 +695,7 @@ def run_optimization(
                         gameweeks,
                         season,
                         tag,
-                        chip_gw_dict,
+                        chip_schedule,
                         max_total_hit,
                         allow_unused_transfers,
                         max_opt_transfers,
@@ -731,7 +709,17 @@ def run_optimization(
                 processor.start()
                 procs.append(processor)
             # add starting node to the queue
-            squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
+            squeue.put(
+                (
+                    GameweekMove(),
+                    num_free_transfers,
+                    0,
+                    0,
+                    starting_squad,
+                    {},
+                    "starting",
+                )
+            )
 
             # Block until every node in the (dynamically-grown) strategy tree has
             # been processed - i.e. the queue is empty and no worker is still
@@ -832,43 +820,6 @@ def run_optimization(
 
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return best_squad, best_strategy
-
-
-def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
-    """
-    Given a dict of form {<chip_name>: <chip_gw>,...}
-    where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
-    is not to be played, 0 if it is to be considered any week, or gw
-    if it is definitely to be played that gw, return a dict
-    { <gw>: {"chip_to_play": [<chip_name>],
-             "chips_allowed": [<chip_name>,...]},...}
-    """
-    chip_dict: dict[int, dict[str, str | list[str] | None]] = {}
-    # first fill in any allowed chips
-    for gw in gameweeks:
-        chip_to_play: str | None = None
-        chips_allowed: list[str] = []
-        for k, v in chip_gameweeks.items():
-            if int(v) == 0:
-                chips_allowed.append(k)
-        chip_dict[gw] = {
-            "chip_to_play": chip_to_play,
-            "chips_allowed": chips_allowed,
-        }
-    # now go through again, for any definite ones, and remove
-    # other allowed chips from those gameweeks
-    for k, v in chip_gameweeks.items():
-        if v > 0 and v in gameweeks:  # v is the gameweek
-            # check we're not trying to play 2 chips
-            if chip_dict[v]["chip_to_play"] is not None:
-                msg = (
-                    f"Cannot play {chip_dict[v]['chip_to_play']} and {k} in the "
-                    "same week"
-                )
-                raise RuntimeError(msg)
-            chip_dict[v]["chip_to_play"] = k
-            chip_dict[v]["chips_allowed"] = []
-    return chip_dict
 
 
 def sanity_check_args(

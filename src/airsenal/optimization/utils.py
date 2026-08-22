@@ -9,7 +9,7 @@ from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from airsenal.core.enums import Position
+from airsenal.core.enums import Chip, Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import (
     Fixture,
@@ -24,6 +24,12 @@ from airsenal.db.writes.transactions import add_transaction
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.optimization.config import SubWeights
+from airsenal.optimization.moves import (
+    NO_CHIPS,
+    ChipSchedule,
+    GameweekChips,
+    GameweekMove,
+)
 from airsenal.squad.squad import Squad, get_current_squad_from_api
 
 logger = get_logger(__name__)
@@ -36,6 +42,8 @@ positions = list(Position.front_to_back())  # front-to-back
 # and the docstrings advertised the other set again.
 DEFAULT_SUB_WEIGHTS = SubWeights().as_dict()
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
+POINTS_HIT_COST = 4  # points lost per transfer beyond the free ones
+DEFAULT_DISCOUNT = 14 / 15  # weight applied per gameweek into the future
 
 
 def check_tag_valid(
@@ -59,54 +67,33 @@ def check_tag_valid(
     return season_ok and gws_ok
 
 
-def calc_points_hit(num_transfers, free_transfers):
+def calc_points_hit(
+    move: GameweekMove, free_transfers: int, cost: int = POINTS_HIT_COST
+) -> int:
     """
-    Current rules say we lose 4 points for every transfer beyond
-    the number of free transfers we have.
-    Num transfers can be an integer, or "W", "F", "Bx", or "Tx"
-    (wildcard, free hit, bench-boost or triple-caption).
-    For Bx and Tx the "x" corresponds to the number of transfers
-    in addition to the chip being played.
-    """
-    if num_transfers in ["W", "F"]:
-        return 0
-    if (
-        isinstance(num_transfers, str)
-        and num_transfers.startswith(("B", "T"))
-        and len(num_transfers) == 2
-    ):
-        num_transfers = int(num_transfers[-1])
-    if not isinstance(num_transfers, int):
-        msg = f"Unexpected argument for num_transfers {num_transfers}"
-        raise RuntimeError(msg)
+    Points lost for making more transfers than we have free.
 
-    return max(0, 4 * (num_transfers - free_transfers))
+    Wildcard and free hit rebuild the squad without a hit; the other two chips
+    are played alongside ordinary transfers and are charged as usual.
+    """
+    if move.rebuilds_squad:
+        return 0
+    return max(0, cost * (move.n_transfers - free_transfers))
 
 
 def calc_free_transfers(
-    num_transfers, prev_free_transfers, max_free_transfers=MAX_FREE_TRANSFERS
-):
+    move: GameweekMove,
+    prev_free_transfers: int,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> int:
     """
     We get one extra free transfer per week, unless we use a wildcard or
-    free hit, but we can't have more than 5.  So we should only be able
-    to return 1 to 5.
+    free hit, but we can't have more than max_free_transfers. So we should only
+    be able to return 1 to max_free_transfers.
     """
-    if num_transfers in ["W", "F"]:
+    if move.rebuilds_squad:
         return prev_free_transfers  # changed in 24/25 season, previously 1
-
-    if (
-        isinstance(num_transfers, str)
-        and num_transfers.startswith(("B", "T"))
-        and len(num_transfers) == 2
-    ):
-        # take the 'x' out of Bx or Tx (bench boost or triple captain with x transfers)
-        num_transfers = int(num_transfers[-1])
-
-    if not isinstance(num_transfers, int):
-        msg = f"Unexpected input for num_transfers {num_transfers}"
-        raise ValueError(msg)
-
-    return max(1, min(max_free_transfers, 1 + prev_free_transfers - num_transfers))
+    return max(1, min(max_free_transfers, 1 + prev_free_transfers - move.n_transfers))
 
 
 def get_starting_squad(
@@ -402,70 +389,36 @@ def fill_initial_transaction_table(
         )
 
 
-def strategy_involves_N_or_more_transfers_in_gw(strategy, N):
-    """
-    Quick function to see if we need to do multiple iterations
-    for a strategy, or if the result is deterministic
-    (0 or 1 transfer for each gameweek).
-    """
-    strat_dict = strategy[0]
-    return any(isinstance(v, int) and v >= N for v in strat_dict.values())
-
-
-def make_strategy_id(strategy):
-    """
-    Return a string that will identify a strategy - just concatenate
-    the numbers of transfers per gameweek.
-    """
-    return ",".join(str(nt) for nt in strategy[0].values())
-
-
-def get_num_increments(num_transfers, num_iterations=100):
+def get_num_increments(move: GameweekMove, num_iterations: int = 100) -> int:
     """
     how many steps for the progress bar for this strategy
     """
-    if (
-        isinstance(num_transfers, str)
-        and (num_transfers.startswith(("B", "T")))
-        and len(num_transfers) == 2
-    ):
-        num_transfers = int(num_transfers[1])
-
-    if (
-        num_transfers == "W"
-        or num_transfers == "F"
-        or (isinstance(num_transfers, int) and num_transfers > 2)
-    ):
-        # wildcard or free hit or >2 - needs num_iterations iterations
+    if move.rebuilds_squad or move.n_transfers > 2:
+        # wildcard, free hit, or >2 transfers - all search num_iterations candidates
         return num_iterations
-
-    if num_transfers == 0:
+    if move.n_transfers == 0:
         return 1
-
-    if num_transfers == 1:
+    if move.n_transfers == 1:
         # single transfer - 15 increments (replace each player in turn)
         return 15
-    if num_transfers == 2:
-        # remove each pair of players - 15*7=105 combinations
-        return 105
-    logger.warning("Unrecognized num_transfers: %s", num_transfers)
-    return 1
+    # two transfers - remove each pair of players, 15*7=105 combinations
+    return 105
 
 
 def next_week_transfers(
-    strat,
-    max_total_hit=None,
-    allow_unused_transfers=True,
-    max_opt_transfers=2,
-    chips=None,
-    max_free_transfers=MAX_FREE_TRANSFERS,
-):
+    strat: tuple[int, int, dict],
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chips: GameweekChips | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> list[tuple[GameweekMove, int, int, int]]:
     """Given a previous strategy and some optimisation constraints, determine the valid
-    options for the number of transfers (or chip played) in the following gameweek.
+    moves (transfers, and any chip played) for the following gameweek.
 
     strat is a tuple (free_transfers, total_points_hit, strat_dict)
-    strat_dict must have key chips_played, which is a dict indexed by gameweek with
-    possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
+    strat_dict must have key chips_played, a dict indexed by gameweek with values
+    None or a Chip.
 
     max_opt_transfers - maximum number of transfers to play each week as part of
     strategy in optimisation
@@ -473,26 +426,13 @@ def next_week_transfers(
     max_free_transfers - maximum number of free transfers saved in the game rules
     (2 before 2024/25, 5 from 2024/25 season)
 
-    Returns (new_transfers, new_ft_available, total_points_hit, hit_this_gw) tuples.
+    Returns (move, new_ft_available, total_points_hit, hit_this_gw) tuples.
         - total_points_hit is the total points hit so far including this gw
         - hit_this_gw is the points hit incurred this gameweek
     """
-    # check that the 'chips' dict we are given makes sense:
-    if chips is None:
-        chips = {"chips_allowed": [], "chip_to_play": None}
-    if (
-        "chips_allowed" in chips
-        and len(chips["chips_allowed"]) > 0
-        and "chip_to_play" in chips
-        and chips["chip_to_play"]
-    ):
-        msg = (
-            f"Cannot allow {chips['chips_allowed']}"
-            "in the same week as we play {chips['chip_to_play']}"
-        )
-        raise RuntimeError(msg)
+    chips = chips if chips is not None else NO_CHIPS
     ft_available, hit_so_far, strat_dict = strat
-    chip_history = strat_dict["chips_played"]
+    chips_played = strat_dict["chips_played"].values()
 
     if not allow_unused_transfers and ft_available == max_free_transfers:
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
@@ -506,64 +446,34 @@ def next_week_transfers(
         ft_choices = [
             nt
             for nt in ft_choices
-            if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
+            if hit_so_far + calc_points_hit(GameweekMove(nt), ft_available)
+            <= max_total_hit
         ]
 
-    allow_wildcard = (
-        "chips_allowed" in chips
-        and "wildcard" in chips["chips_allowed"]
-        and "wildcard" not in chip_history.values()
-    )
-    allow_free_hit = (
-        "chips_allowed" in chips
-        and "free_hit" in chips["chips_allowed"]
-        and "free_hit" not in chip_history.values()
-    )
-    allow_bench_boost = (
-        "chips_allowed" in chips
-        and "bench_boost" in chips["chips_allowed"]
-        and "bench_boost" not in chip_history.values()
-    )
-    allow_triple_captain = (
-        "chips_allowed" in chips
-        and "triple_captain" in chips["chips_allowed"]
-        and "triple_captain" not in chip_history.values()
-    )
-
-    # if we are definitely going to play a wildcard or free_hit deal with
-    # that first
-    if "chip_to_play" in chips and chips["chip_to_play"] == "wildcard":
-        new_transfers: list[int | str] = ["W"]
-    elif "chip_to_play" in chips and chips["chip_to_play"] == "free_hit":
-        new_transfers = ["F"]
-    # for triple captain or bench boost, we can still do ft_choices transfers
-    elif "chip_to_play" in chips and chips["chip_to_play"] == "triple_captain":
-        new_transfers = [f"T{nt}" for nt in ft_choices]
-    elif "chip_to_play" in chips and chips["chip_to_play"] == "bench_boost":
-        new_transfers = [f"B{nt}" for nt in ft_choices]
+    # if we are definitely going to play a wildcard or free_hit deal with that first
+    if chips.chip_to_play is not None and chips.chip_to_play.rebuilds_squad:
+        moves = [GameweekMove(chip=chips.chip_to_play)]
+    elif chips.chip_to_play is not None:
+        # triple captain or bench boost - we can still do ft_choices transfers
+        moves = [GameweekMove(nt, chips.chip_to_play) for nt in ft_choices]
     else:
         # no chip definitely played, but some might be allowed
-        new_transfers = list(ft_choices)  # make a copy
-        if allow_wildcard:
-            new_transfers.append("W")
-        if allow_free_hit:
-            new_transfers.append("F")
-        if allow_bench_boost:
-            new_transfers += [f"B{nt}" for nt in ft_choices]
-        if allow_triple_captain:
-            new_transfers += [f"T{nt}" for nt in ft_choices]
+        moves = [GameweekMove(nt) for nt in ft_choices]
+        for chip in (Chip.WILDCARD, Chip.FREE_HIT):
+            if chips.allows(chip, chips_played):
+                moves.append(GameweekMove(chip=chip))
+        for chip in (Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN):
+            if chips.allows(chip, chips_played):
+                moves += [GameweekMove(nt, chip) for nt in ft_choices]
 
-    hit_this_gw = [calc_points_hit(nt, ft_available) for nt in new_transfers]
+    hit_this_gw = [calc_points_hit(move, ft_available) for move in moves]
     total_points_hit = [hit_so_far + hit for hit in hit_this_gw]
     new_ft_available = [
-        calc_free_transfers(nt, ft_available, max_free_transfers)
-        for nt in new_transfers
+        calc_free_transfers(move, ft_available, max_free_transfers) for move in moves
     ]
 
-    # return list of (num_transfers, free_transfers, total_points_hit, hit_this_gw)
-    #  tuples for each new strategy
     return list(
-        zip(new_transfers, new_ft_available, total_points_hit, hit_this_gw, strict=True)
+        zip(moves, new_ft_available, total_points_hit, hit_this_gw, strict=True)
     )
 
 
@@ -574,7 +484,7 @@ def count_expected_outputs(
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = True,
     max_opt_transfers: int = 2,
-    chip_gw_dict: dict | None = None,
+    chip_schedule: ChipSchedule | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> tuple[int, bool]:
     """
@@ -583,7 +493,7 @@ def count_expected_outputs(
     * Start with free_transfers free transfers.
     * Spend a max of max_total_hit points on transfers across whole period
     (None for no limit)
-    * Allow playing the chips which have their allow_xxx argument set True
+    * Allow playing the chips permitted by chip_schedule
     * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
     are available), if allow_unused_transfers is False.
     * Make a maximum of max_opt_transfers transfers each gameweek.
@@ -596,11 +506,9 @@ def count_expected_outputs(
         to be computed separately (this can be the case if allow_unused_transfers is
         False). Either way, the total count of strategies will include the baseline.
     """
-
     next_gw = next_gameweek() if next_gw is None else next_gw
-    if chip_gw_dict is None:
-        chip_gw_dict = {}
-    init_strat_dict: dict[str, dict[int, list[int] | str]] = {
+    chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
+    init_strat_dict: dict[str, dict[int, list[int] | Chip | None]] = {
         "players_in": {},
         "chips_played": {},
     }
@@ -610,54 +518,31 @@ def count_expected_outputs(
     for gw in range(next_gw, next_gw + gw_ahead):
         new_strategies = []
         for s in strategies:
-            free_transfers = s[0]
-            chips_for_gw = chip_gw_dict.get(gw, {})
             possibilities = next_week_transfers(
                 s,
                 max_total_hit=max_total_hit,
                 max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,
-                chips=chips_for_gw,
+                chips=chip_schedule.for_gameweek(gw),
                 max_free_transfers=max_free_transfers,
             )
 
-            for n_transfers, new_free_transfers, new_hit, _ in possibilities:
-                # make a copy of the strategy up to this point, then add on this gw
+            for move, new_free_transfers, new_hit, _ in possibilities:
+                # make a copy of the strategy up to this point, then add on this gw.
+                # Only the shape of players_in matters here - the count of strategies
+                # is what we are after, not the transfers themselves.
                 new_dict = deepcopy(s[2])
-
-                # update dummy strat dict
-                if n_transfers == "W":
-                    # add dummy values to transfer dict for 15 possible transfers
-                    new_dict["players_in"][gw] = [1] * 15
-                    new_dict["chips_played"][gw] = "wildcard"
-                elif n_transfers == "F":
-                    # add dummy values to transfer dict for 15 possible transfers
-                    new_dict["players_in"][gw] = [1] * 15
-                    new_dict["chips_played"][gw] = "free_hit"
-                elif isinstance(n_transfers, str) and (
-                    n_transfers.startswith(("T", "B"))
-                ):
-                    if n_transfers[0] == "T":
-                        new_dict["chips_played"][gw] = "triple_captain"
-                    elif n_transfers[0] == "B":
-                        new_dict["chips_played"][gw] = "bench_boost"
-                    new_dict["players_in"][gw] = [1] * int(n_transfers[1])
-                elif isinstance(n_transfers, int):
-                    # add dummy values to transfer dict for n_transfers transfers
-                    new_dict["players_in"][gw] = [1] * n_transfers
-                else:
-                    msg = f"Unexpected value for n_transfers: {n_transfers}"
-                    raise ValueError(msg)
-
+                new_dict["players_in"][gw] = [1] * move.n_players_in
+                new_dict["chips_played"][gw] = move.chip
                 new_strategies.append((new_free_transfers, new_hit, new_dict))
 
         strategies = new_strategies
 
     # if allow_unused_transfers is False baseline of no transfers can be removed above.
     # Check whether 1st strategy is the baseline and if not add it back in here
-    baseline_strat_dict: dict[str, dict[int, list[int] | str]] = {
+    baseline_strat_dict: dict[str, dict[int, list[int] | Chip | None]] = {
         "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
-        "chips_played": {},
+        "chips_played": dict.fromkeys(range(next_gw, next_gw + gw_ahead)),
     }
     if strategies[0][2] != baseline_strat_dict:
         baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
@@ -669,7 +554,12 @@ def count_expected_outputs(
     return len(strategies), baseline_excluded
 
 
-def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
+def get_discount_factor(
+    next_gw: int,
+    pred_gw: int,
+    discount_type: str = "exp",
+    discount: float = DEFAULT_DISCOUNT,
+) -> float:
     """
     given the next gw and a predicted gw, retrieve discount factor. Either:
         - exp: discount**n_ahead (discount reduces each gameweek)
@@ -681,10 +571,6 @@ def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15)
         msg = "unrecognised discount type, should be exp or const"
         raise Exception(msg)
 
-    if not next_gw:
-        # during tests 'none' is passed as the root gw, default to zero so the
-        # optimisation is done solely on pred_gw ahead.
-        next_gw = pred_gw
     n_ahead = pred_gw - next_gw
 
     if discount_type in ["exp"]:

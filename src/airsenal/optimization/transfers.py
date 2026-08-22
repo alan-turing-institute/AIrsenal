@@ -9,13 +9,14 @@ from multiprocessing import Process
 from operator import itemgetter
 
 from airsenal.core.copy import fastcopy
-from airsenal.core.enums import Position
+from airsenal.core.enums import Chip, Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.optimization.config import GeneticAlgorithmConfig
+from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.utils import get_discounted_squad_score
 from airsenal.squad.squad import Squad
@@ -304,7 +305,7 @@ def make_random_transfers(
 
 
 def make_best_transfers(
-    num_transfers: str | int,
+    move: GameweekMove,
     squad: Squad,
     tag: str,
     gameweeks: list[int],
@@ -317,93 +318,42 @@ def make_best_transfers(
     Return a new squad and a dictionary {"in": [player_ids],
                                         "out":[player_ids]}
     """
-    transfer_dict: dict[str, list[int]] = {}
-    # deal with triple_captain or free_hit
-    triple_captain_gw = None
-    bench_boost_gw = None
-    if isinstance(num_transfers, str):
-        if num_transfers.startswith("T"):
-            num_transfers = int(num_transfers[1])
-            triple_captain_gw = gameweeks[0]
-        elif num_transfers.startswith("B"):
-            num_transfers = int(num_transfers[1])
-            bench_boost_gw = gameweeks[0]
+    # bench boost and triple captain apply to the gameweek we are transferring for
+    triple_captain_gw = gameweeks[0] if move.chip is Chip.TRIPLE_CAPTAIN else None
+    bench_boost_gw = gameweeks[0] if move.chip is Chip.BENCH_BOOST else None
 
-    if num_transfers == 0:
-        # 0 or 'T0' or 'B0' (i.e. zero transfers, possibly with chip)
+    if move.rebuilds_squad:
+        new_squad, transfer_dict = _rebuild_squad(
+            move,
+            squad,
+            tag,
+            gameweeks,
+            root_gw,
+            season,
+            num_iter,
+            bench_boost_gw=bench_boost_gw,
+            triple_captain_gw=triple_captain_gw,
+        )
+    elif move.n_transfers == 0:
         new_squad = squad
         transfer_dict = {"in": [], "out": []}
         if update_func_and_args:
             # call function to update progress bar.
             # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
-
-    elif num_transfers == 1:
-        # 1 or 'T1' or 'B1' (i.e. 1 transfer, possibly with chip)
-        new_squad, players_out, players_in = make_optimum_single_transfer(
-            squad,
-            tag,
-            gameweeks,
-            root_gw,
-            season,
-            triple_captain_gw=triple_captain_gw,
-            bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args,
-        )
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif num_transfers == 2:
-        # 2 or 'T2' or 'B2' (i.e. 2 transfers, possibly with chip)
-        new_squad, players_out, players_in = make_optimum_double_transfer(
-            squad,
-            tag,
-            gameweeks,
-            root_gw,
-            season,
-            triple_captain_gw=triple_captain_gw,
-            bench_boost_gw=bench_boost_gw,
-            update_func_and_args=update_func_and_args,
-        )
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif num_transfers in ["W", "F"]:
-        _out = [p.player_id for p in squad.players]
-        budget = squad.sale_value(root_gw, use_api=False)
-        if num_transfers == "F":
-            gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
-        new_squad = make_new_squad(
-            gameweeks,
-            tag=tag,
-            budget=budget,
-            season=season,
-            verbose=False,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
-            ga_config=GeneticAlgorithmConfig().scaled(num_iter),
-        )
-        _in = [p.player_id for p in new_squad.players]
-        players_in = [p for p in _in if p not in _out]  # remove duplicates
-        players_out = [p for p in _out if p not in _in]  # remove duplicates
-        transfer_dict = {"in": players_in, "out": players_out}
-
-    elif isinstance(num_transfers, int) and num_transfers > 2:
-        new_squad, players_out, players_in = make_random_transfers(
-            squad,
-            tag,
-            nsubs=num_transfers,
-            gw_range=gameweeks,
-            root_gw=root_gw,
-            num_iter=num_iter,
-            update_func_and_args=update_func_and_args,
-            season=season,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
-        )
-        transfer_dict = {"in": players_in, "out": players_out}
-
     else:
-        msg = f"Unrecognized value for num_transfers: {num_transfers}"
-        raise RuntimeError(msg)
+        new_squad, transfer_dict = _transfer_players(
+            move,
+            squad,
+            tag,
+            gameweeks,
+            root_gw,
+            season,
+            num_iter,
+            update_func_and_args,
+            bench_boost_gw=bench_boost_gw,
+            triple_captain_gw=triple_captain_gw,
+        )
 
     # get the expected points total for next gameweek
     points = get_discounted_squad_score(
@@ -415,7 +365,92 @@ def make_best_transfers(
         triple_captain_gw=triple_captain_gw,
     )
 
-    if num_transfers == "F":
+    if not move.carry_forward:
         # Free Hit changes don't apply to next gameweek, so return the original squad
         return squad, transfer_dict, points
     return new_squad, transfer_dict, points
+
+
+def _rebuild_squad(
+    move: GameweekMove,
+    squad: Squad,
+    tag: str,
+    gameweeks: list[int],
+    root_gw: int,
+    season: str,
+    num_iter: int,
+    bench_boost_gw: int | None,
+    triple_captain_gw: int | None,
+) -> tuple[Squad, dict[str, list[int]]]:
+    """Pick a whole new squad, as a wildcard or free hit does."""
+    _out = [p.player_id for p in squad.players]
+    budget = squad.sale_value(root_gw, use_api=False)
+    if not move.carry_forward:
+        gameweeks = [gameweeks[0]]  # for free hit, only need to optimize this week
+    new_squad = make_new_squad(
+        gameweeks,
+        tag=tag,
+        budget=budget,
+        season=season,
+        verbose=False,
+        bench_boost_gw=bench_boost_gw,
+        triple_captain_gw=triple_captain_gw,
+        ga_config=GeneticAlgorithmConfig().scaled(num_iter),
+    )
+    _in = [p.player_id for p in new_squad.players]
+    return new_squad, {
+        "in": [p for p in _in if p not in _out],  # remove duplicates
+        "out": [p for p in _out if p not in _in],
+    }
+
+
+def _transfer_players(
+    move: GameweekMove,
+    squad: Squad,
+    tag: str,
+    gameweeks: list[int],
+    root_gw: int,
+    season: str,
+    num_iter: int,
+    update_func_and_args: tuple[Callable, float, Process] | None,
+    bench_boost_gw: int | None,
+    triple_captain_gw: int | None,
+) -> tuple[Squad, dict[str, list[int]]]:
+    """Swap out a small number of players, exhaustively for one or two."""
+    if move.n_transfers == 1:
+        new_squad, players_out, players_in = make_optimum_single_transfer(
+            squad,
+            tag,
+            gameweeks,
+            root_gw,
+            season,
+            triple_captain_gw=triple_captain_gw,
+            bench_boost_gw=bench_boost_gw,
+            update_func_and_args=update_func_and_args,
+        )
+    elif move.n_transfers == 2:
+        new_squad, players_out, players_in = make_optimum_double_transfer(
+            squad,
+            tag,
+            gameweeks,
+            root_gw,
+            season,
+            triple_captain_gw=triple_captain_gw,
+            bench_boost_gw=bench_boost_gw,
+            update_func_and_args=update_func_and_args,
+        )
+    else:
+        # more than two transfers - too many combinations to enumerate, so sample
+        new_squad, players_out, players_in = make_random_transfers(
+            squad,
+            tag,
+            nsubs=move.n_transfers,
+            gw_range=gameweeks,
+            root_gw=root_gw,
+            num_iter=num_iter,
+            update_func_and_args=update_func_and_args,
+            season=season,
+            bench_boost_gw=bench_boost_gw,
+            triple_captain_gw=triple_captain_gw,
+        )
+    return new_squad, {"in": players_in, "out": players_out}
