@@ -7,8 +7,10 @@ bought or sold.
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import console, get_logger
+from airsenal.db.admin import database_is_empty
+from airsenal.db.models import Player
+from airsenal.db.session import session_scope
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
     get_last_complete_gameweek_in_db,

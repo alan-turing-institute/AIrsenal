@@ -8,7 +8,7 @@ import os
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.schema import Player, PlayerMapping
+from airsenal.db.models import Player, PlayerMapping
 
 
 def load_mappings_data() -> list[list[str]]:

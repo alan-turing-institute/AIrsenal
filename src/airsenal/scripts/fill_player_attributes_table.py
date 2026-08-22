@@ -8,14 +8,11 @@ import os
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
+from airsenal.db.models import PlayerAttributes
+from airsenal.db.session import get_session, session_scope
 from airsenal.domain.mappings import positions
 from airsenal.domain.season import CURRENT_SEASON, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.framework.schema import (
-    PlayerAttributes,
-    get_session,
-    session_scope,
-)
 from airsenal.framework.utils import (
     find_fixture,
     get_next_gameweek,

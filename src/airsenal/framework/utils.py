@@ -19,9 +19,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import console, get_logger, table
-from airsenal.domain.season import CURRENT_SEASON
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.schema import (
+from airsenal.db.models import (
     Absence,
     Fixture,
     Player,
@@ -31,8 +29,10 @@ from airsenal.framework.schema import (
     PlayerScore,
     Team,
     Transaction,
-    get_session,
 )
+from airsenal.db.session import get_session
+from airsenal.domain.season import CURRENT_SEASON
+from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
 

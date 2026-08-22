@@ -8,8 +8,9 @@ import os
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import track
+from airsenal.db.models import Team
+from airsenal.db.session import get_session, session_scope
 from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.framework.schema import Team, get_session, session_scope
 from airsenal.framework.utils import get_past_seasons
 
 

@@ -8,7 +8,7 @@ import os
 from sqlalchemy import select
 
 from airsenal.core.output import get_logger
-from airsenal.framework.schema import (
+from airsenal.db.models import (
     FifaTeamRating,
     Fixture,
     Player,
@@ -17,8 +17,8 @@ from airsenal.framework.schema import (
     Result,
     Team,
     Transaction,
-    get_session,
 )
+from airsenal.db.session import get_session
 
 logger = get_logger(__name__)
 

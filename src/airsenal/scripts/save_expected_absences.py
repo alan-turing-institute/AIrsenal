@@ -17,7 +17,8 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger
-from airsenal.framework.schema import Fixture, PlayerAttributes, get_session
+from airsenal.db.models import Fixture, PlayerAttributes
+from airsenal.db.session import get_session
 from airsenal.framework.utils import CURRENT_SEASON
 from airsenal.scripts.fill_absence_table import get_absences_path
 

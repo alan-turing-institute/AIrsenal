@@ -11,13 +11,9 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger
+from airsenal.db.models import FifaTeamRating, Fixture, Result
+from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON, get_teams_for_season
-from airsenal.framework.schema import (
-    FifaTeamRating,
-    Fixture,
-    Result,
-    get_session,
-)
 from airsenal.framework.utils import (
     get_fixture_teams,
     get_fixtures_for_gameweek,

@@ -2,8 +2,9 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger
+from airsenal.db.models import PlayerScore
+from airsenal.db.session import get_session
 from airsenal.domain.season import get_teams_for_season
-from airsenal.framework.schema import PlayerScore, get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_fixtures_for_season,
@@ -85,8 +86,8 @@ def season_num_fixtures(
 
     Keyword Arguments:
         seasons {list} -- seasons to check (default: CHECK_SEASONS)
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 380 fixtures...")
@@ -114,8 +115,8 @@ def fixture_player_teams(
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking player teams match fixture teams...")
@@ -157,8 +158,8 @@ def fixture_num_players(
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info(
@@ -233,8 +234,8 @@ def fixture_num_goals(
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking sum of player goals equals match results...")
@@ -299,8 +300,8 @@ def fixture_num_assists(
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. assists less than or equal to no. goals...")
@@ -359,8 +360,8 @@ def fixture_num_conceded(
 
     Keyword Arguments:
         seasons {[type]} -- seasons to check (default: {CHECK_SEASONS})
-        session {SQLAlchemy session} -- DB session (default:
-        airsenal.framework.schema.session)
+        dbsession {SQLAlchemy session} -- DB session (default:
+        airsenal.db.session.get_session())
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. goals conceded matches goals scored by opponent...")

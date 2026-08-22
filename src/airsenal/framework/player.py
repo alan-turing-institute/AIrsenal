@@ -7,8 +7,8 @@ import uuid
 from sqlalchemy.orm import Session
 
 from airsenal.core.output import get_logger
+from airsenal.db.models import Player
 from airsenal.domain.season import CURRENT_SEASON
-from airsenal.framework.schema import Player
 from airsenal.framework.utils import (
     get_player,
     get_predicted_points_for_player,

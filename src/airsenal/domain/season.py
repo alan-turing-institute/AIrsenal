@@ -8,7 +8,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from airsenal.framework.schema import Team
+from airsenal.db.models import Team
 
 
 def get_current_season():

@@ -11,7 +11,8 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.output import get_logger, track
-from airsenal.framework.schema import Transaction, session_scope
+from airsenal.db.models import Transaction
+from airsenal.db.session import session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
     get_max_gameweek,

@@ -10,14 +10,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.core.output import get_logger
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.schema import (
+from airsenal.db.models import (
     Fixture,
     PlayerPrediction,
     Transaction,
     TransferSuggestion,
-    get_session,
 )
+from airsenal.db.session import get_session
+from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.framework.squad import Squad, get_current_squad_from_api
 from airsenal.framework.transaction_utils import add_transaction
 from airsenal.framework.utils import (

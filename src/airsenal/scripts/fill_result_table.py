@@ -7,10 +7,11 @@ import os
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
+from airsenal.db.models import Result
+from airsenal.db.session import get_session
 from airsenal.domain.mappings import alternative_team_names
 from airsenal.domain.season import CURRENT_SEASON, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.schema import Result, get_session
 from airsenal.framework.utils import (
     find_fixture,
     get_last_complete_gameweek_in_db,

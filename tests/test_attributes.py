@@ -1,4 +1,4 @@
-from airsenal.framework.schema import Player, PlayerAttributes
+from airsenal.db.models import Player, PlayerAttributes
 
 
 def test_get_price():

@@ -8,6 +8,7 @@ import pytest
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy import select
 
+from airsenal.db.models import Fixture, Result
 from airsenal.domain.scoring import get_appearance_points
 from airsenal.framework.prediction_utils import (
     fit_bonus_points,
@@ -23,7 +24,6 @@ from airsenal.framework.prediction_utils import (
     get_save_points,
     mean_group_prior,
 )
-from airsenal.framework.schema import Fixture, Result
 from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,

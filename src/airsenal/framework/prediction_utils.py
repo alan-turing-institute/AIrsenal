@@ -15,6 +15,15 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
+from airsenal.db.models import (
+    Absence,
+    Fixture,
+    Player,
+    PlayerAttributes,
+    PlayerPrediction,
+    PlayerScore,
+)
+from airsenal.db.session import get_session
 from airsenal.domain.scoring import (
     def_cons_required,
     get_appearance_points,
@@ -27,15 +36,6 @@ from airsenal.domain.scoring import (
     saves_for_point,
 )
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.schema import (
-    Absence,
-    Fixture,
-    Player,
-    PlayerAttributes,
-    PlayerPrediction,
-    PlayerScore,
-    get_session,
-)
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fastcopy,

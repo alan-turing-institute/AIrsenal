@@ -7,8 +7,8 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.output import get_logger
+from airsenal.db.session import session_scope
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_entry_start_gameweek,

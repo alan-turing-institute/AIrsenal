@@ -41,6 +41,7 @@ from airsenal.core.output import (
     progress_bar,
     table,
 )
+from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
@@ -55,7 +56,6 @@ from airsenal.framework.optimization_utils import (
     get_starting_squad,
     next_week_transfers,
 )
-from airsenal.framework.schema import get_session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,

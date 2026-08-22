@@ -12,13 +12,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from airsenal.framework.schema import (
-    Absence,
-    Base,
-    Fixture,
-    Player,
-    PlayerAttributes,
-)
+from airsenal.db.models import Absence, Base, Fixture, Player, PlayerAttributes
 from airsenal.scripts.fill_absence_table import get_absences_path, load_absences
 from airsenal.scripts.save_expected_absences import (
     ABSENCE_CSV_COLUMNS,

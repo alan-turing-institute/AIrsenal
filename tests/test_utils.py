@@ -2,7 +2,7 @@
 test some db access helper functions
 """
 
-from airsenal.framework.schema import Player
+from airsenal.db.models import Player
 from airsenal.framework.utils import (
     get_gameweek_by_date,
     get_last_complete_gameweek_in_db,

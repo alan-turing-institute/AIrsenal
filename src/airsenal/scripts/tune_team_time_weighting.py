@@ -23,7 +23,8 @@ from bpl import ExtendedDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
-from airsenal.framework.schema import Fixture, session_scope
+from airsenal.db.models import Fixture
+from airsenal.db.session import session_scope
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
     get_max_gameweek,

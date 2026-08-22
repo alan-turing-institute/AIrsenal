@@ -12,6 +12,7 @@ from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredicto
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import console, get_logger, track
+from airsenal.db.session import get_session, session_scope
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
     calc_predicted_points_for_player,
@@ -21,7 +22,6 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.framework.schema import get_session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_fixtures_for_gameweek,

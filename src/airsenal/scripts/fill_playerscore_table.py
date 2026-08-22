@@ -15,15 +15,10 @@ from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
+from airsenal.db.models import Fixture, Player, PlayerScore
+from airsenal.db.session import get_session, session_scope
 from airsenal.domain.season import CURRENT_SEASON, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.framework.schema import (
-    Fixture,
-    Player,
-    PlayerScore,
-    get_session,
-    session_scope,
-)
 from airsenal.framework.utils import (
     find_fixture,
     get_fixtures_for_gameweek,

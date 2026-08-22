@@ -5,8 +5,9 @@ import pandas as pd
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.output import get_logger, track
+from airsenal.db.models import Absence
+from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON, sort_seasons
-from airsenal.framework.schema import Absence, get_session
 from airsenal.framework.utils import (
     get_gameweek_by_date,
     get_past_seasons,
