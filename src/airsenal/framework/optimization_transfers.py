@@ -9,6 +9,7 @@ from multiprocessing import Process
 from operator import itemgetter
 
 from airsenal.core.copy import fastcopy
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
@@ -53,7 +54,7 @@ def make_optimum_single_transfer(
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
         )
-        for pos in ["GK", "DEF", "MID", "FWD"]
+        for pos in list(Position.back_to_front())
     }
     for p_out in squad.players:
         if update_func_and_args:
@@ -124,7 +125,7 @@ def make_optimum_double_transfer(
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
         )
-        for pos in ["GK", "DEF", "MID", "FWD"]
+        for pos in list(Position.back_to_front())
     }
     for i in range(len(squad.players) - 1):
         positions_needed = []

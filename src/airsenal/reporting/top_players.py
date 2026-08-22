@@ -5,6 +5,7 @@ from curl_cffi import requests
 from sqlalchemy.orm import Session
 
 from airsenal.core.console import console, table
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
@@ -132,7 +133,7 @@ def get_top_predicted_points(
             else:
                 logger.warning("Discord webhook url is malformed!\n%s", discord_webhook)
     else:
-        for i, position in enumerate(["GK", "DEF", "MID", "FWD"]):
+        for i, position in enumerate(list(Position.back_to_front())):
             pts = get_predicted_points(
                 gameweek,
                 tag,

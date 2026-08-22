@@ -9,6 +9,7 @@ import random
 import numpy as np
 from deap import algorithms, base, creator, tools
 
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
@@ -76,7 +77,7 @@ class SquadOpt:
         self.triple_captain_gw = triple_captain_gw
 
         self.tag = tag
-        self.positions = ["GK", "DEF", "MID", "FWD"]
+        self.positions = list(Position.back_to_front())
         self.players_per_position = players_per_position
         self.n_opt_players = sum(self.players_per_position.values())
         # no. players each position that won't be optimised (just filled with dummies)

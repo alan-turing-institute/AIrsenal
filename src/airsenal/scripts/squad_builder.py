@@ -4,6 +4,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from airsenal.core.console import console, price_str, table
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
@@ -22,7 +23,7 @@ from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
-positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
+positions = list(Position.front_to_back())  # front-to-back
 
 
 def fill_initial_squad(

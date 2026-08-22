@@ -9,6 +9,7 @@ from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import (
     Fixture,
@@ -26,7 +27,7 @@ from airsenal.squad.squad import Squad, get_current_squad_from_api
 
 logger = get_logger(__name__)
 
-positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
+positions = list(Position.front_to_back())  # front-to-back
 
 DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)

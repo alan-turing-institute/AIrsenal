@@ -4,6 +4,7 @@ Script to apply recommended squad changes after transfers are made
 """
 
 from airsenal.core.console import console
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
@@ -44,7 +45,7 @@ def build_lineup_payload(squad: Squad) -> list:
     # payload for starting lineup
     lineup = [p for p in squad.players if p.is_starting]
     position_integer = 1
-    for position_category in ["GK", "DEF", "MID", "FWD"]:
+    for position_category in list(Position.back_to_front()):
         for p in lineup:
             if p.position == position_category:
                 payload.append(to_dict(p, position_integer))

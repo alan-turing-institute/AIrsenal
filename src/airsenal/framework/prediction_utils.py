@@ -16,6 +16,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.copy import fastcopy
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.models import (
     Absence,
@@ -717,7 +718,7 @@ def get_all_fitted_player_data(
             epsilon=epsilon,
             n_goals_prior=n_goals_prior,
         )
-        for pos in ["GK", "DEF", "MID", "FWD"]
+        for pos in list(Position.back_to_front())
     }
 
 

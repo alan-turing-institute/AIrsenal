@@ -34,6 +34,7 @@ from airsenal.core.concurrency import (
     set_multiprocessing_start_method,
 )
 from airsenal.core.console import console, price_str, progress_bar, table
+from airsenal.core.enums import Position
 from airsenal.core.env import AIRSENAL_HOME
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import get_gameweeks_array
@@ -766,7 +767,7 @@ def run_optimization(
                 f"Best score: *{int(best_strategy['total_score'])}*",
                 "\n__starting 11__",
             ]
-            for position in ["GK", "DEF", "MID", "FWD"]:
+            for position in list(Position.back_to_front()):
                 lineup_strings.append(f"== **{position}** ==\n```")
                 for p in best_squad.players:
                     if p.position == position and p.is_starting:

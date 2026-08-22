@@ -9,6 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from airsenal.core.enums import Position
 from airsenal.squad.squad import FORMATION_SLOTS, Squad
 
 
@@ -69,7 +70,7 @@ def formation_table(
     for _ in range(5):
         formation.add_column(justify="center", ratio=1)
 
-    positions = ["GK", "DEF", "MID", "FWD"]
+    positions = list(Position.back_to_front())
     for index, position in enumerate(positions):
         starters = [
             player
