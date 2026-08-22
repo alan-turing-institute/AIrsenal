@@ -8,7 +8,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from airsenal.framework.schema import Team, session
+from airsenal.framework.schema import Team
 
 
 def get_current_season():
@@ -34,10 +34,6 @@ def get_teams_for_season(season, dbsession):
         select(Team).where(Team.season == season)
     ).all()
     return [t.name for t in teams]
-
-
-# global variable for the module
-CURRENT_TEAMS = get_teams_for_season(CURRENT_SEASON, session)
 
 
 def season_str_to_year(season: str) -> int:

@@ -12,7 +12,12 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import get_logger
 from airsenal.framework.random_team_model import RandomMatchPredictor
-from airsenal.framework.schema import FifaTeamRating, Fixture, Result, session
+from airsenal.framework.schema import (
+    FifaTeamRating,
+    Fixture,
+    Result,
+    get_session,
+)
 from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 from airsenal.framework.utils import (
     get_fixture_teams,
@@ -231,7 +236,7 @@ def fixture_probabilities(
     | NeutralDixonColesMatchPredictor
     | RandomMatchPredictor
     | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
     ratings: bool = True,
     **fit_args,
 ) -> pd.DataFrame:
@@ -246,6 +251,7 @@ def fixture_probabilities(
 
     # fit team model if none is passed or if it is not fitted yet
     # (model.teams will be None if so)
+    dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
         # fit extended model by default
         model = get_fitted_team_model(

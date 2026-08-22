@@ -28,7 +28,7 @@ from airsenal.framework.prediction_utils import (
     get_all_fitted_player_data,
 )
 from airsenal.framework.random_team_model import RandomMatchPredictor
-from airsenal.framework.schema import session, session_scope
+from airsenal.framework.schema import get_session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -132,8 +132,9 @@ def make_predictedscore_table(
     | RandomMatchPredictor
     | None = None,
     team_model_args: dict | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> str:
+    dbsession = dbsession if dbsession is not None else get_session()
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     tag = tag_prefix or ""

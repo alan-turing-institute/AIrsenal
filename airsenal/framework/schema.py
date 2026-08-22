@@ -3,6 +3,7 @@ Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Annotated
 
@@ -14,9 +15,11 @@ from sqlalchemy import (
     create_engine,
     select,
 )
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
+    Session,
     mapped_column,
     relationship,
     sessionmaker,
@@ -28,7 +31,6 @@ from airsenal.framework.env import (
     AIRSENAL_DB_URI,
     AIRSENAL_DB_USER,
     AIRSENAL_HOME,
-    save_env,
 )
 from airsenal.framework.output import get_logger
 
@@ -497,53 +499,103 @@ def get_connection_string() -> str:
     # sqlite database in a local file with path specified by AIRSENAL_DB_FILE,
     # or AIRSENAL_HOME / data.db by default
     if not AIRSENAL_DB_FILE:
-        db_file = str(AIRSENAL_HOME / "data.db")
-        save_env("AIRSENAL_DB_FILE", db_file)
-        return f"sqlite:///{db_file}"
+        return f"sqlite:///{AIRSENAL_HOME / 'data.db'}"
     return f"sqlite:///{AIRSENAL_DB_FILE}"
 
 
-def get_session():
-    conn_str = get_connection_string()
-    engine = create_engine(conn_str)
+# Engine and default session are created on first use, not at import. Creating them at
+# import made importing any airsenal module open a database (and, via
+# utils.NEXT_GAMEWEEK, call the FPL API), which is why the test suite could not be
+# collected offline.
+class _DatabaseState:
+    """Lazily-created engine and default session for the process."""
 
-    Base.metadata.create_all(engine)
-    # Bind the engine to the metadata of the Base class so that the
-    # declaratives can be accessed through a DBSession instance
-    # Note: Base.metadata.bind is deprecated in SQLAlchemy 2.0
+    def __init__(self) -> None:
+        self.connection_string: str | None = None
+        self.engine: Engine | None = None
+        self.default_session: Session | None = None
 
-    DBSession = sessionmaker(bind=engine, autoflush=False)
-    return DBSession()
+    def reset(self, connection_string: str | None = None) -> None:
+        if self.default_session is not None:
+            self.default_session.close()
+        if self.engine is not None:
+            self.engine.dispose()
+        self.connection_string = connection_string
+        self.engine = None
+        self.default_session = None
 
 
-# global database session used by default throughout the package
-session = get_session()
+_db = _DatabaseState()
+
+
+def get_engine() -> Engine:
+    """
+    The process-wide engine, created on first use.
+
+    The tables are created if they do not exist yet, so callers do not have to know
+    whether this is a fresh database.
+    """
+    if _db.engine is None:
+        _db.engine = create_engine(_db.connection_string or get_connection_string())
+        Base.metadata.create_all(_db.engine)
+    return _db.engine
+
+
+def create_session() -> Session:
+    """Create a new session bound to the process-wide engine."""
+    return sessionmaker(bind=get_engine(), autoflush=False)()
+
+
+def get_session() -> Session:
+    """
+    The default session used throughout the package, created on first use.
+
+    Prefer accepting a `dbsession` argument over calling this; it exists so that the
+    `dbsession: Session | None = None` default can be resolved at call time rather
+    than at import time.
+    """
+    if _db.default_session is None:
+        _db.default_session = create_session()
+    return _db.default_session
+
+
+def configure_database(connection_string: str | None = None) -> None:
+    """
+    Point the package at a database, discarding any existing engine and session.
+
+    Parameters
+    ==========
+    connection_string: str or None
+        A SQLAlchemy connection string. If None, the string is resolved from the
+        environment by `get_connection_string` on next use.
+    """
+    _db.reset(connection_string)
 
 
 @contextmanager
-def session_scope():
+def session_scope() -> Iterator[Session]:
     """Provide a transactional scope around a series of operations."""
-    session = get_session()
+    dbsession = create_session()
     try:
-        yield session
-        session.commit()
+        yield dbsession
+        dbsession.commit()
     except Exception:
-        session.rollback()
+        dbsession.rollback()
         raise
     finally:
-        session.close()
+        dbsession.close()
 
 
-def clean_database():
+def clean_database() -> None:
     """
     Clean up database
     """
-    engine = create_engine(get_connection_string())
+    engine = get_engine()
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
 
-def database_is_empty(dbsession):
+def database_is_empty(dbsession: Session) -> bool:
     """
     Basic check to determine whether the database is empty
     """

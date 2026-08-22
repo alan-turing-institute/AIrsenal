@@ -10,17 +10,18 @@ from sqlalchemy.orm.session import Session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.output import track
-from airsenal.framework.schema import Fixture, session, session_scope
+from airsenal.framework.schema import Fixture, get_session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import find_fixture, get_past_seasons
 
 
 def fill_fixtures_from_file(
-    filename: str, season: str, dbsession: Session = session
+    filename: str, season: str, dbsession: Session | None = None
 ) -> None:
     """
     use the match results csv files to get a list of matches in a season,
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     with open(filename) as infile:
         for line in track(infile.readlines()[1:], description=f"FIXTURES {season}"):
             fields = line.strip().split(",")
@@ -40,10 +41,11 @@ def fill_fixtures_from_file(
     dbsession.commit()
 
 
-def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
+def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> None:
     """
     Use the FPL API to get a list of fixures.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     tag = str(uuid.uuid4())
     fetcher = FPLDataFetcher()
     fixtures = fetcher.get_fixture_data()
@@ -96,9 +98,10 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
 
 
 def make_fixture_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     # fill the fixture table for past seasons
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

@@ -12,11 +12,12 @@ from rich.console import Group, RenderableType
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+from sqlalchemy.orm import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.output import get_logger
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
-from airsenal.framework.schema import Player
+from airsenal.framework.schema import Player, get_session
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -202,7 +203,7 @@ class Squad:
         gameweek=NEXT_GAMEWEEK,
         check_budget=True,
         check_team=True,
-        dbsession=None,
+        dbsession: Session | None = None,
     ):
         """
         Add a player.  Can do it by name or by player_id.
@@ -210,6 +211,7 @@ class Squad:
         current price as found in DB, but if one is specified, we override
         with that value.
         """
+        dbsession = dbsession if dbsession is not None else get_session()
         if isinstance(p, int | str | Player):
             player: CandidatePlayer | DummyPlayer = CandidatePlayer(
                 p, self.season, gameweek, purchase_price=price, dbsession=dbsession
@@ -261,7 +263,7 @@ class Squad:
         price=None,
         gameweek=NEXT_GAMEWEEK,
         use_api=False,
-        dbsession=None,
+        dbsession: Session | None = None,
     ):
         """
         Remove player from our list.
@@ -270,6 +272,7 @@ class Squad:
         team vs. his current price in the API (or if the API fails
         or use_api is False, the current price for that player in the database.)
         """
+        dbsession = dbsession if dbsession is not None else get_session()
         for p in self.players:
             if p.player_id == player_id:
                 if price:
@@ -299,12 +302,13 @@ class Squad:
         player,
         use_api=False,
         gameweek=NEXT_GAMEWEEK,
-        dbsession=None,
+        dbsession: Session | None = None,
         apifetcher=fetcher,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
+        dbsession = dbsession if dbsession is not None else get_session()
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
         player_id = player.player_id

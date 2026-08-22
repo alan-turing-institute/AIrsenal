@@ -5,9 +5,10 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 """
 
 from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import Session
 
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import Transaction
+from airsenal.framework.schema import Transaction, get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -15,7 +16,6 @@ from airsenal.framework.utils import (
     get_entry_start_gameweek,
     get_player_from_api_id,
     get_players_for_gameweek,
-    session,
 )
 
 logger = get_logger(__name__)
@@ -35,10 +35,11 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
     return 0
 
 
-def count_transactions(season, fpl_team_id, dbsession=session):
+def count_transactions(season, fpl_team_id, dbsession: Session | None = None):
     """Count the number of transactions we have in the database for a given team ID
     and season.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
 
@@ -62,11 +63,12 @@ def transaction_exists(
     price_out,
     pid_in,
     price_in,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """Check whether the transactions related to transferring a player in and out
     in a gameweek at a specific time already exist in the database.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     transaction_count = (
         dbsession.scalar(
             select(func.count(Transaction.id)).where(
@@ -112,11 +114,12 @@ def add_transaction(
     free_hit,
     fpl_team_id,
     time,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """
     add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     t = Transaction(
         player_id=player_id,
         gameweek=gameweek,
@@ -136,7 +139,7 @@ def fill_initial_squad(
     season=CURRENT_SEASON,
     tag="AIrsenal" + CURRENT_SEASON,
     fpl_team_id=None,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """
     Fill the Transactions table in the database with the initial 15 players, and their
@@ -144,6 +147,7 @@ def fill_initial_squad(
     players in our team) and the player history API endpoint (for their price in gw1).
     """
 
+    dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
     logger.info(
@@ -207,12 +211,13 @@ def update_squad(
     season=CURRENT_SEASON,
     tag="AIrsenal" + CURRENT_SEASON,
     fpl_team_id=None,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
     using the transfers API endpoint which has the correct buy and sell prices.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
         fpl_team_id = fetcher.FPL_TEAM_ID
     logger.info("Updating db with squad with fpl_team_id=%s", fpl_team_id)

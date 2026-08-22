@@ -9,7 +9,7 @@ from sqlalchemy.orm.session import Session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.output import get_logger, track
-from airsenal.framework.schema import Result, session
+from airsenal.framework.schema import Result, get_session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -135,11 +135,12 @@ def fill_results_from_api(
 
 
 def make_result_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """
     past seasons - read results from csv
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

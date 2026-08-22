@@ -10,7 +10,12 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.output import track
-from airsenal.framework.schema import Player, PlayerMapping, session, session_scope
+from airsenal.framework.schema import (
+    Player,
+    PlayerMapping,
+    get_session,
+    session_scope,
+)
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_player_mappings_table import (
@@ -104,11 +109,12 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
     dbsession.commit()
 
 
-def make_init_player_table(season: str, dbsession: Session = session) -> None:
+def make_init_player_table(season: str, dbsession: Session | None = None) -> None:
     """
     Fill the player table with the latest season of data (only, as then need to do
     mappings)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if season == CURRENT_SEASON:
         # current season - use API
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
@@ -125,12 +131,13 @@ def make_init_player_table(season: str, dbsession: Session = session) -> None:
 
 
 def make_remaining_player_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """
     Fill remaining players for subsequent seasons (AFTER players from the most recent
     season)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     for season in seasons:
@@ -146,8 +153,9 @@ def make_remaining_player_table(
 
 
 def make_player_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

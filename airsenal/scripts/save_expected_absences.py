@@ -17,8 +17,8 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import Fixture, PlayerAttributes
-from airsenal.framework.utils import CURRENT_SEASON, session
+from airsenal.framework.schema import Fixture, PlayerAttributes, get_session
+from airsenal.framework.utils import CURRENT_SEASON
 from airsenal.scripts.fill_absence_table import get_absences_path
 
 logger = get_logger(__name__)
@@ -199,7 +199,8 @@ def main() -> None:
     """
     main function, to be used as entrypoint.
     """
-    attributes = session.scalars(
+    dbsession = get_session()
+    attributes = dbsession.scalars(
         select(PlayerAttributes).where(
             PlayerAttributes.season == CURRENT_SEASON,
             PlayerAttributes.chance_of_playing_next_round.is_not(None),
@@ -207,5 +208,5 @@ def main() -> None:
         )
     ).all()
     logger.info("Found %s player absences.", len(attributes))
-    rows = [player_attribute_to_row(pa, session) for pa in attributes]
+    rows = [player_attribute_to_row(pa, dbsession) for pa in attributes]
     save_absences([r for r in rows if r is not None], CURRENT_SEASON)

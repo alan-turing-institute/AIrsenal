@@ -40,6 +40,7 @@ from airsenal.framework.schema import (
     PlayerAttributes,
     PlayerPrediction,
     PlayerScore,
+    get_session,
 )
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -54,7 +55,6 @@ from airsenal.framework.utils import (
     get_recent_minutes_for_player,
     is_future_gameweek,
     list_players,
-    session,
     was_historic_absence,
 )
 
@@ -75,11 +75,12 @@ def get_player_history_df(
     fill_blank=True,
     season=CURRENT_SEASON,
     gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """
     Fetch historical player performance data and build a structured DataFrame.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     col_names = [
         "player_id",
         "player_name",
@@ -195,19 +196,19 @@ def get_player_history_df(
                     (player.player_id, row.fixture.season), []
                 )
                 if ab.gw_until is not None
+                and row.fixture.gameweek is not None
                 and ab.gw_from < row.fixture.gameweek
                 and ab.gw_until > row.fixture.gameweek
             ]
-            absence_reason = (
-                [ab.reason for ab in matching_absences] if matching_absences else None
-            )
-            absence_detail = (
-                [ab.details for ab in matching_absences] if matching_absences else None
-            )
-            if absence_reason is not None and len(absence_reason) == 1:
-                absence_reason = absence_reason[0]
-            if absence_detail is not None and len(absence_detail) == 1:
-                absence_detail = absence_detail[0]
+            # A single absence is recorded as a scalar rather than a 1-element list,
+            # so the resulting dataframe column reads naturally.
+            absence_reason: str | list[str] | None = None
+            absence_detail: str | list[str | None] | None = None
+            if matching_absences:
+                reasons = [ab.reason for ab in matching_absences]
+                details = [ab.details for ab in matching_absences]
+                absence_reason = reasons[0] if len(reasons) == 1 else reasons
+                absence_detail = details[0] if len(details) == 1 else details
 
             player_data.append(
                 [
@@ -383,11 +384,12 @@ def calc_predicted_points_for_player(
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> list[PlayerPrediction]:
     """
     Calculate predicted total points for a single player across target gameweeks.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str | int):
         p = get_player(player, dbsession=dbsession)
         if p is None:
@@ -503,11 +505,12 @@ def calc_predicted_points_for_pos(
     gw_range: list[int],
     tag: str,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> dict[int, list[PlayerPrediction]]:
     """
     Calculate predicted points for all players in a specific position.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     df_player = {pos: fit_player_data(pos, season, min(gw_range), model, dbsession)}
     return {
         player.player_id: calc_predicted_points_for_player(
@@ -543,10 +546,11 @@ def make_prediction(
     return pp
 
 
-def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
+def fill_ep(csv_filename: str, dbsession: Session | None = None) -> None:
     """
     Fetch predicted points from the API and write to CSV and database.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if not os.path.exists(csv_filename):
         with open(csv_filename, "w") as outfile:
             outfile.write("player_id,gameweek,EP\n")
@@ -579,11 +583,12 @@ def process_player_data(
     prefix: str,
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> dict:
     """
     Process and structure historical player data for model fitting.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_history_df(
         prefix, season=season, gameweek=gameweek, dbsession=dbsession
     )
@@ -661,13 +666,14 @@ def fit_player_data(
     season: str,
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> pd.DataFrame:
     """
     Fit the player model for a given position and return calculated probabilities.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
         model = ConjugatePlayerModel()
 
@@ -689,13 +695,14 @@ def get_all_fitted_player_data(
     season: str,
     gameweek: int,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
 ) -> dict[str, pd.DataFrame]:
     """
     Fit player models for all positions (GK, DEF, MID, FWD).
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     return {
         pos: fit_player_data(
             pos,
@@ -716,11 +723,12 @@ def get_player_scores(
     min_minutes: int = 0,
     max_minutes: int = MAX_MINUTES_MATCH,
     position: str | None = None,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """
     Query player scores filtered by played minutes and position.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     query = (
         select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
         .where(PlayerScore.minutes >= min_minutes)
@@ -776,11 +784,13 @@ def fit_bonus_points(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """
     Fit bonus points model using historical player scores.
     """
+
+    dbsession = dbsession if dbsession is not None else get_session()
 
     def get_bonus_df(min_minutes, max_minutes):
         df = get_player_scores(
@@ -805,11 +815,12 @@ def fit_save_points(
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     min_minutes: int = MAX_MINUTES_MATCH,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> pd.Series:
     """
     Fit goalkeeper save points model using historical player scores.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
     )
@@ -824,11 +835,12 @@ def fit_card_points(
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     min_minutes: int = 1,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> pd.Series:
     """
     Fit card penalty points model using historical player scores.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
     )
@@ -847,11 +859,13 @@ def fit_def_con(
     gameweek: int = NEXT_GAMEWEEK,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """
     Fit defensive contribution points model across positions.
     """
+
+    dbsession = dbsession if dbsession is not None else get_session()
 
     def get_def_con_df(min_minutes, max_minutes):
         dfs = []

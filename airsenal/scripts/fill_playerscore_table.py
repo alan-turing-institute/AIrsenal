@@ -20,7 +20,7 @@ from airsenal.framework.schema import (
     Fixture,
     Player,
     PlayerScore,
-    session,
+    get_session,
     session_scope,
 )
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
@@ -160,12 +160,13 @@ def get_status_from_attributes_history(
     player: Player,
     fixture: Fixture,
     player_attributes: pd.DataFrame,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> tuple[str | None, int | None]:
     """
     Get the player's news and chance_of_playing from their attributes history
     as of the morning of the fixture kickoff time.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     matchday = parse_date(fixture.date)
     news, chance_of_playing = _get_availability_on_date(
         matchday, player, player_attributes
@@ -192,9 +193,10 @@ def get_status_from_attributes_history(
 
 
 def fill_playerscores_from_json(
-    detail_data: list, season: str, dbsession: Session = session
+    detail_data: list, season: str, dbsession: Session | None = None
 ) -> None:
     # Get column metadata once for efficiency
+    dbsession = dbsession if dbsession is not None else get_session()
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key
@@ -302,8 +304,9 @@ def fill_playerscores_from_api(
     season: str,
     gw_start: int = 1,
     gw_end: int = NEXT_GAMEWEEK,
-    dbsession: Session = session,
+    dbsession: Session | None = None,
 ) -> None:
+    dbsession = dbsession if dbsession is not None else get_session()
     # Get column metadata once for efficiency
     if get_last_finished_gameweek() == 0:
         logger.info(
@@ -436,9 +439,10 @@ def fill_playerscores_from_api(
 
 
 def make_playerscore_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     # previous seasons data from json files
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

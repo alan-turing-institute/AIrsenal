@@ -4,8 +4,10 @@ Class for a player in FPL
 
 import uuid
 
+from sqlalchemy.orm import Session
+
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import Player
+from airsenal.framework.schema import Player, get_session
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -27,11 +29,12 @@ class CandidatePlayer:
         season=CURRENT_SEASON,
         gameweek=NEXT_GAMEWEEK,
         purchase_price: int | None = None,
-        dbsession=None,
+        dbsession: Session | None = None,
     ):
         """
         initialize either by name or by ID
         """
+        dbsession = dbsession if dbsession is not None else get_session()
         self.dbsession = dbsession
         if isinstance(player, Player):
             pdata = player

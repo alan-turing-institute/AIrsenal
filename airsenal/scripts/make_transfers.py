@@ -10,6 +10,7 @@ https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
 from airsenal.framework.output import console, get_logger, table
+from airsenal.framework.schema import get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -17,7 +18,6 @@ from airsenal.framework.utils import (
     get_player,
     get_player_from_api_id,
 )
-from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
 
 """
@@ -107,7 +107,7 @@ def get_gw_transfer_suggestions(
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
-        dbsession,
+        get_session(),
         gameweek=NEXT_GAMEWEEK,
         season=CURRENT_SEASON,
         fpl_team_id=fpl_team_id,
@@ -267,7 +267,7 @@ def build_init_priced_transfers(
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad.values()
     ]
-    transfer_in_suggestions = get_transfer_suggestions(dbsession)
+    transfer_in_suggestions = get_transfer_suggestions(get_session())
     if len(transfers_out) != len(transfer_in_suggestions):
         msg = (
             "Number of transfers in and out don't match: "

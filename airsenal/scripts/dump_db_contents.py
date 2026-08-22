@@ -17,8 +17,8 @@ from airsenal.framework.schema import (
     Result,
     Team,
     Transaction,
+    get_session,
 )
-from airsenal.framework.utils import session
 
 logger = get_logger(__name__)
 
@@ -190,7 +190,7 @@ def write_rows_to_csv(csvfile, fieldnames, dbclass):
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     logger.info("Writing table %s", dbclass)
-    for player in session.scalars(select(dbclass)).all():
+    for player in get_session().scalars(select(dbclass)).all():
         player_dict = vars(player)
         row = {
             field: player_dict[field]

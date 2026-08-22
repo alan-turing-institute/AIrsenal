@@ -5,8 +5,8 @@ query the transfer suggestion table and print the suggested strategy
 from sqlalchemy import select
 
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import TransferSuggestion
-from airsenal.framework.utils import get_player_name, session
+from airsenal.framework.schema import TransferSuggestion, get_session
+from airsenal.framework.utils import get_player_name
 
 logger = get_logger(__name__)
 
@@ -52,7 +52,7 @@ def build_strategy_string(rows):
 
 
 if __name__ == "__main__":
-    rows = get_transfer_suggestions(session)
+    rows = get_transfer_suggestions(get_session())
     if rows:
         output_string = build_strategy_string(rows)
         logger.info(output_string)

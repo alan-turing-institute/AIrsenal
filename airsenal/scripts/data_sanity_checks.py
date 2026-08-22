@@ -2,14 +2,13 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import get_logger
-from airsenal.framework.schema import PlayerScore
+from airsenal.framework.schema import PlayerScore, get_session
 from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_fixtures_for_season,
     get_past_seasons,
     get_player_scores,
-    session,
 )
 
 logger = get_logger(__name__)
@@ -29,13 +28,14 @@ def result_string(n_error: int) -> str:
 
 
 def season_num_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check whether each season has 20 teams.
 
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 20 teams...")
     n_error = 0
     for season in seasons:
@@ -51,13 +51,14 @@ def season_num_teams(
 
 
 def season_num_new_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check each season has 3 new teams.
 
     Keyword Arguments:
         seasons {list} -- seasons to check (default: {CHECK_SEASONS})
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 3 new teams...")
     n_error = 0
 
@@ -78,7 +79,7 @@ def season_num_new_teams(
 
 
 def season_num_fixtures(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check each season has 380 fixtures.
 
@@ -87,6 +88,7 @@ def season_num_fixtures(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 380 fixtures...")
     n_error = 0
 
@@ -105,7 +107,7 @@ def season_num_fixtures(
 
 
 def fixture_player_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check players who played in a match are labelled as playing for either
     the home team or the away team.
@@ -115,6 +117,7 @@ def fixture_player_teams(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking player teams match fixture teams...")
     n_error = 0
 
@@ -147,7 +150,7 @@ def fixture_player_teams(
 
 
 def fixture_num_players(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check each fixture has between 11 and 14 players  with at least 1 minute
     in player_scores. For season 19/20 it can be up to 16 players.
@@ -157,6 +160,7 @@ def fixture_num_players(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info(
         "Checking 11 to 14 players play per team in each fixture...\n"
         "Note:\n"
@@ -223,7 +227,7 @@ def fixture_num_players(
 
 
 def fixture_num_goals(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check individual player goals sum to match result for each fixture.
 
@@ -232,6 +236,7 @@ def fixture_num_goals(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking sum of player goals equals match results...")
     n_error = 0
 
@@ -285,7 +290,7 @@ def fixture_num_goals(
 
 
 def fixture_num_assists(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check number of assists is less than or equal to number of goals
     for home and away team in each fixture.
@@ -297,6 +302,7 @@ def fixture_num_assists(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. assists less than or equal to no. goals...")
     n_error = 0
 
@@ -344,7 +350,7 @@ def fixture_num_assists(
 
 
 def fixture_num_conceded(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session = session
+    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """Check number of goals concdeded equals goals scored by opposition if
     player played whole match (90 minutes).
@@ -356,6 +362,7 @@ def fixture_num_conceded(
         session {SQLAlchemy session} -- DB session (default:
         airsenal.framework.schema.session)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. goals conceded matches goals scored by opponent...")
     n_error = 0
 

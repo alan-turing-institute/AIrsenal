@@ -8,15 +8,16 @@ import os
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import track
-from airsenal.framework.schema import Team, session, session_scope
+from airsenal.framework.schema import Team, get_session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
 
 
-def fill_team_table_from_file(filename: str, dbsession: Session = session) -> None:
+def fill_team_table_from_file(filename: str, dbsession: Session | None = None) -> None:
     """
     use csv file
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     with open(filename) as infile:
         first_line = True
         for line in infile.readlines():
@@ -31,12 +32,13 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
 
 
 def make_team_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """
     Fill the db table containing the list of teams in the
     league for each season.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

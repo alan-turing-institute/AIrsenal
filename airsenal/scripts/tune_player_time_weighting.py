@@ -11,7 +11,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import get_logger, track
 from airsenal.framework.prediction_utils import get_all_fitted_player_data
-from airsenal.framework.schema import Fixture, PlayerScore, session
+from airsenal.framework.schema import Fixture, PlayerScore, get_session
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
     get_max_gameweek,
@@ -271,7 +271,7 @@ def main() -> None:
                 n_goals_prior=n_goals_prior,
                 seasons=args.seasons,
                 horizon=args.horizon,
-                dbsession=session,
+                dbsession=get_session(),
                 first_gw=args.first_gw,
                 last_gw=args.last_gw,
             )

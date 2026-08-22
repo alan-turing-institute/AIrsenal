@@ -10,7 +10,11 @@ from sqlalchemy.orm.session import Session
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
 from airsenal.framework.output import get_logger, track
-from airsenal.framework.schema import PlayerAttributes, session, session_scope
+from airsenal.framework.schema import (
+    PlayerAttributes,
+    get_session,
+    session_scope,
+)
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     find_fixture,
@@ -28,12 +32,13 @@ logger = get_logger(__name__)
 
 
 def fill_attributes_table_from_file(
-    detail_data: dict, season: str, dbsession: Session = session
+    detail_data: dict, season: str, dbsession: Session | None = None
 ) -> None:
     """Fill player attributes table for previous season using data from
     player detail JSON files.
     """
 
+    dbsession = dbsession if dbsession is not None else get_session()
     for player_name_or_id, player_data in track(
         detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
     ):
@@ -89,11 +94,12 @@ def fill_attributes_table_from_file(
 
 
 def fill_attributes_table_from_api(
-    season: str, gw_start: int = 1, dbsession: Session = session
+    season: str, gw_start: int = 1, dbsession: Session | None = None
 ) -> None:
     """
     use the FPL API to get player attributes info for the current season
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     fetcher = FPLDataFetcher()
     next_gw = get_next_gameweek(season=season, dbsession=dbsession)
 
@@ -242,11 +248,12 @@ def fill_attributes_table_from_api(
 
 
 def make_attributes_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """Create the player attributes table using the previous 3 seasons (from
     player details JSON files) and the current season (from API)
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:

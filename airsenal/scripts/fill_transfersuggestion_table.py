@@ -27,6 +27,7 @@ import regex as re
 import requests
 from rich.panel import Panel
 from rich.text import Text
+from sqlalchemy.orm import Session
 
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
@@ -53,7 +54,7 @@ from airsenal.framework.output import (
     progress_bar,
     table,
 )
-from airsenal.framework.schema import session
+from airsenal.framework.schema import get_session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -316,7 +317,7 @@ def print_optimization_summary(
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     use_api: bool = False,
-    dbsession=session,
+    dbsession: Session | None = None,
 ) -> None:
     """
     Rich-formatted summary of an optimisation result: total score, the
@@ -324,6 +325,7 @@ def print_optimization_summary(
     the transfers in/out (with purchase/sale prices), and the resulting
     bank balance.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     gameweeks_as_str = strat["points_per_gw"].keys()
     gameweeks_as_int = sorted(int(gw) for gw in gameweeks_as_str)
     first_gw, last_gw = gameweeks_as_int[0], gameweeks_as_int[-1]

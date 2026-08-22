@@ -7,6 +7,7 @@ from datetime import datetime
 
 from curl_cffi import requests
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from airsenal.framework.output import get_logger
 from airsenal.framework.schema import (
@@ -14,6 +15,7 @@ from airsenal.framework.schema import (
     PlayerPrediction,
     Transaction,
     TransferSuggestion,
+    get_session,
 )
 from airsenal.framework.squad import Squad, get_current_squad_from_api
 from airsenal.framework.transaction_utils import add_transaction
@@ -22,7 +24,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     fetcher,
     get_player,
-    session,
 )
 
 logger = get_logger(__name__)
@@ -33,9 +34,12 @@ DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 
 
-def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
+def check_tag_valid(
+    pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession: Session | None = None
+):
     """Check a prediction tag contains predictions for all the specified gameweeks."""
     # get unique gameweek and season values associated with pred_tag
+    dbsession = dbsession if dbsession is not None else get_session()
     fixtures = dbsession.execute(
         select(Fixture.season, Fixture.gameweek)
         .join(PlayerPrediction)
@@ -107,6 +111,7 @@ def get_starting_squad(
     fpl_team_id=None,
     use_api=False,
     apifetcher=fetcher,
+    dbsession: Session | None = None,
 ):
     """
     use the transactions table in the db, or the API if requested
@@ -132,13 +137,16 @@ def get_starting_squad(
             )
 
     # otherwise, we use the Transaction table in the DB
-    return get_squad_from_transactions(next_gw, season, fpl_team_id)
+    return get_squad_from_transactions(next_gw, season, fpl_team_id, dbsession)
 
 
-def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=None):
+def get_squad_from_transactions(
+    gameweek, season=CURRENT_SEASON, fpl_team_id=None, dbsession: Session | None = None
+):
+    dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
         # use the most recent transaction in the table
-        most_recent = session.scalars(
+        most_recent = dbsession.scalars(
             select(Transaction)
             .where(Transaction.free_hit == 0, Transaction.season == season)
             .order_by(Transaction.id.desc())
@@ -152,7 +160,7 @@ def get_squad_from_transactions(gameweek, season=CURRENT_SEASON, fpl_team_id=Non
 
     # Don't include free hit transfers as they only apply for the week the
     # chip is activated
-    transactions = session.scalars(
+    transactions = dbsession.scalars(
         select(Transaction)
         .where(
             Transaction.fpl_team_id == fpl_team_id,
@@ -244,10 +252,13 @@ def get_baseline_strat(squad, gameweeks, tag, root_gw=None):
     return strat_dict
 
 
-def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
+def fill_suggestion_table(
+    baseline_score, best_strat, season, fpl_team_id, dbsession: Session | None = None
+):
     """
     Fill the optimized strategy into the table
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
     best_score = best_strat["total_score"]
 
@@ -264,12 +275,17 @@ def fill_suggestion_table(baseline_score, best_strat, season, fpl_team_id):
                 ts.season = season
                 ts.fpl_team_id = fpl_team_id
                 ts.chip_played = best_strat["chips_played"][gameweek]
-                session.add(ts)
-    session.commit()
+                dbsession.add(ts)
+    dbsession.commit()
 
 
 def fill_transaction_table(
-    starting_squad, best_strat, season, fpl_team_id, tag=None, dbsession=session
+    starting_squad,
+    best_strat,
+    season,
+    fpl_team_id,
+    tag=None,
+    dbsession: Session | None = None,
 ):
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
@@ -278,6 +294,7 @@ def fill_transaction_table(
     table - it's assumed the strategy will be re-optimised after each week rather than
     sticking with the originally proposed future transfers.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     strat_gws = [int(gw) for gw in best_strat["players_in"]]
     fill_gw = min(strat_gws)
     if tag is None:
@@ -325,11 +342,12 @@ def fill_initial_suggestion_table(
     tag,
     season=CURRENT_SEASON,
     gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """
     Fill an initial squad into the table
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
     score = squad.get_expected_points(gameweek, tag)
     for player in squad.players:
@@ -352,12 +370,13 @@ def fill_initial_transaction_table(
     tag,
     season=CURRENT_SEASON,
     gameweek=NEXT_GAMEWEEK,
-    dbsession=session,
+    dbsession: Session | None = None,
 ):
     """Add transactions from an initial squad optimisation to the transactions table
     in the database. Used for simulating seasons only, for playing the current FPL
     season the transactions status is kepts up to date with transfers using the FPL API.
     """
+    dbsession = dbsession if dbsession is not None else get_session()
     free_hit = 0
     time = datetime.now().isoformat()
     for player in squad.players:

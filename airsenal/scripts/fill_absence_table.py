@@ -5,7 +5,7 @@ import pandas as pd
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.output import get_logger, track
-from airsenal.framework.schema import Absence, session
+from airsenal.framework.schema import Absence, get_session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
     get_gameweek_by_date,
@@ -89,8 +89,9 @@ def load_absences(season: str, dbsession: Session, path: str | None = None) -> N
 
 
 def make_absence_table(
-    seasons: list[str] | None = None, dbsession: Session = session
+    seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
+    dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []
     if not seasons:
