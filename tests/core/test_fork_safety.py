@@ -10,6 +10,8 @@ with the progress bar frozen part-way.
 
 import multiprocessing
 import os
+import subprocess
+import sys
 import threading
 import traceback
 
@@ -97,3 +99,88 @@ def test_reset_engine_after_fork_drops_the_inherited_session() -> None:
     assert _db.default_session is not None
     _reset_engine_after_fork()
     assert _db.default_session is None
+
+
+# Run out of process: the test needs to wedge sys.stdout, and pytest's capture
+# replaces it with an object that has no BufferedWriter to wedge. Raw os.fork()
+# rather than multiprocessing, because multiprocessing flushes the std streams
+# before forking and would itself block on the lock under test.
+_STDOUT_LOCK_PROBE = """
+import os, sys, threading, time
+
+if {fix}:
+    from airsenal.core.console import _reset_console_after_fork
+
+pipe_r, pipe_w = os.pipe()
+result_r, result_w = os.pipe()
+os.dup2(pipe_w, 1)
+sys.stdout = os.fdopen(1, "w")
+
+started = threading.Event()
+
+
+def hog():
+    started.set()
+    sys.stdout.write("x" * (4 * 1024 * 1024))   # pipe fills: blocks, lock held
+    sys.stdout.flush()
+
+
+threading.Thread(target=hog, daemon=True).start()
+started.wait(5)
+time.sleep(1)
+
+pid = os.fork()
+if pid == 0:
+    if {fix}:
+        _reset_console_after_fork()
+    sys.stdout.write("child\\n")
+    sys.stdout.flush()
+    os.write(result_w, b"wrote")
+    os._exit(0)
+
+# unblock the pipe only now, so a hung child can only be hung on the lock
+threading.Thread(
+    target=lambda: [None for _ in iter(lambda: os.read(pipe_r, 65536), b"")],
+    daemon=True,
+).start()
+
+os.set_blocking(result_r, False)
+answer = b""
+deadline = time.time() + 20
+while time.time() < deadline and not answer:
+    try:
+        answer = os.read(result_r, 64)
+    except BlockingIOError:
+        time.sleep(0.1)
+
+os.write(2, answer or b"HUNG")
+os.kill(pid, 9)
+os._exit(0)
+"""
+
+
+def _run_stdout_lock_probe(*, fix: bool) -> str:
+    finished = subprocess.run(
+        [sys.executable, "-c", _STDOUT_LOCK_PROBE.format(fix=fix)],
+        capture_output=True,
+        timeout=90,
+        check=False,
+    )
+    return finished.stderr.decode()[-16:]
+
+
+def test_forked_child_can_write_while_stdout_is_being_written_to() -> None:
+    """The lock below Rich's: CPython's own, which fork does not sanitise.
+
+    Rich holds `console._lock` across the write to the terminal, and that write
+    takes `sys.stdout`'s BufferedWriter lock. A child forked in that window
+    inherits a locked buffer whose owner thread it does not have, and wedges on
+    its first line of output.
+    """
+    assert _run_stdout_lock_probe(fix=True).endswith("wrote")
+
+
+@pytest.mark.slow
+def test_the_stdout_lock_probe_would_catch_a_regression() -> None:
+    """Guard the guard: without the reset the same child hangs."""
+    assert _run_stdout_lock_probe(fix=False).endswith("HUNG")

@@ -106,8 +106,9 @@ def optimize(
     watchdog.start()
 
     while True:
+        watchdog.idle()
         status = queue.get()
-        watchdog.mark()
+        watchdog.busy()
         if status is None:
             break
 

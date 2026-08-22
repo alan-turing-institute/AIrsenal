@@ -133,6 +133,10 @@ class StallWatchdog:
     wedged on the console lock, logging is exactly what would wedge the
     watchdog too; the file is written first and stands on its own.
 
+    Only time spent *working* counts. A worker waiting on an empty queue has
+    not stalled - that is most of them, most of the way through a run, and
+    treating it as a stall would bury the one dump that matters.
+
     Parameters
     ----------
     name : str
@@ -153,23 +157,34 @@ class StallWatchdog:
         self.name = name
         self.seconds = seconds if seconds is not None else stall_seconds()
         self.directory = directory if directory is not None else stall_dump_dir()
-        self._last = time.monotonic()
+        # None means idle - waiting for work rather than doing it.
+        self._started: float | None = None
         self._dumped = False
         self._lock = threading.Lock()
 
-    def mark(self) -> None:
-        """Record that progress has been made, i.e. a task started or finished."""
+    def busy(self) -> None:
+        """Record that a task has just started, and start the clock."""
         with self._lock:
-            self._last = time.monotonic()
+            self._started = time.monotonic()
+            self._dumped = False
+
+    def idle(self) -> None:
+        """Record that there is nothing to do, and stop the clock."""
+        with self._lock:
+            self._started = None
             self._dumped = False
 
     def _stalled_for(self) -> float:
         with self._lock:
-            return time.monotonic() - self._last
+            if self._started is None:
+                return 0.0
+            return time.monotonic() - self._started
 
     def _should_dump(self) -> bool:
         with self._lock:
-            if self._dumped or time.monotonic() - self._last < self.seconds:
+            if self._started is None or self._dumped:
+                return False
+            if time.monotonic() - self._started < self.seconds:
                 return False
             self._dumped = True
             return True
@@ -180,8 +195,8 @@ class StallWatchdog:
         path = self.directory / f"stalled_{self.name}_{os.getpid()}.txt"
         with path.open("w") as dump_file:
             dump_file.write(
-                f"{self.name} (pid {os.getpid()}) made no progress for "
-                f"{self._stalled_for():.0f}s\n\n"
+                f"{self.name} (pid {os.getpid()}) spent {self._stalled_for():.0f}s "
+                f"on a single task\n\n"
             )
             faulthandler.dump_traceback(file=dump_file, all_threads=True)
         return path

@@ -1,10 +1,12 @@
 """Rich console, tables and progress bars: everything that renders."""
 
+import io
 import os
+import sys
 import threading
 from collections.abc import Generator, Iterable, Iterator
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, TextIO
 
 from rich.console import Console
 from rich.progress import (
@@ -21,21 +23,46 @@ from rich.table import Table
 console = Console()
 
 
+def _fresh_stream(stream: TextIO) -> TextIO:
+    """A new writer onto the same destination, with its own lock and buffer.
+
+    `os.dup` gives a second descriptor for the same open file, so output still
+    lands on the same terminal; what is *not* shared is the Python-level
+    `BufferedWriter` and the lock inside it.
+    """
+    return io.TextIOWrapper(
+        io.FileIO(os.dup(stream.fileno()), "w", closefd=True),
+        encoding=stream.encoding,
+        errors=stream.errors,
+        line_buffering=True,
+    )
+
+
 def _reset_console_after_fork() -> None:
-    """Give a forked child its own console state.
+    """Give a forked child its own console, and its own way of writing.
 
-    A Rich `Live` display (a progress bar, or `console.status`) refreshes on a
-    background thread that holds `console._lock` while it renders. Fork while it
-    holds the lock and the child inherits a locked lock whose owner thread does
-    not exist there, so the child blocks forever the first time it logs - which
-    every transfer-optimisation worker does. The parent is none the wiser: the
-    worker is still alive, so nothing raises, and the run hangs with the
-    progress bar frozen part-way.
+    Two locks are inherited by a child that forks while the terminal is being
+    written to, and either one wedges it permanently, because the thread that
+    held the lock does not exist on the other side of the fork:
 
-    `logging` reinitialises its own handler locks at fork for exactly this
-    reason; Rich does not, so do it here. The live stack and render hooks are
-    dropped too: they describe a display the parent owns, and a child that
-    tried to redraw it would garble the shared terminal.
+    1. `console._lock`, held by a Rich `Live` display (a progress bar, or
+       `console.status`) for the whole of a refresh.
+    2. The lock inside `sys.stdout`'s `BufferedWriter`, held for the actual
+       write - which Rich performs while holding the lock above, and which is
+       slow, because it is a write to a terminal. CPython has never sanitised
+       its io locks across fork (python/cpython#50970), so this one is the
+       wider window of the two by far.
+
+    Both are silent: the worker stays alive, so nothing raises, and the run
+    stops with the progress bar frozen part-way. `logging` reinitialises its
+    own handler locks at fork for exactly this reason; nothing reinitialises
+    these, so do it here.
+
+    The live stack and render hooks are dropped too: they describe a display
+    the parent owns, and a child that tried to redraw it would garble the
+    shared terminal. Discarding the inherited output buffer is deliberate for
+    the same reason - it holds bytes the parent has not written yet, and the
+    parent will write them itself.
     """
     console._lock = threading.RLock()
     console._record_buffer_lock = threading.RLock()
@@ -43,6 +70,17 @@ def _reset_console_after_fork() -> None:
     console._buffer_index = 0
     console._live_stack.clear()
     console._render_hooks.clear()
+
+    # console.file follows sys.stdout unless one was passed explicitly, so
+    # replacing the interpreter's streams is enough for Rich as well.
+    for name in ("stdout", "stderr"):
+        stream = getattr(sys, name)
+        try:
+            setattr(sys, name, _fresh_stream(stream))
+        except (AttributeError, OSError, ValueError):
+            # No real file underneath - pytest's capture, say. Nothing to fix:
+            # such a stream is not the inherited BufferedWriter either.
+            continue
 
 
 if hasattr(os, "register_at_fork"):  # pragma: no branch - posix only
