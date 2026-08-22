@@ -7,11 +7,11 @@ variable, or a file named FPL_TEAM_ID in airsenal/data/
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Transaction, get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    fetcher,
     get_entry_start_gameweek,
     get_player_from_api_id,
     get_players_for_gameweek,
@@ -24,8 +24,8 @@ logger = get_logger(__name__)
 def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
     """Use FPL API to determine whether a chip was played in the given gameweek"""
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
-    fpl_team_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
+    fpl_team_data = get_fetcher().get_fpl_team_data(gameweek, fpl_team_id)
     if (
         fpl_team_data
         and "active_chip" in fpl_team_data
@@ -41,7 +41,7 @@ def count_transactions(season, fpl_team_id, dbsession: Session | None = None):
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if fpl_team_id is None:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
 
     return (
         dbsession.scalar(
@@ -149,7 +149,7 @@ def fill_initial_squad(
 
     dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     logger.info(
         "Getting initially selected players in squad %s for first gameweek...",
         fpl_team_id,
@@ -171,10 +171,12 @@ def fill_initial_squad(
 
     init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
     free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
-    time = fetcher.get_event_data()[starting_gw]["deadline"]
+    time = get_fetcher().get_event_data()[starting_gw]["deadline"]
     for player in init_players:
         player_api_id = player.fpl_api_id
-        first_gw_data = fetcher.get_gameweek_data_for_player(player_api_id, starting_gw)
+        first_gw_data = get_fetcher().get_gameweek_data_for_player(
+            player_api_id, starting_gw
+        )
 
         if len(first_gw_data) == 0:
             # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
@@ -184,7 +186,7 @@ def fill_initial_squad(
                 "Using current data to determine starting price for player %s",
                 player_api_id,
             )
-            pdata = fetcher.get_player_summary_data()[player_api_id]
+            pdata = get_fetcher().get_player_summary_data()[player_api_id]
             price = pdata["now_cost"] - pdata["cost_change_start"]
         else:
             price = first_gw_data[0]["value"]
@@ -219,7 +221,7 @@ def update_squad(
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     logger.info("Updating db with squad with fpl_team_id=%s", fpl_team_id)
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = dbsession.scalars(
@@ -234,7 +236,7 @@ def update_squad(
             season=season, tag=tag, fpl_team_id=fpl_team_id, dbsession=dbsession
         )
     # now update with transfers
-    transfers = fetcher.get_fpl_transfer_data(fpl_team_id)
+    transfers = get_fetcher().get_fpl_transfer_data(fpl_team_id)
     for transfer in transfers:
         gameweek = transfer["event"]
         api_pid_out = transfer["element_out"]

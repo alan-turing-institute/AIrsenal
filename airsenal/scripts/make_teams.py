@@ -2,8 +2,9 @@ import os
 
 import pandas as pd
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.output import get_logger
-from airsenal.framework.utils import CURRENT_SEASON, fetcher
+from airsenal.framework.utils import CURRENT_SEASON
 
 SCRIPT_DIR = os.path.dirname(__file__)
 
@@ -11,7 +12,7 @@ logger = get_logger(__name__)
 
 
 def main():
-    data = fetcher.get_current_summary_data()
+    data = get_fetcher().get_current_summary_data()
     teams = pd.DataFrame(data["teams"])
 
     teams = teams[["short_name", "name", "id"]]

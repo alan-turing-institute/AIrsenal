@@ -15,6 +15,7 @@ import re
 import secrets
 import time
 import uuid
+from functools import cache
 
 from curl_cffi import requests
 
@@ -670,3 +671,16 @@ class FPLDataFetcher:
         except requests.exceptions.HTTPError as e:
             msg = f"{err_msg}: {e} {resp.text}"
             raise requests.exceptions.HTTPError(msg) from e
+
+
+@cache
+def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
+    """
+    The shared FPL API client, created on first use.
+
+    Cached so that callers keep hitting the same instance and therefore the same
+    response cache; a fresh FPLDataFetcher would re-request everything. This lives
+    here rather than in utils so that lower layers can reach the client without
+    importing utils, which is what made utils the package's import chokepoint.
+    """
+    return FPLDataFetcher(fpl_team_id)

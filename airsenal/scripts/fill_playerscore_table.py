@@ -14,7 +14,7 @@ from curl_cffi import requests
 from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher, get_fetcher
 from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import (
     Fixture,
@@ -306,7 +306,7 @@ def fill_playerscores_from_api(
     gw_end: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
-    gw_end = next_gameweek() if gw_end is None else gw_end
+    gw_end = next_gameweek(fetcher=get_fetcher()) if gw_end is None else gw_end
     dbsession = dbsession if dbsession is not None else get_session()
     # Get column metadata once for efficiency
     if get_last_finished_gameweek() == 0:

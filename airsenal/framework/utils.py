@@ -18,7 +18,7 @@ from sqlalchemy import case, or_, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher, get_fetcher
 from airsenal.framework.output import console, get_logger, table
 from airsenal.framework.schema import (
     Absence,
@@ -35,8 +35,6 @@ from airsenal.framework.schema import (
 from airsenal.framework.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
-
-fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
 class NoFixtureDataError(RuntimeError):
@@ -72,7 +70,7 @@ def get_next_gameweek(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
     *,
-    apifetcher: FPLDataFetcher | None = None,
+    fetcher: FPLDataFetcher | None = None,
 ) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
@@ -84,7 +82,7 @@ def get_next_gameweek(
     ==========
     season: str
     dbsession: Session or None
-    apifetcher: FPLDataFetcher or None
+    fetcher: FPLDataFetcher or None
         Only consulted when the database holds no fixtures for the season, which
         happens when the database has not been populated yet. If it is None in that
         situation, NoFixtureDataError is raised rather than an HTTP request made.
@@ -92,7 +90,7 @@ def get_next_gameweek(
     Raises
     ======
     NoFixtureDataError
-        The database has no fixtures for the season and no apifetcher was given.
+        The database has no fixtures for the season and no fetcher was given.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     timenow = datetime.now(timezone.utc)
@@ -123,14 +121,14 @@ def get_next_gameweek(
         # back to the API has to be asked for explicitly: it used to happen
         # implicitly, which meant merely importing this module could make an HTTP
         # request, and made the test suite impossible to run offline.
-        if apifetcher is None:
+        if fetcher is None:
             msg = (
                 f"No fixtures in the database for {season}, so the next gameweek "
                 "cannot be determined. Populate the database with 'airsenal db "
-                "create', or pass apifetcher to look it up from the FPL API."
+                "create', or pass fetcher to look it up from the FPL API."
             )
             raise NoFixtureDataError(msg)
-        fixture_data = apifetcher.get_fixture_data()
+        fixture_data = fetcher.get_fixture_data()
 
         if len(fixture_data) == 0:
             # if no fixtures scheduled assume this is start of season before
@@ -286,11 +284,11 @@ class _GameweekCache:
         self,
         season: str,
         dbsession: Session | None,
-        apifetcher: FPLDataFetcher | None,
+        fetcher: FPLDataFetcher | None,
     ) -> int:
         if season not in self._by_season:
             self._by_season[season] = get_next_gameweek(
-                season, dbsession, apifetcher=apifetcher
+                season, dbsession, fetcher=fetcher
             )
         return self._by_season[season]
 
@@ -308,15 +306,15 @@ def next_gameweek(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
     *,
-    apifetcher: FPLDataFetcher | None = None,
+    fetcher: FPLDataFetcher | None = None,
 ) -> int:
     """
     The next gameweek of a season, computed once per process.
 
     Replaces the former NEXT_GAMEWEEK module constant. See `get_next_gameweek` for the
-    uncached computation and for when `apifetcher` is needed.
+    uncached computation and for when `fetcher` is needed.
     """
-    return _gameweek_cache.get(season, dbsession, apifetcher)
+    return _gameweek_cache.get(season, dbsession, fetcher)
 
 
 def set_next_gameweek(gameweek: int, season: str = CURRENT_SEASON) -> None:
@@ -404,7 +402,7 @@ def get_current_players(
     If gameweek is None, get team for next gameweek.
     """
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     if not season:
         season = CURRENT_SEASON
     dbsession = dbsession if dbsession is not None else get_session()
@@ -438,7 +436,7 @@ def get_bank(
     fpl_team_id: int | None = None,
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
-    apifetcher: FPLDataFetcher = fetcher,
+    fetcher: FPLDataFetcher | None = None,
 ) -> float:
     """
     Find out how much this FPL team had in the bank before the specified gameweek.
@@ -446,15 +444,16 @@ def get_bank(
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     if season != CURRENT_SEASON:
         msg = "Calculating the bank for past seasons not yet implemented"
         raise RuntimeError(msg)
 
     if not fpl_team_id:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     # check if we're logged in, which will let us get the most up-to-date info
     try:
-        return apifetcher.get_current_bank(fpl_team_id)
+        return fetcher.get_current_bank(fpl_team_id)
     except requests.exceptions.RequestException:
         logger.warning(
             "Failed to get actual bank from a logged in API. "
@@ -462,7 +461,7 @@ def get_bank(
             "not include any transfers made in the current gameweek.",
             exc_info=True,
         )
-        data = apifetcher.get_fpl_team_history_data(fpl_team_id)
+        data = fetcher.get_fpl_team_history_data(fpl_team_id)
         if "current" not in data or len(data["current"]) <= 0:
             return 0
 
@@ -475,18 +474,17 @@ def get_bank(
 
 
 def get_entry_start_gameweek(
-    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher
+    fpl_team_id: int, fetcher: FPLDataFetcher | None = None
 ) -> int:
     """
     Find the gameweek an FPL team ID was entered in by searching for the first gameweek
     the API has 'picks' for.
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     starting_gw = 1
     while starting_gw < next_gameweek():
         try:
-            if get_players_for_gameweek(
-                starting_gw, fpl_team_id, apifetcher=apifetcher
-            ):
+            if get_players_for_gameweek(starting_gw, fpl_team_id, fetcher=fetcher):
                 return starting_gw
             starting_gw += 1
         except requests.exceptions.HTTPError:
@@ -510,7 +508,7 @@ def get_free_transfers(
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
-    apifetcher: FPLDataFetcher = fetcher,
+    fetcher: FPLDataFetcher | None = None,
     is_replay: bool = False,
 ) -> int:
     """
@@ -519,11 +517,12 @@ def get_free_transfers(
     If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
     the contents of the file airsenal/data/FPL_TEAM_ID.
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     dbsession = dbsession if dbsession is not None else get_session()
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
         resolved_fpl_team_id = (
-            fpl_team_id if fpl_team_id is not None else apifetcher.FPL_TEAM_ID
+            fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
         )
         if resolved_fpl_team_id is None:
             msg = "FPL team ID is required to estimate free transfers from the API"
@@ -531,7 +530,7 @@ def get_free_transfers(
 
         # try to get the most up-to-date info from logged in api
         try:
-            return apifetcher.get_num_free_transfers(resolved_fpl_team_id)
+            return fetcher.get_num_free_transfers(resolved_fpl_team_id)
         except requests.exceptions.RequestException:
             logger.warning(
                 "Failed to get actual free transfers from a logged in API. "
@@ -541,11 +540,11 @@ def get_free_transfers(
             )
         # try to calculate free transfers based on previous transfer history in API
         try:
-            data = apifetcher.get_fpl_team_history_data(resolved_fpl_team_id)
+            data = fetcher.get_fpl_team_history_data(resolved_fpl_team_id)
             num_free_transfers = 1
             if "current" in data and len(data["current"]) > 0:
                 starting_gw = get_entry_start_gameweek(
-                    resolved_fpl_team_id, apifetcher=apifetcher
+                    resolved_fpl_team_id, fetcher=fetcher
                 )
                 for gw in data["current"]:
                     if gw["event"] <= starting_gw:
@@ -1104,15 +1103,16 @@ def get_player_scores(
 def get_players_for_gameweek(
     gameweek: int,
     fpl_team_id: int | None = None,
-    apifetcher: FPLDataFetcher = fetcher,
+    fetcher: FPLDataFetcher | None = None,
 ) -> list[Player]:
     """
     Use FPL API to get the players for a given gameweek.
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     if not fpl_team_id:
-        fpl_team_id = apifetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
 
-    player_data = apifetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
+    player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
     player_api_id_list = [p["element"] for p in player_data]
     players: list[Player] = []
     for api_id in player_api_id_list:
@@ -1306,7 +1306,7 @@ def get_top_predicted_points(
         dbsession {SQLAlchemy session} -- Database session (default: {None})
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    discord_webhook = fetcher.DISCORD_WEBHOOK
+    discord_webhook = get_fetcher().DISCORD_WEBHOOK
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
@@ -1810,7 +1810,7 @@ def get_last_finished_gameweek() -> int:
     """
     Query the API to see what the last gameweek marked as 'finished' is.
     """
-    event_data = fetcher.get_event_data()
+    event_data = get_fetcher().get_event_data()
     last_finished = 0
     for gw in sorted(event_data.keys()):
         if event_data[gw]["is_finished"]:
@@ -2001,7 +2001,7 @@ def is_transfer_deadline_today() -> bool:
     """
     Return True if there is a transfer deadline later today.
     """
-    deadlines = fetcher.get_transfer_deadlines()
+    deadlines = get_fetcher().get_transfer_deadlines()
     for deadline in deadlines:
         deadline_datetime = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
         if (deadline_datetime - datetime.now()).days == 0:

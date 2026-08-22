@@ -29,6 +29,7 @@ from rich.panel import Panel
 from rich.text import Text
 from sqlalchemy.orm import Session
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
@@ -58,7 +59,6 @@ from airsenal.framework.schema import get_session
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    fetcher,
     get_entry_start_gameweek,
     get_free_transfers,
     get_gameweeks_array,
@@ -530,9 +530,9 @@ def run_optimization(
     """
     if chip_gameweeks is None:
         chip_gameweeks = {}
-    discord_webhook = fetcher.DISCORD_WEBHOOK
+    discord_webhook = get_fetcher().DISCORD_WEBHOOK
     if fpl_team_id is None:
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     if fpl_team_id is None:  # still None after trying env vars
         msg = (
             "fpl_team_id must be set as argument, environment variables or config file."
@@ -541,7 +541,7 @@ def run_optimization(
 
     # see if we are at the start of a season, or
     if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
-        fpl_team_id, apifetcher=fetcher
+        fpl_team_id, fetcher=get_fetcher()
     ):
         logger.info(
             "This is the start of the season or a new team - will make a squad "
@@ -567,7 +567,7 @@ def run_optimization(
                 season=season,
                 fpl_team_id=fpl_team_id,
                 use_api=use_api,
-                apifetcher=fetcher,
+                fetcher=get_fetcher(),
             )
         except (ValueError, TypeError):
             # first week for this squad?
@@ -593,7 +593,7 @@ def run_optimization(
                 fpl_team_id,
                 gameweeks[0],
                 season=season,
-                apifetcher=fetcher,
+                fetcher=get_fetcher(),
                 is_replay=is_replay,
             )
         logger.info("Starting with %s free transfers", num_free_transfers)

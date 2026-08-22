@@ -2,11 +2,12 @@
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad
-from airsenal.framework.utils import fetcher, get_past_seasons
+from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_absence_table import make_absence_table
 from airsenal.scripts.fill_fifa_ratings_table import make_fifa_ratings_table
 from airsenal.scripts.fill_fixture_table import make_fixture_table
@@ -63,7 +64,7 @@ def create_database(
 ) -> None:
     """Create the database, including historical and current-season data."""
     if not no_current_season:
-        fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+        fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     with session_scope() as dbsession:
         continue_setup = check_clean_db(clean, dbsession)
         if continue_setup:

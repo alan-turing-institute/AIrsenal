@@ -9,13 +9,13 @@ from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.output import get_logger
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    fetcher,
     get_entry_start_gameweek,
     get_gameweeks_array,
     get_latest_prediction_tag,
@@ -64,10 +64,10 @@ def run_pipeline(
     the best squad.
     """
     if fpl_team_id is None:
-        if not fetcher.FPL_TEAM_ID:
+        if not get_fetcher().FPL_TEAM_ID:
             msg = "FPL Team ID not provided and not found in environment variables."
             raise RuntimeError(msg)
-        fpl_team_id = fetcher.FPL_TEAM_ID
+        fpl_team_id = get_fetcher().FPL_TEAM_ID
     logger.info("Running for FPL Team ID %s", fpl_team_id)
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
@@ -128,7 +128,7 @@ def run_pipeline(
             triple_captain_week=triple_captain_week,
             bench_boost_week=bench_boost_week,
         )
-        if get_entry_start_gameweek(fpl_team_id, fetcher) == next_gameweek():
+        if get_entry_start_gameweek(fpl_team_id, get_fetcher()) == next_gameweek():
             logger.info("[bold]Generating Squad[/bold]")
             new_squad_ok = run_make_squad(
                 gw_range,

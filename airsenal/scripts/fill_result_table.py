@@ -6,7 +6,7 @@ import os
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher, get_fetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Result, get_session
@@ -149,7 +149,7 @@ def make_result_table(
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
-            gw_end = next_gameweek()
+            gw_end = next_gameweek(fetcher=get_fetcher())
             fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
         else:
             inpath = os.path.join(

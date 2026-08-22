@@ -6,11 +6,11 @@ bought or sold.
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
-    fetcher,
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     list_players,
@@ -30,9 +30,9 @@ def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bo
     """
     Ensure that the transactions table in the database is up-to-date.
     """
-    if next_gameweek() != 1:
+    if next_gameweek(fetcher=get_fetcher()) != 1:
         logger.info("Checking team")
-        n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
+        n_transfers_api = len(get_fetcher().get_fpl_transfer_data(fpl_team_id))
         n_transactions_db = count_transactions(season, fpl_team_id, dbsession)
         # DB has 2 rows per transfer, and rows for the 15 players selected in the
         # initial squad which are not returned by the transfers API
@@ -61,14 +61,14 @@ def update_results(season: str, dbsession: Session) -> bool:
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
 
-    if next_gameweek() == 1:
+    if next_gameweek(fetcher=get_fetcher()) == 1:
         logger.info("Skipping team and result updates - season hasn't started.")
     elif last_finished > last_in_db:
         # need to update
         logger.info("Updating results table ...")
         fill_results_from_api(
             gw_start=last_in_db + 1,
-            gw_end=next_gameweek(),
+            gw_end=next_gameweek(fetcher=get_fetcher()),
             season=season,
             dbsession=dbsession,
         )
@@ -76,7 +76,7 @@ def update_results(season: str, dbsession: Session) -> bool:
         fill_playerscores_from_api(
             season=season,
             gw_start=last_in_db + 1,
-            gw_end=next_gameweek(),
+            gw_end=next_gameweek(fetcher=get_fetcher()),
             dbsession=dbsession,
         )
     else:
@@ -92,7 +92,7 @@ def update_players(season: str, dbsession: Session) -> int:
     players_from_db = list_players(
         position="all", team="all", season=season, dbsession=dbsession
     )
-    player_data_from_api = fetcher.get_player_summary_data()
+    player_data_from_api = get_fetcher().get_player_summary_data()
     players_from_api = list(player_data_from_api.keys())
 
     if len(players_from_db) == len(players_from_api):
@@ -187,7 +187,7 @@ def update_db(
 def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
     """Update database tables from current FPL data."""
     do_attributes = not noattr
-    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+    fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     if not fpl_team_id:
         msg = "FPL team ID must be specified in args, config, or env"
         raise ValueError(msg)

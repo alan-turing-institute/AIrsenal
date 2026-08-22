@@ -14,13 +14,12 @@ from rich.table import Table
 from rich.text import Text
 from sqlalchemy.orm import Session
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.data_fetcher import FPLDataFetcher, get_fetcher
 from airsenal.framework.output import get_logger
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player, get_session
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
-    fetcher,
     get_bank,
     get_player,
     get_player_from_api_id,
@@ -306,11 +305,12 @@ class Squad:
         use_api=False,
         gameweek: int | None = None,
         dbsession: Session | None = None,
-        apifetcher=fetcher,
+        fetcher: FPLDataFetcher | None = None,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
+        fetcher = fetcher if fetcher is not None else get_fetcher()
         gameweek = next_gameweek() if gameweek is None else gameweek
         dbsession = dbsession if dbsession is not None else get_session()
         if isinstance(player, int):
@@ -329,7 +329,7 @@ class Squad:
             api_id = player_db.fpl_api_id
             # first try getting the actual sale price from a logged in API
             try:
-                return apifetcher.get_current_picks()[api_id]["selling_price"]
+                return fetcher.get_current_picks()[api_id]["selling_price"]
             except Exception:
                 logger.warning(
                     "Failed to login to get actual sale price for %s from API. "
@@ -339,7 +339,7 @@ class Squad:
                 )
             # if not logged in, just get current price from API
             try:
-                price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
+                price_now = fetcher.get_player_summary_data()[api_id]["now_cost"]
             except Exception:
                 logger.warning(
                     "Failed to get current price of %s from API. "
@@ -649,14 +649,15 @@ class Squad:
 
 
 def get_current_squad_from_api(
-    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int | None = None
+    fpl_team_id: int, fetcher: FPLDataFetcher | None = None, next_gw: int | None = None
 ) -> Squad:
     """
     Return a list [(player_id, purchase_price)] from the current picks.
     Requires the data fetcher to be logged in.
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     next_gw = next_gameweek() if next_gw is None else next_gw
-    picks = apifetcher.get_current_picks(fpl_team_id)
+    picks = fetcher.get_current_picks(fpl_team_id)
 
     squad = Squad(season=CURRENT_SEASON)
     for p in picks.values():
@@ -670,6 +671,6 @@ def get_current_squad_from_api(
             check_budget=False,
             check_team=False,
         )
-    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, apifetcher=apifetcher)
+    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, fetcher=fetcher)
 
     return squad

@@ -3,6 +3,7 @@ import sys
 from rich.panel import Panel
 from rich.text import Text
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
@@ -15,7 +16,6 @@ from airsenal.framework.output import console, get_logger, price_str, table
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
-    fetcher,
     get_latest_prediction_tag,
     get_max_gameweek,
     next_gameweek,
@@ -212,7 +212,7 @@ def run_squad_optimization(
         )
         sys.exit(1)
     remove_zero = not include_zero
-    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+    fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     if no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:

@@ -14,6 +14,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.data_fetcher import get_fetcher
 from airsenal.framework.FPL_scoring_rules import (
     def_cons_required,
     get_appearance_points,
@@ -45,7 +46,6 @@ from airsenal.framework.schema import (
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     fastcopy,
-    fetcher,
     get_fixtures_for_gameweek,
     get_fixtures_for_player,
     get_max_matches_per_player,
@@ -557,7 +557,7 @@ def fill_ep(csv_filename: str, dbsession: Session | None = None) -> None:
             outfile.write("player_id,gameweek,EP\n")
 
     tag = f"EP-{uuid.uuid4()!s}"
-    summary_data = fetcher.get_player_summary_data()
+    summary_data = get_fetcher().get_player_summary_data()
     gameweek = next_gameweek()
 
     with open(csv_filename, "a") as outfile:

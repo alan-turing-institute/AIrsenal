@@ -9,6 +9,7 @@ from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from airsenal.framework.data_fetcher import FPLDataFetcher, get_fetcher
 from airsenal.framework.output import get_logger
 from airsenal.framework.schema import (
     Fixture,
@@ -21,7 +22,6 @@ from airsenal.framework.squad import Squad, get_current_squad_from_api
 from airsenal.framework.transaction_utils import add_transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    fetcher,
     get_player,
     next_gameweek,
 )
@@ -110,12 +110,13 @@ def get_starting_squad(
     season=CURRENT_SEASON,
     fpl_team_id=None,
     use_api=False,
-    apifetcher=fetcher,
+    fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ):
     """
     use the transactions table in the db, or the API if requested
     """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
     next_gw = next_gameweek() if next_gw is None else next_gw
     if use_api:
         if season != CURRENT_SEASON:
@@ -128,7 +129,7 @@ def get_starting_squad(
             msg = "Please specify fpl_team_id to get current squad from API"
             raise RuntimeError(msg)
         try:
-            return get_current_squad_from_api(fpl_team_id, apifetcher=apifetcher)
+            return get_current_squad_from_api(fpl_team_id, fetcher=fetcher)
 
         except requests.exceptions.RequestException:
             logger.warning(
