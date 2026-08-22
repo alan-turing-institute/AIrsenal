@@ -62,8 +62,12 @@ build-backend = "hatchling.build"
 addopts = """
 --cov=airsenal
 --cov-report=xml
---pdbcls=IPython.terminal.debugger:TerminalPdb
+--strict-markers
+-m 'not live'
 """
+markers = [
+  "live: makes real requests to the FPL API; deselected by default, run with -m live",
+]
 
 [tool.ruff]
 line-length = 88

@@ -13,10 +13,10 @@ from airsenal.framework.output import console, get_logger, table
 from airsenal.framework.schema import get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     get_bank,
     get_player,
     get_player_from_api_id,
+    next_gameweek,
 )
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
 
@@ -91,7 +91,7 @@ def print_output(
 
 def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:
     squad = get_starting_squad(
-        next_gw=NEXT_GAMEWEEK, season=season, fpl_team_id=team_id
+        next_gw=next_gameweek(), season=season, fpl_team_id=team_id
     )
     for p in squad.players:
         if p.player_id == player_id:
@@ -108,14 +108,14 @@ def get_gw_transfer_suggestions(
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
         get_session(),
-        gameweek=NEXT_GAMEWEEK,
+        gameweek=next_gameweek(),
         season=CURRENT_SEASON,
         fpl_team_id=fpl_team_id,
     )
     if not rows:
         logger.warning(
             "No transfer suggestions found for GW %s, %s season, FPL team id %s",
-            NEXT_GAMEWEEK,
+            next_gameweek(),
             CURRENT_SEASON,
             fpl_team_id,
         )

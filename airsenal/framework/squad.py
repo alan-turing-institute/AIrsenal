@@ -20,12 +20,12 @@ from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player, get_session
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     fetcher,
     get_bank,
     get_player,
     get_player_from_api_id,
     get_playerscores_for_player_gameweek,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -200,7 +200,7 @@ class Squad:
         self,
         p: CandidatePlayer | DummyPlayer | int | str | Player,
         price=None,
-        gameweek=NEXT_GAMEWEEK,
+        gameweek: int | None = None,
         check_budget=True,
         check_team=True,
         dbsession: Session | None = None,
@@ -213,6 +213,7 @@ class Squad:
         """
         # dbsession is passed through unresolved: CandidatePlayer keeps it, and this
         # Squad gets pickled onto the optimiser's multiprocessing queue.
+        gameweek = next_gameweek() if gameweek is None else gameweek
         if isinstance(p, int | str | Player):
             player: CandidatePlayer | DummyPlayer = CandidatePlayer(
                 p, self.season, gameweek, purchase_price=price, dbsession=dbsession
@@ -262,7 +263,7 @@ class Squad:
         self,
         player_id,
         price=None,
-        gameweek=NEXT_GAMEWEEK,
+        gameweek: int | None = None,
         use_api=False,
         dbsession: Session | None = None,
     ):
@@ -273,6 +274,7 @@ class Squad:
         team vs. his current price in the API (or if the API fails
         or use_api is False, the current price for that player in the database.)
         """
+        gameweek = next_gameweek() if gameweek is None else gameweek
         dbsession = dbsession if dbsession is not None else get_session()
         for p in self.players:
             if p.player_id == player_id:
@@ -302,13 +304,14 @@ class Squad:
         self,
         player,
         use_api=False,
-        gameweek=NEXT_GAMEWEEK,
+        gameweek: int | None = None,
         dbsession: Session | None = None,
         apifetcher=fetcher,
     ):
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
+        gameweek = next_gameweek() if gameweek is None else gameweek
         dbsession = dbsession if dbsession is not None else get_session()
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
@@ -319,7 +322,7 @@ class Squad:
         if (
             use_api
             and self.season == CURRENT_SEASON
-            and gameweek >= NEXT_GAMEWEEK
+            and gameweek >= next_gameweek()
             and player_db is not None
             and player_db.fpl_api_id is not None
         ):
@@ -646,12 +649,13 @@ class Squad:
 
 
 def get_current_squad_from_api(
-    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int = NEXT_GAMEWEEK
+    fpl_team_id: int, apifetcher: FPLDataFetcher = fetcher, next_gw: int | None = None
 ) -> Squad:
     """
     Return a list [(player_id, purchase_price)] from the current picks.
     Requires the data fetcher to be logged in.
     """
+    next_gw = next_gameweek() if next_gw is None else next_gw
     picks = apifetcher.get_current_picks(fpl_team_id)
 
     squad = Squad(season=CURRENT_SEASON)

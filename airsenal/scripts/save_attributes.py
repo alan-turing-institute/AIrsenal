@@ -10,7 +10,7 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
 from airsenal.framework.output import get_logger
 from airsenal.framework.season import CURRENT_SEASON
-from airsenal.framework.utils import NEXT_GAMEWEEK, parse_date
+from airsenal.framework.utils import next_gameweek, parse_date
 
 logger = get_logger(__name__)
 
@@ -175,7 +175,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
                 [
                     timestamp,
                     CURRENT_SEASON,
-                    NEXT_GAMEWEEK,
+                    next_gameweek(),
                     team,
                     position,
                     player_api_id,

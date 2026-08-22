@@ -10,11 +10,11 @@ from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     fetcher,
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     list_players,
+    next_gameweek,
 )
 from airsenal.scripts.fill_fixture_table import fill_fixtures_from_api
 from airsenal.scripts.fill_player_attributes_table import fill_attributes_table_from_api
@@ -30,7 +30,7 @@ def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bo
     """
     Ensure that the transactions table in the database is up-to-date.
     """
-    if NEXT_GAMEWEEK != 1:
+    if next_gameweek() != 1:
         logger.info("Checking team")
         n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
         n_transactions_db = count_transactions(season, fpl_team_id, dbsession)
@@ -61,14 +61,14 @@ def update_results(season: str, dbsession: Session) -> bool:
         last_in_db = 0
     last_finished = get_last_finished_gameweek()
 
-    if NEXT_GAMEWEEK == 1:
+    if next_gameweek() == 1:
         logger.info("Skipping team and result updates - season hasn't started.")
     elif last_finished > last_in_db:
         # need to update
         logger.info("Updating results table ...")
         fill_results_from_api(
             gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
+            gw_end=next_gameweek(),
             season=season,
             dbsession=dbsession,
         )
@@ -76,7 +76,7 @@ def update_results(season: str, dbsession: Session) -> bool:
         fill_playerscores_from_api(
             season=season,
             gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
+            gw_end=next_gameweek(),
             dbsession=dbsession,
         )
     else:

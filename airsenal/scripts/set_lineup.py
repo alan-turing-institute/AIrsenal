@@ -7,10 +7,10 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.output import console, get_logger
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     get_latest_prediction_tag,
     get_player,
     get_player_from_api_id,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -109,9 +109,9 @@ def set_lineup(
     logger.debug("got squad: %s", squad)
 
     tag = get_latest_prediction_tag()
-    squad.optimize_lineup(NEXT_GAMEWEEK, tag)
+    squad.optimize_lineup(next_gameweek(), tag)
 
-    if not skip_check and not check_proceed(squad, tag, NEXT_GAMEWEEK):
+    if not skip_check and not check_proceed(squad, tag, next_gameweek()):
         logger.info("Not proceeding with lineup update")
         return
 

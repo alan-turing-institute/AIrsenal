@@ -39,6 +39,13 @@ logger = get_logger(__name__)
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 
 
+class NoFixtureDataError(RuntimeError):
+    """
+    Raised when the next gameweek cannot be determined because the database holds no
+    fixtures for the season and no FPL API fetcher was supplied to fall back on.
+    """
+
+
 @lru_cache(1)
 def get_max_gameweek(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
@@ -62,10 +69,30 @@ def get_max_gameweek(
 
 
 def get_next_gameweek(
-    season: str = CURRENT_SEASON, dbsession: Session | None = None
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+    *,
+    apifetcher: FPLDataFetcher | None = None,
 ) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
+
+    Recomputed on every call. Prefer `next_gameweek`, which caches the result for the
+    lifetime of the process.
+
+    Parameters
+    ==========
+    season: str
+    dbsession: Session or None
+    apifetcher: FPLDataFetcher or None
+        Only consulted when the database holds no fixtures for the season, which
+        happens when the database has not been populated yet. If it is None in that
+        situation, NoFixtureDataError is raised rather than an HTTP request made.
+
+    Raises
+    ======
+    NoFixtureDataError
+        The database has no fixtures for the season and no apifetcher was given.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     timenow = datetime.now(timezone.utc)
@@ -92,9 +119,18 @@ def get_next_gameweek(
             ):
                 earliest_future_gameweek += 1
     else:
-        # got no fixtures from database, maybe we're filling it for the first
-        # time - get next gameweek from API instead
-        fixture_data = fetcher.get_fixture_data()
+        # No fixtures in the database, so we cannot work this out locally. Falling
+        # back to the API has to be asked for explicitly: it used to happen
+        # implicitly, which meant merely importing this module could make an HTTP
+        # request, and made the test suite impossible to run offline.
+        if apifetcher is None:
+            msg = (
+                f"No fixtures in the database for {season}, so the next gameweek "
+                "cannot be determined. Populate the database with 'airsenal db "
+                "create', or pass apifetcher to look it up from the FPL API."
+            )
+            raise NoFixtureDataError(msg)
+        fixture_data = apifetcher.get_fixture_data()
 
         if len(fixture_data) == 0:
             # if no fixtures scheduled assume this is start of season before
@@ -209,7 +245,7 @@ def get_gameweeks_array(
     if weeks_ahead is None:
         weeks_ahead = 3
     if gameweek_start is None:
-        gameweek_start = NEXT_GAMEWEEK
+        gameweek_start = next_gameweek()
     if gameweek_end is None:
         gameweek_end = gameweek_start + weeks_ahead
 
@@ -228,8 +264,79 @@ def get_gameweeks_array(
     return gw_range
 
 
-# make this a global variable in this module, import into other modules
-NEXT_GAMEWEEK = get_next_gameweek()
+class _GameweekCache:
+    """
+    Caches the next gameweek per season for the lifetime of the process.
+
+    This replaces the NEXT_GAMEWEEK module constant. The constant was evaluated at
+    import, which meant importing utils ran a database query and, on an empty
+    database, an FPL API call. Computing it lazily keeps the value stable within a
+    run - exactly as a module constant was - while costing nothing until something
+    actually asks for it.
+
+    Stability matters for more than speed: the transfer optimiser reads the next
+    gameweek inside its search, and a value that changed mid-run (across a deadline,
+    say) would make earlier and later decisions disagree.
+    """
+
+    def __init__(self) -> None:
+        self._by_season: dict[str, int] = {}
+
+    def get(
+        self,
+        season: str,
+        dbsession: Session | None,
+        apifetcher: FPLDataFetcher | None,
+    ) -> int:
+        if season not in self._by_season:
+            self._by_season[season] = get_next_gameweek(
+                season, dbsession, apifetcher=apifetcher
+            )
+        return self._by_season[season]
+
+    def set(self, season: str, gameweek: int) -> None:
+        self._by_season[season] = gameweek
+
+    def reset(self) -> None:
+        self._by_season.clear()
+
+
+_gameweek_cache = _GameweekCache()
+
+
+def next_gameweek(
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+    *,
+    apifetcher: FPLDataFetcher | None = None,
+) -> int:
+    """
+    The next gameweek of a season, computed once per process.
+
+    Replaces the former NEXT_GAMEWEEK module constant. See `get_next_gameweek` for the
+    uncached computation and for when `apifetcher` is needed.
+    """
+    return _gameweek_cache.get(season, dbsession, apifetcher)
+
+
+def set_next_gameweek(gameweek: int, season: str = CURRENT_SEASON) -> None:
+    """
+    Pin the next gameweek for a season, overriding whatever the database says.
+
+    Useful when replaying a historical season, and in tests, where the database
+    deliberately has no fixtures to derive it from.
+    """
+    _gameweek_cache.set(season, gameweek)
+
+
+def reset_gameweek_cache() -> None:
+    """
+    Forget the cached next gameweek.
+
+    Needed by tests, which swap the database underneath the cache, and by any
+    long-running process that has just populated or updated fixtures.
+    """
+    _gameweek_cache.reset()
 
 
 def get_next_season(season: str) -> str:
@@ -375,7 +482,7 @@ def get_entry_start_gameweek(
     the API has 'picks' for.
     """
     starting_gw = 1
-    while starting_gw < NEXT_GAMEWEEK:
+    while starting_gw < next_gameweek():
         try:
             if get_players_for_gameweek(
                 starting_gw, fpl_team_id, apifetcher=apifetcher
@@ -395,7 +502,7 @@ def get_entry_start_gameweek(
 
     # if we failed to find picks in any gameweek, or we're before the start of the
     # season, assume this team ID was entered in NEXT_GAMEWEEK
-    return NEXT_GAMEWEEK
+    return next_gameweek()
 
 
 def get_free_transfers(
@@ -477,7 +584,7 @@ def get_free_transfers(
     if gameweek is None and (season != CURRENT_SEASON or is_replay):
         msg = "Gameweek must be specified for historical data"
         raise ValueError(msg)
-    gameweek = gameweek or NEXT_GAMEWEEK
+    gameweek = gameweek or next_gameweek()
     for prev_gw in range(starting_gw + 1, gameweek):
         if prev_gw not in gw_transactions:
             num_free_transfers = 2
@@ -641,12 +748,13 @@ def list_players(
     team: str = "all",
     order_by: str = "price",
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> list[Player]:
     """
     Print list of players and return a list of player_ids.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     # if trying to get players from after DB has filled, return most recent players
     if season == CURRENT_SEASON:
@@ -747,12 +855,17 @@ def is_future_gameweek(
     season: str,
     gameweek: int | None,
     current_season: str = CURRENT_SEASON,
-    next_gameweek: int = NEXT_GAMEWEEK,
+    next_gameweek: int | None = None,
 ) -> bool:
     """
     Return True is season and gameweek refers to a gameweek that is after
     (or the same) as current_season and next_gameweek.
     """
+    if next_gameweek is None:
+        # The parameter shadows the module-level next_gameweek() function, so go via
+        # the cache it reads. Renaming the parameter is not an option: callers pass it
+        # by keyword (e.g. prediction_utils.py:754).
+        next_gameweek = _gameweek_cache.get(current_season, None, None)
     return (
         season == current_season and (gameweek is None or gameweek >= next_gameweek)
     ) or (season != current_season and int(season) > int(current_season))
@@ -761,13 +874,14 @@ def is_future_gameweek(
 def get_max_matches_per_player(
     position: str = "all",
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> int:
     """
     Can be used e.g. in bpl_interface.get_player_history_df
     to help avoid a ragged dataframe.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     players = list_players(
         position=position, season=season, gameweek=gameweek, dbsession=dbsession
@@ -800,12 +914,13 @@ def get_max_matches_per_player(
 def get_player_attributes(
     player_name_or_id: str | int,
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> PlayerAttributes | None:
     """
     Get a player's attributes for a given gameweek in a given season.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
         player_id = int(player_name_or_id)
@@ -858,7 +973,7 @@ def get_fixtures_for_player(
         msg = "Gameweek range must be specified for past seasons"
         raise ValueError(msg)
     if not gw_range:
-        team = player_record.team(season, NEXT_GAMEWEEK)
+        team = player_record.team(season, next_gameweek())
     else:
         team = player_record.team(season, gw_range[0])  # same team for whole gw_range
     tag = get_latest_fixture_tag(season, dbsession)
@@ -879,7 +994,7 @@ def get_fixtures_for_player(
             if fixture.gameweek in gw_range:
                 fixtures.append(fixture)
         else:
-            if season == CURRENT_SEASON and fixture.gameweek < NEXT_GAMEWEEK:
+            if season == CURRENT_SEASON and fixture.gameweek < next_gameweek():
                 continue
             logger.debug("%s", fixture)
             fixtures.append(fixture)
@@ -889,12 +1004,13 @@ def get_fixtures_for_player(
 def get_next_fixture_for_player(
     player: Player | str | int,
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> str:
     """
     Get a players next fixture as a string, for easy displaying.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     # given a player name or id, convert to player object
     if isinstance(player, str | int):
@@ -1194,7 +1310,7 @@ def get_top_predicted_points(
     if not tag:
         tag = get_latest_prediction_tag()
     if not gameweek:
-        gameweek = NEXT_GAMEWEEK
+        gameweek = next_gameweek()
 
     discord_embed = {
         "title": "AIrsenal webhook",
@@ -1423,7 +1539,7 @@ def calc_average_minutes(player_scores: list[PlayerScore]) -> float:
 def estimate_minutes_from_prev_season(
     player: Player,
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     n_games_to_use: int = 10,
     exclude_unavailable: bool = True,
     current_team_only: bool = True,
@@ -1432,6 +1548,7 @@ def estimate_minutes_from_prev_season(
     """
     Take average of minutes from previous season if any, or else return [0]
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     previous_season = get_previous_season(season)
 
@@ -1576,7 +1693,7 @@ def get_recent_scores_for_player(
         if season != CURRENT_SEASON:
             msg = "last_gw must be specified if running on previous seasons"
             raise ValueError(msg)
-        last_gw = NEXT_GAMEWEEK
+        last_gw = next_gameweek()
     first_gw = last_gw - num_match_to_use
 
     playerscores = get_recent_playerscore_rows(
@@ -1614,7 +1731,7 @@ def get_recent_minutes_for_player(
         if season != CURRENT_SEASON:
             msg = "last_gw must be defined if running on previous seasons"
             raise ValueError(msg)
-        last_gw = NEXT_GAMEWEEK
+        last_gw = next_gameweek()
 
     playerscores = (
         get_recent_playerscore_rows(

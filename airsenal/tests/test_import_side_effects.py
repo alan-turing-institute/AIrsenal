@@ -1,10 +1,11 @@
 """
 Importing a module must not talk to the network or open a database.
 
-airsenal has historically done both at import time: schema.py creates an engine and
-runs create_all at module scope, and utils.py computes NEXT_GAMEWEEK with a DB query
-that falls back to a live FPL API call when the database is empty. The consequence is
-that the test suite cannot even be collected without network access.
+airsenal used to do both at import time: schema.py created an engine and ran
+create_all at module scope, and utils.py computed a NEXT_GAMEWEEK constant with a DB
+query that fell back to a live FPL API call when the database was empty. 46 of 58
+modules could not be imported with the database blocked, and the test suite could not
+be collected without network access.
 
 These tests are the objective definition of "the package imports cleanly". They run in
 a subprocess because an in-process check is defeated by everything conftest has already
@@ -109,13 +110,6 @@ def _run_import_guard():
     return json.loads(result.stdout.strip().splitlines()[-1])
 
 
-@pytest.mark.xfail(
-    reason=(
-        "schema.py:session and utils.py:NEXT_GAMEWEEK still run I/O at import. "
-        "Remove this marker once both globals are gone."
-    ),
-    strict=True,
-)
 def test_importing_airsenal_performs_no_io():
     violations = _run_import_guard()["violations"]
     assert not violations, "modules performing I/O at import time:\n" + "\n".join(

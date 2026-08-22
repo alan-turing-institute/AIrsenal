@@ -33,7 +33,17 @@ env.AIRSENAL_DB_PASSWORD = None
 
 from airsenal.framework.mappings import alternative_team_names  # noqa: E402
 from airsenal.framework.schema import Base, Player, PlayerAttributes  # noqa: E402
-from airsenal.framework.utils import CURRENT_SEASON  # noqa: E402
+from airsenal.framework.utils import (  # noqa: E402
+    CURRENT_SEASON,
+    set_next_gameweek,
+)
+
+# The dummy test database has players but no fixtures, so the next gameweek cannot be
+# derived from it. It used to come out as 1 anyway, because utils computed
+# NEXT_GAMEWEEK at import and fell back to a live FPL API call that returned 1 for an
+# empty database. Pin it explicitly instead: same value, no network, no import-time
+# side effect.
+set_next_gameweek(1)
 from airsenal.tests.test_resources import dummy_players  # noqa: E402
 
 API_SESSION_ID = "TESTSESSION"

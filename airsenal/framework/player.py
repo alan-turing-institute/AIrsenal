@@ -10,9 +10,9 @@ from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     get_player,
     get_predicted_points_for_player,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -27,7 +27,7 @@ class CandidatePlayer:
         self,
         player,
         season=CURRENT_SEASON,
-        gameweek=NEXT_GAMEWEEK,
+        gameweek: int | None = None,
         purchase_price: int | None = None,
         dbsession: Session | None = None,
     ):
@@ -40,6 +40,7 @@ class CandidatePlayer:
         # eagerly resolving one here would also open a database connection for every
         # candidate player considered during the search. Callees resolve None
         # themselves, in whichever process ends up needing a session.
+        gameweek = next_gameweek() if gameweek is None else gameweek
         self.dbsession = dbsession
         if isinstance(player, Player):
             pdata = player

@@ -11,11 +11,11 @@ from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Transaction, get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     fetcher,
     get_entry_start_gameweek,
     get_player_from_api_id,
     get_players_for_gameweek,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -154,13 +154,13 @@ def fill_initial_squad(
         "Getting initially selected players in squad %s for first gameweek...",
         fpl_team_id,
     )
-    if NEXT_GAMEWEEK == 1:
+    if next_gameweek() == 1:
         logger.info("Season hasn't started yet so nothing to add to the DB.")
         return
 
     starting_gw = get_entry_start_gameweek(fpl_team_id)
     logger.info("Got starting squad from gameweek %s.", starting_gw)
-    if starting_gw == NEXT_GAMEWEEK:
+    if starting_gw == next_gameweek():
         logger.info(
             "This is team {fpl_team_id}'s first gameweek so nothing to add to the DB "
             "yet."

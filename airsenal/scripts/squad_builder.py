@@ -15,10 +15,10 @@ from airsenal.framework.output import console, get_logger, price_str, table
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     fetcher,
     get_latest_prediction_tag,
     get_max_gameweek,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -191,7 +191,7 @@ def run_squad_optimization(
     if gameweek_start:
         resolved_gameweek_start = gameweek_start
     elif season == CURRENT_SEASON:
-        resolved_gameweek_start = NEXT_GAMEWEEK
+        resolved_gameweek_start = next_gameweek()
     else:
         resolved_gameweek_start = 1
     gw_range = list(

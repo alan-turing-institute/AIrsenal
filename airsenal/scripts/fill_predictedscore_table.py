@@ -31,11 +31,11 @@ from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import get_session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     get_fixtures_for_gameweek,
     get_gameweeks_array,
     get_top_predicted_points,
     list_players,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -140,7 +140,7 @@ def make_predictedscore_table(
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gw_range:
-        gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
+        gw_range = list(range(next_gameweek(), next_gameweek() + 3))
     with console.status("Predicting points..."):
         calc_all_predicted_points(
             gw_range=gw_range,

@@ -1,5 +1,13 @@
 """
 test that we get valid responses from the API.
+
+Every test here makes a live request to the FPL API, so the whole module is marked
+`live` and is deselected by default (see the addopts in pyproject.toml). Run it with
+`pytest -m live` when you want to check whether the API has changed shape.
+
+Five of these tests used to carry `@pytest.mark.skipif(NEXT_GAMEWEEK == 1)`. Under the
+test configuration the database is always empty, so NEXT_GAMEWEEK was always 1 and
+those tests never ran - not locally, not in CI.
 """
 
 import random
@@ -7,7 +15,8 @@ import random
 import pytest
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.utils import NEXT_GAMEWEEK
+
+pytestmark = pytest.mark.live
 
 
 def test_instantiate_fetchers():
@@ -28,7 +37,6 @@ def test_get_summary_data():
     assert len(data) > 0
 
 
-@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No team data before start of season")
 def test_get_team_data():
     """
     should give current list of players in our team
@@ -39,7 +47,6 @@ def test_get_team_data():
     assert len(data) == 15
 
 
-@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No team data before start of season")
 def test_get_team_history_data():
     """
     gameweek history for our team id
@@ -80,7 +87,6 @@ def test_get_current_team_data():
     assert len(data) > 0
 
 
-@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")
 def test_get_fpl_team_data_gw1():
     """
     which players are in our squad for gw1
@@ -93,7 +99,6 @@ def test_get_fpl_team_data_gw1():
     assert len(players) == 15
 
 
-@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")
 def test_get_fpl_team_data_gw1_different_fpl_team_ids():
     """
     which players are in a couple of different squads for gw 1
@@ -113,7 +118,6 @@ def test_get_fpl_team_data_gw1_different_fpl_team_ids():
     assert sorted(players_1) != sorted(players_2)
 
 
-@pytest.mark.skipif(NEXT_GAMEWEEK == 1, reason="No data yet for gameweek 1")
 def test_get_detailed_player_data():
     """
     for player_id=1, list of gameweek data

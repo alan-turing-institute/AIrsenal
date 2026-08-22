@@ -25,7 +25,6 @@ from airsenal.framework.schema import (
 )
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     find_fixture,
     get_fixtures_for_gameweek,
     get_last_complete_gameweek_in_db,
@@ -37,6 +36,7 @@ from airsenal.framework.utils import (
     get_player_team_from_fixture,
     get_team_name,
     is_future_gameweek,
+    next_gameweek,
     parse_date,
 )
 
@@ -303,9 +303,10 @@ def fill_playerscores_from_json(
 def fill_playerscores_from_api(
     season: str,
     gw_start: int = 1,
-    gw_end: int = NEXT_GAMEWEEK,
+    gw_end: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
+    gw_end = next_gameweek() if gw_end is None else gw_end
     dbsession = dbsession if dbsession is not None else get_session()
     # Get column metadata once for efficiency
     if get_last_finished_gameweek() == 0:

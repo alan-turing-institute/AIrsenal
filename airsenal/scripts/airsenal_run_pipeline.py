@@ -15,12 +15,12 @@ from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     fetcher,
     get_entry_start_gameweek,
     get_gameweeks_array,
     get_latest_prediction_tag,
     get_past_seasons,
+    next_gameweek,
 )
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
@@ -128,7 +128,7 @@ def run_pipeline(
             triple_captain_week=triple_captain_week,
             bench_boost_week=bench_boost_week,
         )
-        if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
+        if get_entry_start_gameweek(fpl_team_id, fetcher) == next_gameweek():
             logger.info("[bold]Generating Squad[/bold]")
             new_squad_ok = run_make_squad(
                 gw_range,

@@ -12,11 +12,11 @@ from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Result, get_session
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
-    NEXT_GAMEWEEK,
     find_fixture,
     get_last_complete_gameweek_in_db,
     get_last_finished_gameweek,
     get_past_seasons,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -149,7 +149,7 @@ def make_result_table(
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
-            gw_end = NEXT_GAMEWEEK
+            gw_end = next_gameweek()
             fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
         else:
             inpath = os.path.join(

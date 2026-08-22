@@ -15,9 +15,9 @@ from airsenal.framework.schema import Player
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     fastcopy,
     get_predicted_points,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -41,8 +41,8 @@ def make_optimum_single_transfer(
     expected points over a specified range of gameweeks.
     """
     if not gameweek_range:
-        gameweek_range = [NEXT_GAMEWEEK]
-        root_gw = NEXT_GAMEWEEK
+        gameweek_range = [next_gameweek()]
+        root_gw = next_gameweek()
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
 
@@ -115,8 +115,8 @@ def make_optimum_double_transfer(
     over a specified range of gameweeks.
     """
     if not gameweek_range:
-        gameweek_range = [NEXT_GAMEWEEK]
-        root_gw = NEXT_GAMEWEEK
+        gameweek_range = [next_gameweek()]
+        root_gw = next_gameweek()
 
     transfer_gw = min(gameweek_range)  # the week we're making the transfer
     best_score = -1.0
@@ -223,8 +223,8 @@ def make_random_transfers(
         new_squad = fastcopy(squad)
 
         if not gw_range:
-            gw_range = [NEXT_GAMEWEEK]
-            root_gw = NEXT_GAMEWEEK
+            gw_range = [next_gameweek()]
+            root_gw = next_gameweek()
 
         transfer_gw = min(gw_range)  # the week we're making the transfer
         players_to_remove: list[int] = []  # this is the index within the squad

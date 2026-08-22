@@ -44,7 +44,6 @@ from airsenal.framework.schema import (
 )
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     fastcopy,
     fetcher,
     get_fixtures_for_gameweek,
@@ -55,6 +54,7 @@ from airsenal.framework.utils import (
     get_recent_minutes_for_player,
     is_future_gameweek,
     list_players,
+    next_gameweek,
     was_historic_absence,
 )
 
@@ -74,12 +74,13 @@ def get_player_history_df(
     all_players=False,
     fill_blank=True,
     season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """
     Fetch historical player performance data and build a structured DataFrame.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     col_names = [
         "player_id",
@@ -398,7 +399,7 @@ def calc_predicted_points_for_player(
         player = p
 
     if not gw_range:
-        gw_range = list(range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38)))
+        gw_range = list(range(next_gameweek(), min(next_gameweek() + 3, 38)))
 
     if fixtures_behind is None:
         fixtures_behind = len(gw_range)
@@ -557,7 +558,7 @@ def fill_ep(csv_filename: str, dbsession: Session | None = None) -> None:
 
     tag = f"EP-{uuid.uuid4()!s}"
     summary_data = fetcher.get_player_summary_data()
-    gameweek = NEXT_GAMEWEEK
+    gameweek = next_gameweek()
 
     with open(csv_filename, "a") as outfile:
         for k, v in summary_data.items():
@@ -582,12 +583,13 @@ def fill_ep(csv_filename: str, dbsession: Session | None = None) -> None:
 def process_player_data(
     prefix: str,
     season: str = CURRENT_SEASON,
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> dict:
     """
     Process and structure historical player data for model fitting.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_history_df(
         prefix, season=season, gameweek=gameweek, dbsession=dbsession
@@ -781,7 +783,7 @@ def mean_group_prior(
 
 
 def fit_bonus_points(
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     dbsession: Session | None = None,
@@ -790,6 +792,7 @@ def fit_bonus_points(
     Fit bonus points model using historical player scores.
     """
 
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 
     def get_bonus_df(min_minutes, max_minutes):
@@ -811,7 +814,7 @@ def fit_bonus_points(
 
 
 def fit_save_points(
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     min_minutes: int = MAX_MINUTES_MATCH,
@@ -820,6 +823,7 @@ def fit_save_points(
     """
     Fit goalkeeper save points model using historical player scores.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
@@ -831,7 +835,7 @@ def fit_save_points(
 
 
 def fit_card_points(
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     min_minutes: int = 1,
@@ -840,6 +844,7 @@ def fit_card_points(
     """
     Fit card penalty points model using historical player scores.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores(
         season, gameweek, min_minutes=min_minutes, dbsession=dbsession
@@ -856,7 +861,7 @@ def fit_card_points(
 
 
 def fit_def_con(
-    gameweek: int = NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     n_prior: int = 10,
     dbsession: Session | None = None,
@@ -865,6 +870,7 @@ def fit_def_con(
     Fit defensive contribution points model across positions.
     """
 
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 
     def get_def_con_df(min_minutes, max_minutes):

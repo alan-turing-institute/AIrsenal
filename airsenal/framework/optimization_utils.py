@@ -21,9 +21,9 @@ from airsenal.framework.squad import Squad, get_current_squad_from_api
 from airsenal.framework.transaction_utils import add_transaction
 from airsenal.framework.utils import (
     CURRENT_SEASON,
-    NEXT_GAMEWEEK,
     fetcher,
     get_player,
+    next_gameweek,
 )
 
 logger = get_logger(__name__)
@@ -106,7 +106,7 @@ def calc_free_transfers(
 
 
 def get_starting_squad(
-    next_gw=NEXT_GAMEWEEK,
+    next_gw: int | None = None,
     season=CURRENT_SEASON,
     fpl_team_id=None,
     use_api=False,
@@ -116,11 +116,12 @@ def get_starting_squad(
     """
     use the transactions table in the db, or the API if requested
     """
+    next_gw = next_gameweek() if next_gw is None else next_gw
     if use_api:
         if season != CURRENT_SEASON:
             msg = "Can only use API for current season and gameweek"
             raise RuntimeError(msg)
-        if season == CURRENT_SEASON and next_gw != NEXT_GAMEWEEK:
+        if season == CURRENT_SEASON and next_gw != next_gameweek():
             msg = "Can only use API for current season and gameweek"
             raise RuntimeError(msg)
         if not fpl_team_id:
@@ -341,12 +342,13 @@ def fill_initial_suggestion_table(
     fpl_team_id,
     tag,
     season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ):
     """
     Fill an initial squad into the table
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
     score = squad.get_expected_points(gameweek, tag)
@@ -354,7 +356,7 @@ def fill_initial_suggestion_table(
         ts = TransferSuggestion()
         ts.player_id = player.player_id
         ts.in_or_out = 1
-        ts.gameweek = NEXT_GAMEWEEK
+        ts.gameweek = next_gameweek()
         ts.points_gain = score
         ts.timestamp = timestamp
         ts.season = season
@@ -369,13 +371,14 @@ def fill_initial_transaction_table(
     fpl_team_id,
     tag,
     season=CURRENT_SEASON,
-    gameweek=NEXT_GAMEWEEK,
+    gameweek: int | None = None,
     dbsession: Session | None = None,
 ):
     """Add transactions from an initial squad optimisation to the transactions table
     in the database. Used for simulating seasons only, for playing the current FPL
     season the transactions status is kepts up to date with transfers using the FPL API.
     """
+    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     free_hit = 0
     time = datetime.now().isoformat()
@@ -561,7 +564,7 @@ def next_week_transfers(
 
 def count_expected_outputs(
     gw_ahead: int,
-    next_gw: int = NEXT_GAMEWEEK,
+    next_gw: int | None = None,
     free_transfers: int = 1,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = True,
@@ -589,6 +592,7 @@ def count_expected_outputs(
         False). Either way, the total count of strategies will include the baseline.
     """
 
+    next_gw = next_gameweek() if next_gw is None else next_gw
     if chip_gw_dict is None:
         chip_gw_dict = {}
     init_strat_dict: dict[str, dict[int, list[int] | str]] = {
