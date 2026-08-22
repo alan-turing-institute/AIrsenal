@@ -3,8 +3,8 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import console, get_logger
+from airsenal.core.output import console, get_logger
+from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     get_latest_prediction_tag,

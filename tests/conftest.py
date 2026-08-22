@@ -15,8 +15,8 @@ from sqlalchemy.orm import sessionmaker
 os.environ["_TYPER_FORCE_DISABLE_TERMINAL"] = "1"
 
 
-from airsenal.framework import env
-from airsenal.framework.output import get_logger
+from airsenal.core import env
+from airsenal.core.output import get_logger
 
 logger = get_logger(__name__)
 
@@ -31,7 +31,7 @@ env.AIRSENAL_DB_URI = None
 env.AIRSENAL_DB_USER = None
 env.AIRSENAL_DB_PASSWORD = None
 
-from airsenal.framework.mappings import alternative_team_names  # noqa: E402
+from airsenal.domain.mappings import alternative_team_names  # noqa: E402
 from airsenal.framework.schema import Base, Player, PlayerAttributes  # noqa: E402
 from airsenal.framework.utils import (  # noqa: E402
     CURRENT_SEASON,

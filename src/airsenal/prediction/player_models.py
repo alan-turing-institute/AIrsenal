@@ -10,7 +10,7 @@ import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
 
 logger = get_logger(__name__)
 

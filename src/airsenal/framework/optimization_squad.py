@@ -9,11 +9,11 @@ import random
 import numpy as np
 from deap import algorithms, base, creator, tools
 
+from airsenal.core.output import get_logger
 from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
-from airsenal.framework.output import get_logger
 from airsenal.framework.player import DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad

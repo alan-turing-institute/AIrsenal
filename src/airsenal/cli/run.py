@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
+from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 from airsenal.scripts.airsenal_run_pipeline import run_pipeline
 
 

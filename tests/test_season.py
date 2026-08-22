@@ -1,4 +1,4 @@
-from airsenal.framework.season import season_str_to_year, sort_seasons
+from airsenal.domain.season import season_str_to_year, sort_seasons
 
 
 def test_season_str_to_year():

@@ -1,9 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
+from airsenal.domain.season import get_teams_for_season
 from airsenal.framework.schema import PlayerScore, get_session
-from airsenal.framework.season import get_teams_for_season
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     get_fixtures_for_season,

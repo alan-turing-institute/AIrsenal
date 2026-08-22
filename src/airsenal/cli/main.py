@@ -15,7 +15,7 @@ from airsenal.cli.plot import plot
 from airsenal.cli.predict import predict
 from airsenal.cli.replay import replay
 from airsenal.cli.run import run
-from airsenal.framework.output import configure_logging
+from airsenal.core.output import configure_logging
 
 app = typer.Typer(
     no_args_is_help=True,

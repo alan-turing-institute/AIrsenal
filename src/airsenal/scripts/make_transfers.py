@@ -7,9 +7,9 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.core.output import console, get_logger, table
+from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
-from airsenal.framework.output import console, get_logger, table
 from airsenal.framework.schema import get_session
 from airsenal.framework.utils import (
     CURRENT_SEASON,

@@ -25,14 +25,14 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from airsenal.framework.env import (
+from airsenal.core.env import (
     AIRSENAL_DB_FILE,
     AIRSENAL_DB_PASSWORD,
     AIRSENAL_DB_URI,
     AIRSENAL_DB_USER,
     AIRSENAL_HOME,
 )
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
 
 logger = get_logger(__name__)
 

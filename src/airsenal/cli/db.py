@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.scripts.data_sanity_checks import run_all_checks
 from airsenal.scripts.fill_db_init import create_database
 from airsenal.scripts.update_db import update_database

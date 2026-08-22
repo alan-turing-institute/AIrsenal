@@ -5,7 +5,7 @@ Make player summary files from FPL season data json
 import json
 import os
 
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
 from airsenal.framework.utils import get_past_seasons, is_future_gameweek
 
 logger = get_logger(__name__)

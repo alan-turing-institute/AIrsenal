@@ -4,8 +4,8 @@ from typing import Annotated
 
 import typer
 
-from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
 from airsenal.framework.utils import CURRENT_SEASON
+from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 from airsenal.scripts.fill_predictedscore_table import run_prediction
 
 

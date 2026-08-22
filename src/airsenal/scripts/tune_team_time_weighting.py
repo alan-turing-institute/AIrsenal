@@ -22,13 +22,13 @@ import numpy as np
 from bpl import ExtendedDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.bpl_interface import get_fitted_team_model
-from airsenal.framework.output import get_logger, track
+from airsenal.core.output import get_logger, track
 from airsenal.framework.schema import Fixture, session_scope
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
     get_max_gameweek,
 )
+from airsenal.prediction.team_models.dixon_coles import get_fitted_team_model
 
 logger = get_logger(__name__)
 

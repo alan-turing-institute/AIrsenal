@@ -6,6 +6,7 @@ and checking that the optimizer finds the expected outcome.
 from operator import itemgetter
 from unittest import mock
 
+from airsenal.core.output import console
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
     make_optimum_single_transfer,
@@ -15,7 +16,6 @@ from airsenal.framework.optimization_utils import (
     get_discount_factor,
     next_week_transfers,
 )
-from airsenal.framework.output import console
 from airsenal.framework.squad import Squad
 
 

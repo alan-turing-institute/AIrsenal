@@ -6,9 +6,9 @@ import json
 import os
 from typing import Any
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import track
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.core.output import track
+from airsenal.domain.season import CURRENT_SEASON
+from airsenal.fetch.fpl_api import FPLDataFetcher
 
 RENAME_KEYS = {
     "round": "gameweek",

@@ -5,14 +5,9 @@ from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredicto
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.bpl_interface import (
-    DEFAULT_TEAM_EPSILON,
-    parse_team_model_from_str,
-)
-from airsenal.framework.data_fetcher import get_fetcher
-from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
-from airsenal.framework.output import get_logger
-from airsenal.framework.random_team_model import RandomMatchPredictor
+from airsenal.core.concurrency import set_multiprocessing_start_method
+from airsenal.core.output import get_logger
+from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -22,6 +17,11 @@ from airsenal.framework.utils import (
     get_past_seasons,
     next_gameweek,
 )
+from airsenal.prediction.team_models.dixon_coles import (
+    DEFAULT_TEAM_EPSILON,
+    parse_team_model_from_str,
+)
+from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
     get_top_predicted_points,

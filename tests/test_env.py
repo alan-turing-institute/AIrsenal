@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from airsenal.framework.env import delete_env, get_env, save_env
+from airsenal.core.env import delete_env, get_env, save_env
 
 
 def test_get_env_none():

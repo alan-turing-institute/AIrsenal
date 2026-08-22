@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.framework.season import CURRENT_SEASON
+from airsenal.domain.season import CURRENT_SEASON
 from airsenal.scripts.fill_transfersuggestion_table import run_transfer_optimization
 from airsenal.scripts.squad_builder import run_squad_optimization
 

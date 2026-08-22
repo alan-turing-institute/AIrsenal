@@ -8,9 +8,9 @@ from collections.abc import Callable
 from multiprocessing import Process
 from operator import itemgetter
 
+from airsenal.core.output import get_logger
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
-from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (

@@ -10,20 +10,20 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.output import get_logger
-from airsenal.framework.random_team_model import RandomMatchPredictor
+from airsenal.core.output import get_logger
+from airsenal.domain.season import CURRENT_SEASON, get_teams_for_season
 from airsenal.framework.schema import (
     FifaTeamRating,
     Fixture,
     Result,
     get_session,
 )
-from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
 from airsenal.framework.utils import (
     get_fixture_teams,
     get_fixtures_for_gameweek,
     is_future_gameweek,
 )
+from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 
 logger = get_logger(__name__)
 
@@ -345,7 +345,7 @@ def parse_team_model_from_str(
         NeutralDixonColesMatchPredictor,
     )
 
-    from airsenal.framework.random_team_model import (  # noqa: PLC0415
+    from airsenal.prediction.team_models.random_model import (  # noqa: PLC0415
         RandomMatchPredictor,
     )
 

@@ -8,19 +8,7 @@ import pytest
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy import select
 
-from airsenal.framework.bpl_interface import (
-    DEFAULT_TEAM_EPSILON,
-    fixture_probabilities,
-    get_fitted_team_model,
-    get_ratings_dict,
-    get_result_dict,
-)
-from airsenal.framework.FPL_scoring_rules import get_appearance_points
-from airsenal.framework.player_model import (
-    ConjugatePlayerModel,
-    NumpyroPlayerModel,
-    scale_goals_by_minutes,
-)
+from airsenal.domain.scoring import get_appearance_points
 from airsenal.framework.prediction_utils import (
     fit_bonus_points,
     fit_card_points,
@@ -36,6 +24,18 @@ from airsenal.framework.prediction_utils import (
     mean_group_prior,
 )
 from airsenal.framework.schema import Fixture, Result
+from airsenal.prediction.player_models import (
+    ConjugatePlayerModel,
+    NumpyroPlayerModel,
+    scale_goals_by_minutes,
+)
+from airsenal.prediction.team_models.dixon_coles import (
+    DEFAULT_TEAM_EPSILON,
+    fixture_probabilities,
+    get_fitted_team_model,
+    get_ratings_dict,
+    get_result_dict,
+)
 from tests.conftest import past_data_session_scope
 
 

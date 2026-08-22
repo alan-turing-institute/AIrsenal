@@ -4,7 +4,7 @@ Plot the league
 
 import matplotlib.pyplot as plt
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.fetch.fpl_api import FPLDataFetcher
 
 
 def get_team_ids(league_data):

@@ -11,8 +11,8 @@ from collections.abc import Callable
 
 from thefuzz import fuzz
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
+from airsenal.fetch.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
 

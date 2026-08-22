@@ -19,7 +19,7 @@ from functools import cache
 
 from curl_cffi import requests
 
-from airsenal.framework.env import (
+from airsenal.core.env import (
     DISCORD_WEBHOOK,
     FPL_LEAGUE_ID,
     FPL_LOGIN,
@@ -27,7 +27,7 @@ from airsenal.framework.env import (
     FPL_TEAM_ID,
     save_env,
 )
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
 
 logger = get_logger(__name__)
 

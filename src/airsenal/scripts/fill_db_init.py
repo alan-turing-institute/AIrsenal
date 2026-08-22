@@ -2,10 +2,10 @@
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import get_fetcher
-from airsenal.framework.output import console, get_logger
+from airsenal.core.output import console, get_logger
+from airsenal.domain.season import CURRENT_SEASON, sort_seasons
+from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.schema import clean_database, database_is_empty, session_scope
-from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.transaction_utils import fill_initial_squad
 from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_absence_table import make_absence_table

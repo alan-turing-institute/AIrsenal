@@ -14,8 +14,8 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import get_fetcher
-from airsenal.framework.FPL_scoring_rules import (
+from airsenal.core.output import get_logger, track
+from airsenal.domain.scoring import (
     def_cons_required,
     get_appearance_points,
     points_for_assist,
@@ -26,14 +26,7 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
-from airsenal.framework.output import get_logger, track
-from airsenal.framework.player_model import (
-    DEFAULT_N_GOALS_PRIOR,
-    DEFAULT_PLAYER_EPSILON,
-    ConjugatePlayerModel,
-    NumpyroPlayerModel,
-    get_empirical_bayes_estimates,
-)
+from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.schema import (
     Absence,
     Fixture,
@@ -56,6 +49,13 @@ from airsenal.framework.utils import (
     list_players,
     next_gameweek,
     was_historic_absence,
+)
+from airsenal.prediction.player_models import (
+    DEFAULT_N_GOALS_PRIOR,
+    DEFAULT_PLAYER_EPSILON,
+    ConjugatePlayerModel,
+    NumpyroPlayerModel,
+    get_empirical_bayes_estimates,
 )
 
 logger = get_logger(__name__)

@@ -11,13 +11,7 @@ from uuid import uuid4
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.bpl_interface import (
-    DEFAULT_TEAM_EPSILON,
-    get_fitted_team_model,
-    get_goal_probabilities_for_fixtures,
-)
-from airsenal.framework.output import console, get_logger, track
-from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
+from airsenal.core.output import console, get_logger, track
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
     calc_predicted_points_for_player,
@@ -27,7 +21,6 @@ from airsenal.framework.prediction_utils import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import get_session, session_scope
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -37,6 +30,13 @@ from airsenal.framework.utils import (
     list_players,
     next_gameweek,
 )
+from airsenal.prediction.player_models import ConjugatePlayerModel, NumpyroPlayerModel
+from airsenal.prediction.team_models.dixon_coles import (
+    DEFAULT_TEAM_EPSILON,
+    get_fitted_team_model,
+    get_goal_probabilities_for_fixtures,
+)
+from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 
 logger = get_logger(__name__)
 

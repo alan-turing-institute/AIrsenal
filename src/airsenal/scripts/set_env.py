@@ -1,10 +1,10 @@
 from airsenal import __version__
-from airsenal.framework.env import (
+from airsenal.core.env import (
     AIRSENAL_ENV_KEYS,
     AIRSENAL_HOME,
     get_env,
 )
-from airsenal.framework.output import get_logger
+from airsenal.core.output import get_logger
 from airsenal.framework.schema import get_connection_string
 
 logger = get_logger(__name__)

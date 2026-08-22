@@ -29,12 +29,19 @@ from rich.panel import Panel
 from rich.text import Text
 from sqlalchemy.orm import Session
 
-from airsenal.framework.data_fetcher import get_fetcher
-from airsenal.framework.env import AIRSENAL_HOME
-from airsenal.framework.multiprocessing_utils import (
+from airsenal.core.concurrency import (
     CustomQueue,
     set_multiprocessing_start_method,
 )
+from airsenal.core.env import AIRSENAL_HOME
+from airsenal.core.output import (
+    console,
+    get_logger,
+    price_str,
+    progress_bar,
+    table,
+)
+from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.framework.optimization_transfers import make_best_transfers
 from airsenal.framework.optimization_utils import (
     MAX_FREE_TRANSFERS,
@@ -47,13 +54,6 @@ from airsenal.framework.optimization_utils import (
     get_num_increments,
     get_starting_squad,
     next_week_transfers,
-)
-from airsenal.framework.output import (
-    console,
-    get_logger,
-    price_str,
-    progress_bar,
-    table,
 )
 from airsenal.framework.schema import get_session
 from airsenal.framework.squad import Squad

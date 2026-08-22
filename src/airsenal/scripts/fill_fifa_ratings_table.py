@@ -6,14 +6,14 @@ import os
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.mappings import alternative_team_names
-from airsenal.framework.output import get_logger, track
+from airsenal.core.output import get_logger, track
+from airsenal.domain.mappings import alternative_team_names
+from airsenal.domain.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.schema import (
     FifaTeamRating,
     get_session,
     session_scope,
 )
-from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
 
 logger = get_logger(__name__)

@@ -8,15 +8,15 @@ import os
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.data_fetcher import FPLDataFetcher
-from airsenal.framework.output import track
+from airsenal.core.output import track
+from airsenal.domain.season import CURRENT_SEASON, sort_seasons
+from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.framework.schema import (
     Player,
     PlayerMapping,
     get_session,
     session_scope,
 )
-from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
 from airsenal.scripts.fill_player_mappings_table import (
     add_mappings,
