@@ -16,12 +16,11 @@ representing 0, 1, 2 transfers for the next gameweek.
 
 import cProfile
 import json
-import os
-import shutil
 import sys
 import threading
 from collections.abc import Callable
 from multiprocessing import Process, Queue
+from pathlib import Path
 
 import regex as re
 import requests
@@ -34,8 +33,7 @@ from airsenal.core.concurrency import (
     set_multiprocessing_start_method,
 )
 from airsenal.core.console import console, price_str, progress_bar, table
-from airsenal.core.enums import Position
-from airsenal.core.env import AIRSENAL_HOME
+from airsenal.core.enums import Chip, Position
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.players import get_player, get_player_name
@@ -44,6 +42,7 @@ from airsenal.db.session import get_session
 from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
+from airsenal.optimization.strategy import GameweekOutcome, Strategy
 from airsenal.optimization.transfers import (
     get_num_increments,
     make_best_transfers,
@@ -66,12 +65,11 @@ from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
 logger = get_logger(__name__)
 
-OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
-
 
 def optimize(
     queue: CustomQueue,
     pid: Process,
+    results: "Queue[Strategy]",
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
@@ -95,14 +93,10 @@ def optimize(
 
     Things on the queue will either be None (shutdown sentinel, sent once all
     strategies have been processed), or a tuple:
-    (
-     move,
-     free_transfers,
-     hit_so_far,
-     current_team,
-     strat_dict,
-     strat_id
-    )
+    (move, free_transfers, hit_so_far, hit_this_gw, squad, strategy).
+
+    `strategy` is None for the root node, which exists only to add children to
+    the queue. Finished strategies are put on the `results` queue.
     """
     while True:
         status = queue.get()
@@ -125,54 +119,25 @@ def optimize(
             hit_so_far,
             hit_this_gw,
             squad,
-            strat_dict,
-            sid,
+            strategy,
         ) = status
 
-        # sid (status id) is just a string e.g. "0-0-2" representing how many
-        # transfers to be made in each gameweek.
-        # Only exception is the root node, where sid is "starting" - this
-        # node only exists to add children to the queue.
-
-        if sid == "starting":
-            sid = ""
-            depth = 0
-            strat_dict["total_score"] = 0
-            strat_dict["points_per_gw"] = {}
-            strat_dict["free_transfers"] = {}
-            strat_dict["num_transfers"] = {}
-            strat_dict["points_hit"] = {}
-            strat_dict["discount_factor"] = {}
-            strat_dict["players_in"] = {}
-            strat_dict["players_out"] = {}
-            strat_dict["chips_played"] = {}
-            strat_dict["bank"] = {}
+        if strategy is None:
+            # the root node, which exists only to add children to the queue
             new_squad = squad
-            gw = gameweek_range[0] - 1
-            strat_dict["root_gw"] = gameweek_range[0]
+            strategy = Strategy(root_gameweek=gameweek_range[0])
         else:
-            if len(sid) > 0:
-                sid += "-"
-            sid += move.label()
             if resetter is not None:
-                resetter(pid, sid)
+                resetter(pid, f"{strategy.label()}-{move.label()}".lstrip("-"))
 
-            # work out what gameweek we're in and how far down the tree we are.
-            depth = len(strat_dict["points_per_gw"])
-
-            # gameweeks from this point in strategy to end of window
-            gameweeks = gameweek_range[depth:]
-
-            # upcoming gameweek:
+            # how far down the tree we are, and so which gameweeks are left
+            gameweeks = gameweek_range[len(strategy) :]
             gw = gameweeks[0]
-            root_gw = strat_dict["root_gw"]
-
-            strat_dict["chips_played"][gw] = str(move.chip) if move.chip else None
+            root_gw = strategy.root_gameweek
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
-            num_increments_for_updater = get_num_increments(move, num_iterations)
-            increment = 100 / num_increments_for_updater
+            increment = 100 / get_num_increments(move, num_iterations)
             new_squad, transfers, points = make_best_transfers(
                 move,
                 squad,
@@ -185,39 +150,41 @@ def optimize(
             )
 
             discount_factor = get_discount_factor(root_gw, gw)
-            points -= hit_this_gw * discount_factor
-            strat_dict["total_score"] += points
-            strat_dict["points_per_gw"][gw] = points
-            strat_dict["free_transfers"][gw] = free_transfers
-            strat_dict["num_transfers"][gw] = move.label()
-            strat_dict["points_hit"][gw] = hit_this_gw
-            strat_dict["discount_factor"][gw] = discount_factor
-            strat_dict["players_in"][gw] = transfers["in"]
-            strat_dict["players_out"][gw] = transfers["out"]
-            strat_dict["bank"][gw] = new_squad.budget
-            depth += 1
+            strategy = strategy.extend(
+                GameweekOutcome(
+                    gameweek=gw,
+                    move=move,
+                    points=points - hit_this_gw * discount_factor,
+                    discount_factor=discount_factor,
+                    points_hit=hit_this_gw,
+                    free_transfers=free_transfers,
+                    players_in=tuple(transfers["in"]),
+                    players_out=tuple(transfers["out"]),
+                    bank=new_squad.budget,
+                )
+            )
 
-        if depth >= len(gameweek_range):
-            with open(
-                os.path.join(OUTPUT_DIR, f"strategy_{pred_tag}_{sid}.json"),
-                "w",
-            ) as outfile:
-                json.dump(strat_dict, outfile)
+        if len(strategy) >= len(gameweek_range):
+            results.put(strategy)
             # call function to update the main progress bar
             if updater is not None:
                 updater()
 
             if profile and profiler is not None:
-                profiler.dump_stats(f"process_strat_{pred_tag}_{sid}.pstat")
+                profiler.dump_stats(
+                    f"process_strat_{pred_tag}_{strategy.label()}.pstat"
+                )
 
         else:
             # add children to the queue
             strategies = next_week_transfers(
-                (free_transfers, hit_so_far, strat_dict),
+                free_transfers,
+                hit_so_far,
+                strategy.chips_played,
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_opt_transfers=max_transfers,
-                chips=chip_schedule.for_gameweek(gw + 1),
+                chips=chip_schedule.for_gameweek(gameweek_range[len(strategy)]),
                 max_free_transfers=max_free_transfers,
             )
             for strat in strategies:
@@ -230,8 +197,7 @@ def optimize(
                         hit_so_far,
                         hit_this_gw,
                         new_squad,
-                        strat_dict,
-                        sid,
+                        strategy,
                     )
                 )
 
@@ -265,59 +231,28 @@ def _wait_for_queue(queue: CustomQueue, procs: list[Process]) -> None:
             raise RuntimeError(msg)
 
 
-def find_best_strat_from_json(tag: str) -> dict | None:
+def is_baseline(strategy: Strategy) -> bool:
+    """Whether a strategy makes no transfers and plays no chips."""
+    return all(outcome.move == GameweekMove() for outcome in strategy.outcomes)
+
+
+def save_strategy_dump(strategies: list[Strategy], directory: Path, tag: str) -> None:
     """
-    Look through all the files in our tmp directory that
-    contain the prediction tag in their filename.
-    Load the json, and find the strategy with the best 'total_score'.
+    Write every strategy considered to one JSON file, for debugging.
+
+    The search itself keeps strategies in memory; this exists only because
+    inspecting the whole tree is occasionally the fastest way to understand a
+    surprising suggestion.
     """
-    best_score = 0
-    best_strat = None
-    file_list = os.listdir(OUTPUT_DIR)
-    for filename in file_list:
-        if f"strategy_{tag}_" not in filename:
-            continue
-        full_filename = os.path.join(OUTPUT_DIR, filename)
-        with open(full_filename) as strat_file:
-            strat = json.load(strat_file)
-            if strat["total_score"] > best_score:
-                best_score = strat["total_score"]
-                best_strat = strat
-
-    return best_strat
-
-
-def save_baseline_score(squad: Squad, gameweeks: list[int], tag: str) -> None:
-    """When strategies with unused transfers are excluded the baseline strategy will
-    normally not be part of the tree. In that case save it first with this function.
-    """
-    strat_dict = get_baseline_strat(squad, gameweeks, tag, root_gw=gameweeks[0])
-
-    num_gameweeks = len(gameweeks)
-    zeros = ("0-" * num_gameweeks)[:-1]
-    filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
-    with open(filename, "w") as f:
-        json.dump(strat_dict, f)
-
-
-def find_baseline_score_from_json(tag: str, num_gameweeks: int) -> float:
-    """
-    The baseline score is the one where we make 0 transfers
-    for all gameweeks.
-    """
-    # the strategy string we're looking for will be something like '0-0-0'.
-    zeros = ("0-" * num_gameweeks)[:-1]
-    filename = os.path.join(OUTPUT_DIR, f"strategy_{tag}_{zeros}.json")
-    if not os.path.exists(filename):
-        logger.warning("Couldn't find %s", filename)
-        return 0.0
-    with open(filename) as inputfile:
-        strat = json.load(inputfile)
-        return strat["total_score"]
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / f"strategies_{tag}.json"
+    with path.open("w") as f:
+        json.dump([s.to_dict() for s in strategies], f, indent=2)
+    logger.info("Wrote %s strategies to %s", len(strategies), path)
 
 
 def print_optimization_summary(
-    strat: dict,
+    strat: Strategy,
     baseline_score: float,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
@@ -331,12 +266,9 @@ def print_optimization_summary(
     bank balance.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted(int(gw) for gw in gameweeks_as_str)
-    first_gw, last_gw = gameweeks_as_int[0], gameweeks_as_int[-1]
-
-    total_score = strat["total_score"]
-    total_hits = sum(strat["points_hit"][str(gw)] for gw in gameweeks_as_int)
+    first_gw, last_gw = strat.gameweeks[0], strat.gameweeks[-1]
+    total_score = strat.total_score
+    total_hits = strat.total_points_hit
 
     summary = Text()
     summary.append(
@@ -360,16 +292,13 @@ def print_optimization_summary(
         "Predicted Score",
         title="Strategy",
     )
-    for gw in gameweeks_as_int:
-        chip = strat["chips_played"][str(gw)] or "-"
-        points_hit = strat["points_hit"][str(gw)]
-        pred_pts = strat["points_per_gw"][str(gw)] / strat["discount_factor"][str(gw)]
+    for outcome in strat.outcomes:
         strategy_table.add_row(
-            str(gw),
-            str(strat["num_transfers"][str(gw)]),
-            chip,
-            f"-{points_hit}pts" if points_hit else "0pts",
-            f"{pred_pts:.1f}pts",
+            str(outcome.gameweek),
+            outcome.move.label(),
+            str(outcome.chip) if outcome.chip else "-",
+            f"-{outcome.points_hit}pts" if outcome.points_hit else "0pts",
+            f"{outcome.undiscounted_points:.1f}pts",
         )
     console.print(strategy_table)
 
@@ -392,10 +321,11 @@ def print_optimization_summary(
         fpl_team_id=fpl_team_id,
         use_api=use_api,
     )
-    for gw in gameweeks_as_int:
-        players_out = strat["players_out"][str(gw)]
-        players_in = strat["players_in"][str(gw)]
-        for pid_out, pid_in in zip(players_out, players_in, strict=True):
+    for outcome in strat.outcomes:
+        gw = outcome.gameweek
+        for pid_out, pid_in in zip(
+            outcome.players_out, outcome.players_in, strict=True
+        ):
             any_transfers = True
             out_player = squad.get_player_from_id(pid_out)
             sale_price = squad.get_sell_price_for_player(
@@ -431,30 +361,29 @@ def print_optimization_summary(
         console.print(f"{transfer_table.title}: no transfers made.")
 
 
-def discord_payload(strat: dict, lineup: list[str]) -> dict:
+def discord_payload(strat: Strategy, lineup: list[str]) -> dict:
     """
     json formated discord webhook content.
     """
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
     discord_embed = {
         "title": "AIrsenal webhook",
         "description": "Optimum strategy for gameweek(S)"
-        f" {','.join(str(x) for x in gameweeks_as_int)}:",
+        f" {','.join(str(gw) for gw in strat.gameweeks)}:",
         "color": 0x35A800,
         "fields": [],
     }
     fields: list[dict] = []
-    for gw in gameweeks_as_int:
+    for outcome in strat.outcomes:
+        gw = outcome.gameweek
         fields.append(
             {
                 "name": f"GW{gw} chips:",
-                "value": f"Chips played:  {strat['chips_played'][str(gw)]}\n",
+                "value": f"Chips played:  {outcome.chip}\n",
                 "inline": False,
             }
         )
-        pin = [str(get_player_name(p)) for p in strat["players_in"][str(gw)]]
-        pout = [str(get_player_name(p)) for p in strat["players_out"][str(gw)]]
+        pin = [str(get_player_name(p)) for p in outcome.players_in]
+        pout = [str(get_player_name(p)) for p in outcome.players_out]
         fields.extend(
             [
                 {
@@ -478,7 +407,7 @@ def discord_payload(strat: dict, lineup: list[str]) -> dict:
 
 
 def print_team_for_next_gw(
-    strat: dict,
+    strat: Strategy,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     use_api: bool = False,
@@ -486,25 +415,23 @@ def print_team_for_next_gw(
     """
     Display the team (inc. subs and captain) for the next gameweek
     """
-    gameweeks_as_str = strat["points_per_gw"].keys()
-    gameweeks_as_int = sorted([int(gw) for gw in gameweeks_as_str])
-    next_gw = gameweeks_as_int[0]
+    outcome = strat.outcomes[0]
+    next_gw = outcome.gameweek
     t = get_starting_squad(
         next_gw=next_gw, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
-    for pidout in strat["players_out"][str(next_gw)]:
+    for pidout in outcome.players_out:
         t.remove_player(pidout)
-    for pidin in strat["players_in"][str(next_gw)]:
+    for pidin in outcome.players_in:
         t.add_player(pidin)
     tag = get_latest_prediction_tag(season=season)
-    chip_played = strat["chips_played"].get(str(next_gw))
     console.print(
         formation_table(
             t,
             tag,
             next_gw,
-            bench_boost=chip_played == "bench_boost",
-            triple_captain=chip_played == "triple_captain",
+            bench_boost=outcome.chip is Chip.BENCH_BOOST,
+            triple_captain=outcome.chip is Chip.TRIPLE_CAPTAIN,
         )
     )
     return t
@@ -522,13 +449,14 @@ def run_optimization(
     max_opt_transfers: int = 2,
     num_iterations: int = 100,
     num_thread: int = 4,
+    save_strategies: Path | None = None,
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
     max_free_transfers: int = MAX_FREE_TRANSFERS,
-) -> tuple[Squad, dict[str, dict[str, int | list[int]]] | None]:
+) -> tuple[Squad, Strategy | None]:
     """
     This is the actual main function that sets up the multiprocessing
-    and calls the optimize function for every num_transfers/gameweek
+    and calls the optimize function for every move/gameweek
     combination, to find the best strategy.
     The chip-related variables e.g. wildcard_week are -1 if that chip
     is not to be played, 0 for 'play it any week', or the gw in which
@@ -604,19 +532,14 @@ def run_optimization(
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
 
-        # create the output directory for temporary json files
-        # giving the points prediction for each strategy
-        shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        # first get a baseline prediction
-        # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
-
         # Work out what chips we definitely or possibly will play in each gw
         chip_schedule = ChipSchedule.from_weeks(gameweeks, chip_gameweeks)
 
         # create a queue that we will add nodes to, and some processes to take
         # things off it
         squeue = CustomQueue()
+        # workers put finished strategies here for the parent to compare
+        result_queue: Queue[Strategy | None] = Queue()
         procs = []
         # number of nodes in tree will be something like 3^num_weeks unless we allow
         # a "chip" such as wildcard or free hit, in which case it gets complicated
@@ -673,12 +596,29 @@ def run_optimization(
             )
             progress_thread.start()
 
+            # Drain the results queue as strategies finish. A worker blocks once
+            # the pipe fills, so this cannot wait until the search is over.
+            finished: list[Strategy] = []
+
+            def collect_results() -> None:
+                while True:
+                    strategy = result_queue.get()
+                    if strategy is None:
+                        break
+                    finished.append(strategy)
+
+            result_thread = threading.Thread(target=collect_results, daemon=True)
+            result_thread.start()
+
             if baseline_excluded:
                 # if we are excluding unused transfers the tree may not include the
-                # baseline strategy. In those cases quickly calculate and save it
-                # here first.
-                save_baseline_score(starting_squad, gameweeks, tag)
+                # baseline strategy, so compute it here instead.
+                baseline_strategy = get_baseline_strat(
+                    starting_squad, gameweeks, tag, root_gw=gameweeks[0]
+                )
                 progress.advance(total_task, 1)
+            else:
+                baseline_strategy = None
 
             # Add Processes to run the target 'optimize' function.
             # This target function needs to know:
@@ -694,6 +634,7 @@ def run_optimization(
                     args=(
                         squeue,
                         i,
+                        result_queue,
                         gameweeks,
                         season,
                         tag,
@@ -718,8 +659,7 @@ def run_optimization(
                     0,
                     0,
                     starting_squad,
-                    {},
-                    "starting",
+                    None,
                 )
             )
 
@@ -742,11 +682,23 @@ def run_optimization(
             squeue.put(None)
         for p in procs:
             p.join()
+        result_queue.put(None)
+        result_thread.join()
 
         # find the best from all the strategies tried
-        best_strategy = find_best_strat_from_json(tag)
+        candidates = finished + ([baseline_strategy] if baseline_strategy else [])
+        if save_strategies is not None:
+            save_strategy_dump(candidates, save_strategies, tag)
+        if not candidates:
+            msg = "Failed to find a strategy!"
+            raise ValueError(msg)
+        best_strategy = max(candidates, key=lambda s: s.total_score)
 
-        baseline_score = find_baseline_score_from_json(tag, num_weeks)
+        # the baseline is the strategy that makes no transfers in any gameweek
+        baseline = next((s for s in candidates if is_baseline(s)), None)
+        if baseline is None:
+            logger.warning("No baseline strategy was evaluated")
+        baseline_score = baseline.total_score if baseline is not None else 0.0
         fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
         if is_replay:
             # simulating a previous season, so imitate applying transfers by adding
@@ -756,10 +708,6 @@ def run_optimization(
             )
 
     console.print()
-
-    if best_strategy is None:
-        msg = "Failed to find a strategy!"
-        raise ValueError(msg)
 
     print_optimization_summary(
         best_strategy,
@@ -784,7 +732,7 @@ def run_optimization(
             lineup_strings = [
                 f"__Strategy for Team ID: **{fpl_team_id}**__",
                 f"Baseline score: *{int(baseline_score)}*",
-                f"Best score: *{int(best_strategy['total_score'])}*",
+                f"Best score: *{int(best_strategy.total_score)}*",
                 "\n__starting 11__",
             ]
             for position in list(Position.back_to_front()):
@@ -820,7 +768,6 @@ def run_optimization(
         else:
             logger.warning("Discord webhook url is malformed: %s", discord_webhook)
 
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return best_squad, best_strategy
 
 
@@ -864,6 +811,7 @@ def run_transfer_optimization(
     profile: bool,
     fpl_team_id: int | None,
     is_replay: bool,
+    save_strategies: Path | None = None,
 ) -> None:
     """Run transfer optimization for a gameweek range."""
     sanity_check_args(
@@ -899,15 +847,16 @@ def run_transfer_optimization(
     run_optimization(
         gameweeks,
         tag,
-        season,
-        fpl_team_id,
-        chip_gameweeks,
-        num_free_transfers,
-        max_hit,
-        allow_unused,
-        max_transfers,
-        num_iterations,
-        num_thread,
-        profile,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        chip_gameweeks=chip_gameweeks,
+        num_free_transfers=num_free_transfers,
+        max_total_hit=max_hit,
+        allow_unused_transfers=allow_unused,
+        max_opt_transfers=max_transfers,
+        num_iterations=num_iterations,
+        num_thread=num_thread,
+        save_strategies=save_strategies,
+        profile=profile,
         is_replay=is_replay,
     )

@@ -285,11 +285,12 @@ def as_labels(
 
 def test_next_week_transfers_no_chips_no_constraints():
     # First week (blank starting strat with 1 free transfer available)
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     # No chips or constraints
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=True,
             max_opt_transfers=2,
@@ -302,11 +303,12 @@ def test_next_week_transfers_no_chips_no_constraints():
 
 def test_next_week_transfers_no_free_transfers_available():
     # First week (blank starting strat with no free transfer available)
-    strat = (0, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 0, 0
     # No chips or constraints
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=True,
             max_opt_transfers=2,
@@ -319,11 +321,12 @@ def test_next_week_transfers_no_free_transfers_available():
 
 def test_next_week_transfers_with_hits_already_taken():
     # First week (blank starting strat with 4 points hits already taken)
-    strat = (1, 4, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 4
     # No chips or constraints
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=True,
             max_opt_transfers=2,
@@ -336,11 +339,12 @@ def test_next_week_transfers_with_hits_already_taken():
 
 def test_next_week_transfers_no_chips_no_constraints_max5():
     # First week (blank starting strat with 1 free transfer available)
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     # No chips or constraints
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=True,
             max_opt_transfers=5,
@@ -360,10 +364,11 @@ def test_next_week_transfers_no_chips_no_constraints_max5():
 
 def test_next_week_transfers_any_chip_no_constraints():
     # All chips, no constraints
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=2,
             chips=GameweekChips(
@@ -394,10 +399,11 @@ def test_next_week_transfers_any_chip_no_constraints():
 
 def test_next_week_transfers_any_chip_no_constraints_max5():
     # All chips, no constraints
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=5,
             chips=GameweekChips(
@@ -437,10 +443,11 @@ def test_next_week_transfers_any_chip_no_constraints_max5():
 
 def test_next_week_transfers_no_chips_zero_hit():
     # No points hits
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=0,
             allow_unused_transfers=True,
             max_opt_transfers=2,
@@ -452,10 +459,11 @@ def test_next_week_transfers_no_chips_zero_hit():
 
 def test_next_week_transfers_no_chips_zero_hit_max5():
     # No points hits
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=0,
             allow_unused_transfers=True,
             max_opt_transfers=5,
@@ -467,10 +475,11 @@ def test_next_week_transfers_no_chips_zero_hit_max5():
 
 def test_next_week_transfers_2ft_no_unused():
     # 2 free transfers available, no wasted transfers
-    strat = (2, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 2, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=False,
             max_opt_transfers=2,
@@ -483,10 +492,11 @@ def test_next_week_transfers_2ft_no_unused():
 
 def test_next_week_transfers_5ft_no_unused_max5():
     # 2 free transfers available, no wasted transfers
-    strat = (5, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 5, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=False,
             max_opt_transfers=5,
@@ -505,10 +515,11 @@ def test_next_week_transfers_5ft_no_unused_max5():
 
 def test_next_week_transfers_3ft_no_hit_max5():
     # 2 free transfers available, no wasted transfers
-    strat = (3, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 3, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=0,
             allow_unused_transfers=False,
             max_opt_transfers=5,
@@ -521,24 +532,29 @@ def test_next_week_transfers_3ft_no_hit_max5():
 
 def test_next_week_transfers_chips_already_used():
     # Chips allowed but previously used
-    strat = (
-        1,
-        0,
-        {
-            "players_in": {},
-            "chips_played": {
-                1: "wildcard",
-                2: "free_hit",
-                3: "bench_boost",
-                4: "triple_captain",
-            },
-        },
-    )
+    free_transfers, hit_so_far = 1, 0
+    chips_played = [
+        Chip.WILDCARD,
+        Chip.FREE_HIT,
+        Chip.BENCH_BOOST,
+        Chip.TRIPLE_CAPTAIN,
+    ]
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
+            chips_played,
             max_total_hit=None,
             max_opt_transfers=2,
+            # every chip is allowed this week, but all of them are already spent
+            chips=GameweekChips(
+                chips_allowed=(
+                    Chip.WILDCARD,
+                    Chip.FREE_HIT,
+                    Chip.BENCH_BOOST,
+                    Chip.TRIPLE_CAPTAIN,
+                )
+            ),
         )
     )
     expected = [("0", 2, 0, 0), ("1", 1, 0, 0), ("2", 1, 4, 4)]
@@ -546,10 +562,11 @@ def test_next_week_transfers_chips_already_used():
 
 
 def test_next_week_transfers_play_wildcard():
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=2,
             chips=GameweekChips(Chip.WILDCARD),
@@ -560,10 +577,11 @@ def test_next_week_transfers_play_wildcard():
 
 
 def test_next_week_transfers_2ft_allow_wildcard():
-    strat = (2, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 2, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=2,
             chips=GameweekChips(chips_allowed=(Chip.WILDCARD,)),
@@ -575,10 +593,11 @@ def test_next_week_transfers_2ft_allow_wildcard():
 
 
 def test_next_week_transfers_5ft_allow_wildcard():
-    strat = (5, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 5, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=5,
             chips=GameweekChips(chips_allowed=(Chip.WILDCARD,)),
@@ -598,10 +617,11 @@ def test_next_week_transfers_5ft_allow_wildcard():
 
 
 def test_next_week_transfers_2ft_allow_wildcard_no_unused():
-    strat = (2, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 2, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=False,
             max_opt_transfers=2,
@@ -614,10 +634,11 @@ def test_next_week_transfers_2ft_allow_wildcard_no_unused():
 
 
 def test_next_week_transfers_2ft_play_wildcard():
-    strat = (2, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 2, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             max_opt_transfers=2,
             chips=GameweekChips(Chip.WILDCARD),
@@ -628,10 +649,11 @@ def test_next_week_transfers_2ft_play_wildcard():
 
 
 def test_next_week_transfers_2ft_play_bench_boost_no_unused():
-    strat = (2, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 2, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=False,
             max_opt_transfers=2,
@@ -644,10 +666,11 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
 
 
 def test_next_week_transfers_play_triple_captain_max_transfers_3():
-    strat = (1, 0, {"players_in": {}, "chips_played": {}})
+    free_transfers, hit_so_far = 1, 0
     actual = as_labels(
         next_week_transfers(
-            strat,
+            free_transfers,
+            hit_so_far,
             max_total_hit=None,
             allow_unused_transfers=True,
             max_opt_transfers=3,

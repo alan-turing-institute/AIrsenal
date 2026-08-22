@@ -16,6 +16,8 @@ from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import get_gameweeks_array, get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
+from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.strategy import GameweekOutcome, Strategy
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
@@ -115,13 +117,19 @@ def replay_season(
                 tag, gw_range, season, fpl_team_id, is_replay=True
             )
             # no points hits due to unlimited transfers to initialise team
-            best_strategy: dict[str, dict[str, int | list[int]]] | None = {
-                "points_hit": {str(gw): 0},
-                "free_transfers": {str(gw): 0},
-                "num_transfers": {str(gw): 0},
-                "players_in": {str(gw): []},
-                "players_out": {str(gw): []},
-            }
+            best_strategy: Strategy | None = Strategy(
+                root_gameweek=gw,
+                outcomes=(
+                    GameweekOutcome(
+                        gameweek=gw,
+                        move=GameweekMove(),
+                        points=0.0,
+                        discount_factor=1.0,
+                        points_hit=0,
+                        free_transfers=0,
+                    ),
+                ),
+            )
         else:
             logger.info("Optimising transfers...")
             # find best squad and the strategy for this gameweek
@@ -150,30 +158,14 @@ def replay_season(
             elif p.is_vice_captain:
                 gw_result["vice_captain"] = p.name
         # obtain information about the strategy used for gameweek
-        gw_result["free_transfers"] = best_strategy["free_transfers"][str(gw)]
-        gw_result["num_transfers"] = best_strategy["num_transfers"][str(gw)]
-        gw_result["points_hit"] = best_strategy["points_hit"][str(gw)]
-        players_in = best_strategy["players_in"][str(gw)]
-        players_out = best_strategy["players_out"][str(gw)]
-        if not isinstance(players_in, list) or not isinstance(players_out, list):
-            msg = (
-                "players_in and players_out should be lists of player IDs, "
-                f"got {type(players_in)} and {type(players_out)}"
-            )
-            raise TypeError(msg)
-        gw_result["players_in"] = [get_player_name(p) for p in players_in]
-        gw_result["players_out"] = [get_player_name(p) for p in players_out]
+        outcome = best_strategy.outcome(gw)
+        gw_result["free_transfers"] = outcome.free_transfers
+        gw_result["num_transfers"] = outcome.move.label()
+        gw_result["points_hit"] = outcome.points_hit
+        gw_result["players_in"] = [get_player_name(p) for p in outcome.players_in]
+        gw_result["players_out"] = [get_player_name(p) for p in outcome.players_out]
         # compute expected and actual points for gameweek
-        hit_points = gw_result["points_hit"]
-        if not isinstance(hit_points, int):
-            msg = (
-                f"points_hit should be an integer, got {type(hit_points)}: {hit_points}"
-            )
-            raise TypeError(msg)
-        gw_result["points_hit"] = hit_points
-        # expected points minus points hit gives the expected points for the gameweek
-        exp_points = squad.get_expected_points(gw, tag)
-        gw_result["expected_points"] = exp_points
+        gw_result["expected_points"] = squad.get_expected_points(gw, tag)
         actual_points = squad.get_actual_points(gw, season)
         gw_result["actual_points"] = actual_points - gw_result["points_hit"]
         if not isinstance(replay_results["gameweeks"], list):

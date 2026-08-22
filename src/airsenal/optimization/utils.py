@@ -2,7 +2,7 @@
 functions to optimize the transfers for N weeks ahead
 """
 
-from copy import deepcopy
+from collections.abc import Iterable
 from datetime import datetime
 
 from curl_cffi import requests
@@ -30,6 +30,7 @@ from airsenal.optimization.moves import (
     GameweekChips,
     GameweekMove,
 )
+from airsenal.optimization.strategy import GameweekOutcome, Strategy
 from airsenal.squad.squad import Squad, get_current_squad_from_api
 
 logger = get_logger(__name__)
@@ -221,65 +222,72 @@ def get_discounted_squad_score(
     return total_points
 
 
-def get_baseline_strat(squad, gameweeks, tag, root_gw=None):
+def get_baseline_strat(
+    squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
+) -> Strategy:
     """
-    Create the strategy dict used by the optimisation for the baseline of making no
-    transfers.
+    The strategy of making no transfers at all, which every other strategy is
+    compared against.
     """
-    strat_dict = {
-        "total_score": 0,
-        "points_per_gw": {},
-        "players_in": {},
-        "players_out": {},
-        "chips_played": {},
-        "root_gw": root_gw,
-    }
+    root_gw = root_gw if root_gw is not None else gameweeks[0]
+    outcomes = []
     for gw in gameweeks:
-        gw_score = get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw)
-        strat_dict["total_score"] += gw_score
-        strat_dict["points_per_gw"][gw] = gw_score
-        strat_dict["players_in"][gw] = []
-        strat_dict["players_out"][gw] = []
-        strat_dict["chips_played"][gw] = None
-
-    return strat_dict
+        discount_factor = get_discount_factor(root_gw, gw)
+        outcomes.append(
+            GameweekOutcome(
+                gameweek=gw,
+                move=GameweekMove(),
+                points=get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw),
+                discount_factor=discount_factor,
+                points_hit=0,
+                free_transfers=0,
+                bank=squad.budget,
+            )
+        )
+    return Strategy(root_gameweek=root_gw, outcomes=tuple(outcomes))
 
 
 def fill_suggestion_table(
-    baseline_score, best_strat, season, fpl_team_id, dbsession: Session | None = None
-):
+    baseline_score: float,
+    best_strat: Strategy,
+    season: str,
+    fpl_team_id: int,
+    dbsession: Session | None = None,
+) -> None:
     """
     Fill the optimized strategy into the table
     """
     dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
-    best_score = best_strat["total_score"]
+    points_gain = best_strat.total_score - baseline_score
 
-    points_gain = best_score - baseline_score
-    for in_or_out in [("players_out", -1), ("players_in", 1)]:
-        for gameweek, players in best_strat[in_or_out[0]].items():
+    for outcome in best_strat.outcomes:
+        for players, in_or_out in (
+            (outcome.players_out, -1),
+            (outcome.players_in, 1),
+        ):
             for player in players:
                 ts = TransferSuggestion()
                 ts.player_id = player
-                ts.in_or_out = in_or_out[1]
-                ts.gameweek = gameweek
+                ts.in_or_out = in_or_out
+                ts.gameweek = outcome.gameweek
                 ts.points_gain = points_gain
                 ts.timestamp = timestamp
                 ts.season = season
                 ts.fpl_team_id = fpl_team_id
-                ts.chip_played = best_strat["chips_played"][gameweek]
+                ts.chip_played = str(outcome.chip) if outcome.chip else None
                 dbsession.add(ts)
     dbsession.commit()
 
 
 def fill_transaction_table(
-    starting_squad,
-    best_strat,
-    season,
-    fpl_team_id,
-    tag=None,
+    starting_squad: Squad,
+    best_strat: Strategy,
+    season: str,
+    fpl_team_id: int,
+    tag: str | None = None,
     dbsession: Session | None = None,
-):
+) -> None:
     """Add transactions from an optimised strategy to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
     the transactions status is kept up to date with transfers using the FPL API.
@@ -288,13 +296,13 @@ def fill_transaction_table(
     sticking with the originally proposed future transfers.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    strat_gws = [int(gw) for gw in best_strat["players_in"]]
-    fill_gw = min(strat_gws)
+    outcome = best_strat.outcomes[0]
+    fill_gw = outcome.gameweek
     if tag is None:
         tag = f"AIrsenal{season}"
-    free_hit = int(best_strat["chips_played"][str(fill_gw)] == "free_hit")
+    free_hit = int(outcome.chip is Chip.FREE_HIT)
     time = datetime.now().isoformat()
-    for player_id in best_strat["players_out"][str(fill_gw)]:
+    for player_id in outcome.players_out:
         price = starting_squad.get_sell_price_for_player(
             player_id, gameweek=fill_gw, dbsession=dbsession
         )
@@ -310,7 +318,7 @@ def fill_transaction_table(
             time,
             dbsession,
         )
-    for player_id in best_strat["players_in"][str(fill_gw)]:
+    for player_id in outcome.players_in:
         if player := get_player(player_id, dbsession=dbsession):
             price = player.price(season, fill_gw)
             add_transaction(
@@ -390,19 +398,22 @@ def fill_initial_transaction_table(
 
 
 def next_week_transfers(
-    strat: tuple[int, int, dict],
+    free_transfers: int,
+    hit_so_far: int,
+    chips_played: Iterable[Chip | None] = (),
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = True,
     max_opt_transfers: int = 2,
     chips: GameweekChips | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> list[tuple[GameweekMove, int, int, int]]:
-    """Given a previous strategy and some optimisation constraints, determine the valid
-    moves (transfers, and any chip played) for the following gameweek.
+    """Given where a strategy has got to and some optimisation constraints, determine
+    the valid moves (transfers, and any chip played) for the following gameweek.
 
-    strat is a tuple (free_transfers, total_points_hit, strat_dict)
-    strat_dict must have key chips_played, a dict indexed by gameweek with values
-    None or a Chip.
+    free_transfers - free transfers available going into the gameweek
+    hit_so_far - points hit taken by this strategy up to but not including this gameweek
+    chips_played - the chips this strategy has already used, so they are not offered
+    again
 
     max_opt_transfers - maximum number of transfers to play each week as part of
     strategy in optimisation
@@ -415,10 +426,9 @@ def next_week_transfers(
         - hit_this_gw is the points hit incurred this gameweek
     """
     chips = chips if chips is not None else NO_CHIPS
-    ft_available, hit_so_far, strat_dict = strat
-    chips_played = strat_dict["chips_played"].values()
+    chips_played = list(chips_played)
 
-    if not allow_unused_transfers and ft_available == max_free_transfers:
+    if not allow_unused_transfers and free_transfers == max_free_transfers:
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
         # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
         # this function in that case.
@@ -430,7 +440,7 @@ def next_week_transfers(
         ft_choices = [
             nt
             for nt in ft_choices
-            if hit_so_far + calc_points_hit(GameweekMove(nt), ft_available)
+            if hit_so_far + calc_points_hit(GameweekMove(nt), free_transfers)
             <= max_total_hit
         ]
 
@@ -450,10 +460,10 @@ def next_week_transfers(
             if chips.allows(chip, chips_played):
                 moves += [GameweekMove(nt, chip) for nt in ft_choices]
 
-    hit_this_gw = [calc_points_hit(move, ft_available) for move in moves]
+    hit_this_gw = [calc_points_hit(move, free_transfers) for move in moves]
     total_points_hit = [hit_so_far + hit for hit in hit_this_gw]
     new_ft_available = [
-        calc_free_transfers(move, ft_available, max_free_transfers) for move in moves
+        calc_free_transfers(move, free_transfers, max_free_transfers) for move in moves
     ]
 
     return list(
@@ -492,50 +502,40 @@ def count_expected_outputs(
     """
     next_gw = next_gameweek() if next_gw is None else next_gw
     chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
-    init_strat_dict: dict[str, dict[int, list[int] | Chip | None]] = {
-        "players_in": {},
-        "chips_played": {},
-    }
-    init_free_transfers = free_transfers  # used below for baseline strategy logic
-    strategies = [(init_free_transfers, 0, init_strat_dict)]
+
+    # (free transfers, points hit so far, moves made) - the moves are all that is
+    # needed to count branches and to spot the do-nothing baseline among them
+    branches: list[tuple[int, int, tuple[GameweekMove, ...]]] = [
+        (free_transfers, 0, ())
+    ]
 
     for gw in range(next_gw, next_gw + gw_ahead):
-        new_strategies = []
-        for s in strategies:
+        new_branches = []
+        for ft, hit, moves in branches:
             possibilities = next_week_transfers(
-                s,
+                ft,
+                hit,
+                [move.chip for move in moves],
                 max_total_hit=max_total_hit,
                 max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,
                 chips=chip_schedule.for_gameweek(gw),
                 max_free_transfers=max_free_transfers,
             )
+            new_branches += [
+                (new_ft, new_hit, (*moves, move))
+                for move, new_ft, new_hit, _ in possibilities
+            ]
+        branches = new_branches
 
-            for move, new_free_transfers, new_hit, _ in possibilities:
-                # make a copy of the strategy up to this point, then add on this gw.
-                # Only the shape of players_in matters here - the count of strategies
-                # is what we are after, not the transfers themselves.
-                new_dict = deepcopy(s[2])
-                new_dict["players_in"][gw] = [1] * move.n_players_in
-                new_dict["chips_played"][gw] = move.chip
-                new_strategies.append((new_free_transfers, new_hit, new_dict))
+    # if allow_unused_transfers is False the baseline of no transfers can be removed
+    # above. Check whether the 1st strategy is the baseline and if not add it back in.
+    baseline_moves = (GameweekMove(),) * gw_ahead
+    baseline_excluded = branches[0][2] != baseline_moves
+    if baseline_excluded:
+        branches.insert(0, (max_free_transfers, 0, baseline_moves))
 
-        strategies = new_strategies
-
-    # if allow_unused_transfers is False baseline of no transfers can be removed above.
-    # Check whether 1st strategy is the baseline and if not add it back in here
-    baseline_strat_dict: dict[str, dict[int, list[int] | Chip | None]] = {
-        "players_in": {gw: [] for gw in range(next_gw, next_gw + gw_ahead)},
-        "chips_played": dict.fromkeys(range(next_gw, next_gw + gw_ahead)),
-    }
-    if strategies[0][2] != baseline_strat_dict:
-        baseline_dict = (max_free_transfers, 0, baseline_strat_dict)
-        strategies.insert(0, baseline_dict)
-        baseline_excluded = True
-    else:
-        baseline_excluded = False
-
-    return len(strategies), baseline_excluded
+    return len(branches), baseline_excluded
 
 
 def get_discount_factor(

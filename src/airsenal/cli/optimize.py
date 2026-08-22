@@ -1,5 +1,6 @@
 """Commands for optimizing transfers and squads."""
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -67,6 +68,10 @@ def transfers(
     is_replay: Annotated[
         bool, typer.Option(help="Store suggestions as replay transactions.")
     ] = False,
+    save_strategies: Annotated[
+        Path | None,
+        typer.Option(help="Directory to write every strategy considered to, as JSON."),
+    ] = None,
 ) -> None:
     """Optimize a transfer strategy."""
     run_transfer_optimization(
@@ -88,6 +93,7 @@ def transfers(
         profile,
         fpl_team_id,
         is_replay,
+        save_strategies,
     )
 
 
