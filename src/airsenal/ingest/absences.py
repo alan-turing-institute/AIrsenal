@@ -56,7 +56,9 @@ def load_absences(
             continue
         team_from = p.team(season, gw_date)
         # then get actual return gameweek using the player's team
-        gw_from = get_return_gameweek_by_date(date_from, team_from, season, dbsession)
+        gw_from = get_return_gameweek_by_date(
+            date_from, team_from, season, dbsession=dbsession
+        )
 
         date_until = None if row["until"] is pd.NaT else row["until"].date()
         if date_until is not None and (
@@ -66,7 +68,7 @@ def load_absences(
         ):
             team_until = p.team(season, gw_date)
             gw_until = get_return_gameweek_by_date(
-                date_until, team_until, season, dbsession
+                date_until, team_until, season, dbsession=dbsession
             )
         else:
             gw_until = None

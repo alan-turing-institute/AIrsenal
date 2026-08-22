@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from airsenal.core.caching import clear_query_caches
 from airsenal.db.engine import get_connection_string
 from airsenal.db.models.base import Base
 
@@ -80,6 +81,8 @@ def configure_database(connection_string: str | None = None) -> None:
         environment by `get_connection_string` on next use.
     """
     _db.reset(connection_string)
+    # cached query answers describe the database we were pointed at before
+    clear_query_caches()
 
 
 @contextmanager

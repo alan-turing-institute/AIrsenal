@@ -6,6 +6,7 @@ import uuid
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.core.caching import clear_query_caches
 from airsenal.core.console import track
 from airsenal.core.resources import FilePath, resource
 from airsenal.db.models import Fixture
@@ -116,6 +117,8 @@ def make_fixture_table(
             fill_fixtures_from_file(
                 resource(f"results_{season}.csv"), season, dbsession=dbsession
             )
+    # gameweek lookups are cached, and every one of them reads this table
+    clear_query_caches()
 
 
 if __name__ == "__main__":

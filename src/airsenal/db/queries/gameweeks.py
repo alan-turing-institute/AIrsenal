@@ -5,12 +5,12 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture
@@ -32,7 +32,7 @@ class NoFixtureDataError(RuntimeError):
     """
 
 
-@lru_cache(1)
+@cache_ignoring_session(maxsize=8)
 def get_max_gameweek(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int:
@@ -83,7 +83,7 @@ def get_next_gameweek(
     dbsession = dbsession if dbsession is not None else get_session()
     timenow = datetime.now(timezone.utc)
     fixtures = dbsession.scalars(select(Fixture).where(Fixture.season == season)).all()
-    earliest_future_gameweek = get_max_gameweek(season, dbsession) + 1
+    earliest_future_gameweek = get_max_gameweek(season, dbsession=dbsession) + 1
 
     if len(fixtures) > 0:
         for fixture in fixtures:
@@ -217,7 +217,7 @@ def reset_gameweek_cache() -> None:
     _gameweek_cache.reset()
 
 
-@lru_cache(365)
+@cache_ignoring_session(maxsize=365)
 def get_return_gameweek_by_date(
     return_date: date | datetime | str,
     team: str,
@@ -243,7 +243,7 @@ def get_return_gameweek_by_date(
     ).all()
 
     # default return if no fixture found after the date
-    end_season_gw = get_max_gameweek(season, dbsession) + 1
+    end_season_gw = get_max_gameweek(season, dbsession=dbsession) + 1
 
     if len(fixtures) == 0:
         return end_season_gw
@@ -259,7 +259,7 @@ def get_return_gameweek_by_date(
     return end_season_gw
 
 
-@lru_cache(maxsize=365)
+@cache_ignoring_session(maxsize=365)
 def get_gameweek_by_date(
     check_date: date | datetime,
     season: str = CURRENT_SEASON,

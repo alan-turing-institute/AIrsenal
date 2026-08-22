@@ -166,13 +166,6 @@ def _cached_functions_with_session_params():
     return offenders
 
 
-@pytest.mark.xfail(
-    reason=(
-        "utils.py still caches four session-taking functions. Remove this marker "
-        "once they are replaced with explicit per-run caches."
-    ),
-    strict=True,
-)
 def test_no_cache_is_keyed_on_a_database_session():
     offenders = _cached_functions_with_session_params()
     assert not offenders, "cached functions taking a session:\n" + "\n".join(

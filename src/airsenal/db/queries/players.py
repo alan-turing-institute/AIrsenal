@@ -171,7 +171,7 @@ def list_players(
     ):
         # check neighbouring gameweeks to get all 20 teams/specified team
         gws_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
-        max_gw = get_max_gameweek(season, dbsession)
+        max_gw = get_max_gameweek(season, dbsession=dbsession)
         gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
 
         for gw in gws_to_try:

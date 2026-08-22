@@ -6,6 +6,7 @@ bought or sold.
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.core.caching import clear_query_caches
 from airsenal.core.console import console
 from airsenal.core.logging import get_logger
 from airsenal.db.admin import database_is_empty
@@ -181,6 +182,9 @@ def update_db(
         # update fixtures (which may have been rescheduled)
         logger.info("Updating fixture table...")
         fill_fixtures_from_api(season, session)
+        # fixtures may have moved between gameweeks, so any cached gameweek
+        # lookup from earlier in this process is now wrong
+        clear_query_caches()
         # update results and playerscores
         update_results(season, session)
         # update our squad
