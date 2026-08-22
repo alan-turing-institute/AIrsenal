@@ -2,6 +2,7 @@
 
 Nothing here runs at import: see tests/test_import_side_effects.py."""
 
+import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 
@@ -37,6 +38,30 @@ class _DatabaseState:
 
 
 _db = _DatabaseState()
+
+
+def _reset_engine_after_fork() -> None:
+    """Stop a forked child from sharing the parent's database connection.
+
+    `fork` copies the engine's pool, so parent and children end up issuing
+    statements down one inherited connection - literally the same
+    `sqlite3.Connection`, on the same file descriptor. SQLAlchemy's answer is
+    `dispose(close=False)`: abandon the inherited connections (the parent still
+    needs them, so do not close them) and let the child open its own on next
+    use.
+
+    The cached queries are deliberately left alone. They hold plain values
+    rather than ORM objects, so they describe the database rather than the
+    connection, and dropping them would make every worker re-read what the
+    parent had already looked up.
+    """
+    if _db.engine is not None:
+        _db.engine.dispose(close=False)
+    _db.default_session = None
+
+
+if hasattr(os, "register_at_fork"):  # pragma: no branch - posix only
+    os.register_at_fork(after_in_child=_reset_engine_after_fork)
 
 
 def get_engine() -> Engine:
