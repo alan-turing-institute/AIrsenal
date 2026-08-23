@@ -1,9 +1,12 @@
 """Reconstructing the user's transaction history from the FPL API.
 
 These combine the API, squad state and database writes, so they sit above all
-three rather than in db/, which holds only the plain insert.
+three rather than in db/, which holds only the plain insert. state.py cannot
+hold them: squad.py imports it, so anything here that builds a Squad would close
+a loop.
 """
 
+from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -18,7 +21,8 @@ from airsenal.db.queries.transactions import (
     transaction_exists,
 )
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.squad.squad import Squad, get_current_squad_from_api
 from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
 
 logger = get_logger(__name__)
@@ -193,3 +197,91 @@ def update_squad(
                 time,
                 dbsession,
             )
+
+
+def get_starting_squad(
+    next_gw: int | None = None,
+    season=CURRENT_SEASON,
+    fpl_team_id=None,
+    use_api=False,
+    fetcher: FPLDataFetcher | None = None,
+    dbsession: Session | None = None,
+):
+    """
+    use the transactions table in the db, or the API if requested
+    """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    next_gw = next_gameweek() if next_gw is None else next_gw
+    if use_api:
+        if season != CURRENT_SEASON:
+            msg = "Can only use API for current season and gameweek"
+            raise RuntimeError(msg)
+        if season == CURRENT_SEASON and next_gw != next_gameweek():
+            msg = "Can only use API for current season and gameweek"
+            raise RuntimeError(msg)
+        if not fpl_team_id:
+            msg = "Please specify fpl_team_id to get current squad from API"
+            raise RuntimeError(msg)
+        try:
+            return get_current_squad_from_api(fpl_team_id, fetcher=fetcher)
+
+        except requests.exceptions.RequestException:
+            logger.warning(
+                "Failed to get current squad from API. Using DB instead, which "
+                "may be out of date.",
+                exc_info=True,
+            )
+
+    # otherwise, we use the Transaction table in the DB
+    return get_squad_from_transactions(next_gw, season, fpl_team_id, dbsession)
+
+
+def get_squad_from_transactions(
+    gameweek, season=CURRENT_SEASON, fpl_team_id=None, dbsession: Session | None = None
+):
+    dbsession = dbsession if dbsession is not None else get_session()
+    if not fpl_team_id:
+        # use the most recent transaction in the table
+        most_recent = dbsession.scalars(
+            select(Transaction)
+            .where(Transaction.free_hit == 0, Transaction.season == season)
+            .order_by(Transaction.id.desc())
+            .limit(1)
+        ).first()
+        if most_recent is None:
+            msg = "No transactions in database."
+            raise ValueError(msg)
+        fpl_team_id = most_recent.fpl_team_id
+    logger.debug("Getting starting squad for %s", fpl_team_id)
+
+    # Don't include free hit transfers as they only apply for the week the
+    # chip is activated
+    transactions = dbsession.scalars(
+        select(Transaction)
+        .where(
+            Transaction.fpl_team_id == fpl_team_id,
+            Transaction.free_hit == 0,
+            Transaction.season == season,
+            Transaction.gameweek < gameweek,
+        )
+        .order_by(Transaction.gameweek, Transaction.id)
+    ).all()
+    if len(transactions) == 0:
+        msg = f"No transactions in database for team ID {fpl_team_id}"
+        raise ValueError(msg)
+
+    s = Squad(season=season)
+    for trans in transactions:
+        if trans.bought_or_sold == -1:
+            s.remove_player(trans.player_id, price=trans.price)
+        else:
+            # within an individual transfer we can violate the budget and squad
+            # constraints, as long as the final squad for that gameweek obeys them
+            s.add_player(
+                trans.player_id,
+                price=trans.price,
+                gameweek=gameweek,  # not trans.gameweek, to get player's current club
+                check_budget=False,
+                check_team=False,
+            )
+    return s

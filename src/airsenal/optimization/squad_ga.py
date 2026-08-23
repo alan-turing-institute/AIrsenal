@@ -17,11 +17,8 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
-from airsenal.optimization.config import GeneticAlgorithmConfig
-from airsenal.optimization.utils import (
-    DEFAULT_SUB_WEIGHTS,
-    get_discounted_squad_score,
-)
+from airsenal.optimization.config import DEFAULT_SUB_WEIGHTS, GeneticAlgorithmConfig
+from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 

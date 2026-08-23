@@ -54,3 +54,27 @@ def get_latest_fixture_tag(
         msg = f"No fixtures found in database for season {season}"
         raise RuntimeError(msg)
     return latest_fixture.tag
+
+
+def check_tag_valid(
+    prediction_tag: str,
+    gameweeks: list[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> bool:
+    """Check a prediction tag contains predictions for all the specified gameweeks."""
+    # get unique gameweek and season values associated with prediction_tag
+    dbsession = dbsession if dbsession is not None else get_session()
+    fixtures = dbsession.execute(
+        select(Fixture.season, Fixture.gameweek)
+        .join(PlayerPrediction)
+        .where(PlayerPrediction.tag == prediction_tag)
+        .distinct()
+    ).all()
+    pred_seasons = [f[0] for f in fixtures]
+    pred_gws = [f[1] for f in fixtures]
+
+    season_ok = all(s == season for s in pred_seasons)
+    gws_ok = all(gw in pred_gws for gw in gameweeks)
+
+    return season_ok and gws_ok

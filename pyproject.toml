@@ -265,7 +265,6 @@ module = [
     "airsenal.optimization.strategies.random_search",
     "airsenal.optimization.strategies.single",
     "airsenal.optimization.transfers",
-    "airsenal.optimization.utils",
     "airsenal.pipeline.replay",
     "airsenal.pipeline.run",
     "airsenal.prediction.features",

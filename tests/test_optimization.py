@@ -8,14 +8,15 @@ from unittest import mock
 
 from airsenal.core.console import console
 from airsenal.core.enums import Chip
-from airsenal.optimization.moves import ChipSchedule, GameweekChips
-from airsenal.optimization.strategies.double import make_optimum_double_transfer
-from airsenal.optimization.strategies.single import make_optimum_single_transfer
-from airsenal.optimization.utils import (
+from airsenal.optimization.moves import (
+    ChipSchedule,
+    GameweekChips,
     count_expected_outputs,
-    get_discount_factor,
     next_week_transfers,
 )
+from airsenal.optimization.squad_score import get_discount_factor
+from airsenal.optimization.strategies.double import make_optimum_double_transfer
+from airsenal.optimization.strategies.single import make_optimum_single_transfer
 from airsenal.squad.squad import Squad
 
 

@@ -10,17 +10,19 @@ from airsenal.core.logging import get_logger
 from airsenal.core.registry import config_from_overrides
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
-from airsenal.db.queries.tags import get_latest_prediction_tag
+from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.fetch.fpl_api import require_fpl_team_id
-from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
-from airsenal.optimization.squad_ga import make_new_squad
-from airsenal.optimization.utils import (
+from airsenal.optimization.config import (
     DEFAULT_SUB_WEIGHTS,
-    check_tag_valid,
+    GeneticAlgorithmConfig,
+    SubWeights,
+)
+from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
-    get_discounted_squad_score,
 )
+from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.squad import Squad
 

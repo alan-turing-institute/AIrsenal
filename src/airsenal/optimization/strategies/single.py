@@ -8,8 +8,8 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferPlan, TransferRequest
+from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
-from airsenal.optimization.utils import get_discounted_squad_score
 
 logger = get_logger(__name__)
 

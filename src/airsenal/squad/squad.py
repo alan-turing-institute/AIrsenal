@@ -422,8 +422,12 @@ class Squad:
         self.pick_captains(gameweek, tag)
 
     def get_expected_points(
-        self, gameweek, tag, bench_boost=False, triple_captain=False
-    ):
+        self,
+        gameweek: int,
+        tag: str,
+        bench_boost: bool = False,
+        triple_captain: bool = False,
+    ) -> float:
         """
         expected points for the starting 11.
         """

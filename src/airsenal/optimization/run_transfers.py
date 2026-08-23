@@ -37,30 +37,28 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.players import get_player, get_player_name
-from airsenal.db.queries.tags import get_latest_prediction_tag
+from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.optimization.config import GeneticAlgorithmConfig
-from airsenal.optimization.moves import ChipSchedule, GameweekMove
+from airsenal.optimization.moves import (
+    MAX_FREE_TRANSFERS,
+    ChipSchedule,
+    GameweekMove,
+    count_expected_outputs,
+    next_week_transfers,
+)
+from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.run_squad import fill_initial_squad
-from airsenal.optimization.strategy import GameweekOutcome, Strategy
+from airsenal.optimization.squad_score import get_discount_factor
+from airsenal.optimization.strategy import GameweekOutcome, Strategy, get_baseline_strat
 from airsenal.optimization.transfers import (
     get_num_increments,
     make_best_transfers,
 )
-from airsenal.optimization.utils import (
-    MAX_FREE_TRANSFERS,
-    check_tag_valid,
-    count_expected_outputs,
-    fill_suggestion_table,
-    fill_transaction_table,
-    get_baseline_strat,
-    get_discount_factor,
-    get_starting_squad,
-    next_week_transfers,
-)
 from airsenal.reporting.discord import post_webhook
 from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.history import get_starting_squad
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 

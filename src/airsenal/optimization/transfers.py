@@ -11,8 +11,8 @@ from multiprocessing import Process
 from airsenal.core.logging import get_logger
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferRequest
+from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies import select_strategy
-from airsenal.optimization.utils import get_discounted_squad_score
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)

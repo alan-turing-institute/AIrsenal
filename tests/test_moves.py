@@ -12,9 +12,10 @@ from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekChips,
     GameweekMove,
+    calc_free_transfers,
+    calc_points_hit,
 )
 from airsenal.optimization.transfers import get_num_increments
-from airsenal.optimization.utils import calc_free_transfers, calc_points_hit
 
 LABELS = [
     (GameweekMove(), "0"),

@@ -18,9 +18,14 @@ from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
 from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.squad_score import (
+    get_discount_factor,
+    get_discounted_squad_score,
+)
 
 if TYPE_CHECKING:
     from airsenal.core.enums import Chip
+    from airsenal.squad.squad import Squad
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,3 +148,28 @@ class Strategy:
                 GameweekOutcome.from_dict(outcome) for outcome in data["outcomes"]
             ),
         )
+
+
+def get_baseline_strat(
+    squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
+) -> Strategy:
+    """
+    The strategy of making no transfers at all, which every other strategy is
+    compared against.
+    """
+    root_gw = root_gw if root_gw is not None else gameweeks[0]
+    outcomes = []
+    for gw in gameweeks:
+        discount_factor = get_discount_factor(root_gw, gw)
+        outcomes.append(
+            GameweekOutcome(
+                gameweek=gw,
+                move=GameweekMove(),
+                points=get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw),
+                discount_factor=discount_factor,
+                points_hit=0,
+                free_transfers=0,
+                bank=squad.budget,
+            )
+        )
+    return Strategy(root_gameweek=root_gw, outcomes=tuple(outcomes))

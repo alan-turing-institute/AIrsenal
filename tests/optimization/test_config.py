@@ -5,11 +5,11 @@ from dataclasses import replace
 import pytest
 
 from airsenal.optimization.config import (
+    DEFAULT_SUB_WEIGHTS,
     GeneticAlgorithmConfig,
     SquadScoringConfig,
     SubWeights,
 )
-from airsenal.optimization.utils import DEFAULT_SUB_WEIGHTS
 
 
 def test_default_sub_weights_come_from_one_definition():

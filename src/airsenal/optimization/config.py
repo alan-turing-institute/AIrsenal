@@ -8,6 +8,10 @@ optimiser came to score benches differently without anyone deciding they should.
 
 from dataclasses import dataclass, field, replace
 
+# The shape as_dict() produces and the scoring code consumes: a weight for the
+# substitute goalkeeper, and one per outfield bench position.
+SubWeightsDict = dict[str, float | tuple[float, float, float]]
+
 
 @dataclass(frozen=True)
 class SubWeights:
@@ -25,7 +29,7 @@ class SubWeights:
         """Ignore the bench entirely."""
         return cls(gk=0.0, outfield=(0.0, 0.0, 0.0))
 
-    def as_dict(self) -> dict[str, float | tuple[float, float, float]]:
+    def as_dict(self) -> SubWeightsDict:
         """The shape the scoring code still expects."""
         return {"GK": self.gk, "Outfield": self.outfield}
 
@@ -62,3 +66,10 @@ class SquadScoringConfig:
     sub_weights: SubWeights = field(default_factory=SubWeights)
     dummy_sub_cost: int = 45
     budget: int = 1000
+
+
+# Derived from SubWeights so there is one definition. The squad builder used to
+# hard-code {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)} instead, so `optimize
+# squad` and `optimize transfers` scored benches differently - unintentionally,
+# and the docstrings advertised the other set again.
+DEFAULT_SUB_WEIGHTS = SubWeights().as_dict()
