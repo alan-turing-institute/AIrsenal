@@ -25,13 +25,15 @@ from typing import TYPE_CHECKING, Protocol, TypeAlias
 
 from airsenal.core.enums import Chip
 from airsenal.optimization.config import SquadScoringConfig
+from airsenal.optimization.moves import TransferConstraints
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from sqlalchemy.orm.session import Session
 
-    from airsenal.optimization.moves import GameweekMove
+    from airsenal.optimization.moves import ChipSchedule, GameweekMove
+    from airsenal.optimization.strategy import TransferSearchResult
     from airsenal.squad.squad import Squad
 
 
@@ -190,5 +192,36 @@ class SquadOptimizer(Protocol):
         Returns the squad alone: neither caller uses a score, and requiring one in
         `get_discounted_squad_score` units is not something every kind of optimizer
         could honestly report.
+        """
+        ...
+
+
+@dataclass(frozen=True)
+class TransferSearchRequest:
+    """The problem a transfer optimizer is asked to solve."""
+
+    starting_squad: Squad
+    gameweeks: list[int]
+    tag: str
+    season: str
+    chip_schedule: ChipSchedule
+    num_free_transfers: int
+    constraints: TransferConstraints = field(default_factory=TransferConstraints)
+
+    @property
+    def num_gameweeks(self) -> int:
+        return len(self.gameweeks)
+
+
+class TransferOptimizer(Protocol):
+    """One way of choosing what to do across a range of gameweeks."""
+
+    def search(self, request: TransferSearchRequest) -> TransferSearchResult:
+        """
+        The best plan this optimizer can find, and the baseline to judge it against.
+
+        `search` rather than `propose` because a `TransferStrategy` proposes too,
+        at the scale of a single gameweek, and the two are called within a few
+        lines of each other inside the search.
         """
         ...

@@ -9,13 +9,17 @@ from airsenal.core.logging import get_logger
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import StepCounter, TransferRequest
 from airsenal.optimization.squad_score import get_discounted_squad_score
-from airsenal.optimization.strategies import select_strategy
+from airsenal.optimization.strategies import DEFAULT_STRATEGIES, StrategySet
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
 
-def get_num_increments(move: GameweekMove, num_iterations: int = 100) -> int:
+def get_num_increments(
+    move: GameweekMove,
+    num_iterations: int = 100,
+    strategies: StrategySet | None = None,
+) -> int:
     """
     How many candidate squads the search will consider for this move.
 
@@ -23,7 +27,8 @@ def get_num_increments(move: GameweekMove, num_iterations: int = 100) -> int:
     candidate at a time. It comes from the strategy that does the searching, so
     it cannot drift away from what actually happens.
     """
-    return select_strategy(move).num_increments(move, num_iterations)
+    strategies = strategies if strategies is not None else DEFAULT_STRATEGIES
+    return strategies.create(move).num_increments(move, num_iterations)
 
 
 def make_best_transfers(
@@ -35,12 +40,14 @@ def make_best_transfers(
     season: str,
     num_iter: int = 100,
     on_step: StepCounter | None = None,
+    strategies: StrategySet | None = None,
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Make this gameweek's move, returning the resulting squad, the transfers made
     as {"in": [player_ids], "out": [player_ids]}, and the points it is expected
     to score next gameweek.
     """
+    strategies = strategies if strategies is not None else DEFAULT_STRATEGIES
     request = TransferRequest(
         move=move,
         squad=squad,
@@ -51,7 +58,7 @@ def make_best_transfers(
         num_iterations=num_iter,
         progress=on_step,
     )
-    plan = select_strategy(move).propose(request)
+    plan = strategies.create(move).propose(request)
 
     points = get_discounted_squad_score(
         plan.squad,

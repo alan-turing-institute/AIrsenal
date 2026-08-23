@@ -12,7 +12,6 @@ import pytest
 
 from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.run_transfers import is_baseline
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
 
 
@@ -138,4 +137,4 @@ def test_is_baseline(moves, expected):
     strategy = Strategy(root_gameweek=3)
     for i, move in enumerate(moves):
         strategy = strategy.extend(outcome(3 + i, move))
-    assert is_baseline(strategy) is expected
+    assert strategy.is_baseline is expected

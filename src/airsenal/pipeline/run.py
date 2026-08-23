@@ -16,8 +16,13 @@ from airsenal.export.absences import main as save_expected_absences
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
+from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
+from airsenal.optimization.transfer_optimizers import (
+    TRANSFER_OPTIMIZERS,
+    TreeSearchConfig,
+)
 from airsenal.prediction.protocols import ConfiguredTeamModel, PlayerModel
 from airsenal.prediction.registry import (
     DEFAULT_PLAYER_MODEL,
@@ -283,11 +288,15 @@ def run_optimize_squad(
         tag=tag,
         season=season,
         fpl_team_id=fpl_team_id,
-        num_thread=num_thread,
         chip_gameweeks=chips_played,
-        max_opt_transfers=max_transfers,
-        max_total_hit=max_hit,
-        allow_unused_transfers=allow_unused,
+        constraints=TransferConstraints(
+            max_total_hit=max_hit,
+            allow_unused_transfers=allow_unused,
+            max_opt_transfers=max_transfers,
+        ),
+        optimizer=TRANSFER_OPTIMIZERS.create(
+            "tree_search", TreeSearchConfig(num_thread=num_thread)
+        ),
     )
     return True
 

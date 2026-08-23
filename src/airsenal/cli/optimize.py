@@ -78,6 +78,18 @@ def transfers(
         Path | None,
         typer.Option(help="Directory to write every strategy considered to, as JSON."),
     ] = None,
+    set_ga: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--set-ga",
+            help=(
+                "Genetic algorithm option as key=value, for the wildcard and free "
+                "hit search. Repeatable. population_size and generations are sized "
+                "from --num-iterations and cannot be set here. Available: "
+                + ", ".join(f.name for f in fields(GeneticAlgorithmConfig))
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Optimize a transfer strategy."""
     run_transfer_optimization(
@@ -100,6 +112,7 @@ def transfers(
         fpl_team_id,
         is_replay,
         save_strategies,
+        parse_options(set_ga),
     )
 
 

@@ -17,10 +17,14 @@ from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import get_gameweeks_array, get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
-from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.moves import GameweekMove, TransferConstraints
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
+from airsenal.optimization.transfer_optimizers import (
+    TRANSFER_OPTIMIZERS,
+    TreeSearchConfig,
+)
 from airsenal.prediction.registry import (
     DEFAULT_PLAYER_MODEL,
     DEFAULT_TEAM_MODEL,
@@ -150,9 +154,11 @@ def replay_season(
                 tag,
                 season=season,
                 fpl_team_id=fpl_team_id,
-                num_thread=num_thread,
+                constraints=TransferConstraints(max_opt_transfers=max_opt_transfers),
+                optimizer=TRANSFER_OPTIMIZERS.create(
+                    "tree_search", TreeSearchConfig(num_thread=num_thread)
+                ),
                 is_replay=True,
-                max_opt_transfers=max_opt_transfers,
             )
         if best_strategy is None:
             msg = f"Failed to find a strategy for GW{gw}!"

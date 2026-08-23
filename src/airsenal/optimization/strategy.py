@@ -17,6 +17,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_score import (
     get_discount_factor,
@@ -124,6 +127,11 @@ class Strategy:
         """A new strategy with one more gameweek on the end."""
         return replace(self, outcomes=(*self.outcomes, outcome))
 
+    @property
+    def is_baseline(self) -> bool:
+        """Whether this strategy makes no transfers and plays no chips."""
+        return all(outcome.move == GameweekMove() for outcome in self.outcomes)
+
     def label(self) -> str:
         """
         The per-gameweek moves joined with dashes, e.g. "0-1-W".
@@ -173,3 +181,37 @@ def get_baseline_strat(
             )
         )
     return Strategy(root_gameweek=root_gw, outcomes=tuple(outcomes))
+
+
+@dataclass(frozen=True)
+class TransferSearchResult:
+    """What an optimizer chose, and the do-nothing strategy it is judged against."""
+
+    best: Strategy
+    baseline: Strategy | None = None
+    # Every strategy evaluated, for --save-strategies. Empty for an optimizer that
+    # solves rather than enumerates: the dump is a debugging aid, not a promise the
+    # interface makes.
+    considered: tuple[Strategy, ...] = ()
+
+    @property
+    def baseline_score(self) -> float:
+        """What doing nothing would have scored, or zero if it was never evaluated."""
+        return self.baseline.total_score if self.baseline is not None else 0.0
+
+    @classmethod
+    def from_strategies(cls, strategies: Sequence[Strategy]) -> TransferSearchResult:
+        """
+        Read the answer off an exhaustive search.
+
+        For an optimizer that evaluates every strategy, the best and the baseline
+        are both just entries in the list it produced.
+        """
+        if not strategies:
+            msg = "Failed to find a strategy!"
+            raise ValueError(msg)
+        return cls(
+            best=max(strategies, key=lambda s: s.total_score),
+            baseline=next((s for s in strategies if s.is_baseline), None),
+            considered=tuple(strategies),
+        )

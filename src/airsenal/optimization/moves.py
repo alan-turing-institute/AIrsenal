@@ -342,3 +342,20 @@ def count_expected_outputs(
         branches.insert(0, (max_free_transfers, 0, baseline_moves))
 
     return len(branches), baseline_excluded
+
+
+@dataclass(frozen=True, slots=True)
+class TransferConstraints:
+    """
+    What a transfer search is allowed to consider.
+
+    Exactly the knobs `next_week_transfers` and `count_expected_outputs` take.
+    Bundled because they used to travel as four positional elements of a tuple
+    handed to `Process`, where the tuple was one element shorter than the worker
+    signature and `max_free_transfers` was silently dropped.
+    """
+
+    max_total_hit: int | None = None
+    allow_unused_transfers: bool = False
+    max_opt_transfers: int = 2
+    max_free_transfers: int = MAX_FREE_TRANSFERS

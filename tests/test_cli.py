@@ -119,8 +119,10 @@ class TestModelSelection:
             (["run"], "--set-team"),
             (["replay"], "--player-model"),
             (["replay"], "--set-player"),
+            (["replay"], "--set-team"),
             (["optimize", "squad"], "--set-ga"),
             (["optimize", "transfers"], "--save-strategies"),
+            (["optimize", "transfers"], "--set-ga"),
         ],
     )
     def test_option_is_offered(self, command, option):

@@ -13,7 +13,7 @@ import threading
 import pytest
 
 from airsenal.core.concurrency import CustomQueue
-from airsenal.optimization.run_transfers import _wait_for_queue
+from airsenal.optimization.transfer_optimizers.tree_search import _wait_for_queue
 
 
 def _die_without_finishing(queue):
