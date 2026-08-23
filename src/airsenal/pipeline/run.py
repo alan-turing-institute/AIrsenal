@@ -88,7 +88,7 @@ def run_pipeline(
             logger.info("[green]Database setup complete![/green]")
             update_attr = False
         else:
-            logger.info("Found pre-existing AIrsenal database.")
+            logger.debug("Found pre-existing AIrsenal database.")
             update_attr = True
 
         logger.info("[bold]Updating database[/bold]")

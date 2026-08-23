@@ -279,18 +279,18 @@ class FPLDataFetcher:
             },
         )
         try:
-            dv_response = response.json()["dv_response"]
+            dv_response = response.json()["dvResponse"]
         except (json.JSONDecodeError, KeyError) as e:
             self._set_login_failed(
                 exception=e,
-                msg="Interaction Post 3 Failed (dv_response generation)",
+                msg="Interaction Post 3 Failed (dvResponse generation)",
             )
             return
 
         # Step 4: Resume the login using the dv_response and handle redirect
         response = self.rsession.post(
             LOGIN_URLS["resume"],
-            data={"dv_response": dv_response, "state": new_state},
+            data={"dvResponse": dv_response, "state": new_state},
             allow_redirects=False,
         )
         if (location := response.headers.get("Location")) and (
