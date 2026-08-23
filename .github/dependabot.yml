@@ -15,3 +15,8 @@ updates:
     schedule:
       interval: "quarterly"
     target-branch: "develop"
+  - package-ecosystem: "github-actions" # See documentation for possible values
+    directory: "/" # Location of workflow files
+    schedule:
+      interval: "quarterly"
+    target-branch: "develop"

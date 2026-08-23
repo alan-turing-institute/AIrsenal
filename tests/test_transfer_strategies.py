@@ -83,7 +83,12 @@ def test_every_move_maps_to_a_registered_strategy(n_transfers, chip):
 
 
 def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
-    calls = []
+    steps = 0
+
+    def count_step() -> None:
+        nonlocal steps
+        steps += 1
+
     squad = object()
     request = TransferRequest(
         move=GameweekMove(0),
@@ -92,11 +97,12 @@ def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
         gameweeks=[3, 4],
         root_gw=3,
         season="2526",
-        progress=(lambda inc, pid: calls.append((inc, pid)), 100.0, 0),  # type: ignore[arg-type]
+        progress=count_step,
     )
     plan = select_strategy(request.move).propose(request)
     assert plan == TransferPlan(squad, [], [])
-    assert calls == [(100.0, 0)]
+    # one step per candidate squad considered, and this strategy considers one
+    assert steps == select_strategy(request.move).num_increments(request.move, 100)
 
 
 @pytest.mark.parametrize(

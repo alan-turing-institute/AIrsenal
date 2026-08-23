@@ -16,7 +16,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
-    ProgressUpdater,
+    StepCounter,
     TransferPlan,
     TransferRequest,
 )
@@ -37,7 +37,7 @@ def make_random_transfers(
     gameweeks: list[int] | None = None,
     root_gw: int | None = None,
     num_iter: int = 1,
-    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
+    on_step: StepCounter | None = None,
     season: str = CURRENT_SEASON,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
@@ -53,10 +53,8 @@ def make_random_transfers(
     best_pid_out, best_pid_in = [], []
     max_tries = 100
     for _ in range(num_iter):
-        if update_func_and_args:
-            # call function to update progress bar.
-            # this was passed as a tuple (func, increment, pid)
-            update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
+        if on_step:
+            on_step()
 
         new_squad = fastcopy(squad)
 
@@ -155,7 +153,7 @@ class RandomTransferStrategy:
             gameweeks=request.gameweeks,
             root_gw=request.root_gw,
             num_iter=request.num_iterations,
-            update_func_and_args=request.progress,
+            on_step=request.progress,
             season=request.season,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,

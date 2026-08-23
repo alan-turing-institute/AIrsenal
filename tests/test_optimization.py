@@ -11,10 +11,13 @@ from airsenal.core.enums import Chip
 from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekChips,
+    GameweekMove,
     count_expected_outputs,
     next_week_transfers,
 )
+from airsenal.optimization.protocols import TransferRequest
 from airsenal.optimization.squad_score import get_discount_factor
+from airsenal.optimization.strategies import select_strategy
 from airsenal.optimization.strategies.double import make_optimum_double_transfer
 from airsenal.optimization.strategies.single import make_optimum_single_transfer
 from airsenal.squad.squad import Squad
@@ -253,6 +256,55 @@ def test_double_transfer():
                 assert p.is_captain is True
             else:
                 assert p.is_captain is False
+
+
+def test_the_progress_steps_counted_match_the_number_promised():
+    """A worker's bar is sized by `num_increments`, so the search must hit it.
+
+    The bar is no longer advanced by a fraction of a notional hundred: its total
+    is the number of candidate squads the strategy says it will consider, and it
+    is advanced once per candidate. If the two disagree the bar stalls short of
+    the end, or finishes while the search is still going.
+    """
+    squad = generate_dummy_squad()
+    points = {
+        position: dict.fromkeys(ids, 2)
+        for position, ids in {
+            "GK": [0, 1, 100, 101],
+            "DEF": [2, 3, 4, 5, 6, 103, 104, 105],
+            "MID": [7, 8, 9, 10, 11, 108, 109, 110],
+            "FWD": [12, 13, 14, 113, 114],
+        }.items()
+    }
+
+    # every strategy that reports progress at all: the whole-squad rebuild a
+    # wildcard does is the genetic algorithm, which reports nothing back.
+    for move in (GameweekMove(1), GameweekMove(2), GameweekMove(3)):
+        strategy = select_strategy(move)
+        steps = 0
+
+        def count_step() -> None:
+            nonlocal steps
+            steps += 1
+
+        with mock.patch(
+            f"{type(strategy).__module__}.get_predicted_points",
+            side_effect=predicted_point_mock_generator(points),
+        ):
+            strategy.propose(
+                TransferRequest(
+                    move=move,
+                    squad=squad,
+                    tag="DUMMY",
+                    gameweeks=[1],
+                    root_gw=1,
+                    season="2526",
+                    num_iterations=7,
+                    progress=count_step,
+                )
+            )
+
+        assert steps == strategy.num_increments(move, 7), move
 
 
 def test_get_discount_factor():

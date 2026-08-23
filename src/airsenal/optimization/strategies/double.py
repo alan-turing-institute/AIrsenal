@@ -10,7 +10,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
-    ProgressUpdater,
+    StepCounter,
     TransferPlan,
     TransferRequest,
 )
@@ -33,7 +33,7 @@ def make_optimum_double_transfer(
     gameweeks: list[int] | None = None,
     root_gw: int | None = None,
     season: str = CURRENT_SEASON,
-    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
+    on_step: StepCounter | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
@@ -64,12 +64,8 @@ def make_optimum_double_transfer(
         new_squad_remove_1 = fastcopy(squad)
         new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
         for j in range(i + 1, len(squad.players)):
-            if update_func_and_args:
-                # call function to update progress bar.
-                # this was passed as a tuple (func, increment, pid)
-                update_func_and_args[0](
-                    update_func_and_args[1], update_func_and_args[2]
-                )
+            if on_step:
+                on_step()
 
             pout_2 = squad.players[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
@@ -134,7 +130,7 @@ class DoubleTransferStrategy:
             request.gameweeks,
             request.root_gw,
             request.season,
-            update_func_and_args=request.progress,
+            on_step=request.progress,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
         )

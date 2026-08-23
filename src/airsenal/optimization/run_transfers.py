@@ -18,6 +18,7 @@ import cProfile
 import json
 import sys
 import threading
+from functools import partial
 from multiprocessing import Process, Queue
 from pathlib import Path
 from typing import Any, Literal
@@ -33,7 +34,7 @@ from airsenal.core.concurrency import (
 )
 from airsenal.core.console import console, price_str, progress_bar, table
 from airsenal.core.enums import Chip, Position
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import get_logger, relay_child_logs
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.players import get_player, get_player_name
@@ -72,11 +73,12 @@ logger = get_logger(__name__)
 StrategyNode = tuple[GameweekMove, int, int, int, Squad, "Strategy | None"]
 QueueItem = StrategyNode | None
 
-# What a worker sends back to the progress display: advance a bar, or restart one
-# worker's bar for a new strategy. Two shapes, so two tuples: the shared one had
-# a float-or-str value that neither branch actually accepts.
+# What a worker sends back to the progress display: count off one step of a bar
+# (a candidate squad on a worker's bar, or a finished strategy on the total), or
+# restart one worker's bar for a new strategy, which sizes it to the number of
+# candidate squads that strategy will consider.
 ProgressMessage = (
-    tuple[Literal["increment"], int | None, float] | tuple[Literal["reset"], int, str]
+    tuple[Literal["advance"], int | None] | tuple[Literal["reset"], int, str, int]
 )
 
 
@@ -150,7 +152,11 @@ def optimize(
             strategy = Strategy(root_gameweek=gameweeks[0])
         else:
             if resetter is not None:
-                resetter(pid, f"{strategy.label()}-{move.label()}".lstrip("-"))
+                resetter(
+                    pid,
+                    f"{strategy.label()}-{move.label()}".lstrip("-"),
+                    get_num_increments(move, num_iterations),
+                )
 
             # how far down the tree we are, and so which gameweeks are left
             remaining_gameweeks = gameweeks[len(strategy) :]
@@ -159,7 +165,6 @@ def optimize(
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
-            increment = 100 / get_num_increments(move, num_iterations)
             new_squad, transfers, points = make_best_transfers(
                 move,
                 squad,
@@ -168,7 +173,7 @@ def optimize(
                 root_gw,
                 season,
                 num_iterations,
-                (updater, increment, pid) if updater is not None else None,
+                partial(updater, pid) if updater is not None else None,
             )
 
             discount_factor = get_discount_factor(root_gw, gw)
@@ -563,10 +568,15 @@ def search_transfer_tree(
         max_free_transfers=max_free_transfers,
     )
 
-    with progress_bar(transient=True) as progress:
-        # one progress bar per worker process, plus one for overall progress
+    # The workers are forked below, while the progress bars own the terminal:
+    # anything they logged themselves would land inside the display.
+    with relay_child_logs(), progress_bar(transient=True) as progress:
+        # one progress bar per worker process, plus one for overall progress. A
+        # worker's total is only known once it starts a strategy: different
+        # strategies consider very different numbers of candidate squads.
         worker_tasks = [
-            progress.add_task(f"Worker {i}: idle", total=100) for i in range(num_thread)
+            progress.add_task(f"Worker {i}: idle", total=None)
+            for i in range(num_thread)
         ]
         total_task = progress.add_task("Total strategies", total=num_expected_outputs)
 
@@ -575,11 +585,11 @@ def search_transfer_tree(
         # - the worker processes only ever see a fork-time copy of them.
         progress_queue: Queue[ProgressMessage | None] = Queue()
 
-        def update_progress(increment: float = 1, index: int | None = None) -> None:
-            progress_queue.put(("increment", index, increment))
+        def update_progress(index: int | None = None) -> None:
+            progress_queue.put(("advance", index))
 
-        def reset_progress(index: int, strategy_string: str) -> None:
-            progress_queue.put(("reset", index, strategy_string))
+        def reset_progress(index: int, strategy_string: str, num_steps: int) -> None:
+            progress_queue.put(("reset", index, strategy_string, num_steps))
 
         def consume_progress_updates() -> None:
             while True:
@@ -587,16 +597,16 @@ def search_transfer_tree(
                 if message is None:
                     break
                 if message[0] == "reset":
-                    _, worker, label = message
+                    _, worker, label, num_steps = message
                     progress.reset(
-                        worker_tasks[worker], description=f"Worker {worker}: {label}"
+                        worker_tasks[worker],
+                        total=num_steps,
+                        description=f"Worker {worker}: {label}",
                     )
                 else:
-                    _, index, increment = message
-                    if index is None:
-                        progress.advance(total_task, increment)
-                    else:
-                        progress.advance(worker_tasks[index], increment)
+                    _, index = message
+                    task = total_task if index is None else worker_tasks[index]
+                    progress.advance(task)
 
         progress_thread = threading.Thread(target=consume_progress_updates, daemon=True)
         progress_thread.start()

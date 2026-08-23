@@ -17,17 +17,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
+      # uv installs the interpreter named by .python-version.
+      - uses: astral-sh/setup-uv@v10.0.1
 
-      # Editable, so that the packaged data directory the command appends to
-      # is the one in this checkout rather than a copy in site-packages.
+      # uv installs the project itself editable, which is what this job needs:
+      # the packaged data directory the command appends to has to be the one in
+      # this checkout rather than a copy in site-packages. No dev tooling here.
       - name: Install package
-        run: python -m pip install -e .
+        run: uv sync --locked --no-dev
 
       - name: Append the latest attributes
-        run: airsenal dump attributes
+        run: uv run --no-dev airsenal dump attributes
 
       - name: Push updated attributes
         run: |

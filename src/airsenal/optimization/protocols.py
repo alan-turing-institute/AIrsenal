@@ -24,17 +24,23 @@ if TYPE_CHECKING:
 
 class ProgressUpdater(Protocol):
     """
-    Advances the optimizer's progress display.
+    Counts off one step of the optimizer's progress display.
 
-    Called with no arguments to tick the overall total, or with an increment and
-    a worker index to advance that worker's own bar.
+    Called with no arguments for a finished strategy on the overall bar, or with
+    a worker index for one candidate squad on that worker's own bar.
     """
 
-    def __call__(self, increment: float = ..., index: int | None = ...) -> None: ...
+    def __call__(self, index: int | None = ...) -> None: ...
 
 
-# (worker index, strategy label) - restarts one worker's bar for a new strategy
-ProgressResetter: TypeAlias = "Callable[[int, str], None]"
+# (worker index, strategy label, candidate squads to consider) - restarts one
+# worker's bar for a new strategy
+ProgressResetter: TypeAlias = "Callable[[int, str, int], None]"
+
+# Called once per candidate squad a strategy considers. The strategy counts what
+# it does; how many there will be is `num_increments`, and turning the two into a
+# percentage is the progress bar's job.
+StepCounter: TypeAlias = "Callable[[], None]"
 
 
 @dataclass(frozen=True)
@@ -48,8 +54,8 @@ class TransferRequest:
     root_gw: int
     season: str
     num_iterations: int = 100
-    # (callback, increment, worker index) for the progress bar, if there is one
-    progress: tuple[ProgressUpdater, float, int] | None = None
+    # called once per candidate squad considered, if anything is watching
+    progress: StepCounter | None = None
 
     @property
     def chip(self) -> Chip | None:
@@ -71,8 +77,9 @@ class TransferRequest:
         return self.transfer_gameweek if self.chip is Chip.TRIPLE_CAPTAIN else None
 
     def advance_progress(self) -> None:
+        """Count off one of the candidate squads this strategy considers."""
         if self.progress is not None:
-            self.progress[0](self.progress[1], self.progress[2])
+            self.progress()
 
 
 @dataclass(frozen=True)
@@ -95,7 +102,8 @@ class TransferStrategy(Protocol):
         """
         How many candidate squads this strategy will consider.
 
-        Used to size the progress bar, so it has to match what `propose` does.
+        This is the total of the worker's progress bar, and `propose` advances it
+        by one per candidate, so the two have to agree.
         """
         ...
 

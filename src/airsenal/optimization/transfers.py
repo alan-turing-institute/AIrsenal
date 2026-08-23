@@ -7,7 +7,7 @@ the right one for a move and scores what it came back with.
 
 from airsenal.core.logging import get_logger
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import ProgressUpdater, TransferRequest
+from airsenal.optimization.protocols import StepCounter, TransferRequest
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies import select_strategy
 from airsenal.squad.squad import Squad
@@ -19,8 +19,9 @@ def get_num_increments(move: GameweekMove, num_iterations: int = 100) -> int:
     """
     How many candidate squads the search will consider for this move.
 
-    Used to size the worker's progress bar. It comes from the strategy that does
-    the searching, so it cannot drift away from what actually happens.
+    The total of the worker's progress bar, which the search then advances one
+    candidate at a time. It comes from the strategy that does the searching, so
+    it cannot drift away from what actually happens.
     """
     return select_strategy(move).num_increments(move, num_iterations)
 
@@ -33,7 +34,7 @@ def make_best_transfers(
     root_gw: int,
     season: str,
     num_iter: int = 100,
-    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
+    on_step: StepCounter | None = None,
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Make this gameweek's move, returning the resulting squad, the transfers made
@@ -48,7 +49,7 @@ def make_best_transfers(
         root_gw=root_gw,
         season=season,
         num_iterations=num_iter,
-        progress=update_func_and_args,
+        progress=on_step,
     )
     plan = select_strategy(move).propose(request)
 

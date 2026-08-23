@@ -18,12 +18,25 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+
+      # No setup-python: uv installs the interpreter named by .python-version,
+      # and caching is on by default on GitHub-hosted runners. Both pre-commit
+      # itself and the local mypy hook (`uv run --extra dev mypy`) come out of
+      # the project environment, so uv is all this job has to install.
+      - uses: astral-sh/setup-uv@v10.0.1
+
+      # The hook environments pre-commit builds for the non-local hooks; uv's
+      # own cache does not cover these.
+      - name: Cache the pre-commit hook environments
+        uses: actions/cache@v4
         with:
-          python-version: "3.x"
-      - uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: --hook-stage manual --all-files
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: >-
+          uv run --extra dev pre-commit run
+          --hook-stage manual --all-files --show-diff-on-failure
 
   checks:
     name: Run tests for Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
@@ -40,13 +53,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v6
+      # python-version overrides .python-version for the matrix entry.
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
 
+      # --locked so a stale uv.lock is a CI failure rather than a silent
+      # re-resolve. The dev *extra* carries pytest and friends; the dev
+      # dependency group, which uv syncs by default, carries pytest-socket -
+      # and the --disable-socket in addopts does not exist without it.
       - name: Install package
-        run: python -m pip install .[dev]
+        run: uv sync --locked --extra dev
 
       # The default selection: offline, and without the two jax-heavy fits that
       # used to be 60% of the runtime. Coverage is opt-in, and scoped to src/
@@ -55,13 +72,13 @@ jobs:
         env:
           FPL_TEAM_ID: 742663
         run: >-
-          python -m pytest -ra --cov --cov-report=xml --cov-report=term
+          uv run --extra dev pytest -ra --cov --cov-report=xml --cov-report=term
           --durations=20
 
       - name: Run the slow tests
         env:
           FPL_TEAM_ID: 742663
-        run: python -m pytest -ra -m slow --durations=20
+        run: uv run --extra dev pytest -ra -m slow --durations=20
 
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
