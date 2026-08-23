@@ -3,9 +3,9 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Absence, Player
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 
 
 def was_historic_absence(

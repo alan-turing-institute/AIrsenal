@@ -11,13 +11,7 @@ from airsenal.core.console import track
 from airsenal.core.copy import fastcopy
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
-from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
-from airsenal.db.queries.players import get_max_matches_per_player, list_players
-from airsenal.db.queries.scores import get_player_scores_df
-from airsenal.db.session import get_session
-from airsenal.domain.scoring import (
+from airsenal.core.scoring import (
     MAX_MINUTES_MATCH,
     MIN_MINUTES_FULL,
     MIN_MINUTES_SHORT,
@@ -27,7 +21,13 @@ from airsenal.domain.scoring import (
     points_for_yellow_card,
     saves_for_point,
 )
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
+from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
+from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
+from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
+from airsenal.db.queries.players import get_max_matches_per_player, list_players
+from airsenal.db.queries.scores import get_player_scores_df
+from airsenal.db.session import get_session
 from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     get_empirical_bayes_estimates,

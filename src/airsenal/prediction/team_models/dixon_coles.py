@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import FifaTeamRating, Fixture, Result
 from airsenal.db.queries.fixtures import (
     get_fixture_teams,
@@ -19,7 +20,6 @@ from airsenal.db.queries.fixtures import (
 from airsenal.db.queries.gameweeks import is_future_gameweek
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 
 logger = get_logger(__name__)

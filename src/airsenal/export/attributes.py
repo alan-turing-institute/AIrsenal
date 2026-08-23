@@ -7,10 +7,10 @@ import dateparser
 
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
+from airsenal.core.mappings import positions
 from airsenal.core.resources import resource
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.domain.mappings import positions
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)

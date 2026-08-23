@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
 from airsenal.core.resources import resource_dir
-from airsenal.domain.season import (
+from airsenal.core.season import (
     CURRENT_SEASON,
     get_next_season,
     get_start_end_dates_of_season,

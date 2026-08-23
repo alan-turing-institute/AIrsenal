@@ -7,12 +7,12 @@ from sqlalchemy.orm import Session
 from airsenal.core.console import console, table
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.reporting.discord import get_webhook_url, post_webhook
 
 logger = get_logger(__name__)

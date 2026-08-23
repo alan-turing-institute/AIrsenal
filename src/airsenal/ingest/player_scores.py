@@ -17,6 +17,7 @@ from airsenal.core.console import track
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
 from airsenal.core.resources import resource
+from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.fixtures import (
     find_fixture,
@@ -32,7 +33,6 @@ from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session, session_scope
-from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.fetch.gameweeks import get_last_finished_gameweek
 

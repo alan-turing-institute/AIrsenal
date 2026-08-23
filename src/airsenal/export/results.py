@@ -8,7 +8,7 @@ import pandas as pd
 
 from airsenal.core.logging import get_logger
 from airsenal.core.resources import resource
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

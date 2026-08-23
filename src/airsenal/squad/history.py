@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
@@ -17,7 +18,6 @@ from airsenal.db.queries.transactions import (
 )
 from airsenal.db.session import get_session
 from airsenal.db.writes.transactions import add_transaction
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
 

@@ -31,10 +31,10 @@ env.AIRSENAL_DB_URI = None
 env.AIRSENAL_DB_USER = None
 env.AIRSENAL_DB_PASSWORD = None
 
+from airsenal.core.mappings import alternative_team_names  # noqa: E402
+from airsenal.core.season import CURRENT_SEASON  # noqa: E402
 from airsenal.db.models import Base, Player, PlayerAttributes  # noqa: E402
 from airsenal.db.queries.gameweeks import set_next_gameweek  # noqa: E402
-from airsenal.domain.mappings import alternative_team_names  # noqa: E402
-from airsenal.domain.season import CURRENT_SEASON  # noqa: E402
 
 # The dummy test database has players but no fixtures, so the next gameweek cannot be
 # derived from it. It used to come out as 1 anyway, because utils computed

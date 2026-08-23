@@ -3,7 +3,7 @@ import os
 
 from airsenal.core.logging import get_logger
 from airsenal.core.resources import resource_dir
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.export.player_details import make_player_details
 from airsenal.export.player_summary import make_player_summary
 from airsenal.export.results import make_results

@@ -7,7 +7,7 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.options import parse_options
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.run_squad import run_squad_optimization
 from airsenal.optimization.run_transfers import run_transfer_optimization

@@ -12,12 +12,12 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import console, track
 from airsenal.core.logging import get_logger
+from airsenal.core.scoring import MAX_GOALS
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session, session_scope
-from airsenal.domain.scoring import MAX_GOALS
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.prediction.features import (
     fit_bonus_points,
     fit_card_points,

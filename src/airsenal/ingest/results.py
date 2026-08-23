@@ -6,7 +6,9 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
+from airsenal.core.mappings import alternative_team_names
 from airsenal.core.resources import FilePath, resource
+from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Result
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.queries.gameweeks import (
@@ -14,8 +16,6 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.session import get_session
-from airsenal.domain.mappings import alternative_team_names
-from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.fetch.gameweeks import get_last_finished_gameweek
 

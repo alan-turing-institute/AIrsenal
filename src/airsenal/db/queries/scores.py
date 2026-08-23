@@ -7,6 +7,8 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.scoring import MAX_MINUTES_MATCH
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, Player, PlayerAttributes, PlayerScore
 from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
@@ -14,8 +16,6 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.session import get_session
-from airsenal.domain.scoring import MAX_MINUTES_MATCH
-from airsenal.domain.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

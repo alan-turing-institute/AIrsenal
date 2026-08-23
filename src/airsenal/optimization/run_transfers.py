@@ -34,11 +34,11 @@ from airsenal.core.concurrency import (
 from airsenal.core.console import console, price_str, progress_bar, table
 from airsenal.core.enums import Chip, Position
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.moves import ChipSchedule, GameweekMove

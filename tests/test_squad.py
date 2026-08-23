@@ -5,7 +5,7 @@ test various methods of the Team class.
 import pytest
 from rich.console import Console
 
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.squad import FORMATION_SLOTS, Squad
 from tests.conftest import session_scope

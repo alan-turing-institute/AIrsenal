@@ -8,13 +8,7 @@ from scipy.stats import multinomial
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Fixture, Player, PlayerPrediction
-from airsenal.db.queries.absences import was_historic_absence
-from airsenal.db.queries.fixtures import get_fixtures_for_player
-from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player, list_players
-from airsenal.db.session import get_session
-from airsenal.domain.scoring import (
+from airsenal.core.scoring import (
     MIN_MINUTES_FULL,
     MIN_MINUTES_SHORT,
     get_appearance_points,
@@ -22,6 +16,12 @@ from airsenal.domain.scoring import (
     points_for_cs,
     points_for_goal,
 )
+from airsenal.db.models import Fixture, Player, PlayerPrediction
+from airsenal.db.queries.absences import was_historic_absence
+from airsenal.db.queries.fixtures import get_fixtures_for_player
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import get_player, list_players
+from airsenal.db.session import get_session
 from airsenal.prediction.features import fit_player_data
 from airsenal.prediction.minutes import get_recent_minutes_for_player
 from airsenal.prediction.protocols import PlayerModel

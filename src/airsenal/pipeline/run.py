@@ -8,10 +8,10 @@ from airsenal.apply.lineup import set_lineup
 from airsenal.apply.transfers import make_transfers
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON, get_past_seasons
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.db.session import session_scope
-from airsenal.domain.season import CURRENT_SEASON, get_past_seasons
 from airsenal.export.absences import main as save_expected_absences
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db

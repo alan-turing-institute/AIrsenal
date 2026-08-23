@@ -12,9 +12,9 @@ from sqlalchemy import or_, select
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 
 if TYPE_CHECKING:
     # Annotation only: db must not depend on fetch at runtime. A caller supplies a

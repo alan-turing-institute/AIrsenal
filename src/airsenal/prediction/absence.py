@@ -4,9 +4,9 @@ import dateparser
 import regex as re
 from sqlalchemy.orm import Session
 
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_return_gameweek_by_date
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 
 
 def get_return_gameweek_from_news(

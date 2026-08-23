@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.export.absences import main as save_absences
 from airsenal.export.api_dump import main as dump_api
 from airsenal.export.attributes import main as save_attributes

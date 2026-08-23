@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.options import parse_options
-from airsenal.domain.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
 from airsenal.prediction.run import run_prediction
 

@@ -3,9 +3,9 @@
 from airsenal.core.copy import fastcopy
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferPlan, TransferRequest
 from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions

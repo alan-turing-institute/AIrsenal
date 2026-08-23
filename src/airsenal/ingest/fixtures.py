@@ -8,12 +8,12 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.caching import clear_query_caches
 from airsenal.core.console import track
+from airsenal.core.mappings import alternative_team_names
 from airsenal.core.resources import FilePath, resource
+from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session, session_scope
-from airsenal.domain.mappings import alternative_team_names
-from airsenal.domain.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.fetch.fpl_api import FPLDataFetcher
 
 

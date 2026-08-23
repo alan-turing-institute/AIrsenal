@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.enums import Chip, Position
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import (
     Fixture,
     PlayerPrediction,
@@ -21,7 +22,6 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.session import get_session
 from airsenal.db.writes.transactions import add_transaction
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.optimization.config import SubWeights
 from airsenal.optimization.moves import (

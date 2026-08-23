@@ -5,11 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player, Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.session import get_session
-from airsenal.domain.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)

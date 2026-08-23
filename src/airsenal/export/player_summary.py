@@ -6,8 +6,8 @@ import json
 
 from airsenal.core.logging import get_logger
 from airsenal.core.resources import resource
+from airsenal.core.season import get_past_seasons
 from airsenal.db.queries.gameweeks import is_future_gameweek
-from airsenal.domain.season import get_past_seasons
 
 logger = get_logger(__name__)
 
