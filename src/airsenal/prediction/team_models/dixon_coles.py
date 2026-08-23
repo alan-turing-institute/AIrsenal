@@ -3,6 +3,8 @@ Interface to the NumPyro team model in bpl-next:
 https://github.com/anguswilliams91/bpl-next
 """
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -118,7 +120,7 @@ def get_training_data(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-):
+) -> dict[str, Any]:
     """Get training data for team model, optionally including FIFA ratings
     as covariates if ratings is True. If time_decay is None, do not include
     exponential time decay in model.
@@ -134,12 +136,12 @@ def get_training_data(
 
 
 def create_and_fit_team_model(
-    training_data: dict,
+    training_data: dict[str, Any],
     model: ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
     | RandomMatchPredictor
     | None = None,
-    **fit_args,
+    **fit_args: Any,
 ) -> (
     ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
@@ -199,7 +201,7 @@ def get_fitted_team_model(
     | NeutralDixonColesMatchPredictor
     | RandomMatchPredictor
     | None = None,
-    **fit_args,
+    **fit_args: Any,
 ) -> (
     ExtendedDixonColesMatchPredictor
     | NeutralDixonColesMatchPredictor
@@ -234,7 +236,7 @@ def fixture_probabilities(
     | None = None,
     dbsession: Session | None = None,
     ratings: bool = True,
-    **fit_args,
+    **fit_args: Any,
 ) -> pd.DataFrame:
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data

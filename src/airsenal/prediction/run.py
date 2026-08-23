@@ -6,6 +6,7 @@ Generates a "tag" string which is stored so it can later be used by team-optimiz
 get consistent sets of predictions from the database.
 """
 
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy.orm.session import Session
@@ -49,7 +50,7 @@ def calc_all_predicted_points(
     tag: str = "",
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
-    team_model_args: dict | None = None,
+    team_model_args: dict[str, Any] | None = None,
 ) -> None:
     """
     Do the full prediction for players.
@@ -122,7 +123,7 @@ def make_predictedscore_table(
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
-    team_model_args: dict | None = None,
+    team_model_args: dict[str, Any] | None = None,
     dbsession: Session | None = None,
 ) -> str:
     dbsession = dbsession if dbsession is not None else get_session()

@@ -1,6 +1,7 @@
 """Assembling the historical data the models are fitted to."""
 
 from collections import defaultdict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -38,10 +39,10 @@ logger = get_logger(__name__)
 
 
 def get_player_history_df(
-    position="all",
-    all_players=False,
-    fill_blank=True,
-    season=CURRENT_SEASON,
+    position: str = "all",
+    all_players: bool = False,
+    fill_blank: bool = True,
+    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
@@ -228,7 +229,7 @@ def process_player_data(
     season: str = CURRENT_SEASON,
     gameweek: int | None = None,
     dbsession: Session | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """
     Process and structure historical player data for model fitting.
     """
@@ -392,7 +393,7 @@ def fit_bonus_points(
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 
-    def get_bonus_df(min_minutes, max_minutes):
+    def get_bonus_df(min_minutes: int, max_minutes: int) -> pd.Series:
         df = get_player_scores_df(
             season,
             gameweek,
@@ -470,7 +471,7 @@ def fit_def_con(
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 
-    def get_def_con_df(min_minutes, max_minutes):
+    def get_def_con_df(min_minutes: int, max_minutes: int) -> pd.Series:
         dfs = []
         for position in ["DEF", "MID", "FWD"]:
             df = get_player_scores_df(

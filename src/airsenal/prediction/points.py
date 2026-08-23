@@ -46,14 +46,14 @@ def get_attacking_points(
     pr_neither = 1.0 - pr_score - pr_assist
     multinom_probs = (pr_score, pr_assist, pr_neither)
 
-    def _get_partitions(n):
+    def _get_partitions(n: int) -> list[list[int]]:
         partitions = []
         for i in range(n + 1):
             for j in range(n - i + 1):
                 partitions.append([i, j, n - i - j])
         return partitions
 
-    def _get_partition_score(partition):
+    def _get_partition_score(partition: list[int]) -> int:
         return (
             points_for_goal[position] * partition[0] + points_for_assist * partition[1]
         )
@@ -144,7 +144,7 @@ def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -
 
 def calc_predicted_points_for_player(
     player: Player | str | int,
-    fixture_goal_probs: dict,
+    fixture_goal_probs: dict[int, dict[str, dict[int, float]]],
     df_player: dict[str, pd.DataFrame],
     df_bonus: tuple[pd.Series, pd.Series] | None,
     df_saves: pd.Series | None,
@@ -267,7 +267,7 @@ def calc_predicted_points_for_player(
 
 def calc_predicted_points_for_pos(
     pos: str,
-    fixture_goal_probs: dict,
+    fixture_goal_probs: dict[int, dict[str, dict[int, float]]],
     df_bonus: tuple[pd.Series, pd.Series] | None,
     df_saves: pd.Series | None,
     df_cards: pd.Series | None,

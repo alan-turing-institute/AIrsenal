@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import jax.numpy as jnp
 import jax.random as random
@@ -17,13 +17,20 @@ from airsenal.prediction.config import (
     NumpyroPlayerConfig,
 )
 
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from airsenal.core.types import FloatArray
+
 logger = get_logger(__name__)
 
 DEFAULT_PLAYER_EPSILON = 0.2
 DEFAULT_N_GOALS_PRIOR = 35
 
 
-def get_empirical_bayes_estimates(df_emp, prior_goals=None):
+def get_empirical_bayes_estimates(
+    df_emp: pd.DataFrame, prior_goals: float | None = None
+) -> FloatArray:
     """
     Get values to use either for Dirichlet prior alphas in the original Stan and numpyro
     player models. Returns number of goals, assists and neither scaled by the
@@ -65,8 +72,12 @@ def get_empirical_bayes_estimates(df_emp, prior_goals=None):
 
 
 def scale_goals_by_minutes(
-    goals, minutes, time_diff=None, epsilon=None, rescale_weights=True
-):
+    goals: np.ndarray,
+    minutes: np.ndarray,
+    time_diff: np.ndarray | None = None,
+    epsilon: float | None = None,
+    rescale_weights: bool = True,
+) -> FloatArray:
     """
     Scale player goal involvements by the proportion of minutes they played
     (specifically: reduce the number of "neither" goals where the player is said
@@ -176,7 +187,7 @@ class NumpyroPlayerModel(BasePlayerModel):
         minutes: jnp.ndarray,
         y: jnp.ndarray,
         alpha: jnp.ndarray,
-    ):
+    ) -> jnp.ndarray:
         theta = dist.Dirichlet(concentration=alpha)
         # one sample from the prior per player
         with numpyro.plate("nplayer", nplayer):
