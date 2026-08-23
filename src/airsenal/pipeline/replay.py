@@ -1,9 +1,18 @@
 """
-Script to replay all or part of a season, to allow evaluation of different
-code and strategies.
+Replay all or part of a past season, to compare models and strategies.
+
+A separate driver rather than a method or a subclass of `AIrsenalPipeline`: what
+replay needs is the predict and optimise stages, once per gameweek, and none of
+the database setup, transfer applying or absence exporting that `run()` does. A
+subclass would inherit five things in order to switch four of them off.
+
+It shares the pipeline object, though, which is the point - replay used to build
+its own team model with `TEAM_MODELS.create()` and so measured a differently
+fitted model than the one `airsenal run` actually uses.
 """
 
 import json
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -14,26 +23,26 @@ from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
-from airsenal.db.queries.gameweeks import get_gameweeks_array, get_max_gameweek
+from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
-from airsenal.optimization.moves import GameweekMove, TransferConstraints
-from airsenal.optimization.run_squad import fill_initial_squad
-from airsenal.optimization.run_transfers import run_optimization
-from airsenal.optimization.strategy import GameweekOutcome, Strategy
-from airsenal.optimization.transfer_optimizers import (
-    TRANSFER_OPTIMIZERS,
-    TreeSearchConfig,
-)
-from airsenal.prediction.registry import (
-    DEFAULT_PLAYER_MODEL,
-    DEFAULT_TEAM_MODEL,
-    PLAYER_MODELS,
-    build_team_model,
-)
-from airsenal.prediction.run import make_predictedscore_table
+from airsenal.pipeline.run import AIrsenalPipeline
 
 logger = get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class ReplaySettings:
+    """Which part of the season to replay, and how many times."""
+
+    gameweek_start: int = 1
+    gameweek_end: int | None = None
+    tag_prefix: str = ""
+    transfers: bool = True
+    loop: int = 1
+    # Carry on from the squad already in the database rather than building a new
+    # one for the first gameweek.
+    resume: bool = False
 
 
 def get_dummy_id(season: str, dbsession: Session) -> int:
@@ -61,190 +70,107 @@ def print_replay_params(
     logger.info("=" * 30)
 
 
-def replay_season(
-    season: str,
-    gameweek_start: int = 1,
-    gameweek_end: int | None = None,
-    new_squad: bool = True,
-    n_gameweeks: int = 3,
-    num_thread: int = 4,
-    transfers: bool = True,
-    tag_prefix: str = "",
-    team_model: str = DEFAULT_TEAM_MODEL,
-    epsilon: float | None = None,
-    fpl_team_id: int | None = None,
-    max_opt_transfers: int = 2,
-    player_model: str = DEFAULT_PLAYER_MODEL,
-    player_model_options: dict[str, str] | None = None,
-    team_model_options: dict[str, str] | None = None,
-) -> None:
+def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
+    """Replay one season once, writing the results to a JSON file."""
     start = datetime.now()
-    if gameweek_end is None:
-        gameweek_end = get_max_gameweek(season)
-    if fpl_team_id is None:
+    season = pipeline.settings.season
+    gameweek_end = replay.gameweek_end or get_max_gameweek(season)
+
+    if pipeline.settings.fpl_team_id is None:
         with session_scope() as session:
-            fpl_team_id = get_dummy_id(season, dbsession=session)
-    if not tag_prefix:
-        start_str = start.strftime("%Y%m%d%H%M")
-        tag_prefix = (
-            f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_"
-            f"{start_str}_{team_model}"
-        )
-    print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
+            pipeline = pipeline.with_settings(
+                fpl_team_id=get_dummy_id(season, dbsession=session)
+            )
+    fpl_team_id = pipeline.settings.fpl_team_id
+    if fpl_team_id is None:
+        msg = "Could not determine an fpl_team_id to replay under"
+        raise RuntimeError(msg)
 
-    fitted_player_model = PLAYER_MODELS.create_with(
-        player_model, player_model_options or {}
+    tag_prefix = replay.tag_prefix or (
+        f"Replay_{season}_GW{replay.gameweek_start}_GW{gameweek_end}_"
+        f"{start.strftime('%Y%m%d%H%M')}"
     )
-    # build_team_model, not TEAM_MODELS.create: the latter never consults
-    # fit_args(), so replay used to fit without rescale_weights and - with no
-    # --epsilon - without any time weighting at all, while `airsenal run` fitted
-    # with both. Replay is for comparing strategies, so it has to fit the same
-    # model the real run does.
-    fitted_team_model = build_team_model(team_model, team_model_options, epsilon)
+    print_replay_params(
+        season, replay.gameweek_start, gameweek_end, tag_prefix, fpl_team_id
+    )
 
-    # store results in a dictionary, which we will later save to a json file
-    replay_results: dict[str, str | int | float | list[Any]] = {}
-    replay_results["tag"] = tag_prefix
-    replay_results["season"] = season
-    replay_results["n_gameweeks"] = n_gameweeks
-    replay_results["gameweeks"] = []
-    replay_range = range(gameweek_start, gameweek_end + 1)
+    replay_results: dict[str, str | int | float | list[Any]] = {
+        "tag": tag_prefix,
+        "season": season,
+        "n_gameweeks": pipeline.settings.n_gameweeks,
+        "gameweeks": [],
+    }
+    gameweeks_log: list[Any] = replay_results["gameweeks"]  # type: ignore[assignment]
+
+    replay_range = range(replay.gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
+        # One session per gameweek rather than one for the whole replay: holding
+        # a session open across a whole season of model fitting is worse.
         with session_scope() as session:
-            gameweeks = get_gameweeks_array(
-                n_gameweeks, gameweek_start=gw, season=season, dbsession=session
-            )
-            tag = make_predictedscore_table(
-                gameweeks=gameweeks,
-                season=season,
-                tag_prefix=tag_prefix,
-                player_model=fitted_player_model,
-                team_model=fitted_team_model,
-                dbsession=session,
-            )
-        gw_result = {"gameweek": gw, "predictions_tag": tag}
+            gameweeks = pipeline.gameweeks(session, gameweek_start=gw)
+            tag = pipeline.predict(gameweeks, session, tag_prefix=tag_prefix)
 
-        if not transfers:
+        if not replay.transfers:
             continue
-        if gw == gameweek_start and new_squad:
-            logger.info("Creating initial squad...")
-            squad = fill_initial_squad(
-                tag, gameweeks, season, fpl_team_id, is_replay=True
-            )
-            # no points hits due to unlimited transfers to initialise team
-            best_strategy: Strategy | None = Strategy(
-                root_gameweek=gw,
-                outcomes=(
-                    GameweekOutcome(
-                        gameweek=gw,
-                        move=GameweekMove(),
-                        points=0.0,
-                        discount_factor=1.0,
-                        points_hit=0,
-                        free_transfers=0,
-                    ),
-                ),
-            )
-        else:
-            logger.info("Optimising transfers...")
-            # find best squad and the strategy for this gameweek
-            squad, best_strategy = run_optimization(
-                gameweeks,
-                tag,
-                season=season,
-                fpl_team_id=fpl_team_id,
-                constraints=TransferConstraints(max_opt_transfers=max_opt_transfers),
-                optimizer=TRANSFER_OPTIMIZERS.create(
-                    "tree_search", TreeSearchConfig(num_thread=num_thread)
-                ),
-                is_replay=True,
-            )
-        if best_strategy is None:
-            msg = f"Failed to find a strategy for GW{gw}!"
-            raise ValueError(msg)
 
-        gw_result["starting_11"] = []
-        gw_result["subs"] = []
+        # only the first gameweek can start from nothing; after that there is a
+        # squad in the database to transfer from
+        new_squad = gw == replay.gameweek_start and not replay.resume
+        squad, strategy = pipeline.with_settings(new_squad=new_squad).optimize(
+            gameweeks, tag, fpl_team_id, is_replay=True
+        )
+
+        gw_result: dict[str, Any] = {"gameweek": gw, "predictions_tag": tag}
+        gw_result["starting_11"] = [p.name for p in squad.players if p.is_starting]
+        gw_result["subs"] = [p.name for p in squad.players if not p.is_starting]
         for p in squad.players:
-            if p.is_starting:
-                gw_result["starting_11"].append(p.name)
-            else:
-                gw_result["subs"].append(p.name)
             if p.is_captain:
                 gw_result["captain"] = p.name
             elif p.is_vice_captain:
                 gw_result["vice_captain"] = p.name
-        # obtain information about the strategy used for gameweek
-        outcome = best_strategy.outcome(gw)
-        gw_result["free_transfers"] = outcome.free_transfers
-        gw_result["num_transfers"] = outcome.move.label()
-        gw_result["points_hit"] = outcome.points_hit
-        gw_result["players_in"] = [get_player_name(p) for p in outcome.players_in]
-        gw_result["players_out"] = [get_player_name(p) for p in outcome.players_out]
-        # compute expected and actual points for gameweek
+
+        # A squad built from scratch has no strategy: there was nothing to
+        # transfer from, and unlimited transfers means no points hit.
+        outcome = strategy.outcome(gw) if strategy is not None else None
+        gw_result["free_transfers"] = outcome.free_transfers if outcome else 0
+        gw_result["num_transfers"] = outcome.move.label() if outcome else "0"
+        gw_result["points_hit"] = outcome.points_hit if outcome else 0
+        gw_result["players_in"] = (
+            [get_player_name(p) for p in outcome.players_in] if outcome else []
+        )
+        gw_result["players_out"] = (
+            [get_player_name(p) for p in outcome.players_out] if outcome else []
+        )
+
         gw_result["expected_points"] = squad.get_expected_points(gw, tag)
-        actual_points = squad.get_actual_points(gw, season)
-        gw_result["actual_points"] = actual_points - gw_result["points_hit"]
-        if not isinstance(replay_results["gameweeks"], list):
-            msg = (
-                f"replay_results['gameweeks'] should be a list, "
-                f"got {type(replay_results['gameweeks'])}"
-            )
-            raise TypeError(msg)
-        replay_results["gameweeks"].append(gw_result)
+        gw_result["actual_points"] = (
+            squad.get_actual_points(gw, season) - gw_result["points_hit"]
+        )
+        gameweeks_log.append(gw_result)
         logger.info("-" * 30)
 
-    end = datetime.now()
-    elapsed = end - start
-    replay_results["elapsed"] = elapsed.total_seconds()
+    replay_results["elapsed"] = (datetime.now() - start).total_seconds()
     with open(f"{tag_prefix}.json", "w") as outfile:
         json.dump(replay_results, outfile)
-    print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
+    print_replay_params(
+        season, replay.gameweek_start, gameweek_end, tag_prefix, fpl_team_id
+    )
     logger.info("DONE!")
 
 
-def run_replays(
-    season: str,
-    gameweek_start: int,
-    gameweek_end: int | None,
-    n_gameweeks: int,
-    fpl_team_id: int | None,
-    resume: bool,
-    num_thread: int,
-    loop: int,
-    team_model: str,
-    epsilon: float | None,
-    max_transfers: int,
-    player_model: str = DEFAULT_PLAYER_MODEL,
-    player_model_options: dict[str, str] | None = None,
-    team_model_options: dict[str, str] | None = None,
-) -> None:
+def run_replays(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
     """Replay a season one or more times."""
-    if resume and not fpl_team_id:
+    if replay.resume and not pipeline.settings.fpl_team_id:
         msg = "fpl_team_id must be set to use the resume argument"
         raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 
     n_completed = 0
-    while (loop == -1) or (n_completed < loop):
+    while (replay.loop == -1) or (n_completed < replay.loop):
         logger.info("*" * 15)
         logger.info("RUNNING REPLAY %s", n_completed + 1)
         logger.info("*" * 15)
-        replay_season(
-            season=season,
-            gameweek_start=gameweek_start,
-            gameweek_end=gameweek_end,
-            new_squad=not resume,
-            n_gameweeks=n_gameweeks,
-            num_thread=num_thread,
-            fpl_team_id=fpl_team_id,
-            team_model=team_model,
-            epsilon=epsilon,
-            max_opt_transfers=max_transfers,
-            player_model=player_model,
-            player_model_options=player_model_options,
-            team_model_options=team_model_options,
-        )
+        replay_season(pipeline, replay)
         n_completed += 1

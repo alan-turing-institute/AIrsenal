@@ -8,7 +8,7 @@ import typer
 
 from airsenal.cli.options import parse_options
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.optimization.config import GeneticAlgorithmConfig
+from airsenal.optimization.config import ChipWeeks, GeneticAlgorithmConfig
 from airsenal.optimization.run_squad import run_squad_optimization
 from airsenal.optimization.run_transfers import run_transfer_optimization
 
@@ -97,10 +97,12 @@ def transfers(
         gameweek_start,
         gameweek_end,
         tag,
-        wildcard_week,
-        free_hit_week,
-        triple_captain_week,
-        bench_boost_week,
+        ChipWeeks(
+            wildcard=wildcard_week,
+            free_hit=free_hit_week,
+            triple_captain=triple_captain_week,
+            bench_boost=bench_boost_week,
+        ),
         num_free_transfers,
         max_hit,
         allow_unused,

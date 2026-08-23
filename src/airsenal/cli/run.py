@@ -1,11 +1,18 @@
 """Commands for running the full AIrsenal pipeline."""
 
+import multiprocessing
 from typing import Annotated
 
 import typer
 
 from airsenal.cli.options import parse_options
-from airsenal.pipeline.run import run_pipeline
+from airsenal.optimization.config import ChipWeeks
+from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.transfer_optimizers import (
+    TRANSFER_OPTIMIZERS,
+    TreeSearchConfig,
+)
+from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettings
 from airsenal.prediction.registry import (
     DEFAULT_PLAYER_MODEL,
     DEFAULT_TEAM_MODEL,
@@ -98,25 +105,38 @@ def run(
     ] = None,
 ) -> None:
     """Run the full AIrsenal pipeline."""
-    run_pipeline(
-        num_thread=num_thread,
-        n_gameweeks=n_gameweeks,
-        fpl_team_id=fpl_team_id,
-        clean=clean,
-        apply_transfers=apply_transfers,
-        wildcard_week=wildcard_week,
-        free_hit_week=free_hit_week,
-        triple_captain_week=triple_captain_week,
-        bench_boost_week=bench_boost_week,
-        n_previous=n_previous,
-        no_current_season=no_current_season,
+    # the pipeline has always used every core unless told otherwise
+    threads = num_thread or multiprocessing.cpu_count()
+    AIrsenalPipeline.from_names(
         team_model=team_model,
-        epsilon=epsilon,
-        max_transfers=max_transfers,
-        max_hit=max_hit,
-        allow_unused=allow_unused,
-        save_absences=save_absences,
         player_model=player_model,
-        player_model_options=parse_options(set_player),
-        team_model_options=parse_options(set_team),
-    )
+        epsilon=epsilon,
+        team_options=parse_options(set_team),
+        player_options=parse_options(set_player),
+        transfer_optimizer=TRANSFER_OPTIMIZERS.create(
+            "tree_search",
+            TreeSearchConfig(num_thread=threads),
+        ),
+        constraints=TransferConstraints(
+            max_total_hit=max_hit,
+            allow_unused_transfers=allow_unused,
+            max_opt_transfers=max_transfers,
+        ),
+        settings=PipelineSettings(
+            fpl_team_id=fpl_team_id,
+            n_gameweeks=n_gameweeks,
+            chips=ChipWeeks(
+                wildcard=wildcard_week,
+                free_hit=free_hit_week,
+                triple_captain=triple_captain_week,
+                bench_boost=bench_boost_week,
+            ),
+            database=DatabaseSettings(
+                clean=clean,
+                n_previous=n_previous,
+                include_current_season=not no_current_season,
+            ),
+            apply_transfers=apply_transfers,
+            save_absences=save_absences,
+        ),
+    ).run()

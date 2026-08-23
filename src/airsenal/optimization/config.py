@@ -8,6 +8,8 @@ optimiser came to score benches differently without anyone deciding they should.
 
 from dataclasses import dataclass, field, replace
 
+from airsenal.core.enums import Chip
+
 # The shape as_dict() produces and the scoring code consumes: a weight for the
 # substitute goalkeeper, and one per outfield bench position.
 SubWeightsDict = dict[str, float | tuple[float, float, float]]
@@ -73,3 +75,34 @@ class SquadScoringConfig:
 # squad` and `optimize transfers` scored benches differently - unintentionally,
 # and the docstrings advertised the other set again.
 DEFAULT_SUB_WEIGHTS = SubWeights().as_dict()
+
+
+@dataclass(frozen=True)
+class ChipWeeks:
+    """
+    Which gameweek to play each chip in.
+
+    -1 never, 0 any week the search likes, n that week. Lives here rather than in
+    the pipeline because `run_transfer_optimization` builds the same four-key dict
+    from its own flags.
+    """
+
+    wildcard: int = -1
+    free_hit: int = -1
+    triple_captain: int = -1
+    bench_boost: int = -1
+
+    def as_dict(self) -> dict[str, int]:
+        """
+        The shape the chip schedule and the squad summary still read.
+
+        Keys are the chip names, not the Chip members: Enum hashes by identity, so
+        a dict keyed by Chip cannot be looked up by the plain strings the squad
+        code uses.
+        """
+        return {
+            str(Chip.WILDCARD): self.wildcard,
+            str(Chip.FREE_HIT): self.free_hit,
+            str(Chip.TRIPLE_CAPTAIN): self.triple_captain,
+            str(Chip.BENCH_BOOST): self.bench_boost,
+        }

@@ -46,11 +46,23 @@ def set_multiprocessing_start_method() -> None:
     on MacOS. Python 3.8 and later start processess using spawn by default, see:
     https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
 
-    Note that this should be called at most once, ideally protecteed within
-    if __name__  == "__main__"
+    Idempotent, and forcing. `set_start_method` raises if a context has already
+    been set, which used not to matter because nothing ran the pipeline twice in
+    one process and nothing touched multiprocessing before this was called.
+    Neither holds now: two AIrsenalPipeline.run() calls or a replay loop reach
+    here more than once, and merely constructing a Queue anywhere first fixes the
+    default context.
+
+    Forcing is right rather than merely convenient. The transfer search hands its
+    workers local progress callbacks, which pickle cannot serialise, so it can
+    only run under fork; under spawn it does not run slower, it fails. Better to
+    make that true here than to raise after a full prediction stage has run.
     """
-    if os.name == "posix":
-        multiprocessing.set_start_method("fork")
+    if os.name != "posix":
+        return
+    if multiprocessing.get_start_method(allow_none=True) == "fork":
+        return
+    multiprocessing.set_start_method("fork", force=True)
 
 
 # The following implementation of custom MyQueue to avoid NotImplementedError

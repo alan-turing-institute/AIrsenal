@@ -163,8 +163,8 @@ flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwa
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.
 [tool.ruff.lint.pylint]
-max-args = 20          # run_pipeline
-max-positional-args = 20
+max-args = 19          # run_transfer_optimization
+max-positional-args = 19
 max-branches = 19      # get_fixtures, get_recent_scores, FPLDataFetcher.get_...
 max-statements = 82    # fill_attributes_table_from_api
 max-returns = 12       # FPLDataFetcher._get_request
@@ -172,6 +172,13 @@ max-returns = 12       # FPLDataFetcher._get_request
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
 	"F401",  # allow unused imports in __init__.py files
+]
+"src/airsenal/cli/*.py" = [
+	# A command's parameters are its public schema, set by the flags it offers
+	# rather than by how the code behind it is organised. The bodies are a single
+	# call each, so the count says nothing about their complexity.
+	"PLR0913",
+	"PLR0917",
 ]
 "tests/**" = [
 	"B011",  # allow using assert statements in tests

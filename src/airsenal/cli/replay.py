@@ -5,7 +5,17 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.options import parse_options
-from airsenal.pipeline.replay import run_replays
+from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.transfer_optimizers import (
+    TRANSFER_OPTIMIZERS,
+    TreeSearchConfig,
+)
+from airsenal.pipeline import (
+    AIrsenalPipeline,
+    PipelineSettings,
+    ReplaySettings,
+    run_replays,
+)
 from airsenal.prediction.registry import (
     DEFAULT_PLAYER_MODEL,
     DEFAULT_TEAM_MODEL,
@@ -65,18 +75,29 @@ def replay(
 ) -> None:
     """Replay a historical FPL season."""
     run_replays(
-        season,
-        gameweek_start,
-        gameweek_end,
-        n_gameweeks,
-        fpl_team_id,
-        resume,
-        num_thread,
-        loop,
-        team_model,
-        epsilon,
-        max_transfers,
-        player_model,
-        parse_options(set_player),
-        parse_options(set_team),
+        AIrsenalPipeline.from_names(
+            team_model=team_model,
+            player_model=player_model,
+            epsilon=epsilon,
+            team_options=parse_options(set_team),
+            player_options=parse_options(set_player),
+            transfer_optimizer=TRANSFER_OPTIMIZERS.create(
+                "tree_search", TreeSearchConfig(num_thread=num_thread)
+            ),
+            constraints=TransferConstraints(max_opt_transfers=max_transfers),
+            settings=PipelineSettings(
+                fpl_team_id=fpl_team_id,
+                n_gameweeks=n_gameweeks,
+                season=season,
+                # replay never touches the real entry or the live API
+                refresh_database=False,
+                apply_transfers=False,
+            ),
+        ),
+        ReplaySettings(
+            gameweek_start=gameweek_start,
+            gameweek_end=gameweek_end,
+            loop=loop,
+            resume=resume,
+        ),
     )

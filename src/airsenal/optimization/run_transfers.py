@@ -35,6 +35,7 @@ from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
+from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.moves import ChipSchedule, TransferConstraints
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.protocols import (
@@ -477,10 +478,7 @@ def run_transfer_optimization(
     gameweek_start: int | None,
     gameweek_end: int | None,
     tag: str | None,
-    wildcard_week: int,
-    free_hit_week: int,
-    triple_captain_week: int,
-    bench_boost_week: int,
+    chips: ChipWeeks,
     num_free_transfers: int | None,
     max_hit: int,
     allow_unused: bool,
@@ -514,12 +512,6 @@ def run_transfer_optimization(
         season=season,
     )
     tag = tag or get_latest_prediction_tag(season=season)
-    chip_gameweeks = {
-        "wildcard": wildcard_week,
-        "free_hit": free_hit_week,
-        "triple_captain": triple_captain_week,
-        "bench_boost": bench_boost_week,
-    }
 
     if not check_tag_valid(tag, gameweeks, season=season):
         logger.error(
@@ -536,7 +528,7 @@ def run_transfer_optimization(
         tag,
         season=season,
         fpl_team_id=fpl_team_id,
-        chip_gameweeks=chip_gameweeks,
+        chip_gameweeks=chips.as_dict(),
         num_free_transfers=num_free_transfers,
         constraints=TransferConstraints(
             max_total_hit=max_hit,

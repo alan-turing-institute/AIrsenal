@@ -145,3 +145,13 @@ def progress_bar(*, transient: bool = False) -> Generator[Progress]:
     """
     with _new_progress(transient=transient) as progress:
         yield progress
+
+
+def confirm(question: str) -> bool:
+    """
+    Ask a yes/no question at the terminal.
+
+    Here rather than inline at the call site so that the code doing the asking
+    stays callable from a test, which a bare input() does not.
+    """
+    return input(f"{question} [y/n] ").strip().lower() not in ("n", "no")
