@@ -12,7 +12,12 @@ import pytest
 from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.transfer_optimizers import TRANSFER_OPTIMIZERS
-from airsenal.prediction.models import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.player_models import (
+    PLAYER_MODELS,
+)
+from airsenal.prediction.team_models import (
+    TEAM_MODELS,
+)
 
 TABLES = {
     "player model": (PLAYER_MODELS, ("fit", "get_probs")),

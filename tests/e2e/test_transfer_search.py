@@ -32,8 +32,13 @@ from airsenal.optimization.protocols import SquadRequest, TransferSearchRequest
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.transfer_optimizers import TreeSearchConfig
 from airsenal.optimization.transfer_optimizers.tree_search import optimize
-from airsenal.prediction.models import build_player_model, build_team_model
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
 from airsenal.prediction.run import make_predictedscore_table
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
 SEARCH_GAMEWEEKS = FUTURE_GAMEWEEKS[:2]

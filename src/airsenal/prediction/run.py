@@ -23,16 +23,18 @@ from airsenal.prediction.features import (
     fit_card_points,
     fit_def_con,
     fit_save_points,
-    get_all_fitted_player_data,
 )
-from airsenal.prediction.models import (
+from airsenal.prediction.player_models import (
     DEFAULT_PLAYER_MODEL,
     build_player_model,
-    build_team_model,
 )
+from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
 from airsenal.prediction.points import calc_predicted_points_for_player
 from airsenal.prediction.protocols import PlayerModel, TeamModel
-from airsenal.prediction.team_models.dixon_coles import (
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
+from airsenal.prediction.team_models.fitting import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )

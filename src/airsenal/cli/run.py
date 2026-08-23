@@ -12,12 +12,14 @@ from airsenal.optimization.transfer_optimizers import (
     TreeSearchOptimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettings
-from airsenal.prediction.models import (
+from airsenal.prediction.player_models import (
     DEFAULT_PLAYER_MODEL,
-    DEFAULT_TEAM_MODEL,
     PLAYER_MODELS,
-    TEAM_MODELS,
     build_player_model,
+)
+from airsenal.prediction.team_models import (
+    DEFAULT_TEAM_MODEL,
+    TEAM_MODELS,
     build_team_model,
 )
 

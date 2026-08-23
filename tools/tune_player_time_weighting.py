@@ -15,9 +15,11 @@ from airsenal.db.models import Fixture, PlayerScore
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import get_session
-from airsenal.prediction.config import ConjugatePlayerConfig
-from airsenal.prediction.features import get_all_fitted_player_data
-from airsenal.prediction.player_models import ConjugatePlayerModel
+from airsenal.prediction.player_models import (
+    ConjugatePlayerConfig,
+    ConjugatePlayerModel,
+)
+from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
 
 logger = get_logger(__name__)
 

@@ -11,20 +11,20 @@ from sqlalchemy import select
 from airsenal.core.scoring import get_appearance_points
 from airsenal.db.models import Fixture, Result
 from airsenal.db.queries.scores import get_player_scores_df
-from airsenal.prediction.config import ConjugatePlayerConfig
 from airsenal.prediction.features import (
     fit_bonus_points,
     fit_card_points,
-    fit_player_data,
     fit_save_points,
     get_player_history_df,
     mean_group_prior,
 )
 from airsenal.prediction.player_models import (
+    ConjugatePlayerConfig,
     ConjugatePlayerModel,
     NumpyroPlayerModel,
-    scale_goals_by_minutes,
 )
+from airsenal.prediction.player_models.fitting import fit_player_data
+from airsenal.prediction.player_models.scaling import scale_goals_by_minutes
 from airsenal.prediction.points import (
     get_attacking_points,
     get_bonus_points,
@@ -35,6 +35,8 @@ from airsenal.prediction.points import (
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
     DixonColesTeamModel,
+)
+from airsenal.prediction.team_models.fitting import (
     fixture_probabilities,
     get_fitted_team_model,
     get_ratings_dict,

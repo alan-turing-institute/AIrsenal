@@ -7,15 +7,16 @@ path when debugging something downstream of prediction, since fitting it costs
 nothing.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import numpy as np
 
 from airsenal.core.registry import ConfigError
-
-# Goals per team per match are modelled as uniform over 0..MAX_GOALS inclusive.
-MAX_GOALS = 10
+from airsenal.core.scoring import MAX_GOALS
+from airsenal.prediction.team_models.scorelines import (
+    outcome_proba_from_scores,
+)
 
 
 class ConstantTeamModel:
@@ -58,3 +59,8 @@ class ConstantTeamModel:
             (goals >= 0) & (goals <= self.max_goals), 1.0 / (self.max_goals + 1), 0.0
         )
         return probability.astype(float)
+
+    def predict_outcome_proba(
+        self, home_team: Sequence[str], away_team: Sequence[str]
+    ) -> dict[str, np.ndarray]:
+        return outcome_proba_from_scores(self, home_team, away_team, self.max_goals)

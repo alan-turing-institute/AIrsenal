@@ -24,8 +24,13 @@ from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.transfers import make_best_transfers
-from airsenal.prediction.models import build_player_model, build_team_model
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
 from airsenal.prediction.run import make_predictedscore_table
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON, SQUAD_SHAPE, TEAMS
 
 BUDGET = 1000

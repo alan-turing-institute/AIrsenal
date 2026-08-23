@@ -231,7 +231,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = [
     "airsenal.prediction.team_models.dixon_coles",
-    "airsenal.prediction.player_models",
+    "airsenal.prediction.player_models.mcmc",
     "airsenal.optimization.squad_ga",
 ]
 disallow_untyped_calls = false

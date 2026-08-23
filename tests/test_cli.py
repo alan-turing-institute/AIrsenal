@@ -3,10 +3,12 @@ from typer.testing import CliRunner
 
 from airsenal.cli.main import app
 from airsenal.core.registry import ConfigError
-from airsenal.prediction.models import (
+from airsenal.prediction.player_models import (
     PLAYER_MODELS,
-    TEAM_MODELS,
     build_player_model,
+)
+from airsenal.prediction.team_models import (
+    TEAM_MODELS,
     build_team_model,
 )
 

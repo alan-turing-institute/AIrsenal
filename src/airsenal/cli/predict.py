@@ -5,13 +5,15 @@ from typing import Annotated
 import typer
 
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.prediction.models import (
+from airsenal.prediction.player_models import (
     DEFAULT_PLAYER_MODEL,
-    DEFAULT_TEAM_MODEL,
     PLAYER_MODELS,
-    TEAM_MODELS,
 )
 from airsenal.prediction.run import run_prediction
+from airsenal.prediction.team_models import (
+    DEFAULT_TEAM_MODEL,
+    TEAM_MODELS,
+)
 
 
 def predict(

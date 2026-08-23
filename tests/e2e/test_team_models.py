@@ -15,8 +15,10 @@ import math
 import numpy as np
 import pytest
 
-from airsenal.prediction.models import build_team_model
-from airsenal.prediction.team_models.dixon_coles import (
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
+from airsenal.prediction.team_models.fitting import (
     fixture_probabilities,
     get_fitted_team_model,
 )
@@ -56,7 +58,9 @@ def test_score_probabilities_are_usable(fitted):
         assert all(0.0 <= float(p) <= 1.0 for p in probabilities)
 
 
-@pytest.mark.parametrize("name", ["extended", "neutral"])
+# Every model, now that `predict_outcome_proba` is on the TeamModel protocol
+# rather than fetched with getattr: the null models used to raise here.
+@pytest.mark.parametrize("name", ["extended", "neutral", "constant", "random"])
 def test_fixture_probabilities_covers_every_fixture(pipeline_db, name):
     model = build_team_model(name)
     df = fixture_probabilities(
@@ -65,3 +69,18 @@ def test_fixture_probabilities_covers_every_fixture(pipeline_db, name):
     # four fixtures per gameweek in the seeded database
     assert len(df) == 4
     assert set(df.columns) >= {"home_team", "away_team"}
+
+
+@pytest.mark.parametrize("name", ["constant", "random"])
+def test_outcome_probabilities_sum_to_one(pipeline_db, name):
+    """The null models convolve two independent goal counts, so they must."""
+    df = fixture_probabilities(
+        FUTURE_GAMEWEEKS[0],
+        PAST_SEASONS[-1],
+        dbsession=pipeline_db,
+        model=build_team_model(name),
+    )
+    totals = (
+        df["home_win_probability"] + df["draw_probability"] + df["away_win_probability"]
+    )
+    assert np.allclose(totals, 1.0)

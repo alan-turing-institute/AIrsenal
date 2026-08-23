@@ -28,7 +28,7 @@ from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweek
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import session_scope
-from airsenal.prediction.team_models.dixon_coles import get_fitted_team_model
+from airsenal.prediction.team_models.fitting import get_fitted_team_model
 
 logger = get_logger(__name__)
 

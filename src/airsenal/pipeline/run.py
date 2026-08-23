@@ -4,7 +4,8 @@ The whole pipeline, as one configured object.
 The four swappable components are held as objects, so a model or an optimizer
 written anywhere can be dropped in - including one no table knows about. Turning
 a name from the command line into one of those objects is the caller's job, and
-one call: see `prediction.models.build_team_model` and the tables beside it.
+one call: see `prediction.team_models.build_team_model` and the tables
+beside it.
 
 Settings that belong to a component - the GA's population, the search's thread
 count, a model's epsilon - live on that component and not here.
@@ -36,9 +37,14 @@ from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
-from airsenal.prediction.models import build_player_model, build_team_model
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
 from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.run import make_predictedscore_table
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
 from airsenal.reporting.top_players import get_top_predicted_points
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek

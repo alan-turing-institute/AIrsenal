@@ -22,7 +22,12 @@ from airsenal.optimization.squad_optimizers import (
     GeneticSquadOptimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
-from airsenal.prediction.models import build_player_model, build_team_model
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
 TEAM_ID = -1

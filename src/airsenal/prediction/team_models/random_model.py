@@ -6,18 +6,19 @@ the floor a real model has to clear. Standalone rather than a bpl subclass, so
 the parts it does not support are the parts it does not claim.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import numpy as np
 
 from airsenal.core.registry import ConfigError
+from airsenal.core.scoring import MAX_GOALS
+from airsenal.prediction.team_models.scorelines import (
+    outcome_proba_from_scores,
+)
 
-# Goals per team per match are modelled as a random distribution over 0..MAX_GOALS.
-MAX_GOALS = 10
 
-
-class RandomMatchPredictor:
+class RandomTeamModel:
     """Random, but valid, scoreline probabilities."""
 
     def __init__(
@@ -41,7 +42,7 @@ class RandomMatchPredictor:
         weights = self.rng.random(self.max_goals + 1)
         return weights / weights.sum()
 
-    def fit(self, training_data: dict[str, Iterable[Any]]) -> "RandomMatchPredictor":
+    def fit(self, training_data: dict[str, Iterable[Any]]) -> "RandomTeamModel":
         home = training_data.get("home_team", [])
         away = training_data.get("away_team", [])
         self.teams = sorted({str(t) for t in [*home, *away]})
@@ -84,3 +85,8 @@ class RandomMatchPredictor:
         goals = np.atleast_1d(np.asarray(n))
         in_range = (goals >= 0) & (goals <= self.max_goals)
         return np.where(in_range, probabilities[np.clip(goals, 0, self.max_goals)], 0.0)
+
+    def predict_outcome_proba(
+        self, home_team: Sequence[str], away_team: Sequence[str]
+    ) -> dict[str, np.ndarray]:
+        return outcome_proba_from_scores(self, home_team, away_team, self.max_goals)

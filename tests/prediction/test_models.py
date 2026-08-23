@@ -5,18 +5,18 @@ import inspect
 import pytest
 
 from airsenal.core.registry import ConfigError
-from airsenal.prediction.config import ConjugatePlayerConfig, NumpyroPlayerConfig
-from airsenal.prediction.models import (
-    DEFAULT_TEAM_MODEL,
-    PLAYER_MODELS,
-    TEAM_MODELS,
-    build_player_model,
-    build_team_model,
-)
 from airsenal.prediction.player_models import (
-    BasePlayerModel,
+    PLAYER_MODELS,
+    ConjugatePlayerConfig,
     ConjugatePlayerModel,
+    NumpyroPlayerConfig,
     NumpyroPlayerModel,
+    build_player_model,
+)
+from airsenal.prediction.team_models import (
+    DEFAULT_TEAM_MODEL,
+    TEAM_MODELS,
+    build_team_model,
 )
 
 
@@ -30,7 +30,9 @@ def test_registered_team_models():
 
 @pytest.mark.parametrize("name", sorted(PLAYER_MODELS))
 def test_every_player_model_implements_the_interface(name):
-    assert isinstance(build_player_model(name), BasePlayerModel)
+    model = build_player_model(name)
+    assert callable(model.fit)
+    assert callable(model.get_probs)
 
 
 def test_conjugate_is_the_default_player_model():
