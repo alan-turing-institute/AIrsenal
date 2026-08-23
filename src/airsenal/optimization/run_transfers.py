@@ -301,9 +301,20 @@ def print_optimization_summary(
     )
     summary.append(f"Team ID: {fpl_team_id}\n")
     summary.append(f"Baseline Score: {baseline_score:.1f}pts\n")
+    summary.append(
+        f"Total Points Hits: -{total_hits}pts\n", style="red" if total_hits else None
+    )
+    chips_played = [chip for chip in strat.chips_played if chip]
+    summary.append(
+        f"Chips Played: {', '.join(chips_played) if chips_played else 'None'}\n",
+        style="red" if chips_played else None,
+    )
     summary.append(f"Optimised Score: {total_score:.1f}pts\n", style="bold green")
-    summary.append(f"Points Gained: {total_score - baseline_score:+.1f}pts\n")
-    summary.append(f"Total Points Hits: -{total_hits}pts", style="red")
+    summary.append(
+        f"Points Gained: {total_score - baseline_score:+.1f}pts",
+        style="bold green" if total_score > baseline_score else "bold red",
+    )
+
     console.print(Panel(summary, title="Optimisation Result", expand=False))
 
     strategy_table = table(
