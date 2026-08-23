@@ -35,7 +35,10 @@ We are generally following the [PEP-8 style guide][link_pep8] regarding conventi
 Ideally, docstrings should follow [numpydoc][link_numpydoc] convention (though this is not always the case in the existing code).
 We encourage extensive documentation.
 
-Although there are not many in the current codebase, we also encourage the use of type hints, as provided by the [typing](link_typing) module. Examples of functions using this can be found in `airsenal/framework/player_model.py`.
+We use type hints, as provided by the [typing](link_typing) module, and `mypy` runs in
+strict mode. `pyproject.toml` carries a migration list of modules that are not yet
+annotated; that list may shrink but must never grow, so new code is annotated and
+code you move out of a listed module gets annotated on the way.
 
 For code formatting and linting, we use [ruff](https://docs.astral.sh/ruff/) which combines the functionality of black, isort, and flake8. This can be run from the main "AIrsenal" directory by doing:
 ```
@@ -54,13 +57,49 @@ pre-commit run --all-files
 
 ## Where to put the code
 
-Within the main `AIrsenal` directory, the python package that gets built is based on the `airsenal` subdirectory.   In this subdirectory, there are three further important subdirectories: `tests`, `framework`, and `scripts`.
-* *framework* is where the vast majority of code should live.  Things like the player-level statistical model and the database schema can be found here, as well as class definitions for e.g. "Squad" and "CandidatePlayer", the "DataFetcher" that retrieves information from the API, and several modules containing utility functions.
-* *tests* contains test code for checking the behaviour of the functions in *framework*.  When adding new functionality, it is always a good idea to write a corresponding test, and to run the full suite of tests to ensure that existing functions aren't broken. To check all tests are passing run `pytest` from the AIrsenal directory.
-* *scripts* contains the command-line interfaces for running the various steps of AIrsenal (initial database setup, database update, prediction, and optimization).  Ideally these scripts would just parse command-line arguments and then call library functions from `framework`, but in practice some of them do contain more logic than that.
+The package that gets built lives in `src/airsenal`. Its subdirectories form a one-way
+dependency chain, from the most general at the bottom to the most specific at the top:
 
-There is also a `notebooks` directory in the main `AIrsenal` directory, which contains Jupyter notebooks that have been used to develop, test, or demonstrate, various bits of AIrsenal functionality.   These can be a good starting point to experiment, and familiarize yourself with the code.
+```
+cli            command definitions and argument parsing, nothing else
+pipeline       orchestration: `run` and `replay`
+apply          the only code that writes to the real FPL entry
+optimization   the transfer search and the whole-squad builder
+ingest         export
+reporting      squad           prediction
+db             the tables, the queries and the session
+fetch          the FPL API client and the Transfermarkt scraper
+core           no airsenal-specific dependencies at all
+```
 
+A module may import from the rows below it, never from the rows above. This is checked -
+`uv run lint-imports` - because a single convenience import in the wrong direction is
+what turned an earlier version of the codebase into one module that everything depended
+on, and it does not fail at runtime, so nothing catches it for months.
+
+Three rules decide where new code goes:
+
+1. **If it imports no other airsenal module, it goes in `core/`.** That covers both FPL's
+   own rules (what a goal is worth, what a position is, how season strings work) and
+   generic plumbing (dates, logging, the console, caching).
+2. **Otherwise it belongs to the stage that owns it** - the list above. If it seems to
+   belong to two stages, it goes in the lower one, or it is two functions.
+3. **A new subdirectory needs at least three modules.** A directory holding one file
+   tells the reader that a category exists without telling them what is in it.
+
+`src/airsenal/data` holds the packaged historical CSV and JSON that seeds the database.
+Resolve paths into it with `airsenal.core.data_files.data_file()`, never by joining onto
+`__file__` - that only works while the calling module sits at one particular depth.
+
+`tests/` sits at the repository root, outside the package, and mirrors the package where
+there is enough to mirror. When adding new functionality it is always a good idea to
+write a corresponding test, and to run the full suite to check nothing else broke:
+`uv run pytest tests`.
+
+There is also a `notebooks` directory, which contains Jupyter notebooks used to develop,
+test or demonstrate various bits of AIrsenal functionality. These can be a good starting
+point to experiment and familiarize yourself with the code. `tools/` holds dev one-offs
+that are not packaged; install them with the `tools` extra.
 
 ## Order of function arguments
 
