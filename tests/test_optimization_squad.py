@@ -2,10 +2,82 @@
 Tests for the DEAP-based optimization implementation.
 """
 
+from contextlib import contextmanager
 from unittest.mock import Mock, patch
 
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.squad_ga import SquadOpt
+
+
+@contextmanager
+def arithmetic_squad_opt():
+    """A SquadOpt whose fitness is arithmetic, so the real GA can run without a DB.
+
+    Scoring a squad for real needs players in the database; the search itself
+    does not care what the numbers mean, so a fitness of "sum of the chosen
+    indices" exercises DEAP exactly as the real one does.
+    """
+    players = []
+    for i in range(60):
+        player = Mock()
+        player.player_id = f"player_{i}"
+        position = "GK" if i < 10 else "DEF" if i < 30 else "MID" if i < 50 else "FWD"
+        player.position = lambda season=None, pos=position: pos  # noqa: ARG005
+        player.team = lambda season=None, gameweek=None, i=i: f"Team {i // 3}"  # noqa: ARG005
+        player.price = lambda season=None, gameweek=None: 45  # noqa: ARG005
+        players.append(player)
+
+    with (
+        patch(
+            "airsenal.optimization.squad_ga.list_players",
+            side_effect=lambda position=None, **kwargs: [
+                p for p in players if p.position() == position
+            ],
+        ),
+        patch(
+            "airsenal.optimization.squad_ga.get_predicted_points_for_player",
+            return_value={1: 5.0},
+        ),
+        patch.object(
+            SquadOpt,
+            "_evaluate_individual",
+            lambda self, individual: (float(sum(individual)),),  # noqa: ARG005
+        ),
+    ):
+        yield SquadOpt(
+            gameweeks=[1],
+            tag="test_tag",
+            budget=1000,
+            players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+        )
+
+
+def test_reporting_each_generation_does_not_change_the_search():
+    """The per-generation loop must be the same search as one eaSimple call.
+
+    Progress is reported by running the generations one at a time rather than
+    handing DEAP the whole count. That is only worth doing if it changes nothing
+    about the answer, so check it against the single call, same seed.
+    """
+    config = GeneticAlgorithmConfig(
+        population_size=20, generations=10, random_state=42, verbose=False
+    )
+
+    with arithmetic_squad_opt() as optimizer:
+        best_individual, best_fitness = optimizer.optimize(config)
+
+        scores: list[float] = []
+        reported_individual, reported_fitness = optimizer.optimize(
+            config, on_generation=scores.append
+        )
+
+    assert list(reported_individual) == list(best_individual)
+    assert reported_fitness == best_fitness
+
+    # one report per generation, and the best score can only improve
+    assert len(scores) == config.generations
+    assert scores == sorted(scores)
+    assert scores[-1] == best_fitness
 
 
 def test_deap_class():

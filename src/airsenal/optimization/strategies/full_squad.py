@@ -22,7 +22,9 @@ class FullSquadStrategy:
         self.ga_config = ga_config
 
     def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
-        return num_iterations
+        # one step per generation of the genetic algorithm, which is what
+        # `scaled` makes of num_iterations
+        return self.ga_config.scaled(num_iterations).generations
 
     def propose(self, request: TransferRequest) -> TransferPlan:
         move = request.move
@@ -43,6 +45,10 @@ class FullSquadStrategy:
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
             ga_config=self.ga_config.scaled(request.num_iterations),
+            # the score so far is left out here: a worker's bar is one line among
+            # several, labelled by the strategy it is running, and the standalone
+            # squad optimisation is the one with a bar to itself to report into
+            on_generation=lambda _best_score: request.advance_progress(),
         )
         players_in = [p.player_id for p in new_squad.players]
         return TransferPlan(

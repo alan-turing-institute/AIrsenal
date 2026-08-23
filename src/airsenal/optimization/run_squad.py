@@ -1,10 +1,9 @@
 import sys
-from dataclasses import replace
 
 from rich.panel import Panel
 from rich.text import Text
 
-from airsenal.core.console import console, price_str, table
+from airsenal.core.console import console, price_str, progress_bar, table
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.core.registry import config_from_overrides
@@ -42,12 +41,23 @@ def fill_initial_squad(
     remove_zero: bool = True,
     sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
     ga_config: GeneticAlgorithmConfig | None = None,
-    verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
     chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
     ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
-    with console.status("Optimising full squad..."):
+    with progress_bar(transient=True) as progress:
+        # the genetic algorithm's generations are what there are a known number
+        # of, so they are what the bar counts; the best score so far is the part
+        # worth watching, so it goes in the description
+        task = progress.add_task("Optimising full squad", total=ga_config.generations)
+
+        def report_generation(best_score: float) -> None:
+            progress.update(
+                task,
+                advance=1,
+                description=f"Optimising full squad (best {best_score:.1f}pts)",
+            )
+
         best_squad = make_new_squad(
             gameweeks,
             tag,
@@ -55,8 +65,11 @@ def fill_initial_squad(
             season=season,
             remove_zero=remove_zero,
             sub_weights=sub_weights,
-            ga_config=replace(ga_config, verbose=verbose),
-            verbose=verbose,
+            ga_config=ga_config,
+            on_generation=report_generation,
+            # the bar reports progress, so DEAP's own logbook would just be
+            # a hundred lines of the same thing
+            verbose=False,
         )
 
     gw_start = gameweeks[0]
@@ -216,7 +229,6 @@ def run_squad_optimization(
         remove_zero=remove_zero,
         sub_weights=sub_weights,
         ga_config=ga_config,
-        verbose=True,
         is_replay=is_replay,
     )
 
