@@ -114,6 +114,30 @@ to be worth making.
 
 `airsenal run` is the top-level orchestrator for steps 1-5.
 
+### Swapping a model or an algorithm
+
+Four things are pluggable, and they compose into one object:
+
+```python
+AIrsenalPipeline(
+    team_model=build_team_model("extended"),   # prediction/protocols.py: TeamModel
+    player_model=PLAYER_MODELS.create("conjugate"),  # PlayerModel
+    transfer_optimizer=TRANSFER_OPTIMIZERS.create("tree_search"),  # TransferOptimizer
+    squad_optimizer=SQUAD_OPTIMIZERS.create("genetic"),  # SquadOptimizer
+    settings=PipelineSettings(...),
+).run()
+```
+
+Each has a `Protocol` (in `prediction/protocols.py` or `optimization/protocols.py`)
+and a `Registry` keyed by name. **Adding an implementation means writing a module
+that registers itself; it should not require editing any call site.** If it does,
+the seam is in the wrong place. `AIrsenalPipeline.from_names(...)` is the only place
+a name becomes an object, and is what the CLI uses.
+
+Settings belong to whichever component owns them - epsilon to the team model, the
+GA config to the squad optimizer, thread count to the transfer optimizer - not to
+the pipeline.
+
 ### Key modules
 
 | File | Purpose |
@@ -124,9 +148,12 @@ to be worth making.
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
 | `prediction/player_models.py` | Conjugate Bayesian and Numpyro player performance models |
 | `prediction/points.py` | Turning fitted models into predicted points per fixture |
-| `optimization/run_transfers.py` | The multi-gameweek transfer search |
+| `pipeline/run.py` | `AIrsenalPipeline`: the four swappable components plus the run settings |
+| `optimization/run_transfers.py` | Fetching the squad, persisting suggestions and reporting around the search |
+| `optimization/transfer_optimizers/` | One module per whole-window search, behind the `TransferOptimizer` protocol |
 | `optimization/strategies/` | One module per way of choosing a gameweek's transfers, behind the `TransferStrategy` protocol |
-| `optimization/squad_ga.py` | Initial whole-squad optimization (DEAP genetic algorithm) |
+| `optimization/squad_optimizers/` | One module per whole-squad builder, behind the `SquadOptimizer` protocol |
+| `optimization/squad_ga.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
 | `core/enums.py` | `Position` and `Chip` |
 
