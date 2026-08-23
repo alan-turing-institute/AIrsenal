@@ -1,33 +1,34 @@
 """
-Transfer strategies, one per module, each registering itself by name.
+Transfer strategies: one module per way of choosing a gameweek's transfers.
 
 `StrategySet` is the single place that decides which one a move needs. That
 decision used to be an if/elif inside `make_best_transfers`, duplicated in the
-progress-bar sizing, and the two could disagree. It then became a module-level
-constant, which no caller could influence - which is why `--set-ga` could tune
-the genetic algorithm behind `optimize squad` but not the identical one behind a
-wildcard or free hit.
+progress-bar sizing, and the two could disagree.
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
+from airsenal.core.registry import lookup
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     TransferPlan,
     TransferRequest,
     TransferStrategy,
 )
+from airsenal.optimization.strategies.double import DoubleTransferStrategy
+from airsenal.optimization.strategies.full_squad import FullSquadStrategy
+from airsenal.optimization.strategies.none import NoTransfersStrategy
+from airsenal.optimization.strategies.random_search import RandomTransferStrategy
+from airsenal.optimization.strategies.single import SingleTransferStrategy
 
-# importing each module runs its registration
-from airsenal.optimization.strategies import (
-    double,
-    full_squad,
-    none,
-    random_search,
-    single,
-)
-from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
+TRANSFER_STRATEGIES: dict[str, Callable[[], TransferStrategy]] = {
+    "double": DoubleTransferStrategy,
+    "full_squad": FullSquadStrategy,
+    "none": NoTransfersStrategy,
+    "random": RandomTransferStrategy,
+    "single": SingleTransferStrategy,
+}
 
 # How many players change decides how the search is done: one or two can be
 # enumerated exhaustively, more has to be sampled, and a chip that rebuilds the
@@ -40,13 +41,11 @@ _REBUILD = "full_squad"
 @dataclass(frozen=True)
 class StrategySet:
     """
-    Which strategy handles which move, and how each one is configured.
+    Which strategy handles which move.
 
-    Held as names and `key=value` strings rather than as built strategies so that
-    the whole set survives a fork or a pickle - the transfer search hands it to
-    worker processes, which build their own strategies from it. It also means a
-    strategy's options reach it through the same `config_from_overrides` path as
-    every other registry option, rather than a second mechanism.
+    Held as names rather than as built strategies so that the whole set survives
+    a fork or a pickle - the transfer search hands it to worker processes, which
+    build their own strategies from it.
     """
 
     by_transfer_count: Mapping[int, str] = field(
@@ -54,7 +53,6 @@ class StrategySet:
     )
     many_transfers: str = _MANY_TRANSFERS
     rebuild: str = _REBUILD
-    options: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
     def name_for(self, move: GameweekMove) -> str:
         """The name of the strategy that handles this move."""
@@ -63,11 +61,8 @@ class StrategySet:
         return self.by_transfer_count.get(move.n_transfers, self.many_transfers)
 
     def create(self, move: GameweekMove) -> TransferStrategy:
-        """The strategy that handles this move, with this set's settings."""
-        name = self.name_for(move)
-        # create_with(name, {}) is exactly create(name) - it builds the config
-        # class with no overrides - so there is one path, not two.
-        return TRANSFER_STRATEGIES.create_with(name, self.options.get(name, {}))
+        """The strategy that handles this move."""
+        return lookup(TRANSFER_STRATEGIES, self.name_for(move), "transfer strategy")()
 
 
 DEFAULT_STRATEGIES = StrategySet()
@@ -79,14 +74,13 @@ def strategy_name_for(move: GameweekMove) -> str:
 
 
 def select_strategy(move: GameweekMove) -> TransferStrategy:
-    """The strategy the default set uses for this move, with its default settings."""
+    """The strategy the default set uses for this move."""
     return DEFAULT_STRATEGIES.create(move)
 
 
 __all__ = [
     "DEFAULT_STRATEGIES",
     "TRANSFER_STRATEGIES",
-    "NoOptions",
     "StrategySet",
     "TransferPlan",
     "TransferRequest",

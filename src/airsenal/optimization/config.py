@@ -1,9 +1,9 @@
 """
 Configuration for the optimisation.
 
-These settings were previously repeated as default arguments across several
-functions and again in the CLI, which is how the squad builder and the transfer
-optimiser came to score benches differently without anyone deciding they should.
+These settings used to be repeated as default arguments across several functions
+and again in the CLI, which is how the squad builder and the transfer optimiser
+came to score benches differently without anyone deciding they should.
 """
 
 from dataclasses import dataclass, field, replace
@@ -56,7 +56,7 @@ class GeneticAlgorithmConfig:
 
         Used by the wildcard and free-hit transfer strategies, which have a single
         num_iterations knob. Questionable - the two control different things - but
-        it is what the code has always done, and it is at least explicit here.
+        it is at least explicit here.
         """
         return replace(self, population_size=num_iterations, generations=num_iterations)
 
@@ -70,10 +70,9 @@ class SquadScoringConfig:
     budget: int = 1000
 
 
-# Derived from SubWeights so there is one definition. The squad builder used to
-# hard-code {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)} instead, so `optimize
-# squad` and `optimize transfers` scored benches differently - unintentionally,
-# and the docstrings advertised the other set again.
+# Derived from SubWeights so there is one definition; the squad builder used to
+# hard-code a different set, so it scored benches differently from the transfer
+# search.
 DEFAULT_SUB_WEIGHTS = SubWeights().as_dict()
 
 
@@ -83,8 +82,8 @@ class ChipWeeks:
     Which gameweek to play each chip in.
 
     -1 never, 0 any week the search likes, n that week. Lives here rather than in
-    the pipeline because `run_transfer_optimization` builds the same four-key dict
-    from its own flags.
+    the pipeline because `run_transfer_optimization` builds the same dict from its
+    own flags.
     """
 
     wildcard: int = -1

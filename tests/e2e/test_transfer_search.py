@@ -28,11 +28,11 @@ from airsenal.optimization.moves import (
     TransferConstraints,
 )
 from airsenal.optimization.protocols import SquadRequest, TransferSearchRequest
-from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
+from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.strategy import Strategy, TransferSearchResult
 from airsenal.optimization.transfer_optimizers import TreeSearchConfig
 from airsenal.optimization.transfer_optimizers.tree_search import optimize
-from airsenal.prediction.registry import PLAYER_MODELS, build_team_model
+from airsenal.prediction.models import build_player_model, build_team_model
 from airsenal.prediction.run import make_predictedscore_table
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
@@ -52,7 +52,7 @@ def tag(seeded):
     return make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS,
         season=SEASON,
-        player_model=PLAYER_MODELS.create("constant"),
+        player_model=build_player_model("constant"),
         team_model=build_team_model("constant"),
         dbsession=seeded,
     )
@@ -60,9 +60,8 @@ def tag(seeded):
 
 @pytest.fixture(scope="module")
 def starting_squad(seeded, tag):
-    optimizer = SQUAD_OPTIMIZERS.create(
-        "genetic",
-        GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0),
+    optimizer = GeneticSquadOptimizer(
+        GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
     )
     return optimizer.optimize(
         SquadRequest(

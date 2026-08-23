@@ -9,7 +9,7 @@ import pickle
 import pytest
 
 from airsenal.core.enums import Chip
-from airsenal.core.registry import ConfigError
+from airsenal.core.registry import ConfigError, lookup
 from airsenal.optimization.moves import (
     MAX_FREE_TRANSFERS,
     GameweekMove,
@@ -19,6 +19,7 @@ from airsenal.optimization.strategies import (
     DEFAULT_STRATEGIES,
     StrategySet,
 )
+from airsenal.optimization.strategies.none import NoTransfersStrategy
 from airsenal.optimization.strategy import (
     GameweekOutcome,
     Strategy,
@@ -60,44 +61,35 @@ def test_a_squad_rebuilding_chip_goes_to_the_whole_squad_strategy():
     assert DEFAULT_STRATEGIES.name_for(GameweekMove(chip=Chip.FREE_HIT)) == "full_squad"
 
 
-def test_options_reach_the_strategy_that_owns_them():
-    """
-    The asymmetry this exists to remove.
-
-    --set-ga could tune the genetic algorithm behind `optimize squad`, but the
-    identical one behind a wildcard or free hit was built with defaults by a
-    module-level constant no caller could reach.
-    """
-    strategies = StrategySet(options={"full_squad": {"generations": "9"}})
+def test_a_set_can_route_a_move_to_a_different_strategy():
+    """The seam: swapping which algorithm handles a move edits no call site."""
+    strategies = StrategySet(rebuild="none")
     strategy = strategies.create(GameweekMove(chip=Chip.WILDCARD))
 
-    assert strategy.optimizer.num_increments() == 9
+    assert isinstance(strategy, NoTransfersStrategy)
+    # and the default set is unaffected
+    assert DEFAULT_STRATEGIES.name_for(GameweekMove(chip=Chip.WILDCARD)) == "full_squad"
 
 
-def test_the_default_set_is_unaffected_by_another_sets_options():
-    StrategySet(options={"full_squad": {"generations": "9"}})
-    strategy = DEFAULT_STRATEGIES.create(GameweekMove(chip=Chip.WILDCARD))
-    assert strategy.optimizer.num_increments() == 100
-
-
-def test_options_for_a_strategy_that_takes_none_are_rejected():
-    strategies = StrategySet(options={"single": {"generations": "9"}})
-    with pytest.raises(ConfigError, match="no option"):
-        strategies.create(GameweekMove(n_transfers=1))
+def test_an_unknown_strategy_name_is_rejected_when_the_set_is_used():
+    strategies = StrategySet(rebuild="nope")
+    with pytest.raises(ConfigError, match=r"Unknown transfer strategy 'nope'"):
+        strategies.create(GameweekMove(chip=Chip.WILDCARD))
 
 
 def test_a_strategy_set_survives_a_pickle():
     """
     It is handed to forked workers, and Process pickles its arguments off posix.
 
-    Holding names and option strings rather than built strategies is what makes
-    that safe - a strategy holds an optimizer, which need not be picklable.
+    Holding names rather than built strategies is what makes that safe - a
+    strategy holds an optimizer, which need not be picklable.
     """
-    strategies = StrategySet(options={"full_squad": {"generations": "9"}})
+    strategies = StrategySet(rebuild="none")
     restored = pickle.loads(pickle.dumps(strategies))
 
-    strategy = restored.create(GameweekMove(chip=Chip.WILDCARD))
-    assert strategy.optimizer.num_increments() == 9
+    assert isinstance(
+        restored.create(GameweekMove(chip=Chip.WILDCARD)), NoTransfersStrategy
+    )
 
 
 # --------------------------- constraints ---------------------------
@@ -166,19 +158,23 @@ def test_finding_no_strategy_at_all_is_an_error():
 
 
 def test_the_tree_search_is_registered():
-    assert "tree_search" in TRANSFER_OPTIMIZERS.names()
+    assert "tree_search" in TRANSFER_OPTIMIZERS
 
 
 def test_an_unknown_optimizer_names_the_valid_ones():
     with pytest.raises(
         ConfigError, match=r"Unknown transfer optimizer 'nope'.*tree_search"
     ):
-        TRANSFER_OPTIMIZERS.create("nope")
+        lookup(TRANSFER_OPTIMIZERS, "nope", "transfer optimizer")
 
 
-def test_the_registry_applies_the_config():
-    optimizer = TRANSFER_OPTIMIZERS.create_with("tree_search", {"num_thread": "2"})
-    assert isinstance(optimizer, TreeSearchOptimizer)
+def test_the_tree_search_defaults_its_own_config():
+    """Every table entry has to be constructible with no arguments."""
+    assert TRANSFER_OPTIMIZERS["tree_search"]().config == TreeSearchConfig()
+
+
+def test_the_config_reaches_the_optimizer():
+    optimizer = TreeSearchOptimizer(TreeSearchConfig(num_thread=2))
     assert optimizer.config.num_thread == 2
 
 

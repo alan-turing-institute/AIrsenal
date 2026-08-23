@@ -1,4 +1,5 @@
 import sys
+from dataclasses import replace
 
 from rich.panel import Panel
 from rich.text import Text
@@ -6,7 +7,6 @@ from rich.text import Text
 from airsenal.core.console import console, price_str, progress_bar, table
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.core.registry import config_from_overrides
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
@@ -20,8 +20,12 @@ from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
 )
-from airsenal.optimization.protocols import SquadOptimizer, SquadRequest
-from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
+from airsenal.optimization.protocols import (
+    SquadOptimizer,
+    SquadRequest,
+    progress_total,
+)
+from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.squad import Squad
@@ -44,7 +48,7 @@ def fill_initial_squad(
     chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
     if optimizer is None:
-        optimizer = SQUAD_OPTIMIZERS.create("genetic")
+        optimizer = GeneticSquadOptimizer()
     scoring = scoring if scoring is not None else SquadScoringConfig()
     sub_weights = scoring.sub_weights.as_dict()
     with progress_bar(transient=True) as progress:
@@ -52,7 +56,7 @@ def fill_initial_squad(
         # away from what actually happens; the best score so far is the part worth
         # watching, so it goes in the description
         task = progress.add_task(
-            "Optimising full squad", total=optimizer.num_increments()
+            "Optimising full squad", total=progress_total(optimizer)
         )
 
         def report_generation(best_score: float) -> None:
@@ -180,7 +184,6 @@ def run_squad_optimization(
     n_gameweeks: int,
     num_generations: int | None,
     population_size: int | None,
-    ga_options: dict[str, str] | None,
     no_subs: bool,
     include_zero: bool,
     fpl_team_id: int | None,
@@ -214,38 +217,26 @@ def run_squad_optimization(
     remove_zero = not include_zero
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
-    # --population-size and --generations are first-class because they are the two
-    # people actually reach for; the rest go through --set-ga, so their defaults
-    # live in GeneticAlgorithmConfig only. They used to be restated in the CLI
-    # signature, in this function, in fill_initial_squad and in make_new_squad.
-    ga_config = build_ga_config(num_generations, population_size, ga_options)
+    # --population-size and --generations are the two knobs people reach for; the
+    # rest of the GA's defaults live in GeneticAlgorithmConfig only. They used to be
+    # restated in the CLI signature, here, in fill_initial_squad and in
+    # make_new_squad.
+    ga_config = GeneticAlgorithmConfig()
+    if num_generations is not None:
+        ga_config = replace(ga_config, generations=num_generations)
+    if population_size is not None:
+        ga_config = replace(ga_config, population_size=population_size)
 
     fill_initial_squad(
         tag=tag,
         gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
-        optimizer=SQUAD_OPTIMIZERS.create("genetic", ga_config),
+        optimizer=GeneticSquadOptimizer(ga_config),
         scoring=SquadScoringConfig(
             sub_weights=SubWeights.none() if no_subs else SubWeights(),
             budget=budget,
         ),
         remove_zero=remove_zero,
         is_replay=is_replay,
-    )
-
-
-def build_ga_config(
-    num_generations: int | None,
-    population_size: int | None,
-    ga_options: dict[str, str] | None,
-) -> GeneticAlgorithmConfig:
-    """Build the GA settings from the first-class flags plus any --set-ga overrides."""
-    overrides = dict(ga_options or {})
-    if num_generations is not None:
-        overrides["generations"] = str(num_generations)
-    if population_size is not None:
-        overrides["population_size"] = str(population_size)
-    return config_from_overrides(
-        GeneticAlgorithmConfig, overrides, kind="genetic algorithm"
     )

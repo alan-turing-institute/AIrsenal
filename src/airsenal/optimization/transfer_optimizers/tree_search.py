@@ -41,7 +41,6 @@ from airsenal.optimization.strategy import (
     TransferSearchResult,
     get_baseline_strat,
 )
-from airsenal.optimization.transfer_optimizers.registry import TRANSFER_OPTIMIZERS
 from airsenal.optimization.transfers import get_num_increments, make_best_transfers
 from airsenal.squad.squad import Squad
 
@@ -58,7 +57,8 @@ QueueItem = StrategyNode | None
 # restart one worker's bar for a new strategy, which sizes it to the number of
 # candidate squads that strategy will consider.
 ProgressMessage = (
-    tuple[Literal["advance"], int | None] | tuple[Literal["reset"], int, str, int]
+    tuple[Literal["advance"], int | None]
+    | tuple[Literal["reset"], int, str, int | None]
 )
 
 
@@ -68,8 +68,7 @@ class TreeSearchConfig:
     Settings for the tree search itself, as opposed to the problem it is solving.
 
     How the algorithm works rather than what it is asked to do, which is why
-    these are here and not on `TransferSearchRequest`: a different optimizer
-    would have entirely different ones.
+    these are here and not on `TransferSearchRequest`.
     """
 
     num_thread: int = 4
@@ -313,7 +312,9 @@ def search_transfer_tree(
         def update_progress(index: int | None = None) -> None:
             progress_queue.put(("advance", index))
 
-        def reset_progress(index: int, strategy_string: str, num_steps: int) -> None:
+        def reset_progress(
+            index: int, strategy_string: str, num_steps: int | None
+        ) -> None:
             progress_queue.put(("reset", index, strategy_string, num_steps))
 
         def consume_progress_updates() -> None:
@@ -432,15 +433,10 @@ def search_transfer_tree(
 class TreeSearchOptimizer:
     """Chooses transfers by walking the whole tree of legal strategies."""
 
-    def __init__(self, config: TreeSearchConfig) -> None:
-        self.config = config
+    def __init__(self, config: TreeSearchConfig | None = None) -> None:
+        self.config = config if config is not None else TreeSearchConfig()
 
     def search(self, request: TransferSearchRequest) -> TransferSearchResult:
         return TransferSearchResult.from_strategies(
             search_transfer_tree(request, self.config)
         )
-
-
-@TRANSFER_OPTIMIZERS.register("tree_search", TreeSearchConfig)
-def _make(config: TreeSearchConfig) -> TreeSearchOptimizer:
-    return TreeSearchOptimizer(config)

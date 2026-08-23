@@ -4,9 +4,8 @@ from typing import Annotated
 
 import typer
 
-from airsenal.cli.options import parse_options
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.prediction.registry import (
+from airsenal.prediction.models import (
     DEFAULT_PLAYER_MODEL,
     DEFAULT_TEAM_MODEL,
     PLAYER_MODELS,
@@ -40,11 +39,11 @@ def predict(
     ] = False,
     player_model: Annotated[
         str,
-        typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
+        typer.Option(help=f"Player model: {', '.join(sorted(PLAYER_MODELS))}."),
     ] = DEFAULT_PLAYER_MODEL,
     team_model: Annotated[
         str,
-        typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}."),
+        typer.Option(help=f"Team model: {', '.join(sorted(TEAM_MODELS))}."),
     ] = DEFAULT_TEAM_MODEL,
     epsilon: Annotated[
         float | None,
@@ -54,17 +53,6 @@ def predict(
                 "Defaults to the team model's own value."
             )
         ),
-    ] = None,
-    set_player: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--set-player",
-            help="Player model option as key=value. Repeatable.",
-        ),
-    ] = None,
-    set_team: Annotated[
-        list[str] | None,
-        typer.Option("--set-team", help="Team model option as key=value. Repeatable."),
     ] = None,
 ) -> None:
     """Predict player scores for a gameweek range."""
@@ -79,6 +67,4 @@ def predict(
         player_model_name=player_model,
         team_model_name=team_model,
         epsilon=epsilon,
-        player_model_options=parse_options(set_player),
-        team_model_options=parse_options(set_team),
     )

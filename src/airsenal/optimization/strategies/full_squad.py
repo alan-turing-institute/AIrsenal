@@ -1,25 +1,24 @@
 """
 Pick a whole new squad, as a wildcard or free hit does.
 
-Every player can change, so this hands off to a whole-squad optimizer rather than
-enumerating swaps. Which one is a property of the instance: the class knows only
-the `SquadOptimizer` interface, so swapping the genetic algorithm for something
-else here is a change to the registration below, not to the strategy.
+Every player can change, so this hands off to a whole-squad optimizer rather
+than enumerating swaps. Which one is a property of the instance: the class knows
+only the `SquadOptimizer` interface.
 """
 
 from dataclasses import replace
 
 from airsenal.core.logging import get_logger
-from airsenal.optimization.config import GeneticAlgorithmConfig, SquadScoringConfig
+from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
-    SquadOptimizer,
+    SquadOptimizerFactory,
     SquadRequest,
     TransferPlan,
     TransferRequest,
+    progress_total,
 )
-from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
-from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES
+from airsenal.optimization.squad_optimizers import genetic_optimizer
 
 logger = get_logger(__name__)
 
@@ -27,11 +26,13 @@ logger = get_logger(__name__)
 class FullSquadStrategy:
     """Rebuild the squad from scratch within its sale value."""
 
-    def __init__(self, optimizer: SquadOptimizer) -> None:
-        self.optimizer = optimizer
+    def __init__(self, make_optimizer: SquadOptimizerFactory = genetic_optimizer):
+        # a factory rather than an optimizer, because the size of the search is
+        # only known per-request, from the caller's --num-iterations
+        self.make_optimizer = make_optimizer
 
     def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
-        return self.optimizer.scaled(num_iterations).num_increments()
+        return progress_total(self.make_optimizer(num_iterations)) or 1
 
     def propose(self, request: TransferRequest) -> TransferPlan:
         move = request.move
@@ -43,7 +44,7 @@ class FullSquadStrategy:
             # a free hit is reverted afterwards, so only this week's score matters
             gameweeks = [request.transfer_gameweek]
 
-        new_squad = self.optimizer.scaled(request.num_iterations).optimize(
+        new_squad = self.make_optimizer(request.num_iterations).optimize(
             SquadRequest(
                 gameweeks=gameweeks,
                 tag=request.tag,
@@ -64,8 +65,3 @@ class FullSquadStrategy:
             players_in=[p for p in players_in if p not in players_out],
             players_out=[p for p in players_out if p not in players_in],
         )
-
-
-@TRANSFER_STRATEGIES.register("full_squad", GeneticAlgorithmConfig)
-def _make(config: GeneticAlgorithmConfig) -> FullSquadStrategy:
-    return FullSquadStrategy(GeneticSquadOptimizer(config))

@@ -1,5 +1,5 @@
 """
-Tests for the transfer strategy registry and the move-to-strategy mapping.
+Tests for the transfer strategy table and the move-to-strategy mapping.
 
 These check the wiring, not the searches themselves - the searches are covered
 by test_optimization.py.
@@ -8,6 +8,7 @@ by test_optimization.py.
 import pytest
 
 from airsenal.core.enums import Chip
+from airsenal.core.registry import ConfigError
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     TransferPlan,
@@ -16,37 +17,40 @@ from airsenal.optimization.protocols import (
 )
 from airsenal.optimization.strategies import (
     TRANSFER_STRATEGIES,
+    StrategySet,
     select_strategy,
     strategy_name_for,
 )
 
 
 def test_all_five_strategies_are_registered():
-    assert TRANSFER_STRATEGIES.names() == (
+    assert sorted(TRANSFER_STRATEGIES) == [
         "double",
         "full_squad",
         "none",
         "random",
         "single",
-    )
+    ]
 
 
-@pytest.mark.parametrize("name", TRANSFER_STRATEGIES.names())
+@pytest.mark.parametrize("name", sorted(TRANSFER_STRATEGIES))
 def test_registered_strategies_satisfy_the_protocol(name):
-    strategy = TRANSFER_STRATEGIES.create(name)
+    strategy = TRANSFER_STRATEGIES[name]()
     # Protocols are not runtime_checkable here on purpose - isinstance against a
     # Protocol only checks that the names exist, which is the stringly-typed
     # dispatch we are getting rid of. Check the callables directly instead.
-    assert callable(strategy.num_increments)
     assert callable(strategy.propose)
+    # every strategy shipped here can size its own progress bar, though the
+    # protocol does not require it
+    assert callable(strategy.num_increments)
     # and that it is usable where a TransferStrategy is expected
     accepts: TransferStrategy = strategy
     assert accepts is strategy
 
 
 def test_unknown_strategy_lists_the_valid_ones():
-    with pytest.raises(ValueError, match="Choose from: double, full_squad"):
-        TRANSFER_STRATEGIES.create("wildcard-ish")
+    with pytest.raises(ConfigError, match="Choose from: double, full_squad"):
+        StrategySet(rebuild="wildcard-ish").create(GameweekMove(chip=Chip.WILDCARD))
 
 
 @pytest.mark.parametrize(
@@ -79,7 +83,7 @@ def test_every_move_maps_to_a_registered_strategy(n_transfers, chip):
         move = GameweekMove(chip=chip)
     else:
         move = GameweekMove(n_transfers, chip)
-    assert strategy_name_for(move) in TRANSFER_STRATEGIES.names()
+    assert strategy_name_for(move) in TRANSFER_STRATEGIES
 
 
 def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():

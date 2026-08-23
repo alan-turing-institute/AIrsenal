@@ -1,13 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import jax.numpy as jnp
-import jax.random as random
 import numpy as np
-import numpyro
-import numpyro.distributions as dist
 import pandas as pd
-from numpyro.infer import MCMC, NUTS
 
 from airsenal.core.logging import get_logger
 from airsenal.core.types import FloatArray
@@ -16,6 +11,9 @@ from airsenal.prediction.config import (
     ConstantPlayerConfig,
     NumpyroPlayerConfig,
 )
+
+if TYPE_CHECKING:
+    import jax.numpy as jnp
 
 logger = get_logger(__name__)
 
@@ -131,9 +129,8 @@ class BasePlayerModel(ABC):
     def fit(self, data: dict[str, Any]) -> "BasePlayerModel":
         """Fit model, using the hyperparameters this model was constructed with.
 
-        Deliberately takes no **kwargs. It used to, and NumpyroPlayerModel silently
-        swallowed the epsilon and n_goals_prior that the caller passed for every
-        model, so selecting the sampling model quietly disabled time weighting.
+        Deliberately takes no **kwargs: it used to, and NumpyroPlayerModel silently
+        swallowed the epsilon and n_goals_prior the caller passed.
 
         Data must have the following keys (at minimum):
         - "y": np.ndarray of shape (n_players, n_matches, 3) with player goal
@@ -170,10 +167,16 @@ class NumpyroPlayerModel(BasePlayerModel):
     def _model(
         nplayer: int,
         nmatch: int,  # noqa: ARG004
-        minutes: jnp.ndarray,
-        y: jnp.ndarray,
-        alpha: jnp.ndarray,
-    ) -> jnp.ndarray:
+        minutes: "jnp.ndarray",
+        y: "jnp.ndarray",
+        alpha: "jnp.ndarray",
+    ) -> "jnp.ndarray":
+        # jax and numpyro are imported here rather than at module scope: they cost
+        # seconds to import, and only this model needs them.
+        import jax.numpy as jnp  # noqa: PLC0415
+        import numpyro  # noqa: PLC0415
+        import numpyro.distributions as dist  # noqa: PLC0415
+
         theta = dist.Dirichlet(concentration=alpha)
         # one sample from the prior per player
         with numpyro.plate("nplayer", nplayer):
@@ -197,6 +200,9 @@ class NumpyroPlayerModel(BasePlayerModel):
         return numpyro.sample("obs", theta_mins, obs=y)
 
     def fit(self, data: dict[str, Any]) -> "NumpyroPlayerModel":
+        import jax.random as random  # noqa: PLC0415
+        from numpyro.infer import MCMC, NUTS  # noqa: PLC0415
+
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
         mcmc = MCMC(
@@ -325,9 +331,8 @@ class ConstantPlayerModel(BasePlayerModel):
     """
     Every player equally likely to score, assist, or do neither.
 
-    A null baseline: a real player model that cannot beat "everyone is the same"
-    is not earning its keep. Also a fast path when debugging something downstream
-    of prediction, since it does no fitting at all.
+    A null baseline, and a fast path when debugging something downstream of
+    prediction, since it does no fitting at all.
     """
 
     def __init__(self, config: ConstantPlayerConfig | None = None) -> None:

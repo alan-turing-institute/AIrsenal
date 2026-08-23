@@ -34,6 +34,7 @@ from airsenal.prediction.points import (
 )
 from airsenal.prediction.team_models.dixon_coles import (
     DEFAULT_TEAM_EPSILON,
+    DixonColesTeamModel,
     fixture_probabilities,
     get_fitted_team_model,
     get_ratings_dict,
@@ -328,31 +329,33 @@ def test_get_fitted_team_model():
     """
     # extended model
     with past_data_session_scope() as ts:
-        extended = ExtendedDixonColesMatchPredictor()
-        model_team = get_fitted_team_model("1819", 10, ts, model=extended)
-        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+        model_team = get_fitted_team_model("1819", 10, ts, model=DixonColesTeamModel())
+        assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
     # extended model with default epsilon
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model("1819", 10, ts)
-        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+        assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
     # extended model with epsilon = 0.5
     with past_data_session_scope() as ts:
-        extended = ExtendedDixonColesMatchPredictor()
-        model_team = get_fitted_team_model("1819", 10, ts, model=extended, epsilon=0.5)
-        assert isinstance(model_team, ExtendedDixonColesMatchPredictor)
+        model_team = get_fitted_team_model(
+            "1819", 10, ts, model=DixonColesTeamModel(epsilon=0.5)
+        )
+        assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
         assert model_team.epsilon == 0.5
     # neutral model with epsilon = 0.5
     with past_data_session_scope() as ts:
-        neutral = NeutralDixonColesMatchPredictor()
-        model_team = get_fitted_team_model("1819", 10, ts, model=neutral, epsilon=0.5)
-        assert isinstance(model_team, NeutralDixonColesMatchPredictor)
+        model_team = get_fitted_team_model(
+            "1819", 10, ts, model=DixonColesTeamModel(neutral=True, epsilon=0.5)
+        )
+        assert isinstance(model_team.model, NeutralDixonColesMatchPredictor)
         assert model_team.epsilon == 0.5
     # neutral model with no epsilon passed
     with past_data_session_scope() as ts:
-        neutral = NeutralDixonColesMatchPredictor()
-        model_team = get_fitted_team_model("1819", 10, ts, model=neutral)
-        assert isinstance(model_team, NeutralDixonColesMatchPredictor)
+        model_team = get_fitted_team_model(
+            "1819", 10, ts, model=DixonColesTeamModel(neutral=True)
+        )
+        assert isinstance(model_team.model, NeutralDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
 
 

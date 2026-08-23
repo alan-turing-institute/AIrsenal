@@ -1,17 +1,13 @@
 """
 The whole pipeline, as one configured object.
 
-`run_pipeline` took twenty arguments - the repo's lint ceiling was set to
-accommodate it - and mixed three unrelated things: which models and algorithms
-to use, which database to build, and what to do with the answer. Worse, the
-choice of model reached it as a string, so the only way to run the pipeline with
-something the registry did not know about was not to use the pipeline.
+The four swappable components are held as objects, so a model or an optimizer
+written anywhere can be dropped in - including one no table knows about. Turning
+a name from the command line into one of those objects is the caller's job, and
+one call: see `prediction.models.build_team_model` and the tables beside it.
 
-`AIrsenalPipeline` holds the four swappable components as objects, so a model or
-an optimizer written anywhere can be dropped in, and `from_names` does the
-registry lookups for the command line. Settings that belong to a component - the
-GA's population, the search's thread count, a model's epsilon - live on that
-component and not here.
+Settings that belong to a component - the GA's population, the search's thread
+count, a model's epsilon - live on that component and not here.
 """
 
 from dataclasses import dataclass, field, replace
@@ -36,17 +32,12 @@ from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
-from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
+from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.strategy import Strategy
-from airsenal.optimization.transfer_optimizers import TRANSFER_OPTIMIZERS
+from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
-from airsenal.prediction.protocols import ConfiguredTeamModel, PlayerModel
-from airsenal.prediction.registry import (
-    DEFAULT_PLAYER_MODEL,
-    DEFAULT_TEAM_MODEL,
-    PLAYER_MODELS,
-    build_team_model,
-)
+from airsenal.prediction.models import build_player_model, build_team_model
+from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.reporting.top_players import get_top_predicted_points
 from airsenal.squad.squad import Squad
@@ -65,63 +56,15 @@ class AIrsenalPipeline:
     A configured run: what to predict and optimise with, and what to do with it.
 
     The components are objects rather than names so that anything satisfying the
-    protocol can be used, including something defined in a notebook. Use
-    `from_names` to build one from the strings a command line supplies.
+    protocol can be used, including something defined in a notebook.
     """
 
-    team_model: ConfiguredTeamModel = field(default_factory=build_team_model)
-    player_model: PlayerModel = field(
-        default_factory=lambda: PLAYER_MODELS.create(DEFAULT_PLAYER_MODEL)
-    )
-    transfer_optimizer: TransferOptimizer = field(
-        default_factory=lambda: TRANSFER_OPTIMIZERS.create("tree_search")
-    )
-    squad_optimizer: SquadOptimizer = field(
-        default_factory=lambda: SQUAD_OPTIMIZERS.create("genetic")
-    )
+    team_model: TeamModel = field(default_factory=build_team_model)
+    player_model: PlayerModel = field(default_factory=build_player_model)
+    transfer_optimizer: TransferOptimizer = field(default_factory=TreeSearchOptimizer)
+    squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
     settings: PipelineSettings = field(default_factory=PipelineSettings)
-
-    @classmethod
-    def from_names(
-        cls,
-        *,
-        team_model: str = DEFAULT_TEAM_MODEL,
-        player_model: str = DEFAULT_PLAYER_MODEL,
-        epsilon: float | None = None,
-        team_options: dict[str, str] | None = None,
-        player_options: dict[str, str] | None = None,
-        transfer_optimizer: TransferOptimizer | None = None,
-        squad_optimizer: SquadOptimizer | None = None,
-        constraints: TransferConstraints | None = None,
-        settings: PipelineSettings | None = None,
-    ) -> "AIrsenalPipeline":
-        """
-        Build a pipeline from the names and options a command line supplies.
-
-        The registry lookups happen here and nowhere else, so constructing a
-        pipeline directly never reads a string and never raises ConfigError.
-        Keyword-only because `team_model` and `player_model` are both bare
-        strings, and getting them the wrong way round would otherwise be quiet.
-        """
-        return cls(
-            team_model=build_team_model(team_model, team_options, epsilon),
-            player_model=PLAYER_MODELS.create_with(player_model, player_options or {}),
-            transfer_optimizer=(
-                transfer_optimizer
-                if transfer_optimizer is not None
-                else TRANSFER_OPTIMIZERS.create("tree_search")
-            ),
-            squad_optimizer=(
-                squad_optimizer
-                if squad_optimizer is not None
-                else SQUAD_OPTIMIZERS.create("genetic")
-            ),
-            constraints=(
-                constraints if constraints is not None else TransferConstraints()
-            ),
-            settings=settings if settings is not None else PipelineSettings(),
-        )
 
     def with_settings(self, **changes: Any) -> "AIrsenalPipeline":
         """The same components, with some of the settings changed."""

@@ -15,7 +15,7 @@ import math
 import numpy as np
 import pytest
 
-from airsenal.prediction.registry import TEAM_MODELS
+from airsenal.prediction.models import build_team_model
 from airsenal.prediction.team_models.dixon_coles import (
     fixture_probabilities,
     get_fitted_team_model,
@@ -28,7 +28,7 @@ FIT_GAMEWEEK = 8
 
 @pytest.fixture(scope="module", params=["extended", "neutral", "constant", "random"])
 def fitted(request, pipeline_db):
-    model = TEAM_MODELS.create(request.param)
+    model = build_team_model(request.param)
     return request.param, get_fitted_team_model(
         FIT_SEASON, FIT_GAMEWEEK, pipeline_db, model=model
     )
@@ -58,7 +58,7 @@ def test_score_probabilities_are_usable(fitted):
 
 @pytest.mark.parametrize("name", ["extended", "neutral"])
 def test_fixture_probabilities_covers_every_fixture(pipeline_db, name):
-    model = TEAM_MODELS.create(name)
+    model = build_team_model(name)
     df = fixture_probabilities(
         FUTURE_GAMEWEEKS[0], PAST_SEASONS[-1], dbsession=pipeline_db, model=model
     )

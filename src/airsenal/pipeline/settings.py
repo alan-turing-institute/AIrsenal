@@ -1,11 +1,10 @@
 """
 Everything about a pipeline run that is not a swappable component.
 
-Grouped rather than flat, but only where a group earns it: a nested dataclass
-either has a second consumer (`ChipWeeks`, which the transfer CLI builds too) or
-describes a stage that only sometimes runs (`DatabaseSettings`). There is
-deliberately no `OptimizationSettings` - those settings belong to the optimizer
-objects, which is the point of having them.
+Nested only where a group earns it: either it has a second consumer (`ChipWeeks`,
+which the transfer CLI builds too) or it describes a stage that only sometimes
+runs (`DatabaseSettings`). There is deliberately no `OptimizationSettings` -
+those settings belong to the optimizer objects.
 """
 
 from dataclasses import dataclass, field

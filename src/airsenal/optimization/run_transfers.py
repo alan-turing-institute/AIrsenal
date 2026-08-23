@@ -44,12 +44,14 @@ from airsenal.optimization.protocols import (
     TransferSearchRequest,
 )
 from airsenal.optimization.run_squad import fill_initial_squad
-from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
-from airsenal.optimization.strategies import StrategySet
+from airsenal.optimization.squad_optimizers import (
+    GeneticSquadOptimizer,
+    genetic_optimizer,
+)
 from airsenal.optimization.strategy import Strategy
 from airsenal.optimization.transfer_optimizers import (
-    TRANSFER_OPTIMIZERS,
     TreeSearchConfig,
+    TreeSearchOptimizer,
 )
 from airsenal.reporting.discord import post_webhook
 from airsenal.reporting.squad_view import formation_table
@@ -315,7 +317,7 @@ def new_squad_from_scratch(
     There is nothing to transfer from, so the transfer search has nothing to do.
     """
     if squad_optimizer is None:
-        squad_optimizer = SQUAD_OPTIMIZERS.create("genetic")
+        squad_optimizer = GeneticSquadOptimizer()
     return fill_initial_squad(
         tag=tag,
         gameweeks=gameweeks,
@@ -352,7 +354,7 @@ def run_optimization(
     if constraints is None:
         constraints = TransferConstraints()
     if optimizer is None:
-        optimizer = TRANSFER_OPTIMIZERS.create("tree_search")
+        optimizer = TreeSearchOptimizer()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
     # see if we are at the start of a season, or
@@ -490,15 +492,8 @@ def run_transfer_optimization(
     fpl_team_id: int | None,
     is_replay: bool,
     save_strategies: Path | None = None,
-    ga_options: dict[str, str] | None = None,
 ) -> None:
-    """
-    Run transfer optimization for a gameweek range.
-
-    `ga_options` tunes the genetic algorithm the wildcard and free-hit strategies
-    use. Note it cannot move population_size or generations: those are sized from
-    --num-iterations, which is the single effort knob this search has.
-    """
+    """Run transfer optimization for a gameweek range."""
     sanity_check_args(
         n_gameweeks,
         gameweek_start,
@@ -535,17 +530,15 @@ def run_transfer_optimization(
             allow_unused_transfers=allow_unused,
             max_opt_transfers=max_transfers,
         ),
-        optimizer=TRANSFER_OPTIMIZERS.create(
-            "tree_search",
+        optimizer=TreeSearchOptimizer(
             TreeSearchConfig(
                 num_thread=num_thread,
                 num_iterations=num_iterations,
                 profile=profile,
-                strategies=StrategySet(options={"full_squad": ga_options or {}}),
-            ),
+            )
         ),
         # the from-scratch fallback sizes its search from the same effort knob
-        squad_optimizer=SQUAD_OPTIMIZERS.create("genetic").scaled(num_iterations),
+        squad_optimizer=genetic_optimizer(num_iterations),
         save_strategies=save_strategies,
         is_replay=is_replay,
     )

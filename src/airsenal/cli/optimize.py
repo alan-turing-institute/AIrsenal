@@ -1,14 +1,12 @@
 """Commands for optimizing transfers and squads."""
 
-from dataclasses import fields
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from airsenal.cli.options import parse_options
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.optimization.config import ChipWeeks, GeneticAlgorithmConfig
+from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.run_squad import run_squad_optimization
 from airsenal.optimization.run_transfers import run_transfer_optimization
 
@@ -78,18 +76,6 @@ def transfers(
         Path | None,
         typer.Option(help="Directory to write every strategy considered to, as JSON."),
     ] = None,
-    set_ga: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--set-ga",
-            help=(
-                "Genetic algorithm option as key=value, for the wildcard and free "
-                "hit search. Repeatable. population_size and generations are sized "
-                "from --num-iterations and cannot be set here. Available: "
-                + ", ".join(f.name for f in fields(GeneticAlgorithmConfig))
-            ),
-        ),
-    ] = None,
 ) -> None:
     """Optimize a transfer strategy."""
     run_transfer_optimization(
@@ -114,7 +100,6 @@ def transfers(
         fpl_team_id,
         is_replay,
         save_strategies,
-        parse_options(set_ga),
     )
 
 
@@ -146,16 +131,6 @@ def squad(
         int | None,
         typer.Option(min=1, help="Candidate squads per generation."),
     ] = None,
-    set_ga: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--set-ga",
-            help=(
-                "Genetic algorithm option as key=value. Repeatable. Available: "
-                + ", ".join(f.name for f in fields(GeneticAlgorithmConfig))
-            ),
-        ),
-    ] = None,
     no_subs: Annotated[
         bool, typer.Option(help="Exclude substitute-point contributions.")
     ] = False,
@@ -175,7 +150,6 @@ def squad(
         n_gameweeks,
         num_generations,
         population_size,
-        parse_options(set_ga),
         no_subs,
         include_zero,
         fpl_team_id,

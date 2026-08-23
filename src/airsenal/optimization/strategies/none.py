@@ -2,7 +2,6 @@
 
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferPlan, TransferRequest
-from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
 
 
 class NoTransfersStrategy:
@@ -14,8 +13,3 @@ class NoTransfersStrategy:
     def propose(self, request: TransferRequest) -> TransferPlan:
         request.advance_progress()
         return TransferPlan(request.squad, [], [])
-
-
-@TRANSFER_STRATEGIES.register("none", NoOptions)
-def _make(config: NoOptions) -> NoTransfersStrategy:  # noqa: ARG001
-    return NoTransfersStrategy()

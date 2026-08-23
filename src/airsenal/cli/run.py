@@ -5,19 +5,20 @@ from typing import Annotated
 
 import typer
 
-from airsenal.cli.options import parse_options
 from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.transfer_optimizers import (
-    TRANSFER_OPTIMIZERS,
     TreeSearchConfig,
+    TreeSearchOptimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettings
-from airsenal.prediction.registry import (
+from airsenal.prediction.models import (
     DEFAULT_PLAYER_MODEL,
     DEFAULT_TEAM_MODEL,
     PLAYER_MODELS,
     TEAM_MODELS,
+    build_player_model,
+    build_team_model,
 )
 
 
@@ -66,7 +67,7 @@ def run(
         typer.Option(help="Exclude the current season when creating the database."),
     ] = False,
     team_model: Annotated[
-        str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
+        str, typer.Option(help=f"Team model: {', '.join(sorted(TEAM_MODELS))}.")
     ] = DEFAULT_TEAM_MODEL,
     epsilon: Annotated[
         float | None,
@@ -93,30 +94,16 @@ def run(
     ] = False,
     player_model: Annotated[
         str,
-        typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
+        typer.Option(help=f"Player model: {', '.join(sorted(PLAYER_MODELS))}."),
     ] = DEFAULT_PLAYER_MODEL,
-    set_player: Annotated[
-        list[str] | None,
-        typer.Option("--set-player", help="Player model option as key=value."),
-    ] = None,
-    set_team: Annotated[
-        list[str] | None,
-        typer.Option("--set-team", help="Team model option as key=value."),
-    ] = None,
 ) -> None:
     """Run the full AIrsenal pipeline."""
     # the pipeline has always used every core unless told otherwise
     threads = num_thread or multiprocessing.cpu_count()
-    AIrsenalPipeline.from_names(
-        team_model=team_model,
-        player_model=player_model,
-        epsilon=epsilon,
-        team_options=parse_options(set_team),
-        player_options=parse_options(set_player),
-        transfer_optimizer=TRANSFER_OPTIMIZERS.create(
-            "tree_search",
-            TreeSearchConfig(num_thread=threads),
-        ),
+    AIrsenalPipeline(
+        team_model=build_team_model(team_model, epsilon),
+        player_model=build_player_model(player_model),
+        transfer_optimizer=TreeSearchOptimizer(TreeSearchConfig(num_thread=threads)),
         constraints=TransferConstraints(
             max_total_hit=max_hit,
             allow_unused_transfers=allow_unused,

@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
@@ -26,11 +25,9 @@ from airsenal.prediction.config import (
     DEFAULT_RESCALE_WEIGHTS,
     DEFAULT_TEAM_EPSILON,
 )
-from airsenal.prediction.team_models.random_model import RandomMatchPredictor
+from airsenal.prediction.protocols import TeamModel
 
 logger = get_logger(__name__)
-
-np.random.seed(42)
 
 
 def get_result_dict(
@@ -130,46 +127,82 @@ def get_training_data(
     return training_data
 
 
-def create_and_fit_team_model(
-    training_data: dict[str, Any],
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
-    **fit_args: Any,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+class DixonColesTeamModel:
     """
-    Get the team-level stan model, which can give probabilities of
-    each potential scoreline in a given fixture.
+    bpl's Dixon-Coles predictor, holding the arguments it is fitted with.
+
+    bpl takes the time-weighting settings at fit time rather than at
+    construction, so they used to travel alongside the model as a separate dict
+    and every caller had to remember to pair them. Keeping them on the model
+    means `fit(training_data)` is the whole of the `TeamModel` contract.
     """
-    if model is None:
-        model = ExtendedDixonColesMatchPredictor()
-    if not fit_args:
-        fit_args = {}
-    if "epsilon" not in fit_args:
-        fit_args["epsilon"] = DEFAULT_TEAM_EPSILON
-    if "rescale_weights" not in fit_args:
-        fit_args["rescale_weights"] = DEFAULT_RESCALE_WEIGHTS
-    logger.info("Using %s model with args %s", type(model).__name__, fit_args)
-    return model.fit(training_data=training_data, **fit_args)
+
+    def __init__(
+        self,
+        *,
+        neutral: bool = False,
+        epsilon: float | None = None,
+        rescale_weights: bool = DEFAULT_RESCALE_WEIGHTS,
+    ) -> None:
+        # bpl is imported here rather than at module scope: it pulls in jax,
+        # which is slow to import and not needed by the query helpers below.
+        from bpl import (  # noqa: PLC0415
+            ExtendedDixonColesMatchPredictor,
+            NeutralDixonColesMatchPredictor,
+        )
+
+        self.neutral = neutral
+        self.epsilon = DEFAULT_TEAM_EPSILON if epsilon is None else epsilon
+        self.rescale_weights = rescale_weights
+        self.model = (
+            NeutralDixonColesMatchPredictor()
+            if neutral
+            else ExtendedDixonColesMatchPredictor()
+        )
+
+    @property
+    def teams(self) -> list[str] | None:
+        return self.model.teams
+
+    def fit(self, training_data: dict[str, Any]) -> "DixonColesTeamModel":
+        logger.info(
+            "Using %s model with epsilon=%s, rescale_weights=%s",
+            type(self.model).__name__,
+            self.epsilon,
+            self.rescale_weights,
+        )
+        self.model.fit(
+            training_data=training_data,
+            epsilon=self.epsilon,
+            rescale_weights=self.rescale_weights,
+        )
+        return self
+
+    def add_new_team(self, team_name: str, **kwargs: Any) -> None:
+        self.model.add_new_team(team_name, **kwargs)
+
+    def predict_score_n_proba(
+        self, n: np.ndarray, team: str, opponent: str, home: bool = True, **kwargs: Any
+    ) -> np.ndarray:
+        return self.model.predict_score_n_proba(n, team, opponent, home, **kwargs)
+
+    def predict_outcome_proba(
+        self, home_team: Any, away_team: Any
+    ) -> dict[str, np.ndarray]:
+        """Home win, draw and away win probabilities for each fixture."""
+        if self.neutral:
+            return self.model.predict_outcome_proba(
+                home_team, away_team, neutral_venue=np.zeros(len(home_team))
+            )
+        return self.model.predict_outcome_proba(home_team, away_team)
 
 
 def add_new_teams_to_model(
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor,
+    team_model: TeamModel,
     season: str,
     dbsession: Session,
     ratings: bool = True,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+) -> TeamModel:
     """
     Add teams that we don't have previous results for (e.g. promoted teams) to the model
     using their FIFA ratings as covariates.
@@ -192,21 +225,13 @@ def get_fitted_team_model(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
-    **fit_args: Any,
-) -> (
-    ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-):
+    model: TeamModel | None = None,
+) -> TeamModel:
     """
     Get the fitted team model using the past results and the FIFA rankings.
     """
     if model is None:
-        model = ExtendedDixonColesMatchPredictor()
+        model = DixonColesTeamModel()
     logger.info("Fitting team model...")
     training_data = get_training_data(
         season=season,
@@ -214,48 +239,30 @@ def get_fitted_team_model(
         dbsession=dbsession,
         ratings=ratings,
     )
-    team_model = create_and_fit_team_model(
-        training_data=training_data, model=model, **fit_args
-    )
+    model.fit(training_data)
     return add_new_teams_to_model(
-        team_model=team_model, season=season, dbsession=dbsession, ratings=ratings
+        team_model=model, season=season, dbsession=dbsession, ratings=ratings
     )
 
 
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor
-    | None = None,
+    model: TeamModel | None = None,
     dbsession: Session | None = None,
     ratings: bool = True,
-    **fit_args: Any,
 ) -> pd.DataFrame:
     """
     Returns probabilities for all fixtures in a given gameweek and season, as a data
     frame with a row for each fixture and columns being home_team,
     away_team, home_win_probability, draw_probability, away_win_probability.
 
-    If no model is passed, it will fit a ExtendedDixonColesMatchPredictor model
-    by default.
+    If no model is passed, a DixonColesTeamModel is fitted by default.
     """
-
-    # fit team model if none is passed or if it is not fitted yet
-    # (model.teams will be None if so)
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
-        # fit extended model by default
-        model = get_fitted_team_model(
-            season=season,
-            gameweek=gameweek,
-            dbsession=dbsession,
-            ratings=ratings,
-            model=ExtendedDixonColesMatchPredictor(),
-            **fit_args,
-        )
-    elif model.teams is None:
+        model = DixonColesTeamModel()
+    if model.teams is None:
         # model is not fit yet, so will need to fit
         model = get_fitted_team_model(
             season=season,
@@ -263,30 +270,23 @@ def fixture_probabilities(
             dbsession=dbsession,
             ratings=ratings,
             model=model,
-            **fit_args,
         )
 
-    # obtain fixtures
+    predict_outcome_proba = getattr(model, "predict_outcome_proba", None)
+    if predict_outcome_proba is None:
+        msg = (
+            f"{type(model).__name__} cannot report match outcome probabilities; "
+            "it has no predict_outcome_proba method."
+        )
+        raise NotImplementedError(msg)
+
     fixtures = get_fixture_teams(
         get_fixtures_for_gameweeks(
             gameweeks=[gameweek], season=season, dbsession=dbsession
         )
     )
     home_teams, away_teams = zip(*fixtures, strict=False)
-    # obtain match probabilities
-    if isinstance(model, ExtendedDixonColesMatchPredictor):
-        probabilities = model.predict_outcome_proba(home_teams, away_teams)
-    elif isinstance(model, NeutralDixonColesMatchPredictor):
-        probabilities = model.predict_outcome_proba(
-            home_teams, away_teams, neutral_venue=np.zeros(len(home_teams))
-        )
-    else:
-        msg = (
-            "model must be either of type "
-            "'ExtendedDixonColesMatchPredictor' or "
-            "'NeutralDixonColesMatchPredictor'"
-        )
-        raise NotImplementedError(msg)
+    probabilities = predict_outcome_proba(home_teams, away_teams)
     return pd.DataFrame(
         {
             "home_team": home_teams,
@@ -300,9 +300,7 @@ def fixture_probabilities(
 
 def get_goal_probabilities_for_fixtures(
     fixtures: list[Fixture],
-    team_model: ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-    | RandomMatchPredictor,
+    team_model: TeamModel,
     max_goals: int = 10,
 ) -> dict[int, dict[str, dict[int, float]]]:
     """

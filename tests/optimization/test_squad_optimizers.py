@@ -9,13 +9,14 @@ that no production code knows about.
 
 import pytest
 
-from airsenal.core.registry import ConfigError
+from airsenal.core.registry import ConfigError, lookup
 from airsenal.optimization.config import GeneticAlgorithmConfig, SquadScoringConfig
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import SquadRequest
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
     GeneticSquadOptimizer,
+    genetic_optimizer,
 )
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
@@ -28,14 +29,9 @@ class StubSquadOptimizer:
         self.squad = squad
         self.increments = increments
         self.requests = []
-        self.scaled_to = []
 
     def num_increments(self):
         return self.increments
-
-    def scaled(self, num_iterations):
-        self.scaled_to.append(num_iterations)
-        return self
 
     def optimize(self, request):
         self.requests.append(request)
@@ -43,17 +39,17 @@ class StubSquadOptimizer:
 
 
 def test_the_genetic_optimizer_is_registered():
-    assert "genetic" in SQUAD_OPTIMIZERS.names()
+    assert "genetic" in SQUAD_OPTIMIZERS
 
 
 def test_an_unknown_optimizer_names_the_valid_ones():
     with pytest.raises(ConfigError, match=r"Unknown squad optimizer 'nope'.*genetic"):
-        SQUAD_OPTIMIZERS.create("nope")
+        lookup(SQUAD_OPTIMIZERS, "nope", "squad optimizer")
 
 
-def test_the_registry_applies_the_config():
-    optimizer = SQUAD_OPTIMIZERS.create_with("genetic", {"generations": "12"})
-    assert optimizer.num_increments() == 12
+def test_the_genetic_optimizer_defaults_its_own_config():
+    """Every table entry has to be constructible with no arguments."""
+    assert SQUAD_OPTIMIZERS["genetic"]().config == GeneticAlgorithmConfig()
 
 
 def test_increments_are_the_generations_the_search_will_run():
@@ -62,18 +58,23 @@ def test_increments_are_the_generations_the_search_will_run():
 
 
 def test_scaling_resizes_the_search_without_mutating_the_original():
-    original = GeneticSquadOptimizer(GeneticAlgorithmConfig())
-    scaled = original.scaled(20)
+    """
+    Sizing is a property of the config, not of the optimizer protocol: the
+    wildcard path has one --num-iterations knob and builds a sized optimizer
+    from it, while the standalone squad build keeps its full config.
+    """
+    base = GeneticAlgorithmConfig()
+    scaled = genetic_optimizer(20)
 
     assert scaled.num_increments() == 20
     assert scaled.config.population_size == 20
-    assert original.num_increments() == 100
+    assert base.generations == 100
 
 
 def test_scaling_keeps_the_settings_it_does_not_size():
     scaled = GeneticSquadOptimizer(
-        GeneticAlgorithmConfig(tournament_size=5, random_state=1)
-    ).scaled(20)
+        GeneticAlgorithmConfig(tournament_size=5, random_state=1).scaled(20)
+    )
 
     assert scaled.config.tournament_size == 5
     assert scaled.config.random_state == 1
@@ -103,27 +104,32 @@ def test_progress_is_only_reported_when_something_is_watching():
 
 
 def test_the_registered_full_squad_strategy_is_genetic():
-    strategy = TRANSFER_STRATEGIES.create("full_squad")
-    assert isinstance(strategy.optimizer, GeneticSquadOptimizer)
+    strategy = TRANSFER_STRATEGIES["full_squad"]()
+    assert isinstance(strategy.make_optimizer(10), GeneticSquadOptimizer)
 
 
-def test_full_squad_options_reach_the_optimizer():
+def test_full_squad_sizes_its_optimizer_from_the_iteration_count():
     """
     The asymmetry this seam exists to remove.
 
     `optimize squad` could tune the genetic algorithm, but the wildcard and free
     hit path built its strategy with defaults and no caller could reach it.
     """
-    strategy = TRANSFER_STRATEGIES.create_with("full_squad", {"generations": "9"})
-    assert strategy.optimizer.num_increments() == 9
+    strategy = TRANSFER_STRATEGIES["full_squad"]()
+    assert strategy.num_increments(GameweekMove(), num_iterations=9) == 9
 
 
 def test_full_squad_sizes_its_cost_from_the_optimizer_it_was_given():
-    optimizer = StubSquadOptimizer(increments=42)
-    strategy = FullSquadStrategy(optimizer)
+    sized_to = []
+
+    def make(num_iterations):
+        sized_to.append(num_iterations)
+        return StubSquadOptimizer(increments=42)
+
+    strategy = FullSquadStrategy(make)
 
     assert strategy.num_increments(GameweekMove(), num_iterations=15) == 42
-    assert optimizer.scaled_to == [15]
+    assert sized_to == [15]
 
 
 def test_scoring_config_carries_the_budget_the_optimizer_must_respect():

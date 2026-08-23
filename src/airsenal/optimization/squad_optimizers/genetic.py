@@ -10,24 +10,20 @@ leaked out of the place that is allowed to know about it.
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.protocols import SquadRequest
 from airsenal.optimization.squad_ga import make_new_squad
-from airsenal.optimization.squad_optimizers.registry import SQUAD_OPTIMIZERS
 from airsenal.squad.squad import Squad
 
 
 class GeneticSquadOptimizer:
     """Picks a squad with a DEAP genetic algorithm."""
 
-    def __init__(self, config: GeneticAlgorithmConfig) -> None:
-        self.config = config
+    def __init__(self, config: GeneticAlgorithmConfig | None = None) -> None:
+        self.config = config if config is not None else GeneticAlgorithmConfig()
 
     def num_increments(self) -> int:
         # One step per generation: how many individuals a generation evaluates
         # depends on which ones crossover and mutation touched, so generations are
         # the only unit whose count is known before the search starts.
         return self.config.generations
-
-    def scaled(self, num_iterations: int) -> "GeneticSquadOptimizer":
-        return GeneticSquadOptimizer(self.config.scaled(num_iterations))
 
     def optimize(self, request: SquadRequest) -> Squad:
         return make_new_squad(
@@ -56,6 +52,12 @@ class GeneticSquadOptimizer:
         )
 
 
-@SQUAD_OPTIMIZERS.register("genetic", GeneticAlgorithmConfig)
-def _make(config: GeneticAlgorithmConfig) -> GeneticSquadOptimizer:
-    return GeneticSquadOptimizer(config)
+def genetic_optimizer(num_iterations: int) -> GeneticSquadOptimizer:
+    """
+    A genetic optimizer sized from one number.
+
+    The wildcard and free-hit searches have a single --num-iterations knob, while
+    the standalone squad build has the full config and must not be scaled. Making
+    that an explicit factory is what keeps the two apart.
+    """
+    return GeneticSquadOptimizer(GeneticAlgorithmConfig().scaled(num_iterations))

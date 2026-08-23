@@ -1,19 +1,15 @@
 """
 What a prediction model has to provide.
 
-The three-way union of `ExtendedDixonColesMatchPredictor`,
-`NeutralDixonColesMatchPredictor` and `RandomMatchPredictor`
-was copy-pasted across seven signatures, so adding a fourth team model meant
-finding all seven. Naming the shape instead means the signature does not change
-when the set of models does.
+Naming the shape means a signature does not change when the set of models does:
+the three-way union of the bpl and random predictors used to be copy-pasted
+across seven signatures, so adding a fourth team model meant finding all seven.
 
 These are deliberately not `runtime_checkable`: `isinstance` against a Protocol
-only checks that the method names exist, which is the stringly-typed dispatch
-this refactor is removing, wearing a type hint.
+only checks that the method names exist, which is stringly-typed dispatch
+wearing a type hint.
 """
 
-from collections.abc import Mapping
-from dataclasses import dataclass
 from typing import Any, Protocol
 
 import numpy as np
@@ -37,12 +33,18 @@ class PlayerModel(Protocol):
 class TeamModel(Protocol):
     """Predicts match scorelines."""
 
-    def fit(self, training_data: dict[str, Any], **kwargs: Any) -> "TeamModel":
-        """
-        Fit to the data.
+    @property
+    def teams(self) -> list[str] | None:
+        """The teams this model knows about, or None before it is fitted."""
+        ...
 
-        `**kwargs` here is not ours to remove: bpl takes its hyperparameters at
-        fit time, which is why the configs expose `fit_args()`.
+    def fit(self, training_data: dict[str, Any]) -> "TeamModel":
+        """
+        Fit to the data, using the settings given at construction.
+
+        Like `PlayerModel.fit`, this takes no `**kwargs`. bpl wants its
+        time-weighting arguments at fit time, so `DixonColesTeamModel` holds
+        them and passes them on itself.
         """
         ...
 
@@ -51,20 +53,3 @@ class TeamModel(Protocol):
     def predict_score_n_proba(
         self, n: np.ndarray, team: str, opponent: str, home: bool = True, **kwargs: Any
     ) -> np.ndarray: ...
-
-
-@dataclass(frozen=True)
-class ConfiguredTeamModel:
-    """
-    A team model together with the settings it wants at fit time.
-
-    bpl takes epsilon and rescale_weights when fitting rather than when
-    constructing, so the two used to travel as separate arguments - and every
-    caller had to remember to pair them. `airsenal replay` did not: it built its
-    model with `TEAM_MODELS.create()`, which never consults `fit_args()`, so
-    replay silently evaluated a differently-weighted model than `airsenal run`.
-    Pairing them here makes that mistake unrepresentable.
-    """
-
-    model: TeamModel
-    fit_args: Mapping[str, Any]

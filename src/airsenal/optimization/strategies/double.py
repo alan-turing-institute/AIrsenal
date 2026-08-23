@@ -15,7 +15,6 @@ from airsenal.optimization.protocols import (
     TransferRequest,
 )
 from airsenal.optimization.squad_score import get_discounted_squad_score
-from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
 from airsenal.squad.squad import Squad
 
 if TYPE_CHECKING:
@@ -135,8 +134,3 @@ class DoubleTransferStrategy:
             triple_captain_gw=request.triple_captain_gw,
         )
         return TransferPlan(squad, players_in, players_out)
-
-
-@TRANSFER_STRATEGIES.register("double", NoOptions)
-def _make(config: NoOptions) -> DoubleTransferStrategy:  # noqa: ARG001
-    return DoubleTransferStrategy()

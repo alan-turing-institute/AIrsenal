@@ -114,29 +114,53 @@ to be worth making.
 
 `airsenal run` is the top-level orchestrator for steps 1-5.
 
-### Swapping a model or an algorithm
+### Adding or swapping a model or an algorithm
 
 Four things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
     team_model=build_team_model("extended"),  # prediction/protocols.py: TeamModel
-    player_model=PLAYER_MODELS.create("conjugate"),  # PlayerModel
-    transfer_optimizer=TRANSFER_OPTIMIZERS.create("tree_search"),  # TransferOptimizer
-    squad_optimizer=SQUAD_OPTIMIZERS.create("genetic"),  # SquadOptimizer
+    player_model=build_player_model("conjugate"),  # PlayerModel
+    transfer_optimizer=TreeSearchOptimizer(),  # optimization/protocols.py
+    squad_optimizer=GeneticSquadOptimizer(),
     settings=PipelineSettings(...),
 ).run()
 ```
 
-Each has a `Protocol` (in `prediction/protocols.py` or `optimization/protocols.py`)
-and a `Registry` keyed by name. **Adding an implementation means writing a module
-that registers itself; it should not require editing any call site.** If it does,
-the seam is in the wrong place. `AIrsenalPipeline.from_names(...)` is the only place
-a name becomes an object, and is what the CLI uses.
+Each kind has a `Protocol` (in `prediction/protocols.py` or
+`optimization/protocols.py`) naming the one method that does the work, and a plain
+dict mapping a name to a zero-argument factory:
+
+| kind | protocol | table |
+|------|----------|-------|
+| player model | `PlayerModel` | `prediction/models.py: PLAYER_MODELS` |
+| team model | `TeamModel` | `prediction/models.py: TEAM_MODELS` |
+| transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` |
+| squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py` |
+| transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py` |
+
+**Adding an implementation is two steps:** write a class satisfying the protocol
+that constructs with no arguments (default its config dataclass), then add one
+line to the table. The tables are typed against their protocols, so mypy checks
+the class fits at the point you add it, and `tests/test_component_tables.py`
+picks the entry up automatically. Nothing else should need editing - if it does,
+the seam is in the wrong place.
+
+You do not have to register anything to use it: `AIrsenalPipeline` takes objects,
+so a model defined in a notebook can be dropped straight in. The table is only how
+a *name* on the command line reaches an implementation, and `lookup()` in
+`core/registry.py` is how a bad name becomes an error that lists the good ones.
 
 Settings belong to whichever component owns them - epsilon to the team model, the
 GA config to the squad optimizer, thread count to the transfer optimizer - not to
-the pipeline.
+the pipeline. Only the settings that pre-date this are exposed as CLI flags
+(`--epsilon`, `--num-generations`, `--population-size`, `--num-thread`); anything
+finer-grained is set by constructing the component in Python.
+
+Optionally, a component may also provide `num_increments()` to size its own
+progress bar (see `progress_total` in `optimization/protocols.py`); without one
+the bar runs indeterminate.
 
 ### Key modules
 
@@ -147,6 +171,7 @@ the pipeline.
 | `fetch/fpl_api.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
 | `prediction/player_models.py` | Conjugate Bayesian and Numpyro player performance models |
+| `prediction/models.py` | `PLAYER_MODELS` and `TEAM_MODELS`: the name-to-model tables |
 | `prediction/points.py` | Turning fitted models into predicted points per fixture |
 | `pipeline/run.py` | `AIrsenalPipeline`: the four swappable components plus the run settings |
 | `optimization/run_transfers.py` | Fetching the squad, persisting suggestions and reporting around the search |
@@ -156,6 +181,7 @@ the pipeline.
 | `optimization/squad_ga.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
 | `core/enums.py` | `Position` and `Chip` |
+| `core/registry.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
 
 ### Database
 

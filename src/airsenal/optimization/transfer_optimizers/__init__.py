@@ -1,21 +1,19 @@
-"""
-Transfer optimizers, one per module, each registering itself by name.
+"""Transfer optimizers: one module per way of searching a whole gameweek window."""
 
-Importing this package registers them all, which is what makes
-`TRANSFER_OPTIMIZERS.create(name)` work from anywhere.
-"""
+from collections.abc import Callable
 
-# importing each module runs its registration
-from airsenal.optimization.transfer_optimizers import tree_search
-from airsenal.optimization.transfer_optimizers.registry import TRANSFER_OPTIMIZERS
+from airsenal.optimization.protocols import TransferOptimizer
 from airsenal.optimization.transfer_optimizers.tree_search import (
     TreeSearchConfig,
     TreeSearchOptimizer,
 )
 
+TRANSFER_OPTIMIZERS: dict[str, Callable[[], TransferOptimizer]] = {
+    "tree_search": TreeSearchOptimizer,
+}
+
 __all__ = [
     "TRANSFER_OPTIMIZERS",
     "TreeSearchConfig",
     "TreeSearchOptimizer",
-    "tree_search",
 ]

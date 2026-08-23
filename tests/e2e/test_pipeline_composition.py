@@ -17,9 +17,12 @@ from airsenal.db.models import PlayerPrediction
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.config import GeneticAlgorithmConfig
-from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
+from airsenal.optimization.squad_optimizers import (
+    SQUAD_OPTIMIZERS,
+    GeneticSquadOptimizer,
+)
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
-from airsenal.prediction.registry import PLAYER_MODELS, build_team_model
+from airsenal.prediction.models import build_player_model, build_team_model
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
 TEAM_ID = -1
@@ -38,16 +41,9 @@ class RecordingSquadOptimizer:
 
     def __init__(self):
         self.requests = []
-        self._real = SQUAD_OPTIMIZERS.create(
-            "genetic",
-            GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0),
+        self._real = GeneticSquadOptimizer(
+            GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
         )
-
-    def num_increments(self):
-        return self._real.num_increments()
-
-    def scaled(self, num_iterations):  # noqa: ARG002
-        return self
 
     def optimize(self, request):
         self.requests.append(request)
@@ -69,7 +65,7 @@ class RecordingTransferOptimizer:
 def _pipeline(team_model="constant", player_model="constant", **settings):
     return AIrsenalPipeline(
         team_model=build_team_model(team_model),
-        player_model=PLAYER_MODELS.create(player_model),
+        player_model=build_player_model(player_model),
         squad_optimizer=RecordingSquadOptimizer(),
         transfer_optimizer=RecordingTransferOptimizer(),
         settings=PipelineSettings(
@@ -167,12 +163,13 @@ def test_a_pipeline_can_be_rebuilt_with_different_settings():
     assert changed.squad_optimizer is pipeline.squad_optimizer
 
 
-def test_from_names_and_direct_construction_agree_on_the_team_model():
-    from_names = AIrsenalPipeline.from_names(
-        team_model="constant", player_model="constant"
-    )
-    direct = AIrsenalPipeline(
-        team_model=build_team_model("constant"),
-        player_model=PLAYER_MODELS.create("constant"),
-    )
-    assert from_names.team_model.fit_args == direct.team_model.fit_args
+def test_a_component_the_tables_do_not_know_about_still_works():
+    """
+    The point of the whole seam: a squad optimizer defined here, registered
+    nowhere, is a first-class component of the pipeline.
+    """
+    optimizer = RecordingSquadOptimizer()
+    pipeline = AIrsenalPipeline(squad_optimizer=optimizer)
+
+    assert pipeline.squad_optimizer is optimizer
+    assert not any(optimizer is entry for entry in SQUAD_OPTIMIZERS.values())

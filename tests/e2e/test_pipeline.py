@@ -24,7 +24,7 @@ from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_ga import make_new_squad
 from airsenal.optimization.transfers import make_best_transfers
-from airsenal.prediction.registry import PLAYER_MODELS, build_team_model
+from airsenal.prediction.models import build_player_model, build_team_model
 from airsenal.prediction.run import make_predictedscore_table
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON, SQUAD_SHAPE, TEAMS
 
@@ -61,7 +61,7 @@ def prediction_tag(seeded):
     return make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS,
         season=SEASON,
-        player_model=PLAYER_MODELS.create("constant"),
+        player_model=build_player_model("constant"),
         team_model=build_team_model("constant"),
         dbsession=seeded,
     )

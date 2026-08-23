@@ -1,13 +1,15 @@
-"""
-Whole-squad optimizers, one per module, each registering itself by name.
+"""Whole-squad optimizers: one module per way of picking fifteen players."""
 
-Importing this package registers them all, which is what makes
-`SQUAD_OPTIMIZERS.create(name)` work from anywhere.
-"""
+from collections.abc import Callable
 
-# importing each module runs its registration
-from airsenal.optimization.squad_optimizers import genetic
-from airsenal.optimization.squad_optimizers.genetic import GeneticSquadOptimizer
-from airsenal.optimization.squad_optimizers.registry import SQUAD_OPTIMIZERS
+from airsenal.optimization.protocols import SquadOptimizer
+from airsenal.optimization.squad_optimizers.genetic import (
+    GeneticSquadOptimizer,
+    genetic_optimizer,
+)
 
-__all__ = ["SQUAD_OPTIMIZERS", "GeneticSquadOptimizer", "genetic"]
+SQUAD_OPTIMIZERS: dict[str, Callable[[], SquadOptimizer]] = {
+    "genetic": GeneticSquadOptimizer,
+}
+
+__all__ = ["SQUAD_OPTIMIZERS", "GeneticSquadOptimizer", "genetic_optimizer"]

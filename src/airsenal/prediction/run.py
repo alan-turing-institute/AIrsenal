@@ -25,13 +25,13 @@ from airsenal.prediction.features import (
     fit_save_points,
     get_all_fitted_player_data,
 )
-from airsenal.prediction.points import calc_predicted_points_for_player
-from airsenal.prediction.protocols import ConfiguredTeamModel, PlayerModel
-from airsenal.prediction.registry import (
+from airsenal.prediction.models import (
     DEFAULT_PLAYER_MODEL,
-    PLAYER_MODELS,
+    build_player_model,
     build_team_model,
 )
+from airsenal.prediction.points import calc_predicted_points_for_player
+from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.team_models.dixon_coles import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
@@ -51,18 +51,16 @@ def calc_all_predicted_points(
     include_def_con: bool = True,
     tag: str = "",
     player_model: PlayerModel | None = None,
-    team_model: ConfiguredTeamModel | None = None,
+    team_model: TeamModel | None = None,
 ) -> None:
     """
     Do the full prediction for players.
     """
-    team_model = team_model if team_model is not None else build_team_model()
     model_team = get_fitted_team_model(
         season=season,
         gameweek=min(gameweeks),
         dbsession=dbsession,
-        model=team_model.model,
-        **team_model.fit_args,
+        model=team_model if team_model is not None else build_team_model(),
     )
     logger.info("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweeks(gameweeks, season=season, dbsession=dbsession)
@@ -122,7 +120,7 @@ def make_predictedscore_table(
     include_def_con: bool = True,
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
-    team_model: ConfiguredTeamModel | None = None,
+    team_model: TeamModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
     dbsession = dbsession if dbsession is not None else get_session()
@@ -157,8 +155,6 @@ def run_prediction(
     team_model_name: str,
     epsilon: float | None = None,
     player_model_name: str = DEFAULT_PLAYER_MODEL,
-    player_model_options: dict[str, str] | None = None,
-    team_model_options: dict[str, str] | None = None,
 ) -> None:
     """Fill the player prediction database table."""
     gameweeks = get_gameweeks_array(
@@ -170,10 +166,8 @@ def run_prediction(
     include_bonus = not no_bonus
     include_cards = not no_cards
     include_saves = not no_saves
-    player_model = PLAYER_MODELS.create_with(
-        player_model_name, player_model_options or {}
-    )
-    team_model = build_team_model(team_model_name, team_model_options, epsilon)
+    player_model = build_player_model(player_model_name)
+    team_model = build_team_model(team_model_name, epsilon)
 
     with session_scope() as session:
         session.expire_on_commit = False

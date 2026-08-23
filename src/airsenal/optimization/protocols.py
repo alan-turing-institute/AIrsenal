@@ -8,11 +8,8 @@ enough to be worth stating plainly:
 - `TransferStrategy` picks one gameweek's move, starting from a squad.
 - `TransferOptimizer` picks a move for every gameweek in a range.
 
-`make_best_transfers` used to be a single if/elif over the number of transfers,
-with the arguments for each branch assembled inline and the progress-bar step
-count maintained in a separate function that had to be kept in step with it.
-Splitting the branches into strategies puts each one's search and its cost in
-the same place.
+Each declares only the method that does the work; see `progress_total` for the
+optional method a component can add to size its own progress bar.
 
 (Note the separate trap that predates all this: `optimization/strategy.py` holds
 the *result* of a search, while `optimization/strategies/` holds the algorithms.)
@@ -47,13 +44,27 @@ class ProgressUpdater(Protocol):
 
 
 # (worker index, strategy label, candidate squads to consider) - restarts one
-# worker's bar for a new strategy
-type ProgressResetter = Callable[[int, str, int], None]
+# worker's bar for a new strategy. None candidates means the strategy could not
+# say, and that worker's bar runs indeterminate.
+type ProgressResetter = Callable[[int, str, int | None], None]
 
 # Called once per candidate squad a strategy considers. The strategy counts what
-# it does; how many there will be is `num_increments`, and turning the two into a
-# percentage is the progress bar's job.
+# it does; how many there will be is what `Sized` reports, and turning the two
+# into a percentage is the progress bar's job.
 type StepCounter = Callable[[], None]
+
+
+def progress_total(optimizer: object) -> int | None:
+    """
+    How many steps `optimizer` will take, if it is able to say.
+
+    Sizing a progress bar is not part of doing the work, so it is not in the
+    protocols below. Give a component a `num_increments()` method and its bar is
+    exact - as every optimizer shipped here does; leave it out and the bar runs
+    indeterminate rather than the component being unwritable.
+    """
+    num_increments = getattr(optimizer, "num_increments", None)
+    return num_increments() if callable(num_increments) else None
 
 
 @dataclass(frozen=True)
@@ -111,21 +122,25 @@ class TransferPlan:
 class TransferStrategy(Protocol):
     """One way of choosing a gameweek's transfers."""
 
-    def num_increments(self, move: GameweekMove, num_iterations: int) -> int:
-        """
-        How many candidate squads this strategy will consider.
-
-        This is the total of the worker's progress bar, and `propose` advances it
-        by one per candidate, so the two have to agree.
-        """
-        ...
-
     def propose(self, request: TransferRequest) -> TransferPlan: ...
 
 
+def strategy_total(
+    strategy: TransferStrategy, move: GameweekMove, num_iterations: int
+) -> int | None:
+    """
+    How many candidate squads `strategy` will consider, if it is able to say.
+
+    As `progress_total`, but a strategy's cost depends on the move and the
+    iteration count, so its `num_increments` takes both. `propose` advances the
+    bar once per candidate, so the two have to agree.
+    """
+    num_increments = getattr(strategy, "num_increments", None)
+    return num_increments(move, num_iterations) if callable(num_increments) else None
+
+
 # Called once per step of a whole-squad search, with the best score so far. What a
-# step is depends on the optimizer - a generation, for the genetic algorithm - and
-# there are `num_increments()` of them.
+# step is depends on the optimizer - a generation, for the genetic algorithm.
 type SquadProgress = Callable[[float], None]
 
 
@@ -159,30 +174,6 @@ class SquadRequest:
 class SquadOptimizer(Protocol):
     """One way of picking a whole squad from scratch."""
 
-    def num_increments(self) -> int:
-        """
-        How many times a request's `progress` will be called.
-
-        Takes no request because neither caller has one yet: `fill_initial_squad`
-        creates its progress bar around the search, and `FullSquadStrategy` is
-        asked for its cost by `TransferStrategy.num_increments`, which is given
-        only a move. The count is a property of the optimizer's settings rather
-        than of the problem.
-        """
-        ...
-
-    def scaled(self, num_iterations: int) -> "SquadOptimizer":
-        """
-        A copy of this optimizer sized from the transfer search's one effort knob.
-
-        The wildcard and free-hit path has a single --num-iterations, while the
-        standalone squad build has the full config and must not be scaled. Making
-        that an explicit transformation the caller applies is what keeps the two
-        apart - and what stops `FullSquadStrategy` having to know that its
-        optimizer is a genetic algorithm in order to resize it.
-        """
-        ...
-
     def optimize(self, request: SquadRequest) -> Squad:
         """
         The best squad this optimizer can find for the request.
@@ -192,6 +183,13 @@ class SquadOptimizer(Protocol):
         could honestly report.
         """
         ...
+
+
+# Builds a squad optimizer sized from the transfer search's one effort knob. The
+# wildcard and free-hit path has a single --num-iterations, while the standalone
+# squad build has the full config and must not be scaled; making the difference a
+# factory the caller supplies is what keeps the two apart.
+type SquadOptimizerFactory = Callable[[int], SquadOptimizer]
 
 
 @dataclass(frozen=True)
