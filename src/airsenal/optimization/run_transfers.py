@@ -41,7 +41,6 @@ from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
-from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.moves import (
     MAX_FREE_TRANSFERS,
     ChipSchedule,
@@ -50,8 +49,13 @@ from airsenal.optimization.moves import (
     next_week_transfers,
 )
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
-from airsenal.optimization.protocols import ProgressResetter, ProgressUpdater
+from airsenal.optimization.protocols import (
+    ProgressResetter,
+    ProgressUpdater,
+    SquadOptimizer,
+)
 from airsenal.optimization.run_squad import fill_initial_squad
+from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
 from airsenal.optimization.squad_score import get_discount_factor
 from airsenal.optimization.strategy import GameweekOutcome, Strategy, get_baseline_strat
 from airsenal.optimization.transfers import (
@@ -510,18 +514,22 @@ def new_squad_from_scratch(
     fpl_team_id: int,
     num_iterations: int,
     chip_gameweeks: dict[str, int],
+    squad_optimizer: SquadOptimizer | None = None,
 ) -> Squad:
     """
     Build a squad from nothing, for the start of a season or a brand new team.
 
     There is nothing to transfer from, so the transfer search has nothing to do.
     """
+    if squad_optimizer is None:
+        squad_optimizer = SQUAD_OPTIMIZERS.create("genetic")
     return fill_initial_squad(
         tag=tag,
         gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
-        ga_config=GeneticAlgorithmConfig().scaled(num_iterations),
+        # the transfer search has one effort knob, so the optimizer is sized from it
+        optimizer=squad_optimizer.scaled(num_iterations),
         chip_gameweeks=chip_gameweeks,
     )
 

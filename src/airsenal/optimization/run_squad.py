@@ -12,16 +12,16 @@ from airsenal.db.queries.gameweeks import get_max_gameweek, next_gameweek
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.fetch.fpl_api import require_fpl_team_id
 from airsenal.optimization.config import (
-    DEFAULT_SUB_WEIGHTS,
     GeneticAlgorithmConfig,
+    SquadScoringConfig,
     SubWeights,
-    SubWeightsDict,
 )
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
 )
-from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.protocols import SquadOptimizer, SquadRequest
+from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.squad import Squad
@@ -37,19 +37,23 @@ def fill_initial_squad(
     gameweeks: list[int],
     season: str,
     fpl_team_id: int,
-    budget: int = 1000,
+    optimizer: SquadOptimizer | None = None,
+    scoring: SquadScoringConfig | None = None,
     remove_zero: bool = True,
-    sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
-    ga_config: GeneticAlgorithmConfig | None = None,
     is_replay: bool = False,  # for replaying seasons
     chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
-    ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
+    if optimizer is None:
+        optimizer = SQUAD_OPTIMIZERS.create("genetic")
+    scoring = scoring if scoring is not None else SquadScoringConfig()
+    sub_weights = scoring.sub_weights.as_dict()
     with progress_bar(transient=True) as progress:
-        # the genetic algorithm's generations are what there are a known number
-        # of, so they are what the bar counts; the best score so far is the part
-        # worth watching, so it goes in the description
-        task = progress.add_task("Optimising full squad", total=ga_config.generations)
+        # the optimizer says how many steps it will take, so the bar cannot drift
+        # away from what actually happens; the best score so far is the part worth
+        # watching, so it goes in the description
+        task = progress.add_task(
+            "Optimising full squad", total=optimizer.num_increments()
+        )
 
         def report_generation(best_score: float) -> None:
             progress.update(
@@ -58,18 +62,15 @@ def fill_initial_squad(
                 description=f"Optimising full squad (best {best_score:.1f}pts)",
             )
 
-        best_squad = make_new_squad(
-            gameweeks,
-            tag,
-            budget=budget,
-            season=season,
-            remove_zero=remove_zero,
-            sub_weights=sub_weights,
-            ga_config=ga_config,
-            on_generation=report_generation,
-            # the bar reports progress, so DEAP's own logbook would just be
-            # a hundred lines of the same thing
-            verbose=False,
+        best_squad = optimizer.optimize(
+            SquadRequest(
+                gameweeks=gameweeks,
+                tag=tag,
+                season=season,
+                scoring=scoring,
+                remove_zero=remove_zero,
+                progress=report_generation,
+            )
         )
 
     gw_start = gameweeks[0]
@@ -212,7 +213,6 @@ def run_squad_optimization(
         sys.exit(1)
     remove_zero = not include_zero
     fpl_team_id = require_fpl_team_id(fpl_team_id)
-    sub_weights = (SubWeights.none() if no_subs else SubWeights()).as_dict()
 
     # --population-size and --generations are first-class because they are the two
     # people actually reach for; the rest go through --set-ga, so their defaults
@@ -225,10 +225,12 @@ def run_squad_optimization(
         gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
-        budget=budget,
+        optimizer=SQUAD_OPTIMIZERS.create("genetic", ga_config),
+        scoring=SquadScoringConfig(
+            sub_weights=SubWeights.none() if no_subs else SubWeights(),
+            budget=budget,
+        ),
         remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        ga_config=ga_config,
         is_replay=is_replay,
     )
 
