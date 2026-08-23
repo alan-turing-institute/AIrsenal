@@ -9,7 +9,6 @@ from airsenal.db.models import Player, PlayerAttributes, PlayerMapping, PlayerSc
 from airsenal.db.queries.fixtures import (
     get_fixture_teams,
     get_fixtures_for_gameweeks,
-    get_fixtures_for_player,
 )
 from airsenal.db.queries.gameweeks import (
     get_max_gameweek,
@@ -267,36 +266,6 @@ def get_player_attributes(
         )
         .limit(1)
     ).first()
-
-
-def get_next_fixture_for_player(
-    player: Player | str | int,
-    season: str = CURRENT_SEASON,
-    gameweek: int | None = None,
-    dbsession: Session | None = None,
-) -> str:
-    """
-    Get a players next fixture as a string, for easy displaying.
-    """
-    gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
-    # given a player name or id, convert to player object
-    if isinstance(player, str | int):
-        maybe_player = get_player(player, dbsession)
-        if not maybe_player:
-            logger.warning("Couldn't find player %s in database", player)
-            return ""
-        player = maybe_player
-    team = player.team(season, gameweek)
-    fixtures_for_player = get_fixtures_for_player(player, season, [gameweek], dbsession)
-    output_string = ""
-    for fixture in fixtures_for_player:
-        if fixture.home_team == team:
-            output_string += fixture.away_team + " (h)"
-        else:
-            output_string += fixture.home_team + " (a)"
-        output_string += ", "
-    return output_string[:-2]
 
 
 def get_max_matches_per_player(

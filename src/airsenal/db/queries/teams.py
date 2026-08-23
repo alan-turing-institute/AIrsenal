@@ -29,17 +29,6 @@ def get_team_name(
     return None
 
 
-def list_teams(
-    season: str = CURRENT_SEASON, dbsession: Session | None = None
-) -> list[dict[str, str]]:
-    """
-    Print all teams from current season.
-    """
-    dbsession = dbsession if dbsession is not None else get_session()
-    rows = dbsession.scalars(select(Team).where(Team.season == season)).all()
-    return [{"name": row.name, "full_name": row.full_name} for row in rows]
-
-
 def get_teams_for_season(season: str, dbsession: Session) -> list[str]:
     """
     Query the Team table and get a list of teams for a given

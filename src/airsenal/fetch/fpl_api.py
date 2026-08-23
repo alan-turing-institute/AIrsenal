@@ -171,7 +171,7 @@ class FPLDataFetcher:
 
         # Step 1: Request authorization page
         params = {
-            "client_id": "bfcbaf69-aade-4c1b-8f00-c1cb8a193030",
+            "client_id": CLIENT_ID,
             "redirect_uri": "https://fantasy.premierleague.com/",
             "response_type": "code",
             "scope": "openid profile email offline_access",
@@ -320,7 +320,7 @@ class FPLDataFetcher:
                 "redirect_uri": "https://fantasy.premierleague.com/",
                 "code": auth_code,  # from the parsed redirect URL
                 "code_verifier": code_verifier,  # code_verifier generated at the start
-                "client_id": "bfcbaf69-aade-4c1b-8f00-c1cb8a193030",
+                "client_id": CLIENT_ID,
             },
         )
         try:
@@ -600,17 +600,6 @@ class FPLDataFetcher:
         if not self.fixture_data:
             self.fixture_data = self._get_request(self.FPL_FIXTURE_URL)
         return self.fixture_data
-
-    def get_transfer_deadlines(self) -> list[str]:
-        """
-        Get a list of transfer deadlines.
-        """
-        summary_data = self._get_request(self.FPL_SUMMARY_API_URL)
-        return [
-            ev["deadline_time"]
-            for ev in summary_data["events"]
-            if "deadline_time" in ev
-        ]
 
     def get_lineup(self) -> dict[str, Any]:
         """

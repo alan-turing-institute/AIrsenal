@@ -1,7 +1,5 @@
 """Gameweek facts that only the FPL API knows."""
 
-from datetime import datetime
-
 from airsenal.fetch.fpl_api import get_fetcher
 
 
@@ -17,15 +15,3 @@ def get_last_finished_gameweek() -> int:
         else:
             return last_finished
     return last_finished
-
-
-def is_transfer_deadline_today() -> bool:
-    """
-    Return True if there is a transfer deadline later today.
-    """
-    deadlines = get_fetcher().get_transfer_deadlines()
-    for deadline in deadlines:
-        deadline_datetime = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%SZ")
-        if (deadline_datetime - datetime.now()).days == 0:
-            return True
-    return False

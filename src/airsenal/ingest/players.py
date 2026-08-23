@@ -51,14 +51,6 @@ def find_player_in_table(
     return None
 
 
-def num_players_in_table(dbsession: Session) -> int:
-    """
-    how many players already in player table
-    """
-    players = dbsession.scalars(select(Player)).all()
-    return len(players)
-
-
 def fill_player_table_from_file(
     filename: FilePath, season: str, dbsession: Session
 ) -> None:

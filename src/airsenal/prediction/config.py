@@ -10,14 +10,20 @@ weighting silently did nothing.
 
 from dataclasses import dataclass
 
+# Named rather than written inline below, so the values have one home. They used to
+# live in player_models.py, which imports this module - so this is the direction the
+# dependency has to run.
+DEFAULT_PLAYER_EPSILON = 0.2
+DEFAULT_N_GOALS_PRIOR = 35
+
 
 @dataclass(frozen=True)
 class ConjugatePlayerConfig:
     """Settings for the conjugate Bayesian player model."""
 
     # None disables time weighting entirely.
-    epsilon: float | None = 0.2
-    n_goals_prior: int = 35
+    epsilon: float | None = DEFAULT_PLAYER_EPSILON
+    n_goals_prior: int = DEFAULT_N_GOALS_PRIOR
     rescale_weights: bool = True
 
 

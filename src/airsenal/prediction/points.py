@@ -20,11 +20,9 @@ from airsenal.db.models import Fixture, Player, PlayerPrediction
 from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.fixtures import get_fixtures_for_player
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player, list_players
+from airsenal.db.queries.players import get_player
 from airsenal.db.session import get_session
-from airsenal.prediction.features import fit_player_data
 from airsenal.prediction.minutes import get_recent_minutes_for_player
-from airsenal.prediction.protocols import PlayerModel
 
 logger = get_logger(__name__)
 
@@ -263,44 +261,6 @@ def calc_predicted_points_for_player(
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
     return predictions
-
-
-def calc_predicted_points_for_pos(
-    pos: str,
-    fixture_goal_probs: dict[int, dict[str, dict[int, float]]],
-    df_bonus: tuple[pd.Series, pd.Series] | None,
-    df_saves: pd.Series | None,
-    df_cards: pd.Series | None,
-    df_def_con: tuple[pd.Series, pd.Series] | None,
-    season: str,
-    gameweeks: list[int],
-    tag: str,
-    model: PlayerModel | None = None,
-    dbsession: Session | None = None,
-) -> dict[int, list[PlayerPrediction]]:
-    """
-    Calculate predicted points for all players in a specific position.
-    """
-    dbsession = dbsession if dbsession is not None else get_session()
-    df_player = {pos: fit_player_data(pos, season, min(gameweeks), model, dbsession)}
-    return {
-        player.player_id: calc_predicted_points_for_player(
-            player=player,
-            fixture_goal_probs=fixture_goal_probs,
-            df_player=df_player,
-            df_bonus=df_bonus,
-            df_saves=df_saves,
-            df_cards=df_cards,
-            df_def_con=df_def_con,
-            season=season,
-            gameweeks=gameweeks,
-            tag=tag,
-            dbsession=dbsession,
-        )
-        for player in list_players(
-            position=pos, season=season, gameweek=min(gameweeks), dbsession=dbsession
-        )
-    }
 
 
 def make_prediction(

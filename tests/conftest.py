@@ -44,7 +44,6 @@ from airsenal.db.queries.gameweeks import set_next_gameweek  # noqa: E402
 set_next_gameweek(1)
 from tests.dummy_data import dummy_players  # noqa: E402
 
-API_SESSION_ID = "TESTSESSION"
 TEST_PAST_SEASON = "2021"
 
 testengine_dummy = create_engine(f"sqlite:///{env.AIRSENAL_HOME}/test.db")

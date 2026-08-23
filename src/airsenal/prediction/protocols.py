@@ -34,8 +34,6 @@ class PlayerModel(Protocol):
 
     def get_probs(self) -> dict[str, np.ndarray]: ...
 
-    def get_probs_for_player(self, player_id: int) -> np.ndarray: ...
-
 
 class TeamModel(Protocol):
     """Predicts match scorelines."""

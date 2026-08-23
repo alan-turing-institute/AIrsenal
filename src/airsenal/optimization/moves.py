@@ -167,10 +167,6 @@ class ChipSchedule:
 
         return cls(schedule)
 
-    def with_chip_to_play(self, gameweek: int, chip: Chip) -> ChipSchedule:
-        """Return a copy that definitely plays `chip` in `gameweek`."""
-        return ChipSchedule({**self.per_gameweek, gameweek: GameweekChips(chip)})
-
 
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 

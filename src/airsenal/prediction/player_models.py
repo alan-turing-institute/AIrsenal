@@ -24,9 +24,6 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-DEFAULT_PLAYER_EPSILON = 0.2
-DEFAULT_N_GOALS_PRIOR = 35
-
 
 def get_empirical_bayes_estimates(
     df_emp: pd.DataFrame, prior_goals: float | None = None
@@ -163,12 +160,6 @@ class BasePlayerModel(ABC):
         """
         ...
 
-    @abstractmethod
-    def get_probs_for_player(self, player_id: int) -> np.ndarray:
-        """Get probability that a player scores, assists or does neither for a goal
-        their team scores. Returns np.ndarray of shape (3, )."""
-        ...
-
 
 class NumpyroPlayerModel(BasePlayerModel):
     """
@@ -250,20 +241,6 @@ class NumpyroPlayerModel(BasePlayerModel):
             prob_dict["prob_assist"][i] = float(self.samples["probs"][:, i, 1].mean())
             prob_dict["prob_neither"][i] = float(self.samples["probs"][:, i, 2].mean())
         return prob_dict
-
-    def get_probs_for_player(self, player_id: int) -> np.ndarray:
-        if self.samples is None or self.player_ids is None:
-            msg = "Model samples or player_ids have not been set yet."
-            raise RuntimeError(msg)
-        try:
-            index = list(self.player_ids).index(player_id)
-        except ValueError as e:
-            msg = f"Unknown player_id {player_id}"
-            raise RuntimeError(msg) from e
-        prob_score = float(self.samples["probs"][:, index, 0].mean())
-        prob_assist = float(self.samples["probs"][:, index, 1].mean())
-        prob_neither = float(self.samples["probs"][:, index, 2].mean())
-        return np.array([prob_score, prob_assist, prob_neither])
 
 
 class ConjugatePlayerModel(BasePlayerModel):
@@ -348,17 +325,6 @@ class ConjugatePlayerModel(BasePlayerModel):
             "prob_neither": self.mean_probabilities[:, 2],
         }
 
-    def get_probs_for_player(self, player_id: int) -> np.ndarray:
-        if self.player_ids is None or self.mean_probabilities is None:
-            msg = "Model player_ids or mean_probabilities have not been set yet."
-            raise RuntimeError(msg)
-        try:
-            index = list(self.player_ids).index(player_id)
-        except ValueError as e:
-            msg = f"Unknown player_id {player_id}"
-            raise RuntimeError(msg) from e
-        return self.mean_probabilities[index, :]
-
 
 class ConstantPlayerModel(BasePlayerModel):
     """
@@ -398,6 +364,3 @@ class ConstantPlayerModel(BasePlayerModel):
             "prob_assist": np.full(n, probs[1]),
             "prob_neither": np.full(n, probs[2]),
         }
-
-    def get_probs_for_player(self, player_id: int) -> np.ndarray:  # noqa: ARG002
-        return self._probabilities()

@@ -458,17 +458,3 @@ class TransferSuggestion(Base):
         else:
             sugg_str += f"selling {self.player_id} to gain {self.points_gain:.2f} pts"
         return sugg_str
-
-
-class SessionSquad(Base):
-    __tablename__ = "sessionteam"
-    id: Mapped[intpk] = mapped_column(autoincrement=True)
-    session_id: Mapped[str100]
-    player_id: Mapped[int]
-
-
-class SessionBudget(Base):
-    __tablename__ = "sessionbudget"
-    id: Mapped[intpk] = mapped_column(autoincrement=True)
-    session_id: Mapped[str100]
-    budget: Mapped[int]
