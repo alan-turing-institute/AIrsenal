@@ -248,7 +248,7 @@ module = [
     "airsenal.export.results",
     "airsenal.fetch.fpl_api",
     "airsenal.fetch.gameweeks",
-    "airsenal.fetch.scrape.transfermarkt",
+    "airsenal.fetch.transfermarkt",
     "airsenal.ingest.checks",
     "airsenal.ingest.fixtures",
     "airsenal.ingest.player_attributes",

@@ -8,7 +8,7 @@ from airsenal.export.player_details import make_player_details
 from airsenal.export.player_summary import make_player_summary
 from airsenal.export.results import make_results
 from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.fetch.scrape.transfermarkt import scrape_transfermarkt
+from airsenal.fetch.transfermarkt import scrape_transfermarkt
 
 logger = get_logger(__name__)
 
