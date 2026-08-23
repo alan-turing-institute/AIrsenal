@@ -1,26 +1,21 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import jax.numpy as jnp
 import jax.random as random
 import numpy as np
 import numpyro
 import numpyro.distributions as dist
+import pandas as pd
 from numpyro.infer import MCMC, NUTS
 
 from airsenal.core.logging import get_logger
+from airsenal.core.types import FloatArray
 from airsenal.prediction.config import (
     ConjugatePlayerConfig,
     ConstantPlayerConfig,
     NumpyroPlayerConfig,
 )
-
-if TYPE_CHECKING:
-    import pandas as pd
-
-    from airsenal.core.types import FloatArray
 
 logger = get_logger(__name__)
 
@@ -133,7 +128,7 @@ class BasePlayerModel(ABC):
     """
 
     @abstractmethod
-    def fit(self, data: dict[str, Any]) -> BasePlayerModel:
+    def fit(self, data: dict[str, Any]) -> "BasePlayerModel":
         """Fit model, using the hyperparameters this model was constructed with.
 
         Deliberately takes no **kwargs. It used to, and NumpyroPlayerModel silently
@@ -201,7 +196,7 @@ class NumpyroPlayerModel(BasePlayerModel):
         )
         return numpyro.sample("obs", theta_mins, obs=y)
 
-    def fit(self, data: dict[str, Any]) -> NumpyroPlayerModel:
+    def fit(self, data: dict[str, Any]) -> "NumpyroPlayerModel":
         self.player_ids = data["player_ids"]
         kernel = NUTS(self._model)
         mcmc = MCMC(
@@ -270,7 +265,7 @@ class ConjugatePlayerModel(BasePlayerModel):
     def rescale_weights(self) -> bool:
         return self.config.rescale_weights
 
-    def fit(self, data: dict[str, Any]) -> ConjugatePlayerModel:
+    def fit(self, data: dict[str, Any]) -> "ConjugatePlayerModel":
         logger.info(
             "Fitting ConjugatePlayerModel with epsilon=%s, rescale_weights=%s, "
             "n_goals_prior=%s",
@@ -339,7 +334,7 @@ class ConstantPlayerModel(BasePlayerModel):
         self.config = config or ConstantPlayerConfig()
         self.player_ids: np.ndarray | None = None
 
-    def fit(self, data: dict[str, Any]) -> ConstantPlayerModel:
+    def fit(self, data: dict[str, Any]) -> "ConstantPlayerModel":
         self.player_ids = data["player_ids"]
         return self
 

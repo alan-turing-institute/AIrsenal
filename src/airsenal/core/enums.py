@@ -6,20 +6,16 @@ names are additionally encoded into single letters for the transfer search. Maki
 them enums means a typo is an error rather than a silently unmatched branch.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Position(str, Enum):
+class Position(StrEnum):
     """A player's position."""
 
     GK = "GK"
     DEF = "DEF"
     MID = "MID"
     FWD = "FWD"
-
-    # Python 3.11 changed how mixin enums format themselves, so without this an
-    # f-string would write "Position.GK" into logs and database columns.
-    __str__ = str.__str__
 
     @classmethod
     def back_to_front(cls) -> tuple["Position", ...]:
@@ -30,15 +26,13 @@ class Position(str, Enum):
         return tuple(reversed(cls.back_to_front()))
 
 
-class Chip(str, Enum):
+class Chip(StrEnum):
     """An FPL chip."""
 
     WILDCARD = "wildcard"
     FREE_HIT = "free_hit"
     BENCH_BOOST = "bench_boost"
     TRIPLE_CAPTAIN = "triple_captain"
-
-    __str__ = str.__str__
 
     @property
     def rebuilds_squad(self) -> bool:

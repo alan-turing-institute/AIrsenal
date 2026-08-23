@@ -1,13 +1,10 @@
 """Working out which gameweek we are in, from what the database knows."""
 
-# The FPLDataFetcher annotations below refer to a TYPE_CHECKING-only import, so
-# annotations must not be evaluated at runtime. Required on Python < 3.14.
-from __future__ import annotations
-
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import or_, select
+from sqlalchemy.orm import Session
 
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
@@ -17,10 +14,9 @@ from airsenal.db.models import Fixture
 from airsenal.db.session import get_session
 
 if TYPE_CHECKING:
-    # Annotation only: db must not depend on fetch at runtime. A caller supplies a
-    # fetcher when the database has no fixtures to derive the gameweek from.
-    from sqlalchemy.orm import Session
-
+    # Annotation only, and quoted at every use: db must not import the HTTP client.
+    # A caller supplies a fetcher when the database has no fixtures to work the
+    # gameweek out from.
     from airsenal.fetch.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
@@ -59,7 +55,7 @@ def get_next_gameweek(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
     *,
-    fetcher: FPLDataFetcher | None = None,
+    fetcher: "FPLDataFetcher | None" = None,
 ) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
@@ -82,7 +78,7 @@ def get_next_gameweek(
         The database has no fixtures for the season and no fetcher was given.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    timenow = datetime.now(timezone.utc)
+    timenow = datetime.now(UTC)
     fixtures = dbsession.scalars(select(Fixture).where(Fixture.season == season)).all()
     earliest_future_gameweek = get_max_gameweek(season, dbsession=dbsession) + 1
 
@@ -91,7 +87,7 @@ def get_next_gameweek(
             if fixture.date is None or fixture.gameweek is None:
                 # date could be null if fixture not scheduled
                 continue
-            fixture_date = parse_datetime(fixture.date).replace(tzinfo=timezone.utc)
+            fixture_date = parse_datetime(fixture.date).replace(tzinfo=UTC)
             if fixture_date > timenow and fixture.gameweek < earliest_future_gameweek:
                 earliest_future_gameweek = fixture.gameweek
 
@@ -101,7 +97,7 @@ def get_next_gameweek(
                 # date could be null if fixture not scheduled
                 continue
             if (
-                parse_datetime(fixture.date).replace(tzinfo=timezone.utc) < timenow
+                parse_datetime(fixture.date).replace(tzinfo=UTC) < timenow
                 and fixture.gameweek == earliest_future_gameweek
             ):
                 earliest_future_gameweek += 1
@@ -165,7 +161,7 @@ class _GameweekCache:
         self,
         season: str,
         dbsession: Session | None,
-        fetcher: FPLDataFetcher | None,
+        fetcher: "FPLDataFetcher | None",
     ) -> int:
         if season not in self._by_season:
             self._by_season[season] = get_next_gameweek(
@@ -187,7 +183,7 @@ def next_gameweek(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
     *,
-    fetcher: FPLDataFetcher | None = None,
+    fetcher: "FPLDataFetcher | None" = None,
 ) -> int:
     """
     The next gameweek of a season, computed once per process.

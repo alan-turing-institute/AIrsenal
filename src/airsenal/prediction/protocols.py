@@ -12,21 +12,17 @@ only checks that the method names exist, which is the stringly-typed dispatch
 this refactor is removing, wearing a type hint.
 """
 
-from __future__ import annotations
-
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any, Protocol
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    import numpy as np
+import numpy as np
 
 
 class PlayerModel(Protocol):
     """Predicts how a team's goals are shared out between its players."""
 
-    def fit(self, data: dict[str, Any]) -> PlayerModel:
+    def fit(self, data: dict[str, Any]) -> "PlayerModel":
         """
         Fit to the data, using the hyperparameters given at construction.
 
@@ -41,7 +37,7 @@ class PlayerModel(Protocol):
 class TeamModel(Protocol):
     """Predicts match scorelines."""
 
-    def fit(self, training_data: dict[str, Any], **kwargs: Any) -> TeamModel:
+    def fit(self, training_data: dict[str, Any], **kwargs: Any) -> "TeamModel":
         """
         Fit to the data.
 

@@ -4,7 +4,7 @@ Class for a player in FPL
 
 import uuid
 from collections.abc import Iterable
-from typing import Any, TypeAlias
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -159,7 +159,7 @@ class DummyPlayer:
 
 # Squad holds both: a real player, or a placeholder used when the optimiser is
 # not choosing the whole squad.
-SquadPlayer: TypeAlias = CandidatePlayer | DummyPlayer
+type SquadPlayer = CandidatePlayer | DummyPlayer
 
 
 def bench_position(player: SquadPlayer) -> int:

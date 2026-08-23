@@ -10,15 +10,10 @@ an error that lists the valid ones.
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
-
-T = TypeVar("T")
-# dataclasses.fields() needs to know its argument is a dataclass; the only name
-# for that is typeshed's, which exists at type-check time only.
-TConfig = TypeVar("TConfig", bound="DataclassInstance")
 
 
 class ConfigError(ValueError):
@@ -31,12 +26,12 @@ class ConfigError(ValueError):
 
 
 @dataclass(frozen=True)
-class _Entry(Generic[T]):
+class _Entry[T]:
     factory: Callable[..., T]
     config_cls: type
 
 
-class Registry(Generic[T]):
+class Registry[T]:
     """Maps a name to an implementation and the config dataclass it takes."""
 
     def __init__(self, kind: str) -> None:
@@ -115,7 +110,9 @@ class Registry(Generic[T]):
             raise ConfigError(msg) from None
 
 
-def config_from_overrides(
+# dataclasses.fields() needs to know its argument is a dataclass; the only name
+# for that is typeshed's, which exists at type-check time only.
+def config_from_overrides[TConfig: "DataclassInstance"](
     config_cls: type[TConfig], overrides: Mapping[str, str], kind: str = "config"
 ) -> TConfig:
     """

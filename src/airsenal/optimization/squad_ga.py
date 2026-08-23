@@ -5,8 +5,8 @@ algorithm.
 """
 
 import random
+from collections.abc import Callable
 from dataclasses import replace
-from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -27,9 +27,6 @@ from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 logger = get_logger(__name__)
 
 # Called after each generation, with the best fitness found so far. A generation
@@ -37,7 +34,7 @@ logger = get_logger(__name__)
 # individuals a generation evaluates depends on which ones crossover and mutation
 # touched (65-100 of a population of 100, measured), so per-candidate progress
 # could not be sized, and per-generation progress can.
-GenerationReporter: TypeAlias = "Callable[[float], None]"
+type GenerationReporter = Callable[[float], None]
 
 
 def _ensure_deap_types() -> None:

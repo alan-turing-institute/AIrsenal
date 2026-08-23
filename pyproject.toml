@@ -9,7 +9,7 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.10,<4"
+requires-python = ">=3.12,<4"
 dependencies = [
   "beautifulsoup4>=4.13.5",
   "bpl-next>=0.5.0",
@@ -141,6 +141,7 @@ select = [
   "EXE",         # flake8-executable
   "TC",          # flake8-type-checking
   "N",           # pep8-naming
+  "TID251",      # flake8-tidy-imports: banned-api (see below)
 ]
 ignore = [
   # PLR0913/0917/0912/0915 (too many arguments, branches, statements) are
@@ -159,6 +160,15 @@ ignore = [
   "G004",   # f-strings with logger
 ]
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
+
+# Annotations are evaluated eagerly on the Python versions this supports, and that
+# is the intended behaviour: an annotation naming something the module does not
+# import at runtime is a mistake, not a style choice. `from __future__ import
+# annotations` hides exactly that mistake until someone calls `get_type_hints`, and
+# it is also what let four string-valued `TypeAlias` definitions sit in the tree
+# broken on every version below 3.14. Quote the one-off self-reference instead.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"__future__.annotations".msg = "Quote the annotation, or import the name at runtime."
 
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.

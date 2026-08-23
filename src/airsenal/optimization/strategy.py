@@ -12,23 +12,17 @@ mistake unrepresentable. Strategies are frozen, so a worker extending one
 cannot disturb the copy its siblings were handed.
 """
 
-from __future__ import annotations
-
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
+from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_score import (
     get_discount_factor,
     get_discounted_squad_score,
 )
-
-if TYPE_CHECKING:
-    from airsenal.core.enums import Chip
-    from airsenal.squad.squad import Squad
+from airsenal.squad.squad import Squad
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +66,7 @@ class GameweekOutcome:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> GameweekOutcome:
+    def from_dict(cls, data: dict[str, Any]) -> "GameweekOutcome":
         return cls(
             gameweek=int(data["gameweek"]),
             move=GameweekMove.parse(data["num_transfers"]),
@@ -123,7 +117,7 @@ class Strategy:
         )
         raise KeyError(msg)
 
-    def extend(self, outcome: GameweekOutcome) -> Strategy:
+    def extend(self, outcome: GameweekOutcome) -> "Strategy":
         """A new strategy with one more gameweek on the end."""
         return replace(self, outcomes=(*self.outcomes, outcome))
 
@@ -149,7 +143,7 @@ class Strategy:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Strategy:
+    def from_dict(cls, data: dict[str, Any]) -> "Strategy":
         return cls(
             root_gameweek=int(data["root_gameweek"]),
             outcomes=tuple(
@@ -200,7 +194,7 @@ class TransferSearchResult:
         return self.baseline.total_score if self.baseline is not None else 0.0
 
     @classmethod
-    def from_strategies(cls, strategies: Sequence[Strategy]) -> TransferSearchResult:
+    def from_strategies(cls, strategies: Sequence[Strategy]) -> "TransferSearchResult":
         """
         Read the answer off an exhaustive search.
 

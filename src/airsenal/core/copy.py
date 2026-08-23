@@ -1,12 +1,10 @@
 """Fast deep copies of the plain-data objects used in the optimiser's inner loop."""
 
 from pickle import dumps, loads
-from typing import TypeVar, cast
-
-T = TypeVar("T")
+from typing import cast
 
 
-def fastcopy(obj: T) -> T:
+def fastcopy[T](obj: T) -> T:
     """
     Faster replacement for copy.deepcopy().
     """

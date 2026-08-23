@@ -3,7 +3,7 @@
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import Concatenate, ParamSpec, TypeVar
+from typing import Concatenate
 
 from platformdirs import user_data_dir
 
@@ -28,11 +28,7 @@ AIRSENAL_ENV_KEYS = [
 ]
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
-
-
-def check_valid_key(
+def check_valid_key[**P, R](
     func: Callable[Concatenate[str, P], R],
 ) -> Callable[Concatenate[str, P], R]:
     """decorator to pre-check whether we are using a valid AIrsenal key in env
@@ -65,11 +61,8 @@ def delete_env(key: str) -> None:
         os.environ.pop(key)
 
 
-T = TypeVar("T")
-
-
 @check_valid_key
-def get_env(key: str, return_type: Callable[[str], T]) -> T | None:
+def get_env[T](key: str, return_type: Callable[[str], T]) -> T | None:
     if key in os.environ:
         return return_type(os.environ[key])
     if os.path.exists(AIRSENAL_HOME / key):

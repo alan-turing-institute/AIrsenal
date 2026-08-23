@@ -9,16 +9,11 @@ encoding was hiding (how many transfers, and which chip) as fields, so the parsi
 happens once, on the way in.
 """
 
-from __future__ import annotations
-
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
 
 from airsenal.core.enums import Chip
 from airsenal.db.queries.gameweeks import next_gameweek
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
 
 # Chips that are given a letter of their own because they replace the squad
 # outright, so the number of transfers is not a meaningful part of the move.
@@ -84,7 +79,7 @@ class GameweekMove:
         return f"{_TRANSFER_CHIP_LABELS[self.chip]}{self.n_transfers}"
 
     @classmethod
-    def parse(cls, label: str | int) -> GameweekMove:
+    def parse(cls, label: str | int) -> "GameweekMove":
         """
         Read back a `label()`.
 
@@ -142,7 +137,7 @@ class ChipSchedule:
     @classmethod
     def from_weeks(
         cls, gameweeks: Iterable[int], chip_weeks: Mapping[str | Chip, int]
-    ) -> ChipSchedule:
+    ) -> "ChipSchedule":
         """
         Build a schedule from the per-chip week numbers the CLI takes.
 

@@ -18,23 +18,21 @@ the same place.
 the *result* of a search, while `optimization/strategies/` holds the algorithms.)
 """
 
-from __future__ import annotations
-
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol, TypeAlias
+from typing import Protocol
+
+from sqlalchemy.orm.session import Session
 
 from airsenal.core.enums import Chip
 from airsenal.optimization.config import SquadScoringConfig
-from airsenal.optimization.moves import TransferConstraints
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from sqlalchemy.orm.session import Session
-
-    from airsenal.optimization.moves import ChipSchedule, GameweekMove
-    from airsenal.optimization.strategy import TransferSearchResult
-    from airsenal.squad.squad import Squad
+from airsenal.optimization.moves import (
+    ChipSchedule,
+    GameweekMove,
+    TransferConstraints,
+)
+from airsenal.optimization.strategy import TransferSearchResult
+from airsenal.squad.squad import Squad
 
 
 class ProgressUpdater(Protocol):
@@ -50,12 +48,12 @@ class ProgressUpdater(Protocol):
 
 # (worker index, strategy label, candidate squads to consider) - restarts one
 # worker's bar for a new strategy
-ProgressResetter: TypeAlias = "Callable[[int, str, int], None]"
+type ProgressResetter = Callable[[int, str, int], None]
 
 # Called once per candidate squad a strategy considers. The strategy counts what
 # it does; how many there will be is `num_increments`, and turning the two into a
 # percentage is the progress bar's job.
-StepCounter: TypeAlias = "Callable[[], None]"
+type StepCounter = Callable[[], None]
 
 
 @dataclass(frozen=True)
@@ -128,7 +126,7 @@ class TransferStrategy(Protocol):
 # Called once per step of a whole-squad search, with the best score so far. What a
 # step is depends on the optimizer - a generation, for the genetic algorithm - and
 # there are `num_increments()` of them.
-SquadProgress: TypeAlias = "Callable[[float], None]"
+type SquadProgress = Callable[[float], None]
 
 
 @dataclass(frozen=True)
@@ -173,7 +171,7 @@ class SquadOptimizer(Protocol):
         """
         ...
 
-    def scaled(self, num_iterations: int) -> SquadOptimizer:
+    def scaled(self, num_iterations: int) -> "SquadOptimizer":
         """
         A copy of this optimizer sized from the transfer search's one effort knob.
 
