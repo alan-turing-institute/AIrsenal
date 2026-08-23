@@ -99,6 +99,15 @@ def fill_transaction_table(
     for player_id in outcome.players_in:
         if player := get_player(player_id, dbsession=dbsession):
             price = player.price(season, fill_gw)
+            if price is None:
+                # Transaction.price is not nullable, so recording the transfer
+                # anyway fails at flush time with an opaque integrity error.
+                logger.warning(
+                    "No %s price for player %s, skipping transaction",
+                    season,
+                    player_id,
+                )
+                continue
             add_transaction(
                 player_id,
                 fill_gw,

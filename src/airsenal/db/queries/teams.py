@@ -40,12 +40,10 @@ def list_teams(
     return [{"name": row.name, "full_name": row.full_name} for row in rows]
 
 
-def get_teams_for_season(season, dbsession):
+def get_teams_for_season(season: str, dbsession: Session) -> list[str]:
     """
     Query the Team table and get a list of teams for a given
     season.
     """
-    teams: list[Team] = dbsession.scalars(
-        select(Team).where(Team.season == season)
-    ).all()
+    teams = dbsession.scalars(select(Team).where(Team.season == season)).all()
     return [t.name for t in teams]

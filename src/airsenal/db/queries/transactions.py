@@ -11,7 +11,7 @@ from airsenal.fetch.fpl_api import get_fetcher
 logger = get_logger(__name__)
 
 
-def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
+def free_hit_used_in_gameweek(gameweek: int, fpl_team_id: int | None = None) -> int:
     """Use FPL API to determine whether a chip was played in the given gameweek"""
     if not fpl_team_id:
         fpl_team_id = get_fetcher().FPL_TEAM_ID
@@ -25,7 +25,9 @@ def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
     return 0
 
 
-def count_transactions(season, fpl_team_id, dbsession: Session | None = None):
+def count_transactions(
+    season: str, fpl_team_id: int | None, dbsession: Session | None = None
+) -> int:
     """Count the number of transactions we have in the database for a given team ID
     and season.
     """
@@ -45,16 +47,16 @@ def count_transactions(season, fpl_team_id, dbsession: Session | None = None):
 
 
 def transaction_exists(
-    fpl_team_id,
-    gameweek,
-    season,
-    time,
-    pid_out,
-    price_out,
-    pid_in,
-    price_in,
+    fpl_team_id: int,
+    gameweek: int,
+    season: str,
+    time: str,
+    pid_out: int,
+    price_out: int,
+    pid_in: int,
+    price_in: int,
     dbsession: Session | None = None,
-):
+) -> bool:
     """Check whether the transactions related to transferring a player in and out
     in a gameweek at a specific time already exist in the database.
     """
@@ -95,17 +97,17 @@ def transaction_exists(
 
 
 def add_transaction(
-    player_id,
-    gameweek,
-    in_or_out,
-    price,
-    season,
-    tag,
-    free_hit,
-    fpl_team_id,
-    time,
+    player_id: int,
+    gameweek: int,
+    in_or_out: int,
+    price: int,
+    season: str,
+    tag: str,
+    free_hit: int,
+    fpl_team_id: int,
+    time: str,
     dbsession: Session | None = None,
-):
+) -> None:
     """
     add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
     """
