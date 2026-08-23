@@ -3,8 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from airsenal.db.models.base import Base
-from airsenal.db.models.match import Team
+from airsenal.db.models import Base, Team
 from airsenal.db.session import get_engine
 
 

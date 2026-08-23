@@ -1,11 +1,14 @@
-"""Reading the transaction history."""
+"""Reading and recording the transaction history."""
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
+from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher
+
+logger = get_logger(__name__)
 
 
 def free_hit_used_in_gameweek(gameweek, fpl_team_id=None):
@@ -89,3 +92,34 @@ def transaction_exists(
         f"time={time}, pid_in={pid_in}, pid_out={pid_out}. Should be 2."
     )
     raise ValueError(msg)
+
+
+def add_transaction(
+    player_id,
+    gameweek,
+    in_or_out,
+    price,
+    season,
+    tag,
+    free_hit,
+    fpl_team_id,
+    time,
+    dbsession: Session | None = None,
+):
+    """
+    add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    t = Transaction(
+        player_id=player_id,
+        gameweek=gameweek,
+        bought_or_sold=in_or_out,
+        price=price,
+        season=season,
+        tag=tag,
+        free_hit=free_hit,
+        fpl_team_id=fpl_team_id,
+        time=time,
+    )
+    dbsession.add(t)
+    dbsession.commit()

@@ -1,18 +1,103 @@
-"""Players and the per-gameweek attributes attached to them."""
+"""
+The SQLAlchemy models.
 
-from typing import TYPE_CHECKING
+One module rather than a package. Five hundred lines of table definitions is a
+single subject, and splitting it four ways meant every model had to import the
+shared column annotations from a fifth file. Callers already spelled this
+`from airsenal.db.models import Player`, so flattening it changes nothing for
+them.
+"""
 
-from sqlalchemy import ForeignKey, Index, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Annotated
+
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from airsenal.core.logging import get_logger
-from airsenal.db.models.base import Base, intpk, str100, str100_optional
-
-if TYPE_CHECKING:
-    from airsenal.db.models.performance import PlayerPrediction, PlayerScore
-
 
 logger = get_logger(__name__)
+
+# Common type annotations using PEP 593 Annotated
+intpk = Annotated[int, mapped_column(primary_key=True)]
+str100 = Annotated[str, mapped_column(String(100))]
+str4 = Annotated[str, mapped_column(String(4))]
+str3 = Annotated[str, mapped_column(String(3))]
+str100_optional = Annotated[str | None, mapped_column(String(100))]
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+# --- Teams, fixtures, results and team ratings ---
+
+
+class Result(Base):
+    __tablename__ = "result"
+    result_id: Mapped[intpk] = mapped_column(autoincrement=True)
+    fixture: Mapped["Fixture"] = relationship(back_populates="result")
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
+    home_score: Mapped[int]
+    away_score: Mapped[int]
+
+    def __repr__(self):
+        return (
+            f"{self.fixture.season} GW{self.fixture.gameweek} "
+            f"{self.fixture.home_team} {self.home_score} - "
+            f"{self.away_score} {self.fixture.away_team}"
+        )
+
+
+class Fixture(Base):
+    __tablename__ = "fixture"
+    __table_args__ = (Index("ix_fixture_season_gameweek", "season", "gameweek"),)
+    fixture_id: Mapped[intpk] = mapped_column(autoincrement=True)
+    date: Mapped[str | None] = mapped_column(
+        String(100)
+    )  # In case fixture not yet scheduled!
+    gameweek: Mapped[int | None]  # In case fixture not yet scheduled!
+    home_team: Mapped[str100]
+    away_team: Mapped[str100]
+    season: Mapped[str100]
+    tag: Mapped[str100]
+    result: Mapped["Result | None"] = relationship(back_populates="fixture")
+
+    def __repr__(self):
+        return f"{self.season} GW{self.gameweek} {self.home_team} vs. {self.away_team}"
+
+
+class FifaTeamRating(Base):
+    __tablename__ = "fifa_rating"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    season: Mapped[str4]
+    team: Mapped[str100]
+    att: Mapped[int]
+    defn: Mapped[int]
+    mid: Mapped[int]
+    ovr: Mapped[int]
+
+    def __repr__(self):
+        return (
+            f"{self.team} {self.season} FIFA rating: "
+            f"ovr {self.ovr}, def {self.defn}, mid {self.mid}, att {self.att}"
+        )
+
+
+class Team(Base):
+    __tablename__ = "team"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    name: Mapped[str3]
+    full_name: Mapped[str100]
+    season: Mapped[str4]
+    team_id: Mapped[int]  # the season-dependent team ID (from alphabetical order)
+
+    def __repr__(self):
+        return f"{self.full_name} ({self.name})"
+
+
+# --- Players and the per-gameweek attributes attached to them ---
 
 
 class Player(Base):
@@ -246,3 +331,144 @@ class Absence(Base):
             f"  timestamp='{self.timestamp}'\n"
             ")"
         )
+
+
+# --- Recorded and predicted player performance in a fixture ---
+
+
+class PlayerScore(Base):
+    __tablename__ = "player_score"
+    __table_args__ = (
+        Index("ix_player_score_fixture_id", "fixture_id"),
+        Index("ix_player_score_player_fixture", "player_id", "fixture_id"),
+    )
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_team: Mapped[str100]
+    opponent: Mapped[str100]
+    points: Mapped[int]
+    goals: Mapped[int]
+    assists: Mapped[int]
+    bonus: Mapped[int]
+    conceded: Mapped[int]
+    minutes: Mapped[int]
+    player: Mapped["Player"] = relationship(back_populates="scores")
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
+    result: Mapped["Result"] = relationship()
+    result_id: Mapped[int] = mapped_column(
+        ForeignKey("result.result_id"), nullable=False
+    )
+    fixture: Mapped["Fixture"] = relationship()
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
+
+    # extended features
+    clean_sheets: Mapped[int | None]
+    own_goals: Mapped[int | None]
+    penalties_saved: Mapped[int | None]
+    penalties_missed: Mapped[int | None]
+    yellow_cards: Mapped[int | None]
+    red_cards: Mapped[int | None]
+    saves: Mapped[int | None]
+    bps: Mapped[int | None]
+    influence: Mapped[float | None]
+    creativity: Mapped[float | None]
+    threat: Mapped[float | None]
+    ict_index: Mapped[float | None]
+    expected_goals: Mapped[float | None]
+    expected_assists: Mapped[float | None]
+    expected_goal_involvements: Mapped[float | None]
+    expected_goals_conceded: Mapped[float | None]
+    defensive_contribution: Mapped[int | None]
+    clearances_blocks_interceptions: Mapped[int | None]
+    tackles: Mapped[int | None]
+    recoveries: Mapped[int | None]
+
+    # populated from PlayerAttributes history from the morning of the match
+    chance_of_playing: Mapped[int | None]
+    news: Mapped[str100_optional]
+
+    def __repr__(self):
+        return f"{self.player} ({self.result}): {self.points} pts, {self.minutes} mins"
+
+
+class PlayerPrediction(Base):
+    __tablename__ = "player_prediction"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    fixture: Mapped["Fixture"] = relationship()
+    fixture_id: Mapped[int] = mapped_column(
+        ForeignKey("fixture.fixture_id"), nullable=False
+    )
+    predicted_points: Mapped[float]
+    tag: Mapped[str100]
+    player: Mapped["Player"] = relationship(back_populates="predictions")
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
+
+    def __repr__(self):
+        return f"{self.player}: Predict {self.predicted_points} pts in {self.fixture}"
+
+
+# --- The user's squad: transactions, suggestions and session state ---
+
+
+class Transaction(Base):
+    __tablename__ = "transaction"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_id: Mapped[int]
+    gameweek: Mapped[int]
+    bought_or_sold: Mapped[int]  # +1 for bought, -1 for sold
+    season: Mapped[str100]
+    time: Mapped[str100]
+    tag: Mapped[str100]
+    price: Mapped[int]
+    free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
+    fpl_team_id: Mapped[int]
+
+    def __repr__(self):
+        trans_str = f"{self.season} GW{self.gameweek}: Team {self.fpl_team_id} "
+        if self.bought_or_sold == 1:
+            trans_str += f"bought player {self.player_id}"
+        else:
+            trans_str += f"sold player {self.player_id}"
+        if self.free_hit:
+            trans_str += " (FREE HIT)"
+        return trans_str
+
+
+class TransferSuggestion(Base):
+    __tablename__ = "transfer_suggestion"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player_id: Mapped[int]
+    in_or_out: Mapped[int]  # +1 for buy, -1 for sell
+    gameweek: Mapped[int]
+    points_gain: Mapped[float]
+    timestamp: Mapped[str100]  # use this to group suggestions
+    season: Mapped[str100]
+    fpl_team_id: Mapped[int]  # to identify team to apply transfers.
+    chip_played: Mapped[str100_optional]
+
+    def __repr__(self):
+        sugg_str = f"{self.season} GW{self.gameweek}: Suggest "
+        if self.in_or_out == 1:
+            sugg_str += f"buying {self.player_id} to gain {self.points_gain:.2f} pts"
+        else:
+            sugg_str += f"selling {self.player_id} to gain {self.points_gain:.2f} pts"
+        return sugg_str
+
+
+class SessionSquad(Base):
+    __tablename__ = "sessionteam"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    session_id: Mapped[str100]
+    player_id: Mapped[int]
+
+
+class SessionBudget(Base):
+    __tablename__ = "sessionbudget"
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    session_id: Mapped[str100]
+    budget: Mapped[int]

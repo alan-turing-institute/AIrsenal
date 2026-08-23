@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from airsenal.core.caching import clear_query_caches
 from airsenal.db.engine import get_connection_string
-from airsenal.db.models.base import Base
+from airsenal.db.models import Base
 
 
 # Engine and default session are created on first use, not at import. Creating them at

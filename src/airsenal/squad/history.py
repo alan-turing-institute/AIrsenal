@@ -1,7 +1,7 @@
 """Reconstructing the user's transaction history from the FPL API.
 
 These combine the API, squad state and database writes, so they sit above all
-three rather than in db/writes, which holds only the plain insert.
+three rather than in db/, which holds only the plain insert.
 """
 
 from sqlalchemy import select
@@ -13,11 +13,11 @@ from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.queries.transactions import (
+    add_transaction,
     free_hit_used_in_gameweek,
     transaction_exists,
 )
 from airsenal.db.session import get_session
-from airsenal.db.writes.transactions import add_transaction
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
 
