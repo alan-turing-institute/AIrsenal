@@ -101,7 +101,7 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
 
 def get_gw_transfer_suggestions(
     fpl_team_id: int | None = None,
-) -> tuple[list[list], int, int, str] | None:
+) -> tuple[list[list], int, int, str | None] | None:
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
@@ -299,7 +299,7 @@ def build_transfer_payload(
     priced_transfers: list[dict],
     current_gw: int,
     fetcher: FPLDataFetcher,
-    chip_played: str,
+    chip_played: str | None,
 ) -> dict:
     transfer_payload = {
         "confirmed": False,

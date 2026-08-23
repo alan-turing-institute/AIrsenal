@@ -9,6 +9,7 @@ channel by accident: there is exactly one call to make impossible.
 """
 
 import re
+from typing import Any
 
 from curl_cffi import requests
 
@@ -27,7 +28,7 @@ def get_webhook_url() -> str | None:
     return get_fetcher().DISCORD_WEBHOOK or None
 
 
-def post_webhook(payload: dict, webhook_url: str | None = None) -> bool:
+def post_webhook(payload: dict[str, Any], webhook_url: str | None = None) -> bool:
     """
     Post an embed to the configured Discord webhook.
 

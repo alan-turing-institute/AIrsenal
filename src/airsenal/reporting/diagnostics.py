@@ -34,7 +34,7 @@ def redact_db_password(conn_str: str) -> str:
     return conn_str
 
 
-def print_env():
+def print_env() -> None:
     logger.info("AIRSENAL_VERSION: %s", __version__)
     logger.info("AIRSENAL_HOME: %s", AIRSENAL_HOME)
     conn_str = get_connection_string()

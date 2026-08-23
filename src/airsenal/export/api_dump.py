@@ -13,7 +13,7 @@ from airsenal.fetch.transfermarkt import scrape_transfermarkt
 logger = get_logger(__name__)
 
 
-def main():
+def main() -> None:
     """
     Save all data from the FPL API and other sources, e.g. at the end of the season.
     """

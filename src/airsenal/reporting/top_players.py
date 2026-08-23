@@ -1,6 +1,7 @@
 """Presenting predicted points: Rich tables and Discord payloads."""
 
 from collections.abc import Iterable
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -149,12 +150,12 @@ def get_top_predicted_points(
 
 
 def predicted_points_discord_payload(
-    discord_embed: dict,
+    discord_embed: dict[str, Any],
     position: str,
     pts: list[tuple[Player, float]],
     season: str,
     first_gw: int,
-) -> dict:
+) -> dict[str, Any]:
     """
     json formated discord webhook contentent.
     """

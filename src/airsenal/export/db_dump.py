@@ -3,12 +3,15 @@ Script to dump the database contents.
 """
 
 import csv
+from pathlib import Path
+from typing import TextIO
 
 from sqlalchemy import select
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
 from airsenal.db.models import (
+    Base,
     FifaTeamRating,
     Fixture,
     Player,
@@ -23,7 +26,7 @@ from airsenal.db.session import get_session
 logger = get_logger(__name__)
 
 
-def main():
+def main() -> None:
     # Dump Player database
     player_fieldnames = ["player_id", "fpl_api_id", "name", "opta_code"]
     save_table_fields(
@@ -177,7 +180,9 @@ def main():
     )
 
 
-def save_table_fields(filename, fields, dbclass, msg):
+def save_table_fields(
+    filename: str, fields: list[str], dbclass: type[Base], msg: str
+) -> Path:
     result = data_file(filename)
     with result.open("w") as csvfile:
         write_rows_to_csv(csvfile, fields, dbclass)
@@ -186,7 +191,9 @@ def save_table_fields(filename, fields, dbclass, msg):
     return result
 
 
-def write_rows_to_csv(csvfile, fieldnames, dbclass):
+def write_rows_to_csv(
+    csvfile: TextIO, fieldnames: list[str], dbclass: type[Base]
+) -> None:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     logger.info("Writing table %s", dbclass)

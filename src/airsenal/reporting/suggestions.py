@@ -2,7 +2,10 @@
 query the transfer suggestion table and print the suggested strategy
 """
 
+from collections.abc import Sequence
+
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
 from airsenal.db.models import TransferSuggestion
@@ -12,7 +15,12 @@ from airsenal.db.session import get_session
 logger = get_logger(__name__)
 
 
-def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=None):
+def get_transfer_suggestions(
+    dbsession: Session,
+    gameweek: int | None = None,
+    season: str | None = None,
+    fpl_team_id: int | None = None,
+) -> Sequence[TransferSuggestion]:
     """
     query the transfer_suggestion table.  Each row of the table
     will be in individual player in-or-out in a gameweek - we
@@ -39,7 +47,7 @@ def get_transfer_suggestions(dbsession, gameweek=None, season=None, fpl_team_id=
     return dbsession.scalars(query.order_by(TransferSuggestion.gameweek)).all()
 
 
-def build_strategy_string(rows):
+def build_strategy_string(rows: Sequence[TransferSuggestion]) -> str:
     output_string = "Suggested transfer strategy: \n"
     current_gw = 0
     for row in rows:

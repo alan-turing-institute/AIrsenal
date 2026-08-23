@@ -10,6 +10,7 @@ from rich.table import Table
 from rich.text import Text
 
 from airsenal.core.enums import Position
+from airsenal.squad.player import SquadPlayer
 from airsenal.squad.squad import FORMATION_SLOTS, Squad
 
 
@@ -49,7 +50,7 @@ def formation_table(
             else ""
         )
 
-    def player_cell(player):
+    def player_cell(player: SquadPlayer) -> RenderableType:
         lines = [f"[bold]{player}[/bold]", f"[dim]({player.team})[/dim]"]
         if tag is not None and gameweek is not None:
             points = getattr(player, "predicted_points", {}).get(tag, {}).get(gameweek)

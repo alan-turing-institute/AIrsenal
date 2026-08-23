@@ -239,11 +239,6 @@ module = [
     "airsenal.apply.transfers",
     "airsenal.cli.dump",
     "airsenal.cli.env",
-    "airsenal.export.api_dump",
-    "airsenal.export.attributes",
-    "airsenal.export.db_dump",
-    "airsenal.export.player_details",
-    "airsenal.export.results",
     "airsenal.ingest.checks",
     "airsenal.ingest.fixtures",
     "airsenal.ingest.player_attributes",
@@ -262,12 +257,6 @@ module = [
     "airsenal.optimization.transfers",
     "airsenal.pipeline.replay",
     "airsenal.pipeline.run",
-    "airsenal.reporting.diagnostics",
-    "airsenal.reporting.discord",
-    "airsenal.reporting.plots",
-    "airsenal.reporting.squad_view",
-    "airsenal.reporting.suggestions",
-    "airsenal.reporting.top_players",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false

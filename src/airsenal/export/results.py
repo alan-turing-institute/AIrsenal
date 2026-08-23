@@ -26,7 +26,7 @@ keys_to_extract = {
 }
 
 
-def make_results(season):
+def make_results(season: str) -> None:
     with open(FIXTURE_DATA_FILE.format(season)) as f:
         fixture_data = json.load(f)
     with open(SUMMARY_DATA_FILE.format(season)) as f:
