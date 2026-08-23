@@ -120,7 +120,7 @@ Four things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
-    team_model=build_team_model("extended"),   # prediction/protocols.py: TeamModel
+    team_model=build_team_model("extended"),  # prediction/protocols.py: TeamModel
     player_model=PLAYER_MODELS.create("conjugate"),  # PlayerModel
     transfer_optimizer=TRANSFER_OPTIMIZERS.create("tree_search"),  # TransferOptimizer
     squad_optimizer=SQUAD_OPTIMIZERS.create("genetic"),  # SquadOptimizer
