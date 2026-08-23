@@ -268,10 +268,6 @@ module = [
     "airsenal.reporting.squad_view",
     "airsenal.reporting.suggestions",
     "airsenal.reporting.top_players",
-    "airsenal.squad.history",
-    "airsenal.squad.player",
-    "airsenal.squad.squad",
-    "airsenal.squad.state",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false

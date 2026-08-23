@@ -20,7 +20,7 @@ def get_bank(
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     fetcher: FPLDataFetcher | None = None,
-) -> float:
+) -> int:
     """
     Find out how much this FPL team had in the bank before the specified gameweek.
     If gameweek is not provided, give the most recent value.
@@ -51,9 +51,9 @@ def get_bank(
         if gameweek and isinstance(gameweek, int):
             for gw in data["current"]:
                 if gw["event"] == gameweek - 1:  # value after previous gameweek
-                    return gw["bank"]
+                    return int(gw["bank"])
         # otherwise, return the most recent value
-        return data["current"][-1]["bank"]
+        return int(data["current"][-1]["bank"])
 
 
 def get_entry_start_gameweek(

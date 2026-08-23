@@ -59,6 +59,7 @@ from airsenal.optimization.transfers import (
 from airsenal.reporting.discord import post_webhook
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.history import get_starting_squad
+from airsenal.squad.player import bench_position
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
@@ -472,9 +473,7 @@ def lineup_strings(
                 lines.append(player_line)
         lines.append("```\n")
     lines += ["__subs__", "```"]
-    subs = sorted(
-        (p for p in squad.players if not p.is_starting), key=lambda p: p.sub_position
-    )
+    subs = sorted((p for p in squad.players if not p.is_starting), key=bench_position)
     lines += [f"{p} ({p.team})" for p in subs]
     lines.append("```\n")
     return lines

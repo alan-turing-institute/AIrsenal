@@ -162,7 +162,7 @@ def get_recent_playerscore_rows(
 
 
 def get_playerscores_for_player_gameweek(
-    player: Player,
+    player_id: int | str,
     gameweek: int,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
@@ -178,7 +178,7 @@ def get_playerscores_for_player_gameweek(
             .join(Fixture, PlayerScore.fixture_id == Fixture.fixture_id)
             .where(
                 Fixture.season == season,
-                PlayerScore.player_id == player.player_id,
+                PlayerScore.player_id == player_id,
                 Fixture.gameweek == gameweek,
             )
         ).all()

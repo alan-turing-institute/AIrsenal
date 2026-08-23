@@ -3,6 +3,8 @@ Class for a player in FPL
 """
 
 import uuid
+from collections.abc import Iterable
+from typing import Any, TypeAlias
 
 from sqlalchemy.orm import Session
 
@@ -23,12 +25,12 @@ class CandidatePlayer:
 
     def __init__(
         self,
-        player,
-        season=CURRENT_SEASON,
+        player: Player | str | int,
+        season: str = CURRENT_SEASON,
         gameweek: int | None = None,
         purchase_price: int | None = None,
         dbsession: Session | None = None,
-    ):
+    ) -> None:
         """
         initialize either by name or by ID
         """
@@ -72,12 +74,12 @@ class CandidatePlayer:
         self.is_captain = False
         self.is_vice_captain = False
         self.predicted_points: dict[str, dict[int, float]] = {}
-        self.sub_position = None
+        self.sub_position: int | None = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name or self.name
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> dict[str, Any]:
         """
         Drop the database session when pickling.
 
@@ -90,7 +92,7 @@ class CandidatePlayer:
         state["dbsession"] = None
         return state
 
-    def calc_predicted_points(self, tag):
+    def calc_predicted_points(self, tag: str) -> None:
         """
         get expected points from the db.
         Will be a dict of dicts, keyed by tag and gameweeek
@@ -100,7 +102,7 @@ class CandidatePlayer:
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
 
-    def get_predicted_points(self, gameweek, tag):
+    def get_predicted_points(self, gameweek: int, tag: str) -> float:
         """
         get points for a specific gameweek
         """
@@ -117,7 +119,14 @@ class DummyPlayer:
     To fill squads with placeholders for optimisation (if not optimising full squad).
     """
 
-    def __init__(self, gameweeks, tag, position, purchase_price=45, pts=0):
+    def __init__(
+        self,
+        gameweeks: Iterable[int],
+        tag: str,
+        position: str,
+        purchase_price: int = 45,
+        pts: float = 0,
+    ) -> None:
         self.name = "DUMMY"
         self.display_name = "DUMMY"
         self.position = position
@@ -125,21 +134,42 @@ class DummyPlayer:
         # set team to random string so we don't violate max players per team constraint
         self.team = str(uuid.uuid4())
         self.pts = pts
-        self.predicted_points = {tag: dict.fromkeys(gameweeks, self.pts)}
-        self.player_id = str(uuid.uuid4())  # dummy id
+        self.predicted_points: dict[str, dict[int, float]] = {
+            tag: dict.fromkeys(gameweeks, self.pts)
+        }
+        # negative so it can never collide with a real (positive) player id
+        self.player_id = -(uuid.uuid4().int % (2**31))
         self.is_starting = False
         self.is_captain = False
         self.is_vice_captain = False
-        self.sub_position = None
+        self.sub_position: int | None = None
         self.season = "DUMMY"
 
-    def calc_predicted_points(self, tag):
+    def calc_predicted_points(self, tag: str) -> None:
         """
         Needed for compatibility with Squad/other Player classes
         """
 
-    def get_predicted_points(self, gameweek, tag):  # noqa: ARG002
+    def get_predicted_points(self, gameweek: int, tag: str) -> float:  # noqa: ARG002
         """
         Get points for a specific gameweek -
         """
         return self.pts
+
+
+# Squad holds both: a real player, or a placeholder used when the optimiser is
+# not choosing the whole squad.
+SquadPlayer: TypeAlias = CandidatePlayer | DummyPlayer
+
+
+def bench_position(player: SquadPlayer) -> int:
+    """
+    Where a benched player sits in the substitution order.
+
+    Set by Squad.order_substitutes; sorting on it before the lineup has been
+    optimized used to fail inside sorted() with a TypeError about None.
+    """
+    if player.sub_position is None:
+        msg = f"{player} has no bench position - optimize the lineup first"
+        raise RuntimeError(msg)
+    return player.sub_position

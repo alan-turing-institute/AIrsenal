@@ -11,6 +11,7 @@ from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.player import bench_position
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
@@ -55,12 +56,14 @@ def build_lineup_payload(squad: Squad) -> list:
     payload.append(to_dict(sub_gk, 12))
 
     available_sub_positions = list(range(4))
-    available_sub_positions.remove(sub_gk.sub_position)
+    available_sub_positions.remove(bench_position(sub_gk))
     subs_outfield = [
         p for p in squad.players if not p.is_starting and p.position != "GK"
     ]
     for s in subs_outfield:
-        payload.append(to_dict(s, 13 + available_sub_positions.index(s.sub_position)))
+        payload.append(
+            to_dict(s, 13 + available_sub_positions.index(bench_position(s)))
+        )
 
     return payload
 

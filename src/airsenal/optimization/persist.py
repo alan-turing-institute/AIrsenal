@@ -98,8 +98,8 @@ def fill_transaction_table(
         )
     for player_id in outcome.players_in:
         if player := get_player(player_id, dbsession=dbsession):
-            price = player.price(season, fill_gw)
-            if price is None:
+            buy_price = player.price(season, fill_gw)
+            if buy_price is None:
                 # Transaction.price is not nullable, so recording the transfer
                 # anyway fails at flush time with an opaque integrity error.
                 logger.warning(
@@ -112,7 +112,7 @@ def fill_transaction_table(
                 player_id,
                 fill_gw,
                 1,
-                price,
+                buy_price,
                 season,
                 tag,
                 free_hit,

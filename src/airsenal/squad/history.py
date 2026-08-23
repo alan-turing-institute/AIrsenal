@@ -21,7 +21,11 @@ from airsenal.db.queries.transactions import (
     transaction_exists,
 )
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.fetch.fpl_api import (
+    FPLDataFetcher,
+    get_fetcher,
+    require_fpl_team_id,
+)
 from airsenal.squad.squad import Squad, get_current_squad_from_api
 from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
 
@@ -29,11 +33,11 @@ logger = get_logger(__name__)
 
 
 def fill_initial_squad(
-    season=CURRENT_SEASON,
-    tag="AIrsenal" + CURRENT_SEASON,
-    fpl_team_id=None,
+    season: str = CURRENT_SEASON,
+    tag: str = "AIrsenal" + CURRENT_SEASON,
+    fpl_team_id: int | None = None,
     dbsession: Session | None = None,
-):
+) -> None:
     """
     Fill the Transactions table in the database with the initial 15 players, and their
     costs, getting the information from the team history API endpoint (for the list of
@@ -41,8 +45,7 @@ def fill_initial_squad(
     """
 
     dbsession = dbsession if dbsession is not None else get_session()
-    if not fpl_team_id:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
+    fpl_team_id = require_fpl_team_id(fpl_team_id)
     logger.info(
         "Getting initially selected players in squad %s for first gameweek...",
         fpl_team_id,
@@ -106,18 +109,17 @@ def fill_initial_squad(
 
 
 def update_squad(
-    season=CURRENT_SEASON,
-    tag="AIrsenal" + CURRENT_SEASON,
-    fpl_team_id=None,
+    season: str = CURRENT_SEASON,
+    tag: str = "AIrsenal" + CURRENT_SEASON,
+    fpl_team_id: int | None = None,
     dbsession: Session | None = None,
-):
+) -> None:
     """
     Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
     using the transfers API endpoint which has the correct buy and sell prices.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    if not fpl_team_id:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
+    fpl_team_id = require_fpl_team_id(fpl_team_id)
     logger.info("Updating db with squad with fpl_team_id=%s", fpl_team_id)
     # do we already have the initial squad for this fpl_team_id?
     existing_transfers = dbsession.scalars(
@@ -204,12 +206,12 @@ def update_squad(
 
 def get_starting_squad(
     next_gw: int | None = None,
-    season=CURRENT_SEASON,
-    fpl_team_id=None,
-    use_api=False,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    use_api: bool = False,
     fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
-):
+) -> Squad:
     """
     use the transactions table in the db, or the API if requested
     """
@@ -240,8 +242,11 @@ def get_starting_squad(
 
 
 def get_squad_from_transactions(
-    gameweek, season=CURRENT_SEASON, fpl_team_id=None, dbsession: Session | None = None
-):
+    gameweek: int | None,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    dbsession: Session | None = None,
+) -> Squad:
     dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
         # use the most recent transaction in the table
