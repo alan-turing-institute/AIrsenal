@@ -21,9 +21,13 @@ from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.strategy import GameweekOutcome, Strategy
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    DEFAULT_TEAM_MODEL,
+    PLAYER_MODELS,
+    build_team_model,
+)
 from airsenal.prediction.run import make_predictedscore_table
-from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 
 logger = get_logger(__name__)
 
@@ -62,15 +66,14 @@ def replay_season(
     num_thread: int = 4,
     transfers: bool = True,
     tag_prefix: str = "",
-    team_model: str = "extended",
-    team_model_args: dict[str, Any] | None = None,
+    team_model: str = DEFAULT_TEAM_MODEL,
+    epsilon: float | None = None,
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
-    player_model: str = "conjugate",
+    player_model: str = DEFAULT_PLAYER_MODEL,
     player_model_options: dict[str, str] | None = None,
+    team_model_options: dict[str, str] | None = None,
 ) -> None:
-    if team_model_args is None:
-        team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     start = datetime.now()
     if gameweek_end is None:
         gameweek_end = get_max_gameweek(season)
@@ -88,7 +91,12 @@ def replay_season(
     fitted_player_model = PLAYER_MODELS.create_with(
         player_model, player_model_options or {}
     )
-    fitted_team_model = TEAM_MODELS.create(team_model)
+    # build_team_model, not TEAM_MODELS.create: the latter never consults
+    # fit_args(), so replay used to fit without rescale_weights and - with no
+    # --epsilon - without any time weighting at all, while `airsenal run` fitted
+    # with both. Replay is for comparing strategies, so it has to fit the same
+    # model the real run does.
+    fitted_team_model = build_team_model(team_model, team_model_options, epsilon)
 
     # store results in a dictionary, which we will later save to a json file
     replay_results: dict[str, str | int | float | list[Any]] = {}
@@ -109,7 +117,6 @@ def replay_season(
                 tag_prefix=tag_prefix,
                 player_model=fitted_player_model,
                 team_model=fitted_team_model,
-                team_model_args=team_model_args,
                 dbsession=session,
             )
         gw_result = {"gameweek": gw, "predictions_tag": tag}
@@ -203,8 +210,9 @@ def run_replays(
     team_model: str,
     epsilon: float | None,
     max_transfers: int,
-    player_model: str = "conjugate",
+    player_model: str = DEFAULT_PLAYER_MODEL,
     player_model_options: dict[str, str] | None = None,
+    team_model_options: dict[str, str] | None = None,
 ) -> None:
     """Replay a season one or more times."""
     if resume and not fpl_team_id:
@@ -227,9 +235,10 @@ def run_replays(
             num_thread=num_thread,
             fpl_team_id=fpl_team_id,
             team_model=team_model,
-            team_model_args=({"epsilon": epsilon} if epsilon is not None else {}),
+            epsilon=epsilon,
             max_opt_transfers=max_transfers,
             player_model=player_model,
             player_model_options=player_model_options,
+            team_model_options=team_model_options,
         )
         n_completed += 1

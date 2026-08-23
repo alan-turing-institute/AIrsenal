@@ -6,7 +6,12 @@ import typer
 
 from airsenal.cli.options import parse_options
 from airsenal.pipeline.replay import run_replays
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    DEFAULT_TEAM_MODEL,
+    PLAYER_MODELS,
+    TEAM_MODELS,
+)
 
 
 def replay(
@@ -35,7 +40,7 @@ def replay(
     ] = 1,
     team_model: Annotated[
         str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
-    ] = "extended",
+    ] = DEFAULT_TEAM_MODEL,
     epsilon: Annotated[
         float | None,
         typer.Option(
@@ -48,10 +53,14 @@ def replay(
     player_model: Annotated[
         str,
         typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
-    ] = "conjugate",
+    ] = DEFAULT_PLAYER_MODEL,
     set_player: Annotated[
         list[str] | None,
         typer.Option("--set-player", help="Player model option as key=value."),
+    ] = None,
+    set_team: Annotated[
+        list[str] | None,
+        typer.Option("--set-team", help="Team model option as key=value."),
     ] = None,
 ) -> None:
     """Replay a historical FPL season."""
@@ -69,4 +78,5 @@ def replay(
         max_transfers,
         player_model,
         parse_options(set_player),
+        parse_options(set_team),
     )

@@ -6,7 +6,12 @@ import typer
 
 from airsenal.cli.options import parse_options
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    DEFAULT_TEAM_MODEL,
+    PLAYER_MODELS,
+    TEAM_MODELS,
+)
 from airsenal.prediction.run import run_prediction
 
 
@@ -36,11 +41,11 @@ def predict(
     player_model: Annotated[
         str,
         typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
-    ] = "conjugate",
+    ] = DEFAULT_PLAYER_MODEL,
     team_model: Annotated[
         str,
         typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}."),
-    ] = "extended",
+    ] = DEFAULT_TEAM_MODEL,
     epsilon: Annotated[
         float | None,
         typer.Option(

@@ -1,6 +1,5 @@
 import multiprocessing
 import sys
-from typing import Any
 
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
@@ -19,10 +18,13 @@ from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
-from airsenal.prediction.protocols import PlayerModel, TeamModel
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.protocols import ConfiguredTeamModel, PlayerModel
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    PLAYER_MODELS,
+    build_team_model,
+)
 from airsenal.prediction.run import make_predictedscore_table
-from airsenal.prediction.team_models.dixon_coles import DEFAULT_TEAM_EPSILON
 from airsenal.reporting.top_players import get_top_predicted_points
 from airsenal.squad.state import get_entry_start_gameweek
 
@@ -47,7 +49,7 @@ def run_pipeline(
     max_hit: int,
     allow_unused: bool,
     save_absences: bool,
-    player_model: str = "conjugate",
+    player_model: str = DEFAULT_PLAYER_MODEL,
     player_model_options: dict[str, str] | None = None,
     team_model_options: dict[str, str] | None = None,
 ) -> None:
@@ -69,13 +71,7 @@ def run_pipeline(
     fitted_player_model = PLAYER_MODELS.create_with(
         player_model, player_model_options or {}
     )
-    # --epsilon stays first-class because it is the knob people actually tune;
-    # anything else goes through --set-team. Only forwarded when given, so a
-    # model without an epsilon is not an error.
-    team_options = dict(team_model_options or {})
-    if epsilon is not None:
-        team_options = {"epsilon": str(epsilon), **team_options}
-    fitted_team_model, team_config = TEAM_MODELS.build(team_model, team_options)
+    fitted_team_model = build_team_model(team_model, team_model_options, epsilon)
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
@@ -116,7 +112,6 @@ def run_pipeline(
             dbsession=dbsession,
             player_model=fitted_player_model,
             team_model=fitted_team_model,
-            team_model_args=team_config.fit_args(),
         )
         if not predict_ok:
             msg = "Problem running prediction"
@@ -218,14 +213,11 @@ def run_prediction(
     gameweeks: list[int],
     dbsession: Session,
     player_model: PlayerModel | None = None,
-    team_model: TeamModel | None = None,
-    team_model_args: dict[str, Any] | None = None,
+    team_model: ConfiguredTeamModel | None = None,
 ) -> bool:
     """
     Run prediction
     """
-    if team_model_args is None:
-        team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     season = CURRENT_SEASON
     tag = make_predictedscore_table(
         gameweeks=gameweeks,
@@ -235,7 +227,6 @@ def run_prediction(
         include_saves=True,
         player_model=player_model,
         team_model=team_model,
-        team_model_args=team_model_args,
         dbsession=dbsession,
     )
 

@@ -6,7 +6,6 @@ Generates a "tag" string which is stored so it can later be used by team-optimiz
 get consistent sets of predictions from the database.
 """
 
-from typing import Any
 from uuid import uuid4
 
 from sqlalchemy.orm.session import Session
@@ -27,10 +26,13 @@ from airsenal.prediction.features import (
     get_all_fitted_player_data,
 )
 from airsenal.prediction.points import calc_predicted_points_for_player
-from airsenal.prediction.protocols import PlayerModel, TeamModel
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.protocols import ConfiguredTeamModel, PlayerModel
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    PLAYER_MODELS,
+    build_team_model,
+)
 from airsenal.prediction.team_models.dixon_coles import (
-    DEFAULT_TEAM_EPSILON,
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
@@ -49,20 +51,18 @@ def calc_all_predicted_points(
     include_def_con: bool = True,
     tag: str = "",
     player_model: PlayerModel | None = None,
-    team_model: TeamModel | None = None,
-    team_model_args: dict[str, Any] | None = None,
+    team_model: ConfiguredTeamModel | None = None,
 ) -> None:
     """
     Do the full prediction for players.
     """
-    if team_model_args is None:
-        team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
+    team_model = team_model if team_model is not None else build_team_model()
     model_team = get_fitted_team_model(
         season=season,
         gameweek=min(gameweeks),
         dbsession=dbsession,
-        model=team_model,
-        **team_model_args,
+        model=team_model.model,
+        **team_model.fit_args,
     )
     logger.info("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweeks(gameweeks, season=season, dbsession=dbsession)
@@ -122,13 +122,10 @@ def make_predictedscore_table(
     include_def_con: bool = True,
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
-    team_model: TeamModel | None = None,
-    team_model_args: dict[str, Any] | None = None,
+    team_model: ConfiguredTeamModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
     dbsession = dbsession if dbsession is not None else get_session()
-    if team_model_args is None:
-        team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
     tag = tag_prefix or ""
     tag += str(uuid4())
     if not gameweeks:
@@ -145,7 +142,6 @@ def make_predictedscore_table(
             tag=tag,
             player_model=player_model,
             team_model=team_model,
-            team_model_args=team_model_args,
         )
     return tag
 
@@ -160,7 +156,7 @@ def run_prediction(
     no_saves: bool,
     team_model_name: str,
     epsilon: float | None = None,
-    player_model_name: str = "conjugate",
+    player_model_name: str = DEFAULT_PLAYER_MODEL,
     player_model_options: dict[str, str] | None = None,
     team_model_options: dict[str, str] | None = None,
 ) -> None:
@@ -177,13 +173,7 @@ def run_prediction(
     player_model = PLAYER_MODELS.create_with(
         player_model_name, player_model_options or {}
     )
-    # --epsilon stays a first-class option because it is the knob people actually
-    # tune; anything else goes through --set-team. It is only forwarded when
-    # given, so selecting a model that has no epsilon is not an error.
-    team_options = dict(team_model_options or {})
-    if epsilon is not None:
-        team_options = {"epsilon": str(epsilon), **team_options}
-    team_model, team_config = TEAM_MODELS.build(team_model_name, team_options)
+    team_model = build_team_model(team_model_name, team_model_options, epsilon)
 
     with session_scope() as session:
         session.expire_on_commit = False
@@ -196,7 +186,6 @@ def run_prediction(
             include_saves=include_saves,
             player_model=player_model,
             team_model=team_model,
-            team_model_args=team_config.fit_args(),
             dbsession=session,
         )
 

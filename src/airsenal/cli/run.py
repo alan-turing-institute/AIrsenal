@@ -6,7 +6,12 @@ import typer
 
 from airsenal.cli.options import parse_options
 from airsenal.pipeline.run import run_pipeline
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.registry import (
+    DEFAULT_PLAYER_MODEL,
+    DEFAULT_TEAM_MODEL,
+    PLAYER_MODELS,
+    TEAM_MODELS,
+)
 
 
 def run(
@@ -55,7 +60,7 @@ def run(
     ] = False,
     team_model: Annotated[
         str, typer.Option(help=f"Team model: {', '.join(TEAM_MODELS.names())}.")
-    ] = "extended",
+    ] = DEFAULT_TEAM_MODEL,
     epsilon: Annotated[
         float | None,
         typer.Option(
@@ -82,7 +87,7 @@ def run(
     player_model: Annotated[
         str,
         typer.Option(help=f"Player model: {', '.join(PLAYER_MODELS.names())}."),
-    ] = "conjugate",
+    ] = DEFAULT_PLAYER_MODEL,
     set_player: Annotated[
         list[str] | None,
         typer.Option("--set-player", help="Player model option as key=value."),

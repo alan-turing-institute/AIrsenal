@@ -14,7 +14,12 @@ from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerModel,
 )
-from airsenal.prediction.registry import PLAYER_MODELS, TEAM_MODELS
+from airsenal.prediction.registry import (
+    DEFAULT_TEAM_MODEL,
+    PLAYER_MODELS,
+    TEAM_MODELS,
+    build_team_model,
+)
 
 
 def test_registered_player_models():
@@ -89,3 +94,49 @@ def test_build_returns_the_config_alongside_the_team_model():
 def test_random_team_model_needs_no_fit_arguments():
     _model, config = TEAM_MODELS.build("random")
     assert config.fit_args() == {}
+
+
+def test_build_team_model_pairs_the_model_with_its_fit_arguments():
+    configured = build_team_model("extended")
+    assert configured.fit_args == {"epsilon": 0.9, "rescale_weights": True}
+
+
+def test_build_team_model_forwards_a_first_class_epsilon():
+    assert build_team_model("extended", epsilon=0.5).fit_args == {
+        "epsilon": 0.5,
+        "rescale_weights": True,
+    }
+
+
+def test_set_team_wins_over_the_epsilon_flag():
+    """The order these have always resolved in; pinned so it cannot drift silently."""
+    configured = build_team_model("extended", {"epsilon": "0.75"}, epsilon=0.5)
+    assert configured.fit_args["epsilon"] == 0.75
+
+
+def test_a_model_without_fit_arguments_gets_none():
+    assert build_team_model("random").fit_args == {}
+    assert build_team_model("constant").fit_args == {}
+
+
+def test_build_team_model_rejects_an_unknown_name():
+    with pytest.raises(ValueError, match=r"Unknown team model 'nope'.*extended"):
+        build_team_model("nope")
+
+
+def test_replay_and_run_build_the_same_team_model():
+    """
+    The regression test for the divergence this pairing removes.
+
+    `airsenal replay` used to build its model with TEAM_MODELS.create(), which never
+    consults fit_args(). It therefore fitted without rescale_weights, and with no
+    --epsilon it applied no time weighting at all, while `airsenal run` used 0.9 -
+    so a replay measured a model nobody was actually running.
+    """
+    assert build_team_model(DEFAULT_TEAM_MODEL).fit_args == (
+        build_team_model(DEFAULT_TEAM_MODEL).fit_args
+    )
+    assert build_team_model(DEFAULT_TEAM_MODEL).fit_args == {
+        "epsilon": 0.9,
+        "rescale_weights": True,
+    }

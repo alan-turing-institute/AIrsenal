@@ -14,9 +14,12 @@ this refactor is removing, wearing a type hint.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import numpy as np
 
 
@@ -52,3 +55,20 @@ class TeamModel(Protocol):
     def predict_score_n_proba(
         self, n: np.ndarray, team: str, opponent: str, home: bool = True, **kwargs: Any
     ) -> np.ndarray: ...
+
+
+@dataclass(frozen=True)
+class ConfiguredTeamModel:
+    """
+    A team model together with the settings it wants at fit time.
+
+    bpl takes epsilon and rescale_weights when fitting rather than when
+    constructing, so the two used to travel as separate arguments - and every
+    caller had to remember to pair them. `airsenal replay` did not: it built its
+    model with `TEAM_MODELS.create()`, which never consults `fit_args()`, so
+    replay silently evaluated a differently-weighted model than `airsenal run`.
+    Pairing them here makes that mistake unrepresentable.
+    """
+
+    model: TeamModel
+    fit_args: Mapping[str, Any]

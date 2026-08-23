@@ -22,20 +22,15 @@ from airsenal.db.queries.fixtures import (
 from airsenal.db.queries.gameweeks import is_future_gameweek
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
+from airsenal.prediction.config import (
+    DEFAULT_RESCALE_WEIGHTS,
+    DEFAULT_TEAM_EPSILON,
+)
 from airsenal.prediction.team_models.random_model import RandomMatchPredictor
 
 logger = get_logger(__name__)
 
 np.random.seed(42)
-
-# Default time weighting for team model, calculated using best on average across 20/21
-# to 24/25 season, assuming 3 seasons of history before the current season in the DB and
-# predicting 5 weeks ahead.
-DEFAULT_TEAM_EPSILON = 0.9
-# Rescale weights to sum to number of matches in training data (what they would sum to
-# if no time weighting would apply to the model). The optimal value of epsilon above is
-# for the case where this is True.
-DEFAULT_RESCALE_WEIGHTS = True
 
 
 def get_result_dict(
