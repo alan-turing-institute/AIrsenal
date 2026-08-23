@@ -7,12 +7,12 @@ import csv
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.resources import resource
+from airsenal.core.data_files import data_file
 from airsenal.db.models import Player, PlayerMapping
 
 
 def load_mappings_data() -> list[list[str]]:
-    with resource("alternative_player_names.csv").open(encoding="UTF-8") as csvfile:
+    with data_file("alternative_player_names.csv").open(encoding="UTF-8") as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         return list(reader)
 

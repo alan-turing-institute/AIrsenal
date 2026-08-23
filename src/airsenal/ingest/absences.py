@@ -5,8 +5,8 @@ import pandas as pd
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
+from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import FilePath, resource
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Absence
 from airsenal.db.queries.gameweeks import (
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 def get_absences_path(season: str) -> Path:
     """Path of the absences csv file for a season."""
-    return resource(f"absences_{season}.csv")
+    return data_file(f"absences_{season}.csv")
 
 
 def load_absences(

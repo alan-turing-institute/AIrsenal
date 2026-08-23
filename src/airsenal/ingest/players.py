@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
-from airsenal.core.resources import FilePath, resource
+from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Player, PlayerMapping
 from airsenal.db.session import get_session, session_scope
@@ -117,7 +117,7 @@ def make_init_player_table(season: str, dbsession: Session | None = None) -> Non
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
     else:
         fill_player_table_from_file(
-            resource(f"player_summary_{season}.json"), season, dbsession
+            data_file(f"player_summary_{season}.json"), season, dbsession
         )
 
 
@@ -133,7 +133,7 @@ def make_remaining_player_table(
         seasons = []
     for season in seasons:
         fill_player_table_from_file(
-            resource(f"player_summary_{season}.json"), season, dbsession
+            data_file(f"player_summary_{season}.json"), season, dbsession
         )
 
 

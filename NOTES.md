@@ -11,7 +11,7 @@ For installation instructions see the [README](https://github.com/alan-turing-in
 
 ## Database
 
-The database is filled with data from the previous three FPL seasons (stored in the repo at `src/airsenal/resources`), as well as data from the current season (obtained from the FPL API). A lot of the historic FPL data has been compiled with the help of the [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) repo. The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It has the following tables:
+The database is filled with data from the previous three FPL seasons (stored in the repo at `src/airsenal/data`), as well as data from the current season (obtained from the FPL API). A lot of the historic FPL data has been compiled with the help of the [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) repo. The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It has the following tables:
 
 **_Tables with Football Club Data:_**
 - **Team:** Name (short and full) and FPL ID for each team in each of the last three (and current) premier league seasons.

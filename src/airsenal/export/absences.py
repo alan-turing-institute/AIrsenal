@@ -16,8 +16,8 @@ from datetime import date, datetime
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
+from airsenal.core.data_files import FilePath
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import FilePath
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session

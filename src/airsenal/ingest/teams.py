@@ -6,7 +6,7 @@ help fill other tables from raw json files
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
-from airsenal.core.resources import FilePath, resource
+from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Team
 from airsenal.db.session import get_session, session_scope
@@ -46,7 +46,7 @@ def make_team_table(
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
     for season in track(sort_seasons(seasons), description="TEAMS"):
-        fill_team_table_from_file(resource(f"teams_{season}.csv"), dbsession=dbsession)
+        fill_team_table_from_file(data_file(f"teams_{season}.csv"), dbsession=dbsession)
 
 
 if __name__ == "__main__":

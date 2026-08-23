@@ -6,8 +6,8 @@ import csv
 
 from sqlalchemy import select
 
+from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import resource
 from airsenal.db.models import (
     FifaTeamRating,
     Fixture,
@@ -178,7 +178,7 @@ def main():
 
 
 def save_table_fields(filename, fields, dbclass, msg):
-    result = resource(filename)
+    result = data_file(filename)
     with result.open("w") as csvfile:
         write_rows_to_csv(csvfile, fields, dbclass)
     logger.info(msg)

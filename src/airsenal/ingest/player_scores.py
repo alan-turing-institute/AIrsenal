@@ -14,9 +14,9 @@ from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
+from airsenal.core.data_files import data_file
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import resource
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.fixtures import (
@@ -450,7 +450,7 @@ def make_playerscore_table(
             # current season - use API
             fill_playerscores_from_api(CURRENT_SEASON, dbsession=dbsession)
         else:
-            with resource(f"player_details_{season}.json").open() as f:
+            with data_file(f"player_details_{season}.json").open() as f:
                 input_data = json.load(f)
             fill_playerscores_from_json(input_data, season, dbsession=dbsession)
 

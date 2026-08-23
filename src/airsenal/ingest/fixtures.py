@@ -8,8 +8,8 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.caching import clear_query_caches
 from airsenal.core.console import track
+from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.mappings import alternative_team_names
-from airsenal.core.resources import FilePath, resource
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
@@ -115,7 +115,7 @@ def make_fixture_table(
             fill_fixtures_from_api(CURRENT_SEASON, dbsession=dbsession)
         else:
             fill_fixtures_from_file(
-                resource(f"results_{season}.csv"), season, dbsession=dbsession
+                data_file(f"results_{season}.csv"), season, dbsession=dbsession
             )
     # gameweek lookups are cached, and every one of them reads this table
     clear_query_caches()

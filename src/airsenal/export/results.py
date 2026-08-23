@@ -6,15 +6,15 @@ import json
 
 import pandas as pd
 
+from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import resource
 from airsenal.core.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 
-FIXTURE_DATA_FILE = str(resource("fixture_data_{}.json"))
-SUMMARY_DATA_FILE = str(resource("FPL_{}.json"))
-RESULTS_FILE = str(resource("results_{}.csv"))
+FIXTURE_DATA_FILE = str(data_file("fixture_data_{}.json"))
+SUMMARY_DATA_FILE = str(data_file("FPL_{}.json"))
+RESULTS_FILE = str(data_file("results_{}.csv"))
 
 keys_to_extract = {
     "kickoff_time": "date",

@@ -4,15 +4,15 @@ Make player summary files from FPL season data json
 
 import json
 
+from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import resource
 from airsenal.core.season import get_past_seasons
 from airsenal.db.queries.gameweeks import is_future_gameweek
 
 logger = get_logger(__name__)
 
-INPUT_FILE = str(resource("FPL_{}.json"))
-SAVE_FILE = str(resource("player_summary_{}.json"))
+INPUT_FILE = str(data_file("FPL_{}.json"))
+SAVE_FILE = str(data_file("player_summary_{}.json"))
 
 # dict of {key in input file: key in output file}
 keys_to_extract = {

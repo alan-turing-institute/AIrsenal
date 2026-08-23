@@ -19,24 +19,24 @@ import os
 from importlib.resources import files
 from pathlib import Path
 
-# Anything open() accepts - callers pass either a resource() Path or their own
+# Anything open() accepts - callers pass either a data_file() Path or their own
 # string path, and neither should have to convert for the other.
 FilePath = str | os.PathLike[str]
 
 PACKAGE = "airsenal"
-RESOURCE_DIR_NAME = "resources"
+DATA_DIR_NAME = "data"
 
 
-def resource_dir() -> Path:
+def data_dir() -> Path:
     """
     The packaged data directory.
 
-    Resolved via the `airsenal` package rather than `airsenal.resources`, so the
-    data directory does not need an `__init__.py` to make it importable.
+    Resolved via the `airsenal` package rather than `airsenal.data`, so the data
+    directory does not need an `__init__.py` to make it importable.
     """
-    return Path(str(files(PACKAGE))) / RESOURCE_DIR_NAME
+    return Path(str(files(PACKAGE))) / DATA_DIR_NAME
 
 
-def resource(*parts: str) -> Path:
-    """A packaged data file, e.g. `resource(f"results_{season}.csv")`."""
-    return resource_dir().joinpath(*parts)
+def data_file(*parts: str) -> Path:
+    """A packaged data file, e.g. `data_file(f"results_{season}.csv")`."""
+    return data_dir().joinpath(*parts)

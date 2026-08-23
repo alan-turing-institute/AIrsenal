@@ -6,7 +6,7 @@ import json
 from typing import Any
 
 from airsenal.core.console import track
-from airsenal.core.resources import resource
+from airsenal.core.data_files import data_file
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.fetch.fpl_api import FPLDataFetcher
 
@@ -25,7 +25,7 @@ REMOVE_KEYS = [
     "team_a_score",
     "was_home",
 ]
-SAVE_FILE = str(resource("player_details_{}.json"))
+SAVE_FILE = str(data_file("player_details_{}.json"))
 
 
 def make_player_details(season: str = CURRENT_SEASON) -> None:

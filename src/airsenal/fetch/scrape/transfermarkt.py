@@ -13,8 +13,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from airsenal.core.console import track
+from airsenal.core.data_files import data_dir
 from airsenal.core.logging import get_logger
-from airsenal.core.resources import resource_dir
 from airsenal.core.season import (
     CURRENT_SEASON,
     get_next_season,
@@ -645,7 +645,7 @@ def scrape_transfermarkt(seasons: list[str]):
     seasons : List[str]
         seasons to query in format "1819" (for 2018/19 season)
     """
-    repo_home = resource_dir()
+    repo_home = data_dir()
 
     # get the teams that played in each season we want to scrape
     pl_teams = {}
