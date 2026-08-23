@@ -42,7 +42,7 @@ from airsenal.db.queries.gameweeks import set_next_gameweek  # noqa: E402
 # empty database. Pin it explicitly instead: same value, no network, no import-time
 # side effect.
 set_next_gameweek(1)
-from tests.test_resources import dummy_players  # noqa: E402
+from tests.dummy_data import dummy_players  # noqa: E402
 
 API_SESSION_ID = "TESTSESSION"
 TEST_PAST_SEASON = "2021"

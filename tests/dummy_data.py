@@ -1,20 +1,4 @@
-"""
-A list of dummy players and utils for use in tests.
-"""
-
-from pathlib import Path
-
-
-def in_docker() -> bool:
-    """Return True if in running within docker, else False.
-
-    Reference: https://stackoverflow.com/a/73564246/678486
-    """
-    cgroup: Path = Path("/proc/self/cgroup")
-    return Path("/.dockerenv").is_file() or (
-        cgroup.is_file() and "docker" in cgroup.read_text()
-    )
-
+"""Dummy player names, used to fill the test database."""
 
 dummy_players: list[str] = [
     "Alice",

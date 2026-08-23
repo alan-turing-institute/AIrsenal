@@ -16,6 +16,11 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
+        # The hook checks every tests/**/*.py and exempts only __init__.py and
+        # conftest.py, so a module holding fixture data rather than tests has to
+        # be listed here - the alternative is calling it test_something.py and
+        # having it collected as a test file that contains no tests.
+        exclude: ^tests/dummy_data\.py$
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
