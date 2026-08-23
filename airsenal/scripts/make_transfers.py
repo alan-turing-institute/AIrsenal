@@ -265,7 +265,7 @@ def build_init_priced_transfers(
     current_squad = fetcher.get_current_picks(fpl_team_id)
     transfers_out = [
         {"element_out": el["element"], "selling_price": el["selling_price"]}
-        for el in current_squad
+        for el in current_squad.values()
     ]
     transfer_in_suggestions = get_transfer_suggestions(dbsession)
     if len(transfers_out) != len(transfer_in_suggestions):
