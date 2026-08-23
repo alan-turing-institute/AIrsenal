@@ -11,7 +11,7 @@ from airsenal.core.enums import Chip
 from airsenal.core.registry import ConfigError
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
-    TransferPlan,
+    Proposal,
     TransferRequest,
     TransferStrategy,
 )
@@ -104,7 +104,7 @@ def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
         progress=count_step,
     )
     plan = select_strategy(request.move).propose(request)
-    assert plan == TransferPlan(squad, [], [])
+    assert plan == Proposal(squad, [], [])
     # one step per candidate squad considered, and this strategy considers one
     assert steps == select_strategy(request.move).num_increments(request.move, 100)
 

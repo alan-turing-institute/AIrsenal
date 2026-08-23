@@ -12,9 +12,9 @@ from airsenal.core.logging import get_logger
 from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
+    Proposal,
     SquadOptimizerFactory,
     SquadRequest,
-    TransferPlan,
     TransferRequest,
     progress_total,
 )
@@ -34,7 +34,7 @@ class FullSquadStrategy:
     def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
         return progress_total(self.make_optimizer(num_iterations)) or 1
 
-    def propose(self, request: TransferRequest) -> TransferPlan:
+    def propose(self, request: TransferRequest) -> Proposal:
         move = request.move
         players_out = [p.player_id for p in request.squad.players]
         budget = request.squad.sale_value(request.root_gw, use_api=False)
@@ -59,7 +59,7 @@ class FullSquadStrategy:
             )
         )
         players_in = [p.player_id for p in new_squad.players]
-        return TransferPlan(
+        return Proposal(
             new_squad,
             # a player kept from the old squad is not a transfer
             players_in=[p for p in players_in if p not in players_out],

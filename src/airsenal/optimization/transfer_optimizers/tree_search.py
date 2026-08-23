@@ -1,5 +1,5 @@
 """
-The multiprocess strategy-tree search.
+The multiprocess plan-tree search.
 
 The algorithm behind `airsenal optimize transfers`: enumerate every legal move
 for every gameweek in the window, score each resulting squad, and keep the best
@@ -28,6 +28,12 @@ from airsenal.optimization.moves import (
     count_expected_outputs,
     next_week_transfers,
 )
+from airsenal.optimization.plan import (
+    GameweekOutcome,
+    Plan,
+    TransferSearchResult,
+    baseline_plan,
+)
 from airsenal.optimization.protocols import (
     ProgressResetter,
     ProgressUpdater,
@@ -35,27 +41,21 @@ from airsenal.optimization.protocols import (
 )
 from airsenal.optimization.squad_score import get_discount_factor
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES, StrategySet
-from airsenal.optimization.strategy import (
-    GameweekOutcome,
-    Strategy,
-    TransferSearchResult,
-    get_baseline_strat,
-)
 from airsenal.optimization.transfers import get_num_increments, make_best_transfers
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
-# What the strategy-tree queue carries: either a node still to expand, or the
+# What the plan-tree queue carries: either a node still to expand, or the
 # shutdown sentinel. A node is (move, free_transfers, hit_so_far, hit_this_gw,
-# squad, strategy), where `strategy` is None only for the root.
-StrategyNode = tuple[GameweekMove, int, int, int, Squad, "Strategy | None"]
-QueueItem = StrategyNode | None
+# squad, plan), where `plan` is None only for the root.
+PlanNode = tuple[GameweekMove, int, int, int, Squad, "Plan | None"]
+QueueItem = PlanNode | None
 
 # What a worker sends back to the progress display: count off one step of a bar
-# (a candidate squad on a worker's bar, or a finished strategy on the total), or
-# restart one worker's bar for a new strategy, which sizes it to the number of
-# candidate squads that strategy will consider.
+# (a candidate squad on a worker's bar, or a finished plan on the total), or
+# restart one worker's bar for a new plan, which sizes it to the number of
+# candidate squads that plan will consider.
 ProgressMessage = (
     tuple[Literal["advance"], int | None]
     | tuple[Literal["reset"], int, str, int | None]
@@ -80,14 +80,14 @@ class TreeSearchConfig:
 def optimize(
     queue: CustomQueue[QueueItem],
     pid: int,
-    results: "Queue[Strategy]",
+    results: "Queue[Plan]",
     request: TransferSearchRequest,
     config: "TreeSearchConfig",
     updater: ProgressUpdater | None = None,
     resetter: ProgressResetter | None = None,
 ) -> None:
     """
-    Expand nodes of the strategy tree until the queue is drained.
+    Expand nodes of the plan tree until the queue is drained.
 
     Queue is the multiprocessing queue and pid is the Process that will execute
     this func. The problem and the settings arrive as two frozen dataclasses:
@@ -96,11 +96,11 @@ def optimize(
     silently dropped on the way to every worker.
 
     Things on the queue will either be None (shutdown sentinel, sent once all
-    strategies have been processed), or a tuple:
-    (move, free_transfers, hit_so_far, hit_this_gw, squad, strategy).
+    plans have been processed), or a tuple:
+    (move, free_transfers, hit_so_far, hit_this_gw, squad, plan).
 
-    `strategy` is None for the root node, which exists only to add children to
-    the queue. Finished strategies are put on the `results` queue.
+    `plan` is None for the root node, which exists only to add children to
+    the queue. Finished plans are put on the `results` queue.
     """
     # A worker that wedges - on a lock inherited across fork, say - stays alive,
     # so the parent cannot distinguish it from one doing slow work and the run
@@ -140,25 +140,25 @@ def optimize(
             hit_so_far,
             hit_this_gw,
             squad,
-            strategy,
+            plan,
         ) = status
 
-        if strategy is None:
+        if plan is None:
             # the root node, which exists only to add children to the queue
             new_squad = squad
-            strategy = Strategy(root_gameweek=gameweeks[0])
+            plan = Plan(root_gameweek=gameweeks[0])
         else:
             if resetter is not None:
                 resetter(
                     pid,
-                    f"{strategy.label()}-{move.label()}".lstrip("-"),
+                    f"{plan.label()}-{move.label()}".lstrip("-"),
                     get_num_increments(move, num_iterations, strategy_set),
                 )
 
             # how far down the tree we are, and so which gameweeks are left
-            remaining_gameweeks = gameweeks[len(strategy) :]
+            remaining_gameweeks = gameweeks[len(plan) :]
             gw = remaining_gameweeks[0]
-            root_gw = strategy.root_gameweek
+            root_gw = plan.root_gameweek
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
@@ -175,7 +175,7 @@ def optimize(
             )
 
             discount_factor = get_discount_factor(root_gw, gw)
-            strategy = strategy.extend(
+            plan = plan.extend(
                 GameweekOutcome(
                     gameweek=gw,
                     move=move,
@@ -189,31 +189,31 @@ def optimize(
                 )
             )
 
-        if len(strategy) >= len(gameweeks):
-            results.put(strategy)
+        if len(plan) >= len(gameweeks):
+            results.put(plan)
             # call function to update the main progress bar
             if updater is not None:
                 updater()
 
             if profile and profiler is not None:
                 profiler.dump_stats(
-                    f"process_strat_{prediction_tag}_{strategy.label()}.pstat"
+                    f"process_plan_{prediction_tag}_{plan.label()}.pstat"
                 )
 
         else:
             # add children to the queue
-            strategies = next_week_transfers(
+            branches = next_week_transfers(
                 free_transfers,
                 hit_so_far,
-                strategy.chips_played,
+                plan.chips_played,
                 max_total_hit=constraints.max_total_hit,
                 allow_unused_transfers=constraints.allow_unused_transfers,
                 max_opt_transfers=constraints.max_opt_transfers,
-                chips=chip_schedule.for_gameweek(gameweeks[len(strategy)]),
+                chips=chip_schedule.for_gameweek(gameweeks[len(plan)]),
                 max_free_transfers=constraints.max_free_transfers,
             )
-            for strat in strategies:
-                move, free_transfers, hit_so_far, hit_this_gw = strat
+            for branch in branches:
+                move, free_transfers, hit_so_far, hit_this_gw = branch
 
                 queue.put(
                     (
@@ -222,7 +222,7 @@ def optimize(
                         hit_so_far,
                         hit_this_gw,
                         new_squad,
-                        strategy,
+                        plan,
                     )
                 )
 
@@ -250,7 +250,7 @@ def _wait_for_queue(queue: CustomQueue[QueueItem], procs: list[Process]) -> None
         if dead:
             detail = ", ".join(f"worker {i} exited with {code}" for i, code in dead)
             msg = (
-                f"Transfer optimisation stopped: {detail}. The remaining strategies "
+                f"Transfer optimisation stopped: {detail}. The remaining plans "
                 "cannot be evaluated. Re-run with --num-thread 1 to see the error."
             )
             raise RuntimeError(msg)
@@ -258,13 +258,13 @@ def _wait_for_queue(queue: CustomQueue[QueueItem], procs: list[Process]) -> None
 
 def search_transfer_tree(
     request: TransferSearchRequest, config: "TreeSearchConfig"
-) -> list[Strategy]:
+) -> list[Plan]:
     """
-    Walk the tree of possible transfer strategies and return every finished one.
+    Walk the tree of possible transfer plans and return every finished one.
 
     The tree is grown dynamically: a worker that has not reached the end of the
     gameweek window puts its children back on the same queue. That is why the
-    queue is joinable and why the workers outlive any single strategy.
+    queue is joinable and why the workers outlive any single plan.
     """
     starting_squad = request.starting_squad
     gameweeks = request.gameweeks
@@ -275,8 +275,8 @@ def search_transfer_tree(
     # create a queue that we will add nodes to, and some processes to take
     # things off it
     squeue: CustomQueue[QueueItem] = CustomQueue()
-    # workers put finished strategies here for the parent to compare
-    result_queue: Queue[Strategy | None] = Queue()
+    # workers put finished plans here for the parent to compare
+    result_queue: Queue[Plan | None] = Queue()
     procs = []
     # number of nodes in tree will be something like 3^num_weeks unless we allow
     # a "chip" such as wildcard or free hit, in which case it gets complicated
@@ -296,13 +296,13 @@ def search_transfer_tree(
     # anything they logged themselves would land inside the display.
     with relay_child_logs(), progress_bar(transient=True) as progress:
         # one progress bar per worker process, plus one for overall progress. A
-        # worker's total is only known once it starts a strategy: different
-        # strategies consider very different numbers of candidate squads.
+        # worker's total is only known once it starts a plan: different
+        # plans consider very different numbers of candidate squads.
         worker_tasks = [
             progress.add_task(f"Worker {i}: idle", total=None)
             for i in range(num_thread)
         ]
-        total_task = progress.add_task("Total strategies", total=num_expected_outputs)
+        total_task = progress.add_task("Total plans", total=num_expected_outputs)
 
         # workers report progress back to this process (which owns the Rich
         # display) via a queue, rather than updating the progress bars directly
@@ -312,10 +312,8 @@ def search_transfer_tree(
         def update_progress(index: int | None = None) -> None:
             progress_queue.put(("advance", index))
 
-        def reset_progress(
-            index: int, strategy_string: str, num_steps: int | None
-        ) -> None:
-            progress_queue.put(("reset", index, strategy_string, num_steps))
+        def reset_progress(index: int, plan_label: str, num_steps: int | None) -> None:
+            progress_queue.put(("reset", index, plan_label, num_steps))
 
         def consume_progress_updates() -> None:
             while True:
@@ -337,29 +335,29 @@ def search_transfer_tree(
         progress_thread = threading.Thread(target=consume_progress_updates, daemon=True)
         progress_thread.start()
 
-        # Drain the results queue as strategies finish. A worker blocks once
+        # Drain the results queue as plans finish. A worker blocks once
         # the pipe fills, so this cannot wait until the search is over.
-        finished: list[Strategy] = []
+        finished: list[Plan] = []
 
         def collect_results() -> None:
             while True:
-                strategy = result_queue.get()
-                if strategy is None:
+                plan = result_queue.get()
+                if plan is None:
                     break
-                finished.append(strategy)
+                finished.append(plan)
 
         result_thread = threading.Thread(target=collect_results, daemon=True)
         result_thread.start()
 
         if baseline_excluded:
             # if we are excluding unused transfers the tree may not include the
-            # baseline strategy, so compute it here instead.
-            baseline_strategy = get_baseline_strat(
+            # baseline plan, so compute it here instead.
+            baseline = baseline_plan(
                 starting_squad, gameweeks, tag, root_gw=gameweeks[0]
             )
             progress.advance(total_task, 1)
         else:
-            baseline_strategy = None
+            baseline = None
 
         # Add Processes to run the target 'optimize' function.
         # This target function needs to know:
@@ -397,7 +395,7 @@ def search_transfer_tree(
             )
         )
 
-        # Block until every node in the (dynamically-grown) strategy tree has
+        # Block until every node in the (dynamically-grown) plan tree has
         # been processed - i.e. the queue is empty and no worker is still
         # processing an item that could enqueue further children.
         #
@@ -427,16 +425,16 @@ def search_transfer_tree(
     result_queue.put(None)
     result_thread.join()
 
-    return finished + ([baseline_strategy] if baseline_strategy else [])
+    return finished + ([baseline] if baseline else [])
 
 
 class TreeSearchOptimizer:
-    """Chooses transfers by walking the whole tree of legal strategies."""
+    """Chooses transfers by walking the whole tree of legal plans."""
 
     def __init__(self, config: TreeSearchConfig | None = None) -> None:
         self.config = config if config is not None else TreeSearchConfig()
 
     def search(self, request: TransferSearchRequest) -> TransferSearchResult:
-        return TransferSearchResult.from_strategies(
+        return TransferSearchResult.from_plans(
             search_transfer_tree(request, self.config)
         )

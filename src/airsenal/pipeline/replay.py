@@ -1,5 +1,5 @@
 """
-Replay all or part of a past season, to compare models and strategies.
+Replay all or part of a past season, to compare models and algorithms.
 
 A separate driver rather than a method or a subclass of `AIrsenalPipeline`: what
 replay needs is the predict and optimise stages, once per gameweek, and none of
@@ -117,7 +117,7 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
         # only the first gameweek can start from nothing; after that there is a
         # squad in the database to transfer from
         new_squad = gw == replay.gameweek_start and not replay.resume
-        squad, strategy = pipeline.with_settings(new_squad=new_squad).optimize(
+        squad, plan = pipeline.with_settings(new_squad=new_squad).optimize(
             gameweeks, tag, fpl_team_id, is_replay=True
         )
 
@@ -130,9 +130,9 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
             elif p.is_vice_captain:
                 gw_result["vice_captain"] = p.name
 
-        # A squad built from scratch has no strategy: there was nothing to
+        # A squad built from scratch has no plan: there was nothing to
         # transfer from, and unlimited transfers means no points hit.
-        outcome = strategy.outcome(gw) if strategy is not None else None
+        outcome = plan.outcome(gw) if plan is not None else None
         gw_result["free_transfers"] = outcome.free_transfers if outcome else 0
         gw_result["num_transfers"] = outcome.move.label() if outcome else "0"
         gw_result["points_hit"] = outcome.points_hit if outcome else 0

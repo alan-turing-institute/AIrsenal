@@ -1,17 +1,9 @@
 """
-usage:
-python fill_transfersuggestions_table.py --n_gameweeks <num_weeks_ahead>
-                                          --num_iterations <num_iterations>
-output for each strategy tried is going to be a dict
-{ "total_points": <float>,
-"points_per_gw": {<gw>: <float>, ...},
-"players_sold" : {<gw>: [], ...},
-"players_bought" : {<gw>: [], ...}
-}
-This is done via a recursive tree search, where nodes on the tree do an optimization
-for a given number of transfers, then adds some children to the multiprocessing queue
-representing 0, 1, 2 transfers for the next gameweek.
+Running a transfer search: everything around the algorithm itself.
 
+Fetching the starting squad, persisting the suggestions and reporting the result.
+The search is behind the `TransferOptimizer` interface, so swapping it does not
+mean reimplementing any of this.
 """
 
 import json
@@ -38,6 +30,7 @@ from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.moves import ChipSchedule, TransferConstraints
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
+from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import (
     SquadOptimizer,
     TransferOptimizer,
@@ -48,7 +41,6 @@ from airsenal.optimization.squad_optimizers import (
     GeneticSquadOptimizer,
     genetic_optimizer,
 )
-from airsenal.optimization.strategy import Strategy
 from airsenal.optimization.transfer_optimizers import (
     TreeSearchConfig,
     TreeSearchOptimizer,
@@ -63,23 +55,23 @@ from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 logger = get_logger(__name__)
 
 
-def save_strategy_dump(strategies: list[Strategy], directory: Path, tag: str) -> None:
+def save_plan_dump(plans: list[Plan], directory: Path, tag: str) -> None:
     """
-    Write every strategy considered to one JSON file, for debugging.
+    Write every plan considered to one JSON file, for debugging.
 
-    The search itself keeps strategies in memory; this exists only because
+    The search itself keeps plans in memory; this exists only because
     inspecting the whole tree is occasionally the fastest way to understand a
     surprising suggestion.
     """
     directory.mkdir(parents=True, exist_ok=True)
-    path = directory / f"strategies_{tag}.json"
+    path = directory / f"plans_{tag}.json"
     with path.open("w") as f:
-        json.dump([s.to_dict() for s in strategies], f, indent=2)
-    logger.info("Wrote %s strategies to %s", len(strategies), path)
+        json.dump([p.to_dict() for p in plans], f, indent=2)
+    logger.info("Wrote %s plans to %s", len(plans), path)
 
 
 def print_optimization_summary(
-    strat: Strategy,
+    strat: Plan,
     baseline_score: float,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
@@ -88,7 +80,7 @@ def print_optimization_summary(
 ) -> None:
     """
     Rich-formatted summary of an optimisation result: total score, the
-    chosen strategy (transfers/chips/points hits per gameweek), a table of
+    chosen plan (transfers/chips/points hits per gameweek), a table of
     the transfers in/out (with purchase/sale prices), and the resulting
     bank balance.
     """
@@ -122,23 +114,23 @@ def print_optimization_summary(
 
     console.print(Panel(summary, title="Optimisation Result", expand=False))
 
-    strategy_table = table(
+    plan_table = table(
         "Gameweek",
         "Transfers",
         "Chip",
         "Points Hit",
         "Predicted Score",
-        title="Strategy",
+        title="Plan",
     )
     for outcome in strat.outcomes:
-        strategy_table.add_row(
+        plan_table.add_row(
             str(outcome.gameweek),
             outcome.move.label(),
             str(outcome.chip) if outcome.chip else "-",
             f"-{outcome.points_hit}pts" if outcome.points_hit else "0pts",
             f"{outcome.undiscounted_points:.1f}pts",
         )
-    console.print(strategy_table)
+    console.print(plan_table)
 
     transfer_table = table(
         "GW",
@@ -199,13 +191,13 @@ def print_optimization_summary(
         console.print(f"{transfer_table.title}: no transfers made.")
 
 
-def discord_payload(strat: Strategy, lineup: list[str]) -> dict[str, Any]:
+def discord_payload(strat: Plan, lineup: list[str]) -> dict[str, Any]:
     """
     json formated discord webhook content.
     """
     discord_embed = {
         "title": "AIrsenal webhook",
-        "description": "Optimum strategy for gameweek(S)"
+        "description": "Optimum plan for gameweek(S)"
         f" {','.join(str(gw) for gw in strat.gameweeks)}:",
         "color": 0x35A800,
         "fields": [],
@@ -245,7 +237,7 @@ def discord_payload(strat: Strategy, lineup: list[str]) -> dict[str, Any]:
 
 
 def print_team_for_next_gw(
-    strat: Strategy,
+    strat: Plan,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     use_api: bool = False,
@@ -276,13 +268,13 @@ def print_team_for_next_gw(
 
 
 def lineup_strings(
-    squad: Squad, strategy: Strategy, baseline_score: float, fpl_team_id: int
+    squad: Squad, plan: Plan, baseline_score: float, fpl_team_id: int
 ) -> list[str]:
     """The squad, formatted as Discord markdown."""
     lines = [
-        f"__Strategy for Team ID: **{fpl_team_id}**__",
+        f"__Plan for Team ID: **{fpl_team_id}**__",
         f"Baseline score: *{int(baseline_score)}*",
-        f"Best score: *{int(strategy.total_score)}*",
+        f"Best score: *{int(plan.total_score)}*",
         "\n__starting 11__",
     ]
     for position in list(Position.back_to_front()):
@@ -338,13 +330,13 @@ def run_optimization(
     constraints: TransferConstraints | None = None,
     optimizer: TransferOptimizer | None = None,
     squad_optimizer: SquadOptimizer | None = None,
-    save_strategies: Path | None = None,
+    save_plans: Path | None = None,
     is_replay: bool = False,  # for replaying seasons
-) -> tuple[Squad, Strategy | None]:
+) -> tuple[Squad, Plan | None]:
     """
     This is the actual main function that sets up the multiprocessing
     and calls the optimize function for every move/gameweek
-    combination, to find the best strategy.
+    combination, to find the best plan.
     The chip-related variables e.g. wildcard_week are -1 if that chip
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
@@ -417,41 +409,39 @@ def run_optimization(
             )
         )
 
-        if save_strategies is not None:
-            save_strategy_dump(list(result.considered), save_strategies, tag)
-        best_strategy = result.best
+        if save_plans is not None:
+            save_plan_dump(list(result.considered), save_plans, tag)
+        best_plan = result.best
         if result.baseline is None:
-            logger.warning("No baseline strategy was evaluated")
+            logger.warning("No baseline plan was evaluated")
         baseline_score = result.baseline_score
-        fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
+        fill_suggestion_table(baseline_score, best_plan, season, fpl_team_id)
         if is_replay:
             # simulating a previous season, so imitate applying transfers by adding
             # the suggestions to the Transaction table
-            fill_transaction_table(
-                starting_squad, best_strategy, season, fpl_team_id, tag
-            )
+            fill_transaction_table(starting_squad, best_plan, season, fpl_team_id, tag)
 
     console.print()
 
     print_optimization_summary(
-        best_strategy,
+        best_plan,
         baseline_score,
         season=season,
         fpl_team_id=fpl_team_id,
         use_api=use_api,
     )
     best_squad = print_team_for_next_gw(
-        best_strategy, season=season, fpl_team_id=fpl_team_id, use_api=use_api
+        best_plan, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
 
     post_webhook(
         discord_payload(
-            best_strategy,
-            lineup_strings(best_squad, best_strategy, baseline_score, fpl_team_id),
+            best_plan,
+            lineup_strings(best_squad, best_plan, baseline_score, fpl_team_id),
         )
     )
 
-    return best_squad, best_strategy
+    return best_squad, best_plan
 
 
 def sanity_check_args(
@@ -491,7 +481,7 @@ def run_transfer_optimization(
     profile: bool,
     fpl_team_id: int | None,
     is_replay: bool,
-    save_strategies: Path | None = None,
+    save_plans: Path | None = None,
 ) -> None:
     """Run transfer optimization for a gameweek range."""
     sanity_check_args(
@@ -539,6 +529,6 @@ def run_transfer_optimization(
         ),
         # the from-scratch fallback sizes its search from the same effort knob
         squad_optimizer=genetic_optimizer(num_iterations),
-        save_strategies=save_strategies,
+        save_plans=save_plans,
         is_replay=is_replay,
     )

@@ -51,7 +51,7 @@ def transfers(
         int, typer.Option(min=0, help="Maximum points to spend on transfers.")
     ] = 8,
     allow_unused: Annotated[
-        bool, typer.Option(help="Allow strategies that waste free transfers.")
+        bool, typer.Option(help="Allow plans that waste free transfers.")
     ] = False,
     max_transfers: Annotated[
         int, typer.Option(min=0, help="Maximum transfers per gameweek.")
@@ -66,18 +66,18 @@ def transfers(
         str, typer.Option(help="Season in the form 2526.")
     ] = CURRENT_SEASON,
     profile: Annotated[
-        bool, typer.Option(help="Profile strategy execution time.")
+        bool, typer.Option(help="Profile the search's execution time.")
     ] = False,
     fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
     is_replay: Annotated[
         bool, typer.Option(help="Store suggestions as replay transactions.")
     ] = False,
-    save_strategies: Annotated[
+    save_plans: Annotated[
         Path | None,
-        typer.Option(help="Directory to write every strategy considered to, as JSON."),
+        typer.Option(help="Directory to write every plan considered to, as JSON."),
     ] = None,
 ) -> None:
-    """Optimize a transfer strategy."""
+    """Optimize a transfer plan."""
     run_transfer_optimization(
         n_gameweeks,
         gameweek_start,
@@ -99,7 +99,7 @@ def transfers(
         profile,
         fpl_team_id,
         is_replay,
-        save_strategies,
+        save_plans,
     )
 
 

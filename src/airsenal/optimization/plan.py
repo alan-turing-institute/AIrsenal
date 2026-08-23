@@ -1,15 +1,19 @@
 """
-The result of searching one branch of the transfer tree.
+What a transfer search decided to do: a move per gameweek, and what it scores.
 
-Strategies used to be untyped dicts written to `strategy_{tag}_{sid}.json` in a
+A `Plan` is the *result* of a search. The algorithms that produce one live in
+`optimization/strategies/` (a gameweek at a time) and
+`optimization/transfer_optimizers/` (a whole window); nothing here searches.
+
+Plans used to be untyped dicts written to `strategy_{tag}_{sid}.json` in a
 temporary directory, and the parent process found the best one by listing that
 directory and comparing filenames. Everything about that was load-bearing and
 none of it was checked: the gameweek was a dict key, built as an int and read
 back as `str(gw)` after the JSON round trip, so an int lookup silently missed.
 
 Here a gameweek is a field of a list element, which makes that whole class of
-mistake unrepresentable. Strategies are frozen, so a worker extending one
-cannot disturb the copy its siblings were handed.
+mistake unrepresentable. Plans are frozen, so a worker extending one cannot
+disturb the copy its siblings were handed.
 """
 
 from collections.abc import Sequence
@@ -27,7 +31,7 @@ from airsenal.squad.squad import Squad
 
 @dataclass(frozen=True, slots=True)
 class GameweekOutcome:
-    """What one gameweek of a strategy does, and what it is expected to score."""
+    """What one gameweek of a plan does, and what it is expected to score."""
 
     gameweek: int
     move: GameweekMove
@@ -81,7 +85,7 @@ class GameweekOutcome:
 
 
 @dataclass(frozen=True, slots=True)
-class Strategy:
+class Plan:
     """A sequence of gameweek moves and the score they are expected to produce."""
 
     root_gameweek: int
@@ -112,26 +116,26 @@ class Strategy:
             if outcome.gameweek == gameweek:
                 return outcome
         msg = (
-            f"Strategy covers gameweeks {list(self.gameweeks)}, so it has nothing "
+            f"Plan covers gameweeks {list(self.gameweeks)}, so it has nothing "
             f"for gameweek {gameweek}"
         )
         raise KeyError(msg)
 
-    def extend(self, outcome: GameweekOutcome) -> "Strategy":
-        """A new strategy with one more gameweek on the end."""
+    def extend(self, outcome: GameweekOutcome) -> "Plan":
+        """A new plan with one more gameweek on the end."""
         return replace(self, outcomes=(*self.outcomes, outcome))
 
     @property
     def is_baseline(self) -> bool:
-        """Whether this strategy makes no transfers and plays no chips."""
+        """Whether this plan makes no transfers and plays no chips."""
         return all(outcome.move == GameweekMove() for outcome in self.outcomes)
 
     def label(self) -> str:
         """
         The per-gameweek moves joined with dashes, e.g. "0-1-W".
 
-        This was the filename the search used to identify a strategy by; it is
-        now only a display and debugging aid.
+        This was the filename the search used to identify a plan by; it is now
+        only a display and debugging aid.
         """
         return "-".join(outcome.move.label() for outcome in self.outcomes)
 
@@ -143,7 +147,7 @@ class Strategy:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Strategy":
+    def from_dict(cls, data: dict[str, Any]) -> "Plan":
         return cls(
             root_gameweek=int(data["root_gameweek"]),
             outcomes=tuple(
@@ -152,12 +156,12 @@ class Strategy:
         )
 
 
-def get_baseline_strat(
+def baseline_plan(
     squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
-) -> Strategy:
+) -> Plan:
     """
-    The strategy of making no transfers at all, which every other strategy is
-    compared against.
+    The plan of making no transfers at all, which every other plan is compared
+    against.
     """
     root_gw = root_gw if root_gw is not None else gameweeks[0]
     outcomes = []
@@ -174,19 +178,19 @@ def get_baseline_strat(
                 bank=squad.budget,
             )
         )
-    return Strategy(root_gameweek=root_gw, outcomes=tuple(outcomes))
+    return Plan(root_gameweek=root_gw, outcomes=tuple(outcomes))
 
 
 @dataclass(frozen=True)
 class TransferSearchResult:
-    """What an optimizer chose, and the do-nothing strategy it is judged against."""
+    """What an optimizer chose, and the do-nothing plan it is judged against."""
 
-    best: Strategy
-    baseline: Strategy | None = None
-    # Every strategy evaluated, for --save-strategies. Empty for an optimizer that
-    # solves rather than enumerates: the dump is a debugging aid, not a promise the
+    best: Plan
+    baseline: Plan | None = None
+    # Every plan evaluated, for --save-plans. Empty for an optimizer that solves
+    # rather than enumerates: the dump is a debugging aid, not a promise the
     # interface makes.
-    considered: tuple[Strategy, ...] = ()
+    considered: tuple[Plan, ...] = ()
 
     @property
     def baseline_score(self) -> float:
@@ -194,18 +198,18 @@ class TransferSearchResult:
         return self.baseline.total_score if self.baseline is not None else 0.0
 
     @classmethod
-    def from_strategies(cls, strategies: Sequence[Strategy]) -> "TransferSearchResult":
+    def from_plans(cls, plans: Sequence[Plan]) -> "TransferSearchResult":
         """
         Read the answer off an exhaustive search.
 
-        For an optimizer that evaluates every strategy, the best and the baseline
-        are both just entries in the list it produced.
+        For an optimizer that evaluates every plan, the best and the baseline are
+        both just entries in the list it produced.
         """
-        if not strategies:
-            msg = "Failed to find a strategy!"
+        if not plans:
+            msg = "Failed to find a plan!"
             raise ValueError(msg)
         return cls(
-            best=max(strategies, key=lambda s: s.total_score),
-            baseline=next((s for s in strategies if s.is_baseline), None),
-            considered=tuple(strategies),
+            best=max(plans, key=lambda p: p.total_score),
+            baseline=next((p for p in plans if p.is_baseline), None),
+            considered=tuple(plans),
         )

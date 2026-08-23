@@ -11,8 +11,9 @@ enough to be worth stating plainly:
 Each declares only the method that does the work; see `progress_total` for the
 optional method a component can add to size its own progress bar.
 
-(Note the separate trap that predates all this: `optimization/strategy.py` holds
-the *result* of a search, while `optimization/strategies/` holds the algorithms.)
+What they produce lives in `optimization/plan.py`: a `Proposal` for one gameweek,
+a `Plan` for a whole window. Nothing in this package calls a result a "strategy" -
+a strategy is a way of choosing, not the choice.
 """
 
 from collections.abc import Callable
@@ -28,7 +29,7 @@ from airsenal.optimization.moves import (
     GameweekMove,
     TransferConstraints,
 )
-from airsenal.optimization.strategy import TransferSearchResult
+from airsenal.optimization.plan import TransferSearchResult
 from airsenal.squad.squad import Squad
 
 
@@ -107,8 +108,8 @@ class TransferRequest:
 
 
 @dataclass(frozen=True)
-class TransferPlan:
-    """What a strategy decided to do."""
+class Proposal:
+    """What a strategy decided to do for one gameweek."""
 
     squad: Squad
     players_in: list[int]
@@ -122,7 +123,7 @@ class TransferPlan:
 class TransferStrategy(Protocol):
     """One way of choosing a gameweek's transfers."""
 
-    def propose(self, request: TransferRequest) -> TransferPlan: ...
+    def propose(self, request: TransferRequest) -> Proposal: ...
 
 
 def strategy_total(

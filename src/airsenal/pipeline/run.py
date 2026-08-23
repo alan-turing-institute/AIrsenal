@@ -29,11 +29,11 @@ from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
-from airsenal.optimization.strategy import Strategy
 from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
 from airsenal.prediction.models import build_player_model, build_team_model
@@ -112,16 +112,16 @@ class AIrsenalPipeline:
         tag: str,
         fpl_team_id: int,
         is_replay: bool = False,
-    ) -> tuple[Squad, Strategy | None]:
+    ) -> tuple[Squad, Plan | None]:
         """
         Choose a squad: build one from scratch, or transfer into the current one.
 
         Which of the two is the decision this object exists to make, and it is
         what makes both optimizer components live rather than one of them dead.
 
-        Returns the squad and the strategy that produced it. The strategy is None
-        when the squad was built from scratch: there was nothing to transfer
-        from, so there is no sequence of moves to describe.
+        Returns the squad and the plan that produced it. The plan is None when
+        the squad was built from scratch: there was nothing to transfer from, so
+        there is no sequence of moves to describe.
         """
         if self._is_new_squad(fpl_team_id):
             logger.info("[bold]Generating Squad[/bold]")

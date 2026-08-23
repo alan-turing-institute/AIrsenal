@@ -16,8 +16,8 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
+    Proposal,
     StepCounter,
-    TransferPlan,
     TransferRequest,
 )
 from airsenal.optimization.squad_score import get_discounted_squad_score
@@ -144,7 +144,7 @@ class RandomTransferStrategy:
     def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
         return num_iterations
 
-    def propose(self, request: TransferRequest) -> TransferPlan:
+    def propose(self, request: TransferRequest) -> Proposal:
         squad, players_out, players_in = make_random_transfers(
             request.squad,
             request.tag,
@@ -157,4 +157,4 @@ class RandomTransferStrategy:
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
         )
-        return TransferPlan(squad, players_in, players_out)
+        return Proposal(squad, players_in, players_out)

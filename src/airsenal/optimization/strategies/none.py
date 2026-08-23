@@ -1,7 +1,7 @@
 """Make no transfers at all - the baseline every other strategy is judged against."""
 
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import TransferPlan, TransferRequest
+from airsenal.optimization.protocols import Proposal, TransferRequest
 
 
 class NoTransfersStrategy:
@@ -10,6 +10,6 @@ class NoTransfersStrategy:
     def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
         return 1
 
-    def propose(self, request: TransferRequest) -> TransferPlan:
+    def propose(self, request: TransferRequest) -> Proposal:
         request.advance_progress()
-        return TransferPlan(request.squad, [], [])
+        return Proposal(request.squad, [], [])

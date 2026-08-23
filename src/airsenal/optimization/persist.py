@@ -1,8 +1,8 @@
 """
-Writing an optimised strategy into the database.
+Writing an optimised plan into the database.
 
-These are database writes, but they take `Strategy` and `Squad` arguments, so
-they cannot live in db/ without the data layer having to know what a strategy
+These are database writes, but they take `Plan` and `Squad` arguments, so
+they cannot live in db/ without the data layer having to know what a plan
 is. They sit at the top of optimization/ instead, where both are already in
 scope.
 """
@@ -19,7 +19,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.queries.transactions import add_transaction
 from airsenal.db.session import get_session
-from airsenal.optimization.strategy import Strategy
+from airsenal.optimization.plan import Plan
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
@@ -27,19 +27,19 @@ logger = get_logger(__name__)
 
 def fill_suggestion_table(
     baseline_score: float,
-    best_strat: Strategy,
+    best_plan: Plan,
     season: str,
     fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
     """
-    Fill the optimized strategy into the table
+    Fill the optimized plan into the table
     """
     dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
-    points_gain = best_strat.total_score - baseline_score
+    points_gain = best_plan.total_score - baseline_score
 
-    for outcome in best_strat.outcomes:
+    for outcome in best_plan.outcomes:
         for players, in_or_out in (
             (outcome.players_out, -1),
             (outcome.players_in, 1),
@@ -60,21 +60,21 @@ def fill_suggestion_table(
 
 def fill_transaction_table(
     starting_squad: Squad,
-    best_strat: Strategy,
+    best_plan: Plan,
     season: str,
     fpl_team_id: int,
     tag: str | None = None,
     dbsession: Session | None = None,
 ) -> None:
-    """Add transactions from an optimised strategy to the transactions table in the
+    """Add transactions from an optimised plan to the transactions table in the
     database. Used for simulating seasons only, for playing the current FPL season
     the transactions status is kept up to date with transfers using the FPL API.
-    Only transfers from the first gameweek in the strategy are added to the Transaction
-    table - it's assumed the strategy will be re-optimised after each week rather than
+    Only transfers from the first gameweek in the plan are added to the Transaction
+    table - it's assumed the plan will be re-optimised after each week rather than
     sticking with the originally proposed future transfers.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    outcome = best_strat.outcomes[0]
+    outcome = best_plan.outcomes[0]
     fill_gw = outcome.gameweek
     if tag is None:
         tag = f"AIrsenal{season}"

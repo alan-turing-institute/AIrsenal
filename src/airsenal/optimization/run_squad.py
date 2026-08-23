@@ -99,13 +99,13 @@ def fill_initial_squad(
     summary.append(f"Optimised Score: {optimised_score:.1f}pts\n", style="bold green")
     console.print(Panel(summary, title="Optimisation Result", expand=False))
 
-    strategy_table = table(
+    plan_table = table(
         "Gameweek",
         "Transfers",
         "Chip",
         "Points Hit",
         "Predicted Score",
-        title="Strategy",
+        title="Plan",
     )
     for gw in gameweeks:
         bench_boost = chip_gameweeks.get("bench_boost") == gw
@@ -120,14 +120,14 @@ def fill_initial_squad(
         pred_pts = best_squad.get_expected_points(
             gw, tag, bench_boost=bench_boost, triple_captain=triple_captain
         )
-        strategy_table.add_row(
+        plan_table.add_row(
             str(gw),
             str(len(best_squad.players)) if gw == gw_start else "0",
             chip,
             "0pts",
             f"{pred_pts:.1f}pts",
         )
-    console.print(strategy_table)
+    console.print(plan_table)
 
     transfer_table = table(
         "Player In",

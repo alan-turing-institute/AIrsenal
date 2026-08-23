@@ -15,16 +15,16 @@ from airsenal.optimization.moves import (
     GameweekMove,
     TransferConstraints,
 )
+from airsenal.optimization.plan import (
+    GameweekOutcome,
+    Plan,
+    TransferSearchResult,
+)
 from airsenal.optimization.strategies import (
     DEFAULT_STRATEGIES,
     StrategySet,
 )
 from airsenal.optimization.strategies.none import NoTransfersStrategy
-from airsenal.optimization.strategy import (
-    GameweekOutcome,
-    Strategy,
-    TransferSearchResult,
-)
 from airsenal.optimization.transfer_optimizers import (
     TRANSFER_OPTIMIZERS,
     TreeSearchConfig,
@@ -45,7 +45,7 @@ def _strategy(*moves, points):
         )
         for i, move in enumerate(moves)
     )
-    return Strategy(root_gameweek=1, outcomes=outcomes)
+    return Plan(root_gameweek=1, outcomes=outcomes)
 
 
 # --------------------------- StrategySet ---------------------------
@@ -115,11 +115,11 @@ def test_constraints_survive_a_pickle():
 # --------------------------- results ---------------------------
 
 
-def test_the_best_strategy_is_the_highest_scoring_one():
+def test_the_best_plan_is_the_highest_scoring_one():
     worse = _strategy(GameweekMove(n_transfers=1), points=10.0)
     better = _strategy(GameweekMove(n_transfers=2), points=20.0)
 
-    result = TransferSearchResult.from_strategies([worse, better])
+    result = TransferSearchResult.from_plans([worse, better])
     assert result.best is better
 
 
@@ -127,14 +127,14 @@ def test_the_baseline_is_the_strategy_that_does_nothing():
     baseline = _strategy(GameweekMove(), points=5.0)
     active = _strategy(GameweekMove(n_transfers=1), points=20.0)
 
-    result = TransferSearchResult.from_strategies([active, baseline])
+    result = TransferSearchResult.from_plans([active, baseline])
     assert result.baseline is baseline
     assert result.baseline_score == 5.0
 
 
 def test_a_missing_baseline_scores_zero_rather_than_failing():
     """It can legitimately be absent when unused transfers are excluded."""
-    result = TransferSearchResult.from_strategies(
+    result = TransferSearchResult.from_plans(
         [_strategy(GameweekMove(n_transfers=1), points=20.0)]
     )
     assert result.baseline is None
@@ -146,12 +146,12 @@ def test_every_strategy_considered_is_kept_for_the_dump():
         _strategy(GameweekMove(), points=5.0),
         _strategy(GameweekMove(n_transfers=1), points=20.0),
     ]
-    assert len(TransferSearchResult.from_strategies(strategies).considered) == 2
+    assert len(TransferSearchResult.from_plans(strategies).considered) == 2
 
 
-def test_finding_no_strategy_at_all_is_an_error():
-    with pytest.raises(ValueError, match="Failed to find a strategy"):
-        TransferSearchResult.from_strategies([])
+def test_finding_no_plan_at_all_is_an_error():
+    with pytest.raises(ValueError, match="Failed to find a plan"):
+        TransferSearchResult.from_plans([])
 
 
 # --------------------------- the optimizer ---------------------------

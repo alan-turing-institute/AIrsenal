@@ -1,5 +1,5 @@
 """
-Tests for the Strategy result type.
+Tests for the Plan result type.
 
 The strategies these replace were dicts keyed by gameweek that went through a
 JSON round trip, so an int key became a string key and an int lookup silently
@@ -12,7 +12,7 @@ import pytest
 
 from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.strategy import GameweekOutcome, Strategy
+from airsenal.optimization.plan import GameweekOutcome, Plan
 
 
 def outcome(gameweek, move=None, points=10.0, **kwargs):
@@ -30,7 +30,7 @@ def outcome(gameweek, move=None, points=10.0, **kwargs):
 
 
 def test_empty_strategy():
-    strategy = Strategy(root_gameweek=3)
+    strategy = Plan(root_gameweek=3)
     assert len(strategy) == 0
     assert strategy.total_score == 0
     assert strategy.gameweeks == ()
@@ -40,7 +40,7 @@ def test_empty_strategy():
 def test_extend_does_not_mutate_the_original():
     # Workers hand the same strategy to every child branch, so extending one
     # branch must not be visible to its siblings.
-    root = Strategy(root_gameweek=3)
+    root = Plan(root_gameweek=3)
     left = root.extend(outcome(3, GameweekMove(1)))
     right = root.extend(outcome(3, GameweekMove(2)))
     assert len(root) == 0
@@ -50,7 +50,7 @@ def test_extend_does_not_mutate_the_original():
 
 def test_totals_and_labels():
     strategy = (
-        Strategy(root_gameweek=3)
+        Plan(root_gameweek=3)
         .extend(outcome(3, GameweekMove(1), points=50.0, points_hit=0))
         .extend(outcome(4, GameweekMove(2), points=40.0, points_hit=4))
         .extend(outcome(5, GameweekMove(chip=Chip.WILDCARD), points=45.0))
@@ -63,7 +63,7 @@ def test_totals_and_labels():
 
 
 def test_outcome_lookup_is_by_gameweek_number():
-    strategy = Strategy(root_gameweek=3).extend(outcome(4, points=7.0))
+    strategy = Plan(root_gameweek=3).extend(outcome(4, points=7.0))
     assert strategy.outcome(4).points == 7.0
     # gameweek 3 is the root, but no outcome was recorded for it
     with pytest.raises(KeyError, match="nothing for gameweek 3"):
@@ -91,7 +91,7 @@ def test_undiscounted_points_survives_a_zero_discount():
     ],
 )
 def test_round_trip_through_json_shape(move):
-    original = Strategy(root_gameweek=3).extend(
+    original = Plan(root_gameweek=3).extend(
         outcome(
             3,
             move,
@@ -106,18 +106,18 @@ def test_round_trip_through_json_shape(move):
     )
     # a real dump goes through json, which turns tuples into lists and would
     # turn any int dict key into a string - hence the explicit dumps/loads
-    restored = Strategy.from_dict(json.loads(json.dumps(original.to_dict())))
+    restored = Plan.from_dict(json.loads(json.dumps(original.to_dict())))
     assert restored == original
     assert restored.outcome(3).move == move
 
 
 def test_round_trip_of_a_multi_gameweek_strategy():
     original = (
-        Strategy(root_gameweek=10)
+        Plan(root_gameweek=10)
         .extend(outcome(10, GameweekMove(1), players_in=(5,), players_out=(6,)))
         .extend(outcome(11, GameweekMove(chip=Chip.FREE_HIT)))
     )
-    restored = Strategy.from_dict(json.loads(json.dumps(original.to_dict())))
+    restored = Plan.from_dict(json.loads(json.dumps(original.to_dict())))
     assert restored == original
     # gameweeks are list elements, not dict keys, so int lookup keeps working
     assert restored.outcome(11).chip is Chip.FREE_HIT
@@ -134,7 +134,7 @@ def test_round_trip_of_a_multi_gameweek_strategy():
     ],
 )
 def test_is_baseline(moves, expected):
-    strategy = Strategy(root_gameweek=3)
+    strategy = Plan(root_gameweek=3)
     for i, move in enumerate(moves):
         strategy = strategy.extend(outcome(3 + i, move))
     assert strategy.is_baseline is expected

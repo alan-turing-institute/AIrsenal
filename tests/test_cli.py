@@ -124,7 +124,7 @@ class TestModelSelection:
             (["replay"], "--epsilon"),
             (["optimize", "squad"], "--num-generations"),
             (["optimize", "squad"], "--population-size"),
-            (["optimize", "transfers"], "--save-strategies"),
+            (["optimize", "transfers"], "--save-plans"),
             (["optimize", "transfers"], "--num-iterations"),
         ],
     )

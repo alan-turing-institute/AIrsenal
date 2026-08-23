@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from airsenal.core.registry import lookup
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
-    TransferPlan,
+    Proposal,
     TransferRequest,
     TransferStrategy,
 )
@@ -81,8 +81,8 @@ def select_strategy(move: GameweekMove) -> TransferStrategy:
 __all__ = [
     "DEFAULT_STRATEGIES",
     "TRANSFER_STRATEGIES",
+    "Proposal",
     "StrategySet",
-    "TransferPlan",
     "TransferRequest",
     "TransferStrategy",
     "select_strategy",

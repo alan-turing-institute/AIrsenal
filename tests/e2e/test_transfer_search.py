@@ -27,9 +27,9 @@ from airsenal.optimization.moves import (
     GameweekMove,
     TransferConstraints,
 )
+from airsenal.optimization.plan import Plan, TransferSearchResult
 from airsenal.optimization.protocols import SquadRequest, TransferSearchRequest
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
-from airsenal.optimization.strategy import Strategy, TransferSearchResult
 from airsenal.optimization.transfer_optimizers import TreeSearchConfig
 from airsenal.optimization.transfer_optimizers.tree_search import optimize
 from airsenal.prediction.models import build_player_model, build_team_model
@@ -100,11 +100,11 @@ def result(seeded, tag, starting_squad):
     strategies = []
     while not finished.empty():
         strategies.append(finished.get())
-    return TransferSearchResult.from_strategies(strategies)
+    return TransferSearchResult.from_plans(strategies)
 
 
 def test_the_tree_produces_finished_strategies(result):
-    assert isinstance(result.best, Strategy)
+    assert isinstance(result.best, Plan)
     assert len(result.best) == len(SEARCH_GAMEWEEKS)
 
 
