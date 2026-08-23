@@ -539,7 +539,7 @@ def get_current_squad_from_api(
     picks = apifetcher.get_current_picks(fpl_team_id)
 
     squad = Squad(season=CURRENT_SEASON)
-    for p in picks:
+    for p in picks.values():
         player = get_player_from_api_id(p["element"])
         if not player:
             continue
