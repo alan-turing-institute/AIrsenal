@@ -7,27 +7,18 @@ mean reimplementing any of this.
 """
 
 import json
-import sys
 from pathlib import Path
-from typing import Any
 
-from rich.panel import Panel
-from rich.text import Text
 from sqlalchemy.orm import Session
 
-from airsenal.core.concurrency import (
-    set_multiprocessing_start_method,
-)
-from airsenal.core.console import console, price_str, table
-from airsenal.core.enums import Chip, Position
+from airsenal.core.console import console
+from airsenal.core.copy import fastcopy
+from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.players import get_player, get_player_name
-from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
-from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.moves import ChipSchedule, TransferConstraints
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
@@ -39,16 +30,22 @@ from airsenal.optimization.protocols import (
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.squad_optimizers import (
     GeneticSquadOptimizer,
-    genetic_optimizer,
 )
 from airsenal.optimization.transfer_optimizers import (
-    TreeSearchConfig,
     TreeSearchOptimizer,
 )
 from airsenal.reporting.discord import post_webhook
+from airsenal.reporting.optimization import (
+    GameweekRow,
+    TransferRow,
+    discord_payload,
+    lineup_strings,
+    print_plan_table,
+    print_result_panel,
+    print_transfer_table,
+)
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.history import get_starting_squad
-from airsenal.squad.player import bench_position
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
@@ -70,101 +67,36 @@ def save_plan_dump(plans: list[Plan], directory: Path, tag: str) -> None:
     logger.info("Wrote %s plans to %s", len(plans), path)
 
 
-def print_optimization_summary(
-    strat: Plan,
-    baseline_score: float,
-    season: str = CURRENT_SEASON,
-    fpl_team_id: int | None = None,
-    use_api: bool = False,
+def transfer_rows(
+    plan: Plan,
+    starting_squad: Squad,
+    season: str,
+    use_api: bool,
     dbsession: Session | None = None,
-) -> None:
+) -> list[TransferRow]:
     """
-    Rich-formatted summary of an optimisation result: total score, the
-    chosen plan (transfers/chips/points hits per gameweek), a table of
-    the transfers in/out (with purchase/sale prices), and the resulting
-    bank balance.
+    Replay the plan's transfers to find the price each was made at.
+
+    Simulation, not rendering: applying a transfer to a squad is what this
+    package knows how to do, and the sale price of a player depends on what the
+    squad paid for them, so the walk has to happen in order.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    first_gw, last_gw = strat.gameweeks[0], strat.gameweeks[-1]
-    total_score = strat.total_score
-    total_hits = strat.total_points_hit
-
-    summary = Text()
-    summary.append(
-        f"Gameweeks: {first_gw}-{last_gw}\n"
-        if first_gw != last_gw
-        else f"Gameweek: {first_gw}\n",
-        style="bold",
-    )
-    summary.append(f"Team ID: {fpl_team_id}\n")
-    summary.append(f"Baseline Score: {baseline_score:.1f}pts\n")
-    summary.append(
-        f"Total Points Hits: -{total_hits}pts\n", style="red" if total_hits else None
-    )
-    chips_played = [chip for chip in strat.chips_played if chip]
-    summary.append(
-        f"Chips Played: {', '.join(chips_played) if chips_played else 'None'}\n",
-        style="red" if chips_played else None,
-    )
-    summary.append(f"Optimised Score: {total_score:.1f}pts\n", style="bold green")
-    summary.append(
-        f"Points Gained: {total_score - baseline_score:+.1f}pts",
-        style="bold green" if total_score > baseline_score else "bold red",
-    )
-
-    console.print(Panel(summary, title="Optimisation Result", expand=False))
-
-    plan_table = table(
-        "Gameweek",
-        "Transfers",
-        "Chip",
-        "Points Hit",
-        "Predicted Score",
-        title="Plan",
-    )
-    for outcome in strat.outcomes:
-        plan_table.add_row(
-            str(outcome.gameweek),
-            outcome.move.label(),
-            str(outcome.chip) if outcome.chip else "-",
-            f"-{outcome.points_hit}pts" if outcome.points_hit else "0pts",
-            f"{outcome.undiscounted_points:.1f}pts",
-        )
-    console.print(plan_table)
-
-    transfer_table = table(
-        "GW",
-        "Player Out",
-        "Pos",
-        "Team",
-        "Sale Price",
-        "Player In",
-        "Pos",
-        "Team",
-        "Purchase Price",
-        title="Transfers",
-    )
-    any_transfers = False
-    squad = get_starting_squad(
-        next_gw=first_gw,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        use_api=use_api,
-    )
-    for outcome in strat.outcomes:
+    squad = starting_squad
+    rows = []
+    for outcome in plan.outcomes:
         gw = outcome.gameweek
         for pid_out, pid_in in zip(
             outcome.players_out, outcome.players_in, strict=True
         ):
-            any_transfers = True
             out_player = squad.get_player_from_id(pid_out)
             sale_price = squad.get_sell_price_for_player(
                 pid_out, use_api=use_api, gameweek=gw, dbsession=dbsession
             )
             squad.remove_player(pid_out, price=sale_price, gameweek=gw)
 
-            in_player_db = get_player(pid_in, dbsession=dbsession)
-            purchase_price = in_player_db.price(season, gw) if in_player_db else None
+            in_player = get_player(pid_in, dbsession=dbsession)
+            purchase_price = in_player.price(season, gw) if in_player else None
             squad.add_player(
                 pid_in,
                 price=purchase_price,
@@ -173,126 +105,59 @@ def print_optimization_summary(
                 check_team=False,
                 dbsession=dbsession,
             )
-            in_name = str(in_player_db) if in_player_db else get_player_name(pid_in)
-            transfer_table.add_row(
-                str(gw),
-                str(out_player),
-                out_player.position,
-                out_player.team,
-                price_str(sale_price),
-                in_name,
-                in_player_db.position(season) if in_player_db else "-",
-                in_player_db.team(season, gw) if in_player_db else "-",
-                price_str(purchase_price),
+            rows.append(
+                TransferRow(
+                    gameweek=gw,
+                    player_out=str(out_player),
+                    position_out=out_player.position,
+                    team_out=out_player.team,
+                    sale_price=sale_price,
+                    player_in=(
+                        str(in_player)
+                        if in_player
+                        else str(get_player_name(pid_in) or pid_in)
+                    ),
+                    position_in=in_player.position(season) if in_player else None,
+                    team_in=in_player.team(season, gw) if in_player else None,
+                    purchase_price=purchase_price,
+                )
             )
-    if any_transfers:
-        console.print(transfer_table)
-    else:
-        console.print(f"{transfer_table.title}: no transfers made.")
+    return rows
 
 
-def discord_payload(strat: Plan, lineup: list[str]) -> dict[str, Any]:
-    """
-    json formated discord webhook content.
-    """
-    discord_embed = {
-        "title": "AIrsenal webhook",
-        "description": "Optimum plan for gameweek(S)"
-        f" {','.join(str(gw) for gw in strat.gameweeks)}:",
-        "color": 0x35A800,
-        "fields": [],
-    }
-    fields: list[dict[str, Any]] = []
-    for outcome in strat.outcomes:
-        gw = outcome.gameweek
-        fields.append(
-            {
-                "name": f"GW{gw} chips:",
-                "value": f"Chips played:  {outcome.chip}\n",
-                "inline": False,
-            }
+def plan_rows(plan: Plan) -> list[GameweekRow]:
+    """The plan's per-gameweek moves, in the shape the summary table renders."""
+    return [
+        GameweekRow(
+            gameweek=outcome.gameweek,
+            transfers=outcome.move.label(),
+            chip=str(outcome.chip) if outcome.chip else None,
+            points_hit=outcome.points_hit,
+            predicted_points=outcome.undiscounted_points,
         )
-        pin = [str(get_player_name(p)) for p in outcome.players_in]
-        pout = [str(get_player_name(p)) for p in outcome.players_out]
-        fields.extend(
-            [
-                {
-                    "name": f"GW{gw} transfers out:",
-                    "value": "\n".join(pout),
-                    "inline": True,
-                },
-                {
-                    "name": f"GW{gw} transfers in:",
-                    "value": "\n".join(pin),
-                    "inline": True,
-                },
-            ]
-        )
-    discord_embed["fields"] = fields
-    return {
-        "content": "\n".join(lineup),
-        "username": "AIrsenal",
-        "embeds": [discord_embed],
-    }
+        for outcome in plan.outcomes
+    ]
 
 
-def print_team_for_next_gw(
-    strat: Plan,
+def squad_for_next_gw(
+    plan: Plan,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     use_api: bool = False,
 ) -> Squad:
-    """
-    Display the team (inc. subs and captain) for the next gameweek
-    """
-    outcome = strat.outcomes[0]
-    next_gw = outcome.gameweek
-    t = get_starting_squad(
-        next_gw=next_gw, season=season, fpl_team_id=fpl_team_id, use_api=use_api
+    """The squad the plan's first gameweek leaves us with."""
+    outcome = plan.outcomes[0]
+    squad = get_starting_squad(
+        next_gw=outcome.gameweek,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        use_api=use_api,
     )
-    for pidout in outcome.players_out:
-        t.remove_player(pidout)
-    for pidin in outcome.players_in:
-        t.add_player(pidin)
-    tag = get_latest_prediction_tag(season=season)
-    console.print(
-        formation_table(
-            t,
-            tag,
-            next_gw,
-            bench_boost=outcome.chip is Chip.BENCH_BOOST,
-            triple_captain=outcome.chip is Chip.TRIPLE_CAPTAIN,
-        )
-    )
-    return t
-
-
-def lineup_strings(
-    squad: Squad, plan: Plan, baseline_score: float, fpl_team_id: int
-) -> list[str]:
-    """The squad, formatted as Discord markdown."""
-    lines = [
-        f"__Plan for Team ID: **{fpl_team_id}**__",
-        f"Baseline score: *{int(baseline_score)}*",
-        f"Best score: *{int(plan.total_score)}*",
-        "\n__starting 11__",
-    ]
-    for position in list(Position.back_to_front()):
-        lines.append(f"== **{position}** ==\n```")
-        for p in squad.players:
-            if p.position == position and p.is_starting:
-                player_line = f"{p} ({p.team})"
-                if p.is_captain:
-                    player_line += "(C)"
-                elif p.is_vice_captain:
-                    player_line += "(VC)"
-                lines.append(player_line)
-        lines.append("```\n")
-    lines += ["__subs__", "```"]
-    subs = sorted((p for p in squad.players if not p.is_starting), key=bench_position)
-    lines += [f"{p} ({p.team})" for p in subs]
-    lines.append("```\n")
-    return lines
+    for pid_out in outcome.players_out:
+        squad.remove_player(pid_out)
+    for pid_in in outcome.players_in:
+        squad.add_player(pid_in)
+    return squad
 
 
 def new_squad_from_scratch(
@@ -423,112 +288,42 @@ def run_optimization(
 
     console.print()
 
-    print_optimization_summary(
-        best_plan,
-        baseline_score,
-        season=season,
+    print_result_panel(
+        gameweeks=list(best_plan.gameweeks),
         fpl_team_id=fpl_team_id,
-        use_api=use_api,
+        optimised_score=best_plan.total_score,
+        baseline_score=baseline_score,
+        points_hit=best_plan.total_points_hit,
+        chips=tuple(str(c) for c in best_plan.chips_played if c),
     )
-    best_squad = print_team_for_next_gw(
+    plan = plan_rows(best_plan)
+    transfers = transfer_rows(
+        best_plan, fastcopy(starting_squad), season, use_api=use_api
+    )
+    print_plan_table(plan)
+    print_transfer_table(transfers)
+
+    best_squad = squad_for_next_gw(
         best_plan, season=season, fpl_team_id=fpl_team_id, use_api=use_api
+    )
+    console.print(
+        formation_table(
+            best_squad,
+            tag,
+            best_plan.outcomes[0].gameweek,
+            bench_boost=best_plan.outcomes[0].chip is Chip.BENCH_BOOST,
+            triple_captain=best_plan.outcomes[0].chip is Chip.TRIPLE_CAPTAIN,
+        )
     )
 
     post_webhook(
         discord_payload(
-            best_plan,
-            lineup_strings(best_squad, best_plan, baseline_score, fpl_team_id),
+            plan,
+            transfers,
+            lineup_strings(
+                best_squad, best_plan.total_score, baseline_score, fpl_team_id
+            ),
         )
     )
 
     return best_squad, best_plan
-
-
-def sanity_check_args(
-    n_gameweeks: int | None,
-    gameweek_start: int | None,
-    gameweek_end: int | None,
-    num_free_transfers: int | None,
-) -> bool:
-    """
-    Check that command-line arguments are self-consistent.
-    """
-    if n_gameweeks and (gameweek_start or gameweek_end):
-        msg = "Please only specify n_gameweeks OR gameweek_start/end"
-        raise RuntimeError(msg)
-    if (gameweek_start and not gameweek_end) or (gameweek_end and not gameweek_start):
-        msg = "Need to specify both gameweek_start and gameweek_end"
-        raise RuntimeError(msg)
-    if num_free_transfers and num_free_transfers not in range(6):
-        msg = "Number of free transfers must be 0 to 5"
-        raise RuntimeError(msg)
-    return True
-
-
-def run_transfer_optimization(
-    n_gameweeks: int | None,
-    gameweek_start: int | None,
-    gameweek_end: int | None,
-    tag: str | None,
-    chips: ChipWeeks,
-    num_free_transfers: int | None,
-    max_hit: int,
-    allow_unused: bool,
-    max_transfers: int,
-    num_iterations: int,
-    num_thread: int,
-    season: str,
-    profile: bool,
-    fpl_team_id: int | None,
-    is_replay: bool,
-    save_plans: Path | None = None,
-) -> None:
-    """Run transfer optimization for a gameweek range."""
-    sanity_check_args(
-        n_gameweeks,
-        gameweek_start,
-        gameweek_end,
-        num_free_transfers,
-    )
-    gameweeks = get_gameweeks_array(
-        n_gameweeks=n_gameweeks,
-        gameweek_start=gameweek_start,
-        gameweek_end=gameweek_end,
-        season=season,
-    )
-    tag = tag or get_latest_prediction_tag(season=season)
-
-    if not check_tag_valid(tag, gameweeks, season=season):
-        logger.error(
-            "Database does not contain predictions for all the specified "
-            "optimsation gameweeks. Please run 'airsenal_run_prediction' first "
-            "with the same input gameweeks and season you specified here."
-        )
-        sys.exit(1)
-
-    set_multiprocessing_start_method()
-
-    run_optimization(
-        gameweeks,
-        tag,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        chip_gameweeks=chips.as_dict(),
-        num_free_transfers=num_free_transfers,
-        constraints=TransferConstraints(
-            max_total_hit=max_hit,
-            allow_unused_transfers=allow_unused,
-            max_opt_transfers=max_transfers,
-        ),
-        optimizer=TreeSearchOptimizer(
-            TreeSearchConfig(
-                num_thread=num_thread,
-                num_iterations=num_iterations,
-                profile=profile,
-            )
-        ),
-        # the from-scratch fallback sizes its search from the same effort knob
-        squad_optimizer=genetic_optimizer(num_iterations),
-        save_plans=save_plans,
-        is_replay=is_replay,
-    )
