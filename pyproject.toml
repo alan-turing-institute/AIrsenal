@@ -220,6 +220,15 @@ module = [
 disallow_untyped_calls = false
 warn_return_any = false
 
+# curl_cffi ships py.typed but leaves Response.json() and raise_for_status()
+# unannotated, so calling them is a "call to untyped function". fpl_api is the
+# only module that holds a Session, so the exemption stops here - and unlike the
+# block above it keeps warn_return_any, because narrowing the decoded payloads
+# is exactly this module's job.
+[[tool.mypy.overrides]]
+module = ["airsenal.fetch.fpl_api"]
+disallow_untyped_calls = false
+
 # MIGRATION LIST. Every module here still needs annotating. The list can only
 # shrink, and CI stays green while it does, so progress is enforced by the build
 # rather than by remembering - "turn strict on at the end" is the version that
@@ -241,9 +250,6 @@ module = [
     "airsenal.export.db_dump",
     "airsenal.export.player_details",
     "airsenal.export.results",
-    "airsenal.fetch.fpl_api",
-    "airsenal.fetch.gameweeks",
-    "airsenal.fetch.transfermarkt",
     "airsenal.ingest.checks",
     "airsenal.ingest.fixtures",
     "airsenal.ingest.player_attributes",

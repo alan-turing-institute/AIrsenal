@@ -124,18 +124,18 @@ def get_next_gameweek(
             # fixtures have been announced
             return 1
 
-        for fixture in fixture_data:
+        for api_fixture in fixture_data:
             if (
-                fixture["finished"] is False
-                and fixture["event"]
-                and fixture["event"] < earliest_future_gameweek
+                api_fixture["finished"] is False
+                and api_fixture["event"]
+                and api_fixture["event"] < earliest_future_gameweek
             ):
-                earliest_future_gameweek = fixture["event"]
+                earliest_future_gameweek = api_fixture["event"]
         # check whether we're mid-gameweek
-        for fixture in fixture_data:
+        for api_fixture in fixture_data:
             if (
-                fixture["finished"] is True
-                and fixture["event"] == earliest_future_gameweek
+                api_fixture["finished"] is True
+                and api_fixture["event"] == earliest_future_gameweek
             ):
                 earliest_future_gameweek += 1
                 break

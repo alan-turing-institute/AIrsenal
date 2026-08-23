@@ -33,7 +33,7 @@ HEADERS = {
 }
 
 
-def get_teams_for_season(season: int) -> list[tuple[str, str, str, set]]:
+def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
     """Get the names and TransferMarkt URLs for all the teams in this season.
 
     Parameters
@@ -402,7 +402,7 @@ def get_player_transfers(
 
 def get_player_team_history(
     df: pd.DataFrame,
-    pl_teams_in_season: dict | None = None,
+    pl_teams_in_season: dict[str, list[set[str]]] | None = None,
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """Get a player's team/club history given their transfer data.
@@ -537,7 +537,7 @@ def get_player_team_history(
 
 def get_player_transfer_unavailability(
     player_profile_url: str,
-    pl_teams_in_season: dict | None = None,
+    pl_teams_in_season: dict[str, list[set[str]]] | None = None,
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """Get a player's unavailability from transfers
@@ -588,7 +588,7 @@ def get_player_transfer_unavailability(
 
 
 def get_season_absences(
-    season: str, pl_teams_in_season: dict | None = None
+    season: str, pl_teams_in_season: dict[str, list[set[str]]] | None = None
 ) -> pd.DataFrame:
     """Get injury and suspension data for a season
 
@@ -637,7 +637,7 @@ def get_season_absences(
     return filter_season(pd.concat(absences), season)
 
 
-def scrape_transfermarkt(seasons: list[str]):
+def scrape_transfermarkt(seasons: list[str]) -> None:
     """Get all player injury and suspension data for mutiple seasons
 
     Parameters

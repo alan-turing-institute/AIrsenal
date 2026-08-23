@@ -150,6 +150,9 @@ def price_transfers(
         if player is None:
             msg = f"Player with ID {t[1]} not found"
             raise ValueError(msg)
+        if player.fpl_api_id is None:
+            msg = f"Player {player} has no FPL API ID"
+            raise ValueError(msg)
         priced_transfers.append(
             [
                 [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
@@ -279,6 +282,9 @@ def build_init_priced_transfers(
             msg = f"Player with ID {t.player_id} not found"
             raise ValueError(msg)
         api_id = player.fpl_api_id
+        if api_id is None:
+            msg = f"Player {player} has no FPL API ID"
+            raise ValueError(msg)
         price = fetcher.get_player_summary_data()[api_id]["now_cost"]
         transfers_in.append({"element_in": api_id, "purchase_price": price})
     # remove duplicates - can't add a player we already have

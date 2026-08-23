@@ -67,6 +67,9 @@ def fill_initial_squad(
     time = get_fetcher().get_event_data()[starting_gw]["deadline"]
     for player in init_players:
         player_api_id = player.fpl_api_id
+        if player_api_id is None:
+            msg = f"Player {player} has no FPL API ID"
+            raise ValueError(msg)
         first_gw_data = get_fetcher().get_gameweek_data_for_player(
             player_api_id, starting_gw
         )

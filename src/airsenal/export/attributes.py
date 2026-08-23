@@ -119,13 +119,15 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
     n_players = summary_data["total_players"]
     teams = {team["id"]: team["short_name"] for team in summary_data["teams"]}
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
-    for f in fetcher.get_fixture_data():
+    for fixture in fetcher.get_fixture_data():
         if (
-            (gw := f["event"])
-            and (kickoff_str := f["kickoff_time"])
+            (gw := fixture["event"])
+            and (kickoff_str := fixture["kickoff_time"])
             and (kickoff := parse_date(kickoff_str)) is not None
         ):
-            fixtures[gw].append((kickoff, (teams[f["team_h"]], teams[f["team_a"]])))
+            fixtures[gw].append(
+                (kickoff, (teams[fixture["team_h"]], teams[fixture["team_a"]]))
+            )
     for gw, kickoffs in fixtures.items():
         fixtures[gw] = sorted(kickoffs)
 
