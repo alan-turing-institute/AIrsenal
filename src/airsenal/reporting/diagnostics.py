@@ -1,3 +1,12 @@
+"""
+What AIrsenal thinks it is: version, home directory and which database it is
+pointed at.
+
+Named for what it reports rather than for the environment variables it happens
+to read - core/env.py reads the environment, cli/env.py is the command, and
+three modules called env.py told you nothing about which was which.
+"""
+
 from airsenal import __version__
 from airsenal.core.env import (
     AIRSENAL_ENV_KEYS,
