@@ -2,12 +2,14 @@
 test various methods of the Team class.
 """
 
+import logging
+
 import pytest
 from rich.console import Console
 
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.reporting.squad_view import formation_table
-from airsenal.squad.squad import FORMATION_SLOTS, Squad
+from airsenal.squad.squad import FORMATION_SLOTS, Squad, selling_price_from_api
 from tests.conftest import session_scope
 
 TEST_SEASON = CURRENT_SEASON
@@ -299,3 +301,78 @@ def test_get_expected_points():
     assert t.get_expected_points(0, 0, bench_boost=True) == 30
     # triple captain
     assert t.get_expected_points(0, 0, triple_captain=True) == 29
+
+
+class _Recorder(logging.Handler):
+    """Collect log records rather than printing them."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
+@pytest.fixture
+def squad_logs():
+    """The records squad.py logs, at every level."""
+    logger = logging.getLogger("airsenal.squad.squad")
+    handler = _Recorder()
+    original_level = logger.level
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    try:
+        yield handler.records
+    finally:
+        logger.removeHandler(handler)
+        logger.setLevel(original_level)
+
+
+class FakeFetcher:
+    """Just enough of FPLDataFetcher to answer for the current picks."""
+
+    def __init__(self, picks=None, error=None):
+        self.picks = picks if picks is not None else {}
+        self.error = error
+
+    def get_current_picks(self, fpl_team_id=None):  # noqa: ARG002
+        if self.error is not None:
+            raise self.error
+        return self.picks
+
+
+def test_selling_price_comes_from_the_picks_for_a_player_we_own(squad_logs):
+    fetcher = FakeFetcher(picks={7: {"element": 7, "selling_price": 62}})
+
+    assert selling_price_from_api(7, "Owned Player", fetcher=fetcher) == 62
+    assert squad_logs == []
+
+
+def test_a_player_we_do_not_own_has_no_selling_price_and_is_not_a_failure(squad_logs):
+    """The optimizer prices squads that do not exist: a wildcard's, say.
+
+    Those players are not in the entry's picks and never will be, so asking the
+    API for a sale price they cannot have is an ordinary miss. It used to raise a
+    KeyError inside a catch-all handler, which logged a warning blaming a failed
+    login and printed a traceback, once per player per gameweek.
+    """
+    fetcher = FakeFetcher(picks={7: {"element": 7, "selling_price": 62}})
+
+    assert selling_price_from_api(999, "Unowned Player", fetcher=fetcher) is None
+    assert [record.levelno for record in squad_logs] == [logging.DEBUG]
+
+
+def test_failing_to_reach_the_api_does_warn(squad_logs):
+    """Not owning a player is routine; not being able to ask is not."""
+    fetcher = FakeFetcher(error=RuntimeError("not logged in"))
+
+    assert selling_price_from_api(7, "Owned Player", fetcher=fetcher) is None
+    assert [record.levelno for record in squad_logs] == [logging.WARNING]
+
+
+def test_a_pick_without_a_usable_price_warns_rather_than_raising(squad_logs):
+    fetcher = FakeFetcher(picks={7: {"element": 7}})
+
+    assert selling_price_from_api(7, "Owned Player", fetcher=fetcher) is None
+    assert [record.levelno for record in squad_logs] == [logging.WARNING]

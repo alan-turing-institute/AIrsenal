@@ -214,16 +214,10 @@ class Squad:
         ):
             api_id = player_db.fpl_api_id
             # first try getting the actual sale price from a logged in API
-            try:
-                return int(fetcher.get_current_picks()[api_id]["selling_price"])
-            except Exception:
-                logger.warning(
-                    "Failed to login to get actual sale price for %s from API. "
-                    "Will estimate based on the player's current price instead",
-                    player,
-                    exc_info=True,
-                )
-            # if not logged in, just get current price from API
+            selling_price = selling_price_from_api(api_id, player, fetcher=fetcher)
+            if selling_price is not None:
+                return selling_price
+            # no selling price to be had, so use the player's current price
             try:
                 price_now = fetcher.get_player_summary_data()[api_id]["now_cost"]
             except Exception:
@@ -551,6 +545,56 @@ class Squad:
                 p, use_api=use_api, gameweek=gameweek
             )
         return total_value
+
+
+def selling_price_from_api(
+    api_id: int,
+    player: SquadPlayer,
+    fetcher: FPLDataFetcher | None = None,
+) -> int | None:
+    """
+    What the FPL API says this player would sell for, or None if it cannot say.
+
+    A selling price exists only for a player the entry actually owns, and plenty
+    of the squads priced here are ones the optimizer invented rather than ones
+    that exist: everything a wildcard bought, and every squad a later gameweek of
+    the same strategy transfers out of. Not owning a player is therefore an
+    ordinary outcome and not worth a warning - there is simply no sale price to
+    read, and the caller falls back to the current market price, which is the
+    right answer for a player we would be buying at it.
+
+    Failing to reach the API at all is a different matter, and does warn.
+    """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    try:
+        picks = fetcher.get_current_picks()
+    except Exception:
+        logger.warning(
+            "Failed to get the current picks from the FPL API to price %s. "
+            "Will estimate based on the player's current price instead",
+            player,
+            exc_info=True,
+        )
+        return None
+
+    if api_id not in picks:
+        logger.debug(
+            "%s is not in the FPL team's current picks, so the API has no sale "
+            "price for them; using their current price instead",
+            player,
+        )
+        return None
+
+    try:
+        return int(picks[api_id]["selling_price"])
+    except (KeyError, TypeError, ValueError):
+        logger.warning(
+            "The FPL API returned no usable selling price for %s. "
+            "Will estimate based on the player's current price instead",
+            player,
+            exc_info=True,
+        )
+        return None
 
 
 def get_current_squad_from_api(
