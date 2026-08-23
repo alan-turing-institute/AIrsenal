@@ -660,7 +660,7 @@ def list_players(
         )
         last_pa = last_pa.first()
         if last_pa and gameweek > last_pa.gameweek:
-            logger.warning(
+            logger.debug(
                 "Incomplete data in DB for GW%s, returning players from GW%s.",
                 gameweek,
                 last_pa.gameweek,
