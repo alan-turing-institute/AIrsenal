@@ -5,6 +5,7 @@ code and strategies.
 
 import json
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
@@ -62,7 +63,7 @@ def replay_season(
     transfers: bool = True,
     tag_prefix: str = "",
     team_model: str = "extended",
-    team_model_args: dict | None = None,
+    team_model_args: dict[str, Any] | None = None,
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
     player_model: str = "conjugate",
@@ -90,7 +91,7 @@ def replay_season(
     fitted_team_model = TEAM_MODELS.create(team_model)
 
     # store results in a dictionary, which we will later save to a json file
-    replay_results: dict[str, str | int | float | list] = {}
+    replay_results: dict[str, str | int | float | list[Any]] = {}
     replay_results["tag"] = tag_prefix
     replay_results["season"] = season
     replay_results["n_gameweeks"] = n_gameweeks

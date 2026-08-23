@@ -220,49 +220,17 @@ module = [
 disallow_untyped_calls = false
 warn_return_any = false
 
-# curl_cffi ships py.typed but leaves Response.json() and raise_for_status()
-# unannotated, so calling them is a "call to untyped function". fpl_api is the
-# only module that holds a Session, so the exemption stops here - and unlike the
-# block above it keeps warn_return_any, because narrowing the decoded payloads
-# is exactly this module's job.
-[[tool.mypy.overrides]]
-module = ["airsenal.fetch.fpl_api"]
-disallow_untyped_calls = false
-
-# MIGRATION LIST. Every module here still needs annotating. The list can only
-# shrink, and CI stays green while it does, so progress is enforced by the build
-# rather than by remembering - "turn strict on at the end" is the version that
-# stalls behind 400 errors. Delete this block once it is empty.
+# curl_cffi ships py.typed but leaves Response.json(), raise_for_status(),
+# iter_content() and close() unannotated, so calling them is a "call to untyped
+# function". These two modules are the only ones that hold a curl_cffi Session,
+# so the exemption stops here - and unlike the block above it keeps
+# warn_return_any, because narrowing the decoded payloads is exactly their job.
 [[tool.mypy.overrides]]
 module = [
-    "airsenal.apply.lineup",
-    "airsenal.apply.transfers",
-    "airsenal.cli.dump",
-    "airsenal.cli.env",
-    "airsenal.ingest.checks",
-    "airsenal.ingest.fixtures",
-    "airsenal.ingest.player_attributes",
-    "airsenal.ingest.player_attributes_ep",
+    "airsenal.fetch.fpl_api",
     "airsenal.ingest.player_scores",
-    "airsenal.ingest.players",
-    "airsenal.ingest.results",
-    "airsenal.ingest.update",
-    "airsenal.optimization.protocols",
-    "airsenal.optimization.run_squad",
-    "airsenal.optimization.run_transfers",
-    "airsenal.optimization.squad_ga",
-    "airsenal.optimization.strategies.double",
-    "airsenal.optimization.strategies.random_search",
-    "airsenal.optimization.strategies.single",
-    "airsenal.optimization.transfers",
-    "airsenal.pipeline.replay",
-    "airsenal.pipeline.run",
 ]
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
 disallow_untyped_calls = false
-disallow_any_generics = false
-warn_return_any = false
 
 [tool.coverage.run]
 source = ["src/airsenal"]

@@ -18,9 +18,9 @@ import cProfile
 import json
 import sys
 import threading
-from collections.abc import Callable
 from multiprocessing import Process, Queue
 from pathlib import Path
+from typing import Any, Literal
 
 from rich.panel import Panel
 from rich.text import Text
@@ -49,6 +49,7 @@ from airsenal.optimization.moves import (
     next_week_transfers,
 )
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
+from airsenal.optimization.protocols import ProgressResetter, ProgressUpdater
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.squad_score import get_discount_factor
 from airsenal.optimization.strategy import GameweekOutcome, Strategy, get_baseline_strat
@@ -71,10 +72,17 @@ logger = get_logger(__name__)
 StrategyNode = tuple[GameweekMove, int, int, int, Squad, "Strategy | None"]
 QueueItem = StrategyNode | None
 
+# What a worker sends back to the progress display: advance a bar, or restart one
+# worker's bar for a new strategy. Two shapes, so two tuples: the shared one had
+# a float-or-str value that neither branch actually accepts.
+ProgressMessage = (
+    tuple[Literal["increment"], int | None, float] | tuple[Literal["reset"], int, str]
+)
+
 
 def optimize(
     queue: CustomQueue[QueueItem],
-    pid: Process,
+    pid: int,
     results: "Queue[Strategy]",
     gameweeks: list[int],
     season: str,
@@ -84,8 +92,8 @@ def optimize(
     allow_unused_transfers: bool = False,
     max_transfers: int = 2,
     num_iterations: int = 100,
-    updater: Callable | None = None,
-    resetter: Callable | None = None,
+    updater: ProgressUpdater | None = None,
+    resetter: ProgressResetter | None = None,
     profile: bool = False,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> None:
@@ -375,7 +383,7 @@ def print_optimization_summary(
         console.print(f"{transfer_table.title}: no transfers made.")
 
 
-def discord_payload(strat: Strategy, lineup: list[str]) -> dict:
+def discord_payload(strat: Strategy, lineup: list[str]) -> dict[str, Any]:
     """
     json formated discord webhook content.
     """
@@ -386,7 +394,7 @@ def discord_payload(strat: Strategy, lineup: list[str]) -> dict:
         "color": 0x35A800,
         "fields": [],
     }
-    fields: list[dict] = []
+    fields: list[dict[str, Any]] = []
     for outcome in strat.outcomes:
         gw = outcome.gameweek
         fields.append(
@@ -485,7 +493,7 @@ def new_squad_from_scratch(
     season: str,
     fpl_team_id: int,
     num_iterations: int,
-    chip_gameweeks: dict,
+    chip_gameweeks: dict[str, int],
 ) -> Squad:
     """
     Build a squad from nothing, for the start of a season or a brand new team.
@@ -554,7 +562,7 @@ def search_transfer_tree(
         # workers report progress back to this process (which owns the Rich
         # display) via a queue, rather than updating the progress bars directly
         # - the worker processes only ever see a fork-time copy of them.
-        progress_queue: Queue = Queue()
+        progress_queue: Queue[ProgressMessage | None] = Queue()
 
         def update_progress(increment: float = 1, index: int | None = None) -> None:
             progress_queue.put(("increment", index, increment))
@@ -567,15 +575,17 @@ def search_transfer_tree(
                 message = progress_queue.get()
                 if message is None:
                     break
-                kind, index, value = message
-                if kind == "reset":
+                if message[0] == "reset":
+                    _, worker, label = message
                     progress.reset(
-                        worker_tasks[index], description=f"Worker {index}: {value}"
+                        worker_tasks[worker], description=f"Worker {worker}: {label}"
                     )
-                elif index is None:
-                    progress.advance(total_task, value)
                 else:
-                    progress.advance(worker_tasks[index], value)
+                    _, index, increment = message
+                    if index is None:
+                        progress.advance(total_task, increment)
+                    else:
+                        progress.advance(worker_tasks[index], increment)
 
         progress_thread = threading.Thread(target=consume_progress_updates, daemon=True)
         progress_thread.start()
@@ -685,7 +695,7 @@ def run_optimization(
     tag: str,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
-    chip_gameweeks: dict | None = None,
+    chip_gameweeks: dict[str, int] | None = None,
     num_free_transfers: int | None = None,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,

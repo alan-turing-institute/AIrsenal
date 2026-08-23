@@ -36,9 +36,11 @@ Ideally, docstrings should follow [numpydoc][link_numpydoc] convention (though t
 We encourage extensive documentation.
 
 We use type hints, as provided by the [typing](link_typing) module, and `mypy` runs in
-strict mode. `pyproject.toml` carries a migration list of modules that are not yet
-annotated; that list may shrink but must never grow, so new code is annotated and
-code you move out of a listed module gets annotated on the way.
+strict mode over the whole of `src/airsenal`, with no per-module exemptions from
+annotating. The only `[[tool.mypy.overrides]]` blocks left in `pyproject.toml` name the
+untyped third-party libraries and the handful of modules allowed to call into them
+(jax/numpyro/bpl, deap, curl_cffi); everything else reaches those through our own
+typed wrappers. Do not add a module to those blocks to get a new error to go away.
 
 For code formatting and linting, we use [ruff](https://docs.astral.sh/ruff/) which combines the functionality of black, isort, and flake8. This can be run from the main "AIrsenal" directory by doing:
 ```

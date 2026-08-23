@@ -1,5 +1,7 @@
 """Replace two players, trying every pair in turn."""
 
+from typing import TYPE_CHECKING
+
 from airsenal.core.copy import fastcopy
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
@@ -7,9 +9,17 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import TransferPlan, TransferRequest
+from airsenal.optimization.protocols import (
+    ProgressUpdater,
+    TransferPlan,
+    TransferRequest,
+)
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
+from airsenal.squad.squad import Squad
+
+if TYPE_CHECKING:
+    from airsenal.db.models import Player
 
 logger = get_logger(__name__)
 
@@ -18,15 +28,15 @@ NUM_PAIRS = 105
 
 
 def make_optimum_double_transfer(
-    squad,
-    tag,
-    gameweeks=None,
-    root_gw=None,
-    season=CURRENT_SEASON,
-    update_func_and_args=None,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-):
+    squad: Squad,
+    tag: str,
+    gameweeks: list[int] | None = None,
+    root_gw: int | None = None,
+    season: str = CURRENT_SEASON,
+    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+) -> tuple[Squad, list[int], list[int]]:
     """
     If we want to just make two transfers, it's not infeasible to try all
     possibilities in turn.
@@ -41,7 +51,7 @@ def make_optimum_double_transfer(
     best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
-    ordered_player_lists = {
+    ordered_player_lists: dict[str, list[tuple[Player, float]]] = {
         pos: get_predicted_points(
             gameweeks=gameweeks, position=pos, tag=tag, season=season
         )

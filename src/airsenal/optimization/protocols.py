@@ -11,16 +11,30 @@ the same place.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, TypeAlias
 
 from airsenal.core.enums import Chip
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from multiprocessing import Process
 
     from airsenal.optimization.moves import GameweekMove
     from airsenal.squad.squad import Squad
+
+
+class ProgressUpdater(Protocol):
+    """
+    Advances the optimizer's progress display.
+
+    Called with no arguments to tick the overall total, or with an increment and
+    a worker index to advance that worker's own bar.
+    """
+
+    def __call__(self, increment: float = ..., index: int | None = ...) -> None: ...
+
+
+# (worker index, strategy label) - restarts one worker's bar for a new strategy
+ProgressResetter: TypeAlias = "Callable[[int, str], None]"
 
 
 @dataclass(frozen=True)
@@ -34,8 +48,8 @@ class TransferRequest:
     root_gw: int
     season: str
     num_iterations: int = 100
-    # (callback, increment, worker id) for the progress bar, if there is one
-    progress: tuple[Callable, float, Process] | None = None
+    # (callback, increment, worker index) for the progress bar, if there is one
+    progress: tuple[ProgressUpdater, float, int] | None = None
 
     @property
     def chip(self) -> Chip | None:

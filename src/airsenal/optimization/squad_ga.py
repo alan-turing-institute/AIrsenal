@@ -6,7 +6,6 @@ algorithm.
 
 import random
 from dataclasses import replace
-from typing import TYPE_CHECKING
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -15,15 +14,17 @@ from sqlalchemy.orm import Session
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
+from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
-from airsenal.optimization.config import DEFAULT_SUB_WEIGHTS, GeneticAlgorithmConfig
+from airsenal.optimization.config import (
+    DEFAULT_SUB_WEIGHTS,
+    GeneticAlgorithmConfig,
+    SubWeightsDict,
+)
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
-
-if TYPE_CHECKING:
-    from airsenal.db.models import Player
 
 logger = get_logger(__name__)
 
@@ -77,18 +78,19 @@ class SquadOpt:
 
     def __init__(
         self,
-        gameweeks,
-        tag,
-        budget=1000,
-        dummy_sub_cost=45,
-        season=CURRENT_SEASON,
-        bench_boost_gw=None,
-        triple_captain_gw=None,
-        remove_zero=True,  # don't consider players with predicted pts of zero
-        players_per_position=TOTAL_PER_POSITION,
-        sub_weights=DEFAULT_SUB_WEIGHTS,
+        gameweeks: list[int],
+        tag: str,
+        budget: int = 1000,
+        dummy_sub_cost: int = 45,
+        season: str = CURRENT_SEASON,
+        bench_boost_gw: int | None = None,
+        triple_captain_gw: int | None = None,
+        # don't consider players with predicted pts of zero
+        remove_zero: bool = True,
+        players_per_position: dict[str, int] = TOTAL_PER_POSITION,
+        sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
         dbsession: Session | None = None,
-    ):
+    ) -> None:
         # Held on the optimiser, never on a Squad: a Squad crosses the
         # multiprocessing queue and a Session cannot be pickled.
         self.dbsession = dbsession
@@ -116,7 +118,7 @@ class SquadOpt:
         # Setup DEAP toolbox
         self._setup_deap()
 
-    def _setup_deap(self):
+    def _setup_deap(self) -> None:
         """Setup DEAP genetic algorithm components."""
         _ensure_deap_types()
 
@@ -134,7 +136,7 @@ class SquadOpt:
         # Store mutation bounds for later use in optimize method
         self.low_bounds, self.up_bounds = self._get_mutation_bounds()
 
-    def _create_individual(self):
+    def _create_individual(self) -> list[int]:
         """Create a valid individual (chromosome) representing a squad selection."""
         individual = []
 
@@ -151,7 +153,7 @@ class SquadOpt:
 
         return creator.AirsenalIndividual(individual)
 
-    def _get_mutation_bounds(self):
+    def _get_mutation_bounds(self) -> tuple[list[int], list[int]]:
         """Get lower and upper bounds for each gene for mutation."""
         low_bounds = []
         up_bounds = []
@@ -213,7 +215,7 @@ class SquadOpt:
 
         return (score,)
 
-    def _get_player_list(self):
+    def _get_player_list(self) -> tuple[list[Player], dict[Position, tuple[int, int]]]:
         """Get list of active players at the start of the gameweek range,
         and the id range of players for each position.
         """
@@ -236,13 +238,13 @@ class SquadOpt:
         }
         return players, position_idx
 
-    def _remove_zero_pts(self):
+    def _remove_zero_pts(self) -> None:
         """Exclude players with zero predicted points."""
         players: list[Player] = []
         # change_idx stores the indices of where the player positions change in the new
         # player list
         change_idx = [0]
-        last_pos = self.positions[0]
+        last_pos: str | None = self.positions[0]
         for p in self.players:
             gw_pts = get_predicted_points_for_player(
                 p, self.tag, season=self.season, dbsession=self.dbsession
@@ -263,7 +265,7 @@ class SquadOpt:
         self.players = players
         self.position_idx = position_idx
 
-    def _get_dummy_per_position(self):
+    def _get_dummy_per_position(self) -> dict[Position, int]:
         """No. of dummy players per position needed to complete the squad (if not
         optimising the full squad)
         """
@@ -340,20 +342,21 @@ class SquadOpt:
 
 
 def make_new_squad(
-    gameweeks,
-    tag,
-    budget=1000,
-    players_per_position=TOTAL_PER_POSITION,
-    season=CURRENT_SEASON,
-    verbose=True,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-    remove_zero=True,  # don't consider players with predicted pts of zero
-    sub_weights=DEFAULT_SUB_WEIGHTS,
-    dummy_sub_cost=45,
+    gameweeks: list[int],
+    tag: str,
+    budget: int = 1000,
+    players_per_position: dict[str, int] = TOTAL_PER_POSITION,
+    season: str = CURRENT_SEASON,
+    verbose: bool = True,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+    # don't consider players with predicted pts of zero
+    remove_zero: bool = True,
+    sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
+    dummy_sub_cost: int = 45,
     ga_config: GeneticAlgorithmConfig | None = None,
     dbsession: Session | None = None,
-):
+) -> Squad:
     """Optimize a full initial squad using DEAP genetic algorithm.
 
     Parameters
@@ -421,12 +424,13 @@ def make_new_squad(
     squad = Squad(budget=opt_squad.budget, season=season)
     for idx in best_individual:
         player = opt_squad.players[int(idx)]
+        price = player.price(season, 1)
         logger.debug(
             "%s %s %s %s",
             player.position(season),
             player,
             player.team(season, 1),
-            player.price(season, 1) / 10,
+            price / 10 if price is not None else None,
         )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,

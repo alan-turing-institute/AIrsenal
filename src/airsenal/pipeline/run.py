@@ -1,5 +1,6 @@
 import multiprocessing
 import sys
+from typing import Any
 
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
@@ -192,7 +193,7 @@ def setup_chips(
     free_hit_week: int,
     triple_captain_week: int,
     bench_boost_week: int,
-) -> dict:
+) -> dict[str, int]:
     """
     Set up chips to be played for particular gameweeks. Specifically: wildcard,
     free_hit, triple_captain, bench_boost
@@ -218,7 +219,7 @@ def run_prediction(
     dbsession: Session,
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
-    team_model_args: dict | None = None,
+    team_model_args: dict[str, Any] | None = None,
 ) -> bool:
     """
     Run prediction
@@ -276,7 +277,7 @@ def run_optimize_squad(
     gameweeks: list[int],
     fpl_team_id: int,
     dbsession: Session,
-    chips_played: dict,
+    chips_played: dict[str, int],
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,

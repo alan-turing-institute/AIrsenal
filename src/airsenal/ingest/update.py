@@ -4,6 +4,8 @@ the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
 
+from typing import Any
+
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.caching import clear_query_caches
@@ -112,9 +114,9 @@ def update_players(season: str, dbsession: Session) -> int:
 
 
 def add_players_to_db(
-    players_from_db: list,
+    players_from_db: list[Player],
     players_from_api: list[int],
-    player_data_from_api: dict,
+    player_data_from_api: dict[int, dict[str, Any]],
     dbsession: Session,
 ) -> int:
     logger.info("Updating player table...")

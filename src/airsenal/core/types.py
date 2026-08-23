@@ -1,31 +1,18 @@
 """
 Domain type aliases.
 
-NewType is used only where two values of the same primitive type are routinely
-confused and never combined arithmetically. Everything else is a plain alias that
-documents intent without forcing wrapper calls at every use.
+Plain aliases only. Ids were NewTypes here for a while, but every id in this codebase
+arrives from SQLAlchemy or from the FPL API as a plain int, so a NewType would have
+meant a cast at each of those boundaries - many hundreds of them - to buy a
+distinction that reads fine as a parameter name.
 """
 
-from typing import NewType, TypeAlias
+from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
 
-# Our own player.player_id and the FPL API's player id are different integers for the
-# same footballer, and the codebase carries both. This is the distinction most worth
-# having the type checker enforce.
-PlayerId = NewType("PlayerId", int)
-FplPlayerId = NewType("FplPlayerId", int)
-
-# A manager's FPL entry, as opposed to a Premier League club. These collide in
-# get_sell_price and in the fetcher, where a wrong one sends real transfers.
-FplTeamId = NewType("FplTeamId", int)
-
-FixtureId = NewType("FixtureId", int)
-
-# Deliberately plain aliases. Gameweeks are added and ranged over constantly, so a
-# NewType would mean wrapping the result of every `gw + 1` - about 200 sites - to buy
-# a distinction nothing actually confuses.
+# Gameweeks are added and ranged over constantly, so these stay plain ints and strs.
 Gameweek: TypeAlias = int
 Season: TypeAlias = str  # "2526" for the 2025/26 season
 Tag: TypeAlias = str  # groups the rows written by one prediction run

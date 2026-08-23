@@ -3,6 +3,8 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
+from typing import Any
+
 from airsenal.core.console import console
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
@@ -11,7 +13,7 @@ from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.reporting.squad_view import formation_table
-from airsenal.squad.player import bench_position
+from airsenal.squad.player import SquadPlayer, bench_position
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
@@ -26,8 +28,8 @@ def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
     return False
 
 
-def build_lineup_payload(squad: Squad) -> list:
-    def to_dict(player, pos_int):
+def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
+    def to_dict(player: SquadPlayer, pos_int: int) -> dict[str, Any]:
         p = get_player(player.player_id)
         if p is None:
             msg = f"Player with ID {player.player_id} not found"
@@ -42,7 +44,7 @@ def build_lineup_payload(squad: Squad) -> list:
             "is_vice_captain": player.is_vice_captain,
         }
 
-    payload = []
+    payload: list[dict[str, Any]] = []
     # payload for starting lineup
     lineup = [p for p in squad.players if p.is_starting]
     position_integer = 1
@@ -68,7 +70,7 @@ def build_lineup_payload(squad: Squad) -> list:
     return payload
 
 
-def get_lineup_from_payload(lineup: dict) -> Squad:
+def get_lineup_from_payload(lineup: dict[str, Any]) -> Squad:
     """
     inverse of build_lineup_payload. Returns a squad object from get_lineup
 
@@ -89,7 +91,7 @@ def get_lineup_from_payload(lineup: dict) -> Squad:
     raise RuntimeError(msg)
 
 
-def make_squad_transfers(squad: Squad, priced_transfers: list[dict]) -> None:
+def make_squad_transfers(squad: Squad, priced_transfers: list[list[list[int]]]) -> None:
     for t in priced_transfers:
         squad.remove_player(t[0][0], price=t[0][1])
         squad.add_player(t[1][0], price=t[1][1])

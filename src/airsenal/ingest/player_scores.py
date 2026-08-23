@@ -7,6 +7,7 @@ import datetime
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from curl_cffi import requests
@@ -189,7 +190,7 @@ def get_status_from_attributes_history(
 
 
 def fill_playerscores_from_json(
-    detail_data: list, season: str, dbsession: Session | None = None
+    detail_data: list[dict[str, Any]], season: str, dbsession: Session | None = None
 ) -> None:
     # Get column metadata once for efficiency
     dbsession = dbsession if dbsession is not None else get_session()

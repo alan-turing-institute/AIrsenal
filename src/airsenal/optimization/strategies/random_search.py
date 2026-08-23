@@ -15,9 +15,14 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import TransferPlan, TransferRequest
+from airsenal.optimization.protocols import (
+    ProgressUpdater,
+    TransferPlan,
+    TransferRequest,
+)
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies.registry import TRANSFER_STRATEGIES, NoOptions
+from airsenal.squad.squad import Squad
 
 if TYPE_CHECKING:
     from airsenal.db.models import Player
@@ -26,17 +31,17 @@ logger = get_logger(__name__)
 
 
 def make_random_transfers(
-    squad,
-    tag,
-    nsubs=1,
-    gameweeks=None,
-    root_gw=None,
-    num_iter=1,
-    update_func_and_args=None,
-    season=CURRENT_SEASON,
-    bench_boost_gw=None,
-    triple_captain_gw=None,
-):
+    squad: Squad,
+    tag: str,
+    nsubs: int = 1,
+    gameweeks: list[int] | None = None,
+    root_gw: int | None = None,
+    num_iter: int = 1,
+    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
+    season: str = CURRENT_SEASON,
+    bench_boost_gw: int | None = None,
+    triple_captain_gw: int | None = None,
+) -> tuple[Squad, list[int], list[int]]:
     """
     choose nsubs random players to sub out, and then select players
     using a triangular PDF to preferentially select the replacements with
@@ -74,9 +79,9 @@ def make_random_transfers(
                 players_to_remove.append(index)
 
         positions_needed = []
-        for p in players_to_remove:
-            positions_needed.append(squad.players[p].position)
-            removed_players.append(squad.players[p].player_id)
+        for squad_index in players_to_remove:
+            positions_needed.append(squad.players[squad_index].position)
+            removed_players.append(squad.players[squad_index].player_id)
             new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
         predicted_points = {
             pos: get_predicted_points(

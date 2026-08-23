@@ -5,12 +5,9 @@ The work of each option lives in `optimization/strategies/`; this module picks
 the right one for a move and scores what it came back with.
 """
 
-from collections.abc import Callable
-from multiprocessing import Process
-
 from airsenal.core.logging import get_logger
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import TransferRequest
+from airsenal.optimization.protocols import ProgressUpdater, TransferRequest
 from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.optimization.strategies import select_strategy
 from airsenal.squad.squad import Squad
@@ -36,7 +33,7 @@ def make_best_transfers(
     root_gw: int,
     season: str,
     num_iter: int = 100,
-    update_func_and_args: tuple[Callable, float, Process] | None = None,
+    update_func_and_args: tuple[ProgressUpdater, float, int] | None = None,
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Make this gameweek's move, returning the resulting squad, the transfers made

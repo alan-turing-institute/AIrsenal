@@ -16,6 +16,7 @@ from airsenal.optimization.config import (
     DEFAULT_SUB_WEIGHTS,
     GeneticAlgorithmConfig,
     SubWeights,
+    SubWeightsDict,
 )
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
@@ -28,7 +29,8 @@ from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
-positions = list(Position.front_to_back())  # front-to-back
+# str rather than Position: a squad player's position is a plain string
+positions: list[str] = list(Position.front_to_back())  # front-to-back
 
 
 def fill_initial_squad(
@@ -38,7 +40,7 @@ def fill_initial_squad(
     fpl_team_id: int,
     budget: int = 1000,
     remove_zero: bool = True,
-    sub_weights: dict = DEFAULT_SUB_WEIGHTS,
+    sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
     ga_config: GeneticAlgorithmConfig | None = None,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
@@ -56,13 +58,6 @@ def fill_initial_squad(
             ga_config=replace(ga_config, verbose=verbose),
             verbose=verbose,
         )
-
-    if best_squad is None:
-        msg = (
-            "best_squad is None: make_new_squad failed to generate a valid team or "
-            "something went wrong with the squad expected points calculation."
-        )
-        raise RuntimeError(msg)
 
     gw_start = gameweeks[0]
     optimised_score = get_discounted_squad_score(

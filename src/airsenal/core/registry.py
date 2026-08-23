@@ -10,9 +10,15 @@ an error that lists the valid ones.
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
-from typing import Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
 
 T = TypeVar("T")
+# dataclasses.fields() needs to know its argument is a dataclass; the only name
+# for that is typeshed's, which exists at type-check time only.
+TConfig = TypeVar("TConfig", bound="DataclassInstance")
 
 
 class ConfigError(ValueError):
@@ -110,8 +116,8 @@ class Registry(Generic[T]):
 
 
 def config_from_overrides(
-    config_cls: type, overrides: Mapping[str, str], kind: str = "config"
-) -> Any:
+    config_cls: type[TConfig], overrides: Mapping[str, str], kind: str = "config"
+) -> TConfig:
     """
     Build a config dataclass from `key=value` strings, as given on the command line.
 

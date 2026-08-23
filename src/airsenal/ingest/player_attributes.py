@@ -3,6 +3,7 @@ Fill the "Player" table with info from this and past seasonss FPL
 """
 
 import json
+from typing import Any
 
 from sqlalchemy.orm.session import Session
 
@@ -28,7 +29,7 @@ logger = get_logger(__name__)
 
 
 def fill_attributes_table_from_file(
-    detail_data: dict, season: str, dbsession: Session | None = None
+    detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
     """Fill player attributes table for previous season using data from
     player detail JSON files.

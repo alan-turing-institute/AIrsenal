@@ -7,6 +7,8 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
+from typing import Any
+
 from airsenal.core.console import console, table
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
@@ -43,7 +45,7 @@ def check_proceed(num_transfers: int = 0) -> bool:
     return True
 
 
-def deduct_transfer_price(pre_bank: float, priced_transfers: list[dict]) -> float:
+def deduct_transfer_price(pre_bank: int, priced_transfers: list[dict[str, int]]) -> int:
     gain = [
         transfer["selling_price"] - transfer["purchase_price"]
         for transfer in priced_transfers
@@ -54,9 +56,9 @@ def deduct_transfer_price(pre_bank: float, priced_transfers: list[dict]) -> floa
 def print_output(
     team_id: int,
     current_gw: int,
-    priced_transfers: list[dict],
-    pre_bank: float | None = None,
-    post_bank: float | None = None,
+    priced_transfers: list[dict[str, int]],
+    pre_bank: int | None = None,
+    post_bank: int | None = None,
 ) -> None:
     console.print()
     header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
@@ -87,7 +89,7 @@ def print_output(
     console.print()
 
 
-def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:
+def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> int:
     squad = get_starting_squad(
         next_gw=next_gameweek(), season=season, fpl_team_id=team_id
     )
@@ -101,7 +103,7 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
 
 def get_gw_transfer_suggestions(
     fpl_team_id: int | None = None,
-) -> tuple[list[list], int, int, str | None] | None:
+) -> tuple[list[list[int]], int, int, str | None] | None:
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
@@ -134,8 +136,8 @@ def get_gw_transfer_suggestions(
 
 
 def price_transfers(
-    transfer_player_ids: list[list], fetcher: FPLDataFetcher
-) -> list[dict]:
+    transfer_player_ids: list[list[int]], fetcher: FPLDataFetcher
+) -> list[dict[str, int]]:
     """
     For most gameweeks, we get transfer suggestions from the db, including
     both players to be removed and added.
@@ -144,7 +146,7 @@ def price_transfers(
     if fetcher.FPL_TEAM_ID is None:
         msg = "FPL team ID not set. Cannot price transfers."
         raise RuntimeError(msg)
-    priced_transfers = []
+    priced_transfers: list[list[list[int]]] = []
     for t in transfers:
         player = get_player(t[1])
         if player is None:
@@ -158,16 +160,21 @@ def price_transfers(
                 [t[0], get_sell_price(fetcher.FPL_TEAM_ID, t[0])],
                 [
                     t[1],
-                    fetcher.get_player_summary_data()[player.fpl_api_id]["now_cost"],
+                    int(
+                        fetcher.get_player_summary_data()[player.fpl_api_id]["now_cost"]
+                    ),
                 ],
             ]
         )
 
-    def to_dict(t):
+    def to_dict(t: list[list[int]]) -> dict[str, int]:
         p_out = get_player(t[0][0])
         p_in = get_player(t[1][0])
         if not p_out or not p_in:
             msg = f"Player not found for transfer: {t}"
+            raise ValueError(msg)
+        if p_out.fpl_api_id is None or p_in.fpl_api_id is None:
+            msg = f"Player without an FPL API ID in transfer: {t}"
             raise ValueError(msg)
         return {
             "element_out": p_out.fpl_api_id,
@@ -179,7 +186,9 @@ def price_transfers(
     return [to_dict(transfer) for transfer in priced_transfers]
 
 
-def separate_transfers_in_or_out(transfer_list: list[dict]) -> tuple[list, list]:
+def separate_transfers_in_or_out(
+    transfer_list: list[dict[str, int]],
+) -> tuple[list[dict[str, int]], list[dict[str, int]]]:
     """
     Given a list of dicts with keys
     "element_in", "purchase_price", "element_out", "selling_price",
@@ -198,7 +207,7 @@ def separate_transfers_in_or_out(transfer_list: list[dict]) -> tuple[list, list]
     return transfers_out, transfers_in
 
 
-def sort_by_position(transfer_list: list[dict]) -> list[dict]:
+def sort_by_position(transfer_list: list[dict[str, int]]) -> list[dict[str, int]]:
     """
     Takes a list of transfers e.g. [{"element_in": <FPL_API_ID>, "purchase_price": x}]
     and returns the same list ordered by DEF, FWD, GK, MID (i.e. alphabetical)
@@ -208,7 +217,7 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
     Note that it is the FPL API ID used here, NOT the player_id.
     """
 
-    def _get_position(api_id):
+    def _get_position(api_id: int) -> str:
         player = get_player_from_api_id(api_id)
         if player is None:
             msg = f"Player with API ID {api_id} not found"
@@ -237,7 +246,7 @@ def sort_by_position(transfer_list: list[dict]) -> list[dict]:
 
 def remove_duplicates(
     transfers_in: list[dict[str, int]], transfers_out: list[dict[str, int]]
-) -> tuple:
+) -> tuple[list[dict[str, int]], list[dict[str, int]]]:
     """
     If we are replacing lots of players (e.g. new team), need to make sure there
     are no duplicates - can't add a player if we already have them.
@@ -252,7 +261,7 @@ def remove_duplicates(
 
 def build_init_priced_transfers(
     fetcher: FPLDataFetcher, fpl_team_id: int | None = None
-) -> list[dict]:
+) -> list[dict[str, int]]:
     """
     Before gameweek 1, there won't be any 'sell' transfer suggestions in the db.
     We can instead query the API for our current 'picks' (requires login).
@@ -296,11 +305,11 @@ def build_init_priced_transfers(
 
 
 def build_transfer_payload(
-    priced_transfers: list[dict],
+    priced_transfers: list[dict[str, int]],
     current_gw: int,
     fetcher: FPLDataFetcher,
     chip_played: str | None,
-) -> dict:
+) -> dict[str, Any]:
     transfer_payload = {
         "confirmed": False,
         "entry": fetcher.FPL_TEAM_ID,
