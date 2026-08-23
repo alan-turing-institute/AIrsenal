@@ -9,7 +9,7 @@ from datetime import datetime
 import pandas as pd
 
 
-def get_current_season():
+def get_current_season() -> str:
     """
     use the current time to find what season we're in.
     """

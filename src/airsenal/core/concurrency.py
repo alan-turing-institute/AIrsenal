@@ -15,11 +15,19 @@ import threading
 import time
 from multiprocessing.queues import JoinableQueue
 from pathlib import Path
+from typing import TYPE_CHECKING, TypeVar
 
 from airsenal.core.env import AIRSENAL_HOME
 
+if TYPE_CHECKING:
+    from multiprocessing.sharedctypes import Synchronized
+
 DEFAULT_STALL_SECONDS = 120
 STALL_SECONDS_ENV = "AIRSENAL_STALL_SECONDS"
+
+# What `CustomQueue` carries. Deliberately a type parameter rather than the
+# strategy tuple it holds in practice: core must not import from the optimizer.
+T = TypeVar("T")
 
 
 def stall_seconds() -> int:
@@ -33,7 +41,7 @@ def stall_dump_dir() -> Path:
     return AIRSENAL_HOME / "stalls"
 
 
-def set_multiprocessing_start_method():
+def set_multiprocessing_start_method() -> None:
     """To fix change of default behaviour in multiprocessing on Python 3.8 and later
     on MacOS. Python 3.8 and later start processess using spawn by default, see:
     https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
@@ -64,21 +72,21 @@ class SharedCounter:
     http://eli.thegreenplace.net/2012/01/04/shared-counter-with-pythons-multiprocessing/
     """
 
-    def __init__(self, n=0):
-        self.count = multiprocessing.Value("i", n)
+    def __init__(self, n: int = 0) -> None:
+        self.count: Synchronized[int] = multiprocessing.Value("i", n)
 
-    def increment(self, n=1):
+    def increment(self, n: int = 1) -> None:
         """Increment the counter by n (default = 1)"""
         with self.count.get_lock():
             self.count.value += n
 
     @property
-    def value(self):
+    def value(self) -> int:
         """Return the value of the counter"""
         return self.count.value
 
 
-class CustomQueue(JoinableQueue):
+class CustomQueue(JoinableQueue[T]):
     """
     A portable implementation of multiprocessing.JoinableQueue.
     Because of multithreading / multiprocessing semantics, Queue.qsize() may
@@ -98,23 +106,23 @@ class CustomQueue(JoinableQueue):
     needing to independently know the expected total number of tasks.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(ctx=multiprocessing.get_context())
         self.size = SharedCounter(0)
 
-    def put(self, *args, **kwargs):
+    def put(self, obj: T, block: bool = True, timeout: float | None = None) -> None:
         self.size.increment(1)
-        super().put(*args, **kwargs)
+        super().put(obj, block, timeout)
 
-    def get(self, *args, **kwargs):
+    def get(self, block: bool = True, timeout: float | None = None) -> T:
         self.size.increment(-1)
-        return super().get(*args, **kwargs)
+        return super().get(block, timeout)
 
-    def qsize(self):
+    def qsize(self) -> int:
         """Reliable implementation of multiprocessing.Queue.qsize()"""
         return self.size.value
 
-    def empty(self):
+    def empty(self) -> bool:
         """Reliable implementation of multiprocessing.Queue.empty()"""
         return not self.qsize()
 

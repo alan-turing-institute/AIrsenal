@@ -64,9 +64,15 @@ from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
 
 logger = get_logger(__name__)
 
+# What the strategy-tree queue carries: either a node still to expand, or the
+# shutdown sentinel. A node is (move, free_transfers, hit_so_far, hit_this_gw,
+# squad, strategy), where `strategy` is None only for the root.
+StrategyNode = tuple[GameweekMove, int, int, int, Squad, "Strategy | None"]
+QueueItem = StrategyNode | None
+
 
 def optimize(
-    queue: CustomQueue,
+    queue: CustomQueue[QueueItem],
     pid: Process,
     results: "Queue[Strategy]",
     gameweeks: list[int],
@@ -213,7 +219,7 @@ def optimize(
         queue.task_done()
 
 
-def _wait_for_queue(queue: CustomQueue, procs: list[Process]) -> None:
+def _wait_for_queue(queue: CustomQueue[QueueItem], procs: list[Process]) -> None:
     """
     Wait for every queued task to be marked done, failing if a worker dies first.
 
@@ -521,7 +527,7 @@ def search_transfer_tree(
     """
     # create a queue that we will add nodes to, and some processes to take
     # things off it
-    squeue = CustomQueue()
+    squeue: CustomQueue[QueueItem] = CustomQueue()
     # workers put finished strategies here for the parent to compare
     result_queue: Queue[Strategy | None] = Queue()
     procs = []
