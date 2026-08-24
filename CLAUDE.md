@@ -35,11 +35,16 @@ uv run ruff format .
 uv run mypy
 ```
 
-**Check the package layering** (checked in CI, not by pre-commit; run it after
-moving code between packages):
+**Check the package layering:**
 ```bash
 uv run lint-imports
 ```
+
+Neither of those last two is a pre-commit hook — pre-commit runs only the fast,
+file-scoped things (ruff and friends), while mypy and import-linter analyse the
+whole package and run in CI. So run them yourself before pushing, particularly
+`lint-imports` after moving code between packages, rather than finding out on the
+pull request.
 
 **Pre-commit hooks:**
 ```bash
@@ -58,11 +63,10 @@ uv run airsenal run
 
 The packages form a one-way dependency chain, one package per layer, enforced by
 import-linter (see `[tool.importlinter]` in `pyproject.toml`) and checked in CI, so
-a wrong-direction import cannot merge - but **not** by pre-commit, so run `uv run
-lint-imports` yourself after moving code between packages rather than finding out
-on the pull request. The contract is `exhaustive`, so a newly-created package has
-to be given a place in the chain rather than silently escaping it. The order, top
-to bottom:
+a wrong-direction import cannot merge — but **not** by pre-commit, so run `uv run
+lint-imports` yourself after moving code between packages. The contract is
+`exhaustive`, so a newly-created package has to be given a place in the chain
+rather than silently escaping it. The order, top to bottom:
 
 ```
 cli > pipeline > apply > optimization > export > ingest > reporting > squad >

@@ -33,17 +33,3 @@ repos:
       # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi, jupyter ]
-
-  # A local hook rather than mirrors-mypy: that one builds its own environment
-  # from additional_dependencies, so it could not see sqlalchemy, pandas or bpl
-  # and checked a much thinner picture of the code than `uv run mypy` does. The
-  # two disagreed, which meant the hook both missed real errors and invented
-  # ones that were not reproducible locally.
-  - repo: local
-    hooks:
-      - id: mypy
-        name: mypy
-        entry: uv run --extra dev mypy
-        language: system
-        types: [python]
-        pass_filenames: false

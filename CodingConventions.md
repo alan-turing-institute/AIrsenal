@@ -36,8 +36,8 @@ Ideally, docstrings should follow [numpydoc][link_numpydoc] convention (though t
 We encourage extensive documentation.
 
 We use type hints, as provided by the [typing](link_typing) module, and `mypy` runs in
-strict mode over the whole of `src/airsenal`, with no per-module exemptions from
-annotating. The only `[[tool.mypy.overrides]]` blocks left in `pyproject.toml` name the
+strict mode in CI over the whole of `src/airsenal`, with no per-module exemptions from
+annotating (`uv run mypy` to run it yourself). The only `[[tool.mypy.overrides]]` blocks left in `pyproject.toml` name the
 untyped third-party libraries and the handful of modules allowed to call into them
 (jax/numpyro/bpl, deap, curl_cffi); everything else reaches those through our own
 typed wrappers. Do not add a module to those blocks to get a new error to go away.
@@ -48,7 +48,7 @@ ruff check --fix .  # Linting with automatic fixes
 ruff format .       # Code formatting
 ```
 
-Finally, we have a [pre-commit](https://pre-commit.com/) setup that you can use to run all the steps above whenever commiting something to the AIrsenal repo. To set these up run this from the AIrsenal directory:
+Finally, we have a [pre-commit](https://pre-commit.com/) setup that runs the formatting and linting above whenever you commit. It deliberately stops there: `mypy` and `lint-imports` both analyse the whole package rather than the files you happened to touch, so they run in CI instead, and are worth running yourself before pushing. To set pre-commit up run this from the AIrsenal directory:
 ```
 pre-commit install
 ```

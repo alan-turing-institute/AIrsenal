@@ -38,12 +38,25 @@ jobs:
           uv run --extra dev pre-commit run
           --hook-stage manual --all-files --show-diff-on-failure
 
-      # A workflow step rather than a pre-commit hook: the contracts describe the
-      # package as a whole, so there is nothing for a file-scoped hook to narrow
-      # to, and checking them needs the project environment rather than an
-      # isolated one. It runs here because a wrong-direction import does not fail
-      # at runtime - nothing else in CI would ever notice it. Cheap (well under a
-      # second), and in this job so it gates the test matrix below.
+      # mypy and import-linter run here rather than as pre-commit hooks. Both
+      # analyse the whole package at once, so neither has anything to narrow to
+      # from a list of changed files - `lint-imports` does not even accept
+      # filenames, because a layering violation is an edge between two modules
+      # and needs the whole import graph. Both also need the project environment:
+      # mypy was a `local` hook precisely because mirrors-mypy builds its own
+      # from additional_dependencies, could not see sqlalchemy, pandas or bpl,
+      # and so checked a much thinner picture of the code than `uv run mypy`
+      # does - the two disagreed, and the hook both missed real errors and
+      # invented ones that were not reproducible locally. Reproducing the project
+      # environment in additional_dependencies means duplicating nearly every
+      # dependency, resolved independently of uv.lock, which is the same trap.
+      #
+      # They are in this job so both gate the test matrix, which `needs` it.
+      - name: Type check
+        run: uv run --extra dev mypy
+
+      # A wrong-direction import does not fail at runtime, so without this step
+      # nothing in CI would ever notice one.
       - name: Check the package layering
         run: uv run --extra dev lint-imports --no-cache
 
