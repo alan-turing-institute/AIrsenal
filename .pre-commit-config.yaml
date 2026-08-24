@@ -47,21 +47,3 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-
-      # The package layering contracts in pyproject.toml were the one quality gate
-      # nothing ran: a wrong-direction import does not fail at runtime, so the chain
-      # could rot for months between someone remembering to type `uv run
-      # lint-imports`. That is the exact failure the contracts were written to catch,
-      # and it was being caught by hand.
-      #
-      # toml as well as python: the contracts live in pyproject.toml, so editing the
-      # layers list is precisely the change that needs re-checking.
-      #
-      # --no-cache because the whole run is well under a second over 173 files, so
-      # the cache buys nothing and a stale one could answer for the wrong tree.
-      - id: lint-imports
-        name: lint-imports
-        entry: uv run --extra dev lint-imports --no-cache
-        language: system
-        types_or: [python, toml]
-        pass_filenames: false

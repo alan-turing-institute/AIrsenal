@@ -38,6 +38,15 @@ jobs:
           uv run --extra dev pre-commit run
           --hook-stage manual --all-files --show-diff-on-failure
 
+      # A workflow step rather than a pre-commit hook: the contracts describe the
+      # package as a whole, so there is nothing for a file-scoped hook to narrow
+      # to, and checking them needs the project environment rather than an
+      # isolated one. It runs here because a wrong-direction import does not fail
+      # at runtime - nothing else in CI would ever notice it. Cheap (well under a
+      # second), and in this job so it gates the test matrix below.
+      - name: Check the package layering
+        run: uv run --extra dev lint-imports --no-cache
+
   checks:
     name: Run tests for Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
