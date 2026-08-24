@@ -1,0 +1,71 @@
+"""
+Make player summary files from FPL season data json
+"""
+
+import json
+
+from airsenal.core.data_files import data_file
+from airsenal.core.logging import get_logger
+from airsenal.core.season import get_past_seasons
+from airsenal.db.queries.gameweeks import is_future_gameweek
+
+logger = get_logger(__name__)
+
+INPUT_FILE = str(data_file("FPL_{}.json"))
+SAVE_FILE = str(data_file("player_summary_{}.json"))
+
+# dict of {key in input file: key in output file}
+keys_to_extract = {
+    # name - construct from first name and second name
+    "bonus": "bonus",
+    "goals_scored": "goals",
+    "assists": "assists",
+    "minutes": "minutes",
+    "penalties_missed": "penalties_missed",
+    "penalties_saved": "penalties_saved",
+    "clean_sheets": "clean_sheets",
+    "total_points": "points",
+    "red_cards": "reds",
+    "yellow_cards": "yellows",
+    "team": "team",  # need to convert index to string
+    "element_type": "position",  # need to convert index to string
+    "now_cost": "cost",
+    "opta_code": "opta_code",  # only from 24/25 season
+}
+
+
+def make_player_summary(season: str) -> None:
+    with open(INPUT_FILE.format(season)) as f:
+        data = json.load(f)
+
+    teams = {team["id"]: team["short_name"] for team in data["teams"]}
+    positions = {et["id"]: et["singular_name_short"] for et in data["element_types"]}
+
+    player_summaries = []
+
+    for player in data["elements"]:
+        name = player["first_name"] + " " + player["second_name"]
+        logger.debug("%s %s", player["first_name"], player["second_name"])
+        player_dict = {"name": name}
+        for input_key, output_key in keys_to_extract.items():
+            if input_key == "opta_code" and not is_future_gameweek(
+                season, 1, "2324", 38
+            ):
+                # opta code only introduced from 24/25 season
+                continue
+            player_dict[output_key] = player[input_key]
+
+        player_dict["team"] = teams[player_dict["team"]]
+        player_dict["position"] = positions[player_dict["position"]]
+
+        player_summaries.append(player_dict)
+
+    with open(SAVE_FILE.format(season), "w") as f:
+        json.dump(player_summaries, f)
+
+
+if __name__ == "__main__":
+    for season in get_past_seasons(3):
+        logger.info("---- MAKING PLAYER SUMMARIES FOR %s SEASON ----", season)
+        make_player_summary(season)
+    logger.info("---- DONE ----")

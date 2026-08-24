@@ -16,6 +16,11 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
+        # The hook checks every tests/**/*.py and exempts only __init__.py and
+        # conftest.py, so a module holding fixture data rather than tests has to
+        # be listed here - the alternative is calling it test_something.py and
+        # having it collected as a test file that contains no tests.
+        exclude: ^tests/dummy_data\.py$
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -29,13 +34,16 @@ repos:
       - id: ruff-format
         types_or: [ python, pyi, jupyter ]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v2.1.0"
+  # A local hook rather than mirrors-mypy: that one builds its own environment
+  # from additional_dependencies, so it could not see sqlalchemy, pandas or bpl
+  # and checked a much thinner picture of the code than `uv run mypy` does. The
+  # two disagreed, which meant the hook both missed real errors and invented
+  # ones that were not reproducible locally.
+  - repo: local
     hooks:
       - id: mypy
-        files: "airsenal/framework|airsenal/scripts"
-        additional_dependencies:
-          - pytest
-          - types-dateparser
-          - types-requests
-          - types-python-dateutil
+        name: mypy
+        entry: uv run --extra dev mypy
+        language: system
+        types: [python]
+        pass_filenames: false

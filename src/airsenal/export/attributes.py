@@ -1,0 +1,206 @@
+import csv
+import re
+from collections import defaultdict
+from datetime import date, datetime
+
+import dateparser
+
+from airsenal.core.data_files import data_file
+from airsenal.core.dates import parse_date
+from airsenal.core.logging import get_logger
+from airsenal.core.mappings import positions
+from airsenal.core.season import CURRENT_SEASON
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.fetch.fpl_api import FPLDataFetcher
+
+logger = get_logger(__name__)
+
+
+def get_return_gameweek_by_date(
+    return_date: datetime | None,
+    team: str,
+    ordered_deadlines: list[tuple[int, date]],
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]],
+) -> int | None:
+    """
+    Use a date to figure out which gameweek its in.
+    """
+    if return_date is None:
+        return None
+
+    gameweek = None
+    for gw, deadline in ordered_deadlines:
+        if deadline >= return_date.date():
+            gameweek = gw - 1
+            break
+    if gameweek is None:
+        return None
+    if gameweek == 0:
+        return 1
+
+    for kickoff, teams in fixtures[gameweek]:
+        if team in teams:
+            if return_date.date() <= kickoff:
+                return gameweek
+            return gameweek + 1
+
+    return None
+
+
+def season_is_active(
+    now: datetime, fetcher: FPLDataFetcher, max_days_until_deadline: int = 14
+) -> bool:
+    if now.month in [6, 7]:
+        logger.info("It's the off-season (June or July)")
+        return False
+
+    summary_data = fetcher.get_current_summary_data()
+    for gw in summary_data["events"]:
+        if gw["is_current"] and not gw["finished"]:
+            logger.info("Gameweek %s is currently active", gw["id"])
+            return True
+
+    deadlines = [parse_date(gw["deadline_time"]) for gw in summary_data["events"]]
+    future_deadlines = [d for d in deadlines if d >= now.date()]
+    if not future_deadlines:
+        logger.info("No future deadlines - season is over")
+        return False
+
+    next_deadline = min(future_deadlines)
+    if (next_deadline - now.date()).days > max_days_until_deadline:
+        logger.info(
+            "Next deadline %s is more than %s days away",
+            next_deadline,
+            max_days_until_deadline,
+        )
+        return False
+
+    return True
+
+
+def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
+    """
+    use the FPL API to get player attributes info for the current season
+    """
+    timestamp = datetime.isoformat(now)
+    summary_data = fetcher.get_current_summary_data()
+
+    file_path = data_file(f"player_attributes_history_{CURRENT_SEASON}.csv")
+    if not file_path.is_file():
+        with open(file_path, "w") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(
+                [
+                    "timestamp",
+                    "season",
+                    "gameweek",
+                    "team",
+                    "position",
+                    "player_id",
+                    "opta_code",
+                    "player",
+                    "price",
+                    "selected",
+                    "transfers_in",
+                    "transfers_out",
+                    "transfers_balance",
+                    "news",
+                    "chance_of_playing_next_round",
+                    "return_gameweek",
+                ]
+            )
+
+    deadlines = sorted(
+        [
+            (int(gw["id"]), parse_date(gw["deadline_time"]))
+            for gw in summary_data["events"]
+        ]
+    )
+    n_players = summary_data["total_players"]
+    teams = {team["id"]: team["short_name"] for team in summary_data["teams"]}
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
+    for fixture in fetcher.get_fixture_data():
+        if (
+            (gw := fixture["event"])
+            and (kickoff_str := fixture["kickoff_time"])
+            and (kickoff := parse_date(kickoff_str)) is not None
+        ):
+            fixtures[gw].append(
+                (kickoff, (teams[fixture["team_h"]], teams[fixture["team_a"]]))
+            )
+    for gw, kickoffs in fixtures.items():
+        fixtures[gw] = sorted(kickoffs)
+
+    input_data = fetcher.get_player_summary_data()
+
+    with open(file_path, "a") as f:
+        writer = csv.writer(f, delimiter=",")
+        for player_api_id, player_data in input_data.items():
+            name = f"{player_data['first_name']} {player_data['second_name']}"
+            logger.debug("%s", name)
+            opta_code = player_data["opta_code"]
+            position = positions[player_data["element_type"]]
+            price = int(player_data["now_cost"])
+            team = teams[player_data["team"]]
+            selected = int(float(player_data["selected_by_percent"]) * n_players / 100)
+            transfers_in = int(player_data["transfers_in"])
+            transfers_out = int(player_data["transfers_out"])
+            transfers_balance = transfers_in - transfers_out
+            news = player_data["news"]
+            chance_of_playing_next_round = player_data["chance_of_playing_next_round"]
+            if (
+                chance_of_playing_next_round is not None
+                and chance_of_playing_next_round <= 50
+            ):
+                rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
+                search_results = re.search(rd_rex, news)
+                if search_results:
+                    return_str = search_results.groups()[1]
+                    # return_str should be a day and month string (without year)
+                    # create a date in the future from the day and month string
+                    return_date = dateparser.parse(
+                        return_str, settings={"PREFER_DATES_FROM": "future"}
+                    )
+                    return_gameweek = get_return_gameweek_by_date(
+                        return_date, team, deadlines, fixtures
+                    )
+                else:
+                    return_gameweek = None
+            else:
+                return_gameweek = None
+
+            writer.writerow(
+                [
+                    timestamp,
+                    CURRENT_SEASON,
+                    next_gameweek(),
+                    team,
+                    position,
+                    player_api_id,
+                    opta_code,
+                    name,
+                    price,
+                    selected,
+                    transfers_in,
+                    transfers_out,
+                    transfers_balance,
+                    news,
+                    chance_of_playing_next_round,
+                    return_gameweek,
+                ]
+            )
+
+
+def main() -> None:
+    now = datetime.now()
+    fetcher = FPLDataFetcher()
+
+    if not season_is_active(now, fetcher):
+        logger.info("Season is not active - not saving attributes")
+        return
+
+    save_attributes_from_api(now, fetcher)
+
+
+if __name__ == "__main__":
+    main()

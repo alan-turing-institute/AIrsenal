@@ -1,6 +1,9 @@
-name: CI
+name: Docker build
 
-# Enable Buildkit and let compose use it to speed up image building
+# Only that the image builds. Running the lint and the tests inside it as well
+# duplicated main.yml exactly, so a failure told you nothing main.yml had not
+# already told you, twice as slowly.
+
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
@@ -8,29 +11,23 @@ env:
 on:
   pull_request:
     branches: [ "main", "develop" ]
-
   push:
     branches: [ "main", "develop" ]
 
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: docker-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   build:
+    name: Build the Docker image
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout Code Repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
 
       - name: Build AIrsenal
-        run:  docker build -t airsenal .
+        run: docker build -t airsenal .
 
-      - name: Code quality checks
-        run: |
-          docker run airsenal pre-commit run --all-files
-      - name: Tests
-        run: |
-          docker run -e "FPL_TEAM_ID=742663" airsenal pytest
+      - name: Check the CLI runs in the image
+        run: docker run --rm airsenal airsenal --help

@@ -11,7 +11,7 @@ For installation instructions see the [README](https://github.com/alan-turing-in
 
 ## Database
 
-The database is filled with data from the previous three FPL seasons (stored in the repo at `airsenal/data`), as well as data from the current season (obtained from the FPL API). A lot of the historic FPL data has been compiled with the help of the [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) repo. The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It has the following tables:
+The database is filled with data from the previous three FPL seasons (stored in the repo at `src/airsenal/data`), as well as data from the current season (obtained from the FPL API). A lot of the historic FPL data has been compiled with the help of the [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) repo. The database also contains information about the user's current FPL squad and AIrsenal's point predictions for each player and transfer recommendations. It has the following tables:
 
 **_Tables with Football Club Data:_**
 - **Team:** Name (short and full) and FPL ID for each team in each of the last three (and current) premier league seasons.
@@ -40,11 +40,11 @@ The database is filled with data from the previous three FPL seasons (stored in 
 
 - **TransferSuggestion:** Stores recommended transfers from AIrsenal optimisation runs.
 
-The database schema is defined using `sqlalchemy` in `airsenal.framework.schema.py`.
+The database schema is defined using `sqlalchemy` in `airsenal.db.models`.
 
 ### Interacting with the FPL API
 
-The `FPLDataFetcher` class in `airsenal.framework.data_fetcher` contains functions for retrieving data from the FPL API.
+The `FPLDataFetcher` class in `airsenal.fetch.fpl_api` contains functions for retrieving data from the FPL API.
 
 The main use of this is for database setup and updates, but it is also used elsewhere, for example for checking a player's current injury status in the prediction code.
 
@@ -54,13 +54,13 @@ To setup the AIrsenal database: (in a terminal)
   `rm /tmp/data.db`
 2. Run  `airsenal_setup_initial_db` (previously `setup_airsenal_database`).
 
-This runs the function `main()` in `airsenal.scripts.fill_db_init`, which calls functions in other scripts to fill the individual tables from the data files and API. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
+This runs the function `main()` in `airsenal.ingest.init_db`, which calls functions in other scripts to fill the individual tables from the data files and API. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
 
 Run the update script afterwards to add the latest status of your FPL team (transfers made etc.) to the database - see below.
 
 ### Updating the Database
 
-To update the AIrsenal database run `airsenal_update_db` (previously `update_airsenal_database`) in a terminal. This calls the function `main()` in `airsenal.scripts.update_results_transactions_db`.
+To update the AIrsenal database run `airsenal_update_db` (previously `update_airsenal_database`) in a terminal. This calls the function `main()` in `airsenal.ingest.update`.
 
 It does the following:
 1. Update player attributes with their latest values.
@@ -74,7 +74,7 @@ Note we don't currently have a way to update the list of currently active _playe
 
 ### Data Sanity Checks
 
-Use `airsenal_check_data` (previously `check_airsenal_data`) from the command-line, which runs the `run_all_checks` function in `airsenal.scripts.data_sanity_checks`, performs the following sanity checks on the AIrsenal database:
+Use `airsenal_check_data` (previously `check_airsenal_data`) from the command-line, which runs the `run_all_checks` function in `airsenal.ingest.checks`, performs the following sanity checks on the AIrsenal database:
 - All seasons have 20 teams.
 - Each season has 3 new teams (promoted teams).
 - Each season has 380 fixtures.
@@ -100,7 +100,7 @@ BPL package (written by Angus, one of the original AIrsenal developers): https:/
 
 ### Player Model
 
-NumPyro model definition: `airsenal/framework/player_model.py`
+NumPyro model definition: `src/airsenal/prediction/player_models.py`
 
 ### How Predicted Points are Calculated
 
@@ -113,17 +113,17 @@ Then calculate the different points contributions as below:
 
 **Recent Minutes and Appearance Points:**
 
-The function `get_recent_minutes_for_player` in `airsenal.framework.utils` returns the number of minutes a player played in their last 3 matches (by default).
+The function `get_recent_minutes_for_player` in `airsenal.prediction.minutes` returns the number of minutes a player played in their last 3 matches (by default).
 
 For each of the number of minutes played in the last 3 fixtures (e.g. if a player played 0 mins, 70 mins and 90 mins in the last 3 games, we make 3 predictions for the next match assuming he will play 0 mins, 70 mins or 90 mins. For both attacking and defending points (see below), the probability of scoring, assisting, or conceding a goal is weighted by the number of minutes (fraction of the match) the player is estimated to play.
 
-If a player is marked as injured or suspended in the API (obtained with `is_injured_or_suspended()` in `airsenal.framework.prediction_utils`) with a 50% or less chance of playing in a fixture we assume he'll score 0pts.
+If a player is marked as injured or suspended in the API (obtained with `Player.is_injured_or_suspended()` in `airsenal.db.models`) with a 50% or less chance of playing in a fixture we assume he'll score 0pts.
 
-As per the FPL appearance points rules, players score 0pts if a player doesn't play, 1pt for less 60 minutes, and 2pts for 60 minutes or more. See `get_appearance_points` in `airsenal.framework.FPL_scoring_rules`.
+As per the FPL appearance points rules, players score 0pts if a player doesn't play, 1pt for less 60 minutes, and 2pts for 60 minutes or more. See `get_appearance_points` in `airsenal.core.scoring`.
 
 **Attacking Points (Goals Scored):**
 
-The following is done in `get_attacking_points()` in `airsenal.framework.prediction_utils`:
+The following is done in `get_attacking_points()` in `airsenal.prediction.points`:
 
 - probability team scores that number of goals
 - possible permutations of number of goals and assists for the player given the team scores tbat many goals
@@ -135,7 +135,7 @@ We always assume zero attacking points for goalkeepers (and don't perform the ca
 
 **Defending Points (Goals Conceded):**
 
-The following is done in `get_defending_points()` in `airsenal.framework.prediction_utils`:
+The following is done in `get_defending_points()` in `airsenal.prediction.points`:
 - Calculate clean sheet points for each player (assuming player expected to play 60 mins):
     - For goalkeepers & defenders: 4pts x probability their team concedes zero goals.
     - For midfielders: 1pt x probability their team concedes zero goals.
@@ -144,7 +144,7 @@ The following is done in `get_defending_points()` in `airsenal.framework.predict
 
 **Final Prediction:**
 
-See `calc_predicted_points()` in `airsenal.framework.prediction_utils`.
+See `calc_predicted_points_for_player()` in `airsenal.prediction.points`.
 
 The final points prediction for each player in a fixture is the sum of their predicted appearance points, attacking points and defending points (averaged across the different predictions for the different number of minutes the player might play). The predicted points for a player in a _gameweek_ is the sum of their predicted points in all their team's fixtures in that gameweek - which may be two for double gameweeks (or none in blank gameweeks).
 
@@ -152,15 +152,15 @@ We currently don't have predictions for the points contribution from bonus point
 
 ### Running Points Predictions
 
-Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the command-line, which runs the function `main()` in `airsenal.scripts.fill_predictedscore_table`.
+Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the command-line, which runs the function `main()` in `airsenal.prediction.run`.
 
 ## Creating a Team for the Start of the Season
 
-Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.scripts.team_builder`.
+Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.optimization.run_squad`.
 
 ## Transfer & Squad Optimisation
 
-Run `airsenal_run_optimization` (previously `run_airsenal_optimization`) to generate transfer suggestions. This calls the function `main()` in `airsenal.scripts.fill_transfersuggestion_table`.
+Run `airsenal_run_optimization` (previously `run_airsenal_optimization`) to generate transfer suggestions. This calls the function `main()` in `airsenal.optimization.run_transfers`.
 
 Starting XI, captain & subs
 
