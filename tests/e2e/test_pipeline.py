@@ -20,12 +20,17 @@ from airsenal.core.enums import Position
 from airsenal.db.models import Fixture, Player, PlayerPrediction, Result
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferRequest
-from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.squad_optimizers import GeneticAlgorithmConfig
+from airsenal.optimization.squad_optimizers.genetic_algorithm import (
+    make_new_squad,
+)
+from airsenal.optimization.squad_score import SubWeights
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
-from airsenal.optimization.transfers import make_best_transfers
+from airsenal.optimization.transfer_optimizers.tree_search import (
+    _make_best_transfers,
+)
 from airsenal.prediction.player_models import (
     build_player_model,
 )
@@ -119,7 +124,6 @@ def squad(seeded, prediction_tag):
         prediction_tag,
         budget=BUDGET,
         season=SEASON,
-        verbose=False,
         sub_weights=SubWeights().as_dict(),
         ga_config=GeneticAlgorithmConfig(
             population_size=20, generations=5, random_state=0, verbose=False
@@ -177,7 +181,9 @@ def _request(move, squad, prediction_tag, num_iterations=100):
 
 
 def _best_transfers(request):
-    return make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
+    # one node of the tree, reached directly: the tree itself is covered by
+    # test_transfer_search.py, and what is checked here is the decision it makes
+    return _make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
 
 
 @pytest.fixture(scope="module")

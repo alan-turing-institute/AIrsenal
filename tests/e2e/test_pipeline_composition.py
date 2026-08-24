@@ -16,9 +16,9 @@ from sqlalchemy import select
 from airsenal.db.models import PlayerPrediction
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
+    GeneticAlgorithmConfig,
     GeneticSquadOptimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings

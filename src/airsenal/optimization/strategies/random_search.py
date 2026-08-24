@@ -14,13 +14,12 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.optimization.config import SubWeightsDict
 from airsenal.optimization.protocols import (
     Proposal,
     StepCounter,
     TransferRequest,
 )
-from airsenal.optimization.squad_score import get_discounted_squad_score
+from airsenal.optimization.squad_score import SubWeightsDict, get_discounted_squad_score
 from airsenal.squad.squad import Squad
 
 if TYPE_CHECKING:

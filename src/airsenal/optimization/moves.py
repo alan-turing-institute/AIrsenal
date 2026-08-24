@@ -136,21 +136,24 @@ class ChipSchedule:
 
     @classmethod
     def from_weeks(
-        cls, gameweeks: Iterable[int], chip_weeks: Mapping[str | Chip, int]
+        cls,
+        gameweeks: Iterable[int],
+        chip_weeks: "ChipWeeks | Mapping[str | Chip, int]",
     ) -> "ChipSchedule":
         """
         Build a schedule from the per-chip week numbers the CLI takes.
 
         `chip_weeks` maps a chip to -1 (never play it), 0 (consider it in any
-        gameweek), or a gameweek number (definitely play it then).
+        gameweek), or a gameweek number (definitely play it then). A `ChipWeeks`
+        is the shape production passes; a plain mapping is accepted so a caller
+        naming one chip does not have to spell out the other three.
         """
         gameweeks = list(gameweeks)
-        allowed = tuple(
-            Chip(chip) for chip, week in chip_weeks.items() if int(week) == 0
-        )
+        pairs = chip_weeks.items()
+        allowed = tuple(Chip(chip) for chip, week in pairs if int(week) == 0)
         schedule = dict.fromkeys(gameweeks, GameweekChips(chips_allowed=allowed))
 
-        for chip, week in chip_weeks.items():
+        for chip, week in pairs:
             if int(week) <= 0 or int(week) not in gameweeks:
                 continue
             existing = schedule[int(week)].chip_to_play
@@ -161,6 +164,35 @@ class ChipSchedule:
             schedule[int(week)] = GameweekChips(chip_to_play=Chip(chip))
 
         return cls(schedule)
+
+
+@dataclass(frozen=True)
+class ChipWeeks:
+    """
+    Which gameweek to play each chip in, as the CLI takes it.
+
+    -1 never, 0 any week the search likes, n that week. Beside `ChipSchedule`
+    because that is what reads it: this is the request, the schedule is the
+    per-gameweek answer.
+    """
+
+    wildcard: int = -1
+    free_hit: int = -1
+    triple_captain: int = -1
+    bench_boost: int = -1
+
+    def items(self) -> list[tuple[Chip, int]]:
+        """Each chip with the week it is wanted in."""
+        return [
+            (Chip.WILDCARD, self.wildcard),
+            (Chip.FREE_HIT, self.free_hit),
+            (Chip.TRIPLE_CAPTAIN, self.triple_captain),
+            (Chip.BENCH_BOOST, self.bench_boost),
+        ]
+
+    def chip_in(self, gameweek: int) -> Chip | None:
+        """The chip pinned to this gameweek, if any."""
+        return next((chip for chip, week in self.items() if week == gameweek), None)
 
 
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)

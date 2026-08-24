@@ -3,7 +3,10 @@
 from collections.abc import Callable
 
 from airsenal.optimization.protocols import SquadOptimizer
-from airsenal.optimization.squad_optimizers.genetic import GeneticSquadOptimizer
+from airsenal.optimization.squad_optimizers.genetic import (
+    GeneticAlgorithmConfig,
+    GeneticSquadOptimizer,
+)
 
 DEFAULT_SQUAD_OPTIMIZER = "genetic"
 
@@ -14,5 +17,6 @@ SQUAD_OPTIMIZERS: dict[str, Callable[[], SquadOptimizer]] = {
 __all__ = [
     "DEFAULT_SQUAD_OPTIMIZER",
     "SQUAD_OPTIMIZERS",
+    "GeneticAlgorithmConfig",
     "GeneticSquadOptimizer",
 ]

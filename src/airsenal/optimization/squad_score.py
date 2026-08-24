@@ -1,40 +1,73 @@
 """
-What a squad is worth over the gameweeks ahead.
+What a squad is worth over the gameweeks ahead, and how to weigh it.
 
 Named for the squad rather than for scoring, because core/scoring.py already
 holds FPL's own points rules and the two are not the same subject: that one says
 what a goal is worth, this one says what a squad full of predicted goals is
 worth to a search that has to compare next week against five weeks out.
+
+`SquadScoringConfig` lives here rather than in a config module because this is
+where it is read. Every optimizer is handed one, so that the squad builder and
+the transfer search cannot weigh a bench differently - which is what they did
+for as long as the settings were default arguments repeated across both.
 """
 
-from airsenal.optimization.config import SubWeightsDict
+from dataclasses import dataclass, field
+
 from airsenal.squad.squad import Squad
 
 DEFAULT_DISCOUNT = 14 / 15  # weight applied per gameweek into the future
 
+# The shape as_dict() produces and the scoring code consumes: a weight for the
+# substitute goalkeeper, and one per outfield bench position.
+SubWeightsDict = dict[str, float | tuple[float, float, float]]
+
+
+@dataclass(frozen=True)
+class SubWeights:
+    """
+    How much a substitute's predicted points count towards a squad's score.
+
+    Outfield weights are ordered by bench position: first substitute, second, third.
+    """
+
+    gk: float = 0.03
+    outfield: tuple[float, float, float] = (0.65, 0.3, 0.1)
+
+    @classmethod
+    def none(cls) -> "SubWeights":
+        """Ignore the bench entirely."""
+        return cls(gk=0.0, outfield=(0.0, 0.0, 0.0))
+
+    def as_dict(self) -> SubWeightsDict:
+        """The shape the scoring code still expects."""
+        return {"GK": self.gk, "Outfield": self.outfield}
+
+
+@dataclass(frozen=True)
+class SquadScoringConfig:
+    """How a squad is scored during optimisation."""
+
+    sub_weights: SubWeights = field(default_factory=SubWeights)
+    # What a placeholder costs while a partial squad is being filled. Only bites
+    # when `players_per_position` is smaller than a full squad, which nothing but
+    # the tests does, so it is effectively fixed - kept a field because the squad
+    # builder takes it as one, not because it is a knob anyone turns.
+    dummy_sub_cost: int = 45
+    budget: int = 1000
+
 
 def get_discount_factor(
-    next_gw: int,
-    pred_gw: int,
-    discount_type: str = "exp",
-    discount: float = DEFAULT_DISCOUNT,
+    next_gw: int, pred_gw: int, discount: float = DEFAULT_DISCOUNT
 ) -> float:
     """
-    given the next gw and a predicted gw, retrieve discount factor. Either:
-        - exp: discount**n_ahead (discount reduces each gameweek)
-        - const: 1-(1-discount)*n_ahead (constant discount each gameweek, goes to
-          zero at gw 15 with default discount)
+    How much a gameweek `pred_gw - next_gw` weeks out counts towards a score.
+
+    `discount ** n_ahead`. There used to be a "constant" alternative
+    (`1 - (1 - discount) * n_ahead`, hitting zero fifteen weeks out) selected by
+    a string argument, but nothing outside its own test ever passed one.
     """
-    allowed_types = ["exp", "const", "constant"]
-    if discount_type not in allowed_types:
-        msg = "unrecognised discount type, should be exp or const"
-        raise Exception(msg)
-
-    n_ahead = pred_gw - next_gw
-
-    if discount_type == "exp":
-        return discount**n_ahead
-    return max(1 - (1 - discount) * n_ahead, 0)
+    return discount ** (pred_gw - next_gw)
 
 
 def get_discounted_squad_score(

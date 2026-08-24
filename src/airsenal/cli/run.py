@@ -6,12 +6,12 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.optimize import squad_optimizer_named, transfer_optimizer_named
-from airsenal.optimization.config import ChipWeeks, SquadScoringConfig, SubWeights
-from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.moves import ChipWeeks, TransferConstraints
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     SQUAD_OPTIMIZERS,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
 from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     TRANSFER_OPTIMIZERS,

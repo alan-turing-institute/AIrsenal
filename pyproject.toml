@@ -232,7 +232,7 @@ ignore_missing_imports = true
 module = [
     "airsenal.prediction.team_models.dixon_coles",
     "airsenal.prediction.player_models.mcmc",
-    "airsenal.optimization.squad_ga",
+    "airsenal.optimization.squad_optimizers.genetic_algorithm",
 ]
 disallow_untyped_calls = false
 warn_return_any = false

@@ -19,8 +19,7 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
-from airsenal.optimization.config import SquadScoringConfig
-from airsenal.optimization.moves import ChipSchedule, TransferConstraints
+from airsenal.optimization.moves import ChipSchedule, ChipWeeks, TransferConstraints
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import (
@@ -32,6 +31,7 @@ from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.squad_optimizers import (
     GeneticSquadOptimizer,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     TreeSearchOptimizer,
 )
@@ -166,7 +166,7 @@ def new_squad_from_scratch(
     tag: str,
     season: str,
     fpl_team_id: int,
-    chip_gameweeks: dict[str, int],
+    chips: ChipWeeks,
     squad_optimizer: SquadOptimizer | None = None,
     scoring: SquadScoringConfig | None = None,
 ) -> Squad:
@@ -184,7 +184,7 @@ def new_squad_from_scratch(
         fpl_team_id=fpl_team_id,
         optimizer=squad_optimizer,
         scoring=scoring,
-        chip_gameweeks=chip_gameweeks,
+        chips=chips,
     )
 
 
@@ -193,7 +193,7 @@ def run_optimization(
     tag: str,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
-    chip_gameweeks: dict[str, int] | None = None,
+    chips: ChipWeeks | None = None,
     num_free_transfers: int | None = None,
     constraints: TransferConstraints | None = None,
     optimizer: TransferOptimizer | None = None,
@@ -210,8 +210,8 @@ def run_optimization(
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
     """
-    if chip_gameweeks is None:
-        chip_gameweeks = {}
+    if chips is None:
+        chips = ChipWeeks()
     if constraints is None:
         constraints = TransferConstraints()
     if optimizer is None:
@@ -233,7 +233,7 @@ def run_optimization(
             tag,
             season,
             fpl_team_id,
-            chip_gameweeks,
+            chips,
             squad_optimizer,
             scoring,
         ), None
@@ -260,7 +260,7 @@ def run_optimization(
                 tag,
                 season,
                 fpl_team_id,
-                chip_gameweeks,
+                chips,
                 squad_optimizer,
                 scoring,
             ), None
@@ -278,7 +278,7 @@ def run_optimization(
         logger.info("Starting with %s free transfers", num_free_transfers)
 
         # Work out what chips we definitely or possibly will play in each gw
-        chip_schedule = ChipSchedule.from_weeks(gameweeks, chip_gameweeks)
+        chip_schedule = ChipSchedule.from_weeks(gameweeks, chips)
 
         result = optimizer.search(
             TransferSearchRequest(

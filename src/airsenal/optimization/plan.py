@@ -21,9 +21,9 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from airsenal.core.enums import Chip
-from airsenal.optimization.config import SubWeightsDict
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_score import (
+    SubWeightsDict,
     get_discount_factor,
     get_discounted_squad_score,
 )

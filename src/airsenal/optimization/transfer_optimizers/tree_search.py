@@ -41,9 +41,15 @@ from airsenal.optimization.protocols import (
     TransferSearchRequest,
     strategy_total,
 )
-from airsenal.optimization.squad_score import get_discount_factor
-from airsenal.optimization.strategies import DEFAULT_STRATEGIES, StrategySet
-from airsenal.optimization.transfers import make_best_transfers
+from airsenal.optimization.squad_score import (
+    get_discount_factor,
+    get_discounted_squad_score,
+)
+from airsenal.optimization.strategies import (
+    DEFAULT_STRATEGIES,
+    StrategySet,
+    TransferStrategy,
+)
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
@@ -77,6 +83,35 @@ class TreeSearchConfig:
     num_iterations: int = 100
     profile: bool = False
     strategies: StrategySet = field(default_factory=lambda: DEFAULT_STRATEGIES)
+
+
+def _make_best_transfers(
+    request: TransferRequest, strategy: TransferStrategy
+) -> tuple[Squad, dict[str, list[int]], float]:
+    """
+    Make this gameweek's move, returning the resulting squad, the transfers made
+    as {"in": [player_ids], "out": [player_ids]}, and the points it is expected
+    to score next gameweek.
+
+    One node of the tree, which is why it is here: the strategy decides, and this
+    scores what it came back with the same way every other node is scored.
+    """
+    proposal = strategy.propose(request)
+
+    points = get_discounted_squad_score(
+        proposal.squad,
+        [request.transfer_gameweek],
+        request.tag,
+        root_gw=request.root_gw,
+        bench_boost_gw=request.bench_boost_gw,
+        triple_captain_gw=request.triple_captain_gw,
+        sub_weights=request.sub_weights,
+    )
+
+    # A free hit is reverted after the gameweek it is played in, so the squad
+    # that carries on to the next gameweek is the one we started with.
+    resulting_squad = proposal.squad if request.move.carry_forward else request.squad
+    return resulting_squad, proposal.as_transfer_dict(), points
 
 
 def optimize(
@@ -181,7 +216,7 @@ def optimize(
 
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
-            new_squad, transfers, points = make_best_transfers(
+            new_squad, transfers, points = _make_best_transfers(
                 transfer_request, strategy
             )
 

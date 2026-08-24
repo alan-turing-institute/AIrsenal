@@ -2,15 +2,19 @@
 The genetic algorithm, behind the squad-optimizer interface.
 
 A thin wrapper rather than a rewrite: all contact with DEAP stays inside
-`optimization/squad_ga.py`, which is the one module exempted from mypy's
+`genetic_algorithm.py`, which is the one module exempted from mypy's
 `disallow_untyped_calls`. If this module ever needs that exemption too, DEAP has
 leaked out of the place that is allowed to know about it.
 """
 
-from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.protocols import SquadRequest
-from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.squad_optimizers.genetic_algorithm import (
+    GeneticAlgorithmConfig,
+    make_new_squad,
+)
 from airsenal.squad.squad import Squad
+
+__all__ = ["GeneticAlgorithmConfig", "GeneticSquadOptimizer"]
 
 
 class GeneticSquadOptimizer:
@@ -49,10 +53,6 @@ class GeneticSquadOptimizer:
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
             ga_config=config,
-            # make_new_squad still defaults this to True and overrides the config
-            # with it, so leaving it out would turn DEAP's per-generation logbook
-            # on underneath a progress bar.
-            verbose=config.verbose,
             # Only hand over a reporter when something is watching: given one,
             # SquadOpt.optimize runs the generations itself rather than calling
             # eaSimple once. The result is the same, but an always-live callback

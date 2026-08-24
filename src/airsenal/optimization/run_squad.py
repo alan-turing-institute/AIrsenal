@@ -1,8 +1,9 @@
 """Running a from-scratch squad build: everything around the optimizer itself."""
 
 from airsenal.core.console import console, progress_bar
+from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger
-from airsenal.optimization.config import SquadScoringConfig
+from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
@@ -13,7 +14,10 @@ from airsenal.optimization.protocols import (
     progress_total,
 )
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
-from airsenal.optimization.squad_score import get_discounted_squad_score
+from airsenal.optimization.squad_score import (
+    SquadScoringConfig,
+    get_discounted_squad_score,
+)
 from airsenal.reporting.optimization import (
     GameweekRow,
     print_plan_table,
@@ -26,12 +30,15 @@ from airsenal.squad.squad import Squad
 logger = get_logger(__name__)
 
 
-def _chip_for(chip_gameweeks: dict[str, int], gameweek: int) -> str | None:
-    """The chip scheduled for this gameweek, if the squad build can show one."""
-    for chip in ("bench_boost", "triple_captain"):
-        if chip_gameweeks.get(chip) == gameweek:
-            return chip
-    return None
+def _chip_label(chips: ChipWeeks, gameweek: int) -> str | None:
+    """
+    The chip this gameweek's row should show.
+
+    Only the two that leave the squad alone: a wildcard or free hit is what a
+    from-scratch build already is, so naming it in the table says nothing.
+    """
+    chip = chips.chip_in(gameweek)
+    return str(chip) if chip in (Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN) else None
 
 
 def fill_initial_squad(
@@ -43,7 +50,7 @@ def fill_initial_squad(
     scoring: SquadScoringConfig | None = None,
     remove_zero: bool = True,
     is_replay: bool = False,  # for replaying seasons
-    chip_gameweeks: dict[str, int] | None = None,
+    chips: ChipWeeks | None = None,
 ) -> Squad:
     if optimizer is None:
         optimizer = GeneticSquadOptimizer()
@@ -84,7 +91,7 @@ def fill_initial_squad(
         sub_weights=sub_weights,
     )
 
-    chip_gameweeks = chip_gameweeks or {}
+    chips = chips if chips is not None else ChipWeeks()
 
     print_result_panel(
         gameweeks=gameweeks,
@@ -97,13 +104,13 @@ def fill_initial_squad(
                 gameweek=gw,
                 # every player is new in the first gameweek, and kept after that
                 transfers=str(len(best_squad.players)) if gw == gw_start else "0",
-                chip=_chip_for(chip_gameweeks, gw),
+                chip=_chip_label(chips, gw),
                 points_hit=0,
                 predicted_points=best_squad.get_expected_points(
                     gw,
                     tag,
-                    bench_boost=chip_gameweeks.get("bench_boost") == gw,
-                    triple_captain=chip_gameweeks.get("triple_captain") == gw,
+                    bench_boost=chips.bench_boost == gw,
+                    triple_captain=chips.triple_captain == gw,
                 ),
             )
             for gw in gameweeks
@@ -115,8 +122,8 @@ def fill_initial_squad(
             best_squad,
             tag,
             gw_start,
-            bench_boost=chip_gameweeks.get("bench_boost") == gw_start,
-            triple_captain=chip_gameweeks.get("triple_captain") == gw_start,
+            bench_boost=chips.bench_boost == gw_start,
+            triple_captain=chips.triple_captain == gw_start,
         )
     )
 

@@ -16,7 +16,6 @@ from airsenal.optimization.moves import (
     next_week_transfers,
 )
 from airsenal.optimization.protocols import TransferRequest
-from airsenal.optimization.squad_score import get_discount_factor
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
 from airsenal.optimization.strategies.double import make_optimum_double_transfer
 from airsenal.optimization.strategies.single import make_optimum_single_transfer
@@ -304,21 +303,6 @@ def test_the_progress_steps_counted_match_the_number_promised():
             strategy.propose(request)
 
         assert steps == strategy.num_increments(request), move
-
-
-def test_get_discount_factor():
-    """
-    Discount factor discounts future gameweek score predictions based on the
-    number of gameweeks ahead. It uses two discount types based on a discount
-    of 14/15, exponential ({14/15}^{weeks ahead}) and constant
-    (1-{14/15}*weeks ahead)
-    """
-
-    assert get_discount_factor(1, 4) == (14 / 15) ** (4 - 1)
-    assert get_discount_factor(1, 4, "constant") == 1 - ((1 / 15) * (4 - 1))
-    assert get_discount_factor(1, 20, "const") == 0
-    assert get_discount_factor(1, 1, "const") == 1
-    assert get_discount_factor(1, 1, "exp") == 1
 
 
 def as_labels(

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons
-from airsenal.optimization.config import ChipWeeks
+from airsenal.optimization.moves import ChipWeeks
 
 
 class StaleDatabase(Enum):

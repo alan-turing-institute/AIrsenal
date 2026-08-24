@@ -23,13 +23,13 @@ from typing import Protocol
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.enums import Chip
-from airsenal.optimization.config import SquadScoringConfig, SubWeightsDict
 from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekMove,
     TransferConstraints,
 )
 from airsenal.optimization.plan import TransferSearchResult
+from airsenal.optimization.squad_score import SquadScoringConfig, SubWeightsDict
 from airsenal.squad.squad import Squad
 
 

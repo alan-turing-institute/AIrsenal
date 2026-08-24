@@ -17,21 +17,17 @@ from airsenal.db.queries.gameweeks import (
 )
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.fetch.fpl_api import require_fpl_team_id
-from airsenal.optimization.config import (
-    ChipWeeks,
-    GeneticAlgorithmConfig,
-    SquadScoringConfig,
-    SubWeights,
-)
-from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.moves import ChipWeeks, TransferConstraints
 from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     SQUAD_OPTIMIZERS,
+    GeneticAlgorithmConfig,
     GeneticSquadOptimizer,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
 from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     TRANSFER_OPTIMIZERS,
@@ -326,7 +322,7 @@ def _run_transfer_optimization(
         tag,
         season=season,
         fpl_team_id=fpl_team_id,
-        chip_gameweeks=chips.as_dict(),
+        chips=chips,
         num_free_transfers=num_free_transfers,
         constraints=TransferConstraints(
             max_total_hit=max_hit,

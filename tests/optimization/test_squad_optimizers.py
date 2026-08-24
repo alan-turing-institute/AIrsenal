@@ -7,19 +7,21 @@ substituted without editing either. These tests pin that, using a stub optimizer
 that no production code knows about.
 """
 
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
 
 from airsenal.core.enums import Chip
 from airsenal.core.registry import ConfigError, lookup
-from airsenal.optimization.config import GeneticAlgorithmConfig, SquadScoringConfig
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import SquadRequest, TransferRequest
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
+    GeneticAlgorithmConfig,
     GeneticSquadOptimizer,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
 
@@ -62,6 +64,28 @@ def test_an_unknown_optimizer_names_the_valid_ones():
 def test_the_genetic_optimizer_defaults_its_own_config():
     """Every table entry has to be constructible with no arguments."""
     assert SQUAD_OPTIMIZERS["genetic"]().config == GeneticAlgorithmConfig()
+
+
+def test_genetic_algorithm_defaults():
+    config = GeneticAlgorithmConfig()
+    assert config.population_size == 100
+    assert config.generations == 100
+    assert config.crossover_prob == 0.7
+    assert config.mutation_prob == 0.3
+    assert config.tournament_size == 3
+    assert config.random_state is None
+
+
+def test_scaled_sets_population_and_generations_together():
+    """The one knob the transfer search has drives both, explicitly, here."""
+    scaled = GeneticAlgorithmConfig().scaled(7)
+    assert scaled.population_size == 7
+    assert scaled.generations == 7
+
+
+def test_scaled_leaves_everything_else_alone():
+    base = GeneticAlgorithmConfig(tournament_size=5, random_state=1)
+    assert base.scaled(9) == replace(base, population_size=9, generations=9)
 
 
 def test_increments_are_the_generations_the_search_will_run():

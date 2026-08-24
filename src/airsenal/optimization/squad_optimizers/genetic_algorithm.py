@@ -1,12 +1,15 @@
 """
-Optimization using DEAP (Distributed Evolutionary Algorithms in Python) to optimize a
-full squad for the start of the season, wildcards, or free hits with a genetic
-algorithm.
+The DEAP genetic algorithm itself: pick a whole squad, generation by generation.
+
+Inside `squad_optimizers/` the way the tree search lives inside
+`transfer_optimizers/`, and the only module in the package that touches DEAP -
+which is why it is the one exempted from mypy's `disallow_untyped_calls`.
+`genetic.py` is the `SquadOptimizer` wrapper; nothing else should import this.
 """
 
 import random
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 import numpy as np
 from deap import algorithms, base, creator, tools
@@ -18,16 +21,47 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
-from airsenal.optimization.config import (
-    DEFAULT_SUB_WEIGHTS,
-    GeneticAlgorithmConfig,
+from airsenal.optimization.squad_score import (
+    SquadScoringConfig,
     SubWeightsDict,
+    get_discounted_squad_score,
 )
-from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class GeneticAlgorithmConfig:
+    """
+    Settings for the search below.
+
+    Beside the algorithm they configure, the way `TreeSearchConfig` sits beside
+    the tree search: how the algorithm works is not something the pipeline or the
+    CLI has to know about.
+    """
+
+    population_size: int = 100
+    generations: int = 100
+    crossover_prob: float = 0.7
+    mutation_prob: float = 0.3
+    crossover_indpb: float = 0.5
+    mutation_indpb: float = 0.1
+    tournament_size: int = 3
+    random_state: int | None = None
+    verbose: bool = False
+
+    def scaled(self, num_iterations: int) -> "GeneticAlgorithmConfig":
+        """
+        Population and generations both set from one number.
+
+        How this optimizer reads `SquadRequest.effort`: the transfer search has a
+        single --num-iterations knob. Questionable - the two control different
+        things - but it is at least explicit here.
+        """
+        return replace(self, population_size=num_iterations, generations=num_iterations)
+
 
 # Called after each generation, with the best fitness found so far. A generation
 # is the only unit of this search whose count is known before it starts: how many
@@ -76,7 +110,7 @@ class SquadOpt:
         If True don't consider players with predicted pts of zero, by default True
     sub_weights : dict
         Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.optimization.config.
+        SubWeights() - see airsenal.optimization.squad_score.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the
@@ -96,7 +130,7 @@ class SquadOpt:
         # don't consider players with predicted pts of zero
         remove_zero: bool = True,
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
-        sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
+        sub_weights: SubWeightsDict | None = None,
         dbsession: Session | None = None,
     ) -> None:
         # Held on the optimiser, never on a Squad: a Squad crosses the
@@ -116,7 +150,11 @@ class SquadOpt:
         self.dummy_per_position = self._get_dummy_per_position()
         self.dummy_sub_cost = dummy_sub_cost
         self.budget = budget
-        self.sub_weights = sub_weights
+        self.sub_weights = (
+            sub_weights
+            if sub_weights is not None
+            else SquadScoringConfig().sub_weights.as_dict()
+        )
 
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
@@ -405,12 +443,11 @@ def make_new_squad(
     budget: int = 1000,
     players_per_position: dict[str, int] = TOTAL_PER_POSITION,
     season: str = CURRENT_SEASON,
-    verbose: bool = True,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
     # don't consider players with predicted pts of zero
     remove_zero: bool = True,
-    sub_weights: SubWeightsDict = DEFAULT_SUB_WEIGHTS,
+    sub_weights: SubWeightsDict | None = None,
     dummy_sub_cost: int = 45,
     ga_config: GeneticAlgorithmConfig | None = None,
     on_generation: GenerationReporter | None = None,
@@ -431,9 +468,6 @@ def make_new_squad(
         airsenal.squad.squad.TOTAL_PER_POSITION
     season : str
         Season to optimize for, by default airsenal.core.season.CURRENT_SEASON
-    verbose : bool
-        Whether the underlying DEAP genetic algorithm should print its own
-        per-generation progress to stdout, by default True
     bench_boost_gw : int
         Gameweek to play bench boost, by default None
     triple_captain_gw : int
@@ -442,18 +476,20 @@ def make_new_squad(
         If True don't consider players with predicted pts of zero, by default True
     sub_weights : dict
         Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.optimization.config.
+        SubWeights() - see airsenal.optimization.squad_score.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the
         effective budget for optimizing the squad will be
         budget - (15 -12) * dummy_sub_cost, by default 45
     ga_config : GeneticAlgorithmConfig, optional
-        Genetic algorithm settings; see airsenal.optimization.config.
+        Genetic algorithm settings, including whether DEAP prints its own
+        per-generation logbook; see
+        airsenal.optimization.squad_optimizers.genetic.
     on_generation : GenerationReporter, optional
         Called after each generation with the best score so far, for a caller
-        that wants to show progress. Takes the place of `verbose`, which prints
-        DEAP's own per-generation logbook instead.
+        that wants to show progress. An alternative to the config's `verbose`,
+        which prints DEAP's own per-generation logbook instead.
 
     Returns
     -------
@@ -477,8 +513,6 @@ def make_new_squad(
 
     # Run optimization
     ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
-    if verbose != ga_config.verbose:
-        ga_config = replace(ga_config, verbose=verbose)
     best_individual, best_fitness = opt_squad.optimize(ga_config, on_generation)
 
     logger.debug("Best score: %s pts", best_fitness)

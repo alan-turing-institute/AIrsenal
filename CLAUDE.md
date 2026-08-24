@@ -187,7 +187,7 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `optimization/transfer_optimizers/` | One module per whole-window search, behind the `TransferOptimizer` protocol |
 | `optimization/strategies/` | One module per way of choosing a gameweek's transfers, behind the `TransferStrategy` protocol |
 | `optimization/squad_optimizers/` | One module per whole-squad builder, behind the `SquadOptimizer` protocol |
-| `optimization/squad_ga.py` | The DEAP genetic algorithm the default squad optimizer wraps |
+| `optimization/squad_optimizers/genetic_algorithm.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
 | `core/enums.py` | `Position` and `Chip` |
 | `core/registry.py` | `lookup()` and `ConfigError`: turning a name into an implementation |

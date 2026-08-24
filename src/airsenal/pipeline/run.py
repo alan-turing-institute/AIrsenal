@@ -29,13 +29,13 @@ from airsenal.export.absences import main as save_expected_absences
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
-from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
 from airsenal.prediction.player_models import (
@@ -143,7 +143,7 @@ class AIrsenalPipeline:
                 fpl_team_id=fpl_team_id,
                 optimizer=self.squad_optimizer,
                 scoring=self.scoring,
-                chip_gameweeks=self.settings.chips.as_dict(),
+                chips=self.settings.chips,
                 is_replay=is_replay,
             ), None
 
@@ -153,7 +153,7 @@ class AIrsenalPipeline:
             tag=tag,
             season=self.settings.season,
             fpl_team_id=fpl_team_id,
-            chip_gameweeks=self.settings.chips.as_dict(),
+            chips=self.settings.chips,
             constraints=self.constraints,
             optimizer=self.transfer_optimizer,
             squad_optimizer=self.squad_optimizer,
