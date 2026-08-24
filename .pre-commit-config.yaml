@@ -33,3 +33,29 @@ repos:
       # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi, jupyter ]
+
+  # additional_dependencies is the environment mypy gets, and it only needs the
+  # libraries it has to *resolve*. The untyped ones named in
+  # [[tool.mypy.overrides]] (jax, numpyro, bpl, deap, curl_cffi, html5lib,
+  # dateparser, scipy, matplotlib) already have ignore_missing_imports, so they
+  # can stay absent - which is why this list is six entries and not the whole
+  # dependency table.
+  #
+  # Leaving any of them out is not a quiet loss of coverage but a loud wrong
+  # answer: without sqlalchemy every query returns Any and strict mode reports
+  # no-any-return all over db/queries, and without typer every CLI command is an
+  # untyped-decorator error. That was 53 false positives against zero from
+  # `uv run mypy`. If this hook and `uv run mypy` ever disagree, something is
+  # missing here.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v2.1.0"
+    hooks:
+      - id: mypy
+        files: ^src/airsenal/
+        additional_dependencies:
+          - types-dateparser
+          - types-python-dateutil
+          - types-requests
+          - sqlalchemy
+          - typer
+          - pandas-stubs

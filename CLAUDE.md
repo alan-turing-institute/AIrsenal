@@ -40,11 +40,11 @@ uv run mypy
 uv run lint-imports
 ```
 
-Neither of those last two is a pre-commit hook — pre-commit runs only the fast,
-file-scoped things (ruff and friends), while mypy and import-linter analyse the
-whole package and run in CI. So run them yourself before pushing, particularly
-`lint-imports` after moving code between packages, rather than finding out on the
-pull request.
+`mypy` also runs as a pre-commit hook, over the files you are committing;
+`lint-imports` does not, because it takes no filenames — a layering violation is an
+edge between two modules, so it needs the whole import graph. It runs in CI, so run
+it yourself after moving code between packages rather than finding out on the pull
+request. CI runs both over everything.
 
 **Pre-commit hooks:**
 ```bash
