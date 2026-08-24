@@ -64,7 +64,7 @@ the chain rather than silently escaping it. The order, top to bottom:
 
 ```
 cli > pipeline > apply > optimization > export > ingest > reporting > squad >
-prediction > db > fetch > core
+prediction > db > remote > core
 ```
 
 Bottom of the chain, depended on by everything:
@@ -77,8 +77,10 @@ Bottom of the chain, depended on by everything:
 - **`src/airsenal/data/`** — static historical FPL data (multiple seasons, used to seed
   the database); resolve paths with `airsenal.core.data_files.data_file()`, never with
   `__file__`
-- **`src/airsenal/fetch/`** — everything that talks to an external source: the FPL API
-  client and the Transfermarkt scraper
+- **`src/airsenal/remote/`** — the one package that talks to the internet: the FPL API
+  client, the Transfermarkt scraper, the Discord webhook poster, a resumable file
+  downloader, and the error types they raise. **If it opens a socket, it belongs here** —
+  enforced by a contract that forbids every other package from importing an HTTP client.
 - **`src/airsenal/db/`** — `models.py` (all the SQLAlchemy tables), `queries/` (reading
   and writing them), `session.py`, `engine.py`. This layer must not render output or
   make network calls.
@@ -186,7 +188,8 @@ rebuild a wildcard or free hit does inside the transfer search.
 |------|---------|
 | `db/models.py` | SQLAlchemy ORM models (`Player`, `Fixture`, `PlayerScore`, `PlayerPrediction`, `Transaction`, etc.) |
 | `db/session.py` | Lazily-created engine and the default session; nothing runs at import |
-| `fetch/fpl_api.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
+| `remote/fpl_api.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
+| `remote/errors.py` | `RemoteError` and friends: what a failed call raises, so callers need not know the HTTP library |
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
 | `prediction/player_models/` | One module per player model, behind the `PlayerModel` protocol |
 | `prediction/team_models/` | One module per team model, behind the `TeamModel` protocol |

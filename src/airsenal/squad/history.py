@@ -6,7 +6,6 @@ hold them: squad.py imports it, so anything here that builds a Squad would close
 a loop.
 """
 
-from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -21,7 +20,8 @@ from airsenal.db.queries.transactions import (
     transaction_exists,
 )
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import (
+from airsenal.remote.errors import RemoteError
+from airsenal.remote.fpl_api import (
     FPLDataFetcher,
     get_fetcher,
     require_fpl_team_id,
@@ -230,7 +230,7 @@ def get_starting_squad(
         try:
             return get_current_squad_from_api(fpl_team_id, fetcher=fetcher)
 
-        except requests.exceptions.RequestException:
+        except RemoteError:
             logger.warning(
                 "Failed to get current squad from API. Using DB instead, which "
                 "may be out of date.",

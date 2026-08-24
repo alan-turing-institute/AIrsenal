@@ -1,6 +1,5 @@
 """The state of the user's own squad, combining the database and the FPL API."""
 
-from curl_cffi import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,7 +9,12 @@ from airsenal.db.models import Player, Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.remote.errors import (
+    RemoteConnectionError,
+    RemoteError,
+    RemoteHTTPError,
+)
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
 
@@ -37,7 +41,7 @@ def get_bank(
     # check if we're logged in, which will let us get the most up-to-date info
     try:
         return fetcher.get_current_bank(fpl_team_id)
-    except requests.exceptions.RequestException:
+    except RemoteError:
         logger.warning(
             "Failed to get actual bank from a logged in API. "
             "Will try to estimate it from the API without logging in, which will "
@@ -70,9 +74,9 @@ def get_entry_start_gameweek(
             if get_players_for_gameweek(starting_gw, fpl_team_id, fetcher=fetcher):
                 return starting_gw
             starting_gw += 1
-        except requests.exceptions.HTTPError:
+        except RemoteHTTPError:
             starting_gw += 1
-        except requests.exceptions.ConnectionError:
+        except RemoteConnectionError:
             logger.warning(
                 "Failed to connect to the API. Assuming team %s"
                 " was entered in GW1 which may be incorrect.",
@@ -114,7 +118,7 @@ def get_free_transfers(
         # try to get the most up-to-date info from logged in api
         try:
             return fetcher.get_num_free_transfers(resolved_fpl_team_id)
-        except requests.exceptions.RequestException:
+        except RemoteError:
             logger.warning(
                 "Failed to get actual free transfers from a logged in API. "
                 "Will try to estimate it from the API without logging in, which will "
@@ -141,7 +145,7 @@ def get_free_transfers(
                     if gameweek and gw["event"] == gameweek - 1:
                         break
             return num_free_transfers
-        except requests.exceptions.RequestException:
+        except RemoteError:
             logger.warning(
                 "Failed to estimate free transfers from the API. "
                 "Will estimate from the DB instead, which may be out of date.",

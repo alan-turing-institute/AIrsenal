@@ -16,7 +16,6 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
-from airsenal.fetch.fpl_api import require_fpl_team_id
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import (
     SquadOptimizer,
@@ -38,6 +37,7 @@ from airsenal.optimization.transfer_optimizers import (
     TreeSearchConfig,
     TreeSearchOptimizer,
 )
+from airsenal.remote.fpl_api import require_fpl_team_id
 
 logger = get_logger(__name__)
 

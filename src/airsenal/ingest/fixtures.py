@@ -14,7 +14,7 @@ from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher
 
 
 def fill_fixtures_from_file(

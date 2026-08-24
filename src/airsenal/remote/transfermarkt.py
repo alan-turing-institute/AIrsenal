@@ -21,6 +21,11 @@ from airsenal.core.season import (
     get_start_end_dates_of_season,
     season_str_to_year,
 )
+from airsenal.remote.errors import (
+    RemoteConnectionError,
+    RemoteError,
+    RemoteHTTPError,
+)
 
 logger = get_logger(__name__)
 
@@ -31,6 +36,27 @@ HEADERS = {
         "Chrome/47.0.2526.106 Safari/537.36"
     )
 }
+
+
+def _get(url: str) -> requests.Response:
+    """
+    Fetch a Transfermarkt page, failing the way the rest of `remote` fails.
+
+    The five call sites used to call `requests.get` bare, with no status check, so
+    an error page was handed to the HTML parser and surfaced far away as whatever
+    `read_html` happened to raise on it.
+    """
+    try:
+        page = requests.get(url, headers=HEADERS)
+    except requests.exceptions.RequestException as e:
+        msg = f"Unable to reach Transfermarkt at {url}"
+        raise RemoteConnectionError(msg) from e
+    try:
+        page.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        msg = f"Transfermarkt returned {page.status_code} for {url}"
+        raise RemoteHTTPError(msg, page.status_code) from e
+    return page
 
 
 def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
@@ -56,7 +82,7 @@ def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
         f"{TRANSFERMARKT_URL}/premier-league/startseite/wettbewerb/GB1/plus/"
         f"?saison_id={season}"
     )
-    page = requests.get(url_season, headers=HEADERS)
+    page = _get(url_season)
     soup = BeautifulSoup(page.content, features="lxml")
     rows = soup.find_all("td", {"class": "zentriert no-border-rechts"})
 
@@ -87,7 +113,7 @@ def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
     List[Tuple[str, str]]
         List of player name and relative URL
     """
-    page = requests.get(f"{TRANSFERMARKT_URL}{team_season_url}", headers=HEADERS)
+    page = _get(f"{TRANSFERMARKT_URL}{team_season_url}")
     team_soup = BeautifulSoup(page.content, features="lxml")
     player_rows = team_soup.find_all("td", {"class": "posrela"})
 
@@ -168,12 +194,8 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
     """
     logger.debug("getting player injuries for %s", player_profile_url)
 
-    page = requests.get(
-        (
-            f"{TRANSFERMARKT_URL}"
-            f"{player_profile_url.replace('/profil/', '/verletzungen/')}"
-        ),
-        headers=HEADERS,
+    page = _get(
+        f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/verletzungen/')}"
     )
     logger.debug("processing player injuries for %s", player_profile_url)
 
@@ -208,9 +230,8 @@ def get_player_suspensions(
     """
     logger.debug("getting player suspensions for %s", player_profile_url)
 
-    p = requests.get(
-        f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/ausfaelle/')}",
-        headers=HEADERS,
+    p = _get(
+        f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/ausfaelle/')}"
     )
 
     logger.debug("processing player suspensions for %s", player_profile_url)
@@ -314,9 +335,8 @@ def get_player_transfers(
     """
     logger.debug("getting player transfer history for %s", player_profile_url)
 
-    page = requests.get(
-        (f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/transfers/')}"),
-        headers=HEADERS,
+    page = _get(
+        f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/transfers/')}"
     )
 
     logger.debug("processing player transfer history for %s", player_profile_url)
@@ -612,19 +632,19 @@ def get_season_absences(
     logger.info("Querying injuries, suspensions and transfers...")
 
     for player_name, player_url in track(players):
-        with contextlib.suppress(ValueError, IndexError):
+        with contextlib.suppress(ValueError, IndexError, RemoteError):
             inj = get_player_injuries(player_profile_url=player_url)
             inj["player"] = player_name
             inj["url"] = player_url
             absences.append(inj)
-        with contextlib.suppress(ValueError, IndexError):
+        with contextlib.suppress(ValueError, IndexError, RemoteError):
             sus = get_player_suspensions(player_profile_url=player_url)
             sus = sus[sus["competition"] == "Premier League"]
             sus = sus.drop("competition", axis=1)
             sus["player"] = player_name
             sus["url"] = player_url
             absences.append(sus)
-        with contextlib.suppress(ValueError, IndexError):
+        with contextlib.suppress(ValueError, IndexError, RemoteError):
             tran = get_player_transfer_unavailability(
                 player_profile_url=player_url,
                 pl_teams_in_season=pl_teams_in_season,

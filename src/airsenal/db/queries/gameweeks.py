@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     # Annotation only, and quoted at every use: db must not import the HTTP client.
     # A caller supplies a fetcher when the database has no fixtures to work the
     # gameweek out from.
-    from airsenal.fetch.fpl_api import FPLDataFetcher
+    from airsenal.remote.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
 

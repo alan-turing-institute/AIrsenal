@@ -19,7 +19,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.scores import get_playerscores_for_player_gameweek
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.player import (
     CandidatePlayer,
     SquadPlayer,

@@ -28,6 +28,11 @@ from airsenal.core.env import (
     save_env,
 )
 from airsenal.core.logging import get_logger
+from airsenal.remote.errors import (
+    RemoteConnectionError,
+    RemoteError,
+    RemoteHTTPError,
+)
 
 logger = get_logger(__name__)
 
@@ -135,7 +140,19 @@ class FPLDataFetcher:
     def login(self) -> None:
         """
         only needed for accessing mini-league data, or team info for current gw.
+
+        The flow itself makes seven requests directly rather than through
+        `_get_request`, so the translation to `RemoteError` happens here. Callers
+        such as `squad.state.get_bank` fall back to unauthenticated data on any
+        remote failure, and a failure while logging in has to be one of them.
         """
+        try:
+            self._login_flow()
+        except requests.exceptions.RequestException as e:
+            msg = "Failed to log in to the FPL API"
+            raise RemoteConnectionError(msg) from e
+
+    def _login_flow(self) -> None:
         if self.logged_in:
             return
         if self.login_failed:
@@ -499,7 +516,7 @@ class FPLDataFetcher:
         # with an AttributeError on every call.
         try:
             self.fpl_league_data = self._get_request(self.FPL_LEAGUE_URL)
-        except requests.exceptions.RequestException:
+        except RemoteError:
             logger.warning("Unable to access FPL league API")
             return None
         return self.fpl_league_data
@@ -519,6 +536,21 @@ class FPLDataFetcher:
                 "is_finished": event["finished"],
             }
         return self.current_event_data
+
+    def get_last_finished_gameweek(self) -> int:
+        """
+        The last gameweek the API has marked as finished, or 0 before the season starts.
+
+        Stops at the first unfinished gameweek rather than taking the maximum, so a
+        stray `finished` flag after a gap cannot pull the answer forward.
+        """
+        event_data = self.get_event_data()
+        last_finished = 0
+        for gw in sorted(event_data.keys()):
+            if not event_data[gw]["is_finished"]:
+                return last_finished
+            last_finished = gw
+        return last_finished
 
     def get_player_summary_data(self) -> dict[int, dict[str, Any]]:
         """
@@ -664,12 +696,12 @@ class FPLDataFetcher:
                     msg = (
                         f"{err_msg}: Failed to connect to FPL API when requesting {url}"
                     )
-                    raise requests.exceptions.ConnectionError(msg) from e
+                    raise RemoteConnectionError(msg) from e
                 time.sleep(1)
 
         if r is None:
             msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
-            raise RuntimeError(msg)
+            raise RemoteConnectionError(msg)
 
         if r.status_code == 200:
             return json.loads(r.content.decode("utf-8"))
@@ -678,12 +710,12 @@ class FPLDataFetcher:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             msg = f"{err_msg}: {e}"
-            raise requests.exceptions.HTTPError(msg) from e
+            raise RemoteHTTPError(msg, r.status_code) from e
         msg = (
             f"Unexpected error in _get_request to {url}: "
             f"code={r.status_code}, content={r.content.decode('utf-8')}"
         )
-        raise RuntimeError(msg)
+        raise RemoteError(msg)
 
     def _post_data(
         self,
@@ -699,12 +731,12 @@ class FPLDataFetcher:
         resp = self.rsession.post(url, json=data, headers=headers)
         if "non_form_errors" in resp.text or "non_field_errors" in resp.text:
             msg = f"{resp.text}\n{err_msg}"
-            raise requests.exceptions.RequestException(msg)
+            raise RemoteError(msg)
         try:
             resp.raise_for_status()
         except requests.exceptions.HTTPError as e:
             msg = f"{err_msg}: {e} {resp.text}"
-            raise requests.exceptions.HTTPError(msg) from e
+            raise RemoteHTTPError(msg, resp.status_code) from e
 
 
 @cache

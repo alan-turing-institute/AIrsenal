@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from curl_cffi import requests
 from sqlalchemy import inspect as sqla_inspect
 from sqlalchemy.orm.session import Session
 
@@ -34,58 +33,11 @@ from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.fetch.gameweeks import get_last_finished_gameweek
+from airsenal.remote.download import download_with_resume
+from airsenal.remote.errors import RemoteError
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
-
-
-def download_with_resume(
-    url: str,
-    dest: Path,
-    attempts: int = 5,
-    timeout: float = 30.0,
-    chunk_size: int = 1024 * 1024,
-) -> Path:
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    session = requests.Session()
-
-    for attempt in range(1, attempts + 1):
-        existing = dest.stat().st_size if dest.exists() else 0
-        headers = {"Range": f"bytes={existing}-"} if existing > 0 else {}
-        resp = session.get(
-            url,
-            headers=headers,
-            stream=True,
-            timeout=timeout,
-        )
-        try:
-            resp.raise_for_status()
-
-            # If server ignored Range (status 200), restart file from scratch.
-            if existing > 0 and resp.status_code == 200:
-                mode = "wb"
-            else:
-                mode = "ab" if existing > 0 else "wb"
-
-            with open(dest, mode) as f:
-                for chunk in resp.iter_content(chunk_size=chunk_size):
-                    if chunk:
-                        f.write(chunk)
-
-            return dest
-
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-            requests.exceptions.RequestException,
-        ):
-            if attempt == attempts:
-                raise
-        finally:
-            resp.close()
-
-    return dest
 
 
 def load_attributes_history(season: str) -> pd.DataFrame | None:
@@ -110,7 +62,7 @@ def load_attributes_history(season: str) -> pd.DataFrame | None:
         df_attributes["season"] = df_attributes["season"].astype(str)
         return df_attributes
 
-    except requests.exceptions.RequestException:
+    except RemoteError:
         logger.warning(
             "Could not load player attributes history for season %s",
             season,
@@ -303,10 +255,12 @@ def fill_playerscores_from_api(
     gw_end: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
-    gw_end = next_gameweek(fetcher=get_fetcher()) if gw_end is None else gw_end
+    fetcher = get_fetcher()
+    gw_end = next_gameweek(fetcher=fetcher) if gw_end is None else gw_end
     dbsession = dbsession if dbsession is not None else get_session()
     # Get column metadata once for efficiency
-    if get_last_finished_gameweek() == 0:
+    last_finished = fetcher.get_last_finished_gameweek()
+    if last_finished == 0:
         logger.info(
             "No complete gameweeks, skipping player scores update for %s season",
             season,
@@ -314,7 +268,7 @@ def fill_playerscores_from_api(
         return
     if (
         get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == get_last_finished_gameweek()
+        == last_finished
     ):
         logger.info("Player scores up-to-date, skipping update for %s season", season)
         return

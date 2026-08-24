@@ -11,7 +11,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
-from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.player import SquadPlayer, bench_position
 from airsenal.squad.squad import Squad

@@ -70,7 +70,7 @@ optimization   the transfer search and the whole-squad builder
 ingest         export
 reporting      squad           prediction
 db             the tables, the queries and the session
-fetch          the FPL API client and the Transfermarkt scraper
+remote         everything that talks to the internet, and nothing else
 core           no airsenal-specific dependencies at all
 ```
 

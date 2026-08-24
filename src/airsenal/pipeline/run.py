@@ -14,7 +14,6 @@ count, a model's epsilon - live on that component and not here.
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 
 from airsenal.apply.lineup import set_lineup
@@ -26,7 +25,6 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.session import session_scope
 from airsenal.export.absences import main as save_expected_absences
-from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.plan import Plan
@@ -49,6 +47,8 @@ from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
     build_team_model,
 )
+from airsenal.remote.errors import RemoteError
+from airsenal.remote.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.reporting.top_players import get_top_predicted_points
 from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_entry_start_gameweek
@@ -231,7 +231,7 @@ class AIrsenalPipeline:
     ) -> None:
         try:
             updated = update_db(CURRENT_SEASON, attributes, fpl_team_id, dbsession)
-        except requests.exceptions.RequestException:
+        except RemoteError:
             logger.warning("Database update failed.", exc_info=True)
             updated = False
 

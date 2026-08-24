@@ -18,7 +18,6 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.optimization.moves import ChipSchedule, ChipWeeks
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
@@ -36,7 +35,8 @@ from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     TreeSearchOptimizer,
 )
-from airsenal.reporting.discord import post_webhook
+from airsenal.remote.discord import post_webhook
+from airsenal.remote.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.reporting.optimization import (
     GameweekRow,
     TransferRow,

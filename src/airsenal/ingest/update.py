@@ -20,14 +20,13 @@ from airsenal.db.queries.players import list_players
 from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
-from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.fetch.gameweeks import get_last_finished_gameweek
 from airsenal.ingest.fixtures import fill_fixtures_from_api
 from airsenal.ingest.player_attributes import fill_attributes_table_from_api
 from airsenal.ingest.player_mappings import add_mappings
 from airsenal.ingest.player_scores import fill_playerscores_from_api
 from airsenal.ingest.players import find_player_in_table
 from airsenal.ingest.results import fill_results_from_api
+from airsenal.remote.fpl_api import get_fetcher
 from airsenal.squad.history import update_squad
 
 logger = get_logger(__name__)
@@ -66,7 +65,7 @@ def update_results(season: str, dbsession: Session) -> bool:
     if not last_in_db:
         # no results in database for this season yet
         last_in_db = 0
-    last_finished = get_last_finished_gameweek()
+    last_finished = get_fetcher().get_last_finished_gameweek()
 
     if next_gameweek(fetcher=get_fetcher()) == 1:
         logger.info("Skipping team and result updates - season hasn't started.")

@@ -7,7 +7,6 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.session import clean_database, session_scope
-from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.ingest.absences import make_absence_table
 from airsenal.ingest.fifa_ratings import make_fifa_ratings_table
 from airsenal.ingest.fixtures import make_fixture_table
@@ -16,6 +15,7 @@ from airsenal.ingest.player_scores import make_playerscore_table
 from airsenal.ingest.players import make_player_table
 from airsenal.ingest.results import make_result_table
 from airsenal.ingest.teams import make_team_table
+from airsenal.remote.fpl_api import get_fetcher
 from airsenal.squad.history import fill_initial_squad
 
 logger = get_logger(__name__)

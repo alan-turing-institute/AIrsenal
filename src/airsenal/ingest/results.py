@@ -16,8 +16,7 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
-from airsenal.fetch.gameweeks import get_last_finished_gameweek
+from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 
@@ -68,9 +67,10 @@ def fill_results_from_csv(
 def fill_results_from_api(
     gw_start: int, gw_end: int, season: str, dbsession: Session
 ) -> None:
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
     matches = fetcher.get_fixture_data()
-    if get_last_finished_gameweek() == 0:
+    last_finished = fetcher.get_last_finished_gameweek()
+    if last_finished == 0:
         logger.info(
             "No complete gameweeks, skipping match result update for %s season",
             season,
@@ -78,7 +78,7 @@ def fill_results_from_api(
         return
     if (
         get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == get_last_finished_gameweek()
+        == last_finished
     ):
         logger.info("Match results up-to-date, skipping update for %s season", season)
         return

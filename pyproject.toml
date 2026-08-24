@@ -49,7 +49,7 @@ dev = [
     "types-dateparser>=1.2.2.20250809",
     "types-requests>=2.32.4.20250913",
     "types-python-dateutil>=2.9.0.20250822",
-    "import-linter>=2.0",
+    "import-linter>=2.13",  # `protected` contract type
 ]
 # One-off scripts under tools/, run from a checkout. Not packaged, and not
 # needed to use AIrsenal - thefuzz in particular was imported by two of them
@@ -242,10 +242,13 @@ warn_return_any = false
 # function". These two modules are the only ones that hold a curl_cffi Session,
 # so the exemption stops here - and unlike the block above it keeps
 # warn_return_any, because narrowing the decoded payloads is exactly their job.
+#
+# Both are now inside `airsenal.remote`, which is the point: the exemption cannot
+# spread, because nothing outside that package is allowed to import the client.
 [[tool.mypy.overrides]]
 module = [
-    "airsenal.fetch.fpl_api",
-    "airsenal.ingest.player_scores",
+    "airsenal.remote.fpl_api",
+    "airsenal.remote.download",
 ]
 disallow_untyped_calls = false
 
@@ -283,7 +286,7 @@ layers = [
     "squad",
     "prediction",
     "db",
-    "fetch",
+    "remote",
     "core",
 ]
 exhaustive = true
@@ -291,7 +294,7 @@ exhaustive_ignores = ["data"]
 ignore_imports = [
     # Annotation only, under TYPE_CHECKING: a caller passes a fetcher when the
     # database has no fixtures to work the gameweek out from.
-    "airsenal.db.queries.gameweeks -> airsenal.fetch.fpl_api",
+    "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
 ]
 
 # Query code returns data; rendering it and posting it anywhere belongs in
@@ -314,3 +317,28 @@ forbidden_modules = [
     "rich",
 ]
 allow_indirect_imports = true
+
+# One package owns the network, so there is one place to audit it, one place to
+# mock, and one import to block. `pipeline`, `squad` and `ingest` each used to
+# import curl_cffi for no reason other than to name its exceptions in an `except`
+# clause - which is how an HTTP client became a dependency of the optimiser.
+# `airsenal.remote.errors` exists so they have something else to catch.
+#
+# `protected` rather than `forbidden`: it checks *direct* imports only, which is
+# exactly the distinction wanted here - everything above `remote` reaches these
+# libraries through it, by design - and it needs no list of sibling packages, so a
+# newly-created package cannot escape it by not being mentioned, for the same
+# reason `exhaustive` is set on the chain above.
+#
+# Every name here has to be imported by something, or import-linter fails with
+# ModuleNotPresent. If the Transfermarkt scraper is ever moved onto curl_cffi,
+# drop the `requests` line in the same commit.
+[[tool.importlinter.contracts]]
+name = "Only the remote package talks to the network"
+type = "protected"
+protected_modules = [
+    "bs4",
+    "curl_cffi",
+    "requests",
+]
+allowed_importers = ["airsenal.remote"]

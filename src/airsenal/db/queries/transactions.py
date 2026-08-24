@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
 from airsenal.db.session import get_session
-from airsenal.fetch.fpl_api import get_fetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 

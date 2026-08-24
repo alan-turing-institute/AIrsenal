@@ -7,7 +7,7 @@ import json
 from thefuzz import fuzz
 
 from airsenal.core.logging import get_logger
-from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
 

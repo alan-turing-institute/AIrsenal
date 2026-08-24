@@ -44,7 +44,7 @@ The database schema is defined using `sqlalchemy` in `airsenal.db.models`.
 
 ### Interacting with the FPL API
 
-The `FPLDataFetcher` class in `airsenal.fetch.fpl_api` contains functions for retrieving data from the FPL API.
+The `FPLDataFetcher` class in `airsenal.remote.fpl_api` contains functions for retrieving data from the FPL API.
 
 The main use of this is for database setup and updates, but it is also used elsewhere, for example for checking a player's current injury status in the prediction code.
 

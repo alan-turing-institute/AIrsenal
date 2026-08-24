@@ -7,8 +7,8 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.export.player_details import make_player_details
 from airsenal.export.player_summary import make_player_summary
 from airsenal.export.results import make_results
-from airsenal.fetch.fpl_api import get_fetcher
-from airsenal.fetch.transfermarkt import scrape_transfermarkt
+from airsenal.remote.fpl_api import get_fetcher
+from airsenal.remote.transfermarkt import scrape_transfermarkt
 
 logger = get_logger(__name__)
 

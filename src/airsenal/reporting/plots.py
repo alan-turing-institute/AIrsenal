@@ -6,7 +6,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 
-from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher
 
 
 def get_team_ids(league_data: dict[str, Any]) -> list[int]:

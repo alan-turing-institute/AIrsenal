@@ -14,7 +14,7 @@ import random
 
 import pytest
 
-from airsenal.fetch.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher
 
 pytestmark = pytest.mark.live
 
