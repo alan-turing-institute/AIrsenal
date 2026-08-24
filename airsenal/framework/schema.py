@@ -3,10 +3,12 @@ Interface to the SQL database.
 Use SQLAlchemy to convert between DB tables and python objects.
 """
 
+import os
 from contextlib import contextmanager
 from typing import Annotated
 
 from sqlalchemy import (
+    Engine,
     ForeignKey,
     Index,
     String,
@@ -518,6 +520,35 @@ def get_session():
 
 # global database session used by default throughout the package
 session = get_session()
+
+
+def _reset_session_after_fork() -> None:
+    """Stop a forked child from sharing the parent's database connection.
+
+    `fork` copies the engine's pool, so parent and children end up issuing
+    statements down one inherited connection - literally the same
+    `sqlite3.Connection`, on the same file descriptor.
+
+    `session.invalidate()` is SQLAlchemy's answer for a connection known to be
+    shared across processes: it drops the inherited connection rather than
+    returning it to the pool, and so without emitting a rollback down a
+    connection the parent is still using. `dispose(close=False)` then abandons
+    the rest of the inherited pool - again without closing it, since the parent
+    still needs it - and the child connects for itself on next use.
+
+    The `lru_cache`d queries are deliberately left alone. They hold plain values
+    rather than ORM objects, so they describe the database rather than the
+    connection, and dropping them would make every worker re-read what the
+    parent had already looked up.
+    """
+    session.invalidate()
+    bind = session.get_bind()
+    if isinstance(bind, Engine):
+        bind.dispose(close=False)
+
+
+if hasattr(os, "register_at_fork"):  # pragma: no branch - posix only
+    os.register_at_fork(after_in_child=_reset_session_after_fork)
 
 
 @contextmanager
