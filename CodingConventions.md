@@ -48,7 +48,7 @@ ruff check --fix .  # Linting with automatic fixes
 ruff format .       # Code formatting
 ```
 
-Finally, we have a [pre-commit](https://pre-commit.com/) setup that runs the formatting, linting and type checking above whenever you commit — mypy over the files you are committing, and everything over everything in CI. `lint-imports` is the exception: it takes no filenames, so it runs in CI only and is worth running yourself after moving code between packages. To set pre-commit up run this from the AIrsenal directory:
+Finally, we have a [pre-commit](https://pre-commit.com/) setup that runs everything above whenever you commit — formatting, linting, type checking, and the layering contracts — and the same hooks run over every file in CI. To set pre-commit up run this from the AIrsenal directory:
 ```
 pre-commit install
 ```

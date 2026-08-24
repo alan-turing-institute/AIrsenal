@@ -38,16 +38,6 @@ jobs:
           uv run --extra dev pre-commit run
           --hook-stage manual --all-files --show-diff-on-failure
 
-      # A workflow step rather than a pre-commit hook, unlike mypy above: the
-      # contracts describe the package as a whole, and `lint-imports` does not
-      # accept filenames at all - a layering violation is an edge between two
-      # modules, so it needs the whole import graph and there is nothing to
-      # narrow to. A wrong-direction import does not fail at runtime, so without
-      # this step nothing in CI would notice one. It is in this job so it gates
-      # the test matrix, which `needs` it.
-      - name: Check the package layering
-        run: uv run --extra dev lint-imports --no-cache
-
   checks:
     name: Run tests for Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}

@@ -40,11 +40,11 @@ uv run mypy
 uv run lint-imports
 ```
 
-`mypy` also runs as a pre-commit hook, over the files you are committing;
-`lint-imports` does not, because it takes no filenames — a layering violation is an
-edge between two modules, so it needs the whole import graph. It runs in CI, so run
-it yourself after moving code between packages rather than finding out on the pull
-request. CI runs both over everything.
+Both also run as pre-commit hooks, so this is mostly for running them directly.
+`mypy` checks the files being committed; `lint-imports` always checks the whole
+package, because it takes no filenames — a layering violation is an edge between two
+modules, so there is nothing to narrow to. Its hook is `language: system`, so it
+needs the project venv active; without one it fails rather than passing quietly.
 
 **Pre-commit hooks:**
 ```bash

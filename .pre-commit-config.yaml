@@ -59,3 +59,24 @@ repos:
           - sqlalchemy
           - typer
           - pandas-stubs
+
+  # Checks the layering contracts in pyproject.toml. Two things differ from the
+  # hooks above, both from upstream being `language: system` rather than building
+  # its own environment.
+  #
+  # `entry` is overridden to go through uv. Upstream runs a bare `lint-imports`,
+  # which is only on PATH inside the project venv - so committing from a shell
+  # without it activated fails with "Executable `lint-imports` not found", which
+  # is a broken commit rather than a broken build. `uv run` resolves the project
+  # environment itself, so it works either way. (additional_dependencies would
+  # not help: system hooks ignore it.)
+  #
+  # And it takes no filenames - pass_filenames is false upstream. A layering
+  # violation is an edge between two modules, so it needs the whole import graph
+  # and there is nothing to narrow to from the files being committed. That is
+  # affordable here: well under a second over 173 files.
+  - repo: https://github.com/seddonym/import-linter
+    rev: v2.13
+    hooks:
+      - id: import-linter
+        entry: uv run --extra dev lint-imports
