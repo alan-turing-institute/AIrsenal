@@ -23,7 +23,7 @@ from typing import Protocol
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.enums import Chip
-from airsenal.optimization.config import SquadScoringConfig
+from airsenal.optimization.config import SquadScoringConfig, SubWeightsDict
 from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekMove,
@@ -85,6 +85,10 @@ class TransferRequest:
     root_gw: int
     season: str
     num_iterations: int = 100
+    # How a squad is scored, so that a strategy weighs the bench the same way the
+    # squad builder does. It used to be omitted on every transfer path, which is
+    # how `--no-subs` came to apply to `optimize squad` and nothing else.
+    scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     # Set only for a move that rebuilds the whole squad, which is the one kind of
     # move a strategy cannot answer by enumerating swaps. None means the default
     # whole-squad optimizer.
@@ -110,6 +114,11 @@ class TransferRequest:
     def triple_captain_gw(self) -> int | None:
         """The gameweek to score with a tripled captain, if any."""
         return self.transfer_gameweek if self.chip is Chip.TRIPLE_CAPTAIN else None
+
+    @property
+    def sub_weights(self) -> SubWeightsDict:
+        """The bench weighting to score candidate squads with."""
+        return self.scoring.sub_weights.as_dict()
 
     def advance_progress(self) -> None:
         """Count off one of the candidate squads this strategy considers."""
@@ -214,6 +223,8 @@ class TransferSearchRequest:
     chip_schedule: ChipSchedule
     num_free_transfers: int
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
+    # How a squad is scored, handed on to every strategy the search runs.
+    scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     # A chip that rebuilds the squad delegates to this, so any optimizer that
     # handles wildcards and free hits needs one. None means the default whole-squad
     # optimizer; `FullSquadStrategy` is the single place that resolves it.

@@ -29,6 +29,7 @@ from airsenal.export.absences import main as save_expected_absences
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
+from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
@@ -70,6 +71,10 @@ class AIrsenalPipeline:
     transfer_optimizer: TransferOptimizer = field(default_factory=TreeSearchOptimizer)
     squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
+    # How a squad is scored. Alongside the constraints rather than inside a
+    # component, because both optimizers have to agree on it: the squad builder
+    # and the transfer search used to weigh the bench differently.
+    scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     settings: PipelineSettings = field(default_factory=PipelineSettings)
 
     def with_settings(self, **changes: Any) -> "AIrsenalPipeline":
@@ -137,6 +142,7 @@ class AIrsenalPipeline:
                 season=self.settings.season,
                 fpl_team_id=fpl_team_id,
                 optimizer=self.squad_optimizer,
+                scoring=self.scoring,
                 chip_gameweeks=self.settings.chips.as_dict(),
                 is_replay=is_replay,
             ), None
@@ -151,6 +157,7 @@ class AIrsenalPipeline:
             constraints=self.constraints,
             optimizer=self.transfer_optimizer,
             squad_optimizer=self.squad_optimizer,
+            scoring=self.scoring,
             is_replay=is_replay,
         )
 

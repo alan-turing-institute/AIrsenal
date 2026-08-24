@@ -22,7 +22,11 @@ import pytest
 from airsenal.core.concurrency import CustomQueue
 from airsenal.core.enums import Chip
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
-from airsenal.optimization.config import GeneticAlgorithmConfig
+from airsenal.optimization.config import (
+    GeneticAlgorithmConfig,
+    SquadScoringConfig,
+    SubWeights,
+)
 from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekMove,
@@ -210,3 +214,51 @@ def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
     assert optimizer.requests, "the wildcard rebuild did not reach the given optimizer"
     # the search's --num-iterations arrives as the effort budget to size to
     assert all(r.effort == config.num_iterations for r in optimizer.requests)
+
+
+@pytest.mark.parametrize("chip", [None, Chip.WILDCARD])
+def test_the_bench_weighting_on_the_request_reaches_the_search(
+    seeded, tag, starting_squad, chip
+):
+    """
+    §5 of the refactor: `--no-subs` used to apply to `optimize squad` alone.
+
+    Every `get_discounted_squad_score` call on the transfer path omitted
+    `sub_weights`, so the squad builder and the transfer search scored benches
+    differently - the exact divergence `SquadScoringConfig` was created to end.
+    Scoring the same window with and without the bench must not agree.
+    """
+    gameweeks = SEARCH_GAMEWEEKS[:1]
+    chips = {chip: gameweeks[0]} if chip is not None else {}
+
+    def score(scoring):
+        request = TransferSearchRequest(
+            starting_squad=starting_squad,
+            gameweeks=gameweeks,
+            tag=tag,
+            season=SEASON,
+            chip_schedule=ChipSchedule.from_weeks(gameweeks, chips),
+            num_free_transfers=1,
+            constraints=TransferConstraints(max_opt_transfers=1),
+            scoring=scoring,
+        )
+        config = TreeSearchConfig(num_thread=1, num_iterations=5)
+        work: CustomQueue = CustomQueue()
+        finished: queue_module.Queue = queue_module.Queue()
+        worker = threading.Thread(
+            target=optimize, args=(work, 0, finished, request, config), daemon=True
+        )
+        worker.start()
+        work.put((GameweekMove(), 1, 0, 0, starting_squad, None))
+        work.join()
+        work.put(None)
+        worker.join(timeout=120)
+        assert not worker.is_alive(), "the worker did not shut down"
+        plans = []
+        while not finished.empty():
+            plans.append(finished.get())
+        return TransferSearchResult.from_plans(plans).best.total_score
+
+    with_bench = score(SquadScoringConfig())
+    without_bench = score(SquadScoringConfig(sub_weights=SubWeights.none()))
+    assert with_bench != without_bench

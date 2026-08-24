@@ -87,6 +87,9 @@ def transfers(
     max_transfers: Annotated[
         int, typer.Option(min=0, help="Maximum transfers per gameweek.")
     ] = 2,
+    subs: Annotated[
+        bool, typer.Option(help="Count substitutes' predicted points.")
+    ] = True,
     num_iterations: Annotated[
         int, typer.Option(min=1, help="Wildcard/free-hit optimization iterations.")
     ] = 100,
@@ -139,6 +142,7 @@ def transfers(
         max_hit=max_hit,
         allow_unused=allow_unused,
         max_transfers=max_transfers,
+        subs=subs,
         num_iterations=num_iterations,
         num_thread=num_thread,
         transfer_optimizer=transfer_optimizer,
@@ -183,9 +187,9 @@ def squad(
         str,
         typer.Option(help=f"Squad optimizer: {', '.join(sorted(SQUAD_OPTIMIZERS))}."),
     ] = DEFAULT_SQUAD_OPTIMIZER,
-    no_subs: Annotated[
-        bool, typer.Option(help="Exclude substitute-point contributions.")
-    ] = False,
+    subs: Annotated[
+        bool, typer.Option(help="Count substitutes' predicted points.")
+    ] = True,
     include_zero: Annotated[
         bool, typer.Option(help="Include zero-point players.")
     ] = False,
@@ -203,7 +207,7 @@ def squad(
         num_generations=num_generations,
         population_size=population_size,
         squad_optimizer=squad_optimizer,
-        no_subs=no_subs,
+        subs=subs,
         include_zero=include_zero,
         fpl_team_id=fpl_team_id,
         is_replay=is_replay,
@@ -286,6 +290,7 @@ def _run_transfer_optimization(
     max_hit: int,
     allow_unused: bool,
     max_transfers: int,
+    subs: bool,
     num_iterations: int,
     num_thread: int,
     transfer_optimizer: str,
@@ -335,6 +340,9 @@ def _run_transfer_optimization(
             profile=profile,
         ),
         squad_optimizer=squad_optimizer_named(squad_optimizer),
+        scoring=SquadScoringConfig(
+            sub_weights=SubWeights() if subs else SubWeights.none()
+        ),
         save_plans=save_plans,
         is_replay=is_replay,
     )
@@ -349,7 +357,7 @@ def _run_squad_optimization(
     num_generations: int | None,
     population_size: int | None,
     squad_optimizer: str,
-    no_subs: bool,
+    subs: bool,
     include_zero: bool,
     fpl_team_id: int | None,
     is_replay: bool,
@@ -393,7 +401,7 @@ def _run_squad_optimization(
             population_size=population_size,
         ),
         scoring=SquadScoringConfig(
-            sub_weights=SubWeights.none() if no_subs else SubWeights(),
+            sub_weights=SubWeights() if subs else SubWeights.none(),
             budget=budget,
         ),
         remove_zero=remove_zero,

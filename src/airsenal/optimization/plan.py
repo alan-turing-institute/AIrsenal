@@ -21,6 +21,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from airsenal.core.enums import Chip
+from airsenal.optimization.config import SubWeightsDict
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_score import (
     get_discount_factor,
@@ -157,11 +158,18 @@ class Plan:
 
 
 def baseline_plan(
-    squad: Squad, gameweeks: list[int], tag: str, root_gw: int | None = None
+    squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    root_gw: int | None = None,
+    sub_weights: SubWeightsDict | None = None,
 ) -> Plan:
     """
     The plan of making no transfers at all, which every other plan is compared
     against.
+
+    Scored with the same bench weighting as the plans it is compared against, or
+    the comparison is between two different scoring functions.
     """
     root_gw = root_gw if root_gw is not None else gameweeks[0]
     outcomes = []
@@ -171,7 +179,9 @@ def baseline_plan(
             GameweekOutcome(
                 gameweek=gw,
                 move=GameweekMove(),
-                points=get_discounted_squad_score(squad, [gw], tag, root_gw=root_gw),
+                points=get_discounted_squad_score(
+                    squad, [gw], tag, root_gw=root_gw, sub_weights=sub_weights
+                ),
                 discount_factor=discount_factor,
                 points_hit=0,
                 free_transfers=0,

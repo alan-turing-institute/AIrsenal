@@ -19,6 +19,7 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
+from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.moves import ChipSchedule, TransferConstraints
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
@@ -167,6 +168,7 @@ def new_squad_from_scratch(
     fpl_team_id: int,
     chip_gameweeks: dict[str, int],
     squad_optimizer: SquadOptimizer | None = None,
+    scoring: SquadScoringConfig | None = None,
 ) -> Squad:
     """
     Build a squad from nothing, for the start of a season or a brand new team.
@@ -181,6 +183,7 @@ def new_squad_from_scratch(
         season=season,
         fpl_team_id=fpl_team_id,
         optimizer=squad_optimizer,
+        scoring=scoring,
         chip_gameweeks=chip_gameweeks,
     )
 
@@ -195,6 +198,7 @@ def run_optimization(
     constraints: TransferConstraints | None = None,
     optimizer: TransferOptimizer | None = None,
     squad_optimizer: SquadOptimizer | None = None,
+    scoring: SquadScoringConfig | None = None,
     save_plans: Path | None = None,
     is_replay: bool = False,  # for replaying seasons
 ) -> tuple[Squad, Plan | None]:
@@ -212,6 +216,8 @@ def run_optimization(
         constraints = TransferConstraints()
     if optimizer is None:
         optimizer = TreeSearchOptimizer()
+    if scoring is None:
+        scoring = SquadScoringConfig()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
     # see if we are at the start of a season, or
@@ -223,7 +229,13 @@ def run_optimization(
             "from scratch"
         )
         return new_squad_from_scratch(
-            gameweeks, tag, season, fpl_team_id, chip_gameweeks, squad_optimizer
+            gameweeks,
+            tag,
+            season,
+            fpl_team_id,
+            chip_gameweeks,
+            squad_optimizer,
+            scoring,
         ), None
 
     with console.status("Optimising transfers..."):
@@ -244,7 +256,13 @@ def run_optimization(
             )
             logger.info("Will suggest a new starting squad:")
             return new_squad_from_scratch(
-                gameweeks, tag, season, fpl_team_id, chip_gameweeks, squad_optimizer
+                gameweeks,
+                tag,
+                season,
+                fpl_team_id,
+                chip_gameweeks,
+                squad_optimizer,
+                scoring,
             ), None
         # if we got to here, we can assume we are optimizing an existing squad.
 
@@ -271,6 +289,9 @@ def run_optimization(
                 chip_schedule=chip_schedule,
                 num_free_transfers=num_free_transfers,
                 constraints=constraints,
+                # so the search weighs the bench the same way the squad builder
+                # does; the two used to disagree whenever --no-subs was passed
+                scoring=scoring,
                 # reaches the wildcard and free-hit rebuilds inside the search,
                 # not only the from-scratch fallback above
                 squad_optimizer=squad_optimizer,

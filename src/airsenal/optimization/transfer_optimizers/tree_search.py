@@ -166,6 +166,7 @@ def optimize(
                 root_gw=root_gw,
                 season=season,
                 num_iterations=num_iterations,
+                scoring=request.scoring,
                 squad_optimizer=squad_optimizer,
                 progress=partial(updater, pid) if updater is not None else None,
             )
@@ -363,7 +364,11 @@ def search_transfer_tree(
             # if we are excluding unused transfers the tree may not include the
             # baseline plan, so compute it here instead.
             baseline = baseline_plan(
-                starting_squad, gameweeks, tag, root_gw=gameweeks[0]
+                starting_squad,
+                gameweeks,
+                tag,
+                root_gw=gameweeks[0],
+                sub_weights=request.scoring.sub_weights.as_dict(),
             )
             progress.advance(total_task, 1)
         else:

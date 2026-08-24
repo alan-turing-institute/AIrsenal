@@ -9,7 +9,6 @@ than enumerating swaps. Which one comes off the request; the class knows only th
 from dataclasses import replace
 
 from airsenal.core.logging import get_logger
-from airsenal.optimization.config import SquadScoringConfig
 from airsenal.optimization.protocols import (
     Proposal,
     SquadOptimizer,
@@ -57,7 +56,7 @@ class FullSquadStrategy:
                 gameweeks=gameweeks,
                 tag=request.tag,
                 season=request.season,
-                scoring=replace(SquadScoringConfig(), budget=budget),
+                scoring=replace(request.scoring, budget=budget),
                 bench_boost_gw=request.bench_boost_gw,
                 triple_captain_gw=request.triple_captain_gw,
                 effort=request.num_iterations,

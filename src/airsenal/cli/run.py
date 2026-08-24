@@ -6,7 +6,7 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.optimize import squad_optimizer_named, transfer_optimizer_named
-from airsenal.optimization.config import ChipWeeks
+from airsenal.optimization.config import ChipWeeks, SquadScoringConfig, SubWeights
 from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
@@ -96,6 +96,9 @@ def run(
     allow_unused: Annotated[
         bool, typer.Option(help="Include strategies that waste free transfers.")
     ] = False,
+    subs: Annotated[
+        bool, typer.Option(help="Count substitutes' predicted points.")
+    ] = True,
     save_absences: Annotated[
         bool, typer.Option(help="Save expected absences to a CSV file.")
     ] = False,
@@ -133,6 +136,9 @@ def run(
             max_total_hit=max_hit,
             allow_unused_transfers=allow_unused,
             max_opt_transfers=max_transfers,
+        ),
+        scoring=SquadScoringConfig(
+            sub_weights=SubWeights() if subs else SubWeights.none()
         ),
         settings=PipelineSettings(
             fpl_team_id=fpl_team_id,

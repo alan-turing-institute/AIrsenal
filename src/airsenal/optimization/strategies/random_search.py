@@ -14,6 +14,7 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
+from airsenal.optimization.config import SubWeightsDict
 from airsenal.optimization.protocols import (
     Proposal,
     StepCounter,
@@ -39,6 +40,7 @@ def make_random_transfers(
     season: str = CURRENT_SEASON,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
+    sub_weights: SubWeightsDict | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     choose nsubs random players to sub out, and then select players
@@ -122,6 +124,7 @@ def make_random_transfers(
             root_gw=root_gw,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
+            sub_weights=sub_weights,
         )
         if total_points > best_score:
             best_score = total_points
@@ -155,5 +158,6 @@ class RandomTransferStrategy:
             season=request.season,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
+            sub_weights=request.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

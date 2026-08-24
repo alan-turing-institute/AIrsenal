@@ -66,6 +66,10 @@ class SquadScoringConfig:
     """How a squad is scored during optimisation."""
 
     sub_weights: SubWeights = field(default_factory=SubWeights)
+    # What a placeholder costs while a partial squad is being filled. Only bites
+    # when `players_per_position` is smaller than a full squad, which nothing but
+    # the tests does, so it is effectively fixed - kept a field because the squad
+    # builder takes it as one, not because it is a knob anyone turns.
     dummy_sub_cost: int = 45
     budget: int = 1000
 

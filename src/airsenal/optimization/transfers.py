@@ -30,6 +30,7 @@ def make_best_transfers(
         root_gw=request.root_gw,
         bench_boost_gw=request.bench_boost_gw,
         triple_captain_gw=request.triple_captain_gw,
+        sub_weights=request.sub_weights,
     )
 
     # A free hit is reverted after the gameweek it is played in, so the squad
