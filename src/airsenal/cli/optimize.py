@@ -17,8 +17,12 @@ from airsenal.db.queries.gameweeks import (
 )
 from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
 from airsenal.fetch.fpl_api import require_fpl_team_id
-from airsenal.optimization.moves import ChipWeeks, TransferConstraints
-from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
+from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.protocols import (
+    SquadOptimizer,
+    TransferConstraints,
+    TransferOptimizer,
+)
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import (

@@ -12,6 +12,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
+from airsenal.core.scoring import SQUAD_SIZE
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
@@ -76,10 +77,9 @@ class Squad:
 
     def is_complete(self) -> bool:
         """
-        See if we have 15 players.
+        See if we have a full squad.
         """
-        num_players = sum(self.num_position.values())
-        return num_players == 15
+        return sum(self.num_position.values()) == SQUAD_SIZE
 
     def add_player(
         self,

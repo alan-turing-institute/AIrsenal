@@ -6,7 +6,8 @@ from typing import Annotated
 import typer
 
 from airsenal.cli.optimize import squad_optimizer_named, transfer_optimizer_named
-from airsenal.optimization.moves import ChipWeeks, TransferConstraints
+from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.protocols import TransferConstraints
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     SQUAD_OPTIMIZERS,

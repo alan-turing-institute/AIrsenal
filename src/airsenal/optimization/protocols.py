@@ -23,11 +23,8 @@ from typing import Protocol
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.enums import Chip
-from airsenal.optimization.moves import (
-    ChipSchedule,
-    GameweekMove,
-    TransferConstraints,
-)
+from airsenal.core.scoring import MAX_FREE_TRANSFERS
+from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig, SubWeightsDict
 from airsenal.squad.squad import Squad
@@ -210,6 +207,24 @@ class SquadOptimizer(Protocol):
         could honestly report.
         """
         ...
+
+
+@dataclass(frozen=True, slots=True)
+class TransferConstraints:
+    """
+    What a transfer search is allowed to consider.
+
+    A field of `TransferSearchRequest`, and here beside it: exactly the knobs
+    the tree search's branch enumeration takes. Bundled because they used to
+    travel as four positional elements of a tuple handed to `Process`, where the
+    tuple was one element shorter than the worker signature and
+    `max_free_transfers` was silently dropped.
+    """
+
+    max_total_hit: int | None = None
+    allow_unused_transfers: bool = False
+    max_opt_transfers: int = 2
+    max_free_transfers: int = MAX_FREE_TRANSFERS
 
 
 @dataclass(frozen=True)

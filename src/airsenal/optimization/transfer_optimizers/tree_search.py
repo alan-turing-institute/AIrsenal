@@ -15,6 +15,7 @@ to a search that is not a forked tree walk.
 
 import cProfile
 import threading
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import partial
 from multiprocessing import Process, Queue
@@ -22,11 +23,17 @@ from typing import Literal
 
 from airsenal.core.concurrency import CustomQueue, StallWatchdog
 from airsenal.core.console import progress_bar
+from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger, relay_child_logs
+from airsenal.core.scoring import MAX_FREE_TRANSFERS
+from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.optimization.moves import (
+    NO_CHIPS,
+    ChipSchedule,
+    GameweekChips,
     GameweekMove,
-    count_expected_outputs,
-    next_week_transfers,
+    calc_free_transfers,
+    calc_points_hit,
 )
 from airsenal.optimization.plan import (
     GameweekOutcome,
@@ -68,6 +75,156 @@ ProgressMessage = (
     tuple[Literal["advance"], int | None]
     | tuple[Literal["reset"], int, str, int | None]
 )
+
+
+# ----------------------- enumerating the tree's branches -------------------
+#
+# Which moves are legal in the next gameweek, and how many whole-window plans
+# that adds up to. Only a tree walk asks either question, and the second is
+# only asked to size a progress bar, so both live with the search rather than
+# with `GameweekMove` - which is then a pure description of a move, with no
+# reason to reach for the database.
+
+
+def next_week_transfers(
+    free_transfers: int,
+    hit_so_far: int,
+    chips_played: Iterable[Chip | None] = (),
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chips: GameweekChips | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> list[tuple[GameweekMove, int, int, int]]:
+    """Given where a strategy has got to and some optimisation constraints, determine
+    the valid moves (transfers, and any chip played) for the following gameweek.
+
+    free_transfers - free transfers available going into the gameweek
+    hit_so_far - points hit taken by this strategy up to but not including this gameweek
+    chips_played - the chips this strategy has already used, so they are not offered
+    again
+
+    max_opt_transfers - maximum number of transfers to play each week as part of
+    strategy in optimisation
+
+    max_free_transfers - maximum number of free transfers saved in the game rules
+    (2 before 2024/25, 5 from 2024/25 season)
+
+    Returns (move, new_ft_available, total_points_hit, hit_this_gw) tuples.
+        - total_points_hit is the total points hit so far including this gw
+        - hit_this_gw is the points hit incurred this gameweek
+    """
+    chips = chips if chips is not None else NO_CHIPS
+    chips_played = list(chips_played)
+
+    if not allow_unused_transfers and free_transfers == max_free_transfers:
+        # Force at least 1 free transfer if a free transfer will be lost otherwise.
+        # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
+        # this function in that case.
+        ft_choices = list(range(1, max_opt_transfers + 1))
+    else:
+        ft_choices = list(range(max_opt_transfers + 1))
+
+    if max_total_hit is not None:
+        ft_choices = [
+            nt
+            for nt in ft_choices
+            if hit_so_far + calc_points_hit(GameweekMove(nt), free_transfers)
+            <= max_total_hit
+        ]
+
+    # if we are definitely going to play a wildcard or free_hit deal with that first
+    if chips.chip_to_play is not None and chips.chip_to_play.rebuilds_squad:
+        moves = [GameweekMove(chip=chips.chip_to_play)]
+    elif chips.chip_to_play is not None:
+        # triple captain or bench boost - we can still do ft_choices transfers
+        moves = [GameweekMove(nt, chips.chip_to_play) for nt in ft_choices]
+    else:
+        # no chip definitely played, but some might be allowed
+        moves = [GameweekMove(nt) for nt in ft_choices]
+        for chip in (Chip.WILDCARD, Chip.FREE_HIT):
+            if chips.allows(chip, chips_played):
+                moves.append(GameweekMove(chip=chip))
+        for chip in (Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN):
+            if chips.allows(chip, chips_played):
+                moves += [GameweekMove(nt, chip) for nt in ft_choices]
+
+    hit_this_gw = [calc_points_hit(move, free_transfers) for move in moves]
+    total_points_hit = [hit_so_far + hit for hit in hit_this_gw]
+    new_ft_available = [
+        calc_free_transfers(move, free_transfers, max_free_transfers) for move in moves
+    ]
+
+    return list(
+        zip(moves, new_ft_available, total_points_hit, hit_this_gw, strict=True)
+    )
+
+
+def count_expected_outputs(
+    gw_ahead: int,
+    next_gw: int | None = None,
+    free_transfers: int = 1,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = True,
+    max_opt_transfers: int = 2,
+    chip_schedule: ChipSchedule | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> tuple[int, bool]:
+    """
+    Count the number of possible transfer and chip strategies for gw_ahead gameweeks
+    ahead, subject to:
+    * Start with free_transfers free transfers.
+    * Spend a max of max_total_hit points on transfers across whole period
+    (None for no limit)
+    * Allow playing the chips permitted by chip_schedule
+    * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
+    are available), if allow_unused_transfers is False.
+    * Make a maximum of max_opt_transfers transfers each gameweek.
+    * Each chip only allowed once.
+
+    Returns
+    -------
+        Tuple of int: number of strategies that will be computed, and bool: whether the
+        baseline strategy will be excluded from the main optimization tree and will need
+        to be computed separately (this can be the case if allow_unused_transfers is
+        False). Either way, the total count of strategies will include the baseline.
+    """
+    next_gw = next_gameweek() if next_gw is None else next_gw
+    chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
+
+    # (free transfers, points hit so far, moves made) - the moves are all that is
+    # needed to count branches and to spot the do-nothing baseline among them
+    branches: list[tuple[int, int, tuple[GameweekMove, ...]]] = [
+        (free_transfers, 0, ())
+    ]
+
+    for gw in range(next_gw, next_gw + gw_ahead):
+        new_branches = []
+        for ft, hit, moves in branches:
+            possibilities = next_week_transfers(
+                ft,
+                hit,
+                [move.chip for move in moves],
+                max_total_hit=max_total_hit,
+                max_opt_transfers=max_opt_transfers,
+                allow_unused_transfers=allow_unused_transfers,
+                chips=chip_schedule.for_gameweek(gw),
+                max_free_transfers=max_free_transfers,
+            )
+            new_branches += [
+                (new_ft, new_hit, (*moves, move))
+                for move, new_ft, new_hit, _ in possibilities
+            ]
+        branches = new_branches
+
+    # if allow_unused_transfers is False the baseline of no transfers can be removed
+    # above. Check whether the 1st strategy is the baseline and if not add it back in.
+    baseline_moves = (GameweekMove(),) * gw_ahead
+    baseline_excluded = branches[0][2] != baseline_moves
+    if baseline_excluded:
+        branches.insert(0, (max_free_transfers, 0, baseline_moves))
+
+    return len(branches), baseline_excluded
 
 
 @dataclass(frozen=True)

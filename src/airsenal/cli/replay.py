@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.protocols import TransferConstraints
 from airsenal.optimization.transfer_optimizers import (
     TreeSearchConfig,
     TreeSearchOptimizer,

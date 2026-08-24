@@ -22,13 +22,13 @@ import pytest
 from airsenal.core.concurrency import CustomQueue
 from airsenal.core.enums import Chip
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
-from airsenal.optimization.moves import (
-    ChipSchedule,
-    GameweekMove,
-    TransferConstraints,
-)
+from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import Plan, TransferSearchResult
-from airsenal.optimization.protocols import SquadRequest, TransferSearchRequest
+from airsenal.optimization.protocols import (
+    SquadRequest,
+    TransferConstraints,
+    TransferSearchRequest,
+)
 from airsenal.optimization.squad_optimizers import (
     GeneticAlgorithmConfig,
     GeneticSquadOptimizer,

@@ -10,16 +10,13 @@ import pytest
 
 from airsenal.core.enums import Chip
 from airsenal.core.registry import ConfigError, lookup
-from airsenal.optimization.moves import (
-    MAX_FREE_TRANSFERS,
-    GameweekMove,
-    TransferConstraints,
-)
+from airsenal.optimization.moves import MAX_FREE_TRANSFERS, GameweekMove
 from airsenal.optimization.plan import (
     GameweekOutcome,
     Plan,
     TransferSearchResult,
 )
+from airsenal.optimization.protocols import TransferConstraints
 from airsenal.optimization.strategies import (
     DEFAULT_STRATEGIES,
     StrategySet,

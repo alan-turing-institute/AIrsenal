@@ -29,9 +29,12 @@ from airsenal.export.absences import main as save_expected_absences
 from airsenal.fetch.fpl_api import get_fetcher, require_fpl_team_id
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
-from airsenal.optimization.moves import TransferConstraints
 from airsenal.optimization.plan import Plan
-from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
+from airsenal.optimization.protocols import (
+    SquadOptimizer,
+    TransferConstraints,
+    TransferOptimizer,
+)
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer

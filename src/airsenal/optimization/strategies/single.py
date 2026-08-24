@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from airsenal.core.copy import fastcopy
 from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
+from airsenal.core.scoring import SQUAD_SIZE
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
@@ -22,7 +23,6 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 # 15 players in a squad, so 15 candidate squads to score.
-SQUAD_SIZE = 15
 
 
 def make_optimum_single_transfer(
