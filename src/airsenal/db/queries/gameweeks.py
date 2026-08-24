@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.core.season import CURRENT_SEASON, DEFAULT_N_GAMEWEEKS
 from airsenal.db.models import Fixture
 from airsenal.db.session import get_session
 
@@ -352,7 +352,7 @@ def get_gameweeks_array(
 
     # Set defaults for undefined arguments
     if n_gameweeks is None:
-        n_gameweeks = 3
+        n_gameweeks = DEFAULT_N_GAMEWEEKS
     if gameweek_start is None:
         gameweek_start = next_gameweek()
     if gameweek_end is None:

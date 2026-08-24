@@ -1,72 +1,48 @@
 """Commands for predicting player scores."""
 
-from typing import Annotated
-
-import typer
-
-from airsenal.core.season import CURRENT_SEASON
-from airsenal.prediction.player_models import (
-    DEFAULT_PLAYER_MODEL,
-    PLAYER_MODELS,
-)
+from airsenal.cli import options
+from airsenal.db.session import session_scope
 from airsenal.prediction.run import run_prediction
-from airsenal.prediction.team_models import (
-    DEFAULT_TEAM_MODEL,
-    TEAM_MODELS,
-)
+from airsenal.reporting.top_players import get_top_predicted_points
 
 
 def predict(
-    n_gameweeks: Annotated[
-        int | None,
-        typer.Option("--weeks-ahead", help="Number of gameweeks to predict."),
-    ] = None,
-    gameweek_start: Annotated[
-        int | None, typer.Option(help="First gameweek to predict.")
-    ] = None,
-    gameweek_end: Annotated[
-        int | None, typer.Option(help="Last gameweek to predict.")
-    ] = None,
-    season: Annotated[
-        str, typer.Option(help="Season in the form 2526.")
-    ] = CURRENT_SEASON,
-    no_bonus: Annotated[
-        bool, typer.Option(help="Exclude bonus-point predictions.")
-    ] = False,
-    no_cards: Annotated[
-        bool, typer.Option(help="Exclude card-point deductions.")
-    ] = False,
-    no_saves: Annotated[
-        bool, typer.Option(help="Exclude goalkeeper save points.")
-    ] = False,
-    player_model: Annotated[
-        str,
-        typer.Option(help=f"Player model: {', '.join(sorted(PLAYER_MODELS))}."),
-    ] = DEFAULT_PLAYER_MODEL,
-    team_model: Annotated[
-        str,
-        typer.Option(help=f"Team model: {', '.join(sorted(TEAM_MODELS))}."),
-    ] = DEFAULT_TEAM_MODEL,
-    epsilon: Annotated[
-        float | None,
-        typer.Option(
-            help=(
-                "Exponential time-weighting downweight factor. "
-                "Defaults to the team model's own value."
-            )
-        ),
-    ] = None,
+    n_gameweeks: options.OptionalWeeksAhead = None,
+    gameweek_start: options.GameweekStart = None,
+    gameweek_end: options.GameweekEnd = None,
+    season: options.Season = options.DEFAULT_SEASON,
+    bonus: options.Bonus = True,
+    cards: options.Cards = True,
+    saves: options.Saves = True,
+    def_con: options.DefCon = True,
+    player_model: options.PlayerModel = options.DEFAULT_PLAYER_MODEL,
+    team_model: options.TeamModel = options.DEFAULT_TEAM_MODEL,
+    epsilon: options.Epsilon = None,
 ) -> None:
     """Predict player scores for a gameweek range."""
-    run_prediction(
-        n_gameweeks=n_gameweeks,
-        gameweek_start=gameweek_start,
-        gameweek_end=gameweek_end,
-        season=season,
-        no_bonus=no_bonus,
-        no_cards=no_cards,
-        no_saves=no_saves,
-        player_model_name=player_model,
-        team_model_name=team_model,
-        epsilon=epsilon,
-    )
+    with session_scope() as session:
+        session.expire_on_commit = False
+        gameweeks, tag = run_prediction(
+            n_gameweeks=n_gameweeks,
+            gameweek_start=gameweek_start,
+            gameweek_end=gameweek_end,
+            season=season,
+            include_bonus=bonus,
+            include_cards=cards,
+            include_saves=saves,
+            include_def_con=def_con,
+            player_model_name=player_model,
+            team_model_name=team_model,
+            epsilon=epsilon,
+            dbsession=session,
+        )
+        # showing the answer is the command's job, not the prediction's: this was
+        # the only prediction -> reporting import in the package
+        get_top_predicted_points(
+            gameweeks=gameweeks,
+            tag=tag,
+            season=season,
+            per_position=True,
+            n_players=5,
+            dbsession=session,
+        )

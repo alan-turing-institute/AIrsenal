@@ -61,18 +61,16 @@ def create_database(
     fpl_team_id: int | None,
     clean: bool,
     n_previous: int,
-    no_current_season: bool,
+    include_current_season: bool = True,
 ) -> None:
     """Create the database, including historical and current-season data."""
-    if not no_current_season:
+    if include_current_season:
         fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     with session_scope() as dbsession:
         continue_setup = check_clean_db(clean, dbsession)
         if continue_setup:
-            if no_current_season:
-                seasons = get_past_seasons(n_previous)
-            else:
-                seasons = [CURRENT_SEASON, *get_past_seasons(n_previous)]
+            past = get_past_seasons(n_previous)
+            seasons = [CURRENT_SEASON, *past] if include_current_season else past
             make_init_db(fpl_team_id, seasons, dbsession)
         else:
             logger.info(

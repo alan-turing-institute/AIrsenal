@@ -10,7 +10,11 @@ those settings belong to the optimizer objects.
 from dataclasses import dataclass, field
 from enum import Enum
 
-from airsenal.core.season import CURRENT_SEASON, get_past_seasons
+from airsenal.core.season import (
+    CURRENT_SEASON,
+    DEFAULT_N_GAMEWEEKS,
+    get_past_seasons,
+)
 from airsenal.optimization.moves import ChipWeeks
 
 
@@ -44,7 +48,7 @@ class PipelineSettings:
     """What a run does, as opposed to what it does it with."""
 
     fpl_team_id: int | None = None
-    n_gameweeks: int = 3
+    n_gameweeks: int = DEFAULT_N_GAMEWEEKS
     season: str = CURRENT_SEASON
     # Where the window starts. None means "the next gameweek", which only the
     # current season can answer - a past season has no next gameweek, so
@@ -63,4 +67,7 @@ class PipelineSettings:
     # pipeline has always done; replay sets it explicitly instead.
     new_squad: bool | None = None
     apply_transfers: bool = False
+    # Whether to apply without the interactive prompt. `--apply-transfers` used to
+    # block on one with no way to skip, which made an unattended run impossible.
+    skip_confirmation: bool = False
     save_absences: bool = False

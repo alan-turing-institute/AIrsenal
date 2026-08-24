@@ -17,7 +17,7 @@ from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.players import list_players
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 from airsenal.prediction.features import (
     fit_bonus_points,
     fit_card_points,
@@ -38,7 +38,6 @@ from airsenal.prediction.team_models.fitting import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
-from airsenal.reporting.top_players import get_top_predicted_points
 
 logger = get_logger(__name__)
 
@@ -151,46 +150,37 @@ def run_prediction(
     gameweek_start: int | None,
     gameweek_end: int | None,
     season: str,
-    no_bonus: bool,
-    no_cards: bool,
-    no_saves: bool,
     team_model_name: str,
+    include_bonus: bool = True,
+    include_cards: bool = True,
+    include_saves: bool = True,
+    include_def_con: bool = True,
     epsilon: float | None = None,
     player_model_name: str = DEFAULT_PLAYER_MODEL,
-) -> None:
-    """Fill the player prediction database table."""
+    dbsession: Session | None = None,
+) -> tuple[list[int], str]:
+    """
+    Fill the player prediction table, returning the window and the tag written.
+
+    The caller is handed both so that it can show the result; printing the top
+    predicted points from here was the only `prediction -> reporting` import in
+    the package.
+    """
     gameweeks = get_gameweeks_array(
         n_gameweeks=n_gameweeks,
         gameweek_start=gameweek_start,
         gameweek_end=gameweek_end,
         season=season,
     )
-    include_bonus = not no_bonus
-    include_cards = not no_cards
-    include_saves = not no_saves
-    player_model = build_player_model(player_model_name)
-    team_model = build_team_model(team_model_name, epsilon)
-
-    with session_scope() as session:
-        session.expire_on_commit = False
-
-        tag = make_predictedscore_table(
-            gameweeks=gameweeks,
-            season=season,
-            include_bonus=include_bonus,
-            include_cards=include_cards,
-            include_saves=include_saves,
-            player_model=player_model,
-            team_model=team_model,
-            dbsession=session,
-        )
-
-        # print players with top predicted points
-        get_top_predicted_points(
-            gameweeks=gameweeks,
-            tag=tag,
-            season=season,
-            per_position=True,
-            n_players=5,
-            dbsession=session,
-        )
+    tag = make_predictedscore_table(
+        gameweeks=gameweeks,
+        season=season,
+        include_bonus=include_bonus,
+        include_cards=include_cards,
+        include_saves=include_saves,
+        include_def_con=include_def_con,
+        player_model=build_player_model(player_model_name),
+        team_model=build_team_model(team_model_name, epsilon),
+        dbsession=dbsession,
+    )
+    return gameweeks, tag

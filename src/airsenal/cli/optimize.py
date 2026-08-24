@@ -2,10 +2,10 @@
 
 from dataclasses import replace
 from pathlib import Path
-from typing import Annotated
 
 import typer
 
+from airsenal.cli import options
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.logging import get_logger
 from airsenal.core.registry import lookup
@@ -48,83 +48,31 @@ app = typer.Typer(
 
 @app.command()
 def transfers(
-    n_gameweeks: Annotated[
-        int | None,
-        # The flag name is public, so it is pinned rather than derived from the
-        # parameter, which was renamed for consistency with everything else.
-        typer.Option("--weeks-ahead", help="Number of gameweeks to optimize."),
-    ] = None,
-    gameweek_start: Annotated[
-        int | None, typer.Option(help="First gameweek to optimize.")
-    ] = None,
-    gameweek_end: Annotated[
-        int | None, typer.Option(help="Last gameweek to optimize.")
-    ] = None,
-    tag: Annotated[
-        str | None, typer.Option(help="Prediction tag; defaults to the latest.")
-    ] = None,
-    wildcard_week: Annotated[
-        int, typer.Option(help="Wildcard week; use 0 for any week.")
-    ] = -1,
-    free_hit_week: Annotated[
-        int, typer.Option(help="Free hit week; use 0 for any week.")
-    ] = -1,
-    triple_captain_week: Annotated[
-        int, typer.Option(help="Triple captain week; use 0 for any week.")
-    ] = -1,
-    bench_boost_week: Annotated[
-        int, typer.Option(help="Bench boost week; use 0 for any week.")
-    ] = -1,
-    num_free_transfers: Annotated[
-        int | None, typer.Option(min=0, max=5, help="Free transfers available.")
-    ] = None,
-    max_hit: Annotated[
-        int, typer.Option(min=0, help="Maximum points to spend on transfers.")
-    ] = 8,
-    allow_unused: Annotated[
-        bool, typer.Option(help="Allow plans that waste free transfers.")
-    ] = False,
-    max_transfers: Annotated[
-        int, typer.Option(min=0, help="Maximum transfers per gameweek.")
-    ] = 2,
-    subs: Annotated[
-        bool, typer.Option(help="Count substitutes' predicted points.")
-    ] = True,
-    num_iterations: Annotated[
-        int, typer.Option(min=1, help="Wildcard/free-hit optimization iterations.")
-    ] = 100,
-    num_thread: Annotated[
-        int, typer.Option(min=1, help="Worker processes to use.")
-    ] = 4,
-    transfer_optimizer: Annotated[
-        str,
-        typer.Option(
-            help=f"Transfer search: {', '.join(sorted(TRANSFER_OPTIMIZERS))}."
-        ),
-    ] = DEFAULT_TRANSFER_OPTIMIZER,
-    squad_optimizer: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "Whole-squad optimizer used by a wildcard or free hit: "
-                f"{', '.join(sorted(SQUAD_OPTIMIZERS))}."
-            )
-        ),
-    ] = DEFAULT_SQUAD_OPTIMIZER,
-    season: Annotated[
-        str, typer.Option(help="Season in the form 2526.")
-    ] = CURRENT_SEASON,
-    profile: Annotated[
-        bool, typer.Option(help="Profile the search's execution time.")
-    ] = False,
-    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
-    is_replay: Annotated[
-        bool, typer.Option(help="Store suggestions as replay transactions.")
-    ] = False,
-    save_plans: Annotated[
-        Path | None,
-        typer.Option(help="Directory to write every plan considered to, as JSON."),
-    ] = None,
+    n_gameweeks: options.OptionalWeeksAhead = None,
+    gameweek_start: options.GameweekStart = None,
+    gameweek_end: options.GameweekEnd = None,
+    season: options.Season = options.DEFAULT_SEASON,
+    tag: options.Tag = None,
+    fpl_team_id: options.FplTeamId = None,
+    # --- chips ---
+    wildcard_week: options.WildcardWeek = -1,
+    free_hit_week: options.FreeHitWeek = -1,
+    triple_captain_week: options.TripleCaptainWeek = -1,
+    bench_boost_week: options.BenchBoostWeek = -1,
+    # --- optimisation ---
+    transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
+    squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
+    num_free_transfers: options.NumFreeTransfers = None,
+    max_hit: options.MaxHit = options.DEFAULT_MAX_HIT,
+    max_transfers: options.MaxTransfers = options.DEFAULT_MAX_TRANSFERS,
+    allow_unused: options.AllowUnused = False,
+    subs: options.Subs = True,
+    num_iterations: options.NumIterations = options.DEFAULT_NUM_ITERATIONS,
+    num_thread: options.NumThread = None,
+    # --- output ---
+    profile: options.Profile = False,
+    save_plans: options.SavePlans = None,
+    is_replay: options.IsReplay = False,
 ) -> None:
     """Optimize a transfer plan."""
     _run_transfer_optimization(
@@ -157,46 +105,19 @@ def transfers(
 
 @app.command()
 def squad(
-    budget: Annotated[
-        int, typer.Option(min=0, help="Budget in 0.1 million units.")
-    ] = 1000,
-    season: Annotated[str | None, typer.Option(help="Season in the form 2526.")] = None,
-    gameweek_start: Annotated[
-        int | None, typer.Option(help="Starting gameweek.")
-    ] = None,
-    n_gameweeks: Annotated[
-        int,
-        # --num-gameweeks is what this command has always been called; it keeps
-        # working, but --weeks-ahead is what every other command uses.
-        typer.Option(
-            "--weeks-ahead",
-            "--num-gameweeks",
-            min=1,
-            help="Number of gameweeks to optimize.",
-        ),
-    ] = 3,
-    num_generations: Annotated[
-        int | None,
-        typer.Option(min=1, help="Genetic algorithm generations."),
-    ] = None,
-    population_size: Annotated[
-        int | None,
-        typer.Option(min=1, help="Candidate squads per generation."),
-    ] = None,
-    squad_optimizer: Annotated[
-        str,
-        typer.Option(help=f"Squad optimizer: {', '.join(sorted(SQUAD_OPTIMIZERS))}."),
-    ] = DEFAULT_SQUAD_OPTIMIZER,
-    subs: Annotated[
-        bool, typer.Option(help="Count substitutes' predicted points.")
-    ] = True,
-    include_zero: Annotated[
-        bool, typer.Option(help="Include zero-point players.")
-    ] = False,
-    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
-    is_replay: Annotated[
-        bool, typer.Option(help="Store suggestions as replay transactions.")
-    ] = False,
+    n_gameweeks: options.SquadWeeksAhead = options.DEFAULT_N_GAMEWEEKS,
+    gameweek_start: options.GameweekStart = None,
+    season: options.OptionalSeason = None,
+    fpl_team_id: options.FplTeamId = None,
+    # --- optimisation ---
+    squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
+    budget: options.Budget = 1000,
+    num_generations: options.NumGenerations = None,
+    population_size: options.PopulationSize = None,
+    subs: options.Subs = True,
+    zero_points_players: options.ZeroPointsPlayers = False,
+    # --- output ---
+    is_replay: options.IsReplay = False,
 ) -> None:
     """Optimize an initial squad."""
     _run_squad_optimization(
@@ -208,7 +129,7 @@ def squad(
         population_size=population_size,
         squad_optimizer=squad_optimizer,
         subs=subs,
-        include_zero=include_zero,
+        zero_points_players=zero_points_players,
         fpl_team_id=fpl_team_id,
         is_replay=is_replay,
     )
@@ -292,7 +213,7 @@ def _run_transfer_optimization(
     max_transfers: int,
     subs: bool,
     num_iterations: int,
-    num_thread: int,
+    num_thread: int | None,
     transfer_optimizer: str,
     squad_optimizer: str,
     season: str,
@@ -358,7 +279,7 @@ def _run_squad_optimization(
     population_size: int | None,
     squad_optimizer: str,
     subs: bool,
-    include_zero: bool,
+    zero_points_players: bool,
     fpl_team_id: int | None,
     is_replay: bool,
 ) -> None:
@@ -387,7 +308,6 @@ def _run_squad_optimization(
             "and season."
         )
         raise typer.BadParameter(msg)
-    remove_zero = not include_zero
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
     fill_initial_squad(
@@ -404,6 +324,6 @@ def _run_squad_optimization(
             sub_weights=SubWeights() if subs else SubWeights.none(),
             budget=budget,
         ),
-        remove_zero=remove_zero,
+        remove_zero=not zero_points_players,
         is_replay=is_replay,
     )

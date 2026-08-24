@@ -194,9 +194,8 @@ def update_db(
     return True
 
 
-def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
+def update_database(season: str, attributes: bool, fpl_team_id: int | None) -> None:
     """Update database tables from current FPL data."""
-    do_attributes = not noattr
     fpl_team_id = fpl_team_id or get_fetcher().FPL_TEAM_ID
     if not fpl_team_id:
         msg = "FPL team ID must be specified in args, config, or env"
@@ -207,4 +206,4 @@ def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
             logger.warning("Database is empty, run 'airsenal_setup_initial_db' first")
             return
 
-        update_db(season, do_attributes, fpl_team_id, session)
+        update_db(season, attributes, fpl_team_id, session)

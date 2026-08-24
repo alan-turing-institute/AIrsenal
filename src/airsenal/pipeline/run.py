@@ -261,9 +261,10 @@ class AIrsenalPipeline:
                 f"the FPL entry is playing {CURRENT_SEASON}."
             )
             raise RuntimeError(msg)
+        skip_check = self.settings.skip_confirmation
         logger.info("[bold]Applying Transfers[/bold]")
-        if not make_transfers(fpl_team_id):
+        if not make_transfers(fpl_team_id, skip_check=skip_check):
             msg = "Problem applying the transfers"
             raise RuntimeError(msg)
         logger.info("[bold]Setting Lineup[/bold]")
-        set_lineup(fpl_team_id)
+        set_lineup(fpl_team_id, skip_check=skip_check)

@@ -45,4 +45,5 @@ def delete(
 @app.command()
 def names() -> None:
     """List valid environment variable names."""
-    typer.echo(AIRSENAL_ENV_KEYS)
+    for key in AIRSENAL_ENV_KEYS:
+        typer.echo(key)

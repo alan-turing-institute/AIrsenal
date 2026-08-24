@@ -22,6 +22,12 @@ def get_current_season() -> str:
 # make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
+# How many gameweeks ahead to look when nothing says otherwise. Here because the
+# gameweek query layer and the pipeline settings both need it and neither can
+# import the other; it used to be written out in three places, so `airsenal run`
+# and `airsenal predict` could have disagreed.
+DEFAULT_N_GAMEWEEKS = 3
+
 
 def season_str_to_year(season: str) -> int:
     """Convert season in "1819" format to the year the season started (2018)

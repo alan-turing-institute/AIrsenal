@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.cli import options
 from airsenal.ingest.checks import run_all_checks
 from airsenal.ingest.init_db import create_database
 from airsenal.ingest.update import update_database
@@ -14,38 +14,28 @@ app = typer.Typer(no_args_is_help=True, help="Create and update the AIrsenal dat
 
 @app.command()
 def create(
-    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
-    clean: Annotated[
-        bool, typer.Option(help="Delete and recreate an existing database.")
-    ] = False,
-    n_previous: Annotated[
-        int, typer.Option(min=1, help="Number of previous seasons to include.")
-    ] = 3,
-    no_current_season: Annotated[
-        bool, typer.Option(help="Exclude the current season from the database.")
-    ] = False,
+    fpl_team_id: options.FplTeamId = None,
+    clean: options.Clean = False,
+    n_previous: options.NPrevious = options.DEFAULT_N_PREVIOUS,
+    current_season: options.CurrentSeason = True,
 ) -> None:
     """Create the AIrsenal database."""
     create_database(
         fpl_team_id=fpl_team_id,
         clean=clean,
         n_previous=n_previous,
-        no_current_season=no_current_season,
+        include_current_season=current_season,
     )
 
 
 @app.command()
 def update(
-    season: Annotated[
-        str, typer.Option(help="Season in the form 2526.")
-    ] = CURRENT_SEASON,
-    noattr: Annotated[
-        bool, typer.Option(help="Do not update player attributes.")
-    ] = False,
-    fpl_team_id: Annotated[int | None, typer.Option(help="FPL team ID.")] = None,
+    season: options.Season = options.DEFAULT_SEASON,
+    attributes: Annotated[bool, typer.Option(help="Update player attributes.")] = True,
+    fpl_team_id: options.FplTeamId = None,
 ) -> None:
     """Update the AIrsenal database from current FPL data."""
-    update_database(season=season, noattr=noattr, fpl_team_id=fpl_team_id)
+    update_database(season=season, attributes=attributes, fpl_team_id=fpl_team_id)
 
 
 @app.command()
