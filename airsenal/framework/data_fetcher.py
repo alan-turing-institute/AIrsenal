@@ -369,7 +369,7 @@ class FPLDataFetcher:
         Requires login
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
-        return squad_data["picks"]
+        return {pick["element"]: pick for pick in squad_data["picks"]}
 
     def get_num_free_transfers(self, fpl_team_id=None):
         """
