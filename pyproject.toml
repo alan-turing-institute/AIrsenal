@@ -200,6 +200,14 @@ files = ["src/airsenal"]
 strict = true
 show_error_codes = true
 warn_unreachable = true
+# `strict` does not include this. It catches the quiet failure: an override that
+# grants an exemption nothing needs any more, which costs nothing today and hides
+# a real one tomorrow - `thefuzz` and `seaborn` had both been dead here for a
+# while. Note it is suppressed while any error is outstanding, so it will not
+# explain a wall of no-untyped-call errors caused by a *renamed* module in the
+# carve-out below; that case is loud on its own, just not self-evident. A note
+# rather than an error: it reports, it does not gate.
+warn_unused_configs = true
 enable_error_code = [
     "ignore-without-code",
     "redundant-expr",
@@ -209,6 +217,12 @@ enable_error_code = [
 
 # Named rather than a blanket ignore_missing_imports, so a *new* untyped
 # dependency is a decision rather than something that slips in unnoticed.
+#
+# This tracks what `src/airsenal` imports, which is all `files` above covers.
+# `thefuzz` and `seaborn` were listed here and are deliberately not: nothing in
+# the package imports them (thefuzz only from `tools/`, seaborn only from the
+# notebooks), so with warn_unused_configs on they were reported as unused
+# sections forever. If `tools/` is ever added to `files`, thefuzz comes back.
 [[tool.mypy.overrides]]
 module = [
     "bpl.*",
@@ -218,11 +232,9 @@ module = [
     "curl_cffi.*",
     "html5lib.*",
     "dateparser.*",
-    "thefuzz.*",
     "scipy.*",
     # only installed with the "plot" extra
     "matplotlib.*",
-    "seaborn.*",
 ]
 ignore_missing_imports = true
 

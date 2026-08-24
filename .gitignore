@@ -118,6 +118,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.import_linter_cache/
 
 # editor config
 .vscode

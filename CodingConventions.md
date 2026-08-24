@@ -74,10 +74,11 @@ remote         everything that talks to the internet, and nothing else
 core           no airsenal-specific dependencies at all
 ```
 
-A module may import from the rows below it, never from the rows above. This is checked -
-`uv run lint-imports` - because a single convenience import in the wrong direction is
-what turned an earlier version of the codebase into one module that everything depended
-on, and it does not fail at runtime, so nothing catches it for months.
+A module may import from the rows below it, never from the rows above. This is checked
+by a pre-commit hook - `uv run lint-imports` to run it directly - because a single
+convenience import in the wrong direction is what turned an earlier version of the
+codebase into one module that everything depended on, and it does not fail at runtime,
+so nothing catches it until something is looked for.
 
 Three rules decide where new code goes:
 
