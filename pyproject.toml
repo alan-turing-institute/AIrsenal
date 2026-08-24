@@ -264,17 +264,30 @@ include_external_packages = true
 [[tool.importlinter.contracts]]
 name = "Stage packages form a one-way dependency chain"
 type = "layers"
+# One package per line, so every arrow is checked. `:` between siblings is
+# import-linter's *permissive* delimiter - it lets them import each other freely -
+# so the `reporting` boundary this file describes was not actually being enforced
+# while `reporting : squad : prediction` sat on one line.
+#
+# exhaustive: a newly-created package cannot silently escape the chain by not
+# being listed. `airsenal.data` is exempt because it holds no Python.
+containers = ["airsenal"]
 layers = [
-    "airsenal.cli",
-    "airsenal.pipeline",
-    "airsenal.apply",
-    "airsenal.optimization",
-    "airsenal.ingest : airsenal.export",
-    "airsenal.reporting : airsenal.squad : airsenal.prediction",
-    "airsenal.db",
-    "airsenal.fetch",
-    "airsenal.core",
+    "cli",
+    "pipeline",
+    "apply",
+    "optimization",
+    "export",
+    "ingest",
+    "reporting",
+    "squad",
+    "prediction",
+    "db",
+    "fetch",
+    "core",
 ]
+exhaustive = true
+exhaustive_ignores = ["data"]
 ignore_imports = [
     # Annotation only, under TYPE_CHECKING: a caller passes a fetcher when the
     # database has no fixtures to work the gameweek out from.
@@ -296,6 +309,8 @@ forbidden_modules = [
     "airsenal.core.console",
     "airsenal.reporting",
     "curl_cffi",
+    "matplotlib",
     "requests",
+    "rich",
 ]
 allow_indirect_imports = true

@@ -56,9 +56,16 @@ uv run airsenal run
 
 ### Package layout
 
-The packages form a one-way dependency chain, enforced by import-linter (see
-`[tool.importlinter]` in `pyproject.toml`). Run `uv run lint-imports` after moving
-code between them.
+The packages form a one-way dependency chain, one package per layer, enforced by
+import-linter (see `[tool.importlinter]` in `pyproject.toml`) and **not run by
+pre-commit** — run `uv run lint-imports` after moving code between them. The
+contract is `exhaustive`, so a newly-created package has to be given a place in
+the chain rather than silently escaping it. The order, top to bottom:
+
+```
+cli > pipeline > apply > optimization > export > ingest > reporting > squad >
+prediction > db > fetch > core
+```
 
 Bottom of the chain, depended on by everything:
 
@@ -81,13 +88,15 @@ The pipeline stages, each depending only on what is below it:
 - **`src/airsenal/prediction/`** — team and player models, and the points they imply
 - **`src/airsenal/squad/`** — the `Squad` and `CandidatePlayer` classes, and the state of
   the user's own entry
-- **`src/airsenal/reporting/`** — rendering results: tables, plots, Discord posts
+- **`src/airsenal/reporting/`** — rendering results: tables, plots, Discord posts. It is
+  below `optimization` on purpose, so it takes rows rather than a `Plan`.
 - **`src/airsenal/ingest/`** — filling the database from packaged data and the FPL API
 - **`src/airsenal/export/`** — writing data back out (API dumps, DB dumps, attributes)
 - **`src/airsenal/optimization/`** — the transfer search and the whole-squad builder
 - **`src/airsenal/apply/`** — the only code that writes to the real FPL entry
 - **`src/airsenal/pipeline/`** — top-level orchestration (`run`, `replay`)
-- **`src/airsenal/cli/`** — Typer command definitions and CLI-only argument handling
+- **`src/airsenal/cli/`** — Typer command definitions and CLI-only argument handling.
+  Options shared by more than one command live once, in `cli/options.py`.
 
 Outside the package:
 
@@ -179,17 +188,21 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `db/session.py` | Lazily-created engine and the default session; nothing runs at import |
 | `fetch/fpl_api.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
-| `prediction/player_models.py` | Conjugate Bayesian and Numpyro player performance models |
-| `prediction/models.py` | `PLAYER_MODELS` and `TEAM_MODELS`: the name-to-model tables |
+| `prediction/player_models/` | One module per player model, behind the `PlayerModel` protocol |
+| `prediction/team_models/` | One module per team model, behind the `TeamModel` protocol |
 | `prediction/points.py` | Turning fitted models into predicted points per fixture |
-| `pipeline/run.py` | `AIrsenalPipeline`: the four swappable components plus the run settings |
+| `pipeline/run.py` | `AIrsenalPipeline`: the swappable components, the constraints and scoring, plus the run settings |
 | `optimization/run_transfers.py` | Fetching the squad, persisting suggestions and reporting around the search |
+| `optimization/plan.py` | `Plan` and `TransferSearchResult`: what a search produces |
+| `optimization/squad_score.py` | What a squad is worth over a window, and `SquadScoringConfig` |
 | `optimization/transfer_optimizers/` | One module per whole-window search, behind the `TransferOptimizer` protocol |
 | `optimization/strategies/` | One module per way of choosing a gameweek's transfers, behind the `TransferStrategy` protocol |
 | `optimization/squad_optimizers/` | One module per whole-squad builder, behind the `SquadOptimizer` protocol |
 | `optimization/squad_optimizers/genetic_algorithm.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
 | `core/enums.py` | `Position` and `Chip` |
+| `core/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `MAX_FREE_TRANSFERS` |
+| `cli/options.py` | The `Annotated` option aliases shared across commands |
 | `core/lookup.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
 
 ### Database
