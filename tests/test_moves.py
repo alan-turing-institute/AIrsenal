@@ -15,7 +15,6 @@ from airsenal.optimization.moves import (
     calc_free_transfers,
     calc_points_hit,
 )
-from airsenal.optimization.transfers import get_num_increments
 
 LABELS = [
     (GameweekMove(), "0"),
@@ -110,23 +109,6 @@ def test_calc_free_transfers_is_bounded(
 def test_squad_chips_preserve_free_transfers(chip):
     # Changed in 24/25: playing a wildcard or free hit no longer resets you to 1.
     assert calc_free_transfers(GameweekMove(chip=chip), 4) == 4
-
-
-@pytest.mark.parametrize(
-    ("move", "expected"),
-    [
-        (GameweekMove(0), 1),
-        (GameweekMove(1), 15),
-        (GameweekMove(2), 105),
-        (GameweekMove(3), 100),
-        (GameweekMove(chip=Chip.WILDCARD), 100),
-        (GameweekMove(chip=Chip.FREE_HIT), 100),
-        (GameweekMove(1, Chip.BENCH_BOOST), 15),
-        (GameweekMove(2, Chip.TRIPLE_CAPTAIN), 105),
-    ],
-)
-def test_get_num_increments(move, expected):
-    assert get_num_increments(move, num_iterations=100) == expected
 
 
 def test_gameweek_chips_rejects_allowing_and_forcing_at_once():

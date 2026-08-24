@@ -116,7 +116,7 @@ to be worth making.
 
 ### Adding or swapping a model or an algorithm
 
-Four things are pluggable, and they compose into one object:
+Five things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
@@ -128,17 +128,21 @@ AIrsenalPipeline(
 ).run()
 ```
 
-Each kind has a `Protocol` (in `prediction/protocols.py` or
-`optimization/protocols.py`) naming the one method that does the work, and a plain
-dict mapping a name to a zero-argument factory:
+Each kind is a package, its `__init__.py` holds the table, and each has a
+`Protocol` (in `prediction/protocols.py` or `optimization/protocols.py`) naming
+the one method that does the work. The table maps a name to a zero-argument
+factory:
 
-| kind | protocol | table |
-|------|----------|-------|
-| player model | `PlayerModel` | `prediction/models.py: PLAYER_MODELS` |
-| team model | `TeamModel` | `prediction/models.py: TEAM_MODELS` |
-| transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` |
-| squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py` |
-| transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py` |
+| kind | protocol | table | CLI flag |
+|------|----------|-------|----------|
+| player model | `PlayerModel` | `prediction/player_models/__init__.py` | `--player-model` |
+| team model | `TeamModel` | `prediction/team_models/__init__.py` | `--team-model` |
+| squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py` | `--squad-optimizer` |
+| transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py` | `--transfer-optimizer` |
+| transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` | none - the move picks it |
+
+A transfer strategy is the one kind with no flag: which one runs is decided by
+the move (`StrategySet.name_for`), not by the user.
 
 **Adding an implementation is two steps:** write a class satisfying the protocol
 that constructs with no arguments (default its config dataclass), then add one
@@ -155,12 +159,17 @@ a *name* on the command line reaches an implementation, and `lookup()` in
 Settings belong to whichever component owns them - epsilon to the team model, the
 GA config to the squad optimizer, thread count to the transfer optimizer - not to
 the pipeline. Only the settings that pre-date this are exposed as CLI flags
-(`--epsilon`, `--num-generations`, `--population-size`, `--num-thread`); anything
-finer-grained is set by constructing the component in Python.
+(`--epsilon`, `--num-generations`, `--population-size`, `--num-thread`,
+`--num-iterations`), and each reaches only the component it describes: name a
+different optimizer and it starts from its own defaults. Anything finer-grained
+is set by constructing the component in Python.
 
 Optionally, a component may also provide `num_increments()` to size its own
 progress bar (see `progress_total` in `optimization/protocols.py`); without one
-the bar runs indeterminate.
+the bar runs indeterminate. A whole-squad optimizer is sized by
+`SquadRequest.effort` - "search this hard, in whatever unit you count in" - which
+is how one `--num-iterations` flag reaches both a standalone squad build and the
+rebuild a wildcard or free hit does inside the transfer search.
 
 ### Key modules
 

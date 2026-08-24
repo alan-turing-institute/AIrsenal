@@ -271,6 +271,9 @@ def run_optimization(
                 chip_schedule=chip_schedule,
                 num_free_transfers=num_free_transfers,
                 constraints=constraints,
+                # reaches the wildcard and free-hit rebuilds inside the search,
+                # not only the from-scratch fallback above
+                squad_optimizer=squad_optimizer,
             )
         )
 

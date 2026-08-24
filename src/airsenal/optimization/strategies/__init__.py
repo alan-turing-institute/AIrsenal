@@ -68,16 +68,6 @@ class StrategySet:
 DEFAULT_STRATEGIES = StrategySet()
 
 
-def strategy_name_for(move: GameweekMove) -> str:
-    """The name of the strategy the default set uses for this move."""
-    return DEFAULT_STRATEGIES.name_for(move)
-
-
-def select_strategy(move: GameweekMove) -> TransferStrategy:
-    """The strategy the default set uses for this move."""
-    return DEFAULT_STRATEGIES.create(move)
-
-
 __all__ = [
     "DEFAULT_STRATEGIES",
     "TRANSFER_STRATEGIES",
@@ -85,6 +75,4 @@ __all__ = [
     "StrategySet",
     "TransferRequest",
     "TransferStrategy",
-    "select_strategy",
-    "strategy_name_for",
 ]

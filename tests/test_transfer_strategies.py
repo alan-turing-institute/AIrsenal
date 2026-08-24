@@ -14,12 +14,12 @@ from airsenal.optimization.protocols import (
     Proposal,
     TransferRequest,
     TransferStrategy,
+    strategy_total,
 )
 from airsenal.optimization.strategies import (
+    DEFAULT_STRATEGIES,
     TRANSFER_STRATEGIES,
     StrategySet,
-    select_strategy,
-    strategy_name_for,
 )
 
 
@@ -70,8 +70,8 @@ def test_unknown_strategy_lists_the_valid_ones():
     ],
 )
 def test_strategy_name_for(move, expected):
-    assert strategy_name_for(move) == expected
-    assert select_strategy(move) is not None
+    assert DEFAULT_STRATEGIES.name_for(move) == expected
+    assert DEFAULT_STRATEGIES.create(move) is not None
 
 
 @pytest.mark.parametrize("n_transfers", range(16))
@@ -83,7 +83,7 @@ def test_every_move_maps_to_a_registered_strategy(n_transfers, chip):
         move = GameweekMove(chip=chip)
     else:
         move = GameweekMove(n_transfers, chip)
-    assert strategy_name_for(move) in TRANSFER_STRATEGIES
+    assert DEFAULT_STRATEGIES.name_for(move) in TRANSFER_STRATEGIES
 
 
 def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
@@ -103,10 +103,10 @@ def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
         season="2526",
         progress=count_step,
     )
-    plan = select_strategy(request.move).propose(request)
+    plan = DEFAULT_STRATEGIES.create(request.move).propose(request)
     assert plan == Proposal(squad, [], [])
     # one step per candidate squad considered, and this strategy considers one
-    assert steps == select_strategy(request.move).num_increments(request.move, 100)
+    assert steps == DEFAULT_STRATEGIES.create(request.move).num_increments(request)
 
 
 @pytest.mark.parametrize(
@@ -130,3 +130,35 @@ def test_request_resolves_the_chip_gameweeks(chip, bench_boost, triple_captain):
     assert request.transfer_gameweek == 3
     assert request.bench_boost_gw == bench_boost
     assert request.triple_captain_gw == triple_captain
+
+
+@pytest.mark.parametrize(
+    ("move", "expected"),
+    [
+        (GameweekMove(0), 1),
+        (GameweekMove(1), 15),
+        (GameweekMove(2), 105),
+        (GameweekMove(3), 100),
+        (GameweekMove(chip=Chip.WILDCARD), 100),
+        (GameweekMove(chip=Chip.FREE_HIT), 100),
+        (GameweekMove(1, Chip.BENCH_BOOST), 15),
+        (GameweekMove(2, Chip.TRIPLE_CAPTAIN), 105),
+    ],
+)
+def test_a_strategy_sizes_its_own_progress_bar(move, expected):
+    """
+    Every shipped strategy can say how many candidate squads it will consider.
+
+    The number comes from the request, so it cannot drift away from what
+    `propose` given the same request actually does.
+    """
+    request = TransferRequest(
+        move=move,
+        squad=object(),  # type: ignore[arg-type]
+        tag="tag",
+        gameweeks=[3, 4],
+        root_gw=3,
+        season="2526",
+        num_iterations=100,
+    )
+    assert strategy_total(DEFAULT_STRATEGIES.create(move), request) == expected

@@ -20,6 +20,7 @@ import threading
 import pytest
 
 from airsenal.core.concurrency import CustomQueue
+from airsenal.core.enums import Chip
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.optimization.config import GeneticAlgorithmConfig
 from airsenal.optimization.moves import (
@@ -149,3 +150,63 @@ def test_the_constraint_on_transfers_per_gameweek_is_respected(result):
 def test_no_strategy_goes_into_the_red(result):
     for strategy in result.considered:
         assert all(outcome.bank >= 0 for outcome in strategy.outcomes)
+
+
+class RecordingSquadOptimizer:
+    """Satisfies SquadOptimizer, records what it was asked, builds a real squad."""
+
+    def __init__(self):
+        self.requests = []
+        self._real = GeneticSquadOptimizer(
+            GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
+        )
+
+    def num_increments(self, effort=None):
+        return self._real.num_increments(effort)
+
+    def optimize(self, request):
+        self.requests.append(request)
+        return self._real.optimize(request)
+
+
+def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
+    seeded, tag, starting_squad
+):
+    """
+    §4 of the refactor, checked end to end.
+
+    `StrategySet` carries strategy *names*, so `FullSquadStrategy` is built with
+    no arguments and a constructor argument could never reach it. Before this,
+    a wildcard always rebuilt with the genetic algorithm no matter what the
+    caller passed. The optimizer now travels on the request instead.
+    """
+    optimizer = RecordingSquadOptimizer()
+    gameweeks = SEARCH_GAMEWEEKS[:1]
+    request = TransferSearchRequest(
+        starting_squad=starting_squad,
+        gameweeks=gameweeks,
+        tag=tag,
+        season=SEASON,
+        # forced, so every node of this one-gameweek tree plays it
+        chip_schedule=ChipSchedule.from_weeks(gameweeks, {Chip.WILDCARD: gameweeks[0]}),
+        num_free_transfers=1,
+        constraints=TransferConstraints(max_opt_transfers=1),
+        squad_optimizer=optimizer,
+    )
+    config = TreeSearchConfig(num_thread=1, num_iterations=5)
+
+    work: CustomQueue = CustomQueue()
+    finished: queue_module.Queue = queue_module.Queue()
+    worker = threading.Thread(
+        target=optimize, args=(work, 0, finished, request, config), daemon=True
+    )
+    worker.start()
+    work.put((GameweekMove(), request.num_free_transfers, 0, 0, starting_squad, None))
+    work.join()
+    work.put(None)
+    worker.join(timeout=120)
+    assert not worker.is_alive(), "the worker did not shut down"
+
+    assert optimizer.requests, "the wildcard rebuild did not reach the given optimizer"
+    # the search's --num-iterations arrives as the effort budget to size to
+    assert all(r.effort == config.num_iterations for r in optimizer.requests)

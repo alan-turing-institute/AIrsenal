@@ -37,11 +37,13 @@ from airsenal.optimization.plan import (
 from airsenal.optimization.protocols import (
     ProgressResetter,
     ProgressUpdater,
+    TransferRequest,
     TransferSearchRequest,
+    strategy_total,
 )
 from airsenal.optimization.squad_score import get_discount_factor
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES, StrategySet
-from airsenal.optimization.transfers import get_num_increments, make_best_transfers
+from airsenal.optimization.transfers import make_best_transfers
 from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
@@ -116,6 +118,7 @@ def optimize(
     num_iterations = config.num_iterations
     profile = config.profile
     strategy_set = config.strategies
+    squad_optimizer = request.squad_optimizer
 
     while True:
         watchdog.idle()
@@ -148,30 +151,37 @@ def optimize(
             new_squad = squad
             plan = Plan(root_gameweek=gameweeks[0])
         else:
-            if resetter is not None:
-                resetter(
-                    pid,
-                    f"{plan.label()}-{move.label()}".lstrip("-"),
-                    get_num_increments(move, num_iterations, strategy_set),
-                )
-
             # how far down the tree we are, and so which gameweeks are left
             remaining_gameweeks = gameweeks[len(plan) :]
             gw = remaining_gameweeks[0]
             root_gw = plan.root_gameweek
 
+            # One request, used both to size the worker's bar and to do the work,
+            # so the two cannot disagree about what is being asked for.
+            transfer_request = TransferRequest(
+                move=move,
+                squad=squad,
+                tag=prediction_tag,
+                gameweeks=remaining_gameweeks,
+                root_gw=root_gw,
+                season=season,
+                num_iterations=num_iterations,
+                squad_optimizer=squad_optimizer,
+                progress=partial(updater, pid) if updater is not None else None,
+            )
+            strategy = strategy_set.create(move)
+
+            if resetter is not None:
+                resetter(
+                    pid,
+                    f"{plan.label()}-{move.label()}".lstrip("-"),
+                    strategy_total(strategy, transfer_request),
+                )
+
             # calculate best transfers to make this gameweek (to maximise points across
             # remaining gameweeks)
             new_squad, transfers, points = make_best_transfers(
-                move,
-                squad,
-                prediction_tag,
-                remaining_gameweeks,
-                root_gw,
-                season,
-                num_iterations,
-                partial(updater, pid) if updater is not None else None,
-                strategy_set,
+                transfer_request, strategy
             )
 
             discount_factor = get_discount_factor(root_gw, gw)

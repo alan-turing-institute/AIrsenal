@@ -8,6 +8,7 @@ import typer
 
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.logging import get_logger
+from airsenal.core.registry import lookup
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import (
     get_gameweeks_array,
@@ -23,13 +24,17 @@ from airsenal.optimization.config import (
     SubWeights,
 )
 from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.protocols import SquadOptimizer, TransferOptimizer
 from airsenal.optimization.run_squad import fill_initial_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import (
+    DEFAULT_SQUAD_OPTIMIZER,
+    SQUAD_OPTIMIZERS,
     GeneticSquadOptimizer,
-    genetic_optimizer,
 )
 from airsenal.optimization.transfer_optimizers import (
+    DEFAULT_TRANSFER_OPTIMIZER,
+    TRANSFER_OPTIMIZERS,
     TreeSearchConfig,
     TreeSearchOptimizer,
 )
@@ -88,6 +93,21 @@ def transfers(
     num_thread: Annotated[
         int, typer.Option(min=1, help="Worker processes to use.")
     ] = 4,
+    transfer_optimizer: Annotated[
+        str,
+        typer.Option(
+            help=f"Transfer search: {', '.join(sorted(TRANSFER_OPTIMIZERS))}."
+        ),
+    ] = DEFAULT_TRANSFER_OPTIMIZER,
+    squad_optimizer: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "Whole-squad optimizer used by a wildcard or free hit: "
+                f"{', '.join(sorted(SQUAD_OPTIMIZERS))}."
+            )
+        ),
+    ] = DEFAULT_SQUAD_OPTIMIZER,
     season: Annotated[
         str, typer.Option(help="Season in the form 2526.")
     ] = CURRENT_SEASON,
@@ -121,6 +141,8 @@ def transfers(
         max_transfers=max_transfers,
         num_iterations=num_iterations,
         num_thread=num_thread,
+        transfer_optimizer=transfer_optimizer,
+        squad_optimizer=squad_optimizer,
         season=season,
         profile=profile,
         fpl_team_id=fpl_team_id,
@@ -157,6 +179,10 @@ def squad(
         int | None,
         typer.Option(min=1, help="Candidate squads per generation."),
     ] = None,
+    squad_optimizer: Annotated[
+        str,
+        typer.Option(help=f"Squad optimizer: {', '.join(sorted(SQUAD_OPTIMIZERS))}."),
+    ] = DEFAULT_SQUAD_OPTIMIZER,
     no_subs: Annotated[
         bool, typer.Option(help="Exclude substitute-point contributions.")
     ] = False,
@@ -176,6 +202,7 @@ def squad(
         n_gameweeks=n_gameweeks,
         num_generations=num_generations,
         population_size=population_size,
+        squad_optimizer=squad_optimizer,
         no_subs=no_subs,
         include_zero=include_zero,
         fpl_team_id=fpl_team_id,
@@ -198,6 +225,56 @@ def _check_gameweek_args(gameweek_start: int | None, gameweek_end: int | None) -
         raise typer.BadParameter(msg)
 
 
+def transfer_optimizer_named(
+    name: str,
+    *,
+    num_thread: int | None = None,
+    num_iterations: int | None = None,
+    profile: bool = False,
+) -> TransferOptimizer:
+    """
+    The named transfer search, configured from the flags that pre-date the table.
+
+    `--num-thread`, `--num-iterations` and `--profile` are the tree search's own
+    settings, so they only reach the tree search; any other optimizer named here
+    starts from its own defaults. Finer configuration means constructing the
+    component in Python, which is what the protocols are for.
+    """
+    if name != DEFAULT_TRANSFER_OPTIMIZER:
+        return lookup(TRANSFER_OPTIMIZERS, name, "transfer optimizer")()
+    config = TreeSearchConfig(profile=profile)
+    if num_thread is not None:
+        config = replace(config, num_thread=num_thread)
+    if num_iterations is not None:
+        config = replace(config, num_iterations=num_iterations)
+    return TreeSearchOptimizer(config)
+
+
+def squad_optimizer_named(
+    name: str,
+    *,
+    num_generations: int | None = None,
+    population_size: int | None = None,
+) -> SquadOptimizer:
+    """
+    The named whole-squad optimizer, sized by the two flags that pre-date the table.
+
+    `--num-generations` and `--population-size` describe a genetic algorithm, so
+    like the tree search's flags they only reach the one component they are about.
+    The rest of the GA's defaults live in `GeneticAlgorithmConfig` and nowhere
+    else; they used to be restated in the CLI signature, here, in
+    `fill_initial_squad` and in `make_new_squad`.
+    """
+    if name != DEFAULT_SQUAD_OPTIMIZER:
+        return lookup(SQUAD_OPTIMIZERS, name, "squad optimizer")()
+    config = GeneticAlgorithmConfig()
+    if num_generations is not None:
+        config = replace(config, generations=num_generations)
+    if population_size is not None:
+        config = replace(config, population_size=population_size)
+    return GeneticSquadOptimizer(config)
+
+
 def _run_transfer_optimization(
     *,
     n_gameweeks: int | None,
@@ -211,6 +288,8 @@ def _run_transfer_optimization(
     max_transfers: int,
     num_iterations: int,
     num_thread: int,
+    transfer_optimizer: str,
+    squad_optimizer: str,
     season: str,
     profile: bool,
     fpl_team_id: int | None,
@@ -249,15 +328,13 @@ def _run_transfer_optimization(
             allow_unused_transfers=allow_unused,
             max_opt_transfers=max_transfers,
         ),
-        optimizer=TreeSearchOptimizer(
-            TreeSearchConfig(
-                num_thread=num_thread,
-                num_iterations=num_iterations,
-                profile=profile,
-            )
+        optimizer=transfer_optimizer_named(
+            transfer_optimizer,
+            num_thread=num_thread,
+            num_iterations=num_iterations,
+            profile=profile,
         ),
-        # the from-scratch fallback sizes its search from the same effort knob
-        squad_optimizer=genetic_optimizer(num_iterations),
+        squad_optimizer=squad_optimizer_named(squad_optimizer),
         save_plans=save_plans,
         is_replay=is_replay,
     )
@@ -271,6 +348,7 @@ def _run_squad_optimization(
     n_gameweeks: int,
     num_generations: int | None,
     population_size: int | None,
+    squad_optimizer: str,
     no_subs: bool,
     include_zero: bool,
     fpl_team_id: int | None,
@@ -304,22 +382,16 @@ def _run_squad_optimization(
     remove_zero = not include_zero
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
-    # --population-size and --generations are the two knobs people reach for; the
-    # rest of the GA's defaults live in GeneticAlgorithmConfig only. They used to be
-    # restated in the CLI signature, here, in fill_initial_squad and in
-    # make_new_squad.
-    ga_config = GeneticAlgorithmConfig()
-    if num_generations is not None:
-        ga_config = replace(ga_config, generations=num_generations)
-    if population_size is not None:
-        ga_config = replace(ga_config, population_size=population_size)
-
     fill_initial_squad(
         tag=tag,
         gameweeks=gameweeks,
         season=season,
         fpl_team_id=fpl_team_id,
-        optimizer=GeneticSquadOptimizer(ga_config),
+        optimizer=squad_optimizer_named(
+            squad_optimizer,
+            num_generations=num_generations,
+            population_size=population_size,
+        ),
         scoring=SquadScoringConfig(
             sub_weights=SubWeights.none() if no_subs else SubWeights(),
             budget=budget,

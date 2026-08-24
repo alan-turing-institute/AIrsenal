@@ -8,7 +8,6 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     Proposal,
     StepCounter,
@@ -102,7 +101,7 @@ def make_optimum_single_transfer(
 class SingleTransferStrategy:
     """Try replacing each of the 15 players in turn and keep the best."""
 
-    def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
+    def num_increments(self, request: TransferRequest) -> int:  # noqa: ARG002
         return SQUAD_SIZE
 
     def propose(self, request: TransferRequest) -> Proposal:

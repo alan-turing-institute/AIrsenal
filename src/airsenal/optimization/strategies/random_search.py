@@ -14,7 +14,6 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
-from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     Proposal,
     StepCounter,
@@ -141,8 +140,8 @@ def make_random_transfers(
 class RandomTransferStrategy:
     """Sample random sets of transfers and keep the best squad found."""
 
-    def num_increments(self, move: GameweekMove, num_iterations: int) -> int:  # noqa: ARG002
-        return num_iterations
+    def num_increments(self, request: TransferRequest) -> int:
+        return request.num_iterations
 
     def propose(self, request: TransferRequest) -> Proposal:
         squad, players_out, players_in = make_random_transfers(

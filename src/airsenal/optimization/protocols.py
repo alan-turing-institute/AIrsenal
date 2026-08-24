@@ -55,7 +55,7 @@ type ProgressResetter = Callable[[int, str, int | None], None]
 type StepCounter = Callable[[], None]
 
 
-def progress_total(optimizer: object) -> int | None:
+def progress_total(optimizer: object, effort: int | None = None) -> int | None:
     """
     How many steps `optimizer` will take, if it is able to say.
 
@@ -63,9 +63,15 @@ def progress_total(optimizer: object) -> int | None:
     protocols below. Give a component a `num_increments()` method and its bar is
     exact - as every optimizer shipped here does; leave it out and the bar runs
     indeterminate rather than the component being unwritable.
+
+    An optimizer sized by an effort budget takes it as `num_increments`' one
+    optional argument, and cannot answer without it.
     """
     num_increments = getattr(optimizer, "num_increments", None)
-    return num_increments() if callable(num_increments) else None
+    if not callable(num_increments):
+        return None
+    total = num_increments(effort) if effort is not None else num_increments()
+    return int(total) if total is not None else None
 
 
 @dataclass(frozen=True)
@@ -79,6 +85,10 @@ class TransferRequest:
     root_gw: int
     season: str
     num_iterations: int = 100
+    # Set only for a move that rebuilds the whole squad, which is the one kind of
+    # move a strategy cannot answer by enumerating swaps. None means the default
+    # whole-squad optimizer.
+    squad_optimizer: "SquadOptimizer | None" = None
     # called once per candidate squad considered, if anything is watching
     progress: StepCounter | None = None
 
@@ -126,18 +136,20 @@ class TransferStrategy(Protocol):
     def propose(self, request: TransferRequest) -> Proposal: ...
 
 
-def strategy_total(
-    strategy: TransferStrategy, move: GameweekMove, num_iterations: int
-) -> int | None:
+def strategy_total(strategy: TransferStrategy, request: TransferRequest) -> int | None:
     """
     How many candidate squads `strategy` will consider, if it is able to say.
 
-    As `progress_total`, but a strategy's cost depends on the move and the
-    iteration count, so its `num_increments` takes both. `propose` advances the
-    bar once per candidate, so the two have to agree.
+    As `progress_total`, but a strategy's cost depends on what it is being asked,
+    so its `num_increments` takes the same request `propose` does. `propose`
+    advances the bar once per candidate, so the two have to agree - and asking
+    the same object both questions is what keeps them in step.
     """
     num_increments = getattr(strategy, "num_increments", None)
-    return num_increments(move, num_iterations) if callable(num_increments) else None
+    if not callable(num_increments):
+        return None
+    total = num_increments(request)
+    return int(total) if total is not None else None
 
 
 # Called once per step of a whole-squad search, with the best score so far. What a
@@ -156,6 +168,11 @@ class SquadRequest:
     bench_boost_gw: int | None = None
     triple_captain_gw: int | None = None
     remove_zero: bool = True
+    # How hard to search, in whatever unit the optimizer sizes itself by. None
+    # means "use your own configuration", which is what a standalone squad build
+    # wants; the wildcard and free-hit rebuilds inside a transfer search have one
+    # --num-iterations knob and pass it here.
+    effort: int | None = None
     progress: SquadProgress | None = None
     # Only ever set by a caller in the parent process. A Session cannot cross a
     # process boundary, so a request built inside a search worker leaves this None
@@ -186,13 +203,6 @@ class SquadOptimizer(Protocol):
         ...
 
 
-# Builds a squad optimizer sized from the transfer search's one effort knob. The
-# wildcard and free-hit path has a single --num-iterations, while the standalone
-# squad build has the full config and must not be scaled; making the difference a
-# factory the caller supplies is what keeps the two apart.
-type SquadOptimizerFactory = Callable[[int], SquadOptimizer]
-
-
 @dataclass(frozen=True)
 class TransferSearchRequest:
     """The problem a transfer optimizer is asked to solve."""
@@ -204,6 +214,10 @@ class TransferSearchRequest:
     chip_schedule: ChipSchedule
     num_free_transfers: int
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
+    # A chip that rebuilds the squad delegates to this, so any optimizer that
+    # handles wildcards and free hits needs one. None means the default whole-squad
+    # optimizer; `FullSquadStrategy` is the single place that resolves it.
+    squad_optimizer: "SquadOptimizer | None" = None
 
     @property
     def num_gameweeks(self) -> int:

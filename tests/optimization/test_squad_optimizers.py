@@ -7,31 +7,43 @@ substituted without editing either. These tests pin that, using a stub optimizer
 that no production code knows about.
 """
 
+from types import SimpleNamespace
+
 import pytest
 
+from airsenal.core.enums import Chip
 from airsenal.core.registry import ConfigError, lookup
 from airsenal.optimization.config import GeneticAlgorithmConfig, SquadScoringConfig
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import SquadRequest
+from airsenal.optimization.protocols import SquadRequest, TransferRequest
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
     GeneticSquadOptimizer,
-    genetic_optimizer,
 )
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
+
+
+class StubSquad:
+    """Just enough of a Squad for the rebuild strategy to describe it."""
+
+    def __init__(self, player_ids=()):
+        self.players = [SimpleNamespace(player_id=i) for i in player_ids]
+
+    def sale_value(self, gameweek, use_api=False):  # noqa: ARG002
+        return 1000
 
 
 class StubSquadOptimizer:
     """Records the requests it is given and returns a squad it was handed."""
 
     def __init__(self, squad=None, increments=7):
-        self.squad = squad
+        self.squad = squad if squad is not None else StubSquad()
         self.increments = increments
         self.requests = []
 
-    def num_increments(self):
-        return self.increments
+    def num_increments(self, effort=None):
+        return self.increments if effort is None else effort + self.increments
 
     def optimize(self, request):
         self.requests.append(request)
@@ -57,27 +69,32 @@ def test_increments_are_the_generations_the_search_will_run():
     assert GeneticSquadOptimizer(config).num_increments() == 30
 
 
-def test_scaling_resizes_the_search_without_mutating_the_original():
+def test_an_effort_budget_resizes_the_search_without_mutating_the_optimizer():
     """
-    Sizing is a property of the config, not of the optimizer protocol: the
-    wildcard path has one --num-iterations knob and builds a sized optimizer
-    from it, while the standalone squad build keeps its full config.
+    How hard to search comes from the request, not from a second optimizer.
+
+    The wildcard and free-hit path has one --num-iterations knob and passes it as
+    `effort`; a standalone squad build passes none and keeps its full config.
     """
-    base = GeneticAlgorithmConfig()
-    scaled = genetic_optimizer(20)
+    optimizer = GeneticSquadOptimizer()
 
-    assert scaled.num_increments() == 20
-    assert scaled.config.population_size == 20
-    assert base.generations == 100
+    assert optimizer.num_increments(20) == 20
+    assert optimizer.num_increments() == 100
+    # the optimizer is reusable: sizing one request did not change it
+    assert optimizer.config.generations == 100
+    assert optimizer.config.population_size == 100
 
 
-def test_scaling_keeps_the_settings_it_does_not_size():
-    scaled = GeneticSquadOptimizer(
-        GeneticAlgorithmConfig(tournament_size=5, random_state=1).scaled(20)
+def test_an_effort_budget_keeps_the_settings_it_does_not_size():
+    optimizer = GeneticSquadOptimizer(
+        GeneticAlgorithmConfig(tournament_size=5, random_state=1)
     )
+    sized = optimizer._config_for(20)
 
-    assert scaled.config.tournament_size == 5
-    assert scaled.config.random_state == 1
+    assert sized.population_size == 20
+    assert sized.generations == 20
+    assert sized.tournament_size == 5
+    assert sized.random_state == 1
 
 
 def test_a_request_defaults_to_todays_scoring():
@@ -103,12 +120,26 @@ def test_progress_is_only_reported_when_something_is_watching():
     assert seen == [3.5]
 
 
-def test_the_registered_full_squad_strategy_is_genetic():
+def _rebuild_request(squad_optimizer=None, num_iterations=100):
+    return TransferRequest(
+        move=GameweekMove(chip=Chip.WILDCARD),
+        squad=StubSquad([1, 2, 3]),  # type: ignore[arg-type]
+        tag="t",
+        gameweeks=[1, 2],
+        root_gw=1,
+        season="2526",
+        num_iterations=num_iterations,
+        squad_optimizer=squad_optimizer,
+    )
+
+
+def test_the_registered_full_squad_strategy_defaults_to_genetic():
+    """A request that names no optimizer still gets one, and it is the shipped one."""
     strategy = TRANSFER_STRATEGIES["full_squad"]()
-    assert isinstance(strategy.make_optimizer(10), GeneticSquadOptimizer)
+    assert isinstance(strategy._optimizer(_rebuild_request()), GeneticSquadOptimizer)
 
 
-def test_full_squad_sizes_its_optimizer_from_the_iteration_count():
+def test_full_squad_sizes_the_default_optimizer_from_the_iteration_count():
     """
     The asymmetry this seam exists to remove.
 
@@ -116,20 +147,33 @@ def test_full_squad_sizes_its_optimizer_from_the_iteration_count():
     hit path built its strategy with defaults and no caller could reach it.
     """
     strategy = TRANSFER_STRATEGIES["full_squad"]()
-    assert strategy.num_increments(GameweekMove(), num_iterations=9) == 9
+    assert strategy.num_increments(_rebuild_request(num_iterations=9)) == 9
 
 
-def test_full_squad_sizes_its_cost_from_the_optimizer_it_was_given():
-    sized_to = []
+def test_full_squad_sizes_its_cost_from_the_optimizer_on_the_request():
+    """The number is the optimizer's, and it is told the effort budget to size to."""
+    strategy = FullSquadStrategy()
+    stub = StubSquadOptimizer(increments=42)
 
-    def make(num_iterations):
-        sized_to.append(num_iterations)
-        return StubSquadOptimizer(increments=42)
+    assert strategy.num_increments(_rebuild_request(stub, num_iterations=15)) == 57
 
-    strategy = FullSquadStrategy(make)
 
-    assert strategy.num_increments(GameweekMove(), num_iterations=15) == 42
-    assert sized_to == [15]
+def test_the_optimizer_on_the_request_is_the_one_that_rebuilds_the_squad():
+    """
+    What §4 of the refactor is for: `TRANSFER_STRATEGIES` builds strategies by
+    name with no arguments, so a constructor argument could never reach here.
+    """
+    stub = StubSquadOptimizer(squad=StubSquad([1, 4, 5]))
+    request = _rebuild_request(stub)
+
+    proposal = FullSquadStrategy().propose(request)
+
+    assert proposal.squad is stub.squad
+    # 1 was kept, so it is neither in nor out
+    assert proposal.players_in == [4, 5]
+    assert proposal.players_out == [2, 3]
+    assert len(stub.requests) == 1
+    assert stub.requests[0].effort == request.num_iterations
 
 
 def test_scoring_config_carries_the_budget_the_optimizer_must_respect():

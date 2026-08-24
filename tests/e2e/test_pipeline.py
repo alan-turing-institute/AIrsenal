@@ -22,7 +22,9 @@ from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gamewee
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.optimization.config import GeneticAlgorithmConfig, SubWeights
 from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.protocols import TransferRequest
 from airsenal.optimization.squad_ga import make_new_squad
+from airsenal.optimization.strategies import DEFAULT_STRATEGIES
 from airsenal.optimization.transfers import make_best_transfers
 from airsenal.prediction.player_models import (
     build_player_model,
@@ -162,18 +164,25 @@ def test_squad_has_no_duplicates(squad):
 # search it against the predictions written above, and hand back a legal squad.
 
 
+def _request(move, squad, prediction_tag, num_iterations=100):
+    return TransferRequest(
+        move=move,
+        squad=squad,
+        tag=prediction_tag,
+        gameweeks=FUTURE_GAMEWEEKS[:2],
+        root_gw=FUTURE_GAMEWEEKS[0],
+        season=SEASON,
+        num_iterations=num_iterations,
+    )
+
+
+def _best_transfers(request):
+    return make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
+
+
 @pytest.fixture(scope="module")
 def transfer_result(seeded, prediction_tag, squad):
-    move = GameweekMove(1)
-    return make_best_transfers(
-        move,
-        squad,
-        prediction_tag,
-        FUTURE_GAMEWEEKS[:2],
-        FUTURE_GAMEWEEKS[0],
-        SEASON,
-        num_iter=5,
-    )
+    return _best_transfers(_request(GameweekMove(1), squad, prediction_tag, 5))
 
 
 def test_transfers_are_balanced(transfer_result):
@@ -207,21 +216,8 @@ def test_a_transfer_is_not_worse_than_doing_nothing(seeded, prediction_tag, squa
     never be worse than the do-nothing baseline. If it is, the search is scoring
     the squad it returns differently from the one it evaluated.
     """
-    _, _, baseline = make_best_transfers(
-        GameweekMove(0),
-        squad,
-        prediction_tag,
-        FUTURE_GAMEWEEKS[:2],
-        FUTURE_GAMEWEEKS[0],
-        SEASON,
-    )
-    _, _, improved = make_best_transfers(
-        GameweekMove(1),
-        squad,
-        prediction_tag,
-        FUTURE_GAMEWEEKS[:2],
-        FUTURE_GAMEWEEKS[0],
-        SEASON,
-        num_iter=5,
+    _, _, baseline = _best_transfers(_request(GameweekMove(0), squad, prediction_tag))
+    _, _, improved = _best_transfers(
+        _request(GameweekMove(1), squad, prediction_tag, 5)
     )
     assert improved >= baseline

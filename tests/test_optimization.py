@@ -17,7 +17,7 @@ from airsenal.optimization.moves import (
 )
 from airsenal.optimization.protocols import TransferRequest
 from airsenal.optimization.squad_score import get_discount_factor
-from airsenal.optimization.strategies import select_strategy
+from airsenal.optimization.strategies import DEFAULT_STRATEGIES
 from airsenal.optimization.strategies.double import make_optimum_double_transfer
 from airsenal.optimization.strategies.single import make_optimum_single_transfer
 from airsenal.squad.squad import Squad
@@ -280,31 +280,30 @@ def test_the_progress_steps_counted_match_the_number_promised():
     # every strategy that reports progress at all: the whole-squad rebuild a
     # wildcard does is the genetic algorithm, which reports nothing back.
     for move in (GameweekMove(1), GameweekMove(2), GameweekMove(3)):
-        strategy = select_strategy(move)
+        strategy = DEFAULT_STRATEGIES.create(move)
         steps = 0
 
         def count_step() -> None:
             nonlocal steps
             steps += 1
 
+        request = TransferRequest(
+            move=move,
+            squad=squad,
+            tag="DUMMY",
+            gameweeks=[1],
+            root_gw=1,
+            season="2526",
+            num_iterations=7,
+            progress=count_step,
+        )
         with mock.patch(
             f"{type(strategy).__module__}.get_predicted_points",
             side_effect=predicted_point_mock_generator(points),
         ):
-            strategy.propose(
-                TransferRequest(
-                    move=move,
-                    squad=squad,
-                    tag="DUMMY",
-                    gameweeks=[1],
-                    root_gw=1,
-                    season="2526",
-                    num_iterations=7,
-                    progress=count_step,
-                )
-            )
+            strategy.propose(request)
 
-        assert steps == strategy.num_increments(move, 7), move
+        assert steps == strategy.num_increments(request), move
 
 
 def test_get_discount_factor():

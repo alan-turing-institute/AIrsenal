@@ -19,13 +19,25 @@ class GeneticSquadOptimizer:
     def __init__(self, config: GeneticAlgorithmConfig | None = None) -> None:
         self.config = config if config is not None else GeneticAlgorithmConfig()
 
-    def num_increments(self) -> int:
+    def _config_for(self, effort: int | None) -> GeneticAlgorithmConfig:
+        """
+        This optimizer's settings, scaled to an effort budget if one was given.
+
+        Population and generations both come off the one number, which is
+        questionable - they control different things - but it is the only knob the
+        wildcard and free-hit path has, and doing it here rather than in a factory
+        the caller supplies means the caller does not have to know.
+        """
+        return self.config if effort is None else self.config.scaled(effort)
+
+    def num_increments(self, effort: int | None = None) -> int:
         # One step per generation: how many individuals a generation evaluates
         # depends on which ones crossover and mutation touched, so generations are
         # the only unit whose count is known before the search starts.
-        return self.config.generations
+        return self._config_for(effort).generations
 
     def optimize(self, request: SquadRequest) -> Squad:
+        config = self._config_for(request.effort)
         return make_new_squad(
             request.gameweeks,
             tag=request.tag,
@@ -36,11 +48,11 @@ class GeneticSquadOptimizer:
             dummy_sub_cost=request.scoring.dummy_sub_cost,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
-            ga_config=self.config,
+            ga_config=config,
             # make_new_squad still defaults this to True and overrides the config
             # with it, so leaving it out would turn DEAP's per-generation logbook
             # on underneath a progress bar.
-            verbose=self.config.verbose,
+            verbose=config.verbose,
             # Only hand over a reporter when something is watching: given one,
             # SquadOpt.optimize runs the generations itself rather than calling
             # eaSimple once. The result is the same, but an always-live callback
@@ -50,14 +62,3 @@ class GeneticSquadOptimizer:
             ),
             dbsession=request.dbsession,
         )
-
-
-def genetic_optimizer(num_iterations: int) -> GeneticSquadOptimizer:
-    """
-    A genetic optimizer sized from one number.
-
-    The wildcard and free-hit searches have a single --num-iterations knob, while
-    the standalone squad build has the full config and must not be scaled. Making
-    that an explicit factory is what keeps the two apart.
-    """
-    return GeneticSquadOptimizer(GeneticAlgorithmConfig().scaled(num_iterations))

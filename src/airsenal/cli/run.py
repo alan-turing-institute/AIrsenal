@@ -5,11 +5,16 @@ from typing import Annotated
 
 import typer
 
+from airsenal.cli.optimize import squad_optimizer_named, transfer_optimizer_named
 from airsenal.optimization.config import ChipWeeks
 from airsenal.optimization.moves import TransferConstraints
+from airsenal.optimization.squad_optimizers import (
+    DEFAULT_SQUAD_OPTIMIZER,
+    SQUAD_OPTIMIZERS,
+)
 from airsenal.optimization.transfer_optimizers import (
-    TreeSearchConfig,
-    TreeSearchOptimizer,
+    DEFAULT_TRANSFER_OPTIMIZER,
+    TRANSFER_OPTIMIZERS,
 )
 from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettings
 from airsenal.prediction.player_models import (
@@ -98,6 +103,21 @@ def run(
         str,
         typer.Option(help=f"Player model: {', '.join(sorted(PLAYER_MODELS))}."),
     ] = DEFAULT_PLAYER_MODEL,
+    transfer_optimizer: Annotated[
+        str,
+        typer.Option(
+            help=f"Transfer search: {', '.join(sorted(TRANSFER_OPTIMIZERS))}."
+        ),
+    ] = DEFAULT_TRANSFER_OPTIMIZER,
+    squad_optimizer: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "Whole-squad optimizer used by a wildcard or free hit: "
+                f"{', '.join(sorted(SQUAD_OPTIMIZERS))}."
+            )
+        ),
+    ] = DEFAULT_SQUAD_OPTIMIZER,
 ) -> None:
     """Run the full AIrsenal pipeline."""
     # the pipeline has always used every core unless told otherwise
@@ -105,7 +125,10 @@ def run(
     AIrsenalPipeline(
         team_model=build_team_model(team_model, epsilon),
         player_model=build_player_model(player_model),
-        transfer_optimizer=TreeSearchOptimizer(TreeSearchConfig(num_thread=threads)),
+        transfer_optimizer=transfer_optimizer_named(
+            transfer_optimizer, num_thread=threads
+        ),
+        squad_optimizer=squad_optimizer_named(squad_optimizer),
         constraints=TransferConstraints(
             max_total_hit=max_hit,
             allow_unused_transfers=allow_unused,
