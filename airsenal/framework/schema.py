@@ -30,6 +30,9 @@ from airsenal.framework.env import (
     AIRSENAL_HOME,
     save_env,
 )
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 # Common type annotations using PEP 593 Annotated
 intpk = Annotated[int, mapped_column(primary_key=True)]
@@ -71,7 +74,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek)
         if attr is not None and not isinstance(attr, tuple):
             return attr.team
-        print(f"No team found for {self} in {season} season.")
+        logger.warning("No team found for %s in %s season.", self, season)
         return None
 
     def price(self, season: str, gameweek: int) -> int | None:
@@ -84,7 +87,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
         if attr is not None:
             return self._calculate_price(attr, gameweek)
-        print(f"No price found for {self} in {season} season.")
+        logger.warning("No price found for %s in %s season.", self, season)
         return None
 
     def _calculate_price(
@@ -116,7 +119,7 @@ class Player(Base):
         attr = self.get_gameweek_attributes(season, None)
         if attr is not None and not isinstance(attr, tuple):
             return attr.position
-        print(f"No position found for {self} in {season} season.")
+        logger.warning("No position found for %s in %s season.", self, season)
         return None
 
     def is_injured_or_suspended(

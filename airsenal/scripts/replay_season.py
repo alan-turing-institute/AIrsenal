@@ -3,20 +3,18 @@ Script to replay all or part of a season, to allow evaluation of different
 code and strategies.
 """
 
-import argparse
 import json
-import warnings
 from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
-from tqdm import TqdmWarning, tqdm
 
 from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Transaction, session_scope
 from airsenal.framework.utils import (
     get_gameweeks_array,
@@ -26,6 +24,8 @@ from airsenal.framework.utils import (
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
 from airsenal.scripts.squad_builder import fill_initial_squad
+
+logger = get_logger(__name__)
 
 
 def get_dummy_id(season: str, dbsession: Session) -> int:
@@ -44,11 +44,13 @@ def print_replay_params(
     tag_prefix: str,
     fpl_team_id: int,
 ) -> None:
-    print("=" * 30)
-    print(f"Replay {season} season from GW{gameweek_start} to GW{gameweek_end}")
-    print(f"tag_prefix = {tag_prefix}")
-    print(f"fpl_team_id = {fpl_team_id}")
-    print("=" * 30)
+    logger.info("=" * 30)
+    logger.info(
+        "Replay %s season from GW%s to GW%s", season, gameweek_start, gameweek_end
+    )
+    logger.info("tag_prefix = %s", tag_prefix)
+    logger.info("fpl_team_id = %s", fpl_team_id)
+    logger.info("=" * 30)
 
 
 def replay_season(
@@ -90,8 +92,8 @@ def replay_season(
     replay_results["weeks_ahead"] = weeks_ahead
     replay_results["gameweeks"] = []
     replay_range = range(gameweek_start, gameweek_end + 1)
-    for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
-        print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
+    for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
+        logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
         with session_scope() as session:
             gw_range = get_gameweeks_array(
                 weeks_ahead, gameweek_start=gw, season=season, dbsession=session
@@ -109,7 +111,7 @@ def replay_season(
         if not transfers:
             continue
         if gw == gameweek_start and new_squad:
-            print("Creating initial squad...")
+            logger.info("Creating initial squad...")
             squad = fill_initial_squad(
                 tag, gw_range, season, fpl_team_id, is_replay=True
             )
@@ -122,7 +124,7 @@ def replay_season(
                 "players_out": {str(gw): []},
             }
         else:
-            print("Optimising transfers...")
+            logger.info("Optimising transfers...")
             # find best squad and the strategy for this gameweek
             squad, best_strategy = run_optimization(
                 gw_range,
@@ -182,7 +184,7 @@ def replay_season(
             )
             raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
-        print("-" * 30)
+        logger.info("-" * 30)
 
     end = datetime.now()
     elapsed = end - start
@@ -190,105 +192,44 @@ def replay_season(
     with open(f"{tag_prefix}.json", "w") as outfile:
         json.dump(replay_results, outfile)
     print_replay_params(season, gameweek_start, gameweek_end, tag_prefix, fpl_team_id)
-    print("DONE!")
+    logger.info("DONE!")
 
 
-def main():
-    """
-    replay a particular FPL season
-    """
-    parser = argparse.ArgumentParser(description="replay a particular FPL season")
-
-    parser.add_argument(
-        "--gameweek_start", help="first gameweek to look at", type=int, default=1
-    )
-    parser.add_argument(
-        "--gameweek_end", help="last gameweek to look at", type=int, default=None
-    )
-    parser.add_argument(
-        "--weeks_ahead", help="how many weeks ahead to fill", type=int, default=3
-    )
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", type=str, required=True
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="FPL team ID (defaults to a unique, negative value)",
-        type=int,
-        default=None,
-    )
-    parser.add_argument(
-        "--resume",
-        help=(
-            "If set, use a pre-existing squad and transactions in the database "
-            "for this team ID as the starting point, rather than creating a new squad. "
-            "fpl_team_id must be defined."
-        ),
-        action="store_true",
-    )
-    parser.add_argument(
-        "--num_thread",
-        help="number of threads to parallelise over",
-        type=int,
-        default=4,
-    )
-    parser.add_argument(
-        "--loop",
-        help="How many times to repeat repla (default 1, -1 to loop continuously)",
-        type=int,
-        default=1,
-    )
-    parser.add_argument(
-        "--team_model",
-        help="Specify name of the team model.",
-        type=str,
-        default="extended",
-        choices=["extended", "random"],
-    )
-    parser.add_argument(
-        "--epsilon",
-        help="how much to downweight games by in exponential time weighting",
-        type=float,
-        default=DEFAULT_TEAM_EPSILON,
-    )
-    parser.add_argument(
-        "--max_transfers",
-        help=(
-            "maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-            "increasing this value above 2 may make the optimisation very slow!]"
-        ),
-        type=int,
-        default=2,
-    )
-
-    args = parser.parse_args()
-    if args.resume and not args.fpl_team_id:
+def run_replays(
+    season: str,
+    gameweek_start: int,
+    gameweek_end: int | None,
+    weeks_ahead: int,
+    fpl_team_id: int | None,
+    resume: bool,
+    num_thread: int,
+    loop: int,
+    team_model: str,
+    epsilon: float,
+    max_transfers: int,
+) -> None:
+    """Replay a season one or more times."""
+    if resume and not fpl_team_id:
         msg = "fpl_team_id must be set to use the resume argument"
         raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        n_completed = 0
-        while (args.loop == -1) or (n_completed < args.loop):
-            print("*" * 15)
-            print(f"RUNNING REPLAY {n_completed + 1}")
-            print("*" * 15)
-            replay_season(
-                season=args.season,
-                gameweek_start=args.gameweek_start,
-                gameweek_end=args.gameweek_end,
-                new_squad=not args.resume,
-                weeks_ahead=args.weeks_ahead,
-                num_thread=args.num_thread,
-                fpl_team_id=args.fpl_team_id,
-                team_model=args.team_model,
-                team_model_args={"epsilon": args.epsilon},
-                max_opt_transfers=args.max_transfers,
-            )
-            n_completed += 1
-
-
-if __name__ == "__main__":
-    main()
+    n_completed = 0
+    while (loop == -1) or (n_completed < loop):
+        logger.info("*" * 15)
+        logger.info("RUNNING REPLAY %s", n_completed + 1)
+        logger.info("*" * 15)
+        replay_season(
+            season=season,
+            gameweek_start=gameweek_start,
+            gameweek_end=gameweek_end,
+            new_squad=not resume,
+            weeks_ahead=weeks_ahead,
+            num_thread=num_thread,
+            fpl_team_id=fpl_team_id,
+            team_model=team_model,
+            team_model_args={"epsilon": epsilon},
+            max_opt_transfers=max_transfers,
+        )
+        n_completed += 1

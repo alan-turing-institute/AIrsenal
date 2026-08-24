@@ -4,14 +4,12 @@ the last entries in the DB, and update the transactions table with players
 bought or sold.
 """
 
-import argparse
-
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import console, get_logger
 from airsenal.framework.schema import Player, database_is_empty, session_scope
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
-    CURRENT_SEASON,
     NEXT_GAMEWEEK,
     fetcher,
     get_last_complete_gameweek_in_db,
@@ -25,13 +23,15 @@ from airsenal.scripts.fill_player_table import find_player_in_table
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
 
+logger = get_logger(__name__)
+
 
 def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
     """
     Ensure that the transactions table in the database is up-to-date.
     """
     if NEXT_GAMEWEEK != 1:
-        print("Checking team")
+        logger.info("Checking team")
         n_transfers_api = len(fetcher.get_fpl_transfer_data(fpl_team_id))
         n_transactions_db = count_transactions(season, fpl_team_id, dbsession)
         # DB has 2 rows per transfer, and rows for the 15 players selected in the
@@ -42,12 +42,11 @@ def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bo
                 season=season,
                 fpl_team_id=fpl_team_id,
                 dbsession=dbsession,
-                verbose=True,
             )
         else:
-            print("Team is up-to-date")
+            logger.info("Team is up-to-date")
     else:
-        print("No transactions as season hasn't started")
+        logger.info("No transactions as season hasn't started")
     return True
 
 
@@ -63,17 +62,17 @@ def update_results(season: str, dbsession: Session) -> bool:
     last_finished = get_last_finished_gameweek()
 
     if NEXT_GAMEWEEK == 1:
-        print("Skipping team and result updates - season hasn't started.")
+        logger.info("Skipping team and result updates - season hasn't started.")
     elif last_finished > last_in_db:
         # need to update
-        print("Updating results table ...")
+        logger.info("Updating results table ...")
         fill_results_from_api(
             gw_start=last_in_db + 1,
             gw_end=NEXT_GAMEWEEK,
             season=season,
             dbsession=dbsession,
         )
-        print("Updating playerscores table ...")
+        logger.info("Updating playerscores table ...")
         fill_playerscores_from_api(
             season=season,
             gw_start=last_in_db + 1,
@@ -81,7 +80,7 @@ def update_results(season: str, dbsession: Session) -> bool:
             dbsession=dbsession,
         )
     else:
-        print("Matches and player-scores already up-to-date")
+        logger.info("Matches and player-scores already up-to-date")
     return True
 
 
@@ -97,7 +96,7 @@ def update_players(season: str, dbsession: Session) -> int:
     players_from_api = list(player_data_from_api.keys())
 
     if len(players_from_db) == len(players_from_api):
-        print("Player table already up-to-date.")
+        logger.info("Player table already up-to-date.")
         return 0
     if len(players_from_db) > len(players_from_api):
         msg = "Something strange has happened - more players in DB than API"
@@ -113,7 +112,7 @@ def add_players_to_db(
     player_data_from_api: dict,
     dbsession: Session,
 ) -> int:
-    print("Updating player table...")
+    logger.info("Updating player table...")
     # find the new player(s) from the API
     api_ids_from_db = [p.fpl_api_id for p in players_from_db]
     new_players = [p for p in players_from_api if p not in api_ids_from_db]
@@ -125,11 +124,11 @@ def add_players_to_db(
         # if yes update that player's data, if no create a new player
         p = find_player_in_table(name, dbsession=dbsession)
         if p is None:
-            print(f"Adding player {name}")
+            logger.info("Adding player %s", name)
             p = Player()
             update = False
         elif p.fpl_api_id is None:
-            print(f"Updating player {name}")
+            logger.info("Updating player %s", name)
             update = True
         else:
             update = True
@@ -153,7 +152,7 @@ def update_attributes(season: str, dbsession: Session) -> None:
         # no results in database for this season yet
         last_in_db = 0
 
-    print("Updating attributes table ...")
+    logger.info("Updating attributes table ...")
     fill_attributes_table_from_api(
         season=season,
         gw_start=last_in_db,
@@ -164,59 +163,38 @@ def update_attributes(season: str, dbsession: Session) -> None:
 def update_db(
     season: str, do_attributes: bool, fpl_team_id: int, session: Session
 ) -> bool:
-    # see if any new players have been added
-    num_new_players = update_players(season, session)
+    with console.status("Updating the database..."):
+        # see if any new players have been added
+        num_new_players = update_players(season, session)
 
-    # update player attributes (if requested)
-    if not do_attributes and num_new_players > 0:
-        print("New players added - enforcing update of attributes table")
-        do_attributes = True
-    if do_attributes:
-        update_attributes(season, session)
+        # update player attributes (if requested)
+        if not do_attributes and num_new_players > 0:
+            logger.info("New players added - enforcing update of attributes table")
+            do_attributes = True
+        if do_attributes:
+            update_attributes(season, session)
 
-    # update fixtures (which may have been rescheduled)
-    print("Updating fixture table...")
-    fill_fixtures_from_api(season, session)
-    # update results and playerscores
-    update_results(season, session)
-    # update our squad
-    update_transactions(season, fpl_team_id, session)
+        # update fixtures (which may have been rescheduled)
+        logger.info("Updating fixture table...")
+        fill_fixtures_from_api(season, session)
+        # update results and playerscores
+        update_results(season, session)
+        # update our squad
+        update_transactions(season, fpl_team_id, session)
     return True
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="fill db tables with recent scores and transactions"
-    )
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--noattr", help="don't update player attributes", action="store_true"
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="specify fpl team id",
-        type=int,
-        required=False,
-    )
-    args = parser.parse_args()
-
-    season = args.season
-    do_attributes = not args.noattr
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
+def update_database(season: str, noattr: bool, fpl_team_id: int | None) -> None:
+    """Update database tables from current FPL data."""
+    do_attributes = not noattr
+    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
     if not fpl_team_id:
         msg = "FPL team ID must be specified in args, config, or env"
         raise ValueError(msg)
 
     with session_scope() as session:
         if database_is_empty(session):
-            print("Database is empty, run 'airsenal_setup_initial_db' first")
+            logger.warning("Database is empty, run 'airsenal_setup_initial_db' first")
             return
 
         update_db(season, do_attributes, fpl_team_id, session)
-
-
-if __name__ == "__main__":
-    print(" ==== updating results and transactions === ")
-    main()

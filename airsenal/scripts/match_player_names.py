@@ -12,6 +12,9 @@ from collections.abc import Callable
 from thefuzz import fuzz
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
 
 
 def find_best_match(
@@ -78,7 +81,7 @@ if __name__ == "__main__":
                 fpl_players_to_match, player, fuzz_method=fuzz.ratio
             )
             if p is None:
-                print(f"Could not find match for {player}")
+                logger.warning("Could not find match for %s", player)
                 continue
             if score > 70:
                 add_player = input(
@@ -97,7 +100,7 @@ if __name__ == "__main__":
                     fpl_players_to_match, player, fuzz_method=fuzz.token_sort_ratio
                 )
                 if p is None:
-                    print(f"Could not find match for {player}")
+                    logger.warning("Could not find match for %s", player)
                     continue
                 if score > 80:
                     add_player = input(
@@ -110,7 +113,7 @@ if __name__ == "__main__":
                         playerdict[p].append(player)
                         matched.add(player)
                         fpl_players_to_match.remove(p)
-    print(f"Num matched: {len(matched)}")
+    logger.info("Num matched: %s", len(matched))
 
     # write an output csv file with each line containing all possible
     # alternative names for a given current-season name

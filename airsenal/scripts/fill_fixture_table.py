@@ -9,6 +9,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
+from airsenal.framework.output import track
 from airsenal.framework.schema import Fixture, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import find_fixture, get_past_seasons
@@ -21,7 +22,7 @@ def fill_fixtures_from_file(
     use the match results csv files to get a list of matches in a season,
     """
     with open(filename) as infile:
-        for line in infile.readlines()[1:]:
+        for line in track(infile.readlines()[1:], description=f"FIXTURES {season}"):
             fields = line.strip().split(",")
             f = Fixture()
             f.date = fields[0]
@@ -33,7 +34,6 @@ def fill_fixtures_from_file(
                     f.home_team = k
                 elif away_team in v:
                     f.away_team = k
-            print(f" ==> Filling fixture {f.home_team} {f.away_team}")
             f.season = season
             f.tag = "latest"  # not really needed for past seasons
             dbsession.add(f)
@@ -47,16 +47,16 @@ def fill_fixtures_from_api(season: str, dbsession: Session = session) -> None:
     tag = str(uuid.uuid4())
     fetcher = FPLDataFetcher()
     fixtures = fetcher.get_fixture_data()
-    for fixture in fixtures:
+    for fixture in track(fixtures, description=f"FIXTURES {season}"):
         f = find_fixture(
             fixture["team_h"],
             was_home=True,
             other_team=fixture["team_a"],
             season=season,
             dbsession=dbsession,
+            verbose=False,
         )
         if f is None:
-            print("Creating new fixture")
             f = Fixture()
             update = False
         else:

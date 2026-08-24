@@ -3,9 +3,8 @@ Script to apply recommended squad changes after transfers are made
 
 """
 
-import argparse
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import console, get_logger
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
@@ -14,12 +13,14 @@ from airsenal.framework.utils import (
     get_player_from_api_id,
 )
 
+logger = get_logger(__name__)
 
-def check_proceed(squad: Squad) -> bool:
-    print(squad)
+
+def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
+    console.print(squad.formation_table(tag, gameweek))
     proceed = input("Apply changes to lineup? (yes/no) ")
     if proceed == "yes":
-        print("Applying Changes...")
+        logger.info("Applying Changes...")
         return True
     return False
 
@@ -93,7 +94,6 @@ def make_squad_transfers(squad: Squad, priced_transfers: list[dict]) -> None:
 
 def set_lineup(
     fpl_team_id: int | None = None,
-    verbose: bool | None = False,
     skip_check: bool = False,
 ) -> None:
     """
@@ -102,38 +102,18 @@ def set_lineup(
     Note that this assumes that the prediction has been ran recently.
     """
     fetcher = FPLDataFetcher(fpl_team_id)
-    print(f"fpl_team_id is {fetcher.FPL_TEAM_ID}")
+    logger.info("fpl_team_id is %s", fetcher.FPL_TEAM_ID)
     picks = fetcher.get_lineup()
-    if verbose:
-        print(f"Got picks {picks}")
+    logger.debug("Got picks %s", picks)
     squad = get_lineup_from_payload(picks)
-    if verbose:
-        print(f"got squad: {squad}")
+    logger.debug("got squad: %s", squad)
 
-    squad.optimize_lineup(NEXT_GAMEWEEK, get_latest_prediction_tag())
+    tag = get_latest_prediction_tag()
+    squad.optimize_lineup(NEXT_GAMEWEEK, tag)
 
-    if not skip_check and not check_proceed(squad):
-        print("Not proceeding with lineup update")
+    if not skip_check and not check_proceed(squad, tag, NEXT_GAMEWEEK):
+        logger.info("Not proceeding with lineup update")
         return
 
     payload = build_lineup_payload(squad)
     fetcher.post_lineup(payload)
-
-
-def main():
-    parser = argparse.ArgumentParser("Set the starting 11 and captain")
-    parser.add_argument("--fpl_team_id", help="ID of the squad in FPL API", type=int)
-    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
-    args = parser.parse_args()
-    try:
-        set_lineup(args.fpl_team_id, skip_check=args.confirm)
-    except Exception as e:
-        msg = (
-            "Something went wrong when setting lineup. Check your lineup manually on "
-            "the web-site. If the problem persists, let us know on GitHub."
-        )
-        raise Exception(msg) from e
-
-
-if __name__ == "__main__":
-    main()

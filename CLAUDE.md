@@ -43,7 +43,7 @@ pre-commit run --all-files
 
 **Run the full pipeline (typical usage):**
 ```bash
-uv run airsenal_run_pipeline
+uv run airsenal run
 ```
 
 ## Architecture
@@ -51,7 +51,8 @@ uv run airsenal_run_pipeline
 ### Package layout
 
 - **`airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
-- **`airsenal/scripts/`** — CLI entry points; ideally just parse args and call framework functions
+- **`airsenal/cli/`** — Typer command definitions and CLI-only argument handling
+- **`airsenal/scripts/`** — operational workflow implementations used by the CLI
 - **`airsenal/tests/`** — pytest tests for framework code
 - **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
 - **`airsenal/api/`** — optional Flask API (work in progress)
@@ -64,7 +65,7 @@ uv run airsenal_run_pipeline
 4. **Optimization** (`fill_transfersuggestion_table.py`) — uses a greedy/brute-force search to find optimal transfers; writes to `TransferSuggestion` table
 5. **Apply** (`make_transfers.py`, `set_lineup.py`) — optionally posts transfers and lineup to the FPL API. NEVER run `make_transfers.py` yourself whilst testing changes as this leads to irreversible changes to the actual AIrsenal FPL team entry.
 
-`airsenal_run_pipeline` is the top-level orchestrator for steps 1–5.
+`airsenal run` is the top-level orchestrator for steps 1–5.
 
 ### Key framework modules
 
@@ -86,7 +87,7 @@ SQLite, default location: `$AIRSENAL_HOME/data.db` (configurable via `AIRSENAL_D
 
 ### Configuration
 
-Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal_env set` to persist these under `AIRSENAL_HOME`.
+Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal env set` to persist these under `AIRSENAL_HOME`.
 
 ### Prediction is single-threaded by design
 

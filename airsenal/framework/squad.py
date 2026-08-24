@@ -4,13 +4,17 @@ Contains a set of players.
 Is able to check that it obeys all constraints.
 """
 
-import warnings
 from collections import defaultdict
 from operator import itemgetter
 
 import numpy as np
+from rich.console import Group, RenderableType
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.output import get_logger
 from airsenal.framework.player import CandidatePlayer, DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
@@ -22,6 +26,8 @@ from airsenal.framework.utils import (
     get_player_from_api_id,
     get_playerscores_for_player_gameweek,
 )
+
+logger = get_logger(__name__)
 
 # how many players do we need to add
 TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
@@ -36,6 +42,15 @@ FORMATIONS = [
     (5, 3, 2),
     (5, 2, 3),
 ]
+
+FORMATION_SLOTS = {
+    0: (),
+    1: (2,),
+    2: (1, 3),
+    3: (1, 2, 3),
+    4: (0, 1, 3, 4),
+    5: (0, 1, 2, 3, 4),
+}
 
 
 class Squad:
@@ -54,30 +69,124 @@ class Squad:
         self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         self.free_subs = 0
         self.subs_this_week = 0
-        self.verbose = False
         self.count_per_team = defaultdict(int)
 
-    def __repr__(self):
-        """
-        Display the squad
-        """
-        for position in ["GK", "DEF", "MID", "FWD"]:
-            print(f"\n== {position} ==\n")
-            for p in self.players:
-                if p.position == position and p.is_starting:
-                    player_line = f"{p} ({p.team})"
-                    if p.is_captain:
-                        player_line += "(C)"
-                    elif p.is_vice_captain:
-                        player_line += "(VC)"
-                    print(player_line)
-        print("\n=== Subs ===\n")
+    def __repr__(self) -> str:
+        """Return a concise representation without rendering to the console."""
+        return f"Squad(players={len(self.players)}, budget={self.budget})"
 
-        subs = [p for p in self.players if not p.is_starting]
-        subs.sort(key=lambda p: p.sub_position)
-        for p in subs:
-            print(f"{p} ({p.team})")
-        return ""
+    def formation_table(
+        self,
+        tag: str | None = None,
+        gameweek: int | None = None,
+        bench_boost: bool = False,
+        triple_captain: bool = False,
+    ) -> Group:
+        """Render the squad in a football formation layout.
+
+        Prediction values are displayed when both ``tag`` and ``gameweek`` are
+        supplied. Set ``bench_boost`` or ``triple_captain`` to reflect a chip.
+        """
+        if (tag is None) != (gameweek is None):
+            msg = "tag and gameweek must be provided together"
+            raise ValueError(msg)
+        if bench_boost and triple_captain:
+            msg = "bench_boost and triple_captain cannot both be active"
+            raise ValueError(msg)
+
+        predicted_points = None
+        chip_description = ""
+        if tag is not None and gameweek is not None:
+            predicted_points = self.get_expected_points(
+                gameweek,
+                tag,
+                bench_boost=bench_boost,
+                triple_captain=triple_captain,
+            )
+            chip_description = (
+                " with bench boost"
+                if bench_boost
+                else " with triple captain"
+                if triple_captain
+                else ""
+            )
+
+        def player_cell(player):
+            lines = [f"[bold]{player}[/bold]", f"[dim]({player.team})[/dim]"]
+            if tag is not None and gameweek is not None:
+                points = (
+                    getattr(player, "predicted_points", {}).get(tag, {}).get(gameweek)
+                )
+                lines.append(
+                    f"[dim]{points:.1f} pts[/dim]"
+                    if points is not None
+                    else "[dim]-[/dim]"
+                )
+            if player.is_captain:
+                marker = "(TC)" if triple_captain else "(C)"
+                lines.append(f"[yellow]{marker}[/yellow]")
+            elif player.is_vice_captain:
+                lines.append("[cyan](VC)[/cyan]")
+            player_display = "\n".join(lines)
+            if triple_captain and player.is_captain:
+                return Panel(player_display, border_style="green", padding=(0, 1))
+            return player_display
+
+        formation = Table.grid(expand=True, padding=(0, 1))
+        for _ in range(5):
+            formation.add_column(justify="center", ratio=1)
+
+        positions = ["GK", "DEF", "MID", "FWD"]
+        for index, position in enumerate(positions):
+            starters = [
+                player
+                for player in self.players
+                if player.position == position and player.is_starting
+            ]
+            slots = FORMATION_SLOTS[len(starters)]
+            cells = iter(player_cell(player) for player in starters)
+            formation.add_row(
+                *(next(cells) if slot in slots else "" for slot in range(5)),
+            )
+            if index < len(positions) - 1:
+                formation.add_row(*([""] * 5))
+
+        substitutes = [player for player in self.players if not player.is_starting]
+        substitutes.sort(
+            key=lambda player: (
+                player.sub_position is None,
+                player.sub_position if player.sub_position is not None else 0,
+            )
+        )
+        substitutes_table = Table(
+            show_header=False,
+            box=None,
+            border_style=None,
+            expand=True,
+            padding=(0, 1),
+        )
+        for _ in substitutes:
+            substitutes_table.add_column(justify="center", ratio=1)
+        substitutes_table.add_row(*(player_cell(player) for player in substitutes))
+        if bench_boost:
+            substitutes_table = Panel(substitutes_table, border_style="green")
+
+        renderables: list[RenderableType] = []
+        if predicted_points is not None and gameweek is not None:
+            heading = (
+                f"GAMEWEEK {gameweek}\n"
+                f"{predicted_points:.1f}pts predicted {chip_description}, "
+                f"£{self.budget / 10:.1f}M in the bank"
+            )
+            renderables.append(Text(f"{heading}", style="bold", justify="center"))
+
+        renderables.extend(
+            [
+                Panel(formation, title="Starting Lineup"),
+                Panel(substitutes_table, title="Substitutes"),
+            ]
+        )
+        return Group(*renderables)
 
     def is_complete(self):
         """
@@ -111,34 +220,34 @@ class Squad:
             if price is not None:
                 player.purchase_price = price
 
-        if self.verbose:
-            print(f"Adding player {p}")
+        logger.debug("Adding player %s", p)
 
         if player.position == "MNG":
-            warnings.warn(
-                f"Skipped adding manager {player}, assistant manager not implemented."
-                f"Reduced squad budget by {player.purchase_price}.",
-                stacklevel=2,
+            logger.warning(
+                "Skipped adding manager %s, assistant manager not implemented. "
+                "Reduced squad budget by %s.",
+                player,
+                player.purchase_price,
             )
             self.budget -= player.purchase_price
             return True
 
         # check if constraints are met
         if not self.check_no_duplicate_player(player):
-            if self.verbose:
-                print(f"Already have {player} in team")
+            logger.debug("Already have %s in team", player)
             return False
         if not self.check_num_in_position(player):
-            if self.verbose:
-                print(f"Unable to add player {player} - too many {player.position}")
+            logger.debug(
+                "Unable to add player %s - too many %s", player, player.position
+            )
             return False
         if check_budget and not self.check_cost(player):
-            if self.verbose:
-                print(f"Cannot afford player {player}")
+            logger.debug("Cannot afford player %s", player)
             return False
         if check_team and not self.check_num_per_team(player):
-            if self.verbose:
-                print(f"Cannot add {player} - too many players from {player.team}")
+            logger.debug(
+                "Cannot add %s - too many players from %s", player, player.team
+            )
             return False
         self.players.append(player)
         self.count_per_team[player.team] += 1
@@ -213,20 +322,22 @@ class Squad:
             # first try getting the actual sale price from a logged in API
             try:
                 return apifetcher.get_current_picks()[api_id]["selling_price"]
-            except Exception as e:
-                warnings.warn(
-                    f"Failed to login to get actual sale price for {player} from API:\n"
-                    f"{e}.\nWill estimate based on the player's current price instead",
-                    stacklevel=2,
+            except Exception:
+                logger.warning(
+                    "Failed to login to get actual sale price for %s from API. "
+                    "Will estimate based on the player's current price instead",
+                    player,
+                    exc_info=True,
                 )
             # if not logged in, just get current price from API
             try:
                 price_now = apifetcher.get_player_summary_data()[api_id]["now_cost"]
-            except Exception as e:
-                warnings.warn(
-                    f"Failed to to get current price of {player} from API:\n"
-                    f"{e}.\nWill attempt to use latest price in DB instead.",
-                    stacklevel=2,
+            except Exception:
+                logger.warning(
+                    "Failed to get current price of %s from API. "
+                    "Will attempt to use latest price in DB instead.",
+                    player,
+                    exc_info=True,
                 )
 
         # retrieve how much we originally bought the player for from db
@@ -238,9 +349,10 @@ class Squad:
 
         # if all else fails just use the purchase price as the sale price for the player
         if not price_now:
-            warnings.warn(
-                f"Using purchase price as sale price for {player.player_id}, {player}",
-                stacklevel=2,
+            logger.warning(
+                "Using purchase price as sale price for %s, %s",
+                player.player_id,
+                player,
             )
             price_now = price_bought
 
@@ -320,8 +432,7 @@ class Squad:
             if score >= best_score:
                 best_score = score
                 best_formation = f
-        if self.verbose:
-            print(f"Best formation is {best_formation}")
+        logger.debug("Best formation is %s", best_formation)
         self.apply_formation(player_dict, best_formation)
         self.order_substitutes(gameweek, tag)
 
