@@ -24,7 +24,10 @@ from airsenal.framework.utils import (
     get_player_name,
 )
 from airsenal.scripts.fill_predictedscore_table import make_predictedscore_table
-from airsenal.scripts.fill_transfersuggestion_table import run_optimization
+from airsenal.scripts.fill_transfersuggestion_table import (
+    run_mcts_optimization,
+    run_optimization,
+)
 from airsenal.scripts.squad_builder import fill_initial_squad
 
 
@@ -64,6 +67,10 @@ def replay_season(
     team_model_args: dict | None = None,
     fpl_team_id: int | None = None,
     max_opt_transfers: int = 2,
+    max_points_hit: int | None = None,
+    search_method: str = "tree",
+    mcts_iterations: int = 500,
+    use_chip_heuristic: bool = False,
 ) -> None:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -89,6 +96,11 @@ def replay_season(
     replay_results["season"] = season
     replay_results["weeks_ahead"] = weeks_ahead
     replay_results["gameweeks"] = []
+    # gameweek -> chip name, accumulated across the loop below so a chip already
+    # played in an earlier gameweek isn't suggested again by use_chip_heuristic -
+    # each run_optimization()/run_mcts_optimization() call below only sees a short
+    # gw_range window, not the whole season, so this history has to be tracked here.
+    chips_played_history: dict[int, str] = {}
     replay_range = range(gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(tqdm(replay_range, desc="REPLAY PROGRESS")):
         print(f"GW{gw} ({idx + 1} out of {len(replay_range)})...")
@@ -124,18 +136,44 @@ def replay_season(
         else:
             print("Optimising transfers...")
             # find best squad and the strategy for this gameweek
-            squad, best_strategy = run_optimization(
-                gw_range,
-                tag,
-                season=season,
-                fpl_team_id=fpl_team_id,
-                num_thread=num_thread,
-                is_replay=True,
-                max_opt_transfers=max_opt_transfers,
-            )
+            if search_method == "mcts":
+                squad, best_strategy = run_mcts_optimization(
+                    gw_range,
+                    tag,
+                    season=season,
+                    fpl_team_id=fpl_team_id,
+                    num_thread=num_thread,
+                    is_replay=True,
+                    max_total_hit=max_points_hit,
+                    mcts_iterations=mcts_iterations,
+                    use_chip_heuristic=use_chip_heuristic,
+                    chips_played_history=chips_played_history,
+                )
+            else:
+                squad, best_strategy = run_optimization(
+                    gw_range,
+                    tag,
+                    season=season,
+                    fpl_team_id=fpl_team_id,
+                    num_thread=num_thread,
+                    is_replay=True,
+                    max_opt_transfers=max_opt_transfers,
+                    max_total_hit=max_points_hit,
+                    use_chip_heuristic=use_chip_heuristic,
+                    chips_played_history=chips_played_history,
+                )
         if best_strategy is None:
             msg = f"Failed to find a strategy for GW{gw}!"
             raise ValueError(msg)
+
+        # chips_played values are actually str | None at runtime (chip name or
+        # nothing played that gameweek) - best_strategy's dict[str, int | list[int]]
+        # value type is imprecise here, doesn't reflect this field specifically.
+        played_this_gw: str | None = best_strategy.get("chips_played", {}).get(  # type: ignore[assignment]
+            str(gw)
+        )
+        if played_this_gw:
+            chips_played_history[gw] = played_this_gw
 
         gw_result["starting_11"] = []
         gw_result["subs"] = []
@@ -182,6 +220,8 @@ def replay_season(
             )
             raise TypeError(msg)
         replay_results["gameweeks"].append(gw_result)
+        with open(f"{tag_prefix}_gw{gw}.json", "w") as outfile:
+            json.dump(gw_result, outfile)
         print("-" * 30)
 
     end = datetime.now()
@@ -260,6 +300,42 @@ def main():
         type=int,
         default=2,
     )
+    parser.add_argument(
+        "--max_points_hit",
+        help=(
+            "maximum number of points to spend on additional transfers each "
+            "gameweek (default no limit)"
+        ),
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
+        "--search_method",
+        help=(
+            "'tree' (default) exhaustively enumerates transfer-count/chip "
+            "combinations; 'mcts' uses Monte Carlo Tree Search instead, which "
+            "scales better once chips and higher transfer counts are both allowed"
+        ),
+        type=str,
+        choices=["tree", "mcts"],
+        default="tree",
+    )
+    parser.add_argument(
+        "--mcts_iterations",
+        help="[mcts only] number of search iterations per worker",
+        type=int,
+        default=500,
+    )
+    parser.add_argument(
+        "--use_chip_heuristic",
+        help=(
+            "force chip gameweeks decided by the rule-based baseline in "
+            "airsenal.framework.chip_heuristics (see "
+            "chip_timing_heuristic.svg/.pdf) instead of never considering chips. "
+            "Works with either --search_method."
+        ),
+        action="store_true",
+    )
 
     args = parser.parse_args()
     if args.resume and not args.fpl_team_id:
@@ -286,6 +362,10 @@ def main():
                 team_model=args.team_model,
                 team_model_args={"epsilon": args.epsilon},
                 max_opt_transfers=args.max_transfers,
+                max_points_hit=args.max_points_hit,
+                search_method=args.search_method,
+                mcts_iterations=args.mcts_iterations,
+                use_chip_heuristic=args.use_chip_heuristic,
             )
             n_completed += 1
 

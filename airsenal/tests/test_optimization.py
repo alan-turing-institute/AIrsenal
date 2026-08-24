@@ -3,20 +3,26 @@ Test the optimization of transfers, generating a few simplified scenarios
 and checking that the optimizer finds the expected outcome.
 """
 
+import random
+from contextlib import contextmanager
 from operator import itemgetter
 from unittest import mock
+from unittest.mock import Mock, patch
 
+import numpy as np
 import pytest
 
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
     make_optimum_single_transfer,
+    make_optimum_transfers_ga,
 )
 from airsenal.framework.optimization_utils import (
     count_expected_outputs,
     get_discount_factor,
     next_week_transfers,
 )
+from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 
 pytestmark = pytest.mark.filterwarnings("ignore:Using purchase price as sale price")
@@ -97,6 +103,73 @@ def predicted_point_mock_generator(point_dict):
         ]
 
     return mock_get_predicted_points
+
+
+def _mock_player(player_id, position, team, price, points):
+    """
+    A player double satisfying CandidatePlayer's needs (used as a `list_players()`
+    candidate and, via player_id, for building the "current" squad passed to
+    make_optimum_transfers_ga), with a fixed points dict keyed by gameweek.
+    """
+    player = Mock()
+    player.player_id = player_id
+    player.name = f"Player {player_id}"
+    player.display_name = None
+    player.position = lambda _season=None, _pos=position: _pos
+    player.team = lambda _season=None, _gameweek=None, _team=team: _team
+    player.price = lambda _season=None, _gameweek=None, _price=price: _price
+    player.points = points
+    return player
+
+
+@contextmanager
+def _mock_player_db(players):
+    """
+    Make `make_optimum_transfers_ga`/`SquadOpt` work against a fixed in-memory list
+    of `_mock_player` doubles instead of the real player database: `list_players`
+    supplies the GA's candidate pool, and `get_player`/`get_predicted_points_for_player`
+    (called internally whenever Squad.add_player/CandidatePlayer resolve a bare
+    player_id) are patched to resolve against the same list.
+    """
+    lookup = {p.player_id: p for p in players}
+
+    def list_players_side_effect(position=None, **kwargs):
+        return [p for p in players if p.position() == position]
+
+    def get_player_side_effect(player_id, dbsession=None):
+        return lookup.get(player_id)
+
+    def points_side_effect(player, tag, season=None, dbsession=None):
+        pid = player.player_id if hasattr(player, "player_id") else player
+        return lookup[pid].points if pid in lookup else {}
+
+    with (
+        patch(
+            "airsenal.framework.optimization_squad.list_players",
+            side_effect=list_players_side_effect,
+        ),
+        patch(
+            "airsenal.framework.optimization_squad.get_predicted_points_for_player",
+            side_effect=points_side_effect,
+        ),
+        patch(
+            "airsenal.framework.player.get_player",
+            side_effect=get_player_side_effect,
+        ),
+        patch(
+            "airsenal.framework.player.get_predicted_points_for_player",
+            side_effect=points_side_effect,
+        ),
+    ):
+        yield
+
+
+def _build_squad(players, price=40, budget=1000):
+    """Build a Squad containing exactly `players` (via _mock_player_db)."""
+    squad = Squad(budget=budget, season=CURRENT_SEASON)
+    for p in players:
+        assert squad.add_player(p.player_id, price=price, gameweek=1)
+    return squad
 
 
 def test_subs():
@@ -259,6 +332,60 @@ def test_double_transfer():
                 assert p.is_captain is False
 
 
+def _make_test_squad_players(weak_ids=()):
+    """
+    15 players (2 GK, 5 DEF, 5 MID, 3 FWD), each scoring 2 points, except
+    `weak_ids` which score 1 - a clear transfer-out candidate.
+    """
+    positions = ["GK"] * 2 + ["DEF"] * 5 + ["MID"] * 5 + ["FWD"] * 3
+    return [
+        _mock_player(
+            i + 1, pos, f"Team{i + 1}", 40, {1: 1 if (i + 1) in weak_ids else 2}
+        )
+        for i, pos in enumerate(positions)
+    ]
+
+
+def test_make_optimum_transfers_ga_respects_transfer_cap():
+    """
+    Even when more than `num_transfers` clear improvements are available, the GA
+    must never propose more transfers than the cap allows - this is the behaviour
+    that motivated adding a GA-based search for transfer counts above 2, where the
+    old exhaustive/random search couldn't scale to the higher counts allowed by
+    saving up free transfers. 3 is the smallest count that actually reaches
+    make_optimum_transfers_ga via make_best_transfers (1 and 2 use the exhaustive
+    make_optimum_single_transfer/make_optimum_double_transfer instead).
+    """
+    random.seed(1)
+    np.random.seed(1)
+    tag = "DUMMY"
+
+    # four clear improvements available (one per position), but only 3 transfers
+    # allowed - the GA must pick at most 3, never all 4.
+    squad_players = _make_test_squad_players(weak_ids={1, 7, 12, 15})
+    candidates = [
+        _mock_player(102, "GK", "TeamW", 40, {1: 9}),
+        _mock_player(103, "DEF", "TeamX", 40, {1: 9}),
+        _mock_player(104, "MID", "TeamY", 40, {1: 9}),
+        _mock_player(101, "FWD", "TeamZ", 40, {1: 9}),
+    ]
+
+    with _mock_player_db([*squad_players, *candidates]):
+        squad = _build_squad(squad_players)
+        baseline_score = squad.get_expected_points(1, tag)
+        new_squad, players_out, players_in = make_optimum_transfers_ga(
+            squad, tag, 3, gameweek_range=[1], num_iter=60
+        )
+        new_score = new_squad.get_expected_points(1, tag)
+
+    assert len(players_out) <= 3
+    assert len(players_in) <= 3
+    assert len(players_out) == len(players_in)
+    # the GA should have found and used at least one of the available improvements
+    assert set(players_in) & {102, 103, 104, 101}
+    assert new_score >= baseline_score
+
+
 def test_get_discount_factor():
     """
     Discount factor discounts future gameweek score predictions based on the
@@ -280,6 +407,7 @@ def test_next_week_transfers_no_chips_no_constraints():
     # No chips or constraints
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=True,
         max_opt_transfers=2,
@@ -295,6 +423,7 @@ def test_next_week_transfers_no_free_transfers_available():
     # No chips or constraints
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=True,
         max_opt_transfers=2,
@@ -310,6 +439,7 @@ def test_next_week_transfers_with_hits_already_taken():
     # No chips or constraints
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=True,
         max_opt_transfers=2,
@@ -320,24 +450,21 @@ def test_next_week_transfers_with_hits_already_taken():
 
 
 def test_next_week_transfers_no_chips_no_constraints_max5():
-    # First week (blank starting strat with 1 free transfer available)
+    # First week (blank starting strat with 1 free transfer available). Even with
+    # max_opt_transfers=5, the coarse candidate set only offers "use all available
+    # free transfers" (here, 1) in addition to 0/1/2, so with only 1 free transfer
+    # available this is identical to the max_opt_transfers=2 case.
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     # No chips or constraints
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=True,
         max_opt_transfers=5,
     )
     # (no. transfers, free transfers next week, total points hit, points hit this gw)
-    expected = [
-        (0, 2, 0, 0),
-        (1, 1, 0, 0),
-        (2, 1, 4, 4),
-        (3, 1, 8, 8),
-        (4, 1, 12, 12),
-        (5, 1, 16, 16),
-    ]
+    expected = [(0, 2, 0, 0), (1, 1, 0, 0), (2, 1, 4, 4)]
     assert actual == expected
 
 
@@ -346,6 +473,7 @@ def test_next_week_transfers_any_chip_no_constraints():
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=2,
         chips={
@@ -370,10 +498,13 @@ def test_next_week_transfers_any_chip_no_constraints():
 
 
 def test_next_week_transfers_any_chip_no_constraints_max5():
-    # All chips, no constraints
+    # All chips, no constraints. With only 1 free transfer available, the coarse
+    # candidate set collapses to the same as max_opt_transfers=2 (see
+    # test_next_week_transfers_no_chips_no_constraints_max5).
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=5,
         chips={
@@ -385,23 +516,14 @@ def test_next_week_transfers_any_chip_no_constraints_max5():
         (0, 2, 0, 0),
         (1, 1, 0, 0),
         (2, 1, 4, 4),
-        (3, 1, 8, 8),
-        (4, 1, 12, 12),
-        (5, 1, 16, 16),
         ("W", 1, 0, 0),
         ("F", 1, 0, 0),
         ("B0", 2, 0, 0),
         ("B1", 1, 0, 0),
         ("B2", 1, 4, 4),
-        ("B3", 1, 8, 8),
-        ("B4", 1, 12, 12),
-        ("B5", 1, 16, 16),
         ("T0", 2, 0, 0),
         ("T1", 1, 0, 0),
         ("T2", 1, 4, 4),
-        ("T3", 1, 8, 8),
-        ("T4", 1, 12, 12),
-        ("T5", 1, 16, 16),
     ]
     assert actual == expected
 
@@ -411,6 +533,7 @@ def test_next_week_transfers_no_chips_zero_hit():
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=0,
         allow_unused_transfers=True,
         max_opt_transfers=2,
@@ -424,6 +547,7 @@ def test_next_week_transfers_no_chips_zero_hit_max5():
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=0,
         allow_unused_transfers=True,
         max_opt_transfers=5,
@@ -437,6 +561,7 @@ def test_next_week_transfers_2ft_no_unused():
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=False,
         max_opt_transfers=2,
@@ -447,16 +572,20 @@ def test_next_week_transfers_2ft_no_unused():
 
 
 def test_next_week_transfers_5ft_no_unused_max5():
-    # 2 free transfers available, no wasted transfers
+    # 5 free transfers available, no wasted transfers. The coarse candidate set
+    # offers 1, 2, and "use all 5 available" - not every intermediate value - so the
+    # tree can compare a small transfer against spending everything currently banked,
+    # without having to separately search 3 and 4 too.
     strat = (5, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=False,
         max_opt_transfers=5,
         max_free_transfers=5,
     )
-    expected = [(1, 5, 0, 0), (2, 4, 0, 0), (3, 3, 0, 0), (4, 2, 0, 0), (5, 1, 0, 0)]
+    expected = [(1, 5, 0, 0), (2, 4, 0, 0), (5, 1, 0, 0)]
     assert actual == expected
 
 
@@ -465,6 +594,7 @@ def test_next_week_transfers_3ft_no_hit_max5():
     strat = (3, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=0,
         allow_unused_transfers=False,
         max_opt_transfers=5,
@@ -491,6 +621,7 @@ def test_next_week_transfers_chips_already_used():
     )
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=2,
     )
@@ -498,10 +629,47 @@ def test_next_week_transfers_chips_already_used():
     assert actual == expected
 
 
+def test_next_week_transfers_chip_reuse_blocked_within_same_half():
+    # Wildcard played at gameweek 5 (first half, gameweeks <=19) - still blocked
+    # for another gameweek later in the same half.
+    strat = (
+        1,
+        0,
+        {"players_in": {}, "chips_played": {5: "wildcard"}},
+    )
+    actual = next_week_transfers(
+        strat,
+        10,
+        max_total_hit=None,
+        max_opt_transfers=2,
+        chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
+    )
+    assert all(nt != "W" for nt, *_ in actual)
+
+
+def test_next_week_transfers_chip_reuse_allowed_in_second_half():
+    # Wildcard played at gameweek 5 (first half) - allowed again from gameweek 20
+    # (second half), since FPL gives one wildcard per half of the season.
+    strat = (
+        1,
+        0,
+        {"players_in": {}, "chips_played": {5: "wildcard"}},
+    )
+    actual = next_week_transfers(
+        strat,
+        25,
+        max_total_hit=None,
+        max_opt_transfers=2,
+        chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
+    )
+    assert any(nt == "W" for nt, *_ in actual)
+
+
 def test_next_week_transfers_play_wildcard():
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=2,
         chips={"chips_allowed": [], "chip_to_play": "wildcard"},
@@ -514,6 +682,7 @@ def test_next_week_transfers_2ft_allow_wildcard():
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=2,
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
@@ -524,9 +693,12 @@ def test_next_week_transfers_2ft_allow_wildcard():
 
 
 def test_next_week_transfers_5ft_allow_wildcard():
+    # Coarse candidate set: 0, 1, 2, and "use all 5 available" - not every
+    # intermediate value up to 5.
     strat = (5, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=5,
         chips={"chips_allowed": ["wildcard"], "chip_to_play": None},
@@ -536,8 +708,6 @@ def test_next_week_transfers_5ft_allow_wildcard():
         (0, 5, 0, 0),
         (1, 5, 0, 0),
         (2, 4, 0, 0),
-        (3, 3, 0, 0),
-        (4, 2, 0, 0),
         (5, 1, 0, 0),
         ("W", 5, 0, 0),
     ]
@@ -548,6 +718,7 @@ def test_next_week_transfers_2ft_allow_wildcard_no_unused():
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=False,
         max_opt_transfers=2,
@@ -562,6 +733,7 @@ def test_next_week_transfers_2ft_play_wildcard():
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         max_opt_transfers=2,
         chips={"chips_allowed": [], "chip_to_play": "wildcard"},
@@ -574,6 +746,7 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
     strat = (2, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=False,
         max_opt_transfers=2,
@@ -585,15 +758,18 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
 
 
 def test_next_week_transfers_play_triple_captain_max_transfers_3():
+    # With 1 free transfer available, "use all available" coincides with 1, so the
+    # coarse candidate set here is just {0, 1, 2} - same as max_opt_transfers=2.
     strat = (1, 0, {"players_in": {}, "chips_played": {}})
     actual = next_week_transfers(
         strat,
+        5,
         max_total_hit=None,
         allow_unused_transfers=True,
         max_opt_transfers=3,
         chips={"chips_allowed": [], "chip_to_play": "triple_captain"},
     )
-    expected = [("T0", 2, 0, 0), ("T1", 1, 0, 0), ("T2", 1, 4, 4), ("T3", 1, 8, 8)]
+    expected = [("T0", 2, 0, 0), ("T1", 1, 0, 0), ("T2", 1, 4, 4)]
     assert actual == expected
 
 
@@ -612,8 +788,14 @@ def test_count_expected_outputs_no_chips_no_constraints():
 
 
 def test_count_expected_outputs_no_chips_no_constraints_max5():
-    # No constraints or chips, expect 6**num_gameweeks strategies (0 to 5 transfers
-    # each week)
+    # No constraints or chips. With max_opt_transfers=5, each week now branches on
+    # the coarse {0, 1, 2, "use all available free transfers"} set rather than every
+    # integer 0-5 - starting from 1 free transfer, that's 3 options (0/1/2) per week
+    # unless accumulated free transfers exceed 2, at which point "use all available"
+    # becomes a distinct 4th option. Verified directly against next_week_transfers:
+    # 27 (3**3, as if max_opt_transfers were 2) plus 1 extra leaf where saving up
+    # transfers for 2 weeks (0, 0, ...) unlocks a genuine 4th, 3-free-transfer option
+    # in the final week.
     count, _ = count_expected_outputs(
         3,
         free_transfers=1,
@@ -623,7 +805,7 @@ def test_count_expected_outputs_no_chips_no_constraints_max5():
         max_opt_transfers=5,
         chip_gw_dict={},
     )
-    assert count == 6**3
+    assert count == 28
 
 
 def test_count_expected_outputs_no_chips_zero_hit():
@@ -689,14 +871,18 @@ def test_count_expected_outputs_no_chips_2ft_no_unused():
 
 def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
     """
-    Start with 5 FT and no unused over 2 weeks
+    Start with 5 FT and no unused over 2 weeks. With the coarse candidate set, week 1
+    only offers {1, 2, "use all 5 available"} (0 is excluded by allow_unused=False
+    forcing at least 1 transfer while at the free-transfer cap), each leading to a
+    different week-2 free-transfer count and hence a different (also coarse) week-2
+    candidate set - verified directly against next_week_transfers:
     Include:
-    (0, 0),
-    (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
-    (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5),
-    (3, 0), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5),
-    (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5),
-    (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5),
+    (1, 1), (1, 2), (1, 5),
+    (2, 0), (2, 1), (2, 2), (2, 4),
+    (5, 0), (5, 1), (5, 2),
+    plus the baseline (0, 0) strategy, excluded from the tree by allow_unused=False
+    (since it would waste transfers while already at the 5-transfer cap) and added
+    back separately by count_expected_outputs.
     """
     count, _ = count_expected_outputs(
         2,
@@ -707,7 +893,7 @@ def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
         max_opt_transfers=5,
         max_free_transfers=5,
     )
-    assert count == 30
+    assert count == 11
 
 
 def test_count_expected_wildcard_allowed_no_constraints():

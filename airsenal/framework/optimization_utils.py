@@ -402,12 +402,8 @@ def get_num_increments(num_transfers, num_iterations=100):
     ):
         num_transfers = int(num_transfers[1])
 
-    if (
-        num_transfers == "W"
-        or num_transfers == "F"
-        or (isinstance(num_transfers, int) and num_transfers > 2)
-    ):
-        # wildcard or free hit or >2 - needs num_iterations iterations
+    if num_transfers == "W" or num_transfers == "F":
+        # wildcard or free hit - needs num_iterations iterations
         return num_iterations
 
     if num_transfers == 0:
@@ -419,12 +415,41 @@ def get_num_increments(num_transfers, num_iterations=100):
     if num_transfers == 2:
         # remove each pair of players - 15*7=105 combinations
         return 105
+    if isinstance(num_transfers, int) and num_transfers > 2:
+        # GA-based transfer search only reports progress once per call
+        return 1
     print(f"Unrecognized num_transfers: {num_transfers}")
     return 1
 
 
+def _transfer_count_candidates(ft_available, max_opt_transfers, min_transfers=0):
+    """Coarse set of transfer counts worth branching on in the multi-week tree search:
+    1 and 2 (cheap to search exhaustively via the deterministic single/double-transfer
+    functions), plus using all of the currently-available free transfers - rather than
+    every integer up to max_opt_transfers, which is what makes higher transfer counts
+    intractable for the tree search (both because it multiplies the branching factor,
+    and because those extra counts are searched with a much more expensive GA). 0 is
+    included unless min_transfers=1 (forcing at least one transfer this gameweek).
+    Identical to range(max_opt_transfers + 1) whenever max_opt_transfers <= 2.
+    """
+    candidates = {1, 2, min(ft_available, max_opt_transfers)}
+    if min_transfers == 0:
+        candidates.add(0)
+    return sorted(c for c in candidates if min_transfers <= c <= max_opt_transfers)
+
+
+def chip_half(gameweek: int) -> int:
+    """Which of the two chip-allocation halves a gameweek falls in - FPL has given
+    two of each chip (wildcard, free hit, bench boost, triple captain) per season
+    since 2023/24, one usable up to and including gameweek 19, a second from gameweek
+    20 onwards.
+    """
+    return 1 if gameweek <= 19 else 2
+
+
 def next_week_transfers(
     strat,
+    gameweek,
     max_total_hit=None,
     allow_unused_transfers=True,
     max_opt_transfers=2,
@@ -437,6 +462,10 @@ def next_week_transfers(
     strat is a tuple (free_transfers, total_points_hit, strat_dict)
     strat_dict must have key chips_played, which is a dict indexed by gameweek with
     possible values None, "wildcard", "free_hit", "bench_boost" or triple_captain"
+
+    gameweek - the gameweek this call is deciding transfers/chips for, used to check
+    chip reuse against the correct half of the season (see chip_half) - a chip can be
+    played once in each half, not just once ever.
 
     max_opt_transfers - maximum number of transfers to play each week as part of
     strategy in optimisation
@@ -469,9 +498,11 @@ def next_week_transfers(
         # Force at least 1 free transfer if a free transfer will be lost otherwise.
         # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
         # this function in that case.
-        ft_choices = list(range(1, max_opt_transfers + 1))
+        ft_choices = _transfer_count_candidates(
+            ft_available, max_opt_transfers, min_transfers=1
+        )
     else:
-        ft_choices = list(range(max_opt_transfers + 1))
+        ft_choices = _transfer_count_candidates(ft_available, max_opt_transfers)
 
     if max_total_hit is not None:
         ft_choices = [
@@ -480,25 +511,32 @@ def next_week_transfers(
             if hit_so_far + calc_points_hit(nt, ft_available) <= max_total_hit
         ]
 
+    # a chip can be played once per half of the season (see chip_half), not just
+    # once ever - so only chips played in the *same* half as `gameweek` count as used.
+    used_this_half = {
+        chip
+        for played_gw, chip in chip_history.items()
+        if chip and chip_half(played_gw) == chip_half(gameweek)
+    }
     allow_wildcard = (
         "chips_allowed" in chips
         and "wildcard" in chips["chips_allowed"]
-        and "wildcard" not in chip_history.values()
+        and "wildcard" not in used_this_half
     )
     allow_free_hit = (
         "chips_allowed" in chips
         and "free_hit" in chips["chips_allowed"]
-        and "free_hit" not in chip_history.values()
+        and "free_hit" not in used_this_half
     )
     allow_bench_boost = (
         "chips_allowed" in chips
         and "bench_boost" in chips["chips_allowed"]
-        and "bench_boost" not in chip_history.values()
+        and "bench_boost" not in used_this_half
     )
     allow_triple_captain = (
         "chips_allowed" in chips
         and "triple_captain" in chips["chips_allowed"]
-        and "triple_captain" not in chip_history.values()
+        and "triple_captain" not in used_this_half
     )
 
     # if we are definitely going to play a wildcard or free_hit deal with
@@ -558,7 +596,7 @@ def count_expected_outputs(
     * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
     are available), if allow_unused_transfers is False.
     * Make a maximum of max_opt_transfers transfers each gameweek.
-    * Each chip only allowed once.
+    * Each chip only allowed once per half of the season (see chip_half).
 
     Returns
     -------
@@ -584,6 +622,7 @@ def count_expected_outputs(
             chips_for_gw = chip_gw_dict.get(gw, {})
             possibilities = next_week_transfers(
                 s,
+                gw,
                 max_total_hit=max_total_hit,
                 max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,
