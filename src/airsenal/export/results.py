@@ -8,7 +8,6 @@ import pandas as pd
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 
@@ -43,7 +42,3 @@ def make_results(season: str) -> None:
 
     fixtures_df.to_csv(RESULTS_FILE.format(season), index=False)
     logger.info("Made results file for %s season!", season)
-
-
-if __name__ == "__main__":
-    make_results(CURRENT_SEASON)

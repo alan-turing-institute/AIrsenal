@@ -17,7 +17,7 @@ from multiprocessing.queues import JoinableQueue
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
-from airsenal.core.env import AIRSENAL_HOME
+from airsenal.core.env import airsenal_home
 
 if TYPE_CHECKING:
     from multiprocessing.sharedctypes import Synchronized
@@ -38,7 +38,7 @@ def stall_seconds() -> int:
 
 def stall_dump_dir() -> Path:
     """Where `StallWatchdog` writes its tracebacks."""
-    return AIRSENAL_HOME / "stalls"
+    return airsenal_home() / "stalls"
 
 
 def set_multiprocessing_start_method() -> None:

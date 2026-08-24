@@ -1,9 +1,9 @@
 """
-Fill the "player_prediction" table with score predictions
-Usage:
-python fill_predictedscore_table.py --n_gameweeks <nweeks>
-Generates a "tag" string which is stored so it can later be used by team-optimizers to
-get consistent sets of predictions from the database.
+Filling the player prediction table.
+
+Each run gets a "tag" of its own, stored alongside the rows it writes, so that
+an optimizer asked for a tag reads one consistent set of predictions rather than
+a mix of two runs.
 """
 
 from uuid import uuid4

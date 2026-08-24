@@ -8,7 +8,7 @@ import typer
 from airsenal.cli import options
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.logging import get_logger
-from airsenal.core.registry import lookup
+from airsenal.core.lookup import lookup
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import (
     get_gameweeks_array,

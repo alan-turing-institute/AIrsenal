@@ -2,8 +2,9 @@
 Objects that cross a process boundary must be picklable.
 
 The transfer optimiser runs a tree search across multiprocessing.Process workers and
-passes Squad objects over a queue; utils.fastcopy also round-trips them through pickle
-in the inner loop. A live SQLAlchemy Session cannot be pickled, so no object reachable
+passes Squad objects over a queue; `core.copy.fastcopy` also round-trips them through
+pickle in the inner loop. A live SQLAlchemy Session cannot be pickled, so no object
+reachable
 from a Squad may hold one - and resolving a session eagerly would open a database
 connection per candidate player anyway.
 """

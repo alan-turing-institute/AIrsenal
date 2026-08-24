@@ -1,12 +1,12 @@
 """
-Week by week, we will run this script to save the information we get from the FPL API on
-players that have a <100% chance of playing the next gameweek.
-This will make it easier in the future to replay the season.
+Saving the players the FPL API says have a <100% chance of playing next gameweek.
 
-The data is written in the same format as the existing `absences_yyyy.csv` files, which
-up until the 24/25 season were retrospectively created by scraping external websites.
-From 25/26 onwards the data is the actual FPL API data, but the columns are unchanged so
-that `fill_absence_table.load_absences` can read either.
+Run week by week (`airsenal run --save-absences`), so that a season can be
+replayed later. The data is written in the same format as the packaged
+`absences_yyyy.csv` files, which up until the 24/25 season were retrospectively
+created by scraping external websites. From 25/26 onwards it is the actual FPL
+API data, but the columns are unchanged so that `ingest.absences.load_absences`
+can read either.
 """
 
 import csv
@@ -16,12 +16,11 @@ from datetime import date, datetime
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.data_files import FilePath
+from airsenal.core.data_files import FilePath, absences_file
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session
-from airsenal.ingest.absences import get_absences_path
 
 logger = get_logger(__name__)
 
@@ -177,7 +176,7 @@ def save_absences(
     int: the number of rows actually written.
     """
     if path is None:
-        path = get_absences_path(season)
+        path = absences_file(season)
     existing = read_existing_keys(path)
     new_rows = [r for r in rows if (r["player"], r["from"]) not in existing]
 

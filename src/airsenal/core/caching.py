@@ -1,5 +1,5 @@
 """
-Registry of query caches, so they can all be dropped at once.
+The query caches, kept together so they can all be dropped at once.
 
 The rule these exist to support: **no `lru_cache` on a function that takes a
 `Session`**. A Session hashes by identity, so the cache key silently includes

@@ -438,7 +438,3 @@ def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
         n_tests,
         n_total_errors,
     )
-
-
-if __name__ == "__main__":
-    run_all_checks()

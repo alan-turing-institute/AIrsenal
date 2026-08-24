@@ -19,9 +19,9 @@ uv sync --extra dev
 ```bash
 uv run pytest tests
 # Single test file:
-uv run pytest tests/test_utils.py
+uv run pytest tests/db/test_queries.py
 # Single test:
-uv run pytest tests/test_utils.py::test_function_name
+uv run pytest tests/db/test_queries.py::test_function_name
 ```
 
 **Lint and format:**
@@ -64,17 +64,17 @@ Bottom of the chain, depended on by everything:
 
 - **`src/airsenal/core/`** — anything with no airsenal-specific dependencies: FPL's own
   rules (`scoring.py`, `enums.py`, `mappings.py`, `season.py`) and generic plumbing
-  (`console.py`, `logging.py`, `caching.py`, `concurrency.py`, `dates.py`, `env.py`,
-  `registry.py`, `data_files.py`). **If it does not import another airsenal module, it
-  belongs here.**
+  (`console.py`, `logging.py`, `caching.py`, `concurrency.py`, `copy.py`, `dates.py`,
+  `env.py`, `lookup.py`, `data_files.py`). **If it does not import another airsenal
+  module, it belongs here.**
 - **`src/airsenal/data/`** — static historical FPL data (multiple seasons, used to seed
   the database); resolve paths with `airsenal.core.data_files.data_file()`, never with
   `__file__`
 - **`src/airsenal/fetch/`** — everything that talks to an external source: the FPL API
   client and the Transfermarkt scraper
 - **`src/airsenal/db/`** — `models.py` (all the SQLAlchemy tables), `queries/` (reading
-  and writing them), `session.py`, `engine.py`, `admin.py`. This layer must not render
-  output or make network calls.
+  and writing them), `session.py`, `engine.py`. This layer must not render output or
+  make network calls.
 
 The pipeline stages, each depending only on what is below it:
 
@@ -154,7 +154,7 @@ the seam is in the wrong place.
 You do not have to register anything to use it: `AIrsenalPipeline` takes objects,
 so a model defined in a notebook can be dropped straight in. The table is only how
 a *name* on the command line reaches an implementation, and `lookup()` in
-`core/registry.py` is how a bad name becomes an error that lists the good ones.
+`core/lookup.py` is how a bad name becomes an error that lists the good ones.
 
 Settings belong to whichever component owns them - epsilon to the team model, the
 GA config to the squad optimizer, thread count to the transfer optimizer - not to
@@ -190,7 +190,7 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `optimization/squad_optimizers/genetic_algorithm.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
 | `core/enums.py` | `Position` and `Chip` |
-| `core/registry.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
+| `core/lookup.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
 
 ### Database
 

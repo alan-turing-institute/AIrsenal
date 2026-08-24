@@ -36,3 +36,8 @@ def get_teams_for_season(season: str, dbsession: Session) -> list[str]:
     """
     teams = dbsession.scalars(select(Team).where(Team.season == season)).all()
     return [t.name for t in teams]
+
+
+def database_is_empty(dbsession: Session) -> bool:
+    """Whether the database has been filled yet: no teams means nothing else either."""
+    return dbsession.scalars(select(Team).limit(1)).first() is None

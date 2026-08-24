@@ -33,7 +33,7 @@ from airsenal.db.queries.gameweeks import (
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.fetch.gameweeks import get_last_finished_gameweek
 
@@ -454,8 +454,3 @@ def make_playerscore_table(
             with data_file(f"player_details_{season}.json").open() as f:
                 input_data = json.load(f)
             fill_playerscores_from_json(input_data, season, dbsession=dbsession)
-
-
-if __name__ == "__main__":
-    with session_scope() as session:
-        make_playerscore_table(dbsession=session)

@@ -17,7 +17,7 @@ from airsenal.cli.predict import predict
 from airsenal.cli.replay import replay
 from airsenal.cli.run import run
 from airsenal.core.logging import configure_logging
-from airsenal.core.registry import ConfigError
+from airsenal.core.lookup import ConfigError
 
 app = typer.Typer(
     no_args_is_help=True,

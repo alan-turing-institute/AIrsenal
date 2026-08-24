@@ -10,7 +10,7 @@ from airsenal.core.logging import get_logger
 from airsenal.core.mappings import alternative_team_names
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import FifaTeamRating
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 
 logger = get_logger(__name__)
 
@@ -55,8 +55,3 @@ def make_fifa_ratings_table(
                     raise ValueError(msg)
                 dbsession.add(r)
     dbsession.commit()
-
-
-if __name__ == "__main__":
-    with session_scope() as session:
-        make_fifa_ratings_table(dbsession=session)

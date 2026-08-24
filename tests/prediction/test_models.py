@@ -4,7 +4,7 @@ import inspect
 
 import pytest
 
-from airsenal.core.registry import ConfigError
+from airsenal.core.lookup import ConfigError
 from airsenal.prediction.player_models import (
     PLAYER_MODELS,
     ConjugatePlayerConfig,

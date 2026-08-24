@@ -61,7 +61,3 @@ def main() -> None:
     scrape_transfermarkt([CURRENT_SEASON])
 
     logger.info("DONE!")
-
-
-if __name__ == "__main__":
-    main()

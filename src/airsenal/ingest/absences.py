@@ -1,11 +1,10 @@
 from datetime import datetime
-from pathlib import Path
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
-from airsenal.core.data_files import FilePath, data_file
+from airsenal.core.data_files import FilePath, absences_file
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Absence
@@ -19,17 +18,12 @@ from airsenal.db.session import get_session
 logger = get_logger(__name__)
 
 
-def get_absences_path(season: str) -> Path:
-    """Path of the absences csv file for a season."""
-    return data_file(f"absences_{season}.csv")
-
-
 def load_absences(
     season: str, dbsession: Session, path: FilePath | None = None
 ) -> None:
     logger.info("ABSENCES %s", season)
     if path is None:
-        path = get_absences_path(season)
+        path = absences_file(season)
     absences = pd.read_csv(path, parse_dates=["from", "until"])
 
     for _, row in track(

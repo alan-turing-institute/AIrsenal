@@ -85,7 +85,3 @@ def get_played_for(
         return fixture["team_a"]
     msg = f"Opponent {player_result['opponent_team']} not found in fixture {fixture}"
     raise KeyError(msg)
-
-
-if __name__ == "__main__":
-    make_player_details()

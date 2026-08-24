@@ -13,7 +13,7 @@ from airsenal.core.mappings import alternative_team_names
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import FPLDataFetcher
 
 
@@ -119,8 +119,3 @@ def make_fixture_table(
             )
     # gameweek lookups are cached, and every one of them reads this table
     clear_query_caches()
-
-
-if __name__ == "__main__":
-    with session_scope() as session:
-        make_fixture_table(dbsession=session)

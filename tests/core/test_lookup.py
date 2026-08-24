@@ -1,6 +1,6 @@
 import pytest
 
-from airsenal.core.registry import ConfigError, lookup
+from airsenal.core.lookup import ConfigError, lookup
 
 TABLE = {"basic": object, "other": object}
 

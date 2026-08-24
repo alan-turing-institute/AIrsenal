@@ -4,7 +4,8 @@ Looking an implementation up by name.
 Model and algorithm choices reach the code as strings from the command line. Each
 kind of component keeps a plain dict of name to zero-argument factory, typed
 against the protocol it satisfies, and looks entries up with `lookup` so that an
-unknown name is an error listing the valid ones.
+unknown name is an error listing the valid ones. There has been no registry
+since the tables replaced one, which is why this module is not called that.
 """
 
 from collections.abc import Mapping
@@ -15,7 +16,9 @@ class ConfigError(ValueError):
     An unusable name or option came from the command line.
 
     Distinct from a plain ValueError so the CLI can report it as a bad option
-    rather than as a crash, without also swallowing genuine bugs.
+    rather than as a crash (see `main_cli` in `cli/main.py`, which exits 2 on
+    one), without also swallowing genuine bugs. It is also what a team model
+    raises to reject an `--epsilon` it cannot honour.
     """
 
 

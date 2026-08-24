@@ -122,3 +122,10 @@ def session_scope() -> Iterator[Session]:
         raise
     finally:
         dbsession.close()
+
+
+def clean_database() -> None:
+    """Drop every table and create them again, empty."""
+    engine = get_engine()
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)

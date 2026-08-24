@@ -11,13 +11,13 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.caching import clear_query_caches
 from airsenal.core.console import console
 from airsenal.core.logging import get_logger
-from airsenal.db.admin import database_is_empty
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
     next_gameweek,
 )
 from airsenal.db.queries.players import list_players
+from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
 from airsenal.fetch.fpl_api import get_fetcher

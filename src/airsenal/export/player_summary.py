@@ -6,7 +6,6 @@ import json
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.season import get_past_seasons
 from airsenal.db.queries.gameweeks import is_future_gameweek
 
 logger = get_logger(__name__)
@@ -62,10 +61,3 @@ def make_player_summary(season: str) -> None:
 
     with open(SAVE_FILE.format(season), "w") as f:
         json.dump(player_summaries, f)
-
-
-if __name__ == "__main__":
-    for season in get_past_seasons(3):
-        logger.info("---- MAKING PLAYER SUMMARIES FOR %s SEASON ----", season)
-        make_player_summary(season)
-    logger.info("---- DONE ----")

@@ -7,12 +7,20 @@ from typing import Concatenate
 
 from platformdirs import user_data_dir
 
-# Cross-platform data directory
+# Cross-platform data directory. Resolved at import (it cannot change within a
+# process) but *not* created: practically every module imports this one
+# transitively, so `os.makedirs` here meant that importing anything at all
+# created a directory. Call `airsenal_home()` when you are about to write.
 if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
     AIRSENAL_HOME = Path(user_data_dir("airsenal"))
-os.makedirs(AIRSENAL_HOME, exist_ok=True)
+
+
+def airsenal_home() -> Path:
+    """The directory AIrsenal keeps its own files in, created on first use."""
+    AIRSENAL_HOME.mkdir(parents=True, exist_ok=True)
+    return AIRSENAL_HOME
 
 
 AIRSENAL_ENV_KEYS = [
@@ -48,7 +56,7 @@ def check_valid_key[**P, R](
 
 @check_valid_key
 def save_env(key: str, value: str) -> None:
-    with open(AIRSENAL_HOME / key, "w") as f:
+    with open(airsenal_home() / key, "w") as f:
         f.write(value)
 
 
@@ -83,8 +91,10 @@ except ValueError as e:
 
 FPL_LOGIN = get_env("FPL_LOGIN", str)
 FPL_PASSWORD = get_env("FPL_PASSWORD", str)
+# Resolved once here for the callers that only read them at start-up. Anything
+# that has to see an `airsenal env set` made in the same process - the database
+# connection string, the Discord webhook - calls `get_env` instead.
 AIRSENAL_DB_FILE = get_env("AIRSENAL_DB_FILE", str)
 AIRSENAL_DB_URI = get_env("AIRSENAL_DB_URI", str)
 AIRSENAL_DB_USER = get_env("AIRSENAL_DB_USER", str)
 AIRSENAL_DB_PASSWORD = get_env("AIRSENAL_DB_PASSWORD", str)
-DISCORD_WEBHOOK = get_env("DISCORD_WEBHOOK", str)

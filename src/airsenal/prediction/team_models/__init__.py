@@ -13,7 +13,7 @@ whose factories are not zero-argument.
 
 from collections.abc import Callable
 
-from airsenal.core.registry import lookup
+from airsenal.core.lookup import lookup
 from airsenal.prediction.protocols import TeamModel
 
 # Which model a command uses when it is not told. Named here because the CLI, the

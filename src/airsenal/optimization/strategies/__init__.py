@@ -9,7 +9,7 @@ progress-bar sizing, and the two could disagree.
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
-from airsenal.core.registry import lookup
+from airsenal.core.lookup import lookup
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     Proposal,

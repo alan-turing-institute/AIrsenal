@@ -5,8 +5,8 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import console
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
-from airsenal.db.admin import clean_database, database_is_empty
-from airsenal.db.session import session_scope
+from airsenal.db.queries.teams import database_is_empty
+from airsenal.db.session import clean_database, session_scope
 from airsenal.fetch.fpl_api import get_fetcher
 from airsenal.ingest.absences import make_absence_table
 from airsenal.ingest.fifa_ratings import make_fifa_ratings_table

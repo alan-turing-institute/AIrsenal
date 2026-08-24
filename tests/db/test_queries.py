@@ -1,6 +1,4 @@
-"""
-test some db access helper functions
-"""
+"""The database query helpers: looking a player or a gameweek up."""
 
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import (

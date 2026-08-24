@@ -40,3 +40,14 @@ def data_dir() -> Path:
 def data_file(*parts: str) -> Path:
     """A packaged data file, e.g. `data_file(f"results_{season}.csv")`."""
     return data_dir().joinpath(*parts)
+
+
+def absences_file(season: str) -> Path:
+    """
+    The absences CSV for a season.
+
+    Named here rather than in `ingest/absences.py` because `export/absences.py`
+    writes the same file, and reaching down into the ingest module for the path
+    was the only thing making export depend on ingest.
+    """
+    return data_file(f"absences_{season}.csv")

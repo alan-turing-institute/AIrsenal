@@ -24,8 +24,9 @@ env.AIRSENAL_HOME = Path(mkdtemp())
 # AIRSENAL_DB_FILE/URI/USER/PASSWORD are resolved once, at env.py import time, from
 # whatever real AIRSENAL_HOME/env vars are set on the machine running the tests -
 # overriding AIRSENAL_HOME above does not change them. Reset them here too, so
-# schema.py (imported below) can never bind its default session to a real,
-# already-persisted database instead of a fresh one under the temp AIRSENAL_HOME.
+# nothing can bind its default session to a real, already-persisted database
+# instead of a fresh one under the temp AIRSENAL_HOME. `db/engine.py` reads
+# these through the module, so replacing them here is enough.
 env.AIRSENAL_DB_FILE = None
 env.AIRSENAL_DB_URI = None
 env.AIRSENAL_DB_USER = None

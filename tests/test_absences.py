@@ -12,6 +12,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
+from airsenal.core.data_files import absences_file
 from airsenal.db.models import Absence, Base, Fixture, Player, PlayerAttributes
 from airsenal.export.absences import (
     ABSENCE_CSV_COLUMNS,
@@ -20,7 +21,7 @@ from airsenal.export.absences import (
     player_attribute_to_row,
     save_absences,
 )
-from airsenal.ingest.absences import get_absences_path, load_absences
+from airsenal.ingest.absences import load_absences
 
 TEST_SEASON = "2526"
 TEAM = "ARS"
@@ -190,7 +191,7 @@ def test_save_absences_does_not_write_duplicates(dbsession, tmp_path):
 
 def test_reader_and_writer_agree_on_the_path():
     """Both modules resolve the csv path through the same helper."""
-    assert get_absences_path(TEST_SEASON).name == f"absences_{TEST_SEASON}.csv"
+    assert absences_file(TEST_SEASON).name == f"absences_{TEST_SEASON}.csv"
 
 
 def test_absence_dates_are_stored_as_iso_strings(dbsession, tmp_path):

@@ -14,9 +14,9 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.predictions import get_transfer_suggestions
 from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.reporting.suggestions import get_transfer_suggestions
 from airsenal.squad.history import get_starting_squad
 from airsenal.squad.state import get_bank
 

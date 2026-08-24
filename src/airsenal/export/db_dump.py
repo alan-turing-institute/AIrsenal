@@ -206,8 +206,3 @@ def write_rows_to_csv(
         }
 
         writer.writerow(row)
-
-
-if __name__ == "__main__":
-    logger.info(" ==== dumping database contents === ")
-    main()

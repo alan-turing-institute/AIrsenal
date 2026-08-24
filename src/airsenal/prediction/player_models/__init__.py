@@ -12,7 +12,7 @@ so a model defined in a notebook can be dropped straight in.
 
 from collections.abc import Callable
 
-from airsenal.core.registry import lookup
+from airsenal.core.lookup import lookup
 from airsenal.prediction.player_models.conjugate import (
     ConjugatePlayerConfig,
     ConjugatePlayerModel,

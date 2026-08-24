@@ -9,7 +9,7 @@ from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Team
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 
 
 def fill_team_table_from_file(
@@ -47,8 +47,3 @@ def make_team_table(
         seasons += get_past_seasons(3)
     for season in track(sort_seasons(seasons), description="TEAMS"):
         fill_team_table_from_file(data_file(f"teams_{season}.csv"), dbsession=dbsession)
-
-
-if __name__ == "__main__":
-    with session_scope() as session:
-        make_team_table(dbsession=session)

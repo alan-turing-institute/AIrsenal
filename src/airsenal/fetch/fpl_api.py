@@ -21,7 +21,6 @@ from typing import Any, overload
 from curl_cffi import requests
 
 from airsenal.core.env import (
-    DISCORD_WEBHOOK,
     FPL_LEAGUE_ID,
     FPL_LOGIN,
     FPL_PASSWORD,
@@ -95,7 +94,6 @@ class FPLDataFetcher:
         self.FPL_LOGIN = FPL_LOGIN
         self.FPL_PASSWORD = FPL_PASSWORD
         self.FPL_LEAGUE_ID = FPL_LEAGUE_ID
-        self.DISCORD_WEBHOOK = DISCORD_WEBHOOK
 
         self.FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
         self.FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
@@ -715,9 +713,9 @@ def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     The shared FPL API client, created on first use.
 
     Cached so that callers keep hitting the same instance and therefore the same
-    response cache; a fresh FPLDataFetcher would re-request everything. This lives
-    here rather than in utils so that lower layers can reach the client without
-    importing utils, which is what made utils the package's import chokepoint.
+    response cache; a fresh FPLDataFetcher would re-request everything. It lives
+    beside the client rather than a layer up, so that anything above `fetch` can
+    reach it without importing something that imports everything.
     """
     return FPLDataFetcher(fpl_team_id)
 

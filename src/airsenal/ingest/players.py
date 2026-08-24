@@ -11,7 +11,7 @@ from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Player, PlayerMapping
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import FPLDataFetcher
 from airsenal.ingest.player_mappings import (
     add_mappings,
@@ -142,8 +142,3 @@ def make_player_table(
     make_init_player_table(season=seasons[0], dbsession=dbsession)
     make_player_mappings_table(dbsession=dbsession)
     make_remaining_player_table(seasons=seasons[1:], dbsession=dbsession)
-
-
-if __name__ == "__main__":
-    with session_scope() as session:
-        make_player_table(dbsession=session)

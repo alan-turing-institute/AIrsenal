@@ -200,7 +200,3 @@ def main() -> None:
         return
 
     save_attributes_from_api(now, fetcher)
-
-
-if __name__ == "__main__":
-    main()

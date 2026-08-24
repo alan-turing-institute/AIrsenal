@@ -5,6 +5,8 @@ Fill the "Player" table with info from this and past seasonss FPL
 import json
 from typing import Any
 
+import dateparser
+import regex as re
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
@@ -14,18 +16,50 @@ from airsenal.core.mappings import positions
 from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import PlayerAttributes
 from airsenal.db.queries.fixtures import find_fixture, get_player_team_from_fixture
-from airsenal.db.queries.gameweeks import get_next_gameweek
+from airsenal.db.queries.gameweeks import (
+    get_next_gameweek,
+    get_return_gameweek_by_date,
+)
 from airsenal.db.queries.players import (
     get_player,
     get_player_attributes,
     get_player_from_api_id,
 )
 from airsenal.db.queries.teams import get_team_name
-from airsenal.db.session import get_session, session_scope
+from airsenal.db.session import get_session
 from airsenal.fetch.fpl_api import FPLDataFetcher
-from airsenal.prediction.absence import get_return_gameweek_from_news
 
 logger = get_logger(__name__)
+
+
+# Reading a return date out of FPL news text. Its only consumer is below,
+# and nothing in `prediction/` ever used it.
+def get_return_gameweek_from_news(
+    news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> int | None:
+    """
+    Parse news strings from the FPL API for the return date of injured or
+    suspended players. If a date is found, determine and return the gameweek it
+    corresponds to.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
+    search_results = re.search(rd_rex, news)
+    if not search_results:
+        return None
+
+    return_str = search_results.groups()[1]
+    # return_str should be a day and month string (without year)
+
+    # create a date in the future from the day and month string
+    return_date = dateparser.parse(return_str, settings={"PREFER_DATES_FROM": "future"})
+    if not return_date:
+        msg = f"Failed to parse date from string '{return_date}'"
+        raise ValueError(msg)
+
+    return get_return_gameweek_by_date(
+        return_date.date(), team=team, season=season, dbsession=dbsession
+    )
 
 
 def fill_attributes_table_from_file(
@@ -268,8 +302,3 @@ def make_attributes_table(
                 detail_data=input_data, season=season, dbsession=dbsession
             )
     dbsession.commit()
-
-
-if __name__ == "__main__":
-    with session_scope() as dbsession:
-        make_attributes_table(dbsession=dbsession)

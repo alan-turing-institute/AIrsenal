@@ -13,8 +13,8 @@ from typing import Any
 
 from curl_cffi import requests
 
+from airsenal.core.env import get_env
 from airsenal.core.logging import get_logger
-from airsenal.fetch.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 
@@ -24,8 +24,15 @@ WEBHOOK_URL_PATTERN = re.compile(
 
 
 def get_webhook_url() -> str | None:
-    """The configured webhook URL, or None if there isn't one."""
-    return get_fetcher().DISCORD_WEBHOOK or None
+    """
+    The configured webhook URL, or None if there isn't one.
+
+    Read from the environment directly. It used to construct the whole FPL API
+    client to reach `FPLDataFetcher.DISCORD_WEBHOOK`, which copies this same
+    value - and that one line was the only reason `reporting` depended on
+    `fetch`.
+    """
+    return get_env("DISCORD_WEBHOOK", str) or None
 
 
 def post_webhook(payload: dict[str, Any], webhook_url: str | None = None) -> bool:

@@ -2,7 +2,7 @@ import pytest
 from typer.testing import CliRunner
 
 from airsenal.cli.main import app
-from airsenal.core.registry import ConfigError
+from airsenal.core.lookup import ConfigError
 from airsenal.prediction.player_models import (
     PLAYER_MODELS,
     build_player_model,

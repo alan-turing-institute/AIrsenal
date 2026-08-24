@@ -1,6 +1,6 @@
 """Reading predicted points back out of the database."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from operator import itemgetter
 
 from sqlalchemy import select
@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.db.models import Fixture, Player, PlayerPrediction
+from airsenal.db.models import Fixture, Player, PlayerPrediction, TransferSuggestion
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.queries.players import get_player, list_players
 from airsenal.db.session import get_session
@@ -139,3 +139,35 @@ def get_predicted_points(
     output_list = [(p, points_by_player.get(p.player_id, 0.0)) for p in players]
     output_list.sort(key=itemgetter(1), reverse=True)
     return output_list
+
+
+def get_transfer_suggestions(
+    dbsession: Session,
+    gameweek: int | None = None,
+    season: str | None = None,
+    fpl_team_id: int | None = None,
+) -> Sequence[TransferSuggestion]:
+    """
+    The rows of the most recent transfer suggestion, optionally filtered.
+
+    One row per player in-or-out per gameweek; rows belonging to the same
+    suggested plan share a timestamp, which is how the latest one is picked out.
+    """
+    last_timestamp = dbsession.scalars(
+        select(TransferSuggestion.timestamp).order_by(
+            TransferSuggestion.timestamp.desc()
+        )
+    ).first()
+    if last_timestamp is None:
+        return []
+    query = select(TransferSuggestion).where(
+        TransferSuggestion.timestamp == last_timestamp
+    )
+    if gameweek:
+        query = query.where(TransferSuggestion.gameweek == gameweek)
+    if season:
+        query = query.where(TransferSuggestion.season == season)
+    if fpl_team_id:
+        query = query.where(TransferSuggestion.fpl_team_id == fpl_team_id)
+
+    return dbsession.scalars(query.order_by(TransferSuggestion.gameweek)).all()

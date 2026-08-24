@@ -4,8 +4,8 @@ from typing import Annotated
 
 import typer
 
+from airsenal.cli.diagnostics import print_env
 from airsenal.core.env import AIRSENAL_ENV_KEYS, delete_env, get_env, save_env
-from airsenal.reporting.diagnostics import print_env
 
 app = typer.Typer(
     no_args_is_help=True, help="Configure AIrsenal environment variables."

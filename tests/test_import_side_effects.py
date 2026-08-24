@@ -1,11 +1,11 @@
 """
 Importing a module must not talk to the network or open a database.
 
-airsenal used to do both at import time: schema.py created an engine and ran
-create_all at module scope, and utils.py computed a NEXT_GAMEWEEK constant with a DB
-query that fell back to a live FPL API call when the database was empty. 46 of 58
-modules could not be imported with the database blocked, and the test suite could not
-be collected without network access.
+airsenal used to do both at import time: the schema module created an engine and ran
+create_all at module scope, and a NEXT_GAMEWEEK constant was computed with a DB query
+that fell back to a live FPL API call when the database was empty. 46 of 58 modules
+could not be imported with the database blocked, and the test suite could not be
+collected without network access.
 
 These tests are the objective definition of "the package imports cleanly". They run in
 a subprocess because an in-process check is defeated by everything conftest has already
