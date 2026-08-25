@@ -1,6 +1,4 @@
-"""
-___init__.py for airsenal
-"""
+"""AIrsenal: an AI manager for Fantasy Premier League."""
 
 from importlib.metadata import version
 

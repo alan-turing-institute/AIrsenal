@@ -35,7 +35,7 @@ from airsenal.optimization.protocols import (
     TransferConstraints,
     TransferOptimizer,
 )
-from airsenal.optimization.run_squad import fill_initial_squad
+from airsenal.optimization.run_squad import build_new_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.squad_score import SquadScoringConfig
@@ -155,7 +155,7 @@ class AIrsenalPipeline:
         set_multiprocessing_start_method()
         if self._is_new_squad(fpl_team_id, gameweeks):
             logger.info("[bold]Generating Squad[/bold]")
-            return fill_initial_squad(
+            return build_new_squad(
                 tag=tag,
                 gameweeks=gameweeks,
                 season=self.settings.season,

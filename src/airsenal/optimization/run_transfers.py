@@ -27,7 +27,7 @@ from airsenal.optimization.protocols import (
     TransferOptimizer,
     TransferSearchRequest,
 )
-from airsenal.optimization.run_squad import fill_initial_squad
+from airsenal.optimization.run_squad import build_new_squad
 from airsenal.optimization.squad_optimizers import (
     GeneticSquadOptimizer,
 )
@@ -183,7 +183,7 @@ def new_squad_from_scratch(
     """
     if squad_optimizer is None:
         squad_optimizer = GeneticSquadOptimizer()
-    return fill_initial_squad(
+    return build_new_squad(
         tag=tag,
         gameweeks=gameweeks,
         season=season,

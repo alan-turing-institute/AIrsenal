@@ -32,7 +32,7 @@ from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gamew
 logger = get_logger(__name__)
 
 
-def fill_initial_squad(
+def record_initial_squad_transactions(
     season: str = CURRENT_SEASON,
     tag: str = "AIrsenal" + CURRENT_SEASON,
     fpl_team_id: int | None = None,
@@ -42,6 +42,10 @@ def fill_initial_squad(
     Fill the Transactions table in the database with the initial 15 players, and their
     costs, getting the information from the team history API endpoint (for the list of
     players in our team) and the player history API endpoint (for their price in gw1).
+
+    Not to be confused with `optimization.run_squad.build_new_squad`, which the
+    two shared the name `fill_initial_squad` with: that one runs an optimizer to
+    choose fifteen players, this one records fifteen that were already chosen.
     """
 
     dbsession = dbsession if dbsession is not None else get_session()
@@ -130,7 +134,7 @@ def update_squad(
     ).all()
     if len(existing_transfers) == 0:
         # need to put the initial squad into the db
-        fill_initial_squad(
+        record_initial_squad_transactions(
             season=season, tag=tag, fpl_team_id=fpl_team_id, dbsession=dbsession
         )
     # now update with transfers

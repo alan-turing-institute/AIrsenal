@@ -1,4 +1,11 @@
-"""Running a from-scratch squad build: everything around the optimizer itself."""
+"""
+Running a from-scratch squad build: everything around the optimizer itself.
+
+`build_new_squad` chooses fifteen players and reports what it chose. It shared
+the name `fill_initial_squad` with `squad.history`, which records fifteen
+players the FPL entry had already been given - a different job in a different
+layer.
+"""
 
 from airsenal.core.console import console, progress_bar
 from airsenal.core.enums import Chip
@@ -41,7 +48,7 @@ def _chip_label(chips: ChipWeeks, gameweek: int) -> str | None:
     return str(chip) if chip in (Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN) else None
 
 
-def fill_initial_squad(
+def build_new_squad(
     tag: str,
     gameweeks: list[int],
     season: str,

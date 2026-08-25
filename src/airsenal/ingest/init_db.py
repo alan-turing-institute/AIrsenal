@@ -16,7 +16,7 @@ from airsenal.ingest.players import make_player_table
 from airsenal.ingest.results import make_result_table
 from airsenal.ingest.teams import make_team_table
 from airsenal.remote.fpl_api import get_fetcher
-from airsenal.squad.history import fill_initial_squad
+from airsenal.squad.history import record_initial_squad_transactions
 
 logger = get_logger(__name__)
 
@@ -51,7 +51,9 @@ def make_init_db(
             if fpl_team_id is None:
                 msg = "FPL team ID must be specified in args, config, or env"
                 raise ValueError(msg)
-            fill_initial_squad(fpl_team_id=fpl_team_id, dbsession=dbsession)
+            record_initial_squad_transactions(
+                fpl_team_id=fpl_team_id, dbsession=dbsession
+            )
 
     logger.info("DONE!")
     return not database_is_empty(dbsession)
