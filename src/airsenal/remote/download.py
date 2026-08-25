@@ -24,10 +24,8 @@ def download_with_resume(
     header answers 200 rather than 206, in which case the partial file is
     discarded and written from the start.
 
-    Raises
-    ------
-    RemoteError
-        If every attempt fails.
+    Raises:
+        RemoteError: If every attempt fails.
     """
     dest.parent.mkdir(parents=True, exist_ok=True)
     session = requests.Session()

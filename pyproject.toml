@@ -142,6 +142,11 @@ select = [
   "TC",          # flake8-type-checking
   "N",           # pep8-naming
   "TID251",      # flake8-tidy-imports: banned-api (see below)
+  # pydocstyle, only the rules that pin section syntax to Google style. Not the
+  # whole D family: D1xx would require a docstring on everything, D417 would
+  # require every parameter documented once any are, and both push towards
+  # docstrings that restate the signature.
+  "D405", "D410", "D411", "D412", "D414", "D416", "D418",
 ]
 ignore = [
   # PLR0913/0917/0912/0915 (too many arguments, branches, statements) are
@@ -169,6 +174,9 @@ flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwa
 # broken on every version below 3.14. Quote the one-off self-reference instead.
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "__future__.annotations".msg = "Quote the annotation, or import the name at runtime."
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.

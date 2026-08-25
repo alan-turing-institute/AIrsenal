@@ -66,19 +66,13 @@ def get_next_gameweek(
     Recomputed on every call. Prefer `next_gameweek`, which caches the result for the
     lifetime of the process.
 
-    Parameters
-    ==========
-    season: str
-    dbsession: Session or None
-    fetcher: FPLDataFetcher or None
-        Only consulted when the database holds no fixtures for the season, which
-        happens when the database has not been populated yet. If it is None in that
-        situation, NoFixtureDataError is raised rather than an HTTP request made.
+    Args:
+        fetcher: Only consulted when the database holds no fixtures for the season,
+            which happens when the database has not been populated yet.
 
-    Raises
-    ======
-    NoFixtureDataError
-        The database has no fixtures for the season and no fetcher was given.
+    Raises:
+        NoFixtureDataError: The database has no fixtures for the season and no
+            fetcher was given, so there is nothing to fall back on.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     timenow = datetime.now(UTC)

@@ -152,15 +152,11 @@ class StallWatchdog:
     not stalled - that is most of them, most of the way through a run, and
     treating it as a stall would bury the one dump that matters.
 
-    Parameters
-    ----------
-    name : str
-        Used in the dump's filename, e.g. ``worker-3``.
-    seconds : int or None
-        How long one task may take before it counts as stalled. Defaults to
-        ``AIRSENAL_STALL_SECONDS``, or `DEFAULT_STALL_SECONDS`.
-    directory : Path or None
-        Where to write dumps. Defaults to `stall_dump_dir()`.
+    Args:
+        name: Used in the dump's filename, e.g. `worker-3`.
+        seconds: How long one task may take before it counts as stalled. Defaults
+            to `AIRSENAL_STALL_SECONDS`, or `DEFAULT_STALL_SECONDS`.
+        directory: Where to write dumps. Defaults to `stall_dump_dir()`.
     """
 
     def __init__(

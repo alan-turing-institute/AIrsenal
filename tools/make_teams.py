@@ -2,7 +2,7 @@ import pandas as pd
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)

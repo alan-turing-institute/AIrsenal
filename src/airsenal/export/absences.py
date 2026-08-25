@@ -45,17 +45,13 @@ INJURY_KEYWORDS = ("injur", "knock", "strain", "problem", "surgery", "ill", "vir
 
 def classify_reason(news: str | None) -> str:
     """
-    Map FPL API news text onto one of the high-level reasons used in the
-    absences_yyyy.csv files ("injury", "suspension", "absence").
+    Map the FPL API's news text onto a reason for the absences_yyyy.csv files.
 
-    Parameters
-    ==========
-    news: str or None
-        The `news` field from the FPL API, e.g. "Knee injury - Expected back 25 Dec".
+    Args:
+        news: The API's `news` field, e.g. "Knee injury - Expected back 25 Dec".
 
-    Returns
-    =======
-    str: one of "injury", "suspension" or "absence".
+    Returns:
+        One of "injury", "suspension" or "absence".
     """
     if not news:
         return "absence"
@@ -74,15 +70,8 @@ def get_gameweek_start_date(
     Date of the earliest fixture in a gameweek, used as the start (or end) date of an
     absence that the FPL API only gives us in gameweeks.
 
-    Parameters
-    ==========
-    gameweek: int
-    season: str
-    dbsession: Session
-
-    Returns
-    =======
-    date or None if the gameweek has no scheduled fixtures.
+    Returns:
+        None if the gameweek has no scheduled fixtures.
     """
     dates = dbsession.scalars(
         select(Fixture.date).where(
@@ -114,15 +103,9 @@ def player_attribute_to_row(
     Convert a PlayerAttributes row, which has the FPL API's view of a player's
     unavailability, into a row of the absences csv file.
 
-    Parameters
-    ==========
-    player_attribute: PlayerAttributes
-    dbsession: Session
-
-    Returns
-    =======
-    dict of csv column name to value, or None if the absence has no usable start date
-    (load_absences skips such rows anyway).
+    Returns:
+        Csv column name to value, or None if the absence has no usable start date -
+        `load_absences` skips such rows anyway.
     """
     season = player_attribute.season
     date_from = get_gameweek_start_date(player_attribute.gameweek, season, dbsession)
@@ -171,9 +154,8 @@ def save_absences(
     Append rows to the absences_yyyy.csv file, creating it with a header if needed and
     skipping rows already present.
 
-    Returns
-    =======
-    int: the number of rows actually written.
+    Returns:
+        The number of rows actually written.
     """
     if path is None:
         path = absences_file(season)

@@ -31,11 +31,6 @@ def configure_logging(level: int | str = logging.INFO) -> None:
     Designed for a CLI user reading a terminal, not an operator reading a log
     file: no timestamps, logger names, or file paths - just the message,
     colour-coded by level, with Rich markup in the message rendered.
-
-    Parameters
-    ----------
-    level : int | str
-        Minimum level to display (e.g. ``logging.DEBUG`` or ``"DEBUG"``).
     """
     handler = RichHandler(
         console=console,

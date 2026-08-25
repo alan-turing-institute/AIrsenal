@@ -23,11 +23,7 @@ CHECK_SEASONS = [CURRENT_SEASON, *get_past_seasons(3)]
 
 
 def result_string(n_error: int) -> str:
-    """make string representing check result
-
-    Arguments:
-        n_error {int} -- number of errors encountered during check
-    """
+    """Summarise a check's outcome as "OK!" or a count of errors."""
     if n_error == 0:
         return "OK!"
     return f"FAIL! {n_error} errors."
@@ -36,11 +32,7 @@ def result_string(n_error: int) -> str:
 def season_num_teams(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check whether each season has 20 teams.
-
-    Keyword Arguments:
-        seasons {list} -- seasons to check (default: {CHECK_SEASONS})
-    """
+    """Check whether each season has 20 teams."""
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 20 teams...")
     n_error = 0
@@ -59,11 +51,7 @@ def season_num_teams(
 def season_num_new_teams(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check each season has 3 new teams.
-
-    Keyword Arguments:
-        seasons {list} -- seasons to check (default: {CHECK_SEASONS})
-    """
+    """Check each season has 3 new teams."""
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 3 new teams...")
     n_error = 0
@@ -87,13 +75,7 @@ def season_num_new_teams(
 def season_num_fixtures(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check each season has 380 fixtures.
-
-    Keyword Arguments:
-        seasons {list} -- seasons to check (default: CHECK_SEASONS)
-        dbsession {SQLAlchemy session} -- DB session (default:
-        airsenal.db.session.get_session())
-    """
+    """Check each season has 380 fixtures."""
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking seasons have 380 fixtures...")
     n_error = 0

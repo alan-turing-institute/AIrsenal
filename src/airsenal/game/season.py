@@ -22,36 +22,16 @@ CURRENT_SEASON = get_current_season()
 
 
 def season_str_to_year(season: str) -> int:
-    """Convert season in "1819" format to the year the season started (2018)
-
-    Parameters
-    ----------
-    season : str
-        Season string in "1819" format (for 2018/19 season)
-
-    Returns
-    -------
-    int
-        Year season started
-    """
+    """Convert a season in "1819" format to the year it started (2018)."""
     return int(f"20{season[:2]}")
 
 
 def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
-    """_summary_
+    """
+    Sort season strings in "1819" format chronologically.
 
-    Parameters
-    ----------
-    seasons : List[str]
-        List of seasons strings in "1819" formrat (for 2018/19 season)
-
-    desc : bool , optional
-        If True, sort from most recent season to oldest. By default True.
-
-    Returns
-    -------
-    List[str]
-        Seasons sorted in chronological order (by default from most recent to oldest)
+    Args:
+        desc: If True, the default, most recent season first.
     """
     return sorted(seasons, key=season_str_to_year, reverse=desc)
 

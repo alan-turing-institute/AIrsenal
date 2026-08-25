@@ -5,8 +5,8 @@ Find multiple players with the same name in the same season using player summary
 import pandas as pd
 
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.export.player_summary import SAVE_FILE as SUMMARY_FILE
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

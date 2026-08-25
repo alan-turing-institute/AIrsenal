@@ -99,11 +99,9 @@ def configure_database(connection_string: str | None = None) -> None:
     """
     Point the package at a database, discarding any existing engine and session.
 
-    Parameters
-    ==========
-    connection_string: str or None
-        A SQLAlchemy connection string. If None, the string is resolved from the
-        environment by `get_connection_string` on next use.
+    Args:
+        connection_string: A SQLAlchemy connection string. If None, the string is
+            resolved from the environment by `get_connection_string` on next use.
     """
     _db.reset(connection_string)
     # cached query answers describe the database we were pointed at before

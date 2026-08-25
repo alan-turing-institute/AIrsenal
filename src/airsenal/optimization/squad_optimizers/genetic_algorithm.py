@@ -86,35 +86,19 @@ def _ensure_deap_types() -> None:
 
 
 class SquadOpt:
-    """DEAP-based optimization class for optimising a fantasy football squad
+    """
+    DEAP-based optimization of a fantasy football squad.
 
-    Parameters
-    ----------
-    gameweeks : list
-        Gameweeks to optimize squad for
-    tag : str
-        Points prediction tag to use
-    budget : int, optional
-        Total budget for squad times 10,  by default 1000
-    players_per_position : dict
-        No. of players to optimize in each position, by default
-        airsenal.squad.squad.TOTAL_PER_POSITION
-    season : str
-        Season to optimize for, by default airsenal.game.season.CURRENT_SEASON
-    bench_boost_gw : int
-        Gameweek to play bench boost, by default None
-    triple_captain_gw : int
-        Gameweek to play triple captain, by default None,
-    remove_zero : bool
-        If True don't consider players with predicted pts of zero, by default True
-    sub_weights : SubWeights
-        Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.squad.squad.
-    dummy_sub_cost : int, optional
-        If not optimizing a full squad the price of each player that is not being
-        optimized. For example, if you are optimizing 12 out of 15 players, the
-        effective budget for optimizing the squad will be
-        budget - (15 -12) * dummy_sub_cost, by default 45
+    Args:
+        budget: Total squad budget in tenths of a million, so 1000 is £100m.
+        players_per_position: How many players to optimize in each position.
+            Anything short of a full squad leaves the rest as dummies.
+        remove_zero: If True, players with a predicted total of zero points are
+            not considered at all.
+        sub_weights: How much a substitute's points are worth relative to a
+            starter's; see `airsenal.squad.squad`.
+        dummy_sub_cost: Price assumed for each player not being optimized, so
+            optimizing 12 of 15 leaves `budget - 3 * dummy_sub_cost` to spend.
     """
 
     def __init__(
@@ -333,20 +317,13 @@ class SquadOpt:
         """
         Run the genetic algorithm.
 
-        Parameters
-        ----------
-        config : GeneticAlgorithmConfig, optional
-            Population size, generations, operator probabilities and seed. Defaults
-            to GeneticAlgorithmConfig(); see airsenal.optimization.config.
-        on_generation : GenerationReporter, optional
-            Called after each generation with the best fitness so far. Given one,
-            the search is run a generation at a time so that it can report; the
-            result is the same either way. See `_run_generations`.
+        Args:
+            on_generation: Called after each generation with the best fitness so
+                far. Given one, the search is run a generation at a time so that
+                it can report; the result is the same either way.
 
-        Returns
-        -------
-        tuple[list[int], float]
-            The best individual found and its fitness.
+        Returns:
+            The best individual found, and its fitness.
         """
         config = config if config is not None else GeneticAlgorithmConfig()
         if config.random_state is not None:
@@ -455,48 +432,17 @@ def make_new_squad(
     on_generation: GenerationReporter | None = None,
     dbsession: Session | None = None,
 ) -> Squad:
-    """Optimize a full initial squad using DEAP genetic algorithm.
+    """
+    Optimize a full initial squad using the DEAP genetic algorithm.
 
-    Parameters
-    ----------
-    gameweeks : list
-        Gameweeks to optimize squad for
-    tag : str
-        Points prediction tag to use
-    budget : int, optional
-        Total budget for squad times 10,  by default 1000
-    players_per_position : dict
-        No. of players to optimize in each position, by default
-        airsenal.squad.squad.TOTAL_PER_POSITION
-    season : str
-        Season to optimize for, by default airsenal.game.season.CURRENT_SEASON
-    bench_boost_gw : int
-        Gameweek to play bench boost, by default None
-    triple_captain_gw : int
-        Gameweek to play triple captain, by default None,
-    remove_zero : bool
-        If True don't consider players with predicted pts of zero, by default True
-    sub_weights : SubWeights
-        Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.squad.squad.
-    dummy_sub_cost : int, optional
-        If not optimizing a full squad the price of each player that is not being
-        optimized. For example, if you are optimizing 12 out of 15 players, the
-        effective budget for optimizing the squad will be
-        budget - (15 -12) * dummy_sub_cost, by default 45
-    ga_config : GeneticAlgorithmConfig, optional
-        Genetic algorithm settings, including whether DEAP prints its own
-        per-generation logbook; see
-        airsenal.optimization.squad_optimizers.genetic.
-    on_generation : GenerationReporter, optional
-        Called after each generation with the best score so far, for a caller
-        that wants to show progress. An alternative to the config's `verbose`,
-        which prints DEAP's own per-generation logbook instead.
+    Everything up to `dummy_sub_cost` is passed straight to `SquadOpt`, which
+    documents it. Beyond that:
 
-    Returns
-    -------
-    airsenal.squad.squad.Squad
-        The optimized squad
+    Args:
+        ga_config: Population size, generations, operator probabilities and seed.
+        on_generation: Called after each generation with the best score so far,
+            for a caller that wants to show progress. An alternative to the
+            config's `verbose`, which prints DEAP's own logbook instead.
     """
     opt_squad = SquadOpt(
         gameweeks,

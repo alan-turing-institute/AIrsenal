@@ -31,19 +31,13 @@ def get_top_predicted_points(
     dbsession: Session | None = None,
 ) -> None:
     """
-    Print players with the top predicted points.
+    Print players with the top predicted points, and post them to Discord if a
+    webhook URL is configured.
 
-    Keyword Arguments:
-        gameweeks {iterable of int} -- Gameweeks to total over (default: the
-        next gameweek only).
-        tag {str} -- Prediction tag to query (default: latest prediction tag)
-        position {str} -- Player position to query (default: {"all"})
-        per_position {boolean} -- If True print top n_players players for
-        each position separately (default: {False})
-        team {str} -- Team to query (default: {"all"})
-        n_players {int} -- Number of players to return (default: {10})
-        season {str} -- Season to query (default: {CURRENT_SEASON})
-        dbsession {SQLAlchemy session} -- Database session (default: {None})
+    Args:
+        gameweeks: Gameweeks to total over. Defaults to the next gameweek only.
+        tag: Prediction tag to query. Defaults to the latest one.
+        per_position: If True, print a separate top `n_players` per position.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     discord_webhook = get_webhook_url()

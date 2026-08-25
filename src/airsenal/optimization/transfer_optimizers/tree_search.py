@@ -170,23 +170,22 @@ def count_expected_outputs(
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> tuple[int, bool]:
     """
-    Count the number of possible transfer and chip strategies for gw_ahead gameweeks
-    ahead, subject to:
-    * Start with free_transfers free transfers.
-    * Spend a max of max_total_hit points on transfers across whole period
-    (None for no limit)
-    * Allow playing the chips permitted by chip_schedule
-    * Exclude strategies that waste free transfers (make 0 transfers if 2 free tramsfers
-    are available), if allow_unused_transfers is False.
-    * Make a maximum of max_opt_transfers transfers each gameweek.
-    * Each chip only allowed once.
+    Count the strategies a search over `gw_ahead` gameweeks will visit.
 
-    Returns
-    -------
-        Tuple of int: number of strategies that will be computed, and bool: whether the
-        baseline strategy will be excluded from the main optimization tree and will need
-        to be computed separately (this can be the case if allow_unused_transfers is
-        False). Either way, the total count of strategies will include the baseline.
+    Counted rather than enumerated, because this is what sizes the progress bar
+    before the tree is built. Each chip may be played at most once.
+
+    Args:
+        max_total_hit: Points that may be spent on transfers across the whole
+            window; None for no limit.
+        allow_unused_transfers: If False, strategies that leave a free transfer
+            unused - making none while two are available - are not counted.
+
+    Returns:
+        How many strategies will be computed, and whether the baseline strategy
+        falls outside the main tree and so has to be computed separately, which
+        `allow_unused_transfers=False` can cause. The count includes the
+        baseline either way.
     """
     next_gw = next_gameweek() if next_gw is None else next_gw
     chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()

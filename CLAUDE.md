@@ -250,7 +250,7 @@ without it.
 - **Function argument order** (where applicable): other args → `player`/`player_id` → `position` → `team` → `tag` → `gameweek` → `season` → `fpl_team_id` → `dbsession` → `fetcher` → `verbose`
 - **Season strings:** `"2122"` for the 2021/22 season
 - **Positions and chips:** use the `Position` and `Chip` enums from `game/enums.py`, not bare strings (`"all"` is still a plain string where a position filter accepts it). Enforced by `tests/test_naming_conventions.py`
-- Docstrings should follow numpydoc convention; type hints are encouraged
+- **Docstrings:** [Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings), usually one line. An `Args:`/`Returns:`/`Raises:` section is for what the signature does not already say - a unit, a sentinel value's meaning, a side effect, which exception escapes - not a restatement of it. Type hints are required (mypy strict)
 - Document what the code does now. Rationale belongs in a docstring only when it
   constrains future work (see "Prediction is single-threaded" above); why the code
   changed belongs in the commit message

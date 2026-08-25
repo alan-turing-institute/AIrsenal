@@ -24,9 +24,15 @@ uv sync --extra dev
 
 ## Code style, formatting, code quality
 
-We follow [PEP-8][link_pep8] for class, function and variable names, and docstrings
-should follow [numpydoc][link_numpydoc] convention (though not all the existing code
-does).
+We follow [PEP-8][link_pep8] for class, function and variable names, and
+[Google style][link_google_docstrings] for docstrings.
+
+Most docstrings should be one line. Add an `Args:` or `Returns:` section only for
+what a reader cannot get from the name, the type hint and the default - a unit
+(`budget` is in tenths of a million), a value the name does not imply (`None` means
+bench boost), a side effect, or which exception escapes. Leave the rest out: a
+parameter list that restates the signature is what rots first, and every entry in it
+is one more thing to keep true.
 
 We use type hints, and `mypy` runs in strict mode over the whole of `src/airsenal` with
 no per-module exemptions from annotating (`uv run mypy`). The `[[tool.mypy.overrides]]`
@@ -122,5 +128,5 @@ Many AIrsenal functions take a lot of arguments. Where possible, order them like
 * *fetcher* (instance of FPLDataFetcher - usually defaulting to None and resolved with `get_fetcher()` from `remote/fpl_api.py`)
 * *verbose* (boolean, if True, print out extra information)
 
-[link_numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html
+[link_google_docstrings]: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
 [link_pep8]: https://www.python.org/dev/peps/pep-0008/
