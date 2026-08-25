@@ -1,8 +1,11 @@
 """The database query helpers: looking a player or a gameweek up."""
 
+import pytest
+
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
+    get_gameweeks_array,
     get_last_complete_gameweek_in_db,
     get_return_gameweek_by_date,
 )
@@ -61,3 +64,46 @@ def test_get_last_complete_gameweek_in_db():
     with past_data_session_scope() as ts:
         gw = get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts)
         assert gw == 5
+
+
+class TestGetGameweeksArrayIsToldTheWindow:
+    """
+    How far ahead to look by default is a decision about a run, not about the
+    gameweek table. This function used to reach for DEFAULT_N_GAMEWEEKS and
+    quietly return three gameweeks to a caller that had asked for nothing.
+    """
+
+    def test_a_window_with_neither_a_length_nor_an_end_is_refused(self):
+        with (
+            past_data_session_scope() as ts,
+            pytest.raises(RuntimeError, match="Specify"),
+        ):
+            get_gameweeks_array(gameweek_start=1, season=TEST_PAST_SEASON, dbsession=ts)
+
+    def test_a_length_is_enough(self):
+        with past_data_session_scope() as ts:
+            assert get_gameweeks_array(
+                n_gameweeks=3, gameweek_start=1, season=TEST_PAST_SEASON, dbsession=ts
+            ) == [1, 2, 3]
+
+    def test_an_end_is_enough(self):
+        with past_data_session_scope() as ts:
+            assert get_gameweeks_array(
+                gameweek_start=1,
+                gameweek_end=4,
+                season=TEST_PAST_SEASON,
+                dbsession=ts,
+            ) == [1, 2, 3]
+
+    def test_both_at_once_is_still_refused(self):
+        with (
+            past_data_session_scope() as ts,
+            pytest.raises(RuntimeError, match="Only one"),
+        ):
+            get_gameweeks_array(
+                n_gameweeks=3,
+                gameweek_start=1,
+                gameweek_end=4,
+                season=TEST_PAST_SEASON,
+                dbsession=ts,
+            )

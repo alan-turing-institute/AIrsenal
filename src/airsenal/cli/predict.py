@@ -23,7 +23,13 @@ def predict(
     with session_scope() as session:
         session.expire_on_commit = False
         gameweeks, tag = run_prediction(
-            n_gameweeks=n_gameweeks,
+            # a window is a length or a pair of ends, never both - the same
+            # resolution `optimize transfers` and AIrsenalPipeline.gameweeks do
+            n_gameweeks=(
+                None
+                if gameweek_end is not None
+                else (n_gameweeks or options.DEFAULT_N_GAMEWEEKS)
+            ),
             gameweek_start=gameweek_start,
             gameweek_end=gameweek_end,
             season=season,

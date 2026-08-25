@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.dates import parse_date, parse_datetime
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON, DEFAULT_N_GAMEWEEKS
+from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture
 from airsenal.db.session import get_session
 
@@ -351,11 +351,15 @@ def get_gameweeks_array(
         raise RuntimeError(msg)
 
     # Set defaults for undefined arguments
-    if n_gameweeks is None:
-        n_gameweeks = DEFAULT_N_GAMEWEEKS
     if gameweek_start is None:
         gameweek_start = next_gameweek()
     if gameweek_end is None:
+        if n_gameweeks is None:
+            # How far ahead to look by default is a decision about a run, not
+            # about the gameweek table; it lives in pipeline/settings.py. This
+            # function does the arithmetic and has to be told the window.
+            msg = "Specify how many gameweeks to cover, or which gameweek to stop at"
+            raise RuntimeError(msg)
         gameweek_end = gameweek_start + n_gameweeks
 
     gameweeks = list(range(gameweek_start, gameweek_end))

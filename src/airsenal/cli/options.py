@@ -18,13 +18,13 @@ from typing import Annotated
 import typer
 
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.core.season import DEFAULT_N_GAMEWEEKS as _DEFAULT_N_GAMEWEEKS
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
 )
 from airsenal.optimization.transfer_optimizers import (
     TRANSFER_OPTIMIZERS,
 )
+from airsenal.pipeline.settings import DEFAULT_N_GAMEWEEKS as _DEFAULT_N_GAMEWEEKS
 from airsenal.pipeline.settings import StaleDatabase
 from airsenal.prediction.player_models import (
     DEFAULT_PLAYER_MODEL as _DEFAULT_PLAYER_MODEL,
@@ -42,7 +42,8 @@ OUTPUT = "Output"
 
 # Defaults re-exported so that no command signature has to restate a value it
 # does not own. The window length used to be written out in cli/run.py,
-# pipeline/settings.py and db/queries/gameweeks.py.
+# pipeline/settings.py and db/queries/gameweeks.py; it now has one definition,
+# in pipeline/settings.py, beside the setting it is the default for.
 DEFAULT_N_GAMEWEEKS = _DEFAULT_N_GAMEWEEKS
 DEFAULT_SEASON = CURRENT_SEASON
 DEFAULT_N_PREVIOUS = 3

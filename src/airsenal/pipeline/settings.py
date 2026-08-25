@@ -13,10 +13,14 @@ from pathlib import Path
 
 from airsenal.core.season import (
     CURRENT_SEASON,
-    DEFAULT_N_GAMEWEEKS,
     get_past_seasons,
 )
 from airsenal.optimization.moves import ChipWeeks
+
+# How many gameweeks ahead to look when nothing says otherwise. A default for a
+# run, so it belongs here with the rest of them rather than in the query layer
+# that used to apply it or the season module that used to hold it.
+DEFAULT_N_GAMEWEEKS = 3
 
 
 class StaleDatabase(Enum):
