@@ -1,6 +1,7 @@
 """Turning fitted models into predicted points for a player in a fixture."""
 
 from collections import defaultdict
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,24 @@ from airsenal.game.scoring import (
 from airsenal.prediction.minutes import get_recent_minutes_for_player
 
 logger = get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class PointsConfig:
+    """
+    Which components of an FPL score to predict.
+
+    Each is a small empirical model fitted from past seasons alongside the goal
+    and assist predictions; turning one off skips fitting it and leaves that
+    component out of the total. They travelled as four booleans through three
+    signatures, which is how `--no-def-con` came to be threaded through two
+    layers and then dropped before it reached the one that branched on it.
+    """
+
+    bonus: bool = True
+    cards: bool = True
+    saves: bool = True
+    def_con: bool = True
 
 
 def get_attacking_points(

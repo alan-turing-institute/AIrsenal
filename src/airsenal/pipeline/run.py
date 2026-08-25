@@ -44,6 +44,7 @@ from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
 from airsenal.prediction.player_models import (
     build_player_model,
 )
+from airsenal.prediction.points import PointsConfig
 from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
@@ -80,6 +81,10 @@ class AIrsenalPipeline:
     # component, because both optimizers have to agree on it: the squad builder
     # and the transfer search used to weigh the bench differently.
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
+    # Which components of an FPL score to predict. Beside the other two config
+    # objects rather than on a model, because it describes the points rather
+    # than how any one model is fitted.
+    points: PointsConfig = field(default_factory=PointsConfig)
     settings: PipelineSettings = field(default_factory=PipelineSettings)
 
     def with_settings(self, **changes: Any) -> "AIrsenalPipeline":
@@ -125,6 +130,7 @@ class AIrsenalPipeline:
         return make_predictedscore_table(
             gameweeks=gameweeks,
             season=self.settings.season,
+            points=self.points,
             tag_prefix=tag_prefix,
             player_model=self.player_model,
             team_model=self.team_model,

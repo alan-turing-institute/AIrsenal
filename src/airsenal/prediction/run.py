@@ -13,7 +13,6 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import console, track
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
-from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
 from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
@@ -24,12 +23,8 @@ from airsenal.prediction.features import (
     fit_def_con,
     fit_save_points,
 )
-from airsenal.prediction.player_models import (
-    DEFAULT_PLAYER_MODEL,
-    build_player_model,
-)
 from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
-from airsenal.prediction.points import calc_predicted_points_for_player
+from airsenal.prediction.points import PointsConfig, calc_predicted_points_for_player
 from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.team_models import (
     build_team_model,
@@ -46,10 +41,7 @@ def calc_all_predicted_points(
     gameweeks: list[int],
     season: str,
     dbsession: Session,
-    include_bonus: bool = True,
-    include_cards: bool = True,
-    include_saves: bool = True,
-    include_def_con: bool = True,
+    points: PointsConfig | None = None,
     tag: str = "",
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
@@ -57,6 +49,7 @@ def calc_all_predicted_points(
     """
     Do the full prediction for players.
     """
+    points = points if points is not None else PointsConfig()
     model_team = get_fitted_team_model(
         season=season,
         gameweek=min(gameweeks),
@@ -73,22 +66,10 @@ def calc_all_predicted_points(
         season, gameweeks[0], model=player_model, dbsession=dbsession
     )
 
-    if include_bonus:
-        df_bonus = fit_bonus_points(gameweek=gameweeks[0], season=season)
-    else:
-        df_bonus = None
-    if include_saves:
-        df_saves = fit_save_points(gameweek=gameweeks[0], season=season)
-    else:
-        df_saves = None
-    if include_cards:
-        df_cards = fit_card_points(gameweek=gameweeks[0], season=season)
-    else:
-        df_cards = None
-    if include_def_con:
-        df_def_con = fit_def_con(gameweek=gameweeks[0], season=season)
-    else:
-        df_def_con = None
+    df_bonus = fit_bonus_points(gameweeks[0], season) if points.bonus else None
+    df_saves = fit_save_points(gameweeks[0], season) if points.saves else None
+    df_cards = fit_card_points(gameweeks[0], season) if points.cards else None
+    df_def_con = fit_def_con(gameweeks[0], season) if points.def_con else None
 
     players = list_players(season=season, gameweek=gameweeks[0], dbsession=dbsession)
 
@@ -113,74 +94,33 @@ def calc_all_predicted_points(
 
 
 def make_predictedscore_table(
-    gameweeks: list[int] | None = None,
+    gameweeks: list[int],
     season: str = CURRENT_SEASON,
-    include_bonus: bool = True,
-    include_cards: bool = True,
-    include_saves: bool = True,
-    include_def_con: bool = True,
+    points: PointsConfig | None = None,
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
+    """
+    Predict every player's points over `gameweeks`, and return the tag written.
+
+    `gameweeks` is required: this used to default to three weeks from the next
+    one, a second hardcoded window alongside the one `get_gameweeks_array` had,
+    and the two could disagree. Resolving a window is
+    `AIrsenalPipeline.gameweeks`' job, and every caller goes through it.
+    """
     dbsession = dbsession if dbsession is not None else get_session()
     tag = tag_prefix or ""
     tag += str(uuid4())
-    if not gameweeks:
-        gameweeks = list(range(next_gameweek(), next_gameweek() + 3))
     with console.status("Predicting points..."):
         calc_all_predicted_points(
             gameweeks=gameweeks,
             season=season,
             dbsession=dbsession,
-            include_bonus=include_bonus,
-            include_cards=include_cards,
-            include_saves=include_saves,
-            include_def_con=include_def_con,
+            points=points,
             tag=tag,
             player_model=player_model,
             team_model=team_model,
         )
     return tag
-
-
-def run_prediction(
-    n_gameweeks: int | None,
-    gameweek_start: int | None,
-    gameweek_end: int | None,
-    season: str,
-    team_model_name: str,
-    include_bonus: bool = True,
-    include_cards: bool = True,
-    include_saves: bool = True,
-    include_def_con: bool = True,
-    epsilon: float | None = None,
-    player_model_name: str = DEFAULT_PLAYER_MODEL,
-    dbsession: Session | None = None,
-) -> tuple[list[int], str]:
-    """
-    Fill the player prediction table, returning the window and the tag written.
-
-    The caller is handed both so that it can show the result; printing the top
-    predicted points from here was the only `prediction -> reporting` import in
-    the package.
-    """
-    gameweeks = get_gameweeks_array(
-        n_gameweeks=n_gameweeks,
-        gameweek_start=gameweek_start,
-        gameweek_end=gameweek_end,
-        season=season,
-    )
-    tag = make_predictedscore_table(
-        gameweeks=gameweeks,
-        season=season,
-        include_bonus=include_bonus,
-        include_cards=include_cards,
-        include_saves=include_saves,
-        include_def_con=include_def_con,
-        player_model=build_player_model(player_model_name),
-        team_model=build_team_model(team_model_name, epsilon),
-        dbsession=dbsession,
-    )
-    return gameweeks, tag
