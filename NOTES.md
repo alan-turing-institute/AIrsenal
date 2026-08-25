@@ -49,18 +49,20 @@ The `FPLDataFetcher` class in `airsenal.remote.fpl_api` contains functions for r
 The main use of this is for database setup and updates, but it is also used elsewhere, for example for checking a player's current injury status in the prediction code.
 
 ### Initial Database Setup
-To setup the AIrsenal database: (in a terminal)
-1. Remove any pre-existing database:
-  `rm /tmp/data.db`
-2. Run  `airsenal_setup_initial_db` (previously `setup_airsenal_database`).
+To setup the AIrsenal database run `airsenal db create` in a terminal (add `--clean` to
+delete and recreate an existing one).
 
-This runs the function `main()` in `airsenal.ingest.init_db`, which calls functions in other scripts to fill the individual tables from the data files and API. A sqlite3 database will be created at `/tmp/data.db` containing the AIrsenal data.
+This runs `make_init_db` in `airsenal.ingest.init_db`, which calls functions in other
+modules to fill the individual tables from the data files and API. A sqlite3 database
+will be created at `$AIRSENAL_HOME/data.db` (or wherever `AIRSENAL_DB_FILE` points)
+containing the AIrsenal data.
 
 Run the update script afterwards to add the latest status of your FPL team (transfers made etc.) to the database - see below.
 
 ### Updating the Database
 
-To update the AIrsenal database run `airsenal_update_db` (previously `update_airsenal_database`) in a terminal. This calls the function `main()` in `airsenal.ingest.update`.
+To update the AIrsenal database run `airsenal db update` in a terminal. This calls
+`update_database` in `airsenal.ingest.update`.
 
 It does the following:
 1. Update player attributes with their latest values.
@@ -68,13 +70,19 @@ It does the following:
 3. Adds any new player scoores.
 4. Adds any new FPL transfers that have been made.
 
-You should always run `airsenal_update_db --noattr` after an initial database setup to get the latest status of your FPL team (which is not done as part of `airsenal_setup_initial_db`). Giving the `--noattr` flag means player attributes will not be updated, which is not needed if you have just setup the database (as FPL player attributes can only change once per day).
+You should always run `airsenal db update --no-attributes` after an initial database
+setup to get the latest status of your FPL team (which is not done as part of `airsenal
+db create`). Giving the `--no-attributes` flag means player attributes will not be
+updated, which is not needed if you have just setup the database (as FPL player
+attributes can only change once per day).
 
 Note we don't currently have a way to update the list of currently active _players_ (only their attributes). This unfortunately means that if a new player is added to the game the whole database needs to be recreated. It's therefore best to follow the initial database setup steps above at the start of every gameweek.
 
 ### Data Sanity Checks
 
-Use `airsenal_check_data` (previously `check_airsenal_data`) from the command-line, which runs the `run_all_checks` function in `airsenal.ingest.checks`, performs the following sanity checks on the AIrsenal database:
+Use `airsenal db check` from the command-line, which runs the `run_all_checks` function
+in `airsenal.ingest.checks`, and performs the following sanity checks on the AIrsenal
+database:
 - All seasons have 20 teams.
 - Each season has 3 new teams (promoted teams).
 - Each season has 380 fixtures.
@@ -152,15 +160,22 @@ We currently don't have predictions for the points contribution from bonus point
 
 ### Running Points Predictions
 
-Use `airsenal_run_prediction` (previously `airsenal_run_prediction`) from the command-line, which runs the function `main()` in `airsenal.prediction.run`.
+Use `airsenal predict` from the command-line, which runs `run_prediction` in
+`airsenal.prediction.run`.
 
 ## Creating a Team for the Start of the Season
 
-Run `airsenal_make_squad` from a terminal to create a completely new squad (e.g. for the start of the season). This calls the function `main()` in `airsenal.optimization.run_squad`.
+Run `airsenal optimize squad` from a terminal to create a completely new squad (e.g. for
+the start of the season). This calls `build_new_squad` in
+`airsenal.optimization.run_squad`.
 
 ## Transfer & Squad Optimisation
 
-Run `airsenal_run_optimization` (previously `run_airsenal_optimization`) to generate transfer suggestions. This calls the function `main()` in `airsenal.optimization.run_transfers`.
+Run `airsenal optimize transfers` to generate transfer suggestions. This calls
+`run_optimization` in `airsenal.optimization.run_transfers`.
+
+`airsenal run` does all of the above in one go: database setup and update, prediction,
+optimisation, and optionally applying the result.
 
 Starting XI, captain & subs
 

@@ -202,7 +202,7 @@ def update_database(season: str, attributes: bool, fpl_team_id: int | None) -> N
 
     with session_scope() as session:
         if database_is_empty(session):
-            logger.warning("Database is empty, run 'airsenal_setup_initial_db' first")
+            logger.warning("Database is empty, run 'airsenal db create' first")
             return
 
         update_db(season, attributes, fpl_team_id, session)

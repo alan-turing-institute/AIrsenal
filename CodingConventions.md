@@ -67,18 +67,29 @@ cli            command definitions and argument parsing, nothing else
 pipeline       orchestration: `run` and `replay`
 apply          the only code that writes to the real FPL entry
 optimization   the transfer search and the whole-squad builder
-ingest         export
-reporting      squad           prediction
+export         writing data back out
+ingest         filling the database from packaged data and the FPL API
+reporting      rendering results: tables, plots, Discord posts
+squad          the Squad class and the state of the user's own entry
+prediction     the models, and the points they imply
 db             the tables, the queries and the session
 remote         everything that talks to the internet, and nothing else
 core           no airsenal-specific dependencies at all
 ```
 
-A module may import from the rows below it, never from the rows above. This is checked
-in CI, and worth running yourself - `uv run lint-imports` - because a single
-convenience import in the wrong direction is what turned an earlier version of the
-codebase into one module that everything depended on, and it does not fail at runtime,
-so nothing catches it until something is looked for.
+One package per row, and a module may import from the rows below it, never from the
+rows above. That is exactly what the contract in `pyproject.toml` enforces: the rows
+used to be written two and three to a line here, which reads as "these are peers" and
+is not what is checked - and while `reporting : squad : prediction` sat on one line
+in the contract too, import-linter took the `:` as permission for them to import each
+other freely, so the boundary this file describes was not being enforced at all.
+
+It is checked in CI, and worth running yourself - `uv run lint-imports` - because a
+single convenience import in the wrong direction is what turned an earlier version of
+the codebase into one module that everything depended on, and it does not fail at
+runtime, so nothing catches it until something is looked for. The contract is
+`exhaustive`, so a newly-created package has to be given a place in the chain rather
+than silently escaping it.
 
 Three rules decide where new code goes:
 
@@ -112,14 +123,14 @@ would be good to standardise the order in which these arguments go across differ
 Below is a suggested ordering of commonly used arguments, from first to last:
 * Other arguments (not listed below)
 * *player* or *player_id* (instance of Player class, or the player_id in the database for that player)
-* *position* (str, either "GK", "DEF", "MID" or "FWD", or "all")
+* *position* (`Position` from `core/enums.py`; `"all"` is still a plain string where a position filter accepts one)
 * *team* (str, 3-letter identifier for team, e.g. "ARS, MUN", or "all")
 * *tag* (str, a unique identifier for a set of entries (e.g. points predictions) in the database)
-* *gameweek*, or *gameweek_range* (int, or list of ints, may have default value NEXT_GAMEWEEK)
+* *gameweek* (int - one gameweek), or *gameweeks* (list of ints). A count is *n_gameweeks*. `tests/test_naming_conventions.py` enforces those three names, and that a parameter called `gameweek` is not secretly a list.
 * *season* (str, e.g. "2122" for the 2021/2022 season, often has a default value "CURRENT_SEASON")
 * *fpl_team_id* (str, the ID of the squad in the FPL API - can be seen on the FPL website by looking at the URL after clicking on "View gameweek history").
-* *dbsession* (database session - often has default value "session", which is the default session created in `schema.py`.)
-* *apifetcher* (instance of FPLDataFetcher, often has default value "fetcher", which is the default instance created in `utils.py`)
+* *dbsession* (database session - usually defaulting to None and resolved with `get_session()` from `db/session.py`)
+* *fetcher* (instance of FPLDataFetcher - usually defaulting to None and resolved with `get_fetcher()` from `remote/fpl_api.py`)
 * *verbose* (boolean, if True, print out extra information)
 
 [link_numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html

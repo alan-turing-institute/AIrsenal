@@ -30,8 +30,8 @@ def get_latest_prediction_tag(
         msg = (
             "No predicted points in database - has the database been filled?\n"
             "To calculate points predictions (and fill the database) use "
-            "'airsenal_run_prediction'. This should be done before using "
-            "'airsenal_make_squad' or 'airsenal_run_optimization'."
+            "'airsenal predict'. This should be done before using "
+            "'airsenal optimize squad' or 'airsenal optimize transfers'."
         )
         raise RuntimeError(msg)
     return latest_prediction.tag
