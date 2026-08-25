@@ -21,8 +21,10 @@ from airsenal.apply.transfers import make_transfers
 from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.console import confirm
 from airsenal.core.logging import get_logger
+from airsenal.core.lookup import ConfigError
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
+from airsenal.db.queries.tags import check_tag_valid
 from airsenal.db.session import session_scope
 from airsenal.export.absences import main as save_expected_absences
 from airsenal.ingest.init_db import check_clean_db, make_init_db
@@ -89,14 +91,23 @@ class AIrsenalPipeline:
     def gameweeks(
         self, dbsession: Session | None = None, gameweek_start: int | None = None
     ) -> list[int]:
-        """The gameweek window this run covers."""
+        """
+        The gameweek window this run covers.
+
+        One resolver for every command, so that `optimize squad` cannot clamp to
+        the end of the season differently from everything else - which it did,
+        with a `range()` written out in the CLI.
+        """
+        gameweek_end = self.settings.gameweek_end
         return get_gameweeks_array(
-            n_gameweeks=self.settings.n_gameweeks,
+            # get_gameweeks_array refuses both at once, and an explicit end wins
+            n_gameweeks=None if gameweek_end is not None else self.settings.n_gameweeks,
             gameweek_start=(
                 gameweek_start
                 if gameweek_start is not None
                 else self.settings.gameweek_start
             ),
+            gameweek_end=gameweek_end,
             season=self.settings.season,
             dbsession=dbsession,
         )
@@ -137,6 +148,11 @@ class AIrsenalPipeline:
         the squad was built from scratch: there was nothing to transfer from, so
         there is no sequence of moves to describe.
         """
+        self._require_predictions(gameweeks, tag)
+        # idempotent and forcing, so calling it here as well as in run() costs
+        # nothing - and a caller that optimises without running the whole
+        # pipeline still gets the fork the transfer search requires
+        set_multiprocessing_start_method()
         if self._is_new_squad(fpl_team_id):
             logger.info("[bold]Generating Squad[/bold]")
             return fill_initial_squad(
@@ -146,6 +162,7 @@ class AIrsenalPipeline:
                 fpl_team_id=fpl_team_id,
                 optimizer=self.squad_optimizer,
                 scoring=self.scoring,
+                remove_zero=self.settings.remove_zero_points_players,
                 chips=self.settings.chips,
                 is_replay=is_replay,
             ), None
@@ -157,10 +174,12 @@ class AIrsenalPipeline:
             season=self.settings.season,
             fpl_team_id=fpl_team_id,
             chips=self.settings.chips,
+            num_free_transfers=self.settings.num_free_transfers,
             constraints=self.constraints,
             optimizer=self.transfer_optimizer,
             squad_optimizer=self.squad_optimizer,
             scoring=self.scoring,
+            save_plans=self.settings.save_plans,
             is_replay=is_replay,
         )
 
@@ -201,6 +220,24 @@ class AIrsenalPipeline:
             logger.info("[green]Pipeline finished![/green]")
 
     # ---------------------------------------------------------------- private
+
+    def _require_predictions(self, gameweeks: list[int], tag: str) -> None:
+        """
+        Refuse to optimise against predictions that do not cover the window.
+
+        The guard used to be in `cli/optimize.py` and nowhere else, so a caller
+        in a notebook - or `run()` itself - got wrong answers rather than an
+        error. ConfigError because `main_cli` already reports one as a bad
+        option rather than as a crash.
+        """
+        if check_tag_valid(tag, gameweeks, season=self.settings.season):
+            return
+        msg = (
+            f"Prediction tag '{tag}' does not cover gameweeks "
+            f"{gameweeks[0]}-{gameweeks[-1]} of season {self.settings.season}. "
+            "Run `airsenal predict` first, for the same gameweeks and season."
+        )
+        raise ConfigError(msg)
 
     def _is_new_squad(self, fpl_team_id: int) -> bool:
         """Whether there is no squad yet to transfer from."""

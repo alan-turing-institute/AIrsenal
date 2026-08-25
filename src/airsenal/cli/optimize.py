@@ -5,21 +5,13 @@ from pathlib import Path
 import typer
 
 from airsenal.cli import options
-from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.logging import get_logger
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.db.queries.gameweeks import (
-    get_gameweeks_array,
-    get_max_gameweek,
-    next_gameweek,
-)
-from airsenal.db.queries.tags import check_tag_valid, get_latest_prediction_tag
+from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import (
     TransferConstraints,
 )
-from airsenal.optimization.run_squad import fill_initial_squad
-from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     build_squad_optimizer,
@@ -29,6 +21,7 @@ from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     build_transfer_optimizer,
 )
+from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
 from airsenal.remote.fpl_api import require_fpl_team_id
 
 logger = get_logger(__name__)
@@ -127,7 +120,7 @@ def squad(
     )
 
 
-# --------------------------- turning flags into components ------------------
+# --------------------------- turning flags into a run -----------------------
 
 
 def _check_gameweek_args(gameweek_start: int | None, gameweek_end: int | None) -> None:
@@ -140,6 +133,27 @@ def _check_gameweek_args(gameweek_start: int | None, gameweek_end: int | None) -
     if (gameweek_start is None) != (gameweek_end is None):
         msg = "Need to specify both --gameweek-start and --gameweek-end"
         raise typer.BadParameter(msg)
+
+
+def _optimize(pipeline: AIrsenalPipeline, tag: str | None, is_replay: bool) -> None:
+    """
+    Resolve the window and the tag, then hand both to the pipeline.
+
+    Both commands go through `AIrsenalPipeline` rather than calling the
+    optimizers themselves, so there is one place that resolves a gameweek window
+    (`optimize squad` used to write its own `range()`), one that decides whether
+    to build a squad or transfer into one, and one that refuses a prediction tag
+    which does not cover the window.
+    """
+    season = pipeline.settings.season
+    fpl_team_id = require_fpl_team_id(pipeline.settings.fpl_team_id)
+    gameweeks = pipeline.gameweeks()
+    pipeline.optimize(
+        gameweeks,
+        tag or get_latest_prediction_tag(season=season),
+        fpl_team_id,
+        is_replay=is_replay,
+    )
 
 
 def _run_transfer_optimization(
@@ -166,48 +180,37 @@ def _run_transfer_optimization(
 ) -> None:
     """Run transfer optimization for a gameweek range."""
     _check_gameweek_args(gameweek_start, gameweek_end)
-    gameweeks = get_gameweeks_array(
-        n_gameweeks=n_gameweeks,
-        gameweek_start=gameweek_start,
-        gameweek_end=gameweek_end,
-        season=season,
-    )
-    tag = tag or get_latest_prediction_tag(season=season)
-
-    if not check_tag_valid(tag, gameweeks, season=season):
-        msg = (
-            "The database has no predictions covering all the requested "
-            "gameweeks. Run `airsenal predict` first, for the same gameweeks "
-            "and season."
-        )
-        raise typer.BadParameter(msg)
-
-    set_multiprocessing_start_method()
-
-    run_optimization(
-        gameweeks,
+    _optimize(
+        AIrsenalPipeline(
+            transfer_optimizer=build_transfer_optimizer(
+                transfer_optimizer,
+                num_thread=num_thread,
+                num_iterations=num_iterations,
+                profile=profile,
+            ),
+            squad_optimizer=build_squad_optimizer(squad_optimizer),
+            constraints=TransferConstraints(
+                max_total_hit=max_hit,
+                allow_unused_transfers=allow_unused,
+                max_opt_transfers=max_transfers,
+            ),
+            scoring=SquadScoringConfig(
+                sub_weights=SubWeights() if subs else SubWeights.none()
+            ),
+            settings=PipelineSettings(
+                fpl_team_id=fpl_team_id,
+                season=season,
+                n_gameweeks=n_gameweeks or options.DEFAULT_N_GAMEWEEKS,
+                gameweek_start=gameweek_start,
+                gameweek_end=gameweek_end,
+                chips=chips,
+                num_free_transfers=num_free_transfers,
+                save_plans=save_plans,
+                refresh_database=False,
+            ),
+        ),
         tag,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        chips=chips,
-        num_free_transfers=num_free_transfers,
-        constraints=TransferConstraints(
-            max_total_hit=max_hit,
-            allow_unused_transfers=allow_unused,
-            max_opt_transfers=max_transfers,
-        ),
-        optimizer=build_transfer_optimizer(
-            transfer_optimizer,
-            num_thread=num_thread,
-            num_iterations=num_iterations,
-            profile=profile,
-        ),
-        squad_optimizer=build_squad_optimizer(squad_optimizer),
-        scoring=SquadScoringConfig(
-            sub_weights=SubWeights() if subs else SubWeights.none()
-        ),
-        save_plans=save_plans,
-        is_replay=is_replay,
+        is_replay,
     )
 
 
@@ -227,45 +230,33 @@ def _run_squad_optimization(
 ) -> None:
     """Generate an initial squad using prediction data."""
     season = season or CURRENT_SEASON
-    if gameweek_start:
-        resolved_gameweek_start = gameweek_start
-    elif season == CURRENT_SEASON:
-        resolved_gameweek_start = next_gameweek()
-    else:
-        resolved_gameweek_start = 1
-    gameweeks = list(
-        range(
-            resolved_gameweek_start,
-            min(
-                get_max_gameweek(season) + 1,
-                resolved_gameweek_start + n_gameweeks,
+    if gameweek_start is None and season != CURRENT_SEASON:
+        # a past season has no next gameweek to start from, so start at the top
+        gameweek_start = 1
+    _optimize(
+        AIrsenalPipeline(
+            squad_optimizer=build_squad_optimizer(
+                squad_optimizer,
+                num_generations=num_generations,
+                population_size=population_size,
             ),
-        )
-    )
-    tag = get_latest_prediction_tag(season)
-    if not check_tag_valid(tag, gameweeks, season=season):
-        msg = (
-            "The database has no predictions covering all the requested "
-            "gameweeks. Run `airsenal predict` first, for the same gameweeks "
-            "and season."
-        )
-        raise typer.BadParameter(msg)
-    fpl_team_id = require_fpl_team_id(fpl_team_id)
-
-    fill_initial_squad(
-        tag=tag,
-        gameweeks=gameweeks,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        optimizer=build_squad_optimizer(
-            squad_optimizer,
-            num_generations=num_generations,
-            population_size=population_size,
+            scoring=SquadScoringConfig(
+                sub_weights=SubWeights() if subs else SubWeights.none(),
+                budget=budget,
+            ),
+            settings=PipelineSettings(
+                fpl_team_id=fpl_team_id,
+                season=season,
+                n_gameweeks=n_gameweeks,
+                gameweek_start=gameweek_start,
+                # this command exists to build from scratch, so it does not ask
+                # the API whether the entry has started
+                new_squad=True,
+                remove_zero_points_players=not zero_points_players,
+                refresh_database=False,
+            ),
         ),
-        scoring=SquadScoringConfig(
-            sub_weights=SubWeights() if subs else SubWeights.none(),
-            budget=budget,
-        ),
-        remove_zero=not zero_points_players,
-        is_replay=is_replay,
+        # `optimize squad` has never taken --tag
+        None,
+        is_replay,
     )

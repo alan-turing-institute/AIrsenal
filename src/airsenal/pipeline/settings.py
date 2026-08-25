@@ -9,6 +9,7 @@ those settings belong to the optimizer objects.
 
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 
 from airsenal.core.season import (
     CURRENT_SEASON,
@@ -54,6 +55,10 @@ class PipelineSettings:
     # current season can answer - a past season has no next gameweek, so
     # replaying or back-testing one has to say.
     gameweek_start: int | None = None
+    # Where it ends, for a caller that names both ends rather than a length.
+    # `get_gameweeks_array` rejects a length alongside an end, so at most one of
+    # this and n_gameweeks is ever meaningful.
+    gameweek_end: int | None = None
     chips: ChipWeeks = field(default_factory=ChipWeeks)
     database: DatabaseSettings = field(default_factory=DatabaseSettings)
     # Whether to create and update the database before predicting. Off, a run
@@ -66,6 +71,15 @@ class PipelineSettings:
     # None asks the API whether this entry has started yet, which is what the
     # pipeline has always done; replay sets it explicitly instead.
     new_squad: bool | None = None
+    # How many free transfers to start from, when the live entry should not be
+    # asked. Only the transfer search reads it.
+    num_free_transfers: int | None = None
+    # Whether a from-scratch build may pick players predicted to score nothing.
+    # A property of the candidate pool rather than of any one optimizer, which
+    # is why it travels on SquadRequest and therefore has to come from here.
+    remove_zero_points_players: bool = True
+    # Where to dump every plan the transfer search considered, for debugging.
+    save_plans: Path | None = None
     apply_transfers: bool = False
     # Whether to apply without the interactive prompt. `--apply-transfers` used to
     # block on one with no way to skip, which made an unattended run impossible.

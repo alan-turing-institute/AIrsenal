@@ -13,6 +13,7 @@ no network call at all; they are the reason those two settings exist.
 import pytest
 from sqlalchemy import select
 
+from airsenal.core.lookup import ConfigError
 from airsenal.db.models import PlayerPrediction
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
@@ -74,15 +75,17 @@ def _pipeline(team_model="constant", player_model="constant", **settings):
         squad_optimizer=RecordingSquadOptimizer(),
         transfer_optimizer=RecordingTransferOptimizer(),
         settings=PipelineSettings(
-            fpl_team_id=TEAM_ID,
-            season=SEASON,
-            n_gameweeks=len(FUTURE_GAMEWEEKS),
-            gameweek_start=FUTURE_GAMEWEEKS[0],
-            new_squad=True,
-            refresh_database=False,
-            apply_transfers=False,
-            save_absences=False,
-            **settings,
+            **{
+                "fpl_team_id": TEAM_ID,
+                "season": SEASON,
+                "n_gameweeks": len(FUTURE_GAMEWEEKS),
+                "gameweek_start": FUTURE_GAMEWEEKS[0],
+                "new_squad": True,
+                "refresh_database": False,
+                "apply_transfers": False,
+                "save_absences": False,
+                **settings,
+            }
         ),
     )
 
@@ -178,3 +181,58 @@ def test_a_component_the_tables_do_not_know_about_still_works():
 
     assert pipeline.squad_optimizer is optimizer
     assert not any(optimizer is entry for entry in SQUAD_OPTIMIZERS.values())
+
+
+@pytest.mark.usefixtures("seeded")
+class TestOptimizeRefusesPredictionsItCannotUse:
+    """
+    The guard used to live in cli/optimize.py and nowhere else.
+
+    So `AIrsenalPipeline.optimize` - and therefore a notebook, and `run()`
+    itself - would happily optimise against a tag that covered none of the
+    requested gameweeks, and simply produce wrong answers.
+    """
+
+    def test_a_tag_that_does_not_exist_is_refused(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError) as excinfo:
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert "no-such-tag" in str(excinfo.value)
+
+    def test_the_error_says_how_to_get_predictions(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError) as excinfo:
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert "airsenal predict" in str(excinfo.value)
+
+    def test_the_optimizer_is_not_reached(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError):
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert pipeline.squad_optimizer.requests == []
+
+
+@pytest.mark.usefixtures("seeded")
+class TestOneWindowResolver:
+    """
+    `optimize squad` used to write its own `range()` instead of asking
+    `get_gameweeks_array`, so it clamped to the end of the season differently
+    from every other command.
+    """
+
+    def test_a_window_given_as_a_length(self):
+        pipeline = _pipeline()
+        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS)
+
+    def test_a_window_given_as_both_ends(self):
+        pipeline = _pipeline(
+            gameweek_end=FUTURE_GAMEWEEKS[0] + 2,
+            n_gameweeks=99,
+        )
+        # gameweek_end is exclusive, as get_gameweeks_array has always had it
+        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS[:2])
+
+    def test_a_window_running_past_the_end_of_the_season_is_clamped(self):
+        pipeline = _pipeline(n_gameweeks=500)
+        assert pipeline.gameweeks()[0] == FUTURE_GAMEWEEKS[0]
+        assert len(pipeline.gameweeks()) < 500
