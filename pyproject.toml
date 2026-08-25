@@ -177,7 +177,7 @@ max-args = 19          # run_transfer_optimization
 max-positional-args = 19
 max-branches = 19      # get_fixtures, get_recent_scores, FPLDataFetcher.get_...
 max-statements = 82    # fill_attributes_table_from_api
-max-returns = 12       # FPLDataFetcher._get_request
+max-returns = 12       # fpl_http.get_json
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
@@ -257,9 +257,15 @@ warn_return_any = false
 #
 # Both are now inside `airsenal.remote`, which is the point: the exemption cannot
 # spread, because nothing outside that package is allowed to import the client.
+#
+# fpl_http holds the two request helpers, and fpl_auth the login flow, which
+# makes its seven requests directly - so the exemption follows the session
+# rather than the class that used to hold all three.
 [[tool.mypy.overrides]]
 module = [
     "airsenal.remote.fpl_api",
+    "airsenal.remote.fpl_auth",
+    "airsenal.remote.fpl_http",
     "airsenal.remote.download",
 ]
 disallow_untyped_calls = false

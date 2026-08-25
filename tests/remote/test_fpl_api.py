@@ -7,6 +7,7 @@ from curl_cffi import requests
 
 from airsenal.remote.errors import RemoteConnectionError
 from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_auth import FPLAuth
 
 
 def _fetcher_with_events(finished: dict[int, bool]) -> FPLDataFetcher:
@@ -57,8 +58,19 @@ def test_login_transport_failure_is_a_remote_error():
     # without translation here a raw curl_cffi error escapes past every
     # `except RemoteError` fallback in squad/ and pipeline/ - which is how an offline
     # run would end in a traceback instead of falling back to the database.
-    fetcher = FPLDataFetcher(rsession=_LoginBoom())
-    fetcher.FPL_LOGIN = "someone@example.com"
-    fetcher.FPL_PASSWORD = "secret"
+    auth = FPLAuth(_LoginBoom())
+    auth.FPL_LOGIN = "someone@example.com"
+    auth.FPL_PASSWORD = "secret"
+    with pytest.raises(RemoteConnectionError):
+        auth.login()
+
+
+def test_the_fetcher_logs_in_through_its_auth():
+    """The endpoints and the login flow are separate objects but one client."""
+    auth = FPLAuth(_LoginBoom())
+    auth.FPL_LOGIN = "someone@example.com"
+    auth.FPL_PASSWORD = "secret"
+    fetcher = FPLDataFetcher(auth=auth)
+    assert fetcher.logged_in is False
     with pytest.raises(RemoteConnectionError):
         fetcher.login()

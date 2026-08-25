@@ -17,7 +17,7 @@ from airsenal.remote.errors import (
     RemoteError,
     RemoteHTTPError,
 )
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_http import get_json
 
 
 def test_every_remote_error_is_catchable_as_one():
@@ -52,10 +52,10 @@ class _Boom:
 
 
 def test_get_request_translates_a_connection_failure():
-    fetcher = FPLDataFetcher(rsession=_Boom(requests.exceptions.ConnectionError("x")))
+    session = _Boom(requests.exceptions.ConnectionError("x"))
     # attempts=1 so the retry loop does not sleep.
     with pytest.raises(RemoteConnectionError):
-        fetcher._get_request("https://example.com/x", attempts=1)
+        get_json(session, "https://example.com/x", attempts=1)
 
 
 class _Status:
@@ -73,12 +73,10 @@ class _Status:
 
 
 def test_get_request_translates_a_bad_status_and_keeps_the_code():
-    fetcher = FPLDataFetcher(rsession=_Status(404))
     with pytest.raises(RemoteHTTPError) as excinfo:
-        fetcher._get_request("https://example.com/x", attempts=1)
+        get_json(_Status(404), "https://example.com/x", attempts=1)
     assert excinfo.value.status_code == 404
 
 
 def test_a_200_is_not_an_error():
-    fetcher = FPLDataFetcher(rsession=_Status(200))
-    assert fetcher._get_request("https://example.com/x", attempts=1) == {}
+    assert get_json(_Status(200), "https://example.com/x", attempts=1) == {}
