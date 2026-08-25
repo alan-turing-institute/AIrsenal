@@ -4,8 +4,14 @@ from dataclasses import dataclass
 
 from sqlalchemy import select
 
+from airsenal.core.enums import Chip
 from airsenal.db.models import TransferSuggestion
-from airsenal.optimization.persist import fill_initial_suggestion_table
+from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.persist import (
+    fill_initial_suggestion_table,
+    fill_suggestion_table,
+)
+from airsenal.optimization.plan import GameweekOutcome, Plan
 from tests.conftest import session_scope
 
 # conftest pins next_gameweek() to 1, so a squad built for any other gameweek is
@@ -58,3 +64,91 @@ def test_initial_suggestions_are_stamped_with_the_requested_gameweek():
 
     assert len(gameweeks) == 15
     assert set(gameweeks) == {FUTURE_GAMEWEEK}
+
+
+def plan(gameweek: int, players_in, players_out, chip=None, points=100.0) -> Plan:
+    return Plan(
+        root_gameweek=gameweek,
+        outcomes=(
+            GameweekOutcome(
+                gameweek=gameweek,
+                move=GameweekMove(n_transfers=len(players_in), chip=chip),
+                points=points,
+                discount_factor=1.0,
+                points_hit=0,
+                free_transfers=1,
+                players_in=tuple(players_in),
+                players_out=tuple(players_out),
+            ),
+        ),
+    )
+
+
+def suggestions_for(dbsession, fpl_team_id):
+    """(player_id, in_or_out, gameweek, chip_played) for one team's rows."""
+    return sorted(
+        dbsession.execute(
+            select(
+                TransferSuggestion.player_id,
+                TransferSuggestion.in_or_out,
+                TransferSuggestion.gameweek,
+                TransferSuggestion.chip_played,
+            ).where(TransferSuggestion.fpl_team_id == fpl_team_id)
+        ).all()
+    )
+
+
+def test_a_plan_is_written_as_one_row_per_player_moved():
+    fpl_team_id = 987655
+    with session_scope() as ts:
+        fill_suggestion_table(
+            baseline_score=60.0,
+            best_plan=plan(4, players_in=[11, 12], players_out=[21, 22]),
+            season="2324",
+            fpl_team_id=fpl_team_id,
+            dbsession=ts,
+        )
+        rows = suggestions_for(ts, fpl_team_id)
+
+    assert rows == [
+        (11, 1, 4, None),
+        (12, 1, 4, None),
+        (21, -1, 4, None),
+        (22, -1, 4, None),
+    ]
+
+
+def test_every_row_of_a_plan_carries_the_points_gain_over_the_baseline():
+    fpl_team_id = 987656
+    with session_scope() as ts:
+        fill_suggestion_table(
+            baseline_score=60.0,
+            best_plan=plan(4, players_in=[11], players_out=[21], points=100.0),
+            season="2324",
+            fpl_team_id=fpl_team_id,
+            dbsession=ts,
+        )
+        gains = ts.scalars(
+            select(TransferSuggestion.points_gain).where(
+                TransferSuggestion.fpl_team_id == fpl_team_id
+            )
+        ).all()
+
+    assert set(gains) == {40.0}
+
+
+def test_a_chip_played_is_recorded_on_the_rows_of_its_gameweek():
+    fpl_team_id = 987657
+    with session_scope() as ts:
+        fill_suggestion_table(
+            baseline_score=0.0,
+            best_plan=plan(
+                6, players_in=[11], players_out=[21], chip=Chip.TRIPLE_CAPTAIN
+            ),
+            season="2324",
+            fpl_team_id=fpl_team_id,
+            dbsession=ts,
+        )
+        rows = suggestions_for(ts, fpl_team_id)
+
+    assert {row[3] for row in rows} == {str(Chip.TRIPLE_CAPTAIN)}
