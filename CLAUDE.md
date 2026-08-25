@@ -40,11 +40,10 @@ uv run mypy
 uv run lint-imports
 ```
 
-Both also run as pre-commit hooks, so this is mostly for running them directly.
-`mypy` checks the files being committed; `lint-imports` always checks the whole
-package, because it takes no filenames — a layering violation is an edge between two
-modules, so there is nothing to narrow to. Its hook is `language: system`, so it
-needs the project venv active; without one it fails rather than passing quietly.
+All of these also run as pre-commit hooks, so this is mostly for running them
+directly. `mypy` checks only the files being committed; `lint-imports` always checks the
+whole package, because a layering violation is an edge between two modules and there is
+nothing to narrow to.
 
 **Pre-commit hooks:**
 ```bash
@@ -62,11 +61,7 @@ uv run airsenal run
 ### Package layout
 
 The packages form a one-way dependency chain, one package per layer, enforced by
-import-linter (see `[tool.importlinter]` in `pyproject.toml`) and checked in CI, so
-a wrong-direction import cannot merge — but **not** by pre-commit, so run `uv run
-lint-imports` yourself after moving code between packages. The contract is
-`exhaustive`, so a newly-created package has to be given a place in the chain
-rather than silently escaping it. The order, top to bottom:
+import-linter (`[tool.importlinter]` in `pyproject.toml`). The order, top to bottom:
 
 ```
 cli > pipeline > apply > optimization > export > ingest > reporting > squad >
@@ -117,12 +112,9 @@ Outside the package:
 
 **Where does new code go?** Two positive questions, in order. Is it a fact about Fantasy
 Premier League? → `game/`. Is it generic Python machinery with no airsenal imports? →
-`core/`. Otherwise it belongs to the pipeline stage that owns it — and a new subdirectory
-needs at least three modules to be worth making.
-
-`core/` used to be defined negatively — "if it does not import another airsenal module, it
-belongs here" — which put "how many points for a goal" beside the Rich console. A negative
-rule has no floor, so it is not the rule any more.
+`core/`. Otherwise it belongs to the pipeline stage that owns it.
+[CodingConventions.md](CodingConventions.md) is the canonical version of this rule, and
+of the branch naming and argument-order conventions below.
 
 ### Data flow
 
@@ -157,8 +149,8 @@ AIrsenalPipeline(
 Each kind is a package, its `__init__.py` holds the table, and each has a
 `Protocol` (in `prediction/protocols.py` or `optimization/protocols.py`) naming
 the one method that does the work. The table maps a name to a zero-argument
-factory, and a `build_*` function beside it turns a name plus the flags that
-pre-date the table into an object:
+factory, and a `build_*` function beside it turns a name plus the relevant CLI
+flags into an object:
 
 | kind | protocol | table and builder | CLI flag |
 |------|----------|-------------------|----------|
@@ -170,10 +162,10 @@ pre-date the table into an object:
 
 A `build_*` takes the name and only the flags that describe *that* kind -
 `--epsilon` for a team model, `--num-thread` for the transfer search,
-`--num-generations` for the squad optimizer - and a name other than the default
-starts from its own settings rather than being handed knobs it never asked for.
-The CLI still constructs each component with one visible call; there is
-deliberately no single function that builds a whole pipeline from flags.
+`--num-generations` for the squad optimizer. Name a component other than the
+default and it starts from its own settings rather than being handed knobs it
+never asked for. The CLI constructs each component with one visible call; there
+is deliberately no single function that builds a whole pipeline from flags.
 
 A transfer strategy is the one kind with no flag: which one runs is decided by
 the move (`StrategySet.name_for`), not by the user.
@@ -197,11 +189,10 @@ describe something no single component owns: `constraints` (what a transfer
 search may consider), `scoring` (what a squad is worth, which both optimizers
 have to agree on) and `points` (which components of an FPL score to predict).
 
-Only the settings that pre-date this are exposed as CLI flags (`--epsilon`,
-`--num-generations`, `--population-size`, `--num-thread`, `--num-iterations`),
-and each reaches only the component it describes: name a different optimizer and
-it starts from its own defaults. Anything finer-grained is set by constructing
-the component in Python.
+Five settings have CLI flags - `--epsilon`, `--num-generations`,
+`--population-size`, `--num-thread`, `--num-iterations` - and each reaches only
+the component it describes. Anything finer-grained is set by constructing the
+component in Python.
 
 Optionally, a component may also provide `num_increments()` to size its own
 progress bar (see `progress_total` in `optimization/protocols.py`); without one
@@ -219,8 +210,8 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `remote/fpl_api.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
 | `remote/errors.py` | `RemoteError` and friends: what a failed call raises, so callers need not know the HTTP library |
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
-| `prediction/player_models/` | One module per player model, behind the `PlayerModel` protocol |
-| `prediction/team_models/` | One module per team model, behind the `TeamModel` protocol |
+| `prediction/player_models/` | The player models, behind the `PlayerModel` protocol, plus their shared fitting and scaling code |
+| `prediction/team_models/` | The team models, behind the `TeamModel` protocol, plus their shared fitting and scoreline code |
 | `prediction/points.py` | Turning fitted models into predicted points per fixture, and `PointsConfig` |
 | `pipeline/run.py` | `AIrsenalPipeline`: the swappable components, the constraints and scoring, plus the run settings |
 | `optimization/run_transfers.py` | Fetching the squad, persisting suggestions and reporting around the search |
@@ -249,10 +240,9 @@ Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEA
 
 ### Prediction is single-threaded by design
 
-`prediction/run.py` used to parallelize player predictions with a thread/process pool;
-this was removed because jax deadlocks under multi-threading, and prediction is fast
-enough without it. Don't reintroduce multi-threading/multiprocessing there (or in code
-that calls jax-based models) unless the deadlock issue is independently resolved.
+Don't add multi-threading or multiprocessing to `prediction/run.py`, or to any code that
+calls a jax-based model: jax deadlocks under multi-threading. Prediction is fast enough
+without it.
 
 ## Code conventions
 
@@ -261,3 +251,10 @@ that calls jax-based models) unless the deadlock issue is independently resolved
 - **Season strings:** `"2122"` for the 2021/22 season
 - **Positions and chips:** use the `Position` and `Chip` enums from `game/enums.py`, not bare strings (`"all"` is still a plain string where a position filter accepts it). Enforced by `tests/test_naming_conventions.py`
 - Docstrings should follow numpydoc convention; type hints are encouraged
+- Document what the code does now. Rationale belongs in a docstring only when it
+  constrains future work (see "Prediction is single-threaded" above); why the code
+  changed belongs in the commit message
+
+Full versions of these in [CodingConventions.md](CodingConventions.md). For the
+database schema and how points predictions are built, see
+[docs/how-it-works.md](docs/how-it-works.md).

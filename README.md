@@ -56,7 +56,7 @@ The best ways to run AIrsenal on Windows are either to use [Windows Subsystem fo
 
 You can then follow the installation instructions for Linux and macOS above.
 
-You're free to try installing and using AIrsenal in Windows itself, but so far we haven't got it working. The main difficulties are with installing [jax](https://github.com/google/jax#installation) and some database/pickling errors (e.g. #165). If you do get it working we'd love to hear from you!
+Installing AIrsenal on Windows directly is not supported — [jax](https://github.com/google/jax#installation) is the main obstacle. If you get it working we'd love to hear from you.
 
 </details>
 
@@ -98,11 +98,9 @@ $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRS
 
 <details>
 
-⚠️ There are currently dependency issues with installing AIrsenal from PyPI (see #733), so it's not recommended. We're working on it. ⚠️
+⚠️ `pip install airsenal` currently hits dependency issues (see #733), so we recommend [building from source](#installation-from-source) instead. ⚠️
 
-You can now do `pip install airsenal` in your Python virtual environment of choice, and it should work out-of-the-box, providing the `airsenal` command described in the [Getting Started section](#getting-started).
-
-We will aim to keep the version on PyPi relatively up-to-date, but if you want the very latest developments, they will appear first in Github (on the `develop` branch if you're feeling brave, or `main` if you want a more stable version), which would require [building from source](#installation-from-source)
+The PyPI release provides the same `airsenal` command described in [Getting Started](#getting-started), but lags behind GitHub.
 
 </details>
 
@@ -110,9 +108,9 @@ We will aim to keep the version on PyPi relatively up-to-date, but if you want t
 
 <details>
 
-  AIrsenal has optional dependencies for plotting, running notebooks, and an in development AIrsenal API. To install them run:
+  AIrsenal has optional dependencies for plotting (`plot`), running notebooks (`notebook`), the dev toolchain (`dev`) and the one-off scripts in `tools/` (`tools`). To install them all:
   - With uv: `uv sync --all-extras`
-  - Without uv: `pip install ".[api,notebook,plot]"`
+  - Without uv: `pip install ".[notebook,plot,dev,tools]"`
 
 </details>
 
@@ -210,7 +208,7 @@ Finally, we need to run the optimizer to pick the best transfer strategy over th
 airsenal optimize transfers --weeks-ahead 3
 ```
 
-This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with the arguments ` --wildcard_week <GW>`, `--free_hit_week <GW>`, `--triple_captain_week <GW>` and `--bench_boost_week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or use `0` to try playing the chip in all gameweeks).
+This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with `--wildcard-week <GW>`, `--free-hit-week <GW>`, `--triple-captain-week <GW>` and `--bench-boost-week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or `0` to try every gameweek).
 
 Note that `airsenal optimize transfers` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 
@@ -223,32 +221,9 @@ airsenal optimize squad --num-gameweeks 3
 Note that you must have set `FPL_LOGIN` and `FPL_PASSWORD` for these to work (as described in the "Configuration" section above).
 
 To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal apply transfers`.
-- **🚨 This can't be undone and may incur points hits! 🚨** Also, this command **can't currently apply chips** such as "free hit" or "wildcard", even if those were specified in the `airsenal optimize transfers` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline **via the FPL website**.
+- **This can't be undone and may incur points hits.** It also can't apply chips such as free hit or wildcard, even if `airsenal optimize transfers` suggested one — play those on the FPL website before the gameweek deadline.
 
 You can also use `airsenal apply lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
-
-### Command Migration
-
-The former `airsenal_*` executables have been replaced by subcommands of `airsenal`:
-
-| Previous command | Replacement |
-| --- | --- |
-| `airsenal_run_pipeline` | `airsenal run` |
-| `airsenal_setup_initial_db` | `airsenal db create` |
-| `airsenal_update_db` | `airsenal db update` |
-| `airsenal_run_prediction` | `airsenal predict` |
-| `airsenal_make_squad` | `airsenal optimize squad` |
-| `airsenal_run_optimization` | `airsenal optimize transfers` |
-| `airsenal_make_transfers` | `airsenal apply transfers` |
-| `airsenal_set_lineup` | `airsenal apply lineup` |
-| `airsenal_replay_season` | `airsenal replay` |
-| `airsenal_env` | `airsenal env` |
-| `airsenal_check_data` | `airsenal db check` |
-| `airsenal_dump_api` | `airsenal dump api` |
-| `airsenal_dump_db` | `airsenal dump db` |
-| `airsenal_scrape_transfermarkt` | `airsenal dump transfermarkt` |
-| `airsenal_plot` | `airsenal plot` |
-| `airsenal_save_absences` | `airsenal dump absences` |
 
 ## Issues and New Features
 
@@ -271,16 +246,20 @@ We welcome all types of contribution to AIrsenal, for example questions, documen
 
 ## Development
 
-If you're developing AIrsenal we further recommend using uv.
-
-We also have a [pre-commit](https://pre-commit.com/) config to run the code quality tools we use automatically when making commits. To setup the commit hooks run:
+Install the dev toolchain and the pre-commit hooks, which run formatting, linting, type
+checking and the package layering contracts on every commit:
 
 ```shell
+uv sync --extra dev
 pre-commit install --install-hooks
 ```
 
-And tests can be run with
+Run the tests with:
 
 ```shell
-pytest airsenal/tests
+uv run pytest tests
 ```
+
+See [CodingConventions.md](CodingConventions.md) for the conventions we follow, and
+[docs/how-it-works.md](docs/how-it-works.md) for the database schema and how points
+predictions are built.
