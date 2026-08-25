@@ -148,15 +148,23 @@ AIrsenalPipeline(
 Each kind is a package, its `__init__.py` holds the table, and each has a
 `Protocol` (in `prediction/protocols.py` or `optimization/protocols.py`) naming
 the one method that does the work. The table maps a name to a zero-argument
-factory:
+factory, and a `build_*` function beside it turns a name plus the flags that
+pre-date the table into an object:
 
-| kind | protocol | table | CLI flag |
-|------|----------|-------|----------|
-| player model | `PlayerModel` | `prediction/player_models/__init__.py` | `--player-model` |
-| team model | `TeamModel` | `prediction/team_models/__init__.py` | `--team-model` |
-| squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py` | `--squad-optimizer` |
-| transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py` | `--transfer-optimizer` |
+| kind | protocol | table and builder | CLI flag |
+|------|----------|-------------------|----------|
+| player model | `PlayerModel` | `prediction/player_models/__init__.py`, `build_player_model` | `--player-model` |
+| team model | `TeamModel` | `prediction/team_models/__init__.py`, `build_team_model` | `--team-model` |
+| squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py`, `build_squad_optimizer` | `--squad-optimizer` |
+| transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py`, `build_transfer_optimizer` | `--transfer-optimizer` |
 | transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` | none - the move picks it |
+
+A `build_*` takes the name and only the flags that describe *that* kind -
+`--epsilon` for a team model, `--num-thread` for the transfer search,
+`--num-generations` for the squad optimizer - and a name other than the default
+starts from its own settings rather than being handed knobs it never asked for.
+The CLI still constructs each component with one visible call; there is
+deliberately no single function that builds a whole pipeline from flags.
 
 A transfer strategy is the one kind with no flag: which one runs is decided by
 the move (`StrategySet.name_for`), not by the user.

@@ -5,12 +5,17 @@ from typing import Annotated
 import typer
 
 from airsenal.cli import options
-from airsenal.cli.optimize import squad_optimizer_named, transfer_optimizer_named
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import TransferConstraints
-from airsenal.optimization.squad_optimizers import DEFAULT_SQUAD_OPTIMIZER
+from airsenal.optimization.squad_optimizers import (
+    DEFAULT_SQUAD_OPTIMIZER,
+    build_squad_optimizer,
+)
 from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
-from airsenal.optimization.transfer_optimizers import DEFAULT_TRANSFER_OPTIMIZER
+from airsenal.optimization.transfer_optimizers import (
+    DEFAULT_TRANSFER_OPTIMIZER,
+    build_transfer_optimizer,
+)
 from airsenal.pipeline import (
     AIrsenalPipeline,
     PipelineSettings,
@@ -57,10 +62,10 @@ def replay(
         AIrsenalPipeline(
             team_model=build_team_model(team_model, epsilon),
             player_model=build_player_model(player_model),
-            transfer_optimizer=transfer_optimizer_named(
+            transfer_optimizer=build_transfer_optimizer(
                 transfer_optimizer, num_thread=num_thread
             ),
-            squad_optimizer=squad_optimizer_named(squad_optimizer),
+            squad_optimizer=build_squad_optimizer(squad_optimizer),
             constraints=TransferConstraints(
                 max_total_hit=max_hit,
                 allow_unused_transfers=allow_unused,
