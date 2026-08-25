@@ -7,6 +7,7 @@ import pandas as pd
 from scipy.stats import multinomial
 from sqlalchemy.orm import Session
 
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.core.scoring import (
     MIN_MINUTES_FULL,
@@ -77,14 +78,14 @@ def get_defending_points(
     """
     Calculate expected defending points (clean sheets and conceded goals) for a player.
     """
-    if position == "FWD" or minutes == 0.0:
+    if position == Position.FWD or minutes == 0.0:
         return 0.0
 
     defending_points = 0.0
     if minutes >= MIN_MINUTES_FULL:
         defending_points = points_for_cs[position] * team_concede_prob[0]
 
-    if position in ["DEF", "GK"]:
+    if position in (Position.DEF, Position.GK):
         defending_points -= sum(
             (ngoals // 2) * (minutes / 90) * concede_n_prob
             for ngoals, concede_n_prob in team_concede_prob.items()
@@ -124,7 +125,7 @@ def get_save_points(
     """
     Calculate expected save points for goalkeepers.
     """
-    if position != "GK":
+    if position != Position.GK:
         return 0.0
     if minutes >= MIN_MINUTES_FULL:
         return float(df_saves.get(player_id, 0.0))

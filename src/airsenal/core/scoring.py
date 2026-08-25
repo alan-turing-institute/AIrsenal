@@ -2,9 +2,24 @@
 How many points does FPL assign for goals, assists, clean sheets, appearances
 """
 
-points_for_goal = {"GK": 10, "DEF": 6, "MID": 5, "FWD": 4}
+from airsenal.core.enums import Position
 
-points_for_cs = {"GK": 4, "DEF": 4, "MID": 1, "FWD": 0}
+# Keyed by Position so a typo is an AttributeError rather than a KeyError at
+# run time, and annotated `str` because what indexes them is a position read
+# off a database row. Position is a StrEnum, so the two are the same key.
+points_for_goal: dict[str, int] = {
+    Position.GK: 10,
+    Position.DEF: 6,
+    Position.MID: 5,
+    Position.FWD: 4,
+}
+
+points_for_cs: dict[str, int] = {
+    Position.GK: 4,
+    Position.DEF: 4,
+    Position.MID: 1,
+    Position.FWD: 0,
+}
 
 points_for_assist = 3
 
@@ -16,7 +31,12 @@ points_for_own_goal = -2
 
 saves_for_point = 3
 
-def_cons_required = {"GK": 999, "DEF": 10, "MID": 12, "FWD": 12}
+def_cons_required: dict[str, int] = {
+    Position.GK: 999,
+    Position.DEF: 10,
+    Position.MID: 12,
+    Position.FWD: 12,
+}
 
 points_for_def_cons = 2
 

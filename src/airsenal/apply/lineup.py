@@ -54,13 +54,15 @@ def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
                 payload.append(to_dict(p, position_integer))
                 position_integer += 1
 
-    sub_gk = next(p for p in squad.players if not p.is_starting and p.position == "GK")
+    sub_gk = next(
+        p for p in squad.players if not p.is_starting and p.position == Position.GK
+    )
     payload.append(to_dict(sub_gk, 12))
 
     available_sub_positions = list(range(4))
     available_sub_positions.remove(bench_position(sub_gk))
     subs_outfield = [
-        p for p in squad.players if not p.is_starting and p.position != "GK"
+        p for p in squad.players if not p.is_starting and p.position != Position.GK
     ]
     for s in subs_outfield:
         payload.append(

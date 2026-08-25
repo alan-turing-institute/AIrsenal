@@ -1,9 +1,13 @@
 """
 Positions and chips.
 
-Both are currently bare strings compared literally in a dozen places, and the chip
-names are additionally encoded into single letters for the transfer search. Making
-them enums means a typo is an error rather than a silently unmatched branch.
+Both subclass str, so `Position.GK == "GK"` holds and a position read off a
+database row still indexes a dict keyed by the enum. That is what let the two be
+introduced without rewriting every call site at once; it is also why nothing
+fails when a bare literal is written, so
+`tests/test_naming_conventions.py::test_a_position_is_written_as_the_enum` is
+what keeps the migration finished. This module and `core/mappings.py` are the
+boundary and keep their literals.
 """
 
 from enum import StrEnum

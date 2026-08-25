@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.console import track
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.core.scoring import (
     MAX_MINUTES_MATCH,
@@ -371,7 +372,11 @@ def fit_save_points(
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores_df(
-        season, gameweek, min_minutes=min_minutes, position="GK", dbsession=dbsession
+        season,
+        gameweek,
+        min_minutes=min_minutes,
+        position=Position.GK,
+        dbsession=dbsession,
     )
 
     df["save_pts"] = (df["saves"] / saves_for_point).astype(int)
@@ -420,7 +425,7 @@ def fit_def_con(
 
     def get_def_con_df(min_minutes: int, max_minutes: int) -> pd.Series:
         dfs = []
-        for position in ["DEF", "MID", "FWD"]:
+        for position in (Position.DEF, Position.MID, Position.FWD):
             df = get_player_scores_df(
                 season,
                 gameweek,

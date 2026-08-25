@@ -11,6 +11,7 @@ from operator import itemgetter
 import numpy as np
 from sqlalchemy.orm import Session
 
+from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.core.scoring import SQUAD_SIZE
 from airsenal.core.season import CURRENT_SEASON
@@ -29,8 +30,18 @@ from airsenal.squad.state import get_bank
 
 logger = get_logger(__name__)
 
-# how many players do we need to add
-TOTAL_PER_POSITION = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
+# how many players do we need to add. Keyed by Position, annotated `str`
+# because what indexes these is a position read off a database row - Position
+# is a StrEnum, so the two are the same key.
+TOTAL_PER_POSITION: dict[str, int] = {
+    Position.GK: 2,
+    Position.DEF: 5,
+    Position.MID: 5,
+    Position.FWD: 3,
+}
+
+# the outfield positions a formation names, in the order it names them
+FORMATION_POSITIONS = (Position.DEF, Position.MID, Position.FWD)
 
 FORMATIONS = [
     (3, 4, 3),
@@ -92,7 +103,7 @@ class Squad:
         self.players: list[SquadPlayer] = []
         self.budget = budget
         self.season = season
-        self.num_position = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        self.num_position: dict[str, int] = dict.fromkeys(Position, 0)
         self.free_subs = 0
         self.subs_this_week = 0
         self.count_per_team: defaultdict[str, int] = defaultdict(int)
@@ -319,10 +330,7 @@ class Squad:
         """
         # first order all the players by expected points
         player_dict: dict[str, list[tuple[SquadPlayer, float]]] = {
-            "GK": [],
-            "DEF": [],
-            "MID": [],
-            "FWD": [],
+            position: [] for position in Position
         }
         for p in self.players:
             try:
@@ -336,8 +344,8 @@ class Squad:
             v.sort(key=itemgetter(1), reverse=True)
 
         # always start the first-placed and sub the second-placed keeper
-        player_dict["GK"][0][0].is_starting = True
-        player_dict["GK"][1][0].is_starting = False
+        player_dict[Position.GK][0][0].is_starting = True
+        player_dict[Position.GK][1][0].is_starting = False
         best_score = 0.0
         best_formation = None
         for f in FORMATIONS:
@@ -381,7 +389,7 @@ class Squad:
         depending on specified formation in format e.g.
         (4,4,2)
         """
-        for i, pos in enumerate(["DEF", "MID", "FWD"]):
+        for i, pos in enumerate(FORMATION_POSITIONS):
             for index, player in enumerate(player_dict[pos]):
                 player[0].is_starting = index < formation[i]
 
@@ -390,7 +398,7 @@ class Squad:
         Return the formation of a starting 11 in the form
         of a dict {"DEF": nDEF, "MID": nMID, "FWD": nFWD}
         """
-        formation = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        formation: dict[str, int] = dict.fromkeys(Position, 0)
         for player in self.players:
             if player.is_starting:
                 formation[player.position] += 1
@@ -406,7 +414,7 @@ class Squad:
         formation = self.get_formation()
         formation[player_out.position] -= 1
         formation[player_in.position] += 1
-        return (formation["DEF"], formation["MID"], formation["FWD"]) in FORMATIONS
+        return tuple(formation[pos] for pos in FORMATION_POSITIONS) in FORMATIONS
 
     def total_points_for_starting_11(
         self, gameweek: int, tag: str, triple_captain: bool = False
@@ -431,12 +439,16 @@ class Squad:
         # None means a bench boost: every substitute counts in full
         sub_weights = sub_weights if sub_weights is not None else SubWeights.full()
         outfield_subs = [
-            p for p in self.players if (not p.is_starting) and (p.position != "GK")
+            p
+            for p in self.players
+            if (not p.is_starting) and (p.position != Position.GK)
         ]
         outfield_subs = sorted(outfield_subs, key=bench_position)
 
         gk_sub = next(
-            p for p in self.players if (not p.is_starting) and (p.position == "GK")
+            p
+            for p in self.players
+            if (not p.is_starting) and (p.position == Position.GK)
         )
 
         total: float = sub_weights.gk * gk_sub.predicted_points[tag][gameweek]
