@@ -1,5 +1,5 @@
 """
-The gameweek method folded in from `fetch/gameweeks.py`, and the login boundary.
+`FPLDataFetcher`'s gameweek lookups, and the login boundary.
 """
 
 import pytest

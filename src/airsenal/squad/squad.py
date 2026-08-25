@@ -53,10 +53,8 @@ class SubWeights:
     How much a substitute's predicted points count towards a squad's score.
 
     Outfield weights are ordered by bench position: first substitute, second,
-    third. Here rather than in `optimization/`, which is where it is configured,
-    because this is the layer that reads it - it used to be flattened into a
-    `dict[str, Any]` by an `as_dict()` on the way down, purely to cross the
-    boundary.
+    third. Here rather than in `optimization/`, which configures it, because this
+    is the layer that reads it.
     """
 
     gk: float = 0.03
@@ -289,7 +287,12 @@ class Squad:
     def total_points_for_subs(
         self, gameweek: int, tag: str, sub_weights: "SubWeights | None" = None
     ) -> float:
-        # None means a bench boost: every substitute counts in full
+        """
+        What the bench contributes to the squad's score for `gameweek`.
+
+        `sub_weights` of None means a bench boost - every substitute counts in
+        full. Use `SubWeights.none()` for a bench that counts for nothing.
+        """
         sub_weights = sub_weights if sub_weights is not None else SubWeights.full()
         outfield_subs = [
             p

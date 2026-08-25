@@ -1,13 +1,10 @@
 """
 Positions and chips.
 
-Both subclass str, so `Position.GK == "GK"` holds and a position read off a
-database row still indexes a dict keyed by the enum. That is what let the two be
-introduced without rewriting every call site at once; it is also why nothing
-fails when a bare literal is written, so
-`tests/test_naming_conventions.py::test_a_position_is_written_as_the_enum` is
-what keeps the migration finished. This module and `core/mappings.py` are the
-boundary and keep their literals.
+Both subclass str, so a value read off a database row compares and indexes as
+the enum. Nothing therefore fails when a bare literal is written instead;
+`tests/test_naming_conventions.py` is what catches that. This module and
+`mappings.py` are the boundary and keep their literals.
 """
 
 from enum import StrEnum

@@ -1,3 +1,12 @@
+"""
+Appending today's player attributes to the packaged season CSV.
+
+The counterpart to `ingest/player_attributes.py`, which reads that file back in.
+Run daily by the `attributes` GitHub Actions workflow while a season is active,
+so the repo accumulates a per-day price and availability history the FPL API
+does not expose.
+"""
+
 import csv
 import re
 from collections import defaultdict
@@ -50,6 +59,14 @@ def get_return_gameweek_by_date(
 def season_is_active(
     now: datetime, fetcher: FPLDataFetcher, max_days_until_deadline: int = 14
 ) -> bool:
+    """
+    Whether it is worth recording today's attributes.
+
+    True while a gameweek is in progress, or while the next deadline is within
+    `max_days_until_deadline`. False in June and July, once there are no future
+    deadlines left, and during a long gap between gameweeks - prices barely move
+    then, so the daily job would only add noise to the packaged history.
+    """
     if now.month in [6, 7]:
         logger.info("It's the off-season (June or July)")
         return False

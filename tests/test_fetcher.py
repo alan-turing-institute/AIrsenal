@@ -1,13 +1,9 @@
 """
-test that we get valid responses from the API.
+The FPL API still returns what we expect.
 
-Every test here makes a live request to the FPL API, so the whole module is marked
-`live` and is deselected by default (see the addopts in pyproject.toml). Run it with
-`pytest -m live` when you want to check whether the API has changed shape.
-
-Five of these tests used to carry `@pytest.mark.skipif(NEXT_GAMEWEEK == 1)`. Under the
-test configuration the database is always empty, so NEXT_GAMEWEEK was always 1 and
-those tests never ran - not locally, not in CI.
+Every test here makes a live request, so the whole module is marked `live` and is
+deselected by default (see the addopts in pyproject.toml). Run it with `pytest -m live`
+when you want to check whether the API has changed shape.
 """
 
 import random

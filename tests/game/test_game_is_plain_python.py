@@ -1,22 +1,12 @@
 """
 `game/` imports nothing.
 
-The facts about Fantasy Premier League - what a position is, what a goal is
-worth, what "2122" means, what Brentford is abbreviated to - used to live in
-`core/` alongside the logger, the console and the query caches, under one
-negative rule: "no airsenal-specific dependencies". A negative rule has no
-floor, so anything that imported nothing landed there.
+A module in `game/` may import the standard library and its siblings, and
+nothing else - no pandas, no sqlalchemy, not even `airsenal.core.logging`. The
+layers contract in pyproject.toml enforces the airsenal half by putting `game`
+at the bottom of the chain; this enforces the rest.
 
-A `domain/` package was tried once and merged back (89fc5f2), because it left
-`enums.py` behind in `core/` and so "how many points for a goal" was domain
-while "what a position is" was core. This test is the difference: the boundary
-is a property, not a paragraph. A module here may import the standard library
-and its siblings, and nothing else - no pandas, no sqlalchemy, not even
-`airsenal.core.logging`. The layers contract in pyproject.toml enforces the
-airsenal half by putting `game` at the bottom of the chain; this enforces the
-rest.
-
-If something added here needs a logger or a dataframe, that is the signal it is
+If something added there needs a logger or a dataframe, that is the signal it is
 not a fact about the game.
 """
 

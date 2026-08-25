@@ -256,10 +256,9 @@ def test_double_transfer():
 def test_the_progress_steps_counted_match_the_number_promised():
     """A worker's bar is sized by `num_increments`, so the search must hit it.
 
-    The bar is no longer advanced by a fraction of a notional hundred: its total
-    is the number of candidate squads the strategy says it will consider, and it
-    is advanced once per candidate. If the two disagree the bar stalls short of
-    the end, or finishes while the search is still going.
+    The total is the number of candidate squads the strategy says it will
+    consider, and it is advanced once per candidate. If the two disagree the bar
+    stalls short of the end, or finishes while the search is still going.
     """
     squad = generate_dummy_squad()
     points = {

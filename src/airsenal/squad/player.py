@@ -1,5 +1,9 @@
 """
-Class for a player in FPL
+How a player is represented inside a squad.
+
+`CandidatePlayer` is a real player, with a price and predicted points.
+`DummyPlayer` fills a slot the search has not decided yet. `SquadPlayer` is
+either - it is what a `Squad` holds fifteen of.
 """
 
 import uuid
@@ -20,7 +24,11 @@ logger = get_logger(__name__)
 
 class CandidatePlayer:
     """
-    player class
+    A real player the optimizer can buy, hold or sell.
+
+    Wraps the database `Player` with what a search needs and the row does not
+    have: a purchase price, predicted points per gameweek, and where in the
+    lineup it has been placed.
     """
 
     def __init__(
@@ -32,7 +40,11 @@ class CandidatePlayer:
         dbsession: Session | None = None,
     ) -> None:
         """
-        initialize either by name or by ID
+        Initialize from a `Player`, a name or a player ID.
+
+        Team, position and price are read from the player's attributes for
+        `season` and `gameweek`; a player missing any of them is an error rather
+        than a partially built candidate.
         """
         # Deliberately NOT resolved to a real session here. CandidatePlayer instances
         # are held by Squad, and Squad is pickled onto the multiprocessing queue by the
@@ -166,8 +178,9 @@ def bench_position(player: SquadPlayer) -> int:
     """
     Where a benched player sits in the substitution order.
 
-    Set by Squad.order_substitutes; sorting on it before the lineup has been
-    optimized used to fail inside sorted() with a TypeError about None.
+    Set by Squad.order_substitutes. Raises rather than returning None, so
+    sorting on it before the lineup has been optimized fails here rather than
+    inside sorted().
     """
     if player.sub_position is None:
         msg = f"{player} has no bench position - optimize the lineup first"

@@ -15,7 +15,8 @@ class NumpyroPlayerConfig:
     Settings for the MCMC player model.
 
     Deliberately has no epsilon or n_goals_prior: this model implements neither
-    time weighting nor a goals prior, and used to swallow both silently.
+    time weighting nor a goals prior, so it rejects them rather than accepting
+    and ignoring them.
     """
 
     num_warmup: int = 500

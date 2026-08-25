@@ -248,9 +248,8 @@ class FPLDataFetcher:
             return self.fpl_league_data
 
         self.login()
-        # _get_request returns the decoded body and raises on a bad status, so
-        # this used to reach for .status_code and .content on a dict and blow up
-        # with an AttributeError on every call.
+        # `_get` returns the decoded body and raises on a bad status - there is
+        # no response object here to check.
         try:
             self.fpl_league_data = self._get(self.FPL_LEAGUE_URL)
         except RemoteError:
@@ -370,7 +369,7 @@ class FPLDataFetcher:
 
     def get_lineup(self) -> dict[str, Any]:
         """
-        Retrieve up to date lineup from api
+        The entry's current lineup. Requires a login.
         """
         self.login()
         team_url = FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)

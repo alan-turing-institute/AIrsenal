@@ -242,7 +242,6 @@ def process_player_data(
     ]
     alpha = get_empirical_bayes_estimates(df)
 
-    # Use modern Pandas standard .to_numpy() instead of .values
     y = (
         df.sort_values("player_id")[["goals", "assists", "neither"]]
         .to_numpy()

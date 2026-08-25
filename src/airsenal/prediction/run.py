@@ -105,10 +105,8 @@ def make_predictedscore_table(
     """
     Predict every player's points over `gameweeks`, and return the tag written.
 
-    `gameweeks` is required: this used to default to three weeks from the next
-    one, a second hardcoded window alongside the one `get_gameweeks_array` had,
-    and the two could disagree. Resolving a window is
-    `AIrsenalPipeline.gameweeks`' job, and every caller goes through it.
+    `gameweeks` has no default: resolving a window is `AIrsenalPipeline.gameweeks`'
+    job, and every caller goes through it.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     tag = tag_prefix or ""

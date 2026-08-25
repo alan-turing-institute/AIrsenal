@@ -141,10 +141,9 @@ def _optimize(pipeline: AIrsenalPipeline, tag: str | None, is_replay: bool) -> N
     Resolve the window and the tag, then hand both to the pipeline.
 
     Both commands go through `AIrsenalPipeline` rather than calling the
-    optimizers themselves, so there is one place that resolves a gameweek window
-    (`optimize squad` used to write its own `range()`), one that decides whether
-    to build a squad or transfer into one, and one that refuses a prediction tag
-    which does not cover the window.
+    optimizers themselves, so there is one place that resolves a gameweek window,
+    one that decides whether to build a squad or transfer into one, and one that
+    refuses a prediction tag which does not cover the window.
     """
     season = pipeline.settings.season
     fpl_team_id = require_fpl_team_id(pipeline.settings.fpl_team_id)

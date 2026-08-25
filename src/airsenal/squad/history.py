@@ -251,6 +251,18 @@ def get_squad_from_transactions(
     fpl_team_id: int | None = None,
     dbsession: Session | None = None,
 ) -> Squad:
+    """
+    Rebuild the squad as it stood *before* `gameweek`, by replaying transactions.
+
+    Only transactions strictly earlier than `gameweek` are applied, and free hit
+    transfers are skipped entirely because they last a single week. Players are
+    added at `gameweek` rather than at the gameweek they were bought in, so the
+    squad reflects each player's current club. Budget and squad constraints are
+    not checked between transfers - only the final squad has to obey them.
+
+    With no `fpl_team_id`, the entry that made the most recent transaction is
+    used.
+    """
     dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:
         # use the most recent transaction in the table

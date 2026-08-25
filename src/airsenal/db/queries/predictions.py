@@ -32,10 +32,8 @@ def get_predicted_points_for_player(
     keyed on the player id rather than on the Player object, and does not
     include the session: see airsenal.core.caching for why.
 
-    An `int` is taken to be a player id and is not looked up first. That check
-    used to happen on every call, which cost a database round trip per candidate
-    player and roughly doubled the time of a transfer optimisation, to validate
-    an id the caller had just read out of the database.
+    An `int` is taken on trust as a player id and is not looked up first -
+    validating it would cost a database round trip per candidate player.
     """
     if isinstance(player, int):
         player_id = player

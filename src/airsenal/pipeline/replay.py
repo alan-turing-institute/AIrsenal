@@ -3,12 +3,10 @@ Replay all or part of a past season, to compare models and algorithms.
 
 A separate driver rather than a method or a subclass of `AIrsenalPipeline`: what
 replay needs is the predict and optimise stages, once per gameweek, and none of
-the database setup, transfer applying or absence exporting that `run()` does. A
-subclass would inherit five things in order to switch four of them off.
+the database setup, transfer applying or absence exporting that `run()` does.
 
-It shares the pipeline object, though, which is the point - replay used to build
-its own team model with `TEAM_MODELS.create()` and so measured a differently
-fitted model than the one `airsenal run` actually uses.
+It takes the pipeline object itself, though, so that what it measures is the
+same components `airsenal run` would use.
 """
 
 import json

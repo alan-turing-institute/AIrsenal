@@ -1,10 +1,8 @@
 """
 Getting a team model fitted, and reading predictions off it.
 
-Model-agnostic: everything here is typed against `TeamModel`, and the constant,
-neutral and random models go through it too. It used to live inside
-`dixon_coles.py`, so importing the shared plumbing meant naming one
-implementation.
+Model-agnostic: everything here is typed against `TeamModel`, so the constant,
+neutral and random models go through it too.
 """
 
 from typing import Any
@@ -160,7 +158,9 @@ def get_fitted_team_model(
     model: TeamModel | None = None,
 ) -> TeamModel:
     """
-    Get the fitted team model using the past results and the FIFA rankings.
+    Fit a team model to past results and FIFA ratings, and return it.
+
+    Fits `model` in place if one is given; otherwise builds the default one.
     """
     if model is None:
         model = build_team_model()

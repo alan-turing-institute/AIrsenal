@@ -198,7 +198,7 @@ def save_absences(
 
 def main() -> None:
     """
-    main function, to be used as entrypoint.
+    Write every current-season absence known to the database out to its CSV.
     """
     dbsession = get_session()
     attributes = dbsession.scalars(

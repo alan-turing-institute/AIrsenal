@@ -104,7 +104,10 @@ def get_player_from_api_id(
     api_id: int, dbsession: Session | None = None
 ) -> Player | None:
     """
-    Query the database and return the player with corresponding attribute fpl_api_id.
+    The player with this `fpl_api_id`, or None.
+
+    A missing player is a warning and None, not an error - the FPL API lists
+    players before they reach a database that was seeded earlier.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if p := dbsession.scalars(
@@ -243,7 +246,11 @@ def get_player_attributes(
     dbsession: Session | None = None,
 ) -> PlayerAttributes | None:
     """
-    Get a player's attributes for a given gameweek in a given season.
+    A player's attributes for one gameweek, or None if there are none.
+
+    `player_name_or_id` may be a `Player`, a player id, or a name - including a
+    name that is all digits, which is read as an id. `gameweek` defaults to the
+    next one.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()

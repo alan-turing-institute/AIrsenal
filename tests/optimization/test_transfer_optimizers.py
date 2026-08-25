@@ -98,9 +98,8 @@ def test_constraints_default_to_todays_behaviour():
     assert constraints.max_total_hit is None
     assert constraints.allow_unused_transfers is False
     assert constraints.max_opt_transfers == 2
-    # This one used to be dropped on the way to the workers: the Process args
-    # tuple was one element shorter than the worker signature, so every worker
-    # silently used its own default rather than what the caller asked for.
+    # Reaches the workers inside this frozen object, so a worker cannot fall
+    # back to its own default without the caller noticing.
     assert constraints.max_free_transfers == MAX_FREE_TRANSFERS
 
 

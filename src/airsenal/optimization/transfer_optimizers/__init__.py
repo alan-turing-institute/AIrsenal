@@ -1,10 +1,8 @@
 """
 Transfer optimizers: one module per way of searching a whole gameweek window.
 
-The table below is how a name on the command line reaches an implementation.
-Adding an optimizer is a class satisfying `TransferOptimizer` that constructs
-with no arguments, plus one line here - the table is typed against the protocol,
-so mypy checks the class fits at the point you add it.
+`TRANSFER_OPTIMIZERS` maps a `--transfer-optimizer` name to a zero-argument
+factory.
 """
 
 from collections.abc import Callable
@@ -32,7 +30,7 @@ def build_transfer_optimizer(
     profile: bool = False,
 ) -> TransferOptimizer:
     """
-    The named transfer search, configured from the flags that pre-date the table.
+    The named transfer search, configured from the CLI flags that describe it.
 
     `--num-thread`, `--num-iterations` and `--profile` are the tree search's own
     settings, so they only reach the tree search; any other optimizer named here

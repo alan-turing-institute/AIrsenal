@@ -1,9 +1,8 @@
 """
 Tests for the Plan result type.
 
-The strategies these replace were dicts keyed by gameweek that went through a
-JSON round trip, so an int key became a string key and an int lookup silently
-missed. The round-trip tests below are the regression guard for that.
+Plans are serialised to JSON by the replay driver, so the round-trip tests below
+pin that a gameweek survives it as an int rather than becoming a string key.
 """
 
 import json

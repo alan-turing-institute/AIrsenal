@@ -187,11 +187,9 @@ def test_a_component_the_tables_do_not_know_about_still_works():
 @pytest.mark.usefixtures("seeded")
 class TestOptimizeRefusesPredictionsItCannotUse:
     """
-    The guard used to live in cli/optimize.py and nowhere else.
-
-    So `AIrsenalPipeline.optimize` - and therefore a notebook, and `run()`
-    itself - would happily optimise against a tag that covered none of the
-    requested gameweeks, and simply produce wrong answers.
+    The guard is on `AIrsenalPipeline.optimize`, not on the CLI, so a notebook
+    and `run()` itself get the error too rather than wrong answers from a tag
+    that covers none of the requested gameweeks.
     """
 
     def test_a_tag_that_does_not_exist_is_refused(self):
@@ -216,9 +214,8 @@ class TestOptimizeRefusesPredictionsItCannotUse:
 @pytest.mark.usefixtures("seeded")
 class TestOneWindowResolver:
     """
-    `optimize squad` used to write its own `range()` instead of asking
-    `get_gameweeks_array`, so it clamped to the end of the season differently
-    from every other command.
+    Every command resolves its window through `get_gameweeks_array`, so they all
+    clamp to the end of the season the same way.
     """
 
     def test_a_window_given_as_a_length(self):
@@ -244,13 +241,10 @@ class TestOneNewSquadDecision:
     """
     Whether to build a squad or transfer into one is decided in one place.
 
-    `run_optimization` used to ask the same question again, against a different
-    gameweek, and could route to a from-scratch build after the pipeline had
-    already decided otherwise - and it did so through `new_squad_from_scratch`,
-    which did not pass `is_replay` on. So a replay whose window started at
-    gameweek 1 with `new_squad` False - `airsenal replay --resume` - built a
-    squad and recorded no transactions for it, leaving the next gameweek with
-    nothing to transfer from.
+    Nothing downstream may ask again and route to a from-scratch build after the
+    pipeline has decided otherwise: that path drops `is_replay`, so a replay
+    reaching it builds a squad, records no transactions for it, and leaves the
+    next gameweek with nothing to transfer from.
     """
 
     def _optimize(self, *, new_squad, is_replay):

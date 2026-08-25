@@ -1,11 +1,8 @@
 """
-The SQLAlchemy models.
+The SQLAlchemy models: every table in the AIrsenal database.
 
-One module rather than a package. Five hundred lines of table definitions is a
-single subject, and splitting it four ways meant every model had to import the
-shared column annotations from a fifth file. Callers already spelled this
-`from airsenal.db.models import Player`, so flattening it changes nothing for
-them.
+One module rather than a package, because the tables share the column
+annotations defined at the top and are one subject.
 """
 
 from typing import Annotated
@@ -168,7 +165,8 @@ class Player(Base):
 
     def position(self, season: str) -> str | None:
         """
-        get player's position for given season
+        The player's position in `season`, or None if we have no attributes
+        for them in it.
         """
         attr = self.get_gameweek_attributes(season, None)
         if attr is not None and not isinstance(attr, tuple):
@@ -179,12 +177,13 @@ class Player(Base):
     def is_injured_or_suspended(
         self, season: str, current_gw: int, fixture_gw: int
     ) -> bool:
-        """Check whether a player is injured or suspended (<=50% chance of playing).
-        current_gw - The current gameweek, i.e. the gameweek when we are querying the
-        player's status.
-        fixture_gw - The gameweek of the fixture we want to check whether the player
-        is available for, i.e. we are checking whether the player is availiable in the
-        future week "fixture_gw" at the previous point in time "current_gw".
+        """
+        Whether a player is injured or suspended (<=50% chance of playing).
+
+        The two gameweeks are different points in time: `current_gw` is when we
+        are asking, and `fixture_gw` is the future fixture we are asking about.
+        So this answers "as of `current_gw`, did we expect this player to still
+        be out by `fixture_gw`?".
         """
         attr = self.get_gameweek_attributes(season, current_gw)
         if attr is not None and not isinstance(attr, tuple):
@@ -197,12 +196,12 @@ class Player(Base):
     def get_gameweek_attributes(
         self, season: str, gameweek: int | None, before_and_after: bool = False
     ) -> "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes] | None":
-        """Get the PlayerAttributes object for this player in the given gameweek and
-        season, or the nearest available gameweek(s) if the exact gameweek is not
-        available.
-        If no attributes available in the specified season, return None in all cases.
-        If before_and_after is True and an exact gameweek & season match is not found,
-        return both the nearest gameweek before and after the specified gameweek.
+        """
+        This player's attributes for a gameweek, or from the nearest one we have.
+
+        Returns None in all cases if there are no attributes at all for `season`.
+        With `before_and_after` True and no exact match, returns both the nearest
+        gameweek before and the nearest after, as a tuple.
         """
         gw_before = 0
         gw_after = 100

@@ -69,8 +69,8 @@ def test_get_last_complete_gameweek_in_db():
 class TestGetGameweeksArrayIsToldTheWindow:
     """
     How far ahead to look by default is a decision about a run, not about the
-    gameweek table. This function used to reach for DEFAULT_N_GAMEWEEKS and
-    quietly return three gameweeks to a caller that had asked for nothing.
+    gameweek table, so a caller that specifies neither a length nor an end gets
+    an error rather than three gameweeks.
     """
 
     def test_a_window_with_neither_a_length_nor_an_end_is_refused(self):

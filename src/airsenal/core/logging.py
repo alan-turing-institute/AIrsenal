@@ -1,7 +1,7 @@
 """Logging setup.
 
 Kept apart from console.py so that code which only needs a logger does not pull
-in Rich - which is what let rendering leak into the database layer.
+in Rich.
 """
 
 import logging

@@ -35,8 +35,17 @@ def get_json(
     attempts: int = 3,
     **params: Any,
 ) -> Any:
-    # Any, not a payload type: this is the decoded body of an untyped external
-    # API, and every caller narrows it for its own endpoint.
+    """
+    GET a URL and return the decoded JSON body.
+
+    Retries a failed connection `attempts` times, a second apart. Everything
+    that can go wrong arrives as a `RemoteError`: `RemoteConnectionError` if the
+    API could not be reached, `RemoteHTTPError` (carrying the status code) for a
+    non-200 response.
+
+    Returns `Any` rather than a payload type - this is the decoded body of an
+    untyped external API, and every caller narrows it for its own endpoint.
+    """
     tries = 0
     r = None
     while tries < attempts:

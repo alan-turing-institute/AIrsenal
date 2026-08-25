@@ -38,10 +38,8 @@ from airsenal.game.mappings import alternative_team_names  # noqa: E402
 from airsenal.game.season import CURRENT_SEASON  # noqa: E402
 
 # The dummy test database has players but no fixtures, so the next gameweek cannot be
-# derived from it. It used to come out as 1 anyway, because utils computed
-# NEXT_GAMEWEEK at import and fell back to a live FPL API call that returned 1 for an
-# empty database. Pin it explicitly instead: same value, no network, no import-time
-# side effect.
+# derived from it. Pin it explicitly rather than letting anything fall back to the FPL
+# API: no network, no import-time side effect.
 set_next_gameweek(1)
 from tests.dummy_data import dummy_players  # noqa: E402
 

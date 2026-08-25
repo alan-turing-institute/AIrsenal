@@ -25,9 +25,8 @@ class DixonColesTeamModel:
     bpl's Dixon-Coles predictor, holding the arguments it is fitted with.
 
     bpl takes the time-weighting settings at fit time rather than at
-    construction, so they used to travel alongside the model as a separate dict
-    and every caller had to remember to pair them. Keeping them on the model
-    means `fit(training_data)` is the whole of the `TeamModel` contract.
+    construction. Keeping them on the model instead means `fit(training_data)` is
+    the whole of the `TeamModel` contract.
     """
 
     def __init__(

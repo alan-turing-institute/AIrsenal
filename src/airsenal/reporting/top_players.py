@@ -157,7 +157,7 @@ def predicted_points_discord_payload(
     first_gw: int,
 ) -> dict[str, Any]:
     """
-    json formated discord webhook contentent.
+    json formatted discord webhook content.
     """
     discord_embed["fields"].append(
         {

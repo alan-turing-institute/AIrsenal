@@ -1,9 +1,8 @@
 """
 Transfer strategies: one module per way of choosing a gameweek's transfers.
 
-`StrategySet` is the single place that decides which one a move needs. That
-decision used to be an if/elif inside `make_best_transfers`, duplicated in the
-progress-bar sizing, and the two could disagree.
+`StrategySet.name_for` is the single place that decides which one a move needs -
+both when the search runs and when the progress bar is sized.
 """
 
 from collections.abc import Callable, Mapping

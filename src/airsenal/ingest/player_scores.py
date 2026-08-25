@@ -39,6 +39,10 @@ from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
 
+# The first day the packaged per-day attributes history covers - the daily
+# `airsenal dump attributes` job started appending on this date.
+ATTRIBUTES_HISTORY_START = datetime.date(2025, 9, 12)
+
 
 def load_attributes_history(season: str) -> pd.DataFrame | None:
     if not is_future_gameweek(season, 1, "2526", 0):
@@ -86,8 +90,14 @@ def _filter_attributes_for_player(
 def _get_availability_on_date(
     date: datetime.date, player: Player, player_attributes: pd.DataFrame
 ) -> tuple[str | None, int | None]:
-    if date < datetime.date(2025, 9, 12):
-        # no player attributes history available before this date
+    """
+    A player's news and chance of playing on one day, or `(None, None)`.
+
+    Both are None when there is nothing to report rather than when something
+    went wrong: the packaged attributes history only starts on 12 September 2025,
+    and a day with no row - or more than one - is skipped with a warning.
+    """
+    if date < ATTRIBUTES_HISTORY_START:
         return None, None
     mask = player_attributes["day"] == date
     if mask.sum() != 1:

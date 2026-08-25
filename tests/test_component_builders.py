@@ -1,11 +1,9 @@
 """
 Every swappable kind is built the same way: `build_<kind>(name, **overrides)`.
 
-The two model kinds have had a builder beside their table since the tables
-replaced the registry; the two optimizer kinds had one in `cli/optimize.py`
-instead, which is why `cli/run.py` and `cli/replay.py` imported from a sibling
-command module. The symmetry is the point, so it is asserted rather than left to
-be noticed.
+Each kind's builder lives beside its table, so no CLI command has to import a
+builder from a sibling command module. The symmetry is the point, so it is
+asserted rather than left to be noticed.
 """
 
 import pytest

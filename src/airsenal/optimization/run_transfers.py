@@ -280,7 +280,7 @@ def run_optimization(
                 num_free_transfers=num_free_transfers,
                 constraints=constraints,
                 # so the search weighs the bench the same way the squad builder
-                # does; the two used to disagree whenever --no-subs was passed
+                # does
                 scoring=scoring,
                 # reaches the wildcard and free-hit rebuilds inside the search,
                 # not only the from-scratch fallback above

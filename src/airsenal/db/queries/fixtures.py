@@ -96,9 +96,7 @@ def get_fixtures_for_gameweeks(
     """
     Get a list of fixtures for the specified gameweeks.
 
-    Callers with a single gameweek pass `[gameweek]`. This used to accept either
-    and branch on the type, which meant the reader had to check the call site to
-    know which was meant.
+    Callers with a single gameweek pass `[gameweek]`.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     return list(

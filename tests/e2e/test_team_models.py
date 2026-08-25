@@ -2,12 +2,10 @@
 Fast team-model checks against the small seeded database.
 
 The equivalents in test_score_predictions.py fit against two full seasons and
-take 29 seconds between them - 60% of the whole suite. These assert the same
-things (does it fit, does it know every team, are the probabilities usable) on
-eight teams and 64 matches, so the answers arrive on every run rather than only
-in the nightly job.
-
-`random` is included, which the slow versions never covered at all.
+dominate the suite's runtime. These assert the same things - does it fit, does it
+know every team, are the probabilities usable - on eight teams and 64 matches, so
+the answers arrive on every run rather than only in the nightly job. Every model
+in the table is covered, including `random`.
 """
 
 import math
@@ -58,8 +56,8 @@ def test_score_probabilities_are_usable(fitted):
         assert all(0.0 <= float(p) <= 1.0 for p in probabilities)
 
 
-# Every model, now that `predict_outcome_proba` is on the TeamModel protocol
-# rather than fetched with getattr: the null models used to raise here.
+# Every model in the table: `predict_outcome_proba` is part of the TeamModel
+# protocol, so the null models answer it too.
 @pytest.mark.parametrize("name", ["extended", "neutral", "constant", "random"])
 def test_fixture_probabilities_covers_every_fixture(pipeline_db, name):
     model = build_team_model(name)

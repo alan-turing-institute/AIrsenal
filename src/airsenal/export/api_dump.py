@@ -1,3 +1,11 @@
+"""
+Saving everything AIrsenal fetches to the packaged data files.
+
+An end-of-season job: writes the season's player details, summaries, results and
+Transfermarkt data into `src/airsenal/data/` so the season becomes part of the
+historical data future databases are seeded from.
+"""
+
 import json
 import os
 

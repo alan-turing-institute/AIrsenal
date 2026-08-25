@@ -1,8 +1,8 @@
 """
 Tests for GameweekMove and the chip schedule.
 
-These replace the six copies of "does the string start with a T?" that the
-transfer search used to carry, so the encoding is pinned here once.
+The compact string encoding of a move is parsed in exactly one place, so it is
+pinned here once.
 """
 
 import pytest
@@ -57,7 +57,7 @@ def test_negative_transfers_rejected():
 
 def test_transfers_alongside_a_squad_chip_rejected():
     # A wildcard replaces the squad, so "wildcard plus two transfers" is not a
-    # thing the game allows and used to be silently unrepresentable in "W".
+    # thing the game allows.
     with pytest.raises(ValueError, match="replaces the whole squad"):
         GameweekMove(2, Chip.WILDCARD)
 

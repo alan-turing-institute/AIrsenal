@@ -1,15 +1,13 @@
 """
 What a squad is worth over the gameweeks ahead, and how to weigh it.
 
-Named for the squad rather than for scoring, because core/scoring.py already
-holds FPL's own points rules and the two are not the same subject: that one says
-what a goal is worth, this one says what a squad full of predicted goals is
-worth to a search that has to compare next week against five weeks out.
+Named for the squad rather than for scoring, because `game/scoring.py` holds
+FPL's own points rules and the two are not the same subject: that one says what a
+goal is worth, this one says what a squad full of predicted goals is worth to a
+search comparing next week against five weeks out.
 
-`SquadScoringConfig` lives here rather than in a config module because this is
-where it is read. Every optimizer is handed one, so that the squad builder and
-the transfer search cannot weigh a bench differently - which is what they did
-for as long as the settings were default arguments repeated across both.
+Every optimizer is handed the same `SquadScoringConfig`, so the squad builder
+and the transfer search cannot weigh a bench differently.
 """
 
 from dataclasses import dataclass, field
@@ -38,9 +36,8 @@ def get_discount_factor(
     """
     How much a gameweek `pred_gw - next_gw` weeks out counts towards a score.
 
-    `discount ** n_ahead`. There used to be a "constant" alternative
-    (`1 - (1 - discount) * n_ahead`, hitting zero fifteen weeks out) selected by
-    a string argument, but nothing outside its own test ever passed one.
+    `discount ** n_ahead`, so the weight decays geometrically and never reaches
+    zero.
     """
     return discount ** (pred_gw - next_gw)
 
@@ -54,9 +51,11 @@ def get_discounted_squad_score(
     triple_captain_gw: int | None = None,
     sub_weights: SubWeights | None = None,
 ) -> float:
-    """Get the number of points a squad is expected to score across a number of
-    gameweeks, discounting the weight of gameweeks further into the future with respect
-    to the root_gw.
+    """
+    Points a squad is expected to score across `gameweeks`, discounted.
+
+    Gameweeks further from `root_gw` count for less; see `get_discount_factor`.
+    `root_gw` defaults to the first gameweek in the list.
     """
     if root_gw is None:
         root_gw = gameweeks[0]

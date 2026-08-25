@@ -12,8 +12,7 @@ Each declares only the method that does the work; see `progress_total` for the
 optional method a component can add to size its own progress bar.
 
 What they produce lives in `optimization/plan.py`: a `Proposal` for one gameweek,
-a `Plan` for a whole window. Nothing in this package calls a result a "strategy" -
-a strategy is a way of choosing, not the choice.
+a `Plan` for a whole window.
 """
 
 from collections.abc import Callable
@@ -83,8 +82,8 @@ class TransferRequest:
     season: str
     num_iterations: int = 100
     # How a squad is scored, so that a strategy weighs the bench the same way the
-    # squad builder does. It used to be omitted on every transfer path, which is
-    # how `--no-subs` came to apply to `optimize squad` and nothing else.
+    # squad builder does. Must be set on every transfer path, or a flag like
+    # --no-subs reaches one optimizer and not the other.
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     # Set only for a move that rebuilds the whole squad, which is the one kind of
     # move a strategy cannot answer by enumerating swaps. None means the default
@@ -210,10 +209,8 @@ class TransferConstraints:
     What a transfer search is allowed to consider.
 
     A field of `TransferSearchRequest`, and here beside it: exactly the knobs
-    the tree search's branch enumeration takes. Bundled because they used to
-    travel as four positional elements of a tuple handed to `Process`, where the
-    tuple was one element shorter than the worker signature and
-    `max_free_transfers` was silently dropped.
+    the tree search's branch enumeration takes. One frozen object rather than
+    loose arguments, so nothing can be dropped on the way to a worker process.
     """
 
     max_total_hit: int | None = None

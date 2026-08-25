@@ -1,3 +1,10 @@
+"""
+Loading player absences (injuries, suspensions) from the packaged CSV.
+
+The counterpart to `export/absences.py`. Each row gives a date range, which is
+resolved to the gameweeks the player missed and the gameweek they returned in.
+"""
+
 from datetime import datetime
 
 import pandas as pd

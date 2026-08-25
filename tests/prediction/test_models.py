@@ -70,9 +70,8 @@ def test_unknown_model_names_list_the_alternatives():
 def test_a_team_model_holds_the_arguments_it_fits_with():
     """
     bpl takes epsilon when fitting rather than when constructing, so the model
-    carries it. `airsenal replay` used to build a model without it and fit with
-    no time weighting at all, while `airsenal run` used 0.9 - so a replay
-    measured a model nobody was actually running.
+    carries it. Otherwise a caller that builds its own model - replay, say -
+    fits with different time weighting than `airsenal run` does.
     """
     model = build_team_model(DEFAULT_TEAM_MODEL)
     assert model.epsilon == 0.9
@@ -91,7 +90,7 @@ def test_neutral_and_extended_are_different_bpl_models():
 
 @pytest.mark.parametrize("name", ["random", "constant"])
 def test_a_model_without_time_weighting_rejects_epsilon(name):
-    """It used to be accepted and silently ignored."""
+    """A model that cannot honour epsilon rejects it rather than ignoring it."""
     build_team_model(name)  # fine without one
     with pytest.raises(ConfigError, match="no time weighting"):
         build_team_model(name, epsilon=0.5)

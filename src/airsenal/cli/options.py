@@ -1,15 +1,9 @@
 """
 The options more than one command takes.
 
-Nine of them were copy-pasted across `cli/`, and every one had drifted:
-`--fpl-team-id` appeared eight times with four different help strings,
-`--season` six times as `str`, `str | None` and once as a required argument,
-`--num-thread` three times with three different defaults. Defining each once
-here is what stops that, and it is why a command's signature should reach for a
-name from this module before writing a fresh `typer.Option`.
-
-Command-specific options stay in their own command: this module is for the ones
-that mean the same thing everywhere.
+A command signature should reach for a name from this module before writing a
+fresh `typer.Option`. Command-specific options stay in their own command: this
+module is for the ones that mean the same thing everywhere.
 """
 
 from pathlib import Path
@@ -41,9 +35,7 @@ OPTIMISATION = "Optimisation"
 OUTPUT = "Output"
 
 # Defaults re-exported so that no command signature has to restate a value it
-# does not own. The window length used to be written out in cli/run.py,
-# pipeline/settings.py and db/queries/gameweeks.py; it now has one definition,
-# in pipeline/settings.py, beside the setting it is the default for.
+# does not own. Each is defined once, beside the setting it is the default for.
 DEFAULT_N_GAMEWEEKS = _DEFAULT_N_GAMEWEEKS
 DEFAULT_SEASON = CURRENT_SEASON
 DEFAULT_N_PREVIOUS = 3

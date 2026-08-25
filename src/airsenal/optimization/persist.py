@@ -6,9 +6,8 @@ they cannot live in db/ without the data layer having to know what a plan
 is. They sit at the top of optimization/ instead, where both are already in
 scope.
 
-The four public functions are two pairs - a plan and a from-scratch squad,
-written to each of two tables - so each pair shares one private writer. A
-from-scratch squad is the degenerate plan: every player in, nobody out.
+A from-scratch squad is the degenerate plan - every player in, nobody out -
+which is why each table's two entry points share a private writer.
 """
 
 from collections.abc import Iterable
@@ -200,7 +199,9 @@ def fill_initial_suggestion_table(
     dbsession: Session | None = None,
 ) -> None:
     """
-    Fill an initial squad into the table
+    Record a from-scratch squad as fifteen "in" suggestions for `gameweek`.
+
+    `gameweek` defaults to the next one.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()

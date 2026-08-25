@@ -3,8 +3,8 @@ Everything about a pipeline run that is not a swappable component.
 
 Nested only where a group earns it: either it has a second consumer (`ChipWeeks`,
 which the transfer CLI builds too) or it describes a stage that only sometimes
-runs (`DatabaseSettings`). There is deliberately no `OptimizationSettings` -
-those settings belong to the optimizer objects.
+runs (`DatabaseSettings`). Optimizer settings are not here - they belong to the
+optimizer objects.
 """
 
 from dataclasses import dataclass, field
@@ -18,8 +18,7 @@ from airsenal.game.season import (
 from airsenal.optimization.moves import ChipWeeks
 
 # How many gameweeks ahead to look when nothing says otherwise. A default for a
-# run, so it belongs here with the rest of them rather than in the query layer
-# that used to apply it or the season module that used to hold it.
+# run, so it lives here with the rest of them rather than in the query layer.
 DEFAULT_N_GAMEWEEKS = 3
 
 
@@ -85,7 +84,6 @@ class PipelineSettings:
     # Where to dump every plan the transfer search considered, for debugging.
     save_plans: Path | None = None
     apply_transfers: bool = False
-    # Whether to apply without the interactive prompt. `--apply-transfers` used to
-    # block on one with no way to skip, which made an unattended run impossible.
+    # Whether to apply without the interactive prompt, for an unattended run.
     skip_confirmation: bool = False
     save_absences: bool = False

@@ -1,8 +1,6 @@
 """
-Tests for the shared optimisation renderers.
-
-The transfer search and the from-scratch squad build each used to carry their own
-copy of these; the copies had drifted and neither was covered.
+Tests for the renderers the transfer search and the from-scratch squad build
+share.
 """
 
 from airsenal.reporting.optimization import (

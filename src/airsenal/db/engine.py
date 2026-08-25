@@ -10,6 +10,14 @@ from airsenal.core import env
 
 
 def get_connection_string() -> str:
+    """
+    The SQLAlchemy URL for the configured database.
+
+    `AIRSENAL_DB_FILE` and `AIRSENAL_DB_URI` are mutually exclusive. `_URI`
+    selects postgres and requires `AIRSENAL_DB_USER` and `AIRSENAL_DB_PASSWORD`
+    with it; otherwise the database is SQLite, at `AIRSENAL_DB_FILE` or at
+    `$AIRSENAL_HOME/data.db`.
+    """
     if env.AIRSENAL_DB_FILE and env.AIRSENAL_DB_URI:
         msg = "Please choose only ONE of AIRSENAL_DB_FILE and AIRSENAL_DB_URI"
         raise RuntimeError(msg)

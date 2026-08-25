@@ -1,11 +1,9 @@
 """
 What a failed call to an external service raises.
 
-Three modules - `pipeline/run.py`, `squad/state.py`, `squad/history.py` - used to
-import `curl_cffi` for no reason other than to name its exceptions in an `except`
-clause, which is how an HTTP client became a dependency of the optimiser. These
-types let a caller say "the network failed, fall back to the database" without
-knowing what the network is made of.
+These let a caller say "the network failed, fall back to the database" without
+importing `curl_cffi` to name its exceptions - which would make an HTTP client a
+dependency of every layer that catches one.
 """
 
 

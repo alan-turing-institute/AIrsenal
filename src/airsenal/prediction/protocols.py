@@ -1,13 +1,10 @@
 """
 What a prediction model has to provide.
 
-Naming the shape means a signature does not change when the set of models does:
-the three-way union of the bpl and random predictors used to be copy-pasted
-across seven signatures, so adding a fourth team model meant finding all seven.
+Naming the shape means a signature does not change when the set of models does.
 
-These are deliberately not `runtime_checkable`: `isinstance` against a Protocol
-only checks that the method names exist, which is stringly-typed dispatch
-wearing a type hint.
+These are deliberately not `runtime_checkable`, so nothing dispatches on
+`isinstance` against them.
 """
 
 from collections.abc import Sequence
@@ -23,8 +20,8 @@ class PlayerModel(Protocol):
         """
         Fit to the data, using the hyperparameters given at construction.
 
-        Deliberately takes no `**kwargs`: it used to, and the numpyro model
-        silently swallowed the hyperparameters the caller passed.
+        Deliberately takes no `**kwargs`, so a hyperparameter a model does not
+        implement is an error rather than something it silently swallows.
 
         `data` must have at least these keys:
         - "y": (n_players, n_matches, 3) goal involvements per match, the last

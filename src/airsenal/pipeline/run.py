@@ -78,8 +78,7 @@ class AIrsenalPipeline:
     squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
     # How a squad is scored. Alongside the constraints rather than inside a
-    # component, because both optimizers have to agree on it: the squad builder
-    # and the transfer search used to weigh the bench differently.
+    # component, because both optimizers have to agree on it.
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     # Which components of an FPL score to predict. Beside the other two config
     # objects rather than on a model, because it describes the points rather
@@ -123,9 +122,8 @@ class AIrsenalPipeline:
         """
         Predict points for every player, and return the tag they were written under.
 
-        The tag is returned rather than looked up again afterwards: the optimiser
-        used to re-find it with `get_latest_prediction_tag`, which is a race
-        between two runs and needless in any case.
+        The tag is returned rather than looked up again afterwards with
+        `get_latest_prediction_tag`, which would be a race between two runs.
         """
         return make_predictedscore_table(
             gameweeks=gameweeks,
@@ -231,10 +229,8 @@ class AIrsenalPipeline:
         """
         Refuse to optimise against predictions that do not cover the window.
 
-        The guard used to be in `cli/optimize.py` and nowhere else, so a caller
-        in a notebook - or `run()` itself - got wrong answers rather than an
-        error. ConfigError because `main_cli` already reports one as a bad
-        option rather than as a crash.
+        Raises `ConfigError` rather than a plain error so `main_cli` reports it
+        as a bad option rather than as a crash.
         """
         if check_tag_valid(tag, gameweeks, season=self.settings.season):
             return
@@ -249,15 +245,10 @@ class AIrsenalPipeline:
         """
         Whether there is no squad yet to transfer from.
 
-        The one place this is decided. `run_optimization` used to ask the same
-        question again, against `gameweeks[0]` rather than against the next
-        gameweek, and could route to a from-scratch build after this method had
-        already said otherwise - without passing `is_replay` on, so a replay
-        that reached it recorded no transactions.
-
-        The criterion is that one, since it is the more careful of the two: a
-        window starting where the entry starts has nothing behind it to
-        transfer from, whichever gameweek that is.
+        The one place this is decided, so nothing downstream can route to a
+        from-scratch build after this has said otherwise. The criterion is the
+        window's first gameweek, not the next one: a window starting where the
+        entry starts has nothing behind it to transfer from.
         """
         if self.settings.new_squad is not None:
             return self.settings.new_squad

@@ -34,8 +34,11 @@ def get_max_gameweek(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int:
     """
-    Return the maximum gameweek number across all scheduled fixtures. This should
-    generally be 38, but may be different with major disruptions (e.g. Covid-19).
+    Return the maximum gameweek number across all scheduled fixtures.
+
+    Generally 38, but may differ after major disruption (e.g. Covid-19). Falls
+    back to 38 if the season has no fixtures with a gameweek, so an empty
+    database gives a usable answer rather than an error.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     max_gw_fixture = dbsession.scalars(
@@ -102,10 +105,9 @@ def get_next_gameweek(
             ):
                 earliest_future_gameweek += 1
     else:
-        # No fixtures in the database, so we cannot work this out locally. Falling
-        # back to the API has to be asked for explicitly: it used to happen
-        # implicitly, which meant merely importing this module could make an HTTP
-        # request, and made the test suite impossible to run offline.
+        # No fixtures in the database, so we cannot work this out locally.
+        # Falling back to the API has to be asked for explicitly, so that nothing
+        # makes an HTTP request just by calling this.
         if fetcher is None:
             msg = (
                 f"No fixtures in the database for {season}, so the next gameweek "

@@ -1,14 +1,11 @@
 """
 Rendering what an optimisation decided.
 
-Both entry points - the transfer search and the from-scratch squad build - used
-to carry their own copy of the result panel and the per-gameweek table, and the
-two had already drifted. They are here once, and the callers supply rows.
+Both entry points - the transfer search and the from-scratch squad build - share
+the result panel and the per-gameweek table here, and supply the rows.
 
-Nothing here queries the database or the FPL API. `print_optimisation_summary`
-used to re-fetch the starting squad and re-simulate every transfer just to show
-prices, which made a print function the second place that knew how a transfer
-changes a squad.
+Nothing here queries the database or the FPL API, and nothing here simulates a
+transfer: callers pass in what they already know.
 """
 
 from collections.abc import Sequence

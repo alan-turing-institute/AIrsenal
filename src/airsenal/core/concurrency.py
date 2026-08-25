@@ -42,21 +42,17 @@ def stall_dump_dir() -> Path:
 
 
 def set_multiprocessing_start_method() -> None:
-    """To fix change of default behaviour in multiprocessing on Python 3.8 and later
-    on MacOS. Python 3.8 and later start processess using spawn by default, see:
-    https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods
+    """
+    Force the `fork` start method on posix. No-op elsewhere.
 
-    Idempotent, and forcing. `set_start_method` raises if a context has already
-    been set, which used not to matter because nothing ran the pipeline twice in
-    one process and nothing touched multiprocessing before this was called.
-    Neither holds now: two AIrsenalPipeline.run() calls or a replay loop reach
-    here more than once, and merely constructing a Queue anywhere first fixes the
-    default context.
+    macOS defaults to `spawn`, and the transfer search cannot run under it: it
+    hands its workers local progress callbacks, which pickle cannot serialise.
+    Under spawn it does not run slower, it fails.
 
-    Forcing is right rather than merely convenient. The transfer search hands its
-    workers local progress callbacks, which pickle cannot serialise, so it can
-    only run under fork; under spawn it does not run slower, it fails. Better to
-    make that true here than to raise after a full prediction stage has run.
+    Idempotent and forcing, because `set_start_method` raises once a context has
+    been set - and two `AIrsenalPipeline.run()` calls, a replay loop, or merely
+    constructing a Queue first will each have set one. Better to force it here
+    than to raise after a full prediction stage has run.
     """
     if os.name != "posix":
         return
@@ -65,10 +61,9 @@ def set_multiprocessing_start_method() -> None:
     multiprocessing.set_start_method("fork", force=True)
 
 
-# The following implementation of custom MyQueue to avoid NotImplementedError
-# when calling queue.qsize() in MacOS X comes almost entirely from this github
-# discussion: https://github.com/keras-team/autokeras/issues/368
-# Necessary modification is made to make the code compatible with Python3.
+# `multiprocessing.Queue.qsize()` raises NotImplementedError on macOS, so the
+# queue below keeps its own count. Adapted from
+# https://github.com/keras-team/autokeras/issues/368
 
 
 class SharedCounter:

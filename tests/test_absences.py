@@ -1,7 +1,7 @@
 """
-Test that the absences csv files written by save_expected_absences can be read back by
-fill_absence_table. The two used to disagree about the file's columns, so anything
-written by the exporter was unreadable by the importer.
+The absences CSV written by save_expected_absences can be read back by
+fill_absence_table. Nothing else checks that the exporter and the importer agree
+about the file's columns.
 """
 
 import warnings
@@ -147,8 +147,8 @@ def test_save_absences_round_trips_through_load_absences(dbsession, tmp_path):
     The important one: what the exporter writes, the importer must be able to read.
     """
     _add_player(dbsession, 1, "Bob", 1, "Knee injury - Expected back 30 Aug", 3)
-    # A comma in the news text used to corrupt the file, because rows were written by
-    # joining fields with "," rather than by the csv module.
+    # A comma in the news text, to check rows go through the csv module rather
+    # than a "," join.
     _add_player(dbsession, 2, "Alice", 2, "Ankle injury, out indefinitely", None)
     dbsession.commit()
 

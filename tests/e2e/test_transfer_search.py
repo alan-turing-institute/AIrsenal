@@ -221,12 +221,9 @@ def test_the_bench_weighting_on_the_request_reaches_the_search(
     seeded, tag, starting_squad, chip
 ):
     """
-    §5 of the refactor: `--no-subs` used to apply to `optimize squad` alone.
-
-    Every `get_discounted_squad_score` call on the transfer path omitted
-    `sub_weights`, so the squad builder and the transfer search scored benches
-    differently - the exact divergence `SquadScoringConfig` was created to end.
-    Scoring the same window with and without the bench must not agree.
+    A flag like `--no-subs` has to reach the transfer search as well as the
+    squad builder, or the two score benches differently. Scoring the same window
+    with and without the bench must not agree.
     """
     gameweeks = SEARCH_GAMEWEEKS[:1]
     chips = {chip: gameweeks[0]} if chip is not None else {}

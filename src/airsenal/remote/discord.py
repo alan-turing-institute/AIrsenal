@@ -1,17 +1,11 @@
 """
 The one place in the package that posts to a Discord webhook.
 
-The "is the URL well formed, post it, was the status 2xx" sequence was written
-out three times, in two modules, with three slightly different log messages and
-two different ideas of how to test whether a webhook was configured at all.
-Having a single chokepoint also means a replay or a test cannot post to the real
-channel by accident: there is exactly one call to make impossible.
-
-It lives beside the FPL client because Discord is the second host this package
-talks to, and collecting every socket in one package is what makes "only
-`remote` touches the network" a contract that can be enforced rather than a
-convention that is nearly true. What gets said stays in `reporting`; this module
-only knows how to say it.
+One chokepoint means a replay or a test cannot post to the real channel by
+accident - there is exactly one call to make impossible. It lives here rather
+than beside its callers because every socket in the package belongs to `remote`,
+which is what makes that contract enforceable. What gets said stays in
+`reporting`; this module only knows how to say it.
 """
 
 import re
@@ -59,9 +53,8 @@ def post_webhook(payload: dict[str, Any], webhook_url: str | None = None) -> boo
     try:
         result = requests.post(webhook_url, json=payload)
     except requests.exceptions.RequestException:
-        # The post happens after the optimisation has finished, so an unreachable
-        # Discord used to end the run and take the result with it - the one thing
-        # this function's contract says it will not do.
+        # The post happens after the optimisation has finished, so an
+        # unreachable Discord must not end the run and take the result with it.
         logger.warning("Discord webhook not sent, could not reach it", exc_info=True)
         return False
     if 200 <= result.status_code < 300:

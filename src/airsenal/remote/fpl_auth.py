@@ -1,10 +1,9 @@
 """
 Logging in to the FPL account service.
 
-Roughly two hundred lines of OAuth/PKCE that `FPLDataFetcher` used to carry
-alongside its twenty endpoints. What it owns is the session every request goes
-out on, the credentials, the bearer header a successful login produces, and
-whether the attempt has already been made and failed.
+OAuth/PKCE against the FPL account service. This module owns the session every
+request goes out on, the credentials, the bearer header a successful login
+produces, and whether the attempt has already been made and failed.
 
 Thanks to @Moose on the FPLDev Discord for the authentication implementation.
 """
@@ -104,6 +103,15 @@ class FPLAuth:
             raise RemoteConnectionError(msg) from e
 
     def _login_flow(self) -> None:
+        """
+        Run the OAuth/PKCE exchange, or return without doing anything.
+
+        Returns early - leaving `logged_in` False and raising nothing - when a
+        session is already authenticated, when a previous attempt failed, or when
+        there are no stored credentials and the user declines the interactive
+        prompt. Callers must therefore check `logged_in` rather than assume a
+        clean return means success.
+        """
         if self.logged_in:
             return
         if self.login_failed:

@@ -1,6 +1,4 @@
-"""
-Script to dump the database contents.
-"""
+"""Dumping the database contents to CSV, one file per table."""
 
 import csv
 from pathlib import Path

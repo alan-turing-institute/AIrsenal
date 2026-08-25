@@ -20,12 +20,6 @@ from airsenal.remote.fpl_api import FPLDataFetcher
 from airsenal.squad.history import get_starting_squad
 from airsenal.squad.state import get_bank
 
-"""
-TODO:
-- confirm points loss
-- write a test.
-"""
-
 logger = get_logger(__name__)
 
 
@@ -85,7 +79,6 @@ def print_output(
 
     if post_bank is not None:
         console.print(f"Bank Balance After transfers is: £{post_bank / 10}")
-    # print(f"Points Cost of Transfers: {points_cost}")
     console.print()
 
 

@@ -355,9 +355,8 @@ def test_a_player_we_do_not_own_has_no_selling_price_and_is_not_a_failure(squad_
     """The optimizer prices squads that do not exist: a wildcard's, say.
 
     Those players are not in the entry's picks and never will be, so asking the
-    API for a sale price they cannot have is an ordinary miss. It used to raise a
-    KeyError inside a catch-all handler, which logged a warning blaming a failed
-    login and printed a traceback, once per player per gameweek.
+    API for a sale price they cannot have is an ordinary miss: None, and no
+    warning.
     """
     fetcher = FakeFetcher(picks={7: {"element": 7, "selling_price": 62}})
 

@@ -1,9 +1,8 @@
 """
 Tests for the single Discord posting chokepoint.
 
-Three copies of this logic used to exist, each with its own idea of what counted
-as a configured webhook and what to log on failure. These pin the behaviour so
-the copies cannot creep back.
+What counts as a configured webhook, and what a failed post does instead of
+raising.
 """
 
 from unittest import mock

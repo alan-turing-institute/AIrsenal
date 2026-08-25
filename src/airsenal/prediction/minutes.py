@@ -56,7 +56,8 @@ def estimate_minutes_from_prev_season(
             or_(
                 PlayerScore.minutes >= 60,
                 PlayerScore.chance_of_playing == 100,
-                PlayerScore.chance_of_playing.is_(None),  # for backwards compatibility
+                # rows written before chance_of_playing was recorded
+                PlayerScore.chance_of_playing.is_(None),
             )
         )
 

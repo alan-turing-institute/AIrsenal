@@ -40,11 +40,9 @@ class FakeSquad:
 
 def test_initial_suggestions_are_stamped_with_the_requested_gameweek():
     """
-    The rows must carry the gameweek the squad was built for.
-
-    It used to resolve `gameweek`, score with it, and then write
-    `next_gameweek()` into the row anyway - so a replay or a back-test
-    stamped every suggestion with the wrong gameweek.
+    The rows must carry the gameweek the squad was built for, not
+    `next_gameweek()` - otherwise a replay or a back-test stamps every
+    suggestion with the wrong one.
     """
     with session_scope() as ts:
         fill_initial_suggestion_table(

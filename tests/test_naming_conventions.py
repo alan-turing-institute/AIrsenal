@@ -1,11 +1,9 @@
 """
-Enforce the naming decisions made during the refactor.
+The naming conventions in CodingConventions.md, enforced.
 
-The same list of gameweeks used to travel as `gw_range`, `gameweeks`,
-`gameweek_range`, `weeks_ahead` and `num_gameweeks` depending on which function
-it was passed to, and the reader had to check each hop to know whether a count
-or a list was meant. Renaming them once fixes today; this test is what stops
-them drifting apart again.
+A gameweek is `gameweek`, a list of them is `gameweeks`, a count of them is
+`n_gameweeks`, and a position or chip is written as its enum. None of those
+fail at runtime if broken, so they are asserted here instead.
 """
 
 import ast

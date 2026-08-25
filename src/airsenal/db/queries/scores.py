@@ -25,7 +25,12 @@ def get_player_scores(
     dbsession: Session | None = None,
 ) -> list[PlayerScore] | PlayerScore | None:
     """
-    Get player scores for a fixture.
+    Player scores for a fixture, for a player, or for one player in one fixture.
+
+    At least one of `fixture` and `player` is required. The return shape follows
+    from which: both given returns a single `PlayerScore` (and raises if the
+    database holds more than one), either alone returns a list, and no matching
+    rows returns None rather than an empty list.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if fixture is None and player is None:
@@ -95,7 +100,8 @@ def get_recent_playerscore_rows(
             or_(
                 PlayerScore.minutes >= 60,
                 PlayerScore.chance_of_playing == 100,
-                PlayerScore.chance_of_playing.is_(None),  # for backwards compatibility
+                # rows written before chance_of_playing was recorded
+                PlayerScore.chance_of_playing.is_(None),
             )
         )
     if current_team_only:

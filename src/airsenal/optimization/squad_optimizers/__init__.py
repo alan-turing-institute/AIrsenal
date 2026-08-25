@@ -1,10 +1,7 @@
 """
 Whole-squad optimizers: one module per way of picking fifteen players.
 
-The table below is how a name on the command line reaches an implementation.
-Adding an optimizer is a class satisfying `SquadOptimizer` that constructs with
-no arguments, plus one line here - the table is typed against the protocol, so
-mypy checks the class fits at the point you add it.
+`SQUAD_OPTIMIZERS` maps a `--squad-optimizer` name to a zero-argument factory.
 """
 
 from collections.abc import Callable
@@ -31,7 +28,7 @@ def build_squad_optimizer(
     population_size: int | None = None,
 ) -> SquadOptimizer:
     """
-    The named whole-squad optimizer, sized by the two flags that pre-date the table.
+    The named whole-squad optimizer, sized by the two flags that describe it.
 
     `--num-generations` and `--population-size` describe a genetic algorithm, so
     like the tree search's flags they only reach the one component they are about.

@@ -2,9 +2,8 @@
 What AIrsenal thinks it is: version, home directory and which database it is
 pointed at.
 
-Named for what it reports rather than for the environment variables it happens
-to read - core/env.py reads the environment, cli/env.py is the command, and
-three modules called env.py told you nothing about which was which.
+Distinct from `core/env.py` (which reads the environment) and `cli/env.py`
+(which is the `airsenal env` command).
 """
 
 from airsenal import __version__
@@ -20,10 +19,16 @@ logger = get_logger(__name__)
 
 
 def redact_db_password(conn_str: str) -> str:
-    # Only redact for postgresql connection strings
+    """
+    Replace the password in a connection string with `***`.
+
+    Only postgres URLs carry one; a SQLite path is returned unchanged. Anything
+    that does not parse as `postgresql://user:password@host/db` is also returned
+    unchanged, so this is safe to print but is not a guarantee that an
+    unrecognised string holds no secret.
+    """
     if conn_str.startswith("postgresql://"):
         # Format: postgresql://user:password@host/dbname
-        # Find the user:password part
         prefix = "postgresql://"
         rest = conn_str[len(prefix) :]
         if "@" in rest:

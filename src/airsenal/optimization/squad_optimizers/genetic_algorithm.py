@@ -158,29 +158,29 @@ class SquadOpt:
             self._remove_zero_pts()
         self.n_available_players = len(self.players)
 
-        # Setup DEAP toolbox
         self._setup_deap()
 
     def _setup_deap(self) -> None:
-        """Setup DEAP genetic algorithm components."""
         _ensure_deap_types()
 
         self.toolbox = base.Toolbox()
-
-        # Register functions for creating individuals and population
         self.toolbox.register("individual", self._create_individual)
         self.toolbox.register(
             "population", tools.initRepeat, list, self.toolbox.individual
         )
-
-        # Register evaluation function
         self.toolbox.register("evaluate", self._evaluate_individual)
 
-        # Store mutation bounds for later use in optimize method
+        # Needed by the mutation operator, registered in optimize()
         self.low_bounds, self.up_bounds = self._get_mutation_bounds()
 
     def _create_individual(self) -> list[int]:
-        """Create a valid individual (chromosome) representing a squad selection."""
+        """
+        A random starting squad, as indices into `self.players`.
+
+        The list is grouped by position and each group is drawn from that
+        position's contiguous slice, so an individual is always positionally
+        valid even before the budget is checked.
+        """
         individual = []
 
         # For each position, select the required number of players
@@ -197,7 +197,12 @@ class SquadOpt:
         return creator.AirsenalIndividual(individual)
 
     def _get_mutation_bounds(self) -> tuple[list[int], list[int]]:
-        """Get lower and upper bounds for each gene for mutation."""
+        """
+        Per-gene index bounds, so a mutation cannot change a player's position.
+
+        Each gene is bounded to the slice of `self.players` for the position that
+        slot holds.
+        """
         low_bounds = []
         up_bounds = []
 
@@ -213,11 +218,14 @@ class SquadOpt:
         return low_bounds, up_bounds
 
     def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
-        """Evaluate the fitness of an individual (squad)."""
-        # Make squad from player IDs
+        """
+        The squad's discounted score, or 0.0 if it is not a legal squad.
+
+        Over budget, too many players from one club, or a duplicated player all
+        score zero rather than raising, which is how the GA discards them.
+        """
         squad = Squad(budget=self.budget, season=self.season)
 
-        # Add selected players to squad
         for idx in individual:
             add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
@@ -358,7 +366,6 @@ class SquadOpt:
             "select", tools.selTournament, tournsize=config.tournament_size
         )
 
-        # Create initial population
         population = self.toolbox.population(n=config.population_size)
 
         # Statistics tracking
@@ -371,7 +378,6 @@ class SquadOpt:
         # Hall of fame to track best individuals
         hall_of_fame = tools.HallOfFame(1)
 
-        # Run the genetic algorithm
         if on_generation is None:
             algorithms.eaSimple(
                 population,
@@ -388,7 +394,6 @@ class SquadOpt:
                 population, config, stats, hall_of_fame, on_generation
             )
 
-        # Return best individual and its fitness
         best_individual = hall_of_fame[0]
         best_fitness = best_individual.fitness.values[0]
 
@@ -493,7 +498,6 @@ def make_new_squad(
     airsenal.squad.squad.Squad
         The optimized squad
     """
-    # Build optimization problem
     opt_squad = SquadOpt(
         gameweeks,
         tag,
@@ -508,7 +512,6 @@ def make_new_squad(
         dbsession=dbsession,
     )
 
-    # Run optimization
     ga_config = ga_config if ga_config is not None else GeneticAlgorithmConfig()
     best_individual, best_fitness = opt_squad.optimize(ga_config, on_generation)
 

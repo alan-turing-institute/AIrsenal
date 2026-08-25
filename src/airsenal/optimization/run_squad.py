@@ -1,10 +1,9 @@
 """
 Running a from-scratch squad build: everything around the optimizer itself.
 
-`build_new_squad` chooses fifteen players and reports what it chose. It shared
-the name `fill_initial_squad` with `squad.history`, which records fifteen
-players the FPL entry had already been given - a different job in a different
-layer.
+`build_new_squad` chooses fifteen players and reports what it chose. Not to be
+confused with `fill_initial_squad` in `squad.history`, which records fifteen
+players the FPL entry was already given.
 """
 
 from airsenal.core.console import console, progress_bar

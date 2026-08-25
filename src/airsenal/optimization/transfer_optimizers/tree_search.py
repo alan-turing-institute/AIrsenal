@@ -3,14 +3,13 @@ The multiprocess plan-tree search.
 
 The algorithm behind `airsenal optimize transfers`: enumerate every legal move
 for every gameweek in the window, score each resulting squad, and keep the best
-whole-window plan. It is deliberately the *only* thing that lives behind the
-`TransferOptimizer` interface - fetching the starting squad, persisting the
-suggestions and printing the summary all stay in `run_transfers.py`, so
-substituting a different search does not mean reimplementing any of that.
+whole-window plan.
 
-The progress display does belong here, though: only the algorithm knows what its
-steps are, and a bar per worker sized by `count_expected_outputs` means nothing
-to a search that is not a forked tree walk.
+Only the search itself lives here. Fetching the starting squad, persisting the
+suggestions and printing the summary stay in `run_transfers.py`, so substituting
+a different search does not mean reimplementing any of that. The progress display
+is the exception: a bar per worker sized by `count_expected_outputs` only makes
+sense for a forked tree walk.
 """
 
 import cProfile
@@ -283,11 +282,8 @@ def optimize(
     """
     Expand nodes of the plan tree until the queue is drained.
 
-    Queue is the multiprocessing queue and pid is the Process that will execute
-    this func. The problem and the settings arrive as two frozen dataclasses:
-    they used to be fourteen positional elements of a tuple handed to Process,
-    one short of this signature, which is how `max_free_transfers` came to be
-    silently dropped on the way to every worker.
+    `queue` is the multiprocessing queue and `pid` identifies the Process running
+    this. The problem and the settings arrive as two frozen dataclasses.
 
     Things on the queue will either be None (shutdown sentinel, sent once all
     plans have been processed), or a tuple:
@@ -566,14 +562,9 @@ def search_transfer_tree(
         else:
             baseline = None
 
-        # Add Processes to run the target 'optimize' function.
-        # This target function needs to know:
-        #  the move (transfers and chip) to make
-        #  current_team (list of player_ids)
-        #  transfer_dict {"gw":<gw>,"in":[],"out":[]}
-        #  total_score
-        #  num_free_transfers
-        #  budget
+        # One worker per thread, each draining `squeue` until it sees the
+        # shutdown sentinel. Everything a worker needs beyond the node it pops
+        # is in `request` and `config`, both frozen.
         for i in range(num_thread):
             processor = Process(
                 target=optimize,

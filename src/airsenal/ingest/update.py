@@ -1,6 +1,8 @@
 """
-simple script, check whether recent matches have been played since
-the last entries in the DB, and update the transactions table with players
+Bringing the database up to date with the FPL API.
+
+Adds fixtures, results and players that have appeared since the last update,
+refreshes player attributes, and records transactions for players the entry has
 bought or sold.
 """
 
@@ -149,10 +151,12 @@ def add_players_to_db(
 
 
 def update_attributes(season: str, dbsession: Session) -> None:
-    """Update player attributes table"""
-    # update from, and including, the last gameweek we have results for in the
-    # database (including that gameweek as player prices etc. can change after
-    # matches have finished but before the next gameweek deadline)
+    """
+    Refresh player attributes from the last complete gameweek onwards.
+
+    That gameweek is included rather than skipped: prices and availability can
+    change after its matches finish but before the next deadline.
+    """
     last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
         # no results in database for this season yet

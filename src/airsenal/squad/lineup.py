@@ -148,7 +148,9 @@ def is_substitution_allowed(
 
 def pick_captains(players: list[SquadPlayer], gameweek: int, tag: str) -> None:
     """
-    pick the highest two expected points for captain and vice-captain
+    Make the two highest-scoring players captain and vice-captain.
+
+    Clears any existing captaincy first, and mutates the players in place.
     """
     player_list = []
     for p in players:

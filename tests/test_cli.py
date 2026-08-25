@@ -176,10 +176,9 @@ class TestFlagSpelling:
     """
     Every boolean option reads as the thing it turns on.
 
-    `airsenal predict --help` used to offer `--no-bonus --no-no-bonus
-    [default: no-no-bonus]`, five times over, because the parameters were named
-    for the negative. Typer derives `--no-X` itself, so the parameter has to be
-    the positive.
+    Typer derives `--no-X` from the parameter name, so a parameter named for the
+    negative produces `--no-bonus --no-no-bonus`. The parameter has to be the
+    positive.
     """
 
     @pytest.mark.parametrize("command", ALL_COMMANDS, ids=" ".join)
@@ -208,16 +207,13 @@ class TestFlagSpelling:
         assert f"--no-{positive.removeprefix('--')}" in text
 
     def test_apply_asks_before_acting_unless_told_not_to(self):
-        """
-        `--confirm` used to *skip* the confirmation, saying the opposite of what
-        it did, and shadowing `core.console.confirm`.
-        """
+        """The flag that skips the prompt is `--yes`, and it reads that way."""
         text = _flatten(runner.invoke(app, ["apply", "transfers", "--help"]).stdout)
         assert "--yes" in text
         assert "--confirm" not in text
 
     def test_an_unattended_run_can_apply_without_a_prompt(self):
-        """`run --apply-transfers` blocked on a prompt with no way to skip it."""
+        """`run --apply-transfers` must be skippable, or an unattended run hangs."""
         text = _flatten(runner.invoke(app, ["run", "--help"]).stdout)
         assert "--apply-transfers" in text
         assert "--yes" in text
@@ -237,7 +233,7 @@ class TestSettingsWithNoFlag:
         [
             # "re-optimise without re-fetching"
             (["run"], "--no-refresh-database"),
-            # the mode that exists for an unattended run, previously unreachable
+            # the mode that exists for an unattended run
             (["run"], "--on-stale"),
             (["run"], "--gameweek-start"),
             # threaded through two layers but absent from run_prediction's
@@ -254,7 +250,7 @@ class TestSettingsWithNoFlag:
 
 
 def test_env_names_prints_one_key_per_line():
-    """It used to print a Python list repr."""
+    """One key per line, not a Python list repr."""
     result = runner.invoke(app, ["env", "names"])
     assert result.exit_code == 0
     lines = [line for line in result.stdout.splitlines() if line.strip()]

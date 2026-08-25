@@ -1,13 +1,9 @@
 """
 Player models: one module per way of predicting how a team's goals are shared out.
 
-The table below is how a name on the command line reaches an implementation.
-Adding a model is a class satisfying `PlayerModel` that constructs with no
-arguments, plus one line here - the table is typed against the protocol, so mypy
-checks the class fits at the point you add it.
-
-You do not have to be in the table to be used: `AIrsenalPipeline` takes objects,
-so a model defined in a notebook can be dropped straight in.
+`PLAYER_MODELS` maps a `--player-model` name to a zero-argument factory. Being in
+it is only how a *name* reaches an implementation - `AIrsenalPipeline` takes
+objects, so a model defined in a notebook can be dropped straight in.
 """
 
 from collections.abc import Callable

@@ -1,14 +1,10 @@
 """
 Team models: one module per way of predicting match scorelines.
 
-The table below is how a name on the command line reaches an implementation.
-Adding a model is a class satisfying `TeamModel`, plus one line here - the table
-is typed against the protocol, so mypy checks the class fits where you add it.
-
-Entries take an optional keyword-only `epsilon`, the time-weighting decay rate:
-it is the one hyperparameter the command line exposes, and a model that does no
-time weighting rejects it rather than ignoring it. That makes this the one table
-whose factories are not zero-argument.
+`TEAM_MODELS` maps a `--team-model` name to a factory. Unlike the other
+component tables its factories are not zero-argument: each takes an optional
+keyword-only `epsilon`, the time-weighting decay rate, and a model that does no
+time weighting rejects it rather than ignoring it.
 """
 
 from collections.abc import Callable

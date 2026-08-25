@@ -1,10 +1,4 @@
-"""
-Downloading a file over HTTP, resumably.
-
-Lived in `ingest/player_scores.py`, which is a module about filling one database
-table and had no business owning a general-purpose downloader - or the only
-`curl_cffi` session outside the API client.
-"""
+"""Downloading a file over HTTP, resumably."""
 
 from pathlib import Path
 

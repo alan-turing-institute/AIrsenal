@@ -1,7 +1,7 @@
 """
+Which season it is, and how a season is written.
 
-Season details
-
+A season is the string `"2122"` for 2021/22 - the last two digits of each year.
 """
 
 from datetime import datetime

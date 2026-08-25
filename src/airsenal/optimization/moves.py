@@ -1,12 +1,10 @@
 """
 What we can do in a single gameweek, and which chips are available when.
 
-The transfer search used to describe a gameweek's move as ``int | "W" | "F" |
-"T0".."T2" | "B0".."B2"``, and every consumer re-parsed that encoding for itself -
-six copies of the same "does it start with a T?" logic, none of which agreed on
-what an unrecognised value should do. `GameweekMove` carries the two things the
-encoding was hiding (how many transfers, and which chip) as fields, so the parsing
-happens once, on the way in.
+`GameweekMove` carries how many transfers and which chip as fields. Moves are
+also written in a compact string form (``int | "W" | "F" | "T0".."T2" |
+"B0".."B2"``) for display and for the database; parsing it happens once, here, on
+the way in.
 """
 
 from collections.abc import Iterable, Mapping
@@ -183,12 +181,14 @@ def calc_free_transfers(
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> int:
     """
-    We get one extra free transfer per week, unless we use a wildcard or
-    free hit, but we can't have more than max_free_transfers. So we should only
-    be able to return 1 to max_free_transfers.
+    How many free transfers are available the gameweek after `move`.
+
+    One is added per week, capped at `max_free_transfers`, and the result is
+    never below 1. A wildcard or free hit leaves the count untouched rather than
+    consuming or accruing anything.
     """
     if move.rebuilds_squad:
-        return prev_free_transfers  # changed in 24/25 season, previously 1
+        return prev_free_transfers
     return max(1, min(max_free_transfers, 1 + prev_free_transfers - move.n_transfers))
 
 

@@ -1,10 +1,9 @@
 """
 The genetic algorithm, behind the squad-optimizer interface.
 
-A thin wrapper rather than a rewrite: all contact with DEAP stays inside
-`genetic_algorithm.py`, which is the one module exempted from mypy's
-`disallow_untyped_calls`. If this module ever needs that exemption too, DEAP has
-leaked out of the place that is allowed to know about it.
+All contact with DEAP stays inside `genetic_algorithm.py`, which is the one
+module exempted from mypy's `disallow_untyped_calls`. If this module ever needs
+that exemption too, DEAP has leaked out of the place allowed to know about it.
 """
 
 from airsenal.optimization.protocols import SquadRequest

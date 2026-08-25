@@ -1,10 +1,10 @@
 """
 Which components of a score to predict, and that the answer reaches the code.
 
-`--no-def-con` was once threaded through two layers and then dropped, because
-the signature it finally reached did not have the parameter - so the flag was
-offered, accepted, and could never be False. tests/test_cli.py checks the flag
-is still offered; these check it still arrives.
+A points flag passes through two layers before it reaches the function that
+branches on it, and a flag that is offered, accepted and then dropped fails
+silently. tests/test_cli.py checks the flags are still offered; these check they
+still arrive.
 """
 
 import pytest
@@ -60,9 +60,8 @@ def test_each_component_reaches_the_prediction(monkeypatch, component):
 
 def test_a_window_must_be_given():
     """
-    make_predictedscore_table used to default to three gameweeks from the next
-    one - a second hardcoded window beside get_gameweeks_array's, free to
-    disagree with it. Resolving a window is the pipeline's job now.
+    `make_predictedscore_table` has no default window: resolving one is the
+    pipeline's job, and a second hardcoded default here could disagree with it.
     """
     with pytest.raises(TypeError):
         make_predictedscore_table()  # type: ignore[call-arg]

@@ -1,10 +1,8 @@
 """
 Tests for the query caches.
 
-The rule: no cache key may contain a database session. A Session hashes by
-identity, so a cache keyed on one silently answers per-session rather than
-per-database - two sessions onto the same data miss each other, and one reused
-after a commit hits a stale entry.
+The rule: no cache key may contain a database session. See
+`airsenal/core/caching.py` for why.
 """
 
 import pytest
@@ -122,10 +120,9 @@ def test_a_player_id_is_not_looked_up_before_the_cache(monkeypatch):
     """
     Passing an int must not cost a database query.
 
-    It used to: every call validated the id with `get_player` before reaching
-    the cache, and the optimiser calls this once per candidate player per
-    candidate squad. Measured on a real database, restoring that lookup doubles
-    the time of a transfer optimisation - and nothing fails, it just gets slow.
+    The optimiser calls this once per candidate player per candidate squad, so
+    validating the id with `get_player` first roughly doubles the time of a
+    transfer optimisation. Nothing fails if it comes back - it just gets slow.
     """
 
     def fail(*args, **kwargs):

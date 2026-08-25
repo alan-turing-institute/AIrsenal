@@ -1,7 +1,4 @@
-"""
-Script to apply recommended squad changes after transfers are made
-
-"""
+"""Posting AIrsenal's recommended starting eleven, captain and bench order to FPL."""
 
 from typing import Any
 

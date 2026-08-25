@@ -2,15 +2,13 @@
 The query caches, kept together so they can all be dropped at once.
 
 The rule these exist to support: **no `lru_cache` on a function that takes a
-`Session`**. A Session hashes by identity, so the cache key silently includes
-*which session object* asked. Two sessions onto the same database miss each
-other's entries, a session reused after a commit hits a stale answer, and a
-session that outlives a test leaks into the next one. None of that fails
-loudly.
+`Session`**. A Session hashes by identity, so the cache key would silently
+include which session object asked, and none of the resulting stale or missed
+answers fail loudly.
 
-Cached queries therefore key on the values that determine the answer - a
-player id, a date, a season - and register themselves here so that anything
-which invalidates them can say so.
+Cached queries therefore key on the values that determine the answer - a player
+id, a date, a season - and register themselves here so that anything which
+invalidates them can say so.
 """
 
 from collections.abc import Callable, Iterator

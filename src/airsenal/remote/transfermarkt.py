@@ -41,9 +41,8 @@ def _get(url: str) -> requests.Response:
     """
     Fetch a Transfermarkt page, failing the way the rest of `remote` fails.
 
-    The five call sites used to call `requests.get` bare, with no status check, so
-    an error page was handed to the HTML parser and surfaced far away as whatever
-    `read_html` happened to raise on it.
+    Checks the status, so an error page is a `RemoteError` here rather than
+    whatever the HTML parser makes of it further away.
     """
     try:
         page = requests.get(url, headers=HEADERS)
@@ -63,9 +62,9 @@ def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
 
     Parameters
     ----------
-    season : str
-        season to query - the year the season started (int), rather than usual str
-        representation
+    season : int
+        season to query - the year the season started, rather than the usual
+        four-digit string representation
 
     Returns
     -------

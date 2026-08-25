@@ -5,15 +5,8 @@ A `Plan` is the *result* of a search. The algorithms that produce one live in
 `optimization/strategies/` (a gameweek at a time) and
 `optimization/transfer_optimizers/` (a whole window); nothing here searches.
 
-Plans used to be untyped dicts written to `strategy_{tag}_{sid}.json` in a
-temporary directory, and the parent process found the best one by listing that
-directory and comparing filenames. Everything about that was load-bearing and
-none of it was checked: the gameweek was a dict key, built as an int and read
-back as `str(gw)` after the JSON round trip, so an int lookup silently missed.
-
-Here a gameweek is a field of a list element, which makes that whole class of
-mistake unrepresentable. Plans are frozen, so a worker extending one cannot
-disturb the copy its siblings were handed.
+Plans are frozen, so a worker extending one cannot disturb the copy its siblings
+were handed.
 """
 
 from collections.abc import Sequence
@@ -134,8 +127,7 @@ class Plan:
         """
         The per-gameweek moves joined with dashes, e.g. "0-1-W".
 
-        This was the filename the search used to identify a plan by; it is now
-        only a display and debugging aid.
+        A display and debugging aid; nothing identifies a plan by it.
         """
         return "-".join(outcome.move.label() for outcome in self.outcomes)
 
