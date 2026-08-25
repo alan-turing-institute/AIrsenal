@@ -40,8 +40,8 @@ blocks in `pyproject.toml` name the untyped third-party libraries and the handfu
 modules allowed to call into them directly; everything else reaches those through our own
 typed wrappers. Do not add a module to those blocks to make a new error go away.
 
-For formatting and linting we use [ruff](https://docs.astral.sh/ruff/), which covers what
-black, isort and flake8 used to:
+For formatting and linting we use [ruff](https://docs.astral.sh/ruff/), which covers
+formatting, import sorting and linting in one tool:
 ```
 ruff check --fix .  # Linting with automatic fixes
 ruff format .       # Code formatting

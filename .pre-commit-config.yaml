@@ -35,18 +35,14 @@ repos:
         types_or: [ python, pyi, jupyter ]
 
   # additional_dependencies is the environment mypy gets, and it only needs the
-  # libraries it has to *resolve*. The untyped ones named in
-  # [[tool.mypy.overrides]] (jax, numpyro, bpl, deap, curl_cffi, html5lib,
-  # dateparser, scipy, matplotlib) already have ignore_missing_imports, so they
-  # can stay absent - which is why this list is six entries and not the whole
-  # dependency table.
+  # libraries it has to *resolve*: the untyped ones named in
+  # [[tool.mypy.overrides]] already have ignore_missing_imports, so they can stay
+  # absent. That is why this is six entries and not the whole dependency table.
   #
-  # Leaving any of them out is not a quiet loss of coverage but a loud wrong
-  # answer: without sqlalchemy every query returns Any and strict mode reports
-  # no-any-return all over db/queries, and without typer every CLI command is an
-  # untyped-decorator error. That was 53 false positives against zero from
-  # `uv run mypy`. If this hook and `uv run mypy` ever disagree, something is
-  # missing here.
+  # Leaving one out is a loud wrong answer rather than a quiet loss of coverage -
+  # without sqlalchemy every query returns Any, without typer every CLI command is
+  # an untyped-decorator error. If this hook and `uv run mypy` ever disagree,
+  # something is missing here.
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: "v2.1.0"
     hooks:
@@ -60,21 +56,15 @@ repos:
           - typer
           - pandas-stubs
 
-  # Checks the layering contracts in pyproject.toml. Two things differ from the
-  # hooks above, both from upstream being `language: system` rather than building
-  # its own environment.
+  # Checks the layering contracts in pyproject.toml. Upstream is `language: system`,
+  # so `entry` is overridden to go through uv: a bare `lint-imports` is only on
+  # PATH inside the project venv, and committing from a shell without it activated
+  # would fail with "Executable `lint-imports` not found". additional_dependencies
+  # would not help - system hooks ignore it.
   #
-  # `entry` is overridden to go through uv. Upstream runs a bare `lint-imports`,
-  # which is only on PATH inside the project venv - so committing from a shell
-  # without it activated fails with "Executable `lint-imports` not found", which
-  # is a broken commit rather than a broken build. `uv run` resolves the project
-  # environment itself, so it works either way. (additional_dependencies would
-  # not help: system hooks ignore it.)
-  #
-  # And it takes no filenames - pass_filenames is false upstream. A layering
-  # violation is an edge between two modules, so it needs the whole import graph
-  # and there is nothing to narrow to from the files being committed. That is
-  # affordable here: well under a second over 173 files.
+  # It takes no filenames (pass_filenames is false upstream). A layering violation
+  # is an edge between two modules, so it needs the whole import graph and there is
+  # nothing to narrow to from the files being committed.
   - repo: https://github.com/seddonym/import-linter
     rev: v2.13
     hooks:

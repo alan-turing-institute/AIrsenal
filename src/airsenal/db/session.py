@@ -15,10 +15,8 @@ from airsenal.db.engine import get_connection_string
 from airsenal.db.models import Base
 
 
-# Engine and default session are created on first use, not at import. Creating them at
-# import made importing any airsenal module open a database (and, via
-# utils.NEXT_GAMEWEEK, call the FPL API), which is why the test suite could not be
-# collected offline.
+# Engine and default session are created on first use, not at import, so that
+# importing an airsenal module never opens a database or reaches the network.
 class _DatabaseState:
     """Lazily-created engine and default session for the process."""
 

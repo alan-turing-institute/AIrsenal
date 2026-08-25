@@ -65,9 +65,8 @@ jobs:
       - name: Install package
         run: uv sync --locked --extra dev
 
-      # The default selection: offline, and without the two jax-heavy fits that
-      # used to be 60% of the runtime. Coverage is opt-in, and scoped to src/
-      # rather than measuring the tests as well.
+      # The default selection: offline, and without the tests marked `slow`,
+      # which the step below runs. Coverage is opt-in, and scoped to src/.
       - name: Test package
         env:
           FPL_TEAM_ID: 742663

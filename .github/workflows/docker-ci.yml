@@ -1,8 +1,7 @@
 name: Docker build
 
-# Only that the image builds. Running the lint and the tests inside it as well
-# duplicated main.yml exactly, so a failure told you nothing main.yml had not
-# already told you, twice as slowly.
+# Only that the image builds and the CLI runs inside it. Lint and tests belong to
+# main.yml; running them here too would say nothing it has not already said.
 
 env:
   DOCKER_BUILDKIT: 1

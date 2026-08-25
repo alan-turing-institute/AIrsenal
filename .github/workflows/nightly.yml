@@ -2,8 +2,7 @@ name: Nightly live API tests
 
 # The `live` tests are the only ones that talk to the real FPL API. They are
 # deselected everywhere else, so this job is the "did the API change shape?"
-# signal - which the five tests that used to be permanently skipped by a
-# `skipif(NEXT_GAMEWEEK == 1)` were written to give and never once gave.
+# signal.
 
 on:
   schedule:
