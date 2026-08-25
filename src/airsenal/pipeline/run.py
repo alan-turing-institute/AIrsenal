@@ -23,7 +23,7 @@ from airsenal.core.console import confirm
 from airsenal.core.logging import get_logger
 from airsenal.core.lookup import ConfigError
 from airsenal.core.season import CURRENT_SEASON
-from airsenal.db.queries.gameweeks import get_gameweeks_array, next_gameweek
+from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.tags import check_tag_valid
 from airsenal.db.session import session_scope
 from airsenal.export.absences import main as save_expected_absences
@@ -153,7 +153,7 @@ class AIrsenalPipeline:
         # nothing - and a caller that optimises without running the whole
         # pipeline still gets the fork the transfer search requires
         set_multiprocessing_start_method()
-        if self._is_new_squad(fpl_team_id):
+        if self._is_new_squad(fpl_team_id, gameweeks):
             logger.info("[bold]Generating Squad[/bold]")
             return fill_initial_squad(
                 tag=tag,
@@ -239,11 +239,25 @@ class AIrsenalPipeline:
         )
         raise ConfigError(msg)
 
-    def _is_new_squad(self, fpl_team_id: int) -> bool:
-        """Whether there is no squad yet to transfer from."""
+    def _is_new_squad(self, fpl_team_id: int, gameweeks: list[int]) -> bool:
+        """
+        Whether there is no squad yet to transfer from.
+
+        The one place this is decided. `run_optimization` used to ask the same
+        question again, against `gameweeks[0]` rather than against the next
+        gameweek, and could route to a from-scratch build after this method had
+        already said otherwise - without passing `is_replay` on, so a replay
+        that reached it recorded no transactions.
+
+        The criterion is that one, since it is the more careful of the two: a
+        window starting where the entry starts has nothing behind it to
+        transfer from, whichever gameweek that is.
+        """
         if self.settings.new_squad is not None:
             return self.settings.new_squad
-        return get_entry_start_gameweek(fpl_team_id, get_fetcher()) == next_gameweek()
+        if gameweeks[0] == 1:
+            return True
+        return get_entry_start_gameweek(fpl_team_id, get_fetcher()) == gameweeks[0]
 
     def _refresh_database(self, fpl_team_id: int, dbsession: Session) -> None:
         if check_clean_db(self.settings.database.clean, dbsession):

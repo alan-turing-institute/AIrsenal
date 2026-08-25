@@ -14,9 +14,10 @@ import pytest
 from sqlalchemy import select
 
 from airsenal.core.lookup import ConfigError
-from airsenal.db.models import PlayerPrediction
+from airsenal.db.models import PlayerPrediction, Transaction
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
+from airsenal.db.session import session_scope
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
     GeneticAlgorithmConfig,
@@ -236,3 +237,49 @@ class TestOneWindowResolver:
         pipeline = _pipeline(n_gameweeks=500)
         assert pipeline.gameweeks()[0] == FUTURE_GAMEWEEKS[0]
         assert len(pipeline.gameweeks()) < 500
+
+
+@pytest.mark.usefixtures("seeded")
+class TestOneNewSquadDecision:
+    """
+    Whether to build a squad or transfer into one is decided in one place.
+
+    `run_optimization` used to ask the same question again, against a different
+    gameweek, and could route to a from-scratch build after the pipeline had
+    already decided otherwise - and it did so through `new_squad_from_scratch`,
+    which did not pass `is_replay` on. So a replay whose window started at
+    gameweek 1 with `new_squad` False - `airsenal replay --resume` - built a
+    squad and recorded no transactions for it, leaving the next gameweek with
+    nothing to transfer from.
+    """
+
+    def _optimize(self, *, new_squad, is_replay):
+        pipeline = _pipeline(new_squad=new_squad)
+        with session_scope() as session:
+            tag = pipeline.predict(list(FUTURE_GAMEWEEKS), session)
+        pipeline.optimize(list(FUTURE_GAMEWEEKS), tag, TEAM_ID, is_replay=is_replay)
+        return pipeline
+
+    def _transaction_count(self):
+        with session_scope() as session:
+            return len(
+                session.scalars(
+                    select(Transaction).where(Transaction.fpl_team_id == TEAM_ID)
+                ).all()
+            )
+
+    def test_a_replay_records_the_squad_it_built(self):
+        """
+        Whichever route reaches the from-scratch build, `is_replay` has to
+        arrive with it: it is what writes the transactions the next gameweek
+        transfers from.
+        """
+        before = self._transaction_count()
+        self._optimize(new_squad=False, is_replay=True)
+        assert self._transaction_count() > before
+
+    def test_a_run_that_is_not_a_replay_records_nothing(self):
+        """The real FPL entry's transactions come from the API, not from here."""
+        before = self._transaction_count()
+        self._optimize(new_squad=False, is_replay=False)
+        assert self._transaction_count() == before

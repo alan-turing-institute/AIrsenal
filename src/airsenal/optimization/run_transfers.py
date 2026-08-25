@@ -49,7 +49,7 @@ from airsenal.reporting.optimization import (
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.history import get_starting_squad
 from airsenal.squad.squad import Squad
-from airsenal.squad.state import get_entry_start_gameweek, get_free_transfers
+from airsenal.squad.state import get_free_transfers
 
 logger = get_logger(__name__)
 
@@ -170,11 +170,16 @@ def new_squad_from_scratch(
     chips: ChipWeeks,
     squad_optimizer: SquadOptimizer | None = None,
     scoring: SquadScoringConfig | None = None,
+    is_replay: bool = False,
 ) -> Squad:
     """
-    Build a squad from nothing, for the start of a season or a brand new team.
+    Build a squad from nothing, because there turned out to be nothing to
+    transfer from.
 
-    There is nothing to transfer from, so the transfer search has nothing to do.
+    Whether to build rather than transfer is `AIrsenalPipeline._is_new_squad`'s
+    decision, and this is not a second copy of it: it is the recovery for a
+    database with no transactions for this entry, which is only discoverable by
+    trying to load the squad.
     """
     if squad_optimizer is None:
         squad_optimizer = GeneticSquadOptimizer()
@@ -186,6 +191,7 @@ def new_squad_from_scratch(
         optimizer=squad_optimizer,
         scoring=scoring,
         chips=chips,
+        is_replay=is_replay,
     )
 
 
@@ -221,24 +227,6 @@ def run_optimization(
         scoring = SquadScoringConfig()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
 
-    # see if we are at the start of a season, or
-    if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
-        fpl_team_id, fetcher=get_fetcher()
-    ):
-        logger.info(
-            "This is the start of the season or a new team - will make a squad "
-            "from scratch"
-        )
-        return new_squad_from_scratch(
-            gameweeks,
-            tag,
-            season,
-            fpl_team_id,
-            chips,
-            squad_optimizer,
-            scoring,
-        ), None
-
     with console.status("Optimising transfers..."):
         logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
         use_api = season == CURRENT_SEASON and not is_replay
@@ -264,6 +252,7 @@ def run_optimization(
                 chips,
                 squad_optimizer,
                 scoring,
+                is_replay=is_replay,
             ), None
         # if we got to here, we can assume we are optimizing an existing squad.
 
