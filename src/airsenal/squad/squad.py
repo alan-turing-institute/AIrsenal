@@ -8,7 +8,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from operator import itemgetter
 
-import numpy as np
 from sqlalchemy.orm import Session
 
 from airsenal.core.enums import Position
@@ -17,15 +16,22 @@ from airsenal.core.scoring import SQUAD_SIZE
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.queries.scores import get_playerscores_for_player_gameweek
 from airsenal.db.session import get_session
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.squad.lineup import (
+    choose_starting_eleven,
+    is_substitution_allowed,
+    order_substitutes,
+    pick_captains,
+)
 from airsenal.squad.player import (
     CandidatePlayer,
     SquadPlayer,
     bench_position,
 )
+from airsenal.squad.pricing import sell_price
 from airsenal.squad.state import get_bank
 
 logger = get_logger(__name__)
@@ -38,29 +44,6 @@ TOTAL_PER_POSITION: dict[str, int] = {
     Position.DEF: 5,
     Position.MID: 5,
     Position.FWD: 3,
-}
-
-# the outfield positions a formation names, in the order it names them
-FORMATION_POSITIONS = (Position.DEF, Position.MID, Position.FWD)
-
-FORMATIONS = [
-    (3, 4, 3),
-    (3, 5, 2),
-    (4, 3, 3),
-    (4, 4, 2),
-    (4, 5, 1),
-    (5, 4, 1),
-    (5, 3, 2),
-    (5, 2, 3),
-]
-
-FORMATION_SLOTS = {
-    0: (),
-    1: (2,),
-    2: (1, 3),
-    3: (1, 2, 3),
-    4: (0, 1, 3, 4),
-    5: (0, 1, 2, 3, 4),
 }
 
 
@@ -233,57 +216,16 @@ class Squad:
         """Get sale price for player (a player in self.players) in the current
         gameweek of the current season.
         """
-        fetcher = fetcher if fetcher is not None else get_fetcher()
-        gameweek = next_gameweek() if gameweek is None else gameweek
-        dbsession = dbsession if dbsession is not None else get_session()
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
-        player_id = player.player_id
-
-        price_now = None
-        player_db = get_player(player_id, dbsession=dbsession)
-        if (
-            use_api
-            and self.season == CURRENT_SEASON
-            and gameweek >= next_gameweek()
-            and player_db is not None
-            and player_db.fpl_api_id is not None
-        ):
-            api_id = player_db.fpl_api_id
-            # first try getting the actual sale price from a logged in API
-            selling_price = selling_price_from_api(api_id, player, fetcher=fetcher)
-            if selling_price is not None:
-                return selling_price
-            # no selling price to be had, so use the player's current price
-            try:
-                price_now = fetcher.get_player_summary_data()[api_id]["now_cost"]
-            except Exception:
-                logger.warning(
-                    "Failed to get current price of %s from API. "
-                    "Will attempt to use latest price in DB instead.",
-                    player,
-                    exc_info=True,
-                )
-
-        # retrieve how much we originally bought the player for from db
-        price_bought = player.purchase_price
-
-        # get player's current price from db if the API wasn't used
-        if not price_now and player_db:
-            price_now = player_db.price(self.season, gameweek)
-
-        # if all else fails just use the purchase price as the sale price for the player
-        if not price_now:
-            logger.warning(
-                "Using purchase price as sale price for %s, %s",
-                player.player_id,
-                player,
-            )
-            price_now = price_bought
-
-        if price_now > price_bought:
-            return (price_now + price_bought) // 2
-        return price_now
+        return sell_price(
+            player,
+            self.season,
+            use_api=use_api,
+            gameweek=gameweek,
+            dbsession=dbsession,
+            fetcher=fetcher,
+        )
 
     def check_no_duplicate_player(self, player: SquadPlayer) -> bool:
         """
@@ -323,98 +265,9 @@ class Squad:
         for p in self.players:
             p.calc_predicted_points(tag)
 
-    def optimize_subs(self, gameweek: int, tag: str) -> float:
-        """
-        based on pre-calculated expected points,
-        choose the best starting 11, obeying constraints.
-        """
-        # first order all the players by expected points
-        player_dict: dict[str, list[tuple[SquadPlayer, float]]] = {
-            position: [] for position in Position
-        }
-        for p in self.players:
-            try:
-                points_prediction = p.predicted_points[tag][gameweek]
-
-            except KeyError:
-                # player does not have a game in this gameweek
-                points_prediction = 0.0
-            player_dict[p.position].append((p, points_prediction))
-        for v in player_dict.values():
-            v.sort(key=itemgetter(1), reverse=True)
-
-        # always start the first-placed and sub the second-placed keeper
-        player_dict[Position.GK][0][0].is_starting = True
-        player_dict[Position.GK][1][0].is_starting = False
-        best_score = 0.0
-        best_formation = None
-        for f in FORMATIONS:
-            self.apply_formation(player_dict, f)
-            score = self.total_points_for_starting_11(gameweek, tag)
-            if score >= best_score:
-                best_score = score
-                best_formation = f
-        logger.debug("Best formation is %s", best_formation)
-        if best_formation is None:
-            msg = "No valid formation found for squad"
-            raise RuntimeError(msg)
-        self.apply_formation(player_dict, best_formation)
-        self.order_substitutes(gameweek, tag)
-
-        return best_score
-
     def order_substitutes(self, gameweek: int, tag: str) -> None:
-        # order substitutes by expected points (descending)
-        subs = [p for p in self.players if not p.is_starting]
-
-        points = []
-        for player in subs:
-            try:
-                points.append(player.predicted_points[tag][gameweek])
-            except ValueError:
-                points.append(0)
-
-        # sort the players by points (descending)
-        ordered_sub_inds = reversed(np.argsort(points))
-        for sub_position, sub_ind in enumerate(ordered_sub_inds):
-            subs[sub_ind].sub_position = sub_position
-
-    def apply_formation(
-        self,
-        player_dict: dict[str, list[tuple[SquadPlayer, float]]],
-        formation: tuple[int, int, int],
-    ) -> None:
-        """
-        set players' is_starting to True or False
-        depending on specified formation in format e.g.
-        (4,4,2)
-        """
-        for i, pos in enumerate(FORMATION_POSITIONS):
-            for index, player in enumerate(player_dict[pos]):
-                player[0].is_starting = index < formation[i]
-
-    def get_formation(self) -> dict[str, int]:
-        """
-        Return the formation of a starting 11 in the form
-        of a dict {"DEF": nDEF, "MID": nMID, "FWD": nFWD}
-        """
-        formation: dict[str, int] = dict.fromkeys(Position, 0)
-        for player in self.players:
-            if player.is_starting:
-                formation[player.position] += 1
-        return formation
-
-    def is_substitution_allowed(
-        self, player_out: SquadPlayer, player_in: SquadPlayer
-    ) -> bool:
-        """
-        for a given player out and player in, would the substitution result in a
-        valid formation?
-        """
-        formation = self.get_formation()
-        formation[player_out.position] -= 1
-        formation[player_in.position] += 1
-        return tuple(formation[pos] for pos in FORMATION_POSITIONS) in FORMATIONS
+        """Number the bench by predicted points, best first."""
+        order_substitutes(self.players, gameweek, tag)
 
     def total_points_for_starting_11(
         self, gameweek: int, tag: str, triple_captain: bool = False
@@ -464,8 +317,13 @@ class Squad:
             raise RuntimeError(msg)
 
         self._calc_expected_points(tag)
-        self.optimize_subs(gameweek, tag)
-        self.pick_captains(gameweek, tag)
+        choose_starting_eleven(
+            self.players,
+            gameweek,
+            tag,
+            lambda: self.total_points_for_starting_11(gameweek, tag),
+        )
+        pick_captains(self.players, gameweek, tag)
 
     def get_expected_points(
         self,
@@ -488,20 +346,6 @@ class Squad:
             total_score += self.total_points_for_subs(gameweek, tag)
 
         return total_score
-
-    def pick_captains(self, gameweek: int, tag: str) -> None:
-        """
-        pick the highest two expected points for captain and vice-captain
-        """
-        player_list = []
-        for p in self.players:
-            p.is_captain = False
-            p.is_vice_captain = False
-            player_list.append((p, p.predicted_points[tag][gameweek]))
-
-        player_list.sort(key=itemgetter(1), reverse=True)
-        player_list[0][0].is_captain = True
-        player_list[1][0].is_vice_captain = True
 
     def get_actual_points(
         self,
@@ -563,7 +407,7 @@ class Squad:
         if need_sub and not bench_boost:
             for p_out in need_sub:
                 for p_in in ordered_subs:
-                    if not self.is_substitution_allowed(p_out, p_in):
+                    if not is_substitution_allowed(self.players, p_out, p_in):
                         continue
                     scores = get_playerscores_for_player_gameweek(
                         p_in.player_id, gameweek, season
@@ -583,56 +427,6 @@ class Squad:
                 p, use_api=use_api, gameweek=gameweek
             )
         return total_value
-
-
-def selling_price_from_api(
-    api_id: int,
-    player: SquadPlayer,
-    fetcher: FPLDataFetcher | None = None,
-) -> int | None:
-    """
-    What the FPL API says this player would sell for, or None if it cannot say.
-
-    A selling price exists only for a player the entry actually owns, and plenty
-    of the squads priced here are ones the optimizer invented rather than ones
-    that exist: everything a wildcard bought, and every squad a later gameweek of
-    the same strategy transfers out of. Not owning a player is therefore an
-    ordinary outcome and not worth a warning - there is simply no sale price to
-    read, and the caller falls back to the current market price, which is the
-    right answer for a player we would be buying at it.
-
-    Failing to reach the API at all is a different matter, and does warn.
-    """
-    fetcher = fetcher if fetcher is not None else get_fetcher()
-    try:
-        picks = fetcher.get_current_picks()
-    except Exception:
-        logger.warning(
-            "Failed to get the current picks from the FPL API to price %s. "
-            "Will estimate based on the player's current price instead",
-            player,
-            exc_info=True,
-        )
-        return None
-
-    if api_id not in picks:
-        logger.debug(
-            "%s is not in the FPL team's current picks, so the API has no sale "
-            "price for them; using their current price instead",
-            player,
-        )
-        return None
-
-    try:
-        return int(picks[api_id]["selling_price"])
-    except (KeyError, TypeError, ValueError):
-        logger.warning(
-            "The FPL API returned no usable selling price for %s. "
-            "Will estimate based on the player's current price instead",
-            player,
-            exc_info=True,
-        )
-        return None
 
 
 def get_current_squad_from_api(

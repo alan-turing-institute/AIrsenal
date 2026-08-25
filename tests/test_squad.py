@@ -9,7 +9,9 @@ from rich.console import Console
 
 from airsenal.core.season import CURRENT_SEASON
 from airsenal.reporting.squad_view import formation_table
-from airsenal.squad.squad import FORMATION_SLOTS, Squad, selling_price_from_api
+from airsenal.squad.lineup import FORMATION_SLOTS
+from airsenal.squad.pricing import selling_price_from_api
+from airsenal.squad.squad import Squad
 from tests.conftest import session_scope
 
 TEST_SEASON = CURRENT_SEASON
@@ -316,8 +318,8 @@ class _Recorder(logging.Handler):
 
 @pytest.fixture
 def squad_logs():
-    """The records squad.py logs, at every level."""
-    logger = logging.getLogger("airsenal.squad.squad")
+    """The records pricing.py logs, at every level."""
+    logger = logging.getLogger("airsenal.squad.pricing")
     handler = _Recorder()
     original_level = logger.level
     logger.addHandler(handler)
