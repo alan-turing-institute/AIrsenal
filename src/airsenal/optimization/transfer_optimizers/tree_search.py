@@ -262,7 +262,7 @@ def _make_best_transfers(
         root_gw=request.root_gw,
         bench_boost_gw=request.bench_boost_gw,
         triple_captain_gw=request.triple_captain_gw,
-        sub_weights=request.sub_weights,
+        sub_weights=request.scoring.sub_weights,
     )
 
     # A free hit is reverted after the gameweek it is played in, so the squad
@@ -560,7 +560,7 @@ def search_transfer_tree(
                 gameweeks,
                 tag,
                 root_gw=gameweeks[0],
-                sub_weights=request.scoring.sub_weights.as_dict(),
+                sub_weights=request.scoring.sub_weights,
             )
             progress.advance(total_task, 1)
         else:

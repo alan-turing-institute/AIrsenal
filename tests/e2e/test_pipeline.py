@@ -26,7 +26,6 @@ from airsenal.optimization.squad_optimizers import GeneticAlgorithmConfig
 from airsenal.optimization.squad_optimizers.genetic_algorithm import (
     make_new_squad,
 )
-from airsenal.optimization.squad_score import SubWeights
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
 from airsenal.optimization.transfer_optimizers.tree_search import (
     _make_best_transfers,
@@ -38,6 +37,7 @@ from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
     build_team_model,
 )
+from airsenal.squad.squad import SubWeights
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON, SQUAD_SHAPE, TEAMS
 
 BUDGET = 1000
@@ -124,7 +124,7 @@ def squad(seeded, prediction_tag):
         prediction_tag,
         budget=BUDGET,
         season=SEASON,
-        sub_weights=SubWeights().as_dict(),
+        sub_weights=SubWeights(),
         ga_config=GeneticAlgorithmConfig(
             population_size=20, generations=5, random_state=0, verbose=False
         ),

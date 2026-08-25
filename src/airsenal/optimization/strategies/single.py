@@ -14,8 +14,8 @@ from airsenal.optimization.protocols import (
     StepCounter,
     TransferRequest,
 )
-from airsenal.optimization.squad_score import SubWeightsDict, get_discounted_squad_score
-from airsenal.squad.squad import Squad
+from airsenal.optimization.squad_score import get_discounted_squad_score
+from airsenal.squad.squad import Squad, SubWeights
 
 if TYPE_CHECKING:
     from airsenal.db.models import Player
@@ -34,7 +34,7 @@ def make_optimum_single_transfer(
     on_step: StepCounter | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeightsDict | None = None,
+    sub_weights: SubWeights | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -116,6 +116,6 @@ class SingleTransferStrategy:
             on_step=request.progress,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
-            sub_weights=request.sub_weights,
+            sub_weights=request.scoring.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

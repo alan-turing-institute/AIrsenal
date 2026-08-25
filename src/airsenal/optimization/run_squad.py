@@ -55,7 +55,7 @@ def fill_initial_squad(
     if optimizer is None:
         optimizer = GeneticSquadOptimizer()
     scoring = scoring if scoring is not None else SquadScoringConfig()
-    sub_weights = scoring.sub_weights.as_dict()
+    sub_weights = scoring.sub_weights
     with progress_bar(transient=True) as progress:
         # the optimizer says how many steps it will take, so the bar cannot drift
         # away from what actually happens; the best score so far is the part worth

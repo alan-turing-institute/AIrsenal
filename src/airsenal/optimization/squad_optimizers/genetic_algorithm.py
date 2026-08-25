@@ -23,11 +23,10 @@ from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.optimization.squad_score import (
     SquadScoringConfig,
-    SubWeightsDict,
     get_discounted_squad_score,
 )
 from airsenal.squad.player import DummyPlayer
-from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
+from airsenal.squad.squad import TOTAL_PER_POSITION, Squad, SubWeights
 
 logger = get_logger(__name__)
 
@@ -108,9 +107,9 @@ class SquadOpt:
         Gameweek to play triple captain, by default None,
     remove_zero : bool
         If True don't consider players with predicted pts of zero, by default True
-    sub_weights : dict
+    sub_weights : SubWeights
         Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.optimization.squad_score.
+        SubWeights() - see airsenal.squad.squad.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the
@@ -130,7 +129,7 @@ class SquadOpt:
         # don't consider players with predicted pts of zero
         remove_zero: bool = True,
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
-        sub_weights: SubWeightsDict | None = None,
+        sub_weights: SubWeights | None = None,
         dbsession: Session | None = None,
     ) -> None:
         # Held on the optimiser, never on a Squad: a Squad crosses the
@@ -151,9 +150,7 @@ class SquadOpt:
         self.dummy_sub_cost = dummy_sub_cost
         self.budget = budget
         self.sub_weights = (
-            sub_weights
-            if sub_weights is not None
-            else SquadScoringConfig().sub_weights.as_dict()
+            sub_weights if sub_weights is not None else SquadScoringConfig().sub_weights
         )
 
         self.players, self.position_idx = self._get_player_list()
@@ -447,7 +444,7 @@ def make_new_squad(
     triple_captain_gw: int | None = None,
     # don't consider players with predicted pts of zero
     remove_zero: bool = True,
-    sub_weights: SubWeightsDict | None = None,
+    sub_weights: SubWeights | None = None,
     dummy_sub_cost: int = 45,
     ga_config: GeneticAlgorithmConfig | None = None,
     on_generation: GenerationReporter | None = None,
@@ -474,9 +471,9 @@ def make_new_squad(
         Gameweek to play triple captain, by default None,
     remove_zero : bool
         If True don't consider players with predicted pts of zero, by default True
-    sub_weights : dict
+    sub_weights : SubWeights
         Weighting to give to substitutes in optimization, by default
-        SubWeights() - see airsenal.optimization.squad_score.
+        SubWeights() - see airsenal.squad.squad.
     dummy_sub_cost : int, optional
         If not optimizing a full squad the price of each player that is not being
         optimized. For example, if you are optimizing 12 out of 15 players, the

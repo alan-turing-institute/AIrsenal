@@ -7,7 +7,7 @@ from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     build_squad_optimizer,
 )
-from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     build_transfer_optimizer,
@@ -16,6 +16,7 @@ from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettin
 from airsenal.pipeline.settings import StaleDatabase
 from airsenal.prediction.player_models import build_player_model
 from airsenal.prediction.team_models import build_team_model
+from airsenal.squad.squad import SubWeights
 
 
 def run(

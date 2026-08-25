@@ -5,17 +5,25 @@ import pytest
 from airsenal.optimization.squad_score import (
     DEFAULT_DISCOUNT,
     SquadScoringConfig,
-    SubWeights,
     get_discount_factor,
 )
+from airsenal.squad.squad import SubWeights
 
 
-def test_sub_weights_shape_matches_what_the_scoring_code_expects():
-    assert SubWeights().as_dict() == {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
+def test_sub_weights_defaults():
+    assert SubWeights().gk == 0.03
+    assert SubWeights().outfield == (0.65, 0.3, 0.1)
 
 
 def test_no_subs_ignores_the_bench_entirely():
-    assert SubWeights.none().as_dict() == {"GK": 0.0, "Outfield": (0.0, 0.0, 0.0)}
+    assert SubWeights.none().gk == 0.0
+    assert SubWeights.none().outfield == (0.0, 0.0, 0.0)
+
+
+def test_a_bench_boost_counts_every_substitute_in_full():
+    """What `Squad.total_points_for_subs` falls back to when given nothing."""
+    assert SubWeights.full().gk == 1.0
+    assert SubWeights.full().outfield == (1.0, 1.0, 1.0)
 
 
 def test_sub_weights_are_immutable():

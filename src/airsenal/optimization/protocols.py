@@ -26,7 +26,7 @@ from airsenal.core.enums import Chip
 from airsenal.core.scoring import MAX_FREE_TRANSFERS
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import TransferSearchResult
-from airsenal.optimization.squad_score import SquadScoringConfig, SubWeightsDict
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
 
@@ -111,11 +111,6 @@ class TransferRequest:
     def triple_captain_gw(self) -> int | None:
         """The gameweek to score with a tripled captain, if any."""
         return self.transfer_gameweek if self.chip is Chip.TRIPLE_CAPTAIN else None
-
-    @property
-    def sub_weights(self) -> SubWeightsDict:
-        """The bench weighting to score candidate squads with."""
-        return self.scoring.sub_weights.as_dict()
 
     def advance_progress(self) -> None:
         """Count off one of the candidate squads this strategy considers."""

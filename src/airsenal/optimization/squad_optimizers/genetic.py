@@ -48,7 +48,7 @@ class GeneticSquadOptimizer:
             budget=request.scoring.budget,
             season=request.season,
             remove_zero=request.remove_zero,
-            sub_weights=request.scoring.sub_weights.as_dict(),
+            sub_weights=request.scoring.sub_weights,
             dummy_sub_cost=request.scoring.dummy_sub_cost,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,

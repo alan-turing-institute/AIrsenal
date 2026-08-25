@@ -14,34 +14,9 @@ for as long as the settings were default arguments repeated across both.
 
 from dataclasses import dataclass, field
 
-from airsenal.squad.squad import Squad
+from airsenal.squad.squad import Squad, SubWeights
 
 DEFAULT_DISCOUNT = 14 / 15  # weight applied per gameweek into the future
-
-# The shape as_dict() produces and the scoring code consumes: a weight for the
-# substitute goalkeeper, and one per outfield bench position.
-SubWeightsDict = dict[str, float | tuple[float, float, float]]
-
-
-@dataclass(frozen=True)
-class SubWeights:
-    """
-    How much a substitute's predicted points count towards a squad's score.
-
-    Outfield weights are ordered by bench position: first substitute, second, third.
-    """
-
-    gk: float = 0.03
-    outfield: tuple[float, float, float] = (0.65, 0.3, 0.1)
-
-    @classmethod
-    def none(cls) -> "SubWeights":
-        """Ignore the bench entirely."""
-        return cls(gk=0.0, outfield=(0.0, 0.0, 0.0))
-
-    def as_dict(self) -> SubWeightsDict:
-        """The shape the scoring code still expects."""
-        return {"GK": self.gk, "Outfield": self.outfield}
 
 
 @dataclass(frozen=True)
@@ -77,7 +52,7 @@ def get_discounted_squad_score(
     root_gw: int | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeightsDict | None = None,
+    sub_weights: SubWeights | None = None,
 ) -> float:
     """Get the number of points a squad is expected to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
@@ -99,7 +74,7 @@ def get_discounted_squad_score(
         else:
             total_points += squad.get_expected_points(gw, tag) * gw_weight
 
-        if gw != bench_boost_gw and sub_weights:
+        if gw != bench_boost_gw and sub_weights is not None:
             total_points += gw_weight * squad.total_points_for_subs(
                 gw, tag, sub_weights=sub_weights
             )

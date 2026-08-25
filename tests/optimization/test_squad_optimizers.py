@@ -24,6 +24,7 @@ from airsenal.optimization.squad_optimizers import (
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
+from airsenal.squad.squad import SubWeights
 
 
 class StubSquad:
@@ -127,10 +128,7 @@ def test_a_request_defaults_to_todays_scoring():
 
     assert request.budget == 1000
     assert request.scoring.dummy_sub_cost == 45
-    assert request.scoring.sub_weights.as_dict() == {
-        "GK": 0.03,
-        "Outfield": (0.65, 0.3, 0.1),
-    }
+    assert request.scoring.sub_weights == SubWeights(gk=0.03, outfield=(0.65, 0.3, 0.1))
 
 
 def test_progress_is_only_reported_when_something_is_watching():

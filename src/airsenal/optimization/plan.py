@@ -23,11 +23,10 @@ from typing import Any
 from airsenal.core.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.squad_score import (
-    SubWeightsDict,
     get_discount_factor,
     get_discounted_squad_score,
 )
-from airsenal.squad.squad import Squad
+from airsenal.squad.squad import Squad, SubWeights
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,7 +161,7 @@ def baseline_plan(
     gameweeks: list[int],
     tag: str,
     root_gw: int | None = None,
-    sub_weights: SubWeightsDict | None = None,
+    sub_weights: SubWeights | None = None,
 ) -> Plan:
     """
     The plan of making no transfers at all, which every other plan is compared

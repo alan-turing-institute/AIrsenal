@@ -33,7 +33,7 @@ from airsenal.optimization.squad_optimizers import (
     GeneticAlgorithmConfig,
     GeneticSquadOptimizer,
 )
-from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import TreeSearchConfig
 from airsenal.optimization.transfer_optimizers.tree_search import optimize
 from airsenal.prediction.player_models import (
@@ -43,6 +43,7 @@ from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
     build_team_model,
 )
+from airsenal.squad.squad import SubWeights
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
 SEARCH_GAMEWEEKS = FUTURE_GAMEWEEKS[:2]

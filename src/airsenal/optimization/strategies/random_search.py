@@ -19,8 +19,8 @@ from airsenal.optimization.protocols import (
     StepCounter,
     TransferRequest,
 )
-from airsenal.optimization.squad_score import SubWeightsDict, get_discounted_squad_score
-from airsenal.squad.squad import Squad
+from airsenal.optimization.squad_score import get_discounted_squad_score
+from airsenal.squad.squad import Squad, SubWeights
 
 if TYPE_CHECKING:
     from airsenal.db.models import Player
@@ -39,7 +39,7 @@ def make_random_transfers(
     season: str = CURRENT_SEASON,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeightsDict | None = None,
+    sub_weights: SubWeights | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     choose nsubs random players to sub out, and then select players
@@ -157,6 +157,6 @@ class RandomTransferStrategy:
             season=request.season,
             bench_boost_gw=request.bench_boost_gw,
             triple_captain_gw=request.triple_captain_gw,
-            sub_weights=request.sub_weights,
+            sub_weights=request.scoring.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

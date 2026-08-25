@@ -16,13 +16,14 @@ from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     build_squad_optimizer,
 )
-from airsenal.optimization.squad_score import SquadScoringConfig, SubWeights
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     build_transfer_optimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
 from airsenal.remote.fpl_api import require_fpl_team_id
+from airsenal.squad.squad import SubWeights
 
 logger = get_logger(__name__)
 

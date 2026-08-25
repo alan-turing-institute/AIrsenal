@@ -5,8 +5,8 @@ Is able to check that it obeys all constraints.
 """
 
 from collections import defaultdict
+from dataclasses import dataclass
 from operator import itemgetter
-from typing import Any
 
 import numpy as np
 from sqlalchemy.orm import Session
@@ -51,6 +51,32 @@ FORMATION_SLOTS = {
     4: (0, 1, 3, 4),
     5: (0, 1, 2, 3, 4),
 }
+
+
+@dataclass(frozen=True)
+class SubWeights:
+    """
+    How much a substitute's predicted points count towards a squad's score.
+
+    Outfield weights are ordered by bench position: first substitute, second,
+    third. Here rather than in `optimization/`, which is where it is configured,
+    because this is the layer that reads it - it used to be flattened into a
+    `dict[str, Any]` by an `as_dict()` on the way down, purely to cross the
+    boundary.
+    """
+
+    gk: float = 0.03
+    outfield: tuple[float, float, float] = (0.65, 0.3, 0.1)
+
+    @classmethod
+    def none(cls) -> "SubWeights":
+        """Ignore the bench entirely."""
+        return cls(gk=0.0, outfield=(0.0, 0.0, 0.0))
+
+    @classmethod
+    def full(cls) -> "SubWeights":
+        """Count every substitute in full, which is what a bench boost does."""
+        return cls(gk=1.0, outfield=(1.0, 1.0, 1.0))
 
 
 class Squad:
@@ -400,10 +426,10 @@ class Squad:
         return total
 
     def total_points_for_subs(
-        self, gameweek: int, tag: str, sub_weights: dict[str, Any] | None = None
+        self, gameweek: int, tag: str, sub_weights: "SubWeights | None" = None
     ) -> float:
-        if sub_weights is None:
-            sub_weights = {"GK": 1, "Outfield": (1, 1, 1)}
+        # None means a bench boost: every substitute counts in full
+        sub_weights = sub_weights if sub_weights is not None else SubWeights.full()
         outfield_subs = [
             p for p in self.players if (not p.is_starting) and (p.position != "GK")
         ]
@@ -413,10 +439,10 @@ class Squad:
             p for p in self.players if (not p.is_starting) and (p.position == "GK")
         )
 
-        total: float = sub_weights["GK"] * gk_sub.predicted_points[tag][gameweek]
+        total: float = sub_weights.gk * gk_sub.predicted_points[tag][gameweek]
 
         for i, player in enumerate(outfield_subs):
-            total += sub_weights["Outfield"][i] * player.predicted_points[tag][gameweek]
+            total += sub_weights.outfield[i] * player.predicted_points[tag][gameweek]
 
         return total
 
