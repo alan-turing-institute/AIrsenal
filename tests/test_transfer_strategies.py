@@ -7,8 +7,8 @@ by test_optimization.py.
 
 import pytest
 
-from airsenal.core.enums import Chip
 from airsenal.core.lookup import ConfigError
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     Proposal,

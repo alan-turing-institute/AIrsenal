@@ -9,11 +9,11 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.queries.predictions import get_predicted_points_for_player
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

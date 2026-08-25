@@ -16,10 +16,10 @@ import math
 import pytest
 from sqlalchemy import select
 
-from airsenal.core.enums import Position
 from airsenal.db.models import Fixture, Player, PlayerPrediction, Result
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
+from airsenal.game.enums import Position
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferRequest
 from airsenal.optimization.squad_optimizers import GeneticAlgorithmConfig

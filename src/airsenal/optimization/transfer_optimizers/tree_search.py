@@ -23,10 +23,10 @@ from typing import Literal
 
 from airsenal.core.concurrency import CustomQueue, StallWatchdog
 from airsenal.core.console import progress_bar
-from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger, relay_child_logs
-from airsenal.core.scoring import MAX_FREE_TRANSFERS
 from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.game.enums import Chip
+from airsenal.game.scoring import MAX_FREE_TRANSFERS
 from airsenal.optimization.moves import (
     NO_CHIPS,
     ChipSchedule,

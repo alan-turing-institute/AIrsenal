@@ -16,14 +16,14 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import TransferSuggestion
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.queries.transactions import add_transaction
 from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.plan import Plan
 from airsenal.squad.squad import Squad
 

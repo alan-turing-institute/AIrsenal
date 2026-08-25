@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 import numpy as np
 
-from airsenal.core.scoring import MAX_GOALS
+from airsenal.game.scoring import MAX_GOALS
 from airsenal.prediction.protocols import TeamModel
 
 

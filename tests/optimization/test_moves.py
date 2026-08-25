@@ -7,7 +7,7 @@ transfer search used to carry, so the encoding is pinned here once.
 
 import pytest
 
-from airsenal.core.enums import Chip
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekChips,

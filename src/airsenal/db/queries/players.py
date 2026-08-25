@@ -4,7 +4,6 @@ from sqlalchemy import case, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player, PlayerAttributes, PlayerMapping, PlayerScore
 from airsenal.db.queries.fixtures import (
     get_fixture_teams,
@@ -16,6 +15,7 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

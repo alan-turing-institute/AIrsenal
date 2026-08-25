@@ -10,15 +10,15 @@ from operator import itemgetter
 
 from sqlalchemy.orm import Session
 
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.core.scoring import SQUAD_SIZE
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.queries.scores import get_playerscores_for_player_gameweek
 from airsenal.db.session import get_session
+from airsenal.game.enums import Position
+from airsenal.game.scoring import SQUAD_SIZE
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.lineup import (
     choose_starting_eleven,

@@ -6,11 +6,11 @@ Script to apply recommended squad changes after transfers are made
 from typing import Any
 
 from airsenal.core.console import console
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
+from airsenal.game.enums import Position
 from airsenal.remote.fpl_api import FPLDataFetcher
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.player import SquadPlayer, bench_position

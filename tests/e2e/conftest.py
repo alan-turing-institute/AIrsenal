@@ -17,7 +17,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from airsenal.core.enums import Position
 from airsenal.db.models import (
     Base,
     FifaTeamRating,
@@ -29,6 +28,7 @@ from airsenal.db.models import (
     Team,
 )
 from airsenal.db.session import configure_database
+from airsenal.game.enums import Position
 
 SEASON = "2526"
 PAST_SEASONS = ["2324", "2425"]

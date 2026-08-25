@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from sqlalchemy import select
 
-from airsenal.core.enums import Chip
 from airsenal.db.models import TransferSuggestion
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,

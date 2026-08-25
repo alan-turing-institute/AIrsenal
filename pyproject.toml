@@ -290,6 +290,14 @@ type = "layers"
 # so the `reporting` boundary this file describes was not actually being enforced
 # while `reporting : squad : prediction` sat on one line.
 #
+# `game` is last, and that is the point: the facts about Fantasy Premier League -
+# what a position is, what a goal is worth, what "2122" means - import nothing at
+# all, not even a logger. `core/` used to hold them alongside the generic
+# plumbing under one negative rule ("no airsenal-specific dependencies"), which
+# is a rule with no floor. See tests/game/test_game_is_plain_python.py, which is
+# what makes the boundary checkable rather than merely described - the thing the
+# earlier domain/ split (89fc5f2) never had.
+#
 # exhaustive: a newly-created package cannot silently escape the chain by not
 # being listed. `airsenal.data` is exempt because it holds no Python.
 containers = ["airsenal"]
@@ -306,6 +314,7 @@ layers = [
     "db",
     "remote",
     "core",
+    "game",
 ]
 exhaustive = true
 exhaustive_ignores = ["data"]

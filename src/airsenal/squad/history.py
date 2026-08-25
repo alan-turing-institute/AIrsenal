@@ -10,7 +10,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
@@ -20,6 +19,7 @@ from airsenal.db.queries.transactions import (
     transaction_exists,
 )
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.errors import RemoteError
 from airsenal.remote.fpl_api import (
     FPLDataFetcher,

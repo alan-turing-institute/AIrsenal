@@ -17,7 +17,7 @@ from typing import Annotated
 
 import typer
 
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
 )

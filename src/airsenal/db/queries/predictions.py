@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, Player, PlayerPrediction, TransferSuggestion
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.queries.players import get_player, list_players
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

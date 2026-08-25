@@ -19,7 +19,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from airsenal.core.console import console, price_str, table
-from airsenal.core.enums import Position
+from airsenal.game.enums import Position
 from airsenal.squad.player import CandidatePlayer, DummyPlayer, bench_position
 from airsenal.squad.squad import Squad
 

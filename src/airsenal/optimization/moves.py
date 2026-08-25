@@ -12,8 +12,8 @@ happens once, on the way in.
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
-from airsenal.core.enums import Chip
-from airsenal.core.scoring import MAX_FREE_TRANSFERS, POINTS_HIT_COST, SQUAD_SIZE
+from airsenal.game.enums import Chip
+from airsenal.game.scoring import MAX_FREE_TRANSFERS, POINTS_HIT_COST, SQUAD_SIZE
 
 # Chips that are given a letter of their own because they replace the squad
 # outright, so the number of transfers is not a meaningful part of the move.

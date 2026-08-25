@@ -8,8 +8,8 @@ layer.
 """
 
 from airsenal.core.console import console, progress_bar
-from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,

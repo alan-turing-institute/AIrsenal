@@ -12,8 +12,6 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import track
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.mappings import positions
-from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import PlayerAttributes
 from airsenal.db.queries.fixtures import find_fixture, get_player_team_from_fixture
 from airsenal.db.queries.gameweeks import (
@@ -27,6 +25,8 @@ from airsenal.db.queries.players import (
 )
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
+from airsenal.game.mappings import positions
+from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.remote.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)

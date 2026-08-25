@@ -7,10 +7,10 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import track
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.core.mappings import alternative_team_names
-from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import FifaTeamRating
 from airsenal.db.session import get_session
+from airsenal.game.mappings import alternative_team_names
+from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 
 logger = get_logger(__name__)
 

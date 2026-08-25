@@ -7,7 +7,7 @@ from typing import Any
 
 from airsenal.core.console import track
 from airsenal.core.data_files import data_file
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import FPLDataFetcher
 
 RENAME_KEYS = {

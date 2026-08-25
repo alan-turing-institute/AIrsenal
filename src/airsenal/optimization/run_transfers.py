@@ -13,11 +13,11 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.console import console
 from airsenal.core.copy import fastcopy
-from airsenal.core.enums import Chip
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import ChipSchedule, ChipWeeks
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan

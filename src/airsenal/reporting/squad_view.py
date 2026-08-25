@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from airsenal.core.enums import Position
+from airsenal.game.enums import Position
 from airsenal.squad.lineup import FORMATION_SLOTS
 from airsenal.squad.player import SquadPlayer
 from airsenal.squad.squad import Squad

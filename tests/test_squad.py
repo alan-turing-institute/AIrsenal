@@ -7,7 +7,7 @@ import logging
 import pytest
 from rich.console import Console
 
-from airsenal.core.season import CURRENT_SEASON
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.lineup import FORMATION_SLOTS
 from airsenal.squad.pricing import selling_price_from_api

@@ -1,6 +1,6 @@
 """Positions and chips."""
 
-from airsenal.core.enums import Chip, Position
+from airsenal.game.enums import Chip, Position
 
 
 def test_position_compares_equal_to_its_string():

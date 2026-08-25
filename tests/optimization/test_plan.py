@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from airsenal.core.enums import Chip
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.plan import GameweekOutcome, Plan
 

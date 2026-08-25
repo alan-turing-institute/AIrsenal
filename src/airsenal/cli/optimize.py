@@ -6,8 +6,8 @@ import typer
 
 from airsenal.cli import options
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.tags import get_latest_prediction_tag
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import (
     TransferConstraints,

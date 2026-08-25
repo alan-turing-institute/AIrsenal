@@ -12,8 +12,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from airsenal.core.enums import Chip
 from airsenal.core.lookup import ConfigError, lookup
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import SquadRequest, TransferRequest
 from airsenal.optimization.squad_optimizers import (

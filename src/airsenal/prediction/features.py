@@ -9,9 +9,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.console import track
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.core.scoring import (
+from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
+from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
+from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
+from airsenal.db.queries.players import get_max_matches_per_player, list_players
+from airsenal.db.queries.scores import get_player_scores_df
+from airsenal.db.session import get_session
+from airsenal.game.enums import Position
+from airsenal.game.scoring import (
     MAX_MINUTES_MATCH,
     MIN_MINUTES_FULL,
     MIN_MINUTES_SHORT,
@@ -21,13 +27,7 @@ from airsenal.core.scoring import (
     points_for_yellow_card,
     saves_for_point,
 )
-from airsenal.core.season import CURRENT_SEASON
-from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
-from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
-from airsenal.db.queries.players import get_max_matches_per_player, list_players
-from airsenal.db.queries.scores import get_player_scores_df
-from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.player_models.scaling import get_empirical_bayes_estimates
 
 logger = get_logger(__name__)

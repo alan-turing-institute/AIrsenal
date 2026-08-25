@@ -2,7 +2,7 @@
 How many points does FPL assign for goals, assists, clean sheets, appearances
 """
 
-from airsenal.core.enums import Position
+from airsenal.game.enums import Position
 
 # Keyed by Position so a typo is an AttributeError rather than a KeyError at
 # run time, and annotated `str` because what indexes them is a position read

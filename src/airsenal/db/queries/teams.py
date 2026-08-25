@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Team
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

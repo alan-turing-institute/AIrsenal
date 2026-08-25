@@ -3,11 +3,11 @@
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from airsenal.core.season import CURRENT_SEASON, get_previous_season
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.scores import get_recent_playerscore_rows
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON, get_previous_season
 
 
 def calc_average_minutes(player_scores: list[PlayerScore]) -> float:

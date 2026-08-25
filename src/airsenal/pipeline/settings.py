@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
-from airsenal.core.season import (
+from airsenal.game.season import (
     CURRENT_SEASON,
     get_past_seasons,
 )

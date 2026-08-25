@@ -6,7 +6,7 @@ and both live with the search rather than with `GameweekMove`: only a tree walk
 asks either question, and the count exists to size a progress bar.
 """
 
-from airsenal.core.enums import Chip
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import ChipSchedule, GameweekChips
 from airsenal.optimization.transfer_optimizers.tree_search import (
     count_expected_outputs,

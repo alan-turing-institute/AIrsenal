@@ -12,8 +12,8 @@ from operator import itemgetter
 
 import numpy as np
 
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
+from airsenal.game.enums import Position
 from airsenal.squad.player import SquadPlayer
 
 logger = get_logger(__name__)

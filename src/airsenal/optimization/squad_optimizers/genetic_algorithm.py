@@ -15,12 +15,12 @@ import numpy as np
 from deap import algorithms, base, creator, tools
 from sqlalchemy.orm import Session
 
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
+from airsenal.game.enums import Position
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_score import (
     SquadScoringConfig,
     get_discounted_squad_score,
@@ -100,7 +100,7 @@ class SquadOpt:
         No. of players to optimize in each position, by default
         airsenal.squad.squad.TOTAL_PER_POSITION
     season : str
-        Season to optimize for, by default airsenal.core.season.CURRENT_SEASON
+        Season to optimize for, by default airsenal.game.season.CURRENT_SEASON
     bench_boost_gw : int
         Gameweek to play bench boost, by default None
     triple_captain_gw : int
@@ -464,7 +464,7 @@ def make_new_squad(
         No. of players to optimize in each position, by default
         airsenal.squad.squad.TOTAL_PER_POSITION
     season : str
-        Season to optimize for, by default airsenal.core.season.CURRENT_SEASON
+        Season to optimize for, by default airsenal.game.season.CURRENT_SEASON
     bench_boost_gw : int
         Gameweek to play bench boost, by default None
     triple_captain_gw : int

@@ -9,9 +9,9 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, data_file
-from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Player, PlayerMapping
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.ingest.player_mappings import (
     add_mappings,
     make_player_mappings_table,

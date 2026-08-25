@@ -22,11 +22,11 @@ from airsenal.core.concurrency import set_multiprocessing_start_method
 from airsenal.core.console import confirm
 from airsenal.core.logging import get_logger
 from airsenal.core.lookup import ConfigError
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.queries.gameweeks import get_gameweeks_array
 from airsenal.db.queries.tags import check_tag_valid
 from airsenal.db.session import session_scope
 from airsenal.export.absences import main as save_expected_absences
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.ingest.init_db import check_clean_db, make_init_db
 from airsenal.ingest.update import update_db
 from airsenal.optimization.plan import Plan

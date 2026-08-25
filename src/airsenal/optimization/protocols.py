@@ -22,8 +22,8 @@ from typing import Protocol
 
 from sqlalchemy.orm.session import Session
 
-from airsenal.core.enums import Chip
-from airsenal.core.scoring import MAX_FREE_TRANSFERS
+from airsenal.game.enums import Chip
+from airsenal.game.scoring import MAX_FREE_TRANSFERS
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig

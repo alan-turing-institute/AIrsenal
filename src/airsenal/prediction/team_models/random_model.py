@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 
 from airsenal.core.lookup import ConfigError
-from airsenal.core.scoring import MAX_GOALS
+from airsenal.game.scoring import MAX_GOALS
 from airsenal.prediction.team_models.scorelines import (
     outcome_proba_from_scores,
 )

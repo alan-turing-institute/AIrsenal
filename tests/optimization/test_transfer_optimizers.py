@@ -8,8 +8,8 @@ import pickle
 
 import pytest
 
-from airsenal.core.enums import Chip
 from airsenal.core.lookup import ConfigError, lookup
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import MAX_FREE_TRANSFERS, GameweekMove
 from airsenal.optimization.plan import (
     GameweekOutcome,

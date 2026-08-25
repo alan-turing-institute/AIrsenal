@@ -18,9 +18,9 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.core.data_files import FilePath, absences_file
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, PlayerAttributes
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 

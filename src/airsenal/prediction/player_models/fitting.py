@@ -11,9 +11,9 @@ import pandas as pd
 from sqlalchemy.orm import Session
 
 from airsenal.core.copy import fastcopy
-from airsenal.core.enums import Position
 from airsenal.core.logging import get_logger
 from airsenal.db.session import get_session
+from airsenal.game.enums import Position
 from airsenal.prediction.features import process_player_data
 from airsenal.prediction.player_models import ConjugatePlayerModel
 from airsenal.prediction.protocols import PlayerModel

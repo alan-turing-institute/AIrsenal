@@ -6,7 +6,6 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, absences_file
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.db.models import Absence
 from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
@@ -14,6 +13,7 @@ from airsenal.db.queries.gameweeks import (
 )
 from airsenal.db.queries.players import get_player
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 
 logger = get_logger(__name__)
 

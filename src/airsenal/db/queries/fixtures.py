@@ -8,12 +8,12 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
-from airsenal.core.season import CURRENT_SEASON
 from airsenal.db.models import Fixture, Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.tags import get_latest_fixture_tag
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
 
