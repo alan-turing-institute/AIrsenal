@@ -74,7 +74,8 @@ squad          the Squad class and the state of the user's own entry
 prediction     the models, and the points they imply
 db             the tables, the queries and the session
 remote         everything that talks to the internet, and nothing else
-core           no airsenal-specific dependencies at all
+core           generic plumbing: logging, caching, the console, date parsing
+game           the facts about FPL - it imports nothing at all
 ```
 
 One package per row, and a module may import from the rows below it, never from the
@@ -93,9 +94,16 @@ than silently escaping it.
 
 Three rules decide where new code goes:
 
-1. **If it imports no other airsenal module, it goes in `core/`.** That covers both FPL's
-   own rules (what a goal is worth, what a position is, how season strings work) and
-   generic plumbing (dates, logging, the console, caching).
+1. **Is it a fact about Fantasy Premier League?** What a goal is worth, what a position
+   is, how season strings work, what other data sources call a club - that goes in
+   `game/`, which imports nothing at all: no airsenal package, no third-party library,
+   not even a logger. If the thing you are adding needs a logger or a dataframe, that is
+   the signal it is not a fact about the game.
+   **Is it generic Python machinery with no airsenal imports?** That goes in `core/`.
+   These used to be one package under one negative rule - "no airsenal-specific
+   dependencies" - which put "how many points for a goal" beside the Rich console. A
+   negative rule has no floor, so both halves are stated positively now, and
+   `tests/game/test_game_is_plain_python.py` checks the `game/` half.
 2. **Otherwise it belongs to the stage that owns it** - the list above. If it seems to
    belong to two stages, it goes in the lower one, or it is two functions.
 3. **A new subdirectory needs at least three modules.** A directory holding one file
@@ -123,7 +131,7 @@ would be good to standardise the order in which these arguments go across differ
 Below is a suggested ordering of commonly used arguments, from first to last:
 * Other arguments (not listed below)
 * *player* or *player_id* (instance of Player class, or the player_id in the database for that player)
-* *position* (`Position` from `core/enums.py`; `"all"` is still a plain string where a position filter accepts one)
+* *position* (`Position` from `game/enums.py`; `"all"` is still a plain string where a position filter accepts one)
 * *team* (str, 3-letter identifier for team, e.g. "ARS, MUN", or "all")
 * *tag* (str, a unique identifier for a set of entries (e.g. points predictions) in the database)
 * *gameweek* (int - one gameweek), or *gameweeks* (list of ints). A count is *n_gameweeks*. `tests/test_naming_conventions.py` enforces those three names, and that a parameter called `gameweek` is not secretly a list.

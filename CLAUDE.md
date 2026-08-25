@@ -70,16 +70,20 @@ rather than silently escaping it. The order, top to bottom:
 
 ```
 cli > pipeline > apply > optimization > export > ingest > reporting > squad >
-prediction > db > remote > core
+prediction > db > remote > core > game
 ```
 
 Bottom of the chain, depended on by everything:
 
-- **`src/airsenal/core/`** — anything with no airsenal-specific dependencies: FPL's own
-  rules (`scoring.py`, `enums.py`, `mappings.py`, `season.py`) and generic plumbing
-  (`console.py`, `logging.py`, `caching.py`, `concurrency.py`, `copy.py`, `dates.py`,
-  `env.py`, `lookup.py`, `data_files.py`). **If it does not import another airsenal
-  module, it belongs here.**
+- **`src/airsenal/game/`** — the facts about Fantasy Premier League: what a position and
+  a chip are (`enums.py`), what each event is worth (`scoring.py`), what a season string
+  means (`season.py`), and how other data sources name clubs and positions
+  (`mappings.py`). **It imports nothing** — not another airsenal package, not a
+  third-party library, not even a logger. `tests/game/test_game_is_plain_python.py`
+  checks that half of the boundary and the layers contract checks the other.
+- **`src/airsenal/core/`** — generic plumbing with no airsenal-specific dependencies:
+  `console.py`, `logging.py`, `caching.py`, `concurrency.py`, `copy.py`, `dates.py`,
+  `env.py`, `lookup.py`, `data_files.py`. Machinery, not football.
 - **`src/airsenal/data/`** — static historical FPL data (multiple seasons, used to seed
   the database); resolve paths with `airsenal.core.data_files.data_file()`, never with
   `__file__`
@@ -111,9 +115,14 @@ Outside the package:
 - **`tools/`** — dev one-offs, not packaged; install with the `tools` extra
 - **`tests/`** — pytest tests, mirroring the package where there is enough to mirror
 
-**Where does new code go?** If it has no airsenal imports, `core/`. Otherwise it belongs
-to the pipeline stage that owns it — and a new subdirectory needs at least three modules
-to be worth making.
+**Where does new code go?** Two positive questions, in order. Is it a fact about Fantasy
+Premier League? → `game/`. Is it generic Python machinery with no airsenal imports? →
+`core/`. Otherwise it belongs to the pipeline stage that owns it — and a new subdirectory
+needs at least three modules to be worth making.
+
+`core/` used to be defined negatively — "if it does not import another airsenal module, it
+belongs here" — which put "how many points for a goal" beside the Rich console. A negative
+rule has no floor, so it is not the rule any more.
 
 ### Data flow
 
@@ -217,8 +226,8 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `optimization/squad_optimizers/` | One module per whole-squad builder, behind the `SquadOptimizer` protocol |
 | `optimization/squad_optimizers/genetic_algorithm.py` | The DEAP genetic algorithm the default squad optimizer wraps |
 | `squad/squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
-| `core/enums.py` | `Position` and `Chip` |
-| `core/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `MAX_FREE_TRANSFERS` |
+| `game/enums.py` | `Position` and `Chip` |
+| `game/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `MAX_FREE_TRANSFERS` |
 | `cli/options.py` | The `Annotated` option aliases shared across commands |
 | `core/lookup.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
 
@@ -245,5 +254,5 @@ that calls jax-based models) unless the deadlock issue is independently resolved
 - **Branch naming:** `feature/<issue>-<description>` or `bugfix/<issue>-<description>`; all new branches should be made from `develop`, and all pull requests should be made to merge into `develop`
 - **Function argument order** (where applicable): other args → `player`/`player_id` → `position` → `team` → `tag` → `gameweek` → `season` → `fpl_team_id` → `dbsession` → `fetcher` → `verbose`
 - **Season strings:** `"2122"` for the 2021/22 season
-- **Positions and chips:** use the `Position` and `Chip` enums from `core/enums.py`, not bare strings (`"all"` is still a plain string where a position filter accepts it)
+- **Positions and chips:** use the `Position` and `Chip` enums from `game/enums.py`, not bare strings (`"all"` is still a plain string where a position filter accepts it). Enforced by `tests/test_naming_conventions.py`
 - Docstrings should follow numpydoc convention; type hints are encouraged

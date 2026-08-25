@@ -127,7 +127,7 @@ For each of the number of minutes played in the last 3 fixtures (e.g. if a playe
 
 If a player is marked as injured or suspended in the API (obtained with `Player.is_injured_or_suspended()` in `airsenal.db.models`) with a 50% or less chance of playing in a fixture we assume he'll score 0pts.
 
-As per the FPL appearance points rules, players score 0pts if a player doesn't play, 1pt for less 60 minutes, and 2pts for 60 minutes or more. See `get_appearance_points` in `airsenal.core.scoring`.
+As per the FPL appearance points rules, players score 0pts if a player doesn't play, 1pt for less 60 minutes, and 2pts for 60 minutes or more. See `get_appearance_points` in `airsenal.game.scoring`.
 
 **Attacking Points (Goals Scored):**
 
