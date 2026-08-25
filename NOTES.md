@@ -160,8 +160,9 @@ We currently don't have predictions for the points contribution from bonus point
 
 ### Running Points Predictions
 
-Use `airsenal predict` from the command-line, which runs `run_prediction` in
-`airsenal.prediction.run`.
+Use `airsenal predict` from the command-line. It builds an `AIrsenalPipeline` and calls
+`gameweeks()` then `predict()` on it, which fills the table via
+`make_predictedscore_table` in `airsenal.prediction.run`.
 
 ## Creating a Team for the Start of the Season
 

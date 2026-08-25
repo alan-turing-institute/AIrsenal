@@ -192,11 +192,16 @@ a *name* on the command line reaches an implementation, and `lookup()` in
 
 Settings belong to whichever component owns them - epsilon to the team model, the
 GA config to the squad optimizer, thread count to the transfer optimizer - not to
-the pipeline. Only the settings that pre-date this are exposed as CLI flags
-(`--epsilon`, `--num-generations`, `--population-size`, `--num-thread`,
-`--num-iterations`), and each reaches only the component it describes: name a
-different optimizer and it starts from its own defaults. Anything finer-grained
-is set by constructing the component in Python.
+the pipeline. Three config objects sit on the pipeline itself, because they
+describe something no single component owns: `constraints` (what a transfer
+search may consider), `scoring` (what a squad is worth, which both optimizers
+have to agree on) and `points` (which components of an FPL score to predict).
+
+Only the settings that pre-date this are exposed as CLI flags (`--epsilon`,
+`--num-generations`, `--population-size`, `--num-thread`, `--num-iterations`),
+and each reaches only the component it describes: name a different optimizer and
+it starts from its own defaults. Anything finer-grained is set by constructing
+the component in Python.
 
 Optionally, a component may also provide `num_increments()` to size its own
 progress bar (see `progress_total` in `optimization/protocols.py`); without one
@@ -216,7 +221,7 @@ rebuild a wildcard or free hit does inside the transfer search.
 | `prediction/team_models/dixon_coles.py` | BPL team-level match score predictions |
 | `prediction/player_models/` | One module per player model, behind the `PlayerModel` protocol |
 | `prediction/team_models/` | One module per team model, behind the `TeamModel` protocol |
-| `prediction/points.py` | Turning fitted models into predicted points per fixture |
+| `prediction/points.py` | Turning fitted models into predicted points per fixture, and `PointsConfig` |
 | `pipeline/run.py` | `AIrsenalPipeline`: the swappable components, the constraints and scoring, plus the run settings |
 | `optimization/run_transfers.py` | Fetching the squad, persisting suggestions and reporting around the search |
 | `optimization/plan.py` | `Plan` and `TransferSearchResult`: what a search produces |
