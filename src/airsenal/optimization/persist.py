@@ -143,7 +143,7 @@ def fill_initial_suggestion_table(
         ts = TransferSuggestion()
         ts.player_id = player.player_id
         ts.in_or_out = 1
-        ts.gameweek = next_gameweek()
+        ts.gameweek = gameweek
         ts.points_gain = score
         ts.timestamp = timestamp
         ts.season = season
