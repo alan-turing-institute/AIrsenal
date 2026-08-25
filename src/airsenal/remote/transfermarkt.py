@@ -18,7 +18,6 @@ from airsenal.core.logging import get_logger
 from airsenal.core.season import (
     CURRENT_SEASON,
     get_next_season,
-    get_start_end_dates_of_season,
     season_str_to_year,
 )
 from airsenal.remote.errors import (
@@ -418,6 +417,27 @@ def get_player_transfers(
     raw["date"] = pd.to_datetime(raw["date"], format="%d/%m/%Y", errors="coerce")
 
     return raw.iloc[::-1]
+
+
+def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
+    """
+    Obtains rough start and end dates for the season.
+    Takes into account the shorter and longer seasons in 19/20 and 20/21.
+
+    Here rather than in `season.py` because this is its only caller, and it is
+    the only thing in that module that needs pandas: everything else there is
+    string arithmetic over season names.
+    """
+    start_year = int(f"20{season[:2]}")
+    end_year = int(f"20{season[2:]}")
+    if season == "1920":
+        # regular start, late end to season
+        return [pd.Timestamp(2019, 7, 1), pd.Timestamp(2020, 7, 31)]
+    if season == "2021":
+        # late start to season, regular end
+        return [pd.Timestamp(2020, 8, 1), pd.Timestamp(2021, 6, 30)]
+    # regular season
+    return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
 
 
 def get_player_team_history(
