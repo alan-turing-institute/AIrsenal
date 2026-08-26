@@ -28,8 +28,6 @@ from airsenal.framework.utils import (
     NEXT_GAMEWEEK,
     find_fixture,
     get_fixtures_for_gameweek,
-    get_last_complete_gameweek_in_db,
-    get_last_finished_gameweek,
     get_past_seasons,
     get_player,
     get_player_from_api_id,
@@ -299,17 +297,6 @@ def fill_playerscores_from_api(
     dbsession: Session = session,
 ) -> None:
     # Get column metadata once for efficiency
-    if get_last_finished_gameweek() == 0:
-        print(
-            f"No complete gameweeks, skipping player scores update for {season} season"
-        )
-        return
-    if (
-        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == get_last_finished_gameweek()
-    ):
-        print(f"Player scores up-to-date, skipping update for {season} season")
-        return
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key
