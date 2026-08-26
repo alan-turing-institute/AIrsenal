@@ -115,9 +115,7 @@ def fill_suggestion_table(
     fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
-    """
-    Fill the optimized plan into the table
-    """
+    """Write an optimised plan's suggested transfers into the database."""
     dbsession = dbsession if dbsession is not None else get_session()
     timestamp = str(datetime.now())
     points_gain = best_plan.total_score - baseline_score
@@ -149,12 +147,13 @@ def fill_transaction_table(
     tag: str | None = None,
     dbsession: Session | None = None,
 ) -> None:
-    """Add transactions from an optimised plan to the transactions table in the
-    database. Used for simulating seasons only, for playing the current FPL season
-    the transactions status is kept up to date with transfers using the FPL API.
-    Only transfers from the first gameweek in the plan are added to the Transaction
-    table - it's assumed the plan will be re-optimised after each week rather than
-    sticking with the originally proposed future transfers.
+    """
+    Record an optimised plan's transfers in the transactions table.
+
+    For simulating a season only: when playing the real one, the transactions
+    table is kept up to date from the FPL API instead. Only the first gameweek's
+    transfers are recorded, because the plan is re-optimised each week rather
+    than followed to the end.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     outcome = best_plan.outcomes[0]
@@ -227,9 +226,11 @@ def fill_initial_transaction_table(
     gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
-    """Add transactions from an initial squad optimisation to the transactions table
-    in the database. Used for simulating seasons only, for playing the current FPL
-    season the transactions status is kepts up to date with transfers using the FPL API.
+    """
+    Record a from-scratch squad build in the transactions table.
+
+    For simulating a season only: when playing the real one, the transactions
+    table is kept up to date from the FPL API instead.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()

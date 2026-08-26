@@ -71,8 +71,10 @@ def test_the_cache_actually_caches(sessions):
 
 def test_different_seasons_are_cached_separately(sessions):
     """
-    The old cache was `lru_cache(1)`, so a replay alternating between seasons
-    evicted on every call and the cache did nothing at all.
+    Two seasons are cached side by side, not one at a time.
+
+    A cache of size one would evict on every call of a replay that alternates
+    between seasons, which is exactly the workload here.
     """
     first, _ = sessions
     _add_fixture(first, 20)

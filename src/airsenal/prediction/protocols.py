@@ -69,10 +69,10 @@ class TeamModel(Protocol):
         self, home_team: Sequence[str], away_team: Sequence[str]
     ) -> dict[str, np.ndarray]:
         """
-        Win/draw/loss probabilities for each fixture, keyed "home_win"/"draw"/
-        "away_win".
+        Win, draw and loss probabilities for each fixture.
 
-        Here rather than fetched with `getattr` at the one call site: a model that
-        cannot answer should fail to type-check, not fail at run time.
+        Keyed "home_win", "draw" and "away_win". Here rather than fetched with
+        `getattr` at the one call site: a model that cannot answer should fail to
+        type-check, not fail at run time.
         """
         ...

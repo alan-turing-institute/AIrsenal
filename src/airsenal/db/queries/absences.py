@@ -12,10 +12,10 @@ def was_historic_absence(
     player: Player, gameweek: int, season: str, dbsession: Session | None = None
 ) -> bool:
     """
-    For past seasons, query the Absence table for a given player and season,
-    and see if the gameweek is within the period of the absence.
+    Whether a player was injured or suspended in a past gameweek.
 
-    Returns: bool, True if player was absent (injured or suspended), False otherwise.
+    Always False for the current season - the Absence table only covers seasons
+    that have finished, and the FPL API is what says who is out now.
     """
     if season == CURRENT_SEASON:
         # we only consider past seasons here

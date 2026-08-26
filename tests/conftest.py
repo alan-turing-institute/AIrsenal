@@ -88,9 +88,7 @@ def past_data_session_scope():
 
 
 def value_generator(index, position):
-    """
-    make up a price for a dummy player, based on index and position
-    """
+    """Make up a price for a dummy player, from its index and position."""
     if position == "GK":
         value = 40 + index * random.randint(0, 5)
     elif position == "DEF":
@@ -104,9 +102,7 @@ def value_generator(index, position):
 
 @pytest.fixture(scope="session")
 def fill_players():
-    """
-    fill a bunch of dummy players
-    """
+    """Fill the database with dummy players."""
     team_list = list(alternative_team_names.keys())
     season = CURRENT_SEASON
     gameweek = 1

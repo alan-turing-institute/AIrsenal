@@ -174,8 +174,9 @@ def test_a_pipeline_can_be_rebuilt_with_different_settings():
 
 def test_a_component_the_tables_do_not_know_about_still_works():
     """
-    The point of the whole seam: a squad optimizer defined here, registered
-    nowhere, is a first-class component of the pipeline.
+    A component the tables have never heard of is still a first-class one.
+
+    This squad optimizer is defined in this file and registered nowhere.
     """
     optimizer = RecordingSquadOptimizer()
     pipeline = AIrsenalPipeline(squad_optimizer=optimizer)
@@ -187,9 +188,10 @@ def test_a_component_the_tables_do_not_know_about_still_works():
 @pytest.mark.usefixtures("seeded")
 class TestOptimizeRefusesPredictionsItCannotUse:
     """
-    The guard is on `AIrsenalPipeline.optimize`, not on the CLI, so a notebook
-    and `run()` itself get the error too rather than wrong answers from a tag
-    that covers none of the requested gameweeks.
+    A tag covering none of the requested gameweeks is refused.
+
+    The guard is on `AIrsenalPipeline.optimize` rather than on the CLI, so a
+    notebook and `run()` itself get the error too instead of wrong answers.
     """
 
     def test_a_tag_that_does_not_exist_is_refused(self):
@@ -214,8 +216,10 @@ class TestOptimizeRefusesPredictionsItCannotUse:
 @pytest.mark.usefixtures("seeded")
 class TestOneWindowResolver:
     """
-    Every command resolves its window through `get_gameweeks_array`, so they all
-    clamp to the end of the season the same way.
+    One resolver for the gameweek window.
+
+    Every command goes through `get_gameweeks_array`, so they all clamp to the
+    end of the season the same way.
     """
 
     def test_a_window_given_as_a_length(self):
@@ -264,9 +268,9 @@ class TestOneNewSquadDecision:
 
     def test_a_replay_records_the_squad_it_built(self):
         """
-        Whichever route reaches the from-scratch build, `is_replay` has to
-        arrive with it: it is what writes the transactions the next gameweek
-        transfers from.
+        `is_replay` has to reach the from-scratch build by every route.
+
+        It is what writes the transactions the next gameweek transfers from.
         """
         before = self._transaction_count()
         self._optimize(new_squad=False, is_replay=True)

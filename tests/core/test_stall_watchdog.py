@@ -1,6 +1,8 @@
 """
-A wedged worker stays alive, so the parent sees nothing wrong and the run just
-stops. The watchdog is the only thing that says where it stopped.
+The stall watchdog, which is the only thing that says where a run stopped.
+
+A wedged worker stays alive, so the parent sees nothing wrong and the run simply
+stops making progress.
 """
 
 import threading

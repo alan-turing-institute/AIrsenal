@@ -1,6 +1,4 @@
-"""
-Fill the "result" table with historic results (results_xxyy_with_gw.csv).
-"""
+"""Fill the "result" table with historic results (results_xxyy_with_gw.csv)."""
 
 from sqlalchemy.orm.session import Session
 
@@ -139,9 +137,7 @@ def fill_results_from_api(
 def make_result_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    """
-    past seasons - read results from csv
-    """
+    """Fill a past season's results from its packaged CSV file."""
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

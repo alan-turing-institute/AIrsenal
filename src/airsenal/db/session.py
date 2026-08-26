@@ -1,6 +1,7 @@
 """Lazily-created engine and sessions.
 
-Nothing here runs at import: see tests/test_import_side_effects.py."""
+Nothing here runs at import: see tests/test_import_side_effects.py.
+"""
 
 import os
 from collections.abc import Iterator

@@ -1,7 +1,7 @@
 """
-The seam between "choose transfers for a range of gameweeks" and "do it by
-walking the whole strategy tree", and the StrategySet that decides which
-strategy handles each move.
+The seam between choosing transfers for a window and walking the strategy tree.
+
+Also the StrategySet that decides which strategy handles each move.
 """
 
 import pickle

@@ -1,6 +1,4 @@
-"""
-Get player injury, suspension and availability data from TransferMarkt
-"""
+"""Scrape player injury, suspension and availability data from TransferMarkt."""
 
 import contextlib
 import os
@@ -161,7 +159,7 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
 
 
 def get_reason(details: str) -> str:
-    """get suspension/absence reason category (not for injuries)"""
+    """The category of a non-injury absence, e.g. suspension."""
     return "suspension" if "suspen" in details.lower() else "absence"
 
 
@@ -169,10 +167,9 @@ def get_player_suspensions(
     player_profile_url: str,
 ) -> pd.DataFrame:
     """
-    Get a player's non-injury unavailability: reason, competition, date, length
-    and games missed.
+    Get a player's non-injury unavailability.
 
-    Scrapes pages like
+    Reason, competition, date, length and games missed. Scrapes pages like
     https://www.transfermarkt.co.uk/kyle-walker/ausfaelle/spieler/95424
     """
     logger.debug("getting player suspensions for %s", player_profile_url)
@@ -344,8 +341,9 @@ def get_player_transfers(
 
 def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
     """
-    Obtains rough start and end dates for the season.
-    Takes into account the shorter and longer seasons in 19/20 and 20/21.
+    Rough start and end dates for a season.
+
+    19/20 and 20/21 were shorter and longer than usual, and are special-cased.
 
     Here rather than in `season.py` because this is its only caller, and it is
     the only thing in that module that needs pandas: everything else there is
@@ -369,8 +367,10 @@ def get_player_team_history(
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """
-    Turn a player's transfer data into a team history: season, team, from, until,
-    and whether that team was in the Premier League.
+    Turn a player's transfer data into a team history.
+
+    Columns are season, team, from, until, and whether that team was in the
+    Premier League.
 
     Args:
         df: Transfer data for one player, from `get_player_transfers`.
@@ -495,8 +495,9 @@ def get_player_transfer_unavailability(
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """
-    Spells a player was unavailable because they were at a non-Premier League club:
-    season, details, reason, from, until, days and games missed.
+    Spells a player was unavailable because they were at a non-league club.
+
+    Columns are season, details, reason, from, until, days and games missed.
 
     Args:
         pl_teams_in_season: Season in "1819" format to the teams that played in it,
@@ -534,10 +535,10 @@ def get_season_absences(
     season: str, pl_teams_in_season: dict[str, list[set[str]]] | None = None
 ) -> pd.DataFrame:
     """
-    Every absence - injury, suspension, or time at a non-Premier League club - for
-    every player in a season, in one data frame.
+    Every absence for every player in a season, in one data frame.
 
-    A player whose page cannot be scraped is skipped rather than failing the run.
+    Injuries, suspensions, and time spent at a non-Premier League club. A player
+    whose page cannot be scraped is skipped rather than failing the run.
     """
     if pl_teams_in_season is None:
         pl_teams_in_season = {}

@@ -114,8 +114,10 @@ def test_importing_airsenal_performs_no_io():
 
 def test_no_module_fails_to_import_for_unexpected_reasons():
     """
-    A module that cannot be imported at all is dead weight. Missing *optional*
-    dependencies are allowed, and listed explicitly.
+    Every module in the package imports.
+
+    One that cannot is dead weight. Missing *optional* dependencies are allowed,
+    and listed explicitly.
     """
     failures = _run_import_guard()["other_failures"]
     unexpected = {

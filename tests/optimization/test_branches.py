@@ -455,7 +455,8 @@ def test_count_expected_outputs_no_chips_no_constraints_max5():
 
 def test_count_expected_outputs_no_chips_zero_hit():
     """
-    Max hit 0
+    Max hit 0.
+
     Include:
     (0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 0), (0, 1, 1), (0, 1, 2),
     (0, 2, 0), (0, 2, 1), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 0), (1, 1, 1)
@@ -476,10 +477,10 @@ def test_count_expected_outputs_no_chips_zero_hit():
 
 def test_count_expected_outputs_no_chips_zero_hit_max5():
     """
-    Max hit 0
-    Max 5 transfers
-    Adds (0, 0, 3) to valid strategies compared to
-    test_count_expected_outputs_no_chips_zero_hit above
+    Max hit 0, max 5 transfers.
+
+    Adds (0, 0, 3) to the strategies of
+    test_count_expected_outputs_no_chips_zero_hit above.
     """
     count, _ = count_expected_outputs(
         3,
@@ -494,7 +495,8 @@ def test_count_expected_outputs_no_chips_zero_hit_max5():
 
 def test_count_expected_outputs_no_chips_2ft_no_unused():
     """
-    Start with 2 FT and no unused
+    Start with 2 free transfers, none allowed to go unused.
+
     Include:
     (0, 0, 0), (1, 1, 1), (1, 1, 2), (1, 2, 0), (1, 2, 1), (1, 2, 2), (2, 0, 1),
     (2, 0, 2), (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 2, 0), (2, 2, 1), (2, 2, 2)
@@ -516,7 +518,8 @@ def test_count_expected_outputs_no_chips_2ft_no_unused():
 
 def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
     """
-    Start with 5 FT and no unused over 2 weeks
+    Start with 5 free transfers over 2 weeks, none allowed to go unused.
+
     Include:
     (0, 0),
     (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
@@ -539,7 +542,8 @@ def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
 
 def test_count_expected_wildcard_allowed_no_constraints():
     """
-    Wildcard, 2 weeks, no constraints
+    Wildcard over 2 weeks, no constraints.
+
     Strategies:
     (0, 0), (0, 1), (0, 2), (0, 'W'), (1, 0), (1, 1), (1, 2), (1, 'W'), (2, 0),
     (2, 1), (2, 2), (2, 'W'), ('W', 0), ('W', 1), ('W', 2)
@@ -558,7 +562,8 @@ def test_count_expected_wildcard_allowed_no_constraints():
 
 def test_count_expected_bench_boost_allowed_no_constraints():
     """
-    Bench boost, 2 weeks, no constraints
+    Bench boost over 2 weeks, no constraints.
+
     Strategies:
     (0, 0), (0, 1), (0, 2), (0, 'B0'), (0, 'B1'), (0, 'B2'), (1, 0), (1, 1), (1, 2),
     (1, 'B0'), (1, 'B1'), (1, 'B2'), (2, 0), (2, 1), (2, 2), (2, 'B0'), (2, 'B1'),
@@ -579,9 +584,9 @@ def test_count_expected_bench_boost_allowed_no_constraints():
 
 def test_count_expected_play_wildcard_no_constraints():
     """
-    Force playing wildcard in first week
-    Strategies:
-    ("W",0), ("W,1), ("W",2)
+    Wildcard forced in the first week.
+
+    Strategies: ("W", 0), ("W", 1), ("W", 2).
 
     None of those is the baseline of no transfers at all, so the baseline is
     excluded from the tree and counted separately - four strategies in total.
@@ -600,9 +605,9 @@ def test_count_expected_play_wildcard_no_constraints():
 
 def test_count_expected_play_free_hit_no_unused():
     """
-    Force playing free hit in first week, 2FT, don't allow unused
-    Strategies:
-    ("F",1), ("F",2), plus the separately-counted (0,0) baseline
+    Free hit forced in the first week, 2 free transfers, none unused.
+
+    Strategies: ("F", 1), ("F", 2), plus the separately-counted (0, 0) baseline.
     """
     count, baseline_excluded = count_expected_outputs(
         2,

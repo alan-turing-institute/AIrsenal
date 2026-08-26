@@ -1,7 +1,4 @@
-"""
-Tests for the renderers the transfer search and the from-scratch squad build
-share.
-"""
+"""The renderers the transfer search and the from-scratch squad build share."""
 
 from airsenal.reporting.optimization import (
     GameweekRow,

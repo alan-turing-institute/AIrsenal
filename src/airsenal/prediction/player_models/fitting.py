@@ -58,9 +58,7 @@ def get_all_fitted_player_data(
     model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> dict[str, pd.DataFrame]:
-    """
-    Fit player models for all positions (GK, DEF, MID, FWD).
-    """
+    """Fit player models for all positions (GK, DEF, MID, FWD)."""
     dbsession = dbsession if dbsession is not None else get_session()
     return {
         pos: fit_player_data(pos, season, gameweek, model, dbsession)

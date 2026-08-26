@@ -44,10 +44,12 @@ def test_every_entry_builds_with_no_arguments(kind, name):
 @pytest.mark.parametrize(("kind", "name"), ENTRIES)
 def test_every_entry_provides_its_protocol(kind, name):
     """
-    The protocols are not runtime_checkable on purpose - isinstance against one
-    only checks the names exist, which is the stringly-typed dispatch these
-    tables replace. Check the callables here; mypy checks the shapes, because
-    each table is annotated with its protocol at the point it is defined.
+    Every entry has the method its protocol names, and it is callable.
+
+    The protocols are deliberately not runtime_checkable: isinstance against one
+    only checks the names exist. This checks the callables; mypy checks the
+    shapes, because each table is annotated with its protocol where it is
+    defined.
     """
     table, methods = TABLES[kind]
     component = table[name]()

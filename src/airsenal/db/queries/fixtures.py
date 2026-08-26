@@ -25,10 +25,10 @@ def get_fixtures_for_player(
     dbsession: Session | None = None,
 ) -> list[Fixture]:
     """
-    Search for upcoming fixtures for a player, specified either by id or name.
-    If gameweeks not specified:
-       for current season: return fixtures from now to end of season
-       for past seasons: return all fixtures in the season
+    A player's upcoming fixtures, by player id or name.
+
+    Without `gameweeks`: the rest of the season for the current one, and the
+    whole season for a past one.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str):  # given a player name
@@ -79,9 +79,7 @@ def get_fixtures_for_player(
 def get_fixtures_for_season(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> list[Fixture]:
-    """
-    Return all fixtures for a season.
-    """
+    """Every fixture in a season."""
     dbsession = dbsession if dbsession is not None else get_session()
     return list(
         dbsession.scalars(select(Fixture).where(Fixture.season == season)).all()
@@ -109,9 +107,7 @@ def get_fixtures_for_gameweeks(
 
 
 def get_fixture_teams(fixtures: Iterable[Fixture]) -> list[tuple[str, str]]:
-    """
-    Get (home_team, away_team) tuples for each fixture in a list of fixtures.
-    """
+    """(home_team, away_team) for each of these fixtures."""
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
 
@@ -126,9 +122,10 @@ def find_fixture(
     verbose: bool = True,
 ) -> Fixture | None:
     """
-    Get a fixture given a team and optionally whether the team was at home or away,
-    the season, kickoff time and the other team in the fixture. Only returns the fixture
-    if exactly one match is found, otherwise raises a ValueError.
+    The one fixture matching a team and any of the other filters given.
+
+    Raises:
+        ValueError: The filters match no fixture, or more than one.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not isinstance(team, str):
@@ -218,9 +215,9 @@ def get_player_team_from_fixture(
     dbsession: Session | None = None,
 ) -> str:
     """
-    Get the team a player played for given the gameweek, opponent, time and
-    whether they were home or away.
-    If return_fixture is True, return a tuple of (team_name, fixture).
+    The team a player turned out for, identified by gameweek, opponent and venue.
+
+    With `return_fixture`, returns (team_name, fixture) rather than just the name.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if opponent is None and player_at_home is None:

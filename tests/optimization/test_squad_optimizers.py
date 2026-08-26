@@ -182,8 +182,10 @@ def test_full_squad_sizes_its_cost_from_the_optimizer_on_the_request():
 
 def test_the_optimizer_on_the_request_is_the_one_that_rebuilds_the_squad():
     """
-    What §4 of the refactor is for: `TRANSFER_STRATEGIES` builds strategies by
-    name with no arguments, so a constructor argument could never reach here.
+    Configuration reaches a strategy through its request, not its constructor.
+
+    `TRANSFER_STRATEGIES` builds strategies by name with no arguments, so a
+    constructor argument could never reach here.
     """
     stub = StubSquadOptimizer(squad=StubSquad([1, 4, 5]))
     request = _rebuild_request(stub)

@@ -1,6 +1,4 @@
-"""
-Tests for the DEAP-based optimization implementation.
-"""
+"""The DEAP-based squad optimizer: its encoding, its constraints, and its output."""
 
 from contextlib import contextmanager
 from unittest.mock import Mock, patch
@@ -84,7 +82,6 @@ def test_reporting_each_generation_does_not_change_the_search():
 
 def test_deap_class():
     """Basic test of DEAP optimization."""
-
     # Mock the dependencies that require database access
     with patch(f"{MODULE}.list_players") as mock_list_players:
         # Create simple mock players
@@ -133,7 +130,6 @@ def test_deap_class():
 
 def test_deap_optimization_creates_valid_squad():
     """Test that DEAP optimization creates a valid squad that meets all constraints."""
-
     # Mock the dependencies that require database access
     with patch(f"{MODULE}.list_players") as mock_list_players:
         # Create mock players with varying prices and teams to test constraints

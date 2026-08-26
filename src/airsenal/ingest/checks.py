@@ -97,9 +97,7 @@ def season_num_fixtures(
 def fixture_player_teams(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check players who played in a match are labelled as playing for either
-    the home team or the away team.
-    """
+    """Check every player in a match is labelled with one of the two teams playing."""
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking player teams match fixture teams...")
     n_error = 0
@@ -135,8 +133,10 @@ def fixture_player_teams(
 def fixture_num_players(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check each fixture has between 11 and 14 players with at least 1 minute
-    in player_scores. For season 19/20 it can be up to 16 players.
+    """
+    Check each fixture has 11 to 14 players with at least a minute played.
+
+    19/20 allowed five substitutes, so up to 16 there.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info(
@@ -264,10 +264,10 @@ def fixture_num_goals(
 def fixture_num_assists(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check number of assists is less than or equal to number of goals
-    for home and away team in each fixture.
-    Less than or equal to as some goals do not result in an assist being
-    awarded.
+    """
+    Check each team's assists in a fixture do not exceed its goals.
+
+    Fewer is normal - not every goal is credited with an assist.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. assists less than or equal to no. goals...")
@@ -319,10 +319,11 @@ def fixture_num_assists(
 def fixture_num_conceded(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
-    """Check number of goals conceded equals goals scored by opposition if
-    player played whole match (90 minutes).
-    NB: only checks max of player conceded values to avoid potential issues
-    with substitutes and goals in stoppage time.
+    """
+    Check goals conceded match the opposition's goals scored.
+
+    Only the maximum across a team's players is checked, which sidesteps
+    substitutes and goals in stoppage time.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. goals conceded matches goals scored by opponent...")

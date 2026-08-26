@@ -106,8 +106,9 @@ class CandidatePlayer:
 
     def calc_predicted_points(self, tag: str) -> None:
         """
-        get expected points from the db.
-        Will be a dict of dicts, keyed by tag and gameweeek
+        This player's predicted points from the database.
+
+        A dict of dicts, keyed by tag and then by gameweek.
         """
         if tag not in self.predicted_points:
             self.predicted_points[tag] = get_predicted_points_for_player(
@@ -115,9 +116,7 @@ class CandidatePlayer:
             )
 
     def get_predicted_points(self, gameweek: int, tag: str) -> float:
-        """
-        get points for a specific gameweek
-        """
+        """This player's predicted points for one gameweek."""
         if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
         if gameweek not in self.predicted_points[tag]:
@@ -127,9 +126,7 @@ class CandidatePlayer:
 
 
 class DummyPlayer:
-    """
-    To fill squads with placeholders for optimisation (if not optimising full squad).
-    """
+    """A placeholder that fills a squad slot the optimizer is not choosing."""
 
     def __init__(
         self,
@@ -158,14 +155,10 @@ class DummyPlayer:
         self.season = "DUMMY"
 
     def calc_predicted_points(self, tag: str) -> None:
-        """
-        Needed for compatibility with Squad/other Player classes
-        """
+        """Always False: a dummy is never available to start."""
 
     def get_predicted_points(self, gameweek: int, tag: str) -> float:  # noqa: ARG002
-        """
-        Get points for a specific gameweek -
-        """
+        """Always zero: a dummy scores nothing."""
         return self.pts
 
 

@@ -173,8 +173,7 @@ def new_squad_from_scratch(
     is_replay: bool = False,
 ) -> Squad:
     """
-    Build a squad from nothing, because there turned out to be nothing to
-    transfer from.
+    Build a squad from nothing, there being nothing to transfer from.
 
     Whether to build rather than transfer is `AIrsenalPipeline._is_new_squad`'s
     decision, and this is not a second copy of it: it is the recovery for a
@@ -210,12 +209,10 @@ def run_optimization(
     is_replay: bool = False,  # for replaying seasons
 ) -> tuple[Squad, Plan | None]:
     """
-    This is the actual main function that sets up the multiprocessing
-    and calls the optimize function for every move/gameweek
-    combination, to find the best plan.
-    The chip-related variables e.g. wildcard_week are -1 if that chip
-    is not to be played, 0 for 'play it any week', or the gw in which
-    it should be played.
+    Search every move-and-gameweek combination for the best whole-window plan.
+
+    Each chip week is -1 not to play that chip at all, 0 to let the search
+    choose the gameweek, or the gameweek to play it in.
     """
     if chips is None:
         chips = ChipWeeks()

@@ -31,8 +31,9 @@ def get_top_predicted_points(
     dbsession: Session | None = None,
 ) -> None:
     """
-    Print players with the top predicted points, and post them to Discord if a
-    webhook URL is configured.
+    Print the players with the top predicted points.
+
+    Also posts them to Discord if a webhook URL is configured.
 
     Args:
         gameweeks: Gameweeks to total over. Defaults to the next gameweek only.
@@ -150,9 +151,7 @@ def predicted_points_discord_payload(
     season: str,
     first_gw: int,
 ) -> dict[str, Any]:
-    """
-    json formatted discord webhook content.
-    """
+    """The Discord webhook payload for a table of predicted points."""
     discord_embed["fields"].append(
         {
             "name": "Position",

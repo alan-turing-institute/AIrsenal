@@ -1,6 +1,4 @@
-"""
-Fill the "Player" table with info from this and past seasonss FPL
-"""
+"""Fill the "player_attributes" table from this season's API and past seasons' files."""
 
 import json
 from typing import Any
@@ -38,9 +36,9 @@ def get_return_gameweek_from_news(
     news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int | None:
     """
-    Parse news strings from the FPL API for the return date of injured or
-    suspended players. If a date is found, determine and return the gameweek it
-    corresponds to.
+    The gameweek a player flagged in the FPL API's news text is due back for.
+
+    None if the news carries no parseable return date.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
@@ -65,10 +63,7 @@ def get_return_gameweek_from_news(
 def fill_attributes_table_from_file(
     detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
-    """Fill player attributes table for previous season using data from
-    player detail JSON files.
-    """
-
+    """Fill the attributes table for a past season, from its player detail JSON."""
     dbsession = dbsession if dbsession is not None else get_session()
     for player_name_or_id, player_data in track(
         detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
@@ -127,9 +122,7 @@ def fill_attributes_table_from_file(
 def fill_attributes_table_from_api(
     season: str, gw_start: int = 1, dbsession: Session | None = None
 ) -> None:
-    """
-    use the FPL API to get player attributes info for the current season
-    """
+    """Fill the attributes table for the current season, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
     fetcher = FPLDataFetcher()
     next_gw = get_next_gameweek(season=season, dbsession=dbsession)
@@ -281,9 +274,7 @@ def fill_attributes_table_from_api(
 def make_attributes_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    """Create the player attributes table using the previous 3 seasons (from
-    player details JSON files) and the current season (from API)
-    """
+    """Fill the attributes table: past seasons from JSON, this one from the API."""
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

@@ -64,10 +64,7 @@ def get_recent_playerscore_rows(
     current_team_only: bool = False,
     dbsession: Session | None = None,
 ) -> list[PlayerScore]:
-    """
-    Query the playerscore table in the database to retrieve
-    the last n_matches_to_use rows for this player.
-    """
+    """This player's last `n_matches_to_use` scores, most recent first."""
     dbsession = dbsession if dbsession is not None else get_session()
     # If asking for gameweeks without results in DB, revert to most recent results.
     last_available_gameweek = get_last_complete_gameweek_in_db(
@@ -121,10 +118,7 @@ def get_playerscores_for_player_gameweek(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[PlayerScore]:
-    """
-    FPL points for this player for selected match.
-    Returns a PlayerScore object.
-    """
+    """This player's scores in a gameweek - more than one if it is a double."""
     dbsession = dbsession if dbsession is not None else get_session()
     return list(
         dbsession.scalars(
@@ -147,9 +141,7 @@ def get_player_scores_df(
     position: str | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
-    """
-    Query player scores filtered by played minutes and position.
-    """
+    """Player scores, filtered by minutes played and position."""
     dbsession = dbsession if dbsession is not None else get_session()
     query = (
         select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)

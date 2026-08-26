@@ -1,6 +1,4 @@
-"""
-Find alternative team names for all the teams in the 2018/19 FPL.
-"""
+"""Find the alternative names each FPL team goes by in the other data sources."""
 
 import json
 
@@ -13,10 +11,7 @@ logger = get_logger(__name__)
 
 
 def find_best_match(fpl_teams: list[str], team: str) -> tuple[str | None, int]:
-    """
-    use fuzzy matching to see if we can match
-    names
-    """
+    """Fuzzy-match a historical team name against the current FPL team names."""
     best_ratio = 0
     best_match = None
     for t in fpl_teams:

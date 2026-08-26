@@ -2,10 +2,7 @@ from airsenal.db.models import Player, PlayerAttributes
 
 
 def test_get_price():
-    """
-    Check Player.price() returns appropriate value both if details are available
-    in attributes table for requested gameweek, and if they're not available.
-    """
+    """`Player.price` for a gameweek we have attributes for, and one we do not."""
     player_id = 1
     season = "1920"
     team = "TST"
@@ -40,10 +37,7 @@ def test_get_price():
 
 
 def test_get_team():
-    """
-    Check Player.team() returns appropriate value both if details are available
-    in attributes table for requested gameweek, and if they're not available.
-    """
+    """`Player.team` for a gameweek we have attributes for, and one we do not."""
     player_id = 1
     season = "1920"
     price = 50
@@ -79,10 +73,7 @@ def test_get_team():
 
 
 def test_get_position():
-    """
-    Check Player.position() returns appropriate value both if details are available
-    in attributes table for requested gameweek, and if they're not available.
-    """
+    """`Player.position` for a season we have attributes for, and one we do not."""
     player_id = 1
     gameweek = 1
     price = 50
@@ -112,10 +103,7 @@ def test_get_position():
 
 
 def test_is_injured_or_suspended():
-    """
-    Check Player.is_injured_or_suspended() returns appropriate value both if details are
-    available in attributes table for requested gameweek, and if they're not available.
-    """
+    """`Player.is_injured_or_suspended` with attributes available, and without."""
     player_id = 1
     season = "1920"
     price = 50

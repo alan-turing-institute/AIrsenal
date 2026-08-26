@@ -39,15 +39,13 @@ def record_initial_squad_transactions(
     dbsession: Session | None = None,
 ) -> None:
     """
-    Fill the Transactions table in the database with the initial 15 players, and their
-    costs, getting the information from the team history API endpoint (for the list of
-    players in our team) and the player history API endpoint (for their price in gw1).
+    Record an entry's opening fifteen players in the transactions table.
 
-    Not to be confused with `optimization.run_squad.build_new_squad`, which the
-    two shared the name `fill_initial_squad` with: that one runs an optimizer to
-    choose fifteen players, this one records fifteen that were already chosen.
+    The players come from the team history endpoint and their gameweek 1 prices
+    from the player history endpoint. This records fifteen players that were
+    already chosen; `optimization.run_squad.build_new_squad` is the one that
+    runs an optimizer to choose them.
     """
-
     dbsession = dbsession if dbsession is not None else get_session()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
     logger.info(
@@ -119,8 +117,10 @@ def update_squad(
     dbsession: Session | None = None,
 ) -> None:
     """
-    Fill the Transactions table in the DB with all the transfers in gameweeks after 1,
-    using the transfers API endpoint which has the correct buy and sell prices.
+    Record every transfer after gameweek 1 in the transactions table.
+
+    From the transfers endpoint, which is the one carrying the prices actually
+    paid and received.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
@@ -216,9 +216,7 @@ def get_starting_squad(
     fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ) -> Squad:
-    """
-    use the transactions table in the db, or the API if requested
-    """
+    """This entry's current squad, from the transactions table or the FPL API."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
     next_gw = next_gameweek() if next_gw is None else next_gw
     if use_api:

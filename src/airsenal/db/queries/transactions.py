@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 def free_hit_used_in_gameweek(gameweek: int, fpl_team_id: int | None = None) -> int:
-    """Use FPL API to determine whether a chip was played in the given gameweek"""
+    """Which chip, if any, the FPL API says was played in a gameweek."""
     if not fpl_team_id:
         fpl_team_id = get_fetcher().FPL_TEAM_ID
     fpl_team_data = get_fetcher().get_fpl_team_data(gameweek, fpl_team_id)
@@ -28,9 +28,7 @@ def free_hit_used_in_gameweek(gameweek: int, fpl_team_id: int | None = None) -> 
 def count_transactions(
     season: str, fpl_team_id: int | None, dbsession: Session | None = None
 ) -> int:
-    """Count the number of transactions we have in the database for a given team ID
-    and season.
-    """
+    """How many transactions the database holds for a team in a season."""
     dbsession = dbsession if dbsession is not None else get_session()
     if fpl_team_id is None:
         fpl_team_id = get_fetcher().FPL_TEAM_ID
@@ -57,9 +55,7 @@ def transaction_exists(
     price_in: int,
     dbsession: Session | None = None,
 ) -> bool:
-    """Check whether the transactions related to transferring a player in and out
-    in a gameweek at a specific time already exist in the database.
-    """
+    """Whether both halves of this transfer are already recorded."""
     dbsession = dbsession if dbsession is not None else get_session()
     transaction_count = (
         dbsession.scalar(
@@ -108,9 +104,7 @@ def add_transaction(
     time: str,
     dbsession: Session | None = None,
 ) -> None:
-    """
-    add buy (in_or_out=1) or sell (in_or_out=-1) transactions to the db table.
-    """
+    """Record a buy (in_or_out=1) or a sell (in_or_out=-1)."""
     dbsession = dbsession if dbsession is not None else get_session()
     t = Transaction(
         player_id=player_id,

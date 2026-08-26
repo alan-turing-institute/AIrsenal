@@ -24,8 +24,7 @@ def get_predicted_points_for_player(
     dbsession: Session | None = None,
 ) -> dict[int, float]:
     """
-    Query the player prediction table for a given player.
-    Return a dict, keyed by gameweek.
+    A player's predicted points for each gameweek, keyed by gameweek.
 
     This is the inner loop of the transfer optimisation - it is called once per
     candidate player per candidate squad - so the answer is cached. The cache is
@@ -98,8 +97,8 @@ def get_predicted_points(
     dbsession: Session | None = None,
 ) -> list[tuple[Player, float]]:
     """
-    Query the player_prediction table with selections, return
-    list of tuples (player_id, predicted_points) ordered by predicted_points.
+    (player, predicted_points) pairs, best first.
+
     Points are summed over the gameweeks given; callers wanting one gameweek
     pass `[gameweek]`.
     """

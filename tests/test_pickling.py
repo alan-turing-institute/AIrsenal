@@ -49,8 +49,10 @@ def test_empty_squad_survives_fastcopy():
 
 def test_squad_with_players_is_picklable(fill_players):
     """
+    Nothing reachable from a Squad may hold a Session.
+
     A Squad holding CandidatePlayers is what actually goes onto the optimiser's
-    queue, so nothing reachable from it may hold a Session.
+    queue.
     """
     with session_scope() as ts:
         squad = Squad()
@@ -64,16 +66,12 @@ def test_squad_with_players_is_picklable(fill_players):
 
 def test_candidate_player_built_with_a_session_is_still_picklable(fill_players):
     """
-    Regression test for:
+    A CandidatePlayer holding a Session must still pickle.
 
-        PicklingError: Can't pickle <class 'sqlalchemy.orm.session.Session'>
-
-    Squad.add_player resolved its dbsession default to the process-wide session and
-    handed it to CandidatePlayer, which stores it. Every Squad therefore contained a
-    live Session, and the transfer optimiser could not put one on its queue.
-
-    A session may legitimately be passed in for the constructor's own lookups, so the
-    fix has to survive that: it is dropped on pickle rather than never held.
+    A session is legitimately passed in for the constructor's own lookups, so the
+    player cannot simply refuse to hold one; it drops it on pickle instead.
+    Without that, every Squad contains a live Session and the transfer optimiser
+    cannot put one on its queue.
     """
     with session_scope() as ts:
         player = CandidatePlayer(1, dbsession=ts)
@@ -87,8 +85,9 @@ def test_candidate_player_built_with_a_session_is_still_picklable(fill_players):
 
 def test_add_player_does_not_put_a_session_in_the_squad(fill_players):
     """
-    Squad.add_player must pass its dbsession through rather than resolving it, so a
-    squad built the way the optimiser builds one carries no session at all.
+    `Squad.add_player` passes its dbsession through rather than resolving it.
+
+    So a squad built the way the optimiser builds one carries no session at all.
     """
     with session_scope() as ts:
         squad = Squad()

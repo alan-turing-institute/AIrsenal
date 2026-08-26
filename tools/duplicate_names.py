@@ -1,6 +1,4 @@
-"""
-Find multiple players with the same name in the same season using player summary data.
-"""
+"""Find players sharing a name within a season, from the player summary data."""
 
 import pandas as pd
 

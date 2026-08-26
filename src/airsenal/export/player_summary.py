@@ -1,6 +1,4 @@
-"""
-Make player summary files from FPL season data json
-"""
+"""Build the player summary files from the saved FPL season data JSON."""
 
 import json
 

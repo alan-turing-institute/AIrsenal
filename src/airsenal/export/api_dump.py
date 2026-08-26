@@ -22,9 +22,7 @@ logger = get_logger(__name__)
 
 
 def main() -> None:
-    """
-    Save all data from the FPL API and other sources, e.g. at the end of the season.
-    """
+    """Save everything from the FPL API and the other sources, e.g. at season end."""
     repo_home = data_dir()
 
     logger.info("Saving summary data...")

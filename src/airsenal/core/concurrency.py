@@ -1,11 +1,8 @@
 """
-Custom Queue class and counter, to allow us to get the length of a queue,
-which in turn lets us do the tree-based optimization.
+Process-level machinery for the multiprocess transfer search.
 
-Taken from
-https://gist.github.com/FanchenBao/d8577599c46eab1238a81857bb7277c9
-by Fanchen Bao, based on this Stack Overflow thread:
-https://stackoverflow.com/questions/41952413/get-length-of-queue-in-pythons-multiprocessing-library
+The start method the search needs, a queue whose length can be read on macOS,
+and a watchdog that dumps stacks when a worker stops making progress.
 """
 
 import faulthandler
@@ -61,21 +58,20 @@ def set_multiprocessing_start_method() -> None:
     multiprocessing.set_start_method("fork", force=True)
 
 
-# `multiprocessing.Queue.qsize()` raises NotImplementedError on macOS, so the
-# queue below keeps its own count. Adapted from
-# https://github.com/keras-team/autokeras/issues/368
+# The counter and queue below are adapted from
+# https://github.com/keras-team/autokeras/issues/368 and
+# https://gist.github.com/FanchenBao/d8577599c46eab1238a81857bb7277c9
 
 
 class SharedCounter:
     """
-    A synchronized shared counter.
-    The locking done by multiprocessing.Value ensures that only a single
-    process or thread may read or write the in-memory ctypes object. However,
-    in order to do n += 1, Python performs a read followed by a write, so a
-    second process may read the old value before the new one is written by the
-    first process. The solution is to use a multiprocessing.Lock to guarantee
-    the atomicity of the modifications to Value.
-    This class comes almost entirely from Eli Bendersky's blog:
+    A counter several processes can increment.
+
+    `multiprocessing.Value` makes a single read or write atomic, but `n += 1` is
+    a read followed by a write, so a second process can read the old value before
+    the first has written the new one. The lock covers the pair.
+
+    From Eli Bendersky's blog:
     http://eli.thegreenplace.net/2012/01/04/shared-counter-with-pythons-multiprocessing/
     """
 
@@ -83,34 +79,29 @@ class SharedCounter:
         self.count: Synchronized[int] = multiprocessing.Value("i", n)
 
     def increment(self, n: int = 1) -> None:
-        """Increment the counter by n (default = 1)"""
+        """Increment the counter by n."""
         with self.count.get_lock():
             self.count.value += n
 
     @property
     def value(self) -> int:
-        """Return the value of the counter"""
+        """The counter's current value."""
         return self.count.value
 
 
 class CustomQueue(JoinableQueue[T]):
     """
-    A portable implementation of multiprocessing.JoinableQueue.
-    Because of multithreading / multiprocessing semantics, Queue.qsize() may
-    raise the NotImplementedError exception on Unix platforms like Mac OS X
-    where sem_getvalue() is not implemented. This subclass addresses this
-    problem by using a synchronized shared counter (initialized to zero) and
-    increasing / decreasing its value every time the put() and get() methods
-    are called, respectively. This not only prevents NotImplementedError from
-    being raised, but also allows us to implement a reliable version of both
-    qsize() and empty().
+    A `JoinableQueue` whose `qsize()` and `empty()` work on macOS.
 
-    Subclassing JoinableQueue (rather than plain Queue) also gives us
-    task_done()/join(), which track "unfinished tasks" via an internal
-    semaphore rather than sem_getvalue(), so they work correctly on Mac OS X
-    too. This lets callers detect when a dynamically-growing tree of tasks
-    (where processing one task can enqueue more) is fully drained, without
-    needing to independently know the expected total number of tasks.
+    `Queue.qsize()` goes through `sem_getvalue()`, which macOS does not
+    implement, so it raises NotImplementedError there. This keeps a
+    `SharedCounter` instead, stepped on every `put()` and `get()`.
+
+    `JoinableQueue` rather than plain `Queue` for `task_done()`/`join()`, which
+    track unfinished tasks through a semaphore rather than `sem_getvalue()`. That
+    is what lets the search tell when a tree of tasks that grows as it is walked -
+    processing one node enqueues its children - has fully drained, without
+    knowing the total in advance.
     """
 
     def __init__(self) -> None:
@@ -126,11 +117,11 @@ class CustomQueue(JoinableQueue[T]):
         return super().get(block, timeout)
 
     def qsize(self) -> int:
-        """Reliable implementation of multiprocessing.Queue.qsize()"""
+        """Number of items on the queue, from the shared counter."""
         return self.size.value
 
     def empty(self) -> bool:
-        """Reliable implementation of multiprocessing.Queue.empty()"""
+        """Whether the queue is empty, from the shared counter."""
         return not self.qsize()
 
 

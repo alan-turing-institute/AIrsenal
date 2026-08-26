@@ -33,10 +33,7 @@ logger = get_logger(__name__)
 def get_result_dict(
     season: str, gameweek: int, dbsession: Session
 ) -> dict[str, np.ndarray | dict[str, np.ndarray]]:
-    """
-    Query the match table and put results into pandas dataframe,
-    to train the team-level model.
-    """
+    """Past results as a data frame, in the shape the team model is fitted to."""
     results = [
         s
         for s in dbsession.scalars(
@@ -81,9 +78,7 @@ def get_result_dict(
 def get_ratings_dict(
     season: str, teams: list[str], dbsession: Session
 ) -> dict[str, np.ndarray]:
-    """
-    Create a dataframe containing the fifa team ratings.
-    """
+    """The FIFA team ratings, as a data frame."""
     ratings = dbsession.scalars(
         select(FifaTeamRating).where(FifaTeamRating.season == season)
     ).all()
@@ -113,10 +108,13 @@ def get_training_data(
     dbsession: Session,
     ratings: bool = True,
 ) -> dict[str, Any]:
-    """Get training data for team model, optionally including FIFA ratings
-    as covariates if ratings is True. If time_decay is None, do not include
-    exponential time decay in model.
-    Data returned is for all matches up to specified gameweek and season.
+    """
+    Training data for the team model: every match up to a gameweek and season.
+
+    Args:
+        ratings: If True, include the FIFA team ratings as covariates.
+        time_decay: Exponential decay rate for older matches. None weights them
+            all equally.
     """
     training_data = get_result_dict(season, gameweek, dbsession)
     if ratings:
@@ -134,8 +132,9 @@ def add_new_teams_to_model(
     ratings: bool = True,
 ) -> TeamModel:
     """
-    Add teams that we don't have previous results for (e.g. promoted teams) to the model
-    using their FIFA ratings as covariates.
+    Add teams with no previous results, such as promoted ones, to the model.
+
+    Their FIFA ratings stand in as covariates for the results we do not have.
     """
     teams = get_teams_for_season(season=season, dbsession=dbsession)
     for t in teams:
@@ -185,11 +184,11 @@ def fixture_probabilities(
     ratings: bool = True,
 ) -> pd.DataFrame:
     """
-    Returns probabilities for all fixtures in a given gameweek and season, as a data
-    frame with a row for each fixture and columns being home_team,
-    away_team, home_win_probability, draw_probability, away_win_probability.
+    Win, draw and loss probabilities for every fixture in a gameweek.
 
-    If no model is passed, a DixonColesTeamModel is fitted by default.
+    One row per fixture, with columns home_team, away_team,
+    home_win_probability, draw_probability and away_win_probability. Without a
+    model, a DixonColesTeamModel is fitted first.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
@@ -227,10 +226,7 @@ def get_goal_probabilities_for_fixtures(
     team_model: TeamModel,
     max_goals: int = MAX_GOALS,
 ) -> dict[int, dict[str, dict[int, float]]]:
-    """
-    Get the probability that each team in a fixture scores any number of goals up
-    to max_goals.
-    """
+    """Probability of each team in a fixture scoring 0 to `max_goals` goals."""
     goals = np.arange(0, max_goals + 1)
     probs = {}
     for f in fixtures:

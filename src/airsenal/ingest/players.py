@@ -1,6 +1,4 @@
-"""
-Fill the "Player" table with info from this and past seasonss FPL
-"""
+"""Fill the "player" table from this season's FPL API and past seasons' files."""
 
 import json
 
@@ -22,9 +20,7 @@ from airsenal.remote.fpl_api import FPLDataFetcher
 def find_player_in_table(
     name: str, dbsession: Session, opta_code: str | None = None
 ) -> Player | None:
-    """
-    see if we already have the player
-    """
+    """Find a player already in the table by opta code, name, or a known alias."""
     # look for an opta code match
     if opta_code and (
         player := dbsession.scalars(
@@ -54,9 +50,7 @@ def find_player_in_table(
 def fill_player_table_from_file(
     filename: FilePath, season: str, dbsession: Session
 ) -> None:
-    """
-    use json file
-    """
+    """Add a season's players from its packaged JSON file."""
     with open(filename) as f:
         jplayers = json.load(f)
     for jp in track(jplayers, description=f"PLAYERS {season}"):
@@ -77,9 +71,7 @@ def fill_player_table_from_file(
 
 
 def fill_player_table_from_api(season: str, dbsession: Session) -> None:
-    """
-    use the FPL API
-    """
+    """Add the current season's players from the FPL API."""
     df = FPLDataFetcher()
     pd = df.get_player_summary_data()
 
@@ -100,8 +92,10 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
 
 def make_init_player_table(season: str, dbsession: Session | None = None) -> None:
     """
-    Fill the player table with the latest season of data (only, as then need to do
-    mappings)
+    Add the most recent season's players.
+
+    Done on its own, before the older seasons, so that a player's canonical row
+    is the one with their current name and the rest map onto it.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if season == CURRENT_SEASON:
@@ -116,10 +110,7 @@ def make_init_player_table(season: str, dbsession: Session | None = None) -> Non
 def make_remaining_player_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    """
-    Fill remaining players for subsequent seasons (AFTER players from the most recent
-    season)
-    """
+    """Add players from older seasons who are not in the most recent one already."""
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

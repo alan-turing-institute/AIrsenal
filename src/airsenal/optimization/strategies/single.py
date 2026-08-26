@@ -37,11 +37,9 @@ def make_optimum_single_transfer(
     sub_weights: SubWeights | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
-    If we want to just make one transfer, it's not unfeasible to try all
-    possibilities in turn.
+    Try every single transfer in turn, which is affordable for just one.
 
-    We will order the list of potential transfers via the sum of
-    expected points over a specified range of gameweeks.
+    Candidates are ordered by their total expected points over `gameweeks`.
     """
     if not gameweeks:
         gameweeks = [next_gameweek()]

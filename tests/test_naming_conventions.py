@@ -13,10 +13,10 @@ import pytest
 
 SRC = Path(__file__).resolve().parents[1] / "src" / "airsenal"
 
-# Position is a StrEnum, so a bare literal still works - which is exactly why the
-# migration ad6656d started ("existing query filters and string-keyed dicts keep
-# working while call sites migrate") could stall half-done. These two modules are
-# the boundary and keep their literals: game/enums.py defines them, and
+# Position is a StrEnum, so a bare literal still works and nothing fails when one
+# is written instead of the enum - which is why this test exists rather than the
+# type checker catching it. These two modules are the boundary and keep their
+# literals: game/enums.py defines them, and
 # game/mappings.py maps the FPL API's own integers and abbreviations - including
 # "MID" for Middlesbrough, which is a club, not a midfielder.
 POSITION_LITERALS = {"GK", "DEF", "MID", "FWD"}

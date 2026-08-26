@@ -78,8 +78,9 @@ class GameweekMove:
         """
         Read back a `label()`.
 
-        Only needed for tests and for old suggestion rows - the search itself
-        passes `GameweekMove` objects around and never round-trips through text.
+        Only needed for tests and for suggestion rows read back out of the
+        database - the search itself passes `GameweekMove` objects around and
+        never round-trips through text.
         """
         if isinstance(label, int):
             return cls(label)

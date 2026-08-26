@@ -46,14 +46,10 @@ def get_player(
     dbsession: Session | None = None,
 ) -> Player | None:
     """
-    Query the player table by name, id, or opta_code, and return the player object
-    (or None).
+    Look a player up by name, id, or opta_code. None if there is no match.
 
-    NOTE the player_id that can be passed as an argument here is NOT
-    guaranteed to be the id for that player in the FPL API. The one here
-    is the entry (primary key) in our database.
-    Use the function get_player_from_api_id() to find the player corresponding
-    to the FPL API ID.
+    An integer is this database's primary key, *not* the player's FPL API id.
+    Use `get_player_from_api_id` for that.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     # ID field match
@@ -119,9 +115,7 @@ def get_player_from_api_id(
 
 
 def get_player_name(player_id: int, dbsession: Session | None = None) -> str | None:
-    """
-    Lookup player name, for human readability.
-    """
+    """Look a player's name up from their id, for human readability."""
     if p := get_player(player_id, dbsession):
         return str(p)
     logger.warning("Unknown player_id %s", player_id)
@@ -143,9 +137,7 @@ def list_players(
     gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> list[Player]:
-    """
-    Print list of players and return a list of player_ids.
-    """
+    """Print a list of players, and return their player_ids."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     # if trying to get players from after DB has filled, return most recent players
@@ -282,8 +274,10 @@ def get_max_matches_per_player(
     dbsession: Session | None = None,
 ) -> int:
     """
-    Can be used e.g. in bpl_interface.get_player_history_df
-    to help avoid a ragged dataframe.
+    The most matches any player in the season played, used to size a frame.
+
+    Callers building a per-player, per-match array pad to this so the result is
+    rectangular rather than ragged.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()

@@ -37,10 +37,9 @@ def make_optimum_double_transfer(
     sub_weights: SubWeights | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
-    If we want to just make two transfers, it's not infeasible to try all
-    possibilities in turn.
-    We will order the list of potential subs via the sum of expected points
-    over a specified range of gameweeks.
+    Try every pair of transfers in turn, which is affordable for just two.
+
+    Candidates are ordered by their total expected points over `gameweeks`.
     """
     if not gameweeks:
         gameweeks = [next_gameweek()]

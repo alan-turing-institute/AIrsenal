@@ -1,7 +1,8 @@
 """
-The absences CSV written by save_expected_absences can be read back by
-fill_absence_table. Nothing else checks that the exporter and the importer agree
-about the file's columns.
+The absences CSV round-trips between the exporter and the importer.
+
+What `save_expected_absences` writes, `fill_absence_table` reads. Nothing else
+checks that the exporter and the importer agree about the columns.
 """
 
 import warnings
@@ -143,9 +144,7 @@ def test_open_ended_absence_has_blank_until(dbsession):
 
 
 def test_save_absences_round_trips_through_load_absences(dbsession, tmp_path):
-    """
-    The important one: what the exporter writes, the importer must be able to read.
-    """
+    """The round trip itself: what the exporter writes, the importer reads."""
     _add_player(dbsession, 1, "Bob", 1, "Knee injury - Expected back 30 Aug", 3)
     # A comma in the news text, to check rows go through the csv module rather
     # than a "," join.

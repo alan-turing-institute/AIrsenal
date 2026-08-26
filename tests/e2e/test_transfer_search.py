@@ -1,9 +1,9 @@
 """
 The strategy-tree expansion, run for real on the small database.
 
-Nothing else exercised it: the worker-failure tests drive the queue with
-synthetic tasks, and the e2e transfer tests call `make_best_transfers`, which is
-one node of the tree rather than the tree.
+Nothing else covers it: the worker-failure tests drive the queue with synthetic
+tasks, and the e2e transfer tests call `make_best_transfers`, which is one node
+of the tree rather than the tree.
 
 The worker is run in a thread rather than a forked process. The forking is not
 what this is checking, and it cannot be checked here anyway: the search can only
@@ -177,12 +177,11 @@ def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
     seeded, tag, starting_squad
 ):
     """
-    §4 of the refactor, checked end to end.
+    A wildcard rebuilds with the squad optimizer the caller passed.
 
     `StrategySet` carries strategy *names*, so `FullSquadStrategy` is built with
-    no arguments and a constructor argument could never reach it. Before this,
-    a wildcard always rebuilt with the genetic algorithm no matter what the
-    caller passed. The optimizer now travels on the request instead.
+    no arguments and a constructor argument could never reach it. The optimizer
+    travels on the request instead, and this checks that end to end.
     """
     optimizer = RecordingSquadOptimizer()
     gameweeks = SEARCH_GAMEWEEKS[:1]
@@ -221,9 +220,10 @@ def test_the_bench_weighting_on_the_request_reaches_the_search(
     seeded, tag, starting_squad, chip
 ):
     """
-    A flag like `--no-subs` has to reach the transfer search as well as the
-    squad builder, or the two score benches differently. Scoring the same window
-    with and without the bench must not agree.
+    The bench weighting reaches the transfer search, not just the squad builder.
+
+    Otherwise the two score benches differently, so scoring the same window with
+    and without the bench must not agree.
     """
     gameweeks = SEARCH_GAMEWEEKS[:1]
     chips = {chip: gameweeks[0]} if chip is not None else {}

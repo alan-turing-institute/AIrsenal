@@ -65,8 +65,10 @@ class FPLAuth:
 
     def get_fpl_credentials(self) -> None:
         """
-        If we didn't have FPL_LOGIN and FPL_PASSWORD available as files in
-        AIRSENAL_HOME or as environment variables, prompt the user for them.
+        Prompt for the credentials that were not found.
+
+        FPL_LOGIN and FPL_PASSWORD are read from files in AIRSENAL_HOME or from
+        the environment; this covers whichever of them was missing.
         """
         logger.info(
             "Accessing the most up-to-date data on your squad, or automatic "
@@ -89,7 +91,7 @@ class FPLAuth:
 
     def login(self) -> None:
         """
-        only needed for accessing mini-league data, or team info for current gw.
+        Only needed for accessing mini-league data, or team info for current gw.
 
         The flow itself makes seven requests directly rather than through
         `_get_request`, so the translation to `RemoteError` happens here. Callers

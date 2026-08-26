@@ -14,7 +14,11 @@ def get_latest_prediction_tag(
     dbsession: Session | None = None,
 ) -> str:
     """
-    Query the predicted_score table and get the tag field for the last row.
+    The tag of the most recent prediction run for a season.
+
+    Raises:
+        RuntimeError: There are no predictions for the season, so nothing
+            downstream of `airsenal predict` can run.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     query = select(PlayerPrediction).where(
@@ -40,9 +44,7 @@ def get_latest_prediction_tag(
 def get_latest_fixture_tag(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> str:
-    """
-    Query the predicted_score table and get the tag field for the last row.
-    """
+    """The tag of the most recently added fixture for a season."""
     dbsession = dbsession if dbsession is not None else get_session()
     latest_fixture = dbsession.scalars(
         select(Fixture)

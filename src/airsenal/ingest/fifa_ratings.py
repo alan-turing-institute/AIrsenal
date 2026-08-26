@@ -1,6 +1,4 @@
-"""
-Fill the "fifa_ratings" table with info from fifa_team_ratings CSV files.
-"""
+"""Fill the "fifa_ratings" table from the fifa_team_ratings CSV files."""
 
 from sqlalchemy.orm.session import Session
 

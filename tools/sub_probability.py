@@ -1,6 +1,7 @@
 """
-Simple approximation of the probablity of each substitute being used.
-The output of this is used as the default sub weighting in optimization.
+Approximate the probability of each substitute being used.
+
+The output is the default sub weighting in optimization.
 
 TODO: Determine the actual probability of an XI player not playing
 TODO: Use different probabilities for each position (GK, DEF, MID, FWD)

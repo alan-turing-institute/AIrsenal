@@ -1,6 +1,4 @@
-"""
-Fill the "fixture" table with info from this seasons FPL (fixtures.csv).
-"""
+"""Fill the "fixture" table from this season's FPL API and past seasons' files."""
 
 import uuid
 
@@ -20,9 +18,7 @@ from airsenal.remote.fpl_api import FPLDataFetcher
 def fill_fixtures_from_file(
     filename: FilePath, season: str, dbsession: Session | None = None
 ) -> None:
-    """
-    use the match results csv files to get a list of matches in a season,
-    """
+    """A season's matches, read from its results CSV file."""
     dbsession = dbsession if dbsession is not None else get_session()
     with open(filename) as infile:
         for line in track(infile.readlines()[1:], description=f"FIXTURES {season}"):
@@ -44,9 +40,7 @@ def fill_fixtures_from_file(
 
 
 def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> None:
-    """
-    Use the FPL API to get a list of fixures.
-    """
+    """A season's fixtures, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
     tag = str(uuid.uuid4())
     fetcher = FPLDataFetcher()

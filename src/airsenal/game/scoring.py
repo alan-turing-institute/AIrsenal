@@ -1,6 +1,4 @@
-"""
-How many points does FPL assign for goals, assists, clean sheets, appearances
-"""
+"""What FPL awards for goals, assists, clean sheets, appearances and the rest."""
 
 from airsenal.game.enums import Position
 
@@ -42,10 +40,7 @@ points_for_def_cons = 2
 
 
 def get_appearance_points(minutes: float) -> float:
-    """
-    get points for being on the pitch at all, and more for being on
-    for most of the match.
-    """
+    """Points for appearing, and more for playing most of the match."""
     app_points = 0.0
     if minutes > 0:
         app_points = 1
@@ -64,11 +59,9 @@ MAX_MINUTES_MATCH = 90
 
 
 # Squad and transfer rules. Here for the same reason as the limits above: they
-# are FPL's own numbers rather than anything about how we search. `SQUAD_SIZE` in
-# particular was written out three times - twice as a constant and once as
-# `num_players == 15`. The functions that apply them stay in
-# `optimization/moves.py`, because they take a `GameweekMove` and core cannot
-# depend on optimization.
+# are FPL's own numbers rather than anything about how we search. The functions
+# that apply them stay in `optimization/moves.py`, because they take a
+# `GameweekMove` and core cannot depend on optimization.
 SQUAD_SIZE = 15
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 POINTS_HIT_COST = 4  # points lost per transfer beyond the free ones

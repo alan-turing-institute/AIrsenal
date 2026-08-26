@@ -8,9 +8,7 @@ from datetime import datetime
 
 
 def get_current_season() -> str:
-    """
-    use the current time to find what season we're in.
-    """
+    """The season we are currently in, from the current date."""
     current_time = datetime.now()
     start_year = current_time.year if current_time.month > 5 else current_time.year - 1
     end_year = start_year + 1
@@ -37,9 +35,7 @@ def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
 
 
 def get_next_season(season: str) -> str:
-    """
-    Convert string e.g. '1819' into one for next season, i.e. '1920'.
-    """
+    """The season after this one: '1819' becomes '1920'."""
     start_year = int(season[:2])
     end_year = int(season[2:])
     next_start_year = (
@@ -50,9 +46,7 @@ def get_next_season(season: str) -> str:
 
 
 def get_previous_season(season: str) -> str:
-    """
-    Convert string e.g. '1819' into one for previous season, i.e. '1718'
-    """
+    """The season before this one: '1819' becomes '1718'."""
     start_year = int(season[:2])
     end_year = int(season[2:])
     prev_start_year = start_year - 1
@@ -61,9 +55,7 @@ def get_previous_season(season: str) -> str:
 
 
 def get_past_seasons(num_seasons: int) -> list[str]:
-    """
-    Go back num_seasons from the current one.
-    """
+    """The `num_seasons` seasons before the current one, most recent first."""
     season = CURRENT_SEASON
     seasons = []
     for _ in range(num_seasons):

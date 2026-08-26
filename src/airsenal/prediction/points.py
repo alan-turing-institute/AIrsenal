@@ -36,9 +36,7 @@ class PointsConfig:
 
     Each is a small empirical model fitted from past seasons alongside the goal
     and assist predictions; turning one off skips fitting it and leaves that
-    component out of the total. They travelled as four booleans through three
-    signatures, which is how `--no-def-con` came to be threaded through two
-    layers and then dropped before it reached the one that branched on it.
+    component out of the total.
     """
 
     bonus: bool = True
@@ -53,9 +51,7 @@ def get_attacking_points(
     team_score_prob: dict[int, float],
     player_prob: pd.Series,
 ) -> float:
-    """
-    Calculate expected attacking points (goals and assists) for a player.
-    """
+    """Calculate expected attacking points (goals and assists) for a player."""
     if minutes == 0.0:
         return 0.0
 
@@ -94,9 +90,7 @@ def get_attacking_points(
 def get_defending_points(
     position: str, minutes: int | float, team_concede_prob: dict[int, float]
 ) -> float:
-    """
-    Calculate expected defending points (clean sheets and conceded goals) for a player.
-    """
+    """Expected defending points: clean sheets and goals conceded."""
     if position == Position.FWD or minutes == 0.0:
         return 0.0
 
@@ -115,9 +109,7 @@ def get_defending_points(
 def get_bonus_points(
     player_id: int, minutes: int | float, df_bonus: tuple[pd.Series, pd.Series]
 ) -> float:
-    """
-    Calculate expected bonus points based on played minutes.
-    """
+    """Calculate expected bonus points based on played minutes."""
     if minutes >= MIN_MINUTES_FULL:
         return float(df_bonus[0].get(player_id, 0.0))
     if minutes >= MIN_MINUTES_SHORT:
@@ -128,9 +120,7 @@ def get_bonus_points(
 def get_def_con_points(
     player_id: int, minutes: int | float, df_def_con: tuple[pd.Series, pd.Series]
 ) -> float:
-    """
-    Calculate expected defensive contribution points based on played minutes.
-    """
+    """Calculate expected defensive contribution points based on played minutes."""
     if minutes >= MIN_MINUTES_FULL:
         return float(df_def_con[0].get(player_id, 0.0))
     if minutes >= MIN_MINUTES_SHORT:
@@ -141,9 +131,7 @@ def get_def_con_points(
 def get_save_points(
     position: str, player_id: int, minutes: int | float, df_saves: pd.Series
 ) -> float:
-    """
-    Calculate expected save points for goalkeepers.
-    """
+    """Calculate expected save points for goalkeepers."""
     if position != Position.GK:
         return 0.0
     if minutes >= MIN_MINUTES_FULL:
@@ -152,9 +140,7 @@ def get_save_points(
 
 
 def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -> float:
-    """
-    Calculate expected penalty points for yellow and red cards.
-    """
+    """Calculate expected penalty points for yellow and red cards."""
     if minutes >= MIN_MINUTES_SHORT:
         return float(df_cards.get(player_id, 0.0))
     return 0.0
@@ -175,9 +161,7 @@ def calc_predicted_points_for_player(
     tag: str = "",
     dbsession: Session | None = None,
 ) -> list[PlayerPrediction]:
-    """
-    Calculate predicted total points for a single player across target gameweeks.
-    """
+    """Calculate predicted total points for a single player across target gameweeks."""
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str | int):
         p = get_player(player, dbsession=dbsession)
@@ -286,9 +270,7 @@ def calc_predicted_points_for_player(
 def make_prediction(
     player: Player, fixture: Fixture, points: float, tag: str
 ) -> PlayerPrediction:
-    """
-    Instantiate and populate a PlayerPrediction schema object.
-    """
+    """Instantiate and populate a PlayerPrediction schema object."""
     pp = PlayerPrediction()
     pp.predicted_points = points
     pp.tag = tag

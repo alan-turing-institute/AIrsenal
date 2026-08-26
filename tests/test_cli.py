@@ -107,12 +107,7 @@ def test_plot_help():
 
 
 class TestModelSelection:
-    """
-    The model tables reach the user through these options.
-
-    Before them, the only model choice was a `--sampling` boolean, and the
-    hyperparameters it implied were silently dropped.
-    """
+    """The model tables reach the user through these options."""
 
     @pytest.mark.parametrize(
         ("command", "option"),

@@ -16,13 +16,15 @@ def get_empirical_bayes_estimates(
     df_emp: pd.DataFrame, prior_goals: float | None = None
 ) -> FloatArray:
     """
-    Get values to use either for Dirichlet prior alphas in the original Stan and numpyro
-    player models. Returns number of goals, assists and neither scaled by the
-    proportion of minutes & no. matches a player is involved in. If df_emp contains more
-    than one player, result is average across all players.
+    Dirichlet prior alphas: goals, assists, and neither.
 
-    If prior_goals is not None, normalise the returned alpha values to sum to
-    prior_goals.
+    Each is scaled by the proportion of minutes and matches the player was
+    involved in.
+
+    Args:
+        df_emp: One player, or several - several are averaged into a single set
+            of alphas.
+        prior_goals: If given, the alphas are normalised to sum to this.
     """
     # for compatibility with models we zero pad data so all players have
     # the same number of rows (matches). Remove the dummy matches:
@@ -63,16 +65,19 @@ def scale_goals_by_minutes(
     rescale_weights: bool = True,
 ) -> FloatArray:
     """
-    Scale player goal involvements by the proportion of minutes they played
-    (specifically: reduce the number of "neither" goals where the player is said
-    to have had no involvement.
-    goals: np.array with shape (n_players, n_matches, 3) where last axis is no. goals,
-    no. assists, and no. goals not involved in
-    minutes: np.array with shape (n_players, m_matches)
-    time_diff: np.array with shape (n_players, m_matches)
-    epsilon: float for weight decay rate with time
-    rescale_weights: bool indicating whether to rescale weights to sum to n_matches for
-    each player (n_matches the player appeared in where a goal was scored)
+    Scale goal involvements by the proportion of minutes a player played.
+
+    What shrinks is the "neither" count - goals the player is said to have had no
+    involvement in. A negative scaled count is clipped to zero.
+
+    Args:
+        goals: Shape (n_players, n_matches, 3), the last axis being goals,
+            assists, and goals the player was not involved in.
+        minutes: Shape (n_players, n_matches).
+        time_diff: Shape (n_players, n_matches). Required if `epsilon` is given.
+        epsilon: Weight decay rate with time. None means no time weighting.
+        rescale_weights: If True, rescale each player's weights to sum to the
+            number of matches they appeared in where a goal was scored.
     """
     if epsilon is not None and time_diff is None:
         msg = "time_diff must be provided if using time weighting."

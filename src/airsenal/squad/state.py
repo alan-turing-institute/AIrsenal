@@ -26,10 +26,9 @@ def get_bank(
     fetcher: FPLDataFetcher | None = None,
 ) -> int:
     """
-    Find out how much this FPL team had in the bank before the specified gameweek.
-    If gameweek is not provided, give the most recent value.
-    If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
-    the contents of the file airsenal/data/FPL_TEAM_ID.
+    How much this entry had in the bank before a gameweek.
+
+    `gameweek` defaults to the most recent, and `fpl_team_id` to `$FPL_TEAM_ID`.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     if season != CURRENT_SEASON:
@@ -63,10 +62,7 @@ def get_bank(
 def get_entry_start_gameweek(
     fpl_team_id: int, fetcher: FPLDataFetcher | None = None
 ) -> int:
-    """
-    Find the gameweek an FPL team ID was entered in by searching for the first gameweek
-    the API has 'picks' for.
-    """
+    """The gameweek an entry joined, being the first the API has picks for."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
     starting_gw = 1
     while starting_gw < next_gameweek():
@@ -99,10 +95,9 @@ def get_free_transfers(
     is_replay: bool = False,
 ) -> int:
     """
-    Work out how many free transfers FPL team should have before specified gameweek.
-    If gameweek is not provided, give the most recent value.
-    If fpl_team_id is not specified, will use the FPL_TEAM_ID environment var, or
-    the contents of the file airsenal/data/FPL_TEAM_ID.
+    How many free transfers this entry had before a gameweek.
+
+    `gameweek` defaults to the most recent, and `fpl_team_id` to `$FPL_TEAM_ID`.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     dbsession = dbsession if dbsession is not None else get_session()
@@ -185,9 +180,7 @@ def get_players_for_gameweek(
     fpl_team_id: int | None = None,
     fetcher: FPLDataFetcher | None = None,
 ) -> list[Player]:
-    """
-    Use FPL API to get the players for a given gameweek.
-    """
+    """The players an entry had in a gameweek, from the FPL API."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
     if not fpl_team_id:
         fpl_team_id = get_fetcher().FPL_TEAM_ID

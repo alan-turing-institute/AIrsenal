@@ -60,8 +60,10 @@ def test_each_component_reaches_the_prediction(monkeypatch, component):
 
 def test_a_window_must_be_given():
     """
-    `make_predictedscore_table` has no default window: resolving one is the
-    pipeline's job, and a second hardcoded default here could disagree with it.
+    `make_predictedscore_table` has no default window.
+
+    Resolving one is the pipeline's job, and a second hardcoded default here
+    could disagree with it.
     """
     with pytest.raises(TypeError):
         make_predictedscore_table()  # type: ignore[call-arg]

@@ -4,8 +4,7 @@ The whole pipeline, on a database small enough to run in seconds.
 Every other test covers one function. This one covers the joins between the
 stages - that prediction writes something optimisation can read, and that
 optimisation produces a squad the game's rules would accept. Those joins are
-where the refactor could plausibly have broken something without any unit test
-noticing.
+where a change can break something without any unit test noticing.
 
 Both models are `constant`, which are shipped models rather than test doubles,
 so the registry indirection is exercised the same way it is in production.
@@ -218,9 +217,11 @@ def test_transfer_score_is_finite_and_positive(transfer_result):
 
 def test_a_transfer_is_not_worse_than_doing_nothing(seeded, prediction_tag, squad):
     """
-    The single-transfer search considers keeping every player, so its best can
-    never be worse than the do-nothing baseline. If it is, the search is scoring
-    the squad it returns differently from the one it evaluated.
+    A single-transfer search can never beat itself by doing nothing.
+
+    It considers keeping every player, so its best is at least the do-nothing
+    baseline. If it is worse, the search is scoring the squad it returns
+    differently from the one it evaluated.
     """
     _, _, baseline = _best_transfers(_request(GameweekMove(0), squad, prediction_tag))
     _, _, improved = _best_transfers(

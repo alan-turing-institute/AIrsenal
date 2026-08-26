@@ -35,9 +35,7 @@ logger = get_logger(__name__)
 
 
 def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
-    """
-    Ensure that the transactions table in the database is up-to-date.
-    """
+    """Bring the transactions table up to date with the FPL API."""
     if next_gameweek(fetcher=get_fetcher()) != 1:
         logger.info("Checking team")
         n_transfers_api = len(get_fetcher().get_fpl_transfer_data(fpl_team_id))
@@ -60,8 +58,10 @@ def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bo
 
 def update_results(season: str, dbsession: Session) -> bool:
     """
-    If the last gameweek in the db is earlier than the last finished gameweek,
-    update the 'results', 'playerscore', and (optionally) 'attributes' tables.
+    Fill in the gameweeks that have finished since the database was last updated.
+
+    Updates the results, playerscore and, optionally, attributes tables. A no-op
+    when the database is already level with the last finished gameweek.
     """
     last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
     if not last_in_db:
@@ -93,10 +93,7 @@ def update_results(season: str, dbsession: Session) -> bool:
 
 
 def update_players(season: str, dbsession: Session) -> int:
-    """
-    See if any new players have been added to FPL since we last filled the 'player'
-    table in the db.  If so, add them.
-    """
+    """Add any players the FPL API has that the player table does not."""
     players_from_db = list_players(
         position="all", team="all", season=season, dbsession=dbsession
     )
@@ -188,7 +185,7 @@ def update_db(
         logger.info("Updating fixture table...")
         fill_fixtures_from_api(season, session)
         # fixtures may have moved between gameweeks, so any cached gameweek
-        # lookup from earlier in this process is now wrong
+        # a lookup from earlier in this process would be stale
         clear_query_caches()
         # update results and playerscores
         update_results(season, session)

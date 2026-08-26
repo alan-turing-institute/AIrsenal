@@ -41,9 +41,7 @@ def get_player_history_df(
     gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
-    """
-    Fetch historical player performance data and build a structured DataFrame.
-    """
+    """Fetch historical player performance data and build a structured DataFrame."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     col_names = [
@@ -225,9 +223,7 @@ def process_player_data(
     gameweek: int | None = None,
     dbsession: Session | None = None,
 ) -> dict[str, Any]:
-    """
-    Process and structure historical player data for model fitting.
-    """
+    """Process and structure historical player data for model fitting."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_history_df(
@@ -308,9 +304,7 @@ def mean_group_prior(
     n_prior: int = 10,
     prior_by_position: bool = False,
 ) -> pd.Series:
-    """
-    Compute empirical Bayes group means with a prior weight.
-    """
+    """Compute empirical Bayes group means with a prior weight."""
     group_counts = df.groupby(group_col)[mean_col].count()
     group_sums = df.groupby(group_col)[mean_col].sum()
     group_position = (
@@ -333,10 +327,7 @@ def fit_bonus_points(
     n_prior: int = 10,
     dbsession: Session | None = None,
 ) -> tuple[pd.Series, pd.Series]:
-    """
-    Fit bonus points model using historical player scores.
-    """
-
+    """Fit bonus points model using historical player scores."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 
@@ -365,9 +356,7 @@ def fit_save_points(
     min_minutes: int = MAX_MINUTES_MATCH,
     dbsession: Session | None = None,
 ) -> pd.Series:
-    """
-    Fit goalkeeper save points model using historical player scores.
-    """
+    """Fit goalkeeper save points model using historical player scores."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores_df(
@@ -390,9 +379,7 @@ def fit_card_points(
     min_minutes: int = 1,
     dbsession: Session | None = None,
 ) -> pd.Series:
-    """
-    Fit card penalty points model using historical player scores.
-    """
+    """Fit card penalty points model using historical player scores."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores_df(
@@ -415,10 +402,7 @@ def fit_def_con(
     n_prior: int = 10,
     dbsession: Session | None = None,
 ) -> tuple[pd.Series, pd.Series]:
-    """
-    Fit defensive contribution points model across positions.
-    """
-
+    """Fit defensive contribution points model across positions."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
 

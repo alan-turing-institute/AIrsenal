@@ -26,9 +26,7 @@ class NumpyroPlayerConfig:
 
 
 class NumpyroPlayerModel:
-    """
-    numpyro implementation of the AIrsenal player model.
-    """
+    """NumPyro implementation of the AIrsenal player model, fitted by MCMC."""
 
     def __init__(self, config: NumpyroPlayerConfig | None = None):
         self.config = config or NumpyroPlayerConfig()

@@ -14,25 +14,19 @@ from tests.conftest import TEST_PAST_SEASON, past_data_session_scope, session_sc
 
 
 def test_get_player_name(fill_players):
-    """
-    Should be able to find a player with integer argument
-    """
+    """A player can be looked up by id."""
     with session_scope() as tsession:
         assert get_player_name(1, tsession) == "Bob"
 
 
 def test_get_player_id(fill_players):
-    """
-    Should be able to find a player with string argument
-    """
+    """A player can be looked up by name."""
     with session_scope() as tsession:
         assert get_player_id("Bob", tsession) == 1
 
 
 def test_get_player(fill_players):
-    """
-    test we can get a player object from either a name or an id
-    """
+    """The same player comes back whether asked for by name or by id."""
     with session_scope() as tsession:
         p = get_player("Bob", tsession)
         assert isinstance(p, Player)
@@ -68,9 +62,10 @@ def test_get_last_complete_gameweek_in_db():
 
 class TestGetGameweeksArrayIsToldTheWindow:
     """
-    How far ahead to look by default is a decision about a run, not about the
-    gameweek table, so a caller that specifies neither a length nor an end gets
-    an error rather than three gameweeks.
+    Neither a length nor an end gameweek is an error, not a default.
+
+    How far ahead to look is a decision about a run, not about the gameweek
+    table, so this function refuses to make it.
     """
 
     def test_a_window_with_neither_a_length_nor_an_end_is_refused(self):

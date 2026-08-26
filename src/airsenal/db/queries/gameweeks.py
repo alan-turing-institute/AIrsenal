@@ -24,8 +24,10 @@ logger = get_logger(__name__)
 
 class NoFixtureDataError(RuntimeError):
     """
-    Raised when the next gameweek cannot be determined because the database holds no
-    fixtures for the season and no FPL API fetcher was supplied to fall back on.
+    Raised when the next gameweek cannot be determined.
+
+    The database holds no fixtures for the season, and no FPL API fetcher was
+    supplied to fall back on.
     """
 
 
@@ -139,15 +141,12 @@ class _GameweekCache:
     """
     Caches the next gameweek per season for the lifetime of the process.
 
-    This replaces the NEXT_GAMEWEEK module constant. The constant was evaluated at
-    import, which meant importing utils ran a database query and, on an empty
-    database, an FPL API call. Computing it lazily keeps the value stable within a
-    run - exactly as a module constant was - while costing nothing until something
-    actually asks for it.
+    Computed on first use rather than at import, so importing an airsenal module
+    neither queries the database nor calls the FPL API.
 
     Stability matters for more than speed: the transfer optimiser reads the next
-    gameweek inside its search, and a value that changed mid-run (across a deadline,
-    say) would make earlier and later decisions disagree.
+    gameweek inside its search, and a value that changed mid-run - across a
+    deadline, say - would make earlier and later decisions disagree.
     """
 
     def __init__(self) -> None:
@@ -218,9 +217,10 @@ def get_return_gameweek_by_date(
     dbsession: Session | None = None,
 ) -> int:
     """
-    Use a date, or easily parse-able date string, and team name to determine the
-    gameweek of the next match for that team on or after that date. If no match
-    is found, return a placeholder gameweek after the end of the season.
+    Gameweek of a team's next match on or after `date`.
+
+    A placeholder gameweek past the end of the season if the team has no match
+    left, so that callers ordering by gameweek sort it last rather than crashing.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     return_date = parse_date(return_date)
@@ -258,9 +258,7 @@ def get_gameweek_by_date(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> int | None:
-    """
-    Gameweek of the next fixture on or after the specified date.
-    """
+    """Gameweek of the next fixture on or after the specified date."""
     # convert date to a datetime object if it isn't already one.
     dbsession = dbsession if dbsession is not None else get_session()
     check_date = parse_date(check_date)
@@ -284,10 +282,7 @@ def get_gameweek_by_date(
 def get_last_complete_gameweek_in_db(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int | None:
-    """
-    Query the result table to see what was the last gameweek for which
-    we have filled the data.
-    """
+    """The last gameweek the result table has data for."""
     dbsession = dbsession if dbsession is not None else get_session()
     first_missing = dbsession.scalars(
         select(Fixture)
@@ -312,10 +307,7 @@ def is_future_gameweek(
     current_season: str = CURRENT_SEASON,
     next_gameweek: int | None = None,
 ) -> bool:
-    """
-    Return True is season and gameweek refers to a gameweek that is after
-    (or the same) as current_season and next_gameweek.
-    """
+    """Whether this season and gameweek are at or after the current one."""
     if next_gameweek is None:
         # The parameter shadows the module-level next_gameweek() function, so go via
         # the cache it reads. Renaming the parameter is not an option: callers pass it
@@ -334,8 +326,10 @@ def get_gameweeks_array(
     dbsession: Session | None = None,
 ) -> list[int]:
     """
-    Returns the array containing only the valid (< max_gameweek) game-weeks
-    or raise an exception if no game-weeks remaining.
+    The given gameweeks, minus any past the end of the season.
+
+    Raises:
+        ValueError: None of them are still to be played.
     """
     # Check arguments are valid
     dbsession = dbsession if dbsession is not None else get_session()

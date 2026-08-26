@@ -1,6 +1,4 @@
-"""
-test various methods of the Team class.
-"""
+"""The Squad class: adding, removing, and the constraints it enforces."""
 
 import logging
 
@@ -29,9 +27,7 @@ def test_formation_slots():
 
 
 def test_add_player_by_id(fill_players):
-    """
-    Should be able to add a player with integer argument
-    """
+    """A player can be added by id."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player(50, dbsession=ts)
@@ -39,9 +35,7 @@ def test_add_player_by_id(fill_players):
 
 
 def test_add_player_by_name(fill_players):
-    """
-    Should be able to add a player with string argument
-    """
+    """A player can be added by name."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player("Alice", dbsession=ts)
@@ -49,9 +43,7 @@ def test_add_player_by_name(fill_players):
 
 
 def test_cant_add_same_player(fill_players):
-    """
-    can't add a player thats already on the squad.
-    """
+    """A player already in the squad cannot be added again."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = t.add_player(1, dbsession=ts)
@@ -61,9 +53,7 @@ def test_cant_add_same_player(fill_players):
 
 
 def test_cant_add_too_many_per_position(fill_players):
-    """
-    no more than two keepers, 5 defenders, 5 midfielders, 3 forwards.
-    """
+    """At most 2 keepers, 5 defenders, 5 midfielders and 3 forwards."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         # keepers
@@ -80,9 +70,7 @@ def test_cant_add_too_many_per_position(fill_players):
 
 
 def test_cant_add_too_many_per_squad(fill_players):
-    """
-    no more than three from the same squad.
-    """
+    """At most three players from the same club."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         assert t.add_player(1, dbsession=ts)
@@ -92,9 +80,7 @@ def test_cant_add_too_many_per_squad(fill_players):
 
 
 def test_cant_exceed_budget():
-    """
-    try and make an expensive squad
-    """
+    """A squad over budget is refused."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         added_ok = True
@@ -117,9 +103,7 @@ def test_cant_exceed_budget():
 
 
 def test_remove_player(fill_players):
-    """
-    add a player then remove them.
-    """
+    """A player can be added and then removed."""
     with session_scope() as ts:
         t = Squad(season=TEST_SEASON)
         t.add_player(1, dbsession=ts)
@@ -132,10 +116,7 @@ def test_remove_player(fill_players):
 
 
 def test_empty_squad(fill_players):
-    """
-    shouldn't be able to estimate points with
-    no players.
-    """
+    """An empty squad cannot be asked for expected points."""
     t = Squad()
     with pytest.raises(RuntimeError) as errmsg:
         t.get_expected_points(1, "dummy")

@@ -35,10 +35,7 @@ FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
 
 
 class FPLDataFetcher:
-    """
-    hold current and historic FPL data in memory,
-    or retrieve it if not already cached.
-    """
+    """Current and historic FPL data, held in memory and fetched on first use."""
 
     def __init__(
         self,
@@ -104,10 +101,7 @@ class FPLDataFetcher:
         )
 
     def get_current_squad_data(self, fpl_team_id: int | None = None) -> dict[str, Any]:
-        """
-        Requires login.  Return the current squad data, including
-        "picks", bank, and free transfers.
-        """
+        """The current squad: picks, bank, and free transfers. Requires login."""
         if fpl_team_id is None:
             if self.FPL_TEAM_ID is None:
                 msg = "Please specify FPL team ID"
@@ -126,18 +120,15 @@ class FPLDataFetcher:
         self, fpl_team_id: int | None = None
     ) -> dict[int, dict[str, Any]]:
         """
-        Returns the players picked for the upcoming gameweek, including
-        purchase and selling prices, and whether they are subs or not.
-        Requires login
+        The players picked for the upcoming gameweek. Requires login.
+
+        Each carries its purchase and selling price and whether it is a sub.
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
         return {pick["element"]: pick for pick in squad_data["picks"]}
 
     def get_num_free_transfers(self, fpl_team_id: int | None = None) -> int:
-        """
-        Returns the number of free transfers for the upcoming gameweek.
-        Requires login
-        """
+        """Free transfers available for the upcoming gameweek. Requires login."""
         squad_data = self.get_current_squad_data(fpl_team_id)
         return max(
             0,
@@ -146,18 +137,15 @@ class FPLDataFetcher:
         )
 
     def get_current_bank(self, fpl_team_id: int | None = None) -> int:
-        """
-        Returns the remaining bank (in 0.1M) for the upcoming gameweek.
-        Requires login
+        """Money in the bank for the upcoming gameweek, in tenths of a million.
+
+        Requires login.
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
         return int(squad_data["transfers"]["bank"])
 
     def get_available_chips(self, fpl_team_id: int | None = None) -> list[str]:
-        """
-        Returns a list of chips that are available to be played in upcoming gameweek.
-        Requires login
-        """
+        """Chips still available to play in the upcoming gameweek. Requires login."""
         squad_data = self.get_current_squad_data(fpl_team_id)
         return [
             chip["name"]
@@ -166,10 +154,7 @@ class FPLDataFetcher:
         ]
 
     def get_current_summary_data(self) -> dict[str, Any]:
-        """
-        return cached data if present, otherwise retrieve it
-        from the API.
-        """
+        """The summary data, from the cache if it is there and the API if not."""
         if self.current_summary_data:
             return self.current_summary_data
         self.current_summary_data = self._get(FPL_SUMMARY_API_URL)
@@ -179,9 +164,10 @@ class FPLDataFetcher:
         self, gameweek: int, fpl_team_id: int | None = None
     ) -> dict[str, Any]:
         """
-        Use FPL team id to get team data from the FPL API.
-        If no fpl_team_id is specified, we assume it is 'our' team
-        $FPL_TEAM_ID, and cache the results in a dictionary.
+        An entry's team data from the FPL API.
+
+        Without an `fpl_team_id` this is our own team, `$FPL_TEAM_ID`, and the
+        result is cached.
         """
         if (not fpl_team_id) and (gameweek in self.fpl_team_data):
             return self.fpl_team_data[gameweek]
@@ -196,9 +182,7 @@ class FPLDataFetcher:
         return fpl_team_data
 
     def get_fpl_team_history_data(self, team_id: int | None = None) -> dict[str, Any]:
-        """
-        Use our team id to get history data from the FPL API.
-        """
+        """Our entry's season history from the FPL API."""
         if self.fpl_team_history_data and not team_id:
             return self.fpl_team_history_data
         if not team_id:
@@ -212,9 +196,7 @@ class FPLDataFetcher:
     def get_fpl_transfer_data(
         self, fpl_team_id: int | None = None
     ) -> list[dict[str, Any]]:
-        """
-        Get our transfer history from the FPL API.
-        """
+        """Our entry's transfer history from the FPL API."""
         if fpl_team_id is None:
             if self.FPL_TEAM_ID is None:
                 msg = "Please specify FPL team ID"
@@ -241,9 +223,7 @@ class FPLDataFetcher:
         return self.fpl_transfer_history_data[fpl_team_id]
 
     def get_fpl_league_data(self) -> dict[str, Any] | None:
-        """
-        Use our league id to get history data from the FPL API.
-        """
+        """Our league's standings from the FPL API."""
         if self.fpl_league_data:
             return self.fpl_league_data
 
@@ -258,10 +238,7 @@ class FPLDataFetcher:
         return self.fpl_league_data
 
     def get_event_data(self) -> dict[int, dict[str, Any]]:
-        """
-        return a dict of gameweeks - whether they are finished or not, and
-        the transfer deadline.
-        """
+        """Each gameweek's transfer deadline, and whether it has finished."""
         if self.current_event_data:
             return self.current_event_data
         self.current_event_data = {}
@@ -289,11 +266,7 @@ class FPLDataFetcher:
         return last_finished
 
     def get_player_summary_data(self) -> dict[int, dict[str, Any]]:
-        """
-        Use the current_data to build a dictionary, keyed by player_api_id
-        in order to retrieve a player without having to loop through
-        a whole list.
-        """
+        """The summary data's players, keyed by player_api_id rather than a list."""
         if self.current_player_data:
             return self.current_player_data
         self.current_player_data = {}
@@ -303,11 +276,7 @@ class FPLDataFetcher:
         return self.current_player_data
 
     def get_current_team_data(self) -> dict[int, dict[str, Any]]:
-        """
-        Use the current_data to build a dictionary keyed by team code,
-        in order to retrieve a player's team without looping through the
-        whole list.
-        """
+        """The summary data's teams, keyed by team code rather than a list."""
         if self.current_team_data:
             return self.current_team_data
         self.current_team_data = {}
@@ -330,10 +299,10 @@ class FPLDataFetcher:
         self, player_api_id: int, gameweek: int | None = None
     ) -> dict[int, list[dict[str, Any]]] | list[dict[str, Any]]:
         """
-        return cached data if available, otherwise
-        fetch it from API.
-        Return a list, as in double-gameweeks, a player can play more than
-        one match in a gameweek.
+        A player's data for a gameweek, from the cache or the API.
+
+        A list, because a player can play more than one match in a double
+        gameweek.
         """
         if player_api_id not in self.player_gameweek_data:
             self.player_gameweek_data[player_api_id] = {}
@@ -360,24 +329,20 @@ class FPLDataFetcher:
         return self.player_gameweek_data[player_api_id][gameweek]
 
     def get_fixture_data(self) -> list[dict[str, Any]]:
-        """
-        Get the fixture list from the FPL API.
-        """
+        """The fixture list from the FPL API."""
         if not self.fixture_data:
             self.fixture_data = self._get(FPL_FIXTURE_URL)
         return self.fixture_data
 
     def get_lineup(self) -> dict[str, Any]:
-        """
-        The entry's current lineup. Requires a login.
-        """
+        """The entry's current lineup. Requires login."""
         self.login()
         team_url = FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
         lineup: dict[str, Any] = self._get(team_url)
         return lineup
 
     def post_lineup(self, payload: list[dict[str, Any]]) -> None:
-        """Set the lineup for a specific team"""
+        """Post a new lineup for an entry. Requires login."""
         self.login()
         body = {"chip": None, "picks": payload}
         team_url = FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)

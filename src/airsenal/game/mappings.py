@@ -1,6 +1,4 @@
-"""
-map between different conventions used in different data sources.
-"""
+"""Map between the naming conventions of the different data sources."""
 
 positions = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD", 5: "MNG"}
 

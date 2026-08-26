@@ -1,6 +1,4 @@
-"""
-Fill the "PlayerMapping" table with alternative names for players
-"""
+"""Fill the "player_mapping" table with the alternative names a player goes by."""
 
 import csv
 

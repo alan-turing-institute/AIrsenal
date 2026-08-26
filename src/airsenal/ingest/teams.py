@@ -1,6 +1,8 @@
 """
-Fill the "Team" table with list of teams for all seasons, and the team_id which will
-help fill other tables from raw json files
+Fill the "team" table with the teams in each season.
+
+Also the per-season team_id the raw JSON files key on, which is what lets the
+other tables be filled from them.
 """
 
 from sqlalchemy.orm.session import Session
@@ -15,9 +17,7 @@ from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 def fill_team_table_from_file(
     filename: FilePath, dbsession: Session | None = None
 ) -> None:
-    """
-    use csv file
-    """
+    """Read the teams for a season from its packaged CSV file."""
     dbsession = dbsession if dbsession is not None else get_session()
     with open(filename) as infile:
         first_line = True
@@ -35,10 +35,7 @@ def fill_team_table_from_file(
 def make_team_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    """
-    Fill the db table containing the list of teams in the
-    league for each season.
-    """
+    """Fill the team table with the league's teams for every season."""
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

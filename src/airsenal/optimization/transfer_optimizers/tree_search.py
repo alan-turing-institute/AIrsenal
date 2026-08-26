@@ -95,23 +95,26 @@ def next_week_transfers(
     chips: GameweekChips | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> list[tuple[GameweekMove, int, int, int]]:
-    """Given where a strategy has got to and some optimisation constraints, determine
-    the valid moves (transfers, and any chip played) for the following gameweek.
+    """
+    The moves - transfers, and any chip played - a strategy may make next gameweek.
 
-    free_transfers - free transfers available going into the gameweek
-    hit_so_far - points hit taken by this strategy up to but not including this gameweek
-    chips_played - the chips this strategy has already used, so they are not offered
-    again
+    One node of the tree expanded into its children.
 
-    max_opt_transfers - maximum number of transfers to play each week as part of
-    strategy in optimisation
+    Args:
+        free_transfers: Available going into the gameweek.
+        hit_so_far: Points hit this strategy has taken up to but not including
+            this gameweek.
+        chips_played: Chips this strategy has already used, so they are not
+            offered again.
+        allow_unused_transfers: If False and a free transfer would otherwise be
+            lost, making none is not offered - which can exclude the baseline
+            strategy, so a caller that needs it re-adds it.
+        max_free_transfers: The most free transfers the game rules let a manager
+            bank.
 
-    max_free_transfers - maximum number of free transfers saved in the game rules
-    (2 before 2024/25, 5 from 2024/25 season)
-
-    Returns (move, new_ft_available, total_points_hit, hit_this_gw) tuples.
-        - total_points_hit is the total points hit so far including this gw
-        - hit_this_gw is the points hit incurred this gameweek
+    Returns:
+        Per move: the move, the free transfers it leaves for the gameweek after,
+        the total hit including this gameweek, and the hit this gameweek alone.
     """
     chips = chips if chips is not None else NO_CHIPS
     chips_played = list(chips_played)
@@ -244,9 +247,10 @@ def _make_best_transfers(
     request: TransferRequest, strategy: TransferStrategy
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
-    Make this gameweek's move, returning the resulting squad, the transfers made
-    as {"in": [player_ids], "out": [player_ids]}, and the points it is expected
-    to score next gameweek.
+    Make this gameweek's move and score the squad it leaves.
+
+    Returns the squad, the transfers as {"in": [player_ids], "out":
+    [player_ids]}, and the points it is expected to score next gameweek.
 
     One node of the tree, which is why it is here: the strategy decides, and this
     scores what it came back with the same way every other node is scored.

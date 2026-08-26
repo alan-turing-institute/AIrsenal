@@ -1,6 +1,4 @@
-"""
-Generate results CSV files from saved JSON files from fetcher.get_fixture_data()
-"""
+"""Generate the results CSV files from saved `get_fixture_data()` JSON."""
 
 import json
 

@@ -64,9 +64,8 @@ class GeneticAlgorithmConfig:
 
 # Called after each generation, with the best fitness found so far. A generation
 # is the only unit of this search whose count is known before it starts: how many
-# individuals a generation evaluates depends on which ones crossover and mutation
-# touched (65-100 of a population of 100, measured), so per-candidate progress
-# could not be sized, and per-generation progress can.
+# individuals one evaluates depends on which of them crossover and mutation
+# touched, so only per-generation progress can be sized in advance.
 type GenerationReporter = Callable[[float], None]
 
 
@@ -251,8 +250,11 @@ class SquadOpt:
         return (score,)
 
     def _get_player_list(self) -> tuple[list[Player], dict[Position, tuple[int, int]]]:
-        """Get list of active players at the start of the gameweek range,
-        and the id range of players for each position.
+        """
+        The players active at the start of the window, and where each position sits.
+
+        The list is grouped by position, so the second return value is the
+        (first, last) index of each position's block within it.
         """
         players = []
         change_idx = [0]
@@ -301,9 +303,7 @@ class SquadOpt:
         self.position_idx = position_idx
 
     def _get_dummy_per_position(self) -> dict[Position, int]:
-        """No. of dummy players per position needed to complete the squad (if not
-        optimising the full squad)
-        """
+        """How many dummies each position needs to bring the squad up to full size."""
         return {
             pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
             for pos in self.positions
@@ -387,14 +387,12 @@ class SquadOpt:
         """
         Run one generation per `eaSimple` call, reporting the best score after each.
 
-        `eaSimple` takes the number of generations and offers no hook inside its
-        loop, so the choice is between owning a copy of that loop and calling it
-        one generation at a time. This is the second: the search stays DEAP's
-        own. Entering a call whose population is already evaluated evaluates
-        nothing, so the extra work per generation is a hall-of-fame update and a
-        stats pass - 0.008s across 100 generations, against ~9s of search - and
-        the result is identical for a given seed, which `test_optimization_squad`
-        pins.
+        `eaSimple` offers no hook inside its own loop, so reporting per
+        generation means calling it one generation at a time rather than owning a
+        copy of the loop. Re-entering it with an already-evaluated population
+        evaluates nothing, so the extra cost is a hall-of-fame update and a stats
+        pass, and the result is identical for a given seed - `test_optimization_squad`
+        pins that.
 
         DEAP's own per-generation printing stays off here: it would repeat the
         logbook header on every call, and a caller that asked to be told about

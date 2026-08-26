@@ -1,6 +1,4 @@
-"""
-Fill the "player_score" table with historic results (player_details_xxyy.json).
-"""
+"""Fill the "player_score" table with historic results (player_details_xxyy.json)."""
 
 import contextlib
 import datetime
@@ -122,8 +120,10 @@ def get_status_from_attributes_history(
     dbsession: Session | None = None,
 ) -> tuple[str | None, int | None]:
     """
-    Get the player's news and chance_of_playing from their attributes history
-    as of the morning of the fixture kickoff time.
+    A player's news and chance_of_playing as of the morning of kickoff.
+
+    Read from the packaged per-day attributes history, so it is what we knew at
+    the time rather than what we know now.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     matchday = parse_date(fixture.date)
@@ -131,10 +131,9 @@ def get_status_from_attributes_history(
         matchday, player, player_attributes
     )
 
-    # Deal with known future unavailability, e.g. international duty, in which case a
-    # a player might be flagged as unavailable on match day, but that unavailability
-    # doesn't apply until the next gameweek. In this case, look back to their status on
-    # the gameweek deadline date.
+    # Known future unavailability, e.g. international duty: a player can be flagged
+    # unavailable on match day for something that does not apply until the next
+    # gameweek. Look back to their status on the gameweek deadline date instead.
     if (
         news is not None
         and chance_of_playing is not None

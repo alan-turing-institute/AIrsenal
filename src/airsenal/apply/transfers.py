@@ -131,10 +131,7 @@ def get_gw_transfer_suggestions(
 def price_transfers(
     transfer_player_ids: list[list[int]], fetcher: FPLDataFetcher
 ) -> list[dict[str, int]]:
-    """
-    For most gameweeks, we get transfer suggestions from the db, including
-    both players to be removed and added.
-    """
+    """Pair up players out with players in, and price each pair for the API."""
     transfers = list(zip(*transfer_player_ids, strict=False))  # [(out,in),(out,in)]
     if fetcher.FPL_TEAM_ID is None:
         msg = "FPL team ID not set. Cannot price transfers."
@@ -183,11 +180,10 @@ def separate_transfers_in_or_out(
     transfer_list: list[dict[str, int]],
 ) -> tuple[list[dict[str, int]], list[dict[str, int]]]:
     """
-    Given a list of dicts with keys
-    "element_in", "purchase_price", "element_out", "selling_price",
-    (such as what is returned by price_transfers),
-    return two lists of dicts, one for transfers in and
-    one for transfers out
+    Split `price_transfers` output into the transfers out and the transfers in.
+
+    Each input dict carries all four of "element_in", "purchase_price",
+    "element_out" and "selling_price"; the API wants the two halves separately.
     """
     transfers_out = [
         {"element_out": t["element_out"], "selling_price": t["selling_price"]}
@@ -202,12 +198,11 @@ def separate_transfers_in_or_out(
 
 def sort_by_position(transfer_list: list[dict[str, int]]) -> list[dict[str, int]]:
     """
-    Takes a list of transfers e.g. [{"element_in": <FPL_API_ID>, "purchase_price": x}]
-    and returns the same list ordered by DEF, FWD, GK, MID (i.e. alphabetical)
-    to ensure that when we send a big list to the transfer API,
-    we always replace like-with-like.
+    Order transfers by position - DEF, FWD, GK, MID, i.e. alphabetically.
 
-    Note that it is the FPL API ID used here, NOT the player_id.
+    Sending a long list to the transfer API replaces like with like positionally,
+    so both halves have to be in the same order. The ids here are FPL API ids,
+    not this database's player_ids.
     """
 
     def _get_position(api_id: int) -> str:
@@ -241,8 +236,10 @@ def remove_duplicates(
     transfers_in: list[dict[str, int]], transfers_out: list[dict[str, int]]
 ) -> tuple[list[dict[str, int]], list[dict[str, int]]]:
     """
-    If we are replacing lots of players (e.g. new team), need to make sure there
-    are no duplicates - can't add a player if we already have them.
+    Drop any player appearing on both sides of the transfer list.
+
+    Replacing most of a squad at once can otherwise ask the API to buy a player
+    it is selling in the same request.
     """
     t_in = [t["element_in"] for t in transfers_in]
     t_out = [t["element_out"] for t in transfers_out]
@@ -256,8 +253,10 @@ def build_init_priced_transfers(
     fetcher: FPLDataFetcher, fpl_team_id: int | None = None
 ) -> list[dict[str, int]]:
     """
-    Before gameweek 1, there won't be any 'sell' transfer suggestions in the db.
-    We can instead query the API for our current 'picks' (requires login).
+    Price the transfers out from the API's current picks rather than the database.
+
+    Before gameweek 1 there are no 'sell' suggestions in the database to price.
+    Requires login.
     """
     if not fpl_team_id:
         if not fetcher.FPL_TEAM_ID:

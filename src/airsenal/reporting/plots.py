@@ -1,6 +1,4 @@
-"""
-Plot the league
-"""
+"""Plot a mini-league's metrics by gameweek."""
 
 from typing import Any
 

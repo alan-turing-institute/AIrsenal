@@ -1,6 +1,4 @@
-"""
-Save all player gameweek scores for the current season from the API
-"""
+"""Save every player's gameweek scores for the current season, from the API."""
 
 import json
 from typing import Any

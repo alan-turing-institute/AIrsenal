@@ -5,7 +5,5 @@ from typing import cast
 
 
 def fastcopy[T](obj: T) -> T:
-    """
-    Faster replacement for copy.deepcopy().
-    """
+    """Faster replacement for copy.deepcopy()."""
     return cast("T", loads(dumps(obj, -1)))

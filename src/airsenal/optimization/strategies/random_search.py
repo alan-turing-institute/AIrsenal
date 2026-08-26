@@ -42,10 +42,12 @@ def make_random_transfers(
     sub_weights: SubWeights | None = None,
 ) -> tuple[Squad, list[int], list[int]]:
     """
-    choose nsubs random players to sub out, and then select players
-    using a triangular PDF to preferentially select the replacements with
-    the best expected score to fill their place.
-    Do this num_iter times and choose the best total score over gameweeks gameweeks.
+    Sample `num_iter` sets of transfers at random and keep the best.
+
+    Each iteration drops `nsubs` players and fills their places from the
+    candidates for those positions. Both draws use a triangular distribution
+    with its mode at index 0, so the front of each list comes up most often
+    rather than the search only ever trying the top few.
     """
     best_score = -1.0
     best_squad = None

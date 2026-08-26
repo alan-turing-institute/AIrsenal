@@ -67,8 +67,10 @@ def get_gameweek_start_date(
     gameweek: int, season: str, dbsession: Session
 ) -> date | None:
     """
-    Date of the earliest fixture in a gameweek, used as the start (or end) date of an
-    absence that the FPL API only gives us in gameweeks.
+    Date of the earliest fixture in a gameweek.
+
+    Used as the start, or end, date of an absence that the FPL API only gives us
+    in gameweeks.
 
     Returns:
         None if the gameweek has no scheduled fixtures.
@@ -87,8 +89,9 @@ def get_gameweek_start_date(
 
 def read_existing_keys(path: FilePath) -> set[tuple[str, str]]:
     """
-    (player, from) pairs already present in an absences csv file, so that repeated runs
-    of this script don't append duplicate rows.
+    The (player, from) pairs an absences csv file already holds.
+
+    Repeated runs skip these rather than appending duplicate rows.
     """
     if not os.path.exists(path):
         return set()
@@ -100,8 +103,9 @@ def player_attribute_to_row(
     player_attribute: PlayerAttributes, dbsession: Session
 ) -> dict[str, str] | None:
     """
-    Convert a PlayerAttributes row, which has the FPL API's view of a player's
-    unavailability, into a row of the absences csv file.
+    Convert a PlayerAttributes row into a row of the absences csv file.
+
+    The attributes row is the FPL API's view of a player's unavailability.
 
     Returns:
         Csv column name to value, or None if the absence has no usable start date -
@@ -151,8 +155,10 @@ def save_absences(
     rows: list[dict[str, str]], season: str, path: FilePath | None = None
 ) -> int:
     """
-    Append rows to the absences_yyyy.csv file, creating it with a header if needed and
-    skipping rows already present.
+    Append rows to the absences_yyyy.csv file.
+
+    The file is created with a header if it is not there, and rows already
+    present are skipped.
 
     Returns:
         The number of rows actually written.
@@ -179,9 +185,7 @@ def save_absences(
 
 
 def main() -> None:
-    """
-    Write every current-season absence known to the database out to its CSV.
-    """
+    """Write every current-season absence known to the database out to its CSV."""
     dbsession = get_session()
     attributes = dbsession.scalars(
         select(PlayerAttributes).where(

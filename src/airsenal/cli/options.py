@@ -28,7 +28,7 @@ from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL as _DEFAULT_TEAM_
 from airsenal.prediction.team_models import TEAM_MODELS
 
 # Rich help panels, so a command with seventeen options is grouped rather than
-# listed in historical-accretion order.
+# listed as one flat block.
 DATABASE = "Database"
 PREDICTION = "Prediction"
 OPTIMISATION = "Optimisation"
@@ -71,8 +71,8 @@ Tag = Annotated[
 
 # --------------------------------------------------------- gameweek window ---
 
-# The flag name is pinned rather than derived from the parameter: it is public,
-# and the parameters were renamed for consistency with everything else.
+# The flag name is pinned rather than derived from the parameter name: the flag
+# is public, the parameter is not, so they are free to differ.
 WeeksAhead = Annotated[
     int,
     typer.Option("--weeks-ahead", min=1, help="Number of gameweeks to look ahead."),

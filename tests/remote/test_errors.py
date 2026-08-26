@@ -5,8 +5,8 @@ The distinction the remote error hierarchy exists to preserve.
 It has to tell "this gameweek is a 404, ask about the next one" from "there is no
 network, stop asking" - if those merge, a total outage looks like "this team was
 entered in GW1", which is the answer that makes the pipeline rebuild a squad that
-already exists. Nothing covered that before, and a single flat error class would
-have passed every other test in the suite.
+already exists. A single flat error class would pass every other test in the
+suite and still get that wrong.
 """
 
 import pytest

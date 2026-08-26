@@ -69,7 +69,9 @@ def test_the_error_says_how_to_get_the_real_traceback(mp_context):
 @pytest.mark.slow  # deliberately waits on a join that never returns
 def test_a_bare_join_would_hang(mp_context):
     """
-    Documents why the helper exists: the obvious queue.join() never returns here.
+    A bare `queue.join()` never returns when a worker dies.
+
+    Which is why the helper watches the workers as well as the queue.
     """
     queue = CustomQueue()
     proc = mp_context.Process(target=_die_without_finishing, args=(queue,), daemon=True)

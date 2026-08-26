@@ -111,21 +111,14 @@ def order_substitutes(players: list[SquadPlayer], gameweek: int, tag: str) -> No
 def apply_formation(
     by_position: PlayersByPosition, formation: tuple[int, int, int]
 ) -> None:
-    """
-    set players' is_starting to True or False
-    depending on specified formation in format e.g.
-    (4,4,2)
-    """
+    """Set each player's `is_starting` to match a formation given as e.g. (4, 4, 2)."""
     for i, pos in enumerate(FORMATION_POSITIONS):
         for index, player in enumerate(by_position[pos]):
             player[0].is_starting = index < formation[i]
 
 
 def formation_of(players: list[SquadPlayer]) -> dict[str, int]:
-    """
-    Return the formation of a starting 11 in the form
-    of a dict {"DEF": nDEF, "MID": nMID, "FWD": nFWD}
-    """
+    """A starting eleven's formation, as {"DEF": n, "MID": n, "FWD": n}."""
     formation: dict[str, int] = dict.fromkeys(Position, 0)
     for player in players:
         if player.is_starting:
@@ -136,10 +129,7 @@ def formation_of(players: list[SquadPlayer]) -> dict[str, int]:
 def is_substitution_allowed(
     players: list[SquadPlayer], player_out: SquadPlayer, player_in: SquadPlayer
 ) -> bool:
-    """
-    for a given player out and player in, would the substitution result in a
-    valid formation?
-    """
+    """Whether swapping one player for another leaves a legal formation."""
     formation = formation_of(players)
     formation[player_out.position] -= 1
     formation[player_in.position] += 1

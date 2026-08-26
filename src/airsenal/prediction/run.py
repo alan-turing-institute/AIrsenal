@@ -46,9 +46,7 @@ def calc_all_predicted_points(
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
 ) -> None:
-    """
-    Do the full prediction for players.
-    """
+    """Predict every player's points for the given gameweeks, and write them out."""
     points = points if points is not None else PointsConfig()
     model_team = get_fitted_team_model(
         season=season,

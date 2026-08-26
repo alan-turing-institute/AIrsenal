@@ -22,9 +22,11 @@ logger = get_logger(__name__)
 
 
 def check_clean_db(clean: bool, dbsession: Session) -> bool:
-    """Check whether an AIrsenal database already exists. If clean is True attempt to
-    delete any pre-existing database first. Returns True if database exists and is not
-    empty.
+    """
+    Delete the database if `clean`, then say whether it now needs filling.
+
+    True means there is nothing there and the caller should create it; False
+    means a database already exists.
     """
     if clean:
         logger.info("Cleaning database...")

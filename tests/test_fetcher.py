@@ -16,17 +16,13 @@ pytestmark = pytest.mark.live
 
 
 def test_instantiate_fetchers():
-    """
-    check we can instantiate the classes
-    """
+    """The fetcher constructs."""
     fpl = FPLDataFetcher()
     assert fpl
 
 
 def test_get_summary_data():
-    """
-    get summary of all players' data for this season.
-    """
+    """Every player's summary data for this season."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_current_summary_data()
     assert isinstance(data, dict)
@@ -34,9 +30,7 @@ def test_get_summary_data():
 
 
 def test_get_team_data():
-    """
-    should give current list of players in our team
-    """
+    """Our entry's current players."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_fpl_team_data(1)["picks"]
     assert isinstance(data, list)
@@ -44,9 +38,7 @@ def test_get_team_data():
 
 
 def test_get_team_history_data():
-    """
-    gameweek history for our team id
-    """
+    """Our entry's gameweek history."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_fpl_team_history_data()
     assert isinstance(data, dict)
@@ -54,9 +46,7 @@ def test_get_team_history_data():
 
 
 def test_get_event_data():
-    """
-    gameweek list with deadlines and status
-    """
+    """Every gameweek's deadline and status."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_event_data()
     assert isinstance(data, dict)
@@ -64,9 +54,7 @@ def test_get_event_data():
 
 
 def test_get_player_summary_data():
-    """
-    summary for individual players
-    """
+    """One player's summary."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_player_summary_data()
     assert isinstance(data, dict)
@@ -74,9 +62,7 @@ def test_get_player_summary_data():
 
 
 def test_get_current_team_data():
-    """
-    summary for current teams
-    """
+    """This season's teams."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_current_team_data()
     assert isinstance(data, dict)
@@ -84,9 +70,7 @@ def test_get_current_team_data():
 
 
 def test_get_fpl_team_data_gw1():
-    """
-    which players are in our squad for gw1
-    """
+    """Our entry's picks for gameweek 1."""
     fetcher = FPLDataFetcher()
     data = fetcher.get_fpl_team_data(1)
     assert isinstance(data, dict)
@@ -96,9 +80,7 @@ def test_get_fpl_team_data_gw1():
 
 
 def test_get_fpl_team_data_gw1_different_fpl_team_ids():
-    """
-    which players are in a couple of different squads for gw 1
-    """
+    """Two other entries' picks for gameweek 1."""
     fetcher = FPLDataFetcher()
     # assume that fpl_team_ids < 100 will all have squads for
     # gameweek 1, and that they will be different..
@@ -115,9 +97,7 @@ def test_get_fpl_team_data_gw1_different_fpl_team_ids():
 
 
 def test_get_detailed_player_data():
-    """
-    for player_id=1, list of gameweek data
-    """
+    """One player's per-gameweek data."""
     fetcher = FPLDataFetcher()
 
     data = fetcher.get_gameweek_data_for_player(1)

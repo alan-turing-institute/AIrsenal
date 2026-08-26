@@ -5,8 +5,10 @@ from airsenal.game.enums import Chip, Position
 
 def test_position_compares_equal_to_its_string():
     """
-    Existing code filters SQLAlchemy queries and indexes dicts with plain strings,
-    so the enum has to keep behaving like one while those are migrated.
+    The enum has to keep behaving like a string.
+
+    Query filters and string-keyed dicts compare against it directly, so `==`
+    and indexing must work with a plain literal on the other side.
     """
     assert Position.GK == "GK"
     assert "GK" in {Position.GK: 1}
@@ -14,9 +16,10 @@ def test_position_compares_equal_to_its_string():
 
 def test_position_formats_as_a_bare_string():
     """
-    Regression guard for the 3.11 mixin-enum change. Without an explicit __str__,
-    f"{Position.GK}" becomes "Position.GK", which would end up in log lines and
-    database columns.
+    `str()` of a member is its value, not "Position.GK".
+
+    A mixin enum without an explicit `__str__` formats as the latter, which
+    would end up in log lines and database columns.
     """
     assert f"{Position.GK}" == "GK"
     assert str(Position.MID) == "MID"

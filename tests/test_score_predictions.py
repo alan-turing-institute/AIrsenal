@@ -1,6 +1,4 @@
-"""
-test the score-calculating functions
-"""
+"""The score-calculating functions, from single events up to a fitted model."""
 
 import numpy as np
 import pandas as pd
@@ -46,18 +44,14 @@ from tests.conftest import past_data_session_scope
 
 
 def generate_player_df(prob_score, prob_assist):
-    """
-    output a dataframe with custom player-level probabilities.
-    """
+    """A data frame with custom player-level probabilities."""
     df = pd.DataFrame(columns=["pr_score", "pr_assist"])
     df.loc[0] = [prob_score, prob_assist]
     return df
 
 
 def test_appearance_points():
-    """
-    points for just being on the pitch
-    """
+    """Points for appearances alone."""
     assert get_appearance_points(0) == 0
     assert get_appearance_points(45) == 1
     assert get_appearance_points(60) == 2
@@ -65,10 +59,7 @@ def test_appearance_points():
 
 
 def test_defending_points_0_conceded():
-    """
-    for 0-0 draw, defenders and keepers should get clean sheet bonus
-    if they were on the pitch for >= 60 mins.
-    """
+    """Defenders and keepers get the clean-sheet bonus for a 0-0, if they played 60."""
     # set chance of conceding n goals as {0: 1.0} .
     assert get_defending_points("FWD", 90, {0: 1.0}) == 0
     assert get_defending_points("MID", 90, {0: 1.0}) == 1
@@ -79,9 +70,7 @@ def test_defending_points_0_conceded():
 
 
 def test_defending_points_2_conceded():
-    """
-    for 2 conceded, defenders and keepers should get lose 1 point
-    """
+    """Defenders and keepers lose a point for two goals conceded."""
     concede_probs = {0: 0.0, 1: 0.0, 2: 1.0}
     # set chance of conceding n goals as {2: 1.0} .
     assert get_defending_points("FWD", 90, concede_probs) == 0
@@ -93,9 +82,7 @@ def test_defending_points_2_conceded():
 
 
 def test_defending_points_4_conceded():
-    """
-    for 4 conceded, defenders and keepers should get lose 2 points
-    """
+    """Defenders and keepers lose two points for four goals conceded."""
     # set chance of conceding n goals as {4: 1.0} .
     concede_probs = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 1.0}
     assert get_defending_points("FWD", 90, concede_probs) == 0
@@ -107,10 +94,7 @@ def test_defending_points_4_conceded():
 
 
 def test_attacking_points_0_0():
-    """
-    For 0-0 no-one should get any attacking points.
-    """
-
+    """A 0-0 gives nobody attacking points."""
     team_score_prob = {0: 1.0}
     player_probs = {"prob_score": 1.0, "prob_assist": 0.0, "prob_neither": 0.0}
     assert get_attacking_points("FWD", 90, team_score_prob, player_probs) == 0
@@ -121,8 +105,10 @@ def test_attacking_points_0_0():
 
 def test_attacking_points_1_0_top_scorer():
     """
-    If team scores, and pr_score is 1, should get 4 points for FWD,
-    5 for MID, 6 for DEF, 10 for GK.
+    A certain goalscorer gets their position's points for it.
+
+    Four for a forward, five for a midfielder, six for a defender, ten for a
+    goalkeeper.
     """
     team_score_prob = {0: 0.0, 1: 1.0}
     player_probs = {"prob_score": 1.0, "prob_assist": 0.0, "prob_neither": 0.0}
@@ -139,9 +125,7 @@ def test_attacking_points_1_0_top_scorer():
 
 
 def test_attacking_points_1_0_top_assister():
-    """
-    FWD, MID, DEF, GK all get 3 points for an assist.
-    """
+    """Every position gets 3 points for an assist."""
     team_score_prob = {0: 0.0, 1: 1.0}
     player_probs = {"prob_score": 0.0, "prob_assist": 1.0, "prob_neither": 0.0}
     assert get_attacking_points("FWD", 90, team_score_prob, player_probs) == 3
@@ -157,7 +141,7 @@ def test_attacking_points_1_0_top_assister():
 
 
 def test_get_bonus_points():
-    """Test correct bonus points returned for players from fitted (average) bonus"""
+    """Bonus points come back from the fitted average."""
     df_90 = pd.Series({1: 1, 2: 2})
     df_60 = pd.Series({1: 0.5, 2: 0.25})
     df_bonus = (df_90, df_60)
@@ -176,8 +160,7 @@ def test_get_bonus_points():
 
 
 def test_get_save_points():
-    """Test correct szve points returned for players from fitted
-    (average) save points"""
+    """Save points come back from the fitted average."""
     df_saves = pd.Series({1: 1, 2: 2})
 
     # >60 mins - return df value
@@ -192,8 +175,7 @@ def test_get_save_points():
 
 
 def test_get_card_points():
-    """Test correct card points returned for players from fitted
-    (average) card points"""
+    """Card points come back from the fitted average."""
     df_cards = pd.Series({1: -1, 2: -2})
     # >30 mins - return df value
     assert get_card_points(1, 90, df_cards) == -1
@@ -205,10 +187,7 @@ def test_get_card_points():
 
 
 def test_get_player_history_df():
-    """
-    test that we only consider gameweeks up to the specified gameweek
-    (gw 12 in 1819 season).
-    """
+    """Only gameweeks up to the one asked for are considered."""
     with past_data_session_scope() as ts:
         df = get_player_history_df(season="1819", gameweek=12, dbsession=ts)
         assert len(df) > 0
@@ -233,8 +212,11 @@ def test_get_player_history_df():
 
 
 def test_scale_goals_by_minutes():
-    """Test scaling goal involvements by minutes played works as expected. Neither
-    goals should be reduced by fraction of minutes played."""
+    """
+    Scaling goal involvements by minutes played shrinks the "neither" count.
+
+    It falls by the fraction of minutes the player was not on the pitch for.
+    """
     goals = np.zeros((2, 2, 3))
     goals[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])
     goals[1, :, :] = np.array([[0, 1, 2], [1, 0, 2]])
@@ -259,7 +241,7 @@ def test_get_conjugate_prior():
 
 
 def test_fit_conjugate_player_model():
-    """Test results of fitting ConjugatePlayerModel"""
+    """Fitting ConjugatePlayerModel gives the expected posterior."""
     pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=0, epsilon=None))
     y = np.zeros((2, 2, 3))
     y[0, :, :] = np.array([[0, 0, 0], [1, 2, 3]])  # all y add to 4
@@ -273,7 +255,7 @@ def test_fit_conjugate_player_model():
     pm = pm.fit(data)
     assert (pm.posterior == np.array([[1, 2, 3], [3, 2, 1]])).all()
 
-    # A different prior is now a different model, not a different fit call.
+    # A different prior means a different model object, not a different fit call.
     pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=3, epsilon=None))
     pm = pm.fit(data)
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
@@ -370,8 +352,7 @@ def test_fixture_probabilities():
 
 
 def test_get_player_scores_df():
-    """Test utility function used by fit bonus, save and card points to get player
-    scores rows filtered by season, gameweek and minutese played values"""
+    """The row filter the bonus, save and card fits share: season, gameweek, minutes."""
     with past_data_session_scope() as ts:
         df = get_player_scores_df(season="1819", gameweek=12, dbsession=ts)
         # check type and columns
@@ -407,7 +388,7 @@ def test_get_player_scores_df():
 
 
 def test_mean_group_prior():
-    """Test mean calculation with prior"""
+    """The empirical Bayes mean, with the prior weighted in."""
     df = pd.DataFrame(
         {
             "player_id": [1, 1, 1, 1, 2, 2],

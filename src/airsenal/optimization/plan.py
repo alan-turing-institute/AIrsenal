@@ -156,8 +156,7 @@ def baseline_plan(
     sub_weights: SubWeights | None = None,
 ) -> Plan:
     """
-    The plan of making no transfers at all, which every other plan is compared
-    against.
+    The do-nothing plan, which every other plan is compared against.
 
     Scored with the same bench weighting as the plans it is compared against, or
     the comparison is between two different scoring functions.

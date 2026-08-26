@@ -1,9 +1,9 @@
 """
-What AIrsenal thinks it is: version, home directory and which database it is
-pointed at.
+What AIrsenal thinks it is.
 
-Distinct from `core/env.py` (which reads the environment) and `cli/env.py`
-(which is the `airsenal env` command).
+Version, home directory, and which database it is pointed at. Distinct from
+`core/env.py` (which reads the environment) and `cli/env.py` (which is the
+`airsenal env` command).
 """
 
 from airsenal import __version__

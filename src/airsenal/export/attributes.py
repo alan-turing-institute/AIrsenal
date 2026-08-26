@@ -31,9 +31,7 @@ def get_return_gameweek_by_date(
     ordered_deadlines: list[tuple[int, date]],
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]],
 ) -> int | None:
-    """
-    Use a date to figure out which gameweek its in.
-    """
+    """Which gameweek a date falls in."""
     if return_date is None:
         return None
 
@@ -96,9 +94,7 @@ def season_is_active(
 
 
 def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
-    """
-    use the FPL API to get player attributes info for the current season
-    """
+    """Append the current season's player attributes from the API to their CSV."""
     timestamp = datetime.isoformat(now)
     summary_data = fetcher.get_current_summary_data()
 

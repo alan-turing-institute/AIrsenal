@@ -1,6 +1,4 @@
-"""
-`FPLDataFetcher`'s gameweek lookups, and the login boundary.
-"""
+"""`FPLDataFetcher`'s gameweek lookups, and the login boundary."""
 
 import pytest
 from curl_cffi import requests
@@ -54,7 +52,7 @@ class _LoginBoom:
 
 
 def test_login_transport_failure_is_a_remote_error():
-    # `login` makes its seven requests directly rather than through _get_request, so
+    # `login` makes its requests directly rather than through _get_request, so
     # without translation here a raw curl_cffi error escapes past every
     # `except RemoteError` fallback in squad/ and pipeline/ - which is how an offline
     # run would end in a traceback instead of falling back to the database.

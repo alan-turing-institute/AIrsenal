@@ -1,6 +1,7 @@
 """
-Tune the time-weighting (epsilon) hyperparameter for the team model by
-maximising the summed log-probability of actual scorelines on a rolling
+Tune the team model's time-weighting (epsilon) hyperparameter.
+
+Maximises the summed log-probability of actual scorelines on a rolling
 "train up to GW t, evaluate on GW t+1..t+H" basis.
 
 Steps per epsilon:
@@ -86,7 +87,6 @@ def evaluate_epsilon(
     last_gw: int | None = None,
 ) -> EpsilonResult:
     """Evaluate a single epsilon value across the specified gameweek window."""
-
     total_logp = 0.0
     total_n = 0
 

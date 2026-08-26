@@ -15,9 +15,10 @@ def get_team_name(
     team_id: int, season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> str | None:
     """
-    Return 3-letter team name given a numerical id.
-    These ids are based on alphabetical order of all teams in that season,
-    so can vary from season to season.
+    The three-letter name of a team, from its numerical id.
+
+    The ids run in alphabetical order within a season, so the same id means
+    different teams in different seasons.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     team = dbsession.scalars(
@@ -30,10 +31,7 @@ def get_team_name(
 
 
 def get_teams_for_season(season: str, dbsession: Session) -> list[str]:
-    """
-    Query the Team table and get a list of teams for a given
-    season.
-    """
+    """The teams that played in a season."""
     teams = dbsession.scalars(select(Team).where(Team.season == season)).all()
     return [t.name for t in teams]
 

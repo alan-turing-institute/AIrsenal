@@ -9,8 +9,8 @@ from platformdirs import user_data_dir
 
 # Cross-platform data directory. Resolved at import (it cannot change within a
 # process) but *not* created: practically every module imports this one
-# transitively, so `os.makedirs` here meant that importing anything at all
-# created a directory. Call `airsenal_home()` when you are about to write.
+# transitively, so creating it here would mean importing anything at all creates
+# a directory. Call `airsenal_home()` when you are about to write.
 if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
@@ -39,8 +39,7 @@ AIRSENAL_ENV_KEYS = [
 def check_valid_key[**P, R](
     func: Callable[Concatenate[str, P], R],
 ) -> Callable[Concatenate[str, P], R]:
-    """decorator to pre-check whether we are using a valid AIrsenal key in env
-    get/save/del functions"""
+    """Reject an unrecognised AIrsenal setting name before the wrapped call runs."""
 
     def wrapper(key: str, /, *args: P.args, **kwargs: P.kwargs) -> R:
         if key not in AIRSENAL_ENV_KEYS:

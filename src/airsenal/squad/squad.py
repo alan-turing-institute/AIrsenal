@@ -1,7 +1,8 @@
 """
-The class for an FPL squad.
-Contains a set of players.
-Is able to check that it obeys all constraints.
+A squad of fifteen players, and the rules it has to obey.
+
+Budget, squad size, players per position and the three-per-club limit are all
+checked here, so nothing that builds a squad has to restate them.
 """
 
 from collections import defaultdict
@@ -72,15 +73,10 @@ class SubWeights:
 
 
 class Squad:
-    """
-    Squad class.  Contains 15 players
-    """
+    """Fifteen players, a budget, and the constraints they must satisfy."""
 
     def __init__(self, budget: int = 1000, season: str = CURRENT_SEASON) -> None:
-        """
-        constructor - start with an initial empty player list,
-        and £100M
-        """
+        """Start with no players and, by default, £100M to spend."""
         self.players: list[SquadPlayer] = []
         self.budget = budget
         self.season = season
@@ -94,9 +90,7 @@ class Squad:
         return f"Squad(players={len(self.players)}, budget={self.budget})"
 
     def is_complete(self) -> bool:
-        """
-        See if we have a full squad.
-        """
+        """Whether the squad has its full complement of players."""
         return sum(self.num_position.values()) == SQUAD_SIZE
 
     def add_player(
@@ -109,10 +103,9 @@ class Squad:
         dbsession: Session | None = None,
     ) -> bool:
         """
-        Add a player.  Can do it by name or by player_id.
-        If no price is specified, CandidatePlayer constructor will use the
-        current price as found in DB, but if one is specified, we override
-        with that value.
+        Add a player, by name or by player_id.
+
+        Without a `price`, the player's current price in the database is used.
         """
         # dbsession is passed through unresolved: CandidatePlayer keeps it, and this
         # Squad gets pickled onto the optimiser's multiprocessing queue.
@@ -171,11 +164,11 @@ class Squad:
         dbsession: Session | None = None,
     ) -> bool:
         """
-        Remove player from our list.
-        If a price is specified, we use that, otherwise we
-        calculate the player's sale price based on his price in the
-        team vs. his current price in the API (or if the API fails
-        or use_api is False, the current price for that player in the database.)
+        Remove a player, crediting the squad with what they sell for.
+
+        Without a `price`, the sale price is worked out from what the squad paid
+        against the player's current price - from the API, or from the database
+        if `use_api` is False or the API cannot be reached.
         """
         gameweek = next_gameweek() if gameweek is None else gameweek
         dbsession = dbsession if dbsession is not None else get_session()
@@ -211,9 +204,7 @@ class Squad:
         dbsession: Session | None = None,
         fetcher: FPLDataFetcher | None = None,
     ) -> int:
-        """Get sale price for player (a player in self.players) in the current
-        gameweek of the current season.
-        """
+        """What one of this squad's players would sell for, this gameweek."""
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
         return sell_price(
@@ -226,39 +217,30 @@ class Squad:
         )
 
     def check_no_duplicate_player(self, player: SquadPlayer) -> bool:
-        """
-        Check we don't already have the player.
-        """
+        """Whether the squad does not already contain this player."""
         return all(p.player_id != player.player_id for p in self.players)
 
     def check_num_in_position(self, player: SquadPlayer) -> bool:
-        """
-        check we have fewer than the limit of
-        num players in the chosen players position.
-        """
+        """Whether the squad has room for another player in this position."""
         position = player.position
         return self.num_position[position] < TOTAL_PER_POSITION[position]
 
     def check_num_per_team(self, player: SquadPlayer) -> bool:
-        """
-        Check that the squad currently has a maximum of 3 players from the same team,
-        and that adding the specified player would not exceed this limit.
-        """
+        """Whether adding this player would keep the squad within 3 per club."""
         return (
             self.count_per_team[player.team] < 3
             and max(self.count_per_team.values()) < 4
         )
 
     def check_cost(self, player: SquadPlayer) -> bool:
-        """
-        check we can afford the player.
-        """
+        """Whether the squad can afford this player."""
         return player.purchase_price <= self.budget
 
     def _calc_expected_points(self, tag: str) -> None:
         """
-        estimate the expected points for the specified gameweek.
-        If no gameweek is specified, it will be the next fixture
+        Expected points for a gameweek, after picking a lineup and a captain.
+
+        Defaults to the next gameweek.
         """
         for p in self.players:
             p.calc_predicted_points(tag)
@@ -270,9 +252,7 @@ class Squad:
     def total_points_for_starting_11(
         self, gameweek: int, tag: str, triple_captain: bool = False
     ) -> float:
-        """
-        simple sum over starting players
-        """
+        """Sum of the starting eleven's predicted points."""
         total = 0.0
         for player in self.players:
             if player.is_starting:
@@ -335,10 +315,7 @@ class Squad:
         bench_boost: bool = False,
         triple_captain: bool = False,
     ) -> float:
-        """
-        expected points for the starting 11.
-        """
-
+        """Expected points for the starting eleven."""
         self.optimize_lineup(gameweek, tag)
 
         total_score = self.total_points_for_starting_11(
@@ -357,14 +334,10 @@ class Squad:
         triple_captain: bool = False,
         bench_boost: bool = False,
     ) -> int:
-        """
-        Calculate the actual points a squad stored in a historical gameweek/season.
-        """
+        """The points this squad actually scored in a past gameweek."""
         total_points = 0
-        # we will first loop through the list of players to identify
-        # subs / captain / vice captain changes, and add up scores
-        # for the starting 11, and then after that deal with points
-        # for subs and vice captain.
+        # First pass: identify sub / captain / vice-captain changes and total the
+        # starting eleven. Subs and the vice-captain are dealt with after that.
 
         need_vice_captain = False
         vice_captain_points = 0
@@ -436,7 +409,8 @@ def get_current_squad_from_api(
     fpl_team_id: int, fetcher: FPLDataFetcher | None = None, next_gw: int | None = None
 ) -> Squad:
     """
-    Return a list [(player_id, purchase_price)] from the current picks.
+    (player_id, purchase_price) for each of the entry's current picks.
+
     Requires the data fetcher to be logged in.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()

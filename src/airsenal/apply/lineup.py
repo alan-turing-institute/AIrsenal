@@ -71,10 +71,11 @@ def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
 
 def get_lineup_from_payload(lineup: dict[str, Any]) -> Squad:
     """
-    inverse of build_lineup_payload. Returns a squad object from get_lineup
+    Build a Squad from a `get_lineup` response - the inverse of `build_lineup_payload`.
 
-    lineup is a dictionary, with the entry "picks" being a list of dictionaries like:
-    {"element":353,"position":1,"selling_price":55,"multiplier":1,"purchase_price":55,"is_captain":false,"is_vice_captain":false}
+    `lineup["picks"]` holds one dict per player, of the form
+    `{"element": 353, "position": 1, "selling_price": 55, "multiplier": 1,
+    "purchase_price": 55, "is_captain": false, "is_vice_captain": false}`.
     """
     s = Squad()
     for p in lineup["picks"]:

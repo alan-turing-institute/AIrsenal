@@ -39,9 +39,10 @@ def get_player_outcome_prob(
     team_goals: int,
 ) -> float:
     """
-    Given an actual match result, a player's goal involvements, and the player's
-    modelled goal involvement parameters, get the probability of the player achieving
-    their actual goal involvements, according to the model.
+    The model's probability of a player's actual goal involvements in a match.
+
+    Takes the match result, the involvements themselves, and the player's fitted
+    involvement parameters.
     """
     if player_minutes == 0.0 or team_goals == 0:
         msg = "Function only valid if player played and team scored."
@@ -103,7 +104,6 @@ def evaluate_params(
     last_gw: int | None = None,
 ) -> EpsilonResult:
     """Evaluate a single epsilon value across the specified gameweek window."""
-
     total_logp = 0.0
     total_n = 0
 

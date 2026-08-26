@@ -69,9 +69,11 @@ def test_unknown_model_names_list_the_alternatives():
 
 def test_a_team_model_holds_the_arguments_it_fits_with():
     """
-    bpl takes epsilon when fitting rather than when constructing, so the model
-    carries it. Otherwise a caller that builds its own model - replay, say -
-    fits with different time weighting than `airsenal run` does.
+    The model object carries its own epsilon.
+
+    Bpl takes epsilon when fitting rather than when constructing, so without
+    this a caller building its own model - replay, say - fits with different
+    time weighting than `airsenal run` does.
     """
     model = build_team_model(DEFAULT_TEAM_MODEL)
     assert model.epsilon == 0.9

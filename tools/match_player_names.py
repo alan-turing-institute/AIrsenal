@@ -1,9 +1,7 @@
 """
-Find alternative player names for all the players in the 2018/19 FPL.
-Write out a dict of the format
-{<name_in_FPL> : [ <short_name_in_FPL>,<other_name_1>,... ],
-...
-}
+Find the alternative names each FPL player goes by in the other data sources.
+
+Writes out {name_in_FPL: [short_name_in_FPL, other_name, ...]}.
 """
 
 import json
@@ -23,19 +21,10 @@ def find_best_match(
     fuzz_method: Callable[[str, str], int] = fuzz.ratio,
 ) -> tuple[str | None, int]:
     """
-    use fuzzy matching to see if we can match names
-
-    Parameters
-    ==========
-    fpl_players: list of str, current FPL player names
-    player: str, player name from previous season
-    fuzz_method: function from fuzzywuzzy
+    Fuzzy-match a historical player name against the current FPL names.
 
     Returns:
-    ========
-    best_match: str, the current FPL player name that best matches the
-                     historical one
-    best_ratio: int, the score for the match, range 1-100.
+        The best-matching current FPL name, and its score out of 100.
     """
     best_ratio = 0
     best_match = None

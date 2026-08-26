@@ -29,14 +29,14 @@ class ConjugatePlayerConfig:
 
 
 class ConjugatePlayerModel:
-    """Exact implementation of player model:
-    - Prior: Dirichlet(alpha)
-    - Posterior: Dirichlet(alpha + n)
-    where n is the result of scale_goals_by_minutes for each player (i.e. total
-    number of goal involvements for player weighted by amount of time on pitch).
-    Strength of prior controlled by sum(alpha), by default 13 which is roughly the
-    average no. of goals a team's expected to score in 10 matches. alpha values come
-    from average goal involvements for all players in that position.
+    """
+    A Dirichlet prior updated in closed form, with no sampling.
+
+    The posterior is Dirichlet(alpha + n), where n is `scale_goals_by_minutes`
+    per player - goal involvements weighted by time on the pitch. The prior
+    pools every player in the data it is fitted to, normalised so that
+    `sum(alpha)` is `n_goals_prior`, which is therefore what sets how strongly
+    the prior pulls an individual player towards the pool.
     """
 
     def __init__(self, config: ConjugatePlayerConfig | None = None):
@@ -86,17 +86,13 @@ class ConjugatePlayerModel:
 
     @staticmethod
     def get_prior(scaled_goals: FloatArray, n_goals_prior: int) -> FloatArray:
-        """Compute alpha parameters for Dirichlet prior. Calculated by summing
-        up all player goal involvements, then normalise to sum to n_goals_prior.
-        """
+        """Sum every player's goal involvements, normalised to sum to n_goals_prior."""
         alpha = scaled_goals.sum(axis=0)
         return n_goals_prior * alpha / alpha.sum()
 
     @staticmethod
     def get_posterior(prior_alpha: FloatArray, scaled_goals: FloatArray) -> FloatArray:
-        """Compute parameters of Dirichlet posterior, which is the sum of the prior
-        and scaled goal involvements.
-        """
+        """The Dirichlet posterior: the prior plus the scaled goal involvements."""
         return prior_alpha + scaled_goals
 
     def get_probs(self) -> dict[str, np.ndarray]:

@@ -137,10 +137,13 @@ select = [
   "TC",          # flake8-type-checking
   "N",           # pep8-naming
   "TID251",      # flake8-tidy-imports: banned-api (see below)
-  # pydocstyle, only the rules that pin section syntax to Google style. Not the
-  # whole D family: D1xx would require a docstring on everything, D417 would
-  # require every parameter documented once any are, and both push towards
-  # docstrings that restate the signature.
+  # pydocstyle: the rules that pin Google-style sections, and the ones that keep
+  # a docstring's first line a summary. Not the whole D family - D1xx would
+  # require a docstring on everything and D417 every parameter documented once
+  # any are, both of which push towards docstrings that restate the signature.
+  # D212/D213 are also left out: this codebase opens a multi-line docstring on
+  # the line after the quotes, and the two rules contradict each other anyway.
+  "D200", "D202", "D205", "D209", "D403", "D415",
   "D405", "D410", "D411", "D412", "D414", "D416", "D418",
 ]
 ignore = [

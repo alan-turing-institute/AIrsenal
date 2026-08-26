@@ -11,9 +11,7 @@ from airsenal.game.season import CURRENT_SEASON, get_previous_season
 
 
 def calc_average_minutes(player_scores: list[PlayerScore]) -> float:
-    """
-    Simple average of minutes played for a list of PlayerScore objects.
-    """
+    """Mean minutes played across a list of PlayerScore rows."""
     total = 0.0
     for ps in player_scores:
         total += ps.minutes
@@ -29,9 +27,7 @@ def estimate_minutes_from_prev_season(
     current_team_only: bool = True,
     dbsession: Session | None = None,
 ) -> list[float]:
-    """
-    Take average of minutes from previous season if any, or else return [0]
-    """
+    """Mean minutes in the previous season, or [0] if we have none."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     previous_season = get_previous_season(season)
@@ -86,10 +82,9 @@ def get_recent_minutes_for_player(
     dbsession: Session | None = None,
 ) -> list[float]:
     """
-    Look back n_matches_to_use matches, and return an array
-    containing minutes played in each.
-    If current_gw is not given, we take it to be the most
-    recent finished gameweek.
+    Minutes played in each of the last `n_matches_to_use` matches.
+
+    `current_gw` defaults to the most recent finished gameweek.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if last_gw is None:
