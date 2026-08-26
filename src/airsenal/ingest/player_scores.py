@@ -22,7 +22,6 @@ from airsenal.db.queries.fixtures import (
     get_player_team_from_fixture,
 )
 from airsenal.db.queries.gameweeks import (
-    get_last_complete_gameweek_in_db,
     is_future_gameweek,
     next_gameweek,
 )
@@ -267,20 +266,6 @@ def fill_playerscores_from_api(
     fetcher = get_fetcher()
     gw_end = next_gameweek(fetcher=fetcher) if gw_end is None else gw_end
     dbsession = dbsession if dbsession is not None else get_session()
-    # Get column metadata once for efficiency
-    last_finished = fetcher.get_last_finished_gameweek()
-    if last_finished == 0:
-        logger.info(
-            "No complete gameweeks, skipping player scores update for %s season",
-            season,
-        )
-        return
-    if (
-        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == last_finished
-    ):
-        logger.info("Player scores up-to-date, skipping update for %s season", season)
-        return
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key

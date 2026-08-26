@@ -8,7 +8,6 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Result
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.queries.gameweeks import (
-    get_last_complete_gameweek_in_db,
     next_gameweek,
 )
 from airsenal.db.session import get_session
@@ -67,19 +66,6 @@ def fill_results_from_api(
 ) -> None:
     fetcher = get_fetcher()
     matches = fetcher.get_fixture_data()
-    last_finished = fetcher.get_last_finished_gameweek()
-    if last_finished == 0:
-        logger.info(
-            "No complete gameweeks, skipping match result update for %s season",
-            season,
-        )
-        return
-    if (
-        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == last_finished
-    ):
-        logger.info("Match results up-to-date, skipping update for %s season", season)
-        return
     for m in track(matches, description=f"RESULTS {season}"):
         if not m["finished"]:
             continue

@@ -63,32 +63,34 @@ def update_results(season: str, dbsession: Session) -> bool:
     Updates the results, playerscore and, optionally, attributes tables. A no-op
     when the database is already level with the last finished gameweek.
     """
-    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
-    if not last_in_db:
-        # no results in database for this season yet
-        last_in_db = 0
-    last_finished = get_fetcher().get_last_finished_gameweek()
+    fetcher = get_fetcher()
+    next_gw = next_gameweek(fetcher=fetcher)
+    if next_gw == 1:
+        logger.info("Season hasn't starting - skipping result updates")
+        return False
 
-    if next_gameweek(fetcher=get_fetcher()) == 1:
-        logger.info("Skipping team and result updates - season hasn't started.")
-    elif last_finished > last_in_db:
-        # need to update
-        logger.info("Updating results table ...")
-        fill_results_from_api(
-            gw_start=last_in_db + 1,
-            gw_end=next_gameweek(fetcher=get_fetcher()),
-            season=season,
-            dbsession=dbsession,
-        )
-        logger.info("Updating playerscores table ...")
-        fill_playerscores_from_api(
-            season=season,
-            gw_start=last_in_db + 1,
-            gw_end=next_gameweek(fetcher=get_fetcher()),
-            dbsession=dbsession,
-        )
-    else:
-        logger.info("Matches and player-scores already up-to-date")
+    last_finished = fetcher.get_last_finished_gameweek()
+    if last_finished == 0:
+        logger.info("No complete gameweeks - skipping result updates")
+        return False
+
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
+    if last_in_db == last_finished:
+        logger.info("Match results up-to-date, skipping result updates")
+        return False
+    if last_in_db > last_finished:
+        msg = "Something strange has happened - DB has more recent results than API"
+        raise RuntimeError(msg)
+
+    logger.info("Updating results table ...")
+    fill_results_from_api(
+        gw_start=last_in_db + 1, gw_end=next_gw, season=season, dbsession=dbsession
+    )
+    logger.info("Updating playerscores table ...")
+    fill_playerscores_from_api(
+        season=season, gw_start=last_in_db + 1, gw_end=next_gw, dbsession=dbsession
+    )
+
     return True
 
 
