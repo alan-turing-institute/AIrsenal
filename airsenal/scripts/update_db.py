@@ -56,32 +56,38 @@ def update_results(season: str, dbsession: Session) -> bool:
     If the last gameweek in the db is earlier than the last finished gameweek,
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
     """
-    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
-    if not last_in_db:
-        # no results in database for this season yet
-        last_in_db = 0
-    last_finished = get_last_finished_gameweek()
-
     if NEXT_GAMEWEEK == 1:
-        print("Skipping team and result updates - season hasn't started.")
-    elif last_finished > last_in_db:
-        # need to update
-        print("Updating results table ...")
-        fill_results_from_api(
-            gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
-            season=season,
-            dbsession=dbsession,
-        )
-        print("Updating playerscores table ...")
-        fill_playerscores_from_api(
-            season=season,
-            gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
-            dbsession=dbsession,
-        )
-    else:
-        print("Matches and player-scores already up-to-date")
+        print("Season hasn't started - skipping result updates")
+        return False
+
+    last_finished = get_last_finished_gameweek()
+    if last_finished == 0:
+        print("No complete gameweeks - skipping result updates")
+        return False
+
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
+    if last_in_db == last_finished:
+        print("Match results up-to-date, skipping result updates")
+        return False
+    if last_in_db > last_finished:
+        msg = "Something strange has happened - DB has more recent results than API"
+        raise RuntimeError(msg)
+
+    print("Updating results table ...")
+    fill_results_from_api(
+        gw_start=last_in_db + 1,
+        gw_end=NEXT_GAMEWEEK,
+        season=season,
+        dbsession=dbsession,
+    )
+    print("Updating playerscores table ...")
+    fill_playerscores_from_api(
+        season=season,
+        gw_start=last_in_db + 1,
+        gw_end=NEXT_GAMEWEEK,
+        dbsession=dbsession,
+    )
+
     return True
 
 
