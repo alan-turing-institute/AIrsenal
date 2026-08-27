@@ -9,6 +9,7 @@ Thanks to:
   lineups.
 """
 
+from functools import cache
 from typing import Any, overload
 
 from airsenal.core.env import (
@@ -377,14 +378,15 @@ class FPLDataFetcher:
         logger.info("Transfers made!")
 
 
+@cache
 def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     """
     The shared FPL API client, created on first use.
 
     Cached so that callers keep hitting the same instance and therefore the same
-    response cache; a fresh FPLDataFetcher would re-request everything. It lives
-    beside the client rather than a layer up, so that anything above `fetch` can
-    reach it without importing something that imports everything.
+    response cache; a fresh FPLDataFetcher would re-request everything. Cached per
+    `fpl_team_id`, so callers acting for a non-default team still get one shared
+    instance per team rather than colliding with the default team's.
     """
     return FPLDataFetcher(fpl_team_id)
 

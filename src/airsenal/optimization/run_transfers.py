@@ -36,7 +36,7 @@ from airsenal.optimization.transfer_optimizers import (
     TreeSearchOptimizer,
 )
 from airsenal.remote.discord import post_webhook
-from airsenal.remote.fpl_api import get_fetcher, require_fpl_team_id
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher, require_fpl_team_id
 from airsenal.reporting.optimization import (
     GameweekRow,
     TransferRow,
@@ -74,6 +74,7 @@ def transfer_rows(
     starting_squad: Squad,
     season: str,
     use_api: bool,
+    fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ) -> list[TransferRow]:
     """
@@ -93,7 +94,11 @@ def transfer_rows(
         ):
             out_player = squad.get_player_from_id(pid_out)
             sale_price = squad.get_sell_price_for_player(
-                pid_out, use_api=use_api, gameweek=gw, dbsession=dbsession
+                pid_out,
+                use_api=use_api,
+                gameweek=gw,
+                dbsession=dbsession,
+                fetcher=fetcher,
             )
             squad.remove_player(pid_out, price=sale_price, gameweek=gw)
 
@@ -223,6 +228,7 @@ def run_optimization(
     if scoring is None:
         scoring = SquadScoringConfig()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
+    fetcher = get_fetcher(fpl_team_id)
 
     with console.status("Optimising transfers..."):
         logger.info("Running optimization with fpl_team_id %s", fpl_team_id)
@@ -233,7 +239,7 @@ def run_optimization(
                 season=season,
                 fpl_team_id=fpl_team_id,
                 use_api=use_api,
-                fetcher=get_fetcher(),
+                fetcher=fetcher,
             )
         except (ValueError, TypeError):
             # first week for this squad?
@@ -259,7 +265,7 @@ def run_optimization(
                 fpl_team_id,
                 gameweeks[0],
                 season=season,
-                fetcher=get_fetcher(),
+                fetcher=fetcher,
                 is_replay=is_replay,
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
@@ -309,7 +315,7 @@ def run_optimization(
     )
     plan = plan_rows(best_plan)
     transfers = transfer_rows(
-        best_plan, fastcopy(starting_squad), season, use_api=use_api
+        best_plan, fastcopy(starting_squad), season, use_api=use_api, fetcher=fetcher
     )
     print_plan_table(plan)
     print_transfer_table(transfers)

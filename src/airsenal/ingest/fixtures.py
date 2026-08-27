@@ -12,7 +12,7 @@ from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session
 from airsenal.game.mappings import alternative_team_names
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 
 def fill_fixtures_from_file(
@@ -43,7 +43,7 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
     """A season's fixtures, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
     tag = str(uuid.uuid4())
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
     fixtures = fetcher.get_fixture_data()
     for fixture in track(fixtures, description=f"FIXTURES {season}"):
         f = find_fixture(

@@ -20,7 +20,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.game.mappings import positions
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
 
@@ -206,7 +206,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
 
 def main() -> None:
     now = datetime.now()
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
 
     if not season_is_active(now, fetcher):
         logger.info("Season is not active - not saving attributes")

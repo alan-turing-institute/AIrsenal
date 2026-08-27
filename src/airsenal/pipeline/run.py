@@ -254,7 +254,10 @@ class AIrsenalPipeline:
             return self.settings.new_squad
         if gameweeks[0] == 1:
             return True
-        return get_entry_start_gameweek(fpl_team_id, get_fetcher()) == gameweeks[0]
+        return (
+            get_entry_start_gameweek(fpl_team_id, get_fetcher(fpl_team_id))
+            == gameweeks[0]
+        )
 
     def _refresh_database(self, fpl_team_id: int, dbsession: Session) -> None:
         if check_clean_db(self.settings.database.clean, dbsession):

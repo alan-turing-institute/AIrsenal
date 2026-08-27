@@ -8,7 +8,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.game.enums import Position
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import get_fetcher
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.player import SquadPlayer, bench_position
 from airsenal.squad.squad import Squad
@@ -100,7 +100,7 @@ def set_lineup(
 
     Note that this assumes that the prediction has been ran recently.
     """
-    fetcher = FPLDataFetcher(fpl_team_id)
+    fetcher = get_fetcher(fpl_team_id)
     logger.info("fpl_team_id is %s", fetcher.FPL_TEAM_ID)
     picks = fetcher.get_lineup()
     logger.debug("Got picks %s", picks)

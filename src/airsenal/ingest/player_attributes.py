@@ -25,7 +25,7 @@ from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
 from airsenal.game.mappings import positions
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 
@@ -124,7 +124,7 @@ def fill_attributes_table_from_api(
 ) -> None:
     """Fill the attributes table for the current season, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
     next_gw = get_next_gameweek(season=season, dbsession=dbsession)
 
     # needed for selected by calculation from percentage below

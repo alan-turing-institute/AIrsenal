@@ -6,7 +6,7 @@ from typing import Any
 from airsenal.core.console import track
 from airsenal.core.data_files import data_file
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 RENAME_KEYS = {
     "round": "gameweek",
@@ -31,7 +31,7 @@ def make_player_details(season: str = CURRENT_SEASON) -> None:
         msg = "This script is only designed to work for the current season"
         raise ValueError(msg)
 
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
     player_summary_data = fetcher.get_player_summary_data()
     gameweeks = fetcher.get_event_data().keys()
     team_id_to_name = get_team_mapping(fetcher)

@@ -16,7 +16,7 @@ from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.predictions import get_transfer_suggestions
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.history import get_starting_squad
 from airsenal.squad.state import get_bank
 
@@ -325,7 +325,7 @@ def make_transfers(
         return None
     transfer_player_ids, team_id, current_gw, chip_played = suggestions
 
-    fetcher = FPLDataFetcher(team_id)
+    fetcher = get_fetcher(team_id)
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
         logger.info("Making transfer list for starting team")

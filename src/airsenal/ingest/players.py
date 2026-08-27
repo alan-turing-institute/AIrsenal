@@ -14,7 +14,7 @@ from airsenal.ingest.player_mappings import (
     add_mappings,
     make_player_mappings_table,
 )
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 
 def find_player_in_table(
@@ -72,8 +72,8 @@ def fill_player_table_from_file(
 
 def fill_player_table_from_api(season: str, dbsession: Session) -> None:
     """Add the current season's players from the FPL API."""
-    df = FPLDataFetcher()
-    pd = df.get_player_summary_data()
+    fetcher = get_fetcher()
+    pd = fetcher.get_player_summary_data()
 
     for k, v in track(pd.items(), description=f"PLAYERS {season}"):
         p = Player()

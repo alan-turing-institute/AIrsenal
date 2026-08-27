@@ -4,7 +4,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 
-from airsenal.remote.fpl_api import FPLDataFetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 
 def get_team_ids(league_data: dict[str, Any]) -> list[int]:
@@ -32,7 +32,7 @@ def get_team_history(team_data: dict[str, Any]) -> dict[str, Any]:
 
 def plot_standings(thing_to_plot: str) -> None:
     """Plot a selected mini-league metric by gameweek."""
-    fetcher = FPLDataFetcher()
+    fetcher = get_fetcher()
     league_data = fetcher.get_fpl_league_data()
     if league_data is None:
         msg = "Could not retrieve league data from the FPL API"

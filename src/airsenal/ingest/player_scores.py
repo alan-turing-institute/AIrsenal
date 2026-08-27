@@ -32,7 +32,7 @@ from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.remote.download import download_with_resume
 from airsenal.remote.errors import RemoteError
-from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
+from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 
@@ -289,7 +289,6 @@ def fill_playerscores_from_api(
         ]
     ]
     df_attributes = load_attributes_history(season)
-    fetcher = FPLDataFetcher()
     input_data = fetcher.get_player_summary_data()
     for player_api_id in track(input_data, description=f"PLAYER SCORES {season}"):
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
