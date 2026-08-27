@@ -91,7 +91,7 @@ class FPLAuth:
 
     def login(self) -> None:
         """
-        Only needed for accessing mini-league data, or team info for current gw.
+        Log in to the FPL API, or raise a RemoteConnectionError if it fails.
 
         The flow itself makes seven requests directly rather than through
         `_get_request`, so the translation to `RemoteError` happens here. Callers
