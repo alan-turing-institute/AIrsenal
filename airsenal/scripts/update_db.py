@@ -56,25 +56,37 @@ def update_results(season: str, dbsession: Session) -> bool:
     update the 'results', 'playerscore', and (optionally) 'attributes' tables.
     """
     if NEXT_GAMEWEEK == 1:
-        logger.info("Skipping team and result updates - season hasn't started.")
-    elif last_finished > last_in_db:
-        # need to update
-        logger.info("Updating results table ...")
-        fill_results_from_api(
-            gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
-            season=season,
-            dbsession=dbsession,
-        )
-        logger.info("Updating playerscores table ...")
-        fill_playerscores_from_api(
-            season=season,
-            gw_start=last_in_db + 1,
-            gw_end=NEXT_GAMEWEEK,
-            dbsession=dbsession,
-        )
-    else:
-        logger.info("Matches and player-scores already up-to-date")
+        logger.info("Season hasn't started - skipping result updates")
+        return False
+
+    last_finished = get_last_finished_gameweek()
+    if last_finished == 0:
+        logger.info("No complete gameweeks - skipping result updates")
+        return False
+
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
+    if last_in_db == last_finished:
+        logger.info("Match results up-to-date, skipping result updates")
+        return False
+    if last_in_db > last_finished:
+        msg = "Something strange has happened - DB has more recent results than API"
+        raise RuntimeError(msg)
+
+    logger.info("Updating results table ...")
+    fill_results_from_api(
+        gw_start=last_in_db + 1,
+        gw_end=NEXT_GAMEWEEK,
+        season=season,
+        dbsession=dbsession,
+    )
+    logger.info("Updating playerscores table ...")
+    fill_playerscores_from_api(
+        season=season,
+        gw_start=last_in_db + 1,
+        gw_end=NEXT_GAMEWEEK,
+        dbsession=dbsession,
+    )
+
     return True
 
 

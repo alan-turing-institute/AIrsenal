@@ -303,18 +303,6 @@ def fill_playerscores_from_api(
     dbsession: Session = session,
 ) -> None:
     # Get column metadata once for efficiency
-    if get_last_finished_gameweek() == 0:
-        logger.info(
-            "No complete gameweeks, skipping player scores update for %s season",
-            season,
-        )
-        return
-    if (
-        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == get_last_finished_gameweek()
-    ):
-        logger.info("Player scores up-to-date, skipping update for %s season", season)
-        return
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
         col.key

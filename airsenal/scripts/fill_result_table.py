@@ -66,18 +66,6 @@ def fill_results_from_api(
 ) -> None:
     fetcher = FPLDataFetcher()
     matches = fetcher.get_fixture_data()
-    if get_last_finished_gameweek() == 0:
-        logger.info(
-            "No complete gameweeks, skipping match result update for %s season",
-            season,
-        )
-        return
-    if (
-        get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
-        == get_last_finished_gameweek()
-    ):
-        logger.info("Match results up-to-date, skipping update for %s season", season)
-        return
     for m in track(matches, description=f"RESULTS {season}"):
         if not m["finished"]:
             continue
