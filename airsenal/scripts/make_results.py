@@ -7,7 +7,10 @@ import os
 
 import pandas as pd
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.season import CURRENT_SEASON
+
+logger = get_logger(__name__)
 
 SCRIPT_DIR = os.path.dirname(__file__)
 FIXTURE_DATA_FILE = os.path.join(SCRIPT_DIR, "../data/fixture_data_{}.json")
@@ -40,7 +43,7 @@ def make_results(season):
     fixtures_df["away_team"].replace(teams, inplace=True)
 
     fixtures_df.to_csv(RESULTS_FILE.format(season), index=False)
-    print(f"Made results file for {season} season!")
+    logger.info("Made results file for %s season!", season)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,12 @@ import os
 
 import pandas as pd
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.utils import CURRENT_SEASON, fetcher
 
 SCRIPT_DIR = os.path.dirname(__file__)
+
+logger = get_logger(__name__)
 
 
 def main():
@@ -21,8 +24,8 @@ def main():
     teams = teams[["name", "full_name", "season", "team_id"]]
     teams.to_csv(f"{SCRIPT_DIR}/../data/teams_{CURRENT_SEASON}.csv", index=False)
 
-    print(teams)
-    print("DONE!")
+    logger.info("%s", teams)
+    logger.info("DONE!")
 
 
 if __name__ == "__main__":

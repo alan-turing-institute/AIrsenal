@@ -2,8 +2,6 @@
 Plot the league
 """
 
-import argparse
-
 import matplotlib.pyplot as plt
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
@@ -30,16 +28,8 @@ def get_team_history(team_data):
     return output_dict
 
 
-def main():
-    parser = argparse.ArgumentParser(description="plot mini-league")
-    parser.add_argument(
-        "--thing_to_plot",
-        help="points,total_points,ranking,overall_ranking",
-        default="total_points",
-    )
-    args = parser.parse_args()
-    thing_to_plot = args.thing_to_plot
-
+def plot_standings(thing_to_plot: str) -> None:
+    """Plot a selected mini-league metric by gameweek."""
     fetcher = FPLDataFetcher()
     league_data = fetcher.get_fpl_league_data()
     team_ids = get_team_ids(league_data)

@@ -6,7 +6,6 @@ Generates a "tag" string which is stored so it can later be used by team-optimiz
 get consistent sets of predictions from the database.
 """
 
-import argparse
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
@@ -17,6 +16,7 @@ from airsenal.framework.bpl_interface import (
     get_fitted_team_model,
     get_goal_probabilities_for_fixtures,
 )
+from airsenal.framework.output import console, get_logger, track
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
     MAX_GOALS,
@@ -37,6 +37,8 @@ from airsenal.framework.utils import (
     get_top_predicted_points,
     list_players,
 )
+
+logger = get_logger(__name__)
 
 
 def calc_all_predicted_points(
@@ -67,7 +69,7 @@ def calc_all_predicted_points(
         model=team_model,
         **team_model_args,
     )
-    print("Calculating fixture score probabilities...")
+    logger.info("Calculating fixture score probabilities...")
     fixtures = get_fixtures_for_gameweek(gw_range, season=season, dbsession=dbsession)
     fixture_goal_probs = get_goal_probabilities_for_fixtures(
         fixtures, model_team, max_goals=MAX_GOALS
@@ -96,7 +98,7 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    for player in players:
+    for player in track(players, description="Predicting player points:"):
         predictions = calc_predicted_points_for_player(
             player,
             fixture_goal_probs,
@@ -113,7 +115,7 @@ def calc_all_predicted_points(
         for pred in predictions:
             dbsession.add(pred)
     dbsession.commit()
-    print("Finished adding predictions to db")
+    logger.info("Finished adding predictions to db")
 
 
 def make_predictedscore_table(
@@ -138,87 +140,54 @@ def make_predictedscore_table(
     tag += str(uuid4())
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, NEXT_GAMEWEEK + 3))
-    calc_all_predicted_points(
-        gw_range=gw_range,
-        season=season,
-        dbsession=dbsession,
-        include_bonus=include_bonus,
-        include_cards=include_cards,
-        include_saves=include_saves,
-        include_def_con=include_def_con,
-        tag=tag,
-        player_model=player_model,
-        team_model=team_model,
-        team_model_args=team_model_args,
-    )
+    with console.status("Predicting points..."):
+        calc_all_predicted_points(
+            gw_range=gw_range,
+            season=season,
+            dbsession=dbsession,
+            include_bonus=include_bonus,
+            include_cards=include_cards,
+            include_saves=include_saves,
+            include_def_con=include_def_con,
+            tag=tag,
+            player_model=player_model,
+            team_model=team_model,
+            team_model_args=team_model_args,
+        )
     return tag
 
 
-def main():
-    """
-    fill the player_prediction db table
-    """
-    parser = argparse.ArgumentParser(description="fill player predictions")
-    parser.add_argument("--weeks_ahead", help="how many weeks ahead to fill", type=int)
-    parser.add_argument("--gameweek_start", help="first gameweek to look at", type=int)
-    parser.add_argument("--gameweek_end", help="last gameweek to look at", type=int)
-    parser.add_argument("--ep_filename", help="csv filename for FPL expected points")
-    parser.add_argument(
-        "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
-    )
-    parser.add_argument(
-        "--no_bonus",
-        help="don't include bonus points",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_cards",
-        help="don't include points lost to yellow and red cards",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--no_saves",
-        help="don't include save points for goalkeepers",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--sampling",
-        help="If set use fit the model using sampling with numpyro",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--team_model",
-        help="which team model to fit",
-        type=str,
-        choices=["extended", "neutral", "random"],
-        default="extended",
-    )
-    parser.add_argument(
-        "--epsilon",
-        help="how much to downweight games by in exponential time weighting",
-        type=float,
-        default=DEFAULT_TEAM_EPSILON,
-    )
-
-    args = parser.parse_args()
+def run_prediction(
+    weeks_ahead: int | None,
+    gameweek_start: int | None,
+    gameweek_end: int | None,
+    season: str,
+    no_bonus: bool,
+    no_cards: bool,
+    no_saves: bool,
+    sampling: bool,
+    team_model_name: str,
+    epsilon: float,
+) -> None:
+    """Fill the player prediction database table."""
     gw_range = get_gameweeks_array(
-        weeks_ahead=args.weeks_ahead,
-        gameweek_start=args.gameweek_start,
-        gameweek_end=args.gameweek_end,
-        season=args.season,
+        weeks_ahead=weeks_ahead,
+        gameweek_start=gameweek_start,
+        gameweek_end=gameweek_end,
+        season=season,
     )
-    include_bonus = not args.no_bonus
-    include_cards = not args.no_cards
-    include_saves = not args.no_saves
-    player_model = NumpyroPlayerModel() if args.sampling else ConjugatePlayerModel()
-    if args.team_model == "extended":
+    include_bonus = not no_bonus
+    include_cards = not no_cards
+    include_saves = not no_saves
+    player_model = NumpyroPlayerModel() if sampling else ConjugatePlayerModel()
+    if team_model_name == "extended":
         team_model = ExtendedDixonColesMatchPredictor()
-    elif args.team_model == "neutral":
+    elif team_model_name == "neutral":
         team_model = NeutralDixonColesMatchPredictor()
-    elif args.team_model == "random":
+    elif team_model_name == "random":
         team_model = RandomMatchPredictor()
     else:
-        msg = f"Unknown team model: {args.team_model}"
+        msg = f"Unknown team model: {team_model_name}"
         raise ValueError(msg)
 
     with session_scope() as session:
@@ -226,13 +195,13 @@ def main():
 
         tag = make_predictedscore_table(
             gw_range=gw_range,
-            season=args.season,
+            season=season,
             include_bonus=include_bonus,
             include_cards=include_cards,
             include_saves=include_saves,
             player_model=player_model,
             team_model=team_model,
-            team_model_args={"epsilon": args.epsilon},
+            team_model_args={"epsilon": epsilon},
             dbsession=session,
         )
 
@@ -240,12 +209,8 @@ def main():
         get_top_predicted_points(
             gameweek=gw_range,
             tag=tag,
-            season=args.season,
+            season=season,
             per_position=True,
             n_players=5,
             dbsession=session,
         )
-
-
-if __name__ == "__main__":
-    main()
