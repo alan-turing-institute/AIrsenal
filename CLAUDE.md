@@ -230,6 +230,23 @@ every test that runs after it — with failures appearing in an unrelated file
 (`test_api_utils.py`) that passes when run alone. Use the `isolated_session`
 fixture for anything that writes rows.
 
+**FPL team IDs get reshuffled between seasons too, and `alternative_team_names` is
+a museum of dead ones.** `id 3` was Burnley several seasons ago and is now
+Bournemouth, `id 20` was Wolves and is now Sunderland. Anywhere the code walks
+`alternative_team_names` looking for the current team_id — as
+`fill_fixtures_from_api` used to — the first old entry that lists the number
+wins, and every current-season fixture comes out labelled with a team that isn't
+in the league. Nothing downstream matches after that, and the visible failure is
+half the squad predicting 0 points. Use the `Team` table (populated live from
+the same bootstrap-static call) for id → short-name lookups.
+
+**A season's `player_details_<season>.json` may ship without a `was_home` field.**
+2025-26's does. `fill_playerscore_table` used to bomb out with `KeyError` mid-run
+of `airsenal_setup_initial_db --clean`; it now falls back to `None`, and
+`find_fixture` disambiguates by kickoff_time and opponent instead. Worth
+remembering if a new season's data appears in a shape nobody has seen before —
+the fix is a `.get`, not a data patch.
+
 ## Scheduled cloud run
 
 A claude.ai routine runs this daily at 17:00 UTC against the `barrytho` fork:
