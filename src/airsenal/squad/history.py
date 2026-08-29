@@ -15,7 +15,6 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.queries.transactions import (
     add_transaction,
-    free_hit_used_in_gameweek,
     transaction_exists,
 )
 from airsenal.db.session import get_session
@@ -27,7 +26,11 @@ from airsenal.remote.fpl_api import (
     require_fpl_team_id,
 )
 from airsenal.squad.squad import Squad, get_current_squad_from_api
-from airsenal.squad.state import get_entry_start_gameweek, get_players_for_gameweek
+from airsenal.squad.state import (
+    free_hit_used_in_gameweek,
+    get_entry_start_gameweek,
+    get_players_for_gameweek,
+)
 
 logger = get_logger(__name__)
 

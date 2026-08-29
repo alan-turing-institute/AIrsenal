@@ -6,33 +6,15 @@ from sqlalchemy.orm import Session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
 from airsenal.db.session import get_session
-from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
 
 
-def free_hit_used_in_gameweek(gameweek: int, fpl_team_id: int | None = None) -> int:
-    """Which chip, if any, the FPL API says was played in a gameweek."""
-    if not fpl_team_id:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
-    fpl_team_data = get_fetcher().get_fpl_team_data(gameweek, fpl_team_id)
-    if (
-        fpl_team_data
-        and "active_chip" in fpl_team_data
-        and fpl_team_data["active_chip"] == "freehit"
-    ):
-        return 1
-    return 0
-
-
 def count_transactions(
-    season: str, fpl_team_id: int | None, dbsession: Session | None = None
+    season: str, fpl_team_id: int, dbsession: Session | None = None
 ) -> int:
     """How many transactions the database holds for a team in a season."""
     dbsession = dbsession if dbsession is not None else get_session()
-    if fpl_team_id is None:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
-
     return (
         dbsession.scalar(
             select(func.count(Transaction.id)).where(
