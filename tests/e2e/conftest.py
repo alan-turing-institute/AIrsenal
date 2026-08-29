@@ -29,6 +29,12 @@ from airsenal.db.models import (
 )
 from airsenal.db.session import configure_database
 from airsenal.game.enums import Position
+from airsenal.prediction.player_models import (
+    PLAYER_MODELS,
+    NumpyroPlayerConfig,
+    NumpyroPlayerModel,
+)
+from airsenal.prediction.protocols import PlayerModel
 
 SEASON = "2526"
 PAST_SEASONS = ["2324", "2425"]
@@ -179,9 +185,20 @@ def _add_player_scores(
         opponent = away if team == home else home
         scored = home_score if team == home else away_score
         conceded = away_score if team == home else home_score
-        # a fixed share of the team's goals, so the player model has signal
-        goals = scored if position is Position.FWD and player_id % 3 == 0 else 0
-        assists = scored if position is Position.MID and player_id % 4 == 0 else 0
+        # A fixed share of the team's goals, so the player model has signal.
+        # Every position has to both score and assist somewhere in the data:
+        # a position that does neither gets a Dirichlet prior with a zero
+        # concentration, which is not a valid prior, and NumpyroPlayerModel
+        # refuses to build one. The moduli are chosen so that each of the four
+        # positions contains at least one scorer and at least one assister.
+        scorer = player_id % 3 == 0 if position is Position.FWD else player_id % 7 == 1
+        assister = (
+            player_id % 4 == 0 if position is Position.MID else player_id % 11 == 0
+        )
+        goals = scored if scorer else 0
+        # never both in the same match: goals + assists must not exceed the team's
+        # goals, or `neither` goes negative and process_player_data zeroes the row
+        assists = scored if assister and not scorer else 0
         session.add(
             PlayerScore(
                 player_id=player_id,
@@ -230,3 +247,21 @@ def pipeline_db(tmp_path_factory):
             yield session
     finally:
         configure_database(None)
+
+
+# MCMC at its shipped sample count is minutes, not seconds, and these suites run
+# on every commit. The point is that a model fits and answers, which a short
+# chain establishes as well as a long one. This is the only place a player model
+# is named: everything else parametrizes over PLAYER_MODELS.
+SLOW_PLAYER_MODELS = {
+    "numpyro": lambda: NumpyroPlayerModel(
+        NumpyroPlayerConfig(num_warmup=20, num_samples=40)
+    )
+}
+
+
+def build_player_model_for_test(name: str) -> PlayerModel:
+    """The named player model, sized so the whole table can be fitted per commit."""
+    if name in SLOW_PLAYER_MODELS:
+        return SLOW_PLAYER_MODELS[name]()
+    return PLAYER_MODELS[name]()
