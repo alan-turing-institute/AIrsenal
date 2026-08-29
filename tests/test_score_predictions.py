@@ -261,12 +261,6 @@ def test_fit_conjugate_player_model():
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
-@pytest.mark.xfail(
-    reason=(
-        "NumpyroPlayerModel is broken after numpyro updates. "
-        "See https://github.com/alan-turing-institute/AIrsenal/issues/611"
-    )
-)
 def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)
@@ -274,6 +268,12 @@ def test_get_fitted_player_model_numpyro():
         fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
+        # The three outcomes partition a goal, so they must sum to one per player.
+        # Fitting at all is not enough: the model spent a release returning
+        # nothing because it could not initialise.
+        totals = fpm[["prob_score", "prob_assist", "prob_neither"]].sum(axis=1)
+        assert np.allclose(totals, 1.0, atol=1e-5)
+        assert (fpm[["prob_score", "prob_assist", "prob_neither"]] >= 0).all().all()
 
 
 def test_get_fitted_player_model_conjugate():
