@@ -156,6 +156,15 @@ def fill_transaction_table(
     than followed to the end.
     """
     dbsession = dbsession if dbsession is not None else get_session()
+    if not best_plan.outcomes:
+        # A plan with no gameweeks in it is a bug in whatever produced it, and
+        # indexing straight into an empty tuple names neither the plan nor the
+        # optimizer that returned it.
+        msg = (
+            "Cannot record transfers for an empty plan: a transfer optimizer must "
+            "return one outcome per gameweek it was asked about."
+        )
+        raise ValueError(msg)
     outcome = best_plan.outcomes[0]
     fill_gw = outcome.gameweek
     if tag is None:

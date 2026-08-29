@@ -44,6 +44,10 @@ def replay(
         int, typer.Option(help="Replay count; -1 repeats indefinitely.")
     ] = 1,
     num_thread: options.NumThread = None,
+    num_iterations: options.NumIterations = options.DEFAULT_NUM_ITERATIONS,
+    num_generations: options.NumGenerations = None,
+    population_size: options.PopulationSize = None,
+    num_free_transfers: options.NumFreeTransfers = None,
     player_model: options.PlayerModel = options.DEFAULT_PLAYER_MODEL,
     team_model: options.TeamModel = options.DEFAULT_TEAM_MODEL,
     epsilon: options.Epsilon = None,
@@ -57,6 +61,8 @@ def replay(
     triple_captain_week: options.TripleCaptainWeek = -1,
     bench_boost_week: options.BenchBoostWeek = -1,
     subs: options.Subs = True,
+    output_dir: options.OutputDir = None,
+    tag_prefix: options.TagPrefix = "",
 ) -> None:
     """Replay a historical FPL season."""
     run_replays(
@@ -64,9 +70,15 @@ def replay(
             team_model=build_team_model(team_model, epsilon),
             player_model=build_player_model(player_model),
             transfer_optimizer=build_transfer_optimizer(
-                transfer_optimizer, num_thread=num_thread
+                transfer_optimizer,
+                num_thread=num_thread,
+                num_iterations=num_iterations,
             ),
-            squad_optimizer=build_squad_optimizer(squad_optimizer),
+            squad_optimizer=build_squad_optimizer(
+                squad_optimizer,
+                num_generations=num_generations,
+                population_size=population_size,
+            ),
             constraints=TransferConstraints(
                 max_total_hit=max_hit,
                 allow_unused_transfers=allow_unused,
@@ -78,9 +90,8 @@ def replay(
             settings=PipelineSettings(
                 fpl_team_id=fpl_team_id,
                 n_gameweeks=n_gameweeks,
+                num_free_transfers=num_free_transfers,
                 season=season,
-                # the chip-week block was missing here entirely, so a replay could
-                # never be told to try one
                 chips=ChipWeeks(
                     wildcard=wildcard_week,
                     free_hit=free_hit_week,
@@ -95,7 +106,9 @@ def replay(
         ReplaySettings(
             gameweek_start=gameweek_start,
             gameweek_end=gameweek_end,
+            tag_prefix=tag_prefix,
             loop=loop,
             resume=resume,
+            output_dir=output_dir,
         ),
     )

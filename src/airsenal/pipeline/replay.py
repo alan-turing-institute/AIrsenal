@@ -6,12 +6,15 @@ replay needs is the predict and optimise stages, once per gameweek, and none of
 the database setup, transfer applying or absence exporting that `run()` does.
 
 It takes the pipeline object itself, though, so that what it measures is the
-same components `airsenal run` would use.
+same components `airsenal run` would use - and it records which ones they were,
+because a score is only comparable against another score if you know what each
+was produced with.
 """
 
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select
@@ -41,6 +44,148 @@ class ReplaySettings:
     # Carry on from the squad already in the database rather than building a new
     # one for the first gameweek.
     resume: bool = False
+    # Where the result JSON is written. The process's working directory, as
+    # before, when this is None.
+    output_dir: Path | None = None
+
+
+@dataclass(frozen=True)
+class ReplayGameweek:
+    """
+    What one replayed gameweek picked, and what it scored.
+
+    Named for the replay rather than the gameweek: `optimization.plan` already
+    has a `GameweekOutcome`, which is what a *plan* expects a gameweek to do.
+    This is what actually happened.
+    """
+
+    gameweek: int
+    predictions_tag: str
+    starting_11: list[str]
+    subs: list[str]
+    captain: str | None
+    vice_captain: str | None
+    free_transfers: int
+    num_transfers: str
+    points_hit: int
+    players_in: list[str]
+    players_out: list[str]
+    expected_points: float
+    # Already net of the points hit, so it is what the entry actually scored.
+    actual_points: float
+
+    @property
+    def prediction_error(self) -> float:
+        """Signed points the prediction was out by, expected minus actual."""
+        return self.expected_points - self.actual_points
+
+
+@dataclass(frozen=True)
+class ReplayResult:
+    """
+    What one replay of a season scored, and what produced it.
+
+    The comparable summary of a run: `total_points` is the number two replays are
+    judged on, and `config` says what each was run with, so a pair of results is
+    self-describing without anyone having to remember which flags they used.
+    """
+
+    tag: str
+    season: str
+    n_gameweeks: int | None
+    config: dict[str, str]
+    gameweeks: list[ReplayGameweek] = field(default_factory=list)
+    elapsed: float = 0.0
+
+    @property
+    def total_points(self) -> float:
+        """Points scored across the replay, net of hits. The headline number."""
+        return sum(gw.actual_points for gw in self.gameweeks)
+
+    @property
+    def total_points_hit(self) -> int:
+        return sum(gw.points_hit for gw in self.gameweeks)
+
+    @property
+    def total_expected_points(self) -> float:
+        return sum(gw.expected_points for gw in self.gameweeks)
+
+    @property
+    def mean_absolute_error(self) -> float:
+        """
+        Average size of the gap between a gameweek's prediction and its outcome.
+
+        Zero when the replay covered no gameweeks. Unlike `total_points` this
+        judges the prediction alone, so a model can be compared without the
+        optimizer's choices being part of the answer.
+        """
+        if not self.gameweeks:
+            return 0.0
+        return sum(abs(gw.prediction_error) for gw in self.gameweeks) / len(
+            self.gameweeks
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        """
+        The JSON payload, summary first.
+
+        The per-gameweek keys are unchanged from when this was assembled by hand,
+        so anything already reading a replay file keeps working.
+        """
+        return {
+            "tag": self.tag,
+            "season": self.season,
+            "n_gameweeks": self.n_gameweeks,
+            "config": self.config,
+            "total_points": self.total_points,
+            "total_points_hit": self.total_points_hit,
+            "total_expected_points": self.total_expected_points,
+            "mean_absolute_error": self.mean_absolute_error,
+            "elapsed": self.elapsed,
+            "gameweeks": [asdict(gw) for gw in self.gameweeks],
+        }
+
+    def write(self, directory: Path | None = None) -> Path:
+        """Write the result as JSON named after the tag, and return the path."""
+        directory = Path(directory) if directory is not None else Path.cwd()
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"{self.tag}.json"
+        with path.open("w") as outfile:
+            json.dump(self.as_dict(), outfile, indent=2)
+        return path
+
+
+def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
+    """
+    The components a replay ran with, by class name.
+
+    Class names rather than the table names they were built from: a component
+    constructed in Python never had a table name, and the point is to be able to
+    tell two results apart.
+    """
+    return {
+        "team_model": type(pipeline.team_model).__name__,
+        "player_model": type(pipeline.player_model).__name__,
+        "transfer_optimizer": type(pipeline.transfer_optimizer).__name__,
+        "squad_optimizer": type(pipeline.squad_optimizer).__name__,
+    }
+
+
+def default_tag_prefix(
+    season: str, gameweek_start: int, gameweek_end: int, when: datetime
+) -> str:
+    """
+    The tag a replay is named after when the caller does not supply one.
+
+    Resolved here rather than inside `replay_season` so that `run_replays` can
+    build it once and number the runs off it: the timestamp is only accurate to
+    the minute, and two replays of a short window finish inside the same minute
+    and would otherwise write over each other's results.
+    """
+    return (
+        f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_"
+        f"{when.strftime('%Y%m%d%H%M')}"
+    )
 
 
 def get_dummy_id(season: str, dbsession: Session) -> int:
@@ -68,8 +213,50 @@ def print_replay_params(
     logger.info("=" * 30)
 
 
-def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
-    """Replay one season once, writing the results to a JSON file."""
+def _names(player_ids: list[int]) -> list[str]:
+    """
+    Player names for a transfer list, falling back to the id.
+
+    `get_player_name` returns None for an id the database does not know, and a
+    replay record that silently dropped a transfer would be worse than one
+    naming a number.
+    """
+    return [get_player_name(pid) or f"player_{pid}" for pid in player_ids]
+
+
+def _gameweek_outcome(
+    gameweek: int, tag: str, squad: Any, plan: Any, season: str
+) -> ReplayGameweek:
+    """One gameweek's row, from the squad and plan the pipeline produced."""
+    # A squad built from scratch has no plan: there was nothing to transfer from,
+    # and unlimited transfers means no points hit.
+    outcome = plan.outcome(gameweek) if plan is not None else None
+    points_hit = outcome.points_hit if outcome else 0
+    return ReplayGameweek(
+        gameweek=gameweek,
+        predictions_tag=tag,
+        starting_11=[p.name for p in squad.players if p.is_starting],
+        subs=[p.name for p in squad.players if not p.is_starting],
+        captain=next((p.name for p in squad.players if p.is_captain), None),
+        vice_captain=next((p.name for p in squad.players if p.is_vice_captain), None),
+        free_transfers=outcome.free_transfers if outcome else 0,
+        num_transfers=outcome.move.label() if outcome else "0",
+        points_hit=points_hit,
+        players_in=_names(outcome.players_in) if outcome else [],
+        players_out=_names(outcome.players_out) if outcome else [],
+        expected_points=squad.get_expected_points(gameweek, tag),
+        actual_points=squad.get_actual_points(gameweek, season) - points_hit,
+    )
+
+
+def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayResult:
+    """
+    Replay one season once, and return what it scored.
+
+    Also writes the result as JSON, to `replay.output_dir` or the working
+    directory. The object is returned as well as written so that a caller
+    comparing two configurations does not have to read its own output back.
+    """
     start = datetime.now()
     season = pipeline.settings.season
     gameweek_end = replay.gameweek_end or get_max_gameweek(season)
@@ -84,22 +271,14 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
         msg = "Could not determine an fpl_team_id to replay under"
         raise RuntimeError(msg)
 
-    tag_prefix = replay.tag_prefix or (
-        f"Replay_{season}_GW{replay.gameweek_start}_GW{gameweek_end}_"
-        f"{start.strftime('%Y%m%d%H%M')}"
+    tag_prefix = replay.tag_prefix or default_tag_prefix(
+        season, replay.gameweek_start, gameweek_end, start
     )
     print_replay_params(
         season, replay.gameweek_start, gameweek_end, tag_prefix, fpl_team_id
     )
 
-    replay_results: dict[str, str | int | float | list[Any]] = {
-        "tag": tag_prefix,
-        "season": season,
-        "n_gameweeks": pipeline.settings.n_gameweeks,
-        "gameweeks": [],
-    }
-    gameweeks_log: list[Any] = replay_results["gameweeks"]  # type: ignore[assignment]
-
+    outcomes: list[ReplayGameweek] = []
     replay_range = range(replay.gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
@@ -118,57 +297,50 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
         squad, plan = pipeline.with_settings(new_squad=new_squad).optimize(
             gameweeks, tag, fpl_team_id, is_replay=True
         )
-
-        gw_result: dict[str, Any] = {"gameweek": gw, "predictions_tag": tag}
-        gw_result["starting_11"] = [p.name for p in squad.players if p.is_starting]
-        gw_result["subs"] = [p.name for p in squad.players if not p.is_starting]
-        for p in squad.players:
-            if p.is_captain:
-                gw_result["captain"] = p.name
-            elif p.is_vice_captain:
-                gw_result["vice_captain"] = p.name
-
-        # A squad built from scratch has no plan: there was nothing to
-        # transfer from, and unlimited transfers means no points hit.
-        outcome = plan.outcome(gw) if plan is not None else None
-        gw_result["free_transfers"] = outcome.free_transfers if outcome else 0
-        gw_result["num_transfers"] = outcome.move.label() if outcome else "0"
-        gw_result["points_hit"] = outcome.points_hit if outcome else 0
-        gw_result["players_in"] = (
-            [get_player_name(p) for p in outcome.players_in] if outcome else []
-        )
-        gw_result["players_out"] = (
-            [get_player_name(p) for p in outcome.players_out] if outcome else []
-        )
-
-        gw_result["expected_points"] = squad.get_expected_points(gw, tag)
-        gw_result["actual_points"] = (
-            squad.get_actual_points(gw, season) - gw_result["points_hit"]
-        )
-        gameweeks_log.append(gw_result)
+        outcomes.append(_gameweek_outcome(gw, tag, squad, plan, season))
         logger.info("-" * 30)
 
-    replay_results["elapsed"] = (datetime.now() - start).total_seconds()
-    with open(f"{tag_prefix}.json", "w") as outfile:
-        json.dump(replay_results, outfile)
+    result = ReplayResult(
+        tag=tag_prefix,
+        season=season,
+        n_gameweeks=pipeline.settings.n_gameweeks,
+        config=describe_pipeline(pipeline),
+        gameweeks=outcomes,
+        elapsed=(datetime.now() - start).total_seconds(),
+    )
+    path = result.write(replay.output_dir)
     print_replay_params(
         season, replay.gameweek_start, gameweek_end, tag_prefix, fpl_team_id
     )
-    logger.info("DONE!")
+    logger.info("Scored %s points. Written to %s", result.total_points, path)
+    return result
 
 
-def run_replays(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> None:
-    """Replay a season one or more times."""
+def run_replays(
+    pipeline: AIrsenalPipeline, replay: ReplaySettings
+) -> list[ReplayResult]:
+    """Replay a season one or more times, and return what each one scored."""
     if replay.resume and not pipeline.settings.fpl_team_id:
         msg = "fpl_team_id must be set to use the resume argument"
         raise RuntimeError(msg)
 
     set_multiprocessing_start_method()
 
-    n_completed = 0
-    while (replay.loop == -1) or (n_completed < replay.loop):
+    base = replay.tag_prefix or default_tag_prefix(
+        pipeline.settings.season,
+        replay.gameweek_start,
+        replay.gameweek_end or get_max_gameweek(pipeline.settings.season),
+        datetime.now(),
+    )
+
+    results: list[ReplayResult] = []
+    while (replay.loop == -1) or (len(results) < replay.loop):
+        run = len(results) + 1
         logger.info("*" * 15)
-        logger.info("RUNNING REPLAY %s", n_completed + 1)
+        logger.info("RUNNING REPLAY %s", run)
         logger.info("*" * 15)
-        replay_season(pipeline, replay)
-        n_completed += 1
+        # numbered only when there is more than one, so a single replay keeps the
+        # name the caller asked for
+        tag_prefix = base if replay.loop == 1 else f"{base}_run{run}"
+        results.append(replay_season(pipeline, replace(replay, tag_prefix=tag_prefix)))
+    return results
