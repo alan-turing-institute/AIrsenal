@@ -13,6 +13,7 @@ import numpy as np
 
 from airsenal.core.lookup import ConfigError
 from airsenal.game.scoring import MAX_GOALS
+from airsenal.prediction.protocols import TeamFitData
 from airsenal.prediction.team_models.scorelines import (
     outcome_proba_from_scores,
 )
@@ -42,7 +43,7 @@ class RandomTeamModel:
         weights = self.rng.random(self.max_goals + 1)
         return weights / weights.sum()
 
-    def fit(self, training_data: dict[str, Iterable[Any]]) -> "RandomTeamModel":
+    def fit(self, training_data: TeamFitData) -> "RandomTeamModel":
         home = training_data.get("home_team", [])
         away = training_data.get("away_team", [])
         self.teams = sorted({str(t) for t in [*home, *away]})

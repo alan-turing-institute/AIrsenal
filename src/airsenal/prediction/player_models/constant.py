@@ -1,9 +1,10 @@
 """A null player model: every player equally likely to score, assist, or neither."""
 
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
+
+from airsenal.prediction.protocols import PlayerFitData
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class ConstantPlayerModel:
         self.config = config or ConstantPlayerConfig()
         self.player_ids: np.ndarray | None = None
 
-    def fit(self, data: dict[str, Any]) -> "ConstantPlayerModel":
+    def fit(self, data: PlayerFitData) -> "ConstantPlayerModel":
         self.player_ids = data["player_ids"]
         return self
 

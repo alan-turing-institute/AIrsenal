@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from airsenal.prediction.protocols import PlayerFitData
+
 if TYPE_CHECKING:
     import jax.numpy as jnp
 
@@ -69,7 +71,7 @@ class NumpyroPlayerModel:
         )
         return numpyro.sample("obs", theta_mins, obs=y)
 
-    def fit(self, data: dict[str, Any]) -> "NumpyroPlayerModel":
+    def fit(self, data: PlayerFitData) -> "NumpyroPlayerModel":
         import jax.random as random  # noqa: PLC0415
         from numpyro.infer import MCMC, NUTS  # noqa: PLC0415
 

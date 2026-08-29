@@ -5,8 +5,6 @@ Model-agnostic: everything here is typed against `TeamModel`, so the constant,
 neutral and random models go through it too.
 """
 
-from typing import Any
-
 import numpy as np
 import pandas as pd
 from sqlalchemy import select
@@ -24,15 +22,13 @@ from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.prediction.protocols import TeamModel
+from airsenal.prediction.protocols import TeamFitData, TeamModel
 from airsenal.prediction.team_models import build_team_model
 
 logger = get_logger(__name__)
 
 
-def get_result_dict(
-    season: str, gameweek: int, dbsession: Session
-) -> dict[str, np.ndarray | dict[str, np.ndarray]]:
+def get_result_dict(season: str, gameweek: int, dbsession: Session) -> TeamFitData:
     """Past results as a data frame, in the shape the team model is fitted to."""
     results = [
         s
@@ -107,7 +103,7 @@ def get_training_data(
     gameweek: int,
     dbsession: Session,
     ratings: bool = True,
-) -> dict[str, Any]:
+) -> TeamFitData:
     """
     Training data for the team model: every match up to a gameweek and season.
 

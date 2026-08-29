@@ -1,7 +1,6 @@
 """Assembling the historical data the models are fitted to."""
 
 from collections import defaultdict
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -29,6 +28,7 @@ from airsenal.game.scoring import (
 )
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.player_models.scaling import get_empirical_bayes_estimates
+from airsenal.prediction.protocols import PlayerFitData
 
 logger = get_logger(__name__)
 
@@ -222,7 +222,7 @@ def process_player_data(
     season: str = CURRENT_SEASON,
     gameweek: int | None = None,
     dbsession: Session | None = None,
-) -> dict[str, Any]:
+) -> PlayerFitData:
     """Process and structure historical player data for model fitting."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()

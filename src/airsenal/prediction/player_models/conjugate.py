@@ -1,7 +1,6 @@
 """The conjugate Bayesian player model: a Dirichlet prior updated in closed form."""
 
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
@@ -10,6 +9,7 @@ from airsenal.prediction.player_models.scaling import (
     FloatArray,
     scale_goals_by_minutes,
 )
+from airsenal.prediction.protocols import PlayerFitData
 
 logger = get_logger(__name__)
 
@@ -55,7 +55,7 @@ class ConjugatePlayerModel:
     def rescale_weights(self) -> bool:
         return self.config.rescale_weights
 
-    def fit(self, data: dict[str, Any]) -> "ConjugatePlayerModel":
+    def fit(self, data: PlayerFitData) -> "ConjugatePlayerModel":
         logger.info(
             "Fitting ConjugatePlayerModel with epsilon=%s, rescale_weights=%s, "
             "n_goals_prior=%s",

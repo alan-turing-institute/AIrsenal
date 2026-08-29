@@ -5,29 +5,75 @@ Naming the shape means a signature does not change when the set of models does.
 
 These are deliberately not `runtime_checkable`, so nothing dispatches on
 `isinstance` against them.
+
+The two `TypedDict`s are here beside the protocols that consume them. What a
+model is fitted to used to be a `dict[str, Any]` whose keys were described in
+prose, so writing a new model meant reading the function that assembles the
+data to find out what was in it. Declared, mypy checks both ends.
 """
 
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import Any, NotRequired, Protocol, TypedDict
 
 import numpy as np
+
+
+class PlayerFitData(TypedDict):
+    """
+    Everything a player model is fitted to, from `features.process_player_data`.
+
+    One position's players, over the matches in the fitting window. Every player
+    has a row for every match, zero-padded where they did not appear, so `y` and
+    `minutes` are rectangular and `nplayer`/`nmatch` are their dimensions.
+    """
+
+    # (n_players,) the players these rows are about, sorted
+    player_ids: np.ndarray
+    nplayer: int
+    nmatch: int
+    # (n_players, n_matches) minutes played
+    minutes: np.ndarray
+    # (n_players, n_matches, 3) goal involvements, the last axis being
+    # (goals, assists, neither). The three sum to the goals the player's team
+    # scored in that match.
+    y: np.ndarray
+    # (3,) Dirichlet prior concentrations over that same last axis. Strictly
+    # positive, or a model that builds a real Dirichlet from it cannot be fitted.
+    alpha: np.ndarray
+    # (n_players, n_matches) years between the match and the gameweek being
+    # predicted, for a model that weights recent matches more heavily
+    time_diff: np.ndarray
+
+
+class TeamFitData(TypedDict):
+    """
+    Everything a team model is fitted to, from `team_models.get_training_data`.
+
+    One entry per past match, so every array here has the same length.
+    """
+
+    home_team: np.ndarray
+    away_team: np.ndarray
+    home_goals: np.ndarray
+    away_goals: np.ndarray
+    # years between the match and the gameweek being predicted
+    time_diff: np.ndarray
+    neutral_venue: np.ndarray
+    game_weights: np.ndarray
+    # FIFA ratings per team name, absent when fitting without them. A promoted
+    # team has no results, so its ratings are what `add_new_team` stands in with.
+    team_covariates: NotRequired[dict[str, np.ndarray]]
 
 
 class PlayerModel(Protocol):
     """Predicts how a team's goals are shared out between its players."""
 
-    def fit(self, data: dict[str, Any]) -> "PlayerModel":
+    def fit(self, data: PlayerFitData) -> "PlayerModel":
         """
         Fit to the data, using the hyperparameters given at construction.
 
         Deliberately takes no `**kwargs`, so a hyperparameter a model does not
         implement is an error rather than something it silently swallows.
-
-        `data` must have at least these keys:
-        - "y": (n_players, n_matches, 3) goal involvements per match, the last
-          axis being (goals, assists, neither)
-        - "player_ids": (n_players,)
-        - "minutes": (n_players, n_matches) minutes played
         """
         ...
 
@@ -36,7 +82,7 @@ class PlayerModel(Protocol):
         Per-player probabilities of scoring, assisting, or neither, for a goal.
 
         Keys: "player_id", "prob_score", "prob_assist", "prob_neither", each an
-        array of shape (n_players,).
+        array of shape (n_players,). The last three sum to one per player.
         """
         ...
 
@@ -49,7 +95,7 @@ class TeamModel(Protocol):
         """The teams this model knows about, or None before it is fitted."""
         ...
 
-    def fit(self, training_data: dict[str, Any]) -> "TeamModel":
+    def fit(self, training_data: TeamFitData) -> "TeamModel":
         """
         Fit to the data, using the settings given at construction.
 
@@ -59,11 +105,26 @@ class TeamModel(Protocol):
         """
         ...
 
-    def add_new_team(self, team_name: str, **kwargs: Any) -> None: ...
+    def add_new_team(self, team_name: str, **kwargs: Any) -> None:
+        """
+        Teach the model a team that has no results to fit to, such as a promoted one.
+
+        Called after `fit`, once per unknown team. `team_covariates` is passed as
+        a keyword when the model is being fitted with FIFA ratings; a model that
+        does not use covariates ignores it.
+        """
+        ...
 
     def predict_score_n_proba(
         self, n: np.ndarray, team: str, opponent: str, home: bool = True, **kwargs: Any
-    ) -> np.ndarray: ...
+    ) -> np.ndarray:
+        """
+        The probability of `team` scoring each goal count in `n` against `opponent`.
+
+        Returns an array the same length as `n`. `home` says which side of the
+        fixture `team` is on.
+        """
+        ...
 
     def predict_outcome_proba(
         self, home_team: Sequence[str], away_team: Sequence[str]

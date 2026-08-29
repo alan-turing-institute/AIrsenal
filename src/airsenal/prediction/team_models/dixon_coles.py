@@ -7,8 +7,10 @@ https://github.com/anguswilliams91/bpl-next
 from typing import Any
 
 import numpy as np
+from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 
 from airsenal.core.logging import get_logger
+from airsenal.prediction.protocols import TeamFitData
 
 logger = get_logger(__name__)
 
@@ -37,13 +39,6 @@ class DixonColesTeamModel:
         epsilon: float | None = None,
         rescale_weights: bool = DEFAULT_RESCALE_WEIGHTS,
     ) -> None:
-        # bpl is imported here rather than at module scope: it pulls in jax,
-        # which is slow to import and not needed by the query helpers below.
-        from bpl import (  # noqa: PLC0415
-            ExtendedDixonColesMatchPredictor,
-            NeutralDixonColesMatchPredictor,
-        )
-
         self.neutral = neutral
         self.epsilon = DEFAULT_TEAM_EPSILON if epsilon is None else epsilon
         self.rescale_weights = rescale_weights
@@ -57,7 +52,7 @@ class DixonColesTeamModel:
     def teams(self) -> list[str] | None:
         return self.model.teams
 
-    def fit(self, training_data: dict[str, Any]) -> "DixonColesTeamModel":
+    def fit(self, training_data: TeamFitData) -> "DixonColesTeamModel":
         logger.info(
             "Using %s model with epsilon=%s, rescale_weights=%s",
             type(self.model).__name__,

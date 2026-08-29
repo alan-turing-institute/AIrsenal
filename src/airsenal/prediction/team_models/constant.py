@@ -14,6 +14,7 @@ import numpy as np
 
 from airsenal.core.lookup import ConfigError
 from airsenal.game.scoring import MAX_GOALS
+from airsenal.prediction.protocols import TeamFitData
 from airsenal.prediction.team_models.scorelines import (
     outcome_proba_from_scores,
 )
@@ -31,7 +32,7 @@ class ConstantTeamModel:
         self.max_goals = max_goals
         self.teams: list[str] | None = None
 
-    def fit(self, training_data: dict[str, Any]) -> "ConstantTeamModel":
+    def fit(self, training_data: TeamFitData) -> "ConstantTeamModel":
         home = training_data.get("home_team", [])
         away = training_data.get("away_team", [])
         self.teams = sorted({str(t) for t in [*home, *away]})
