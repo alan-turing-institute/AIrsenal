@@ -147,11 +147,20 @@ def progress_bar(*, transient: bool = False) -> Generator[Progress]:
         yield progress
 
 
-def confirm(question: str) -> bool:
+def confirm(question: str, default: bool = True) -> bool:
     """
     Ask a yes/no question at the terminal.
 
     Here rather than inline at the call site so that the code doing the asking
     stays callable from a test, which a bare input() does not.
+
+    Args:
+        default: What an empty answer, or anything unrecognised, means. Pass
+            False for anything irreversible - applying transfers to the real FPL
+            entry - so that only an explicit yes goes ahead.
     """
-    return input(f"{question} [y/n] ").strip().lower() not in ("n", "no")
+    suffix = "[Y/n]" if default else "[y/N]"
+    answer = input(f"{question} {suffix} ").strip().lower()
+    if default:
+        return answer not in ("n", "no")
+    return answer in ("y", "yes")

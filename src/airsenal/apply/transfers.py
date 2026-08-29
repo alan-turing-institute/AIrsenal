@@ -1,5 +1,5 @@
 """
-Script to apply recommended transfers from the current transfer suggestion table.
+Applying the recommended transfers from the transfer suggestion table.
 
 Ref:
 https://github.com/sk82jack/PSFPL/blob/master/PSFPL/Public/Invoke-FplTransfer.ps1
@@ -9,7 +9,7 @@ https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 
 from typing import Any
 
-from airsenal.core.console import console, table
+from airsenal.core.console import confirm, console, table
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
@@ -24,17 +24,21 @@ logger = get_logger(__name__)
 
 
 def check_proceed(num_transfers: int = 0) -> bool:
-    proceed = input("Apply Transfers? There is no turning back! (yes/no)")
-    if proceed != "yes":
+    """
+    Ask before posting transfers to the real FPL entry.
+
+    Through `confirm` rather than a bare `input()` so a test can stub one
+    function, and with `default=False` because this is not reversible.
+    """
+    if not confirm("Apply transfers? There is no turning back!", default=False):
         return False
-    if num_transfers > 2:
-        proceed = input(
-            "Note that this script doesn't currently apply wildcard/free-hit chips.\n"
-            "These transfers will result in points hit unless you play one of those "
-            "chips via the website.  Are you sure you wish to proceed? (yes/no) "
-        )
-        if proceed != "yes":
-            return False
+    if num_transfers > 2 and not confirm(
+        "AIrsenal does not play the wildcard or free-hit chip for you, so these "
+        "transfers will cost a points hit unless you play one on the website. "
+        "Proceed?",
+        default=False,
+    ):
+        return False
     console.print("Applying Transfers...")
     return True
 
@@ -260,9 +264,14 @@ def build_init_priced_transfers(
     """
     if not fpl_team_id:
         if not fetcher.FPL_TEAM_ID:
-            fpl_team_id = int(input("Please enter FPL team ID: "))
-        else:
-            fpl_team_id = fetcher.FPL_TEAM_ID
+            # a library function that stops to read stdin cannot be called from
+            # anything but a terminal, and cannot be tested at all
+            msg = (
+                "No FPL team ID. Pass fpl_team_id, or set FPL_TEAM_ID with "
+                "`airsenal env set FPL_TEAM_ID <id>`."
+            )
+            raise ValueError(msg)
+        fpl_team_id = fetcher.FPL_TEAM_ID
 
     current_squad = fetcher.get_current_picks(fpl_team_id)
     transfers_out = [
@@ -318,8 +327,23 @@ def build_transfer_payload(
 
 
 def make_transfers(
-    fpl_team_id: int | None = None, skip_check: bool = False
+    fpl_team_id: int | None = None,
+    skip_check: bool = False,
+    dry_run: bool = False,
 ) -> bool | None:
+    """
+    Post the suggested transfers to the FPL entry.
+
+    Returns None when there is nothing to apply, False when the user declined,
+    and True when the transfers were posted - or, under `dry_run`, would have
+    been.
+
+    Args:
+        skip_check: Post without asking. Ignored under `dry_run`, which never
+            posts and so has nothing to ask about.
+        dry_run: Build and show the payload, post nothing. The only way to see
+            exactly what would be sent without sending it.
+    """
     suggestions = get_gw_transfer_suggestions(fpl_team_id)
     if not suggestions:
         return None
@@ -353,10 +377,14 @@ def make_transfers(
         post_transfer_bank,
     )
 
+    transfer_req = build_transfer_payload(
+        priced_transfers, current_gw, fetcher, chip_played
+    )
+    if dry_run:
+        console.print("[bold]Dry run: this is what would be posted[/bold]")
+        console.print(transfer_req)
+        return True
     if skip_check or check_proceed(len(priced_transfers)):
-        transfer_req = build_transfer_payload(
-            priced_transfers, current_gw, fetcher, chip_played
-        )
         fetcher.post_transfers(transfer_req)
     else:
         logger.info(

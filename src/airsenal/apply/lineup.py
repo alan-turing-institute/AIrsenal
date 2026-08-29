@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from airsenal.core.console import console
+from airsenal.core.console import confirm, console
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
@@ -17,12 +17,17 @@ logger = get_logger(__name__)
 
 
 def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
+    """
+    Show the lineup and ask before posting it.
+
+    Through `confirm` rather than a bare `input()`, with `default=False`: this
+    replaces the entry's lineup.
+    """
     console.print(formation_table(squad, tag, gameweek))
-    proceed = input("Apply changes to lineup? (yes/no) ")
-    if proceed == "yes":
-        logger.info("Applying Changes...")
-        return True
-    return False
+    if not confirm("Apply changes to lineup?", default=False):
+        return False
+    logger.info("Applying Changes...")
+    return True
 
 
 def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
@@ -94,11 +99,16 @@ def get_lineup_from_payload(lineup: dict[str, Any]) -> Squad:
 def set_lineup(
     fpl_team_id: int | None = None,
     skip_check: bool = False,
+    dry_run: bool = False,
 ) -> None:
     """
     Retrieve the latest lineup and apply the latest prediction to it.
 
     Note that this assumes that the prediction has been ran recently.
+
+    Args:
+        skip_check: Post without asking. Ignored under `dry_run`.
+        dry_run: Show the payload that would be posted, and post nothing.
     """
     fetcher = get_fetcher(fpl_team_id)
     logger.info("fpl_team_id is %s", fetcher.FPL_TEAM_ID)
@@ -110,9 +120,15 @@ def set_lineup(
     tag = get_latest_prediction_tag()
     squad.optimize_lineup(next_gameweek(), tag)
 
+    payload = build_lineup_payload(squad)
+    if dry_run:
+        console.print(formation_table(squad, tag, next_gameweek()))
+        console.print("[bold]Dry run: this is what would be posted[/bold]")
+        console.print(payload)
+        return
+
     if not skip_check and not check_proceed(squad, tag, next_gameweek()):
         logger.info("Not proceeding with lineup update")
         return
 
-    payload = build_lineup_payload(squad)
     fetcher.post_lineup(payload)
