@@ -106,11 +106,16 @@ there is enough to mirror. When adding functionality, add a test, and run the wh
 to check nothing else broke: `uv run pytest tests`.
 
 `notebooks/` holds Jupyter notebooks used to develop, test or demonstrate bits of
-AIrsenal, and can be a good place to start experimenting. `tools/` holds dev one-offs
-that are not packaged; install them with the `tools` extra.
+AIrsenal, and can be a good place to start experimenting. Their imports are checked
+against the package by `tests/test_notebooks.py`, so a notebook cannot be left behind by
+a rename. `tools/` holds dev one-offs that are not packaged; install them with the
+`tools` extra. They are type-checked along with the package.
 
-For how the pieces fit together at runtime — the database schema and how points
-predictions are built — see [docs/how-it-works.md](docs/how-it-works.md).
+For the chain itself, the contracts that enforce it and a file-by-file map, see
+[docs/architecture.md](docs/architecture.md). For how the pieces fit together at runtime —
+the database schema and how points predictions are built — see
+[docs/how-it-works.md](docs/how-it-works.md). For plugging in your own model or
+algorithm, see [docs/adding-a-model.md](docs/adding-a-model.md).
 
 ## Order of function arguments
 
@@ -127,6 +132,17 @@ Many AIrsenal functions take a lot of arguments. Where possible, order them like
 * *dbsession* (database session - usually defaulting to None and resolved with `get_session()` from `db/session.py`)
 * *fetcher* (instance of FPLDataFetcher - usually defaulting to None and resolved with `get_fetcher()` from `remote/fpl_api.py`)
 * *verbose* (boolean, if True, print out extra information)
+
+`tests/test_argument_order.py` enforces this, as a ratchet rather than a rule:
+53 functions predate the check and are listed in its `KNOWN_OFFENDERS`. Nothing
+may be added to that list, so a new or renamed function has to follow the order;
+fixing an existing one means reordering its signature and deleting its line.
+Reordering is not free - a caller passing positionally breaks - which is why they
+were not all fixed at once.
+
+The order itself was checked against the code before the ratchet was written: no
+ordering of these names fits what is there, so the list records drift, not a
+different convention that the code had settled on instead.
 
 [link_google_docstrings]: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
 [link_pep8]: https://www.python.org/dev/peps/pep-0008/

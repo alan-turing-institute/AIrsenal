@@ -1,5 +1,8 @@
 # How AIrsenal works
 
+Where the code lives is [architecture.md](architecture.md); how to add your own model
+is [adding-a-model.md](adding-a-model.md). This is what the code does at runtime.
+
 Reference for the parts of AIrsenal that aren't obvious from the code alone: what's in
 the database, and how a points prediction is put together. For installation and the
 commands to run, see the [README](../README.md).

@@ -260,6 +260,12 @@ Run the tests with:
 uv run pytest tests
 ```
 
-See [CodingConventions.md](CodingConventions.md) for the conventions we follow, and
-[docs/how-it-works.md](docs/how-it-works.md) for the database schema and how points
-predictions are built.
+Then:
+
+- [docs/architecture.md](docs/architecture.md) — how the package is laid out and where
+  new code goes.
+- [docs/adding-a-model.md](docs/adding-a-model.md) — how to plug in your own prediction
+  model or optimisation algorithm, and how to find out whether it beats the current one.
+- [docs/how-it-works.md](docs/how-it-works.md) — the database schema and how points
+  predictions are built.
+- [CodingConventions.md](CodingConventions.md) — the conventions we follow.
