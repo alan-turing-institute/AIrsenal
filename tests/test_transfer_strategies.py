@@ -2,7 +2,7 @@
 Tests for the transfer strategy table and the move-to-strategy mapping.
 
 These check the wiring, not the searches themselves - the searches are covered
-by test_optimization.py.
+by tests/optimization/test_strategy_searches.py.
 """
 
 import pytest

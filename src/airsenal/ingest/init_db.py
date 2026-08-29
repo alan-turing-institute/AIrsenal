@@ -1,4 +1,4 @@
-"""Script to fill the database after install."""
+"""Filling the database for the first time, after install."""
 
 from sqlalchemy.orm.session import Session
 
