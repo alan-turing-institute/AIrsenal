@@ -22,6 +22,13 @@ SRC = Path(__file__).resolve().parents[1] / "src" / "airsenal"
 POSITION_LITERALS = {"GK", "DEF", "MID", "FWD"}
 POSITION_LITERAL_EXEMPT = {"game/enums.py", "game/mappings.py"}
 
+# Chip is a StrEnum too, so the same argument applies. game/enums.py defines the
+# values. The other two exemptions are not chip references at all: the strings in
+# apply/transfers.py are the FPL API's own transfer-payload fields, and the ones
+# in export/db_dump.py are Transaction column names being written to a CSV header.
+CHIP_LITERALS = {"wildcard", "free_hit", "bench_boost", "triple_captain"}
+CHIP_LITERAL_EXEMPT = {"game/enums.py", "apply/transfers.py", "export/db_dump.py"}
+
 # old name -> what to use instead
 BANNED_PARAMETERS = {
     "gw_range": "gameweeks",
@@ -86,6 +93,25 @@ def test_gameweek_is_never_an_int_or_list_union(path):
                     f"{path.relative_to(SRC)}:{arg.lineno} "
                     f"{node.name}(gameweek: {annotation}) - split into two parameters"
                 )
+    assert not offenders, "\n".join(offenders)
+
+
+@pytest.mark.parametrize("path", source_files(), ids=lambda p: str(p.relative_to(SRC)))
+def test_a_chip_is_written_as_the_enum(path):
+    """
+    `Chip.WILDCARD`, not `"wildcard"`.
+
+    As `test_a_position_is_written_as_the_enum`: Chip subclasses str, so a bare
+    literal works and nothing fails when one is written.
+    """
+    relative = str(path.relative_to(SRC))
+    if relative in CHIP_LITERAL_EXEMPT:
+        pytest.skip(f"{relative} is the string boundary")
+    offenders = [
+        f'{relative}:{node.lineno} "{node.value}" - use Chip.{node.value.upper()}'
+        for node in ast.walk(ast.parse(path.read_text()))
+        if isinstance(node, ast.Constant) and node.value in CHIP_LITERALS
+    ]
     assert not offenders, "\n".join(offenders)
 
 
