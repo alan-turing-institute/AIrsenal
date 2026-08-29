@@ -8,7 +8,7 @@ from airsenal.remote.fpl_api import get_fetcher
 logger = get_logger(__name__)
 
 
-def main():
+def main() -> None:
     data = get_fetcher().get_current_summary_data()
     teams = pd.DataFrame(data["teams"])
 

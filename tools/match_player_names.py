@@ -107,5 +107,5 @@ if __name__ == "__main__":
     # write an output csv file with each line containing all possible
     # alternative names for a given current-season name
     with open("../data/alternative_player_names.csv", "w") as outfile:
-        for k, v in playerdict.items():
-            outfile.write(f"{k},{','.join(v)}\n")
+        for fpl_name, alternatives in playerdict.items():
+            outfile.write(f"{fpl_name},{','.join(alternatives)}\n")

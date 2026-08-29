@@ -105,9 +105,12 @@ markers = [
 
 [tool.ruff]
 line-length = 88
-# Exploratory notebooks, not package code. They import from `airsenal.framework.*`,
-# which does not exist, so linting them says nothing useful until they are updated
-# or deleted.
+# Exploratory notebooks, not package code: cells are written to be run in order
+# and read once, so the style rules this configuration turns on say little about
+# them. What does matter is that they still import things that exist, because
+# they are what CodingConventions.md points a new contributor at - and three
+# package renames went by before anyone noticed six of them were broken.
+# `tests/test_notebooks.py` checks exactly that, and nothing else.
 exclude = ["notebooks"]
 
 [tool.ruff.format]
@@ -196,7 +199,10 @@ max-returns = 12       # fpl_http.get_json
 ]
 
 [tool.mypy]
-files = ["src/airsenal"]
+# `tools/` is checked too: the hyperparameter sweeps there call into the package
+# with real models, and they went a whole refactor calling a signature that no
+# longer existed because nothing checked them.
+files = ["src/airsenal", "tools"]
 strict = true
 show_error_codes = true
 warn_unreachable = true
@@ -216,9 +222,9 @@ enable_error_code = [
 # Named rather than a blanket ignore_missing_imports, so a *new* untyped
 # dependency is a decision rather than something that slips in unnoticed.
 #
-# Only what `src/airsenal` imports belongs here, since that is all `files` above
-# covers: a library used only from `tools/` or the notebooks would be reported as
-# an unused section forever by warn_unused_configs.
+# Only what `files` above covers belongs here - `src/airsenal` and `tools` - since
+# a library used only by the notebooks would be reported as an unused section
+# forever by warn_unused_configs.
 [[tool.mypy.overrides]]
 module = [
     "bpl.*",
@@ -231,6 +237,8 @@ module = [
     "scipy.*",
     # only installed with the "plot" extra
     "matplotlib.*",
+    # only used from tools/, with the "tools" extra
+    "thefuzz.*",
 ]
 ignore_missing_imports = true
 
@@ -265,6 +273,15 @@ disallow_untyped_calls = false
 [tool.coverage.run]
 source = ["src/airsenal"]
 branch = true
+
+# A floor, not a target, and a ratchet like the complexity limits above: today's
+# figure is 58%, so this fails a change that makes coverage meaningfully worse
+# while leaving room for the run-to-run variation in the dummy fixtures. Raise it
+# as coverage improves; never lower it. Without a number here the whole
+# measurement was decoration - CI reported coverage and nothing acted on it, so
+# deleting a test suite passed.
+[tool.coverage.report]
+fail_under = 57
 
 [tool.importlinter]
 root_package = "airsenal"
@@ -308,6 +325,25 @@ exhaustive_ignores = ["data"]
 ignore_imports = [
     # Annotation only, under TYPE_CHECKING: a caller passes a fetcher when the
     # database has no fixtures to work the gameweek out from.
+    "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
+]
+
+# The database layer reads and writes the database and does nothing else. The
+# layers contract above cannot say this: `db` sits *above* `remote` in the chain,
+# so importing it is legal there, and the "neither renders nor talks to the
+# network" contract below allows reaching a client indirectly. This is what
+# stops a query quietly turning into a live API call, which is what
+# `free_hit_used_in_gameweek` was until it moved to `squad/state.py`.
+#
+# `protected` checks direct imports only, which is what is wanted: the one
+# exemption is an annotation under TYPE_CHECKING, already excused in the layers
+# contract above.
+[[tool.importlinter.contracts]]
+name = "The database layer does not reach for the FPL API"
+type = "forbidden"
+source_modules = ["airsenal.db"]
+forbidden_modules = ["airsenal.remote.fpl_api", "airsenal.remote.fpl_auth"]
+ignore_imports = [
     "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
 ]
 
