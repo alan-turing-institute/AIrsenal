@@ -204,10 +204,6 @@ def free_hit_used_in_gameweek(
     Whether the entry played its free hit in a gameweek, as 0 or 1.
 
     An int because that is how the transactions table records it.
-
-    Here rather than in `db/queries/transactions.py`, where it used to live: it
-    asks the FPL API and never touches the database, and the database layer is
-    not allowed to make network calls.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher(fpl_team_id)
     if fpl_team_id is None:

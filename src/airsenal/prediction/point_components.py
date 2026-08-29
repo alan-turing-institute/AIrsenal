@@ -5,11 +5,7 @@ Bonus points, save points, card points and defensive contributions. Each is an
 empirical-Bayes group mean over past performances: a player's own history,
 shrunk towards the average for their position by `mean_group_prior`.
 
-These are models, not feature assembly, which is why they are no longer in
-`features.py`. They are also the one part of the prediction stack with no seam:
-`PointsConfig` says whether each is used, and `prediction/run.py` calls these
-functions by name. Giving them a protocol would be a larger change than moving
-them, and is easier to see the shape of now they are in one place.
+`PointsConfig` defines whether each is used by `prediction/run.py`.
 """
 
 import pandas as pd

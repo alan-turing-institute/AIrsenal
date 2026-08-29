@@ -1,16 +1,4 @@
-"""
-What a prediction model has to provide.
-
-Naming the shape means a signature does not change when the set of models does.
-
-These are deliberately not `runtime_checkable`, so nothing dispatches on
-`isinstance` against them.
-
-The two `TypedDict`s are here beside the protocols that consume them. What a
-model is fitted to used to be a `dict[str, Any]` whose keys were described in
-prose, so writing a new model meant reading the function that assembles the
-data to find out what was in it. Declared, mypy checks both ends.
-"""
+"""What a prediction model has to provide."""
 
 from collections.abc import Sequence
 from typing import Any, NotRequired, Protocol, TypedDict
