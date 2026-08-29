@@ -225,7 +225,11 @@ def _names(player_ids: list[int]) -> list[str]:
 
 
 def _gameweek_outcome(
-    gameweek: int, tag: str, squad: Any, plan: Any, season: str
+    tag: str,
+    gameweek: int,
+    squad: Any,
+    plan: Any,
+    season: str,
 ) -> ReplayGameweek:
     """One gameweek's row, from the squad and plan the pipeline produced."""
     # A squad built from scratch has no plan: there was nothing to transfer from,
@@ -244,7 +248,7 @@ def _gameweek_outcome(
         points_hit=points_hit,
         players_in=_names(outcome.players_in) if outcome else [],
         players_out=_names(outcome.players_out) if outcome else [],
-        expected_points=squad.get_expected_points(gameweek, tag),
+        expected_points=squad.get_expected_points(tag, gameweek),
         actual_points=squad.get_actual_points(gameweek, season) - points_hit,
     )
 
@@ -297,7 +301,7 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
         squad, plan = pipeline.with_settings(new_squad=new_squad).optimize(
             gameweeks, tag, fpl_team_id, is_replay=True
         )
-        outcomes.append(_gameweek_outcome(gw, tag, squad, plan, season))
+        outcomes.append(_gameweek_outcome(tag, gw, squad, plan, season))
         logger.info("-" * 30)
 
     result = ReplayResult(

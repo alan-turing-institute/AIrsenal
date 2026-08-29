@@ -103,7 +103,7 @@ def transfer_rows(
             squad.remove_player(pid_out, price=sale_price, gameweek=gw)
 
             in_player = get_player(pid_in, dbsession=dbsession)
-            purchase_price = in_player.price(season, gw) if in_player else None
+            purchase_price = in_player.price(gw, season) if in_player else None
             squad.add_player(
                 pid_in,
                 price=purchase_price,
@@ -125,7 +125,7 @@ def transfer_rows(
                         else str(get_player_name(pid_in) or pid_in)
                     ),
                     position_in=in_player.position(season) if in_player else None,
-                    team_in=in_player.team(season, gw) if in_player else None,
+                    team_in=in_player.team(gw, season) if in_player else None,
                     purchase_price=purchase_price,
                 )
             )
@@ -262,8 +262,8 @@ def run_optimization(
         # How many free transfers are we starting with?
         if num_free_transfers is None:
             num_free_transfers = get_free_transfers(
-                fpl_team_id,
                 gameweeks[0],
+                fpl_team_id=fpl_team_id,
                 season=season,
                 fetcher=fetcher,
                 is_replay=is_replay,
@@ -301,7 +301,13 @@ def run_optimization(
         if is_replay:
             # simulating a previous season, so imitate applying transfers by adding
             # the suggestions to the Transaction table
-            fill_transaction_table(starting_squad, best_plan, season, fpl_team_id, tag)
+            fill_transaction_table(
+                starting_squad,
+                best_plan,
+                tag=tag,
+                season=season,
+                fpl_team_id=fpl_team_id,
+            )
 
     console.print()
 
@@ -315,7 +321,11 @@ def run_optimization(
     )
     plan = plan_rows(best_plan)
     transfers = transfer_rows(
-        best_plan, fastcopy(starting_squad), season, use_api=use_api, fetcher=fetcher
+        best_plan,
+        fastcopy(starting_squad),
+        season,
+        use_api=use_api,
+        fetcher=fetcher,
     )
     print_plan_table(plan)
     print_transfer_table(transfers)

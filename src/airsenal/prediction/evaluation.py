@@ -260,7 +260,7 @@ def backtest_team_model(
         if not fixtures:
             logger.info("No fixtures for %s GW%s, skipping", season, gameweek)
             continue
-        model = get_fitted_team_model(season, gameweek, dbsession, model=build())
+        model = get_fitted_team_model(gameweek, season, dbsession, model=build())
         score += score_team_model(model, fixtures)
         logger.info(
             "GW%s: mean log probability %.4f over %s fixtures",
@@ -310,7 +310,7 @@ def backtest_player_model(
         probabilities = pd.concat(
             [
                 fit_player_data(
-                    position, season, gameweek, model=build(), dbsession=dbsession
+                    position, gameweek, season, model=build(), dbsession=dbsession
                 )
                 for position in positions
             ]

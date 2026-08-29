@@ -129,7 +129,7 @@ def get_def_con_points(
 
 
 def get_save_points(
-    position: str, player_id: int, minutes: int | float, df_saves: pd.Series
+    player_id: int, position: str, minutes: int | float, df_saves: pd.Series
 ) -> float:
     """Calculate expected save points for goalkeepers."""
     if position != Position.GK:
@@ -154,11 +154,12 @@ def calc_predicted_points_for_player(
     df_saves: pd.Series | None,
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
-    season: str,
+    *,
     gameweeks: list[int] | None = None,
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
+    season: str,
     dbsession: Session | None = None,
 ) -> list[PlayerPrediction]:
     """Calculate predicted total points for a single player across target gameweeks."""
@@ -178,7 +179,7 @@ def calc_predicted_points_for_player(
 
     fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
-    team = player.team(season, gameweeks[0])
+    team = player.team(gameweeks[0], season)
     position = player.position(season)
     if position is None or team is None:
         msg = f"Player {player} has missing team or position for season {season}"
@@ -251,7 +252,7 @@ def calc_predicted_points_for_player(
                     points += get_card_points(player.player_id, mins, df_cards)
                 if df_saves is not None:
                     points += get_save_points(
-                        position, player.player_id, mins, df_saves
+                        player.player_id, position, mins, df_saves
                     )
                 if df_def_con is not None:
                     points += get_def_con_points(player.player_id, mins, df_def_con)

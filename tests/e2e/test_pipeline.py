@@ -109,7 +109,7 @@ def test_predictions_are_readable_by_the_optimiser(seeded, prediction_tag):
     # The optimiser reads predictions back through a different query than the
     # one that wrote them; this is the join between the two stages.
     points = get_predicted_points(
-        FUTURE_GAMEWEEKS, prediction_tag, season=SEASON, dbsession=seeded
+        FUTURE_GAMEWEEKS, tag=prediction_tag, season=SEASON, dbsession=seeded
     )
     assert points
     assert all(math.isfinite(p) for _, p in points)

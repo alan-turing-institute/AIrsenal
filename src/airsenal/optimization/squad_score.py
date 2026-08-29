@@ -64,18 +64,20 @@ def get_discounted_squad_score(
         gw_weight = get_discount_factor(root_gw, gw)
         if gw == bench_boost_gw:
             total_points += (
-                squad.get_expected_points(gw, tag, bench_boost=True) * gw_weight
+                squad.get_expected_points(tag, gw, bench_boost=True) * gw_weight
             )
         elif gw == triple_captain_gw:
             total_points += (
-                squad.get_expected_points(gw, tag, triple_captain=True) * gw_weight
+                squad.get_expected_points(tag, gw, triple_captain=True) * gw_weight
             )
         else:
-            total_points += squad.get_expected_points(gw, tag) * gw_weight
+            total_points += squad.get_expected_points(tag, gw) * gw_weight
 
         if gw != bench_boost_gw and sub_weights is not None:
             total_points += gw_weight * squad.total_points_for_subs(
-                gw, tag, sub_weights=sub_weights
+                tag,
+                gw,
+                sub_weights=sub_weights,
             )
 
     return total_points

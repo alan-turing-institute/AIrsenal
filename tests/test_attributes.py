@@ -25,15 +25,15 @@ def test_get_price():
         player.attributes.append(pa)
 
     # gameweek available in attributes table
-    assert player.price(season, 2) == price_dict[2]
+    assert player.price(2, season) == price_dict[2]
     # gameweek before earliest available: return first available
-    assert player.price(season, 1) == price_dict[2]
+    assert player.price(1, season) == price_dict[2]
     # gameweek after last available: return last available
-    assert player.price(season, 5) == price_dict[4]
+    assert player.price(5, season) == price_dict[4]
     # gameweek between two available values: interpolate
-    assert player.price(season, 3) == (price_dict[2] + price_dict[4]) / 2
+    assert player.price(3, season) == (price_dict[2] + price_dict[4]) / 2
     # no gameweek available for seaaon: return None
-    assert player.price("1011", 1) is None
+    assert player.price(1, "1011") is None
 
 
 def test_get_team():
@@ -60,16 +60,16 @@ def test_get_team():
         player.attributes.append(pa)
 
     # gameweek available in attributes table
-    assert player.team(season, 2) == team_dict[2]
+    assert player.team(2, season) == team_dict[2]
     # gameweek before earliest available: return first available
-    assert player.team(season, 1) == team_dict[2]
+    assert player.team(1, season) == team_dict[2]
     # gameweek after last available: return last available
-    assert player.team(season, 6) == team_dict[5]
+    assert player.team(6, season) == team_dict[5]
     # gameweek between two available values: return nearest
-    assert player.team(season, 3) == team_dict[2]
-    assert player.team(season, 4) == team_dict[5]
+    assert player.team(3, season) == team_dict[2]
+    assert player.team(4, season) == team_dict[5]
     # no gameweek available for seaaon: return None
-    assert player.team("1011", 1) is None
+    assert player.team(1, "1011") is None
 
 
 def test_get_position():

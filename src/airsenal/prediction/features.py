@@ -25,8 +25,8 @@ def get_player_history_df(
     position: str = "all",
     all_players: bool = False,
     fill_blank: bool = True,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """Fetch historical player performance data and build a structured DataFrame."""
@@ -100,7 +100,7 @@ def get_player_history_df(
                 )
 
     max_matches_per_player = get_max_matches_per_player(
-        position, season=season, gameweek=gameweek, dbsession=dbsession
+        position, gameweek=gameweek, season=season, dbsession=dbsession
     )
     for player in track(
         players, description=f"Filling player history dataframe for {position}:"
@@ -109,8 +109,8 @@ def get_player_history_df(
         row_count = 0
         for row in results:
             if is_future_gameweek(
-                row.fixture.season,
                 row.fixture.gameweek,
+                row.fixture.season,
                 current_season=season,
                 next_gameweek=gameweek,
             ):
@@ -207,15 +207,15 @@ def get_player_history_df(
 
 def process_player_data(
     prefix: str,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> PlayerFitData:
     """Process and structure historical player data for model fitting."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_history_df(
-        prefix, season=season, gameweek=gameweek, dbsession=dbsession
+        prefix, gameweek=gameweek, season=season, dbsession=dbsession
     )
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
     df.loc[(df["neither"] < 0), ["neither", "team_goals", "goals", "assists"]] = [

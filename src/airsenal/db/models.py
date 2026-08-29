@@ -115,25 +115,25 @@ class Player(Base):
     )
     scores: Mapped[list["PlayerScore"]] = relationship(back_populates="player")
 
-    def team(self, season: str, gameweek: int) -> str | None:
+    def team(self, gameweek: int, season: str) -> str | None:
         """
         This player's team in a gameweek, or from the nearest one we have.
 
         None, with a warning, if there are no attributes at all for `season`.
         """
-        attr = self.get_gameweek_attributes(season, gameweek)
+        attr = self.get_gameweek_attributes(gameweek, season)
         if attr is not None and not isinstance(attr, tuple):
             return attr.team
         logger.warning("No team found for %s in %s season.", self, season)
         return None
 
-    def price(self, season: str, gameweek: int) -> int | None:
+    def price(self, gameweek: int, season: str) -> int | None:
         """
         This player's price in a gameweek, interpolated if we have no exact match.
 
         None, with a warning, if there are no attributes at all for `season`.
         """
-        attr = self.get_gameweek_attributes(season, gameweek, before_and_after=True)
+        attr = self.get_gameweek_attributes(gameweek, season, before_and_after=True)
         if attr is not None:
             return self._calculate_price(attr, gameweek)
         logger.warning("No price found for %s in %s season.", self, season)
@@ -165,7 +165,7 @@ class Player(Base):
 
     def position(self, season: str) -> str | None:
         """This player's position in `season`, or None if we have no attributes."""
-        attr = self.get_gameweek_attributes(season, None)
+        attr = self.get_gameweek_attributes(None, season)
         if attr is not None and not isinstance(attr, tuple):
             return attr.position
         logger.warning("No position found for %s in %s season.", self, season)
@@ -182,7 +182,7 @@ class Player(Base):
         So this answers "as of `current_gw`, did we expect this player to still
         be out by `fixture_gw`?".
         """
-        attr = self.get_gameweek_attributes(season, current_gw)
+        attr = self.get_gameweek_attributes(current_gw, season)
         if attr is not None and not isinstance(attr, tuple):
             return (
                 attr.chance_of_playing_next_round is not None
@@ -191,7 +191,7 @@ class Player(Base):
         return False
 
     def get_gameweek_attributes(
-        self, season: str, gameweek: int | None, before_and_after: bool = False
+        self, gameweek: int | None, season: str, before_and_after: bool = False
     ) -> "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes] | None":
         """
         This player's attributes for a gameweek, or from the nearest one we have.

@@ -48,7 +48,7 @@ def test_scores_add():
 def test_every_team_model_can_be_scored(pipeline_db, name):
     """The point of the module: one call per model, whatever the model is."""
     model = get_fitted_team_model(
-        SEASON, FIT_GAMEWEEK, pipeline_db, model=build_team_model(name)
+        FIT_GAMEWEEK, SEASON, pipeline_db, model=build_team_model(name)
     )
     fixtures = get_fixtures_for_gameweeks(
         SCORE_GAMEWEEKS, season=SEASON, dbsession=pipeline_db
@@ -72,7 +72,7 @@ def test_a_fitted_model_beats_the_constant_one(pipeline_db):
     scores = {}
     for name in ("extended", "constant"):
         model = get_fitted_team_model(
-            SEASON, FIT_GAMEWEEK, pipeline_db, model=build_team_model(name)
+            FIT_GAMEWEEK, SEASON, pipeline_db, model=build_team_model(name)
         )
         scores[name] = score_team_model(model, fixtures).mean_log_probability
     assert scores["extended"] > scores["constant"]
@@ -81,7 +81,7 @@ def test_a_fitted_model_beats_the_constant_one(pipeline_db):
 def test_fixtures_without_a_result_are_skipped_not_scored(pipeline_db):
     """A future gameweek has no result, so there is nothing to score against."""
     model = get_fitted_team_model(
-        SEASON, FIT_GAMEWEEK, pipeline_db, model=build_team_model("constant")
+        FIT_GAMEWEEK, SEASON, pipeline_db, model=build_team_model("constant")
     )
     future = get_fixtures_for_gameweeks([1, 2], season="2526", dbsession=pipeline_db)
     score = score_team_model(model, future)
@@ -105,8 +105,8 @@ def test_backtest_walks_the_season_forward(pipeline_db):
 def test_every_player_model_can_be_scored(pipeline_db, name):
     probabilities = fit_player_data(
         Position.FWD,
-        SEASON,
         FIT_GAMEWEEK,
+        SEASON,
         model=build_player_model_for_test(name),
         dbsession=pipeline_db,
     )

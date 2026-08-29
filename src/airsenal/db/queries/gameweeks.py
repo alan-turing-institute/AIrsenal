@@ -58,9 +58,9 @@ def get_max_gameweek(
 
 def get_next_gameweek(
     season: str = CURRENT_SEASON,
-    dbsession: Session | None = None,
     *,
     fetcher: "FPLDataFetcher | None" = None,
+    dbsession: Session | None = None,
 ) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
@@ -155,16 +155,16 @@ class _GameweekCache:
     def get(
         self,
         season: str,
-        dbsession: Session | None,
         fetcher: "FPLDataFetcher | None",
+        dbsession: Session | None,
     ) -> int:
         if season not in self._by_season:
             self._by_season[season] = get_next_gameweek(
-                season, dbsession, fetcher=fetcher
+                season, fetcher=fetcher, dbsession=dbsession
             )
         return self._by_season[season]
 
-    def set(self, season: str, gameweek: int) -> None:
+    def set(self, gameweek: int, season: str) -> None:
         self._by_season[season] = gameweek
 
     def reset(self) -> None:
@@ -176,9 +176,9 @@ _gameweek_cache = _GameweekCache()
 
 def next_gameweek(
     season: str = CURRENT_SEASON,
-    dbsession: Session | None = None,
     *,
     fetcher: "FPLDataFetcher | None" = None,
+    dbsession: Session | None = None,
 ) -> int:
     """
     The next gameweek of a season, computed once per process.
@@ -186,7 +186,7 @@ def next_gameweek(
     Replaces the former NEXT_GAMEWEEK module constant. See `get_next_gameweek` for the
     uncached computation and for when `fetcher` is needed.
     """
-    return _gameweek_cache.get(season, dbsession, fetcher)
+    return _gameweek_cache.get(season, fetcher, dbsession)
 
 
 def set_next_gameweek(gameweek: int, season: str = CURRENT_SEASON) -> None:
@@ -196,7 +196,7 @@ def set_next_gameweek(gameweek: int, season: str = CURRENT_SEASON) -> None:
     Useful when replaying a historical season, and in tests, where the database
     deliberately has no fixtures to derive it from.
     """
-    _gameweek_cache.set(season, gameweek)
+    _gameweek_cache.set(gameweek, season)
 
 
 def reset_gameweek_cache() -> None:
@@ -302,8 +302,8 @@ def get_last_complete_gameweek_in_db(
 
 
 def is_future_gameweek(
-    season: str,
     gameweek: int | None,
+    season: str,
     current_season: str = CURRENT_SEASON,
     next_gameweek: int | None = None,
 ) -> bool:

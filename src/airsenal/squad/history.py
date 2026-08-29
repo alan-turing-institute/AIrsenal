@@ -36,8 +36,8 @@ logger = get_logger(__name__)
 
 
 def record_initial_squad_transactions(
-    season: str = CURRENT_SEASON,
     tag: str = "AIrsenal" + CURRENT_SEASON,
+    season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
@@ -101,11 +101,11 @@ def record_initial_squad_transactions(
 
         add_transaction(
             player.player_id,
+            tag,
             starting_gw,
             1,
             price,
             season,
-            tag,
             free_hit,
             fpl_team_id,
             time,
@@ -114,8 +114,8 @@ def record_initial_squad_transactions(
 
 
 def update_squad(
-    season: str = CURRENT_SEASON,
     tag: str = "AIrsenal" + CURRENT_SEASON,
+    season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
@@ -161,9 +161,9 @@ def update_squad(
         time = transfer["time"]
 
         if not transaction_exists(
-            fpl_team_id,
             gameweek,
             season,
+            fpl_team_id,
             time,
             pid_out,
             price_out,
@@ -180,11 +180,11 @@ def update_squad(
             free_hit = free_hit_used_in_gameweek(gameweek)
             add_transaction(
                 pid_out,
+                tag,
                 gameweek,
                 -1,
                 price_out,
                 season,
-                tag,
                 free_hit,
                 fpl_team_id,
                 time,
@@ -199,11 +199,11 @@ def update_squad(
             )
             add_transaction(
                 pid_in,
+                tag,
                 gameweek,
                 1,
                 price_in,
                 season,
-                tag,
                 free_hit,
                 fpl_team_id,
                 time,

@@ -21,9 +21,9 @@ logger = get_logger(__name__)
 
 def get_top_predicted_points(
     gameweeks: Iterable[int] | None = None,
-    tag: str | None = None,
     position: str = "all",
     team: str = "all",
+    tag: str | None = None,
     n_players: int = 10,
     per_position: bool = False,
     max_price: float | None = None,
@@ -68,12 +68,12 @@ def get_top_predicted_points(
             "#", "Player", "Team", "Position", "Price", "Predicted Points", title=title
         )
         for rank, (player, predicted_points) in enumerate(predictions[:n_players], 1):
-            price = player.price(season, first_gw)
+            price = player.price(first_gw, season)
             price_string = f"£{price / 10}m" if price is not None else "Unknown"
             prediction_table.add_row(
                 str(rank),
                 str(player),
-                str(player.team(season, first_gw)),
+                str(player.team(first_gw, season)),
                 str(player.position(season)),
                 price_string,
                 f"{predicted_points:.2f}",
@@ -83,15 +83,15 @@ def get_top_predicted_points(
     if not per_position:
         pts = get_predicted_points(
             gameweeks,
-            tag,
             position=position,
             team=team,
+            tag=tag,
             season=season,
             dbsession=dbsession,
         )
         if max_price is not None:
             for p in pts:
-                price = p[0].price(season, first_gw)
+                price = p[0].price(first_gw, season)
                 if price is not None and price > max_price:
                     pts.remove(p)
 
@@ -114,15 +114,15 @@ def get_top_predicted_points(
         for i, each_position in enumerate(list(Position.back_to_front())):
             pts = get_predicted_points(
                 gameweeks,
-                tag,
                 position=each_position,
                 team=team,
+                tag=tag,
                 season=season,
                 dbsession=dbsession,
             )
             if max_price is not None:
                 for p in pts:
-                    maybe_price = p[0].price(season, first_gw)
+                    maybe_price = p[0].price(first_gw, season)
                     if maybe_price is not None and maybe_price > max_price:
                         pts.remove(p)
 
@@ -160,7 +160,7 @@ def predicted_points_discord_payload(
         }
     )
     for i, p in enumerate(pts):
-        price = p[0].price(season, first_gw)
+        price = p[0].price(first_gw, season)
         price_str = str(price / 10) if price is not None else "UNKNOWN_PRICE"
         discord_embed["fields"].extend(
             [
@@ -178,7 +178,7 @@ def predicted_points_discord_payload(
                     "name": "Attributes",
                     "value": (
                         f"£{price_str}m, "
-                        f"{p[0].position(season)}, {p[0].team(season, first_gw)}"
+                        f"{p[0].position(season)}, {p[0].team(first_gw, season)}"
                     ),
                     "inline": True,
                 },

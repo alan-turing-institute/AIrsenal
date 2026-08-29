@@ -116,7 +116,7 @@ def test_subs():
     # captain player 11, vice-captain player 14
     # should have 29 points (9*2 + 3 + (2*4) )
     t = generate_dummy_squad(points_dict)
-    ep = t.get_expected_points(1, "DUMMY")
+    ep = t.get_expected_points("DUMMY", 1)
     assert ep == 29
     assert t.players[0].is_starting is False
     assert t.players[4].is_starting is False
@@ -182,7 +182,7 @@ def test_single_transfer():
         else:
             assert p.is_captain is False
     # expected points should be 10*2 + 7*2 = 34
-    assert new_squad.get_expected_points(1, "DUMMY") == 34
+    assert new_squad.get_expected_points("DUMMY", 1) == 34
 
 
 def test_double_transfer():

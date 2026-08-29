@@ -48,9 +48,9 @@ def get_fixtures_for_player(
         msg = "Gameweek range must be specified for past seasons"
         raise ValueError(msg)
     if not gameweeks:
-        team = player_record.team(season, next_gameweek())
+        team = player_record.team(next_gameweek(), season)
     else:
-        team = player_record.team(season, gameweeks[0])  # same team for whole gameweeks
+        team = player_record.team(gameweeks[0], season)  # same team for whole gameweeks
     tag = get_latest_fixture_tag(season, dbsession)
     fixture_rows = dbsession.scalars(
         select(Fixture)

@@ -16,10 +16,7 @@ import math
 import numpy as np
 import pytest
 
-from airsenal.prediction.team_models import (
-    TEAM_MODELS,
-    build_team_model,
-)
+from airsenal.prediction.team_models import TEAM_MODELS, build_team_model
 from airsenal.prediction.team_models.fitting import (
     fixture_probabilities,
     get_fitted_team_model,
@@ -39,7 +36,7 @@ SAMPLED_MODELS = {"random"}
 def fitted(request, pipeline_db):
     model = build_team_model(request.param)
     return request.param, get_fitted_team_model(
-        FIT_SEASON, FIT_GAMEWEEK, pipeline_db, model=model
+        FIT_GAMEWEEK, FIT_SEASON, pipeline_db, model=model
     )
 
 

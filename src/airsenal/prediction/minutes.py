@@ -20,8 +20,8 @@ def calc_average_minutes(player_scores: list[PlayerScore]) -> float:
 
 def estimate_minutes_from_prev_season(
     player: Player,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     n_matches_to_use: int = 10,
     exclude_unavailable: bool = True,
     current_team_only: bool = True,
@@ -33,7 +33,7 @@ def estimate_minutes_from_prev_season(
     previous_season = get_previous_season(season)
 
     # Only consider minutes the player played with his current team
-    current_team = player.team(season, gameweek)
+    current_team = player.team(gameweek, season)
     query = (
         select(PlayerScore)
         .join(Fixture, PlayerScore.fixture)
@@ -44,7 +44,7 @@ def estimate_minutes_from_prev_season(
     )
 
     if current_team_only:
-        current_team = player.team(season, gameweek)
+        current_team = player.team(gameweek, season)
         query = query.where(PlayerScore.player_team == current_team)
 
     if exclude_unavailable:
@@ -110,6 +110,6 @@ def get_recent_minutes_for_player(
 
     if len(minutes) < n_matches_to_use:
         minutes += estimate_minutes_from_prev_season(
-            player, season, gameweek=last_gw, dbsession=dbsession
+            player, gameweek=last_gw, season=season, dbsession=dbsession
         )
     return minutes or [0.0]

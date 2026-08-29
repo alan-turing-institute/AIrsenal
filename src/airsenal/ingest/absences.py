@@ -55,7 +55,7 @@ def load_absences(
                 "Couldn't find gameweek for %s from date %s", row["player"], date_from
             )
             continue
-        team_from = p.team(season, gw_date)
+        team_from = p.team(gw_date, season)
         # then get actual return gameweek using the player's team
         gw_from = get_return_gameweek_by_date(
             date_from, team_from, season, dbsession=dbsession
@@ -67,7 +67,7 @@ def load_absences(
                 check_date=date_until, season=season, dbsession=dbsession
             )
         ):
-            team_until = p.team(season, gw_date)
+            team_until = p.team(gw_date, season)
             gw_until = get_return_gameweek_by_date(
                 date_until, team_until, season, dbsession=dbsession
             )

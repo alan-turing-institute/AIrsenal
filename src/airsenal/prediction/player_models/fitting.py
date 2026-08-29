@@ -23,8 +23,8 @@ logger = get_logger(__name__)
 
 def fit_player_data(
     position: str,
-    season: str,
     gameweek: int,
+    season: str,
     model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
@@ -38,7 +38,7 @@ def fit_player_data(
     if model is None:
         model = ConjugatePlayerModel()
 
-    data = process_player_data(position, season, gameweek, dbsession)
+    data = process_player_data(position, gameweek, season, dbsession)
     logger.info("Fitting player model for %s...", position)
     model = fastcopy(model)
     fitted_model = model.fit(data)
@@ -53,14 +53,14 @@ def fit_player_data(
 
 
 def get_all_fitted_player_data(
-    season: str,
     gameweek: int,
+    season: str,
     model: PlayerModel | None = None,
     dbsession: Session | None = None,
 ) -> dict[str, pd.DataFrame]:
     """Fit player models for all positions (GK, DEF, MID, FWD)."""
     dbsession = dbsession if dbsession is not None else get_session()
     return {
-        pos: fit_player_data(pos, season, gameweek, model, dbsession)
+        pos: fit_player_data(pos, gameweek, season, model, dbsession)
         for pos in list(Position.back_to_front())
     }

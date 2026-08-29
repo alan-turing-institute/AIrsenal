@@ -118,7 +118,7 @@ def set_lineup(
     logger.debug("got squad: %s", squad)
 
     tag = get_latest_prediction_tag()
-    squad.optimize_lineup(next_gameweek(), tag)
+    squad.optimize_lineup(tag, next_gameweek())
 
     payload = build_lineup_payload(squad)
     if dry_run:

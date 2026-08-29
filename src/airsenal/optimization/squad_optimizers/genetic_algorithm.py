@@ -224,8 +224,8 @@ class SquadOpt:
                 for _ in range(self.dummy_per_position[pos]):
                     dp = DummyPlayer(
                         self.gameweeks,
-                        self.tag,
                         pos,
+                        self.tag,
                         purchase_price=self.dummy_sub_cost,
                     )
                     add_ok = squad.add_player(dp)
@@ -465,12 +465,12 @@ def make_new_squad(
     squad = Squad(budget=opt_squad.budget, season=season)
     for idx in best_individual:
         player = opt_squad.players[int(idx)]
-        price = player.price(season, 1)
+        price = player.price(1, season)
         logger.debug(
             "%s %s %s %s",
             player.position(season),
             player,
-            player.team(season, 1),
+            player.team(1, season),
             price / 10 if price is not None else None,
         )
         squad.add_player(
@@ -485,8 +485,8 @@ def make_new_squad(
             for _ in range(opt_squad.dummy_per_position[pos]):
                 dp = DummyPlayer(
                     opt_squad.gameweeks,
-                    opt_squad.tag,
                     pos,
+                    opt_squad.tag,
                     purchase_price=opt_squad.dummy_sub_cost,
                 )
                 squad.add_player(dp)

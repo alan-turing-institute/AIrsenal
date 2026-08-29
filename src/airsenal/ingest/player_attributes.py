@@ -150,7 +150,7 @@ def fill_attributes_table_from_api(
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
-            player.player_id, season=season, gameweek=next_gw, dbsession=dbsession
+            player.player_id, gameweek=next_gw, season=season, dbsession=dbsession
         )
 
         if pa:

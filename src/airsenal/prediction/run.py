@@ -39,10 +39,11 @@ logger = get_logger(__name__)
 
 def calc_all_predicted_points(
     gameweeks: list[int],
-    season: str,
-    dbsession: Session,
+    *,
     points: PointsConfig | None = None,
     tag: str = "",
+    season: str,
+    dbsession: Session,
     player_model: PlayerModel | None = None,
     team_model: TeamModel | None = None,
 ) -> None:
@@ -61,7 +62,7 @@ def calc_all_predicted_points(
     )
 
     df_player = get_all_fitted_player_data(
-        season, gameweeks[0], model=player_model, dbsession=dbsession
+        gameweeks[0], season, model=player_model, dbsession=dbsession
     )
 
     df_bonus = fit_bonus_points(gameweeks[0], season) if points.bonus else None
@@ -80,9 +81,9 @@ def calc_all_predicted_points(
             df_saves,
             df_cards,
             df_def_con,
-            season,
             gameweeks=gameweeks,
             tag=tag,
+            season=season,
             dbsession=dbsession,
         )
         for pred in predictions:

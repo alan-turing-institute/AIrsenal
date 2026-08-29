@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 _warned_incomplete: set[tuple[str, int, int]] = set()
 
 
-def _warn_incomplete_data(season: str, gameweek: int, latest: int) -> None:
+def _warn_incomplete_data(gameweek: int, season: str, latest: int) -> None:
     key = (season, gameweek, latest)
     if key in _warned_incomplete:
         return
@@ -133,8 +133,8 @@ def list_players(
     position: str = "all",
     team: str = "all",
     order_by: str = "price",
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[Player]:
     """Print a list of players, and return their player_ids."""
@@ -149,7 +149,7 @@ def list_players(
             .limit(1)
         ).first()
         if last_pa and gameweek > last_pa.gameweek:
-            _warn_incomplete_data(season, gameweek, last_pa.gameweek)
+            _warn_incomplete_data(gameweek, season, last_pa.gameweek)
             gameweek = last_pa.gameweek
 
     gameweeks = [gameweek]
@@ -233,8 +233,8 @@ def list_players(
 
 def get_player_attributes(
     player_name_or_id: str | int,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> PlayerAttributes | None:
     """
@@ -269,8 +269,8 @@ def get_player_attributes(
 
 def get_max_matches_per_player(
     position: str = "all",
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> int:
     """
@@ -297,8 +297,8 @@ def get_max_matches_per_player(
     matches_per_player = dict.fromkeys(player_ids, 0)
     for score in scores:
         if not is_future_gameweek(
-            score.fixture.season,
             score.fixture.gameweek,
+            score.fixture.season,
             current_season=season,
             next_gameweek=gameweek,
         ):

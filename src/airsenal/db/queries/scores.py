@@ -122,7 +122,7 @@ def get_recent_playerscore_rows(
             )
         )
     if current_team_only:
-        team = player.team(season, last_gw)
+        team = player.team(last_gw, season)
         query = query.where(PlayerScore.player_team == team)
 
     return list(
@@ -154,11 +154,12 @@ def get_playerscores_for_player_gameweek(
 
 
 def get_player_scores_df(
-    season: str,
-    gameweek: int,
+    *,
     min_minutes: int = 0,
     max_minutes: int = MAX_MINUTES_MATCH,
     position: str | None = None,
+    gameweek: int,
+    season: str,
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """Player scores, filtered by minutes played and position."""
@@ -184,5 +185,5 @@ def get_player_scores_df(
     df = pd.read_sql(query, dbsession.connection())
 
     is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
-    exclude = df.apply(lambda r: is_fut(r["season"], r["gameweek"]), axis=1)
+    exclude = df.apply(lambda r: is_fut(r["gameweek"], r["season"]), axis=1)
     return df[~exclude]

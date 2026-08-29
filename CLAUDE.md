@@ -117,10 +117,12 @@ Full versions in [CodingConventions.md](CodingConventions.md). The machine-check
   bare strings (`"all"` is still a plain string where a position filter accepts it).
   Enforced by `tests/test_naming_conventions.py`.
 - **Gameweek naming:** `gameweek`, `gameweeks`, `n_gameweeks`. Same test.
-- **Argument order:** `other args → player/player_id → position → team → tag → gameweek →
-  season → fpl_team_id → dbsession → fetcher → verbose`. `tests/test_argument_order.py`
-  enforces it as a ratchet — 53 functions predate the check and are listed there, and
-  nothing may be added to that list.
+- **Argument order:** four groups — what it is about (`player_id`/`player`, `position`,
+  `team`), which run (`tag`), when (`gameweek`, `season`), what it talks to
+  (`fpl_team_id`, `fetcher`, `dbsession`), then `verbose`. Anything unlisted goes first.
+  `tests/test_argument_order.py` enforces it for every function, with no exemptions.
+  Where an optional argument ranks above a required one, the tail is keyword-only from
+  that point rather than reordered.
 - **Notebook imports** must resolve against the package: `tests/test_notebooks.py`.
 - **Docstrings:** [Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings),
   usually one line, and the first line is a summary and only that. An

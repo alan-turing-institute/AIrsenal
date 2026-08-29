@@ -64,7 +64,7 @@ def test_two_transfers_are_confirmed_once(monkeypatch):
 def test_the_lineup_is_not_applied_without_a_yes(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "")
     monkeypatch.setattr(lineup_module, "formation_table", lambda *a, **k: "")
-    assert lineup_module.check_proceed(squad=None, tag="t", gameweek=1) is False
+    assert lineup_module.check_proceed(squad=None, gameweek=1, tag="t") is False
 
 
 def test_a_library_function_does_not_read_stdin_for_a_team_id():
@@ -78,4 +78,4 @@ def test_a_library_function_does_not_read_stdin_for_a_team_id():
         FPL_TEAM_ID = None
 
     with pytest.raises(ValueError, match="No FPL team ID"):
-        transfers_module.build_init_priced_transfers(NoTeamId())
+        transfers_module.build_init_priced_transfers(fetcher=NoTeamId())

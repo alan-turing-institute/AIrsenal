@@ -164,14 +164,14 @@ def test_get_save_points():
     df_saves = pd.Series({1: 1, 2: 2})
 
     # >60 mins - return df value
-    assert get_save_points("GK", 1, 90, df_saves) == 1
-    assert get_save_points("GK", 2, 90, df_saves) == 2
+    assert get_save_points(1, "GK", 90, df_saves) == 1
+    assert get_save_points(2, "GK", 90, df_saves) == 2
     # <60 mins - zero
-    assert get_save_points("GK", 1, 50, df_saves) == 0
+    assert get_save_points(1, "GK", 50, df_saves) == 0
     # player not present in df_saves (no history)
-    assert get_save_points("GK", 3, 90, df_saves) == 0
+    assert get_save_points(3, "GK", 90, df_saves) == 0
     # not a goalkeeper - zero
-    assert get_save_points("DEF", 1, 90, df_saves) == 0
+    assert get_save_points(1, "DEF", 90, df_saves) == 0
 
 
 def test_get_card_points():
@@ -265,7 +265,7 @@ def test_get_fitted_player_model_numpyro():
     pm = NumpyroPlayerModel()
     assert isinstance(pm, NumpyroPlayerModel)
     with past_data_session_scope() as ts:
-        fpm = fit_player_data("FWD", "1819", 12, model=pm, dbsession=ts)
+        fpm = fit_player_data("FWD", 12, "1819", model=pm, dbsession=ts)
         assert isinstance(fpm, pd.DataFrame)
         assert len(fpm) > 0
         # The three outcomes partition a goal, so they must sum to one per player.
@@ -280,21 +280,21 @@ def test_get_fitted_player_model_conjugate():
     cpm = ConjugatePlayerModel()
     assert isinstance(cpm, ConjugatePlayerModel)
     with past_data_session_scope() as ts:
-        fcpm = fit_player_data("FWD", "1819", 12, model=cpm, dbsession=ts)
+        fcpm = fit_player_data("FWD", 12, "1819", model=cpm, dbsession=ts)
         assert isinstance(fcpm, pd.DataFrame)
         assert len(fcpm) > 0
 
 
 def test_get_result_dict():
     with past_data_session_scope() as ts:
-        d = get_result_dict("1819", 10, ts)
+        d = get_result_dict(10, "1819", ts)
         assert isinstance(d, dict)
         assert len(d) > 0
 
 
 def test_get_ratings_dict():
     with past_data_session_scope() as ts:
-        rd = get_result_dict("1819", 10, ts)
+        rd = get_result_dict(10, "1819", ts)
         teams = set(rd["home_team"]) | set(rd["away_team"])
         d = get_ratings_dict("1819", teams, ts)
         assert isinstance(d, dict)
@@ -313,31 +313,31 @@ def test_get_fitted_team_model():
     """
     # extended model
     with past_data_session_scope() as ts:
-        model_team = get_fitted_team_model("1819", 10, ts, model=DixonColesTeamModel())
+        model_team = get_fitted_team_model(10, "1819", ts, model=DixonColesTeamModel())
         assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
     # extended model with default epsilon
     with past_data_session_scope() as ts:
-        model_team = get_fitted_team_model("1819", 10, ts)
+        model_team = get_fitted_team_model(10, "1819", ts)
         assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
     # extended model with epsilon = 0.5
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model(
-            "1819", 10, ts, model=DixonColesTeamModel(epsilon=0.5)
+            10, "1819", ts, model=DixonColesTeamModel(epsilon=0.5)
         )
         assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
         assert model_team.epsilon == 0.5
     # neutral model with epsilon = 0.5
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model(
-            "1819", 10, ts, model=DixonColesTeamModel(neutral=True, epsilon=0.5)
+            10, "1819", ts, model=DixonColesTeamModel(neutral=True, epsilon=0.5)
         )
         assert isinstance(model_team.model, NeutralDixonColesMatchPredictor)
         assert model_team.epsilon == 0.5
     # neutral model with no epsilon passed
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model(
-            "1819", 10, ts, model=DixonColesTeamModel(neutral=True)
+            10, "1819", ts, model=DixonColesTeamModel(neutral=True)
         )
         assert isinstance(model_team.model, NeutralDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON

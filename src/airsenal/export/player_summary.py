@@ -46,7 +46,7 @@ def make_player_summary(season: str) -> None:
         player_dict = {"name": name}
         for input_key, output_key in keys_to_extract.items():
             if input_key == "opta_code" and not is_future_gameweek(
-                season, 1, "2324", 38
+                1, season, "2324", 38
             ):
                 # opta code only introduced from 24/25 season
                 continue

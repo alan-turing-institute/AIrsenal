@@ -113,8 +113,8 @@ def build_new_squad(
                 chip=_chip_label(chips, gw),
                 points_hit=0,
                 predicted_points=best_squad.get_expected_points(
-                    gw,
                     tag,
+                    gw,
                     bench_boost=chips.bench_boost == gw,
                     triple_captain=chips.triple_captain == gw,
                 ),
@@ -135,19 +135,19 @@ def build_new_squad(
 
     fill_initial_suggestion_table(
         best_squad,
-        fpl_team_id,
-        tag,
-        season=season,
         gameweek=gw_start,
+        tag=tag,
+        season=season,
+        fpl_team_id=fpl_team_id,
     )
     if is_replay:
         # if simulating a previous season also add suggestions to transaction table
         # to imitate applying transfers
         fill_initial_transaction_table(
             best_squad,
-            fpl_team_id,
-            tag,
-            season=season,
             gameweek=gw_start,
+            tag=tag,
+            season=season,
+            fpl_team_id=fpl_team_id,
         )
     return best_squad

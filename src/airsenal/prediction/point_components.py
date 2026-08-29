@@ -67,10 +67,10 @@ def fit_bonus_points(
 
     def get_bonus_df(min_minutes: int, max_minutes: int) -> pd.Series:
         df = get_player_scores_df(
-            season,
-            gameweek,
             min_minutes=min_minutes,
             max_minutes=max_minutes,
+            gameweek=gameweek,
+            season=season,
             dbsession=dbsession,
         )
         return mean_group_prior(
@@ -94,10 +94,10 @@ def fit_save_points(
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores_df(
-        season,
-        gameweek,
         min_minutes=min_minutes,
         position=Position.GK,
+        gameweek=gameweek,
+        season=season,
         dbsession=dbsession,
     )
 
@@ -117,7 +117,7 @@ def fit_card_points(
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     df = get_player_scores_df(
-        season, gameweek, min_minutes=min_minutes, dbsession=dbsession
+        min_minutes=min_minutes, gameweek=gameweek, season=season, dbsession=dbsession
     )
 
     df["card_pts"] = (
@@ -144,11 +144,11 @@ def fit_def_con(
         dfs = []
         for position in (Position.DEF, Position.MID, Position.FWD):
             df = get_player_scores_df(
-                season,
-                gameweek,
                 min_minutes=min_minutes,
                 max_minutes=max_minutes,
                 position=position,
+                gameweek=gameweek,
+                season=season,
                 dbsession=dbsession,
             ).dropna(subset="defensive_contribution")
             df["def_con_pts"] = (

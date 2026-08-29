@@ -47,8 +47,8 @@ type PlayersByPosition = dict[str, list[tuple[SquadPlayer, float]]]
 
 def choose_starting_eleven(
     players: list[SquadPlayer],
-    gameweek: int,
     tag: str,
+    gameweek: int,
     score_starting_eleven: Callable[[], float],
 ) -> float:
     """
@@ -86,12 +86,12 @@ def choose_starting_eleven(
         msg = "No valid formation found for squad"
         raise RuntimeError(msg)
     apply_formation(by_position, best_formation)
-    order_substitutes(players, gameweek, tag)
+    order_substitutes(players, tag, gameweek)
 
     return best_score
 
 
-def order_substitutes(players: list[SquadPlayer], gameweek: int, tag: str) -> None:
+def order_substitutes(players: list[SquadPlayer], tag: str, gameweek: int) -> None:
     """Number the bench by predicted points, best first."""
     subs = [p for p in players if not p.is_starting]
 
@@ -136,7 +136,7 @@ def is_substitution_allowed(
     return tuple(formation[pos] for pos in FORMATION_POSITIONS) in FORMATIONS
 
 
-def pick_captains(players: list[SquadPlayer], gameweek: int, tag: str) -> None:
+def pick_captains(players: list[SquadPlayer], tag: str, gameweek: int) -> None:
     """
     Make the two highest-scoring players captain and vice-captain.
 

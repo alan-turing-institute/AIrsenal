@@ -23,11 +23,12 @@ logger = get_logger(__name__)
 
 def sell_price(
     player: SquadPlayer,
-    season: str,
+    *,
     use_api: bool = False,
     gameweek: int | None = None,
-    dbsession: Session | None = None,
+    season: str,
     fetcher: FPLDataFetcher | None = None,
+    dbsession: Session | None = None,
 ) -> int:
     """Get sale price for a player in the squad, for the given gameweek.
 
@@ -69,7 +70,7 @@ def sell_price(
 
     # get player's current price from db if the API wasn't used
     if not price_now and player_db:
-        price_now = player_db.price(season, gameweek)
+        price_now = player_db.price(gameweek, season)
 
     # if all else fails just use the purchase price as the sale price for the player
     if not price_now:

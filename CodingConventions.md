@@ -119,30 +119,56 @@ algorithm, see [docs/adding-a-model.md](docs/adding-a-model.md).
 
 ## Order of function arguments
 
-Many AIrsenal functions take a lot of arguments. Where possible, order them like this:
+Many AIrsenal functions take a lot of arguments. Order them in these four groups:
+what the argument is about, which run of the model it refers to, when, and what it
+talks to. Anything not listed goes first.
 
-* Other arguments (not listed below)
-* *player* or *player_id* (instance of Player class, or the player_id in the database for that player)
+**What it is about**
+
+* *player_id* (the player_id in the database for that player) or *player* (an instance of the Player class)
 * *position* (`Position` from `game/enums.py`; `"all"` is still a plain string where a position filter accepts one)
 * *team* (str, 3-letter identifier for team, e.g. "ARS, MUN", or "all")
+
+**Which run**
+
 * *tag* (str, a unique identifier for a set of entries (e.g. points predictions) in the database)
+
+**When**
+
 * *gameweek* (int - one gameweek), or *gameweeks* (list of ints). A count is *n_gameweeks*. `tests/test_naming_conventions.py` enforces those three names, and that a parameter called `gameweek` is not secretly a list.
 * *season* (str, e.g. "2122" for the 2021/2022 season, often has a default value "CURRENT_SEASON")
+
+**What it talks to**
+
 * *fpl_team_id* (str, the ID of the squad in the FPL API - can be seen on the FPL website by looking at the URL after clicking on "View gameweek history").
-* *dbsession* (database session - usually defaulting to None and resolved with `get_session()` from `db/session.py`)
 * *fetcher* (instance of FPLDataFetcher - usually defaulting to None and resolved with `get_fetcher()` from `remote/fpl_api.py`)
-* *verbose* (boolean, if True, print out extra information)
+* *dbsession* (database session - usually defaulting to None and resolved with `get_session()` from `db/session.py`)
 
-`tests/test_argument_order.py` enforces this, as a ratchet rather than a rule:
-53 functions predate the check and are listed in its `KNOWN_OFFENDERS`. Nothing
-may be added to that list, so a new or renamed function has to follow the order;
-fixing an existing one means reordering its signature and deleting its line.
-Reordering is not free - a caller passing positionally breaks - which is why they
-were not all fixed at once.
+and *verbose* (boolean, if True, print out extra information) last of all.
 
-The order itself was checked against the code before the ratchet was written: no
-ordering of these names fits what is there, so the list records drift, not a
-different convention that the code had settled on instead.
+`tests/test_argument_order.py` enforces this for every function in the package,
+with no exemptions. It began as a ratchet over the 41 functions that predated the
+check; they have all been reordered, so a signature that does not follow the
+order now fails the test outright.
+
+The groups are the point. An earlier version of this order put `tag` between
+`gameweek` and `season`, which fitted the existing signatures marginally better
+but split the two time arguments around an unrelated one, and a convention nobody
+can recite is not worth the test that enforces it.
+
+Within the groups, `tag` sits above `gameweek` and `season` rather than after
+them because it is a required argument in 83% of the signatures that take it,
+against 56% for `season`, which usually carries `= CURRENT_SEASON`. A required
+argument cannot follow a defaulted one in a positional list, so the other
+placement would have forced seven more signatures to go keyword-only.
+
+Ten signatures cannot be put in this order by reordering alone, for that same
+reason: an optional argument (`position`, `tag`, `gameweek`) ranks above a
+required one. Their tails are keyword-only from that point on - `def
+get_predicted_points(gameweeks, *, position="all", team="all", tag,
+season=CURRENT_SEASON, dbsession=None)` - which keeps every default and every
+requirement as it was. Reach for this when a reorder would otherwise force a
+default onto an argument that should not have one.
 
 [link_google_docstrings]: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
 [link_pep8]: https://www.python.org/dev/peps/pep-0008/

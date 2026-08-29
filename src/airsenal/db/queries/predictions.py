@@ -90,9 +90,10 @@ def _predicted_points_for_player_id(
 
 def get_predicted_points(
     gameweeks: Iterable[int],
-    tag: str,
+    *,
     position: str = "all",
     team: str = "all",
+    tag: str,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[tuple[Player, float]]:
@@ -139,10 +140,11 @@ def get_predicted_points(
 
 
 def get_transfer_suggestions(
-    dbsession: Session,
+    *,
     gameweek: int | None = None,
     season: str | None = None,
     fpl_team_id: int | None = None,
+    dbsession: Session,
 ) -> Sequence[TransferSuggestion]:
     """
     The rows of the most recent transfer suggestion, optionally filtered.

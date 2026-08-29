@@ -104,10 +104,10 @@ def get_gw_transfer_suggestions(
     # gets the transfer suggestions for the latest optimization run,
     # regardless of fpl_team_id
     rows = get_transfer_suggestions(
-        get_session(),
         gameweek=next_gameweek(),
         season=CURRENT_SEASON,
         fpl_team_id=fpl_team_id,
+        dbsession=get_session(),
     )
     if not rows:
         logger.warning(
@@ -254,7 +254,7 @@ def remove_duplicates(
 
 
 def build_init_priced_transfers(
-    fetcher: FPLDataFetcher, fpl_team_id: int | None = None
+    *, fpl_team_id: int | None = None, fetcher: FPLDataFetcher
 ) -> list[dict[str, int]]:
     """
     Price the transfers out from the API's current picks rather than the database.
@@ -278,7 +278,7 @@ def build_init_priced_transfers(
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad.values()
     ]
-    transfer_in_suggestions = get_transfer_suggestions(get_session())
+    transfer_in_suggestions = get_transfer_suggestions(dbsession=get_session())
     if len(transfers_out) != len(transfer_in_suggestions):
         msg = (
             "Number of transfers in and out don't match: "
@@ -353,7 +353,9 @@ def make_transfers(
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
         logger.info("Making transfer list for starting team")
-        priced_transfers = build_init_priced_transfers(fetcher, team_id)
+        priced_transfers = build_init_priced_transfers(
+            fpl_team_id=team_id, fetcher=fetcher
+        )
         pre_transfer_bank = None
         post_transfer_bank = None
     else:

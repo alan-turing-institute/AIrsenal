@@ -37,8 +37,8 @@ def transfers(
     n_gameweeks: options.OptionalWeeksAhead = None,
     gameweek_start: options.GameweekStart = None,
     gameweek_end: options.GameweekEnd = None,
-    season: options.Season = options.DEFAULT_SEASON,
     tag: options.Tag = None,
+    season: options.Season = options.DEFAULT_SEASON,
     fpl_team_id: options.FplTeamId = None,
     # --- chips ---
     wildcard_week: options.WildcardWeek = -1,

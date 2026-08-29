@@ -24,11 +24,11 @@ def formation_table(
 ) -> Group:
     """Render the squad in a football formation layout.
 
-    Prediction values are displayed when both ``tag`` and ``gameweek`` are
+    Prediction values are displayed when both ``gameweek`` and ``tag`` are
     supplied. Set ``bench_boost`` or ``triple_captain`` to reflect a chip.
     """
-    if (tag is None) != (gameweek is None):
-        msg = "tag and gameweek must be provided together"
+    if (gameweek is None) != (tag is None):
+        msg = "gameweek and tag must be provided together"
         raise ValueError(msg)
     if bench_boost and triple_captain:
         msg = "bench_boost and triple_captain cannot both be active"
@@ -36,10 +36,10 @@ def formation_table(
 
     predicted_points = None
     chip_description = ""
-    if tag is not None and gameweek is not None:
+    if gameweek is not None and tag is not None:
         predicted_points = squad.get_expected_points(
-            gameweek,
             tag,
+            gameweek,
             bench_boost=bench_boost,
             triple_captain=triple_captain,
         )
@@ -53,7 +53,7 @@ def formation_table(
 
     def player_cell(player: SquadPlayer) -> RenderableType:
         lines = [f"[bold]{player}[/bold]", f"[dim]({player.team})[/dim]"]
-        if tag is not None and gameweek is not None:
+        if gameweek is not None and tag is not None:
             points = getattr(player, "predicted_points", {}).get(tag, {}).get(gameweek)
             lines.append(
                 f"[dim]{points:.1f} pts[/dim]" if points is not None else "[dim]-[/dim]"

@@ -34,8 +34,8 @@ class CandidatePlayer:
     def __init__(
         self,
         player: Player | str | int,
-        season: str = CURRENT_SEASON,
         gameweek: int | None = None,
+        season: str = CURRENT_SEASON,
         purchase_price: int | None = None,
         dbsession: Session | None = None,
     ) -> None:
@@ -66,7 +66,7 @@ class CandidatePlayer:
         self.name = pdata.name
         self.display_name = pdata.display_name
         self.season = season
-        team = pdata.team(season, gameweek)
+        team = pdata.team(gameweek, season)
         if team is None:
             msg = f"Player {self} has no team for season {season}, gameweek {gameweek}"
             raise ValueError(msg)
@@ -77,7 +77,7 @@ class CandidatePlayer:
             raise ValueError(msg)
         self.position = position
         if purchase_price is None:
-            purchase_price = pdata.price(season, gameweek)
+            purchase_price = pdata.price(gameweek, season)
             if purchase_price is None:
                 msg = f"{self} has no price for season {season}, gameweek {gameweek}"
                 raise ValueError(msg)
@@ -115,7 +115,7 @@ class CandidatePlayer:
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
 
-    def get_predicted_points(self, gameweek: int, tag: str) -> float:
+    def get_predicted_points(self, tag: str, gameweek: int) -> float:
         """This player's predicted points for one gameweek."""
         if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
@@ -131,8 +131,8 @@ class DummyPlayer:
     def __init__(
         self,
         gameweeks: Iterable[int],
-        tag: str,
         position: str,
+        tag: str,
         purchase_price: int = 45,
         pts: float = 0,
     ) -> None:
@@ -157,7 +157,7 @@ class DummyPlayer:
     def calc_predicted_points(self, tag: str) -> None:
         """Always False: a dummy is never available to start."""
 
-    def get_predicted_points(self, gameweek: int, tag: str) -> float:  # noqa: ARG002
+    def get_predicted_points(self, tag: str, gameweek: int) -> float:  # noqa: ARG002
         """Always zero: a dummy scores nothing."""
         return self.pts
 

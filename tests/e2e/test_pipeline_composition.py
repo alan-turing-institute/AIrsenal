@@ -152,7 +152,7 @@ def test_swapping_the_team_model_changes_the_predictions(seeded):
         {
             player.player_id: score
             for player, score in get_predicted_points(
-                FUTURE_GAMEWEEKS, tag, season=SEASON, dbsession=seeded
+                FUTURE_GAMEWEEKS, tag=tag, season=SEASON, dbsession=seeded
             )
         }
         for tag in tags

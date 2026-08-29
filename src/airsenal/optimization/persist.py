@@ -61,9 +61,9 @@ def _add_suggestions(
 def _add_transactions(
     priced_players: Iterable[PricedPlayer],
     in_or_out: int,
+    tag: str,
     gameweek: int,
     season: str,
-    tag: str,
     free_hit: int,
     fpl_team_id: int,
     time: str,
@@ -87,8 +87,8 @@ def _add_transactions(
 
 def _buy_prices(
     player_ids: Iterable[int],
-    season: str,
     gameweek: int,
+    season: str,
     dbsession: Session,
 ) -> Iterable[PricedPlayer]:
     """What each player cost, skipping any the database cannot price."""
@@ -97,7 +97,7 @@ def _buy_prices(
         if player is None:
             logger.warning("Failed to find player %s in db for transaction", player_id)
             continue
-        price = player.price(season, gameweek)
+        price = player.price(gameweek, season)
         if price is None:
             # Transaction.price is not nullable, so recording the transfer
             # anyway fails at flush time with an opaque integrity error.
@@ -142,9 +142,10 @@ def fill_suggestion_table(
 def fill_transaction_table(
     starting_squad: Squad,
     best_plan: Plan,
+    *,
+    tag: str | None = None,
     season: str,
     fpl_team_id: int,
-    tag: str | None = None,
     dbsession: Session | None = None,
 ) -> None:
     """
@@ -176,14 +177,16 @@ def fill_transaction_table(
         (
             player_id,
             starting_squad.get_sell_price_for_player(
-                player_id, gameweek=fill_gw, dbsession=dbsession
+                player_id,
+                gameweek=fill_gw,
+                dbsession=dbsession,
             ),
         )
         for player_id in outcome.players_out
     )
     for priced_players, in_or_out in (
         (sold, -1),
-        (_buy_prices(outcome.players_in, season, fill_gw, dbsession), 1),
+        (_buy_prices(outcome.players_in, fill_gw, season, dbsession), 1),
     ):
         _add_transactions(
             priced_players,
@@ -200,10 +203,11 @@ def fill_transaction_table(
 
 def fill_initial_suggestion_table(
     squad: Squad,
-    fpl_team_id: int,
+    *,
     tag: str,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
     """
@@ -217,7 +221,7 @@ def fill_initial_suggestion_table(
         [player.player_id for player in squad.players],
         in_or_out=1,
         gameweek=gameweek,
-        points_gain=squad.get_expected_points(gameweek, tag),
+        points_gain=squad.get_expected_points(tag, gameweek),
         chip=None,
         season=season,
         fpl_team_id=fpl_team_id,
@@ -229,10 +233,11 @@ def fill_initial_suggestion_table(
 
 def fill_initial_transaction_table(
     squad: Squad,
-    fpl_team_id: int,
+    *,
     tag: str,
-    season: str = CURRENT_SEASON,
     gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
     """

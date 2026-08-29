@@ -28,7 +28,7 @@ from airsenal.prediction.team_models import build_team_model
 logger = get_logger(__name__)
 
 
-def get_result_dict(season: str, gameweek: int, dbsession: Session) -> TeamFitData:
+def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitData:
     """Past results as a data frame, in the shape the team model is fitted to."""
     results = [
         s
@@ -37,8 +37,8 @@ def get_result_dict(season: str, gameweek: int, dbsession: Session) -> TeamFitDa
         ).all()
         if s.fixture.gameweek
         and not is_future_gameweek(
-            s.fixture.season,
             s.fixture.gameweek,
+            s.fixture.season,
             current_season=season,
             next_gameweek=gameweek,
         )
@@ -99,8 +99,8 @@ def get_ratings_dict(
 
 
 def get_training_data(
-    season: str,
     gameweek: int,
+    season: str,
     dbsession: Session,
     ratings: bool = True,
 ) -> TeamFitData:
@@ -112,7 +112,7 @@ def get_training_data(
         time_decay: Exponential decay rate for older matches. None weights them
             all equally.
     """
-    training_data = get_result_dict(season, gameweek, dbsession)
+    training_data = get_result_dict(gameweek, season, dbsession)
     if ratings:
         teams = list(set(training_data["home_team"]) | set(training_data["away_team"]))
         training_data["team_covariates"] = get_ratings_dict(
@@ -146,8 +146,8 @@ def add_new_teams_to_model(
 
 
 def get_fitted_team_model(
-    season: str,
     gameweek: int,
+    season: str,
     dbsession: Session,
     ratings: bool = True,
     model: TeamModel | None = None,

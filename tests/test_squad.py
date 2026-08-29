@@ -119,7 +119,7 @@ def test_empty_squad(fill_players):
     """An empty squad cannot be asked for expected points."""
     t = Squad()
     with pytest.raises(RuntimeError) as errmsg:
-        t.get_expected_points(1, "dummy")
+        t.get_expected_points("dummy", 1)
     assert str(errmsg.value) == "Squad is incomplete"
 
 
@@ -198,8 +198,8 @@ def test_formation_table():
     ]
     scoring_calls = []
 
-    def get_expected_points(gameweek, tag, bench_boost=False, triple_captain=False):
-        scoring_calls.append((gameweek, tag, bench_boost, triple_captain))
+    def get_expected_points(tag, gameweek, bench_boost=False, triple_captain=False):
+        scoring_calls.append((tag, gameweek, bench_boost, triple_captain))
         return 60.0 + 20.0 * bench_boost + 5.0 * triple_captain
 
     t.get_expected_points = get_expected_points
@@ -222,9 +222,9 @@ def test_formation_table():
     assert "with triple captain" in output
     assert "(TC)" in output
     assert scoring_calls == [
-        (1, "tag", False, False),
-        (1, "tag", True, False),
-        (1, "tag", False, True),
+        ("tag", 1, False, False),
+        ("tag", 1, True, False),
+        ("tag", 1, False, True),
     ]
 
 

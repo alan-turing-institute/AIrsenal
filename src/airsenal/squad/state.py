@@ -20,9 +20,9 @@ logger = get_logger(__name__)
 
 
 def get_bank(
-    fpl_team_id: int | None = None,
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
     fetcher: FPLDataFetcher | None = None,
 ) -> int:
     """
@@ -87,11 +87,11 @@ def get_entry_start_gameweek(
 
 
 def get_free_transfers(
-    fpl_team_id: int | None = None,
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
-    dbsession: Session | None = None,
+    fpl_team_id: int | None = None,
     fetcher: FPLDataFetcher | None = None,
+    dbsession: Session | None = None,
     is_replay: bool = False,
 ) -> int:
     """

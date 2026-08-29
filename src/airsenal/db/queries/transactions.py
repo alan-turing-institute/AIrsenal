@@ -27,9 +27,9 @@ def count_transactions(
 
 
 def transaction_exists(
-    fpl_team_id: int,
     gameweek: int,
     season: str,
+    fpl_team_id: int,
     time: str,
     pid_out: int,
     price_out: int,
@@ -76,11 +76,11 @@ def transaction_exists(
 
 def add_transaction(
     player_id: int,
+    tag: str,
     gameweek: int,
     in_or_out: int,
     price: int,
     season: str,
-    tag: str,
     free_hit: int,
     fpl_team_id: int,
     time: str,

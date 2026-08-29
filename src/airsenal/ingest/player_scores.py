@@ -42,7 +42,7 @@ ATTRIBUTES_HISTORY_START = datetime.date(2025, 9, 12)
 
 
 def load_attributes_history(season: str) -> pd.DataFrame | None:
-    if not is_future_gameweek(season, 1, "2526", 0):
+    if not is_future_gameweek(1, season, "2526", 0):
         logger.info(
             "Player attributes history not available before 2526 season, skipping"
         )
@@ -199,7 +199,7 @@ def fill_playerscores_from_json(
             if "played_for" in fixture_data:
                 played_for = fixture_data["played_for"]
             else:
-                played_for = player.team(season, gameweek)
+                played_for = player.team(gameweek, season)
             if not played_for:
                 continue
 

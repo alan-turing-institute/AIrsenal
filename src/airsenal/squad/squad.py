@@ -112,7 +112,7 @@ class Squad:
         gameweek = next_gameweek() if gameweek is None else gameweek
         if isinstance(p, int | str | Player):
             player: SquadPlayer = CandidatePlayer(
-                p, self.season, gameweek, purchase_price=price, dbsession=dbsession
+                p, gameweek, self.season, purchase_price=price, dbsession=dbsession
             )
         else:  # already a CandidatePlayer (or an equivalent test class)
             player = p
@@ -201,17 +201,17 @@ class Squad:
         player: SquadPlayer | int,
         use_api: bool = False,
         gameweek: int | None = None,
-        dbsession: Session | None = None,
         fetcher: FPLDataFetcher | None = None,
+        dbsession: Session | None = None,
     ) -> int:
         """What one of this squad's players would sell for, this gameweek."""
         if isinstance(player, int):
             player = self.get_player_from_id(player)  # get CandidatePlayer from squad
         return sell_price(
             player,
-            self.season,
             use_api=use_api,
             gameweek=gameweek,
+            season=self.season,
             dbsession=dbsession,
             fetcher=fetcher,
         )
@@ -245,12 +245,15 @@ class Squad:
         for p in self.players:
             p.calc_predicted_points(tag)
 
-    def order_substitutes(self, gameweek: int, tag: str) -> None:
+    def order_substitutes(self, tag: str, gameweek: int) -> None:
         """Number the bench by predicted points, best first."""
-        order_substitutes(self.players, gameweek, tag)
+        order_substitutes(self.players, tag, gameweek)
 
     def total_points_for_starting_11(
-        self, gameweek: int, tag: str, triple_captain: bool = False
+        self,
+        tag: str,
+        gameweek: int,
+        triple_captain: bool = False,
     ) -> float:
         """Sum of the starting eleven's predicted points."""
         total = 0.0
@@ -265,7 +268,10 @@ class Squad:
         return total
 
     def total_points_for_subs(
-        self, gameweek: int, tag: str, sub_weights: "SubWeights | None" = None
+        self,
+        tag: str,
+        gameweek: int,
+        sub_weights: "SubWeights | None" = None,
     ) -> float:
         """
         What the bench contributes to the squad's score for `gameweek`.
@@ -294,7 +300,7 @@ class Squad:
 
         return total
 
-    def optimize_lineup(self, gameweek: int, tag: str) -> None:
+    def optimize_lineup(self, tag: str, gameweek: int) -> None:
         if not self.is_complete():
             msg = "Squad is incomplete"
             raise RuntimeError(msg)
@@ -302,28 +308,30 @@ class Squad:
         self._calc_expected_points(tag)
         choose_starting_eleven(
             self.players,
-            gameweek,
             tag,
-            lambda: self.total_points_for_starting_11(gameweek, tag),
+            gameweek,
+            lambda: self.total_points_for_starting_11(tag, gameweek),
         )
-        pick_captains(self.players, gameweek, tag)
+        pick_captains(self.players, tag, gameweek)
 
     def get_expected_points(
         self,
-        gameweek: int,
         tag: str,
+        gameweek: int,
         bench_boost: bool = False,
         triple_captain: bool = False,
     ) -> float:
         """Expected points for the starting eleven."""
-        self.optimize_lineup(gameweek, tag)
+        self.optimize_lineup(tag, gameweek)
 
         total_score = self.total_points_for_starting_11(
-            gameweek, tag, triple_captain=triple_captain
+            tag,
+            gameweek,
+            triple_captain=triple_captain,
         )
 
         if bench_boost:
-            total_score += self.total_points_for_subs(gameweek, tag)
+            total_score += self.total_points_for_subs(tag, gameweek)
 
         return total_score
 
@@ -400,7 +408,9 @@ class Squad:
         total_value = self.budget  # initialise total to amount in the bank
         for p in self.players:
             total_value += self.get_sell_price_for_player(
-                p, use_api=use_api, gameweek=gameweek
+                p,
+                use_api=use_api,
+                gameweek=gameweek,
             )
         return total_value
 
@@ -429,6 +439,8 @@ def get_current_squad_from_api(
             check_budget=False,
             check_team=False,
         )
-    squad.budget = get_bank(fpl_team_id, season=CURRENT_SEASON, fetcher=fetcher)
+    squad.budget = get_bank(
+        fpl_team_id=fpl_team_id, season=CURRENT_SEASON, fetcher=fetcher
+    )
 
     return squad

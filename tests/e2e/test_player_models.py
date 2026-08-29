@@ -36,7 +36,7 @@ PROBABILITY_COLUMNS = ["prob_score", "prob_assist", "prob_neither"]
 def fitted(request, pipeline_db):
     model = build_player_model_for_test(request.param)
     return request.param, fit_player_data(
-        Position.FWD, FIT_SEASON, FIT_GAMEWEEK, model=model, dbsession=pipeline_db
+        Position.FWD, FIT_GAMEWEEK, FIT_SEASON, model=model, dbsession=pipeline_db
     )
 
 
@@ -63,8 +63,8 @@ def test_the_three_outcomes_partition_a_goal(fitted):
 def test_every_position_is_fitted(pipeline_db, name):
     """`get_all_fitted_player_data` is what the pipeline calls, once per position."""
     data = get_all_fitted_player_data(
-        FIT_SEASON,
         FIT_GAMEWEEK,
+        FIT_SEASON,
         model=build_player_model_for_test(name),
         dbsession=pipeline_db,
     )
