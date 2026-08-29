@@ -1,5 +1,6 @@
 """Recorded player performances."""
 
+from collections.abc import Sequence
 from functools import partial
 
 import pandas as pd
@@ -53,6 +54,25 @@ def get_player_scores(
             raise ValueError(msg)
         return player_scores[0]
     return player_scores
+
+
+def get_player_scores_for_gameweeks(
+    gameweeks: Sequence[int], season: str, dbsession: Session | None = None
+) -> list[PlayerScore]:
+    """
+    Every recorded performance in the given gameweeks of a season.
+
+    What a backtest scores a fitted player model against; empty when those
+    gameweeks have not been played.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    return list(
+        dbsession.scalars(
+            select(PlayerScore)
+            .join(Fixture, PlayerScore.fixture_id == Fixture.fixture_id)
+            .where(Fixture.season == season, Fixture.gameweek.in_(list(gameweeks)))
+        ).all()
+    )
 
 
 def get_recent_playerscore_rows(
