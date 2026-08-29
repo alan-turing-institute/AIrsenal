@@ -21,7 +21,7 @@ from airsenal.remote.transfermarkt import scrape_transfermarkt
 logger = get_logger(__name__)
 
 
-def main() -> None:
+def dump_api() -> None:
     """Save everything from the FPL API and the other sources, e.g. at season end."""
     repo_home = data_dir()
 

@@ -25,13 +25,19 @@ from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 logger = get_logger(__name__)
 
 
-def get_return_gameweek_by_date(
+def _return_gameweek_from_deadlines(
     return_date: datetime | None,
     team: str,
     ordered_deadlines: list[tuple[int, date]],
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]],
 ) -> int | None:
-    """Which gameweek a date falls in."""
+    """
+    Which gameweek a date falls in, from deadlines already loaded.
+
+    The database-backed answer is `db.queries.gameweeks.get_return_gameweek_by_date`.
+    This one is for the export loop, which walks every player and cannot afford a
+    query each time; None when the date is past the last deadline this run knows about.
+    """
     if return_date is None:
         return None
 
@@ -174,7 +180,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
                     return_date = dateparser.parse(
                         return_str, settings={"PREFER_DATES_FROM": "future"}
                     )
-                    return_gameweek = get_return_gameweek_by_date(
+                    return_gameweek = _return_gameweek_from_deadlines(
                         return_date, team, deadlines, fixtures
                     )
                 else:
@@ -204,7 +210,8 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
             )
 
 
-def main() -> None:
+def save_attributes() -> None:
+    """Append today's player attributes to the packaged season CSV."""
     now = datetime.now()
     fetcher = get_fetcher()
 

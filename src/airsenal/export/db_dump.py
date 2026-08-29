@@ -24,7 +24,8 @@ from airsenal.db.session import get_session
 logger = get_logger(__name__)
 
 
-def main() -> None:
+def dump_db() -> None:
+    """Write every table out to its own CSV in the packaged data directory."""
     # Dump Player database
     player_fieldnames = ["player_id", "fpl_api_id", "name", "opta_code"]
     save_table_fields(

@@ -184,7 +184,7 @@ def save_absences(
     return len(new_rows)
 
 
-def main() -> None:
+def save_expected_absences() -> None:
     """Write every current-season absence known to the database out to its CSV."""
     dbsession = get_session()
     attributes = dbsession.scalars(
