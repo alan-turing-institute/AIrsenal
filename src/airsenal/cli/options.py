@@ -252,7 +252,7 @@ NumThread = Annotated[
     int | None,
     typer.Option(
         min=1,
-        help="Worker processes for the transfer search. Defaults to every core.",
+        help="Worker processes for the transfer search.",
         rich_help_panel=OPTIMISATION,
     ),
 ]
@@ -308,6 +308,31 @@ NumIterations = Annotated[
         rich_help_panel=OPTIMISATION,
     ),
 ]
+
+DryRun = Annotated[
+    bool,
+    typer.Option(
+        help="Show what would be sent to the FPL API, and send nothing.",
+        rich_help_panel=OUTPUT,
+    ),
+]
+
+OutputDir = Annotated[
+    Path | None,
+    typer.Option(
+        help="Directory to write results to. Defaults to the current directory.",
+        rich_help_panel=OUTPUT,
+    ),
+]
+
+TagPrefix = Annotated[
+    str,
+    typer.Option(
+        help="Prefix for the result tag and filename. Defaults to a timestamped one.",
+        rich_help_panel=OUTPUT,
+    ),
+]
+
 
 # ------------------------------------------------------------------ chips ----
 
