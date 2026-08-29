@@ -17,13 +17,13 @@ from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.prediction.features import (
+from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
+from airsenal.prediction.point_components import (
     fit_bonus_points,
     fit_card_points,
     fit_def_con,
     fit_save_points,
 )
-from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
 from airsenal.prediction.points import PointsConfig, calc_predicted_points_for_player
 from airsenal.prediction.protocols import PlayerModel, TeamModel
 from airsenal.prediction.team_models import (
