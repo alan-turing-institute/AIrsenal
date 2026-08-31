@@ -279,7 +279,13 @@ def build_init_priced_transfers(
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad.values()
     ]
-    transfer_in_suggestions = get_transfer_suggestions(dbsession=get_session())
+    # Narrowed to this entry and this season. Unfiltered, the latest suggestion
+    # anywhere in the table won: a replay's from-scratch squad build is fifteen
+    # "in" rows for a dummy entry in a past season, which passes the length check
+    # below and would be bought for the real entry.
+    transfer_in_suggestions = get_transfer_suggestions(
+        season=CURRENT_SEASON, fpl_team_id=fpl_team_id, dbsession=get_session()
+    )
     if len(transfers_out) != len(transfer_in_suggestions):
         msg = (
             "Number of transfers in and out don't match: "

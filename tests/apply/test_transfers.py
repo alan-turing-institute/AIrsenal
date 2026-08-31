@@ -12,12 +12,14 @@ import pytest
 
 from airsenal.apply import transfers as transfers_module
 from airsenal.apply.transfers import (
+    build_init_priced_transfers,
     build_transfer_payload,
     deduct_transfer_price,
     price_transfers,
     remove_duplicates,
     separate_transfers_in_or_out,
 )
+from airsenal.game.season import CURRENT_SEASON
 
 
 class FakeFetcher:
@@ -233,3 +235,49 @@ def test_price_transfers_refuses_without_a_team_id(priced_world):
     priced_world.FPL_TEAM_ID = None
     with pytest.raises(RuntimeError, match="FPL team ID not set"):
         price_transfers([[1], [3]], priced_world)
+
+
+# --------------------------------------------------- the initial squad ---
+
+
+class PicksFetcher(PricingFetcher):
+    """A fetcher that also reports the entry's current fifteen picks."""
+
+    def __init__(self, now_costs, n_picks=15):
+        super().__init__(now_costs)
+        self._n_picks = n_picks
+
+    def get_current_picks(self, fpl_team_id=None):  # noqa: ARG002
+        return {
+            200 + i: {"element": 200 + i, "selling_price": 50}
+            for i in range(self._n_picks)
+        }
+
+
+def test_the_initial_squad_is_built_from_this_entrys_own_suggestions(
+    monkeypatch, priced_world
+):
+    """
+    A replay's from-scratch squad is not bought for the real entry.
+
+    The suggestions were read unfiltered, so the newest anywhere in the table
+    won - and a replay's squad build is fifteen "in" rows for a dummy entry in a
+    past season, exactly the shape that passes the count check below.
+    """
+    asked = {}
+
+    def fake_suggestions(*, season=None, fpl_team_id=None, **kwargs):
+        asked.update(season=season, fpl_team_id=fpl_team_id)
+        return [FakePlayer(i, 100 + i) for i in range(15)]
+
+    monkeypatch.setattr(transfers_module, "get_transfer_suggestions", fake_suggestions)
+    monkeypatch.setattr(transfers_module, "get_session", lambda: None)
+    # ordering has its own tests; it needs a database this one has no use for
+    monkeypatch.setattr(
+        transfers_module, "sort_by_position", lambda transfers: transfers
+    )
+    fetcher = PicksFetcher({100 + i: 50 for i in range(15)})
+
+    build_init_priced_transfers(fpl_team_id=4321, fetcher=fetcher)
+
+    assert asked == {"season": CURRENT_SEASON, "fpl_team_id": 4321}
