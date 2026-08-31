@@ -19,6 +19,28 @@ from airsenal.remote.discord import get_webhook_url, post_webhook
 logger = get_logger(__name__)
 
 
+def within_price(
+    predictions: list[tuple[Player, float]],
+    max_price: float | None,
+    gameweek: int,
+    season: str,
+) -> list[tuple[Player, float]]:
+    """
+    Drop players costing more than `max_price`, keeping ones with no price.
+
+    A list comprehension rather than `remove` while iterating, which skipped the
+    player after each one it dropped and so let some through above the cap. This
+    was written out twice, once per branch below, and was wrong in both.
+    """
+    if max_price is None:
+        return predictions
+    return [
+        (player, points)
+        for player, points in predictions
+        if (price := player.price(gameweek, season)) is None or price <= max_price
+    ]
+
+
 def get_top_predicted_points(
     gameweeks: Iterable[int] | None = None,
     position: str = "all",
@@ -89,12 +111,7 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
-        if max_price is not None:
-            for p in pts:
-                price = p[0].price(first_gw, season)
-                if price is not None and price > max_price:
-                    pts.remove(p)
-
+        pts = within_price(pts, max_price, first_gw, season)
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
 
         print_predictions(pts, table_title)
@@ -120,12 +137,7 @@ def get_top_predicted_points(
                 season=season,
                 dbsession=dbsession,
             )
-            if max_price is not None:
-                for p in pts:
-                    maybe_price = p[0].price(first_gw, season)
-                    if maybe_price is not None and maybe_price > max_price:
-                        pts.remove(p)
-
+            pts = within_price(pts, max_price, first_gw, season)
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
             title = f"{table_title}\n{each_position}" if i == 0 else str(each_position)
             print_predictions(pts, title)
