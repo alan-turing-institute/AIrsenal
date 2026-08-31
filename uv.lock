@@ -104,7 +104,7 @@ requires-dist = [
     { name = "regex", specifier = ">=2024.11.6" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "rich", specifier = ">=13.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.16" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.4" },
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "scipy", marker = "extra == 'tools'", specifier = ">=1.15.3" },
     { name = "seaborn", marker = "extra == 'plot'", specifier = ">=0.13.2" },

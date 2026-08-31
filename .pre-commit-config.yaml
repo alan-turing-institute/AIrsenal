@@ -23,16 +23,23 @@ repos:
         exclude: ^tests/dummy_data\.py$
       - id: trailing-whitespace
 
+  # Keep this in step with the `ruff` floor in pyproject.toml's dev extra. If the
+  # hook is older than the ruff `uv run ruff` picks up, the two can format the
+  # same file differently and the documented command produces a diff CI never
+  # asked for.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.16"
+    rev: "v0.16.4"
     hooks:
       # Run the linter.
       - id: ruff-check
         types_or: [ python, pyi, jupyter, pyproject ]
         args: [ "--fix", "--show-fixes" ]
-      # Run the formatter.
+      # Run the formatter. `markdown` is here because ruff formats fenced Python
+      # in Markdown, so the code samples in docs/ are held to the same style as
+      # the package - `ruff check` does not read Markdown, so it is not listed
+      # above.
       - id: ruff-format
-        types_or: [ python, pyi, jupyter ]
+        types_or: [ python, pyi, jupyter, markdown ]
 
   # additional_dependencies is the environment mypy gets, and it only needs the
   # libraries it has to *resolve*: the untyped ones named in

@@ -41,7 +41,7 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.15.16",
+    "ruff>=0.16.4",  # formats fenced Python in Markdown; see .pre-commit-config.yaml
     "pre-commit>=4.3.0",
     "mypy>=2.1.0",
     "pytest-cov>=7.0.0",
@@ -176,11 +176,11 @@ convention = "google"
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.
 [tool.ruff.lint.pylint]
-max-args = 19          # run_transfer_optimization
-max-positional-args = 19
-max-branches = 19      # get_fixtures, get_recent_scores, FPLDataFetcher.get_...
-max-statements = 82    # fill_attributes_table_from_api
-max-returns = 12       # fpl_http.get_json
+max-args = 13          # make_new_squad, calc_predicted_points_for_player
+max-positional-args = 13  # make_new_squad
+max-branches = 19      # find_fixture, FPLAuth._login_flow
+max-statements = 80    # fill_attributes_table_from_api
+max-returns = 12       # FPLAuth._login_flow
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
