@@ -37,7 +37,10 @@ def get_bank(
         raise RuntimeError(msg)
 
     if not fpl_team_id:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
+        # From the client we are using, not from a fresh default one: a caller
+        # that passes a fetcher for another entry and lets the id default was
+        # otherwise asking about $FPL_TEAM_ID's bank.
+        fpl_team_id = fetcher.FPL_TEAM_ID
     # check if we're logged in, which will let us get the most up-to-date info
     try:
         return fetcher.get_current_bank(fpl_team_id)
@@ -186,7 +189,8 @@ def get_players_for_gameweek(
     """The players an entry had in a gameweek, from the FPL API."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
     if not fpl_team_id:
-        fpl_team_id = get_fetcher().FPL_TEAM_ID
+        # See get_bank: the id has to come from the client being used.
+        fpl_team_id = fetcher.FPL_TEAM_ID
 
     player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
     player_api_id_list = [p["element"] for p in player_data]

@@ -177,7 +177,13 @@ def update_squad(
                 pid_out,
                 price_out,
             )
-            free_hit = free_hit_used_in_gameweek(gameweek)
+            # For this entry, not for whichever one $FPL_TEAM_ID names: without
+            # the id this built a client for the default entry and read its
+            # chips. The flag is written into the row, and
+            # `get_squad_from_transactions` drops every free-hit transfer, so a
+            # transfer wrongly stamped 1 leaves the reconstructed squad missing a
+            # player from then on.
+            free_hit = free_hit_used_in_gameweek(gameweek, fpl_team_id)
             add_transaction(
                 pid_out,
                 tag,
