@@ -63,8 +63,8 @@ def record_initial_squad_transactions(
     logger.info("Got starting squad from gameweek %s.", starting_gw)
     if starting_gw == next_gameweek():
         logger.info(
-            "This is team {fpl_team_id}'s first gameweek so nothing to add to the DB "
-            "yet."
+            "This is team %s's first gameweek so nothing to add to the DB yet.",
+            fpl_team_id,
         )
         return
 
