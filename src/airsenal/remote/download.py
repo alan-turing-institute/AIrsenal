@@ -33,13 +33,18 @@ def download_with_resume(
     for attempt in range(1, attempts + 1):
         existing = dest.stat().st_size if dest.exists() else 0
         headers = {"Range": f"bytes={existing}-"} if existing > 0 else {}
-        resp = session.get(
-            url,
-            headers=headers,
-            stream=True,
-            timeout=timeout,
-        )
+        resp = None
         try:
+            # Inside the try: a refused connection, a DNS failure or a timeout
+            # raises here rather than from the body, and outside it that escaped
+            # as a raw curl_cffi error - unretried, and past every downstream
+            # `except RemoteError`.
+            resp = session.get(
+                url,
+                headers=headers,
+                stream=True,
+                timeout=timeout,
+            )
             resp.raise_for_status()
 
             # If server ignored Range (status 200), restart file from scratch.
@@ -60,6 +65,7 @@ def download_with_resume(
                 msg = f"Failed to download {url} after {attempts} attempts"
                 raise RemoteError(msg) from e
         finally:
-            resp.close()
+            if resp is not None:
+                resp.close()
 
     return dest
