@@ -5,6 +5,7 @@ What `save_expected_absences` writes, `fill_absence_table` reads. Nothing else
 checks that the exporter and the importer agree about the columns.
 """
 
+import csv
 import warnings
 from contextlib import contextmanager
 from datetime import date
@@ -73,6 +74,11 @@ def _add_player(dbsession, player_id, name, gameweek, news, return_gameweek):
 
 @pytest.fixture
 def dbsession(tmp_path):
+    # A fresh database, so cached answers about gameweeks and dates from whichever
+    # database ran before it are wrong for this one. The gameweek lookups are
+    # cached on their arguments and not on the session - see core/caching.py - so
+    # only clearing them keeps `load_absences` reading the fixtures below.
+    clear_query_caches()
     with _session(tmp_path) as dbsession:
         for gameweek, date in GAMEWEEK_DATES.items():
             fixture = Fixture()
@@ -85,6 +91,7 @@ def dbsession(tmp_path):
             dbsession.add(fixture)
         dbsession.commit()
         yield dbsession
+    clear_query_caches()
 
 
 @pytest.mark.parametrize(
@@ -237,6 +244,78 @@ def test_loading_absences_emits_no_deprecated_date_adapter_warning(dbsession, tm
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
         load_absences(TEST_SEASON, dbsession, path)
+
+
+def _write_absence_csv(path, date_from, date_until):
+    """One absence row, in the columns `load_absences` reads."""
+    with open(path, "w", newline="") as outfile:
+        writer = csv.DictWriter(outfile, fieldnames=ABSENCE_CSV_COLUMNS)
+        writer.writeheader()
+        writer.writerow(
+            {
+                "season": TEST_SEASON,
+                "details": "Knee injury",
+                "from": date_from,
+                "until": date_until,
+                "days": "",
+                "games": "",
+                "reason": "injury",
+                "player": "Bob",
+                "url": "",
+            }
+        )
+    return path
+
+
+@pytest.mark.parametrize(
+    ("date_from", "expected_gw_from", "why"),
+    [
+        ("2025-08-22", 2, "the day before their team plays, so gameweek 2 is missed"),
+        ("2025-08-23", 3, "their team's matchday, so they played it and miss from 3"),
+        ("2025-08-24", 3, "the day after, so gameweek 2 was played and 3 is missed"),
+    ],
+)
+def test_gw_from_is_the_first_gameweek_the_absence_could_have_stopped_them_playing(
+    dbsession, tmp_path, date_from, expected_gw_from, why
+):
+    """
+    An absence beginning on matchday did not stop the player playing that match.
+
+    `date_from` is when the absence began, not the first match missed -
+    Transfermarkt dates it to the day, and three quarters of those days are ones
+    the player's team was not playing. So the first gameweek missed is the first
+    one that kicks off *after* it: a player hurt during Saturday's match is
+    available for Saturday's match, and one ruled out on the Friday is not.
+    """
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", None)
+    dbsession.commit()
+    path = _write_absence_csv(tmp_path / "a.csv", date_from, "2025-09-06")
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    absence = dbsession.scalars(select(Absence)).one()
+    assert absence.gw_from == expected_gw_from, why
+    # `date_from` itself is stored as given; only the gameweek is resolved
+    assert absence.date_from == date_from
+
+
+def test_an_absence_beginning_on_the_last_matchday_covers_nothing(dbsession, tmp_path):
+    """
+    Nothing after it kicks off, so there is no gameweek it could have stopped.
+
+    The resolved `gw_from` lands past the end of the season, which the half-open
+    range then covers nothing of - rather than reaching back to the match the
+    player did play.
+    """
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", None)
+    dbsession.commit()
+    # gameweek 4 is the last one with a fixture in this database
+    path = _write_absence_csv(tmp_path / "a.csv", "2025-09-06", "")
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    absence = dbsession.scalars(select(Absence)).one()
+    assert absence.gw_from > 4
 
 
 # ------------------------------------------------- reading absences back ---

@@ -2,10 +2,12 @@
 Loading player absences (injuries, suspensions) from the packaged CSV.
 
 The counterpart to `export/absences.py`. Each row gives a date range, which is
-resolved to the gameweeks the player missed and the gameweek they returned in.
+resolved to a half-open range of gameweeks: `gw_from` is the first one the
+absence could have kept the player out of, and `gw_until` the one they were back
+for. The two are equal when the absence cost them no match at all.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
@@ -56,9 +58,15 @@ def load_absences(
             )
             continue
         team_from = p.team(gw_date, season)
-        # then get actual return gameweek using the player's team
+        # The first gameweek the absence could have stopped them playing, being
+        # the first of their team's matches to kick off *after* it began - hence
+        # the day after, rather than `date_from` itself. `date_from` is when the
+        # absence began and not the first match missed: Transfermarkt dates it to
+        # the day, and three quarters of those days are ones the player's team was
+        # not playing. A player hurt during Saturday's match played Saturday's
+        # match; one ruled out on the Friday did not.
         gw_from = get_return_gameweek_by_date(
-            date_from, team_from, season, dbsession=dbsession
+            date_from + timedelta(days=1), team_from, season, dbsession=dbsession
         )
 
         date_until = None if row["until"] is pd.NaT else row["until"].date()
