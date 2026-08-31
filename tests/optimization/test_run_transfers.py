@@ -1,10 +1,17 @@
 """Replaying a plan's transfers to find the price each was made at."""
 
+import pytest
+
 from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.optimization import run_transfers as rt
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.plan import GameweekOutcome, Plan
-from airsenal.optimization.run_transfers import transfer_rows
+from airsenal.optimization.plan import (
+    GameweekOutcome,
+    Plan,
+    TransferSearchResult,
+)
+from airsenal.optimization.run_transfers import run_optimization, transfer_rows
 from airsenal.squad.squad import Squad
 from tests.conftest import session_scope
 
@@ -86,3 +93,58 @@ def test_transfer_rows_carries_a_wildcard_forward(fill_players):
 
     assert len(rows) == 16
     assert rows[-1].gameweek == 2
+
+
+class RecordingOptimizer:
+    """Returns a fixed result, so a test can drive run_optimization without a search."""
+
+    def __init__(self, plan: Plan) -> None:
+        self.result = TransferSearchResult(best=plan, baseline=plan)
+
+    def search(self, request) -> TransferSearchResult:  # noqa: ARG002
+        return self.result
+
+
+def _stub_reporting(monkeypatch, posted, dbsession):
+    """Everything run_optimization does with a result except decide whether to post."""
+    monkeypatch.setattr(rt, "get_fetcher", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "get_starting_squad", lambda *a, **k: _squad(dbsession))
+    monkeypatch.setattr(rt, "get_free_transfers", lambda *a, **k: 1)
+    monkeypatch.setattr(rt, "fill_suggestion_table", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "fill_transaction_table", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "transfer_rows", lambda *a, **k: [])
+    monkeypatch.setattr(rt, "squad_for_next_gw", lambda *a, **k: _squad(dbsession))
+    monkeypatch.setattr(rt, "formation_table", lambda *a, **k: "")
+    monkeypatch.setattr(rt, "lineup_strings", lambda *a, **k: [])
+    monkeypatch.setattr(rt, "discord_payload", lambda *a, **k: {})
+    monkeypatch.setattr(rt, "print_result_panel", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "print_plan_table", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "print_transfer_table", lambda *a, **k: None)
+    monkeypatch.setattr(rt, "post_webhook", lambda *a, **k: posted.append(True) or True)
+
+
+@pytest.mark.parametrize(("is_replay", "n_posts"), [(False, 1), (True, 0)])
+def test_only_a_real_run_posts_to_discord(
+    monkeypatch, fill_players, is_replay, n_posts
+):
+    """
+    A replay does not announce its transfers to the Discord channel.
+
+    It optimises every gameweek of a past season, so posting from the shared exit
+    of run_optimization sent a season's worth of transfers - times `--loop` - for
+    a season nobody is playing.
+    """
+    plan = Plan(root_gameweek=1, outcomes=(_outcome(1, GameweekMove(1), (0,), (30,)),))
+    posted: list[bool] = []
+    with session_scope() as ts:
+        _stub_reporting(monkeypatch, posted, ts)
+        run_optimization(
+            gameweeks=[1],
+            tag="test_replay_webhook",
+            season=CURRENT_SEASON,
+            fpl_team_id=4321,
+            optimizer=RecordingOptimizer(plan),
+            is_replay=is_replay,
+        )
+
+    assert len(posted) == n_posts

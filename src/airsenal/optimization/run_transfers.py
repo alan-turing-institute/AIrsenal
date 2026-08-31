@@ -349,14 +349,18 @@ def run_optimization(
         )
     )
 
-    post_webhook(
-        discord_payload(
-            plan,
-            transfers,
-            lineup_strings(
-                best_squad, best_plan.total_score, baseline_score, fpl_team_id
-            ),
+    if not is_replay:
+        # A replay optimises every gameweek of a past season, so posting from here
+        # meant a season's worth of transfers for a season nobody is playing - and
+        # a `--loop` multiplied it. The channel is for the entry being played.
+        post_webhook(
+            discord_payload(
+                plan,
+                transfers,
+                lineup_strings(
+                    best_squad, best_plan.total_score, baseline_score, fpl_team_id
+                ),
+            )
         )
-    )
 
     return best_squad, best_plan
