@@ -89,6 +89,11 @@ def transfer_rows(
     rows = []
     for outcome in plan.outcomes:
         gw = outcome.gameweek
+        # A free hit is reverted after the gameweek it is played in, so the search
+        # plans the next gameweek from the squad that went into this one. The walk
+        # has to put it back the same way or it prices the following gameweek's
+        # transfers against players the entry never owned.
+        before = squad if outcome.move.carry_forward else fastcopy(squad)
         for pid_out, pid_in in zip(
             outcome.players_out, outcome.players_in, strict=True
         ):
@@ -129,6 +134,7 @@ def transfer_rows(
                     purchase_price=purchase_price,
                 )
             )
+        squad = before
     return rows
 
 
