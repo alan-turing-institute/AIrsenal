@@ -397,6 +397,11 @@ class PlayerScore(Base):
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
+    # Read once per player per tag by the transfer search. A single season's tag
+    # is small enough to scan, but a replay leaves one tag per gameweek in the
+    # same table and every lookup then scans all of them. As with `Absence`,
+    # `create_all` does not alter a table that already exists.
+    __table_args__ = (Index("ix_player_prediction_tag_player", "tag", "player_id"),)
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship()
     fixture_id: Mapped[int] = mapped_column(
