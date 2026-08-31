@@ -151,22 +151,33 @@ def get_transfer_suggestions(
 
     One row per player in-or-out per gameweek; rows belonging to the same
     suggested plan share a timestamp, which is how the latest one is picked out.
+
+    `season` and `fpl_team_id` say whose run to look for, so they narrow the
+    search for that timestamp: taking the newest row in the whole table first
+    meant a run for another entry - or a replay of a past season, which writes
+    suggestions with today's clock - hid the run actually being asked for.
+    `gameweek` selects within the run that is found, and never reaches back to an
+    older one: a plan that does not cover the gameweek has nothing to say about
+    it, and a superseded plan's transfers must not be offered as current.
     """
+    # Which run: everything but the gameweek, which selects within it.
+    run = []
+    if season:
+        run.append(TransferSuggestion.season == season)
+    if fpl_team_id:
+        run.append(TransferSuggestion.fpl_team_id == fpl_team_id)
+
     last_timestamp = dbsession.scalars(
-        select(TransferSuggestion.timestamp).order_by(
-            TransferSuggestion.timestamp.desc()
-        )
+        select(TransferSuggestion.timestamp)
+        .where(*run)
+        .order_by(TransferSuggestion.timestamp.desc())
     ).first()
     if last_timestamp is None:
         return []
     query = select(TransferSuggestion).where(
-        TransferSuggestion.timestamp == last_timestamp
+        TransferSuggestion.timestamp == last_timestamp, *run
     )
     if gameweek:
         query = query.where(TransferSuggestion.gameweek == gameweek)
-    if season:
-        query = query.where(TransferSuggestion.season == season)
-    if fpl_team_id:
-        query = query.where(TransferSuggestion.fpl_team_id == fpl_team_id)
 
     return dbsession.scalars(query.order_by(TransferSuggestion.gameweek)).all()

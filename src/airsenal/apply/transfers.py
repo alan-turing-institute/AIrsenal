@@ -102,8 +102,8 @@ def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -
 def get_gw_transfer_suggestions(
     fpl_team_id: int | None = None,
 ) -> tuple[list[list[int]], int, int, str | None] | None:
-    # gets the transfer suggestions for the latest optimization run,
-    # regardless of fpl_team_id
+    # the latest optimization run for this entry; without an fpl_team_id, for
+    # whichever entry ran last
     rows = get_transfer_suggestions(
         gameweek=next_gameweek(),
         season=CURRENT_SEASON,
