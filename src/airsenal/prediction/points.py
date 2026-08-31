@@ -1,6 +1,5 @@
 """Turning fitted models into predicted points for a player in a fixture."""
 
-from collections import defaultdict
 from dataclasses import dataclass
 
 import numpy as np
@@ -12,7 +11,6 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, Player, PlayerPrediction
 from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.fixtures import get_fixtures_for_player
-from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.session import get_session
 from airsenal.game.enums import Position
@@ -155,7 +153,7 @@ def calc_predicted_points_for_player(
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
     *,
-    gameweeks: list[int] | None = None,
+    gameweeks: list[int],
     fixtures_behind: int | None = None,
     min_fixtures_behind: int = 3,
     tag: str = "",
@@ -170,9 +168,6 @@ def calc_predicted_points_for_player(
             msg = f"Player {player} not found in database"
             raise ValueError(msg)
         player = p
-
-    if not gameweeks:
-        gameweeks = list(range(next_gameweek(), min(next_gameweek() + 3, 38)))
 
     if fixtures_behind is None:
         fixtures_behind = len(gameweeks)
@@ -205,7 +200,6 @@ def calc_predicted_points_for_player(
         msg = "Recent minutes is empty."
         raise ValueError(msg)
 
-    expected_points = defaultdict(float)
     predictions = []
 
     for fixture in fixtures:
@@ -220,7 +214,6 @@ def calc_predicted_points_for_player(
         team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
 
         points = 0.0
-        expected_points[gameweek] = points
 
         if (
             sum(recent_minutes) == 0
@@ -264,7 +257,6 @@ def calc_predicted_points_for_player(
             raise ValueError(msg)
 
         predictions.append(make_prediction(player, fixture, points, tag))
-        expected_points[gameweek] += points
     return predictions
 
 

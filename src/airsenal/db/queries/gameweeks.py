@@ -310,8 +310,8 @@ def is_future_gameweek(
     """Whether this season and gameweek are at or after the current one."""
     if next_gameweek is None:
         # The parameter shadows the module-level next_gameweek() function, so go via
-        # the cache it reads. Renaming the parameter is not an option: callers pass it
-        # by keyword (e.g. prediction_utils.py:754).
+        # the cache it reads. Renaming the parameter is not an option: callers pass
+        # it by keyword.
         next_gameweek = _gameweek_cache.get(current_season, None, None)
     return (
         season == current_season and (gameweek is None or gameweek >= next_gameweek)
@@ -342,7 +342,7 @@ def get_gameweeks_array(
 
     # Set defaults for undefined arguments
     if gameweek_start is None:
-        gameweek_start = next_gameweek()
+        gameweek_start = next_gameweek(season=season, dbsession=dbsession)
     if gameweek_end is None:
         if n_gameweeks is None:
             # How far ahead to look by default is a decision about a run, not
