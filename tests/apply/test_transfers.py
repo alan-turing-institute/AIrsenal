@@ -142,6 +142,28 @@ def test_a_chip_sets_its_own_flag(chip, field):
     assert payload[field] is True
 
 
+@pytest.mark.parametrize("chip", ["bench_boost", "triple_captain"])
+def test_a_lineup_chip_adds_nothing_to_the_transfer_payload(chip):
+    """
+    Only the two squad chips belong in a transfer.
+
+    The payload used to be built by stripping the underscore out of whatever chip
+    the suggestion carried, which posted a `benchboost` key the transfers endpoint
+    does not define.
+    """
+    payload = build_transfer_payload([], 7, FakeFetcher(), chip)
+    assert payload["wildcard"] is False
+    assert payload["freehit"] is False
+    assert set(payload) == {
+        "confirmed",
+        "entry",
+        "event",
+        "transfers",
+        "wildcard",
+        "freehit",
+    }
+
+
 def test_the_transfers_are_carried_through_untouched():
     transfers = [priced(1, 75, 2, 70)]
     payload = build_transfer_payload(transfers, 7, FakeFetcher(), None)

@@ -15,6 +15,7 @@ from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player, get_player_from_api_id
 from airsenal.db.queries.predictions import get_transfer_suggestions
 from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.history import get_starting_squad
@@ -305,6 +306,16 @@ def build_init_priced_transfers(
     return [{**transfers_in[i], **transfers_out[i]} for i in range(len(transfers_in))]
 
 
+# Only the two squad chips are part of a transfer. Bench boost and triple captain
+# are lineup chips, and the endpoint has no field for them - stripping the
+# underscore off the chip name posted a `benchboost` key the API does not define.
+# Keyed by `Chip`, which is a StrEnum, so a plain chip string looks up fine.
+TRANSFER_CHIP_FIELDS: dict[str, str] = {
+    Chip.WILDCARD: "wildcard",
+    Chip.FREE_HIT: "freehit",
+}
+
+
 def build_transfer_payload(
     priced_transfers: list[dict[str, int]],
     current_gw: int,
@@ -320,7 +331,15 @@ def build_transfer_payload(
         "freehit": False,
     }
     if chip_played:
-        transfer_payload[chip_played.replace("_", "")] = True
+        field = TRANSFER_CHIP_FIELDS.get(chip_played)
+        if field is None:
+            logger.info(
+                "%s is not activated through the transfers endpoint - play it on "
+                "the website.",
+                chip_played,
+            )
+        else:
+            transfer_payload[field] = True
 
     logger.debug("%s", transfer_payload)
     return transfer_payload
