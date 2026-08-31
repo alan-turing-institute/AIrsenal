@@ -220,8 +220,14 @@ def count_expected_outputs(
 
     # if allow_unused_transfers is False the baseline of no transfers can be removed
     # above. Check whether the 1st strategy is the baseline and if not add it back in.
+    #
+    # `not branches` is the case where the constraints admit no move at all -
+    # --max-transfers 0 with unused transfers disallowed and a full bank of free
+    # transfers, which the search reaches by forcing at least one transfer and then
+    # being allowed none. Doing nothing is still a plan, so the answer is the
+    # baseline on its own rather than an IndexError from inside the progress sizing.
     baseline_moves = (GameweekMove(),) * gw_ahead
-    baseline_excluded = branches[0][2] != baseline_moves
+    baseline_excluded = not branches or branches[0][2] != baseline_moves
     if baseline_excluded:
         branches.insert(0, (max_free_transfers, 0, baseline_moves))
 
@@ -626,7 +632,9 @@ def search_transfer_tree(
     result_queue.put(None)
     result_thread.join()
 
-    return finished + ([baseline] if baseline else [])
+    # `is not None`, not truthiness: Plan defines __len__, so a plan covering no
+    # gameweeks is falsy and would be dropped here rather than reported.
+    return finished + ([baseline] if baseline is not None else [])
 
 
 class TreeSearchOptimizer:

@@ -7,7 +7,11 @@ asks either question, and the count exists to size a progress bar.
 """
 
 from airsenal.game.enums import Chip
-from airsenal.optimization.moves import ChipSchedule, GameweekChips
+from airsenal.optimization.moves import (
+    MAX_FREE_TRANSFERS,
+    ChipSchedule,
+    GameweekChips,
+)
 from airsenal.optimization.transfer_optimizers.tree_search import (
     count_expected_outputs,
     next_week_transfers,
@@ -619,3 +623,41 @@ def test_count_expected_play_free_hit_no_unused():
         chip_schedule=ChipSchedule.from_weeks([1, 2], {Chip.FREE_HIT: 1}),
     )
     assert (count, baseline_excluded) == (4, True)
+
+
+def test_next_week_transfers_offers_nothing_when_no_move_is_legal():
+    """
+    A full bank plus --max-transfers 0 leaves no legal move.
+
+    `allow_unused_transfers=False` forces at least one transfer once a free
+    transfer would be lost, and `max_opt_transfers=0` allows none, so the two
+    together rule out every count.
+    """
+    assert (
+        next_week_transfers(
+            MAX_FREE_TRANSFERS,
+            0,
+            allow_unused_transfers=False,
+            max_opt_transfers=0,
+        )
+        == []
+    )
+
+
+def test_count_expected_outputs_with_no_legal_move_is_the_baseline_alone():
+    """
+    Doing nothing is still a plan, so the count is one, not an IndexError.
+
+    `airsenal run --max-transfers 0` reaches this for an entry with a full bank of
+    free transfers, and used to fail inside the progress-bar sizing with a bare
+    "list index out of range".
+    """
+    count, baseline_excluded = count_expected_outputs(
+        2,
+        free_transfers=MAX_FREE_TRANSFERS,
+        next_gw=1,
+        allow_unused_transfers=False,
+        max_opt_transfers=0,
+    )
+    # the baseline falls outside the tree, so the search computes it separately
+    assert (count, baseline_excluded) == (1, True)

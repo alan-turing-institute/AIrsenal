@@ -145,6 +145,22 @@ def test_every_strategy_considered_is_kept_for_the_dump():
     assert len(TransferSearchResult.from_plans(strategies).considered) == 2
 
 
+def test_the_baseline_on_its_own_is_a_valid_result():
+    """
+    Doing nothing is an answer, not a failed search.
+
+    Constraints that admit no move - --max-transfers 0 with a full bank of free
+    transfers and unused transfers disallowed - leave the tree empty, and the
+    baseline the search computes separately is then the only plan there is.
+    """
+    baseline = _strategy(GameweekMove(), points=5.0)
+
+    result = TransferSearchResult.from_plans([baseline])
+    assert result.best is baseline
+    assert result.baseline is baseline
+    assert result.baseline_score == 5.0
+
+
 def test_finding_no_plan_at_all_is_an_error():
     with pytest.raises(ValueError, match="Failed to find a plan"):
         TransferSearchResult.from_plans([])
