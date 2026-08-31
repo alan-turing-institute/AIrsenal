@@ -35,6 +35,18 @@ AIRSENAL_ENV_KEYS = [
     "DISCORD_WEBHOOK",
 ]
 
+# The subset of the above that is a credential rather than a setting. `airsenal env
+# get` with no argument dumps every configured value, and a password or a webhook
+# URL in that output outlives the terminal it was printed to.
+SECRET_ENV_KEYS = frozenset(
+    {
+        "FPL_PASSWORD",
+        "AIRSENAL_DB_PASSWORD",
+        # anyone holding the URL can post to the channel, so it is a credential
+        "DISCORD_WEBHOOK",
+    }
+)
+
 
 def check_valid_key[**P, R](
     func: Callable[Concatenate[str, P], R],

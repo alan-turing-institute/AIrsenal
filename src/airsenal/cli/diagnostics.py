@@ -10,6 +10,7 @@ from airsenal import __version__
 from airsenal.core.env import (
     AIRSENAL_ENV_KEYS,
     AIRSENAL_HOME,
+    SECRET_ENV_KEYS,
     get_env,
 )
 from airsenal.core.logging import get_logger
@@ -40,10 +41,18 @@ def redact_db_password(conn_str: str) -> str:
 
 
 def print_env() -> None:
+    """
+    Show what AIrsenal is configured with, without printing any credential.
+
+    Values named in `SECRET_ENV_KEYS` are reported as set or not rather than
+    echoed - the connection string two lines up is redacted for the same reason,
+    and dumping `FPL_PASSWORD` underneath it would undo that. `airsenal env get
+    FPL_PASSWORD` still shows one secret when it is asked for by name.
+    """
     logger.info("AIRSENAL_VERSION: %s", __version__)
     logger.info("AIRSENAL_HOME: %s", AIRSENAL_HOME)
     conn_str = get_connection_string()
     logger.info("DB_CONNECTION_STRING: %s", redact_db_password(conn_str))
     for k in AIRSENAL_ENV_KEYS:
         if value := get_env(k, str):
-            logger.info("%s: %s", k, value)
+            logger.info("%s: %s", k, "***" if k in SECRET_ENV_KEYS else value)
