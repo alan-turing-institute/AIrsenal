@@ -34,16 +34,22 @@ HEADERS = {
     )
 }
 
+# `requests` has no default timeout, unlike the curl_cffi sessions the rest of
+# `remote` uses, so a stalled connection would wait for ever. A scrape is three
+# pages for each of ~600 players, and any one of them hanging stops the run.
+TIMEOUT_SECONDS = 30.0
 
-def _get(url: str) -> requests.Response:
+
+def _get(url: str, timeout: float = TIMEOUT_SECONDS) -> requests.Response:
     """
     Fetch a Transfermarkt page, failing the way the rest of `remote` fails.
 
     Checks the status, so an error page is a `RemoteError` here rather than
-    whatever the HTML parser makes of it further away.
+    whatever the HTML parser makes of it further away. A timeout is a
+    `RemoteConnectionError`, like any other failure to reach the site.
     """
     try:
-        page = requests.get(url, headers=HEADERS)
+        page = requests.get(url, headers=HEADERS, timeout=timeout)
     except requests.exceptions.RequestException as e:
         msg = f"Unable to reach Transfermarkt at {url}"
         raise RemoteConnectionError(msg) from e
