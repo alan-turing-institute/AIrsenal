@@ -28,7 +28,7 @@ repos:
   # same file differently and the documented command produces a diff CI never
   # asked for.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.16.4"
+    rev: "v0.16.5"
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -51,7 +51,7 @@ repos:
   # an untyped-decorator error. If this hook and `uv run mypy` ever disagree,
   # something is missing here.
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v2.1.0"
+    rev: "v2.3.1"
     hooks:
       - id: mypy
         files: ^(src/airsenal|tools)/
@@ -73,7 +73,7 @@ repos:
   # is an edge between two modules, so it needs the whole import graph and there is
   # nothing to narrow to from the files being committed.
   - repo: https://github.com/seddonym/import-linter
-    rev: v2.13
+    rev: v2.14
     hooks:
       - id: import-linter
         entry: uv run --extra dev lint-imports

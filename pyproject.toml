@@ -41,15 +41,15 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.16.4",  # formats fenced Python in Markdown; see .pre-commit-config.yaml
+    "ruff>=0.16.5",  # formats fenced Python in Markdown; see .pre-commit-config.yaml
     "pre-commit>=4.3.0",
-    "mypy>=2.1.0",
+    "mypy>=2.3.1",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "types-dateparser>=1.2.2.20250809",
     "types-requests>=2.32.4.20250913",
     "types-python-dateutil>=2.9.0.20250822",
-    "import-linter>=2.13",  # `protected` contract type
+    "import-linter>=2.14",  # `protected` contract type
 ]
 # What the one-off scripts under tools/ need. Not packaged, and not needed to use
 # AIrsenal; install with `uv sync --extra tools` to run them from a checkout.
