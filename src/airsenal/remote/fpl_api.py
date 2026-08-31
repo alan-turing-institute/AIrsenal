@@ -170,7 +170,12 @@ class FPLDataFetcher:
         Without an `fpl_team_id` this is our own team, `$FPL_TEAM_ID`, and the
         result is cached.
         """
-        if (not fpl_team_id) and (gameweek in self.fpl_team_data):
+        # Whether this is our own team has to be decided before the id is filled
+        # in below: testing the filled-in id for the *write* meant the cache was
+        # only ever written when there was no team configured at all, so the read
+        # above could never hit and every call re-requested.
+        is_own_team = not fpl_team_id
+        if is_own_team and gameweek in self.fpl_team_data:
             return self.fpl_team_data[gameweek]
         if not fpl_team_id:
             fpl_team_id = self.FPL_TEAM_ID
@@ -178,21 +183,30 @@ class FPLDataFetcher:
         fpl_team_data: dict[str, Any] = self._get(
             url, err_msg=f"Unable to access FPL team API {url}"
         )
-        if not fpl_team_id:
+        if is_own_team:
             self.fpl_team_data[gameweek] = fpl_team_data
         return fpl_team_data
 
     def get_fpl_team_history_data(self, team_id: int | None = None) -> dict[str, Any]:
-        """Our entry's season history from the FPL API."""
-        if self.fpl_team_history_data and not team_id:
+        """
+        An entry's season history from the FPL API.
+
+        Only our own team's is cached. Storing another entry's response in that
+        one attribute meant a later call with no `team_id` handed back whoever was
+        asked about last.
+        """
+        is_own_team = not team_id
+        if is_own_team and self.fpl_team_history_data:
             return self.fpl_team_history_data
         if not team_id:
             team_id = self.FPL_TEAM_ID
         url = FPL_HISTORY_URL.format(team_id)
-        self.fpl_team_history_data = self._get(
+        history: dict[str, Any] = self._get(
             url, err_msg="Unable to access FPL team history API"
         )
-        return self.fpl_team_history_data
+        if is_own_team:
+            self.fpl_team_history_data = history
+        return history
 
     def get_fpl_transfer_data(
         self, fpl_team_id: int | None = None
@@ -360,10 +374,10 @@ class FPLDataFetcher:
     def post_transfers(self, transfer_payload: dict[str, Any]) -> None:
         """Make transfers via the API.
 
-        WARNING: This can't be undone and may incur points hits. It also doesn't support
-        activating chips currently, so this must be done manually especially if you are
-        using a wildcard or free hit chip (in which case the transfers will be applied
-        as normal transfers with points hits).
+        WARNING: This can't be undone and may incur points hits. The payload can
+        activate a wildcard or a free hit, which are part of a transfer; the bench
+        boost and triple captain are lineup chips and have to be played on the
+        website.
         """
         self.login()
         err_msg = (
@@ -379,6 +393,11 @@ class FPLDataFetcher:
 
 
 @cache
+def _fetcher_for(fpl_team_id: int | None) -> FPLDataFetcher:
+    """One client per team, keyed on a single normalised id."""
+    return FPLDataFetcher(fpl_team_id)
+
+
 def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     """
     The shared FPL API client, created on first use.
@@ -387,8 +406,16 @@ def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     response cache; a fresh FPLDataFetcher would re-request everything. Cached per
     `fpl_team_id`, so callers acting for a non-default team still get one shared
     instance per team rather than colliding with the default team's.
+
+    The id is normalised first, because the cache key is what callers pass rather
+    than what they mean: `functools.cache` keys `get_fetcher()`,
+    `get_fetcher(None)` and `get_fetcher(fpl_team_id=None)` three different ways,
+    and naming the default team explicitly is a fourth. All four are the same
+    entry, and each extra key was another client with another empty response cache.
     """
-    return FPLDataFetcher(fpl_team_id)
+    if fpl_team_id == FPL_TEAM_ID:
+        fpl_team_id = None
+    return _fetcher_for(fpl_team_id)
 
 
 def require_fpl_team_id(fpl_team_id: int | None = None) -> int:
