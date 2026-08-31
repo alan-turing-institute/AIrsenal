@@ -8,10 +8,12 @@ and a stub transfer search, so the whole thing runs in seconds and forks nothing
 """
 
 import json
+from typing import ClassVar
 
 import pytest
 
 from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
+from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.plan import GameweekOutcome, Plan, TransferSearchResult
 from airsenal.optimization.squad_optimizers import (
@@ -26,6 +28,7 @@ from airsenal.pipeline import (
     replay_season,
     run_replays,
 )
+from airsenal.pipeline.replay import _gameweek_outcome
 from airsenal.prediction.player_models import build_player_model
 from airsenal.prediction.team_models import build_team_model
 from tests.e2e.conftest import GAMEWEEKS_PER_PAST_SEASON, PAST_SEASONS
@@ -174,3 +177,78 @@ def test_run_replays_returns_one_result_per_loop(seeded, tmp_path_factory):
     )
     assert len(results) == 2
     assert len(list(out.glob("*.json"))) == len(results)
+
+
+# ----------------------------------------------------------------- chips ---
+
+
+class ChipRecordingSquad:
+    """Records the chip flags it was scored with, and nothing else."""
+
+    players: ClassVar[list] = []
+
+    def __init__(self):
+        self.expected_calls = []
+        self.actual_calls = []
+
+    def get_expected_points(
+        self, _tag, _gameweek, bench_boost=False, triple_captain=False
+    ):
+        self.expected_calls.append((bench_boost, triple_captain))
+        return 0.0
+
+    def get_actual_points(
+        self, _gameweek, _season, triple_captain=False, bench_boost=False
+    ):
+        self.actual_calls.append((bench_boost, triple_captain))
+        return 0
+
+
+def _plan_playing(chip):
+    return Plan(
+        root_gameweek=1,
+        outcomes=(
+            GameweekOutcome(
+                gameweek=1,
+                move=GameweekMove(chip=chip),
+                points=0.0,
+                discount_factor=1.0,
+                points_hit=0,
+                free_transfers=1,
+            ),
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    ("chip", "expected_flags"),
+    [
+        (Chip.BENCH_BOOST, (True, False)),
+        (Chip.TRIPLE_CAPTAIN, (False, True)),
+        (Chip.WILDCARD, (False, False)),
+        (None, (False, False)),
+    ],
+)
+def test_a_replayed_gameweek_is_scored_with_the_chip_it_played(chip, expected_flags):
+    """
+    Both point totals are scored with the chip, not without it.
+
+    A bench boost scores the bench and a triple captain trebles, so scoring a
+    chip week as though no chip were played understates exactly the weeks the
+    chip was meant to win - and `total_points` is what two replays are compared on.
+    """
+    squad = ChipRecordingSquad()
+    row = _gameweek_outcome("tag", 1, squad, _plan_playing(chip), "2526")
+
+    assert squad.expected_calls == [expected_flags]
+    assert squad.actual_calls == [expected_flags]
+    assert row.chip_played == (str(chip) if chip else None)
+
+
+def test_a_gameweek_with_no_plan_is_scored_without_chips():
+    """A squad built from scratch has no plan to read a chip off."""
+    squad = ChipRecordingSquad()
+    row = _gameweek_outcome("tag", 1, squad, None, "2526")
+
+    assert squad.actual_calls == [(False, False)]
+    assert row.chip_played is None

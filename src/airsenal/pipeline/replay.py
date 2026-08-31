@@ -27,6 +27,7 @@ from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
+from airsenal.game.enums import Chip
 from airsenal.pipeline.run import AIrsenalPipeline
 
 logger = get_logger(__name__)
@@ -73,6 +74,9 @@ class ReplayGameweek:
     expected_points: float
     # Already net of the points hit, so it is what the entry actually scored.
     actual_points: float
+    # Which chip the plan played, if any. Both point totals above are scored with
+    # it, so a replay that cannot say which chip it used cannot be read back.
+    chip_played: str | None = None
 
     @property
     def prediction_error(self) -> float:
@@ -236,6 +240,12 @@ def _gameweek_outcome(
     # and unlimited transfers means no points hit.
     outcome = plan.outcome(gameweek) if plan is not None else None
     points_hit = outcome.points_hit if outcome else 0
+    # A bench boost scores the bench too and a triple captain trebles rather than
+    # doubles. Scoring a chip gameweek as though no chip were played understates
+    # exactly the weeks a chip was meant to win.
+    chip = outcome.chip if outcome else None
+    bench_boost = chip is Chip.BENCH_BOOST
+    triple_captain = chip is Chip.TRIPLE_CAPTAIN
     return ReplayGameweek(
         gameweek=gameweek,
         predictions_tag=tag,
@@ -248,8 +258,17 @@ def _gameweek_outcome(
         points_hit=points_hit,
         players_in=_names(outcome.players_in) if outcome else [],
         players_out=_names(outcome.players_out) if outcome else [],
-        expected_points=squad.get_expected_points(tag, gameweek),
-        actual_points=squad.get_actual_points(gameweek, season) - points_hit,
+        expected_points=squad.get_expected_points(
+            tag, gameweek, bench_boost=bench_boost, triple_captain=triple_captain
+        ),
+        actual_points=squad.get_actual_points(
+            gameweek,
+            season,
+            bench_boost=bench_boost,
+            triple_captain=triple_captain,
+        )
+        - points_hit,
+        chip_played=str(chip) if chip else None,
     )
 
 
