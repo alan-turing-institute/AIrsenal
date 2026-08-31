@@ -124,8 +124,14 @@ def find_fixture(
     """
     The one fixture matching a team and any of the other filters given.
 
+    Returns:
+        None if the filters match no fixture, or match several and `kickoff_time`
+        does not pick one of them out. Both are warned about rather than raised:
+        every caller is filling a table from data the FPL API gave it and carries
+        on to the next row.
+
     Raises:
-        ValueError: The filters match no fixture, or more than one.
+        ValueError: `team` or `other_team` is an id no team in the season has.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not isinstance(team, str):
@@ -215,9 +221,11 @@ def get_player_team_from_fixture(
     dbsession: Session | None = None,
 ) -> str:
     """
-    The team a player turned out for, identified by gameweek, opponent and venue.
+    The team a player turned out for, identified by opponent or by venue.
 
-    With `return_fixture`, returns (team_name, fixture) rather than just the name.
+    Args:
+        player_at_home: Answers on its own, without consulting the opponent. At
+            least one of the two is required.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if opponent is None and player_at_home is None:

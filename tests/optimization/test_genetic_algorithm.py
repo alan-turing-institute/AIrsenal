@@ -3,8 +3,14 @@
 from contextlib import contextmanager
 from unittest.mock import Mock, patch
 
+import pytest
+
 from airsenal.optimization.squad_optimizers import GeneticAlgorithmConfig
-from airsenal.optimization.squad_optimizers.genetic_algorithm import SquadOpt
+from airsenal.optimization.squad_optimizers.genetic_algorithm import (
+    SquadOpt,
+    make_new_squad,
+)
+from tests.conftest import past_data_session_scope
 
 MODULE = "airsenal.optimization.squad_optimizers.genetic_algorithm"
 
@@ -313,3 +319,33 @@ def test_deap_optimization_creates_valid_squad():
                 assert best_fitness > 0, (
                     "Optimization should find a solution with positive fitness"
                 )
+
+
+def test_a_search_that_finds_no_legal_squad_says_so():
+    """
+    A budget no fifteen players fit into is reported where it is known.
+
+    Every `add_player` in `make_new_squad` returns a bool nobody read, so the
+    shortfall used to surface as "Squad is incomplete" from inside scoring -
+    several frames from the search, and naming neither the budget nor how many
+    players were found.
+    """
+    with (
+        past_data_session_scope() as ts,
+        pytest.raises(ValueError, match="found no legal squad") as excinfo,
+    ):
+        make_new_squad(
+            [1],
+            "dummy_tag",
+            budget=100,  # £10.0m for fifteen players
+            season="1819",
+            ga_config=GeneticAlgorithmConfig(
+                population_size=8, generations=2, random_state=1
+            ),
+            remove_zero=False,
+            dbsession=ts,
+        )
+
+    message = str(excinfo.value)
+    assert "£10.0m" in message
+    assert "of 15 players" in message

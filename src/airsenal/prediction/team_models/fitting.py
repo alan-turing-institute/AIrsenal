@@ -109,8 +109,6 @@ def get_training_data(
 
     Args:
         ratings: If True, include the FIFA team ratings as covariates.
-        time_decay: Exponential decay rate for older matches. None weights them
-            all equally.
     """
     training_data = get_result_dict(gameweek, season, dbsession)
     if ratings:

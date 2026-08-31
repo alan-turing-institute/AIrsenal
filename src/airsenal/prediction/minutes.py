@@ -32,8 +32,6 @@ def estimate_minutes_from_prev_season(
     dbsession = dbsession if dbsession is not None else get_session()
     previous_season = get_previous_season(season)
 
-    # Only consider minutes the player played with his current team
-    current_team = player.team(gameweek, season)
     query = (
         select(PlayerScore)
         .join(Fixture, PlayerScore.fixture)
@@ -44,6 +42,7 @@ def estimate_minutes_from_prev_season(
     )
 
     if current_team_only:
+        # Only the minutes the player played for the team they are at now
         current_team = player.team(gameweek, season)
         query = query.where(PlayerScore.player_team == current_team)
 
@@ -84,7 +83,7 @@ def get_recent_minutes_for_player(
     """
     Minutes played in each of the last `n_matches_to_use` matches.
 
-    `current_gw` defaults to the most recent finished gameweek.
+    `last_gw` is inclusive and defaults to the most recent finished gameweek.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if last_gw is None:

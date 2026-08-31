@@ -168,8 +168,17 @@ def get_status_from_attributes_history(
 
 
 def fill_playerscores_from_json(
-    detail_data: list[dict[str, Any]], season: str, dbsession: Session | None = None
+    detail_data: dict[str, list[dict[str, Any]]],
+    season: str,
+    dbsession: Session | None = None,
 ) -> None:
+    """
+    Fill the player_score table from a packaged `player_details_xxyy.json`.
+
+    Keyed by player name, each holding one entry per fixture that player
+    appeared in. Rows are added rather than merged, so this is for filling an
+    empty table - `fill_playerscores_from_api` is the one that can be re-run.
+    """
     # Get column metadata once for efficiency
     dbsession = dbsession if dbsession is not None else get_session()
     mapper = sqla_inspect(PlayerScore)

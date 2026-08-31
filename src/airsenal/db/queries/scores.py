@@ -130,7 +130,7 @@ def get_recent_playerscore_rows(
         return []
 
     if last_gw is None and season != CURRENT_SEASON:
-        msg = "last_gw must be specified is running on previous seasons"
+        msg = "last_gw must be specified if running on previous seasons"
         raise ValueError(msg)
 
     if last_gw is None or last_gw > last_available_gameweek:

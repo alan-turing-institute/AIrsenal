@@ -20,6 +20,7 @@ from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.game.enums import Position
+from airsenal.game.scoring import SQUAD_SIZE
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_score import (
     SquadScoringConfig,
@@ -493,5 +494,20 @@ def make_new_squad(
                 logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
 
     logger.debug("£%sm in the bank", squad.budget / 10)
+
+    if not squad.is_complete():
+        # Every add_player above returns a bool nobody reads, so a search that
+        # found no legal squad - too small a budget, or a candidate pool cut down
+        # to nothing - handed back however many players happened to fit. What
+        # surfaced was "Squad is incomplete" from inside scoring, several frames
+        # away from the search and naming neither the budget nor the shortfall.
+        msg = (
+            f"The squad search found no legal squad within £{budget / 10}m: the "
+            f"best of {ga_config.population_size} individuals over "
+            f"{ga_config.generations} generations holds {len(squad.players)} of "
+            f"{SQUAD_SIZE} players. Raise the budget, or widen the pool of "
+            f"candidates ({opt_squad.n_available_players} players considered)."
+        )
+        raise ValueError(msg)
 
     return squad

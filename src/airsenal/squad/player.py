@@ -155,7 +155,7 @@ class DummyPlayer:
         self.season = "DUMMY"
 
     def calc_predicted_points(self, tag: str) -> None:
-        """Always False: a dummy is never available to start."""
+        """Nothing to look up: a dummy's points are fixed at construction."""
 
     def get_predicted_points(self, tag: str, gameweek: int) -> float:  # noqa: ARG002
         """Always zero: a dummy scores nothing."""
