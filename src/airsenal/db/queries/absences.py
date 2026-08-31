@@ -16,6 +16,9 @@ def absence_gameweeks(
     """
     The (from, until) gameweek ranges a player was absent for in a past season.
 
+    Half-open: `gw_from` is the first gameweek missed and `gw_until` the gameweek
+    they returned in, so the two are equal when nothing was missed at all.
+
     One query per player per season rather than one per player per fixture: this
     is read from the innermost loop of the points prediction, and over a whole
     replay that was tens of thousands of queries for an answer that does not
@@ -44,8 +47,14 @@ def was_historic_absence(
     if season == CURRENT_SEASON:
         # we only consider past seasons here
         return False
+    # `gw_from <=`, not `<`: ingest resolves it to the team's next match on or
+    # after the day the absence began, so it is the first gameweek missed rather
+    # than the last one played. Excluding it called the opening week of every
+    # absence available, and that is the one week the recent-minutes guard in
+    # `prediction/points.py` cannot catch either - the minutes it reads all
+    # predate the absence.
     return any(
-        gw_from < gameweek < gw_until
+        gw_from <= gameweek < gw_until
         for gw_from, gw_until in absence_gameweeks(
             player.player_id, season, dbsession=dbsession
         )

@@ -270,14 +270,38 @@ def absence_db(tmp_path):
     clear_query_caches()
 
 
-def test_a_player_is_absent_between_the_two_gameweeks(absence_db):
+def test_a_player_is_absent_from_the_first_gameweek_they_miss(absence_db):
+    """
+    `gw_from` is a gameweek the player missed, so it counts as an absence.
+
+    `load_absences` resolves it to the team's next match on or after the day the
+    absence began, which is the first gameweek missed rather than the last one
+    played. Excluding it treated the opening week of every absence as available -
+    and that is the week the other guard cannot catch either, because the recent
+    minutes it reads are all from before the absence.
+    """
     _add_absence(absence_db, 1, gw_from=1, gw_until=4)
     player = absence_db.get(Player, 1)
 
-    assert not was_historic_absence(player, 1, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 1, TEST_SEASON, dbsession=absence_db)
     assert was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
     assert was_historic_absence(player, 3, TEST_SEASON, dbsession=absence_db)
+    # gw_until is the gameweek they returned in, so they are available again
     assert not was_historic_absence(player, 4, TEST_SEASON, dbsession=absence_db)
+
+
+def test_an_absence_ending_the_week_it_began_covers_nothing(absence_db):
+    """
+    An absence whose end is its own start gameweek was never missed.
+
+    `load_absences` gives both ends the same gameweek when a player is flagged
+    and back before their team plays again, so the range has to be able to be
+    empty even though `gw_from` itself now counts.
+    """
+    _add_absence(absence_db, 1, gw_from=2, gw_until=2)
+    player = absence_db.get(Player, 1)
+
+    assert not was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
 
 
 def test_an_open_ended_absence_is_not_counted(absence_db):

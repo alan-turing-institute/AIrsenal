@@ -311,6 +311,10 @@ class Absence(Base):
     # the VARCHAR columns their database already has.
     date_from: Mapped[str100]
     date_until: Mapped[str100_optional]
+    # Half-open: the first gameweek missed, and the gameweek the player returned
+    # in. Equal when a player was flagged and available again before their team
+    # next played, so the range covers nothing. NULL `gw_until` means no recorded
+    # end, and readers skip those rather than writing off the rest of the season.
     gw_from: Mapped[int]
     gw_until: Mapped[int | None]
     url: Mapped[str100_optional]
