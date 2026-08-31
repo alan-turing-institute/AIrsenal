@@ -41,6 +41,24 @@ logger = get_logger(__name__)
 ATTRIBUTES_HISTORY_START = datetime.date(2025, 9, 12)
 
 
+# The packaged data lives at `src/airsenal/data` here and lived at
+# `airsenal/data` before the move to a src layout. This downloads from `main`,
+# which is on one side of that move or the other depending on whether the move
+# has landed there yet, so try both: pinning either one alone means the download
+# starts 404ing on the day the layout changes, and the caller turns that into a
+# warning and carries on without the history.
+_ATTRIBUTES_HISTORY_PATHS = ("src/airsenal/data", "airsenal/data")
+
+
+def _attributes_history_urls(season: str) -> list[str]:
+    """Where the attributes history for a season might be, best guess first."""
+    return [
+        "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
+        f"heads/main/{path}/player_attributes_history_{season}.csv"
+        for path in _ATTRIBUTES_HISTORY_PATHS
+    ]
+
+
 def load_attributes_history(season: str) -> pd.DataFrame | None:
     if not is_future_gameweek(1, season, "2526", 0):
         logger.info(
@@ -49,26 +67,26 @@ def load_attributes_history(season: str) -> pd.DataFrame | None:
         return None
 
     logger.info("Downloading player attributes history for season %s", season)
-    url = (
-        "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
-        f"heads/main/airsenal/data/player_attributes_history_{season}.csv"
+
+    for url in _attributes_history_urls(season):
+        try:
+            with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
+                tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
+                download_with_resume(url=url, dest=tmp_csv)
+                df_attributes = pd.read_csv(tmp_csv)
+            df_attributes["day"] = pd.to_datetime(df_attributes["timestamp"]).dt.date
+            df_attributes["season"] = df_attributes["season"].astype(str)
+        except RemoteError:
+            logger.info("Not found at %s", url)
+            continue
+        else:
+            return df_attributes
+
+    logger.warning(
+        "Could not load player attributes history for season %s from any known "
+        "location",
+        season,
     )
-
-    try:
-        with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
-            tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
-            download_with_resume(url=url, dest=tmp_csv)
-            df_attributes = pd.read_csv(tmp_csv)
-        df_attributes["day"] = pd.to_datetime(df_attributes["timestamp"]).dt.date
-        df_attributes["season"] = df_attributes["season"].astype(str)
-        return df_attributes
-
-    except RemoteError:
-        logger.warning(
-            "Could not load player attributes history for season %s",
-            season,
-            exc_info=True,
-        )
     return None
 
 
