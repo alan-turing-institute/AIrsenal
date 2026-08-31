@@ -294,6 +294,11 @@ class PlayerAttributes(Base):
 
 class Absence(Base):
     __tablename__ = "absence"
+    # Read once per player per season while predicting a past season, which is
+    # every gameweek of a replay. Note `create_all` does not alter a table that
+    # already exists, so a database made before this was added will not have it
+    # until it is rebuilt.
+    __table_args__ = (Index("ix_absence_season_player", "season", "player_id"),)
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="absences")
     player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))

@@ -10,11 +10,13 @@ from contextlib import contextmanager
 from datetime import date
 
 import pytest
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.orm import sessionmaker
 
+from airsenal.core.caching import clear_query_caches
 from airsenal.core.data_files import absences_file
 from airsenal.db.models import Absence, Base, Fixture, Player, PlayerAttributes
+from airsenal.db.queries.absences import was_historic_absence
 from airsenal.export.absences import (
     ABSENCE_CSV_COLUMNS,
     classify_reason,
@@ -22,6 +24,7 @@ from airsenal.export.absences import (
     player_attribute_to_row,
     save_absences,
 )
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.ingest.absences import load_absences
 
 TEST_SEASON = "2526"
@@ -234,3 +237,88 @@ def test_loading_absences_emits_no_deprecated_date_adapter_warning(dbsession, tm
     with warnings.catch_warnings():
         warnings.simplefilter("error", DeprecationWarning)
         load_absences(TEST_SEASON, dbsession, path)
+
+
+# ------------------------------------------------- reading absences back ---
+
+
+def _add_absence(dbsession, player_id, gw_from, gw_until, season=TEST_SEASON):
+    absence = Absence()
+    absence.player_id = player_id
+    absence.season = season
+    absence.reason = "injury"
+    absence.date_from = "2025-08-16"
+    absence.gw_from = gw_from
+    absence.gw_until = gw_until
+    absence.timestamp = "2025-08-16"
+    dbsession.add(absence)
+    dbsession.commit()
+
+
+@pytest.fixture
+def absence_db(tmp_path):
+    """A past-season database with one absent player, and no query cache."""
+    clear_query_caches()
+    with _session(tmp_path) as dbsession:
+        player = Player()
+        player.player_id = 1
+        player.fpl_api_id = 1
+        player.name = "Absent"
+        dbsession.add(player)
+        dbsession.commit()
+        yield dbsession
+    clear_query_caches()
+
+
+def test_a_player_is_absent_between_the_two_gameweeks(absence_db):
+    _add_absence(absence_db, 1, gw_from=1, gw_until=4)
+    player = absence_db.get(Player, 1)
+
+    assert not was_historic_absence(player, 1, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 3, TEST_SEASON, dbsession=absence_db)
+    assert not was_historic_absence(player, 4, TEST_SEASON, dbsession=absence_db)
+
+
+def test_an_open_ended_absence_is_not_counted(absence_db):
+    """
+    A NULL `gw_until` never satisfied the SQL comparison it replaced.
+
+    Keeping that is deliberate: an absence with no recorded end would otherwise
+    zero out the rest of the player's season.
+    """
+    _add_absence(absence_db, 1, gw_from=1, gw_until=None)
+    player = absence_db.get(Player, 1)
+
+    assert not was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
+
+
+def test_the_current_season_is_never_a_historic_absence(absence_db):
+    """The Absence table only covers finished seasons; the API says who is out now."""
+    _add_absence(absence_db, 1, gw_from=1, gw_until=4, season=CURRENT_SEASON)
+    player = absence_db.get(Player, 1)
+
+    assert not was_historic_absence(player, 2, CURRENT_SEASON, dbsession=absence_db)
+
+
+def test_a_players_absences_are_read_once_per_season(absence_db):
+    """
+    One query per player per season, not one per fixture.
+
+    This is read from the innermost loop of the points prediction, so over a
+    replay the per-fixture version was tens of thousands of queries for an
+    answer that cannot change within a season.
+    """
+    _add_absence(absence_db, 1, gw_from=1, gw_until=6)
+    player = absence_db.get(Player, 1)
+
+    statements = []
+    event.listen(
+        absence_db.get_bind(),
+        "before_cursor_execute",
+        lambda *args: statements.append(args[2]),
+    )
+    for gameweek in range(1, 6):
+        was_historic_absence(player, gameweek, TEST_SEASON, dbsession=absence_db)
+
+    assert sum("FROM absence" in s for s in statements) == 1
