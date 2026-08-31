@@ -328,6 +328,11 @@ def get_gameweeks_array(
     """
     The given gameweeks, minus any past the end of the season.
 
+    `gameweek_end` is inclusive, which is what `--gameweek-end` says it is
+    ("Last gameweek to cover") and what `airsenal replay` has always meant by
+    it. This was exclusive, so `--gameweek-start 5 --gameweek-end 10` covered
+    five gameweeks under `optimize` and `predict` and six under `replay`.
+
     Raises:
         ValueError: None of them are still to be played.
     """
@@ -350,16 +355,16 @@ def get_gameweeks_array(
             # function does the arithmetic and has to be told the window.
             msg = "Specify how many gameweeks to cover, or which gameweek to stop at"
             raise RuntimeError(msg)
-        gameweek_end = gameweek_start + n_gameweeks
+        gameweek_end = gameweek_start + n_gameweeks - 1
 
-    gameweeks = list(range(gameweek_start, gameweek_end))
+    gameweeks = list(range(gameweek_start, gameweek_end + 1))
     max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
     gameweeks = list(filter(lambda x: x <= max_gameweek, gameweeks))
 
     if len(gameweeks) == 0:
         msg = "No gameweeks in specified range"
         raise ValueError(msg)
-    if max(gameweeks) < gameweek_end - 1:
+    if max(gameweeks) < gameweek_end:
         logger.warning(
             "Last gameweek set to %s (%s weeks ahead)", max(gameweeks), len(gameweeks)
         )

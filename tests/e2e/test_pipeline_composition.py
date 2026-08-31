@@ -231,8 +231,9 @@ class TestOneWindowResolver:
             gameweek_end=FUTURE_GAMEWEEKS[0] + 2,
             n_gameweeks=99,
         )
-        # gameweek_end is exclusive, as get_gameweeks_array has always had it
-        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS[:2])
+        # gameweek_end is inclusive, so this covers three gameweeks, and an
+        # explicit end still wins over a length
+        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS[:3])
 
     def test_a_window_running_past_the_end_of_the_season_is_clamped(self):
         pipeline = _pipeline(n_gameweeks=500)

@@ -58,9 +58,9 @@ class PipelineSettings:
     # current season can answer - a past season has no next gameweek, so
     # replaying or back-testing one has to say.
     gameweek_start: int | None = None
-    # Where it ends, for a caller that names both ends rather than a length.
-    # `get_gameweeks_array` rejects a length alongside an end, so at most one of
-    # this and n_gameweeks is ever meaningful.
+    # Where it ends, inclusive, for a caller that names both ends rather than a
+    # length. `get_gameweeks_array` rejects a length alongside an end, so at most
+    # one of this and n_gameweeks is ever meaningful.
     gameweek_end: int | None = None
     chips: ChipWeeks = field(default_factory=ChipWeeks)
     database: DatabaseSettings = field(default_factory=DatabaseSettings)

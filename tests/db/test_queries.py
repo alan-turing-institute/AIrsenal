@@ -114,13 +114,34 @@ class TestGetGameweeksArrayIsToldTheWindow:
             ) == [1, 2, 3]
 
     def test_an_end_is_enough(self):
+        """And it is inclusive, as `--gameweek-end` says it is."""
         with past_data_session_scope() as ts:
             assert get_gameweeks_array(
                 gameweek_start=1,
                 gameweek_end=4,
                 season=TEST_PAST_SEASON,
                 dbsession=ts,
-            ) == [1, 2, 3]
+            ) == [1, 2, 3, 4]
+
+    def test_a_length_and_the_same_window_named_by_its_ends_agree(self):
+        """
+        The invariant the exclusive end broke.
+
+        `--gameweek-end` says "Last gameweek to cover" and `airsenal replay`
+        takes it that way, so three gameweeks from gameweek 1 has to mean the
+        same thing whichever way a command names it.
+        """
+        with past_data_session_scope() as ts:
+            by_length = get_gameweeks_array(
+                n_gameweeks=3, gameweek_start=1, season=TEST_PAST_SEASON, dbsession=ts
+            )
+            by_ends = get_gameweeks_array(
+                gameweek_start=1,
+                gameweek_end=3,
+                season=TEST_PAST_SEASON,
+                dbsession=ts,
+            )
+        assert by_length == by_ends == [1, 2, 3]
 
     def test_both_at_once_is_still_refused(self):
         with (
