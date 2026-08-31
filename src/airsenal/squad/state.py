@@ -8,6 +8,7 @@ from airsenal.db.models import Player, Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.session import get_session
+from airsenal.game.scoring import free_transfers_after
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.errors import (
     RemoteConnectionError,
@@ -101,18 +102,19 @@ def get_free_transfers(
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     dbsession = dbsession if dbsession is not None else get_session()
+    # Resolved once, up front: the database fallback below used to filter on the
+    # argument rather than the resolved id, so a caller that let it default
+    # queried for `fpl_team_id IS NULL`, matched nothing, and got 1.
+    fpl_team_id = fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
-        resolved_fpl_team_id = (
-            fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
-        )
-        if resolved_fpl_team_id is None:
+        if fpl_team_id is None:
             msg = "FPL team ID is required to estimate free transfers from the API"
             raise RuntimeError(msg)
 
         # try to get the most up-to-date info from logged in api
         try:
-            return fetcher.get_num_free_transfers(resolved_fpl_team_id)
+            return fetcher.get_num_free_transfers(fpl_team_id)
         except RemoteError:
             logger.warning(
                 "Failed to get actual free transfers from a logged in API. "
@@ -122,19 +124,16 @@ def get_free_transfers(
             )
         # try to calculate free transfers based on previous transfer history in API
         try:
-            data = fetcher.get_fpl_team_history_data(resolved_fpl_team_id)
+            data = fetcher.get_fpl_team_history_data(fpl_team_id)
             num_free_transfers = 1
             if "current" in data and len(data["current"]) > 0:
-                starting_gw = get_entry_start_gameweek(
-                    resolved_fpl_team_id, fetcher=fetcher
-                )
+                starting_gw = get_entry_start_gameweek(fpl_team_id, fetcher=fetcher)
                 for gw in data["current"]:
                     if gw["event"] <= starting_gw:
                         continue
-                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                        num_free_transfers += 1
-                    elif gw["event_transfers"] >= 2:
-                        num_free_transfers = 1
+                    num_free_transfers = free_transfers_after(
+                        gw["event_transfers"], num_free_transfers
+                    )
                     # if gameweek was specified, and we reached the previous one,
                     # break out of loop.
                     if gameweek and gw["event"] == gameweek - 1:
@@ -166,11 +165,15 @@ def get_free_transfers(
         msg = "Gameweek must be specified for historical data"
         raise ValueError(msg)
     gameweek = gameweek or next_gameweek()
+    # Both estimates go through the same rule the search itself accrues by. They
+    # used to be hand-rolled here and could not exceed 2, while everything
+    # downstream - `calc_free_transfers`, `TransferConstraints`, the
+    # `--num-free-transfers` flag - works to MAX_FREE_TRANSFERS, so the count the
+    # search started from obeyed a different rule from the one it then applied.
     for prev_gw in range(starting_gw + 1, gameweek):
-        if prev_gw not in gw_transactions:
-            num_free_transfers = 2
-        elif gw_transactions[prev_gw] >= 2:
-            num_free_transfers = 1
+        num_free_transfers = free_transfers_after(
+            gw_transactions.get(prev_gw, 0), num_free_transfers
+        )
 
     return num_free_transfers
 

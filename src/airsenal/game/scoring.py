@@ -59,9 +59,32 @@ MAX_MINUTES_MATCH = 90
 
 
 # Squad and transfer rules. Here for the same reason as the limits above: they
-# are FPL's own numbers rather than anything about how we search. The functions
-# that apply them stay in `optimization/moves.py`, because they take a
-# `GameweekMove` and core cannot depend on optimization.
+# are FPL's own numbers rather than anything about how we search. Anything that
+# applies them to a `GameweekMove` stays in `optimization/moves.py`, because
+# `game` cannot depend on optimization - but the arithmetic itself is a rule of
+# the game, and lives here so the search and the entry's own state cannot
+# disagree about it.
 SQUAD_SIZE = 15
 MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
 POINTS_HIT_COST = 4  # points lost per transfer beyond the free ones
+
+
+def free_transfers_after(
+    n_transfers: int,
+    prev_free_transfers: int,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+    rebuilds_squad: bool = False,
+) -> int:
+    """
+    How many free transfers are left the gameweek after `n_transfers` were made.
+
+    One is added per week, capped at `max_free_transfers`, and the result is never
+    below 1.
+
+    Args:
+        rebuilds_squad: True for a wildcard or free hit, which leave the count
+            untouched rather than consuming or accruing anything.
+    """
+    if rebuilds_squad:
+        return prev_free_transfers
+    return max(1, min(max_free_transfers, 1 + prev_free_transfers - n_transfers))

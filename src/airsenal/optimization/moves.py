@@ -11,7 +11,12 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
 from airsenal.game.enums import Chip
-from airsenal.game.scoring import MAX_FREE_TRANSFERS, POINTS_HIT_COST, SQUAD_SIZE
+from airsenal.game.scoring import (
+    MAX_FREE_TRANSFERS,
+    POINTS_HIT_COST,
+    SQUAD_SIZE,
+    free_transfers_after,
+)
 
 # Chips that are given a letter of their own because they replace the squad
 # outright, so the number of transfers is not a meaningful part of the move.
@@ -184,13 +189,16 @@ def calc_free_transfers(
     """
     How many free transfers are available the gameweek after `move`.
 
-    One is added per week, capped at `max_free_transfers`, and the result is
-    never below 1. A wildcard or free hit leaves the count untouched rather than
-    consuming or accruing anything.
+    The `GameweekMove`-shaped face of `game.scoring.free_transfers_after`, which
+    is where the rule itself lives so that the search and `squad/state.py` cannot
+    drift apart on it.
     """
-    if move.rebuilds_squad:
-        return prev_free_transfers
-    return max(1, min(max_free_transfers, 1 + prev_free_transfers - move.n_transfers))
+    return free_transfers_after(
+        move.n_transfers,
+        prev_free_transfers,
+        max_free_transfers,
+        rebuilds_squad=move.rebuilds_squad,
+    )
 
 
 @dataclass(frozen=True)
