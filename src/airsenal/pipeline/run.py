@@ -314,8 +314,16 @@ class AIrsenalPipeline:
             raise RuntimeError(msg)
         skip_check = self.settings.skip_confirmation
         logger.info("[bold]Applying Transfers[/bold]")
-        if not make_transfers(fpl_team_id, skip_check=skip_check):
-            msg = "Problem applying the transfers"
-            raise RuntimeError(msg)
+        # make_transfers answers three things, not two: None when there was
+        # nothing to apply, False when the user said no, True when it posted.
+        # Collapsing them turned a rolled transfer and a declined prompt into a
+        # failure, and skipped the lineup in both cases.
+        applied = make_transfers(fpl_team_id, skip_check=skip_check)
+        if applied is None:
+            logger.info("No transfers to apply.")
+        elif applied is False:
+            # make_transfers already said why, and its own message promises the
+            # lineup is still on offer: "Can still choose starting 11 and captain".
+            logger.info("Transfers not applied.")
         logger.info("[bold]Setting Lineup[/bold]")
         set_lineup(fpl_team_id, skip_check=skip_check)
