@@ -10,6 +10,9 @@ from airsenal.db.queries.gameweeks import (
     get_return_gameweek_by_date,
 )
 from airsenal.db.queries.players import get_player, get_player_id, get_player_name
+from airsenal.db.queries.scores import (
+    get_last_complete_gameweek_of_player_scores_in_db,
+)
 from tests.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
 
 
@@ -58,6 +61,35 @@ def test_get_last_complete_gameweek_in_db():
     with past_data_session_scope() as ts:
         gw = get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts)
         assert gw == 5
+
+
+def test_player_scores_have_their_own_high_water_mark():
+    """
+    Player scores are tracked separately from results, and can lag behind them.
+
+    They are filled by a separate call that commits separately, so a failure
+    between the two leaves the scores behind. The 2021 season in the test
+    database is exactly that shape - results up to gameweek 5, no player scores
+    at all - and a results-derived mark would call it up to date.
+    """
+    with past_data_session_scope() as ts:
+        assert (
+            get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts) == 5
+        )
+        assert (
+            get_last_complete_gameweek_of_player_scores_in_db(
+                season=TEST_PAST_SEASON, dbsession=ts
+            )
+            == 0
+        )
+
+
+def test_player_scores_high_water_mark_matches_results_when_complete():
+    """A season whose scores are all present is level with its results."""
+    with past_data_session_scope() as ts:
+        assert get_last_complete_gameweek_of_player_scores_in_db(
+            season="1718", dbsession=ts
+        ) == get_last_complete_gameweek_in_db(season="1718", dbsession=ts)
 
 
 class TestGetGameweeksArrayIsToldTheWindow:

@@ -19,6 +19,9 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.queries.players import list_players
+from airsenal.db.queries.scores import (
+    get_last_complete_gameweek_of_player_scores_in_db,
+)
 from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
@@ -74,22 +77,39 @@ def update_results(season: str, dbsession: Session) -> bool:
         logger.info("No complete gameweeks - skipping result updates")
         return False
 
-    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
-    if last_in_db == last_finished:
+    # The two tables are filled by separate calls that commit separately, so they
+    # can be at different gameweeks: a network failure after the results land and
+    # before the player scores do leaves the scores behind. Each catches up from
+    # its own high-water mark, so the next run repairs that rather than calling
+    # the whole thing up to date and never fetching them.
+    last_results = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
+    last_scores = (
+        get_last_complete_gameweek_of_player_scores_in_db(season, dbsession=dbsession)
+        or 0
+    )
+    if last_results == last_finished and last_scores == last_finished:
         logger.info("Match results up-to-date, skipping result updates")
         return False
-    if last_in_db > last_finished:
+    if last_results > last_finished:
         msg = "Something strange has happened - DB has more recent results than API"
         raise RuntimeError(msg)
 
-    logger.info("Updating results table ...")
-    fill_results_from_api(
-        gw_start=last_in_db + 1, gw_end=next_gw, season=season, dbsession=dbsession
-    )
-    logger.info("Updating playerscores table ...")
-    fill_playerscores_from_api(
-        season=season, gw_start=last_in_db + 1, gw_end=next_gw, dbsession=dbsession
-    )
+    if last_results < last_finished:
+        logger.info("Updating results table ...")
+        fill_results_from_api(
+            gw_start=last_results + 1,
+            gw_end=next_gw,
+            season=season,
+            dbsession=dbsession,
+        )
+    if last_scores < last_finished:
+        logger.info("Updating playerscores table ...")
+        fill_playerscores_from_api(
+            season=season,
+            gw_start=last_scores + 1,
+            gw_end=next_gw,
+            dbsession=dbsession,
+        )
 
     return True
 

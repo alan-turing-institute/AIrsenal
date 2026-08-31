@@ -20,6 +20,41 @@ from airsenal.game.season import CURRENT_SEASON
 logger = get_logger(__name__)
 
 
+def get_last_complete_gameweek_of_player_scores_in_db(
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> int | None:
+    """
+    The last gameweek every finished fixture has player scores for.
+
+    The counterpart to `get_last_complete_gameweek_in_db`, which answers the same
+    question for the result table. The two are separate because they are filled by
+    separate calls that commit separately: a failure between them leaves the player
+    scores behind the results, and a single results-derived high-water mark would
+    call that up to date and never fetch them.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    scored = (
+        select(PlayerScore.id)
+        .where(PlayerScore.fixture_id == Fixture.fixture_id)
+        .exists()
+    )
+    first_missing = dbsession.scalars(
+        select(Fixture)
+        .where(
+            Fixture.season == season,
+            Fixture.gameweek.is_not(None),
+            Fixture.result.has(),
+            ~scored,
+        )
+        .order_by(Fixture.gameweek)
+        .limit(1)
+    ).first()
+    if first_missing is not None and first_missing.gameweek is not None:
+        return first_missing.gameweek - 1
+    # Nothing is missing, so the scores are as far along as the results are.
+    return get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
+
+
 def get_player_scores(
     fixture: Fixture | None = None,
     player: Player | None = None,
