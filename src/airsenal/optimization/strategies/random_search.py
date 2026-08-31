@@ -64,7 +64,8 @@ def make_random_transfers(
             root_gw = next_gameweek()
 
         transfer_gw = min(gameweeks)  # the week we're making the transfer
-        players_to_remove: list[int] = []  # this is the index within the squad
+        # indices into player_list, which is sorted; not into squad.players
+        players_to_remove: list[int] = []
         removed_players: list[int] = []  # this is the player_ids
         # order the players in the squad by predicted_points - least-to-most
         player_list: list[tuple[int, float]] = []
@@ -78,10 +79,15 @@ def make_random_transfers(
                 players_to_remove.append(index)
 
         positions_needed = []
-        for squad_index in players_to_remove:
-            positions_needed.append(squad.players[squad_index].position)
-            removed_players.append(squad.players[squad_index].player_id)
-            new_squad.remove_player(removed_players[-1], gameweek=transfer_gw)
+        # The triangular draw above prefers low indices, which after the sort are
+        # the worst players - that bias is the whole point of the sort. Indexing
+        # squad.players with it instead threw the sort away and sampled the squad
+        # in whatever order it happened to be in.
+        for list_index in players_to_remove:
+            player_id = player_list[list_index][0]
+            positions_needed.append(squad.get_player_from_id(player_id).position)
+            removed_players.append(player_id)
+            new_squad.remove_player(player_id, gameweek=transfer_gw)
         predicted_points = {
             pos: get_predicted_points(
                 position=pos, gameweeks=gameweeks, tag=tag, season=season
