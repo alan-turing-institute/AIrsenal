@@ -23,7 +23,9 @@ from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.lineup import (
     choose_starting_eleven,
-    is_substitution_allowed,
+    formation_after,
+    formation_of,
+    is_formation_legal,
     order_substitutes,
     pick_captains,
 )
@@ -369,7 +371,10 @@ class Squad:
                                 # TREBLE their score!
                                 total_points += score.points
                         elif p.is_vice_captain:
-                            vice_captain_points = score.points
+                            # += : a double gameweek gives them two scores, and
+                            # FPL doubles their whole gameweek, not their last
+                            # fixture.
+                            vice_captain_points += score.points
                 else:  # starting player didn't get any minutes
                     need_sub.append(p)
                     if p.is_captain:
@@ -389,9 +394,15 @@ class Squad:
         # now take account of subs.
         # UNLESS bench_boost (in which case we've already counted subs points)
         if need_sub and not bench_boost:
+            # Carried from one substitution to the next: deriving the formation
+            # from `is_starting` each time answers for the lineup before any
+            # substitution was made, so a second and third one could be waved
+            # through and score a lineup FPL would never have fielded.
+            formation = formation_of(self.players)
             for p_out in need_sub:
                 for p_in in ordered_subs:
-                    if not is_substitution_allowed(self.players, p_out, p_in):
+                    after = formation_after(formation, p_out, p_in)
+                    if not is_formation_legal(after):
                         continue
                     scores = get_playerscores_for_player_gameweek(
                         p_in.player_id, gameweek, season
@@ -400,6 +411,9 @@ class Squad:
                     if minutes > 0:
                         for score in scores:
                             total_points += score.points
+                        # only a substitute who actually played comes on, so the
+                        # formation only changes here
+                        formation = after
                         ordered_subs.remove(p_in)
                         break
         return total_points

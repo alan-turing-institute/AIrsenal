@@ -99,7 +99,11 @@ def order_substitutes(players: list[SquadPlayer], tag: str, gameweek: int) -> No
     for player in subs:
         try:
             points.append(player.predicted_points[tag][gameweek])
-        except ValueError:
+        except KeyError:
+            # predicted_points is a plain dict, so a tag or gameweek it does not
+            # hold raises KeyError. This caught ValueError, which that lookup
+            # cannot raise, so a substitute with no prediction crashed here
+            # rather than sorting last.
             points.append(0)
 
     # sort the players by points (descending)
@@ -126,14 +130,24 @@ def formation_of(players: list[SquadPlayer]) -> dict[str, int]:
     return formation
 
 
-def is_substitution_allowed(
-    players: list[SquadPlayer], player_out: SquadPlayer, player_in: SquadPlayer
-) -> bool:
-    """Whether swapping one player for another leaves a legal formation."""
-    formation = formation_of(players)
-    formation[player_out.position] -= 1
-    formation[player_in.position] += 1
+def is_formation_legal(formation: dict[str, int]) -> bool:
+    """Whether a formation is one FPL allows."""
     return tuple(formation[pos] for pos in FORMATION_POSITIONS) in FORMATIONS
+
+
+def formation_after(
+    formation: dict[str, int], player_out: SquadPlayer, player_in: SquadPlayer
+) -> dict[str, int]:
+    """The formation a swap would leave, without changing the one passed in.
+
+    Takes a formation rather than a player list so a caller making several
+    substitutions can carry the result of one into the next. Deriving it from
+    `is_starting` each time answers for the lineup before any of them.
+    """
+    after = dict(formation)
+    after[player_out.position] -= 1
+    after[player_in.position] += 1
+    return after
 
 
 def pick_captains(players: list[SquadPlayer], tag: str, gameweek: int) -> None:
