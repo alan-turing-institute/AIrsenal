@@ -35,8 +35,10 @@ dropped straight in:
 ```python
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
 
-class MyTeamModel:
-    ...  # fit, teams, add_new_team, predict_score_n_proba, predict_outcome_proba
+
+# fit, teams, add_new_team, predict_score_n_proba, predict_outcome_proba
+class MyTeamModel: ...
+
 
 AIrsenalPipeline(team_model=MyTeamModel(), settings=PipelineSettings(season="2425"))
 ```
@@ -51,7 +53,8 @@ about works.
 
 A team model has to answer five things - `teams`, `fit`, `add_new_team`,
 `predict_score_n_proba` and `predict_outcome_proba`. It must also construct with
-no arguments, defaulting its own config.
+no arguments, defaulting its own config; the `--epsilon` flag reaches it through
+the table entry in step 2, not through the constructor signature.
 
 `prediction/team_models/constant.py` is the smallest complete example. What
 `fit` receives is `TeamFitData` in `prediction/protocols.py`: a `TypedDict`, so
@@ -60,6 +63,7 @@ function that assembles it.
 
 ```python
 from airsenal.prediction.protocols import TeamFitData
+
 
 class ScorelineAverageModel:
     """Every team scores the league average, whoever they are playing."""
@@ -81,22 +85,35 @@ class ScorelineAverageModel:
 implement `predict_outcome_proba` for you if your model treats the two teams'
 goal counts as independent.
 
-### 2. Add one line to the table
+### 2. Add a factory and one line to the table
+
+`TEAM_MODELS` is the one table whose entries are not zero-argument: every factory
+is called as `factory(epsilon=...)`, because `--epsilon` sets the time-weighting
+decay rate. A model that does no time weighting should reject an epsilon it was
+given rather than ignore it.
 
 ```python
+def _scoreline_average(*, epsilon: float | None = None) -> TeamModel:
+    if epsilon is not None:
+        msg = "ScorelineAverageModel does not do time weighting"
+        raise ValueError(msg)
+    return ScorelineAverageModel()
+
+
 TEAM_MODELS: dict[str, Callable[..., TeamModel]] = {
     "constant": _constant,
     "extended": _extended,
     "neutral": _neutral,
     "random": _random,
-    "scoreline_average": _scoreline_average,   # <- this
+    "scoreline_average": _scoreline_average,  # <- this
 }
 ```
 
 The table is annotated with its protocol, so `mypy` checks your class fits at the
-point you add it. If your model imports something expensive - jax, for instance -
-make the entry a small function that imports inside itself, as the Dixon-Coles
-entries do, so the cost is only paid when the model is actually built.
+point you add it. Writing the entry as a small function rather than the class
+itself is also how an expensive import is deferred - the Dixon-Coles entries
+import jax inside themselves, so the cost is only paid when the model is actually
+built.
 
 ### 3. There is no step three
 
@@ -128,8 +145,11 @@ from airsenal.prediction.team_models import TEAM_MODELS
 with session_scope() as session:
     for name in ("extended", "constant"):
         score = backtest_team_model(
-            TEAM_MODELS[name], season="2425", dbsession=session,
-            gameweeks=range(5, 30), horizon=1,
+            TEAM_MODELS[name],
+            season="2425",
+            dbsession=session,
+            gameweeks=range(5, 30),
+            horizon=1,
         )
         print(name, score.mean_log_probability)
 ```
