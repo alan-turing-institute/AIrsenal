@@ -323,7 +323,8 @@ def fixture_num_conceded(
     Check goals conceded match the opposition's goals scored.
 
     Only the maximum across a team's players is checked, which sidesteps
-    substitutes and goals in stoppage time.
+    substitutes and goals in stoppage time. A team with nobody recorded as playing
+    the full 90 has no figure to compare, and is reported rather than checked.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info("Checking no. goals conceded matches goals scored by opponent...")
@@ -351,24 +352,33 @@ def fixture_num_conceded(
                     )
                 ).all()
 
-                home_conceded = max(score.conceded for score in home_scores)
-                away_conceded = max(score.conceded for score in away_scores)
-
-                if home_conceded != result.away_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player conceded {home_conceded} but "
-                        f"{result.away_score} goals in result for home team"
-                    )
-                    logger.warning(msg)
-
-                if away_conceded != result.home_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player conceded {away_conceded} but "
-                        f"{result.home_score} goals in result for away team"
-                    )
-                    logger.warning(msg)
+                # `default` rather than a bare max(): a fixture whose result has
+                # landed before its player scores have - which is the state an
+                # interrupted update leaves, and the one this check exists to
+                # find - has no 90-minute players, and an empty max() ended the
+                # run with a ValueError instead of reporting the fixture.
+                for scores, conceded_by_opponent, side in (
+                    (home_scores, result.away_score, "home"),
+                    (away_scores, result.home_score, "away"),
+                ):
+                    conceded = max((score.conceded for score in scores), default=None)
+                    if conceded is None:
+                        n_error += 1
+                        logger.warning(
+                            "%s: no %s players recorded as playing 90 minutes, "
+                            "so goals conceded cannot be checked",
+                            result,
+                            side,
+                        )
+                    elif conceded != conceded_by_opponent:
+                        n_error += 1
+                        logger.warning(
+                            "%s: Player conceded %s but %s goals in result for %s team",
+                            result,
+                            conceded,
+                            conceded_by_opponent,
+                            side,
+                        )
 
     logger.info(result_string(n_error))
     return n_error
