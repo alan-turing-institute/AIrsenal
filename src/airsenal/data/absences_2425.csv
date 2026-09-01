@@ -1,381 +1,1183 @@
 season,details,from,until,days,games,reason,player,url
-2425,Ankle injury,2025-02-14,2025-04-28,74,15,injury,Amad Diallo,/amad-diallo/profil/spieler/536835
-2425,Ill,2025-01-01,2025-01-17,17,4,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
-2425,Fitness,2025-03-03,2025-05-25,84,12,injury,Jamaal Lascelles,/jamaal-lascelles/profil/spieler/183318
-2425,Ill,2024-10-04,2024-10-07,4,1,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
-2425,unknown injury,2025-03-15,2025-03-17,3,1,injury,Bernardo Silva,/bernardo-silva/profil/spieler/241641
-2425,unknown injury,2025-04-30,2025-05-23,24,5,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
-2425,Knock,2025-04-30,,28,6,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
-2425,Hamstring injury,2024-10-27,2025-02-13,110,27,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
-2425,Hamstring injury,2024-09-18,2024-10-23,36,7,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
-2425,Broken foot,2024-09-11,2024-11-21,72,14,injury,Harvey Elliott,/harvey-elliott/profil/spieler/565822
-2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
-2425,Ill,2024-09-21,2024-09-23,3,1,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
-2425,Broken toe,2024-11-04,2024-11-19,16,2,injury,Declan Rice,/declan-rice/profil/spieler/357662
-2425,Adductor injury,2025-02-12,2025-04-13,61,11,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,Adductor injury,2024-11-11,2024-11-19,9,,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
-2425,Knee injury,2024-12-07,2025-06-30,206,35,injury,David Datro Fofana,/david-datro-fofana/profil/spieler/787232
-2425,unknown injury,2025-02-23,2025-03-04,10,1,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Back injury,2025-02-22,2025-03-06,13,3,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Abdominal muscle strain,2024-08-10,2024-09-27,49,8,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
-2425,Knock,2025-01-18,2025-01-25,8,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
-2425,Groin problems,2024-09-10,2024-09-20,11,2,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
-2425,Knee injury,2025-05-05,2025-05-23,19,4,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Foot injury,2025-04-01,2025-04-18,18,5,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Ill,2024-12-20,2024-12-23,4,1,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
-2425,Hamstring injury,2024-12-14,2025-03-03,80,15,injury,Benoît Badiashile,/benoit-badiashile/profil/spieler/463603
-2425,Hamstring injury,2025-04-21,2025-06-01,42,5,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Ill,2025-04-01,2025-04-04,4,1,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Skin disease,2024-09-16,2024-11-04,50,8,injury,Matt Targett,/matt-targett/profil/spieler/250478
-2425,Knock,2025-02-08,2025-02-17,10,1,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
-2425,Knock,2025-01-26,2025-02-01,7,2,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
-2425,Knee problems,2025-03-07,2025-04-23,48,7,injury,Sven Botman,/sven-botman/profil/spieler/361093
-2425,Broken kneecap,2025-02-05,2025-03-06,30,6,injury,Sven Botman,/sven-botman/profil/spieler/361093
-2425,Knee injury,2025-03-21,2025-05-06,47,9,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Muscle injury,2025-01-11,2025-01-21,11,3,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Knee injury,2024-12-03,2024-12-17,15,4,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Knee injury,2024-10-22,2024-11-21,31,8,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Calf problems,2024-09-07,2024-09-18,12,2,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
-2425,Leg injury,2025-04-04,2025-05-16,43,11,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
-2425,Knock,2025-02-10,2025-03-03,22,4,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
-2425,unknown injury,2025-02-24,2025-03-03,8,2,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Muscle injury,2025-01-30,2025-02-17,19,3,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Calf injury,2024-11-05,2024-11-11,7,2,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,Hamstring injury,2024-08-24,2024-10-08,46,11,injury,Matty Cash,/matty-cash/profil/spieler/425334
-2425,surgery,2025-03-18,2025-06-01,76,14,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Hamstring injury,2024-09-01,2025-03-10,191,37,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Hamstring injury,2024-08-30,2024-10-31,63,11,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
-2425,Groin surgery,2024-06-07,2024-08-07,62,,injury,Axel Disasi,/axel-disasi/profil/spieler/386047
-2425,concussion,2025-03-21,2025-04-07,18,2,injury,Alisson,/alisson/profil/spieler/105470
-2425,Hamstring injury,2024-10-18,2024-12-19,63,16,injury,Alisson,/alisson/profil/spieler/105470
-2425,Hamstring injury,2024-10-05,2024-11-10,37,10,injury,Alisson,/alisson/profil/spieler/105470
-2425,Thigh problems,2024-09-18,2024-09-26,9,2,injury,Alisson,/alisson/profil/spieler/105470
-2425,unknown injury,2024-12-15,2025-01-11,28,2,injury,Mathis Amougou,/mathis-amougou/profil/spieler/1010854
-2425,Virus,2024-11-06,2025-01-07,63,14,injury,Mikey Moore,/mikey-moore/profil/spieler/1011147
-2425,Cruciate ligament injury,2025-02-03,2026-01-01,333,23,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
-2425,Back problems,2024-11-23,2024-11-25,3,1,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
-2425,Ankle injury,2024-11-10,2025-02-17,100,16,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
-2425,Muscle injury,2024-09-30,2024-12-11,73,14,injury,Federico Chiesa,/federico-chiesa/profil/spieler/341092
-2425,Ill,2024-12-13,2024-12-20,8,2,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
-2425,Hamstring injury,2025-02-03,2025-03-10,36,8,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Hamstring injury,2025-01-19,2025-01-31,13,3,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Foot injury,2024-11-22,2024-12-05,14,4,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Hamstring injury,2024-10-02,2024-10-17,16,4,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
-2425,Cruciate ligament tear,2024-09-23,2025-05-16,236,47,injury,Rodri,/rodri/profil/spieler/357565
-2425,Hamstring injury,2024-07-14,2024-08-25,43,3,injury,Rodri,/rodri/profil/spieler/357565
-2425,Muscle injury,2024-11-28,2024-12-03,6,1,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
-2425,Hamstring injury,2025-02-14,2025-04-02,48,7,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
-2425,Ill,2025-01-10,2025-01-13,4,1,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
-2425,Hamstring injury,2025-03-30,2025-05-01,33,5,injury,Adam Webster,/adam-webster/profil/spieler/212847
-2425,Thigh problems,2024-10-12,2024-12-31,81,13,injury,Adam Webster,/adam-webster/profil/spieler/212847
-2425,Muscle injury,2024-10-15,2024-11-11,28,5,injury,Yankuba Minteh,/yankuba-minteh/profil/spieler/1012534
-2425,Thigh problems,2025-03-12,2025-04-14,34,6,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
-2425,heart problems,2024-08-31,2024-10-15,46,9,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
-2425,Ill,2024-11-02,2024-11-11,10,3,injury,Jadon Sancho,/jadon-sancho/profil/spieler/401173
-2425,Ankle injury,2025-03-31,2025-05-01,32,6,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
-2425,Knee problems,2025-02-16,2025-02-25,10,2,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
-2425,Knee injury,2024-08-26,2024-09-12,18,1,injury,Savinho,/savinho/profil/spieler/743591
-2425,Cruciate ligament tear,2025-01-13,2025-11-22,314,27,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-2425,Groin injury,2024-08-20,2024-09-04,16,2,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
-2425,Foot injury,2025-02-17,2025-04-21,64,10,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,unknown injury,2024-11-25,2024-12-17,23,4,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,Ill,2024-09-27,2024-09-30,4,1,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
-2425,Thigh problems,2024-10-01,2025-05-25,237,37,injury,James Milner,/james-milner/profil/spieler/3333
-2425,Hamstring injury,2024-08-31,2024-09-14,15,2,injury,James Milner,/james-milner/profil/spieler/3333
-2425,Knock,2025-03-21,2025-04-14,25,3,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Thigh problems,2025-02-06,2025-02-10,5,1,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Groin injury,2024-10-26,2024-10-30,5,2,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
-2425,Knee problems,2024-12-20,2025-01-07,19,5,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
-2425,Knee problems,2025-02-24,2025-03-03,8,2,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Knee injury,2025-01-26,2025-02-10,16,4,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Ill,2024-12-13,2024-12-15,3,1,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
-2425,Calf injury,2025-03-02,2025-03-24,23,5,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,unknown injury,2024-11-06,2024-11-29,24,5,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,Knock,2024-09-27,2024-10-01,5,1,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
-2425,Fitness,2025-03-01,2025-03-30,30,4,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
-2425,Broken leg,2024-08-14,2025-03-01,200,42,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
-2425,unknown injury,2025-05-02,2025-05-05,4,1,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Ill,2025-03-19,2025-03-24,6,1,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Hamstring muscle injury,2025-01-02,2025-01-07,6,2,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Muscle injury,2024-10-01,2024-10-25,25,6,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Knock,2024-09-22,2024-09-28,7,3,injury,Jurrien Timber,/jurrien-timber/profil/spieler/420243
-2425,Knee injury,2024-10-02,2024-10-30,29,4,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
-2425,surgery,2025-04-01,2025-07-01,92,17,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
-2425,Hamstring injury,2024-12-01,2025-02-24,86,18,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
-2425,unknown injury,2025-01-19,2025-02-11,24,7,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
-2425,Hamstring injury,2024-11-03,2024-11-27,25,6,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
-2425,Hamstring injury,2025-02-09,2025-05-15,96,17,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
-2425,Hamstring injury,2024-12-29,2025-02-07,41,11,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
-2425,Knock,2025-01-21,2025-01-26,6,2,injury,Pape Matar Sarr,/pape-matar-sarr/profil/spieler/568693
-2425,Hamstring injury,2025-02-15,2025-03-03,17,5,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
-2425,Thigh problems,2024-11-22,2024-11-24,3,1,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
-2425,Hamstring injury,2025-04-23,2025-05-23,31,4,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2425,Ill,2025-01-04,2025-01-15,12,2,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
-2425,Rib fracture,2024-03-09,2025-02-03,332,40,injury,Matheus França,/matheus-franca/profil/spieler/743597
-2425,Hamstring injury,2024-06-19,2024-11-25,160,18,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
-2425,Metatarsal fracture,2024-07-02,2024-10-17,108,9,injury,Lewis Miley,/lewis-miley/profil/spieler/922769
-2425,Ill,2025-01-24,2025-01-28,5,1,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
-2425,Ankle sprain,2024-09-09,2024-11-04,57,14,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
-2425,Hamstring injury,2024-12-08,2025-03-03,86,21,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Toe injury,2024-11-22,2024-12-06,15,4,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Ankle injury,2024-11-03,2024-11-08,6,2,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
-2425,Muscle injury,2024-11-23,2024-12-08,16,3,injury,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
-2425,Ill,2025-04-11,2025-04-15,5,1,injury,Matt Turner,/matt-turner/profil/spieler/425306
-2425,Hamstring injury,2025-02-09,2025-02-22,14,4,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
-2425,Hip problems,2024-11-22,2024-11-24,3,1,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
-2425,Ankle injury,2025-04-07,2025-04-18,12,1,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,unknown injury,2024-12-01,2024-12-09,9,3,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,cold,2024-09-03,2024-09-08,6,,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,Ill,2024-08-21,2024-08-31,11,2,injury,Phil Foden,/phil-foden/profil/spieler/406635
-2425,Muscle injury,2025-02-10,2025-04-07,57,10,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
-2425,Muscle injury,2024-10-17,2024-11-11,26,7,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
-2425,Hamstring injury,2025-01-05,2025-01-25,21,4,injury,John McGinn,/john-mcginn/profil/spieler/193116
-2425,Thigh problems,2024-09-28,2024-10-07,10,3,injury,John McGinn,/john-mcginn/profil/spieler/193116
-2425,concussion,2025-01-09,2025-01-22,14,3,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2425,Head injury,2024-08-20,2024-08-31,12,1,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
-2425,Ill,2025-01-12,2025-01-15,4,2,injury,Dean Henderson,/dean-henderson/profil/spieler/258919
-2425,Ankle injury,2025-04-30,2025-06-09,41,7,injury,Lucas Bergvall,/lucas-bergvall/profil/spieler/866246
-2425,Knock,2025-01-20,2025-02-01,13,3,injury,Djed Spence,/djed-spence/profil/spieler/483348
-2425,Groin injury,2024-10-21,2024-11-08,19,5,injury,Djed Spence,/djed-spence/profil/spieler/483348
-2425,Hip problems,2025-04-13,2025-04-25,13,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,Abdominal problems,2025-03-14,2025-03-30,17,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,unknown injury,2025-02-01,2025-02-10,10,2,injury,Ederson,/ederson/profil/spieler/238223
-2425,unknown injury,2024-12-20,2025-01-10,22,4,injury,Ederson,/ederson/profil/spieler/238223
-2425,Ankle surgery,2025-02-27,2025-07-01,125,13,injury,Lewis Hall,/lewis-hall/profil/spieler/670858
-2425,Hamstring injury,2024-12-29,2025-02-10,44,12,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
-2425,Hamstring injury,2024-09-29,2024-09-30,2,1,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
-2425,Knock,2024-12-25,2025-01-16,23,5,injury,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
-2425,Muscle injury,2025-01-04,2025-01-21,18,5,injury,Ethan Nwaneri,/ethan-nwaneri/profil/spieler/890719
-2425,Hamstring injury,2025-01-05,2025-05-01,117,18,injury,Igor,/igor/profil/spieler/380350
-2425,Thigh problems,2025-05-02,2025-05-05,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Knee injury,2025-01-17,2025-03-02,45,10,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Ill,2024-11-29,2024-12-02,4,1,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Ankle injury,2024-08-21,2024-09-09,20,2,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
-2425,Hamstring injury,2025-03-15,2025-04-03,20,2,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
-2425,Muscle fatigue,2024-09-03,2024-09-08,6,1,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
-2425,Hamstring injury,2024-12-07,2025-02-05,61,14,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
-2425,Back injury,2024-07-19,2024-11-25,130,15,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
-2425,Muscle injury,2025-01-11,2025-04-18,98,21,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
-2425,Knee problems,2025-04-20,2025-05-23,34,4,injury,Joelinton,/joelinton/profil/spieler/333241
-2425,Knee injury,2025-02-02,2025-03-01,28,5,injury,Joelinton,/joelinton/profil/spieler/333241
-2425,Knee injury,2025-05-03,2025-06-23,52,6,injury,James Maddison,/james-maddison/profil/spieler/294057
-2425,Calf strain,2025-01-25,2025-02-10,17,5,injury,James Maddison,/james-maddison/profil/spieler/294057
-2425,Calf injury,2025-01-16,2025-02-13,29,7,injury,Brennan Johnson,/brennan-johnson/profil/spieler/470607
-2425,Ill,2025-01-14,2025-01-17,4,1,injury,Fabian Schär,/fabian-schar/profil/spieler/135343
-2425,Hamstring injury,2024-10-30,2024-11-08,10,2,injury,Jacob Murphy,/jacob-murphy/profil/spieler/199527
-2425,unknown injury,2024-12-11,2025-01-10,31,5,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
-2425,Hamstring injury,2025-02-11,2025-05-16,95,18,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Ill,2024-12-30,2025-01-06,8,2,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Knee problems,2024-10-06,2024-10-21,16,3,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
-2425,Thigh problems,2025-02-02,2025-03-05,32,6,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Hamstring injury,2024-12-08,2025-01-27,51,14,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Hamstring injury,2024-10-30,2024-12-07,39,8,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Knee injury,2024-08-29,2024-09-09,12,2,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
-2425,Knee problems,2025-02-28,2025-03-30,31,4,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
-2425,Ankle injury,2024-08-27,2024-11-08,74,11,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
-2425,Hip injury,2025-02-11,2025-02-17,7,2,injury,Jack Grealish,/jack-grealish/profil/spieler/203460
-2425,Ill,2025-01-16,2025-01-24,9,1,injury,Jefferson Lerma,/jefferson-lerma/profil/spieler/262980
-2425,Ill,2024-12-03,2024-12-16,14,4,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
-2425,unknown injury,2024-09-06,2024-09-09,4,,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
-2425,Knee problems,2025-03-12,2025-03-30,19,2,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle injury,2025-02-02,2025-02-14,13,1,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle fatigue,2024-09-03,2024-09-11,9,,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
-2425,Muscle injury,2024-09-23,2024-09-27,5,1,injury,David Raya,/david-raya/profil/spieler/262749
-2425,Calf injury,2025-02-06,2025-04-03,57,10,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Groin injury,2025-01-26,2025-01-29,4,1,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Hamstring injury,2024-11-03,2025-01-14,73,17,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,unknown injury,2024-08-27,2024-10-19,54,9,injury,Richarlison,/richarlison/profil/spieler/378710
-2425,Calf injury,2025-04-21,2025-05-15,25,5,injury,Diogo Dalot,/diogo-dalot/profil/spieler/357147
-2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Hip injury,2025-01-24,2025-02-07,15,3,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,unknown injury,2024-12-20,2025-01-18,30,6,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Calf injury,2024-10-30,2024-12-01,33,9,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
-2425,Foot surgery,2025-03-01,2025-05-23,84,14,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,muscle stiffness,2025-02-13,2025-02-17,5,1,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Muscle injury,2025-01-18,2025-02-11,25,7,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,unknown injury,2024-12-04,2024-12-20,17,4,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Hamstring injury,2024-09-10,2024-10-14,35,7,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
-2425,Hamstring injury,2024-10-14,2024-11-25,43,7,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
-2425,Hamstring injury,2025-02-20,2025-05-12,82,17,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
-2425,Hamstring injury,2024-11-11,2024-12-18,38,7,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
-2425,Ill,2025-01-04,2025-01-10,7,2,injury,Dominik Szoboszlai,/dominik-szoboszlai/profil/spieler/451276
-2425,Knee surgery,2025-05-02,2025-07-01,61,4,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Muscle injury,2025-03-14,2025-03-29,16,2,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Solly March,/solly-march/profil/spieler/209212
-2425,Hamstring injury,2024-12-16,2025-03-14,89,20,injury,Mason Mount,/mason-mount/profil/spieler/346483
-2425,Hamstring injury,2024-08-28,2024-09-19,23,3,injury,Mason Mount,/mason-mount/profil/spieler/346483
-2425,Hamstring injury,2025-02-06,2025-03-07,30,4,injury,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
-2425,Cruciate ligament tear,2025-01-24,2026-01-01,343,21,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
-2425,Knee injury,2024-08-28,2024-12-28,123,19,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
-2425,Hamstring injury,2025-04-02,2025-07-14,104,12,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Knee injury,2024-12-01,2024-12-13,13,3,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Knee injury,2024-10-27,2024-11-01,6,2,injury,Gabriel Magalhães,/gabriel-magalhaes/profil/spieler/435338
-2425,Ill,2025-03-08,2025-03-12,5,1,injury,Reece James,/reece-james/profil/spieler/472423
-2425,Hamstring injury,2024-11-19,2024-12-27,39,10,injury,Reece James,/reece-james/profil/spieler/472423
-2425,Hamstring injury,2024-08-09,2024-10-14,67,11,injury,Reece James,/reece-james/profil/spieler/472423
-2425,muscular problems,2025-01-15,2025-01-31,17,4,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
-2425,Muscle injury,2024-10-20,2024-12-12,54,14,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
-2425,Muscle injury,2025-01-24,2025-02-22,30,5,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
-2425,Ankle injury,2024-04-14,2024-08-31,140,17,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
-2425,unknown injury,2024-11-10,2024-11-19,10,,injury,Matheus Nunes,/matheus-nunes/profil/spieler/601883
-2425,Metatarsal fracture,2024-12-31,2025-03-03,63,14,injury,Pau Torres,/pau-torres/profil/spieler/399776
-2425,Ankle injury,2025-01-08,2025-01-15,8,1,injury,João Pedro,/joao-pedro/profil/spieler/626724
-2425,Muscle injury,2025-01-21,2025-01-31,11,3,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
-2425,Muscle injury,2024-08-24,2024-09-11,19,2,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
-2425,Ankle injury,2024-11-23,2024-12-16,24,6,injury,Konstantinos Tsimikas,/konstantinos-tsimikas/profil/spieler/338070
-2425,Knee injury,2024-12-07,2025-01-20,45,11,injury,Nick Pope,/nick-pope/profil/spieler/192080
-2425,Chest injury,2025-02-08,2025-03-29,50,8,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
-2425,Calf problems,2025-01-03,2025-01-14,12,2,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
-2425,Knock,2025-03-04,2025-03-09,6,2,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
-2425,Knock,2025-02-12,2025-02-21,10,3,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
-2425,unknown injury,2025-03-07,2025-03-09,3,1,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
-2425,unknown injury,2025-01-09,2025-01-14,6,1,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
-2425,unknown injury,2025-01-15,2025-01-24,10,2,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,unknown injury,2025-01-15,2025-01-24,10,2,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,Knock,2024-08-12,2024-09-14,34,7,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,Muscle injury,2024-05-04,2024-05-06,3,1,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,Muscle injury,2023-09-15,2023-09-17,3,1,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
-2425,Hamstring injury,2024-12-22,2025-03-30,99,19,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Thigh problems,2024-10-10,2024-10-24,15,3,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Muscle injury,2024-05-13,2024-05-20,8,1,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
-2425,Hamstring injury,2024-07-28,2024-09-16,51,7,injury,Rasmus Højlund,/rasmus-hojlund/profil/spieler/610442
-2425,unknown injury,2025-02-03,2025-03-31,57,9,injury,Altay Bayındır,/altay-bayindir/profil/spieler/336077
-2425,Muscle injury,2025-04-20,2025-04-28,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Injury to the ankle,2025-03-07,2025-03-15,9,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Ill,2024-11-22,2024-11-29,8,2,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Muscle injury,2024-09-01,2024-09-22,22,5,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
-2425,Muscle injury,2024-12-03,2025-04-04,123,26,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Calf injury,2024-08-11,2024-11-08,90,20,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Knee injury,2024-08-01,2024-10-20,81,16,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
-2425,Knock,2025-01-16,2025-01-23,8,1,injury,Levi Colwill,/levi-colwill/profil/spieler/614258
-2425,Ill,2025-02-26,2025-03-03,6,1,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
-2425,Fever,2024-09-29,2024-10-03,5,1,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
-2425,Thigh problems,2025-03-17,2025-04-18,33,5,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2025-01-16,2025-03-07,51,8,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2024-12-09,2025-01-07,30,7,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Hamstring injury,2024-08-23,2024-09-15,24,4,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
-2425,Head injury,2025-04-19,2025-05-03,15,2,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
-2425,Groin injury,2024-09-23,2024-10-16,24,4,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
-2425,concussion,2025-04-03,2025-04-15,13,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Muscle injury,2025-01-11,2025-01-14,4,1,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Thigh problems,2024-08-28,2024-09-11,15,2,injury,Joe Willock,/joe-willock/profil/spieler/340329
-2425,Knock,2024-12-05,2024-12-22,18,5,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2425,Calf injury,2024-09-14,2024-10-21,38,8,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
-2425,Ill,2025-01-27,2025-01-30,4,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
-2425,Ill,2024-09-26,2024-09-30,5,1,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
-2425,Leg injury,2024-12-22,2025-02-10,51,9,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,Thigh problems,2024-12-21,2025-01-19,30,7,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,unknown injury,2024-08-24,2024-09-16,24,6,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
-2425,Knee surgery,2025-01-24,2025-06-01,129,21,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
-2425,Toe injury,2024-09-15,2024-10-28,44,6,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
-2425,Foot injury,2025-04-14,2025-05-09,26,6,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Knock,2025-04-11,2025-04-14,4,1,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Thigh problems,2024-10-21,2024-11-02,13,3,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Hamstring injury,2024-09-26,2024-10-19,24,7,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
-2425,Hamstring injury,2025-02-03,2025-05-12,99,20,injury,Marc Guiu,/marc-guiu/profil/spieler/938158
-2425,Calf injury,2025-01-10,2025-04-06,87,19,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
-2425,unknown injury,2024-11-03,2024-11-11,9,3,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
-2425,Knock,2024-11-20,2024-12-06,17,4,injury,Myles Lewis-Skelly,/myles-lewis-skelly/profil/spieler/890721
-2425,Hamstring injury,2025-01-13,2025-02-22,41,10,injury,Timo Werner,/timo-werner/profil/spieler/170527
-2425,Hip injury,2024-11-04,2024-11-09,6,1,injury,Timo Werner,/timo-werner/profil/spieler/170527
-2425,Foot injury,2025-02-03,2025-02-11,9,1,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
-2425,Hamstring injury,2024-10-30,2024-11-25,27,4,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
-2425,Ankle injury,2025-05-06,2025-05-12,7,1,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
-2425,Groin surgery,2024-11-01,2025-02-01,93,17,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
-2425,Leg injury,2024-12-30,2025-01-06,8,1,injury,Will Hughes,/will-hughes/profil/spieler/207014
-2425,Foot injury,2025-03-03,2025-04-10,39,7,injury,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
-2425,Hamstring injury,2024-11-22,2024-12-27,36,9,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
-2425,Muscle injury,2024-10-05,2024-10-07,3,1,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
-2425,Knee injury,2024-11-28,2024-12-31,34,8,injury,Ibrahima Konaté,/ibrahima-konate/profil/spieler/357119
-2425,Ankle injury,2025-03-12,2025-04-17,37,4,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Hamstring injury,2025-02-02,2025-02-11,10,2,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Hamstring injury,2024-11-09,2024-11-25,17,3,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
-2425,Ankle injury,2025-02-06,2025-02-11,6,1,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
-2425,Ankle injury,2021-08-03,2021-11-25,115,22,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
-2425,unknown injury,2024-11-18,2024-12-12,25,6,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
-2425,Muscle injury,2025-02-19,2025-04-03,44,8,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
-2425,Hamstring injury,2024-11-27,2025-01-03,38,9,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
-2425,unknown injury,2024-11-17,2024-11-29,13,3,injury,Pedro Neto,/pedro-neto/profil/spieler/487465
-2425,Rest,2024-11-18,2024-11-20,3,1,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
-2425,Knock,2025-02-08,2025-02-10,3,1,injury,Nico González,/nico-gonzalez/profil/spieler/466805
-2425,unknown injury,2025-03-16,2025-04-01,17,1,injury,Ryan Gravenberch,/ryan-gravenberch/profil/spieler/478573
-2425,Ill,2025-04-11,2025-04-15,5,1,injury,Romain Esse,/romain-esse/profil/spieler/967319
-2425,Calf injury,2025-05-05,,23,3,injury,Youri Tielemans,/youri-tielemans/profil/spieler/249565
-2425,Ill,2025-02-15,2025-02-17,3,1,injury,Christian Eriksen,/christian-eriksen/profil/spieler/69633
-2425,Groin injury,2025-02-25,2025-03-01,5,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Hamstring injury,2025-01-11,2025-01-14,4,1,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Broken toe,2024-09-15,2024-10-18,34,7,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
-2425,Cruciate ligament tear,2025-01-30,2025-12-06,311,25,injury,Radu Drăgușin,/radu-dragusin/profil/spieler/568559
-2425,Hamstring injury,2025-02-19,2025-05-23,94,17,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Foot injury,2024-12-22,2025-01-20,30,6,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Foot injury,2024-11-23,2024-12-14,22,6,injury,John Stones,/john-stones/profil/spieler/186590
-2425,unknown injury,2024-11-01,2024-11-18,18,4,injury,John Stones,/john-stones/profil/spieler/186590
-2425,Ankle injury,2024-10-18,2025-01-18,93,19,injury,Carl Rushworth,/carl-rushworth/profil/spieler/646353
-2425,Foot injury,2025-03-14,2025-04-21,39,6,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Ill,2025-01-10,2025-01-15,6,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Muscle injury,2024-08-10,2024-08-23,14,1,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
-2425,Shoulder injury,2025-02-07,,110,19,injury,Tyler Morton,/tyler-morton/profil/spieler/618494
-2425,Ankle surgery,2024-11-25,2025-02-10,78,21,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
-2425,unknown injury,2024-09-26,2024-10-14,19,2,injury,Simon Adingra,/simon-adingra/profil/spieler/658536
-2425,Hamstring injury,2025-01-17,2025-01-24,8,2,injury,William Saliba,/william-saliba/profil/spieler/495666
-2425,Calf problems,2025-04-01,2025-04-11,11,2,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Hamstring injury,2024-09-27,2024-11-03,38,8,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Knee problems,2024-04-01,2024-04-19,19,3,injury,Chris Richards,/chris-richards/profil/spieler/578539
-2425,Knee problems,2025-04-21,2025-04-28,8,1,injury,Ben White,/ben-white/profil/spieler/335721
-2425,unknown injury,2025-04-11,2025-04-15,5,1,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Knee surgery,2024-11-11,2025-02-10,92,21,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Knee injury,2024-09-23,2024-10-07,15,4,injury,Ben White,/ben-white/profil/spieler/335721
-2425,Broken collarbone,2024-11-08,2025-01-13,67,13,injury,Emil Krafth,/emil-krafth/profil/spieler/184528
-2425,Shoulder injury,2025-01-22,2025-05-03,102,15,injury,Jason Steele,/jason-steele/profil/spieler/73564
-2425,Foot injury,2025-03-16,2025-05-16,62,13,injury,Ayden Heaven,/ayden-heaven/profil/spieler/1078163
-2425,unknown injury,2024-12-20,2025-01-25,37,8,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,unknown injury,2024-11-17,2024-12-09,23,6,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,Toe injury,2024-08-04,2024-09-14,42,7,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
-2425,Heel problems,2025-05-02,2025-05-09,8,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
-2425,Heel problems,2025-04-07,2025-04-18,12,1,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
-2425,Foot injury,2025-03-30,2025-05-25,57,9,injury,Georginio Rutter,/georginio-rutter/profil/spieler/538977
-2425,Chest injury,2025-04-13,2025-05-06,24,5,injury,Jorginho,/jorginho/profil/spieler/102017
-2425,Hamstring muscle injury,2024-09-18,2024-10-31,44,12,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
-2425,Ill,2024-12-24,2024-12-29,6,1,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
-2425,Head injury,2025-03-08,2025-03-29,22,2,injury,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
-2425,Thigh problems,2025-04-14,2025-06-01,49,10,injury,Joshua Zirkzee,/joshua-zirkzee/profil/spieler/435648
-2425,Knock,2025-01-16,2025-01-23,8,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
-2425,Ill,2024-09-13,2024-09-15,3,1,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
-2425,Rest,2024-11-15,2024-11-15,1,,injury,Omar Marmoush,/omar-marmoush/profil/spieler/445939
-2425,Calf strain,2025-01-24,2025-03-09,45,8,injury,Joel Ward,/joel-ward/profil/spieler/92572
-2425,Calf injury,2024-12-08,2024-12-18,11,2,injury,Joel Ward,/joel-ward/profil/spieler/92572
-2425,Muscle injury,2024-08-01,2024-11-25,117,18,injury,Alfie Whiteman,/alfie-whiteman/profil/spieler/282823
-2425,Ill,2024-12-06,2024-12-09,4,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Knock,2024-11-20,2024-11-24,5,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Shoulder injury,2024-10-07,2024-10-13,7,1,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
-2425,Groin surgery,2025-04-03,2025-06-30,89,14,injury,Dane Scarlett,/dane-scarlett/profil/spieler/670883
-2425,Toe joint capsular tear,2024-11-02,2025-05-23,203,32,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,unknown injury,2024-08-30,2024-09-10,12,3,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,Hamstring strain,2024-08-12,2024-08-16,5,1,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
-2425,Ill,2025-02-07,2025-02-12,6,1,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
-2425,heart problems,2024-10-09,2024-10-18,10,2,injury,Noussair Mazraoui,/noussair-mazraoui/profil/spieler/340456
-2425,concussion,2024-08-13,2024-08-20,8,1,injury,İlkay Gündoğan,/ilkay-gundogan/profil/spieler/53622
-2425,unknown injury,2025-04-21,2025-04-28,8,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
-2425,Knock,2025-01-24,2025-01-28,5,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
-2425,Knee injury,2024-11-28,2024-12-02,5,1,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
-2425,Shoulder injury,2024-08-30,2024-10-01,33,9,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
-2425,Hamstring injury,2025-02-03,2025-04-01,58,9,injury,Nicolas Jackson,/nicolas-jackson/profil/spieler/776890
-2425,unknown injury,2025-03-26,2025-04-14,20,5,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,unknown injury,2025-02-14,2025-02-20,7,2,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Thigh problems,2024-12-13,2024-12-15,3,1,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Hamstring injury,2024-09-02,2024-09-17,16,4,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
-2425,Fitness,2025-01-20,2025-01-22,3,1,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,Hamstring injury,2024-12-14,2025-01-15,33,6,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,concussion,2024-08-17,2024-08-28,12,3,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
-2425,Muscle injury,2025-01-31,2025-02-07,8,1,injury,Carlos Baleba,/carlos-baleba/profil/spieler/973085
-2425,Muscle injury,2024-08-22,2024-09-14,24,3,injury,Vitor Reis,/vitor-reis/profil/spieler/1005575
-2425,Thigh problems,2025-01-12,2025-02-14,34,7,injury,Harvey Barnes,/harvey-barnes/profil/spieler/398065
-2425,Knee surgery,2025-02-19,2025-10-01,225,19,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2425,Knee injury,2024-10-06,2025-02-18,136,29,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2425,Knee injury,2024-07-21,2024-10-02,74,9,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
-2425,Knee injury,2024-11-09,2025-01-24,77,13,injury,Jack Hinshelwood,/jack-hinshelwood/profil/spieler/867688
-2425,Foot injury,2025-03-09,2025-04-01,24,4,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Ill,2025-02-14,2025-02-17,4,1,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Ankle injury,2024-07-29,2024-12-01,126,21,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
-2425,Hamstring injury,2024-12-05,2025-01-17,44,12,injury,Ben Davies,/ben-davies/profil/spieler/192765
+2425,Hamstring strain,2025-02-05,2025-03-07,31.0,7.0,injury,Facundo Pellistri,/facundo-pellistri/profil/spieler/676318
+2425,unknown injury,2024-12-17,2024-12-30,14.0,2.0,injury,Facundo Pellistri,/facundo-pellistri/profil/spieler/676318
+2425,Ill,2024-12-10,2024-12-14,5.0,1.0,injury,Facundo Pellistri,/facundo-pellistri/profil/spieler/676318
+2425,Transferred to Panathinaikos,2024-08-21,2025-06-30,,,Transfer,Facundo Pellistri,/facundo-pellistri/profil/spieler/676318
+2425,Cruciate ligament tear,2024-09-21,2025-08-16,330.0,44.0,injury,Yerson Mosquera,/yerson-mosquera/profil/spieler/716276
+2425,Muscle strain,2025-06-29,2025-09-24,88.0,9.0,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Thigh problems,2025-03-17,2025-04-18,33.0,5.0,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2025-01-16,2025-03-07,51.0,8.0,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2024-12-09,2025-01-07,30.0,7.0,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Hamstring injury,2024-08-23,2024-09-15,24.0,4.0,injury,Roméo Lavia,/romeo-lavia/profil/spieler/628451
+2425,Transferred to Man City U18,2024-07-01,2025-06-30,,,Transfer,Kaden Braithwaite,/kaden-braithwaite/profil/spieler/1078156
+2425,Ill,2025-04-11,2025-04-15,5.0,1.0,injury,Matt Turner,/matt-turner/profil/spieler/425306
+2425,Calf injury,2024-09-09,2024-10-18,40.0,5.0,injury,Carlos Vinícius,/carlos-vinicius/profil/spieler/525287
+2425,Calf injury,2025-04-21,2025-05-15,25.0,5.0,injury,Diogo Dalot,/diogo-dalot/profil/spieler/357147
+2425,unknown injury,2025-02-03,2025-03-31,57.0,11.0,injury,Altay Bayındır,/altay-bayindir/profil/spieler/336077
+2425,Hamstring injury,2024-12-22,2025-03-30,99.0,21.0,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,Thigh problems,2024-10-10,2024-10-24,15.0,3.0,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,Muscle injury,2024-05-13,2024-05-20,8.0,1.0,injury,Bukayo Saka,/bukayo-saka/profil/spieler/433177
+2425,unknown injury,2024-12-20,2025-01-02,14.0,3.0,injury,Matheus Nunes,/matheus-nunes/profil/spieler/601883
+2425,unknown injury,2024-11-10,2024-11-19,10.0,2.0,injury,Matheus Nunes,/matheus-nunes/profil/spieler/601883
+2425,Transferred to Spurs U18,2024-07-01,2025-06-30,,,Transfer,Malachi Hardy,/malachi-hardy/profil/spieler/1108465
+2425,Knock,2024-11-27,2024-12-04,8.0,1.0,injury,Jorge Cuenca,/jorge-cuenca/profil/spieler/494880
+2425,Ankle injury,2024-09-26,2024-10-18,23.0,2.0,injury,Jorge Cuenca,/jorge-cuenca/profil/spieler/494880
+2425,Transferred to Villarreal,2024-07-01,2024-08-02,,,Transfer,Jorge Cuenca,/jorge-cuenca/profil/spieler/494880
+2425,Transferred to Middlesbrough,2024-08-30,2025-01-20,,,Transfer,George Edmundson,/george-edmundson/profil/spieler/385848
+2425,Transferred to Middlesbrough,2025-01-25,2025-06-30,,,Transfer,George Edmundson,/george-edmundson/profil/spieler/385848
+2425,Muscle injury,2024-12-01,2025-02-10,72.0,16.0,injury,Mark O'Mahony,/mark-omahony/profil/spieler/943549
+2425,Transferred to Portsmouth,2024-08-28,2025-05-30,,,Transfer,Mark O'Mahony,/mark-omahony/profil/spieler/943549
+2425,Cruciate ligament tear,2024-07-27,2025-06-01,310.0,43.0,injury,Enso González,/enso-gonzalez/profil/spieler/1060740
+2425,Achilles tendon surgery,2025-06-02,2025-10-03,124.0,15.0,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2425,unknown injury,2024-11-18,2024-12-12,25.0,5.0,injury,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2425,Transferred to R. Strasbourg,2024-07-01,2025-05-30,,,Transfer,Andrey Santos,/andrey-santos/profil/spieler/743600
+2425,unknown injury,2025-03-15,2025-03-17,3.0,,injury,Bernardo Silva,/bernardo-silva/profil/spieler/241641
+2425,Cruciate ligament injury,2025-02-03,2025-11-21,292.0,44.0,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
+2425,Back problems,2024-11-23,2024-11-25,3.0,1.0,injury,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
+2425,unknown injury,2025-04-21,2025-04-28,8.0,1.0,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Knock,2025-01-24,2025-01-28,5.0,1.0,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Knee injury,2024-11-28,2024-12-02,5.0,1.0,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Shoulder injury,2024-08-30,2024-10-01,33.0,8.0,injury,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Transferred to Real Sociedad,2024-07-01,2024-08-26,,,Transfer,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Transferred to Levante,2024-07-01,2025-01-20,,,Transfer,Andrés García,/andres-garcia/profil/spieler/1063329
+2425,Knock,2024-12-05,2024-12-22,18.0,5.0,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2425,Calf injury,2024-09-14,2024-10-21,38.0,9.0,injury,Oleksandr Zinchenko,/oleksandr-zinchenko/profil/spieler/203853
+2425,Shoulder injury,2025-03-08,2025-06-01,86.0,11.0,injury,Fábio Carvalho,/fabio-carvalho/profil/spieler/559263
+2425,Groin injury,2025-01-01,2025-01-10,10.0,2.0,injury,Fábio Carvalho,/fabio-carvalho/profil/spieler/559263
+2425,Achilles tendon rupture,2024-12-26,2026-04-07,468.0,83.0,injury,Harry Souttar,/harry-souttar/profil/spieler/298091
+2425,Transferred to Sheff Utd,2024-08-06,2025-06-29,,,Transfer,Harry Souttar,/harry-souttar/profil/spieler/298091
+2425,Knee problems,2025-03-07,2025-04-23,48.0,7.0,injury,Sven Botman,/sven-botman/profil/spieler/361093
+2425,Broken kneecap,2025-02-05,2025-03-06,30.0,5.0,injury,Sven Botman,/sven-botman/profil/spieler/361093
+2425,Stomach flu,2025-05-17,2025-05-26,10.0,2.0,injury,Kyle Walker,/kyle-walker/profil/spieler/95424
+2425,Broken arm,2025-04-08,2025-04-26,19.0,3.0,injury,Kyle Walker,/kyle-walker/profil/spieler/95424
+2425,Hamstring injury,2025-02-19,2025-02-28,10.0,2.0,injury,Kyle Walker,/kyle-walker/profil/spieler/95424
+2425,Transferred to AC Milan,2025-01-24,2025-06-29,,,Transfer,Kyle Walker,/kyle-walker/profil/spieler/95424
+2425,Leg injury,2024-12-30,2025-01-06,8.0,1.0,injury,Will Hughes,/will-hughes/profil/spieler/207014
+2425,Hamstring injury,2024-10-21,2024-11-20,31.0,5.0,injury,Jack Taylor,/jack-taylor/profil/spieler/458178
+2425,Transferred to Bristol Rovers,2025-02-03,2025-06-29,,,Transfer,Sil Swinkels,/sil-swinkels/profil/spieler/646710
+2425,Ankle injury,2025-04-07,2025-04-18,12.0,1.0,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,unknown injury,2024-12-01,2024-12-09,9.0,2.0,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,cold,2024-09-03,2024-09-08,6.0,1.0,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,Ill,2024-08-21,2024-08-31,11.0,1.0,injury,Phil Foden,/phil-foden/profil/spieler/406635
+2425,Transferred to QPR,2024-07-01,2024-08-22,,,Transfer,Asmir Begovic,/asmir-begovic/profil/spieler/33873
+2425,Ill,2024-12-09,2025-01-12,35.0,5.0,injury,Massimo Luongo,/massimo-luongo/profil/spieler/181687
+2425,Ankle injury,2024-10-01,2024-11-01,32.0,3.0,injury,Massimo Luongo,/massimo-luongo/profil/spieler/181687
+2425,Transferred to Man City U21,2024-07-01,2025-06-30,,,Transfer,Spike Brits,/spike-brits/profil/spieler/1080903
+2425,Thigh problems,2025-03-07,2025-04-02,27.0,2.0,injury,James Bree,/james-bree/profil/spieler/324223
+2425,Ill,2025-01-14,2025-01-17,4.0,1.0,injury,Fabian Schär,/fabian-schar/profil/spieler/135343
+2425,Ankle sprain,2024-11-09,2024-11-14,6.0,1.0,injury,Mike Penders,/mike-penders/profil/spieler/834397
+2425,Transferred to Genk,2024-07-01,2024-08-26,,,Transfer,Mike Penders,/mike-penders/profil/spieler/834397
+2425,Transferred to Genk,2024-08-28,2025-05-31,,,Transfer,Mike Penders,/mike-penders/profil/spieler/834397
+2425,unknown injury,2025-05-28,2025-06-30,34.0,2.0,injury,Séamus Coleman,/seamus-coleman/profil/spieler/68390
+2425,Calf injury,2024-12-30,2025-03-07,68.0,11.0,injury,Séamus Coleman,/seamus-coleman/profil/spieler/68390
+2425,unknown injury,2024-11-09,2024-11-25,17.0,4.0,injury,Séamus Coleman,/seamus-coleman/profil/spieler/68390
+2425,Foot injury,2024-09-07,2024-10-18,42.0,8.0,injury,Séamus Coleman,/seamus-coleman/profil/spieler/68390
+2425,Transferred to AC Milan,2024-07-01,2025-06-30,,,Transfer,Tijjani Reijnders,/tijjani-reijnders/profil/spieler/460939
+2425,Transferred to Norwich,2025-02-03,2025-06-30,,,Transfer,Ruairi McConville,/ruairi-mcconville/profil/spieler/701021
+2425,Transferred to CA Talleres,2024-07-01,2024-08-15,,,Transfer,Ramón Sosa,/ramon-sosa/profil/spieler/745191
+2425,Ill,2025-01-04,2025-01-10,7.0,2.0,injury,Dominik Szoboszlai,/dominik-szoboszlai/profil/spieler/451276
+2425,Transferred to Sunderland,2024-07-01,2024-08-23,,,Transfer,Jack Clarke,/jack-clarke/profil/spieler/559794
+2425,Ankle problems,2024-12-25,2025-01-31,38.0,7.0,injury,Evan Ferguson,/evan-ferguson/profil/spieler/648046
+2425,Knee problems,2025-03-12,2025-03-30,19.0,2.0,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
+2425,Muscle injury,2025-02-02,2025-02-14,13.0,1.0,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
+2425,Muscle fatigue,2024-09-03,2024-09-11,9.0,2.0,injury,Ollie Watkins,/ollie-watkins/profil/spieler/324358
+2425,Adductor pain,2024-12-28,2025-01-05,9.0,1.0,injury,Murillo,/murillo/profil/spieler/1005649
+2425,Achilles tendon problems,2025-04-15,2025-06-01,48.0,6.0,injury,Rodrigo Muniz,/rodrigo-muniz/profil/spieler/735571
+2425,Back injury,2025-01-09,2025-01-13,5.0,,injury,Rodrigo Muniz,/rodrigo-muniz/profil/spieler/735571
+2425,Knee injury,2025-05-03,2025-06-23,52.0,6.0,injury,James Maddison,/james-maddison/profil/spieler/294057
+2425,Calf strain,2025-01-25,2025-02-10,17.0,5.0,injury,James Maddison,/james-maddison/profil/spieler/294057
+2425,Hamstring injury,2025-01-05,2025-05-01,117.0,18.0,injury,Igor Julio,/igor-julio/profil/spieler/380350
+2425,Strain in the thigh and gluteal muscles,2025-05-08,2025-05-15,8.0,1.0,injury,Declan Rice,/declan-rice/profil/spieler/357662
+2425,Broken toe,2024-11-04,2024-11-19,16.0,3.0,injury,Declan Rice,/declan-rice/profil/spieler/357662
+2425,Knee surgery,2025-02-19,2025-10-01,225.0,28.0,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Knee injury,2024-10-06,2025-02-18,136.0,33.0,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Knee injury,2024-07-21,2024-10-02,74.0,11.0,injury,Takehiro Tomiyasu,/takehiro-tomiyasu/profil/spieler/331560
+2425,Cruciate ligament tear,2025-01-13,2025-11-27,319.0,46.0,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+2425,Groin injury,2024-08-20,2024-09-04,16.0,2.0,injury,Gabriel Jesus,/gabriel-jesus/profil/spieler/363205
+2425,Transferred to Wolves U21,2024-07-01,2025-06-30,,,Transfer,Wesley Okoduwa,/wesley-okoduwa/profil/spieler/1115502
+2425,Transferred to Leipzig,2025-02-03,2025-06-30,,,Transfer,Kosta Nedeljkovic,/kosta-nedeljkovic/profil/spieler/848682
+2425,Transferred to Lyon,2024-07-01,2025-06-30,,,Transfer,Rayan Cherki,/rayan-cherki/profil/spieler/607223
+2425,Ankle injury,2024-06-01,2024-10-19,141.0,9.0,injury,Paris Maghoma,/paris-maghoma/profil/spieler/470596
+2425,Hamstring injury,2025-04-02,2025-07-14,104.0,14.0,injury,Gabriel,/gabriel/profil/spieler/435338
+2425,Knee injury,2024-12-01,2024-12-13,13.0,3.0,injury,Gabriel,/gabriel/profil/spieler/435338
+2425,Knee injury,2024-10-27,2024-11-01,6.0,1.0,injury,Gabriel,/gabriel/profil/spieler/435338
+2425,Hamstring injury,2024-12-06,2025-06-01,178.0,28.0,injury,Reiss Nelson,/reiss-nelson/profil/spieler/340325
+2425,Head injury,2025-04-19,2025-05-03,15.0,1.0,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2425,Groin injury,2024-09-23,2024-10-16,24.0,4.0,injury,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2425,Hamstring injury,2025-01-17,2025-01-24,8.0,2.0,injury,William Saliba,/william-saliba/profil/spieler/495666
+2425,Transferred to LAFC,2024-07-30,2024-12-30,,,Transfer,Lewis O'Brien,/lewis-obrien/profil/spieler/560694
+2425,Transferred to Swansea,2025-02-03,2025-05-30,,,Transfer,Lewis O'Brien,/lewis-obrien/profil/spieler/560694
+2425,Transferred to Cardiff,2025-02-03,2025-05-30,,,Transfer,Will Alves,/will-alves/profil/spieler/867711
+2425,Transferred to Man Utd U21,2024-09-04,2025-06-30,,,Transfer,Hubert Graczyk,/hubert-graczyk/profil/spieler/587018
+2425,Hamstring injury,2025-02-15,2025-03-03,17.0,3.0,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
+2425,Thigh problems,2024-11-22,2024-11-24,3.0,1.0,injury,Boubacar Kamara,/boubacar-kamara/profil/spieler/394327
+2425,Fitness,2025-02-21,2025-04-03,42.0,7.0,injury,Ross Stewart,/ross-stewart/profil/spieler/447995
+2425,Hamstring injury,2024-10-06,2025-02-20,138.0,26.0,injury,Ross Stewart,/ross-stewart/profil/spieler/447995
+2425,Hamstring injury,2024-12-18,2025-02-01,46.0,8.0,injury,Ethan Pinnock,/ethan-pinnock/profil/spieler/442248
+2425,concussion,2025-01-09,2025-01-22,14.0,3.0,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2425,Head injury,2024-08-20,2024-08-31,12.0,1.0,injury,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2425,Transferred to Napoli,2024-08-30,2025-06-30,,,Transfer,Billy Gilmour,/billy-gilmour/profil/spieler/423744
+2425,Calf injury,2025-05-04,2025-06-01,29.0,3.0,injury,Harrison Reed,/harrison-reed/profil/spieler/226973
+2425,Fitness,2025-01-01,2025-01-08,8.0,1.0,injury,Harrison Reed,/harrison-reed/profil/spieler/226973
+2425,Knee surgery,2024-11-21,2024-12-31,41.0,8.0,injury,Harrison Reed,/harrison-reed/profil/spieler/226973
+2425,Thigh problems,2025-03-28,2025-04-18,22.0,3.0,injury,Omari Hutchinson,/omari-hutchinson/profil/spieler/741238
+2425,Knee injury,2025-02-26,2025-03-05,8.0,1.0,injury,Omari Hutchinson,/omari-hutchinson/profil/spieler/741238
+2425,Groin problems,2025-01-04,2025-01-15,12.0,2.0,injury,Omari Hutchinson,/omari-hutchinson/profil/spieler/741238
+2425,Ill,2024-10-25,2024-10-29,5.0,1.0,injury,Omari Hutchinson,/omari-hutchinson/profil/spieler/741238
+2425,Knock,2025-02-01,2025-02-16,16.0,2.0,injury,Ji-soo Kim,/ji-soo-kim/profil/spieler/709767
+2425,unknown injury,2025-02-23,2025-03-04,10.0,1.0,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Back injury,2025-02-22,2025-03-06,13.0,1.0,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Abdominal muscle strain,2024-08-10,2024-09-27,49.0,8.0,injury,Trevoh Chalobah,/trevoh-chalobah/profil/spieler/346314
+2425,Transferred to Derby,2025-02-03,2025-06-29,,,Transfer,Harrison Armstrong,/harrison-armstrong/profil/spieler/1107733
+2425,Rest,2024-11-15,2024-11-15,1.0,,injury,Omar Marmoush,/omar-marmoush/profil/spieler/445939
+2425,Transferred to Frankfurt,2024-07-01,2025-01-22,,,Transfer,Omar Marmoush,/omar-marmoush/profil/spieler/445939
+2425,Foot surgery,2025-03-01,2025-05-19,80.0,14.0,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,muscle stiffness,2025-02-13,2025-02-17,5.0,1.0,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Muscle injury,2025-01-18,2025-02-11,25.0,6.0,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,unknown injury,2024-12-04,2024-12-20,17.0,3.0,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Hamstring injury,2024-09-10,2024-10-14,35.0,8.0,injury,Nathan Aké,/nathan-ake/profil/spieler/177476
+2425,Transferred to Fylde,2024-07-26,2025-05-30,,,Transfer,Ben Winterbottom,/ben-winterbottom/profil/spieler/505046
+2425,Knock,2025-01-16,2025-01-23,8.0,1.0,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
+2425,Ill,2024-09-13,2024-09-15,3.0,1.0,injury,Enzo Fernández,/enzo-fernandez/profil/spieler/648195
+2425,Transferred to West Brom,2025-01-31,2025-05-30,,,Transfer,Will Lankshear,/will-lankshear/profil/spieler/879768
+2425,Broken collarbone,2024-11-08,2025-01-13,67.0,15.0,injury,Emil Krafth,/emil-krafth/profil/spieler/184528
+2425,Head injury,2025-05-02,2025-05-05,4.0,1.0,injury,Facundo Buonanotte,/facundo-buonanotte/profil/spieler/983989
+2425,Knock,2025-01-20,2025-02-01,13.0,3.0,injury,Djed Spence,/djed-spence/profil/spieler/483348
+2425,Groin injury,2024-10-21,2024-11-08,19.0,5.0,injury,Djed Spence,/djed-spence/profil/spieler/483348
+2425,Transferred to Reading,2024-08-30,2025-05-30,,,Transfer,Chem Campbell,/chem-campbell/profil/spieler/614603
+2425,Back problems,2025-04-20,2025-04-22,3.0,1.0,injury,José Sá,/jose-sa/profil/spieler/249994
+2425,Shoulder injury,2024-12-06,2024-12-18,13.0,2.0,injury,José Sá,/jose-sa/profil/spieler/249994
+2425,Tendon irritation,2025-04-01,2025-05-05,35.0,6.0,injury,Albert Grønbaek,/albert-gronbaek/profil/spieler/503866
+2425,Transferred to Bodø/Glimt,2024-07-01,2024-07-14,,,Transfer,Albert Grønbaek,/albert-gronbaek/profil/spieler/503866
+2425,Transferred to Stade Rennais,2024-07-15,2025-01-20,,,Transfer,Albert Grønbaek,/albert-gronbaek/profil/spieler/503866
+2425,Transferred to Stade Rennais,2025-06-30,2025-06-30,,,Transfer,Albert Grønbaek,/albert-gronbaek/profil/spieler/503866
+2425,Back injury,2025-02-03,2025-06-30,148.0,16.0,injury,Harvey Vale,/harvey-vale/profil/spieler/581675
+2425,Transferred to QPR,2025-02-03,2025-06-30,,,Transfer,Harvey Vale,/harvey-vale/profil/spieler/581675
+2425,Foot injury,2025-03-03,2025-04-10,39.0,6.0,injury,Dejan Kulusevski,/dejan-kulusevski/profil/spieler/431755
+2425,Transferred to Man City U21,2024-07-01,2025-02-02,,,Transfer,Jacob Wright,/jacob-wright/profil/spieler/983702
+2425,Transferred to Norwich,2025-02-03,2025-06-29,,,Transfer,Jacob Wright,/jacob-wright/profil/spieler/983702
+2425,Transferred to Man City U21,2025-06-30,2025-06-30,,,Transfer,Jacob Wright,/jacob-wright/profil/spieler/983702
+2425,Head injury,2025-03-08,2025-03-29,22.0,1.0,injury,Jean-Philippe Mateta,/jean-philippe-mateta/profil/spieler/420002
+2425,Hamstring injury,2025-02-09,2025-03-06,26.0,3.0,injury,Alfie Devine,/alfie-devine/profil/spieler/728734
+2425,Transferred to KVC Westerlo,2024-09-05,2025-06-29,,,Transfer,Alfie Devine,/alfie-devine/profil/spieler/728734
+2425,Transferred to Sunderland,2024-08-30,2025-05-30,,,Transfer,Chris Mepham,/chris-mepham/profil/spieler/480987
+2425,Transferred to D.C. United,2024-07-01,2025-01-02,,,Transfer,Matai Akinmboni,/matai-akinmboni/profil/spieler/994604
+2425,Transferred to Villarreal,2024-07-01,2024-07-29,,,Transfer,Filip Jørgensen,/filip-jorgensen/profil/spieler/585323
+2425,Transferred to Man Utd U21,2024-07-01,2024-12-31,,,Transfer,Harry Amass,/harry-amass/profil/spieler/1011738
+2425,Ill,2025-03-29,2025-04-03,6.0,2.0,injury,Tyler Bindon,/tyler-bindon/profil/spieler/1007720
+2425,concussion,2024-08-31,2024-09-10,11.0,1.0,injury,Tyler Bindon,/tyler-bindon/profil/spieler/1007720
+2425,Transferred to Reading,2024-07-01,2025-02-01,,,Transfer,Tyler Bindon,/tyler-bindon/profil/spieler/1007720
+2425,Transferred to Reading,2025-02-03,2025-06-29,,,Transfer,Tyler Bindon,/tyler-bindon/profil/spieler/1007720
+2425,Hamstring injury,2024-07-28,2024-09-16,51.0,7.0,injury,Rasmus Højlund,/rasmus-hojlund/profil/spieler/610442
+2425,Hamstring injury,2025-02-09,2025-02-22,14.0,2.0,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
+2425,Hip problems,2024-11-22,2024-11-24,3.0,1.0,injury,Ezri Konsa,/ezri-konsa/profil/spieler/413403
+2425,Metatarsal fracture,2024-07-02,2024-10-17,108.0,15.0,injury,Lewis Miley,/lewis-miley/profil/spieler/922769
+2425,Hamstring injury,2025-02-03,2025-05-12,99.0,19.0,injury,Marc Guiu,/marc-guiu/profil/spieler/938158
+2425,Transferred to Lecce,2024-07-01,2025-02-01,,,Transfer,Patrick Dorgu,/patrick-dorgu/profil/spieler/926952
+2425,Transferred to PSG,2024-07-01,2025-02-02,,,Transfer,Marco Asensio,/marco-asensio/profil/spieler/296622
+2425,Transferred to PSG,2025-06-30,2025-06-30,,,Transfer,Marco Asensio,/marco-asensio/profil/spieler/296622
+2425,Hamstring injury,2024-12-07,2025-02-05,61.0,12.0,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2425,Back injury,2024-07-19,2024-11-25,130.0,14.0,injury,Callum Wilson,/callum-wilson/profil/spieler/123682
+2425,Thigh problems,2025-01-12,2025-02-14,34.0,6.0,injury,Harvey Barnes,/harvey-barnes/profil/spieler/398065
+2425,Transferred to Dundee FC,2025-01-13,2025-06-30,,,Transfer,Imari Samuels,/imari-samuels/profil/spieler/565846
+2425,unknown injury,2025-04-28,2025-06-01,35.0,4.0,injury,Stephy Mavididi,/stephy-mavididi/profil/spieler/340328
+2425,Shoulder injury,2025-01-22,2025-05-03,102.0,13.0,injury,Jason Steele,/jason-steele/profil/spieler/73564
+2425,Knock,2025-04-30,2025-05-26,27.0,6.0,injury,Christopher Nkunku,/christopher-nkunku/profil/spieler/344381
+2425,Foot injury,2025-02-25,2025-04-11,46.0,7.0,injury,Harry Clarke,/harry-clarke/profil/spieler/528892
+2425,Transferred to Sheff Utd,2025-01-29,2025-06-29,,,Transfer,Harry Clarke,/harry-clarke/profil/spieler/528892
+2425,Toe joint capsular tear,2024-11-02,2025-06-25,236.0,38.0,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,unknown injury,2024-08-30,2024-09-10,12.0,3.0,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,Hamstring strain,2024-08-12,2024-08-16,5.0,1.0,injury,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,Transferred to Fenerbahçe,2024-07-01,2024-08-23,,,Transfer,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,Hamstring strain,2025-02-14,2025-04-01,47.0,5.0,injury,Vladimír Coufal,/vladimir-coufal/profil/spieler/157672
+2425,unknown injury,2025-03-07,2025-03-09,3.0,1.0,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
+2425,unknown injury,2025-01-09,2025-01-14,6.0,1.0,injury,Emiliano Martínez,/emiliano-martinez/profil/spieler/111873
+2425,Knee surgery,2025-05-02,2025-12-14,227.0,23.0,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Muscle injury,2025-03-14,2025-03-29,16.0,1.0,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Muscle injury,2025-01-24,2025-02-22,30.0,4.0,injury,Solly March,/solly-march/profil/spieler/209212
+2425,Head injury,2025-03-08,2025-03-17,10.0,1.0,injury,Jan Bednarek,/jan-bednarek/profil/spieler/243028
+2425,Muscle injury,2025-02-22,2025-03-08,15.0,1.0,injury,Jan Bednarek,/jan-bednarek/profil/spieler/243028
+2425,unknown injury,2024-11-15,2024-12-09,25.0,5.0,injury,Jan Bednarek,/jan-bednarek/profil/spieler/243028
+2425,Hamstring injury,2025-04-21,2025-07-14,85.0,5.0,injury,James Tarkowski,/james-tarkowski/profil/spieler/173504
+2425,Hamstring injury,2024-10-14,2024-11-25,43.0,5.0,injury,Kieran Trippier,/kieran-trippier/profil/spieler/95810
+2425,Ankle injury,2024-12-21,2025-01-25,36.0,6.0,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Foot injury,2024-10-19,2024-12-07,50.0,9.0,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Ankle injury,2024-08-31,2024-09-14,15.0,2.0,injury,Kristoffer Ajer,/kristoffer-ajer/profil/spieler/328658
+2425,Knock,2025-01-18,2025-01-25,8.0,2.0,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Groin problems,2024-09-10,2024-09-20,11.0,2.0,injury,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Fitness,2025-01-01,2025-01-10,10.0,1.0,injury,Danilo,/danilo/profil/spieler/808509
+2425,Broken ankle,2024-08-17,2025-01-10,147.0,20.0,injury,Danilo,/danilo/profil/spieler/808509
+2425,Chest injury,2025-01-31,2025-02-14,15.0,1.0,injury,Mark Flekken,/mark-flekken/profil/spieler/125714
+2425,unknown injury,2025-01-05,2025-02-10,37.0,5.0,injury,Jean-Clair Todibo,/jean-clair-todibo/profil/spieler/605184
+2425,Transferred to Nice,2024-07-01,2024-08-09,,,Transfer,Jean-Clair Todibo,/jean-clair-todibo/profil/spieler/605184
+2425,Transferred to Nice,2025-06-30,2025-06-30,,,Transfer,Jean-Clair Todibo,/jean-clair-todibo/profil/spieler/605184
+2425,Groin surgery,2024-06-07,2024-08-07,62.0,,injury,Axel Disasi,/axel-disasi/profil/spieler/386047
+2425,Transferred to Exeter City,2025-02-03,2025-06-30,,,Transfer,Ed Turns,/ed-turns/profil/spieler/580809
+2425,Knee bruise,2025-05-24,2025-07-21,59.0,3.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Knee injury,2025-03-21,2025-05-06,47.0,10.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Muscle injury,2025-01-11,2025-01-21,11.0,3.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Knee injury,2024-12-03,2024-12-17,15.0,4.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Knee injury,2024-10-22,2024-11-21,31.0,7.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Calf problems,2024-09-07,2024-09-18,12.0,2.0,injury,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Transferred to Bologna,2024-07-01,2024-07-28,,,Transfer,Riccardo Calafiori,/riccardo-calafiori/profil/spieler/502821
+2425,Muscle injury,2024-10-28,2024-11-15,19.0,4.0,injury,Willian,/willian/profil/spieler/52769
+2425,Ankle injury,2024-10-04,2024-10-21,18.0,2.0,injury,Willian,/willian/profil/spieler/52769
+2425,Transferred to Olympiacos,2024-09-02,2024-12-31,,,Transfer,Willian,/willian/profil/spieler/52769
+2425,Transferred to Without Club,2025-01-01,2025-02-05,,,Transfer,Willian,/willian/profil/spieler/52769
+2425,Transferred to Sheff Wed,2024-08-27,2025-05-30,,,Transfer,Shea Charles,/shea-charles/profil/spieler/747951
+2425,Groin problems,2025-03-09,2025-03-17,9.0,2.0,injury,Oliver Skipp,/oliver-skipp/profil/spieler/406638
+2425,Calf problems,2025-04-01,2025-04-11,11.0,2.0,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Hamstring injury,2024-09-27,2024-11-03,38.0,8.0,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Knee problems,2024-04-01,2024-04-19,19.0,3.0,injury,Chris Richards,/chris-richards/profil/spieler/578539
+2425,Transferred to PSG,2024-07-01,2024-08-29,,,Transfer,Carlos Soler,/carlos-soler/profil/spieler/372246
+2425,Transferred to PSG,2025-06-30,2025-06-30,,,Transfer,Carlos Soler,/carlos-soler/profil/spieler/372246
+2425,Muscle injury,2025-04-28,2025-05-23,26.0,2.0,injury,Ricardo Pereira,/ricardo-pereira/profil/spieler/215876
+2425,Hamstring injury,2024-11-11,2025-03-09,119.0,18.0,injury,Ricardo Pereira,/ricardo-pereira/profil/spieler/215876
+2425,Hamstring injury,2024-09-14,2025-01-20,129.0,24.0,injury,Ibrahim Sangaré,/ibrahim-sangare/profil/spieler/375885
+2425,Hamstring injury,2025-03-15,2025-04-03,20.0,3.0,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
+2425,Muscle fatigue,2024-09-03,2024-09-08,6.0,1.0,injury,Cole Palmer,/cole-palmer/profil/spieler/568177
+2425,Cruciate ligament tear,2025-01-24,2025-12-15,326.0,69.0,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
+2425,Knee injury,2024-08-28,2024-12-09,104.0,21.0,injury,Chadi Riad,/chadi-riad/profil/spieler/689637
+2425,Transferred to Real Betis,2024-07-01,2024-07-01,,,Transfer,Chadi Riad,/chadi-riad/profil/spieler/689637
+2425,Adductor pain,2025-04-17,2025-04-22,6.0,1.0,injury,Mads Roerslev,/mads-roerslev/profil/spieler/391005
+2425,Heel problems,2025-03-19,2025-04-01,14.0,3.0,injury,Mads Roerslev,/mads-roerslev/profil/spieler/391005
+2425,Transferred to Wolfsburg,2025-01-27,2025-06-29,,,Transfer,Mads Roerslev,/mads-roerslev/profil/spieler/391005
+2425,Foot injury,2025-01-31,2025-03-10,39.0,6.0,injury,Christian Walton,/christian-walton/profil/spieler/208379
+2425,Hamstring injury,2025-01-22,2025-02-10,20.0,3.0,injury,Valentín Barco,/valentin-barco/profil/spieler/849410
+2425,Groin injury,2025-01-10,2025-01-19,10.0,2.0,injury,Valentín Barco,/valentin-barco/profil/spieler/849410
+2425,Transferred to Sevilla FC,2024-08-23,2025-01-31,,,Transfer,Valentín Barco,/valentin-barco/profil/spieler/849410
+2425,Transferred to R. Strasbourg,2025-02-02,2025-06-29,,,Transfer,Valentín Barco,/valentin-barco/profil/spieler/849410
+2425,Hip injury,2025-02-14,2025-03-08,23.0,4.0,injury,Rodrigo Gomes,/rodrigo-gomes/profil/spieler/667121
+2425,Knock,2025-04-04,2025-04-10,7.0,1.0,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2425,Calf stiffness,2025-02-03,2025-02-09,7.0,1.0,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2425,Calf stiffness,2024-09-28,2024-10-27,30.0,3.0,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2425,Ill,2024-09-14,2024-09-27,14.0,2.0,injury,Vitaliy Mykolenko,/vitaliy-mykolenko/profil/spieler/404842
+2425,Muscle fatigue,2025-02-17,2025-03-03,15.0,3.0,injury,Emmanuel Agbadou,/emmanuel-agbadou/profil/spieler/683895
+2425,Transferred to Stade Reims,2024-07-01,2025-01-08,,,Transfer,Emmanuel Agbadou,/emmanuel-agbadou/profil/spieler/683895
+2425,Ankle injury,2024-07-23,2024-12-09,140.0,18.0,injury,Jakub Stolarczyk,/jakub-stolarczyk/profil/spieler/486144
+2425,Ill,2025-03-14,2025-04-04,22.0,4.0,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Adductor injury,2025-02-17,2025-03-08,20.0,2.0,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Hamstring injury,2024-11-30,2025-01-01,33.0,6.0,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Calf injury,2024-09-06,2024-10-26,51.0,9.0,injury,Mathias Jensen,/mathias-jensen/profil/spieler/319859
+2425,Muscle injury,2024-11-11,2024-11-29,19.0,3.0,injury,Santiago Bueno,/santiago-bueno/profil/spieler/438001
+2425,Head injury,2025-02-21,2025-03-08,16.0,1.0,injury,Christian Nørgaard,/christian-norgaard/profil/spieler/148367
+2425,unknown injury,2024-09-17,2024-10-05,19.0,2.0,injury,Christian Nørgaard,/christian-norgaard/profil/spieler/148367
+2425,Ill,2025-01-01,2025-01-17,17.0,4.0,injury,Fraser Forster,/fraser-forster/profil/spieler/52570
+2425,Transferred to Carlisle United,2024-08-21,2025-01-09,,,Transfer,Dominic Sadi,/dominic-sadi/profil/spieler/936901
+2425,Transferred to Accrington,2025-02-03,2025-05-30,,,Transfer,Joe O'Brien-Whitmarsh,/joe-obrien-whitmarsh/profil/spieler/741228
+2425,Transferred to Dundee FC,2024-08-28,2025-01-12,,,Transfer,Sammy Braybrooke,/sammy-braybrooke/profil/spieler/840640
+2425,Muscle injury,2025-01-31,2025-02-07,8.0,1.0,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
+2425,Ill,2024-09-21,2024-09-23,3.0,1.0,injury,Yasin Ayari,/yasin-ayari/profil/spieler/667287
+2425,surgery,2025-03-18,2025-06-01,76.0,5.0,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
+2425,Hamstring injury,2024-09-01,2025-03-10,191.0,27.0,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
+2425,Hamstring injury,2024-08-30,2024-10-31,63.0,10.0,injury,Omari Kellyman,/omari-kellyman/profil/spieler/926135
+2425,unknown injury,2025-05-02,2025-05-05,4.0,1.0,injury,Jurriën Timber,/jurrien-timber/profil/spieler/420243
+2425,Ill,2025-03-19,2025-03-24,6.0,2.0,injury,Jurriën Timber,/jurrien-timber/profil/spieler/420243
+2425,Hamstring muscle injury,2025-01-02,2025-01-07,6.0,1.0,injury,Jurriën Timber,/jurrien-timber/profil/spieler/420243
+2425,Muscle injury,2024-10-01,2024-10-25,25.0,5.0,injury,Jurriën Timber,/jurrien-timber/profil/spieler/420243
+2425,Knock,2024-09-22,2024-09-28,7.0,1.0,injury,Jurriën Timber,/jurrien-timber/profil/spieler/420243
+2425,Knee injury,2024-10-02,2024-10-30,29.0,5.0,injury,Martin Dúbravka,/martin-dubravka/profil/spieler/74960
+2425,Transferred to Derby,2024-08-30,2025-06-29,,,Transfer,Marcus Harness,/marcus-harness/profil/spieler/288323
+2425,Back injury,2025-03-04,2025-07-25,144.0,11.0,injury,Myles Peart-Harris,/myles-peart-harris/profil/spieler/587002
+2425,Transferred to Swansea,2024-08-30,2025-05-30,,,Transfer,Myles Peart-Harris,/myles-peart-harris/profil/spieler/587002
+2425,Knock,2025-02-08,2025-02-10,3.0,,injury,Nico González,/nico-gonzalez/profil/spieler/466805
+2425,Transferred to Porto,2024-07-01,2025-02-02,,,Transfer,Nico González,/nico-gonzalez/profil/spieler/466805
+2425,Fitness,2025-05-01,2025-05-19,19.0,3.0,injury,Rodri,/rodri/profil/spieler/357565
+2425,Cruciate ligament tear,2024-09-23,2025-04-30,220.0,51.0,injury,Rodri,/rodri/profil/spieler/357565
+2425,Hamstring injury,2024-07-14,2024-08-25,43.0,3.0,injury,Rodri,/rodri/profil/spieler/357565
+2425,Muscle injury,2025-02-19,2025-03-07,17.0,3.0,injury,Renato Veiga,/renato-veiga/profil/spieler/805714
+2425,Transferred to Basel,2024-07-01,2024-07-11,,,Transfer,Renato Veiga,/renato-veiga/profil/spieler/805714
+2425,Transferred to Juventus,2025-01-27,2025-06-09,,,Transfer,Renato Veiga,/renato-veiga/profil/spieler/805714
+2425,Calf injury,2025-01-10,2025-04-06,87.0,18.0,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
+2425,unknown injury,2024-11-03,2024-11-11,9.0,3.0,injury,Ross Barkley,/ross-barkley/profil/spieler/131978
+2425,Ill,2025-01-28,2025-02-17,21.0,2.0,injury,Boubacar Traoré,/boubacar-traore/profil/spieler/649020
+2425,Meniscus injury,2024-08-28,2025-01-27,153.0,23.0,injury,Boubacar Traoré,/boubacar-traore/profil/spieler/649020
+2425,Transferred to Burnley,2024-08-29,2025-06-29,,,Transfer,Jaidon Anthony,/jaidon-anthony/profil/spieler/684210
+2425,Knee injury,2024-12-07,2025-01-20,45.0,10.0,injury,Nick Pope,/nick-pope/profil/spieler/192080
+2425,Shoulder injury,2025-03-04,2025-06-16,105.0,14.0,injury,Arijanet Murić,/arijanet-muric/profil/spieler/371021
+2425,Transferred to Burnley,2024-07-01,2024-07-16,,,Transfer,Arijanet Murić,/arijanet-muric/profil/spieler/371021
+2425,Achilles tendon contusion,2025-02-17,2025-04-04,47.0,7.0,injury,Andrew Omobamidele,/andrew-omobamidele/profil/spieler/621993
+2425,unknown injury,2024-10-24,2024-12-31,69.0,13.0,injury,Andrew Omobamidele,/andrew-omobamidele/profil/spieler/621993
+2425,Transferred to R. Strasbourg,2025-01-24,2025-06-29,,,Transfer,Andrew Omobamidele,/andrew-omobamidele/profil/spieler/621993
+2425,Adductor injury,2024-10-08,2024-10-15,8.0,2.0,injury,Matz Sels,/matz-sels/profil/spieler/127202
+2425,unknown injury,2025-05-09,2025-05-28,20.0,2.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,Fitness,2025-03-25,2025-04-14,21.0,4.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,Inner ligament injury,2025-02-05,2025-03-25,49.0,10.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,Foot injury,2025-01-03,2025-01-19,17.0,4.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,unknown injury,2024-12-20,2024-12-22,3.0,1.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,unknown injury,2024-08-30,2024-09-01,3.0,1.0,injury,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,Transferred to Fenerbahçe,2025-01-23,2025-06-30,,,Transfer,Diego Carlos,/diego-carlos/profil/spieler/329145
+2425,Transferred to Man Utd U21,2024-07-01,2025-01-30,,,Transfer,Dan Gore,/dan-gore/profil/spieler/747153
+2425,Transferred to Rotherham,2025-01-31,2025-05-30,,,Transfer,Dan Gore,/dan-gore/profil/spieler/747153
+2425,Transferred to Man Utd U21,2025-05-31,2025-06-30,,,Transfer,Dan Gore,/dan-gore/profil/spieler/747153
+2425,Virus,2024-11-06,2025-01-07,63.0,22.0,injury,Mikey Moore,/mikey-moore/profil/spieler/1011147
+2425,Ankle injury,2025-02-21,2025-03-10,18.0,2.0,injury,Lucas Paquetá,/lucas-paqueta/profil/spieler/444523
+2425,Hip injury,2025-01-30,2025-02-14,16.0,1.0,injury,Lucas Paquetá,/lucas-paqueta/profil/spieler/444523
+2425,Ankle injury,2025-03-31,2025-05-01,32.0,6.0,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
+2425,Knee problems,2025-02-16,2025-02-25,10.0,1.0,injury,Erling Haaland,/erling-haaland/profil/spieler/418560
+2425,Hamstring muscle injury,2025-04-28,2025-05-13,16.0,2.0,injury,Lloyd Kelly,/lloyd-kelly/profil/spieler/480116
+2425,Transferred to Juventus,2025-02-03,2025-06-29,,,Transfer,Lloyd Kelly,/lloyd-kelly/profil/spieler/480116
+2425,Ill,2025-02-15,2025-02-17,3.0,1.0,injury,Christian Eriksen,/christian-eriksen/profil/spieler/69633
+2425,Transferred to KMSK Deinze,2024-09-06,2024-12-17,,,Transfer,Reece Welch,/reece-welch/profil/spieler/655986
+2425,Transferred to Sheff Utd,2025-02-03,2025-06-29,,,Transfer,Rob Holding,/rob-holding/profil/spieler/253341
+2425,Transferred to Man City U21,2024-07-01,2025-06-30,,,Transfer,Max Alleyne,/max-alleyne/profil/spieler/843595
+2425,Fitness,2025-03-03,2025-03-30,28.0,4.0,injury,Julián Araujo,/julian-araujo/profil/spieler/513970
+2425,Hamstring injury,2024-11-10,2025-03-03,114.0,21.0,injury,Julián Araujo,/julian-araujo/profil/spieler/513970
+2425,Transferred to Barcelona,2024-07-01,2024-08-12,,,Transfer,Julián Araujo,/julian-araujo/profil/spieler/513970
+2425,Chest injury,2025-04-13,2025-05-06,24.0,5.0,injury,Jorginho,/jorginho/profil/spieler/102017
+2425,Knee problems,2025-02-28,2025-03-30,31.0,5.0,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
+2425,Ankle injury,2024-08-27,2024-11-08,74.0,14.0,injury,Matt O'Riley,/matt-oriley/profil/spieler/406634
+2425,Transferred to Celtic,2024-07-01,2024-08-25,,,Transfer,Matt O'Riley,/matt-oriley/profil/spieler/406634
+2425,Knee problems,2025-02-24,2025-03-03,8.0,1.0,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+2425,Knee injury,2025-01-26,2025-02-10,16.0,3.0,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+2425,Ill,2024-12-13,2024-12-15,3.0,1.0,injury,Tyrone Mings,/tyrone-mings/profil/spieler/253677
+2425,unknown injury,2025-04-30,2025-07-30,92.0,5.0,injury,Álex Moreno,/alex-moreno/profil/spieler/193098
+2425,Transferred to Red Star,2024-07-01,2025-02-02,,,Transfer,Nasser Djiga,/nasser-djiga/profil/spieler/862297
+2425,Hamstring injury,2025-02-03,2025-03-10,36.0,8.0,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
+2425,Hamstring injury,2025-01-19,2025-01-31,13.0,3.0,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
+2425,Foot injury,2024-11-22,2024-12-05,14.0,4.0,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
+2425,Hamstring injury,2024-10-02,2024-10-17,16.0,3.0,injury,Amadou Onana,/amadou-onana/profil/spieler/485706
+2425,Calf injury,2025-02-16,2025-06-30,135.0,11.0,injury,Josh Wilson-Esbrand,/josh-wilson-esbrand/profil/spieler/576121
+2425,Transferred to Stoke City,2025-01-22,2025-06-29,,,Transfer,Josh Wilson-Esbrand,/josh-wilson-esbrand/profil/spieler/576121
+2425,Knock,2024-12-25,2025-01-16,23.0,5.0,injury,Kiernan Dewsbury-Hall,/kiernan-dewsbury-hall/profil/spieler/475188
+2425,Transferred to Hampton & Rich.,2024-07-02,2025-01-14,,,Transfer,Ted Curd,/ted-curd/profil/spieler/857792
+2425,Transferred to QPR,2024-08-30,2025-06-29,,,Transfer,Harrison Ashby,/harrison-ashby/profil/spieler/559130
+2425,Leg injury,2024-12-22,2025-02-10,51.0,9.0,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,Thigh problems,2024-12-21,2025-01-19,30.0,6.0,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,unknown injury,2024-08-24,2024-09-16,24.0,6.0,injury,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,Transferred to Feyenoord,2024-07-01,2024-07-04,,,Transfer,Mats Wieffer,/mats-wieffer/profil/spieler/415381
+2425,Transferred to Millwall,2025-01-31,2025-06-30,,,Transfer,Luke Cundle,/luke-cundle/profil/spieler/532541
+2425,Transferred to Man Utd U21,2024-07-01,2025-06-30,,,Transfer,Jack Moorhouse,/jack-moorhouse/profil/spieler/953933
+2425,Transferred to Santos,2025-02-20,2025-06-30,,,Transfer,Deivid Washington,/deivid-washington/profil/spieler/1082850
+2425,Transferred to Shelbourne,2025-02-17,2025-06-30,,,Transfer,James Norris,/james-norris/profil/spieler/618495
+2425,muscular problems,2025-01-15,2025-01-31,17.0,4.0,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
+2425,Muscle injury,2024-10-20,2024-12-12,54.0,13.0,injury,Diogo Jota,/diogo-jota/profil/spieler/340950
+2425,Muscle injury,2025-12-07,2025-12-11,5.0,1.0,injury,Federico Chiesa,/federico-chiesa/profil/spieler/341092
+2425,Transferred to Juventus,2024-07-01,2024-08-28,,,Transfer,Federico Chiesa,/federico-chiesa/profil/spieler/341092
+2425,Shoulder injury,2025-02-07,2025-04-10,63.0,14.0,injury,Tyler Morton,/tyler-morton/profil/spieler/618494
+2425,Transferred to Torino,2025-02-02,2025-06-30,,,Transfer,Cesare Casadei,/cesare-casadei/profil/spieler/622380
+2425,Muscle injury,2024-12-27,2024-12-30,4.0,1.0,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Muscle fatigue,2024-12-06,2024-12-09,4.0,1.0,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Back injury,2024-07-15,2024-10-07,85.0,10.0,injury,Tyler Adams,/tyler-adams/profil/spieler/332705
+2425,Foot injury,2025-04-14,2025-05-09,26.0,6.0,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Knock,2025-04-11,2025-04-14,4.0,1.0,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Thigh problems,2024-10-21,2024-11-02,13.0,3.0,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Hamstring injury,2024-09-26,2024-10-19,24.0,5.0,injury,Heung-min Son,/heung-min-son/profil/spieler/91845
+2425,Transferred to Birmingham,2024-08-30,2025-06-30,,,Transfer,Jay Stansfield,/jay-stansfield/profil/spieler/696346
+2425,Ill,2025-01-24,2025-01-28,5.0,1.0,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
+2425,Ankle sprain,2024-09-09,2024-11-04,57.0,14.0,injury,Martin Ødegaard,/martin-odegaard/profil/spieler/316264
+2425,Ill,2024-10-04,2024-10-07,4.0,1.0,injury,Caoimhín Kelleher,/caoimhin-kelleher/profil/spieler/340918
+2425,Muscle injury,2025-01-21,2025-01-31,11.0,2.0,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
+2425,Muscle injury,2024-08-24,2024-09-11,19.0,2.0,injury,Curtis Jones,/curtis-jones/profil/spieler/433188
+2425,Transferred to Preston,2025-01-16,2025-06-29,,,Transfer,Jayden Meghoma,/jayden-meghoma/profil/spieler/954104
+2425,Muscle injury,2025-01-24,2025-02-22,30.0,4.0,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
+2425,Ankle injury,2024-04-14,2024-08-31,140.0,15.0,injury,Pervis Estupiñán,/pervis-estupinan/profil/spieler/349599
+2425,Cruciate ligament tear,2025-01-26,2025-11-29,308.0,35.0,injury,Orel Mangala,/orel-mangala/profil/spieler/289592
+2425,Transferred to Lyon,2024-07-02,2024-08-29,,,Transfer,Orel Mangala,/orel-mangala/profil/spieler/289592
+2425,Transferred to Lyon,2025-06-30,2025-06-30,,,Transfer,Orel Mangala,/orel-mangala/profil/spieler/289592
+2425,Transferred to Valencia,2025-01-13,2025-06-29,,,Transfer,Max Aarons,/max-aarons/profil/spieler/471690
+2425,Transferred to Man City U21,2024-07-01,2024-07-12,,,Transfer,Liam Delap,/liam-delap/profil/spieler/610849
+2425,Calf injury,2025-04-01,2025-04-26,26.0,3.0,injury,Ola Aina,/ola-aina/profil/spieler/236490
+2425,Ankle sprain,2024-10-22,2024-10-28,7.0,1.0,injury,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+2425,Ill,2024-12-06,2024-12-09,4.0,1.0,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Knock,2024-11-20,2024-11-24,5.0,1.0,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Shoulder injury,2024-10-07,2024-10-13,7.0,1.0,injury,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Transferred to Bayern Munich,2024-07-01,2025-02-02,,,Transfer,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Transferred to Bayern Munich,2025-06-30,2025-06-30,,,Transfer,Mathys Tel,/mathys-tel/profil/spieler/801734
+2425,Knee injury,2024-08-26,2024-09-12,18.0,3.0,injury,Sávio,/savio/profil/spieler/743591
+2425,Transferred to Troyes,2024-07-01,2024-07-17,,,Transfer,Sávio,/savio/profil/spieler/743591
+2425,Calf injury,2025-01-16,2025-02-13,29.0,7.0,injury,Brennan Johnson,/brennan-johnson/profil/spieler/470607
+2425,unknown injury,2025-04-06,2025-05-03,28.0,4.0,injury,Issa Diop,/issa-diop/profil/spieler/272622
+2425,Transferred to Gillingham,2025-01-10,2025-05-30,,,Transfer,Asher Agbinone,/asher-agbinone/profil/spieler/1047256
+2425,Transferred to Stade Reims,2024-07-01,2025-02-02,,,Transfer,Marshall Munetsi,/marshall-munetsi/profil/spieler/414908
+2425,Muscle injury,2025-04-20,2025-04-28,9.0,1.0,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Injury to the ankle,2025-03-07,2025-03-15,9.0,2.0,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Ill,2024-11-22,2024-11-29,8.0,2.0,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Muscle injury,2024-09-01,2024-09-22,22.0,6.0,injury,Malo Gusto,/malo-gusto/profil/spieler/620322
+2425,Thigh problems,2025-06-09,2025-07-19,41.0,1.0,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Thigh problems,2025-03-12,2025-04-14,34.0,8.0,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,heart problems,2024-08-31,2024-10-15,46.0,9.0,injury,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Transferred to Lens,2024-07-01,2025-02-01,,,Transfer,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Transferred to Lens,2025-06-30,2025-06-30,,,Transfer,Kevin Danso,/kevin-danso/profil/spieler/263236
+2425,Calf strain,2025-01-24,2025-03-09,45.0,8.0,injury,Joel Ward,/joel-ward/profil/spieler/92572
+2425,Calf injury,2024-12-08,2024-12-18,11.0,1.0,injury,Joel Ward,/joel-ward/profil/spieler/92572
+2425,Knee surgery,2025-01-25,2026-01-01,342.0,40.0,injury,Wes Burns,/wes-burns/profil/spieler/255731
+2425,Transferred to Man City U21,2024-07-01,2025-06-30,,,Transfer,Jahmai Simpson-Pusey,/jahmai-simpson-pusey/profil/spieler/942497
+2425,Broken foot,2025-01-04,2025-02-20,48.0,7.0,injury,Evanilson,/evanilson/profil/spieler/711337
+2425,Transferred to Porto,2024-07-01,2024-08-15,,,Transfer,Evanilson,/evanilson/profil/spieler/711337
+2425,Achilles tendon rupture,2024-10-27,2025-06-01,218.0,36.0,injury,Chiedozie Ogbene,/chiedozie-ogbene/profil/spieler/392591
+2425,Transferred to Luton,2024-07-01,2024-08-27,,,Transfer,Chiedozie Ogbene,/chiedozie-ogbene/profil/spieler/392591
+2425,Calf injury,2025-05-05,2025-05-20,16.0,2.0,injury,Youri Tielemans,/youri-tielemans/profil/spieler/249565
+2425,Transferred to Spurs U18,2024-07-01,2025-06-30,,,Transfer,Luca Williams-Barnett,/luca-williams-barnett/profil/spieler/1108475
+2425,Ankle injury,2024-09-14,2024-10-19,36.0,6.0,injury,Yoane Wissa,/yoane-wissa/profil/spieler/388165
+2425,Transferred to Slavia Prague,2024-07-01,2025-01-04,,,Transfer,Antonín Kinský,/antonin-kinsky/profil/spieler/725912
+2425,Calf injury,2025-02-06,2025-04-03,57.0,10.0,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,Groin injury,2025-01-26,2025-01-29,4.0,,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,Hamstring injury,2024-11-03,2025-01-14,73.0,18.0,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,unknown injury,2024-08-27,2024-10-19,54.0,12.0,injury,Richarlison,/richarlison/profil/spieler/378710
+2425,muscular problems,2024-11-25,2024-12-05,11.0,1.0,injury,Dário Essugo,/dario-essugo/profil/spieler/670717
+2425,Transferred to Sporting,2024-07-01,2024-08-29,,,Transfer,Dário Essugo,/dario-essugo/profil/spieler/670717
+2425,Transferred to UD Las Palmas,2024-08-30,2025-06-01,,,Transfer,Dário Essugo,/dario-essugo/profil/spieler/670717
+2425,Transferred to Sporting,2025-06-02,2025-06-30,,,Transfer,Dário Essugo,/dario-essugo/profil/spieler/670717
+2425,Knock,2025-01-03,2025-01-13,11.0,2.0,injury,Emerson,/emerson/profil/spieler/181778
+2425,Ankle injury,2025-01-08,2025-01-15,8.0,1.0,injury,João Pedro,/joao-pedro/profil/spieler/626724
+2425,Muscle injury,2025-04-04,2025-04-14,11.0,2.0,injury,Aaron Cresswell,/aaron-cresswell/profil/spieler/92571
+2425,unknown injury,2024-11-18,2024-11-26,9.0,1.0,injury,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+2425,Lumbago,2024-09-07,2024-09-26,20.0,3.0,injury,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+2425,Transferred to Atalanta,2024-07-01,2025-01-04,,,Transfer,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+2425,Transferred to Atalanta,2025-06-30,2025-06-30,,,Transfer,Ben Godfrey,/ben-godfrey/profil/spieler/343475
+2425,Cruciate ligament tear,2025-01-08,2025-10-20,286.0,31.0,injury,Enes Ünal,/enes-unal/profil/spieler/251106
+2425,Transferred to Leeds,2025-06-30,2025-06-30,,,Transfer,Jack Harrison,/jack-harrison/profil/spieler/417346
+2425,Hamstring injury,2025-04-02,2025-05-05,34.0,5.0,injury,Hamed Traoré,/hamed-traore/profil/spieler/391065
+2425,Ill,2024-12-13,2024-12-29,17.0,2.0,injury,Hamed Traoré,/hamed-traore/profil/spieler/391065
+2425,Transferred to AJ Auxerre,2024-08-27,2025-06-29,,,Transfer,Hamed Traoré,/hamed-traore/profil/spieler/391065
+2425,Ankle injury,2025-02-06,2025-02-11,6.0,1.0,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
+2425,Ankle injury,2021-08-03,2021-11-25,115.0,12.0,injury,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
+2425,unknown injury,2025-05-28,2025-07-01,35.0,2.0,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
+2425,Ankle surgery,2024-11-25,2025-02-10,78.0,21.0,injury,Guglielmo Vicario,/guglielmo-vicario/profil/spieler/286047
+2425,Hamstring injury,2025-01-26,2025-05-05,100.0,15.0,injury,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
+2425,Ankle injury,2025-01-05,2025-01-14,10.0,1.0,injury,Dominic Calvert-Lewin,/dominic-calvert-lewin/profil/spieler/306024
+2425,Transferred to Lyon,2024-07-01,2024-07-29,,,Transfer,Jake O'Brien,/jake-obrien/profil/spieler/711544
+2425,Ankle surgery,2025-02-27,2025-08-02,157.0,25.0,injury,Lewis Hall,/lewis-hall/profil/spieler/670858
+2425,Hamstring injury,2025-02-03,2025-04-01,58.0,10.0,injury,Nicolas Jackson,/nicolas-jackson/profil/spieler/776890
+2425,Transferred to Preston,2024-08-30,2025-01-29,,,Transfer,Josh Bowler,/josh-bowler/profil/spieler/506470
+2425,Transferred to Luton,2025-01-31,2025-05-30,,,Transfer,Josh Bowler,/josh-bowler/profil/spieler/506470
+2425,Ankle injury,2025-02-28,2025-03-04,5.0,1.0,injury,Jakub Moder,/jakub-moder/profil/spieler/384461
+2425,Transferred to Feyenoord,2025-01-20,2025-06-30,,,Transfer,Jakub Moder,/jakub-moder/profil/spieler/384461
+2425,Muscle injury,2025-06-24,2025-07-24,31.0,2.0,injury,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
+2425,Muscle injury,2024-11-23,2024-12-08,16.0,2.0,injury,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
+2425,Transferred to River Plate,2024-07-01,2024-12-30,,,Transfer,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
+2425,Ankle injury,2025-04-21,2025-04-27,7.0,1.0,injury,Pedro Lima,/pedro-lima/profil/spieler/1193867
+2425,Metatarsal fracture,2024-12-31,2025-03-03,63.0,14.0,injury,Pau Torres,/pau-torres/profil/spieler/399776
+2425,Ankle injury,2024-08-10,2024-11-05,88.0,17.0,injury,Patson Daka,/patson-daka/profil/spieler/365172
+2425,Hamstring injury,2024-11-22,2024-12-27,36.0,9.0,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
+2425,Muscle injury,2024-10-05,2024-10-07,3.0,1.0,injury,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
+2425,Hip injury,2025-02-11,2025-02-17,7.0,1.0,injury,Jack Grealish,/jack-grealish/profil/spieler/203460
+2425,Calf injury,2025-02-24,2025-03-28,33.0,4.0,injury,Adam Smith,/adam-smith/profil/spieler/61841
+2425,Hamstring injury,2024-12-23,2025-02-24,64.0,11.0,injury,Adam Smith,/adam-smith/profil/spieler/61841
+2425,Knock,2025-02-03,2025-02-10,8.0,1.0,injury,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+2425,Knock,2025-01-05,2025-01-14,10.0,1.0,injury,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+2425,Ankle injury,2024-10-16,2024-10-26,11.0,2.0,injury,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+2425,Ankle injury,2024-09-09,2024-10-11,33.0,5.0,injury,Jannik Vestergaard,/jannik-vestergaard/profil/spieler/99331
+2425,Hamstring injury,2024-11-04,2025-01-01,59.0,7.0,injury,Welington,/welington/profil/spieler/729264
+2425,Transferred to São Paulo,2024-07-01,2024-12-31,,,Transfer,Welington,/welington/profil/spieler/729264
+2425,Hamstring injury,2025-02-09,2025-05-15,96.0,16.0,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
+2425,Hamstring injury,2024-12-29,2025-02-07,41.0,10.0,injury,Joe Gomez,/joe-gomez/profil/spieler/256178
+2425,Transferred to Valenciennes FC,2024-07-01,2025-01-08,,,Transfer,Joachim Kayi Sanda,/joachim-kayi-sanda/profil/spieler/986298
+2425,Ill,2024-12-24,2024-12-29,6.0,1.0,injury,Tino Livramento,/tino-livramento/profil/spieler/503981
+2425,Fitness,2025-01-20,2025-01-22,3.0,1.0,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,Hamstring injury,2024-12-14,2025-01-15,33.0,6.0,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,concussion,2024-08-17,2024-08-28,12.0,2.0,injury,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,Transferred to Derby,2024-07-01,2025-01-30,,,Transfer,Eiran Cashin,/eiran-cashin/profil/spieler/581330
+2425,Transferred to Juventus,2024-07-01,2024-07-29,,,Transfer,Dean Huijsen,/dean-huijsen/profil/spieler/890290
+2425,Groin problems,2025-02-23,2025-02-26,4.0,1.0,injury,Ali Al-Hamadi,/ali-al-hamadi/profil/spieler/610581
+2425,Transferred to Stoke City,2025-01-24,2025-06-29,,,Transfer,Ali Al-Hamadi,/ali-al-hamadi/profil/spieler/610581
+2425,Foot injury,2025-02-03,2025-02-11,9.0,1.0,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
+2425,Hamstring injury,2024-10-30,2024-11-25,27.0,5.0,injury,Eberechi Eze,/eberechi-eze/profil/spieler/479999
+2425,Calf injury,2025-01-31,2025-04-28,88.0,12.0,injury,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+2425,Ill,2024-10-04,2024-10-06,3.0,1.0,injury,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+2425,Thigh problems,2025-03-15,2025-08-21,160.0,11.0,injury,Luis Sinisterra,/luis-sinisterra/profil/spieler/512385
+2425,Hamstring injury,2024-10-25,2025-02-10,109.0,18.0,injury,Luis Sinisterra,/luis-sinisterra/profil/spieler/512385
+2425,Heel problems,2025-05-02,2025-05-09,8.0,1.0,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
+2425,Heel problems,2025-04-07,2025-04-18,12.0,1.0,injury,Kaoru Mitoma,/kaoru-mitoma/profil/spieler/504849
+2425,Knock,2025-01-21,2025-01-26,6.0,1.0,injury,Pape Matar Sarr,/pape-matar-sarr/profil/spieler/568693
+2425,Transferred to Oxford United,2024-08-02,2025-01-02,,,Transfer,Malcolm Ebiowei,/malcolm-ebiowei/profil/spieler/512354
+2425,Groin problems,2024-10-15,2025-01-03,81.0,14.0,injury,Joe Hodge,/joe-hodge/profil/spieler/503975
+2425,Transferred to Huddersfield,2024-08-28,2025-05-30,,,Transfer,Joe Hodge,/joe-hodge/profil/spieler/503975
+2425,Transferred to Stoke City,2024-08-30,2025-01-14,,,Transfer,Tom Cannon,/tom-cannon/profil/spieler/669366
+2425,Transferred to Sheff Utd,2025-01-23,2025-06-30,,,Transfer,Tom Cannon,/tom-cannon/profil/spieler/669366
+2425,Knee injury,2024-12-13,2025-04-02,111.0,17.0,injury,Dwight McNeil,/dwight-mcneil/profil/spieler/584769
+2425,Knee problems,2024-11-03,2024-11-17,15.0,1.0,injury,Dwight McNeil,/dwight-mcneil/profil/spieler/584769
+2425,Ankle injury,2025-03-12,2025-04-17,37.0,6.0,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2425,Hamstring injury,2025-02-02,2025-02-11,10.0,2.0,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2425,Hamstring injury,2024-11-09,2024-11-25,17.0,3.0,injury,Trent Alexander-Arnold,/trent-alexander-arnold/profil/spieler/314353
+2425,Ankle injury,2025-02-22,2025-06-16,115.0,13.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Ill,2025-01-17,2025-01-19,3.0,1.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Ankle problems,2024-12-10,2024-12-26,17.0,2.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Ankle problems,2024-12-08,2024-12-10,3.0,1.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Ankle problems,2024-11-26,2024-11-30,5.0,,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Virus,2024-11-25,2024-11-30,6.0,1.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Ankle problems,2024-08-17,2024-10-29,74.0,9.0,injury,Wes Foderingham,/wes-foderingham/profil/spieler/61697
+2425,Knock,2025-03-03,2025-03-14,12.0,1.0,injury,Adama Traoré,/adama-traore/profil/spieler/204103
+2425,unknown injury,2025-04-01,2025-04-11,11.0,2.0,injury,Justin Kluivert,/justin-kluivert/profil/spieler/330659
+2425,Injury to abdominal muscles,2025-02-14,2025-02-21,8.0,1.0,injury,Sam Morsy,/sam-morsy/profil/spieler/123551
+2425,Muscle injury,2024-10-25,2024-10-28,4.0,1.0,injury,Sam Morsy,/sam-morsy/profil/spieler/123551
+2425,Knock,2025-02-03,2025-02-10,8.0,1.0,injury,Jamie Vardy,/jamie-vardy/profil/spieler/197838
+2425,Calf strain,2025-01-04,2025-01-14,11.0,2.0,injury,Craig Dawson,/craig-dawson/profil/spieler/121477
+2425,Knee injury,2024-12-07,2025-05-29,174.0,31.0,injury,David Datro Fofana,/david-datro-fofana/profil/spieler/787232
+2425,Transferred to Göztepe,2024-09-13,2025-01-27,,,Transfer,David Datro Fofana,/david-datro-fofana/profil/spieler/787232
+2425,Transferred to Atalanta,2024-07-01,2024-07-08,,,Transfer,Caleb Okoli,/caleb-okoli/profil/spieler/461833
+2425,Transferred to Sligo Rovers,2024-07-17,2024-11-29,,,Transfer,Jack Henry-Francis,/jack-henry-francis/profil/spieler/796024
+2425,unknown injury,2024-11-17,2024-11-29,13.0,3.0,injury,Pedro Neto,/pedro-neto/profil/spieler/487465
+2425,unknown injury,2025-04-11,2025-04-14,4.0,1.0,injury,Wout Faes,/wout-faes/profil/spieler/292808
+2425,Hamstring injury,2024-12-29,2025-02-10,44.0,11.0,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
+2425,Hamstring injury,2024-09-29,2024-09-30,2.0,,injury,Destiny Udogie,/destiny-udogie/profil/spieler/556385
+2425,Muscle injury,2025-01-11,2025-04-18,98.0,21.0,injury,Jonny Evans,/jonny-evans/profil/spieler/42412
+2425,Ankle injury,2024-11-23,2024-12-16,24.0,6.0,injury,Konstantinos Tsimikas,/konstantinos-tsimikas/profil/spieler/338070
+2425,unknown injury,2024-11-05,2025-03-08,124.0,25.0,injury,Ben Nelson,/ben-nelson/profil/spieler/714458
+2425,Transferred to Oxford United,2024-08-30,2025-05-30,,,Transfer,Ben Nelson,/ben-nelson/profil/spieler/714458
+2425,Ankle injury,2024-10-18,2025-01-18,93.0,17.0,injury,Carl Rushworth,/carl-rushworth/profil/spieler/646353
+2425,Transferred to Hull City,2024-08-30,2025-01-21,,,Transfer,Carl Rushworth,/carl-rushworth/profil/spieler/646353
+2425,Ankle injury,2025-03-07,2025-04-21,46.0,9.0,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Ill,2025-01-10,2025-01-15,6.0,1.0,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Calf injury,2024-11-08,2024-11-25,18.0,4.0,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Muscle injury,2024-08-10,2024-08-23,14.0,1.0,injury,Tariq Lamptey,/tariq-lamptey/profil/spieler/504148
+2425,Transferred to Middlesbrough,2025-01-29,2025-05-30,,,Transfer,Mark Travers,/mark-travers/profil/spieler/357658
+2425,Knee injury,2024-11-10,2025-01-11,63.0,9.0,injury,George Hirst,/george-hirst/profil/spieler/420808
+2425,Knee surgery,2024-08-03,2024-09-01,30.0,4.0,injury,George Hirst,/george-hirst/profil/spieler/420808
+2425,Ankle injury,2024-11-10,2025-02-17,100.0,17.0,injury,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+2425,Transferred to São Paulo,2024-09-02,2024-12-30,,,Transfer,Jamal Lewis,/jamal-lewis/profil/spieler/346018
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Will Murdock,/will-murdock/profil/spieler/1055382
+2425,Fitness,2025-03-19,2025-04-09,22.0,2.0,injury,Gustavo Nunes,/gustavo-nunes/profil/spieler/1086375
+2425,Back injury,2024-08-28,2025-03-19,204.0,32.0,injury,Gustavo Nunes,/gustavo-nunes/profil/spieler/1086375
+2425,Transferred to Grêmio,2024-07-01,2024-08-27,,,Transfer,Gustavo Nunes,/gustavo-nunes/profil/spieler/1086375
+2425,Thigh problems,2024-10-01,2025-05-25,237.0,36.0,injury,James Milner,/james-milner/profil/spieler/3333
+2425,Hamstring injury,2024-08-31,2024-09-14,15.0,,injury,James Milner,/james-milner/profil/spieler/3333
+2425,Ankle injury,2025-02-27,2025-05-16,79.0,12.0,injury,Sammie Szmodics,/sammie-szmodics/profil/spieler/292139
+2425,Ankle injury,2025-01-06,2025-02-16,42.0,6.0,injury,Sammie Szmodics,/sammie-szmodics/profil/spieler/292139
+2425,Transferred to Blackburn,2024-07-01,2024-08-15,,,Transfer,Sammie Szmodics,/sammie-szmodics/profil/spieler/292139
+2425,Meniscus injury,2025-04-11,2025-06-30,81.0,10.0,injury,Gavin Bazunu,/gavin-bazunu/profil/spieler/585550
+2425,Transferred to Standard Liège,2025-02-03,2025-04-23,,,Transfer,Gavin Bazunu,/gavin-bazunu/profil/spieler/585550
+2425,Knee surgery,2025-05-27,2025-08-23,89.0,9.0,injury,Antonee Robinson,/antonee-robinson/profil/spieler/349701
+2425,Knock,2025-05-05,2025-05-17,13.0,1.0,injury,Antonee Robinson,/antonee-robinson/profil/spieler/349701
+2425,Knock,2025-04-25,2025-05-02,8.0,1.0,injury,Antonee Robinson,/antonee-robinson/profil/spieler/349701
+2425,Transferred to Man Utd U21,2024-07-01,2025-06-30,,,Transfer,Tyler Fredricson,/tyler-fredricson/profil/spieler/911424
+2425,Shoulder injury,2024-10-03,2024-11-10,39.0,5.0,injury,Hamza Choudhury,/hamza-choudhury/profil/spieler/341501
+2425,Transferred to Sheff Utd,2025-01-27,2025-06-29,,,Transfer,Hamza Choudhury,/hamza-choudhury/profil/spieler/341501
+2425,Hamstring injury,2024-10-30,2024-11-08,10.0,,injury,Jacob Murphy,/jacob-murphy/profil/spieler/199527
+2425,Transferred to Without Club,2024-07-01,2025-01-12,,,Transfer,Wayne Hennessey,/wayne-hennessey/profil/spieler/45494
+2425,Fitness,2025-03-08,2025-04-04,28.0,3.0,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Hamstring injury,2025-01-25,2025-03-08,43.0,6.0,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Knee injury,2024-09-01,2025-01-10,132.0,20.0,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Knee injury,2024-09-01,2024-10-19,49.0,6.0,injury,Rico Henry,/rico-henry/profil/spieler/339556
+2425,Foot injury,2025-03-30,2025-05-25,57.0,8.0,injury,Georginio Rutter,/georginio-rutter/profil/spieler/538977
+2425,Transferred to Leeds,2024-07-01,2024-08-18,,,Transfer,Georginio Rutter,/georginio-rutter/profil/spieler/538977
+2425,Hamstring injury,2025-02-20,2025-05-12,82.0,17.0,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Hamstring injury,2024-11-11,2024-12-18,38.0,6.0,injury,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Transferred to Boca Juniors,2024-07-01,2024-08-07,,,Transfer,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Transferred to Boca Juniors,2024-08-09,2025-01-02,,,Transfer,Aarón Anselmino,/aaron-anselmino/profil/spieler/1145504
+2425,Hip injury,2025-06-26,2026-02-26,246.0,17.0,injury,Zane Monlouis,/zane-monlouis/profil/spieler/586981
+2425,Leg injury,2025-04-03,2025-05-05,33.0,6.0,injury,Zane Monlouis,/zane-monlouis/profil/spieler/586981
+2425,Transferred to Toronto,2025-02-22,2025-06-30,,,Transfer,Zane Monlouis,/zane-monlouis/profil/spieler/586981
+2425,Hamstring injury,2024-12-08,2025-03-03,86.0,20.0,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Toe injury,2024-11-22,2024-12-06,15.0,4.0,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Ankle injury,2024-11-03,2024-11-08,6.0,1.0,injury,Cristian Romero,/cristian-romero/profil/spieler/355915
+2425,Fitness,2025-03-01,2025-03-30,30.0,5.0,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
+2425,Broken leg,2024-08-14,2025-03-01,200.0,48.0,injury,Oscar Bobb,/oscar-bobb/profil/spieler/661207
+2425,unknown injury,2024-11-29,2024-12-02,4.0,1.0,injury,Lewis Cook,/lewis-cook/profil/spieler/249089
+2425,unknown injury,2024-12-11,2024-12-18,8.0,2.0,injury,João Félix,/joao-felix/profil/spieler/462250
+2425,Transferred to Atlético,2024-07-01,2024-08-20,,,Transfer,João Félix,/joao-felix/profil/spieler/462250
+2425,Transferred to AC Milan,2025-02-03,2025-06-29,,,Transfer,João Félix,/joao-felix/profil/spieler/462250
+2425,flu,2025-01-05,2025-01-08,4.0,1.0,injury,Woyo Coulibaly,/woyo-coulibaly/profil/spieler/592975
+2425,Transferred to Parma,2024-07-01,2025-01-14,,,Transfer,Woyo Coulibaly,/woyo-coulibaly/profil/spieler/592975
+2425,Hamstring injury,2025-02-14,2025-04-02,48.0,8.0,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
+2425,Ill,2025-01-10,2025-01-13,4.0,1.0,injury,Noni Madueke,/noni-madueke/profil/spieler/503987
+2425,Ill,2024-12-13,2024-12-20,8.0,2.0,injury,Ben Chilwell,/ben-chilwell/profil/spieler/316125
+2425,Knock,2025-03-04,2025-03-09,6.0,2.0,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
+2425,Knock,2025-02-12,2025-02-21,10.0,2.0,injury,Cody Gakpo,/cody-gakpo/profil/spieler/434675
+2425,Transferred to Blackburn,2025-02-03,2025-05-30,,,Transfer,Emmanuel Dennis,/emmanuel-dennis/profil/spieler/448854
+2425,Hamstring strain,2024-12-28,2025-01-19,23.0,4.0,injury,Toti,/toti/profil/spieler/606718
+2425,Thigh problems,2024-09-01,2024-09-22,22.0,3.0,injury,Toti,/toti/profil/spieler/606718
+2425,Knee problems,2025-04-20,2025-05-23,34.0,4.0,injury,Joelinton,/joelinton/profil/spieler/333241
+2425,Knee injury,2025-02-02,2025-03-01,28.0,5.0,injury,Joelinton,/joelinton/profil/spieler/333241
+2425,Muscle injury,2024-10-14,2024-12-17,65.0,8.0,injury,Jacob Greaves,/jacob-greaves/profil/spieler/693095
+2425,Transferred to Hull City,2024-07-01,2024-07-11,,,Transfer,Jacob Greaves,/jacob-greaves/profil/spieler/693095
+2425,Ankle injury,2025-02-15,2025-02-24,10.0,1.0,injury,James Justin,/james-justin/profil/spieler/413220
+2425,Broken foot,2025-01-27,2025-04-18,82.0,14.0,injury,Harry Wilson,/harry-wilson/profil/spieler/279455
+2425,Transferred to Vit. Guimarães,2024-07-01,2024-07-31,,,Transfer,Jota Silva,/jota-silva/profil/spieler/663244
+2425,Groin injury,2024-10-03,2024-10-20,18.0,4.0,injury,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
+2425,Groin surgery,2024-08-01,2024-09-30,61.0,9.0,injury,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
+2425,Groin injury,2024-07-18,2024-09-14,59.0,7.0,injury,Jarrad Branthwaite,/jarrad-branthwaite/profil/spieler/661053
+2425,Transferred to Sheff Utd,2024-07-01,2024-08-07,,,Transfer,William Osula,/william-osula/profil/spieler/609556
+2425,Knock,2024-11-20,2024-12-06,17.0,3.0,injury,Myles Lewis-Skelly,/myles-lewis-skelly/profil/spieler/890721
+2425,Muscle injury,2024-08-01,2024-11-25,117.0,18.0,injury,Alfie Whiteman,/alfie-whiteman/profil/spieler/282823
+2425,Finger injury,2024-11-08,2025-02-03,88.0,16.0,injury,Gabriel Slonina,/gabriel-slonina/profil/spieler/656316
+2425,Transferred to Barnsley,2024-08-09,2024-12-30,,,Transfer,Gabriel Slonina,/gabriel-slonina/profil/spieler/656316
+2425,Cruciate ligament tear,2025-01-30,2025-12-15,320.0,59.0,injury,Radu Drăgușin,/radu-dragusin/profil/spieler/568559
+2425,Knee problems,2025-06-08,2025-06-14,7.0,1.0,injury,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2425,flu,2025-03-29,2025-04-02,5.0,1.0,injury,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2425,Transferred to Napoli,2024-08-30,2025-06-30,,,Transfer,Scott McTominay,/scott-mctominay/profil/spieler/315969
+2425,Transferred to Exeter City,2024-07-16,2025-05-30,,,Transfer,Joe Whitworth,/joe-whitworth/profil/spieler/670840
+2425,Transferred to Kilmarnock FC,2025-02-03,2025-06-29,,,Transfer,Tom Wilson-Brown,/tom-wilson-brown/profil/spieler/867710
+2425,Groin injury,2025-04-03,2025-08-23,143.0,11.0,injury,Ryan Christie,/ryan-christie/profil/spieler/188077
+2425,Groin problems,2025-02-28,2025-03-03,4.0,1.0,injury,Ryan Christie,/ryan-christie/profil/spieler/188077
+2425,Transferred to Portsmouth,2025-01-10,2025-06-29,,,Transfer,Isaac Hayden,/isaac-hayden/profil/spieler/206225
+2425,Transferred to Augsburg,2024-08-30,2025-06-29,,,Transfer,Frank Onyeka,/frank-onyeka/profil/spieler/421637
+2425,Foot injury,2025-03-16,2025-05-16,62.0,10.0,injury,Ayden Heaven,/ayden-heaven/profil/spieler/1078163
+2425,Knee injury,2024-11-28,2024-12-31,34.0,8.0,injury,Ibrahima Konaté,/ibrahima-konate/profil/spieler/357119
+2425,Thigh problems,2025-02-02,2025-03-05,32.0,6.0,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Hamstring injury,2024-12-08,2025-01-27,51.0,13.0,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Hamstring injury,2024-10-30,2024-12-07,39.0,9.0,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,Knee injury,2024-08-29,2024-09-09,12.0,2.0,injury,Micky van de Ven,/micky-van-de-ven/profil/spieler/557459
+2425,unknown injury,2025-03-16,2025-04-01,17.0,2.0,injury,Ryan Gravenberch,/ryan-gravenberch/profil/spieler/478573
+2425,Muscle injury,2024-11-28,2024-12-03,6.0,1.0,injury,Thomas Partey,/thomas-partey/profil/spieler/230784
+2425,Transferred to Wolfsburg,2024-07-01,2024-08-29,,,Transfer,Maxence Lacroix,/maxence-lacroix/profil/spieler/434224
+2425,Adductor pain,2024-08-06,2024-08-12,7.0,1.0,injury,Julio Soler,/julio-soler/profil/spieler/1009658
+2425,Transferred to Lanús,2024-07-01,2025-01-06,,,Transfer,Julio Soler,/julio-soler/profil/spieler/1009658
+2425,Hamstring injury,2025-02-06,2025-03-07,30.0,4.0,injury,Gabriel Martinelli,/gabriel-martinelli/profil/spieler/655488
+2425,Foot injury,2024-11-13,2024-11-28,16.0,3.0,injury,Elliot Anderson,/elliot-anderson/profil/spieler/567576
+2425,Transferred to Northampton,2025-02-03,2025-05-30,,,Transfer,Ben Perry,/ben-perry/profil/spieler/925105
+2425,Transferred to Wolves U21,2024-07-01,2025-06-30,,,Transfer,Alfie Pond,/alfie-pond/profil/spieler/821522
+2425,Muscle injury,2025-01-04,2025-01-21,18.0,4.0,injury,Ethan Nwaneri,/ethan-nwaneri/profil/spieler/890719
+2425,concussion,2025-03-21,2025-04-07,18.0,3.0,injury,Alisson,/alisson/profil/spieler/105470
+2425,Hamstring injury,2024-10-18,2024-12-19,63.0,14.0,injury,Alisson,/alisson/profil/spieler/105470
+2425,Hamstring injury,2024-10-05,2024-11-10,37.0,9.0,injury,Alisson,/alisson/profil/spieler/105470
+2425,Thigh problems,2024-09-18,2024-09-26,9.0,2.0,injury,Alisson,/alisson/profil/spieler/105470
+2425,Transferred to Leeds,2024-07-01,2024-07-01,,,Transfer,Archie Gray,/archie-gray/profil/spieler/922693
+2425,Heel injury,2025-04-29,2025-09-13,138.0,9.0,injury,Vitaly Janelt,/vitaly-janelt/profil/spieler/270171
+2425,Ankle injury,2025-02-14,2025-04-28,74.0,17.0,injury,Amad Diallo,/amad-diallo/profil/spieler/536835
+2425,Transferred to Exeter City,2025-01-23,2025-06-29,,,Transfer,Tony Yogane,/tony-yogane/profil/spieler/979064
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Bendito Mantato,/bendito-mantato/profil/spieler/1085591
+2425,Transferred to MK Dons,2025-02-03,2025-06-29,,,Transfer,Travis Patterson,/travis-patterson/profil/spieler/874902
+2425,Groin surgery,2025-03-16,2025-08-14,152.0,11.0,injury,Jesper Lindstrøm,/jesper-lindstrom/profil/spieler/513245
+2425,Transferred to Napoli,2024-07-01,2024-07-25,,,Transfer,Jesper Lindstrøm,/jesper-lindstrom/profil/spieler/513245
+2425,Transferred to Napoli,2025-06-30,2025-06-30,,,Transfer,Jesper Lindstrøm,/jesper-lindstrom/profil/spieler/513245
+2425,Transferred to Gangwon FC,2024-07-01,2024-12-31,,,Transfer,Min-hyeok Yang,/min-hyeok-yang/profil/spieler/1004327
+2425,Transferred to QPR,2025-01-29,2025-06-29,,,Transfer,Min-hyeok Yang,/min-hyeok-yang/profil/spieler/1004327
+2425,Transferred to FC Nantes,2024-07-01,2024-08-28,,,Transfer,Bastien Meupiyou,/bastien-meupiyou/profil/spieler/955253
+2425,Transferred to Wolves U21,2024-08-29,2025-06-30,,,Transfer,Bastien Meupiyou,/bastien-meupiyou/profil/spieler/955253
+2425,flu,2025-06-05,2025-06-08,4.0,2.0,injury,Ian Maatsen,/ian-maatsen/profil/spieler/485585
+2425,Transferred to Bolton,2025-01-20,2025-05-30,,,Transfer,Alex Murphy,/alex-murphy/profil/spieler/900601
+2425,Transferred to West Brom,2025-02-03,2025-05-30,,,Transfer,Adam Armstrong,/adam-armstrong/profil/spieler/250426
+2425,Transferred to Lens,2024-07-01,2025-01-19,,,Transfer,Abdukodir Khusanov,/abdukodir-khusanov/profil/spieler/763079
+2425,Ankle injury,2025-01-24,2025-01-31,8.0,1.0,injury,Carlos Forbs,/carlos-forbs/profil/spieler/742451
+2425,Transferred to Ajax,2024-07-01,2024-08-29,,,Transfer,Carlos Forbs,/carlos-forbs/profil/spieler/742451
+2425,Transferred to Ajax,2025-06-30,2025-06-30,,,Transfer,Carlos Forbs,/carlos-forbs/profil/spieler/742451
+2425,Hamstring injury,2025-02-19,2025-05-23,94.0,18.0,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Foot injury,2024-12-22,2025-01-20,30.0,6.0,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Foot injury,2024-11-23,2024-12-14,22.0,5.0,injury,John Stones,/john-stones/profil/spieler/186590
+2425,unknown injury,2024-11-01,2024-11-18,18.0,5.0,injury,John Stones,/john-stones/profil/spieler/186590
+2425,Muscle injury,2025-05-02,2025-06-22,52.0,10.0,injury,Bobby De Cordova-Reid,/bobby-de-cordova-reid/profil/spieler/186186
+2425,Achilles heel problems,2024-10-30,2024-11-22,24.0,4.0,injury,Bobby De Cordova-Reid,/bobby-de-cordova-reid/profil/spieler/186186
+2425,Hip problems,2025-04-13,2025-04-25,13.0,2.0,injury,Ederson,/ederson/profil/spieler/238223
+2425,Abdominal problems,2025-03-14,2025-03-30,17.0,3.0,injury,Ederson,/ederson/profil/spieler/238223
+2425,unknown injury,2025-02-01,2025-02-10,10.0,2.0,injury,Ederson,/ederson/profil/spieler/238223
+2425,unknown injury,2024-12-20,2025-01-10,22.0,4.0,injury,Ederson,/ederson/profil/spieler/238223
+2425,Hamstring injury,2025-02-11,2025-05-16,95.0,20.0,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2425,Ill,2024-12-30,2025-01-06,8.0,2.0,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2425,Knee problems,2024-10-06,2024-10-21,16.0,2.0,injury,Kai Havertz,/kai-havertz/profil/spieler/309400
+2425,Transferred to West Brom,2024-07-01,2025-02-02,,,Transfer,Alex Palmer,/alex-palmer/profil/spieler/245625
+2425,Back injury,2024-10-18,2025-01-24,99.0,15.0,injury,James Garner,/james-garner/profil/spieler/505219
+2425,Ankle injury,2025-04-30,2025-06-09,41.0,8.0,injury,Lucas Bergvall,/lucas-bergvall/profil/spieler/866246
+2425,Muscle injury,2024-09-23,2024-09-27,5.0,1.0,injury,David Raya,/david-raya/profil/spieler/262749
+2425,Transferred to Atlanta,2025-01-31,2025-06-30,,,Transfer,Miguel Almirón,/miguel-almiron/profil/spieler/272999
+2425,Groin surgery,2025-04-03,2025-06-30,89.0,13.0,injury,Dane Scarlett,/dane-scarlett/profil/spieler/670883
+2425,Transferred to Oxford United,2024-08-12,2025-01-19,,,Transfer,Dane Scarlett,/dane-scarlett/profil/spieler/670883
+2425,Muscle injury,2024-11-08,2024-11-22,15.0,3.0,injury,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Dead leg,2024-10-06,2024-10-17,12.0,3.0,injury,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Transferred to Lyon,2024-07-01,2024-08-21,,,Transfer,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Transferred to R. Strasbourg,2024-08-22,2025-06-30,,,Transfer,Mamadou Sarr,/mamadou-sarr/profil/spieler/910905
+2425,Ankle injury,2024-10-19,2024-11-09,22.0,2.0,injury,Jensen Weir,/jensen-weir/profil/spieler/520651
+2425,Transferred to Wigan,2024-08-29,2025-06-30,,,Transfer,Jensen Weir,/jensen-weir/profil/spieler/520651
+2425,unknown injury,2025-01-19,2025-02-11,24.0,5.0,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
+2425,Hamstring injury,2024-11-03,2024-11-27,25.0,5.0,injury,Jérémy Doku,/jeremy-doku/profil/spieler/486049
+2425,Transferred to Carlisle United,2024-08-01,2025-01-09,,,Transfer,Daniel Adu-Adjei,/daniel-adu-adjei/profil/spieler/963878
+2425,Hamstring injury,2025-01-05,2025-02-26,53.0,9.0,injury,Youssef Chermiti,/youssef-chermiti/profil/spieler/670688
+2425,Foot injury,2024-08-03,2024-11-28,118.0,19.0,injury,Youssef Chermiti,/youssef-chermiti/profil/spieler/670688
+2425,Knock,2025-05-05,2025-05-16,12.0,1.0,injury,Saša Lukić,/sasa-lukic/profil/spieler/245056
+2425,Shoulder injury,2024-10-12,2024-11-22,42.0,7.0,injury,Saša Lukić,/sasa-lukic/profil/spieler/245056
+2425,Thigh problems,2025-02-10,2025-03-08,27.0,3.0,injury,Adam Lallana,/adam-lallana/profil/spieler/43530
+2425,Hamstring injury,2024-12-09,2025-02-07,61.0,10.0,injury,Wilfred Ndidi,/wilfred-ndidi/profil/spieler/274839
+2425,Thigh problems,2025-05-02,2025-05-17,16.0,2.0,injury,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+2425,Groin injury,2025-01-20,2025-02-10,22.0,2.0,injury,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+2425,Knock,2024-12-27,2025-01-03,8.0,1.0,injury,Callum Hudson-Odoi,/callum-hudson-odoi/profil/spieler/392768
+2425,Transferred to Unknown,2024-07-01,2024-09-03,,,Transfer,Rio Ngumoha,/rio-ngumoha/profil/spieler/1108466
+2425,Transferred to PSV,2025-02-04,2025-06-29,,,Transfer,Tyrell Malacia,/tyrell-malacia/profil/spieler/339340
+2425,Hamstring injury,2025-01-05,2025-01-25,21.0,4.0,injury,John McGinn,/john-mcginn/profil/spieler/193116
+2425,Thigh problems,2024-09-28,2024-10-07,10.0,3.0,injury,John McGinn,/john-mcginn/profil/spieler/193116
+2425,Hamstring injury,2024-12-05,2025-01-17,44.0,11.0,injury,Ben Davies,/ben-davies/profil/spieler/192765
+2425,Injury to the ankle,2024-10-18,2025-01-31,106.0,16.0,injury,Tim Iroegbunam,/tim-iroegbunam/profil/spieler/696589
+2425,Ankle injury,2025-06-06,2025-06-30,25.0,1.0,injury,Neco Williams,/neco-williams/profil/spieler/503680
+2425,Knee problems,2024-12-20,2025-01-07,19.0,4.0,injury,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+2425,unknown injury,2025-02-24,2025-03-03,8.0,2.0,injury,Matty Cash,/matty-cash/profil/spieler/425334
+2425,Muscle injury,2025-01-30,2025-02-17,19.0,3.0,injury,Matty Cash,/matty-cash/profil/spieler/425334
+2425,Calf injury,2024-11-05,2024-11-11,7.0,2.0,injury,Matty Cash,/matty-cash/profil/spieler/425334
+2425,Hamstring injury,2024-08-24,2024-10-08,46.0,8.0,injury,Matty Cash,/matty-cash/profil/spieler/425334
+2425,minor knock,2025-04-22,2025-05-01,10.0,1.0,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,Muscle injury,2025-02-19,2025-04-03,44.0,9.0,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,Hamstring injury,2024-11-27,2025-01-03,38.0,8.0,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,unknown injury,2024-10-18,2024-10-28,11.0,3.0,injury,Conor Bradley,/conor-bradley/profil/spieler/624258
+2425,Transferred to Fluminense,2024-07-01,2024-08-29,,,Transfer,André,/andre/profil/spieler/800176
+2425,Hamstring injury,2025-01-13,2025-02-22,41.0,9.0,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2425,Hip injury,2024-11-04,2024-11-09,6.0,1.0,injury,Timo Werner,/timo-werner/profil/spieler/170527
+2425,Transferred to Leipzig,2025-06-30,2025-06-30,,,Transfer,Timo Werner,/timo-werner/profil/spieler/170527
+2425,Calf injury,2024-12-01,2025-01-03,34.0,6.0,injury,Pablo Sarabia,/pablo-sarabia/profil/spieler/74230
+2425,Transferred to West Brom,2024-08-30,2025-06-29,,,Transfer,Mason Holgate,/mason-holgate/profil/spieler/348623
+2425,Fitness,2024-06-10,2024-08-27,79.0,2.0,injury,David Brooks,/david-brooks/profil/spieler/277033
+2425,Transferred to Crawley Town,2025-01-28,2025-05-30,,,Transfer,Matthew Cox,/matthew-cox/profil/spieler/741236
+2425,Transferred to IFK Göteborg,2024-07-01,2024-07-11,,,Transfer,Malick Yalcouyé,/malick-yalcouye/profil/spieler/1178758
+2425,Transferred to Sturm Graz,2024-08-29,2025-06-29,,,Transfer,Malick Yalcouyé,/malick-yalcouye/profil/spieler/1178758
+2425,Transferred to Burnley,2024-07-01,2024-08-24,,,Transfer,Dara O'Shea,/dara-oshea/profil/spieler/401320
+2425,surgery,2025-04-01,2025-07-01,92.0,18.0,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2425,Hamstring injury,2024-12-01,2025-02-24,86.0,17.0,injury,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2425,Adductor injury,2025-01-26,2025-02-07,13.0,1.0,injury,Cameron Archer,/cameron-archer/profil/spieler/533662
+2425,Calf injury,2024-02-14,2024-04-05,52.0,6.0,injury,Cameron Archer,/cameron-archer/profil/spieler/533662
+2425,Transferred to Sheff Utd,2024-07-01,2024-07-10,,,Transfer,Cameron Archer,/cameron-archer/profil/spieler/533662
+2425,Fitness,2025-05-01,2025-06-17,48.0,6.0,injury,Sasa Kalajdzic,/sasa-kalajdzic/profil/spieler/369567
+2425,Muscle strain,2025-03-01,2025-05-20,81.0,9.0,injury,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2425,muscular problems,2025-02-05,2025-02-13,9.0,1.0,injury,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2425,Transferred to Genoa,2025-01-20,2025-06-29,,,Transfer,Maxwel Cornet,/maxwel-cornet/profil/spieler/234781
+2425,muscle stiffness,2025-02-13,2025-02-17,5.0,1.0,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Hip injury,2025-01-24,2025-02-07,15.0,3.0,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,unknown injury,2024-12-20,2025-01-18,30.0,6.0,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Calf injury,2024-10-30,2024-12-01,33.0,6.0,injury,Rúben Dias,/ruben-dias/profil/spieler/258004
+2425,Thigh problems,2025-05-02,2025-05-05,4.0,1.0,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Knee injury,2025-01-17,2025-03-02,45.0,10.0,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Ill,2024-11-29,2024-12-02,4.0,1.0,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Ankle injury,2024-08-21,2024-09-09,20.0,3.0,injury,Dominic Solanke,/dominic-solanke/profil/spieler/258889
+2425,Muscle injury,2025-02-10,2025-04-07,57.0,12.0,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
+2425,Muscle injury,2024-10-17,2024-11-11,26.0,7.0,injury,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
+2425,Intestinal surgery,2025-05-14,2025-07-18,66.0,2.0,injury,Taiwo Awoniyi,/taiwo-awoniyi/profil/spieler/295313
+2425,Thigh problems,2025-04-04,2025-04-18,15.0,2.0,injury,Taiwo Awoniyi,/taiwo-awoniyi/profil/spieler/295313
+2425,Broken nose bone,2025-02-12,2025-02-17,6.0,1.0,injury,Taiwo Awoniyi,/taiwo-awoniyi/profil/spieler/295313
+2425,Chest injury,2025-02-08,2025-03-29,50.0,6.0,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
+2425,Calf problems,2025-01-03,2025-01-14,12.0,2.0,injury,Lewis Dunk,/lewis-dunk/profil/spieler/148153
+2425,Transferred to Ajax U18,2024-07-01,2024-07-20,,,Transfer,Tommy Setford,/tommy-setford/profil/spieler/848753
+2425,Transferred to MK Dons,2024-07-24,2025-02-02,,,Transfer,Tom McGill,/tom-mcgill/profil/spieler/406556
+2425,Transferred to Wolves U18,2024-07-01,2025-06-30,,,Transfer,Mateus Mané,/mateus-mane/profil/spieler/1230661
+2425,Ill,2025-04-11,2025-04-15,5.0,1.0,injury,Romain Esse,/romain-esse/profil/spieler/967319
+2425,Transferred to Millwall,2024-07-01,2025-01-17,,,Transfer,Romain Esse,/romain-esse/profil/spieler/967319
+2425,Transferred to Sheff Utd,2024-07-01,2024-07-09,,,Transfer,Daniel Jebbison,/daniel-jebbison/profil/spieler/746740
+2425,Transferred to Watford,2024-08-30,2025-01-07,,,Transfer,Daniel Jebbison,/daniel-jebbison/profil/spieler/746740
+2425,Transferred to Wolves U18,2024-07-01,2025-06-30,,,Transfer,Luke Rawlings,/luke-rawlings/profil/spieler/1083691
+2425,Ill,2025-02-07,2025-02-12,6.0,1.0,injury,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2425,Transferred to Marseille,2024-07-01,2024-07-31,,,Transfer,Ismaïla Sarr,/ismaila-sarr/profil/spieler/410225
+2425,Knee injury,2025-02-12,2025-04-02,50.0,7.0,injury,Iliman Ndiaye,/iliman-ndiaye/profil/spieler/623570
+2425,Transferred to Marseille,2024-07-01,2024-07-02,,,Transfer,Iliman Ndiaye,/iliman-ndiaye/profil/spieler/623570
+2425,Hip injury,2025-02-22,2025-05-05,73.0,10.0,injury,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+2425,Groin problems,2025-01-16,2025-02-01,17.0,3.0,injury,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+2425,unknown injury,2024-12-15,2024-12-27,13.0,4.0,injury,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+2425,Ankle problems,2024-10-26,2024-11-30,36.0,5.0,injury,Charlie Taylor,/charlie-taylor/profil/spieler/195633
+2425,Fitness,2025-02-17,2025-05-16,89.0,13.0,injury,Aaron Hickey,/aaron-hickey/profil/spieler/591949
+2425,unknown injury,2025-01-15,2025-01-24,10.0,2.0,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
+2425,Knock,2024-08-12,2024-09-14,34.0,6.0,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
+2425,Muscle injury,2024-05-04,2024-05-06,3.0,1.0,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
+2425,Muscle injury,2023-09-15,2023-09-17,3.0,1.0,injury,Brajan Gruda,/brajan-gruda/profil/spieler/700106
+2425,Transferred to Mainz,2024-07-01,2024-08-13,,,Transfer,Brajan Gruda,/brajan-gruda/profil/spieler/700106
+2425,Knee problems,2025-02-15,2025-03-15,29.0,3.0,injury,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
+2425,Groin problems,2024-12-16,2024-12-28,13.0,3.0,injury,Sepp van den Berg,/sepp-van-den-berg/profil/spieler/541231
+2425,Groin injury,2025-04-28,2025-07-14,78.0,6.0,injury,Mads Hermansen,/mads-hermansen/profil/spieler/400536
+2425,Groin injury,2024-12-15,2025-01-30,47.0,8.0,injury,Mads Hermansen,/mads-hermansen/profil/spieler/400536
+2425,Transferred to Flamengo,2024-08-28,2025-02-02,,,Transfer,Carlos Alcaraz,/carlos-alcaraz/profil/spieler/748319
+2425,Transferred to Flamengo,2025-06-30,2025-06-30,,,Transfer,Carlos Alcaraz,/carlos-alcaraz/profil/spieler/748319
+2425,Hamstring injury,2024-11-30,2025-04-01,123.0,21.0,injury,Marcos Senesi,/marcos-senesi/profil/spieler/469781
+2425,Facial injury,2024-08-10,2024-08-19,10.0,1.0,injury,Marcos Senesi,/marcos-senesi/profil/spieler/469781
+2425,Achilles tendon problems,2024-11-24,2024-12-19,26.0,4.0,injury,Joachim Andersen,/joachim-andersen/profil/spieler/260827
+2425,Transferred to Marseille,2024-08-30,2025-06-29,,,Transfer,Neal Maupay,/neal-maupay/profil/spieler/217115
+2425,Transferred to Villarreal,2024-07-01,2024-07-29,,,Transfer,Ben Brereton Díaz,/ben-brereton-diaz/profil/spieler/426192
+2425,Transferred to Sheff Utd,2025-01-20,2025-06-29,,,Transfer,Ben Brereton Díaz,/ben-brereton-diaz/profil/spieler/426192
+2425,minor knock,2025-03-13,2025-03-15,3.0,1.0,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Torn thigh muscle,2025-02-23,2025-05-31,98.0,12.0,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Hamstring injury,2024-09-15,2025-01-24,132.0,24.0,injury,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Transferred to Derby,2024-07-24,2025-05-30,,,Transfer,David Ozoh,/david-ozoh/profil/spieler/865993
+2425,Ill,2024-11-02,2024-11-11,10.0,3.0,injury,Jadon Sancho,/jadon-sancho/profil/spieler/401173
+2425,concussion,2025-04-03,2025-04-15,13.0,2.0,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Muscle injury,2025-01-11,2025-01-14,4.0,1.0,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Thigh problems,2024-08-28,2024-09-11,15.0,1.0,injury,Joe Willock,/joe-willock/profil/spieler/340329
+2425,Groin injury,2025-02-25,2025-03-01,5.0,1.0,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Hamstring injury,2025-01-11,2025-01-14,4.0,1.0,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Broken toe,2024-09-15,2024-10-18,34.0,5.0,injury,Alexander Isak,/alexander-isak/profil/spieler/349066
+2425,Head injury,2024-12-27,2025-01-10,15.0,2.0,injury,Łukasz Fabiański,/lukasz-fabianski/profil/spieler/29692
+2425,Hamstring injury,2025-04-21,2025-05-25,35.0,4.0,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,Ill,2025-04-01,2025-04-04,4.0,1.0,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,Skin disease,2024-09-16,2024-11-04,50.0,16.0,injury,Matt Targett,/matt-targett/profil/spieler/250478
+2425,minor knock,2025-04-18,2025-04-24,7.0,1.0,injury,Emile Smith Rowe,/emile-smith-rowe/profil/spieler/392765
+2425,Ankle injury,2025-02-23,2025-03-01,7.0,1.0,injury,Emile Smith Rowe,/emile-smith-rowe/profil/spieler/392765
+2425,bruise,2024-12-16,2024-12-28,13.0,2.0,injury,Emile Smith Rowe,/emile-smith-rowe/profil/spieler/392765
+2425,Hamstring injury,2025-02-09,2025-02-27,19.0,3.0,injury,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
+2425,Ankle injury,2024-10-10,2024-11-22,44.0,7.0,injury,Hee-chan Hwang,/hee-chan-hwang/profil/spieler/292246
+2425,Hamstring injury,2025-04-03,2025-07-25,114.0,7.0,injury,Ryan Trevitt,/ryan-trevitt/profil/spieler/874538
+2425,Achilles tendon problems,2025-01-10,2025-01-22,13.0,3.0,injury,Ryan Trevitt,/ryan-trevitt/profil/spieler/874538
+2425,Transferred to Exeter City,2025-01-30,2025-05-30,,,Transfer,Ryan Trevitt,/ryan-trevitt/profil/spieler/874538
+2425,Hip problems,2025-03-14,2025-04-04,22.0,2.0,injury,Will Smallbone,/will-smallbone/profil/spieler/444211
+2425,unknown injury,2024-10-24,2025-01-12,81.0,2.0,injury,Will Smallbone,/will-smallbone/profil/spieler/444211
+2425,Knee injury,2024-09-11,2024-10-18,38.0,2.0,injury,Will Smallbone,/will-smallbone/profil/spieler/444211
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Godwill Kukonki,/godwill-kukonki/profil/spieler/1184841
+2425,Transferred to MK Dons,2024-08-30,2025-05-30,,,Transfer,Joe White,/joe-white/profil/spieler/614811
+2425,Transferred to Bromley,2025-02-03,2025-05-30,,,Transfer,Maldini Kacurri,/maldini-kacurri/profil/spieler/903189
+2425,Calf injury,2025-03-02,2025-03-24,23.0,5.0,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2425,unknown injury,2024-11-06,2024-11-29,24.0,6.0,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2425,Knee injury,2024-10-07,2024-11-06,31.0,7.0,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2425,Knock,2024-09-27,2024-10-01,5.0,1.0,injury,Harry Maguire,/harry-maguire/profil/spieler/177907
+2425,unknown injury,2025-03-26,2025-04-14,20.0,5.0,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
+2425,unknown injury,2025-02-14,2025-02-20,7.0,2.0,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
+2425,Thigh problems,2024-12-13,2024-12-15,3.0,1.0,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
+2425,Hamstring injury,2024-09-02,2024-09-17,16.0,3.0,injury,Leon Bailey,/leon-bailey/profil/spieler/387626
+2425,Transferred to Aberdeen FC,2025-01-13,2025-06-29,,,Transfer,Alfie Dorrington,/alfie-dorrington/profil/spieler/796300
+2425,Transferred to Al-Nassr,2025-01-31,2025-06-30,,,Transfer,Jhon Durán,/jhon-duran/profil/spieler/649317
+2425,Transferred to Unknown,2024-07-01,2024-08-29,,,Transfer,Sékou Koné,/sekou-kone/profil/spieler/1133978
+2425,Transferred to Man Utd U21,2024-08-30,2025-06-30,,,Transfer,Sékou Koné,/sekou-kone/profil/spieler/1133978
+2425,unknown injury,2024-09-26,2024-10-14,19.0,3.0,injury,Simon Adingra,/simon-adingra/profil/spieler/658536
+2425,Foot injury,2025-05-11,2025-05-19,9.0,1.0,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
+2425,Foot injury,2025-03-09,2025-04-01,24.0,4.0,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
+2425,Ill,2025-02-14,2025-02-17,4.0,1.0,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
+2425,Ankle injury,2024-07-29,2024-12-01,126.0,26.0,injury,Leny Yoro,/leny-yoro/profil/spieler/923831
+2425,Transferred to Lille,2024-07-01,2024-07-17,,,Transfer,Leny Yoro,/leny-yoro/profil/spieler/923831
+2425,unknown injury,2025-03-04,2025-03-12,9.0,2.0,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,Knock,2025-02-08,2025-02-17,10.0,1.0,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,Knock,2025-01-26,2025-02-01,7.0,,injury,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,Transferred to PSG,2024-07-01,2024-08-29,,,Transfer,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,Knee injury,2025-05-05,2025-05-23,19.0,4.0,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
+2425,Foot injury,2025-04-01,2025-04-18,18.0,4.0,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
+2425,Ill,2024-12-20,2024-12-23,4.0,1.0,injury,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
+2425,Transferred to Bayern Munich,2024-07-01,2024-08-12,,,Transfer,Matthijs de Ligt,/matthijs-de-ligt/profil/spieler/326031
+2425,Ill,2025-01-12,2025-01-15,4.0,1.0,injury,Dean Henderson,/dean-henderson/profil/spieler/258919
+2425,Transferred to Real Betis,2024-07-01,2024-08-05,,,Transfer,Guido Rodríguez,/guido-rodriguez/profil/spieler/342385
+2425,Transferred to Chesterfield,2024-08-30,2025-06-29,,,Transfer,Jenson Metcalfe,/jenson-metcalfe/profil/spieler/855890
+2425,Transferred to Peterborough,2024-07-01,2024-07-02,,,Transfer,Ronnie Edwards,/ronnie-edwards/profil/spieler/732165
+2425,Transferred to QPR,2025-01-01,2025-06-29,,,Transfer,Ronnie Edwards,/ronnie-edwards/profil/spieler/732165
+2425,Foot injury,2025-03-28,2025-04-11,15.0,3.0,injury,Marcus Tavernier,/marcus-tavernier/profil/spieler/399434
+2425,Thigh problems,2024-12-09,2025-01-24,47.0,8.0,injury,Marcus Tavernier,/marcus-tavernier/profil/spieler/399434
+2425,Knee injury,2025-02-16,2025-03-06,19.0,3.0,injury,Julio Enciso,/julio-enciso/profil/spieler/660867
+2425,Transferred to Waterford FC,2024-07-01,2024-08-04,,,Transfer,Romeo Akachukwu,/romeo-akachukwu/profil/spieler/990836
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Jaydan Kamason,/jaydan-kamason/profil/spieler/1052892
+2425,Hamstring strain,2025-01-04,2025-01-14,11.0,2.0,injury,Nélson Semedo,/nelson-semedo/profil/spieler/231572
+2425,Transferred to Al-Shabab,2024-09-02,2025-06-30,,,Transfer,Daniel Podence,/daniel-podence/profil/spieler/256977
+2425,Rib fracture,2024-03-09,2025-02-26,355.0,44.0,injury,Matheus França,/matheus-franca/profil/spieler/743597
+2425,Fitness,2025-03-01,2025-03-17,17.0,3.0,injury,Conor Chaplin,/conor-chaplin/profil/spieler/349503
+2425,Knee injury,2025-01-03,2025-03-01,58.0,10.0,injury,Conor Chaplin,/conor-chaplin/profil/spieler/349503
+2425,concussion,2025-05-12,2025-06-07,27.0,2.0,injury,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Ill,2025-02-26,2025-03-03,6.0,1.0,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
+2425,Fever,2024-09-29,2024-10-03,5.0,1.0,injury,Donyell Malen,/donyell-malen/profil/spieler/326029
+2425,Transferred to Dortmund,2024-07-01,2025-01-13,,,Transfer,Donyell Malen,/donyell-malen/profil/spieler/326029
+2425,Transferred to Wolves U21,2024-07-01,2025-06-30,,,Transfer,Leon Chiwome,/leon-chiwome/profil/spieler/1043634
+2425,Hamstring injury,2025-01-10,2025-09-13,247.0,21.0,injury,Crysencio Summerville,/crysencio-summerville/profil/spieler/474701
+2425,Transferred to Leeds,2024-07-01,2024-08-02,,,Transfer,Crysencio Summerville,/crysencio-summerville/profil/spieler/474701
+2425,Hamstring injury,2024-06-19,2024-11-25,160.0,25.0,injury,Kieran Tierney,/kieran-tierney/profil/spieler/300716
+2425,Hamstring injury,2025-03-30,2025-05-01,33.0,5.0,injury,Adam Webster,/adam-webster/profil/spieler/212847
+2425,Thigh problems,2024-10-12,2024-12-31,81.0,13.0,injury,Adam Webster,/adam-webster/profil/spieler/212847
+2425,Ankle injury,2024-12-23,2025-01-17,26.0,5.0,injury,Sander Berge,/sander-berge/profil/spieler/333014
+2425,Transferred to Burnley,2024-07-01,2024-08-21,,,Transfer,Sander Berge,/sander-berge/profil/spieler/333014
+2425,Knee injury,2024-12-15,2025-04-06,113.0,18.0,injury,Kenny Tete,/kenny-tete/profil/spieler/206746
+2425,Transferred to Leverkusen,2025-01-29,2025-06-29,,,Transfer,Emiliano Buendía,/emiliano-buendia/profil/spieler/321247
+2425,Cruciate ligament surgery,2024-11-15,2025-08-01,260.0,34.0,injury,Abdul Fatawu,/abdul-fatawu/profil/spieler/864121
+2425,Foot injury,2025-02-02,2025-02-24,23.0,3.0,injury,Taylor Harwood-Bellis,/taylor-harwood-bellis/profil/spieler/503977
+2425,Foot injury,2025-02-17,2025-04-21,64.0,10.0,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,unknown injury,2024-11-25,2024-12-17,23.0,4.0,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,Ill,2024-09-27,2024-09-30,4.0,1.0,injury,Joël Veltman,/joel-veltman/profil/spieler/111195
+2425,Transferred to Genk,2024-07-01,2024-08-28,,,Transfer,Bilal El Khannouss,/bilal-el-khannouss/profil/spieler/654982
+2425,Torn thigh muscle,2024-10-02,2024-12-21,81.0,18.0,injury,Tawanda Chirewa,/tawanda-chirewa/profil/spieler/724783
+2425,concussion,2024-09-11,2024-09-19,9.0,1.0,injury,Tawanda Chirewa,/tawanda-chirewa/profil/spieler/724783
+2425,Transferred to Derby,2024-08-26,2025-01-12,,,Transfer,Tawanda Chirewa,/tawanda-chirewa/profil/spieler/724783
+2425,Transferred to Huddersfield,2025-02-03,2025-05-30,,,Transfer,Tawanda Chirewa,/tawanda-chirewa/profil/spieler/724783
+2425,Knock,2025-01-26,2025-02-17,23.0,3.0,injury,Flynn Downes,/flynn-downes/profil/spieler/506189
+2425,Thigh problems,2024-12-27,2025-01-16,21.0,3.0,injury,Flynn Downes,/flynn-downes/profil/spieler/506189
+2425,Knee injury,2024-12-07,2025-05-02,147.0,21.0,injury,Igor Thiago,/igor-thiago/profil/spieler/739443
+2425,Meniscus injury,2024-07-21,2024-11-23,126.0,14.0,injury,Igor Thiago,/igor-thiago/profil/spieler/739443
+2425,Knock,2025-02-03,2025-02-10,8.0,1.0,injury,Victor Kristiansen,/victor-kristiansen/profil/spieler/564529
+2425,Ill,2025-01-01,2025-01-10,10.0,1.0,injury,Victor Kristiansen,/victor-kristiansen/profil/spieler/564529
+2425,Groin problems,2024-10-20,2024-10-28,9.0,1.0,injury,Victor Kristiansen,/victor-kristiansen/profil/spieler/564529
+2425,Leg injury,2025-04-04,2025-05-16,43.0,10.0,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
+2425,Knock,2025-02-10,2025-03-03,22.0,4.0,injury,Toby Collyer,/toby-collyer/profil/spieler/654253
+2425,Hamstring injury,2024-12-14,2025-03-03,80.0,15.0,injury,Benoît Badiashile,/benoit-badiashile/profil/spieler/463603
+2425,Transferred to Barrow,2024-08-30,2025-05-30,,,Transfer,Chris Popov,/chris-popov/profil/spieler/667508
+2425,Arm injury,2025-05-02,2025-05-06,5.0,1.0,injury,Issa Kaboré,/issa-kabore/profil/spieler/649452
+2425,Transferred to Benfica,2024-09-01,2024-12-30,,,Transfer,Issa Kaboré,/issa-kabore/profil/spieler/649452
+2425,Transferred to Werder Bremen,2025-01-06,2025-06-29,,,Transfer,Issa Kaboré,/issa-kabore/profil/spieler/649452
+2425,Ill,2025-03-08,2025-03-12,5.0,1.0,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Hamstring injury,2024-11-19,2024-12-27,39.0,10.0,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Hamstring injury,2024-08-09,2024-10-14,67.0,15.0,injury,Reece James,/reece-james/profil/spieler/472423
+2425,Transferred to Sporting,2024-07-01,2024-08-19,,,Transfer,Mateus Fernandes,/mateus-fernandes/profil/spieler/880245
+2425,Ankle surgery,2025-05-07,2025-07-15,70.0,5.0,injury,Timothy Castagne,/timothy-castagne/profil/spieler/262226
+2425,Hamstring injury,2024-10-14,2024-11-03,21.0,2.0,injury,Timothy Castagne,/timothy-castagne/profil/spieler/262226
+2425,Transferred to Celtic,2025-02-03,2025-06-29,,,Transfer,Jeffrey Schlupp,/jeffrey-schlupp/profil/spieler/157506
+2425,Muscle injury,2025-05-12,2025-07-29,79.0,4.0,injury,Alexis Mac Allister,/alexis-mac-allister/profil/spieler/534033
+2425,unknown injury,2025-01-31,2025-02-07,8.0,1.0,injury,Nathan Wood,/nathan-wood/profil/spieler/503990
+2425,Transferred to Swansea,2024-07-01,2024-07-04,,,Transfer,Nathan Wood,/nathan-wood/profil/spieler/503990
+2425,Transferred to R. Strasbourg,2025-02-03,2025-06-29,,,Transfer,Samuel Amo-Ameyaw,/samuel-amo-ameyaw/profil/spieler/933900
+2425,Muscle injury,2024-08-22,2024-09-14,24.0,2.0,injury,Vitor Reis,/vitor-reis/profil/spieler/1005575
+2425,Transferred to Palmeiras,2024-07-01,2025-01-20,,,Transfer,Vitor Reis,/vitor-reis/profil/spieler/1005575
+2425,Ankle injury,2024-10-10,2024-11-26,48.0,10.0,injury,Amario Cozier-Duberry,/amario-cozier-duberry/profil/spieler/878150
+2425,Transferred to Blackburn,2024-08-30,2025-05-30,,,Transfer,Amario Cozier-Duberry,/amario-cozier-duberry/profil/spieler/878150
+2425,Thigh problems,2025-04-14,2025-06-01,49.0,9.0,injury,Joshua Zirkzee,/joshua-zirkzee/profil/spieler/435648
+2425,Transferred to Bologna,2024-07-01,2024-07-13,,,Transfer,Joshua Zirkzee,/joshua-zirkzee/profil/spieler/435648
+2425,Transferred to Man City U21,2024-08-29,2025-06-30,,,Transfer,Divin Mubama,/divin-mubama/profil/spieler/670848
+2425,Hamstring injury,2024-12-16,2025-03-14,89.0,20.0,injury,Mason Mount,/mason-mount/profil/spieler/346483
+2425,Head injury,2024-09-30,2024-11-04,36.0,7.0,injury,Mason Mount,/mason-mount/profil/spieler/346483
+2425,Hamstring injury,2024-08-28,2024-09-19,23.0,3.0,injury,Mason Mount,/mason-mount/profil/spieler/346483
+2425,Thigh problems,2025-04-18,2025-05-16,29.0,4.0,injury,Conor Townsend,/conor-townsend/profil/spieler/146509
+2425,Transferred to West Brom,2024-07-01,2024-07-31,,,Transfer,Conor Townsend,/conor-townsend/profil/spieler/146509
+2425,Thigh problems,2025-03-31,2025-04-04,5.0,1.0,injury,Leif Davis,/leif-davis/profil/spieler/596446
+2425,Knock,2025-02-14,2025-02-17,4.0,1.0,injury,Leif Davis,/leif-davis/profil/spieler/596446
+2425,unknown injury,2025-04-11,2025-06-30,81.0,7.0,injury,Sam Johnstone,/sam-johnstone/profil/spieler/110864
+2425,Rest,2024-11-18,2024-11-20,3.0,1.0,injury,Virgil van Dijk,/virgil-van-dijk/profil/spieler/139208
+2425,Transferred to Barnsley,2025-01-30,2025-06-29,,,Transfer,Joe Gauci,/joe-gauci/profil/spieler/591844
+2425,Ill,2024-12-03,2024-12-16,14.0,4.0,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
+2425,unknown injury,2024-09-06,2024-09-09,4.0,1.0,injury,Mykhaylo Mudryk,/mykhaylo-mudryk/profil/spieler/537860
+2425,Hamstring injury,2025-01-11,2025-04-01,81.0,11.0,injury,Niclas Füllkrug,/niclas-fullkrug/profil/spieler/75489
+2425,Achilles tendon irritation,2024-09-08,2024-12-02,86.0,16.0,injury,Niclas Füllkrug,/niclas-fullkrug/profil/spieler/75489
+2425,Transferred to Dortmund,2024-07-01,2024-08-04,,,Transfer,Niclas Füllkrug,/niclas-fullkrug/profil/spieler/75489
+2425,Achilles tendon problems,2025-04-11,2025-09-23,166.0,13.0,injury,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
+2425,Ankle injury,2024-11-13,2024-12-21,39.0,2.0,injury,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
+2425,Transferred to Zulte Waregem,2024-08-19,2024-12-11,,,Transfer,Nathan Fraser,/nathan-fraser/profil/spieler/863741
+2425,Ankle injury,2025-01-10,2025-03-10,60.0,10.0,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2425,Knock,2025-01-05,2025-01-09,5.0,,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2425,Achilles tendon problems,2024-08-29,2024-11-28,92.0,18.0,injury,Armando Broja,/armando-broja/profil/spieler/571743
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,James Scanlon,/james-scanlon/profil/spieler/1051146
+2425,Transferred to Without Club,2024-07-01,2024-10-04,,,Transfer,Chido Obi,/chido-obi/profil/spieler/1042886
+2425,Transferred to Man Utd U18,2024-10-05,2025-06-30,,,Transfer,Chido Obi,/chido-obi/profil/spieler/1042886
+2425,Muscle injury,2024-10-15,2024-11-11,28.0,5.0,injury,Yankuba Minteh,/yankuba-minteh/profil/spieler/1012534
+2425,Thigh problems,2025-04-25,2025-04-28,4.0,1.0,injury,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2425,Broken thumb,2025-03-04,2025-03-17,14.0,2.0,injury,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2425,Hamstring injury,2024-11-30,2025-01-18,50.0,9.0,injury,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2425,Thumb injury,2024-10-04,2024-11-04,32.0,6.0,injury,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2425,Groin injury,2025-05-02,2025-05-09,8.0,1.0,injury,Jørgen Strand Larsen,/jorgen-strand-larsen/profil/spieler/429983
+2425,Hamstring injury,2025-01-25,2025-02-17,24.0,3.0,injury,Jørgen Strand Larsen,/jorgen-strand-larsen/profil/spieler/429983
+2425,Transferred to Celta de Vigo,2024-07-01,2024-07-01,,,Transfer,Jørgen Strand Larsen,/jorgen-strand-larsen/profil/spieler/429983
+2425,Transferred to Celta de Vigo,2025-06-30,2025-06-30,,,Transfer,Jørgen Strand Larsen,/jorgen-strand-larsen/profil/spieler/429983
+2425,heart problems,2024-10-09,2024-10-18,10.0,2.0,injury,Noussair Mazraoui,/noussair-mazraoui/profil/spieler/340456
+2425,Transferred to Bayern Munich,2024-07-01,2024-08-12,,,Transfer,Noussair Mazraoui,/noussair-mazraoui/profil/spieler/340456
+2425,Knock,2025-03-21,2025-04-14,25.0,3.0,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Thigh problems,2025-02-06,2025-02-10,5.0,1.0,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Groin injury,2024-10-26,2024-10-30,5.0,1.0,injury,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Knee surgery,2025-01-24,2026-03-01,402.0,63.0,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
+2425,Toe injury,2024-09-15,2024-10-28,44.0,6.0,injury,Cheick Doucouré,/cheick-doucoure/profil/spieler/543387
+2425,Hip problems,2025-03-25,2025-04-11,18.0,3.0,injury,Chris Wood,/chris-wood/profil/spieler/108725
+2425,Ankle injury,2025-04-13,2025-04-18,6.0,,injury,Paul Onuachu,/paul-onuachu/profil/spieler/272855
+2425,Knee injury,2024-09-25,2024-10-19,25.0,2.0,injury,Jens Cajuste,/jens-cajuste/profil/spieler/468066
+2425,Transferred to Napoli,2024-07-01,2024-08-18,,,Transfer,Jens Cajuste,/jens-cajuste/profil/spieler/468066
+2425,Transferred to Napoli,2025-06-30,2025-06-30,,,Transfer,Jens Cajuste,/jens-cajuste/profil/spieler/468066
+2425,Hamstring injury,2025-04-23,2025-05-23,31.0,4.0,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2425,Ill,2025-01-04,2025-01-15,12.0,2.0,injury,Marcus Rashford,/marcus-rashford/profil/spieler/258923
+2425,Knee problems,2025-04-21,2025-04-28,8.0,1.0,injury,Ben White,/ben-white/profil/spieler/335721
+2425,unknown injury,2025-04-11,2025-04-15,5.0,1.0,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Knee surgery,2024-11-11,2025-02-10,92.0,23.0,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Knee injury,2024-09-23,2024-10-07,15.0,4.0,injury,Ben White,/ben-white/profil/spieler/335721
+2425,Fitness,2025-02-17,2025-04-28,71.0,11.0,injury,Juan Larios,/juan-larios/profil/spieler/646738
+2425,Transferred to Hampton & Rich.,2025-01-17,2025-05-30,,,Transfer,Max Merrick,/max-merrick/profil/spieler/827435
+2425,Hamstring injury,2025-02-03,2025-02-28,26.0,4.0,injury,Nathan Patterson,/nathan-patterson/profil/spieler/424015
+2425,Muscle injury,2024-12-27,2025-01-14,19.0,3.0,injury,Ben Mee,/ben-mee/profil/spieler/74810
+2425,Transferred to Man Utd U21,2024-07-01,2025-06-30,,,Transfer,Habeeb Ogunneye,/habeeb-ogunneye/profil/spieler/864788
+2425,Calf injury,2024-12-30,2025-02-22,55.0,7.0,injury,Jack Stephens,/jack-stephens/profil/spieler/163744
+2425,Knee injury,2025-02-21,2025-03-08,16.0,3.0,injury,Gonçalo Guedes,/goncalo-guedes/profil/spieler/225122
+2425,Transferred to AZ Alkmaar,2024-07-01,2024-07-13,,,Transfer,Yukinari Sugawara,/yukinari-sugawara/profil/spieler/405385
+2425,Transferred to Royal Antwerp,2025-02-03,2025-06-29,,,Transfer,Kadan Young,/kadan-young/profil/spieler/887433
+2425,Transferred to Blackpool,2024-08-30,2025-05-30,,,Transfer,Odeluga Offiah,/odeluga-offiah/profil/spieler/567597
+2425,Adductor pain,2024-10-25,2024-11-04,11.0,2.0,injury,Kepa Arrizabalaga,/kepa-arrizabalaga/profil/spieler/192279
+2425,Hamstring injury,2025-01-24,2025-01-31,8.0,1.0,injury,Kamaldeen Sulemana,/kamaldeen-sulemana/profil/spieler/746695
+2425,Ankle injury,2024-07-29,2024-10-16,80.0,13.0,injury,Kamaldeen Sulemana,/kamaldeen-sulemana/profil/spieler/746695
+2425,Ill,2025-06-30,2025-07-03,4.0,,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,minor knock,2025-04-14,2025-04-18,5.0,1.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,muscular problems,2025-03-03,2025-03-10,8.0,2.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Knee problems,2025-02-12,2025-02-16,5.0,1.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Knee problems,2025-02-07,2025-02-10,4.0,1.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Ill,2024-12-20,2024-12-31,12.0,3.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Ill,2024-10-02,2024-10-04,3.0,1.0,injury,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Transferred to Dortmund,2025-02-03,2025-06-30,,,Transfer,Carney Chukwuemeka,/carney-chukwuemeka/profil/spieler/659459
+2425,Knock,2025-01-16,2025-01-23,8.0,1.0,injury,Levi Colwill,/levi-colwill/profil/spieler/614258
+2425,Knock,2025-01-26,2025-02-07,13.0,1.0,injury,Ryan Manning,/ryan-manning/profil/spieler/262300
+2425,Fitness,2024-08-15,2024-10-01,48.0,9.0,injury,Ryan Manning,/ryan-manning/profil/spieler/262300
+2425,unknown injury,2024-08-15,2024-10-01,48.0,9.0,injury,Ryan Manning,/ryan-manning/profil/spieler/262300
+2425,Foot injury,2025-05-22,2025-06-01,11.0,1.0,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2425,Rest,2025-04-18,2025-04-22,5.0,1.0,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2425,Muscle injury,2024-12-03,2025-04-04,123.0,26.0,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2425,Calf injury,2024-08-11,2024-11-08,90.0,16.0,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2425,Knee injury,2024-08-01,2024-10-20,81.0,12.0,injury,Luke Shaw,/luke-shaw/profil/spieler/183288
+2425,Ill,2024-10-18,2024-10-31,14.0,2.0,injury,Philip Billing,/philip-billing/profil/spieler/320411
+2425,Back problems,2024-08-23,2024-09-02,11.0,3.0,injury,Philip Billing,/philip-billing/profil/spieler/320411
+2425,Transferred to Napoli,2025-01-11,2025-06-29,,,Transfer,Philip Billing,/philip-billing/profil/spieler/320411
+2425,Foot injury,2024-12-29,2025-01-31,34.0,5.0,injury,Jarrod Bowen,/jarrod-bowen/profil/spieler/314875
+2425,Adductor pain,2025-05-05,2025-08-18,106.0,12.0,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,unknown injury,2024-11-01,2024-11-11,11.0,2.0,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,Injury to the ankle,2024-09-07,2024-09-20,14.0,2.0,injury,Dango Ouattara,/dango-ouattara/profil/spieler/823231
+2425,unknown injury,2025-02-03,2025-08-04,183.0,35.0,injury,Farid Alfa-Ruprecht,/farid-alfa-ruprecht/profil/spieler/897402
+2425,Transferred to Man City U21,2024-07-01,2025-06-30,,,Transfer,Farid Alfa-Ruprecht,/farid-alfa-ruprecht/profil/spieler/897402
+2425,Knee injury,2025-04-14,2025-06-16,64.0,6.0,injury,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2425,Knock,2025-01-03,2025-01-15,13.0,2.0,injury,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2425,Knock,2024-08-30,2024-09-29,31.0,6.0,injury,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2425,Transferred to Hull City,2024-07-01,2024-07-18,,,Transfer,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2425,Ankle injury,2025-05-06,2025-05-12,7.0,1.0,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
+2425,Groin surgery,2024-11-01,2025-02-01,93.0,20.0,injury,Adam Wharton,/adam-wharton/profil/spieler/744149
+2425,Transferred to Man Utd U21,2024-07-01,2025-06-30,,,Transfer,Dermot Mee,/dermot-mee/profil/spieler/620362
+2425,Adductor injury,2025-02-12,2025-04-13,61.0,13.0,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,unknown injury,2024-12-04,2024-12-20,17.0,3.0,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,Adductor injury,2024-11-11,2024-11-19,9.0,2.0,injury,Manuel Akanji,/manuel-akanji/profil/spieler/284730
+2425,Back injury,2025-04-18,2025-05-09,22.0,3.0,injury,Edson Álvarez,/edson-alvarez/profil/spieler/401356
+2425,unknown injury,2025-02-02,2025-02-10,9.0,1.0,injury,Edson Álvarez,/edson-alvarez/profil/spieler/401356
+2425,Torn thigh muscle,2024-06-22,2024-08-18,58.0,3.0,injury,Edson Álvarez,/edson-alvarez/profil/spieler/401356
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Jack Fletcher,/jack-fletcher/profil/spieler/1011140
+2425,Hamstring injury,2025-02-10,2025-03-31,50.0,6.0,injury,Carlos Miguel,/carlos-miguel/profil/spieler/641458
+2425,Transferred to Corinthians,2024-07-01,2024-07-08,,,Transfer,Carlos Miguel,/carlos-miguel/profil/spieler/641458
+2425,Transferred to Stade Rennais,2024-08-30,2025-06-29,,,Transfer,Naouirou Ahamada,/naouirou-ahamada/profil/spieler/538971
+2425,Transferred to Burnley,2024-08-30,2025-05-30,,,Transfer,Jeremy Sarmiento,/jeremy-sarmiento/profil/spieler/568005
+2425,Transferred to Sunderland,2025-02-03,2025-05-30,,,Transfer,Jayden Danns,/jayden-danns/profil/spieler/939290
+2425,unknown injury,2024-12-11,2025-01-10,31.0,5.0,injury,Danny Welbeck,/danny-welbeck/profil/spieler/67063
+2425,Calf injury,2024-12-15,2025-01-11,28.0,2.0,injury,Mathis Amougou,/mathis-amougou/profil/spieler/1010854
+2425,Transferred to Saint-Étienne,2024-07-01,2025-02-02,,,Transfer,Mathis Amougou,/mathis-amougou/profil/spieler/1010854
+2425,Transferred to Man Utd U21,2024-07-01,2025-01-24,,,Transfer,Ethan Wheatley,/ethan-wheatley/profil/spieler/888639
+2425,Transferred to Walsall,2025-01-25,2025-05-30,,,Transfer,Ethan Wheatley,/ethan-wheatley/profil/spieler/888639
+2425,Transferred to Man Utd U21,2025-05-31,2025-06-30,,,Transfer,Ethan Wheatley,/ethan-wheatley/profil/spieler/888639
+2425,Transferred to Prescot Cables,2025-02-03,2025-06-29,,,Transfer,Bradley Moonan,/bradley-moonan/profil/spieler/1031258
+2425,Transferred to Wigan,2025-01-01,2025-06-30,,,Transfer,Josh Robinson,/josh-robinson/profil/spieler/878151
+2425,Hamstring injury,2025-04-18,2025-05-23,36.0,4.0,injury,Nathan Broadhead,/nathan-broadhead/profil/spieler/344009
+2425,Muscle injury,2025-01-24,2025-01-30,7.0,1.0,injury,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+2425,Finger injury,2024-11-11,2024-12-20,40.0,8.0,injury,Aaron Ramsdale,/aaron-ramsdale/profil/spieler/427568
+2425,Knee injury,2024-11-09,2025-01-24,77.0,14.0,injury,Jack Hinshelwood,/jack-hinshelwood/profil/spieler/867688
+2425,concussion,2024-08-13,2024-08-20,8.0,1.0,injury,İlkay Gündoğan,/ilkay-gundogan/profil/spieler/53622
+2425,Hamstring injury,2024-10-27,2025-02-13,110.0,29.0,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
+2425,Hamstring injury,2024-09-18,2024-10-23,36.0,8.0,injury,Wilson Odobert,/wilson-odobert/profil/spieler/743498
+2425,Transferred to Burnley,2024-07-01,2024-08-15,,,Transfer,Wilson Odobert,/wilson-odobert/profil/spieler/743498
+2425,Transferred to Man Utd U18,2024-07-01,2025-06-30,,,Transfer,Jayce Fitzgerald,/jayce-fitzgerald/profil/spieler/964690
+2425,Ill,2025-04-12,2025-04-16,5.0,1.0,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,Ill,2025-01-27,2025-01-30,4.0,1.0,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,Ill,2024-09-26,2024-09-30,5.0,1.0,injury,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,Knee problems,2025-03-07,2025-04-02,27.0,4.0,injury,Michael Kayode,/michael-kayode/profil/spieler/823486
+2425,Transferred to Fiorentina,2024-07-01,2025-01-23,,,Transfer,Michael Kayode,/michael-kayode/profil/spieler/823486
+2425,Transferred to Fiorentina,2025-06-30,2025-06-30,,,Transfer,Michael Kayode,/michael-kayode/profil/spieler/823486
+2425,Broken foot,2024-09-11,2024-11-21,72.0,18.0,injury,Harvey Elliott,/harvey-elliott/profil/spieler/565822
+2425,Transferred to ADO Den Haag,2025-01-31,2025-06-30,,,Transfer,Cameron Peupion,/cameron-peupion/profil/spieler/703626
+2425,Transferred to Fiorentina,2024-07-01,2024-07-17,,,Transfer,Nikola Milenković,/nikola-milenkovic/profil/spieler/413507
+2425,Transferred to Man City U18,2024-07-01,2025-06-30,,,Transfer,Max Hudson,/max-hudson/profil/spieler/1082283
+2425,Transferred to Man Utd U21,2024-07-01,2024-08-29,,,Transfer,Elyh Harrison,/elyh-harrison/profil/spieler/1013690
+2425,Transferred to Chester,2024-08-30,2025-01-06,,,Transfer,Elyh Harrison,/elyh-harrison/profil/spieler/1013690
+2425,Transferred to Man Utd U21,2025-01-07,2025-06-30,,,Transfer,Elyh Harrison,/elyh-harrison/profil/spieler/1013690
+2425,Meniscus tear,2024-10-19,2025-02-10,115.0,20.0,injury,Alex Scott,/alex-scott/profil/spieler/855256
+2425,Broken leg,2024-12-07,2025-06-01,177.0,31.0,injury,Michail Antonio,/michail-antonio/profil/spieler/104124
+2425,Transferred to Miami,2024-07-01,2024-12-31,,,Transfer,Diego Gómez,/diego-gomez/profil/spieler/996897
+2425,Hamstring muscle injury,2024-09-18,2024-10-31,44.0,11.0,injury,Kevin De Bruyne,/kevin-de-bruyne/profil/spieler/88755
+2425,Ankle injury,2025-01-16,2025-04-21,96.0,28.0,injury,Trevan Sanusi,/trevan-sanusi/profil/spieler/1011152
+2425,Transferred to Wolves U21,2024-07-01,2025-06-30,,,Transfer,Tom Edozie,/tom-edozie/profil/spieler/1065227
+2425,Transferred to Fleetwood,2025-01-31,2025-06-29,,,Transfer,Kobei Moore,/kobei-moore/profil/spieler/867706
+2425,Transferred to Real Betis,2025-01-25,2025-06-29,,,Transfer,Antony,/antony/profil/spieler/602105
+2425,unknown injury,2025-01-02,2025-03-14,72.0,5.0,injury,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
+2425,unknown injury,2024-12-21,2025-01-10,21.0,4.0,injury,Kasey McAteer,/kasey-mcateer/profil/spieler/621193
+2425,unknown injury,2025-05-19,2025-07-09,52.0,7.0,injury,Tyler Dibling,/tyler-dibling/profil/spieler/866655
+2425,Ankle injury,2025-01-18,2025-01-30,13.0,2.0,injury,Tyler Dibling,/tyler-dibling/profil/spieler/866655
+2425,Muscle injury,2025-01-31,2025-02-07,8.0,1.0,injury,Carlos Baleba,/carlos-baleba/profil/spieler/973085
+2425,Rest,2025-05-29,2025-05-31,3.0,1.0,injury,Mario Lemina,/mario-lemina/profil/spieler/170934
+2425,Ill,2025-01-10,2025-01-15,6.0,1.0,injury,Mario Lemina,/mario-lemina/profil/spieler/170934
+2425,Calf injury,2024-12-20,2025-01-01,13.0,3.0,injury,Mario Lemina,/mario-lemina/profil/spieler/170934
+2425,Transferred to Galatasaray,2025-02-05,2025-06-30,,,Transfer,Mario Lemina,/mario-lemina/profil/spieler/170934
+2425,unknown injury,2024-12-20,2025-01-25,37.0,8.0,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2425,unknown injury,2024-11-17,2024-12-09,23.0,6.0,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2425,Toe injury,2024-08-04,2024-09-14,42.0,6.0,injury,Victor Lindelöf,/victor-lindelof/profil/spieler/184573
+2425,minor knock,2025-05-09,2025-05-29,21.0,3.0,injury,Samuel Edozie,/samuel-edozie/profil/spieler/680806
+2425,Hip injury,2025-02-16,2025-02-27,12.0,2.0,injury,Samuel Edozie,/samuel-edozie/profil/spieler/680806
+2425,Hip injury,2025-01-16,2025-02-11,27.0,7.0,injury,Samuel Edozie,/samuel-edozie/profil/spieler/680806
+2425,Ankle injury,2024-11-28,2024-12-12,15.0,3.0,injury,Samuel Edozie,/samuel-edozie/profil/spieler/680806
+2425,Transferred to RSC Anderlecht,2024-09-04,2025-06-29,,,Transfer,Samuel Edozie,/samuel-edozie/profil/spieler/680806
+2425,Transferred to Benfica,2024-07-01,2024-08-29,,,Transfer,Morato,/morato/profil/spieler/673492
+2425,Hamstring injury,2025-01-17,2025-02-20,35.0,5.0,injury,James Hill,/james-hill/profil/spieler/611793
+2425,Transferred to RCD Mallorca,2024-08-30,2025-06-29,,,Transfer,Chiquinho,/chiquinho/profil/spieler/695454
+2425,Transferred to Barcelona,2024-07-01,2024-08-22,,,Transfer,Ilkay Gündogan,/ilkay-gundogan/profil/spieler/53622
+2425,Yellow card suspension,2024-12-30,2025-01-05,7.0,1.0,suspension,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2425,Suspension through sports court,2024-11-23,2024-12-26,34.0,7.0,suspension,Rodrigo Bentancur,/rodrigo-bentancur/profil/spieler/354362
+2425,No eligibility,2025-05-02,2025-05-04,3.0,1.0,absence,Neto,/neto/profil/spieler/111819
+2425,No eligibility,2024-10-18,2024-10-20,3.0,2.0,absence,Neto,/neto/profil/spieler/111819
+2425,Yellow card suspension,2024-12-27,2024-12-30,4.0,1.0,suspension,Dominik Szoboszlai,/dominik-szoboszlai/profil/spieler/451276
+2425,Yellow card suspension,2025-01-06,2025-01-15,10.0,1.0,suspension,Darwin Núñez,/darwin-nunez/profil/spieler/546543
+2425,Red card suspension,2024-12-04,2024-12-26,23.0,4.0,suspension,Jack Stephens,/jack-stephens/profil/spieler/163744
+2425,Suspension through sports court,2024-10-01,2024-10-20,20.0,2.0,suspension,Jack Stephens,/jack-stephens/profil/spieler/163744
+2425,Red card suspension,2024-09-14,2024-10-01,18.0,3.0,suspension,Jack Stephens,/jack-stephens/profil/spieler/163744
+2425,Red card suspension,2025-03-01,2025-04-06,37.0,4.0,suspension,Matheus Cunha,/matheus-cunha/profil/spieler/517894
+2425,Suspension through sports court,2025-01-05,2025-01-12,8.0,2.0,suspension,Matheus Cunha,/matheus-cunha/profil/spieler/517894
+2425,Indirect card suspension,2025-05-11,2025-05-19,9.0,1.0,suspension,Jacob Ramsey,/jacob-ramsey/profil/spieler/503749
+2425,Yellow card suspension,2024-12-16,2024-12-21,6.0,1.0,suspension,Daniel Muñoz,/daniel-munoz/profil/spieler/493003
+2425,Indirect card suspension,2024-10-26,2024-11-04,10.0,1.0,suspension,Harry Clarke,/harry-clarke/profil/spieler/528892
+2425,Yellow card suspension,2024-11-30,2024-12-05,6.0,1.0,suspension,Tyler Dibling,/tyler-dibling/profil/spieler/866655
+2425,Yellow card suspension,2024-12-30,2025-01-05,7.0,1.0,suspension,Fabian Schär,/fabian-schar/profil/spieler/135343
+2425,Red card suspension,2024-08-17,2024-09-02,17.0,3.0,suspension,Fabian Schär,/fabian-schar/profil/spieler/135343
+2425,No eligibility,2025-03-15,2025-03-17,3.0,1.0,absence,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+2425,No eligibility,2024-11-09,2024-11-11,3.0,1.0,absence,Raheem Sterling,/raheem-sterling/profil/spieler/134425
+2425,Red card suspension,2025-02-22,2025-02-27,6.0,1.0,suspension,Myles Lewis-Skelly,/myles-lewis-skelly/profil/spieler/890721
+2425,Indirect card suspension,2024-12-30,2024-12-30,1.0,1.0,suspension,Bruno Fernandes,/bruno-fernandes/profil/spieler/240306
+2425,In training camp with first team,2025-01-29,2025-02-02,5.0,1.0,absence,Gavin Bazunu,/gavin-bazunu/profil/spieler/585550
+2425,Red card suspension,2024-10-19,2024-10-28,10.0,1.0,suspension,William Saliba,/william-saliba/profil/spieler/495666
+2425,Red card suspension,2025-03-02,2025-04-03,33.0,3.0,suspension,Anthony Gordon,/anthony-gordon/profil/spieler/503733
+2425,Red card suspension,2024-12-02,2024-12-15,14.0,3.0,suspension,Tom Cairney,/tom-cairney/profil/spieler/123275
+2425,No eligibility,2025-01-13,2025-01-15,3.0,1.0,absence,Kepa Arrizabalaga,/kepa-arrizabalaga/profil/spieler/192279
+2425,No eligibility,2024-09-13,2024-09-16,4.0,1.0,absence,Kepa Arrizabalaga,/kepa-arrizabalaga/profil/spieler/192279
+2425,Yellow card suspension,2025-01-06,2025-01-09,4.0,1.0,suspension,James Maddison,/james-maddison/profil/spieler/294057
+2425,Red card suspension,2025-05-12,2025-08-18,99.0,3.0,suspension,Nicolas Jackson,/nicolas-jackson/profil/spieler/776890
+2425,Yellow card suspension,2025-03-03,2025-04-03,32.0,2.0,suspension,Will Hughes,/will-hughes/profil/spieler/207014
+2425,Yellow card suspension,2024-11-04,2024-11-11,8.0,1.0,suspension,Will Hughes,/will-hughes/profil/spieler/207014
+2425,Red card suspension,2024-12-27,2025-01-11,16.0,3.0,suspension,Jhon Durán,/jhon-duran/profil/spieler/649317
+2425,No eligibility,2025-01-17,2025-01-20,4.0,1.0,absence,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
+2425,Indirect card suspension,2024-11-02,2024-11-11,10.0,1.0,suspension,Kalvin Phillips,/kalvin-phillips/profil/spieler/351749
+2425,No eligibility,2024-08-24,2024-08-25,2.0,1.0,absence,Ferdi Kadıoğlu,/ferdi-kadioglu/profil/spieler/369316
+2425,Indirect card suspension,2025-01-13,2025-01-16,4.0,1.0,suspension,Diogo Dalot,/diogo-dalot/profil/spieler/357147
+2425,Red card suspension,2025-04-21,2025-05-12,22.0,3.0,suspension,Leif Davis,/leif-davis/profil/spieler/596446
+2425,Yellow card suspension,2024-12-17,2024-12-21,5.0,1.0,suspension,Carlos Soler,/carlos-soler/profil/spieler/372246
+2425,Red card suspension,2025-02-22,2025-03-10,17.0,3.0,suspension,Ilya Zabarnyi,/ilya-zabarnyi/profil/spieler/659089
+2425,Red card suspension,2025-05-21,2025-05-25,5.0,1.0,suspension,Mateo Kovacic,/mateo-kovacic/profil/spieler/51471
+2425,Indirect card suspension,2025-05-12,2025-05-19,8.0,1.0,suspension,Mikel Merino,/mikel-merino/profil/spieler/338424
+2425,Indirect card suspension,2024-12-16,2024-12-22,7.0,1.0,suspension,Rayan Aït-Nouri,/rayan-ait-nouri/profil/spieler/578391
+2425,Indirect card suspension,2025-04-06,2025-04-14,9.0,1.0,suspension,Jan Paul van Hecke,/jan-paul-van-hecke/profil/spieler/576314
+2425,No eligibility,2025-02-20,2025-02-23,4.0,1.0,absence,Axel Disasi,/axel-disasi/profil/spieler/386047
+2425,Red card suspension,2024-10-19,2024-10-27,9.0,1.0,suspension,Ryan Fraser,/ryan-fraser/profil/spieler/146795
+2425,Red card suspension,2025-04-20,2025-05-11,22.0,3.0,suspension,João Pedro,/joao-pedro/profil/spieler/626724
+2425,Red card suspension,2024-11-10,2024-12-03,24.0,3.0,suspension,Daichi Kamada,/daichi-kamada/profil/spieler/356141
+2425,special leave,2025-01-03,2025-01-07,5.0,1.0,absence,André,/andre/profil/spieler/800176
+2425,Yellow card suspension,2024-11-30,2024-12-05,6.0,1.0,suspension,Taylor Harwood-Bellis,/taylor-harwood-bellis/profil/spieler/503977
+2425,Yellow card suspension,2024-12-14,2024-12-22,9.0,1.0,suspension,Joelinton,/joelinton/profil/spieler/333241
+2425,Yellow card suspension,2024-11-23,2024-12-01,9.0,1.0,suspension,Antoine Semenyo,/antoine-semenyo/profil/spieler/583255
+2425,Red card suspension,2025-02-26,2025-04-02,36.0,3.0,suspension,Patrick Dorgu,/patrick-dorgu/profil/spieler/926952
+2425,Red card suspension,2024-10-19,2024-10-27,9.0,1.0,suspension,Joachim Andersen,/joachim-andersen/profil/spieler/260827
+2425,Called up to national team,2025-01-11,2025-02-18,39.0,7.0,absence,Julio Soler,/julio-soler/profil/spieler/1009658
+2425,Yellow card suspension,2024-12-27,2024-12-31,5.0,1.0,suspension,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,No eligibility,2024-08-30,2024-09-02,4.0,1.0,absence,Manuel Ugarte,/manuel-ugarte/profil/spieler/476701
+2425,Indirect card suspension,2024-10-06,2024-10-21,16.0,1.0,suspension,Wesley Fofana,/wesley-fofana/profil/spieler/475411
+2425,Yellow card suspension,2024-12-04,2025-02-04,63.0,1.0,suspension,Lisandro Martínez,/lisandro-martinez/profil/spieler/480762
+2425,Indirect card suspension,2024-10-06,2024-10-22,17.0,1.0,suspension,James Ward-Prowse,/james-ward-prowse/profil/spieler/181579
+2425,Indirect card suspension,2024-10-19,2024-10-27,9.0,1.0,suspension,Jaden Philogene,/jaden-philogene/profil/spieler/665390
+2425,Yellow card suspension,2024-12-26,2025-01-06,12.0,3.0,suspension,Ryan Yates,/ryan-yates/profil/spieler/425902
+2425,Yellow card suspension,2024-12-22,2024-12-29,8.0,2.0,suspension,Nicolás Domínguez,/nicolas-dominguez/profil/spieler/497291
+2425,special leave,2025-05-01,2025-05-05,5.0,1.0,absence,Abdoulaye Doucouré,/abdoulaye-doucoure/profil/spieler/127187
+2425,Indirect card suspension,2025-02-13,2025-02-18,6.0,1.0,suspension,Abdoulaye Doucouré,/abdoulaye-doucoure/profil/spieler/127187
+2425,Yellow card suspension,2024-12-09,2024-12-15,7.0,1.0,suspension,Calvin Bassey,/calvin-bassey/profil/spieler/461883
+2425,Yellow card suspension,2024-12-04,2024-12-04,1.0,1.0,suspension,Kobbie Mainoo,/kobbie-mainoo/profil/spieler/820374
+2425,Yellow card suspension,2024-11-10,2024-11-26,17.0,1.0,suspension,Dan Burn,/dan-burn/profil/spieler/134270
+2425,Yellow card suspension,2024-12-29,2024-12-31,3.0,1.0,suspension,Matty Cash,/matty-cash/profil/spieler/425334
+2425,Red card suspension,2024-11-23,2024-12-09,17.0,3.0,suspension,Christian Nørgaard,/christian-norgaard/profil/spieler/148367
+2425,Indirect card suspension,2024-11-02,2024-11-10,9.0,1.0,suspension,Edson Álvarez,/edson-alvarez/profil/spieler/401356
+2425,Indirect card suspension,2024-09-25,2024-09-29,5.0,1.0,suspension,Edson Álvarez,/edson-alvarez/profil/spieler/401356
+2425,Yellow card suspension,2025-04-03,2025-04-13,11.0,2.0,suspension,Flynn Downes,/flynn-downes/profil/spieler/506189
+2425,Yellow card suspension,2024-11-30,2024-12-05,6.0,1.0,suspension,Flynn Downes,/flynn-downes/profil/spieler/506189
+2425,Yellow card suspension,2024-12-15,2024-12-16,2.0,1.0,suspension,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Suspended,2024-08-15,2024-08-20,6.0,1.0,suspension,Yves Bissouma,/yves-bissouma/profil/spieler/410425
+2425,Yellow card suspension,2024-12-05,2024-12-15,11.0,1.0,suspension,Alexis Mac Allister,/alexis-mac-allister/profil/spieler/534033
+2425,Yellow card suspension,2024-12-16,2024-12-22,7.0,1.0,suspension,Liam Delap,/liam-delap/profil/spieler/610849
+2425,Yellow card suspension,2024-11-10,2024-11-24,15.0,1.0,suspension,Ryan Christie,/ryan-christie/profil/spieler/188077
+2425,Indirect card suspension,2025-02-13,2025-02-17,5.0,1.0,suspension,Curtis Jones,/curtis-jones/profil/spieler/433188
+2425,Red card suspension,2024-11-23,2024-11-30,8.0,1.0,suspension,Carlos Baleba,/carlos-baleba/profil/spieler/973085
+2425,No eligibility,2025-01-13,2025-01-16,4.0,1.0,absence,Odsonne Édouard,/odsonne-edouard/profil/spieler/344152
+2425,Indirect card suspension,2024-09-22,2024-09-26,5.0,1.0,suspension,Leandro Trossard,/leandro-trossard/profil/spieler/144028
+2425,Yellow card suspension,2025-02-26,2025-03-17,20.0,2.0,suspension,Saša Lukić,/sasa-lukic/profil/spieler/245056
+2425,Yellow card suspension,2024-12-02,2024-12-06,5.0,1.0,suspension,Saša Lukić,/sasa-lukic/profil/spieler/245056
+2425,Called up to national team,2025-01-21,2025-02-17,28.0,7.0,absence,Claudio Echeverri,/claudio-echeverri/profil/spieler/994536
+2425,Indirect card suspension,2025-04-06,2025-04-13,8.0,1.0,suspension,Eddie Nketiah,/eddie-nketiah/profil/spieler/340324
+2425,Indirect card suspension,2025-01-27,2025-02-02,7.0,1.0,suspension,João Gomes,/joao-gomes/profil/spieler/735570
+2425,Yellow card suspension,2024-12-10,2024-12-14,5.0,1.0,suspension,João Gomes,/joao-gomes/profil/spieler/735570
+2425,Yellow card suspension,2024-12-10,2024-12-14,5.0,1.0,suspension,João Gomes,/joao-gomes/profil/spieler/735570
+2425,Yellow card suspension,2024-12-10,2024-12-14,5.0,1.0,suspension,João Gomes,/joao-gomes/profil/spieler/735570
+2425,Yellow card suspension,2024-12-10,2024-12-14,5.0,1.0,suspension,João Gomes,/joao-gomes/profil/spieler/735570
+2425,Red card suspension,2024-10-19,2024-11-10,23.0,3.0,suspension,Mohammed Kudus,/mohammed-kudus/profil/spieler/543499
+2425,Yellow card suspension,2024-12-15,2024-12-25,11.0,1.0,suspension,Andreas Pereira,/andreas-pereira/profil/spieler/203394
+2425,Indirect card suspension,2024-12-16,2024-12-23,8.0,1.0,suspension,Marc Cucurella,/marc-cucurella/profil/spieler/284857
+2425,Yellow card suspension,2024-10-19,2024-10-21,3.0,1.0,suspension,Marc Cucurella,/marc-cucurella/profil/spieler/284857
+2425,Indirect card suspension,2025-04-06,2025-04-13,8.0,1.0,suspension,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Yellow card suspension,2024-12-27,2024-12-29,3.0,1.0,suspension,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Yellow card suspension,2024-12-27,2024-12-29,3.0,1.0,suspension,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Yellow card suspension,2024-12-27,2024-12-29,3.0,1.0,suspension,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Yellow card suspension,2024-12-27,2024-12-29,3.0,1.0,suspension,Marc Guéhi,/marc-guehi/profil/spieler/392757
+2425,Yellow card suspension,2025-01-06,2025-01-09,4.0,1.0,suspension,Pape Matar Sarr,/pape-matar-sarr/profil/spieler/568693
+2425,Indirect card suspension,2024-12-07,2024-12-16,10.0,1.0,suspension,Rico Lewis,/rico-lewis/profil/spieler/701057
+2425,No eligibility,2025-01-24,2025-01-31,8.0,1.0,absence,Michael Kayode,/michael-kayode/profil/spieler/823486
+2425,Indirect card suspension,2025-02-17,2025-02-24,8.0,1.0,suspension,Axel Tuanzebe,/axel-tuanzebe/profil/spieler/342046
+2425,No eligibility,2025-02-25,2025-02-26,2.0,1.0,absence,Lesley Ugochukwu,/lesley-ugochukwu/profil/spieler/711999
+2425,Indirect card suspension,2025-04-27,2025-05-04,8.0,1.0,suspension,Ben Johnson,/ben-johnson/profil/spieler/468002
+2425,Indirect card suspension,2025-01-19,2025-02-02,15.0,1.0,suspension,Konstantinos Mavropanos,/konstantinos-mavropanos/profil/spieler/415912
+2425,No eligibility,2025-01-15,2025-01-20,6.0,2.0,absence,Woyo Coulibaly,/woyo-coulibaly/profil/spieler/592975
+2425,Yellow card suspension,2025-01-03,2025-01-05,3.0,1.0,suspension,Morgan Rogers,/morgan-rogers/profil/spieler/503743
+2425,Yellow card suspension,2024-12-30,2025-01-05,7.0,1.0,suspension,Mateus Fernandes,/mateus-fernandes/profil/spieler/880245
+2425,Indirect card suspension,2024-08-31,2024-09-16,17.0,1.0,suspension,Declan Rice,/declan-rice/profil/spieler/357662
+2425,No eligibility,2025-04-11,2025-04-13,3.0,1.0,absence,Facundo Buonanotte,/facundo-buonanotte/profil/spieler/983989
+2425,Yellow card suspension,2024-11-11,2024-11-23,13.0,1.0,suspension,Facundo Buonanotte,/facundo-buonanotte/profil/spieler/983989
+2425,No eligibility,2025-05-04,2025-05-06,3.0,1.0,absence,Matt Turner,/matt-turner/profil/spieler/425306
+2425,Yellow card suspension,2024-12-27,2024-12-30,4.0,1.0,suspension,Justin Kluivert,/justin-kluivert/profil/spieler/330659
+2425,Yellow card suspension,2024-12-23,2024-12-26,4.0,1.0,suspension,Ashley Young,/ashley-young/profil/spieler/14086
+2425,Red card suspension,2024-08-17,2024-08-25,9.0,1.0,suspension,Ashley Young,/ashley-young/profil/spieler/14086
+2425,Yellow card suspension,2024-12-01,2024-12-04,4.0,1.0,suspension,Nélson Semedo,/nelson-semedo/profil/spieler/231572
+2425,Yellow card suspension,2024-12-23,2024-12-28,6.0,1.0,suspension,Sam Morsy,/sam-morsy/profil/spieler/123551
+2425,Suspension through sports court,2024-10-18,2024-10-22,5.0,1.0,suspension,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014
+2425,Indirect card suspension,2024-09-22,2024-09-29,8.0,1.0,suspension,Morgan Gibbs-White,/morgan-gibbs-white/profil/spieler/429014

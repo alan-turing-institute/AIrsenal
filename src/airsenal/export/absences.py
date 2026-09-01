@@ -3,10 +3,9 @@ Saving the players the FPL API says have a <100% chance of playing next gameweek
 
 Run week by week (`airsenal run --save-absences`), so that a season can be
 replayed later. The data is written in the same format as the packaged
-`absences_yyyy.csv` files, which up until the 24/25 season were retrospectively
-created by scraping external websites. From 25/26 onwards it is the actual FPL
-API data, but the columns are unchanged so that `ingest.absences.load_absences`
-can read either.
+`absences_yyyy.csv` files, which are retrospectively scraped from Transfermarkt
+by `remote.transfermarkt`, so that `ingest.absences.load_absences` can read
+either.
 """
 
 import csv

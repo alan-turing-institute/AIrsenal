@@ -2,8 +2,10 @@
 
 import contextlib
 import os
-from cmath import nan
+import re
+import time
 from io import StringIO
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 import pandas as pd
@@ -24,6 +26,9 @@ from airsenal.remote.errors import (
     RemoteHTTPError,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 logger = get_logger(__name__)
 
 TRANSFERMARKT_URL = "https://www.transfermarkt.co.uk"
@@ -39,15 +44,34 @@ HEADERS = {
 # pages for each of ~600 players, and any one of them hanging stops the run.
 TIMEOUT_SECONDS = 30.0
 
+# Transfermarkt starts timing requests out part way through a scrape of a whole
+# division, and a page that is given up on is a player's absences missing from
+# the season. Retrying costs a few seconds; not retrying costs data, quietly.
+RETRIES = 3
+RETRY_BACKOFF_SECONDS = 5.0
+RETRY_STATUS_CODES = (429, 500, 502, 503, 504)
 
-def _get(url: str, timeout: float = TIMEOUT_SECONDS) -> requests.Response:
+# Waited before every request. A season is three pages for each of ~600 players,
+# and asking for them as fast as we can get them is what provokes the timeouts
+# above: unpaced, the throttling starts within the first thirty. An hour of
+# waiting for a season's data beats losing a tenth of the players to retries.
+REQUEST_DELAY_SECONDS = 1.0
+
+# The columns `get_season_absences` concatenates, and the ones `absences_xxyy.csv`
+# is written from. An empty result has to carry them too, or a player with no
+# absences of one kind would change the shape of the concatenation.
+ABSENCE_COLUMNS = ("season", "details", "from", "until", "days", "games", "reason")
+
+
+def _fetch_once(url: str, timeout: float) -> requests.Response:
     """
-    Fetch a Transfermarkt page, failing the way the rest of `remote` fails.
+    One request for a Transfermarkt page, failing the way the rest of `remote` fails.
 
     Checks the status, so an error page is a `RemoteError` here rather than
     whatever the HTML parser makes of it further away. A timeout is a
     `RemoteConnectionError`, like any other failure to reach the site.
     """
+    time.sleep(REQUEST_DELAY_SECONDS)
     try:
         page = requests.get(url, headers=HEADERS, timeout=timeout)
     except requests.exceptions.RequestException as e:
@@ -61,17 +85,64 @@ def _get(url: str, timeout: float = TIMEOUT_SECONDS) -> requests.Response:
     return page
 
 
-def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
+def _get(url: str, timeout: float = TIMEOUT_SECONDS) -> requests.Response:
+    """
+    Fetch a Transfermarkt page, retrying while the failure looks temporary.
+
+    A timeout or a 429 part way through a scrape is the site asking us to slow
+    down, not a page that cannot be read, so those are waited out. A 404 is not
+    retried: it is the answer.
+    """
+    for attempt in range(RETRIES):
+        try:
+            return _fetch_once(url, timeout)
+        except RemoteHTTPError as e:
+            if e.status_code not in RETRY_STATUS_CODES or attempt == RETRIES - 1:
+                raise
+        except RemoteConnectionError:
+            if attempt == RETRIES - 1:
+                raise
+        wait = RETRY_BACKOFF_SECONDS * (attempt + 1)
+        logger.warning("Retrying %s in %ss", url, wait)
+        time.sleep(wait)
+    # Unreachable: the last attempt either returns or re-raises.
+    msg = f"Gave up fetching {url}"
+    raise RemoteConnectionError(msg)
+
+
+class Team(NamedTuple):
+    """A Premier League club in one season, as TransferMarkt identifies it."""
+
+    name: str
+    url: str
+    club_id: str
+    slug_words: set[str]
+
+
+def _club_id(href: str) -> str:
+    """
+    TransferMarkt's numeric club id from any of its club URLs, or "".
+
+    The id is the only part of a club URL that is stable across the site: the
+    squad pages call Manchester City "manchester-city" and the transfer history
+    calls it "man-city", but both spell it `/verein/281/`.
+    """
+    match = re.search(r"/verein/(\d+)", href)
+    return match.group(1) if match else ""
+
+
+def _club_slug(href: str) -> str:
+    """The name part of a TransferMarkt club URL, e.g. "arsenal-u21"."""
+    parts = href.split("/")
+    return parts[1] if len(parts) > 1 else ""
+
+
+def get_teams_for_season(season: int) -> list[Team]:
     """
     Get the names and TransferMarkt URLs for all the teams in this season.
 
     Args:
         season: The year the season started, not the usual four-digit string.
-
-    Returns:
-        Per team: name, relative URL, TransferMarkt's identifier for it, and that
-        identifier split on '-', which is what team-played-this-season checks
-        match against.
     """
     logger.debug("getting teams for %s/%s season", str(season)[2:], str(season + 1)[2:])
 
@@ -85,11 +156,11 @@ def get_teams_for_season(season: int) -> list[tuple[str, str, str, set[str]]]:
     rows = soup.find_all("td", {"class": "zentriert no-border-rechts"})
 
     return [
-        (
-            str(r.a.get("title")),
-            str(r.a.get("href")),
-            str(r.a.get("href")).split("/")[1],
-            set(str(r.a.get("href")).split("/")[1].split("-")),
+        Team(
+            name=str(r.a.get("title")),
+            url=str(r.a.get("href")),
+            club_id=_club_id(str(r.a.get("href"))),
+            slug_words=set(_club_slug(str(r.a.get("href"))).split("-")),
         )
         for r in rows
         if r.a is not None
@@ -117,7 +188,25 @@ def get_team_players(team_season_url: str) -> list[tuple[str, str]]:
     return player_names_urls
 
 
-def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
+def _leading_int(column: pd.Series) -> pd.Series:
+    """
+    The number at the start of each value, as a nullable integer.
+
+    TransferMarkt writes a duration as a number and a unit - "8 days" on the
+    English pages, "8 Tage" on some of them, "? days" when it does not know - and
+    which unit a given table uses has changed under us before. Taking the leading
+    digits and discarding the rest reads all of them, and gives NA for a value
+    with no number in it at all.
+    """
+    return (
+        column.astype("string")
+        .str.extract(r"(-?\d+)", expand=False)
+        .astype("float")
+        .astype("Int32")
+    )
+
+
+def tidy_df(df: pd.DataFrame) -> pd.DataFrame:
     """Clean column names, data types, and missing data for injury/suspension data."""
     df.columns = df.columns.str.lower()
     df = df.rename(columns={"games missed": "games"})
@@ -125,15 +214,12 @@ def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
     with contextlib.suppress(AttributeError):
         # can fail with AttributeError if all values are missing
         df["season"] = df["season"].str.replace("/", "")
-    df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
+    df = df.replace({"-": np.nan, "?": np.nan})
     df["from"] = pd.to_datetime(df["from"], format="%d/%m/%Y", errors="coerce")
     df["until"] = pd.to_datetime(df["until"], format="%d/%m/%Y", errors="coerce")
 
-    with contextlib.suppress(AttributeError):
-        # can fail with AttributeError if all values are missing
-        df["days"] = df["days"].str.replace(f" {days_name}", "")
-    df["days"] = df["days"].astype("float").astype("Int32")
-    df["games"] = df["games"].astype("float").astype("Int32")
+    df["days"] = _leading_int(df["days"])
+    df["games"] = _leading_int(df["games"])
 
     return df.convert_dtypes()
 
@@ -141,6 +227,26 @@ def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
 def filter_season(df: pd.DataFrame, season: str) -> pd.DataFrame:
     """Extract the rows for one season, matching on `df`'s "1819"-format column."""
     return df[df["season"] == season]
+
+
+def empty_absences() -> pd.DataFrame:
+    """No absences of one kind, shaped so it can be concatenated with the rest."""
+    return pd.DataFrame(columns=list(ABSENCE_COLUMNS))
+
+
+def _read_absence_table(html: str, heading: str) -> pd.DataFrame | None:
+    """
+    The table on an absence page whose header holds `heading`, or None.
+
+    None means the page has no such table, which is the ordinary state of a
+    player who has never been injured or suspended. Distinguishing it from a
+    table we failed to parse is the point: only the second is a site change worth
+    hearing about, and `pd.read_html` raises the same ValueError for both.
+    """
+    try:
+        return pd.read_html(StringIO(html), match=heading)[0]
+    except ValueError:
+        return None
 
 
 def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
@@ -157,11 +263,13 @@ def get_player_injuries(player_profile_url: str) -> pd.DataFrame:
     )
     logger.debug("processing player injuries for %s", player_profile_url)
 
-    injuries = pd.read_html(StringIO(str(page.content)), match="Injury")[0]
+    injuries = _read_absence_table(page.text, "Injury")
+    if injuries is None:
+        return empty_absences()
     injuries = injuries.rename(columns={"Injury": "Details"})
     injuries["Reason"] = "injury"
 
-    return tidy_df(injuries, days_name="days")
+    return tidy_df(injuries)
 
 
 def get_reason(details: str) -> str:
@@ -186,7 +294,9 @@ def get_player_suspensions(
 
     logger.debug("processing player suspensions for %s", player_profile_url)
 
-    suspended = pd.read_html(StringIO(str(p.content)), match="Absence/Suspension")[0]
+    suspended = _read_absence_table(p.text, "Absence/Suspension")
+    if suspended is None:
+        return empty_absences()
     player_soup = BeautifulSoup(p.content, features="lxml")
 
     table = player_soup.find_all("table")[0]
@@ -206,7 +316,7 @@ def get_player_suspensions(
     suspended = suspended.rename(columns={"Absence/Suspension": "Details"})
     suspended["Reason"] = [get_reason(detail) for detail in suspended["Details"]]
 
-    return tidy_df(suspended, days_name="Tage")
+    return tidy_df(suspended)
 
 
 def get_players_for_season(season: int) -> list[tuple[str, str]]:
@@ -249,100 +359,87 @@ def remove_youth_or_reserve_suffix(team_name: str) -> str:
     return team_name
 
 
+TRANSFER_COLUMNS = (
+    "season",
+    "date",
+    "old",
+    "new",
+    "old_TM",
+    "new_TM",
+    "old_link",
+    "new_link",
+)
+
+
+def _player_id(player_profile_url: str) -> str:
+    """TransferMarkt's numeric player id from a profile URL, or ""."""
+    match = re.search(r"/spieler/(\d+)", player_profile_url)
+    return match.group(1) if match else ""
+
+
 def get_player_transfers(
     player_profile_url: str,
 ) -> pd.DataFrame:
     """
     Get a player's transfer history: season, date, old team and new team.
 
-    Scrapes pages like
-    https://www.transfermarkt.co.uk/kyle-walker/transfers/spieler/95424
+    Read from the endpoint the transfers page itself calls, e.g.
+    https://www.transfermarkt.co.uk/ceapi/transferHistory/list/95424 - the page at
+    /kyle-walker/transfers/spieler/95424 now renders that data client-side, so
+    there is no table in the HTML to scrape.
+
+    Returns:
+        One row per completed transfer, oldest first, with the columns
+        `TRANSFER_COLUMNS`. `old_TM` and `new_TM` are club ids rather than name
+        slugs: this endpoint abbreviates club names ("man-city" for the squad
+        pages' "manchester-city"), so the slugs cannot be compared across the two.
+        Empty if the player has never transferred.
     """
     logger.debug("getting player transfer history for %s", player_profile_url)
 
-    page = _get(
-        f"{TRANSFERMARKT_URL}{player_profile_url.replace('/profil/', '/transfers/')}"
-    )
+    player_id = _player_id(player_profile_url)
+    if not player_id:
+        msg = f"No player id in Transfermarkt URL {player_profile_url}"
+        raise RemoteError(msg)
+    page = _get(f"{TRANSFERMARKT_URL}/ceapi/transferHistory/list/{player_id}")
 
     logger.debug("processing player transfer history for %s", player_profile_url)
 
-    soup = BeautifulSoup(page.text, "lxml")
-    raw = pd.DataFrame()
-    n_transfers = len(
-        soup.find_all("div", class_="tm-player-transfer-history-grid__season")
-    )
-
-    for i in range(1, n_transfers):
-        # obtain season and date of transfer
-        season = " ".join(
-            soup.find_all("div", class_="tm-player-transfer-history-grid__season")[i]
-            .getText()
-            .split()
-        )
-        date = " ".join(
-            soup.find_all("div", class_="tm-player-transfer-history-grid__date")[i]
-            .getText()
-            .split()
-        )
-        # old club details
-        old = soup.find_all("div", class_="tm-player-transfer-history-grid__old-club")[
-            i
-        ]
-        old_club = " ".join(old.getText().split())
-        if old.a is None:
-            logger.warning("Old club link is missing")
+    rows = []
+    for transfer in page.json().get("transfers", []):
+        if transfer.get("upcoming") or transfer.get("futureTransfer"):
+            # Announced but not yet happened, so it says nothing about who the
+            # player was available for in a season we are scraping.
             continue
-        old_link = old.a.get("href")
-        if not isinstance(old_link, str):
-            logger.warning("Old club link returned type %s", type(old_link))
+        old, new = transfer.get("from", {}), transfer.get("to", {})
+        old_href, new_href = old.get("href", ""), new.get("href", "")
+        if not _club_id(old_href) or not _club_id(new_href):
+            logger.warning(
+                "Skipping a transfer for %s with no club id: %r -> %r",
+                player_profile_url,
+                old_href,
+                new_href,
+            )
             continue
-        old_tm_identifier = old_link.split("/")[1]
-        # new club details
-        new = soup.find_all("div", class_="tm-player-transfer-history-grid__new-club")[
-            i
-        ]
-        new_club = " ".join(new.getText().split())
-        if new.a is None:
-            logger.warning("New club link is missing")
-            continue
-        new_link = new.a.get("href")
-        if not isinstance(new_link, str):
-            logger.warning("New club link returned type %s", type(new_link))
-            continue
-        new_tm_identifier = new_link.split("/")[1]
-        raw = pd.concat(
+        rows.append(
             [
-                raw,
-                pd.DataFrame(
-                    [
-                        [
-                            season,
-                            date,
-                            old_club,
-                            new_club,
-                            remove_youth_or_reserve_suffix(old_tm_identifier),
-                            remove_youth_or_reserve_suffix(new_tm_identifier),
-                            old_link,
-                            new_link,
-                        ]
-                    ]
-                ),
+                transfer.get("season", ""),
+                transfer.get("dateUnformatted", ""),
+                old.get("clubName", ""),
+                new.get("clubName", ""),
+                _club_id(old_href),
+                _club_id(new_href),
+                old_href,
+                new_href,
             ]
         )
 
-    raw.columns = [
-        "season",
-        "date",
-        "old",
-        "new",
-        "old_TM",
-        "new_TM",
-        "old_link",
-        "new_link",
-    ]
-    raw["date"] = pd.to_datetime(raw["date"], format="%d/%m/%Y", errors="coerce")
+    raw = pd.DataFrame(rows, columns=list(TRANSFER_COLUMNS))
+    raw["date"] = pd.to_datetime(raw["date"], format="%Y-%m-%d", errors="coerce")
 
-    return raw.iloc[::-1]
+    # The endpoint lists the most recent transfer first; callers walk forwards
+    # through a career.
+    return raw.iloc[::-1].reset_index(drop=True)
 
 
 def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
@@ -367,9 +464,104 @@ def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
     return [pd.Timestamp(start_year, 7, 1), pd.Timestamp(end_year, 6, 30)]
 
 
+def played_in_premier_league(club_id: str, club_url: str, teams: list[Team]) -> bool:
+    """
+    Whether a club a player moved to was one of `teams`.
+
+    Matched on TransferMarkt's numeric club id, the one identifier its squad
+    pages and its transfer history spell the same way.
+
+    A youth or reserve side has an id of its own, so it never matches a first
+    team - but a player in the under-21s is still available for Premier League
+    selection, which is what `remove_youth_or_reserve_suffix` is for. For those,
+    and only those, the stripped name is compared against the first team names as
+    well; the transfer history abbreviates some of them ("man-city"), so this
+    recognises a youth side of Arsenal but not one of Manchester City.
+    """
+    if any(club_id == team.club_id for team in teams):
+        return True
+    slug = _club_slug(club_url)
+    senior = remove_youth_or_reserve_suffix(slug)
+    if senior == slug:
+        return False
+    words = set(senior.split("-"))
+    return any(words <= team.slug_words for team in teams)
+
+
+# The earliest season a "1819"-style string can mean, because
+# `season_str_to_year` reads one as 20xx. A career that starts before it cannot
+# be walked, only joined part way through.
+EARLIEST_SEASON = "0001"
+
+
+def first_season_to_walk(first_transfer_season: str, end_season: str) -> str:
+    """
+    The season to start building a team history from.
+
+    Usually the season of the player's first transfer. A career that began last
+    century cannot be: "9899" reads as 2098/99, and stepping forwards from it
+    runs 99 into "100" rather than wrapping. Those start at `EARLIEST_SEASON`
+    instead, which loses only where the player was two decades before the season
+    being scraped - the walk has caught up with them long before it gets there.
+    """
+    if (
+        len(first_transfer_season) != 4
+        or not first_transfer_season.isdigit()
+        or int(first_transfer_season[:2]) > int(end_season[:2])
+    ):
+        return EARLIEST_SEASON
+    return first_transfer_season
+
+
+def _nothing_known(
+    season: str, start: pd.Timestamp, until: pd.Timestamp
+) -> dict[str, object]:
+    """
+    A team history entry for a stretch we have no club for.
+
+    Not marked as Premier League, so it reads as unavailable: a player we cannot
+    place was not playing in the league as far as we know.
+    """
+    return {
+        "season": season,
+        "team": "Unknown",
+        "team_tm": "",
+        "team_url": "",
+        "from": start,
+        "until": until,
+        "pl": False,
+    }
+
+
+def _carried_forward(
+    previous: dict[str, object],
+    season: str,
+    start: pd.Timestamp,
+    until: pd.Timestamp,
+    pl_teams: list[Team],
+) -> dict[str, object]:
+    """
+    A team history entry for a season the player stayed where they were.
+
+    The Premier League flag is recomputed rather than copied: a club can be
+    relegated under a player who never moved.
+    """
+    return {
+        "season": season,
+        "team": previous["team"],
+        "team_tm": previous["team_tm"],
+        "team_url": previous["team_url"],
+        "from": start,
+        "until": until,
+        "pl": played_in_premier_league(
+            str(previous["team_tm"]), str(previous["team_url"]), pl_teams
+        ),
+    }
+
+
 def get_player_team_history(
     df: pd.DataFrame,
-    pl_teams_in_season: dict[str, list[set[str]]] | None = None,
+    pl_teams_in_season: dict[str, list[Team]] | None = None,
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """
@@ -386,78 +578,42 @@ def get_player_team_history(
     """
     if pl_teams_in_season is None:
         pl_teams_in_season = {}
-    teams_df = pd.DataFrame()
-    current_season = "".join(df.iloc[0]["season"].split("/"))
-    diff = int(current_season[:2]) - int(end_season[2:])
-    for _ in range(abs(diff)):
+    rows: list[dict[str, object]] = []
+    current_season = first_season_to_walk(
+        "".join(df.iloc[0]["season"].split("/")), end_season
+    )
+    while season_str_to_year(current_season) <= season_str_to_year(end_season):
         season_df = df[df["season"] == f"{current_season[:2]}/{current_season[2:]}"]
         start, end = get_start_end_dates_of_season(current_season)
         if current_season not in pl_teams_in_season:
-            teams = get_teams_for_season(season_str_to_year(current_season))
-            pl_teams_in_season[current_season] = [teams[i][3] for i in range(20)]
+            pl_teams_in_season[current_season] = get_teams_for_season(
+                season_str_to_year(current_season)
+            )
+        pl_teams = pl_teams_in_season[current_season]
 
         if len(season_df) == 0:
-            # if no transfer data, player continued at current club that year
-            teams_df = pd.concat(
-                [
-                    teams_df,
-                    pd.DataFrame(
-                        [
-                            [
-                                current_season,
-                                teams_df.iloc[-1][1],
-                                teams_df.iloc[-1][2],
-                                start,
-                                end,
-                                set(teams_df.iloc[-1][2].split("-"))
-                                in pl_teams_in_season[current_season],
-                            ]
-                        ]
-                    ),
-                ]
+            # if no transfer data, player continued at current club that year -
+            # unless the walk has not reached their first transfer yet, in which
+            # case there is no club to continue at and nothing is known.
+            rows.append(
+                _carried_forward(rows[-1], current_season, start, end, pl_teams)
+                if rows
+                else _nothing_known(current_season, start, end)
             )
 
         for i in range(len(season_df)):
             transfer_date = season_df.iloc[i]["date"]
             if i == 0 and transfer_date > start:
-                if len(teams_df) == 0:
+                day_before = transfer_date - pd.DateOffset(days=1)
+                if len(rows) == 0:
                     # first team added and no data for before time
-                    teams_df = pd.concat(
-                        [
-                            teams_df,
-                            pd.DataFrame(
-                                [
-                                    [
-                                        current_season,
-                                        "Unknown",
-                                        "unknown",
-                                        start,
-                                        transfer_date - pd.DateOffset(days=1),
-                                        False,
-                                    ]
-                                ]
-                            ),
-                        ]
-                    )
+                    rows.append(_nothing_known(current_season, start, day_before))
                 else:
                     # started the season at same club as previous entry
-                    teams_df = pd.concat(
-                        [
-                            teams_df,
-                            pd.DataFrame(
-                                [
-                                    [
-                                        current_season,
-                                        teams_df.iloc[-1][1],
-                                        teams_df.iloc[-1][2],
-                                        start,
-                                        transfer_date - pd.DateOffset(days=1),
-                                        set(teams_df.iloc[-1][2].split("-"))
-                                        in pl_teams_in_season[current_season],
-                                    ]
-                                ]
-                            ),
-                        ]
+                    rows.append(
+                        _carried_forward(
+                            rows[-1], current_season, start, day_before, pl_teams
+                        )
                     )
 
             # decide how long this player was at the club that season
@@ -469,35 +625,32 @@ def get_player_team_history(
                 if to_date < end:
                     to_entry = to_date
 
-            teams_df = pd.concat(
-                [
-                    teams_df,
-                    pd.DataFrame(
-                        [
-                            [
-                                current_season,
-                                season_df.iloc[i]["new"],
-                                season_df.iloc[i]["new_TM"],
-                                season_df.iloc[i]["date"],
-                                to_entry,
-                                set(season_df.iloc[i]["new_TM"].split("-"))
-                                in pl_teams_in_season[current_season],
-                            ]
-                        ]
+            rows.append(
+                {
+                    "season": current_season,
+                    "team": season_df.iloc[i]["new"],
+                    "team_tm": season_df.iloc[i]["new_TM"],
+                    "team_url": season_df.iloc[i]["new_link"],
+                    "from": season_df.iloc[i]["date"],
+                    "until": to_entry,
+                    "pl": played_in_premier_league(
+                        season_df.iloc[i]["new_TM"],
+                        season_df.iloc[i]["new_link"],
+                        pl_teams,
                     ),
-                ]
+                }
             )
 
         current_season = get_next_season(current_season)
 
-    teams_df.columns = ["season", "team", "team_tm", "from", "until", "pl"]
-
-    return teams_df
+    return pd.DataFrame(
+        rows, columns=["season", "team", "team_tm", "team_url", "from", "until", "pl"]
+    )
 
 
 def get_player_transfer_unavailability(
     player_profile_url: str,
-    pl_teams_in_season: dict[str, list[set[str]]] | None = None,
+    pl_teams_in_season: dict[str, list[Team]] | None = None,
     end_season: str = CURRENT_SEASON,
 ) -> pd.DataFrame:
     """
@@ -514,8 +667,14 @@ def get_player_transfer_unavailability(
         pl_teams_in_season = {}
     logger.debug("getting player transfer unavailability for %s", player_profile_url)
 
+    transfers = get_player_transfers(player_profile_url)
+    if transfers.empty:
+        # A player who has never moved has always been where they are now, and
+        # `get_player_team_history` has no first season to start from.
+        return empty_absences()
+
     transfer_history = get_player_team_history(
-        df=get_player_transfers(player_profile_url),
+        df=transfers,
         pl_teams_in_season=pl_teams_in_season,
         end_season=end_season,
     )
@@ -531,52 +690,108 @@ def get_player_transfer_unavailability(
             "reason": "Transfer",
             "from": unavailability["from"],
             "until": unavailability["until"],
-            "days": nan,
-            "games": nan,
+            "days": pd.NA,
+            "games": pd.NA,
         }
     )
 
 
+def premier_league_absences(
+    suspensions: pd.DataFrame, teams: list[Team]
+) -> pd.DataFrame:
+    """
+    Absences from the non-injury table that cost the player league matches.
+
+    Transfermarkt tags each row with what the games were missed from, so a
+    Champions League ineligibility is dropped here.
+
+    A national team call-up is tagged with the player's own club rather than with
+    a competition - that cell carries a club crest where a suspension carries a
+    competition logo - so the season's club names are kept alongside "Premier
+    League" itself. Without them every Africa Cup of Nations and international
+    call-up is discarded, which is 44 players in 25/26 alone.
+    """
+    if "competition" not in suspensions.columns:
+        return suspensions
+    keep = {"Premier League", *(team.name for team in teams)}
+    league_only = suspensions[suspensions["competition"].isin(keep)]
+    return league_only.drop("competition", axis=1)
+
+
 def get_season_absences(
-    season: str, pl_teams_in_season: dict[str, list[set[str]]] | None = None
+    season: str, pl_teams_in_season: dict[str, list[Team]] | None = None
 ) -> pd.DataFrame:
     """
     Every absence for every player in a season, in one data frame.
 
-    Injuries, suspensions, and time spent at a non-Premier League club. A player
-    whose page cannot be scraped is skipped rather than failing the run.
+    Injuries, suspensions, international call-ups and other unavailability from
+    Transfermarkt's own two tables, plus time spent at a non-Premier League club.
+    A player whose page cannot be scraped is counted and skipped rather than
+    failing the run; the counts are logged, because a kind of absence that stops
+    being scrapeable otherwise leaves a file that looks complete.
     """
     if pl_teams_in_season is None:
         pl_teams_in_season = {}
     year = season_str_to_year(season)
+    if season not in pl_teams_in_season:
+        # Needed to tell a call-up from another competition, as well as by the
+        # transfer scraper, so it is not left to the caller to have provided it.
+        pl_teams_in_season[season] = get_teams_for_season(year)
     logger.info("Finding players...")
 
     players = get_players_for_season(year)
     absences = []
+    failures: dict[str, int] = {}
     logger.info("Querying injuries, suspensions and transfers...")
 
-    for player_name, player_url in track(players):
-        with contextlib.suppress(ValueError, IndexError, RemoteError):
-            inj = get_player_injuries(player_profile_url=player_url)
-            inj["player"] = player_name
-            inj["url"] = player_url
-            absences.append(inj)
-        with contextlib.suppress(ValueError, IndexError, RemoteError):
-            sus = get_player_suspensions(player_profile_url=player_url)
-            sus = sus[sus["competition"] == "Premier League"]
-            sus = sus.drop("competition", axis=1)
-            sus["player"] = player_name
-            sus["url"] = player_url
-            absences.append(sus)
-        with contextlib.suppress(ValueError, IndexError, RemoteError):
-            tran = get_player_transfer_unavailability(
-                player_profile_url=player_url,
+    scrapers: tuple[tuple[str, Callable[[str], pd.DataFrame]], ...] = (
+        ("injuries", lambda url: get_player_injuries(player_profile_url=url)),
+        (
+            "suspensions",
+            lambda url: premier_league_absences(
+                get_player_suspensions(player_profile_url=url),
+                pl_teams_in_season.get(season, []),
+            ),
+        ),
+        (
+            "transfers",
+            lambda url: get_player_transfer_unavailability(
+                player_profile_url=url,
                 pl_teams_in_season=pl_teams_in_season,
                 end_season=season,
+            ),
+        ),
+    )
+
+    for player_name, player_url in track(players):
+        for kind, scrape in scrapers:
+            try:
+                found = scrape(player_url)
+            except (ValueError, IndexError, KeyError, RemoteError):
+                failures[kind] = failures.get(kind, 0) + 1
+                logger.warning(
+                    "Could not read %s for %s", kind, player_url, exc_info=True
+                )
+                continue
+            if found.empty:
+                continue
+            found["player"] = player_name
+            found["url"] = player_url
+            absences.append(found)
+
+    for kind, _ in scrapers:
+        if failures.get(kind):
+            logger.error(
+                "Failed to read %s for %s of %s players - Transfermarkt may have "
+                "changed that page",
+                kind,
+                failures[kind],
+                len(players),
             )
-            tran["player"] = player_name
-            tran["url"] = player_url
-            absences.append(tran)
+
+    if not absences:
+        msg = f"Found no absences at all for {season}"
+        raise RemoteError(msg)
 
     return filter_season(pd.concat(absences), season)
 
@@ -588,12 +803,20 @@ def scrape_transfermarkt(seasons: list[str]) -> None:
     # get the teams that played in each season we want to scrape
     pl_teams = {}
     for s in seasons:
-        teams_in_s = get_teams_for_season(season_str_to_year(s))
-        pl_teams[s] = [teams_in_s[i][3] for i in range(20)]
+        pl_teams[s] = get_teams_for_season(season_str_to_year(s))
 
     for season in track(seasons):
         logger.info("-" * 50)
         logger.info("Season: %s", season)
 
         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
+        # A season should have some of every kind. Saying so here is the only
+        # chance to notice that one of the three tables has stopped parsing: the
+        # csv itself looks perfectly well formed with a whole category missing.
+        logger.info(
+            "%s absences for %s: %s",
+            len(absences),
+            season,
+            absences["reason"].value_counts().to_dict(),
+        )
         absences.to_csv(os.path.join(repo_home, f"absences_{season}.csv"), index=False)
