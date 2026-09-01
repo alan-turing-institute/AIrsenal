@@ -246,7 +246,7 @@ def test_loading_absences_emits_no_deprecated_date_adapter_warning(dbsession, tm
         load_absences(TEST_SEASON, dbsession, path)
 
 
-def _write_absence_csv(path, date_from, date_until):
+def _write_absence_csv(path, date_from, date_until, player="Bob"):
     """One absence row, in the columns `load_absences` reads."""
     with open(path, "w", newline="") as outfile:
         writer = csv.DictWriter(outfile, fieldnames=ABSENCE_CSV_COLUMNS)
@@ -260,7 +260,7 @@ def _write_absence_csv(path, date_from, date_until):
                 "days": "",
                 "games": "",
                 "reason": "injury",
-                "player": "Bob",
+                "player": player,
                 "url": "",
             }
         )
@@ -316,6 +316,77 @@ def test_an_absence_beginning_on_the_last_matchday_covers_nothing(dbsession, tmp
 
     absence = dbsession.scalars(select(Absence)).one()
     assert absence.gw_from > 4
+
+
+def test_an_absence_ending_after_the_season_covers_the_rest_of_it(dbsession, tmp_path):
+    """
+    An end date past the last fixture means they never came back that season.
+
+    The half-open range therefore ends one past the last gameweek. Leaving it
+    unresolved instead made readers skip the absence, which wrote off every long
+    injury and every mid-season transfer out of the league.
+    """
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", None)
+    dbsession.commit()
+    # the last fixture in this database is gameweek 4, on 2025-09-06
+    path = _write_absence_csv(tmp_path / "a.csv", "2025-08-17", "2026-05-24")
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    absence = dbsession.scalars(select(Absence)).one()
+    assert absence.gw_from == 2
+    assert absence.gw_until == 5
+    assert absence.date_until == "2026-05-24"
+
+
+def test_an_absence_with_no_end_date_is_left_unresolved(dbsession, tmp_path):
+    """
+    A blank end date does not say the same thing in both sources.
+
+    Transfermarkt scrapes a season that has finished, so a blank one there means
+    the player never came back; the exporter writes a row for every gameweek an
+    FPL API flag persists, and a blank one only means no return has been
+    announced. Nothing can tell the two apart from the row, so neither is
+    assumed.
+    """
+    _add_player(dbsession, 1, "Bob", 1, "Knee injury", None)
+    dbsession.commit()
+    path = _write_absence_csv(tmp_path / "a.csv", "2025-08-17", "")
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    absence = dbsession.scalars(select(Absence)).one()
+    assert absence.gw_from == 2
+    assert absence.gw_until is None
+
+
+def test_a_player_is_found_under_a_differently_spelled_name(dbsession, tmp_path):
+    """Transfermarkt drops the family names the FPL API keeps, among other things."""
+    _add_player(
+        dbsession, 1, "Matheus Santos Carneiro da Cunha", 1, "Knee injury", None
+    )
+    dbsession.commit()
+    path = _write_absence_csv(
+        tmp_path / "a.csv", "2025-08-17", "2025-09-06", player="Matheus Cunha"
+    )
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    assert dbsession.scalars(select(Absence)).one().player_id == 1
+
+
+def test_a_name_that_fits_two_players_is_not_guessed_at(dbsession, tmp_path):
+    """Filing one player's absence against another is worse than filing neither."""
+    _add_player(dbsession, 1, "Danny Ward", 1, "Knee injury", None)
+    _add_player(dbsession, 2, "Daniel Ward", 1, "Knee injury", None)
+    dbsession.commit()
+    path = _write_absence_csv(
+        tmp_path / "a.csv", "2025-08-17", "2025-09-06", player="Dan Ward"
+    )
+
+    load_absences(TEST_SEASON, dbsession, path)
+
+    assert dbsession.scalars(select(Absence)).all() == []
 
 
 # ------------------------------------------------- reading absences back ---

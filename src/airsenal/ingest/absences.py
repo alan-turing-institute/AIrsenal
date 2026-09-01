@@ -5,9 +5,16 @@ The counterpart to `export/absences.py`. Each row gives a date range, which is
 resolved to a half-open range of gameweeks: `gw_from` is the first one the
 absence could have kept the player out of, and `gw_until` the one they were back
 for. The two are equal when the absence cost them no match at all.
+
+A row with no end date at all is the one case that leaves `gw_until` unresolved,
+because the two sources mean different things by it: Transfermarkt scrapes a
+finished season, so a blank end date there means the player never came back,
+while the exporter writes a row every gameweek an FPL API flag persists and a
+blank one only means no return has been announced yet.
 """
 
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from sqlalchemy.orm.session import Session
@@ -18,13 +25,40 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Absence
 from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
+    get_max_gameweek,
     get_return_gameweek_by_date,
 )
-from airsenal.db.queries.players import get_player
+from airsenal.db.queries.players import get_player, get_player_by_similar_name
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 
+if TYPE_CHECKING:
+    from datetime import date
+
+    from airsenal.db.models import Player
+
 logger = get_logger(__name__)
+
+
+def gameweek_returned(
+    date_until: "date", player: "Player", season: str, dbsession: Session
+) -> int:
+    """
+    The gameweek a player was available again, from the day their absence ended.
+
+    One past the season's last gameweek when the end date is past its last
+    fixture, so that the half-open range covers the rest of the season - which is
+    what an absence ending after the season does. Readers skip an absence with no
+    end gameweek, so leaving it unresolved would write the absence off entirely.
+    """
+    gameweek = get_gameweek_by_date(
+        check_date=date_until, season=season, dbsession=dbsession
+    )
+    if gameweek is None:
+        return get_max_gameweek(season, dbsession=dbsession) + 1
+    return get_return_gameweek_by_date(
+        date_until, player.team(gameweek, season), season, dbsession=dbsession
+    )
 
 
 def load_absences(
@@ -38,7 +72,12 @@ def load_absences(
     for _, row in track(
         absences.iterrows(), total=absences.shape[0], description=f"ABSENCES {season}"
     ):
+        # Two thirds of the names the exact lookup misses are academy players
+        # who never reach the FPL game at all; the rest are spelled differently
+        # by whoever the row came from.
         p = get_player(row["player"], dbsession=dbsession)
+        if p is None:
+            p = get_player_by_similar_name(row["player"], dbsession=dbsession)
         if not p:
             logger.warning("Couldn't find player %s", row["player"])
             continue
@@ -70,17 +109,11 @@ def load_absences(
         )
 
         date_until = None if row["until"] is pd.NaT else row["until"].date()
-        if date_until is not None and (
-            gw_date := get_gameweek_by_date(
-                check_date=date_until, season=season, dbsession=dbsession
-            )
-        ):
-            team_until = p.team(gw_date, season)
-            gw_until = get_return_gameweek_by_date(
-                date_until, team_until, season, dbsession=dbsession
-            )
-        else:
-            gw_until = None
+        gw_until = (
+            None
+            if date_until is None
+            else gameweek_returned(date_until, p, season, dbsession=dbsession)
+        )
 
         url = row["url"]
         timestamp = datetime.now().isoformat()

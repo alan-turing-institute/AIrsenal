@@ -1,8 +1,12 @@
 """Player lookups and listings."""
 
+import re
+import unicodedata
+
 from sqlalchemy import case, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player, PlayerAttributes, PlayerMapping, PlayerScore
 from airsenal.db.queries.fixtures import (
@@ -94,6 +98,116 @@ def get_player(
 
     # No match found
     return None
+
+
+# Letters NFKD leaves whole, so a folded comparison has to spell them out.
+# Transfermarkt and the FPL API disagree about every one of these.
+_TRANSLITERATIONS = str.maketrans(
+    {"ł": "l", "ø": "o", "đ": "d", "ð": "d", "þ": "th", "ß": "ss", "æ": "ae", "œ": "oe"}
+)
+
+# How much of a given name has to be written before it may stand in for a longer
+# one, so that "Dan" matches "Daniel" but "Jo" does not match everyone called Joe,
+# Jonny and Joao at once.
+SHORTEST_GIVEN_NAME = 3
+
+
+def fold_name(name: str) -> str:
+    """A name reduced to unaccented lower case, for comparing two spellings."""
+    decomposed = unicodedata.normalize(
+        "NFKD", name.casefold().translate(_TRANSLITERATIONS)
+    )
+    return "".join(c for c in decomposed if not unicodedata.combining(c))
+
+
+def name_tokens(name: str) -> frozenset[str]:
+    """The words of a folded name, split on everything that is not alphanumeric."""
+    return frozenset(word for word in re.split(r"[^0-9a-z]+", fold_name(name)) if word)
+
+
+def _stands_in_for(wanted: frozenset[str], known: frozenset[str]) -> bool:
+    """Whether every wanted word is in `known`, or shortens a word that is."""
+    return all(
+        word in known
+        or (
+            len(word) >= SHORTEST_GIVEN_NAME
+            and any(other.startswith(word) for other in known)
+        )
+        for word in wanted
+    )
+
+
+@cache_ignoring_session(maxsize=1)
+def _name_tokens_by_player(
+    dbsession: Session | None = None,
+) -> tuple[tuple[int, frozenset[str]], ...]:
+    """
+    One (player id, folded words) pair for every name every player goes by.
+
+    Rebuilt from scratch, so anything that adds a player has to call
+    `clear_query_caches`. Ids rather than Players: a cached answer outlives the
+    session that produced it.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    names = [
+        (player.player_id, name_tokens(name))
+        for player in dbsession.scalars(select(Player))
+        for name in (player.name, player.display_name)
+        if name
+    ]
+    names += [
+        (mapping.player_id, name_tokens(mapping.alt_name))
+        for mapping in dbsession.scalars(select(PlayerMapping))
+    ]
+    return tuple(names)
+
+
+def get_player_by_similar_name(
+    player_name: str, dbsession: Session | None = None
+) -> Player | None:
+    """
+    Look a player up by a name spelled differently from any on file.
+
+    Matches across the ways two sources disagree about the same person: accents
+    ("Josko Gvardiol" for "Joško Gvardiol"), word order ("Ao Tanaka" for
+    "Tanaka Ao"), the family names one source keeps and the other drops
+    ("Matheus Cunha" for "Matheus Santos Carneiro da Cunha"), and shortened
+    given names ("Dan Ballard" for "Daniel Ballard"). The best match wins,
+    counted by how many words it has that the name asked for does not.
+
+    This can be wrong, so it is for names that arrive from a scrape rather than
+    from a person: `get_player` is the exact lookup. A name that matches two
+    players equally well is no match, because guessing between them would file
+    one player's absence against another.
+
+    Returns:
+        None if nothing matches, or if the closest match is a tie.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    wanted = name_tokens(player_name)
+    if not wanted:
+        return None
+
+    closest: dict[int, int] = {}
+    for player_id, known in _name_tokens_by_player(dbsession=dbsession):
+        if _stands_in_for(wanted, known):
+            unasked_for = len(known - wanted)
+            closest[player_id] = min(closest.get(player_id, unasked_for), unasked_for)
+    if not closest:
+        return None
+
+    fewest = min(closest.values())
+    matched = [
+        player_id for player_id, unasked_for in closest.items() if unasked_for == fewest
+    ]
+    if len(matched) > 1:
+        logger.warning(
+            "%s matches %s players equally well, so matching none of them",
+            player_name,
+            len(matched),
+        )
+        return None
+    return get_player(matched[0], dbsession=dbsession)
 
 
 def get_player_from_api_id(
