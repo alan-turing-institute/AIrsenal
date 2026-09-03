@@ -2,7 +2,8 @@
 Tests for GameweekMove and the chip schedule.
 
 The compact string encoding of a move is parsed in exactly one place, so it is
-pinned here once.
+pinned here once. How a move changes the free transfer count is in
+tests/game/test_free_transfers.py, with the rule it defers to.
 """
 
 import pytest
@@ -12,7 +13,6 @@ from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekChips,
     GameweekMove,
-    calc_free_transfers,
     calc_points_hit,
 )
 
@@ -91,24 +91,6 @@ def test_calc_points_hit(n_transfers, free_transfers, chip):
     assert calc_points_hit(move, free_transfers) == max(
         0, 4 * (n_transfers - free_transfers)
     )
-
-
-@pytest.mark.parametrize("max_free_transfers", [2, 5])
-@pytest.mark.parametrize("n_transfers", range(6))
-@pytest.mark.parametrize("prev_free_transfers", range(6))
-def test_calc_free_transfers_is_bounded(
-    max_free_transfers, n_transfers, prev_free_transfers
-):
-    got = calc_free_transfers(
-        GameweekMove(n_transfers), prev_free_transfers, max_free_transfers
-    )
-    assert 1 <= got <= max_free_transfers
-
-
-@pytest.mark.parametrize("chip", [Chip.WILDCARD, Chip.FREE_HIT])
-def test_squad_chips_preserve_free_transfers(chip):
-    # Changed in 24/25: playing a wildcard or free hit no longer resets you to 1.
-    assert calc_free_transfers(GameweekMove(chip=chip), 4) == 4
 
 
 def test_gameweek_chips_rejects_allowing_and_forcing_at_once():
