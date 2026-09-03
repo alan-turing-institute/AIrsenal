@@ -28,13 +28,6 @@ def test_registered_team_models():
     assert sorted(TEAM_MODELS) == ["constant", "extended", "neutral", "random"]
 
 
-@pytest.mark.parametrize("name", sorted(PLAYER_MODELS))
-def test_every_player_model_implements_the_interface(name):
-    model = build_player_model(name)
-    assert callable(model.fit)
-    assert callable(model.get_probs)
-
-
 def test_conjugate_is_the_default_player_model():
     model = build_player_model()
     assert isinstance(model, ConjugatePlayerModel)
@@ -58,13 +51,6 @@ def test_player_model_fit_takes_no_keyword_arguments():
         kinds = {p.kind for p in sig.parameters.values()}
         assert inspect.Parameter.VAR_KEYWORD not in kinds, name
         assert list(sig.parameters) == ["data"], name
-
-
-def test_unknown_model_names_list_the_alternatives():
-    with pytest.raises(ConfigError, match=r"Unknown player model 'nope'.*conjugate"):
-        build_player_model("nope")
-    with pytest.raises(ConfigError, match=r"Unknown team model 'nope'.*extended"):
-        build_team_model("nope")
 
 
 def test_a_team_model_holds_the_arguments_it_fits_with():

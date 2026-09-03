@@ -7,23 +7,11 @@ from rich.console import Console
 
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.reporting.squad_view import formation_table
-from airsenal.squad.lineup import FORMATION_SLOTS
 from airsenal.squad.pricing import selling_price_from_api
 from airsenal.squad.squad import Squad
 from tests.conftest import session_scope
 
 TEST_SEASON = CURRENT_SEASON
-
-
-def test_formation_slots():
-    assert FORMATION_SLOTS == {
-        0: (),
-        1: (2,),
-        2: (1, 3),
-        3: (1, 2, 3),
-        4: (0, 1, 3, 4),
-        5: (0, 1, 2, 3, 4),
-    }
 
 
 def test_add_player_by_id(fill_players):

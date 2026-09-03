@@ -4,7 +4,7 @@ Fast team-model checks against the small seeded database.
 The equivalents in test_score_predictions.py fit against two full seasons and
 dominate the suite's runtime. These assert the same things - does it fit, does it
 know every team, are the probabilities usable - on eight teams and 64 matches, so
-the answers arrive on every run rather than only in the nightly job.
+the answers arrive on the default run rather than only under `-m slow`.
 
 Parametrized over `TEAM_MODELS` rather than a list of names, so adding a model to
 the table is all it takes to have it fitted here - which is the promise the table

@@ -13,7 +13,6 @@ from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import (
     Proposal,
     TransferRequest,
-    TransferStrategy,
     strategy_total,
 )
 from airsenal.optimization.strategies import (
@@ -34,18 +33,14 @@ def test_all_five_strategies_are_registered():
 
 
 @pytest.mark.parametrize("name", sorted(TRANSFER_STRATEGIES))
-def test_registered_strategies_satisfy_the_protocol(name):
-    strategy = TRANSFER_STRATEGIES[name]()
-    # Protocols are not runtime_checkable here on purpose - isinstance against a
-    # Protocol only checks that the names exist, which is the stringly-typed
-    # dispatch we are getting rid of. Check the callables directly instead.
-    assert callable(strategy.propose)
-    # every strategy shipped here can size its own progress bar, though the
-    # protocol does not require it
-    assert callable(strategy.num_increments)
-    # and that it is usable where a TransferStrategy is expected
-    accepts: TransferStrategy = strategy
-    assert accepts is strategy
+def test_every_strategy_can_size_its_own_progress_bar(name):
+    """
+    `num_increments` is beyond what the protocol requires, so it is checked here.
+
+    `propose` is not: tests/test_component_tables.py asserts the protocol method
+    of every entry of all five tables, this one included.
+    """
+    assert callable(TRANSFER_STRATEGIES[name]().num_increments)
 
 
 def test_unknown_strategy_lists_the_valid_ones():

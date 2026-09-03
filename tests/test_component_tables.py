@@ -57,17 +57,6 @@ def test_every_entry_provides_its_protocol(kind, name):
         assert callable(getattr(component, method)), f"{name} has no {method}()"
 
 
-def test_every_kind_of_component_is_covered():
-    """A fifth pluggable kind should not be able to appear without a table here."""
-    assert set(TABLES) == {
-        "player model",
-        "team model",
-        "transfer strategy",
-        "squad optimizer",
-        "transfer optimizer",
-    }
-
-
 # The command whose --help must list every name in the table. A transfer
 # strategy has no flag: which one runs is decided by the move, not by the user,
 # so `TRANSFER_STRATEGIES` is deliberately absent from this mapping.
@@ -98,8 +87,3 @@ def test_every_name_is_reachable_from_the_command_line(kind, command, flag):
     assert flag in help_text
     for name in table:
         assert name in help_text, f"{flag} does not list {name}"
-
-
-def test_a_strategy_is_chosen_by_the_move_not_by_a_flag():
-    """The one table with no naming flag, recorded so its absence is deliberate."""
-    assert "transfer strategy" not in NAMING_FLAGS

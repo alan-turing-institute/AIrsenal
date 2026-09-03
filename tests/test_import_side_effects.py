@@ -92,7 +92,9 @@ _GUARD_SCRIPT = textwrap.dedent(
 )
 
 
-def _run_import_guard():
+@pytest.fixture(scope="module")
+def import_guard():
+    """The one run of the guard subprocess, which imports the whole package."""
     result = subprocess.run(
         [sys.executable, "-c", _GUARD_SCRIPT],
         capture_output=True,
@@ -105,21 +107,21 @@ def _run_import_guard():
     return json.loads(result.stdout.strip().splitlines()[-1])
 
 
-def test_importing_airsenal_performs_no_io():
-    violations = _run_import_guard()["violations"]
+def test_importing_airsenal_performs_no_io(import_guard):
+    violations = import_guard["violations"]
     assert not violations, "modules performing I/O at import time:\n" + "\n".join(
         f"  {name}: {reason}" for name, reason in sorted(violations.items())
     )
 
 
-def test_no_module_fails_to_import_for_unexpected_reasons():
+def test_no_module_fails_to_import_for_unexpected_reasons(import_guard):
     """
     Every module in the package imports.
 
     One that cannot is dead weight. Missing *optional* dependencies are allowed,
     and listed explicitly.
     """
-    failures = _run_import_guard()["other_failures"]
+    failures = import_guard["other_failures"]
     unexpected = {
         name: reason
         for name, reason in failures.items()

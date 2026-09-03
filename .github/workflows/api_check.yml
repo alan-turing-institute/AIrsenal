@@ -1,12 +1,17 @@
-name: Nightly live API tests
+name: API check
 
 # The `live` tests are the only ones that talk to the real FPL API. They are
 # deselected everywhere else, so this job is the "did the API change shape?"
 # signal.
+#
+# Weekly rather than daily: the FPL API changes shape between seasons and at the
+# odd mid-season release, not overnight, and a daily run against someone else's
+# API is seven requests-per-endpoint a week for one bit of information. Kick one
+# off by hand with workflow_dispatch when a scrape or an ingest starts failing.
 
 on:
   schedule:
-    - cron: "17 5 * * *"
+    - cron: "17 5 * * 1"
   workflow_dispatch:
 
 jobs:

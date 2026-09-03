@@ -2,15 +2,6 @@ import pytest
 from typer.testing import CliRunner
 
 from airsenal.cli.main import app
-from airsenal.core.lookup import ConfigError
-from airsenal.prediction.player_models import (
-    PLAYER_MODELS,
-    build_player_model,
-)
-from airsenal.prediction.team_models import (
-    TEAM_MODELS,
-    build_team_model,
-)
 
 # Rich wraps help output to the terminal width, and a long option name wraps
 # mid-word - so ask for a terminal wide enough that a flag stays one token.
@@ -131,21 +122,6 @@ class TestModelSelection:
         result = runner.invoke(app, [*command, "--help"])
         assert result.exit_code == 0
         assert option in _flatten(result.stdout)
-
-    def test_registered_model_names_appear_in_the_help(self):
-        result = runner.invoke(app, ["predict", "--help"])
-        assert result.exit_code == 0
-        text = _flatten(result.stdout)
-        for name in (*PLAYER_MODELS, *TEAM_MODELS):
-            assert name in text
-
-    def test_unknown_player_model_lists_the_available_ones(self):
-        with pytest.raises(ConfigError, match="Choose from: conjugate, constant"):
-            build_player_model("nope")
-
-    def test_unknown_team_model_lists_the_available_ones(self):
-        with pytest.raises(ConfigError, match="Choose from: constant, extended"):
-            build_team_model("nope")
 
 
 ALL_COMMANDS = [

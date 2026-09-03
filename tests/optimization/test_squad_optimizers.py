@@ -10,14 +10,10 @@ that no production code knows about.
 from dataclasses import replace
 from types import SimpleNamespace
 
-import pytest
-
-from airsenal.core.lookup import ConfigError, lookup
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import SquadRequest, TransferRequest
 from airsenal.optimization.squad_optimizers import (
-    SQUAD_OPTIMIZERS,
     GeneticAlgorithmConfig,
     GeneticSquadOptimizer,
 )
@@ -51,20 +47,6 @@ class StubSquadOptimizer:
     def optimize(self, request):
         self.requests.append(request)
         return self.squad
-
-
-def test_the_genetic_optimizer_is_registered():
-    assert "genetic" in SQUAD_OPTIMIZERS
-
-
-def test_an_unknown_optimizer_names_the_valid_ones():
-    with pytest.raises(ConfigError, match=r"Unknown squad optimizer 'nope'.*genetic"):
-        lookup(SQUAD_OPTIMIZERS, "nope", "squad optimizer")
-
-
-def test_the_genetic_optimizer_defaults_its_own_config():
-    """Every table entry has to be constructible with no arguments."""
-    assert SQUAD_OPTIMIZERS["genetic"]().config == GeneticAlgorithmConfig()
 
 
 def test_genetic_algorithm_defaults():

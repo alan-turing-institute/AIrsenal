@@ -225,6 +225,24 @@ def test_scale_goals_by_minutes():
     assert (scaled_goals == np.array([[1, 2, 3], [1, 1, 1]])).all()
 
 
+def test_a_player_in_no_goalless_match_scales_to_nothing():
+    """
+    A player who was never on the pitch for a goal contributes no counts.
+
+    Otherwise their zero-match average would be a division by zero. Only the real
+    two-season fit used to reach this, so it is asserted directly here.
+    """
+    goals = np.zeros((2, 2, 3))
+    goals[0, :, :] = np.array([[1, 0, 0], [0, 1, 0]])  # involved in two goals
+    goals[1, :, :] = np.array([[0, 0, 0], [0, 0, 0]])  # never on for one
+    minutes = np.array([[90, 90], [90, 90]])
+
+    scaled_goals = scale_goals_by_minutes(goals, minutes)
+
+    assert (scaled_goals[1] == np.array([0, 0, 0])).all()
+    assert scaled_goals[0].sum() > 0
+
+
 def test_get_conjugate_prior():
     pm = ConjugatePlayerModel(ConjugatePlayerConfig(n_goals_prior=0, epsilon=None))
     goals = np.zeros((2, 2, 3))
@@ -261,28 +279,28 @@ def test_fit_conjugate_player_model():
     assert (pm.posterior == np.array([[2, 3, 4], [4, 3, 2]])).all()
 
 
-def test_get_fitted_player_model_numpyro():
-    pm = NumpyroPlayerModel()
-    assert isinstance(pm, NumpyroPlayerModel)
+@pytest.mark.slow
+@pytest.mark.parametrize("model", [NumpyroPlayerModel(), ConjugatePlayerModel()])
+def test_get_fitted_player_model(model):
+    """
+    Fit a player model against two full seasons.
+
+    As `test_get_fitted_team_model` below: the shape and coverage assertions are
+    worth having on every run, so they are duplicated against the small e2e
+    database in tests/e2e/test_player_models.py, which asserts more of them and
+    over every entry of the table. This stays as the "does it still work on real
+    data" check, and is marked `slow` so it runs in its own CI step.
+    """
     with past_data_session_scope() as ts:
-        fpm = fit_player_data("FWD", 12, "1819", model=pm, dbsession=ts)
-        assert isinstance(fpm, pd.DataFrame)
-        assert len(fpm) > 0
+        fitted = fit_player_data("FWD", 12, "1819", model=model, dbsession=ts)
+        assert isinstance(fitted, pd.DataFrame)
+        assert len(fitted) > 0
         # The three outcomes partition a goal, so they must sum to one per player.
-        # Fitting at all is not enough: the model spent a release returning
-        # nothing because it could not initialise.
-        totals = fpm[["prob_score", "prob_assist", "prob_neither"]].sum(axis=1)
-        assert np.allclose(totals, 1.0, atol=1e-5)
-        assert (fpm[["prob_score", "prob_assist", "prob_neither"]] >= 0).all().all()
-
-
-def test_get_fitted_player_model_conjugate():
-    cpm = ConjugatePlayerModel()
-    assert isinstance(cpm, ConjugatePlayerModel)
-    with past_data_session_scope() as ts:
-        fcpm = fit_player_data("FWD", 12, "1819", model=cpm, dbsession=ts)
-        assert isinstance(fcpm, pd.DataFrame)
-        assert len(fcpm) > 0
+        # Fitting at all is not enough: numpyro spent a release returning nothing
+        # because it could not initialise.
+        probabilities = fitted[["prob_score", "prob_assist", "prob_neither"]]
+        assert np.allclose(probabilities.sum(axis=1), 1.0, atol=1e-5)
+        assert (probabilities >= 0).all().all()
 
 
 def test_get_result_dict():
@@ -309,7 +327,7 @@ def test_get_fitted_team_model():
     22 seconds, and almost all of it is jax. The shape and coverage assertions
     are worth having on every run, so they are duplicated against the small e2e
     database in tests/e2e/test_team_models.py; this stays as the "does it still
-    work on real data" check for the nightly job.
+    work on real data" check, and is marked `slow` so it runs in its own CI step.
     """
     # extended model
     with past_data_session_scope() as ts:
