@@ -29,6 +29,7 @@ from airsenal.db.models import (
 )
 from airsenal.db.session import configure_database
 from airsenal.game.enums import Position
+from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.prediction.player_models import (
     PLAYER_MODELS,
     NumpyroPlayerConfig,
@@ -36,8 +37,13 @@ from airsenal.prediction.player_models import (
 )
 from airsenal.prediction.protocols import PlayerModel
 
-SEASON = "2526"
-PAST_SEASONS = ["2324", "2425"]
+# The real current season: `next_gameweek()` answers for the current season and
+# reads this database, so a season string fixed here would leave it nothing to work
+# from. The past seasons are the real ones before it, and are the played ones - the
+# current season's gameweeks are all still to come, which is what makes the next
+# gameweek FUTURE_GAMEWEEKS[0].
+SEASON = CURRENT_SEASON
+PAST_SEASONS = sort_seasons(get_past_seasons(2), desc=False)
 TEAMS = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"]
 GAMEWEEKS_PER_PAST_SEASON = 8
 FUTURE_GAMEWEEKS = [1, 2, 3]
@@ -126,6 +132,10 @@ def _build(session: Session) -> None:
         gameweeks = (
             range(1, GAMEWEEKS_PER_PAST_SEASON + 1) if played else FUTURE_GAMEWEEKS
         )
+        if not played:
+            # Still to be played, so dated from tomorrow rather than carrying on from
+            # the past seasons. `next_gameweek()` reads these dates.
+            match_day = date.today() + timedelta(days=1)
         for gameweek in gameweeks:
             for home, away in _round_robin(gameweek):
                 fixture_id += 1

@@ -20,7 +20,6 @@ import threading
 import pytest
 
 from airsenal.core.concurrency import CustomQueue
-from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import Plan, TransferSearchResult
@@ -51,10 +50,7 @@ SEARCH_GAMEWEEKS = FUTURE_GAMEWEEKS[:2]
 
 @pytest.fixture(scope="module")
 def seeded(pipeline_db):
-    set_next_gameweek(FUTURE_GAMEWEEKS[0])
-    yield pipeline_db
-    reset_gameweek_cache()
-    set_next_gameweek(1)
+    return pipeline_db
 
 
 @pytest.fixture(scope="module")

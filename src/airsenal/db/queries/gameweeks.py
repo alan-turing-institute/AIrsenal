@@ -1,12 +1,13 @@
 """Working out which gameweek we are in, from what the database knows."""
 
 from datetime import UTC, date, datetime
+from functools import cache
 from typing import TYPE_CHECKING
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from airsenal.core.caching import cache_ignoring_session
+from airsenal.core.caching import cache_ignoring_session, register_cache
 from airsenal.core.dates import parse_date, parse_datetime
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture
@@ -26,8 +27,8 @@ class NoFixtureDataError(RuntimeError):
     """
     Raised when the next gameweek cannot be determined.
 
-    The database holds no fixtures for the season, and no FPL API fetcher was
-    supplied to fall back on.
+    The database holds no fixtures for the current season, and no FPL API fetcher
+    was supplied to fall back on.
     """
 
 
@@ -56,30 +57,33 @@ def get_max_gameweek(
     )
 
 
-def get_next_gameweek(
-    season: str = CURRENT_SEASON,
-    *,
-    fetcher: "FPLDataFetcher | None" = None,
-    dbsession: Session | None = None,
-) -> int:
+@cache
+def next_gameweek(fetcher: "FPLDataFetcher | None" = None) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
 
-    Recomputed on every call. Prefer `next_gameweek`, which caches the result for the
-    lifetime of the process.
+    Only the current season has a next gameweek: a replay of a past one is told
+    which gameweek it is up to. The answer is worked out once and then held for the
+    lifetime of the process, so that a run gets one throughout - the transfer
+    optimiser reads this inside its search, and a value that changed mid-run, across
+    a deadline say, would make earlier and later decisions disagree. Worked out from
+    the default database, and dropped by `clear_query_caches` when something writes
+    what it reads or points the package at another database.
 
     Args:
-        fetcher: Only consulted when the database holds no fixtures for the season,
-            which happens when the database has not been populated yet.
+        fetcher: Only consulted when the database holds no fixtures, which happens
+            when the database has not been populated yet.
 
     Raises:
-        NoFixtureDataError: The database has no fixtures for the season and no
-            fetcher was given, so there is nothing to fall back on.
+        NoFixtureDataError: The database has no fixtures and no fetcher was given,
+            so there is nothing to fall back on.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session()
     timenow = datetime.now(UTC)
-    fixtures = dbsession.scalars(select(Fixture).where(Fixture.season == season)).all()
-    earliest_future_gameweek = get_max_gameweek(season, dbsession=dbsession) + 1
+    fixtures = dbsession.scalars(
+        select(Fixture).where(Fixture.season == CURRENT_SEASON)
+    ).all()
+    earliest_future_gameweek = get_max_gameweek(dbsession=dbsession) + 1
 
     if len(fixtures) > 0:
         for fixture in fixtures:
@@ -106,9 +110,10 @@ def get_next_gameweek(
         # makes an HTTP request just by calling this.
         if fetcher is None:
             msg = (
-                f"No fixtures in the database for {season}, so the next gameweek "
-                "cannot be determined. Populate the database with 'airsenal db "
-                "create', or pass fetcher to look it up from the FPL API."
+                f"No fixtures in the database for {CURRENT_SEASON}, so the next "
+                "gameweek cannot be determined. Populate the database with "
+                "'airsenal db create', or pass fetcher to look it up from the "
+                "FPL API."
             )
             raise NoFixtureDataError(msg)
         fixture_data = fetcher.get_fixture_data()
@@ -116,97 +121,28 @@ def get_next_gameweek(
         if len(fixture_data) == 0:
             # if no fixtures scheduled assume this is start of season before
             # fixtures have been announced
-            return 1
-
-        for api_fixture in fixture_data:
-            if (
-                api_fixture["finished"] is False
-                and api_fixture["event"]
-                and api_fixture["event"] < earliest_future_gameweek
-            ):
-                earliest_future_gameweek = api_fixture["event"]
-        # check whether we're mid-gameweek
-        for api_fixture in fixture_data:
-            if (
-                api_fixture["finished"] is True
-                and api_fixture["event"] == earliest_future_gameweek
-            ):
-                earliest_future_gameweek += 1
-                break
+            earliest_future_gameweek = 1
+        else:
+            for api_fixture in fixture_data:
+                if (
+                    api_fixture["finished"] is False
+                    and api_fixture["event"]
+                    and api_fixture["event"] < earliest_future_gameweek
+                ):
+                    earliest_future_gameweek = api_fixture["event"]
+            # check whether we're mid-gameweek
+            for api_fixture in fixture_data:
+                if (
+                    api_fixture["finished"] is True
+                    and api_fixture["event"] == earliest_future_gameweek
+                ):
+                    earliest_future_gameweek += 1
+                    break
 
     return earliest_future_gameweek
 
 
-class _GameweekCache:
-    """
-    Caches the next gameweek per season for the lifetime of the process.
-
-    Computed on first use rather than at import, so importing an airsenal module
-    neither queries the database nor calls the FPL API.
-
-    Stability matters for more than speed: the transfer optimiser reads the next
-    gameweek inside its search, and a value that changed mid-run - across a
-    deadline, say - would make earlier and later decisions disagree.
-    """
-
-    def __init__(self) -> None:
-        self._by_season: dict[str, int] = {}
-
-    def get(
-        self,
-        season: str,
-        fetcher: "FPLDataFetcher | None",
-        dbsession: Session | None,
-    ) -> int:
-        if season not in self._by_season:
-            self._by_season[season] = get_next_gameweek(
-                season, fetcher=fetcher, dbsession=dbsession
-            )
-        return self._by_season[season]
-
-    def set(self, gameweek: int, season: str) -> None:
-        self._by_season[season] = gameweek
-
-    def reset(self) -> None:
-        self._by_season.clear()
-
-
-_gameweek_cache = _GameweekCache()
-
-
-def next_gameweek(
-    season: str = CURRENT_SEASON,
-    *,
-    fetcher: "FPLDataFetcher | None" = None,
-    dbsession: Session | None = None,
-) -> int:
-    """
-    The next gameweek of a season, computed once per process.
-
-    Replaces the former NEXT_GAMEWEEK module constant. See `get_next_gameweek` for the
-    uncached computation and for when `fetcher` is needed.
-    """
-    return _gameweek_cache.get(season, fetcher, dbsession)
-
-
-def set_next_gameweek(gameweek: int, season: str = CURRENT_SEASON) -> None:
-    """
-    Pin the next gameweek for a season, overriding whatever the database says.
-
-    Useful when replaying a historical season, and in tests, where the database
-    deliberately has no fixtures to derive it from.
-    """
-    _gameweek_cache.set(gameweek, season)
-
-
-def reset_gameweek_cache() -> None:
-    """
-    Forget the cached next gameweek.
-
-    Needed by tests, which swap the database underneath the cache, and by any
-    long-running process that has just populated or updated fixtures.
-    """
-    _gameweek_cache.reset()
+register_cache(next_gameweek)
 
 
 @cache_ignoring_session(maxsize=365)
@@ -305,16 +241,13 @@ def is_future_gameweek(
     gameweek: int | None,
     season: str,
     current_season: str = CURRENT_SEASON,
-    next_gameweek: int | None = None,
+    current_gameweek: int | None = None,
 ) -> bool:
     """Whether this season and gameweek are at or after the current one."""
-    if next_gameweek is None:
-        # The parameter shadows the module-level next_gameweek() function, so go via
-        # the cache it reads. Renaming the parameter is not an option: callers pass
-        # it by keyword.
-        next_gameweek = _gameweek_cache.get(current_season, None, None)
+    if current_gameweek is None:
+        current_gameweek = next_gameweek()
     return (
-        season == current_season and (gameweek is None or gameweek >= next_gameweek)
+        season == current_season and (gameweek is None or gameweek >= current_gameweek)
     ) or (season != current_season and int(season) > int(current_season))
 
 
@@ -347,7 +280,7 @@ def get_gameweeks_array(
 
     # Set defaults for undefined arguments
     if gameweek_start is None:
-        gameweek_start = next_gameweek(season=season, dbsession=dbsession)
+        gameweek_start = next_gameweek()
     if gameweek_end is None:
         if n_gameweeks is None:
             # How far ahead to look by default is a decision about a run, not

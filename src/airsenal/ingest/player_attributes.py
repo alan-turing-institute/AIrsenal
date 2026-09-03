@@ -13,8 +13,8 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import PlayerAttributes
 from airsenal.db.queries.fixtures import find_fixture, get_player_team_from_fixture
 from airsenal.db.queries.gameweeks import (
-    get_next_gameweek,
     get_return_gameweek_by_date,
+    next_gameweek,
 )
 from airsenal.db.queries.players import (
     get_player,
@@ -125,7 +125,7 @@ def fill_attributes_table_from_api(
     """Fill the attributes table for the current season, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
     fetcher = get_fetcher()
-    next_gw = get_next_gameweek(season=season, dbsession=dbsession)
+    next_gw = next_gameweek()
 
     # needed for selected by calculation from percentage below
     n_players = fetcher.get_current_summary_data()["total_players"]

@@ -414,7 +414,7 @@ def get_max_matches_per_player(
             score.fixture.gameweek,
             score.fixture.season,
             current_season=season,
-            next_gameweek=gameweek,
+            current_gameweek=gameweek,
         ):
             matches_per_player[score.player_id] += 1
 

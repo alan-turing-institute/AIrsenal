@@ -219,6 +219,8 @@ def get_player_scores_df(
 
     df = pd.read_sql(query, dbsession.connection())
 
-    is_fut = partial(is_future_gameweek, current_season=season, next_gameweek=gameweek)
+    is_fut = partial(
+        is_future_gameweek, current_season=season, current_gameweek=gameweek
+    )
     exclude = df.apply(lambda r: is_fut(r["gameweek"], r["season"]), axis=1)
     return df[~exclude]

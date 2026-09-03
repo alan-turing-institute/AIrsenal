@@ -16,7 +16,6 @@ import pytest
 from sqlalchemy import select
 
 from airsenal.db.models import Fixture, Player, PlayerPrediction, Result
-from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.game.enums import Position
 from airsenal.optimization.moves import GameweekMove
@@ -47,14 +46,8 @@ FORMATION = {Position.GK: 2, Position.DEF: 5, Position.MID: 5, Position.FWD: 3}
 
 @pytest.fixture(scope="module")
 def seeded(pipeline_db):
-    """The database, with the next gameweek pinned so nothing reaches for the API."""
-    set_next_gameweek(FUTURE_GAMEWEEKS[0])
-    yield pipeline_db
-    # The gameweek cache is process-wide, so pinning it here would otherwise leak
-    # this season's gameweek into whatever runs after this module. Put it back to
-    # the value conftest.py sets for the rest of the suite.
-    reset_gameweek_cache()
-    set_next_gameweek(1)
+    """The database, under the name the tests in this module use for it."""
+    return pipeline_db
 
 
 def test_database_is_populated(seeded):

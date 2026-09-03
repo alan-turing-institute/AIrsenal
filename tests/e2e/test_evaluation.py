@@ -26,7 +26,14 @@ from airsenal.prediction.player_models import PLAYER_MODELS
 from airsenal.prediction.player_models.fitting import fit_player_data
 from airsenal.prediction.team_models import TEAM_MODELS, build_team_model
 from airsenal.prediction.team_models.fitting import get_fitted_team_model
-from tests.e2e.conftest import PAST_SEASONS, build_player_model_for_test
+from tests.e2e.conftest import (
+    FUTURE_GAMEWEEKS,
+    PAST_SEASONS,
+    build_player_model_for_test,
+)
+from tests.e2e.conftest import (
+    SEASON as UNPLAYED_SEASON,
+)
 
 SEASON = PAST_SEASONS[-1]
 FIT_GAMEWEEK = 6
@@ -83,7 +90,9 @@ def test_fixtures_without_a_result_are_skipped_not_scored(pipeline_db):
     model = get_fitted_team_model(
         FIT_GAMEWEEK, SEASON, pipeline_db, model=build_team_model("constant")
     )
-    future = get_fixtures_for_gameweeks([1, 2], season="2526", dbsession=pipeline_db)
+    future = get_fixtures_for_gameweeks(
+        FUTURE_GAMEWEEKS, season=UNPLAYED_SEASON, dbsession=pipeline_db
+    )
     score = score_team_model(model, future)
     assert score.n_observations == 0
     assert score.n_skipped == len(future)

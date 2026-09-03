@@ -15,7 +15,6 @@ from sqlalchemy import select
 
 from airsenal.core.lookup import ConfigError
 from airsenal.db.models import PlayerPrediction, Transaction
-from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.db.session import session_scope
 from airsenal.optimization.squad_optimizers import (
@@ -37,10 +36,7 @@ TEAM_ID = -1
 
 @pytest.fixture(scope="module")
 def seeded(pipeline_db):
-    set_next_gameweek(FUTURE_GAMEWEEKS[0])
-    yield pipeline_db
-    reset_gameweek_cache()
-    set_next_gameweek(1)
+    return pipeline_db
 
 
 class RecordingSquadOptimizer:

@@ -112,7 +112,7 @@ def get_player_history_df(
                 row.fixture.gameweek,
                 row.fixture.season,
                 current_season=season,
-                next_gameweek=gameweek,
+                current_gameweek=gameweek,
             ):
                 continue
 

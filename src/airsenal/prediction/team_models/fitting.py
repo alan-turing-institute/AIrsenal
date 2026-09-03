@@ -40,7 +40,7 @@ def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitDa
             s.fixture.gameweek,
             s.fixture.season,
             current_season=season,
-            next_gameweek=gameweek,
+            current_gameweek=gameweek,
         )
     ]
     # compute the time difference for each fixture in results

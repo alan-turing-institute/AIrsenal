@@ -1,6 +1,7 @@
 import os
 import random
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -32,15 +33,45 @@ env.AIRSENAL_DB_URI = None
 env.AIRSENAL_DB_USER = None
 env.AIRSENAL_DB_PASSWORD = None
 
-from airsenal.db.models import Base, Player, PlayerAttributes  # noqa: E402
-from airsenal.db.queries.gameweeks import set_next_gameweek  # noqa: E402
+from airsenal.db.models import (  # noqa: E402
+    Base,
+    Fixture,
+    Player,
+    PlayerAttributes,
+)
+from airsenal.db.session import get_session  # noqa: E402
 from airsenal.game.mappings import alternative_team_names  # noqa: E402
 from airsenal.game.season import CURRENT_SEASON  # noqa: E402
 
-# The dummy test database has players but no fixtures, so the next gameweek cannot be
-# derived from it. Pin it explicitly rather than letting anything fall back to the FPL
-# API: no network, no import-time side effect.
-set_next_gameweek(1)
+# The whole unit suite is written as though it were gameweek 1. `next_gameweek()`
+# works that out from the default database, which is otherwise empty here, so give
+# it a season of fixtures that are all still to be played. Data rather than a pin:
+# nothing in the package exists to override it, and nothing reaches the FPL API.
+SUITE_GAMEWEEK = 1
+MAX_GAMEWEEK = 38
+
+
+def _fill_default_db_fixtures():
+    """Put a season of unplayed fixtures in the package's default database."""
+    dbsession = get_session()
+    home, away = list(alternative_team_names.keys())[:2]
+    tomorrow = datetime.now(UTC) + timedelta(days=1)
+    for gameweek in range(SUITE_GAMEWEEK, MAX_GAMEWEEK + 1):
+        dbsession.add(
+            Fixture(
+                fixture_id=gameweek,
+                date=(tomorrow + timedelta(days=gameweek)).isoformat(),
+                gameweek=gameweek,
+                home_team=home,
+                away_team=away,
+                season=CURRENT_SEASON,
+                tag="unit-tests",
+            )
+        )
+    dbsession.commit()
+
+
+_fill_default_db_fixtures()
 from tests.dummy_data import dummy_players  # noqa: E402
 
 TEST_PAST_SEASON = "2021"

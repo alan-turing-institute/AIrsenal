@@ -12,7 +12,6 @@ from typing import ClassVar
 
 import pytest
 
-from airsenal.db.queries.gameweeks import reset_gameweek_cache, set_next_gameweek
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.plan import GameweekOutcome, Plan, TransferSearchResult
@@ -68,10 +67,7 @@ class NoTransferOptimizer:
 
 @pytest.fixture(scope="module")
 def seeded(pipeline_db):
-    set_next_gameweek(FIRST_GAMEWEEK)
-    yield pipeline_db
-    reset_gameweek_cache()
-    set_next_gameweek(1)
+    return pipeline_db
 
 
 def _pipeline(**settings):
