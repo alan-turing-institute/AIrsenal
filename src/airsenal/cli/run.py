@@ -2,7 +2,10 @@
 
 from airsenal.cli import options
 from airsenal.optimization.moves import ChipWeeks
-from airsenal.optimization.protocols import TransferConstraints
+from airsenal.optimization.protocols import (
+    DEFAULT_MAX_OPT_TRANSFERS,
+    TransferConstraints,
+)
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     build_squad_optimizer,
@@ -13,31 +16,35 @@ from airsenal.optimization.transfer_optimizers import (
     build_transfer_optimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, DatabaseSettings, PipelineSettings
-from airsenal.pipeline.settings import StaleDatabase
-from airsenal.prediction.player_models import build_player_model
-from airsenal.prediction.team_models import build_team_model
+from airsenal.pipeline.settings import (
+    DEFAULT_N_GAMEWEEKS,
+    DEFAULT_N_PREVIOUS,
+    StaleDatabase,
+)
+from airsenal.prediction.player_models import DEFAULT_PLAYER_MODEL, build_player_model
+from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL, build_team_model
 from airsenal.squad.squad import SubWeights
 
 
 def run(
     fpl_team_id: options.FplTeamId = None,
-    n_gameweeks: options.WeeksAhead = options.DEFAULT_N_GAMEWEEKS,
+    n_gameweeks: options.WeeksAhead = DEFAULT_N_GAMEWEEKS,
     gameweek_start: options.GameweekStart = None,
     # --- database ---
     clean: options.Clean = False,
-    n_previous: options.NPrevious = options.DEFAULT_N_PREVIOUS,
+    n_previous: options.NPrevious = DEFAULT_N_PREVIOUS,
     current_season: options.CurrentSeason = True,
     refresh_database: options.RefreshDatabase = True,
     on_stale: options.OnStale = StaleDatabase.ASK,
     # --- prediction ---
-    player_model: options.PlayerModel = options.DEFAULT_PLAYER_MODEL,
-    team_model: options.TeamModel = options.DEFAULT_TEAM_MODEL,
+    player_model: options.PlayerModel = DEFAULT_PLAYER_MODEL,
+    team_model: options.TeamModel = DEFAULT_TEAM_MODEL,
     epsilon: options.Epsilon = None,
     # --- optimisation ---
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
     num_thread: options.NumThread = None,
-    max_transfers: options.MaxTransfers = options.DEFAULT_MAX_TRANSFERS,
+    max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     max_hit: options.MaxHit = options.DEFAULT_MAX_HIT,
     allow_unused: options.AllowUnused = False,
     subs: options.Subs = True,

@@ -10,6 +10,7 @@ from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import (
+    DEFAULT_MAX_OPT_TRANSFERS,
     TransferConstraints,
 )
 from airsenal.optimization.squad_optimizers import (
@@ -22,6 +23,7 @@ from airsenal.optimization.transfer_optimizers import (
     build_transfer_optimizer,
 )
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
+from airsenal.pipeline.settings import DEFAULT_N_GAMEWEEKS
 from airsenal.remote.fpl_api import require_fpl_team_id
 from airsenal.squad.squad import SubWeights
 
@@ -38,7 +40,7 @@ def transfers(
     gameweek_start: options.GameweekStart = None,
     gameweek_end: options.GameweekEnd = None,
     tag: options.Tag = None,
-    season: options.Season = options.DEFAULT_SEASON,
+    season: options.Season = CURRENT_SEASON,
     fpl_team_id: options.FplTeamId = None,
     # --- chips ---
     wildcard_week: options.WildcardWeek = -1,
@@ -50,10 +52,10 @@ def transfers(
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
     num_free_transfers: options.NumFreeTransfers = None,
     max_hit: options.MaxHit = options.DEFAULT_MAX_HIT,
-    max_transfers: options.MaxTransfers = options.DEFAULT_MAX_TRANSFERS,
+    max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     allow_unused: options.AllowUnused = False,
     subs: options.Subs = True,
-    num_iterations: options.NumIterations = options.DEFAULT_NUM_ITERATIONS,
+    num_iterations: options.NumIterations = None,
     num_thread: options.NumThread = None,
     # --- output ---
     profile: options.Profile = False,
@@ -91,7 +93,7 @@ def transfers(
 
 @app.command()
 def squad(
-    n_gameweeks: options.SquadWeeksAhead = options.DEFAULT_N_GAMEWEEKS,
+    n_gameweeks: options.SquadWeeksAhead = DEFAULT_N_GAMEWEEKS,
     gameweek_start: options.GameweekStart = None,
     season: options.OptionalSeason = None,
     fpl_team_id: options.FplTeamId = None,
@@ -161,7 +163,7 @@ def _run_transfer_optimization(
     allow_unused: bool,
     max_transfers: int,
     subs: bool,
-    num_iterations: int,
+    num_iterations: int | None,
     num_thread: int | None,
     transfer_optimizer: str,
     squad_optimizer: str,
@@ -193,7 +195,7 @@ def _run_transfer_optimization(
             settings=PipelineSettings(
                 fpl_team_id=fpl_team_id,
                 season=season,
-                n_gameweeks=n_gameweeks or options.DEFAULT_N_GAMEWEEKS,
+                n_gameweeks=n_gameweeks or DEFAULT_N_GAMEWEEKS,
                 gameweek_start=gameweek_start,
                 gameweek_end=gameweek_end,
                 chips=chips,

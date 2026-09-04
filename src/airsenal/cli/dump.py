@@ -7,6 +7,7 @@ from airsenal.export.absences import save_expected_absences
 from airsenal.export.api_dump import dump_api
 from airsenal.export.attributes import save_attributes
 from airsenal.export.db_dump import dump_db
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.transfermarkt import scrape_transfermarkt
 
 app = typer.Typer(
@@ -28,7 +29,7 @@ def db() -> None:
 
 @app.command()
 def transfermarkt(
-    season: options.Season = options.DEFAULT_SEASON,
+    season: options.Season = CURRENT_SEASON,
 ) -> None:
     """Save Transfermarkt absence data."""
     scrape_transfermarkt([season])

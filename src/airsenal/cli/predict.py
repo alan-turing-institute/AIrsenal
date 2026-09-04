@@ -2,10 +2,12 @@
 
 from airsenal.cli import options
 from airsenal.db.session import session_scope
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
-from airsenal.prediction.player_models import build_player_model
+from airsenal.pipeline.settings import DEFAULT_N_GAMEWEEKS
+from airsenal.prediction.player_models import DEFAULT_PLAYER_MODEL, build_player_model
 from airsenal.prediction.points import PointsConfig
-from airsenal.prediction.team_models import build_team_model
+from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL, build_team_model
 from airsenal.reporting.top_players import get_top_predicted_points
 
 
@@ -13,13 +15,13 @@ def predict(
     n_gameweeks: options.OptionalWeeksAhead = None,
     gameweek_start: options.GameweekStart = None,
     gameweek_end: options.GameweekEnd = None,
-    season: options.Season = options.DEFAULT_SEASON,
+    season: options.Season = CURRENT_SEASON,
     bonus: options.Bonus = True,
     cards: options.Cards = True,
     saves: options.Saves = True,
     def_con: options.DefCon = True,
-    player_model: options.PlayerModel = options.DEFAULT_PLAYER_MODEL,
-    team_model: options.TeamModel = options.DEFAULT_TEAM_MODEL,
+    player_model: options.PlayerModel = DEFAULT_PLAYER_MODEL,
+    team_model: options.TeamModel = DEFAULT_TEAM_MODEL,
     epsilon: options.Epsilon = None,
 ) -> None:
     """Predict player scores for a gameweek range."""
@@ -29,7 +31,7 @@ def predict(
         points=PointsConfig(bonus=bonus, cards=cards, saves=saves, def_con=def_con),
         settings=PipelineSettings(
             season=season,
-            n_gameweeks=n_gameweeks or options.DEFAULT_N_GAMEWEEKS,
+            n_gameweeks=n_gameweeks or DEFAULT_N_GAMEWEEKS,
             gameweek_start=gameweek_start,
             gameweek_end=gameweek_end,
             refresh_database=False,

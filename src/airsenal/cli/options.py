@@ -4,6 +4,9 @@ The options more than one command takes.
 A command signature should reach for a name from this module before writing a
 fresh `typer.Option`. Command-specific options stay in their own command: this
 module is for the ones that mean the same thing everywhere.
+
+Types only, near enough: an option's default belongs to whatever the option
+configures, so a command imports it from there rather than from here.
 """
 
 from pathlib import Path
@@ -11,20 +14,14 @@ from typing import Annotated
 
 import typer
 
-from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_optimizers import (
     SQUAD_OPTIMIZERS,
 )
 from airsenal.optimization.transfer_optimizers import (
     TRANSFER_OPTIMIZERS,
 )
-from airsenal.pipeline.settings import DEFAULT_N_GAMEWEEKS as _DEFAULT_N_GAMEWEEKS
 from airsenal.pipeline.settings import StaleDatabase
-from airsenal.prediction.player_models import (
-    DEFAULT_PLAYER_MODEL as _DEFAULT_PLAYER_MODEL,
-)
 from airsenal.prediction.player_models import PLAYER_MODELS
-from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL as _DEFAULT_TEAM_MODEL
 from airsenal.prediction.team_models import TEAM_MODELS
 
 # Rich help panels, so commands can be grouped rather than listed as one flat block.
@@ -33,17 +30,11 @@ PREDICTION = "Prediction"
 OPTIMISATION = "Optimisation"
 OUTPUT = "Output"
 
-# Defaults re-exported so that no command signature has to restate a value it
-# does not own. Each is defined once, beside the setting it is the default for.
-DEFAULT_N_GAMEWEEKS = _DEFAULT_N_GAMEWEEKS
-DEFAULT_SEASON = CURRENT_SEASON
-DEFAULT_N_PREVIOUS = 3
-DEFAULT_MAX_TRANSFERS = 2
+# The one default that is the CLI's own. The library leaves
+# `TransferConstraints.max_total_hit` unset, meaning no cap on the points a plan
+# may spend on transfers; a command line wants a number. Every other default a
+# command takes is imported from the module that owns the setting.
 DEFAULT_MAX_HIT = 8
-DEFAULT_NUM_ITERATIONS = 100
-# re-exported so a command names one module for both the alias and its default
-DEFAULT_PLAYER_MODEL = _DEFAULT_PLAYER_MODEL
-DEFAULT_TEAM_MODEL = _DEFAULT_TEAM_MODEL
 
 
 def _names(table: dict[str, object]) -> str:
@@ -300,10 +291,13 @@ ZeroPointsPlayers = Annotated[
 ]
 
 NumIterations = Annotated[
-    int,
+    int | None,
     typer.Option(
         min=1,
-        help="How hard to search when rebuilding a squad.",
+        help=(
+            "How hard to search when rebuilding a squad. Defaults to the "
+            "optimizer's own value."
+        ),
         rich_help_panel=OPTIMISATION,
     ),
 ]
