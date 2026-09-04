@@ -11,6 +11,7 @@ from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import ChipWeeks
 from airsenal.optimization.protocols import (
     DEFAULT_MAX_OPT_TRANSFERS,
+    DEFAULT_MAX_TOTAL_HIT,
     TransferConstraints,
 )
 from airsenal.optimization.squad_optimizers import (
@@ -51,7 +52,7 @@ def transfers(
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
     num_free_transfers: options.NumFreeTransfers = None,
-    max_hit: options.MaxHit = options.DEFAULT_MAX_HIT,
+    max_hit: options.MaxHit = DEFAULT_MAX_TOTAL_HIT,
     max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     allow_unused: options.AllowUnused = False,
     subs: options.Subs = True,

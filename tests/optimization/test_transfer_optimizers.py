@@ -77,7 +77,7 @@ def test_a_strategy_set_survives_a_pickle():
 def test_constraints_default_to_todays_behaviour():
     constraints = TransferConstraints()
 
-    assert constraints.max_total_hit is None
+    assert constraints.max_total_hit == 8
     assert constraints.allow_unused_transfers is False
     assert constraints.max_opt_transfers == 2
     # Reaches the workers inside this frozen object, so a worker cannot fall

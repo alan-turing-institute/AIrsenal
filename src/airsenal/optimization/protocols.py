@@ -29,11 +29,13 @@ from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
 # How many candidate squads to consider when a move rebuilds the whole squad,
-# and how many transfers a strategy may make in one gameweek, when nothing says
-# otherwise. Beside the settings they are the defaults for: `TransferRequest`
-# and `TransferConstraints` below, and the tree search's own signatures.
+# how many transfers a strategy may make in one gameweek, and how many points a
+# plan may spend on them, when nothing says otherwise. Beside the settings they
+# are the defaults for: `TransferRequest` and `TransferConstraints` below, and
+# the tree search's own signatures.
 DEFAULT_NUM_ITERATIONS = 100
 DEFAULT_MAX_OPT_TRANSFERS = 2
+DEFAULT_MAX_TOTAL_HIT = 8
 
 
 class ProgressUpdater(Protocol):
@@ -220,7 +222,8 @@ class TransferConstraints:
     loose arguments, so nothing can be dropped on the way to a worker process.
     """
 
-    max_total_hit: int | None = None
+    # None is no cap at all, which a search has to be asked for explicitly.
+    max_total_hit: int | None = DEFAULT_MAX_TOTAL_HIT
     allow_unused_transfers: bool = False
     max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS
     max_free_transfers: int = MAX_FREE_TRANSFERS

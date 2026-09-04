@@ -5,8 +5,8 @@ A command signature should reach for a name from this module before writing a
 fresh `typer.Option`. Command-specific options stay in their own command: this
 module is for the ones that mean the same thing everywhere.
 
-Types only, near enough: an option's default belongs to whatever the option
-configures, so a command imports it from there rather than from here.
+Types only: an option's default belongs to whatever the option configures, so a
+command imports it from there rather than from here.
 """
 
 from pathlib import Path
@@ -29,12 +29,6 @@ DATABASE = "Database"
 PREDICTION = "Prediction"
 OPTIMISATION = "Optimisation"
 OUTPUT = "Output"
-
-# The one default that is the CLI's own. The library leaves
-# `TransferConstraints.max_total_hit` unset, meaning no cap on the points a plan
-# may spend on transfers; a command line wants a number. Every other default a
-# command takes is imported from the module that owns the setting.
-DEFAULT_MAX_HIT = 8
 
 
 def _names(table: dict[str, object]) -> str:
