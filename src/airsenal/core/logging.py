@@ -8,7 +8,7 @@ import logging
 import logging.handlers
 import os
 import threading
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from multiprocessing import Queue
 
@@ -67,7 +67,7 @@ if hasattr(os, "register_at_fork"):  # pragma: no branch - posix only
 
 
 @contextmanager
-def relay_child_logs() -> Iterator[None]:
+def relay_child_logs() -> Generator[None]:
     """Have children forked in this block log through the parent, not directly.
 
     A child that writes to the terminal itself lands in the middle of whatever

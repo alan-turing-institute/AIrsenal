@@ -17,12 +17,7 @@ logger = get_logger(__name__)
 
 
 def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
-    """
-    Show the lineup and ask before posting it.
-
-    Through `confirm` rather than a bare `input()`, with `default=False`: this
-    replaces the entry's lineup.
-    """
+    """Show the lineup and ask before posting it."""
     console.print(formation_table(squad, tag, gameweek))
     if not confirm("Apply changes to lineup?", default=False):
         return False

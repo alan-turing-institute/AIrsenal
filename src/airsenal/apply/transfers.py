@@ -25,12 +25,7 @@ logger = get_logger(__name__)
 
 
 def check_proceed(num_transfers: int = 0) -> bool:
-    """
-    Ask before posting transfers to the real FPL entry.
-
-    Through `confirm` rather than a bare `input()` so a test can stub one
-    function, and with `default=False` because this is not reversible.
-    """
+    """Ask before posting transfers to the real FPL entry."""
     if not confirm("Apply transfers? There is no turning back!", default=False):
         return False
     if num_transfers > 2 and not confirm(
@@ -265,8 +260,6 @@ def build_init_priced_transfers(
     """
     if not fpl_team_id:
         if not fetcher.FPL_TEAM_ID:
-            # a library function that stops to read stdin cannot be called from
-            # anything but a terminal, and cannot be tested at all
             msg = (
                 "No FPL team ID. Pass fpl_team_id, or set FPL_TEAM_ID with "
                 "`airsenal env set FPL_TEAM_ID <id>`."
@@ -279,10 +272,7 @@ def build_init_priced_transfers(
         {"element_out": el["element"], "selling_price": el["selling_price"]}
         for el in current_squad.values()
     ]
-    # Narrowed to this entry and this season. Unfiltered, the latest suggestion
-    # anywhere in the table won: a replay's from-scratch squad build is fifteen
-    # "in" rows for a dummy entry in a past season, which passes the length check
-    # below and would be bought for the real entry.
+
     transfer_in_suggestions = get_transfer_suggestions(
         season=CURRENT_SEASON, fpl_team_id=fpl_team_id, dbsession=get_session()
     )
@@ -313,9 +303,7 @@ def build_init_priced_transfers(
 
 
 # Only the two squad chips are part of a transfer. Bench boost and triple captain
-# are lineup chips, and the endpoint has no field for them - stripping the
-# underscore off the chip name posted a `benchboost` key the API does not define.
-# Keyed by `Chip`, which is a StrEnum, so a plain chip string looks up fine.
+# are lineup chips
 TRANSFER_CHIP_FIELDS: dict[str, str] = {
     Chip.WILDCARD: "wildcard",
     Chip.FREE_HIT: "freehit",
@@ -364,10 +352,8 @@ def make_transfers(
     been.
 
     Args:
-        skip_check: Post without asking. Ignored under `dry_run`, which never
-            posts and so has nothing to ask about.
-        dry_run: Build and show the payload, post nothing. The only way to see
-            exactly what would be sent without sending it.
+        skip_check: Post without asking. Ignored under `dry_run`.
+        dry_run: Build and show the payload, post nothing.
     """
     suggestions = get_gw_transfer_suggestions(fpl_team_id)
     if not suggestions:
