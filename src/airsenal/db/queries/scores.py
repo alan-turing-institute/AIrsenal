@@ -29,8 +29,7 @@ def get_last_complete_gameweek_of_player_scores_in_db(
     The counterpart to `get_last_complete_gameweek_in_db`, which answers the same
     question for the result table. The two are separate because they are filled by
     separate calls that commit separately: a failure between them leaves the player
-    scores behind the results, and a single results-derived high-water mark would
-    call that up to date and never fetch them.
+    scores behind the results.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     scored = (
@@ -94,12 +93,7 @@ def get_player_scores(
 def get_player_scores_for_gameweeks(
     gameweeks: Sequence[int], season: str, dbsession: Session | None = None
 ) -> list[PlayerScore]:
-    """
-    Every recorded performance in the given gameweeks of a season.
-
-    What a backtest scores a fitted player model against; empty when those
-    gameweeks have not been played.
-    """
+    """Every recorded performance in the given gameweeks of a season."""
     dbsession = dbsession if dbsession is not None else get_session()
     return list(
         dbsession.scalars(

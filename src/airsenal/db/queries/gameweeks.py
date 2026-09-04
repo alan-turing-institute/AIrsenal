@@ -16,8 +16,6 @@ from airsenal.game.season import CURRENT_SEASON
 
 if TYPE_CHECKING:
     # Annotation only, and quoted at every use: db must not import the HTTP client.
-    # A caller supplies a fetcher when the database has no fixtures to work the
-    # gameweek out from.
     from airsenal.remote.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
@@ -64,9 +62,7 @@ def next_gameweek(fetcher: "FPLDataFetcher | None" = None) -> int:
 
     Only the current season has a next gameweek: a replay of a past one is told
     which gameweek it is up to. The answer is worked out once and then held for the
-    lifetime of the process, so that a run gets one throughout - the transfer
-    optimiser reads this inside its search, and a value that changed mid-run, across
-    a deadline say, would make earlier and later decisions disagree. Worked out from
+    lifetime of the process, so that a run gets one throughout. Worked out from
     the default database, and dropped by `clear_query_caches` when something writes
     what it reads or points the package at another database.
 
@@ -106,8 +102,6 @@ def next_gameweek(fetcher: "FPLDataFetcher | None" = None) -> int:
                 earliest_future_gameweek += 1
     else:
         # No fixtures in the database, so we cannot work this out locally.
-        # Falling back to the API has to be asked for explicitly, so that nothing
-        # makes an HTTP request just by calling this.
         if fetcher is None:
             msg = (
                 f"No fixtures in the database for {CURRENT_SEASON}, so the next "
@@ -261,10 +255,7 @@ def get_gameweeks_array(
     """
     The given gameweeks, minus any past the end of the season.
 
-    `gameweek_end` is inclusive, which is what `--gameweek-end` says it is
-    ("Last gameweek to cover") and what `airsenal replay` has always meant by
-    it. This was exclusive, so `--gameweek-start 5 --gameweek-end 10` covered
-    five gameweeks under `optimize` and `predict` and six under `replay`.
+    `gameweek_end` is inclusive.
 
     Raises:
         ValueError: None of them are still to be played.
@@ -283,9 +274,6 @@ def get_gameweeks_array(
         gameweek_start = next_gameweek()
     if gameweek_end is None:
         if n_gameweeks is None:
-            # How far ahead to look by default is a decision about a run, not
-            # about the gameweek table; it lives in pipeline/settings.py. This
-            # function does the arithmetic and has to be told the window.
             msg = "Specify how many gameweeks to cover, or which gameweek to stop at"
             raise RuntimeError(msg)
         gameweek_end = gameweek_start + n_gameweeks - 1

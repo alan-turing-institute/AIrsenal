@@ -27,8 +27,8 @@ def get_fixtures_for_player(
     """
     A player's upcoming fixtures, by player id or name.
 
-    Without `gameweeks`: the rest of the season for the current one, and the
-    whole season for a past one.
+    Without `gameweeks`: the rest of the season for the current one, must be specified
+    for past seasons.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str):  # given a player name
@@ -223,9 +223,8 @@ def get_player_team_from_fixture(
     """
     The team a player turned out for, identified by opponent or by venue.
 
-    Args:
-        player_at_home: Answers on its own, without consulting the opponent. At
-            least one of the two is required.
+    One of `opponent` or `player_at_home` must be specified. If both are given, they
+    must be consistent with the fixture.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if opponent is None and player_at_home is None:
