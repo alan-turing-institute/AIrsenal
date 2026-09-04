@@ -4,12 +4,62 @@ from typing import Annotated
 
 import typer
 
-from airsenal.cli.diagnostics import print_env
-from airsenal.core.env import AIRSENAL_ENV_KEYS, delete_env, get_env, save_env
+from airsenal import __version__
+from airsenal.core.env import (
+    AIRSENAL_ENV_KEYS,
+    AIRSENAL_HOME,
+    SECRET_ENV_KEYS,
+    delete_env,
+    get_env,
+    save_env,
+)
+from airsenal.core.logging import get_logger
+from airsenal.db.engine import get_connection_string
+
+logger = get_logger(__name__)
 
 app = typer.Typer(
     no_args_is_help=True, help="Configure AIrsenal environment variables."
 )
+
+
+def redact_db_password(conn_str: str) -> str:
+    """
+    Replace the password in a connection string with `***`.
+
+    Only postgres URLs carry one; a SQLite path is returned unchanged. Anything
+    that does not parse as `postgresql://user:password@host/db` is also returned
+    unchanged, so this is safe to print but is not a guarantee that an
+    unrecognised string holds no secret.
+    """
+    if conn_str.startswith("postgresql://"):
+        # Format: postgresql://user:password@host/dbname
+        prefix = "postgresql://"
+        rest = conn_str[len(prefix) :]
+        if "@" in rest:
+            creds, host_db = rest.split("@", 1)
+            if ":" in creds:
+                user, _ = creds.split(":", 1)
+                return f"{prefix}{user}:***@{host_db}"
+    return conn_str
+
+
+def print_env() -> None:
+    """
+    Show what AIrsenal is configured with, without printing any credential.
+
+    Values named in `SECRET_ENV_KEYS` are reported as set or not rather than
+    echoed - the connection string two lines up is redacted for the same reason,
+    and dumping `FPL_PASSWORD` underneath it would undo that. `airsenal env get
+    FPL_PASSWORD` still shows one secret when it is asked for by name.
+    """
+    logger.info("AIRSENAL_VERSION: %s", __version__)
+    logger.info("AIRSENAL_HOME: %s", AIRSENAL_HOME)
+    conn_str = get_connection_string()
+    logger.info("DB_CONNECTION_STRING: %s", redact_db_password(conn_str))
+    for k in AIRSENAL_ENV_KEYS:
+        if value := get_env(k, str):
+            logger.info("%s: %s", k, "***" if k in SECRET_ENV_KEYS else value)
 
 
 @app.command()
