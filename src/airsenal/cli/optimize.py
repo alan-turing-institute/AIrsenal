@@ -137,14 +137,7 @@ def _check_gameweek_args(gameweek_start: int | None, gameweek_end: int | None) -
 
 
 def _optimize(pipeline: AIrsenalPipeline, tag: str | None, is_replay: bool) -> None:
-    """
-    Resolve the window and the tag, then hand both to the pipeline.
-
-    Both commands go through `AIrsenalPipeline` rather than calling the
-    optimizers themselves, so there is one place that resolves a gameweek window,
-    one that decides whether to build a squad or transfer into one, and one that
-    refuses a prediction tag which does not cover the window.
-    """
+    """Resolve the window and the tag, then hand both to the pipeline."""
     season = pipeline.settings.season
     fpl_team_id = require_fpl_team_id(pipeline.settings.fpl_team_id)
     gameweeks = pipeline.gameweeks()
@@ -231,7 +224,7 @@ def _run_squad_optimization(
     """Generate an initial squad using prediction data."""
     season = season or CURRENT_SEASON
     if gameweek_start is None and season != CURRENT_SEASON:
-        # a past season has no next gameweek to start from, so start at the top
+        # a past season has no next gameweek to start from, so start at the beginning
         gameweek_start = 1
     _optimize(
         AIrsenalPipeline(
@@ -256,7 +249,6 @@ def _run_squad_optimization(
                 refresh_database=False,
             ),
         ),
-        # `optimize squad` has never taken --tag
         None,
         is_replay,
     )

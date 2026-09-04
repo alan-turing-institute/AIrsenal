@@ -58,12 +58,6 @@ app.command()(plot)
 
 
 def main_cli() -> None:
-    """
-    Entry point: report an unusable model or option as a bad option.
-
-    Without this, `--set-player nope=1` exits with a full traceback, which reads
-    as a crash rather than as "you typed something I do not recognise".
-    """
     try:
         app()
     except ConfigError as e:

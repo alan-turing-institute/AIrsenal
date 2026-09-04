@@ -27,8 +27,7 @@ from airsenal.prediction.player_models import PLAYER_MODELS
 from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL as _DEFAULT_TEAM_MODEL
 from airsenal.prediction.team_models import TEAM_MODELS
 
-# Rich help panels, so a command with seventeen options is grouped rather than
-# listed as one flat block.
+# Rich help panels, so commands can be grouped rather than listed as one flat block.
 DATABASE = "Database"
 PREDICTION = "Prediction"
 OPTIMISATION = "Optimisation"

@@ -27,10 +27,8 @@ def redact_db_password(conn_str: str) -> str:
     """
     Replace the password in a connection string with `***`.
 
-    Only postgres URLs carry one; a SQLite path is returned unchanged. Anything
-    that does not parse as `postgresql://user:password@host/db` is also returned
-    unchanged, so this is safe to print but is not a guarantee that an
-    unrecognised string holds no secret.
+    Only postgres URLs that parse as `postgresql://user:password@host/db` are redacted.
+    Other connection strings are left unchanged and may contain secrets.
     """
     if conn_str.startswith("postgresql://"):
         # Format: postgresql://user:password@host/dbname
@@ -49,9 +47,8 @@ def print_env() -> None:
     Show what AIrsenal is configured with, without printing any credential.
 
     Values named in `SECRET_ENV_KEYS` are reported as set or not rather than
-    echoed - the connection string two lines up is redacted for the same reason,
-    and dumping `FPL_PASSWORD` underneath it would undo that. `airsenal env get
-    FPL_PASSWORD` still shows one secret when it is asked for by name.
+    echoed. `airsenal env get FPL_PASSWORD` still shows one secret when it is asked for
+    by name.
     """
     logger.info("AIRSENAL_VERSION: %s", __version__)
     logger.info("AIRSENAL_HOME: %s", AIRSENAL_HOME)
