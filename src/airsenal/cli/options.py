@@ -43,9 +43,6 @@ FplTeamId = Annotated[
 ]
 
 Season = Annotated[str, typer.Option(help="Season in the form 2526.")]
-
-# `optimize squad` resolves None differently from the current season: it can
-# be asked to build a squad for a past season it is back-testing.
 OptionalSeason = Annotated[str | None, typer.Option(help="Season in the form 2526.")]
 
 Tag = Annotated[
@@ -55,8 +52,6 @@ Tag = Annotated[
 
 # --------------------------------------------------------- gameweek window ---
 
-# The flag name is pinned rather than derived from the parameter name: the flag
-# is public, the parameter is not, so they are free to differ.
 WeeksAhead = Annotated[
     int,
     typer.Option("--weeks-ahead", min=1, help="Number of gameweeks to look ahead."),
@@ -73,7 +68,6 @@ SquadWeeksAhead = Annotated[
     int,
     typer.Option(
         "--weeks-ahead",
-        "--num-gameweeks",
         min=1,
         help="Number of gameweeks to look ahead.",
     ),
