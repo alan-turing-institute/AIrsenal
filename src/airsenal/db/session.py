@@ -1,10 +1,7 @@
-"""Lazily-created engine and sessions.
-
-Nothing here runs at import: see tests/test_import_side_effects.py.
-"""
+"""Lazily-created engine and sessions. Nothing here runs at import."""
 
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
@@ -108,7 +105,7 @@ def configure_database(connection_string: str | None = None) -> None:
 
 
 @contextmanager
-def session_scope() -> Iterator[Session]:
+def session_scope() -> Generator[Session]:
     """Provide a transactional scope around a series of operations."""
     dbsession = create_session()
     try:

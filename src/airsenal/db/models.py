@@ -1,9 +1,4 @@
-"""
-The SQLAlchemy models: every table in the AIrsenal database.
-
-One module rather than a package, because the tables share the column
-annotations defined at the top and are one subject.
-"""
+"""The SQLAlchemy models: every table in the AIrsenal database."""
 
 from typing import Annotated
 
@@ -14,7 +9,6 @@ from airsenal.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Common type annotations using PEP 593 Annotated
 intpk = Annotated[int, mapped_column(primary_key=True)]
 str100 = Annotated[str, mapped_column(String(100))]
 str4 = Annotated[str, mapped_column(String(4))]
@@ -294,10 +288,6 @@ class PlayerAttributes(Base):
 
 class Absence(Base):
     __tablename__ = "absence"
-    # Read once per player per season while predicting a past season, which is
-    # every gameweek of a replay. Note `create_all` does not alter a table that
-    # already exists, so a database made before this was added will not have it
-    # until it is rebuilt.
     __table_args__ = (Index("ix_absence_season_player", "season", "player_id"),)
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     player: Mapped["Player"] = relationship(back_populates="absences")
@@ -305,10 +295,6 @@ class Absence(Base):
     season: Mapped[str100]
     reason: Mapped[str100]  # high-level, e.g. injury/suspension
     details: Mapped[str100_optional]
-    # ISO-8601 dates ("2025-08-16") held as text, not DATE columns. Changing the
-    # column type would need a migration, and this repo has no Alembic: create_all
-    # does not alter existing tables, so sqlite and postgres users alike would keep
-    # the VARCHAR columns their database already has.
     date_from: Mapped[str100]
     date_until: Mapped[str100_optional]
     # Half-open: the first gameweek missed, and the gameweek the player returned
@@ -402,10 +388,6 @@ class PlayerScore(Base):
 
 class PlayerPrediction(Base):
     __tablename__ = "player_prediction"
-    # Read once per player per tag by the transfer search. A single season's tag
-    # is small enough to scan, but a replay leaves one tag per gameweek in the
-    # same table and every lookup then scans all of them. As with `Absence`,
-    # `create_all` does not alter a table that already exists.
     __table_args__ = (Index("ix_player_prediction_tag_player", "tag", "player_id"),)
     id: Mapped[intpk] = mapped_column(autoincrement=True)
     fixture: Mapped["Fixture"] = relationship()

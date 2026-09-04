@@ -388,7 +388,7 @@ def get_max_matches_per_player(
     dbsession: Session | None = None,
 ) -> int:
     """
-    The most matches any player in the season played, used to size a frame.
+    The most matches any player in the season played.
 
     Callers building a per-player, per-match array pad to this so the result is
     rectangular rather than ragged.

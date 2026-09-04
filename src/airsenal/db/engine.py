@@ -1,9 +1,7 @@
 """
 Resolving which database to talk to.
 
-The settings are read through the `env` module rather than copied out of it, so
-that a value replaced after import - by `airsenal env set`, or by the test
-suite pointing at a temporary directory - is the one used.
+The settings are read through the `env` module.
 """
 
 from airsenal.core import env
