@@ -248,7 +248,7 @@ class TransferSearchRequest:
     squad_optimizer: "SquadOptimizer | None" = None
 
     @property
-    def num_gameweeks(self) -> int:
+    def n_gameweeks(self) -> int:
         return len(self.gameweeks)
 
 

@@ -52,25 +52,14 @@ Tag = Annotated[
 
 # --------------------------------------------------------- gameweek window ---
 
-WeeksAhead = Annotated[
+NGameweeks = Annotated[
     int,
-    typer.Option("--weeks-ahead", min=1, help="Number of gameweeks to look ahead."),
+    typer.Option("--n-gameweeks", min=1, help="Number of gameweeks to look ahead."),
 ]
 
-OptionalWeeksAhead = Annotated[
+OptionalNGameweeks = Annotated[
     int | None,
-    typer.Option("--weeks-ahead", min=1, help="Number of gameweeks to look ahead."),
-]
-
-# `optimize squad` has always spelled this --num-gameweeks; that keeps working,
-# but --weeks-ahead is what every other command uses.
-SquadWeeksAhead = Annotated[
-    int,
-    typer.Option(
-        "--weeks-ahead",
-        min=1,
-        help="Number of gameweeks to look ahead.",
-    ),
+    typer.Option("--n-gameweeks", min=1, help="Number of gameweeks to look ahead."),
 ]
 
 GameweekStart = Annotated[int | None, typer.Option(help="First gameweek to cover.")]

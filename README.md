@@ -195,7 +195,7 @@ The next step is to predict the expected points for all players for the next fix
 This is done using the command
 
 ```shell
-airsenal predict --weeks-ahead 3
+airsenal predict --n-gameweeks 3
 ```
 
 Predicting the next 3 gameweeks of fixtures is the default but this can be configured with the argument above.
@@ -205,7 +205,7 @@ Predicting the next 3 gameweeks of fixtures is the default but this can be confi
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 
 ```shell
-airsenal optimize transfers --weeks-ahead 3
+airsenal optimize transfers --n-gameweeks 3
 ```
 
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with `--wildcard-week <GW>`, `--free-hit-week <GW>`, `--triple-captain-week <GW>` and `--bench-boost-week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or `0` to try every gameweek).
@@ -213,7 +213,7 @@ This will take a while, but should eventually provide a printout of the optimal 
 Note that `airsenal optimize transfers` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 
 ```shell
-airsenal optimize squad --num-gameweeks 3
+airsenal optimize squad --n-gameweeks 3
 ```
 
 ### 5. Apply Transfers and Lineup

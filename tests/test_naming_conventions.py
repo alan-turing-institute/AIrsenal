@@ -35,11 +35,24 @@ BANNED_PARAMETERS = {
     "gameweek_range": "gameweeks",
     "weeks_ahead": "n_gameweeks",
     "num_gameweeks": "n_gameweeks",
+    "gw_ahead": "n_gameweeks",
+    "num_weeks": "n_gameweeks",
     "pred_tag": "prediction_tag",
     "num_match_to_use": "n_matches_to_use",
     "n_games_to_use": "n_matches_to_use",
     "apifetcher": "fetcher",
 }
+
+
+def squashed(name):
+    """A name with the separators taken out, so spellings of it compare equal."""
+    return name.lower().replace("_", "").replace("-", "")
+
+
+# The same names in every other spelling. A count of gameweeks was `weeks_ahead`
+# as a parameter, `WeeksAhead` as an option type, `num_gameweeks` as a property
+# and `--weeks-ahead` as a flag, and only the first was checked.
+BANNED_SPELLINGS = {squashed(old): new for old, new in BANNED_PARAMETERS.items()}
 
 
 def source_files():
@@ -70,6 +83,40 @@ def test_no_banned_parameter_names(path):
         for node in functions_in(path)
         for arg in parameters_of(node)
         if arg.arg in BANNED_PARAMETERS
+    ]
+    assert not offenders, "\n".join(offenders)
+
+
+def named_nodes(tree):
+    """Every name a module introduces, and the CLI flags it spells out."""
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+            yield node.name, node.lineno
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            yield node.id, node.lineno
+        elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store):
+            yield node.attr, node.lineno
+        elif (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and node.value.startswith("--")
+        ):
+            yield node.value, node.lineno
+
+
+@pytest.mark.parametrize("path", source_files(), ids=lambda p: str(p.relative_to(SRC)))
+def test_no_banned_names_in_any_spelling(path):
+    """
+    A banned name stays banned as a type alias, a property or a flag.
+
+    `test_no_banned_parameter_names` above reads parameters only, which is how a
+    count of gameweeks came to be spelled four ways at once.
+    """
+    offenders = [
+        f"{path.relative_to(SRC)}:{lineno} {name} "
+        f"- use {BANNED_SPELLINGS[squashed(name)]}"
+        for name, lineno in named_nodes(ast.parse(path.read_text()))
+        if squashed(name) in BANNED_SPELLINGS
     ]
     assert not offenders, "\n".join(offenders)
 

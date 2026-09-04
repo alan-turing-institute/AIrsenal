@@ -165,7 +165,7 @@ def next_week_transfers(
 
 
 def count_expected_outputs(
-    gw_ahead: int,
+    n_gameweeks: int,
     next_gw: int | None = None,
     free_transfers: int = 1,
     max_total_hit: int | None = None,
@@ -175,7 +175,7 @@ def count_expected_outputs(
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> tuple[int, bool]:
     """
-    Count the strategies a search over `gw_ahead` gameweeks will visit.
+    Count the strategies a search over `n_gameweeks` gameweeks will visit.
 
     Counted rather than enumerated, because this is what sizes the progress bar
     before the tree is built. Each chip may be played at most once.
@@ -201,7 +201,7 @@ def count_expected_outputs(
         (free_transfers, 0, ())
     ]
 
-    for gw in range(next_gw, next_gw + gw_ahead):
+    for gw in range(next_gw, next_gw + n_gameweeks):
         new_branches = []
         for ft, hit, moves in branches:
             possibilities = next_week_transfers(
@@ -228,7 +228,7 @@ def count_expected_outputs(
     # transfers, which the search reaches by forcing at least one transfer and then
     # being allowed none. Doing nothing is still a plan, so the answer is the
     # baseline on its own rather than an IndexError from inside the progress sizing.
-    baseline_moves = (GameweekMove(),) * gw_ahead
+    baseline_moves = (GameweekMove(),) * n_gameweeks
     baseline_excluded = not branches or branches[0][2] != baseline_moves
     if baseline_excluded:
         branches.insert(0, (max_free_transfers, 0, baseline_moves))
@@ -488,11 +488,11 @@ def search_transfer_tree(
     # workers put finished plans here for the parent to compare
     result_queue: Queue[Plan | None] = Queue()
     procs = []
-    # number of nodes in tree will be something like 3^num_weeks unless we allow
+    # number of nodes in tree will be something like 3^n_gameweeks unless we allow
     # a "chip" such as wildcard or free hit, in which case it gets complicated
-    num_weeks = len(gameweeks)
+    n_gameweeks = len(gameweeks)
     num_expected_outputs, baseline_excluded = count_expected_outputs(
-        num_weeks,
+        n_gameweeks,
         next_gw=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=constraints.max_total_hit,

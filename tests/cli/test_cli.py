@@ -15,7 +15,7 @@ def test_run_help():
 
     assert result.exit_code == 0
     assert "Run the full AIrsenal pipeline." in result.stdout
-    assert "--weeks-ahead" in result.stdout
+    assert "--n-gameweeks" in result.stdout
 
 
 def test_db_help():

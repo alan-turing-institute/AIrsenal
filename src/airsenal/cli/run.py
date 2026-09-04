@@ -29,7 +29,7 @@ from airsenal.squad.squad import SubWeights
 
 def run(
     fpl_team_id: options.FplTeamId = None,
-    n_gameweeks: options.WeeksAhead = DEFAULT_N_GAMEWEEKS,
+    n_gameweeks: options.NGameweeks = DEFAULT_N_GAMEWEEKS,
     gameweek_start: options.GameweekStart = None,
     # --- database ---
     clean: options.Clean = False,

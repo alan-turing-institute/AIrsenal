@@ -37,7 +37,7 @@ app = typer.Typer(
 
 @app.command()
 def transfers(
-    n_gameweeks: options.OptionalWeeksAhead = None,
+    n_gameweeks: options.OptionalNGameweeks = None,
     gameweek_start: options.GameweekStart = None,
     gameweek_end: options.GameweekEnd = None,
     tag: options.Tag = None,
@@ -94,7 +94,7 @@ def transfers(
 
 @app.command()
 def squad(
-    n_gameweeks: options.SquadWeeksAhead = DEFAULT_N_GAMEWEEKS,
+    n_gameweeks: options.NGameweeks = DEFAULT_N_GAMEWEEKS,
     gameweek_start: options.GameweekStart = None,
     season: options.OptionalSeason = None,
     fpl_team_id: options.FplTeamId = None,

@@ -40,7 +40,7 @@ def replay(
     gameweek_end: Annotated[
         int | None, typer.Option(help="Last gameweek to replay.")
     ] = None,
-    n_gameweeks: options.WeeksAhead = DEFAULT_N_GAMEWEEKS,
+    n_gameweeks: options.NGameweeks = DEFAULT_N_GAMEWEEKS,
     fpl_team_id: options.FplTeamId = None,
     resume: Annotated[
         bool, typer.Option(help="Resume an existing replay team.")

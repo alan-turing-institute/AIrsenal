@@ -12,7 +12,7 @@ from airsenal.reporting.top_players import get_top_predicted_points
 
 
 def predict(
-    n_gameweeks: options.OptionalWeeksAhead = None,
+    n_gameweeks: options.OptionalNGameweeks = None,
     gameweek_start: options.GameweekStart = None,
     gameweek_end: options.GameweekEnd = None,
     season: options.Season = CURRENT_SEASON,
