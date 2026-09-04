@@ -21,6 +21,11 @@ from airsenal.optimization.moves import ChipWeeks
 # run, so it lives here with the rest of them rather than in the query layer.
 DEFAULT_N_GAMEWEEKS = 3
 
+# How many past seasons a fresh database is filled with when nothing says
+# otherwise. Named because `airsenal db create` and `airsenal run` both offer it
+# as a flag and neither owns it.
+DEFAULT_N_PREVIOUS = 3
+
 
 class StaleDatabase(Enum):
     """What to do when the database could not be brought up to date."""
@@ -38,7 +43,7 @@ class DatabaseSettings:
     """Which seasons the database is built from, and whether to rebuild it."""
 
     clean: bool = False
-    n_previous: int = 3
+    n_previous: int = DEFAULT_N_PREVIOUS
     include_current_season: bool = True
 
     def seasons(self) -> list[str]:

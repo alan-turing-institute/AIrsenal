@@ -117,6 +117,7 @@ def test_next_week_transfers_any_chip_no_constraints():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=2,
             chips=GameweekChips(
                 chips_allowed=(
@@ -152,6 +153,7 @@ def test_next_week_transfers_any_chip_no_constraints_max5():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=5,
             chips=GameweekChips(
                 chips_allowed=(
@@ -292,6 +294,7 @@ def test_next_week_transfers_chips_already_used():
             hit_so_far,
             chips_played,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=2,
             # every chip is allowed this week, but all of them are already spent
             chips=GameweekChips(
@@ -315,6 +318,7 @@ def test_next_week_transfers_play_wildcard():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=2,
             chips=GameweekChips(Chip.WILDCARD),
         )
@@ -330,6 +334,7 @@ def test_next_week_transfers_2ft_allow_wildcard():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=2,
             chips=GameweekChips(chips_allowed=(Chip.WILDCARD,)),
             max_free_transfers=2,
@@ -346,6 +351,7 @@ def test_next_week_transfers_5ft_allow_wildcard():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=5,
             chips=GameweekChips(chips_allowed=(Chip.WILDCARD,)),
             max_free_transfers=5,
@@ -387,6 +393,7 @@ def test_next_week_transfers_2ft_play_wildcard():
             free_transfers,
             hit_so_far,
             max_total_hit=None,
+            allow_unused_transfers=True,
             max_opt_transfers=2,
             chips=GameweekChips(Chip.WILDCARD),
         )
@@ -473,6 +480,7 @@ def test_count_expected_outputs_no_chips_zero_hit():
         free_transfers=1,
         max_total_hit=0,
         next_gw=1,
+        allow_unused_transfers=True,
         max_opt_transfers=2,
         chip_schedule=ChipSchedule(),
     )
@@ -491,6 +499,7 @@ def test_count_expected_outputs_no_chips_zero_hit_max5():
         free_transfers=1,
         max_total_hit=0,
         next_gw=1,
+        allow_unused_transfers=True,
         max_opt_transfers=5,
         chip_schedule=ChipSchedule(),
     )

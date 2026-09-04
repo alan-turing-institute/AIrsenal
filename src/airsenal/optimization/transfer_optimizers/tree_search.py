@@ -41,6 +41,8 @@ from airsenal.optimization.plan import (
     baseline_plan,
 )
 from airsenal.optimization.protocols import (
+    DEFAULT_MAX_OPT_TRANSFERS,
+    DEFAULT_NUM_ITERATIONS,
     ProgressResetter,
     ProgressUpdater,
     TransferRequest,
@@ -90,8 +92,8 @@ def next_week_transfers(
     hit_so_far: int,
     chips_played: Iterable[Chip | None] = (),
     max_total_hit: int | None = None,
-    allow_unused_transfers: bool = True,
-    max_opt_transfers: int = 2,
+    allow_unused_transfers: bool = False,
+    max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
     chips: GameweekChips | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> list[tuple[GameweekMove, int, int, int]]:
@@ -167,8 +169,8 @@ def count_expected_outputs(
     next_gw: int | None = None,
     free_transfers: int = 1,
     max_total_hit: int | None = None,
-    allow_unused_transfers: bool = True,
-    max_opt_transfers: int = 2,
+    allow_unused_transfers: bool = False,
+    max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
     chip_schedule: ChipSchedule | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> tuple[int, bool]:
@@ -244,7 +246,7 @@ class TreeSearchConfig:
     """
 
     num_thread: int = 4
-    num_iterations: int = 100
+    num_iterations: int = DEFAULT_NUM_ITERATIONS
     profile: bool = False
     strategies: StrategySet = field(default_factory=lambda: DEFAULT_STRATEGIES)
 

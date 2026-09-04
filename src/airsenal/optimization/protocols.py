@@ -28,6 +28,13 @@ from airsenal.optimization.plan import TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
+# How many candidate squads to consider when a move rebuilds the whole squad,
+# and how many transfers a strategy may make in one gameweek, when nothing says
+# otherwise. Beside the settings they are the defaults for: `TransferRequest`
+# and `TransferConstraints` below, and the tree search's own signatures.
+DEFAULT_NUM_ITERATIONS = 100
+DEFAULT_MAX_OPT_TRANSFERS = 2
+
 
 class ProgressUpdater(Protocol):
     """
@@ -80,7 +87,7 @@ class TransferRequest:
     gameweeks: list[int]
     root_gw: int
     season: str
-    num_iterations: int = 100
+    num_iterations: int = DEFAULT_NUM_ITERATIONS
     # How a squad is scored, so that a strategy weighs the bench the same way the
     # squad builder does. Must be set on every transfer path, or a flag like
     # --no-subs reaches one optimizer and not the other.
@@ -215,7 +222,7 @@ class TransferConstraints:
 
     max_total_hit: int | None = None
     allow_unused_transfers: bool = False
-    max_opt_transfers: int = 2
+    max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS
     max_free_transfers: int = MAX_FREE_TRANSFERS
 
 
