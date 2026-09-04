@@ -1,21 +1,9 @@
-"""
-Locating the packaged historical data.
-
-Resolve paths into `src/airsenal/data` through here rather than by joining onto
-`__file__`, which only works while the calling module sits at one particular
-depth.
-
-Paths come back as `Path` rather than `Traversable` because several of these
-files are written as well as read - refreshing a season's data is a dev-time job
-in a checkout.
-"""
+"""Locating the packaged historical data."""
 
 import os
 from importlib.resources import files
 from pathlib import Path
 
-# Anything open() accepts - callers pass either a data_file() Path or their own
-# string path, and neither should have to convert for the other.
 FilePath = str | os.PathLike[str]
 
 PACKAGE = "airsenal"
@@ -42,7 +30,6 @@ def absences_file(season: str) -> Path:
     The absences CSV for a season.
 
     Named here rather than in `ingest/absences.py` because `export/absences.py`
-    writes the same file, and reaching down into the ingest module for the path
-    was the only thing making export depend on ingest.
+    writes the same file.
     """
     return data_file(f"absences_{season}.csv")

@@ -151,13 +151,8 @@ def confirm(question: str, default: bool = True) -> bool:
     """
     Ask a yes/no question at the terminal.
 
-    Here rather than inline at the call site so that the code doing the asking
-    stays callable from a test, which a bare input() does not.
-
     Args:
-        default: What an empty answer, or anything unrecognised, means. Pass
-            False for anything irreversible - applying transfers to the real FPL
-            entry - so that only an explicit yes goes ahead.
+        default: What an empty answer, or anything unrecognised, means.
     """
     suffix = "[Y/n]" if default else "[y/N]"
     answer = input(f"{question} {suffix} ").strip().lower()

@@ -8,9 +8,7 @@ from typing import Concatenate
 from platformdirs import user_data_dir
 
 # Cross-platform data directory. Resolved at import (it cannot change within a
-# process) but *not* created: practically every module imports this one
-# transitively, so creating it here would mean importing anything at all creates
-# a directory. Call `airsenal_home()` when you are about to write.
+# process) but *not* created: Call `airsenal_home()` when you are about to write.
 if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
@@ -36,8 +34,7 @@ AIRSENAL_ENV_KEYS = [
 ]
 
 # The subset of the above that is a credential rather than a setting. `airsenal env
-# get` with no argument dumps every configured value, and a password or a webhook
-# URL in that output outlives the terminal it was printed to.
+# get` with no argument dumps every configured value but redacts these
 SECRET_ENV_KEYS = frozenset(
     {
         "FPL_PASSWORD",

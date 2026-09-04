@@ -1,4 +1,4 @@
-"""Date and datetime parsing helpers. Pure: no database, no network."""
+"""Date and datetime parsing helpers."""
 
 from datetime import date, datetime
 from functools import lru_cache

@@ -19,9 +19,7 @@ from airsenal.core.console import console
 _LOGGER_NAME = "airsenal"
 
 # Where a forked child should send its log records, while this process owns a
-# live display. Empty means "write them yourself", which is the normal case. A
-# one-element stack rather than a plain name, because a child reads it after the
-# fork and rebinding a module-level name from inside a function needs `global`.
+# live display. Empty means "write them yourself", which is the normal case.
 _relay_queues: "list[Queue[logging.LogRecord | None]]" = []
 
 
@@ -79,8 +77,7 @@ def relay_child_logs() -> Generator[None]:
 
     Records put on the queue are emitted here instead, through the handler that
     knows how to print above a live display. Identical messages are emitted
-    once: every worker is looking at the same database, so a condition worth
-    warning about is one all of them hit, and one copy is the news.
+    once.
 
     Only children forked *inside* the block are redirected, and only on
     platforms that fork - which is how the search starts its workers.
