@@ -66,12 +66,7 @@ class GameweekMove:
         return self.chip is not Chip.FREE_HIT
 
     def label(self) -> str:
-        """
-        The short form used in strategy ids and in the suggestion table.
-
-        This is a wire format: it is written into `TransferSuggestion` rows and
-        displayed to users, so the letters cannot change.
-        """
+        """The short form used in strategy ids and in the suggestion table."""
         if self.chip is None:
             return str(self.n_transfers)
         if self.chip in _SQUAD_CHIP_LABELS:
@@ -84,8 +79,7 @@ class GameweekMove:
         Read back a `label()`.
 
         Only needed for tests and for suggestion rows read back out of the
-        database - the search itself passes `GameweekMove` objects around and
-        never round-trips through text.
+        database - the search itself passes `GameweekMove` objects around.
         """
         if isinstance(label, int):
             return cls(label)
@@ -145,9 +139,7 @@ class ChipSchedule:
         Build a schedule from the per-chip week numbers the CLI takes.
 
         `chip_weeks` maps a chip to -1 (never play it), 0 (consider it in any
-        gameweek), or a gameweek number (definitely play it then). A `ChipWeeks`
-        is the shape production passes; a plain mapping is accepted so a caller
-        naming one chip does not have to spell out the other three.
+        gameweek), or a gameweek number (definitely play it then).
         """
         gameweeks = list(gameweeks)
         pairs = chip_weeks.items()
@@ -186,13 +178,7 @@ def calc_free_transfers(
     prev_free_transfers: int,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
 ) -> int:
-    """
-    How many free transfers are available the gameweek after `move`.
-
-    The `GameweekMove`-shaped face of `game.scoring.free_transfers_after`, which
-    is where the rule itself lives so that the search and `squad/state.py` cannot
-    drift apart on it.
-    """
+    """How many free transfers are available the gameweek after `move`."""
     return free_transfers_after(
         move.n_transfers,
         prev_free_transfers,
@@ -206,9 +192,7 @@ class ChipWeeks:
     """
     Which gameweek to play each chip in, as the CLI takes it.
 
-    -1 never, 0 any week the search likes, n that week. Beside `ChipSchedule`
-    because that is what reads it: this is the request, the schedule is the
-    per-gameweek answer.
+    -1 never, 0 any week the search likes, n that week.
     """
 
     wildcard: int = -1

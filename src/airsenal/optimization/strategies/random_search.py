@@ -46,8 +46,7 @@ def make_random_transfers(
 
     Each iteration drops `nsubs` players and fills their places from the
     candidates for those positions. Both draws use a triangular distribution
-    with its mode at index 0, so the front of each list comes up most often
-    rather than the search only ever trying the top few.
+    with its mode at index 0, so the front of each list comes up most often.
     """
     best_score = -1.0
     best_squad = None
@@ -80,9 +79,7 @@ def make_random_transfers(
 
         positions_needed = []
         # The triangular draw above prefers low indices, which after the sort are
-        # the worst players - that bias is the whole point of the sort. Indexing
-        # squad.players with it instead threw the sort away and sampled the squad
-        # in whatever order it happened to be in.
+        # the worst players.
         for list_index in players_to_remove:
             player_id = player_list[list_index][0]
             positions_needed.append(squad.get_player_from_id(player_id).position)

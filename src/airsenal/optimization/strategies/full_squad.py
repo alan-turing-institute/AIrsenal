@@ -2,8 +2,7 @@
 Pick a whole new squad, as a wildcard or free hit does.
 
 Every player can change, so this hands off to a whole-squad optimizer rather
-than enumerating swaps. Which one comes off the request; the class knows only the
-`SquadOptimizer` interface.
+than enumerating swaps.
 """
 
 from dataclasses import replace
@@ -26,14 +25,7 @@ class FullSquadStrategy:
 
     @staticmethod
     def _optimizer(request: TransferRequest) -> SquadOptimizer:
-        """
-        The whole-squad optimizer this request wants, or the default.
-
-        The only place that default is resolved. Taking it off the request rather
-        than off `self` is what lets the pipeline's own `squad_optimizer` reach
-        the wildcard and free-hit path: the strategies are built by name from
-        `TRANSFER_STRATEGIES`, so a constructor argument never gets set.
-        """
+        """The whole-squad optimizer this request wants, or the default."""
         return request.squad_optimizer or GeneticSquadOptimizer()
 
     def num_increments(self, request: TransferRequest) -> int:
@@ -60,9 +52,6 @@ class FullSquadStrategy:
                 bench_boost_gw=request.bench_boost_gw,
                 triple_captain_gw=request.triple_captain_gw,
                 effort=request.num_iterations,
-                # the score so far is left out here: a worker's bar is one line among
-                # several, labelled by the strategy it is running, and the standalone
-                # squad optimisation is the one with a bar to itself to report into
                 progress=lambda _best_score: request.advance_progress(),
             )
         )

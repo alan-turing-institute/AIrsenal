@@ -1,9 +1,6 @@
 """
 The contracts the optimisation algorithms have to satisfy.
 
-There are three of them, at three different scales, and the names are close
-enough to be worth stating plainly:
-
 - `SquadOptimizer` picks fifteen players from nothing, for one gameweek window.
 - `TransferStrategy` picks one gameweek's move, starting from a squad.
 - `TransferOptimizer` picks a move for every gameweek in a range.
@@ -28,11 +25,8 @@ from airsenal.optimization.plan import TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
-# How many candidate squads to consider when a move rebuilds the whole squad,
-# how many transfers a strategy may make in one gameweek, and how many points a
-# plan may spend on them, when nothing says otherwise. Beside the settings they
-# are the defaults for: `TransferRequest` and `TransferConstraints` below, and
-# the tree search's own signatures.
+# Defaults for `TransferRequest` and `TransferConstraints` below, and the tree search's
+# own signatures.
 DEFAULT_NUM_ITERATIONS = 100
 DEFAULT_MAX_OPT_TRANSFERS = 2
 DEFAULT_MAX_TOTAL_HIT = 8
@@ -54,9 +48,7 @@ class ProgressUpdater(Protocol):
 # say, and that worker's bar runs indeterminate.
 type ProgressResetter = Callable[[int, str, int | None], None]
 
-# Called once per candidate squad a strategy considers. The strategy counts what
-# it does; how many there will be is what `Sized` reports, and turning the two
-# into a percentage is the progress bar's job.
+# Called once per candidate squad a strategy considers to handle overall progress.
 type StepCounter = Callable[[], None]
 
 
@@ -64,13 +56,9 @@ def progress_total(optimizer: object, effort: int | None = None) -> int | None:
     """
     How many steps `optimizer` will take, if it is able to say.
 
-    Sizing a progress bar is not part of doing the work, so it is not in the
-    protocols below. Give a component a `num_increments()` method and its bar is
-    exact - as every optimizer shipped here does; leave it out and the bar runs
-    indeterminate rather than the component being unwritable.
-
-    An optimizer sized by an effort budget takes it as `num_increments`' one
-    optional argument, and cannot answer without it.
+    Uses the optional `num_increments` method a component can add to size its own
+    progress bar. If a component has no way of knowing how many steps it will take,
+    the bar runs indeterminate.
     """
     num_increments = getattr(optimizer, "num_increments", None)
     if not callable(num_increments):
@@ -90,15 +78,8 @@ class TransferRequest:
     root_gw: int
     season: str
     num_iterations: int = DEFAULT_NUM_ITERATIONS
-    # How a squad is scored, so that a strategy weighs the bench the same way the
-    # squad builder does. Must be set on every transfer path, or a flag like
-    # --no-subs reaches one optimizer and not the other.
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
-    # Set only for a move that rebuilds the whole squad, which is the one kind of
-    # move a strategy cannot answer by enumerating swaps. None means the default
-    # whole-squad optimizer.
     squad_optimizer: "SquadOptimizer | None" = None
-    # called once per candidate squad considered, if anything is watching
     progress: StepCounter | None = None
 
     @property
@@ -151,8 +132,7 @@ def strategy_total(strategy: TransferStrategy, request: TransferRequest) -> int 
 
     As `progress_total`, but a strategy's cost depends on what it is being asked,
     so its `num_increments` takes the same request `propose` does. `propose`
-    advances the bar once per candidate, so the two have to agree - and asking
-    the same object both questions is what keeps them in step.
+    advances the bar once per candidate.
     """
     num_increments = getattr(strategy, "num_increments", None)
     if not callable(num_increments):
@@ -214,13 +194,7 @@ class SquadOptimizer(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class TransferConstraints:
-    """
-    What a transfer search is allowed to consider.
-
-    A field of `TransferSearchRequest`, and here beside it: exactly the knobs
-    the tree search's branch enumeration takes. One frozen object rather than
-    loose arguments, so nothing can be dropped on the way to a worker process.
-    """
+    """What a transfer search is allowed to consider."""
 
     # None is no cap at all, which a search has to be asked for explicitly.
     max_total_hit: int | None = DEFAULT_MAX_TOTAL_HIT
@@ -256,11 +230,5 @@ class TransferOptimizer(Protocol):
     """One way of choosing what to do across a range of gameweeks."""
 
     def search(self, request: TransferSearchRequest) -> TransferSearchResult:
-        """
-        The best plan this optimizer can find, and the baseline to judge it against.
-
-        `search` rather than `propose` because a `TransferStrategy` proposes too,
-        at the scale of a single gameweek, and the two are called within a few
-        lines of each other inside the search.
-        """
+        """The best plan this optimizer can find."""
         ...

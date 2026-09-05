@@ -22,8 +22,6 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-# 15 players in a squad, so 15 candidate squads to score.
-
 
 def make_optimum_single_transfer(
     squad: Squad,

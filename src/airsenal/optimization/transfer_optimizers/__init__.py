@@ -34,8 +34,7 @@ def build_transfer_optimizer(
 
     `--num-thread`, `--num-iterations` and `--profile` are the tree search's own
     settings, so they only reach the tree search; any other optimizer named here
-    starts from its own defaults. Finer configuration means constructing the
-    component in Python, which is what the protocols are for.
+    starts from its own defaults.
     """
     if name != DEFAULT_TRANSFER_OPTIMIZER:
         return lookup(TRANSFER_OPTIMIZERS, name, "transfer optimizer")()

@@ -1,14 +1,4 @@
-"""
-Writing an optimised plan into the database.
-
-These are database writes, but they take `Plan` and `Squad` arguments, so
-they cannot live in db/ without the data layer having to know what a plan
-is. They sit at the top of optimization/ instead, where both are already in
-scope.
-
-A from-scratch squad is the degenerate plan - every player in, nobody out -
-which is why each table's two entry points share a private writer.
-"""
+"""Writing an optimised plan into the database."""
 
 from collections.abc import Iterable
 from datetime import datetime
@@ -99,8 +89,6 @@ def _buy_prices(
             continue
         price = player.price(gameweek, season)
         if price is None:
-            # Transaction.price is not nullable, so recording the transfer
-            # anyway fails at flush time with an opaque integrity error.
             logger.warning(
                 "No %s price for player %s, skipping transaction", season, player_id
             )
@@ -152,9 +140,7 @@ def fill_transaction_table(
     Record an optimised plan's transfers in the transactions table.
 
     For simulating a season only: when playing the real one, the transactions
-    table is kept up to date from the FPL API instead. Only the first gameweek's
-    transfers are recorded, because the plan is re-optimised each week rather
-    than followed to the end.
+    table is kept up to date from the FPL API instead.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not best_plan.outcomes:

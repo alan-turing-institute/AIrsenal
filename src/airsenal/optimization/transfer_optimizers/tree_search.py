@@ -4,12 +4,6 @@ The multiprocess plan-tree search.
 The algorithm behind `airsenal optimize transfers`: enumerate every legal move
 for every gameweek in the window, score each resulting squad, and keep the best
 whole-window plan.
-
-Only the search itself lives here. Fetching the starting squad, persisting the
-suggestions and printing the summary stay in `run_transfers.py`, so substituting
-a different search does not mean reimplementing any of that. The progress display
-is the exception: a bar per worker sized by `count_expected_outputs` only makes
-sense for a forked tree walk.
 """
 
 import cProfile
@@ -81,10 +75,7 @@ ProgressMessage = (
 # ----------------------- enumerating the tree's branches -------------------
 #
 # Which moves are legal in the next gameweek, and how many whole-window plans
-# that adds up to. Only a tree walk asks either question, and the second is
-# only asked to size a progress bar, so both live with the search rather than
-# with `GameweekMove` - which is then a pure description of a move, with no
-# reason to reach for the database.
+# that adds up to.
 
 
 def next_week_transfers(
@@ -177,8 +168,7 @@ def count_expected_outputs(
     """
     Count the strategies a search over `n_gameweeks` gameweeks will visit.
 
-    Counted rather than enumerated, because this is what sizes the progress bar
-    before the tree is built. Each chip may be played at most once.
+    This is what sizes the progress bar before the tree is built.
 
     Args:
         max_total_hit: Points that may be spent on transfers across the whole
@@ -226,8 +216,7 @@ def count_expected_outputs(
     # `not branches` is the case where the constraints admit no move at all -
     # --max-transfers 0 with unused transfers disallowed and a full bank of free
     # transfers, which the search reaches by forcing at least one transfer and then
-    # being allowed none. Doing nothing is still a plan, so the answer is the
-    # baseline on its own rather than an IndexError from inside the progress sizing.
+    # being allowed none.
     baseline_moves = (GameweekMove(),) * n_gameweeks
     baseline_excluded = not branches or branches[0][2] != baseline_moves
     if baseline_excluded:
@@ -255,13 +244,10 @@ def _make_best_transfers(
     request: TransferRequest, strategy: TransferStrategy
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
-    Make this gameweek's move and score the squad it leaves.
+    Make this gameweek's move and score the squad it leaves. One node of the tree.
 
     Returns the squad, the transfers as {"in": [player_ids], "out":
     [player_ids]}, and the points it is expected to score next gameweek.
-
-    One node of the tree, which is why it is here: the strategy decides, and this
-    scores what it came back with the same way every other node is scored.
     """
     proposal = strategy.propose(request)
 
@@ -355,8 +341,7 @@ def optimize(
             gw = remaining_gameweeks[0]
             root_gw = plan.root_gameweek
 
-            # One request, used both to size the worker's bar and to do the work,
-            # so the two cannot disagree about what is being asked for.
+            # One request, used both to size the worker's bar and to do the work
             transfer_request = TransferRequest(
                 move=move,
                 squad=squad,
@@ -618,8 +603,7 @@ def search_transfer_tree(
         # worker cannot exit until its queue feeder threads have flushed, and
         # stopping the consumer first leaves nothing draining progress_queue
         # while p.join() waits: a worker with a full pipe can then never finish
-        # writing, and the join waits for ever. Joining first costs nothing and
-        # removes the window.
+        # writing, and the join waits for ever.
         for _ in procs:
             squeue.put(None)
         for p in procs:

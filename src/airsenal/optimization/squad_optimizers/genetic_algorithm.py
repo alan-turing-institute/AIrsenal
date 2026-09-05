@@ -1,11 +1,4 @@
-"""
-The DEAP genetic algorithm itself: pick a whole squad, generation by generation.
-
-Inside `squad_optimizers/` the way the tree search lives inside
-`transfer_optimizers/`, and the only module in the package that touches DEAP -
-which is why it is the one exempted from mypy's `disallow_untyped_calls`.
-`genetic.py` is the `SquadOptimizer` wrapper; nothing else should import this.
-"""
+"""The DEAP genetic algorithm itself: pick a whole squad, generation by generation."""
 
 import random
 from collections.abc import Callable
@@ -34,14 +27,6 @@ logger = get_logger(__name__)
 
 @dataclass(frozen=True)
 class GeneticAlgorithmConfig:
-    """
-    Settings for the search below.
-
-    Beside the algorithm they configure, the way `TreeSearchConfig` sits beside
-    the tree search: how the algorithm works is not something the pipeline or the
-    CLI has to know about.
-    """
-
     population_size: int = 100
     generations: int = 100
     crossover_prob: float = 0.7
@@ -53,20 +38,11 @@ class GeneticAlgorithmConfig:
     verbose: bool = False
 
     def scaled(self, num_iterations: int) -> "GeneticAlgorithmConfig":
-        """
-        Population and generations both set from one number.
-
-        How this optimizer reads `SquadRequest.effort`: the transfer search has a
-        single --num-iterations knob. Questionable - the two control different
-        things - but it is at least explicit here.
-        """
+        """Scale the population and generations from a single number."""
         return replace(self, population_size=num_iterations, generations=num_iterations)
 
 
-# Called after each generation, with the best fitness found so far. A generation
-# is the only unit of this search whose count is known before it starts: how many
-# individuals one evaluates depends on which of them crossover and mutation
-# touched, so only per-generation progress can be sized in advance.
+# Called after each generation, with the best fitness found so far.
 type GenerationReporter = Callable[[float], None]
 
 
@@ -76,8 +52,7 @@ def _ensure_deap_types() -> None:
 
     creator.create writes into module-level state, so calling it per SquadOpt
     instance made DEAP warn about overwriting an existing class on every
-    instantiation, and left the result dependent on which test ran first. The names
-    are prefixed to avoid colliding with any other DEAP user in the process.
+    instantiation.
     """
     if not hasattr(creator, "AirsenalFitnessMax"):
         creator.create("AirsenalFitnessMax", base.Fitness, weights=(1.0,))
@@ -110,14 +85,11 @@ class SquadOpt:
         season: str = CURRENT_SEASON,
         bench_boost_gw: int | None = None,
         triple_captain_gw: int | None = None,
-        # don't consider players with predicted pts of zero
         remove_zero: bool = True,
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
         sub_weights: SubWeights | None = None,
         dbsession: Session | None = None,
     ) -> None:
-        # Held on the optimiser, never on a Squad: a Squad crosses the
-        # multiprocessing queue and a Session cannot be pickled.
         self.dbsession = dbsession
         self.season = season
         self.gameweeks = gameweeks
@@ -321,7 +293,7 @@ class SquadOpt:
         Args:
             on_generation: Called after each generation with the best fitness so
                 far. Given one, the search is run a generation at a time so that
-                it can report; the result is the same either way.
+                it can report.
 
         Returns:
             The best individual found, and its fitness.
@@ -385,20 +357,7 @@ class SquadOpt:
         hall_of_fame: tools.HallOfFame,
         on_generation: GenerationReporter,
     ) -> None:
-        """
-        Run one generation per `eaSimple` call, reporting the best score after each.
-
-        `eaSimple` offers no hook inside its own loop, so reporting per
-        generation means calling it one generation at a time rather than owning a
-        copy of the loop. Re-entering it with an already-evaluated population
-        evaluates nothing, so the extra cost is a hall-of-fame update and a stats
-        pass, and the result is identical for a given seed - `test_optimization_squad`
-        pins that.
-
-        DEAP's own per-generation printing stays off here: it would repeat the
-        logbook header on every call, and a caller that asked to be told about
-        each generation is reporting progress itself.
-        """
+        """Run `eaSimple` optimisation, reporting status after each generation."""
         for _ in range(config.generations):
             # eaSimple replaces the population in place, so each call carries on
             # from where the last one left off
@@ -423,7 +382,6 @@ def make_new_squad(
     season: str = CURRENT_SEASON,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    # don't consider players with predicted pts of zero
     remove_zero: bool = True,
     sub_weights: SubWeights | None = None,
     dummy_sub_cost: int = 45,
@@ -496,11 +454,6 @@ def make_new_squad(
     logger.debug("£%sm in the bank", squad.budget / 10)
 
     if not squad.is_complete():
-        # Every add_player above returns a bool nobody reads, so a search that
-        # found no legal squad - too small a budget, or a candidate pool cut down
-        # to nothing - handed back however many players happened to fit. What
-        # surfaced was "Squad is incomplete" from inside scoring, several frames
-        # away from the search and naming neither the budget nor the shortfall.
         msg = (
             f"The squad search found no legal squad within £{budget / 10}m: the "
             f"best of {ga_config.population_size} individuals over "

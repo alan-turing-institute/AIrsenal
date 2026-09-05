@@ -1,14 +1,4 @@
-"""
-What a squad is worth over the gameweeks ahead, and how to weigh it.
-
-Named for the squad rather than for scoring, because `game/scoring.py` holds
-FPL's own points rules and the two are not the same subject: that one says what a
-goal is worth, this one says what a squad full of predicted goals is worth to a
-search comparing next week against five weeks out.
-
-Every optimizer is handed the same `SquadScoringConfig`, so the squad builder
-and the transfer search cannot weigh a bench differently.
-"""
+"""What a squad is worth over the gameweeks ahead, and how to weigh it."""
 
 from dataclasses import dataclass, field
 
@@ -22,10 +12,7 @@ class SquadScoringConfig:
     """How a squad is scored during optimisation."""
 
     sub_weights: SubWeights = field(default_factory=SubWeights)
-    # What a placeholder costs while a partial squad is being filled. Only bites
-    # when `players_per_position` is smaller than a full squad, which nothing but
-    # the tests does, so it is effectively fixed - kept a field because the squad
-    # builder takes it as one, not because it is a knob anyone turns.
+    # What a placeholder costs while a partial squad is being filled
     dummy_sub_cost: int = 45
     budget: int = 1000
 

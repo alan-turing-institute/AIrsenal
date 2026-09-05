@@ -1,5 +1,5 @@
 """
-Running a from-scratch squad build: everything around the optimizer itself.
+Running a from-scratch squad build.
 
 `build_new_squad` chooses fifteen players and reports what it chose. Not to be
 confused with `fill_initial_squad` in `squad.history`, which records fifteen
@@ -63,9 +63,6 @@ def build_new_squad(
     scoring = scoring if scoring is not None else SquadScoringConfig()
     sub_weights = scoring.sub_weights
     with progress_bar(transient=True) as progress:
-        # the optimizer says how many steps it will take, so the bar cannot drift
-        # away from what actually happens; the best score so far is the part worth
-        # watching, so it goes in the description
         task = progress.add_task(
             "Optimising full squad", total=progress_total(optimizer)
         )

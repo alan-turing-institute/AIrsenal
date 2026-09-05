@@ -2,8 +2,6 @@
 Running a transfer search: everything around the algorithm itself.
 
 Fetching the starting squad, persisting the suggestions and reporting the result.
-The search is behind the `TransferOptimizer` interface, so swapping it does not
-mean reimplementing any of this.
 """
 
 import json
@@ -77,13 +75,7 @@ def transfer_rows(
     fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ) -> list[TransferRow]:
-    """
-    Replay the plan's transfers to find the price each was made at.
-
-    Simulation, not rendering: applying a transfer to a squad is what this
-    package knows how to do, and the sale price of a player depends on what the
-    squad paid for them, so the walk has to happen in order.
-    """
+    """Replay the plan's transfers to find the price each was made at."""
     dbsession = dbsession if dbsession is not None else get_session()
     squad = starting_squad
     rows = []
@@ -183,14 +175,7 @@ def new_squad_from_scratch(
     scoring: SquadScoringConfig | None = None,
     is_replay: bool = False,
 ) -> Squad:
-    """
-    Build a squad from nothing, there being nothing to transfer from.
-
-    Whether to build rather than transfer is `AIrsenalPipeline._is_new_squad`'s
-    decision, and this is not a second copy of it: it is the recovery for a
-    database with no transactions for this entry, which is only discoverable by
-    trying to load the squad.
-    """
+    """Build a squad from nothing, there being nothing to transfer from."""
     if squad_optimizer is None:
         squad_optimizer = GeneticSquadOptimizer()
     return build_new_squad(
@@ -288,11 +273,7 @@ def run_optimization(
                 chip_schedule=chip_schedule,
                 num_free_transfers=num_free_transfers,
                 constraints=constraints,
-                # so the search weighs the bench the same way the squad builder
-                # does
                 scoring=scoring,
-                # reaches the wildcard and free-hit rebuilds inside the search,
-                # not only the from-scratch fallback above
                 squad_optimizer=squad_optimizer,
             )
         )
@@ -350,9 +331,6 @@ def run_optimization(
     )
 
     if not is_replay:
-        # A replay optimises every gameweek of a past season, so posting from here
-        # meant a season's worth of transfers for a season nobody is playing - and
-        # a `--loop` multiplied it. The channel is for the entry being played.
         post_webhook(
             discord_payload(
                 plan,

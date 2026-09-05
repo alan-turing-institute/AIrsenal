@@ -1,13 +1,4 @@
-"""
-What a transfer search decided to do: a move per gameweek, and what it scores.
-
-A `Plan` is the *result* of a search. The algorithms that produce one live in
-`optimization/strategies/` (a gameweek at a time) and
-`optimization/transfer_optimizers/` (a whole window); nothing here searches.
-
-Plans are frozen, so a worker extending one cannot disturb the copy its siblings
-were handed.
-"""
+"""What a transfer search decided to do: a move per gameweek, and what it scores."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
@@ -124,11 +115,7 @@ class Plan:
         return all(outcome.move == GameweekMove() for outcome in self.outcomes)
 
     def label(self) -> str:
-        """
-        The per-gameweek moves joined with dashes, e.g. "0-1-W".
-
-        A display and debugging aid; nothing identifies a plan by it.
-        """
+        """The per-gameweek moves joined with dashes, e.g. "0-1-W"."""
         return "-".join(outcome.move.label() for outcome in self.outcomes)
 
     def to_dict(self) -> dict[str, Any]:
@@ -187,9 +174,7 @@ class TransferSearchResult:
 
     best: Plan
     baseline: Plan | None = None
-    # Every plan evaluated, for --save-plans. Empty for an optimizer that solves
-    # rather than enumerates: the dump is a debugging aid, not a promise the
-    # interface makes.
+    # Every plan evaluated, for --save-plans and debugging (empty otherwise)
     considered: tuple[Plan, ...] = ()
 
     @property
@@ -199,12 +184,7 @@ class TransferSearchResult:
 
     @classmethod
     def from_plans(cls, plans: Sequence[Plan]) -> "TransferSearchResult":
-        """
-        Read the answer off an exhaustive search.
-
-        For an optimizer that evaluates every plan, the best and the baseline are
-        both just entries in the list it produced.
-        """
+        """Find the best and baseline plans from a list of candidates."""
         if not plans:
             msg = "Failed to find a plan!"
             raise ValueError(msg)
