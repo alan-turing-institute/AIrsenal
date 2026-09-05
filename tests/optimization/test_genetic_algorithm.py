@@ -10,6 +10,7 @@ from airsenal.optimization.squad_optimizers.genetic_algorithm import (
     SquadOpt,
     make_new_squad,
 )
+from airsenal.squad.squad import SubWeights
 from tests.conftest import past_data_session_scope
 
 MODULE = "airsenal.optimization.squad_optimizers.genetic_algorithm"
@@ -55,6 +56,7 @@ def arithmetic_squad_opt():
             tag="test_tag",
             budget=1000,
             players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+            sub_weights=SubWeights(),
         )
 
 
@@ -125,6 +127,7 @@ def test_deap_class():
                 tag="test_tag",
                 budget=1000,
                 players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+                sub_weights=SubWeights(),
             )
 
             # Check basic properties
@@ -260,6 +263,7 @@ def test_deap_optimization_creates_valid_squad():
                     tag="test_tag",
                     budget=1000,  # £100.0m budget
                     players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+                    sub_weights=SubWeights(),
                 )
 
                 # Run optimization with small parameters for fast test
@@ -343,6 +347,7 @@ def test_a_search_that_finds_no_legal_squad_says_so():
                 population_size=8, generations=2, random_state=1
             ),
             remove_zero=False,
+            sub_weights=SubWeights(),
             dbsession=ts,
         )
 

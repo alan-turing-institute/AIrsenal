@@ -32,7 +32,8 @@ def make_optimum_single_transfer(
     on_step: StepCounter | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeights | None = None,
+    *,
+    sub_weights: SubWeights,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     Try every single transfer in turn, which is affordable for just one.

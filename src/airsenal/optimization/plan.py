@@ -140,7 +140,8 @@ def baseline_plan(
     gameweeks: list[int],
     tag: str,
     root_gw: int | None = None,
-    sub_weights: SubWeights | None = None,
+    *,
+    sub_weights: SubWeights,
 ) -> Plan:
     """
     The do-nothing plan, which every other plan is compared against.

@@ -16,7 +16,6 @@ from airsenal.game.enums import Position
 from airsenal.game.scoring import SQUAD_SIZE
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_score import (
-    SquadScoringConfig,
     get_discounted_squad_score,
 )
 from airsenal.squad.player import DummyPlayer
@@ -87,7 +86,8 @@ class SquadOpt:
         triple_captain_gw: int | None = None,
         remove_zero: bool = True,
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
-        sub_weights: SubWeights | None = None,
+        *,
+        sub_weights: SubWeights,
         dbsession: Session | None = None,
     ) -> None:
         self.dbsession = dbsession
@@ -105,9 +105,7 @@ class SquadOpt:
         self.dummy_per_position = self._get_dummy_per_position()
         self.dummy_sub_cost = dummy_sub_cost
         self.budget = budget
-        self.sub_weights = (
-            sub_weights if sub_weights is not None else SquadScoringConfig().sub_weights
-        )
+        self.sub_weights = sub_weights
 
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
@@ -383,7 +381,8 @@ def make_new_squad(
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
     remove_zero: bool = True,
-    sub_weights: SubWeights | None = None,
+    *,
+    sub_weights: SubWeights,
     dummy_sub_cost: int = 45,
     ga_config: GeneticAlgorithmConfig | None = None,
     on_generation: GenerationReporter | None = None,

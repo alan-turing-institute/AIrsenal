@@ -263,15 +263,16 @@ class Squad:
         self,
         tag: str,
         gameweek: int,
-        sub_weights: "SubWeights | None" = None,
+        *,
+        sub_weights: "SubWeights",
     ) -> float:
         """
         What the bench contributes to the squad's score for `gameweek`.
 
-        `sub_weights` of None means a bench boost - every substitute counts in
-        full. Use `SubWeights.none()` for a bench that counts for nothing.
+        Args:
+            sub_weights: `SubWeights.full()` for a bench boost, `SubWeights.none()`
+                for a bench that counts for nothing.
         """
-        sub_weights = sub_weights if sub_weights is not None else SubWeights.full()
         outfield_subs = [
             p
             for p in self.players
@@ -323,7 +324,9 @@ class Squad:
         )
 
         if bench_boost:
-            total_score += self.total_points_for_subs(tag, gameweek)
+            total_score += self.total_points_for_subs(
+                tag, gameweek, sub_weights=SubWeights.full()
+            )
 
         return total_score
 

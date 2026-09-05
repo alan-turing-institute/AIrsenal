@@ -36,13 +36,18 @@ def get_discounted_squad_score(
     root_gw: int | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeights | None = None,
+    *,
+    sub_weights: SubWeights,
 ) -> float:
     """
     Points a squad is expected to score across `gameweeks`, discounted.
 
     Gameweeks further from `root_gw` count for less; see `get_discount_factor`.
     `root_gw` defaults to the first gameweek in the list.
+
+    Args:
+        sub_weights: How much the bench counts outside a bench-boost gameweek.
+            `SubWeights.none()` to ignore it.
     """
     if root_gw is None:
         root_gw = gameweeks[0]
@@ -60,7 +65,7 @@ def get_discounted_squad_score(
         else:
             total_points += squad.get_expected_points(tag, gw) * gw_weight
 
-        if gw != bench_boost_gw and sub_weights is not None:
+        if gw != bench_boost_gw:
             total_points += gw_weight * squad.total_points_for_subs(
                 tag,
                 gw,

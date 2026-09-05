@@ -21,7 +21,7 @@ def test_no_subs_ignores_the_bench_entirely():
 
 
 def test_a_bench_boost_counts_every_substitute_in_full():
-    """What `Squad.total_points_for_subs` falls back to when given nothing."""
+    """What a bench-boost gameweek passes to `Squad.total_points_for_subs`."""
     assert SubWeights.full().gk == 1.0
     assert SubWeights.full().outfield == (1.0, 1.0, 1.0)
 

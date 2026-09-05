@@ -39,7 +39,8 @@ def make_random_transfers(
     season: str = CURRENT_SEASON,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: SubWeights | None = None,
+    *,
+    sub_weights: SubWeights,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     Sample `num_iter` sets of transfers at random and keep the best.
