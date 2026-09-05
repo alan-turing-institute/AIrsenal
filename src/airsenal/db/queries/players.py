@@ -263,7 +263,8 @@ def list_players(
             .limit(1)
         ).first()
         if last_pa and gameweek > last_pa.gameweek:
-            _warn_incomplete_data(gameweek, season, last_pa.gameweek)
+            if gameweek < next_gameweek():
+                _warn_incomplete_data(gameweek, season, last_pa.gameweek)
             gameweek = last_pa.gameweek
 
     gameweeks = [gameweek]
