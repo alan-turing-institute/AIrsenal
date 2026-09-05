@@ -78,8 +78,8 @@ def fill_player_table_from_api(season: str, dbsession: Session) -> None:
     for k, v in track(pd.items(), description=f"PLAYERS {season}"):
         p = Player()
         p.fpl_api_id = k
-        first_name = v["first_name"]  # .encode("utf-8")
-        second_name = v["second_name"]  # .encode("utf-8")
+        first_name = v["first_name"]
+        second_name = v["second_name"]
         name = f"{first_name} {second_name}"
         display_name = v.get("web_name")
 

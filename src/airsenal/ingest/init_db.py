@@ -1,4 +1,4 @@
-"""Filling the database for the first time, after install."""
+"""Creating the database from scratch, including historical and current-season data."""
 
 from sqlalchemy.orm.session import Session
 

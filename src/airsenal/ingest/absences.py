@@ -6,11 +6,8 @@ resolved to a half-open range of gameweeks: `gw_from` is the first one the
 absence could have kept the player out of, and `gw_until` the one they were back
 for. The two are equal when the absence cost them no match at all.
 
-A row with no end date at all is the one case that leaves `gw_until` unresolved,
-because the two sources mean different things by it: Transfermarkt scrapes a
-finished season, so a blank end date there means the player never came back,
-while the exporter writes a row every gameweek an FPL API flag persists and a
-blank one only means no return has been announced yet.
+This is primarily for the scraped Transfermarkt data. The FPL API statuses are saved in
+the player attributes history files.
 """
 
 from datetime import datetime, timedelta
@@ -47,9 +44,9 @@ def gameweek_returned(
     The gameweek a player was available again, from the day their absence ended.
 
     One past the season's last gameweek when the end date is past its last
-    fixture, so that the half-open range covers the rest of the season - which is
-    what an absence ending after the season does. Readers skip an absence with no
-    end gameweek, so leaving it unresolved would write the absence off entirely.
+    fixture, so that the half-open range covers the rest of the season. Readers skip an
+    absence with no end gameweek, so leaving it unresolved would ignore the absence
+    entirely.
     """
     gameweek = get_gameweek_by_date(
         check_date=date_until, season=season, dbsession=dbsession
@@ -99,11 +96,7 @@ def load_absences(
         team_from = p.team(gw_date, season)
         # The first gameweek the absence could have stopped them playing, being
         # the first of their team's matches to kick off *after* it began - hence
-        # the day after, rather than `date_from` itself. `date_from` is when the
-        # absence began and not the first match missed: Transfermarkt dates it to
-        # the day, and three quarters of those days are ones the player's team was
-        # not playing. A player hurt during Saturday's match played Saturday's
-        # match; one ruled out on the Friday did not.
+        # the day after, rather than `date_from` itself.
         gw_from = get_return_gameweek_by_date(
             date_from + timedelta(days=1), team_from, season, dbsession=dbsession
         )
@@ -123,9 +116,7 @@ def load_absences(
             season=season,
             reason=row["reason"],
             details=row["details"],
-            # These columns are VARCHAR, so write ISO-8601 text rather than date
-            # objects. Passing a date relied on sqlite3's default date adapter, which
-            # is deprecated in Python 3.12 and produces exactly this string anyway.
+            # These columns are VARCHAR, so write ISO-8601 text rather than date objects
             date_from=date_from.isoformat(),
             date_until=date_until.isoformat() if date_until is not None else None,
             gw_from=gw_from,

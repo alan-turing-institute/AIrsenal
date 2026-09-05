@@ -78,10 +78,7 @@ def update_results(season: str, dbsession: Session) -> bool:
         return False
 
     # The two tables are filled by separate calls that commit separately, so they
-    # can be at different gameweeks: a network failure after the results land and
-    # before the player scores do leaves the scores behind. Each catches up from
-    # its own high-water mark, so the next run repairs that rather than calling
-    # the whole thing up to date and never fetching them.
+    # can be at different gameweeks.
     last_results = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
     last_scores = (
         get_last_complete_gameweek_of_player_scores_in_db(season, dbsession=dbsession)

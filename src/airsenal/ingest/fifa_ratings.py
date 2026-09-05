@@ -16,9 +16,6 @@ logger = get_logger(__name__)
 def make_fifa_ratings_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    # make the fifa ratings table
-    # TODO: scrape the data first rather than committing file to repo
-
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

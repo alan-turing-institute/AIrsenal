@@ -1,9 +1,8 @@
 """
 Saving everything AIrsenal fetches to the packaged data files.
 
-An end-of-season job: writes the season's player details, summaries, results and
-Transfermarkt data into `src/airsenal/data/` so the season becomes part of the
-historical data future databases are seeded from.
+Writes the season's player details, summaries, results and Transfermarkt data into
+`src/airsenal/data/`.
 """
 
 import json
@@ -22,7 +21,7 @@ logger = get_logger(__name__)
 
 
 def dump_api() -> None:
-    """Save everything from the FPL API and the other sources, e.g. at season end."""
+    """Save everything from the FPL API and other sources."""
     repo_home = data_dir()
 
     logger.info("Saving summary data...")

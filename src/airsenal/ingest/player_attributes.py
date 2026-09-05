@@ -30,8 +30,6 @@ from airsenal.remote.fpl_api import get_fetcher
 logger = get_logger(__name__)
 
 
-# Reading a return date out of FPL news text. Its only consumer is below,
-# and nothing in `prediction/` ever used it.
 def get_return_gameweek_from_news(
     news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int | None:

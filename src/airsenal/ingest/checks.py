@@ -2,8 +2,7 @@
 Consistency checks over the ingested database.
 
 Run by `airsenal db check`. Each check covers `CHECK_SEASONS` - the current
-season plus the three before it - and logs what it found rather than raising, so
-one bad season does not hide the rest.
+season plus the three before it.
 """
 
 from sqlalchemy import select
@@ -134,17 +133,20 @@ def fixture_num_players(
     seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
 ) -> int:
     """
-    Check each fixture has 11 to 14 players with at least a minute played.
+    Check each fixture has 11 to 16 players with at least a minute played.
 
-    19/20 allowed five substitutes, so up to 16 there.
+    Prior to 2022/23 only 3 subs were allowed, except 19/20 due to Covid-19, so in
+    those seasons 11 to 14 players is expected. From 2022/23 5 subs are allowed, so
+    11 to 16 players is expected. Concussion subs are allowed from 2020/21, which may
+    cause false errors (more than 14/16 players).
     """
     dbsession = dbsession if dbsession is not None else get_session()
     logger.info(
-        "Checking 11 to 14 players play per team in each fixture...\n"
+        "Checking 11 to 16 players play per team in each fixture...\n"
         "Note:\n"
         "- 2019/20: 5 subs allowed after Covid-19 lockdown (accounted for in checks)\n"
         "- From 2020/21: Concussion subs allowed (may cause false errors)\n"
-        "- From 2022/22: 5 subs allowed due to rule change (accounted for in checks)"
+        "- From 2022/23: 5 subs allowed permanently (accounted for in checks)"
     )
     n_error = 0
 
@@ -352,11 +354,6 @@ def fixture_num_conceded(
                     )
                 ).all()
 
-                # `default` rather than a bare max(): a fixture whose result has
-                # landed before its player scores have - which is the state an
-                # interrupted update leaves, and the one this check exists to
-                # find - has no 90-minute players, and an empty max() ended the
-                # run with a ValueError instead of reporting the fixture.
                 for scores, conceded_by_opponent, side in (
                     (home_scores, result.away_score, "home"),
                     (away_scores, result.home_score, "away"),

@@ -136,12 +136,7 @@ def get_status_from_attributes_history(
     player_attributes: pd.DataFrame,
     dbsession: Session | None = None,
 ) -> tuple[str | None, int | None]:
-    """
-    A player's news and chance_of_playing as of the morning of kickoff.
-
-    Read from the packaged per-day attributes history, so it is what we knew at
-    the time rather than what we know now.
-    """
+    """A player's news and chance_of_playing as of the morning of kickoff."""
     dbsession = dbsession if dbsession is not None else get_session()
     matchday = parse_date(fixture.date)
     news, chance_of_playing = _get_availability_on_date(
@@ -413,7 +408,6 @@ def fill_playerscores_from_api(
 def make_playerscore_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    # previous seasons data from json files
     dbsession = dbsession if dbsession is not None else get_session()
     if seasons is None:
         seasons = []

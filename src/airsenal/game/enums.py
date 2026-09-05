@@ -1,11 +1,4 @@
-"""
-Positions and chips.
-
-Both subclass str, so a value read off a database row compares and indexes as
-the enum. Nothing therefore fails when a bare literal is written instead;
-`tests/test_naming_conventions.py` is what catches that. This module and
-`mappings.py` are the boundary and keep their literals.
-"""
+"""Positions and chips."""
 
 from enum import StrEnum
 
