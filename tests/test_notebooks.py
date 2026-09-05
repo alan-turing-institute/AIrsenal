@@ -1,19 +1,9 @@
 """
 Every notebook still imports things that exist.
 
-`CodingConventions.md` points a new contributor at `notebooks/` as a place to
-start experimenting, and the models are the thing people most want to experiment
-with - so a notebook that cannot reach `airsenal.prediction` is a broken on-ramp.
-
-They break silently. Nothing imports a notebook, no test ran one, and ruff does
-not lint them, so three package renames went by and six notebooks were left
-importing `airsenal.domain.season`, `airsenal.prediction.config` and
-`fit_player_data` from a module it had moved out of. This resolves every
-`from airsenal... import ...` in every notebook against the installed package,
-which is the specific thing that rots.
-
-It deliberately does not run them, lint them or check anything else: they are
-exploratory, and the only promise made here is that their imports are real.
+This resolves every `from airsenal... import ...` in every notebook against the
+installed package. It deliberately does not run them, lint them or check anything else:
+they are exploratory, and the only promise made here is that their imports are real.
 """
 
 import ast

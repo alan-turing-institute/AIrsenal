@@ -1,9 +1,7 @@
 """
 Which moves the tree search branches into, and how many plans that adds up to.
 
-`next_week_transfers` answers the first and `count_expected_outputs` the second,
-and both live with the search rather than with `GameweekMove`: only a tree walk
-asks either question, and the count exists to size a progress bar.
+`next_week_transfers` answers the first and `count_expected_outputs` the second.
 """
 
 from airsenal.game.enums import Chip

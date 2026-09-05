@@ -6,22 +6,6 @@ Four groups, in this order: what the argument is about (`player_id`, `player`,
 `season`), and what it talks to (`fpl_team_id`, `fetcher`, `dbsession`), with
 `verbose` last. Anything not named here is unconstrained and conventionally goes
 first. Every function in the package follows it; there are no exemptions.
-
-The groups are the point. An earlier version of this order put `tag` between
-`gameweek` and `season`, which fitted the signatures marginally better but split
-the two time arguments around an unrelated one, and a convention nobody can
-recite is not worth the test that enforces it.
-
-`tag` sits above `gameweek` rather than after `season` because it is a required
-argument in 83% of the signatures that take it, against 56% for `season`, which
-usually carries `= CURRENT_SEASON`. A required argument after a defaulted one is
-not expressible in a positional list, so the other placement would have forced
-seven more signatures to go keyword-only.
-
-Ten signatures cannot be put in this order by reordering alone, for that same
-reason: an optional argument (`position`, `tag`, `gameweek`) ranks above a
-required one. Their tails are keyword-only from that point on, which keeps every
-default and every requirement as it was.
 """
 
 import ast

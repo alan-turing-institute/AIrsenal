@@ -5,9 +5,8 @@ Creating an engine, running create_all, or resolving a constant with a query at 
 scope all break this, and the symptom is a test suite that cannot be collected without
 network access.
 
-These tests are the objective definition of "the package imports cleanly". They run in
-a subprocess because an in-process check is defeated by everything conftest has already
-imported.
+Tests run in a subprocess because an in-process check is defeated by everything conftest
+has already imported.
 """
 
 import ast

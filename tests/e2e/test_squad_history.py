@@ -1,11 +1,6 @@
 """
 Rebuilding the squad from the transaction history.
 
-`squad/history.py` had no tests, and the transfer that gets posted to the real
-FPL entry is priced from what this returns - `apply/transfers.get_sell_price`
-rebuilds the squad through here and reads the selling price off it. A silent
-error here misprices a real transfer.
-
 Here rather than in a `tests/squad/` mirror because it needs the seeded league
 from `tests/e2e/conftest.py` to supply the players; the transactions are written
 per test, because their shape is what is being checked.

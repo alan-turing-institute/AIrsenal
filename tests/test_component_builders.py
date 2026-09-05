@@ -1,10 +1,4 @@
-"""
-Every swappable kind is built the same way: `build_<kind>(name, **overrides)`.
-
-Each kind's builder lives beside its table, so no CLI command has to import a
-builder from a sibling command module. The symmetry is the point, so it is
-asserted rather than left to be noticed.
-"""
+"""Every swappable kind is built the same way: `build_<kind>(name, **overrides)`."""
 
 import pytest
 

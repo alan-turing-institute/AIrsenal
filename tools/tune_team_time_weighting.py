@@ -3,12 +3,7 @@ Tune the team model's time-weighting (epsilon) hyperparameter.
 
 A sweep over epsilon, scored by `prediction.evaluation.backtest_team_model`:
 for each gameweek, fit on the matches before it and score the scorelines of the
-next `--horizon` gameweeks. The model with the highest mean log probability
-predicted the results it had not seen best.
-
-The scoring itself is not here. It is in the package, typed against `TeamModel`,
-so this file is a grid and a CSV writer - and so anything else can score a model
-without going through argparse.
+next `--horizon` gameweeks.
 """
 
 import argparse

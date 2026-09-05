@@ -1,11 +1,6 @@
 """
 Filling the player table from the packaged season files.
 
-`ingest/` had one tested module out of twelve, on the assumption that testing it
-needed recorded FPL API payloads that do not exist. Half of it needs no such
-thing: the from-file path reads `src/airsenal/data/`, which is the same JSON the
-API dump writes, so the parsers can be driven directly.
-
 `test_the_packaged_file_still_has_the_keys_the_parser_reads` is the important one
 - it is what stops the small fixtures below drifting away from the real data.
 """

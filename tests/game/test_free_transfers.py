@@ -1,10 +1,9 @@
 """
-How many free transfers an entry has, and the one rule that decides it.
+How many free transfers an entry has.
 
 The search accrues free transfers with `calc_free_transfers`; the count it starts
 from comes from `get_free_transfers`. Both go through
-`game.scoring.free_transfers_after`, because two implementations of the same rule
-is how the starting count came to obey a different one from the accrual.
+`game.scoring.free_transfers_after`.
 """
 
 import pytest

@@ -1,14 +1,8 @@
 """
 Fast player-model checks against the small seeded database.
 
-The team-model twin of `test_team_models.py`, and the answer to how
-`NumpyroPlayerModel` shipped for a release unable to fit at all: the only test
-that fitted it ran against two full seasons, was marked xfail, and so said
-nothing on any ordinary run.
-
 Parametrized over `PLAYER_MODELS`, so adding a model to the table is all it takes
-to have it fitted here. `build_player_model_for_test` in the conftest is the one place a
-model is named, and only to shrink its sampling - not to skip it.
+to have it fitted here.
 """
 
 import numpy as np

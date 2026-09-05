@@ -2,8 +2,7 @@
 The per-gameweek transfer searches, on simplified scenarios.
 
 A dummy squad and mocked predictions, so the answer is known: the best single
-transfer, the best pair, and the promise each strategy makes about how many
-candidate squads it will consider.
+transfer, the best pair, and how many candidate squads each candidate will consider.
 """
 
 from operator import itemgetter

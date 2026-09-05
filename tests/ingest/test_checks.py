@@ -1,9 +1,7 @@
 """
 The consistency checks `airsenal db check` runs over the ingested database.
 
-The module promises to log what it found rather than raise, "so one bad season
-does not hide the rest". These test the states that broke that promise: the
-database is deliberately half-filled, because that is what the checks are for.
+The database is deliberately half-filled, because that is what the checks are for.
 """
 
 import pytest

@@ -1,10 +1,4 @@
-"""
-Tests for GameweekMove and the chip schedule.
-
-The compact string encoding of a move is parsed in exactly one place, so it is
-pinned here once. How a move changes the free transfer count is in
-tests/game/test_free_transfers.py, with the rule it defers to.
-"""
+"""Tests for GameweekMove and the chip schedule."""
 
 import pytest
 

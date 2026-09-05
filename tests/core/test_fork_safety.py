@@ -1,7 +1,7 @@
 """
 The transfer search forks workers while a Rich progress bar is on screen.
 
-Two things travel across that fork that must not: the console's lock, held by
+Two things that must not travel across that fork: the console's lock, held by
 the Live refresh thread whenever it is mid-render, and the database engine's
 pool, which hands parent and children the same connection. Both failures are
 silent - the worker stays alive, so nothing raises and the run simply stops,

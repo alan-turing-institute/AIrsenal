@@ -1,11 +1,9 @@
 """
 The arithmetic and payload building behind applying transfers.
 
-`apply/` is the only code that changes the real FPL entry, and it had no tests at
-all. These cover the parts that are pure - the money, the de-duplication, the
-ordering and the payload - because those are what fail quietly and cost points.
-Nothing here reaches the network: the payload is built and asserted on, never
-posted.
+These cover the parts that are pure - the money, the de-duplication, the ordering and
+the payload. Nothing here reaches the network: the payload is built and asserted on,
+never posted.
 """
 
 import pytest

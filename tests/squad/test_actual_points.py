@@ -1,8 +1,7 @@
 """
 Scoring a squad against what actually happened.
 
-`Squad.get_actual_points` is what `airsenal replay` totals, so an error here
-misreports every backtest rather than any live decision.
+`Squad.get_actual_points` is what `airsenal replay` totals.
 """
 
 from dataclasses import dataclass

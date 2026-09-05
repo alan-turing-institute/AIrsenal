@@ -1,5 +1,5 @@
 """
-Replaying a past season, which nothing tested until now.
+Replaying a past season.
 
 `airsenal replay` is the only command that scores a configuration over real
 results, so it is what an experiment is judged with - and it had no test at all.

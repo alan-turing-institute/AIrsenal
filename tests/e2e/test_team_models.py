@@ -6,9 +6,8 @@ dominate the suite's runtime. These assert the same things - does it fit, does i
 know every team, are the probabilities usable - on eight teams and 64 matches, so
 the answers arrive on the default run rather than only under `-m slow`.
 
-Parametrized over `TEAM_MODELS` rather than a list of names, so adding a model to
-the table is all it takes to have it fitted here - which is the promise the table
-makes. `SAMPLED_MODELS` below is the one place a model has to be named.
+Parametrized over `TEAM_MODELS`, so adding a model to the table is all it takes to have
+it fitted here. `SAMPLED_MODELS` below is the one place a model has to be named.
 """
 
 import math

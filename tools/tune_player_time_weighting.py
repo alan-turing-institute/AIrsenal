@@ -4,11 +4,7 @@ Tune the conjugate player model's epsilon and goals-prior hyperparameters.
 A grid over (epsilon, n_goals_prior), scored by
 `prediction.evaluation.backtest_player_model`: for each gameweek, fit on the
 matches before it and score who actually scored and assisted in the next
-`--horizon` gameweeks. The pair with the highest mean log probability shared out
-goals best among players it had not seen do it.
-
-As with the team-model sweep, the scoring lives in the package and is typed
-against `PlayerModel`, so this file is a grid and a CSV writer.
+`--horizon` gameweeks.
 """
 
 import argparse

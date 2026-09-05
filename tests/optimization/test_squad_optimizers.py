@@ -3,8 +3,7 @@ The seam between "pick a whole squad" and "pick it with a genetic algorithm".
 
 The point of the protocol is that both callers - the standalone squad build and
 the wildcard/free-hit strategy - go through it, so a different optimizer can be
-substituted without editing either. These tests pin that, using a stub optimizer
-that no production code knows about.
+substituted without editing either.
 """
 
 from dataclasses import replace

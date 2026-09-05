@@ -1,10 +1,4 @@
-"""
-That `get_entry_start_gameweek` still branches on *which* remote failure happened.
-
-This is the behaviour the three-class error hierarchy exists for. A single flat
-`RemoteError` would make both cases take the same path, and every other test in
-the suite would still pass.
-"""
+"""That `get_entry_start_gameweek` still branches on *which* remote failure happened."""
 
 from airsenal.remote.errors import RemoteConnectionError, RemoteHTTPError
 from airsenal.squad import state

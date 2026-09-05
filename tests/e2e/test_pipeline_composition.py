@@ -3,11 +3,9 @@ Swapping a component, which is what the pipeline object exists to allow.
 
 These run `AIrsenalPipeline.run()` itself - nothing else does - with the
 optimizers replaced by recorders that satisfy the protocols but are unknown to
-any registry. If a component can only be one of the things the registry ships,
-these tests cannot be written.
+any registry.
 
-`refresh_database=False` and `new_squad=True` are what let `run()` execute with
-no network call at all; they are the reason those two settings exist.
+`refresh_database=False` and `new_squad=True` let `run()` execute with no network call.
 """
 
 import pytest

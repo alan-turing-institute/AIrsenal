@@ -3,8 +3,7 @@ The whole pipeline, on a database small enough to run in seconds.
 
 Every other test covers one function. This one covers the joins between the
 stages - that prediction writes something optimisation can read, and that
-optimisation produces a squad the game's rules would accept. Those joins are
-where a change can break something without any unit test noticing.
+optimisation produces a squad the game's rules would accept.
 
 Both models are `constant`, which are shipped models rather than test doubles,
 so the registry indirection is exercised the same way it is in production.

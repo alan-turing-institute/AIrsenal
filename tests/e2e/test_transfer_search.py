@@ -1,16 +1,9 @@
 """
 The strategy-tree expansion, run for real on the small database.
 
-Nothing else covers it: the worker-failure tests drive the queue with synthetic
-tasks, and the e2e transfer tests call `make_best_transfers`, which is one node
-of the tree rather than the tree.
-
-The worker is run in a thread rather than a forked process. The forking is not
-what this is checking, and it cannot be checked here anyway: the search can only
-fork before jax has been initialised, and predicting the points these strategies
-are scored against initialises it. What is checked is everything the worker
-does - pick a strategy for each move, score the resulting squad, extend the
-strategy, and put the children back on the queue for the next gameweek.
+The worker is run in a thread rather than a forked process. What is checked is
+everything the worker does - pick a strategy for each move, score the resulting squad,
+extend the strategy, and put the children back on the queue for the next gameweek.
 """
 
 import math
