@@ -20,7 +20,7 @@ from airsenal.prediction.team_models.scorelines import (
 
 
 class RandomTeamModel:
-    """Random, but valid, scoreline probabilities."""
+    """Random scoreline probabilities."""
 
     def __init__(
         self,

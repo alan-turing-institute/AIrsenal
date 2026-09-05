@@ -9,15 +9,10 @@ from airsenal.prediction.protocols import PlayerFitData
 
 @dataclass(frozen=True)
 class ConstantPlayerConfig:
-    """
-    Settings for the null player model.
+    """Settings for the null player model."""
 
-    The defaults are roughly the league-wide split of goal involvements, so the
-    baseline is uninformative rather than obviously wrong.
-    """
-
-    prob_score: float = 0.25
-    prob_assist: float = 0.2
+    prob_score: float = 1 / 11
+    prob_assist: float = 1 / 11
 
     def __post_init__(self) -> None:
         if self.prob_score + self.prob_assist > 1:
@@ -29,12 +24,7 @@ class ConstantPlayerConfig:
 
 
 class ConstantPlayerModel:
-    """
-    Every player equally likely to score, assist, or do neither.
-
-    A null baseline, and a fast path when debugging something downstream of
-    prediction, since it does no fitting at all.
-    """
+    """Baseline: Every player equally likely to score, assist, or do neither."""
 
     def __init__(self, config: ConstantPlayerConfig | None = None) -> None:
         self.config = config or ConstantPlayerConfig()

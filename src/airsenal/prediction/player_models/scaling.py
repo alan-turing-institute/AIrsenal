@@ -112,8 +112,8 @@ def scale_goals_by_minutes(
         )
         scaled_goals[p, :] = [player_goals, player_assists, player_neither]
 
-    # players with high goal involvements in few matches may end up with a scaled
-    # neither count less than 0 - set these to zero
+    # substituted players with high goal involvements in few matches may end up with a
+    # scaled neither count less than 0 - set these to zero
     scaled_goals[scaled_goals < 0] = 0
 
     return scaled_goals

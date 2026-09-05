@@ -1,15 +1,4 @@
-"""
-Replay all or part of a past season, to compare models and algorithms.
-
-A separate driver rather than a method or a subclass of `AIrsenalPipeline`: what
-replay needs is the predict and optimise stages, once per gameweek, and none of
-the database setup, transfer applying or absence exporting that `run()` does.
-
-It takes the pipeline object itself, though, so that what it measures is the
-same components `airsenal run` would use - and it records which ones they were,
-because a score is only comparable against another score if you know what each
-was produced with.
-"""
+"""Replay all or part of a past season, to compare models and algorithms."""
 
 import json
 from dataclasses import asdict, dataclass, field, replace
@@ -45,20 +34,13 @@ class ReplaySettings:
     # Carry on from the squad already in the database rather than building a new
     # one for the first gameweek.
     resume: bool = False
-    # Where the result JSON is written. The process's working directory, as
-    # before, when this is None.
+    # Where the result JSON is written. The process's working directory if None.
     output_dir: Path | None = None
 
 
 @dataclass(frozen=True)
 class ReplayGameweek:
-    """
-    What one replayed gameweek picked, and what it scored.
-
-    Named for the replay rather than the gameweek: `optimization.plan` already
-    has a `GameweekOutcome`, which is what a *plan* expects a gameweek to do.
-    This is what actually happened.
-    """
+    """What one replayed gameweek picked, and what it scored."""
 
     gameweek: int
     predictions_tag: str
@@ -74,25 +56,17 @@ class ReplayGameweek:
     expected_points: float
     # Already net of the points hit, so it is what the entry actually scored.
     actual_points: float
-    # Which chip the plan played, if any. Both point totals above are scored with
-    # it, so a replay that cannot say which chip it used cannot be read back.
     chip_played: str | None = None
 
     @property
     def prediction_error(self) -> float:
-        """Signed points the prediction was out by, expected minus actual."""
+        """Predicted minus actual points."""
         return self.expected_points - self.actual_points
 
 
 @dataclass(frozen=True)
 class ReplayResult:
-    """
-    What one replay of a season scored, and what produced it.
-
-    The comparable summary of a run: `total_points` is the number two replays are
-    judged on, and `config` says what each was run with, so a pair of results is
-    self-describing without anyone having to remember which flags they used.
-    """
+    """What one replay of a season scored, and what produced it."""
 
     tag: str
     season: str
@@ -103,7 +77,7 @@ class ReplayResult:
 
     @property
     def total_points(self) -> float:
-        """Points scored across the replay, net of hits. The headline number."""
+        """Points scored across the replay, net of hits."""
         return sum(gw.actual_points for gw in self.gameweeks)
 
     @property
@@ -130,12 +104,6 @@ class ReplayResult:
         )
 
     def as_dict(self) -> dict[str, Any]:
-        """
-        The JSON payload, summary first.
-
-        The per-gameweek keys are unchanged from when this was assembled by hand,
-        so anything already reading a replay file keeps working.
-        """
         return {
             "tag": self.tag,
             "season": self.season,
@@ -160,13 +128,7 @@ class ReplayResult:
 
 
 def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
-    """
-    The components a replay ran with, by class name.
-
-    Class names rather than the table names they were built from: a component
-    constructed in Python never had a table name, and the point is to be able to
-    tell two results apart.
-    """
+    """The components a replay ran with, by class name."""
     return {
         "team_model": type(pipeline.team_model).__name__,
         "player_model": type(pipeline.player_model).__name__,
@@ -178,17 +140,10 @@ def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
 def default_tag_prefix(
     season: str, gameweek_start: int, gameweek_end: int, when: datetime
 ) -> str:
-    """
-    The tag a replay is named after when the caller does not supply one.
-
-    Resolved here rather than inside `replay_season` so that `run_replays` can
-    build it once and number the runs off it: the timestamp is only accurate to
-    the minute, and two replays of a short window finish inside the same minute
-    and would otherwise write over each other's results.
-    """
+    """The tag a replay is named after when the caller does not supply one."""
     return (
         f"Replay_{season}_GW{gameweek_start}_GW{gameweek_end}_"
-        f"{when.strftime('%Y%m%d%H%M')}"
+        f"{when.strftime('%Y%m%d%H%M%S')}"
     )
 
 
@@ -218,13 +173,7 @@ def print_replay_params(
 
 
 def _names(player_ids: list[int]) -> list[str]:
-    """
-    Player names for a transfer list, falling back to the id.
-
-    `get_player_name` returns None for an id the database does not know, and a
-    replay record that silently dropped a transfer would be worse than one
-    naming a number.
-    """
+    """Player names for a transfer list, falling back to the id."""
     return [get_player_name(pid) or f"player_{pid}" for pid in player_ids]
 
 
@@ -240,9 +189,7 @@ def _gameweek_outcome(
     # and unlimited transfers means no points hit.
     outcome = plan.outcome(gameweek) if plan is not None else None
     points_hit = outcome.points_hit if outcome else 0
-    # A bench boost scores the bench too and a triple captain trebles rather than
-    # doubles. Scoring a chip gameweek as though no chip were played understates
-    # exactly the weeks a chip was meant to win.
+
     chip = outcome.chip if outcome else None
     bench_boost = chip is Chip.BENCH_BOOST
     triple_captain = chip is Chip.TRIPLE_CAPTAIN
@@ -277,8 +224,7 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
     Replay one season once, and return what it scored.
 
     Also writes the result as JSON, to `replay.output_dir` or the working
-    directory. The object is returned as well as written so that a caller
-    comparing two configurations does not have to read its own output back.
+    directory.
     """
     start = datetime.now()
     season = pipeline.settings.season
@@ -305,8 +251,6 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
     replay_range = range(replay.gameweek_start, gameweek_end + 1)
     for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
-        # One session per gameweek rather than one for the whole replay: holding
-        # a session open across a whole season of model fitting is worse.
         with session_scope() as session:
             gameweeks = pipeline.gameweeks(session, gameweek_start=gw)
             tag = pipeline.predict(gameweeks, session, tag_prefix=tag_prefix)
@@ -362,8 +306,6 @@ def run_replays(
         logger.info("*" * 15)
         logger.info("RUNNING REPLAY %s", run)
         logger.info("*" * 15)
-        # numbered only when there is more than one, so a single replay keeps the
-        # name the caller asked for
         tag_prefix = base if replay.loop == 1 else f"{base}_run{run}"
         results.append(replay_season(pipeline, replace(replay, tag_prefix=tag_prefix)))
     return results

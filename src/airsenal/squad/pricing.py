@@ -1,12 +1,4 @@
-"""
-What a player in the squad would sell for.
-
-The only part of a squad that consults the FPL API and the database rather than
-just the players it holds: an owned player has a selling price the API knows,
-and everyone else has to be priced from what the database last saw. `Squad`
-keeps `get_sell_price_for_player` and `sale_value` as the methods every caller
-already uses, and they come here.
-"""
+"""What a player in the squad would sell for."""
 
 from sqlalchemy.orm import Session
 
@@ -94,15 +86,7 @@ def selling_price_from_api(
     """
     What the FPL API says this player would sell for, or None if it cannot say.
 
-    A selling price exists only for a player the entry actually owns, and plenty
-    of the squads priced here are ones the optimizer invented rather than ones
-    that exist: everything a wildcard bought, and every squad a later gameweek of
-    the same strategy transfers out of. Not owning a player is therefore an
-    ordinary outcome and not worth a warning - there is simply no sale price to
-    read, and the caller falls back to the current market price, which is the
-    right answer for a player we would be buying at it.
-
-    Failing to reach the API at all is a different matter, and does warn.
+    A selling price exists only for a player the entry actually owns.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     try:

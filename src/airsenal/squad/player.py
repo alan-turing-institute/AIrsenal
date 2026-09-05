@@ -43,15 +43,8 @@ class CandidatePlayer:
         Initialize from a `Player`, a name or a player ID.
 
         Team, position and price are read from the player's attributes for
-        `season` and `gameweek`; a player missing any of them is an error rather
-        than a partially built candidate.
+        `season` and `gameweek`.
         """
-        # Deliberately NOT resolved to a real session here. CandidatePlayer instances
-        # are held by Squad, and Squad is pickled onto the multiprocessing queue by the
-        # transfer optimiser (and by fastcopy). A live Session cannot be pickled, and
-        # eagerly resolving one here would also open a database connection for every
-        # candidate player considered during the search. Callees resolve None
-        # themselves, in whichever process ends up needing a session.
         gameweek = next_gameweek() if gameweek is None else gameweek
         self.dbsession = dbsession
         if isinstance(player, Player):
@@ -97,8 +90,7 @@ class CandidatePlayer:
 
         A Session is bound to a connection and cannot be pickled, but Squad - which
         holds CandidatePlayers - is pickled onto the transfer optimiser's
-        multiprocessing queue and by fastcopy. The session is process-local anyway, so
-        an unpickled player resolves one in whichever process it wakes up in.
+        multiprocessing queue and by fastcopy.
         """
         state = self.__dict__.copy()
         state["dbsession"] = None
@@ -162,8 +154,6 @@ class DummyPlayer:
         return self.pts
 
 
-# Squad holds both: a real player, or a placeholder used when the optimiser is
-# not choosing the whole squad.
 type SquadPlayer = CandidatePlayer | DummyPlayer
 
 
@@ -171,9 +161,7 @@ def bench_position(player: SquadPlayer) -> int:
     """
     Where a benched player sits in the substitution order.
 
-    Set by Squad.order_substitutes. Raises rather than returning None, so
-    sorting on it before the lineup has been optimized fails here rather than
-    inside sorted().
+    Set by Squad.order_substitutes.
     """
     if player.sub_position is None:
         msg = f"{player} has no bench position - optimize the lineup first"

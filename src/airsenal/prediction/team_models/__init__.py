@@ -3,8 +3,7 @@ Team models: one module per way of predicting match scorelines.
 
 `TEAM_MODELS` maps a `--team-model` name to a factory. Unlike the other
 component tables its factories are not zero-argument: each takes an optional
-keyword-only `epsilon`, the time-weighting decay rate, and a model that does no
-time weighting rejects it rather than ignoring it.
+keyword-only `epsilon`, the time-weighting decay rate.
 """
 
 from collections.abc import Callable
@@ -12,9 +11,6 @@ from collections.abc import Callable
 from airsenal.core.lookup import lookup
 from airsenal.prediction.protocols import TeamModel
 
-# Which model a command uses when it is not told. Named here because the CLI, the
-# pipeline and the replay driver all had to state it, and `airsenal replay` had
-# already drifted to a different set of fit arguments as a result.
 DEFAULT_TEAM_MODEL = "extended"
 
 

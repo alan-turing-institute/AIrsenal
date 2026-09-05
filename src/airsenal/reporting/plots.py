@@ -16,8 +16,6 @@ def get_team_names(league_data: dict[str, Any]) -> list[str]:
 
 
 def get_team_history(team_data: dict[str, Any]) -> dict[str, Any]:
-    # not dict[str, dict[int, dict[str, int]]]: the caller adds a "name" string
-    # to the same dict alongside "history".
     output_dict: dict[str, Any] = {"history": {}}
     for gw in team_data["current"]:
         output_dict["history"][gw["event"]] = {

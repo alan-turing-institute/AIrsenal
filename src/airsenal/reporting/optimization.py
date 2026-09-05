@@ -1,12 +1,4 @@
-"""
-Rendering what an optimisation decided.
-
-Both entry points - the transfer search and the from-scratch squad build - share
-the result panel and the per-gameweek table here, and supply the rows.
-
-Nothing here queries the database or the FPL API, and nothing here simulates a
-transfer: callers pass in what they already know.
-"""
+"""Displaying optimisation outcomes."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -137,7 +129,6 @@ def print_transfer_table(rows: Sequence[TransferRow]) -> None:
 
 def print_squad_table(players: Sequence[CandidatePlayer | DummyPlayer]) -> None:
     """Every player in a squad built from scratch: all of them are incoming."""
-    # str rather than Position: a squad player's position is a plain string
     order: list[str] = list(Position.front_to_back())
     squad_table = table("Player In", "Pos", "Team", "Purchase Price", title="Transfers")
     for player in sorted(players, key=lambda p: order.index(p.position)):
@@ -180,12 +171,7 @@ def discord_payload(
     transfers: Sequence[TransferRow],
     lineup: Sequence[str],
 ) -> dict[str, Any]:
-    """
-    The webhook body describing a plan.
-
-    Takes the same rows the tables render rather than a `Plan`: the optimisation
-    stage sits above this one, so a renderer here cannot name its types.
-    """
+    """The webhook body describing a plan."""
     fields: list[dict[str, Any]] = []
     for row in plan:
         gw = row.gameweek

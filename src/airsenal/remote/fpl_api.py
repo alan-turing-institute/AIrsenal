@@ -1,5 +1,5 @@
 """
-Classes to query the FPL API.
+Query the FPL API.
 
 The login flow lives in `fpl_auth.py` and the request helpers in `fpl_http.py`;
 what is left here is the endpoints and the responses they cache.
@@ -23,8 +23,7 @@ from airsenal.remote.fpl_http import API_HOME, Session, get_json, post_json
 
 logger = get_logger(__name__)
 
-# The endpoints, as constants rather than as attributes rebuilt on every
-# instance - none of them depends on anything an instance knows.
+# The endpoints
 FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
 FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
 FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
@@ -44,11 +43,7 @@ class FPLDataFetcher:
         rsession: Session | None = None,
         auth: FPLAuth | None = None,
     ) -> None:
-        # `rsession` stays a parameter of its own: it is how a test hands in a
-        # session that cannot connect.
         self.auth = auth if auth is not None else FPLAuth(rsession)
-        # The FPL API is not typed and not versioned, so a payload is a
-        # dict[str, Any]; what each cache is keyed by is worth being exact about.
         self.current_summary_data: dict[str, Any] = {}
         self.current_event_data: dict[int, dict[str, Any]] = {}  # by gameweek
         self.current_player_data: dict[int, dict[str, Any]] = {}  # by player api id
@@ -61,9 +56,6 @@ class FPLDataFetcher:
         self.fpl_transfer_history_data: dict[int, list[dict[str, Any]]] = {}
         self.fpl_league_data: dict[str, Any] = {}
         self.fpl_team_data: dict[int, dict[str, Any]] = {}  # squad, by gameweek
-        # a list, not a dict: /fixtures/ returns a JSON array. It was declared
-        # `dict` and initialised `{}`, which only ever worked because both are
-        # falsy and so the emptiness check behaves the same either way.
         self.fixture_data: list[dict[str, Any]] = []
 
         self.FPL_TEAM_ID = FPL_TEAM_ID if fpl_team_id is None else fpl_team_id
@@ -73,7 +65,6 @@ class FPLDataFetcher:
             "/standings/?page_new_entries=1&page_standings=1"
         )
 
-    # The login state, so that callers and tests need not know it is delegated.
     @property
     def logged_in(self) -> bool:
         return self.auth.logged_in
@@ -170,10 +161,6 @@ class FPLDataFetcher:
         Without an `fpl_team_id` this is our own team, `$FPL_TEAM_ID`, and the
         result is cached.
         """
-        # Whether this is our own team has to be decided before the id is filled
-        # in below: testing the filled-in id for the *write* meant the cache was
-        # only ever written when there was no team configured at all, so the read
-        # above could never hit and every call re-requested.
         is_own_team = not fpl_team_id
         if is_own_team and gameweek in self.fpl_team_data:
             return self.fpl_team_data[gameweek]
@@ -188,13 +175,7 @@ class FPLDataFetcher:
         return fpl_team_data
 
     def get_fpl_team_history_data(self, team_id: int | None = None) -> dict[str, Any]:
-        """
-        An entry's season history from the FPL API.
-
-        Only our own team's is cached. Storing another entry's response in that
-        one attribute meant a later call with no `team_id` handed back whoever was
-        asked about last.
-        """
+        """An entry's season history from the FPL API."""
         is_own_team = not team_id
         if is_own_team and self.fpl_team_history_data:
             return self.fpl_team_history_data
@@ -243,8 +224,6 @@ class FPLDataFetcher:
             return self.fpl_league_data
 
         self.login()
-        # `_get` returns the decoded body and raises on a bad status - there is
-        # no response object here to check.
         try:
             self.fpl_league_data = self._get(self.FPL_LEAGUE_URL)
         except RemoteError:
@@ -266,11 +245,9 @@ class FPLDataFetcher:
         return self.current_event_data
 
     def get_last_finished_gameweek(self) -> int:
-        """
-        The last gameweek the API has marked as finished, or 0 before the season starts.
+        """The last gameweek the API has marked as finished.
 
-        Stops at the first unfinished gameweek rather than taking the maximum, so a
-        stray `finished` flag after a gap cannot pull the answer forward.
+        0 before the season starts.
         """
         event_data = self.get_event_data()
         last_finished = 0
@@ -281,7 +258,7 @@ class FPLDataFetcher:
         return last_finished
 
     def get_player_summary_data(self) -> dict[int, dict[str, Any]]:
-        """The summary data's players, keyed by player_api_id rather than a list."""
+        """The summary data's players, keyed by player_api_id."""
         if self.current_player_data:
             return self.current_player_data
         self.current_player_data = {}
@@ -291,7 +268,7 @@ class FPLDataFetcher:
         return self.current_player_data
 
     def get_current_team_data(self) -> dict[int, dict[str, Any]]:
-        """The summary data's teams, keyed by team code rather than a list."""
+        """The summary data's teams, keyed by team code."""
         if self.current_team_data:
             return self.current_team_data
         self.current_team_data = {}
@@ -403,29 +380,17 @@ def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     The shared FPL API client, created on first use.
 
     Cached so that callers keep hitting the same instance and therefore the same
-    response cache; a fresh FPLDataFetcher would re-request everything. Cached per
-    `fpl_team_id`, so callers acting for a non-default team still get one shared
-    instance per team rather than colliding with the default team's.
-
-    The id is normalised first, because the cache key is what callers pass rather
-    than what they mean: `functools.cache` keys `get_fetcher()`,
-    `get_fetcher(None)` and `get_fetcher(fpl_team_id=None)` three different ways,
-    and naming the default team explicitly is a fourth. All four are the same
-    entry, and each extra key was another client with another empty response cache.
+    response cache.
     """
     if fpl_team_id == FPL_TEAM_ID:
+        # normalise to None so that the cache key is the same for all calls that
+        # want the configured team.
         fpl_team_id = None
     return _fetcher_for(fpl_team_id)
 
 
 def require_fpl_team_id(fpl_team_id: int | None = None) -> int:
-    """
-    The FPL team id to act for, or a clear error saying how to set one.
-
-    Three commands resolved this themselves and only one of them checked the
-    result, so `airsenal run` with no FPL_TEAM_ID configured passed None all the
-    way down into the database setup.
-    """
+    """The FPL team id to act for, or a clear error saying how to set one."""
     resolved = fpl_team_id if fpl_team_id is not None else get_fetcher().FPL_TEAM_ID
     if resolved is None:
         msg = (

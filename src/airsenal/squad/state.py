@@ -37,9 +37,6 @@ def get_bank(
         raise RuntimeError(msg)
 
     if not fpl_team_id:
-        # From the client we are using, not from a fresh default one: a caller
-        # that passes a fetcher for another entry and lets the id default was
-        # otherwise asking about $FPL_TEAM_ID's bank.
         fpl_team_id = fetcher.FPL_TEAM_ID
     # check if we're logged in, which will let us get the most up-to-date info
     try:
@@ -105,9 +102,6 @@ def get_free_transfers(
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     dbsession = dbsession if dbsession is not None else get_session()
-    # Resolved once, up front: the database fallback below used to filter on the
-    # argument rather than the resolved id, so a caller that let it default
-    # queried for `fpl_team_id IS NULL`, matched nothing, and got 1.
     fpl_team_id = fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers
@@ -168,11 +162,6 @@ def get_free_transfers(
         msg = "Gameweek must be specified for historical data"
         raise ValueError(msg)
     gameweek = gameweek or next_gameweek()
-    # Both estimates go through the same rule the search itself accrues by. They
-    # used to be hand-rolled here and could not exceed 2, while everything
-    # downstream - `calc_free_transfers`, `TransferConstraints`, the
-    # `--num-free-transfers` flag - works to MAX_FREE_TRANSFERS, so the count the
-    # search started from obeyed a different rule from the one it then applied.
     for prev_gw in range(starting_gw + 1, gameweek):
         num_free_transfers = free_transfers_after(
             gw_transactions.get(prev_gw, 0), num_free_transfers
@@ -207,11 +196,7 @@ def get_players_for_gameweek(
 def free_hit_used_in_gameweek(
     gameweek: int, fpl_team_id: int | None = None, fetcher: FPLDataFetcher | None = None
 ) -> int:
-    """
-    Whether the entry played its free hit in a gameweek, as 0 or 1.
-
-    An int because that is how the transactions table records it.
-    """
+    """Whether the entry played its free hit in a gameweek, as 0 or 1."""
     fetcher = fetcher if fetcher is not None else get_fetcher(fpl_team_id)
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID

@@ -25,13 +25,7 @@ def within_price(
     gameweek: int,
     season: str,
 ) -> list[tuple[Player, float]]:
-    """
-    Drop players costing more than `max_price`, keeping ones with no price.
-
-    A list comprehension rather than `remove` while iterating, which skipped the
-    player after each one it dropped and so let some through above the cap. This
-    was written out twice, once per branch below, and was wrong in both.
-    """
+    """Drop players costing more than `max_price`, keeping ones with no price."""
     if max_price is None:
         return predictions
     return [

@@ -1,11 +1,4 @@
-"""
-Choosing a starting eleven, a bench order and a captain.
-
-Free functions over a squad's players rather than methods, because none of them
-needs a Squad: a formation is a fact about eleven players, not about the object
-that happens to hold fifteen. `Squad` calls into here and keeps the two entry
-points anything outside this package uses.
-"""
+"""Choosing a starting eleven, a bench order and a captain."""
 
 from collections.abc import Callable
 from operator import itemgetter
@@ -18,7 +11,6 @@ from airsenal.squad.player import SquadPlayer
 
 logger = get_logger(__name__)
 
-# the outfield positions a formation names, in the order it names them
 FORMATION_POSITIONS = (Position.DEF, Position.MID, Position.FWD)
 
 FORMATIONS = [
@@ -32,6 +24,7 @@ FORMATIONS = [
     (5, 2, 3),
 ]
 
+# No. of players in position: Column IDs to display those players in.
 FORMATION_SLOTS = {
     0: (),
     1: (2,),
@@ -51,14 +44,7 @@ def choose_starting_eleven(
     gameweek: int,
     score_starting_eleven: Callable[[], float],
 ) -> float:
-    """
-    Pick the best legal starting eleven, and order the bench behind it.
-
-    `score_starting_eleven` scores whatever `is_starting` currently says, which
-    is how each candidate formation is compared. It is a callback rather than a
-    sum written out here because scoring a squad is the squad's own job, and it
-    is the same sum a caller asking for expected points gets.
-    """
+    """Pick the best legal starting eleven, and order the bench behind it."""
     by_position: PlayersByPosition = {position: [] for position in Position}
     for p in players:
         try:
@@ -100,10 +86,6 @@ def order_substitutes(players: list[SquadPlayer], tag: str, gameweek: int) -> No
         try:
             points.append(player.predicted_points[tag][gameweek])
         except KeyError:
-            # predicted_points is a plain dict, so a tag or gameweek it does not
-            # hold raises KeyError. This caught ValueError, which that lookup
-            # cannot raise, so a substitute with no prediction crashed here
-            # rather than sorting last.
             points.append(0)
 
     # sort the players by points (descending)
@@ -138,12 +120,7 @@ def is_formation_legal(formation: dict[str, int]) -> bool:
 def formation_after(
     formation: dict[str, int], player_out: SquadPlayer, player_in: SquadPlayer
 ) -> dict[str, int]:
-    """The formation a swap would leave, without changing the one passed in.
-
-    Takes a formation rather than a player list so a caller making several
-    substitutions can carry the result of one into the next. Deriving it from
-    `is_starting` each time answers for the lineup before any of them.
-    """
+    """The formation a swap would leave."""
     after = dict(formation)
     after[player_out.position] -= 1
     after[player_in.position] += 1

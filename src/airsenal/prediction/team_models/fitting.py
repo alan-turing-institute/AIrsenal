@@ -1,9 +1,4 @@
-"""
-Getting a team model fitted, and reading predictions off it.
-
-Model-agnostic: everything here is typed against `TeamModel`, so the constant,
-neutral and random models go through it too.
-"""
+"""Getting a team model fitted, and reading predictions off it."""
 
 import numpy as np
 import pandas as pd
@@ -43,8 +38,8 @@ def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitDa
             current_gameweek=gameweek,
         )
     ]
-    # compute the time difference for each fixture in results
-    # to the first fixture of the next gameweek
+    # compute the time difference for each fixture in results to the first fixture of
+    # the next gameweek
     result_dates = np.array(
         [
             pd.Timestamp(r.fixture.date).replace(tzinfo=None)

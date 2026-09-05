@@ -90,14 +90,7 @@ class FPLAuth:
             save_env("FPL_PASSWORD", self.FPL_PASSWORD)
 
     def login(self) -> None:
-        """
-        Log in to the FPL API, or raise a RemoteConnectionError if it fails.
-
-        The flow itself makes seven requests directly rather than through
-        `_get_request`, so the translation to `RemoteError` happens here. Callers
-        such as `squad.state.get_bank` fall back to unauthenticated data on any
-        remote failure, and a failure while logging in has to be one of them.
-        """
+        """Log in to the FPL API, or raise a RemoteConnectionError if it fails."""
         try:
             self._login_flow()
         except requests.exceptions.RequestException as e:

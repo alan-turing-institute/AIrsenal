@@ -1,12 +1,4 @@
-"""
-The one place in the package that posts to a Discord webhook.
-
-One chokepoint means a replay or a test cannot post to the real channel by
-accident - there is exactly one call to make impossible. It lives here rather
-than beside its callers because every socket in the package belongs to `remote`,
-which is what makes that contract enforceable. What gets said stays in
-`reporting`; this module only knows how to say it.
-"""
+"""Posting to a Discord webhook."""
 
 import re
 from typing import Any
@@ -24,14 +16,7 @@ WEBHOOK_URL_PATTERN = re.compile(
 
 
 def get_webhook_url() -> str | None:
-    """
-    The configured webhook URL, or None if there isn't one.
-
-    Read from the environment directly, rather than through the FPL API client,
-    which copies this same value into `FPLDataFetcher.DISCORD_WEBHOOK`: posting
-    to Discord has nothing to do with being logged in to FPL, and reaching for
-    the client here would make an optional webhook depend on FPL credentials.
-    """
+    """The configured webhook URL, or None if there isn't one."""
     return get_env("DISCORD_WEBHOOK", str) or None
 
 
@@ -39,9 +24,7 @@ def post_webhook(payload: dict[str, Any], webhook_url: str | None = None) -> boo
     """
     Post an embed to the configured Discord webhook.
 
-    Returns whether anything was sent. A missing or malformed URL is a warning
-    rather than an error - posting to Discord is optional, and a failure here
-    must not lose the optimisation result that has just been computed.
+    Returns whether anything was sent.
     """
     webhook_url = webhook_url if webhook_url is not None else get_webhook_url()
     if not webhook_url:
@@ -53,8 +36,6 @@ def post_webhook(payload: dict[str, Any], webhook_url: str | None = None) -> boo
     try:
         result = requests.post(webhook_url, json=payload)
     except requests.exceptions.RequestException:
-        # The post happens after the optimisation has finished, so an
-        # unreachable Discord must not end the run and take the result with it.
         logger.warning("Discord webhook not sent, could not reach it", exc_info=True)
         return False
     if 200 <= result.status_code < 300:

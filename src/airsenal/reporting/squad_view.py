@@ -1,8 +1,4 @@
-"""Rendering a Squad for the terminal.
-
-Kept out of the Squad class itself so that the optimiser, which builds and
-discards thousands of Squads, does not depend on a rendering library.
-"""
+"""Rendering a Squad for the terminal."""
 
 from rich.console import Group, RenderableType
 from rich.panel import Panel

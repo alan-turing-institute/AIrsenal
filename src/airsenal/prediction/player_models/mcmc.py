@@ -18,13 +18,7 @@ MIN_PLAYED_FRACTION = 1e-6
 
 @dataclass(frozen=True)
 class NumpyroPlayerConfig:
-    """
-    Settings for the MCMC player model.
-
-    Deliberately has no epsilon or n_goals_prior: this model implements neither
-    time weighting nor a goals prior, so it rejects them rather than accepting
-    and ignoring them.
-    """
+    """Settings for the MCMC player model."""
 
     num_warmup: int = 500
     num_samples: int = 2000
@@ -48,8 +42,8 @@ class NumpyroPlayerModel:
         y: "jnp.ndarray",
         alpha: "jnp.ndarray",
     ) -> "jnp.ndarray":
-        # jax and numpyro are imported here rather than at module scope: they cost
-        # seconds to import, and only this model needs them.
+        # jax and numpyro are imported here rather than at module scope: they are slow
+        # to import, and only this model needs them.
         import jax.numpy as jnp  # noqa: PLC0415
         import numpyro  # noqa: PLC0415
         import numpyro.distributions as dist  # noqa: PLC0415
@@ -64,10 +58,7 @@ class NumpyroPlayerModel:
         # Floored away from zero. A match the player did not appear in gives
         # probabilities of exactly (0, 0, 1) and observed counts of (0, 0, n), and
         # the multinomial's 0 * log(0) term is a finite 0 whose derivative is 0/0 -
-        # so every unplayed match puts a NaN in the gradient and NUTS reports that
-        # it cannot find valid initial parameters. Those matches say nothing about
-        # the player either way, so moving them a hair off the boundary costs
-        # nothing and makes the gradient finite.
+        # so every unplayed match puts a NaN in the gradient without this.
         played = jnp.clip(minutes / 90.0, MIN_PLAYED_FRACTION, 1.0)
         prob_score = numpyro.deterministic("prob_score", dprobs[:, 0, None] * played)
         prob_assist = numpyro.deterministic("prob_assist", dprobs[:, 1, None] * played)
@@ -75,10 +66,7 @@ class NumpyroPlayerModel:
             "prob_neither", dprobs[:, 2, None] * played + (1.0 - played)
         )
         # total_count is the goals the player's team scored in that match, which
-        # is what the three outcome counts in `y` sum to. It varies per player and
-        # match, so it has to be passed: Multinomial's default of 1 puts every row
-        # where the team scored anything other than once outside the support, and
-        # numpyro rejects the initial parameters rather than fitting.
+        # is what the three outcome counts in `y` sum to.
         theta_mins = dist.Multinomial(
             total_count=y.sum(-1),
             probs=jnp.moveaxis(
@@ -93,10 +81,6 @@ class NumpyroPlayerModel:
 
         alpha = np.asarray(data["alpha"])
         if not (alpha > 0).all():
-            # A Dirichlet needs strictly positive concentrations, and numpyro
-            # reports a bare "invalid concentration parameter" that says nothing
-            # about where it came from. A zero here means the fitting window
-            # contains no goals, or no assists, for the whole position.
             msg = (
                 f"Dirichlet prior {alpha} has a non-positive concentration, so "
                 "this position recorded no goals or no assists in the fitting "

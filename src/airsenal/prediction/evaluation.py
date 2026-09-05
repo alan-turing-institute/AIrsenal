@@ -1,19 +1,9 @@
 """
 Scoring a fitted model against what actually happened.
 
-The other half of making models pluggable: `prediction/protocols.py` says what a
-model has to provide, and this says whether one is any good. Both scorers are
-typed against the protocols, so anything in `TEAM_MODELS` or `PLAYER_MODELS` -
-or a class written in a notebook and never registered - can be scored the same
-way and compared on one number.
-
-The number is a held-out log probability: how much probability the model put on
-the thing that actually happened. Higher is better, it is always negative, and
-it is only comparable between models scored over the same observations - so
-`ModelScore` carries the count as well as the total.
-
-Nothing here fits a model to data it has already seen. `backtest_team_model`
-walks the season forward, fitting only on matches before the gameweek it scores.
+The metric is log probability: how much probability the model put on the thing that
+actually happened. Higher is better, it is always negative, and it is only comparable
+between models scored in the same way over the same matches.
 """
 
 from collections.abc import Callable, Iterable, Sequence
@@ -50,20 +40,18 @@ class ModelScore:
     How much probability a model put on what actually happened.
 
     Higher (less negative) is better. Only comparable against another score over
-    the same observations, which is why `n_observations` travels with the total
-    and why adding two scores adds both.
+    the same observations.
     """
 
     total_log_probability: float = 0.0
     n_observations: int = 0
     # Observations the model could not be asked about - a fixture with no result,
-    # a player the fitted frame does not cover. Reported rather than hidden: a
-    # score over three observations is not a verdict on a model.
+    # a player the fitted frame does not cover.
     n_skipped: int = 0
 
     @property
     def mean_log_probability(self) -> float:
-        """The per-observation score, which *is* comparable across sample sizes."""
+        """The per-observation score, which is more comparable across sample sizes."""
         if not self.n_observations:
             return 0.0
         return self.total_log_probability / self.n_observations
@@ -84,12 +72,7 @@ def score_team_model(
     How well `model` predicted the scorelines of `fixtures` that have been played.
 
     Each side's goal count is scored against that side's marginal distribution,
-    from `predict_score_n_proba` - the one scoreline method the protocol names,
-    so every team model is scored the same way. A model whose joint distribution
-    is more than the product of its marginals, as Dixon-Coles' low-score
-    correction makes it, is not credited for that here; the point is to rank
-    models against each other on equal terms, not to report a model's own
-    likelihood.
+    from `predict_score_n_proba`.
 
     Args:
         max_goals: Goal counts above this are scored against the last bin, so a
@@ -137,15 +120,13 @@ def player_outcome_probability(
     The three fitted probabilities are per goal and for a full match, so they are
     scaled by the fraction played before the multinomial is evaluated. Returns
     1.0 - a certainty, contributing nothing to a log score - when the team did
-    not score or the player did not appear, because neither says anything about
-    how a team's goals are shared out.
+    not score or the player did not appear.
     """
     if team_goals <= 0 or minutes <= 0:
         return 1.0
     neither = team_goals - goals - assists
     if neither < 0:
-        # own goals and data errors both land here; the observation is not one
-        # the model claims to describe
+        # data errors and own goals can cause this
         return 1.0
     played = min(minutes, 90) / 90.0
     prob_score = played * probabilities[0]
@@ -153,8 +134,7 @@ def player_outcome_probability(
     prob_neither = 1.0 - prob_score - prob_assist
     if prob_neither < 0:
         return MIN_PROBABILITY
-    # multinomial pmf, written out rather than imported: scipy is not a
-    # dependency of the prediction layer and this is three terms
+    # multinomial pmf
     log_coefficient = (
         lgamma(team_goals + 1)
         - lgamma(goals + 1)
@@ -182,10 +162,8 @@ def score_player_model(
         player_scores: The performances to score against. Rows for a player the
             frame does not cover are skipped rather than guessed at, as are
             matches in which the player's team did not score or the player did
-            not appear - neither says anything about how goals are shared out.
+            not appear.
     """
-    # Lifted out of the frame once rather than looked up per row: a season of
-    # performances is tens of thousands of rows, and it types cleanly.
     columns = ["prob_score", "prob_assist", "prob_neither"]
     by_player: dict[int, list[float]] = {
         int(player_id): [float(value) for value in row]
@@ -240,13 +218,9 @@ def backtest_team_model(
 
     For each gameweek in `gameweeks`, fit a fresh model on everything before it
     and score the next `horizon` gameweeks. `build` is called once per gameweek
-    because a model is fitted in place - the entries of `TEAM_MODELS` are exactly
-    this shape, so `backtest_team_model(TEAM_MODELS["extended"], ...)` works, and
-    so does a lambda over a class that no table knows about.
+    because a model is fitted in place.
     """
-    # imported here rather than at module scope: team_models.fitting imports the
-    # table, and the table imports bpl, which imports jax - seconds of import
-    # time that scoring a player model should not pay for.
+    # deferred slow import
     from airsenal.prediction.team_models.fitting import (  # noqa: PLC0415
         get_fitted_team_model,
     )
@@ -282,17 +256,12 @@ def backtest_player_model(
     """
     Score a player model on gameweeks it was not fitted to, walking forward.
 
-    The player-side twin of `backtest_team_model`. A model is fitted once per
-    position, because that is how `fit_player_data` works - a forward's share of
-    his team's goals says nothing about a goalkeeper's - and the fitted frames
-    are scored together.
+    The player-side twin of `backtest_team_model`.
 
     Args:
         positions: Which positions to fit and score. Every position by default.
     """
-    # as in backtest_team_model: fitting pulls in features.py, and through it the
-    # rest of the prediction stack, which a caller only scoring a team model
-    # should not pay for
+    # deferred slow import
     from airsenal.prediction.player_models.fitting import (  # noqa: PLC0415
         fit_player_data,
     )

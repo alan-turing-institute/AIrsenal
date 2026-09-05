@@ -1,11 +1,4 @@
-"""
-Fitting a player model to the assembled training data.
-
-The player-side twin of `team_models/fitting.py`: model-agnostic, so it takes a
-`PlayerModel` rather than naming one. It is not re-exported from the package
-`__init__`, because `features.py` imports the models and this imports
-`features.py`.
-"""
+"""Fitting a player model to the assembled training data."""
 
 import pandas as pd
 from sqlalchemy.orm import Session

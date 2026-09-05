@@ -2,7 +2,7 @@
 A squad of fifteen players, and the rules it has to obey.
 
 Budget, squad size, players per position and the three-per-club limit are all
-checked here, so nothing that builds a squad has to restate them.
+checked here.
 """
 
 from collections import defaultdict
@@ -39,9 +39,6 @@ from airsenal.squad.state import get_bank
 
 logger = get_logger(__name__)
 
-# how many players do we need to add. Keyed by Position, annotated `str`
-# because what indexes these is a position read off a database row - Position
-# is a StrEnum, so the two are the same key.
 TOTAL_PER_POSITION: dict[str, int] = {
     Position.GK: 2,
     Position.DEF: 5,
@@ -56,8 +53,7 @@ class SubWeights:
     How much a substitute's predicted points count towards a squad's score.
 
     Outfield weights are ordered by bench position: first substitute, second,
-    third. Here rather than in `optimization/`, which configures it, because this
-    is the layer that reads it.
+    third.
     """
 
     gk: float = 0.03
@@ -109,8 +105,6 @@ class Squad:
 
         Without a `price`, the player's current price in the database is used.
         """
-        # dbsession is passed through unresolved: CandidatePlayer keeps it, and this
-        # Squad gets pickled onto the optimiser's multiprocessing queue.
         gameweek = next_gameweek() if gameweek is None else gameweek
         if isinstance(p, int | str | Player):
             player: SquadPlayer = CandidatePlayer(
@@ -239,11 +233,7 @@ class Squad:
         return player.purchase_price <= self.budget
 
     def _calc_expected_points(self, tag: str) -> None:
-        """
-        Expected points for a gameweek, after picking a lineup and a captain.
-
-        Defaults to the next gameweek.
-        """
+        """Expected points for all squad players and gameweeks for the given tag."""
         for p in self.players:
             p.calc_predicted_points(tag)
 
@@ -371,9 +361,6 @@ class Squad:
                                 # TREBLE their score!
                                 total_points += score.points
                         elif p.is_vice_captain:
-                            # += : a double gameweek gives them two scores, and
-                            # FPL doubles their whole gameweek, not their last
-                            # fixture.
                             vice_captain_points += score.points
                 else:  # starting player didn't get any minutes
                     need_sub.append(p)
@@ -394,10 +381,6 @@ class Squad:
         # now take account of subs.
         # UNLESS bench_boost (in which case we've already counted subs points)
         if need_sub and not bench_boost:
-            # Carried from one substitution to the next: deriving the formation
-            # from `is_starting` each time answers for the lineup before any
-            # substitution was made, so a second and third one could be waved
-            # through and score a lineup FPL would never have fielded.
             formation = formation_of(self.players)
             for p_out in need_sub:
                 for p_in in ordered_subs:

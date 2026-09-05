@@ -39,37 +39,21 @@ HEADERS = {
     )
 }
 
-# `requests` has no default timeout, unlike the curl_cffi sessions the rest of
-# `remote` uses, so a stalled connection would wait for ever. A scrape is three
-# pages for each of ~600 players, and any one of them hanging stops the run.
 TIMEOUT_SECONDS = 30.0
-
-# Transfermarkt starts timing requests out part way through a scrape of a whole
-# division, and a page that is given up on is a player's absences missing from
-# the season. Retrying costs a few seconds; not retrying costs data, quietly.
 RETRIES = 3
 RETRY_BACKOFF_SECONDS = 5.0
 RETRY_STATUS_CODES = (429, 500, 502, 503, 504)
-
-# Waited before every request. A season is three pages for each of ~600 players,
-# and asking for them as fast as we can get them is what provokes the timeouts
-# above: unpaced, the throttling starts within the first thirty. An hour of
-# waiting for a season's data beats losing a tenth of the players to retries.
 REQUEST_DELAY_SECONDS = 1.0
 
-# The columns `get_season_absences` concatenates, and the ones `absences_xxyy.csv`
-# is written from. An empty result has to carry them too, or a player with no
-# absences of one kind would change the shape of the concatenation.
 ABSENCE_COLUMNS = ("season", "details", "from", "until", "days", "games", "reason")
 
 
 def _fetch_once(url: str, timeout: float) -> requests.Response:
     """
-    One request for a Transfermarkt page, failing the way the rest of `remote` fails.
+    One request for a Transfermarkt page.
 
-    Checks the status, so an error page is a `RemoteError` here rather than
-    whatever the HTML parser makes of it further away. A timeout is a
-    `RemoteConnectionError`, like any other failure to reach the site.
+    Checks the status, so an error page is a `RemoteError` and a timeout is a
+    `RemoteConnectionError`.
     """
     time.sleep(REQUEST_DELAY_SECONDS)
     try:
@@ -193,10 +177,8 @@ def _leading_int(column: pd.Series) -> pd.Series:
     The number at the start of each value, as a nullable integer.
 
     TransferMarkt writes a duration as a number and a unit - "8 days" on the
-    English pages, "8 Tage" on some of them, "? days" when it does not know - and
-    which unit a given table uses has changed under us before. Taking the leading
-    digits and discarding the rest reads all of them, and gives NA for a value
-    with no number in it at all.
+    English pages, "8 Tage" on some of them, "? days" when it does not know. Take the
+    leading digits and discard the rest, or NA for a value with no number in it at all.
     """
     return (
         column.astype("string")
@@ -239,9 +221,7 @@ def _read_absence_table(html: str, heading: str) -> pd.DataFrame | None:
     The table on an absence page whose header holds `heading`, or None.
 
     None means the page has no such table, which is the ordinary state of a
-    player who has never been injured or suspended. Distinguishing it from a
-    table we failed to parse is the point: only the second is a site change worth
-    hearing about, and `pd.read_html` raises the same ValueError for both.
+    player who has never been injured or suspended.
     """
     try:
         return pd.read_html(StringIO(html), match=heading)[0]
@@ -384,9 +364,7 @@ def get_player_transfers(
     Get a player's transfer history: season, date, old team and new team.
 
     Read from the endpoint the transfers page itself calls, e.g.
-    https://www.transfermarkt.co.uk/ceapi/transferHistory/list/95424 - the page at
-    /kyle-walker/transfers/spieler/95424 now renders that data client-side, so
-    there is no table in the HTML to scrape.
+    https://www.transfermarkt.co.uk/ceapi/transferHistory/list/95424.
 
     Returns:
         One row per completed transfer, oldest first, with the columns
@@ -447,10 +425,6 @@ def get_start_end_dates_of_season(season: str) -> list[pd.Timestamp]:
     Rough start and end dates for a season.
 
     19/20 and 20/21 were shorter and longer than usual, and are special-cased.
-
-    Here rather than in `season.py` because this is its only caller, and it is
-    the only thing in that module that needs pandas: everything else there is
-    string arithmetic over season names.
     """
     start_year = int(f"20{season[:2]}")
     end_year = int(f"20{season[2:]}")
@@ -468,8 +442,7 @@ def played_in_premier_league(club_id: str, club_url: str, teams: list[Team]) -> 
     """
     Whether a club a player moved to was one of `teams`.
 
-    Matched on TransferMarkt's numeric club id, the one identifier its squad
-    pages and its transfer history spell the same way.
+    Matched on TransferMarkt's numeric club id.
 
     A youth or reserve side has an id of its own, so it never matches a first
     team - but a player in the under-21s is still available for Premier League
@@ -501,8 +474,7 @@ def first_season_to_walk(first_transfer_season: str, end_season: str) -> str:
     Usually the season of the player's first transfer. A career that began last
     century cannot be: "9899" reads as 2098/99, and stepping forwards from it
     runs 99 into "100" rather than wrapping. Those start at `EARLIEST_SEASON`
-    instead, which loses only where the player was two decades before the season
-    being scraped - the walk has caught up with them long before it gets there.
+    instead.
     """
     if (
         len(first_transfer_season) != 4
@@ -708,8 +680,7 @@ def premier_league_absences(
     A national team call-up is tagged with the player's own club rather than with
     a competition - that cell carries a club crest where a suspension carries a
     competition logo - so the season's club names are kept alongside "Premier
-    League" itself. Without them every Africa Cup of Nations and international
-    call-up is discarded, which is 44 players in 25/26 alone.
+    League" itself.
     """
     if "competition" not in suspensions.columns:
         return suspensions
@@ -726,16 +697,12 @@ def get_season_absences(
 
     Injuries, suspensions, international call-ups and other unavailability from
     Transfermarkt's own two tables, plus time spent at a non-Premier League club.
-    A player whose page cannot be scraped is counted and skipped rather than
-    failing the run; the counts are logged, because a kind of absence that stops
-    being scrapeable otherwise leaves a file that looks complete.
+    A player whose page cannot be scraped is counted and skipped.
     """
     if pl_teams_in_season is None:
         pl_teams_in_season = {}
     year = season_str_to_year(season)
     if season not in pl_teams_in_season:
-        # Needed to tell a call-up from another competition, as well as by the
-        # transfer scraper, so it is not left to the caller to have provided it.
         pl_teams_in_season[season] = get_teams_for_season(year)
     logger.info("Finding players...")
 
@@ -810,9 +777,6 @@ def scrape_transfermarkt(seasons: list[str]) -> None:
         logger.info("Season: %s", season)
 
         absences = get_season_absences(season, pl_teams_in_season=pl_teams)
-        # A season should have some of every kind. Saying so here is the only
-        # chance to notice that one of the three tables has stopped parsing: the
-        # csv itself looks perfectly well formed with a whole category missing.
         logger.info(
             "%s absences for %s: %s",
             len(absences),

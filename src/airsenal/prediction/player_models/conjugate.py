@@ -13,7 +13,6 @@ from airsenal.prediction.protocols import PlayerFitData
 
 logger = get_logger(__name__)
 
-# Named constants rather than inline literals so each value has one home.
 DEFAULT_PLAYER_EPSILON = 0.2
 DEFAULT_N_GOALS_PRIOR = 35
 

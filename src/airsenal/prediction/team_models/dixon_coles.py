@@ -24,13 +24,7 @@ DEFAULT_RESCALE_WEIGHTS = True
 
 
 class DixonColesTeamModel:
-    """
-    bpl's Dixon-Coles predictor, holding the arguments it is fitted with.
-
-    bpl takes the time-weighting settings at fit time rather than at
-    construction. Keeping them on the model instead means `fit(training_data)` is
-    the whole of the `TeamModel` contract.
-    """
+    """bpl's Dixon-Coles predictor, holding the arguments it is fitted with."""
 
     def __init__(
         self,

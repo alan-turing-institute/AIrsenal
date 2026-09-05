@@ -1,12 +1,4 @@
-"""
-Talking to the FPL API: where it lives, and how a request to it is made.
-
-The retry, and the translation of a transport failure into a `RemoteError`, are
-not about being a data fetcher - the login flow needs them too, and it is the one
-caller whose failures every `except RemoteError` fallback in squad/ and pipeline/
-depends on. So they are functions over a session rather than methods on the
-client, and both `FPLDataFetcher` and `FPLAuth` reach the API through them.
-"""
+"""Talking to the FPL API: where it lives, and how a request to it is made."""
 
 import json
 import time
@@ -42,9 +34,6 @@ def get_json(
     that can go wrong arrives as a `RemoteError`: `RemoteConnectionError` if the
     API could not be reached, `RemoteHTTPError` (carrying the status code) for a
     non-200 response.
-
-    Returns `Any` rather than a payload type - this is the decoded body of an
-    untyped external API, and every caller narrows it for its own endpoint.
     """
     tries = 0
     r = None

@@ -1,15 +1,4 @@
-"""
-The whole pipeline, as one configured object.
-
-The four swappable components are held as objects, so a model or an optimizer
-written anywhere can be dropped in - including one no table knows about. Turning
-a name from the command line into one of those objects is the caller's job, and
-one call: see `prediction.team_models.build_team_model` and the tables
-beside it.
-
-Settings that belong to a component - the GA's population, the search's thread
-count, a model's epsilon - live on that component and not here.
-"""
+"""The whole pipeline, as one configured object."""
 
 from dataclasses import dataclass, field, replace
 from typing import Any
@@ -65,24 +54,14 @@ class StaleDatabaseError(RuntimeError):
 
 @dataclass(frozen=True, kw_only=True)
 class AIrsenalPipeline:
-    """
-    A configured run: what to predict and optimise with, and what to do with it.
-
-    The components are objects rather than names so that anything satisfying the
-    protocol can be used, including something defined in a notebook.
-    """
+    """A configured run: what to predict and optimise with, and what to do with it."""
 
     team_model: TeamModel = field(default_factory=build_team_model)
     player_model: PlayerModel = field(default_factory=build_player_model)
     transfer_optimizer: TransferOptimizer = field(default_factory=TreeSearchOptimizer)
     squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
-    # How a squad is scored. Alongside the constraints rather than inside a
-    # component, because both optimizers have to agree on it.
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
-    # Which components of an FPL score to predict. Beside the other two config
-    # objects rather than on a model, because it describes the points rather
-    # than how any one model is fitted.
     points: PointsConfig = field(default_factory=PointsConfig)
     settings: PipelineSettings = field(default_factory=PipelineSettings)
 
@@ -95,16 +74,9 @@ class AIrsenalPipeline:
     def gameweeks(
         self, dbsession: Session | None = None, gameweek_start: int | None = None
     ) -> list[int]:
-        """
-        The gameweek window this run covers.
-
-        One resolver for every command, so that `optimize squad` cannot clamp to
-        the end of the season differently from everything else - which it did,
-        with a `range()` written out in the CLI.
-        """
+        """The gameweek window this run covers."""
         gameweek_end = self.settings.gameweek_end
         return get_gameweeks_array(
-            # get_gameweeks_array refuses both at once, and an explicit end wins
             n_gameweeks=None if gameweek_end is not None else self.settings.n_gameweeks,
             gameweek_start=(
                 gameweek_start
@@ -120,10 +92,9 @@ class AIrsenalPipeline:
         self, gameweeks: list[int], dbsession: Session, tag_prefix: str = ""
     ) -> str:
         """
-        Predict points for every player, and return the tag they were written under.
+        Predict points for every player.
 
-        The tag is returned rather than looked up again afterwards with
-        `get_latest_prediction_tag`, which would be a race between two runs.
+        Returns the tag they were written under in the database.
         """
         return make_predictedscore_table(
             gameweeks=gameweeks,
@@ -145,17 +116,11 @@ class AIrsenalPipeline:
         """
         Choose a squad: build one from scratch, or transfer into the current one.
 
-        Which of the two is the decision this object exists to make, and it is
-        what makes both optimizer components live rather than one of them dead.
-
         Returns the squad and the plan that produced it. The plan is None when
         the squad was built from scratch: there was nothing to transfer from, so
         there is no sequence of moves to describe.
         """
         self._require_predictions(gameweeks, tag)
-        # idempotent and forcing, so calling it here as well as in run() costs
-        # nothing - and a caller that optimises without running the whole
-        # pipeline still gets the fork the transfer search requires
         set_multiprocessing_start_method()
         if self._is_new_squad(fpl_team_id, gameweeks):
             logger.info("[bold]Generating Squad[/bold]")
@@ -242,14 +207,7 @@ class AIrsenalPipeline:
         raise ConfigError(msg)
 
     def _is_new_squad(self, fpl_team_id: int, gameweeks: list[int]) -> bool:
-        """
-        Whether there is no squad yet to transfer from.
-
-        The one place this is decided, so nothing downstream can route to a
-        from-scratch build after this has said otherwise. The criterion is the
-        window's first gameweek, not the next one: a window starting where the
-        entry starts has nothing behind it to transfer from.
-        """
+        """Whether there is no squad yet to transfer from."""
         if self.settings.new_squad is not None:
             return self.settings.new_squad
         if gameweeks[0] == 1:
@@ -301,8 +259,7 @@ class AIrsenalPipeline:
             logger.warning(message)
             if confirm("Do you want to continue?"):
                 return
-        # Raising rather than sys.exit: this is a library function, and a
-        # function that exits the interpreter cannot be tested or reused.
+
         raise StaleDatabaseError(message)
 
     def _apply(self, fpl_team_id: int) -> None:
@@ -314,16 +271,10 @@ class AIrsenalPipeline:
             raise RuntimeError(msg)
         skip_check = self.settings.skip_confirmation
         logger.info("[bold]Applying Transfers[/bold]")
-        # make_transfers answers three things, not two: None when there was
-        # nothing to apply, False when the user said no, True when it posted.
-        # Collapsing them turned a rolled transfer and a declined prompt into a
-        # failure, and skipped the lineup in both cases.
         applied = make_transfers(fpl_team_id, skip_check=skip_check)
         if applied is None:
             logger.info("No transfers to apply.")
         elif applied is False:
-            # make_transfers already said why, and its own message promises the
-            # lineup is still on offer: "Can still choose starting 11 and captain".
             logger.info("Transfers not applied.")
         logger.info("[bold]Setting Lineup[/bold]")
         set_lineup(fpl_team_id, skip_check=skip_check)

@@ -1,10 +1,8 @@
 """
 A team model that gives every scoreline the same probability.
 
-A null baseline for `airsenal replay`: if a real team model does not beat
-"every scoreline is equally likely", it is not earning its keep. Also a fast
-path when debugging something downstream of prediction, since fitting it costs
-nothing.
+A null baseline for `airsenal replay`. Also a fast path when debugging something
+downstream of prediction, since fitting it costs nothing.
 """
 
 from collections.abc import Iterable, Sequence

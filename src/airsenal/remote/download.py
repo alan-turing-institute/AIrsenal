@@ -35,10 +35,6 @@ def download_with_resume(
         headers = {"Range": f"bytes={existing}-"} if existing > 0 else {}
         resp = None
         try:
-            # Inside the try: a refused connection, a DNS failure or a timeout
-            # raises here rather than from the body, and outside it that escaped
-            # as a raw curl_cffi error - unretried, and past every downstream
-            # `except RemoteError`.
             resp = session.get(
                 url,
                 headers=headers,

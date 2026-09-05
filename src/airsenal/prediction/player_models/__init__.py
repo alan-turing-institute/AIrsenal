@@ -1,9 +1,7 @@
 """
 Player models: one module per way of predicting how a team's goals are shared out.
 
-`PLAYER_MODELS` maps a `--player-model` name to a zero-argument factory. Being in
-it is only how a *name* reaches an implementation - `AIrsenalPipeline` takes
-objects, so a model defined in a notebook can be dropped straight in.
+`PLAYER_MODELS` maps a `--player-model` name to a zero-argument factory.
 """
 
 from collections.abc import Callable
@@ -23,12 +21,7 @@ from airsenal.prediction.player_models.mcmc import (
 )
 from airsenal.prediction.protocols import PlayerModel
 
-# Which model a command uses when it is not told. Named here because the CLI, the
-# pipeline and the replay driver all had to state it, and `airsenal replay` had
-# already drifted to a different set of fit arguments as a result.
 DEFAULT_PLAYER_MODEL = "conjugate"
-
-# Each class defaults its own config, so the class is the factory.
 PLAYER_MODELS: dict[str, Callable[[], PlayerModel]] = {
     "conjugate": ConjugatePlayerModel,
     "constant": ConstantPlayerModel,

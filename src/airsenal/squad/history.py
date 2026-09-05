@@ -1,10 +1,4 @@
-"""Reconstructing the user's transaction history from the FPL API.
-
-These combine the API, squad state and database writes, so they sit above all
-three rather than in db/, which holds only the plain insert. state.py cannot
-hold them: squad.py imports it, so anything here that builds a Squad would close
-a loop.
-"""
+"""Reconstructing the user's transaction history from the FPL API."""
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -45,9 +39,7 @@ def record_initial_squad_transactions(
     Record an entry's opening fifteen players in the transactions table.
 
     The players come from the team history endpoint and their gameweek 1 prices
-    from the player history endpoint. This records fifteen players that were
-    already chosen; `optimization.run_squad.build_new_squad` is the one that
-    runs an optimizer to choose them.
+    from the player history endpoint.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
@@ -177,12 +169,6 @@ def update_squad(
                 pid_out,
                 price_out,
             )
-            # For this entry, not for whichever one $FPL_TEAM_ID names: without
-            # the id this built a client for the default entry and read its
-            # chips. The flag is written into the row, and
-            # `get_squad_from_transactions` drops every free-hit transfer, so a
-            # transfer wrongly stamped 1 leaves the reconstructed squad missing a
-            # player from then on.
             free_hit = free_hit_used_in_gameweek(gameweek, fpl_team_id)
             add_transaction(
                 pid_out,
@@ -266,9 +252,6 @@ def get_squad_from_transactions(
     added at `gameweek` rather than at the gameweek they were bought in, so the
     squad reflects each player's current club. Budget and squad constraints are
     not checked between transfers - only the final squad has to obey them.
-
-    With no `fpl_team_id`, the entry that made the most recent transaction is
-    used.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not fpl_team_id:

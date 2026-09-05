@@ -1,10 +1,4 @@
-"""
-Filling the player prediction table.
-
-Each run gets a "tag" of its own, stored alongside the rows it writes, so that
-an optimizer asked for a tag reads one consistent set of predictions rather than
-a mix of two runs.
-"""
+"""Filling the player prediction table."""
 
 from uuid import uuid4
 
@@ -101,12 +95,7 @@ def make_predictedscore_table(
     team_model: TeamModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
-    """
-    Predict every player's points over `gameweeks`, and return the tag written.
-
-    `gameweeks` has no default: resolving a window is `AIrsenalPipeline.gameweeks`'
-    job, and every caller goes through it.
-    """
+    """Predict every player's points over `gameweeks`, and return the tag written."""
     dbsession = dbsession if dbsession is not None else get_session()
     tag = tag_prefix or ""
     tag += str(uuid4())
