@@ -9,6 +9,7 @@ from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import positions
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import PlayerAttributes, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import (
@@ -23,6 +24,8 @@ from airsenal.framework.utils import (
     get_team_name,
 )
 
+logger = get_logger(__name__)
+
 
 def fill_attributes_table_from_file(
     detail_data: dict, season: str, dbsession: Session = session
@@ -31,15 +34,16 @@ def fill_attributes_table_from_file(
     player detail JSON files.
     """
 
-    for player_name_or_id, player_data in detail_data.items():
+    for player_name_or_id, player_data in track(
+        detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
+    ):
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
         player = get_player(player_name_or_id, dbsession=dbsession)
         if not player:
-            print(f"Couldn't find player {player_name_or_id}")
+            logger.warning("Couldn't find player %s", player_name_or_id)
             continue
 
-        print(f"ATTRIBUTES {season} {player}")
         # now loop through all the fixtures that player played in
         # Only one attributes row per gameweek - create list of gameweeks
         # encountered so can ignore duplicates (e.g. from double gameweeks).
@@ -98,14 +102,14 @@ def fill_attributes_table_from_api(
 
     input_data = fetcher.get_player_summary_data()
 
-    for player_api_id in input_data:
+    for player_api_id in track(input_data, description=f"PLAYER ATTRIBUTES {season}"):
         # find the player in the player table
         player = get_player_from_api_id(player_api_id, dbsession=dbsession)
         if not player:
-            print(f"ATTRIBUTES {season} No player found with id {player_api_id}")
+            logger.warning(
+                "ATTRIBUTES %s No player found with id %s", season, player_api_id
+            )
             continue
-
-        print(f"ATTRIBUTES {season} {player}")
 
         # First update the current gameweek using the summary data
         p_summary = input_data[player_api_id]
@@ -134,7 +138,9 @@ def fill_attributes_table_from_api(
         pa.price = int(p_summary["now_cost"])
         team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
         if team is None:
-            print(f"Couldn't find team {p_summary['team']} for player {player}")
+            logger.warning(
+                "Couldn't find team %s for player %s", p_summary["team"], player
+            )
             continue
         pa.team = team
         pa.position = positions[p_summary["element_type"]]
@@ -167,7 +173,7 @@ def fill_attributes_table_from_api(
         if next_gw > 1:
             player_data = fetcher.get_gameweek_data_for_player(player_api_id)
             if not player_data:
-                print(f"Failed to get data for {player}")
+                logger.warning("Failed to get data for %s", player)
                 continue
             for gameweek, data in player_data.items():
                 if gameweek < gw_start:
@@ -200,9 +206,11 @@ def fill_attributes_table_from_api(
                         dbsession=dbsession,
                     )
                     if fixture is None:
-                        print(
-                            f"Couldn't find fixture for {player} vs {opponent_id} in "
-                            f"gameweek {gameweek}"
+                        logger.warning(
+                            "Couldn't find fixture for %s vs %s in gameweek %s",
+                            player,
+                            opponent_id,
+                            gameweek,
                         )
                         continue
                     team = get_player_team_from_fixture(

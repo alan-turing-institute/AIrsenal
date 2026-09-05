@@ -6,8 +6,6 @@ and checking that the optimizer finds the expected outcome.
 from operator import itemgetter
 from unittest import mock
 
-import pytest
-
 from airsenal.framework.optimization_transfers import (
     make_optimum_double_transfer,
     make_optimum_single_transfer,
@@ -17,9 +15,8 @@ from airsenal.framework.optimization_utils import (
     get_discount_factor,
     next_week_transfers,
 )
+from airsenal.framework.output import console
 from airsenal.framework.squad import Squad
-
-pytestmark = pytest.mark.filterwarnings("ignore:Using purchase price as sale price")
 
 
 class DummyPlayer:
@@ -251,7 +248,7 @@ def test_double_transfer():
         # be transferred out.   115 should be captain
         assert 201 in pid_in
         assert 115 in pid_in
-        print(new_squad)
+        console.print(new_squad)
         for p in new_squad.players:
             if p.player_id == 115:
                 assert p.is_captain is True

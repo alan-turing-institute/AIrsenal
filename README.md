@@ -87,10 +87,10 @@ $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRS
 or
 
 ```console
-$ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal airsenal_run_pipeline
+$ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRSENAL_HOME=/tmp" airsenal airsenal run
 ```
 
-`airsenal_run_pipeline` is the default command.
+`airsenal run` is the default command.
 
 </details>
 
@@ -100,7 +100,7 @@ $ docker run -it --rm -v airsenal_data:/tmp/ -e "FPL_TEAM_ID=<your_id>" -e "AIRS
 
 ⚠️ There are currently dependency issues with installing AIrsenal from PyPI (see #733), so it's not recommended. We're working on it. ⚠️
 
-You can now do `pip install airsenal` in your Python virtual environment of choice, and it should work out-of-the-box, allowing you to run all the `airsenal_*` commands listed in the [Getting Started section](#getting-started).
+You can now do `pip install airsenal` in your Python virtual environment of choice, and it should work out-of-the-box, providing the `airsenal` command described in the [Getting Started section](#getting-started).
 
 We will aim to keep the version on PyPi relatively up-to-date, but if you want the very latest developments, they will appear first in Github (on the `develop` branch if you're feeling brave, or `main` if you want a more stable version), which would require [building from source](#installation-from-source)
 
@@ -118,7 +118,7 @@ We will aim to keep the version on PyPi relatively up-to-date, but if you want t
 
 ## Running commands with uv
 
-If using AIrsenal with uv you must either prepend `uv run` to all the AIrsenal commands below (e.g. `uv run airsenal_setup_initial_db`), or activate the virtual environment created by uv and then run them as normal. By default the virtual environment can be activated with `source .venv/bin/activate`.
+If using AIrsenal with uv you must either prepend `uv run` to all the AIrsenal commands below (e.g. `uv run airsenal db create`), or activate the virtual environment created by uv and then run them as normal. By default the virtual environment can be activated with `source .venv/bin/activate`.
 
 ## Configuration
 
@@ -145,16 +145,16 @@ The values for these should be defined either in environment variables with the 
 To view the location of `AIRSENAL_HOME` and the current values of all set AIrsenal environment variables run:
 
 ```bash
-airsenal_env get
+airsenal env get
 ```
 
-Use `airsenal_env set` to set values and store them for future use. For example:
+Use `airsenal env set` to set values and store them for future use. For example:
 
 ```bash
-airsenal_env set -k FPL_TEAM_ID -v 123456
+airsenal env set --key FPL_TEAM_ID --value 123456
 ```
 
-See `airsenal_env --help` for other options.
+See `airsenal env --help` for other options.
 
 ## Getting Started
 
@@ -165,7 +165,7 @@ See `airsenal_env --help` for other options.
 The easiest way to run AIrsenal is to use the pipeline script:
 
 ```shell
-airsenal_run_pipeline
+airsenal run
 ```
 
 This will create or update the database, compute points predictions, and suggest transfers.  Add `--help` to see the available options, by default predictions and transfers are calculated for the next 3 gameweeks.
@@ -177,7 +177,7 @@ Alternatively, you can run each step of AIrsenal independently, as follows:
 Run the following command to create the AIrsenal database:
 
 ```shell
-airsenal_setup_initial_db
+airsenal db create
 ```
 
 This will fill the database with data from the last 3 seasons, as well as all available fixtures and results for the current season.
@@ -187,7 +187,7 @@ This will fill the database with data from the last 3 seasons, as well as all av
 Once the database has been created, you just need to update it each time before you run predictions or optimisations. This pulls all the latest data from the FPL API, such as recent match results, changes to fixtures, new players, and player injury/suspension statuses.
 
 ```shell
-airsenal_update_db
+airsenal db update
 ```
 
 ### 3. Running predictions
@@ -197,7 +197,7 @@ The next step is to predict the expected points for all players for the next fix
 This is done using the command
 
 ```shell
-airsenal_run_prediction --weeks_ahead 3
+airsenal predict --weeks-ahead 3
 ```
 
 Predicting the next 3 gameweeks of fixtures is the default but this can be configured with the argument above.
@@ -207,25 +207,48 @@ Predicting the next 3 gameweeks of fixtures is the default but this can be confi
 Finally, we need to run the optimizer to pick the best transfer strategy over the next weeks (and hence the best team for the next week).
 
 ```shell
-airsenal_run_optimization --weeks_ahead 3
+airsenal optimize transfers --weeks-ahead 3
 ```
 
 This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with the arguments ` --wildcard_week <GW>`, `--free_hit_week <GW>`, `--triple_captain_week <GW>` and `--bench_boost_week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or use `0` to try playing the chip in all gameweeks).
 
-Note that `airsenal_run_optimization` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
+Note that `airsenal optimize transfers` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 
 ```shell
-airsenal_make_squad --num_gameweeks 3
+airsenal optimize squad --num-gameweeks 3
 ```
 
 ### 5. Apply Transfers and Lineup
 
 Note that you must have set `FPL_LOGIN` and `FPL_PASSWORD` for these to work (as described in the "Configuration" section above).
 
-To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal_make_transfers`.
-- **🚨 This can't be undone and may incur points hits! 🚨** Also, this command **can't currently apply chips** such as "free hit" or "wildcard", even if those were specified in the `airsenal_run_optimization` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline **via the FPL website**.
+To apply the transfers recommended by AIrsenal to your team on the FPL website run `airsenal apply transfers`.
+- **🚨 This can't be undone and may incur points hits! 🚨** Also, this command **can't currently apply chips** such as "free hit" or "wildcard", even if those were specified in the `airsenal optimize transfers` step.  If you do want to use this command to apply the transfers anyway, you can play the chip at any time before the gameweek deadline **via the FPL website**.
 
-You can also use `airsenal_set_lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
+You can also use `airsenal apply lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
+
+### Command Migration
+
+The former `airsenal_*` executables have been replaced by subcommands of `airsenal`:
+
+| Previous command | Replacement |
+| --- | --- |
+| `airsenal_run_pipeline` | `airsenal run` |
+| `airsenal_setup_initial_db` | `airsenal db create` |
+| `airsenal_update_db` | `airsenal db update` |
+| `airsenal_run_prediction` | `airsenal predict` |
+| `airsenal_make_squad` | `airsenal optimize squad` |
+| `airsenal_run_optimization` | `airsenal optimize transfers` |
+| `airsenal_make_transfers` | `airsenal apply transfers` |
+| `airsenal_set_lineup` | `airsenal apply lineup` |
+| `airsenal_replay_season` | `airsenal replay` |
+| `airsenal_env` | `airsenal env` |
+| `airsenal_check_data` | `airsenal db check` |
+| `airsenal_dump_api` | `airsenal dump api` |
+| `airsenal_dump_db` | `airsenal dump db` |
+| `airsenal_scrape_transfermarkt` | `airsenal dump transfermarkt` |
+| `airsenal_plot` | `airsenal plot` |
+| `airsenal_save_absences` | `airsenal dump absences` |
 
 ## Issues and New Features
 
@@ -239,7 +262,7 @@ git pull
 uv sync  # or "pip install --force-reinstall ." if not using uv
 ```
 
-If there have been database changes you may also need to run `airsenal_setup_initial_db --clean` after the above.
+If there have been database changes you may also need to run `airsenal db create --clean` after the above.
 
 ## Contributing
 

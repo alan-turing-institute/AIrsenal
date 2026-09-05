@@ -1,18 +1,16 @@
 import multiprocessing
 import sys
-import warnings
 
-import click
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from sqlalchemy.orm.session import Session
-from tqdm import TqdmWarning
 
 from airsenal.framework.bpl_interface import (
     DEFAULT_TEAM_EPSILON,
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.output import get_logger
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
@@ -36,112 +34,11 @@ from airsenal.scripts.set_lineup import set_lineup
 from airsenal.scripts.squad_builder import fill_initial_squad
 from airsenal.scripts.update_db import update_db
 
+logger = get_logger(__name__)
 
-@click.command("airsenal_run_pipeline")
-@click.option(
-    "--num_thread",
-    type=int,
-    help="No. of threads to use for pipeline run",
-)
-@click.option(
-    "--weeks_ahead", type=int, default=3, help="No of weeks to use for pipeline run"
-)
-@click.option(
-    "--fpl_team_id",
-    type=int,
-    required=False,
-    help="fpl team id for pipeline run",
-)
-@click.option(
-    "--clean",
-    is_flag=True,
-    help="If set, delete and recreate the AIrsenal database",
-)
-@click.option(
-    "--apply_transfers",
-    is_flag=True,
-    help="If set, go ahead and make the transfers via the API.",
-)
-@click.option(
-    "--wildcard_week",
-    type=int,
-    help=(
-        "If set to 0, consider playing wildcard in any gameweek. "
-        "If set to a specific gameweek, it'll be played for that particular gameweek."
-    ),
-    default=-1,
-)
-@click.option(
-    "--free_hit_week",
-    type=int,
-    help="Play free hit in the specified week. Choose 0 for 'any week'.",
-    default=-1,
-)
-@click.option(
-    "--triple_captain_week",
-    type=int,
-    help="Play triple captain in the specified week. Choose 0 for 'any week'.",
-    default=-1,
-)
-@click.option(
-    "--bench_boost_week",
-    type=int,
-    help="Play bench_boost in the specified week. Choose 0 for 'any week'.",
-    default=-1,
-)
-@click.option(
-    "--n_previous",
-    help="specify how many seasons to look back into the past for (defaults to 3)",
-    type=int,
-    default=3,
-)
-@click.option(
-    "--no_current_season",
-    help="If set, does not include CURRENT_SEASON in database",
-    is_flag=True,
-)
-@click.option(
-    "--team_model",
-    help="which team model to fit",
-    type=click.Choice(["extended", "neutral"]),
-    default="extended",
-)
-@click.option(
-    "--epsilon",
-    help="how much to downweight games by in exponential time weighting",
-    type=float,
-    default=DEFAULT_TEAM_EPSILON,
-)
-@click.option(
-    "--max_transfers",
-    help=(
-        "specify maximum number of transfers to consider each gameweek [EXPERIMENTAL: "
-        "increasing this value above 2 may make the optimisation very slow!]"
-    ),
-    type=click.IntRange(min=0, max=5),
-    default=2,
-)
-@click.option(
-    "--max_hit",
-    help=(
-        "specify maximum number of points to spend on additional transfers "
-        "(defaults to 8)"
-    ),
-    type=click.IntRange(min=0),
-    default=8,
-)
-@click.option(
-    "--allow_unused",
-    help="If set, include strategies that waste free transfers",
-    is_flag=True,
-)
-@click.option(
-    "--save_absences",
-    help="If set, save expected absences to 'absences_yyyy.csv' file",
-    is_flag=True,
-)
+
 def run_pipeline(
-    num_thread: int,
+    num_thread: int | None,
     weeks_ahead: int,
     fpl_team_id: int | None,
     clean: bool,
@@ -153,7 +50,7 @@ def run_pipeline(
     n_previous: int,
     no_current_season: bool,
     team_model: str,
-    epsilon: int,
+    epsilon: float,
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
@@ -171,7 +68,7 @@ def run_pipeline(
             msg = "FPL Team ID not provided and not found in environment variables."
             raise RuntimeError(msg)
         fpl_team_id = fetcher.FPL_TEAM_ID
-    print(f"Running for FPL Team ID {fpl_team_id}")
+    logger.info("Running for FPL Team ID %s", fpl_team_id)
     if not num_thread:
         num_thread = multiprocessing.cpu_count()
     set_multiprocessing_start_method()
@@ -182,24 +79,24 @@ def run_pipeline(
 
     with session_scope() as dbsession:
         if check_clean_db(clean, dbsession):
-            click.echo("Setting up Database..")
+            logger.info("[bold]Database Setup[/bold]")
             setup_ok = setup_database(
                 fpl_team_id, n_previous, no_current_season, dbsession
             )
             if not setup_ok:
                 msg = "Problem setting up initial db"
                 raise RuntimeError(msg)
-            click.echo("Database setup complete..")
+            logger.info("[green]Database setup complete![/green]")
             update_attr = False
         else:
-            click.echo("Found pre-existing AIrsenal database.")
+            logger.info("Found pre-existing AIrsenal database.")
             update_attr = True
 
-        click.echo("Updating database..")
+        logger.info("[bold]Updating database[/bold]")
         try:
             update_ok = update_database(fpl_team_id, update_attr, dbsession)
-        except requests.exceptions.RequestException as e:
-            warnings.warn(f"Database updated failed: {e}", stacklevel=2)
+        except requests.exceptions.RequestException:
+            logger.warning("Database updated failed.", exc_info=True)
             update_ok = False
 
         if not update_ok:
@@ -211,9 +108,9 @@ def run_pipeline(
             if confirmed == "n":
                 sys.exit()
         else:
-            click.echo("Database update complete..")
+            logger.info("[green]Database update complete![/green]")
 
-        click.echo("Running prediction..")
+        logger.info("[bold]Points Prediction[/bold]")
         predict_ok = run_prediction(
             gw_range=gw_range,
             dbsession=dbsession,
@@ -223,22 +120,27 @@ def run_pipeline(
         if not predict_ok:
             msg = "Problem running prediction"
             raise RuntimeError(msg)
-        click.echo("Prediction complete..")
+        logger.info("[green]Prediction complete![/green]")
 
+        chips_played = setup_chips(
+            wildcard_week=wildcard_week,
+            free_hit_week=free_hit_week,
+            triple_captain_week=triple_captain_week,
+            bench_boost_week=bench_boost_week,
+        )
         if get_entry_start_gameweek(fpl_team_id, fetcher) == NEXT_GAMEWEEK:
-            click.echo("Generating a squad..")
-            new_squad_ok = run_make_squad(gw_range, fpl_team_id, dbsession)
+            logger.info("[bold]Generating Squad[/bold]")
+            new_squad_ok = run_make_squad(
+                gw_range,
+                fpl_team_id,
+                dbsession,
+                chip_gameweeks=chips_played,
+            )
             if not new_squad_ok:
                 msg = "Problem creating a new squad"
                 raise RuntimeError(msg)
         else:
-            click.echo("Running optimization..")
-            chips_played = setup_chips(
-                wildcard_week=wildcard_week,
-                free_hit_week=free_hit_week,
-                triple_captain_week=triple_captain_week,
-                bench_boost_week=bench_boost_week,
-            )
+            logger.info("[bold]Optimising Transfers[/bold]")
             opt_ok = run_optimize_squad(
                 num_thread=num_thread,
                 gw_range=gw_range,
@@ -253,22 +155,22 @@ def run_pipeline(
                 msg = "Problem running optimization"
                 raise RuntimeError(msg)
 
-        click.echo("Optimization complete..")
+        logger.info("[green]Optimization complete![/green]")
         if apply_transfers:
-            click.echo("Applying suggested transfers...")
+            logger.info("[bold]Applying Transfers[/bold]")
             transfers_ok = make_transfers(fpl_team_id)
             if not transfers_ok:
                 msg = "Problem applying the transfers"
                 raise RuntimeError(msg)
-            click.echo("Setting Lineup...")
+            logger.info("[bold]Setting Lineup[/bold]")
             lineup_ok = set_starting_11(fpl_team_id)
             if not lineup_ok:
                 msg = "Problem setting the lineup"
                 raise RuntimeError(msg)
         if save_absences:
-            click.echo("Saving absences to csv...")
+            logger.info("[bold]Saving Absences[/bold]")
             save_expected_absences()
-        click.echo("Pipeline finished OK!")
+        logger.info("[green]Pipeline finished![/green]")
 
 
 def setup_database(
@@ -349,14 +251,23 @@ def run_prediction(
     return True
 
 
-def run_make_squad(gw_range: list[int], fpl_team_id: int, dbsession: Session) -> bool:
-    """
-    Build the initial squad
-    """
+def run_make_squad(
+    gw_range: list[int],
+    fpl_team_id: int,
+    dbsession: Session,
+    chip_gameweeks: dict[str, int] | None = None,
+) -> bool:
+    """Build the initial squad."""
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
 
-    fill_initial_squad(tag, gw_range, season, fpl_team_id)
+    fill_initial_squad(
+        tag,
+        gw_range,
+        season,
+        fpl_team_id,
+        chip_gameweeks=chip_gameweeks,
+    )
 
     return True
 
@@ -376,19 +287,17 @@ def run_optimize_squad(
     """
     season = CURRENT_SEASON
     tag = get_latest_prediction_tag(season, tag_prefix="", dbsession=dbsession)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks=gw_range,
-            tag=tag,
-            season=season,
-            fpl_team_id=fpl_team_id,
-            num_thread=num_thread,
-            chip_gameweeks=chips_played,
-            max_opt_transfers=max_transfers,
-            max_total_hit=max_hit,
-            allow_unused_transfers=allow_unused,
-        )
+    run_optimization(
+        gameweeks=gw_range,
+        tag=tag,
+        season=season,
+        fpl_team_id=fpl_team_id,
+        num_thread=num_thread,
+        chip_gameweeks=chips_played,
+        max_opt_transfers=max_transfers,
+        max_total_hit=max_hit,
+        allow_unused_transfers=allow_unused,
+    )
     return True
 
 
@@ -399,11 +308,3 @@ def set_starting_11(fpl_team_id: int | None = None) -> bool:
     """
     set_lineup(fpl_team_id)
     return True
-
-
-def main():
-    sys.exit()
-
-
-if __name__ == "__main__":
-    main()
