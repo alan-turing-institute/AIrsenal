@@ -79,11 +79,11 @@ jobs:
           FPL_TEAM_ID: 742663
         run: uv run --extra dev pytest -ra -m slow --durations=20
 
+      # A failed upload does not fail the job: coverage is reporting, and the
+      # test result above is the thing the job is actually gating on.
       - name: Upload coverage report
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: codecov/codecov-action@v5
         with:
-          file: coverage.xml
-          language: Python
-          label: code-coverage/pytest
-          fail-on-error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: false
