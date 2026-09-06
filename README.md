@@ -149,7 +149,7 @@ airsenal env get
 Use `airsenal env set` to set values and store them for future use. For example:
 
 ```bash
-airsenal env set --key FPL_TEAM_ID --value 123456
+airsenal env set FPL_TEAM_ID 123456
 ```
 
 See `airsenal env --help` for other options.

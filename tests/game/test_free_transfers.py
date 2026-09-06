@@ -13,7 +13,10 @@ from sqlalchemy.orm import sessionmaker
 from airsenal.db.models import Base, Transaction
 from airsenal.game.enums import Chip
 from airsenal.game.scoring import MAX_FREE_TRANSFERS, free_transfers_after
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import GameweekMove, calc_free_transfers
+from airsenal.remote.errors import RemoteError
+from airsenal.squad import state
 from airsenal.squad.state import get_free_transfers
 
 
@@ -176,21 +179,34 @@ def test_a_transfer_every_gameweek_never_banks_one(transaction_db):
     )
 
 
-def test_a_wildcard_costs_no_free_transfers(transaction_db):
+def test_a_wildcard_leaves_the_count_where_it_was(transaction_db):
     """
-    Fifteen players in on a wildcard is not fifteen transfers.
+    Fifteen players in on a wildcard is not fifteen transfers, nor an idle week.
 
-    The search plans with `calc_free_transfers`, which knows a chip that rebuilds
-    the squad leaves the count alone. Reading the plan back out of the
-    transactions table charged it for fifteen, so every gameweek after a replayed
-    wildcard started on one free transfer.
+    The search plans with `calc_free_transfers`, which freezes the count across a
+    chip that rebuilds the squad. Reading the plan back charged it for fifteen,
+    and then, once the rows were skipped, credited it with the accrual an idle
+    gameweek earns - so the read-back and the search disagreed either way.
     """
     _initial_squad(transaction_db, "2223")
     _rebuilt_squad(transaction_db, "2223", gameweek=3)
     transaction_db.commit()
 
-    # GW2 idle, GW3 the wildcard, GW4 idle: three accruals from one
-    assert _free_transfers(transaction_db, gameweek=5) == 4
+    # GW2 and GW4 idle, so one accrual each; GW3's wildcard neither spends nor
+    # accrues, leaving the two the count had reached.
+    assert _free_transfers(transaction_db, gameweek=5) == 3
+
+
+def test_the_read_back_agrees_with_the_search_across_a_wildcard(transaction_db):
+    """The two halves of the rule, on the same wildcard, must give one answer."""
+    _initial_squad(transaction_db, "2223")
+    _rebuilt_squad(transaction_db, "2223", gameweek=3)
+    transaction_db.commit()
+
+    before = _free_transfers(transaction_db, gameweek=3)
+    assert _free_transfers(transaction_db, gameweek=4) == calc_free_transfers(
+        GameweekMove(chip=Chip.WILDCARD), before
+    )
 
 
 def test_the_opening_fifteen_cost_no_free_transfers(transaction_db):
@@ -210,3 +226,115 @@ def test_an_ordinary_transfer_still_costs_one(transaction_db):
 
     # one free transfer in GW2 and in GW3, both spent, so GW4 has one again
     assert _free_transfers(transaction_db, gameweek=4) == 1
+
+
+# --- the count read from the FPL API ---
+
+
+class StubFetcher:
+    """
+    Stands in for `FPLDataFetcher` over the two API paths.
+
+    `live_count` is what a logged in fetcher reports; `None` makes that call fail
+    the way an entry with no credentials does, so the history estimate is used.
+    """
+
+    FPL_TEAM_ID = 123
+
+    def __init__(self, played, live_count=None, chips=None):
+        self.played, self.live_count, self.chips = played, live_count, chips or {}
+
+    def get_num_free_transfers(self, fpl_team_id=None):  # noqa: ARG002
+        if self.live_count is None:
+            msg = "not logged in"
+            raise RemoteError(msg)
+        return self.live_count
+
+    def get_fpl_team_history_data(self, team_id=None):  # noqa: ARG002
+        return {
+            "current": [
+                {"event": gameweek, "event_transfers": n, "bank": 0}
+                for gameweek, n in sorted(self.played.items())
+            ],
+            "chips": [
+                {"name": name, "event": gameweek}
+                for gameweek, name in sorted(self.chips.items())
+            ],
+        }
+
+
+@pytest.fixture
+def live_season(monkeypatch):
+    """The live season, up to gameweek 10, with the entry lookup stubbed out."""
+    monkeypatch.setattr(state, "next_gameweek", lambda *a, **k: 10)
+
+    def _entry_at(gameweek):
+        monkeypatch.setattr(state, "get_entry_start_gameweek", lambda *a, **k: gameweek)
+
+    return _entry_at
+
+
+def _api_free_transfers(fetcher, gameweek, dbsession):
+    return get_free_transfers(
+        gameweek=gameweek,
+        season=CURRENT_SEASON,
+        fpl_team_id=123,
+        fetcher=fetcher,
+        dbsession=dbsession,
+    )
+
+
+def test_the_logged_in_count_wins_for_the_gameweek_being_played(
+    live_season, transaction_db
+):
+    """What the game itself reports beats any estimate we could make."""
+    live_season(1)
+    fetcher = StubFetcher(played=dict.fromkeys(range(1, 10), 0), live_count=3)
+
+    assert _api_free_transfers(fetcher, gameweek=10, dbsession=transaction_db) == 3
+
+
+def test_the_logged_in_count_is_not_used_for_a_later_gameweek(
+    live_season, transaction_db
+):
+    """
+    It is the count for the gameweek being played, not for one further ahead.
+
+    `--gameweek-start` can ask about a gameweek beyond the next one, and the
+    logged in endpoint has no answer for that - so the estimate is used instead.
+    """
+    live_season(1)
+    played = {1: 15} | dict.fromkeys(range(2, 12), 0)
+    fetcher = StubFetcher(played=played, live_count=3)
+
+    # ten idle gameweeks have banked the maximum, whatever today's count is
+    got = _api_free_transfers(fetcher, gameweek=12, dbsession=transaction_db)
+    assert got == MAX_FREE_TRANSFERS
+    assert got != fetcher.live_count
+
+
+def test_the_estimate_freezes_the_count_across_a_wildcard(live_season, transaction_db):
+    """
+    A wildcard's transfers are not charged, and do not accrue either.
+
+    Without the chip list the twelve transfers looked ordinary and collapsed the
+    count to one; skipping them alone would have credited an idle gameweek.
+    """
+    live_season(1)
+    fetcher = StubFetcher(
+        played={1: 15, 2: 0, 3: 12, 4: 0}, chips={3: "wildcard"}, live_count=None
+    )
+
+    # GW2 and GW4 accrue; GW3 leaves the count at the two it had reached
+    assert _api_free_transfers(fetcher, gameweek=5, dbsession=transaction_db) == 3
+
+
+def test_the_estimate_starts_from_the_gameweek_the_entry_joined(
+    live_season, transaction_db
+):
+    """An entry joining in GW5 has one free transfer in GW6, not five."""
+    live_season(5)
+    fetcher = StubFetcher(played={5: 15, 6: 0, 7: 0}, live_count=None)
+
+    assert _api_free_transfers(fetcher, gameweek=6, dbsession=transaction_db) == 1
+    assert _api_free_transfers(fetcher, gameweek=8, dbsession=transaction_db) == 3

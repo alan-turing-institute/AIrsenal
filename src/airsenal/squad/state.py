@@ -1,5 +1,7 @@
 """The state of the user's own squad, combining the database and the FPL API."""
 
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -91,6 +93,22 @@ def get_entry_start_gameweek(
     return next_gameweek()
 
 
+def rebuilt_gameweeks_from_history(data: dict[str, Any]) -> set[int]:
+    """
+    The gameweeks an entry played a wildcard or free hit in, from its history.
+
+    Args:
+        data: an `get_fpl_team_history_data` payload, whose "chips" entries name
+            a chip in the API's spelling and the gameweek it was played in.
+    """
+    return {
+        chip["event"]
+        for chip in data.get("chips", [])
+        if (played := chips_by_api_name.get(chip["name"])) is not None
+        and played.rebuilds_squad
+    }
+
+
 def get_free_transfers(
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
@@ -113,16 +131,19 @@ def get_free_transfers(
             msg = "FPL team ID is required to estimate free transfers from the API"
             raise RuntimeError(msg)
 
-        # try to get the most up-to-date info from logged in api
-        try:
-            return fetcher.get_num_free_transfers(fpl_team_id)
-        except RemoteError:
-            logger.warning(
-                "Failed to get actual free transfers from a logged in API. "
-                "Will try to estimate it from the API without logging in, which will "
-                "not include any transfers used in the current gameweek.",
-                exc_info=True,
-            )
+        # The logged in count is what the game itself says, so it is preferred
+        # over any estimate - but it is the count for the gameweek being played,
+        # and says nothing about one further ahead.
+        if gameweek is None or gameweek == next_gameweek():
+            try:
+                return fetcher.get_num_free_transfers(fpl_team_id)
+            except RemoteError:
+                logger.warning(
+                    "Failed to get actual free transfers from a logged in API. "
+                    "Will try to estimate it from the API without logging in, which "
+                    "will not include any transfers used in the current gameweek.",
+                    exc_info=True,
+                )
         # try to calculate free transfers based on previous transfer history in API
         try:
             data = fetcher.get_fpl_team_history_data(fpl_team_id)
@@ -131,16 +152,23 @@ def get_free_transfers(
                 starting_gameweek = get_entry_start_gameweek(
                     fpl_team_id, fetcher=fetcher
                 )
-                for entry in data["current"]:
+                rebuilt_in_history = rebuilt_gameweeks_from_history(data)
+                # Every gameweek strictly between the one the entry joined and
+                # the one being asked about. Stopping on `gameweek - 1` instead
+                # missed whenever that gameweek was not in the list - asking
+                # about the gameweek after the entry joined ran to the end of
+                # the season's history and answered about the wrong gameweek.
+                # Accrual is a fold, so the order has to be the played order.
+                for entry in sorted(data["current"], key=lambda e: e["event"]):
                     if entry["event"] <= starting_gameweek:
                         continue
-                    num_free_transfers = free_transfers_after(
-                        entry["event_transfers"], num_free_transfers
-                    )
-                    # if gameweek was specified, and we reached the previous one,
-                    # break out of loop.
-                    if gameweek and entry["event"] == gameweek - 1:
+                    if gameweek is not None and entry["event"] >= gameweek:
                         break
+                    num_free_transfers = free_transfers_after(
+                        entry["event_transfers"],
+                        num_free_transfers,
+                        rebuilds_squad=entry["event"] in rebuilt_in_history,
+                    )
             return num_free_transfers
         except RemoteError:
             logger.warning(
@@ -163,11 +191,16 @@ def get_free_transfers(
         return 1
     starting_gameweek = transactions[0].gameweek
     gameweek_transactions: dict[int, int] = {}
+    rebuilt_gameweeks: set[int] = set()
     for t in transactions:
         # A wildcard, a free hit and the opening fifteen all put players in the
         # squad without spending a free transfer, so counting rows would charge
-        # the following gameweek for fifteen transfers nobody made.
+        # the following gameweek for fifteen transfers nobody made. The two are
+        # not the same afterwards, though: the accrual below starts the gameweek
+        # after the opening fifteen, whereas a chip freezes the count.
         if not t.counts_as_transfer:
+            if t.gameweek != starting_gameweek:
+                rebuilt_gameweeks.add(t.gameweek)
             continue
         if t.gameweek not in gameweek_transactions:
             gameweek_transactions[t.gameweek] = 0
@@ -179,7 +212,9 @@ def get_free_transfers(
     gameweek = gameweek or next_gameweek()
     for previous_gameweek in range(starting_gameweek + 1, gameweek):
         num_free_transfers = free_transfers_after(
-            gameweek_transactions.get(previous_gameweek, 0), num_free_transfers
+            gameweek_transactions.get(previous_gameweek, 0),
+            num_free_transfers,
+            rebuilds_squad=previous_gameweek in rebuilt_gameweeks,
         )
 
     return num_free_transfers

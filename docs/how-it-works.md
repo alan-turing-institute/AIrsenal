@@ -40,8 +40,10 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
   Two flags say how a row came about: `free_hit`, meaning the change lasted one
   gameweek and is skipped when the squad is rebuilt, and `counts_as_transfer`, which is
   0 for the fifteen you started with and for anything bought on a wildcard or free hit.
-  `get_free_transfers` reads the second to work out what each gameweek starts with, so
-  a wildcard costs nothing rather than fifteen transfers.
+  `get_free_transfers` reads the second to work out what each gameweek starts with. The
+  two cases it marks differ afterwards: the count starts at one the gameweek after the
+  opening fifteen, whereas a wildcard or free hit freezes it at whatever it had reached
+  — you keep the free transfers you had, and gain none for that gameweek.
 - **PlayerPrediction** — predicted points per player per fixture from a prediction run.
 - **TransferSuggestion** — recommended transfers from an optimisation run.
 
