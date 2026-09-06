@@ -11,6 +11,7 @@ from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.prediction.minutes_models import build_minutes_model
 from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
 from airsenal.prediction.point_components import (
     fit_bonus_points,
@@ -19,7 +20,11 @@ from airsenal.prediction.point_components import (
     fit_save_points,
 )
 from airsenal.prediction.points import PointsConfig, calc_predicted_points_for_player
-from airsenal.prediction.protocols import PlayerModel, TeamModel
+from airsenal.prediction.protocols import (
+    MinutesModel,
+    PlayerModel,
+    ScorelineTeamModel,
+)
 from airsenal.prediction.team_models import (
     build_team_model,
 )
@@ -39,10 +44,14 @@ def calc_all_predicted_points(
     season: str,
     dbsession: Session,
     player_model: PlayerModel | None = None,
-    team_model: TeamModel | None = None,
+    team_model: ScorelineTeamModel | None = None,
+    minutes_model: MinutesModel | None = None,
 ) -> None:
     """Predict every player's points for the given gameweeks, and write them out."""
     points = points if points is not None else PointsConfig()
+    minutes_model = (
+        minutes_model if minutes_model is not None else build_minutes_model()
+    )
     # Every model here is fitted as at the first gameweek of the window - the one
     # we are predicting *from* - so that nothing sees a match played later than
     # that. It is also what decides which players there are to predict for.
@@ -95,6 +104,7 @@ def calc_all_predicted_points(
             df_saves,
             df_cards,
             df_def_con,
+            minutes_model=minutes_model,
             gameweeks=gameweeks,
             tag=tag,
             season=season,
@@ -112,7 +122,8 @@ def make_predictedscore_table(
     points: PointsConfig | None = None,
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
-    team_model: TeamModel | None = None,
+    team_model: ScorelineTeamModel | None = None,
+    minutes_model: MinutesModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
     """Predict every player's points over `gameweeks`, and return the tag written."""
@@ -128,5 +139,6 @@ def make_predictedscore_table(
             tag=tag,
             player_model=player_model,
             team_model=team_model,
+            minutes_model=minutes_model,
         )
     return tag

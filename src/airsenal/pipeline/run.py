@@ -30,11 +30,16 @@ from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
+from airsenal.prediction.minutes_models import build_minutes_model
 from airsenal.prediction.player_models import (
     build_player_model,
 )
 from airsenal.prediction.points import PointsConfig
-from airsenal.prediction.protocols import PlayerModel, TeamModel
+from airsenal.prediction.protocols import (
+    MinutesModel,
+    PlayerModel,
+    ScorelineTeamModel,
+)
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
     build_team_model,
@@ -56,8 +61,9 @@ class StaleDatabaseError(RuntimeError):
 class AIrsenalPipeline:
     """A configured run: what to predict and optimise with, and what to do with it."""
 
-    team_model: TeamModel = field(default_factory=build_team_model)
+    team_model: ScorelineTeamModel = field(default_factory=build_team_model)
     player_model: PlayerModel = field(default_factory=build_player_model)
+    minutes_model: MinutesModel = field(default_factory=build_minutes_model)
     transfer_optimizer: TransferOptimizer = field(default_factory=TreeSearchOptimizer)
     squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
@@ -103,6 +109,7 @@ class AIrsenalPipeline:
             tag_prefix=tag_prefix,
             player_model=self.player_model,
             team_model=self.team_model,
+            minutes_model=self.minutes_model,
             dbsession=dbsession,
         )
 

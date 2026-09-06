@@ -12,11 +12,13 @@ import math
 import pytest
 from sqlalchemy import select
 
-from airsenal.db.models import PlayerScore
+from airsenal.db.models import PlayerPrediction, PlayerScore
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.game.enums import Position
 from airsenal.prediction.evaluation import (
     ModelScore,
+    PointsScore,
+    backtest_points,
     backtest_team_model,
     player_outcome_probability,
     score_player_model,
@@ -163,3 +165,52 @@ def test_more_goals_than_the_team_scored_is_not_scored():
         )
         == 1.0
     )
+
+
+def test_backtest_points_scores_the_whole_calculation(pipeline_db):
+    """
+    The number that judges the points calculation rather than one model.
+
+    Fits at GW7 and scores GW7, so nothing it is scored on was fitted to. The
+    constant models keep it quick; what is under test is the measurement, not
+    the models.
+    """
+    score = backtest_points(
+        TEAM_MODELS["constant"],
+        PLAYER_MODELS["constant"],
+        season=SEASON,
+        dbsession=pipeline_db,
+        gameweeks=[7],
+    )
+    assert score.n_observations > 0
+    assert math.isfinite(score.mean_absolute_error)
+    assert math.isfinite(score.root_mean_squared_error)
+    assert score.mean_absolute_error >= 0
+    # every player in the seeded database played, so a whole gameweek is ranked
+    # and the two errors are over the same observations
+    assert score.n_ranked == 1
+    assert score.n_played == score.n_observations
+    assert score.mean_absolute_error_played == pytest.approx(score.mean_absolute_error)
+
+
+def test_a_backtest_leaves_its_predictions_behind_under_a_named_tag(pipeline_db):
+    """Unlike the other two backtests this one writes, so the rows are findable."""
+    backtest_points(
+        TEAM_MODELS["constant"],
+        PLAYER_MODELS["constant"],
+        season=SEASON,
+        dbsession=pipeline_db,
+        gameweeks=[8],
+    )
+    tags = set(
+        pipeline_db.scalars(
+            select(PlayerPrediction.tag).where(
+                PlayerPrediction.tag.like(f"Backtest_{SEASON}_GW8_%")
+            )
+        ).all()
+    )
+    assert len(tags) == 1
+
+
+def test_an_empty_points_score_is_a_number_not_a_crash():
+    assert PointsScore().mean_absolute_error == 0.0

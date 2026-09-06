@@ -22,7 +22,10 @@ from airsenal.game.scoring import (
     points_for_cs,
     points_for_goal,
 )
-from airsenal.prediction.minutes import get_recent_minutes_for_player
+from airsenal.prediction.protocols import (
+    MinutesModel,
+    MinutesRequest,
+)
 
 logger = get_logger(__name__)
 
@@ -153,9 +156,8 @@ def calc_predicted_points_for_player(
     df_cards: pd.Series | None,
     df_def_con: tuple[pd.Series, pd.Series] | None,
     *,
+    minutes_model: MinutesModel,
     gameweeks: list[int],
-    fixtures_behind: int | None = None,
-    min_fixtures_behind: int = 3,
     tag: str = "",
     season: str,
     dbsession: Session | None = None,
@@ -164,11 +166,6 @@ def calc_predicted_points_for_player(
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str | int):
         player = require_player(player, dbsession=dbsession)
-
-    if fixtures_behind is None:
-        fixtures_behind = len(gameweeks)
-
-    fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
     # The gameweek we are predicting *from*. Everything about the player is read
     # as at this gameweek, whichever gameweek of the window the fixture is in.
@@ -189,16 +186,15 @@ def calc_predicted_points_for_player(
         msg = f"player_prob for {player} is not a Series, but {type(player_prob)}"
         raise RuntimeError(msg)
 
-    recent_minutes = get_recent_minutes_for_player(
-        player,
-        n_matches_to_use=fixtures_behind,
-        season=season,
-        last_gameweek=root_gameweek - 1,
-        dbsession=dbsession,
+    minutes = minutes_model.predict(
+        MinutesRequest(
+            player=player,
+            gameweek=root_gameweek,
+            season=season,
+            n_gameweeks=len(gameweeks),
+            dbsession=dbsession,
+        )
     )
-    if len(recent_minutes) == 0:
-        msg = "Recent minutes is empty."
-        raise ValueError(msg)
 
     predictions = []
 
@@ -213,10 +209,38 @@ def calc_predicted_points_for_player(
         team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
         team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
 
-        points = 0.0
+        # The three fixture-varying values are bound as defaults rather than
+        # closed over: ruff's B023 is right that a closure over a loop variable
+        # is a trap, even though this one is called before the next iteration.
+        def points_for_minutes(
+            mins: float,
+            position: str = position,
+            team_score_prob: dict[int, float] = team_score_prob,
+            team_concede_prob: dict[int, float] = team_concede_prob,
+        ) -> float:
+            """Every component of a score, for one number of minutes played."""
+            points = (
+                get_appearance_points(mins)
+                + get_attacking_points(
+                    position,
+                    mins,
+                    team_score_prob,
+                    player_prob,
+                )
+                + get_defending_points(position, mins, team_concede_prob)
+            )
+            if df_bonus is not None:
+                points += get_bonus_points(player.player_id, mins, df_bonus)
+            if df_cards is not None:
+                points += get_card_points(player.player_id, mins, df_cards)
+            if df_saves is not None:
+                points += get_save_points(player.player_id, position, mins, df_saves)
+            if df_def_con is not None:
+                points += get_def_con_points(player.player_id, mins, df_def_con)
+            return points
 
         if (
-            sum(recent_minutes) == 0
+            minutes.expected_minutes == 0.0
             or player.is_injured_or_suspended(season, root_gameweek, gameweek)
             or was_historic_absence(
                 player,
@@ -228,30 +252,7 @@ def calc_predicted_points_for_player(
         ):
             points = 0.0
         else:
-            points = 0
-            for mins in recent_minutes:
-                points += (
-                    get_appearance_points(mins)
-                    + get_attacking_points(
-                        position,
-                        mins,
-                        team_score_prob,
-                        player_prob,
-                    )
-                    + get_defending_points(position, mins, team_concede_prob)
-                )
-                if df_bonus is not None:
-                    points += get_bonus_points(player.player_id, mins, df_bonus)
-                if df_cards is not None:
-                    points += get_card_points(player.player_id, mins, df_cards)
-                if df_saves is not None:
-                    points += get_save_points(
-                        player.player_id, position, mins, df_saves
-                    )
-                if df_def_con is not None:
-                    points += get_def_con_points(player.player_id, mins, df_def_con)
-
-            points /= len(recent_minutes)
+            points = minutes.expectation(points_for_minutes)
 
         if np.isnan(points):
             msg = f"nan points for {player} {fixture} {points} {tag}"

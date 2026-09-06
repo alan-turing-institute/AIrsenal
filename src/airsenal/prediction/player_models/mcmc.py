@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from airsenal.prediction.protocols import PlayerFitData
+from airsenal.prediction.protocols import PlayerFitData, PlayerInvolvement
 
 if TYPE_CHECKING:
     import jax.numpy as jnp
@@ -112,19 +112,15 @@ class NumpyroPlayerModel:
         self.samples = mcmc.get_samples()
         return self
 
-    def get_probs(self) -> dict[str, np.ndarray]:
+    def predict_involvement(self) -> PlayerInvolvement:
         if self.samples is None or self.player_ids is None:
             msg = "Model samples or player_ids have not been set yet."
             raise RuntimeError(msg)
-        prob_dict = {
-            "player_id": np.zeros_like(self.player_ids, dtype=int),
-            "prob_score": np.zeros_like(self.player_ids, dtype=float),
-            "prob_assist": np.zeros_like(self.player_ids, dtype=float),
-            "prob_neither": np.zeros_like(self.player_ids, dtype=float),
-        }
-        for i, pid in enumerate(self.player_ids):
-            prob_dict["player_id"][i] = pid
-            prob_dict["prob_score"][i] = float(self.samples["probs"][:, i, 0].mean())
-            prob_dict["prob_assist"][i] = float(self.samples["probs"][:, i, 1].mean())
-            prob_dict["prob_neither"][i] = float(self.samples["probs"][:, i, 2].mean())
-        return prob_dict
+        # the posterior mean share, per player, over the sampled probabilities
+        means = np.asarray(self.samples["probs"]).mean(axis=0)
+        return PlayerInvolvement(
+            player_ids=np.asarray(self.player_ids, dtype=int),
+            prob_score=means[:, 0].astype(float),
+            prob_assist=means[:, 1].astype(float),
+            prob_neither=means[:, 2].astype(float),
+        )

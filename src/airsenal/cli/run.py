@@ -22,6 +22,10 @@ from airsenal.pipeline.settings import (
     DEFAULT_N_PREVIOUS,
     StaleDatabase,
 )
+from airsenal.prediction.minutes_models import (
+    DEFAULT_MINUTES_MODEL,
+    build_minutes_model,
+)
 from airsenal.prediction.player_models import DEFAULT_PLAYER_MODEL, build_player_model
 from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL, build_team_model
 from airsenal.squad.squad import SubWeights
@@ -40,6 +44,7 @@ def run(
     # --- prediction ---
     player_model: options.PlayerModel = DEFAULT_PLAYER_MODEL,
     team_model: options.TeamModel = DEFAULT_TEAM_MODEL,
+    minutes_model: options.MinutesModel = DEFAULT_MINUTES_MODEL,
     epsilon: options.Epsilon = None,
     # --- optimisation ---
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
@@ -62,6 +67,7 @@ def run(
     AIrsenalPipeline(
         team_model=build_team_model(team_model, epsilon),
         player_model=build_player_model(player_model),
+        minutes_model=build_minutes_model(minutes_model),
         transfer_optimizer=build_transfer_optimizer(
             transfer_optimizer, num_thread=num_thread
         ),

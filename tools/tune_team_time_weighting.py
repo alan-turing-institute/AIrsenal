@@ -87,8 +87,8 @@ def main() -> None:
     parser.add_argument("--epsilon-start", type=float, default=0.0)
     parser.add_argument("--epsilon-stop", type=float, default=0.1)
     parser.add_argument("--epsilon-num", type=int, default=11)
-    parser.add_argument("--first-gw", type=int, default=None)
-    parser.add_argument("--last-gw", type=int, default=None)
+    parser.add_argument("--first-gameweek", type=int, default=None)
+    parser.add_argument("--last-gameweek", type=int, default=None)
     parser.add_argument("--out-csv", type=Path, default=None)
     args = parser.parse_args()
 

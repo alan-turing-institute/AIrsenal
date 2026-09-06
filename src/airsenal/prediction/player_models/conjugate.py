@@ -2,14 +2,12 @@
 
 from dataclasses import dataclass
 
-import numpy as np
-
 from airsenal.core.logging import get_logger
 from airsenal.prediction.player_models.scaling import (
     FloatArray,
     scale_goals_by_minutes,
 )
-from airsenal.prediction.protocols import PlayerFitData
+from airsenal.prediction.protocols import PlayerFitData, PlayerInvolvement
 
 logger = get_logger(__name__)
 
@@ -40,11 +38,11 @@ class ConjugatePlayerModel:
 
     def __init__(self, config: ConjugatePlayerConfig | None = None):
         self.config = config or ConjugatePlayerConfig()
-        self.player_ids: np.ndarray | None = None
-        self.prior: np.ndarray | None = None
-        self.posterior: np.ndarray | None = None
-        self.mean_probabilities: np.ndarray | None = None
-        self.time_diff: np.ndarray | None = None
+        self.player_ids: FloatArray | None = None
+        self.prior: FloatArray | None = None
+        self.posterior: FloatArray | None = None
+        self.mean_probabilities: FloatArray | None = None
+        self.time_diff: FloatArray | None = None
 
     @property
     def epsilon(self) -> float | None:
@@ -94,13 +92,13 @@ class ConjugatePlayerModel:
         """The Dirichlet posterior: the prior plus the scaled goal involvements."""
         return prior_alpha + scaled_goals
 
-    def get_probs(self) -> dict[str, np.ndarray]:
+    def predict_involvement(self) -> PlayerInvolvement:
         if self.player_ids is None or self.mean_probabilities is None:
             msg = "Model player_ids or mean_probabilities have not been set yet."
             raise RuntimeError(msg)
-        return {
-            "player_id": self.player_ids,
-            "prob_score": self.mean_probabilities[:, 0],
-            "prob_assist": self.mean_probabilities[:, 1],
-            "prob_neither": self.mean_probabilities[:, 2],
-        }
+        return PlayerInvolvement(
+            player_ids=self.player_ids,
+            prob_score=self.mean_probabilities[:, 0],
+            prob_assist=self.mean_probabilities[:, 1],
+            prob_neither=self.mean_probabilities[:, 2],
+        )

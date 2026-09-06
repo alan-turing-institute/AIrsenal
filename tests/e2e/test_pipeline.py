@@ -72,7 +72,20 @@ def prediction_tag(seeded):
 
 
 def test_prediction_writes_one_tag(seeded, prediction_tag):
-    tags = set(seeded.scalars(select(PlayerPrediction.tag)).all())
+    """
+    One run of the stage writes one tag, not one per gameweek or per position.
+
+    Scoped to the season this module predicts: the database is shared with the
+    other e2e modules, and `backtest_points` writes a tag of its own per
+    gameweek of a past season.
+    """
+    tags = set(
+        seeded.scalars(
+            select(PlayerPrediction.tag)
+            .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
+            .where(Fixture.season == SEASON)
+        ).all()
+    )
     assert tags == {prediction_tag}
 
 

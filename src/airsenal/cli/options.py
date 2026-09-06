@@ -21,6 +21,7 @@ from airsenal.optimization.transfer_optimizers import (
     TRANSFER_OPTIMIZERS,
 )
 from airsenal.pipeline.settings import StaleDatabase
+from airsenal.prediction.minutes_models import MINUTES_MODELS
 from airsenal.prediction.player_models import PLAYER_MODELS
 from airsenal.prediction.team_models import TEAM_MODELS
 
@@ -125,6 +126,13 @@ TeamModel = Annotated[
     str,
     typer.Option(
         help=f"Team model: {_names(TEAM_MODELS)}.", rich_help_panel=PREDICTION
+    ),
+]
+
+MinutesModel = Annotated[
+    str,
+    typer.Option(
+        help=f"Minutes model: {_names(MINUTES_MODELS)}.", rich_help_panel=PREDICTION
     ),
 ]
 

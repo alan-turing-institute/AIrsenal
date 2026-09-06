@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from airsenal.prediction.protocols import PlayerFitData
+from airsenal.prediction.protocols import PlayerFitData, PlayerInvolvement
 
 
 @dataclass(frozen=True)
@@ -43,15 +43,15 @@ class ConstantPlayerModel:
             ]
         )
 
-    def get_probs(self) -> dict[str, np.ndarray]:
+    def predict_involvement(self) -> PlayerInvolvement:
         if self.player_ids is None:
             msg = "Model has not been fitted yet."
             raise RuntimeError(msg)
         probs = self._probabilities()
         n = len(self.player_ids)
-        return {
-            "player_id": self.player_ids,
-            "prob_score": np.full(n, probs[0]),
-            "prob_assist": np.full(n, probs[1]),
-            "prob_neither": np.full(n, probs[2]),
-        }
+        return PlayerInvolvement(
+            player_ids=self.player_ids,
+            prob_score=np.full(n, probs[0]),
+            prob_assist=np.full(n, probs[1]),
+            prob_neither=np.full(n, probs[2]),
+        )

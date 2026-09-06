@@ -132,6 +132,7 @@ def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
     return {
         "team_model": type(pipeline.team_model).__name__,
         "player_model": type(pipeline.player_model).__name__,
+        "minutes_model": type(pipeline.minutes_model).__name__,
         "transfer_optimizer": type(pipeline.transfer_optimizer).__name__,
         "squad_optimizer": type(pipeline.squad_optimizer).__name__,
     }

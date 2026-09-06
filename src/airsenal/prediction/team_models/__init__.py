@@ -9,14 +9,14 @@ keyword-only `epsilon`, the time-weighting decay rate.
 from collections.abc import Callable
 
 from airsenal.core.lookup import lookup
-from airsenal.prediction.protocols import TeamModel
+from airsenal.prediction.protocols import ScorelineTeamModel
 
 DEFAULT_TEAM_MODEL = "extended"
 
 
 # The Dixon-Coles entries are functions rather than the class itself so that bpl,
 # and therefore jax, is imported only when one is actually built.
-def _extended(*, epsilon: float | None = None) -> TeamModel:
+def _extended(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.dixon_coles import (  # noqa: PLC0415
         DixonColesTeamModel,
     )
@@ -24,7 +24,7 @@ def _extended(*, epsilon: float | None = None) -> TeamModel:
     return DixonColesTeamModel(epsilon=epsilon)
 
 
-def _neutral(*, epsilon: float | None = None) -> TeamModel:
+def _neutral(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.dixon_coles import (  # noqa: PLC0415
         DixonColesTeamModel,
     )
@@ -32,7 +32,7 @@ def _neutral(*, epsilon: float | None = None) -> TeamModel:
     return DixonColesTeamModel(neutral=True, epsilon=epsilon)
 
 
-def _random(*, epsilon: float | None = None) -> TeamModel:
+def _random(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.random_model import (  # noqa: PLC0415
         RandomTeamModel,
     )
@@ -40,7 +40,7 @@ def _random(*, epsilon: float | None = None) -> TeamModel:
     return RandomTeamModel(epsilon=epsilon)
 
 
-def _constant(*, epsilon: float | None = None) -> TeamModel:
+def _constant(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.constant import (  # noqa: PLC0415
         ConstantTeamModel,
     )
@@ -48,7 +48,7 @@ def _constant(*, epsilon: float | None = None) -> TeamModel:
     return ConstantTeamModel(epsilon=epsilon)
 
 
-TEAM_MODELS: dict[str, Callable[..., TeamModel]] = {
+TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
     "constant": _constant,
     "extended": _extended,
     "neutral": _neutral,
@@ -58,7 +58,7 @@ TEAM_MODELS: dict[str, Callable[..., TeamModel]] = {
 
 def build_team_model(
     name: str = DEFAULT_TEAM_MODEL, epsilon: float | None = None
-) -> TeamModel:
+) -> ScorelineTeamModel:
     """The named team model, with `--epsilon` applied if one was given."""
     return lookup(TEAM_MODELS, name, "team model")(epsilon=epsilon)
 

@@ -35,7 +35,7 @@ def fit_player_data(
     logger.info("Fitting player model for %s...", position)
     model = fastcopy(model)
     fitted_model = model.fit(data)
-    df = pd.DataFrame(fitted_model.get_probs())
+    df = pd.DataFrame(fitted_model.predict_involvement().as_dict())
 
     df["pos"] = position
     return (

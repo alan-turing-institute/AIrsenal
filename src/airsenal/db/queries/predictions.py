@@ -139,6 +139,33 @@ def get_predicted_points(
     return output_list
 
 
+def get_predictions_for_gameweeks(
+    gameweeks: Sequence[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> list[PlayerPrediction]:
+    """
+    Every prediction written under `tag` for the given gameweeks of a season.
+
+    One row per player per fixture, unaggregated - a double gameweek yields two
+    rows for the same player, which is what scoring a prediction against a
+    single performance needs.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    return list(
+        dbsession.scalars(
+            select(PlayerPrediction)
+            .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
+            .where(
+                PlayerPrediction.tag == tag,
+                Fixture.season == season,
+                Fixture.gameweek.in_(list(gameweeks)),
+            )
+        ).all()
+    )
+
+
 def get_transfer_suggestions(
     *,
     gameweek: int | None = None,

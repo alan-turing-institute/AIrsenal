@@ -84,13 +84,14 @@ rule, along with the naming and argument-order conventions.
 | `db/models.py` | every table in the database |
 | `db/queries/` | reading and writing them, one module per subject |
 | `db/session.py` | the lazily-created engine and the default session |
-| `prediction/protocols.py` | `PlayerModel`, `TeamModel`, and the typed data each is fitted to |
+| `prediction/protocols.py` | `PlayerModel`, the three `TeamModel` kinds, `MinutesModel`, and the typed data each is given |
 | `prediction/features.py` | assembling the historical data the models are fitted to |
 | `prediction/player_models/` | one module per player model, plus shared fitting and scaling |
-| `prediction/team_models/` | one module per team model, plus shared fitting and scorelines |
+| `prediction/minutes_models/` | one module per way of predicting how long a player plays |
+| `prediction/team_models/` | one module per team model, plus shared fitting, and `scorelines.py` for adapting between what a model predicts and what prediction needs |
 | `prediction/point_components.py` | the fitted models for bonus, saves, cards and defensive contributions |
 | `prediction/points.py` | turning fitted models into predicted points, and `PointsConfig` |
-| `prediction/evaluation.py` | scoring a fitted model against what actually happened |
+| `prediction/evaluation.py` | scoring a model, or a whole run's points, against what happened |
 | `prediction/run.py` | filling the prediction table, and the tag that groups a run's rows |
 | `squad/squad.py` | `Squad`: fifteen players and the rules they obey |
 | `squad/state.py` | the state of the user's own entry, from the database and the API |

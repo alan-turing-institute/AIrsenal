@@ -17,7 +17,11 @@ from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.prediction.protocols import TeamFitData, TeamModel
+from airsenal.prediction.protocols import (
+    ScorelineTeamModel,
+    TeamFitData,
+    TeamModel,
+)
 from airsenal.prediction.team_models import build_team_model
 
 logger = get_logger(__name__)
@@ -114,12 +118,12 @@ def get_training_data(
     return training_data
 
 
-def add_new_teams_to_model(
-    team_model: TeamModel,
+def add_new_teams_to_model[ModelT: TeamModel](
+    team_model: ModelT,
     season: str,
     dbsession: Session,
     ratings: bool = True,
-) -> TeamModel:
+) -> ModelT:
     """
     Add teams with no previous results, such as promoted ones, to the model.
 
@@ -143,12 +147,15 @@ def get_fitted_team_model(
     season: str,
     dbsession: Session,
     ratings: bool = True,
-    model: TeamModel | None = None,
-) -> TeamModel:
+    model: ScorelineTeamModel | None = None,
+) -> ScorelineTeamModel:
     """
     Fit a team model to past results and FIFA ratings, and return it.
 
     Fits `model` in place if one is given; otherwise builds the default one.
+    Takes a `ScorelineTeamModel` because that is all `TEAM_MODELS` holds: a
+    model that predicts only a mean arrives here already wrapped in
+    `PoissonScorelines`, so nothing downstream has to ask which kind it has.
     """
     if model is None:
         model = build_team_model()
@@ -168,7 +175,7 @@ def get_fitted_team_model(
 def fixture_probabilities(
     gameweek: int,
     season: str = CURRENT_SEASON,
-    model: TeamModel | None = None,
+    model: ScorelineTeamModel | None = None,
     dbsession: Session | None = None,
     ratings: bool = True,
 ) -> pd.DataFrame:
@@ -212,7 +219,7 @@ def fixture_probabilities(
 
 def get_goal_probabilities_for_fixtures(
     fixtures: list[Fixture],
-    team_model: TeamModel,
+    team_model: ScorelineTeamModel,
     max_goals: int = MAX_GOALS,
 ) -> dict[int, dict[str, dict[int, float]]]:
     """Probability of each team in a fixture scoring 0 to `max_goals` goals."""

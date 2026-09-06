@@ -1,9 +1,14 @@
 """What a prediction model has to provide."""
 
-from collections.abc import Sequence
+import math
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
 from typing import Any, NotRequired, Protocol, TypedDict
 
 import numpy as np
+from sqlalchemy.orm import Session
+
+from airsenal.db.models import Player
 
 
 class PlayerFitData(TypedDict):
@@ -53,6 +58,54 @@ class TeamFitData(TypedDict):
     team_covariates: NotRequired[dict[str, np.ndarray]]
 
 
+@dataclass(frozen=True, eq=False)
+class PlayerInvolvement:
+    """
+    How each player shares in one of their team's goals.
+
+    Per goal and for a full match, so the points calculation scales by the
+    fraction of the match played. The three shares sum to one per player, which
+    is checked here rather than described in prose: it used to be a
+    `dict[str, np.ndarray]` whose keys and invariants only a docstring knew.
+
+    Not comparable with `==` - the fields are arrays - hence `eq=False`.
+    """
+
+    # (n_players,) the players these shares are about
+    player_ids: np.ndarray
+    prob_score: np.ndarray
+    prob_assist: np.ndarray
+    prob_neither: np.ndarray
+
+    def __post_init__(self) -> None:
+        lengths = {
+            len(self.player_ids),
+            len(self.prob_score),
+            len(self.prob_assist),
+            len(self.prob_neither),
+        }
+        if len(lengths) != 1:
+            msg = f"Mismatched lengths in a player involvement: {lengths}"
+            raise ValueError(msg)
+        total = self.prob_score + self.prob_assist + self.prob_neither
+        if len(self.player_ids) and not np.allclose(total, 1.0, atol=1e-6):
+            worst = int(np.argmax(np.abs(total - 1.0)))
+            msg = (
+                f"Involvement shares for player {self.player_ids[worst]} sum to "
+                f"{total[worst]}, not one"
+            )
+            raise ValueError(msg)
+
+    def as_dict(self) -> dict[str, np.ndarray]:
+        """The columns, for building the frame `fit_player_data` returns."""
+        return {
+            "player_id": self.player_ids,
+            "prob_score": self.prob_score,
+            "prob_assist": self.prob_assist,
+            "prob_neither": self.prob_neither,
+        }
+
+
 class PlayerModel(Protocol):
     """Predicts how a team's goals are shared out between its players."""
 
@@ -65,18 +118,26 @@ class PlayerModel(Protocol):
         """
         ...
 
-    def get_probs(self) -> dict[str, np.ndarray]:
+    def predict_involvement(self) -> PlayerInvolvement:
         """
-        Per-player probabilities of scoring, assisting, or neither, for a goal.
+        Each fitted player's share of scoring, assisting, or neither, for a goal.
 
-        Keys: "player_id", "prob_score", "prob_assist", "prob_neither", each an
-        array of shape (n_players,). The last three sum to one per player.
+        A share, not necessarily a probability: a model that arrives at one
+        without a posterior satisfies this too.
         """
         ...
 
 
 class TeamModel(Protocol):
-    """Predicts match scorelines."""
+    """
+    A model of how teams perform, that can be fitted to past results.
+
+    What it predicts is not here, because there is more than one useful answer:
+    `ScorelineTeamModel` gives a distribution over goal counts, and
+    `ExpectedGoalsTeamModel` only a mean. This is what they have in common, and
+    what `get_fitted_team_model` needs - which is why fitting a model does not
+    require knowing which kind it is.
+    """
 
     @property
     def teams(self) -> list[str] | None:
@@ -103,6 +164,17 @@ class TeamModel(Protocol):
         """
         ...
 
+
+class ScorelineTeamModel(TeamModel, Protocol):
+    """
+    A team model that gives a whole distribution over goal counts.
+
+    What the points calculation needs: expected attacking points come from a
+    multinomial over however many goals the team scores, and a clean sheet is
+    the probability of the opponent scoring none, so a mean is not enough. Every
+    model in `TEAM_MODELS` is one of these.
+    """
+
     def predict_score_n_proba(
         self, n: np.ndarray, team: str, opponent: str, home: bool = True, **kwargs: Any
     ) -> np.ndarray:
@@ -122,6 +194,130 @@ class TeamModel(Protocol):
 
         Keyed "home_win", "draw" and "away_win". Here rather than fetched with
         `getattr` at the one call site: a model that cannot answer should fail to
-        type-check, not fail at run time.
+        type-check, not fail at run time. `outcome_proba_from_scores` implements
+        it for a model whose two goal counts are independent.
+        """
+        ...
+
+
+class ExpectedGoalsTeamModel(TeamModel, Protocol):
+    """
+    A team model that predicts only how many goals a team will score on average.
+
+    Which is all some models have to say - an xG model fitted to a continuous
+    quantity has no natural distribution over goal *counts*. `PoissonScorelines`
+    turns one of these into a `ScorelineTeamModel` so it can be predicted with,
+    rather than every such model having to invent a distribution of its own.
+    """
+
+    def predict_expected_goals(
+        self, team: str, opponent: str, home: bool = True, **kwargs: Any
+    ) -> float:
+        """
+        How many goals `team` is expected to score against `opponent`.
+
+        `home` says which side of the fixture `team` is on.
+        """
+        ...
+
+
+@dataclass(frozen=True)
+class MinutesDistribution:
+    """
+    The minutes a player might play in one fixture, and how likely each is.
+
+    `weights` line up with `minutes` and sum to one. A model with nothing but a
+    sample of recent appearances weights them equally; one that can say a start
+    is likelier than a substitute appearance says so here instead of leaving the
+    points calculation to average over the sample as though it were a
+    distribution.
+    """
+
+    minutes: tuple[float, ...]
+    weights: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        if not self.minutes:
+            msg = "A minutes distribution needs at least one possible value"
+            raise ValueError(msg)
+        if len(self.minutes) != len(self.weights):
+            msg = (
+                f"{len(self.minutes)} minutes values but {len(self.weights)} "
+                "weights; they have to line up"
+            )
+            raise ValueError(msg)
+        if any(value < 0 for value in self.minutes):
+            msg = f"Negative minutes in {self.minutes}"
+            raise ValueError(msg)
+        if any(weight < 0 for weight in self.weights):
+            msg = f"Negative weight in {self.weights}"
+            raise ValueError(msg)
+        if not math.isclose(sum(self.weights), 1.0, abs_tol=1e-9):
+            msg = f"Weights {self.weights} sum to {sum(self.weights)}, not one"
+            raise ValueError(msg)
+
+    @classmethod
+    def uniform(cls, minutes: Iterable[float]) -> "MinutesDistribution":
+        """Every value equally likely - a sample of appearances, not a model of one."""
+        values = tuple(float(value) for value in minutes)
+        if not values:
+            msg = "A minutes distribution needs at least one possible value"
+            raise ValueError(msg)
+        return cls(minutes=values, weights=(1.0 / len(values),) * len(values))
+
+    @property
+    def expected_minutes(self) -> float:
+        """The mean, which is what a minutes prediction is scored against."""
+        return self.expectation(lambda minutes: minutes)
+
+    def expectation(self, quantity: Callable[[float], float]) -> float:
+        """
+        The weighted average of `quantity` over the possible minutes.
+
+        The one operation the points calculation performs on a distribution, so
+        the weighting lives here rather than in the caller.
+        """
+        return sum(
+            weight * quantity(minutes)
+            for minutes, weight in zip(self.minutes, self.weights, strict=True)
+        )
+
+    def probability_between(self, low: float, high: float) -> float:
+        """How much weight falls in `[low, high)`, for scoring against a band."""
+        return sum(
+            weight
+            for minutes, weight in zip(self.minutes, self.weights, strict=True)
+            if low <= minutes < high
+        )
+
+
+@dataclass(frozen=True, kw_only=True)
+class MinutesRequest:
+    """
+    Everything a minutes model needs to predict one player's minutes.
+
+    Read as at `gameweek` - the gameweek being predicted *from* - so a model
+    must not look at a match played in it or later.
+    """
+
+    player: Player
+    gameweek: int
+    season: str
+    # How many gameweeks the run covers. A model that reads recent appearances
+    # has to decide how far back to look, and looking back as far as the run
+    # looks forward is one reasonable answer.
+    n_gameweeks: int
+    dbsession: Session
+
+
+class MinutesModel(Protocol):
+    """Predicts how long a player will be on the pitch."""
+
+    def predict(self, request: MinutesRequest) -> MinutesDistribution:
+        """
+        The minutes this player might play, and how likely each is.
+
+        Called once per player per prediction run, not once per fixture: what
+        varies by fixture is handled by the points calculation.
         """
         ...

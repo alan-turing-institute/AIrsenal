@@ -1,11 +1,12 @@
 # Adding a model or an algorithm
 
-Five things are pluggable, and they compose into one object:
+Six things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
     team_model=build_team_model("extended"),
     player_model=build_player_model("conjugate"),
+    minutes_model=build_minutes_model("recent"),
     transfer_optimizer=TreeSearchOptimizer(),
     squad_optimizer=GeneticSquadOptimizer(),
     settings=PipelineSettings(...),
@@ -20,6 +21,7 @@ flags into an object.
 |---|---|---|---|
 | player model | `PlayerModel` | `prediction/player_models/__init__.py`, `build_player_model` | `--player-model` |
 | team model | `TeamModel` | `prediction/team_models/__init__.py`, `build_team_model` | `--team-model` |
+| minutes model | `MinutesModel` | `prediction/minutes_models/__init__.py`, `build_minutes_model` | `--minutes-model` |
 | squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py`, `build_squad_optimizer` | `--squad-optimizer` |
 | transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py`, `build_transfer_optimizer` | `--transfer-optimizer` |
 | transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` | none - the move picks it |
@@ -56,6 +58,28 @@ A team model has to answer five things - `teams`, `fit`, `add_new_team`,
 no arguments, defaulting its own config; the `--epsilon` flag reaches it through
 the table entry in step 2, not through the constructor signature.
 
+The last two are `ScorelineTeamModel`, and they are what the points calculation
+needs: expected attacking points come from a multinomial over however many goals
+the team scores, and a clean sheet is the probability of the opponent scoring
+none. **If your model predicts only a mean** - an xG model fitted to a
+continuous quantity has no natural distribution over goal *counts* - implement
+`ExpectedGoalsTeamModel` instead, which is `teams`, `fit`, `add_new_team` and
+`predict_expected_goals`, and wrap it in its table entry:
+
+```python
+TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
+    ...
+    "xg": lambda **kwargs: PoissonScorelines(XGTeamModel(**kwargs)),
+}
+```
+
+`PoissonScorelines` reads the mean as a Poisson over counts, with the tail above
+`MAX_GOALS` piled onto the last one so the probabilities still sum to one. The
+table still promises a `ScorelineTeamModel`, so nothing downstream has to ask
+which kind it was given, and mypy checks the wrapping on the line you add it on.
+`tests/e2e/test_team_models.py` has a worked example under
+"a model that predicts only a mean".
+
 `prediction/team_models/constant.py` is the smallest complete example. What
 `fit` receives is `TeamFitData` in `prediction/protocols.py`: a `TypedDict`, so
 your editor and `mypy` both know what is in it rather than you having to read the
@@ -84,6 +108,13 @@ class ScorelineAverageModel:
 `outcome_proba_from_scores` in `prediction/team_models/scorelines.py` will
 implement `predict_outcome_proba` for you if your model treats the two teams'
 goal counts as independent.
+
+A player model answers two things - `fit` and `predict_involvement`, which
+returns a `PlayerInvolvement`: each fitted player's share of scoring, assisting
+or neither for one of their team's goals. A share, not necessarily a
+probability, so a model that reaches one without a posterior satisfies it too.
+The three shares must sum to one per player, and `PlayerInvolvement` checks
+that rather than trusting a docstring.
 
 ### 2. Add a factory and one line to the table
 
@@ -162,6 +193,19 @@ scored over the same fixtures, which is why `ModelScore` carries the count.
 
 `backtest_player_model` is the same for player models, and `score_team_model` /
 `score_player_model` score an already-fitted model if you have one.
+
+`score_involvement_error` is the error form of `score_player_model`, over the
+same predictions: it asks only for a share, and conditions on the minutes
+actually played and the goals the team actually scored, so it measures the share
+alone with no minutes prediction mixed in.
+
+Those two score one model by how much probability it put on what happened.
+`backtest_points` scores the whole points calculation instead, by the error in
+the points it predicted - which is the only number a model that is not
+probabilistic can be judged by. `backtest_minutes_model` does the same for a
+minutes model, in minutes and in the bands the scoring rules use. See
+[prediction-seams-plan.md](prediction-seams-plan.md) for what each one can and
+cannot tell you.
 
 `tools/tune_team_time_weighting.py` and `tools/tune_player_time_weighting.py` are
 grid sweeps built on exactly these functions, and are worth reading as longer

@@ -1,11 +1,11 @@
 """
 Every swappable component, checked the same way.
 
-There are five kinds of pluggable component, and each keeps a plain dict of name
+There are six kinds of pluggable component, and each keeps a plain dict of name
 to zero-argument factory in its own package's `__init__.py`. Adding an
 implementation means adding one entry, and that entry is covered here
 automatically: it must build with no arguments, provide the method its protocol
-names, and - for the four kinds a flag selects - be reachable by that name from
+names, and - for the five kinds a flag selects - be reachable by that name from
 the command line.
 """
 
@@ -16,6 +16,9 @@ from airsenal.cli.main import app
 from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.transfer_optimizers import TRANSFER_OPTIMIZERS
+from airsenal.prediction.minutes_models import (
+    MINUTES_MODELS,
+)
 from airsenal.prediction.player_models import (
     PLAYER_MODELS,
 )
@@ -24,8 +27,12 @@ from airsenal.prediction.team_models import (
 )
 
 TABLES = {
-    "player model": (PLAYER_MODELS, ("fit", "get_probs")),
-    "team model": (TEAM_MODELS, ("fit", "add_new_team", "predict_score_n_proba")),
+    "player model": (PLAYER_MODELS, ("fit", "predict_involvement")),
+    "minutes model": (MINUTES_MODELS, ("predict",)),
+    "team model": (
+        TEAM_MODELS,
+        ("fit", "add_new_team", "predict_score_n_proba", "predict_outcome_proba"),
+    ),
     "transfer strategy": (TRANSFER_STRATEGIES, ("propose",)),
     "squad optimizer": (SQUAD_OPTIMIZERS, ("optimize",)),
     "transfer optimizer": (TRANSFER_OPTIMIZERS, ("search",)),
@@ -62,6 +69,7 @@ def test_every_entry_provides_its_protocol(kind, name):
 # so `TRANSFER_STRATEGIES` is deliberately absent from this mapping.
 NAMING_FLAGS = {
     "player model": ("predict", "--player-model"),
+    "minutes model": ("predict", "--minutes-model"),
     "team model": ("predict", "--team-model"),
     "squad optimizer": ("optimize squad", "--squad-optimizer"),
     "transfer optimizer": ("optimize transfers", "--transfer-optimizer"),
