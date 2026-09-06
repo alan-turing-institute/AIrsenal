@@ -1,20 +1,36 @@
 """
-What a predicted score is made of, event by event.
+What a predicted score is made of, component by component.
 
-Each function here turns one kind of event - a clean sheet, a goal, a card -
-into points, given probabilities rather than a result. The fitted averages the
-bonus, save and card ones read are built in test_point_components.py.
+Each component turns one kind of event - a clean sheet, a goal, a card - into
+points, given probabilities rather than a result. The fitted averages the
+bonus, save and card ones read are built in test_point_components.py; here they
+are set directly, so what is under test is what a component does with them.
 """
 
 import pandas as pd
+import pytest
 
-from airsenal.prediction.points import (
+from airsenal.prediction.point_components import (
+    BonusComponent,
+    CardComponent,
+    SaveComponent,
     get_attacking_points,
-    get_bonus_points,
-    get_card_points,
     get_defending_points,
-    get_save_points,
 )
+from airsenal.prediction.protocols import ComponentRequest
+
+
+def request(player_id=1, position="MID", minutes=90):
+    """A request carrying only what the fitted components read."""
+    return ComponentRequest(
+        player_id=player_id,
+        position=position,
+        minutes=minutes,
+        team_score_probability={0: 1.0},
+        team_concede_probability={0: 1.0},
+        prob_score=0.0,
+        prob_assist=0.0,
+    )
 
 
 def test_defending_points_0_conceded():
@@ -99,47 +115,62 @@ def test_attacking_points_1_0_top_assister():
     assert get_attacking_points("GK", 45, team_score_prob, player_probs) == 1.5
 
 
-def test_get_bonus_points():
+def test_bonus_component():
     """Bonus points come back from the fitted average."""
-    df_90 = pd.Series({1: 1, 2: 2})
-    df_60 = pd.Series({1: 0.5, 2: 0.25})
-    df_bonus = (df_90, df_60)
+    component = BonusComponent()
+    component.fitted = (pd.Series({1: 1, 2: 2}), pd.Series({1: 0.5, 2: 0.25}))
 
-    # 90 mins - use df_90 value
-    assert get_bonus_points(1, 90, df_bonus) == 1
-    assert get_bonus_points(2, 90, df_bonus) == 2
-    # 45 mins - use df_60 value
-    assert get_bonus_points(1, 45, df_bonus) == 0.5
-    assert get_bonus_points(2, 45, df_bonus) == 0.25
-    # <30 mins - zero
-    assert get_bonus_points(1, 20, df_bonus) == 0
-    assert get_bonus_points(1, 0, df_bonus) == 0
-    # player not present in df_bonus (no bonus points history)
-    assert get_bonus_points(3, 90, df_bonus) == 0
+    # 90 mins - use the full-match average
+    assert component.expected_points(request(1, minutes=90)) == 1
+    assert component.expected_points(request(2, minutes=90)) == 2
+    # 45 mins - use the short-appearance average
+    assert component.expected_points(request(1, minutes=45)) == 0.5
+    assert component.expected_points(request(2, minutes=45)) == 0.25
+    # under 30 mins - zero
+    assert component.expected_points(request(1, minutes=20)) == 0
+    assert component.expected_points(request(1, minutes=0)) == 0
+    # a player with no bonus history
+    assert component.expected_points(request(3, minutes=90)) == 0
 
 
-def test_get_save_points():
+def test_save_component():
     """Save points come back from the fitted average."""
-    df_saves = pd.Series({1: 1, 2: 2})
+    component = SaveComponent()
+    component.fitted = pd.Series({1: 1, 2: 2})
 
-    # >60 mins - return df value
-    assert get_save_points(1, "GK", 90, df_saves) == 1
-    assert get_save_points(2, "GK", 90, df_saves) == 2
-    # <60 mins - zero
-    assert get_save_points(1, "GK", 50, df_saves) == 0
-    # player not present in df_saves (no history)
-    assert get_save_points(3, "GK", 90, df_saves) == 0
+    # over 60 mins - return the fitted value
+    assert component.expected_points(request(1, "GK", 90)) == 1
+    assert component.expected_points(request(2, "GK", 90)) == 2
+    # under 60 mins - zero
+    assert component.expected_points(request(1, "GK", 50)) == 0
+    # a keeper with no history
+    assert component.expected_points(request(3, "GK", 90)) == 0
     # not a goalkeeper - zero
-    assert get_save_points(1, "DEF", 90, df_saves) == 0
+    assert component.expected_points(request(1, "DEF", 90)) == 0
 
 
-def test_get_card_points():
+def test_card_component():
     """Card points come back from the fitted average."""
-    df_cards = pd.Series({1: -1, 2: -2})
-    # >30 mins - return df value
-    assert get_card_points(1, 90, df_cards) == -1
-    assert get_card_points(2, 45, df_cards) == -2
-    # 360 mins - zero
-    assert get_card_points(1, 20, df_cards) == 0
-    # player not present in df_saves (no history)
-    assert get_card_points(3, 90, df_cards) == 0
+    component = CardComponent()
+    component.fitted = pd.Series({1: -1, 2: -2})
+
+    # over 30 mins - return the fitted value
+    assert component.expected_points(request(1, minutes=90)) == -1
+    assert component.expected_points(request(2, minutes=45)) == -2
+    # under 30 mins - zero
+    assert component.expected_points(request(1, minutes=20)) == 0
+    # a player with no card history
+    assert component.expected_points(request(3, minutes=90)) == 0
+
+
+def test_a_component_that_has_not_been_fitted_says_so():
+    """
+    Rather than returning zero, which would look like a clean prediction.
+
+    The fitted components used to be passed in as `None` when a run was
+    configured without them; now a run simply does not include them, so a
+    component that is present but unfitted is a bug.
+    """
+    for component in (BonusComponent(), CardComponent(), SaveComponent()):
+        with pytest.raises(RuntimeError, match="not been fitted"):
+            component.expected_points(request(1, "GK", 90))

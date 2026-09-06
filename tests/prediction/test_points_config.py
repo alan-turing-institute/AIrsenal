@@ -10,7 +10,7 @@ still arrive.
 import pytest
 
 from airsenal.pipeline import AIrsenalPipeline
-from airsenal.prediction.points import PointsConfig
+from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.run import make_predictedscore_table
 
 

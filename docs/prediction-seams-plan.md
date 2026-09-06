@@ -5,7 +5,7 @@ must be probabilistic, it must predict one particular quantity, and the way its
 prediction is turned into points is fixed. This is the plan for moving those
 seams, in phases that can be shipped and scored one at a time.
 
-Status: phases 0, 1 and 2 are done. Start at phase 3.
+Status: phases 0 to 3 are done. Start at phase 4.
 
 ## What is actually assumed
 
@@ -484,6 +484,66 @@ above - with the reconciliation as its guardrail.
 
 Behaviour-preserving: the component sum equals today's total within tolerance on
 the seeded database. ~2 commits.
+
+### Done
+
+`point_components.py` is now a package with one module per part of a score and
+`POINT_COMPONENTS` in its `__init__.py` - the seventh pluggable kind. Three
+components are rules (`appearance`, `attacking`, `defending`) and four are
+fitted averages (`bonus`, `cards`, `saves`, `def_con`), and all seven answer the
+same two methods.
+
+`calc_predicted_points_for_player` went from seven positional pandas parameters
+to one `Sequence[PointComponent]`, and `points.py` from 273 lines to 137: it now
+builds a `ComponentRequest` and sums whatever components the run was given.
+`get_attacking_points` and `get_defending_points` moved into the components that
+own them.
+
+Two things worth noting about the shape:
+
+- **`PointsConfig` kept its four flags**, as planned, and gained
+  `component_names()`. The flags, `cli/predict.py` and
+  `tests/prediction/test_points_config.py` are unchanged in meaning - the config
+  moved to `point_components/__init__.py`, next to the table it now resolves
+  against.
+- **`make_predictedscore_table` takes `components=` too**, for a component no
+  table knows about. Without it the kind would be pluggable only by name, which
+  is not what the other six promise. There is deliberately no pipeline field:
+  composing components belongs to phase 4's points model, and two ways to say it
+  is what `4e695f12` deleted `from_names` for.
+
+**The observable side is exact, in the shipped code.** `actual_component_points`
+breaks a realised score into the same names, plus a `residual` bucket, and
+reconstructs `PlayerScore.points` for **27022 of 27022** performances in 2425
+and **29747 of 29747** in 2526. `game/scoring.py` gained
+`points_for_penalty_save` and `points_for_penalty_miss` for it, which it had
+been missing. Where the points actually go, in 2526:
+
+| component | points | share |
+|---|---|---|
+| appearance | 19305 | 56% |
+| attacking | 7653 | 22% |
+| defending | 3336 | 10% |
+| def_con | 2834 | 8% |
+| bonus | 2415 | 7% |
+| saves | 448 | 1% |
+| cards | -1554 | -5% |
+| residual | -55 | -0.2% |
+
+Which reframes what is worth predicting well. Over half of all points are for
+turning up, so the minutes model from phase 1 governs more of the total than
+anything else - and `def_con`, in its first season, is already worth more than
+bonus.
+
+**The per-component scorer is not here.** A component's expected points are
+conditional on the model's own minutes prediction, and deconditioning them means
+re-asking each component at the minutes actually played - which needs the
+prediction to carry its breakdown. That is phase 4's `PointsPrediction`, so the
+scorer lands with it; the ground truth it needs is in place now.
+
+**The gate held exactly**: MAE 0.905191, appeared 2.092136, RMSE 1.883554, rank
+0.815694, all unchanged. The components sum in the same order the old function
+added them in, so even the rounding is identical.
 
 ## Phase 4 - `PointsModel` as the top seam
 

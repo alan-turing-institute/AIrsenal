@@ -24,6 +24,12 @@ points_for_red_card = -3
 
 points_for_own_goal = -2
 
+# Neither is predicted - no component models a penalty - but a realised score
+# cannot be broken into components without them.
+points_for_penalty_save = 5
+
+points_for_penalty_miss = -2
+
 saves_for_point = 3
 
 def_cons_required: dict[str, int] = {

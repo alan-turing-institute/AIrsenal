@@ -1,12 +1,16 @@
 """
 Every swappable component, checked the same way.
 
-There are six kinds of pluggable component, and each keeps a plain dict of name
-to zero-argument factory in its own package's `__init__.py`. Adding an
+There are seven kinds of pluggable component, and each keeps a plain dict of
+name to zero-argument factory in its own package's `__init__.py`. Adding an
 implementation means adding one entry, and that entry is covered here
 automatically: it must build with no arguments, provide the method its protocol
-names, and - for the five kinds a flag selects - be reachable by that name from
-the command line.
+names, and - for the five kinds a flag selects by name - be reachable by that
+name from the command line.
+
+A point component has no flag of its own: `PointsConfig` turns the optional ones
+off rather than selecting one, so `POINT_COMPONENTS` is deliberately absent from
+`NAMING_FLAGS`.
 """
 
 import pytest
@@ -22,6 +26,9 @@ from airsenal.prediction.minutes_models import (
 from airsenal.prediction.player_models import (
     PLAYER_MODELS,
 )
+from airsenal.prediction.point_components import (
+    POINT_COMPONENTS,
+)
 from airsenal.prediction.team_models import (
     TEAM_MODELS,
 )
@@ -29,6 +36,7 @@ from airsenal.prediction.team_models import (
 TABLES = {
     "player model": (PLAYER_MODELS, ("fit", "predict_involvement")),
     "minutes model": (MINUTES_MODELS, ("predict",)),
+    "point component": (POINT_COMPONENTS, ("fit", "expected_points")),
     "team model": (
         TEAM_MODELS,
         ("fit", "add_new_team", "predict_score_n_proba", "predict_outcome_proba"),

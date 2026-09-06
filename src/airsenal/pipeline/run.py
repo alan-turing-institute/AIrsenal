@@ -34,7 +34,7 @@ from airsenal.prediction.minutes_models import build_minutes_model
 from airsenal.prediction.player_models import (
     build_player_model,
 )
-from airsenal.prediction.points import PointsConfig
+from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.protocols import (
     MinutesModel,
     PlayerModel,

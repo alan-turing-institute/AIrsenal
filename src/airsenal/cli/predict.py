@@ -10,7 +10,7 @@ from airsenal.prediction.minutes_models import (
     build_minutes_model,
 )
 from airsenal.prediction.player_models import DEFAULT_PLAYER_MODEL, build_player_model
-from airsenal.prediction.points import PointsConfig
+from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL, build_team_model
 from airsenal.reporting.top_players import get_top_predicted_points
 

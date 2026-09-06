@@ -1,6 +1,6 @@
 # Adding a model or an algorithm
 
-Six things are pluggable, and they compose into one object:
+Seven things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
@@ -22,12 +22,20 @@ flags into an object.
 | player model | `PlayerModel` | `prediction/player_models/__init__.py`, `build_player_model` | `--player-model` |
 | team model | `TeamModel` | `prediction/team_models/__init__.py`, `build_team_model` | `--team-model` |
 | minutes model | `MinutesModel` | `prediction/minutes_models/__init__.py`, `build_minutes_model` | `--minutes-model` |
+| point component | `PointComponent` | `prediction/point_components/__init__.py`, `build_point_component` | none - `PointsConfig` turns the optional ones off |
 | squad optimizer | `SquadOptimizer` | `optimization/squad_optimizers/__init__.py`, `build_squad_optimizer` | `--squad-optimizer` |
 | transfer optimizer | `TransferOptimizer` | `optimization/transfer_optimizers/__init__.py`, `build_transfer_optimizer` | `--transfer-optimizer` |
 | transfer strategy | `TransferStrategy` | `optimization/strategies/__init__.py` | none - the move picks it |
 
 The protocols live in `prediction/protocols.py` and `optimization/protocols.py`,
 and each names only the method that does the work.
+
+A point component is the one kind no flag selects by name. `PointsConfig` turns
+the four fitted ones off - `--no-bonus`, `--no-cards`, `--no-saves`,
+`--no-def-con` - and appearance, attacking and defending points are always
+predicted, because without them there is no score to speak of. To predict with a
+component of your own, pass it to `make_predictedscore_table(components=[...])`;
+`tests/e2e/test_point_components.py` has a worked example.
 
 ## You do not have to register anything
 
@@ -193,6 +201,12 @@ scored over the same fixtures, which is why `ModelScore` carries the count.
 
 `backtest_player_model` is the same for player models, and `score_team_model` /
 `score_player_model` score an already-fitted model if you have one.
+
+`actual_component_points` breaks a realised score into the same components a
+run predicts, so each part has a ground truth to be scored against. It
+reconstructs `PlayerScore.points` exactly for every performance in 2425 and
+2526, which makes it a guardrail on the scoring rules as well: if AIrsenal's
+ever drift from FPL's, `tests/prediction/test_actual_components.py` fails.
 
 `score_involvement_error` is the error form of `score_player_model`, over the
 same predictions: it asks only for a share, and conditions on the minutes

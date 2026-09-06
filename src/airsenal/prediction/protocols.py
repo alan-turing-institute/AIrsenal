@@ -321,3 +321,56 @@ class MinutesModel(Protocol):
         varies by fixture is handled by the points calculation.
         """
         ...
+
+
+@dataclass(frozen=True, kw_only=True)
+class ComponentRequest:
+    """
+    Everything a component of a score needs to say how many points it expects.
+
+    One player, one fixture, one number of minutes. `minutes` is a value the
+    minutes model thinks possible rather than a prediction: the points
+    calculation asks each component once per possible value and takes the
+    expectation over them, so a component is a function of minutes and does not
+    need to know how likely they were.
+    """
+
+    player_id: int
+    position: str
+    minutes: float
+    # From the team model: how likely the player's own team is to score each
+    # number of goals, and how likely their opponent is to.
+    team_score_probability: dict[int, float]
+    team_concede_probability: dict[int, float]
+    # From the player model: this player's share of one of their team's goals.
+    prob_score: float
+    prob_assist: float
+
+
+class PointComponent(Protocol):
+    """
+    One part of an FPL score, fitted to past seasons and then asked what it expects.
+
+    A component is only ever asked about what it can answer, so it takes the
+    whole `ComponentRequest` and reads the parts it needs: bonus points depend
+    on the player and the minutes, a clean sheet on the opponent's goals, and
+    appearance points on nothing but the minutes.
+    """
+
+    @property
+    def name(self) -> str:
+        """What this component is called, in a config and in a score breakdown."""
+        ...
+
+    def fit(self, gameweek: int, season: str, dbsession: Session) -> "PointComponent":
+        """
+        Fit to everything before `gameweek`, and return self.
+
+        A component with nothing to fit - appearance points are a rule, not an
+        average - returns itself unchanged.
+        """
+        ...
+
+    def expected_points(self, request: ComponentRequest) -> float:
+        """How many points this component expects, for one player and fixture."""
+        ...

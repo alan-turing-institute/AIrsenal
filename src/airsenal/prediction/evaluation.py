@@ -29,7 +29,7 @@ from airsenal.db.queries.predictions import get_predictions_for_gameweeks
 from airsenal.db.queries.scores import get_player_scores_for_gameweeks
 from airsenal.game.enums import Position
 from airsenal.game.scoring import MAX_GOALS, MIN_MINUTES_FULL
-from airsenal.prediction.points import PointsConfig
+from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.protocols import (
     MinutesModel,
     MinutesRequest,

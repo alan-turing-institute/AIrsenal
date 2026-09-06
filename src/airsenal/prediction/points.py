@@ -1,10 +1,9 @@
 """Turning fitted models into predicted points for a player in a fixture."""
 
-from dataclasses import dataclass
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
-from scipy.stats import multinomial
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
@@ -13,148 +12,21 @@ from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.fixtures import get_fixtures_for_player
 from airsenal.db.queries.players import require_player
 from airsenal.db.session import get_session
-from airsenal.game.enums import Position
-from airsenal.game.scoring import (
-    MIN_MINUTES_FULL,
-    MIN_MINUTES_SHORT,
-    get_appearance_points,
-    points_for_assist,
-    points_for_cs,
-    points_for_goal,
-)
 from airsenal.prediction.protocols import (
+    ComponentRequest,
     MinutesModel,
     MinutesRequest,
+    PointComponent,
 )
 
 logger = get_logger(__name__)
-
-
-@dataclass(frozen=True)
-class PointsConfig:
-    """
-    Which components of an FPL score to predict.
-
-    Each is a small empirical model fitted from past seasons alongside the goal
-    and assist predictions; turning one off skips fitting it and leaves that
-    component out of the total.
-    """
-
-    bonus: bool = True
-    cards: bool = True
-    saves: bool = True
-    def_con: bool = True
-
-
-def get_attacking_points(
-    position: str,
-    minutes: int | float,
-    team_score_prob: dict[int, float],
-    player_prob: pd.Series,
-) -> float:
-    """Calculate expected attacking points (goals and assists) for a player."""
-    if minutes == 0.0:
-        return 0.0
-
-    pr_score = (minutes / 90.0) * player_prob["prob_score"]
-    pr_assist = (minutes / 90.0) * player_prob["prob_assist"]
-    pr_neither = 1.0 - pr_score - pr_assist
-    multinom_probs = (pr_score, pr_assist, pr_neither)
-
-    def _get_partitions(n: int) -> list[list[int]]:
-        partitions = []
-        for i in range(n + 1):
-            for j in range(n - i + 1):
-                partitions.append([i, j, n - i - j])
-        return partitions
-
-    def _get_partition_score(partition: list[int]) -> int:
-        return (
-            points_for_goal[position] * partition[0] + points_for_assist * partition[1]
-        )
-
-    exp_points = 0.0
-    for ngoals, score_n_prob in team_score_prob.items():
-        if ngoals > 0:
-            partitions = _get_partitions(ngoals)
-            probabilities = multinomial.pmf(
-                partitions, n=[ngoals] * len(partitions), p=multinom_probs
-            )
-            scores = map(_get_partition_score, partitions)
-            exp_score_inner = sum(
-                pi * si for pi, si in zip(probabilities, scores, strict=True)
-            )
-            exp_points += exp_score_inner * score_n_prob
-    return exp_points
-
-
-def get_defending_points(
-    position: str, minutes: int | float, team_concede_prob: dict[int, float]
-) -> float:
-    """Expected defending points: clean sheets and goals conceded."""
-    if position == Position.FWD or minutes == 0.0:
-        return 0.0
-
-    defending_points = 0.0
-    if minutes >= MIN_MINUTES_FULL:
-        defending_points = points_for_cs[position] * team_concede_prob[0]
-
-    if position in (Position.DEF, Position.GK):
-        defending_points -= sum(
-            (ngoals // 2) * (minutes / 90) * concede_n_prob
-            for ngoals, concede_n_prob in team_concede_prob.items()
-        )
-    return defending_points
-
-
-def get_bonus_points(
-    player_id: int, minutes: int | float, df_bonus: tuple[pd.Series, pd.Series]
-) -> float:
-    """Calculate expected bonus points based on played minutes."""
-    if minutes >= MIN_MINUTES_FULL:
-        return float(df_bonus[0].get(player_id, 0.0))
-    if minutes >= MIN_MINUTES_SHORT:
-        return float(df_bonus[1].get(player_id, 0.0))
-    return 0.0
-
-
-def get_def_con_points(
-    player_id: int, minutes: int | float, df_def_con: tuple[pd.Series, pd.Series]
-) -> float:
-    """Calculate expected defensive contribution points based on played minutes."""
-    if minutes >= MIN_MINUTES_FULL:
-        return float(df_def_con[0].get(player_id, 0.0))
-    if minutes >= MIN_MINUTES_SHORT:
-        return float(df_def_con[1].get(player_id, 0.0))
-    return 0.0
-
-
-def get_save_points(
-    player_id: int, position: str, minutes: int | float, df_saves: pd.Series
-) -> float:
-    """Calculate expected save points for goalkeepers."""
-    if position != Position.GK:
-        return 0.0
-    if minutes >= MIN_MINUTES_FULL:
-        return float(df_saves.get(player_id, 0.0))
-    return 0.0
-
-
-def get_card_points(player_id: int, minutes: int | float, df_cards: pd.Series) -> float:
-    """Calculate expected penalty points for yellow and red cards."""
-    if minutes >= MIN_MINUTES_SHORT:
-        return float(df_cards.get(player_id, 0.0))
-    return 0.0
 
 
 def calc_predicted_points_for_player(
     player: Player | str | int,
     fixture_goal_probs: dict[int, dict[str, dict[int, float]]],
     df_player: dict[str, pd.DataFrame],
-    df_bonus: tuple[pd.Series, pd.Series] | None,
-    df_saves: pd.Series | None,
-    df_cards: pd.Series | None,
-    df_def_con: tuple[pd.Series, pd.Series] | None,
+    components: Sequence[PointComponent],
     *,
     minutes_model: MinutesModel,
     gameweeks: list[int],
@@ -219,25 +91,16 @@ def calc_predicted_points_for_player(
             team_concede_prob: dict[int, float] = team_concede_prob,
         ) -> float:
             """Every component of a score, for one number of minutes played."""
-            points = (
-                get_appearance_points(mins)
-                + get_attacking_points(
-                    position,
-                    mins,
-                    team_score_prob,
-                    player_prob,
-                )
-                + get_defending_points(position, mins, team_concede_prob)
+            request = ComponentRequest(
+                player_id=player.player_id,
+                position=position,
+                minutes=mins,
+                team_score_probability=team_score_prob,
+                team_concede_probability=team_concede_prob,
+                prob_score=float(player_prob["prob_score"]),
+                prob_assist=float(player_prob["prob_assist"]),
             )
-            if df_bonus is not None:
-                points += get_bonus_points(player.player_id, mins, df_bonus)
-            if df_cards is not None:
-                points += get_card_points(player.player_id, mins, df_cards)
-            if df_saves is not None:
-                points += get_save_points(player.player_id, position, mins, df_saves)
-            if df_def_con is not None:
-                points += get_def_con_points(player.player_id, mins, df_def_con)
-            return points
+            return sum(component.expected_points(request) for component in components)
 
         if (
             minutes.expected_minutes == 0.0

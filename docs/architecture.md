@@ -89,8 +89,8 @@ rule, along with the naming and argument-order conventions.
 | `prediction/player_models/` | one module per player model, plus shared fitting and scaling |
 | `prediction/minutes_models/` | one module per way of predicting how long a player plays |
 | `prediction/team_models/` | one module per team model, plus shared fitting, and `scorelines.py` for adapting between what a model predicts and what prediction needs |
-| `prediction/point_components.py` | the fitted models for bonus, saves, cards and defensive contributions |
-| `prediction/points.py` | turning fitted models into predicted points, and `PointsConfig` |
+| `prediction/point_components/` | one module per part of a score, plus `PointsConfig` and the realised-score breakdown that scores them |
+| `prediction/points.py` | turning fitted models and components into predicted points |
 | `prediction/evaluation.py` | scoring a model, or a whole run's points, against what happened |
 | `prediction/run.py` | filling the prediction table, and the tag that groups a run's rows |
 | `squad/squad.py` | `Squad`: fifteen players and the rules they obey |

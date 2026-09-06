@@ -1,5 +1,6 @@
 """Filling the player prediction table."""
 
+from collections.abc import Sequence
 from uuid import uuid4
 
 from sqlalchemy.orm.session import Session
@@ -13,16 +14,12 @@ from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.minutes_models import build_minutes_model
 from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
-from airsenal.prediction.point_components import (
-    fit_bonus_points,
-    fit_card_points,
-    fit_def_con,
-    fit_save_points,
-)
-from airsenal.prediction.points import PointsConfig, calc_predicted_points_for_player
+from airsenal.prediction.point_components import PointsConfig
+from airsenal.prediction.points import calc_predicted_points_for_player
 from airsenal.prediction.protocols import (
     MinutesModel,
     PlayerModel,
+    PointComponent,
     ScorelineTeamModel,
 )
 from airsenal.prediction.team_models import (
@@ -40,6 +37,7 @@ def calc_all_predicted_points(
     gameweeks: list[int],
     *,
     points: PointsConfig | None = None,
+    components: Sequence[PointComponent] | None = None,
     tag: str = "",
     season: str,
     dbsession: Session,
@@ -72,26 +70,14 @@ def calc_all_predicted_points(
         root_gameweek, season, model=player_model, dbsession=dbsession
     )
 
-    df_bonus = (
-        fit_bonus_points(root_gameweek, season, dbsession=dbsession)
-        if points.bonus
-        else None
-    )
-    df_saves = (
-        fit_save_points(root_gameweek, season, dbsession=dbsession)
-        if points.saves
-        else None
-    )
-    df_cards = (
-        fit_card_points(root_gameweek, season, dbsession=dbsession)
-        if points.cards
-        else None
-    )
-    df_def_con = (
-        fit_def_con(root_gameweek, season, dbsession=dbsession)
-        if points.def_con
-        else None
-    )
+    # `components` is for a component no table knows about - one written in a
+    # notebook, say. `points` is how the command line asks for a subset of the
+    # ones that ship.
+    components = [
+        component.fit(root_gameweek, season, dbsession)
+        for component in (points.components() if components is None else components)
+    ]
+    logger.info("Predicting %s", ", ".join(component.name for component in components))
 
     players = list_players(season=season, gameweek=root_gameweek, dbsession=dbsession)
 
@@ -100,10 +86,7 @@ def calc_all_predicted_points(
             player,
             fixture_goal_probs,
             df_player,
-            df_bonus,
-            df_saves,
-            df_cards,
-            df_def_con,
+            components,
             minutes_model=minutes_model,
             gameweeks=gameweeks,
             tag=tag,
@@ -120,6 +103,7 @@ def make_predictedscore_table(
     gameweeks: list[int],
     season: str = CURRENT_SEASON,
     points: PointsConfig | None = None,
+    components: Sequence[PointComponent] | None = None,
     tag_prefix: str | None = None,
     player_model: PlayerModel | None = None,
     team_model: ScorelineTeamModel | None = None,
@@ -136,6 +120,7 @@ def make_predictedscore_table(
             season=season,
             dbsession=dbsession,
             points=points,
+            components=components,
             tag=tag,
             player_model=player_model,
             team_model=team_model,
