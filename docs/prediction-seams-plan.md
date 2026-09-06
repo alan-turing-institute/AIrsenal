@@ -778,3 +778,67 @@ Worth noting what the shrinkage does here anyway: `prior_matches` pulls a team
 with a thin record towards the league average, so by the time a promoted side
 has played five matches this setting barely matters. It only bites in the first
 few gameweeks, which is exactly where the sample is smallest.
+
+### The gamma has nothing to explain
+
+The obvious use for the gamma that team xG follows is not the rating fit but the
+step after it: `PoissonScorelines` treats the predicted mean as the exact rate
+for the match, and letting the rate be gamma-distributed about it instead gives
+a negative binomial over goal counts - same mean, fatter tails, so a 5-0 is
+unlikely rather than incredible.
+
+Built it, measured it, took it back out. The held-out log probability was
+*bit-identical* to the Poisson in all three seasons, because the fitted gamma
+shape pinned at its ceiling every time: the mixture found no excess dispersion
+to explain. Goal counts, given the model's own predictions for them, are if
+anything narrower than Poisson:
+
+| season | sides | mean(m) | mean((goals - m)^2) | ratio |
+|---|---|---|---|---|
+| 2324 | 740 | 1.5750 | 1.4502 | 0.921 |
+| 2425 | 1500 | 1.4867 | 1.4004 | 0.942 |
+| 2526 | 2260 | 1.4514 | 1.3419 | 0.925 |
+
+A ratio of one is exactly Poisson. A mixture can only *add* variance, so with
+the residual scatter already 6-8% below the mean there is nothing for it to do -
+which is why two names for one model was all it produced. The interesting
+direction is the opposite one: a family that can be narrower than Poisson
+(Conway-Maxwell-Poisson, or a binomial) might buy something. That is a modelling
+change with no seam problem in the way, and it is not done.
+
+### Promoted teams: the real problem is elsewhere
+
+The concern behind `promoted_like_bottom` is not the log probability of a
+scoreline. It is that promoted-team players are cheap, so if their team is rated
+average, the initial squad optimisation should load up on bargains. That is a
+question about squads, so it wants measuring on squads.
+
+It does not happen, and the reason is worth knowing. Building a gameweek 1 squad
+for 2526 under both assumptions picks **no promoted-team players at all** -
+because every one of them is predicted zero points:
+
+| group | players | predicted above zero | best |
+|---|---|---|---|
+| promoted (LEE, SUN) | 72 | 0 (0.0%) | 0.00 pts |
+| everyone else | 618 | 274 (44.3%) | 7.68 pts |
+
+At gameweek 1 there are no current-season matches, so
+`get_recent_minutes_for_player` falls back to
+`estimate_minutes_from_prev_season`, which reads the previous *Premier League*
+season and filters on `current_team_only`. A promoted-team player has no such
+history, so it returns `[0]`, the minutes are zero, and the points model
+short-circuits. The same applies to every summer signing, which is part of why
+only 44% of the rest are above zero either.
+
+So the bias runs the opposite way to the worry: AIrsenal cannot over-pick
+promoted-team players at gameweek 1 because it cannot pick them at all -
+Sunderland's start to 25/26 was invisible to it. Fixing that is a decision about
+what a player with no history should be assumed to play (their team's typical
+minutes for the position, the FPL API's `chance_of_playing`, or their price as a
+signal of whether they were bought to start), and it belongs to the minutes
+model, which now owns availability. Until it is fixed, `promoted_like_bottom`
+cannot matter at gameweek 1 whichever way it is set.
+
+`tools/team_ratings.py` prints the fitted ratings, which is how the two newly
+promoted teams were found sitting at a net 0.96 and 0.89 - almost exactly
+average, as the worry supposed.
