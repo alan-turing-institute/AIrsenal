@@ -41,7 +41,7 @@ notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.16.5",  # formats fenced Python in Markdown; see .pre-commit-config.yaml
+    "ruff>=0.16.5",
     "pre-commit>=4.3.0",
     "mypy>=2.3.1",
     "pytest-cov>=7.0.0",
@@ -49,10 +49,8 @@ dev = [
     "types-dateparser>=1.2.2.20250809",
     "types-requests>=2.32.4.20250913",
     "types-python-dateutil>=2.9.0.20250822",
-    "import-linter>=2.14",  # `protected` contract type
+    "import-linter>=2.14",
 ]
-# What the one-off scripts under tools/ need. Not packaged, and not needed to use
-# AIrsenal; install with `uv sync --extra tools` to run them from a checkout.
 tools = [
     "thefuzz>=0.22.1",
     "matplotlib>=3.8.3",
@@ -75,8 +73,6 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/airsenal"]
-# Stray files written into the source tree (replay output, caches) must not be
-# packaged just because they sit inside the package directory.
 exclude = ["**/Replay_*.json", "**/__pycache__", "**/*.pyc"]
 
 [tool.hatch.build.targets.sdist]
@@ -85,7 +81,7 @@ include = ["src/airsenal", "tests", "pyproject.toml", "README.md", "LICENSE"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # Coverage is deliberately not here, so it does not run on every local
-# invocation. Ask for it with --cov; [tool.coverage.run] scopes it to src/.
+# invocation. Ask for it with --cov.
 #
 # --disable-socket makes "the suite runs offline" enforced rather than
 # aspirational; unix sockets stay allowed because SQLite and multiprocessing
@@ -105,12 +101,6 @@ markers = [
 
 [tool.ruff]
 line-length = 88
-# Exploratory notebooks, not package code: cells are written to be run in order
-# and read once, so the style rules this configuration turns on say little about
-# them. What does matter is that they still import things that exist, because
-# they are what CodingConventions.md points a new contributor at - and three
-# package renames went by before anyone noticed six of them were broken.
-# `tests/test_notebooks.py` checks exactly that, and nothing else.
 exclude = ["notebooks"]
 
 [tool.ruff.format]
@@ -144,29 +134,19 @@ select = [
   # a docstring's first line a summary. Not the whole D family - D1xx would
   # require a docstring on everything and D417 every parameter documented once
   # any are, both of which push towards docstrings that restate the signature.
-  # D212/D213 are also left out: this codebase opens a multi-line docstring on
-  # the line after the quotes, and the two rules contradict each other anyway.
   "D200", "D202", "D205", "D209", "D403", "D415",
   "D405", "D410", "D411", "D412", "D414", "D416", "D418",
 ]
 ignore = [
-  # The size limits - PLR0913/0917/0912/0915 - are deliberately not ignored. They
-  # are enabled, with the limits in [tool.ruff.lint.pylint] below. What stays
-  # ignored is design advice about magic values and comparison style.
-  #
+  # Ignored is design advice about magic values and comparison style.
   # flake8-annotations (ANN) is deliberately not enabled: mypy's strict mode
-  # already requires annotations. Enabling ANN as well would mean a second list
-  # of the same modules, and two lists drift.
+  # already requires annotations.
   "PLR2004", "PLR0402", "PLR1702", "PLR5501", "PLR6301",
   "ISC001", # Conflicts with formatter
   "G004",   # f-strings with logger
 ]
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
 
-# Annotations are evaluated eagerly here, and that is the intended behaviour: an
-# annotation naming something the module does not import at runtime is a mistake,
-# not a style choice, and `from __future__ import annotations` hides it until
-# someone calls `get_type_hints`. Quote the one-off self-reference instead.
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "__future__.annotations".msg = "Quote the annotation, or import the name at runtime."
 
@@ -187,9 +167,7 @@ max-returns = 12       # FPLAuth._login_flow
 	"F401",  # allow unused imports in __init__.py files
 ]
 "src/airsenal/cli/*.py" = [
-	# A command's parameters are its public schema, set by the flags it offers
-	# rather than by how the code behind it is organised. The bodies are a single
-	# call each, so the count says nothing about their complexity.
+	# Ignore too many argument rules for CLI commands
 	"PLR0913",
 	"PLR0917",
 ]
@@ -199,18 +177,10 @@ max-returns = 12       # FPLAuth._login_flow
 ]
 
 [tool.mypy]
-# `tools/` is checked too: the hyperparameter sweeps there call into the package
-# with real models, and they went a whole refactor calling a signature that no
-# longer existed because nothing checked them.
 files = ["src/airsenal", "tools"]
 strict = true
 show_error_codes = true
 warn_unreachable = true
-# Not part of `strict`. Catches an override granting an exemption nothing needs
-# any more, which costs nothing today and hides a real one tomorrow. It reports
-# rather than gates, and is suppressed while any error is outstanding - so it will
-# not be the thing that explains a wall of no-untyped-call errors from a renamed
-# module in the carve-outs below.
 warn_unused_configs = true
 enable_error_code = [
     "ignore-without-code",
@@ -221,10 +191,6 @@ enable_error_code = [
 
 # Named rather than a blanket ignore_missing_imports, so a *new* untyped
 # dependency is a decision rather than something that slips in unnoticed.
-#
-# Only what `files` above covers belongs here - `src/airsenal` and `tools` - since
-# a library used only by the notebooks would be reported as an unused section
-# forever by warn_unused_configs.
 [[tool.mypy.overrides]]
 module = [
     "bpl.*",
@@ -255,12 +221,8 @@ warn_return_any = false
 
 # curl_cffi ships py.typed but leaves Response.json(), raise_for_status(),
 # iter_content() and close() unannotated, so calling them is a "call to untyped
-# function". These are the only modules that hold a curl_cffi Session, so the
-# exemption stops with them - and unlike the block above it keeps warn_return_any,
-# because narrowing the decoded payloads is exactly their job.
-#
-# All four sit inside `airsenal.remote`, which is the point: the exemption cannot
-# spread, because nothing outside that package may import the client.
+# function". These are the only modules that hold a curl_cffi Session.
+# All four sit inside `airsenal.remote`.
 [[tool.mypy.overrides]]
 module = [
     "airsenal.remote.fpl_api",
@@ -274,12 +236,7 @@ disallow_untyped_calls = false
 source = ["src/airsenal"]
 branch = true
 
-# A floor, not a target, and a ratchet like the complexity limits above: today's
-# figure is 66%, so this fails a change that makes coverage meaningfully worse
-# while leaving room for the run-to-run variation in the dummy fixtures. Raise it
-# as coverage improves; never lower it. Without a number here the whole
-# measurement was decoration - CI reported coverage and nothing acted on it, so
-# deleting a test suite passed.
+# A floor, not a target, raise it as coverage improves.
 [tool.coverage.report]
 fail_under = 65
 
@@ -287,23 +244,9 @@ fail_under = 65
 root_package = "airsenal"
 include_external_packages = true
 
-# These packages form a one-way chain. Without a check, a single convenience
-# import quietly reintroduces the tangle - and it does not fail at runtime, so
-# nothing catches it for months.
 [[tool.importlinter.contracts]]
 name = "Stage packages form a one-way dependency chain"
 type = "layers"
-# One package per line, so every arrow is checked. Never `a : b` between siblings:
-# that is import-linter's *permissive* delimiter and lets them import each other
-# freely, which is the opposite of what this chain means.
-#
-# `game` is last, and that is the point: the facts about Fantasy Premier League -
-# what a position is, what a goal is worth, what "2122" means - import nothing at
-# all, not even a logger. tests/game/test_game_is_plain_python.py is what makes
-# that boundary checkable rather than merely described.
-#
-# exhaustive: a newly-created package cannot silently escape the chain by not
-# being listed. `airsenal.data` is exempt because it holds no Python.
 containers = ["airsenal"]
 layers = [
     "cli",
@@ -328,31 +271,16 @@ ignore_imports = [
     "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
 ]
 
-# The database layer reads and writes the database and does nothing else. The
-# layers contract above cannot say this: `db` sits *above* `remote` in the chain,
-# so importing it is legal there, and the "neither renders nor talks to the
-# network" contract below allows reaching a client indirectly. This is what
-# stops a query quietly turning into a live API call, which is what
-# `free_hit_used_in_gameweek` was until it moved to `squad/state.py`.
-#
-# `protected` checks direct imports only, which is what is wanted: the one
-# exemption is an annotation under TYPE_CHECKING, already excused in the layers
-# contract above.
 [[tool.importlinter.contracts]]
 name = "The database layer does not reach for the FPL API"
 type = "forbidden"
 source_modules = ["airsenal.db"]
 forbidden_modules = ["airsenal.remote.fpl_api", "airsenal.remote.fpl_auth"]
 ignore_imports = [
+    # Annotation only, under TYPE_CHECKING
     "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
 ]
 
-# Query code returns data; rendering it and posting it anywhere belongs in
-# reporting.
-#
-# allow_indirect_imports: db may use a logger, and configuring that logger happens
-# to involve Rich. What must not happen is db reaching for a renderer or an HTTP
-# client itself.
 [[tool.importlinter.contracts]]
 name = "The database layer neither renders nor talks to the network"
 type = "forbidden"
@@ -367,22 +295,9 @@ forbidden_modules = [
 ]
 allow_indirect_imports = true
 
-# One package owns the network, so there is one place to audit it, one place to
-# mock, and one import to block. `airsenal.remote.errors` exists so that code
-# above it can name an HTTP failure in an `except` clause without importing the
-# client to do so.
-#
-# `protected` rather than `forbidden`: it checks *direct* imports only, which is
-# exactly the distinction wanted here - everything above `remote` reaches these
-# libraries through it, by design - and it needs no list of sibling packages, so a
-# newly-created package cannot escape it by not being mentioned.
-#
-# Every name here has to be imported by something, or import-linter fails with
-# ModuleNotPresent. If the Transfermarkt scraper is ever moved onto curl_cffi,
-# drop the `requests` line in the same commit.
 [[tool.importlinter.contracts]]
 name = "Only the remote package talks to the network"
-type = "protected"
+type = "protected"  # direct imports only
 protected_modules = [
     "bs4",
     "curl_cffi",
