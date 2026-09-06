@@ -5,7 +5,11 @@ from typing import Any
 from airsenal.core.console import confirm, console
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.players import (
+    require_api_id,
+    require_player,
+    require_player_from_api_id,
+)
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.game.enums import Position
 from airsenal.remote.fpl_api import get_fetcher
@@ -27,15 +31,8 @@ def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
 
 def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
     def to_dict(player: SquadPlayer, pos_int: int) -> dict[str, Any]:
-        p = get_player(player.player_id)
-        if p is None:
-            msg = f"Player with ID {player.player_id} not found"
-            raise ValueError(msg)
-        if p.fpl_api_id is None:
-            msg = f"Player {p} has no FPL API ID"
-            raise ValueError(msg)
         return {
-            "element": p.fpl_api_id,
+            "element": require_api_id(require_player(player.player_id)),
             "position": pos_int,
             "is_captain": player.is_captain,
             "is_vice_captain": player.is_vice_captain,
@@ -79,11 +76,7 @@ def get_lineup_from_payload(lineup: dict[str, Any]) -> Squad:
     """
     s = Squad()
     for p in lineup["picks"]:
-        player = get_player_from_api_id(p["element"])
-        if player is None:
-            msg = f"Player with API ID {p['element']} not found"
-            raise ValueError(msg)
-        s.add_player(player, check_budget=False)
+        s.add_player(require_player_from_api_id(p["element"]), check_budget=False)
 
     if s.is_complete():
         return s

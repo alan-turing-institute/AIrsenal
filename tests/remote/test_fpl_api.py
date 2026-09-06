@@ -39,6 +39,50 @@ def test_all_finished_returns_the_last_gameweek():
     assert fetcher.get_last_finished_gameweek() == 3
 
 
+def _fetcher_with_history(rounds: list[int]) -> FPLDataFetcher:
+    """A fetcher whose one player has played a match in each of `rounds`."""
+    fetcher = FPLDataFetcher()
+    history = [{"round": r, "total_points": r} for r in rounds]
+    fetcher._get = lambda *args, **kwargs: {"history": history}
+    return fetcher
+
+
+def test_a_players_whole_history_comes_back_keyed_by_gameweek():
+    """
+    Without a gameweek, the answer is every gameweek, not the last one.
+
+    `fill_attributes_table_from_api` calls `.items()` on this, so returning one
+    gameweek's list instead of the dict is an AttributeError several frames away.
+    """
+    fetcher = _fetcher_with_history([1, 2, 3])
+    assert fetcher.get_gameweek_data_for_player(123) == {
+        1: [{"round": 1, "total_points": 1}],
+        2: [{"round": 2, "total_points": 2}],
+        3: [{"round": 3, "total_points": 3}],
+    }
+
+
+def test_asking_for_one_gameweek_returns_just_that_gameweeks_matches():
+    fetcher = _fetcher_with_history([1, 2, 3])
+    assert fetcher.get_gameweek_data_for_player(123, 2) == [
+        {"round": 2, "total_points": 2}
+    ]
+
+
+def test_a_double_gameweek_keeps_both_matches():
+    """The value is a list because a player can play twice in one gameweek."""
+    fetcher = _fetcher_with_history([1, 2, 2])
+    assert fetcher.get_gameweek_data_for_player(123, 2) == [
+        {"round": 2, "total_points": 2},
+        {"round": 2, "total_points": 2},
+    ]
+
+
+def test_a_gameweek_the_player_did_not_play_in_is_empty():
+    fetcher = _fetcher_with_history([1, 2])
+    assert fetcher.get_gameweek_data_for_player(123, 5) == []
+
+
 class _LoginBoom:
     """A session that cannot reach the login host."""
 

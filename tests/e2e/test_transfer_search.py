@@ -77,7 +77,7 @@ def result(seeded, tag, starting_squad):
         gameweeks=SEARCH_GAMEWEEKS,
         tag=tag,
         season=SEASON,
-        chip_schedule=ChipSchedule.from_weeks(SEARCH_GAMEWEEKS, {}),
+        chip_schedule=ChipSchedule.from_gameweeks(SEARCH_GAMEWEEKS, {}),
         num_free_transfers=1,
         constraints=TransferConstraints(max_opt_transfers=1),
     )
@@ -180,7 +180,9 @@ def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
         tag=tag,
         season=SEASON,
         # forced, so every node of this one-gameweek tree plays it
-        chip_schedule=ChipSchedule.from_weeks(gameweeks, {Chip.WILDCARD: gameweeks[0]}),
+        chip_schedule=ChipSchedule.from_gameweeks(
+            gameweeks, {Chip.WILDCARD: gameweeks[0]}
+        ),
         num_free_transfers=1,
         constraints=TransferConstraints(max_opt_transfers=1),
         squad_optimizer=optimizer,
@@ -223,7 +225,7 @@ def test_the_bench_weighting_on_the_request_reaches_the_search(
             gameweeks=gameweeks,
             tag=tag,
             season=SEASON,
-            chip_schedule=ChipSchedule.from_weeks(gameweeks, chips),
+            chip_schedule=ChipSchedule.from_gameweeks(gameweeks, chips),
             num_free_transfers=1,
             constraints=TransferConstraints(max_opt_transfers=1),
             scoring=scoring,

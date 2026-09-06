@@ -51,20 +51,27 @@ def evaluate_params(
     n_goals_prior: int,
     seasons: list[str],
     horizon: int,
-    first_gw: int | None = None,
-    last_gw: int | None = None,
+    first_gameweek: int | None = None,
+    last_gameweek: int | None = None,
 ) -> ParameterResult:
     """Score one parameter pair across every season, walking each one forward."""
     total = ModelScore()
     for season in track(seasons, desc="Season"):
         with session_scope() as dbsession:
-            max_gw = get_max_gameweek(season=season, dbsession=dbsession)
-            start_gw = first_gw or 1
-            end_gw = min(last_gw if last_gw is not None else max_gw, max_gw) - horizon
-            if end_gw < start_gw:
+            max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
+            gameweek_start = first_gameweek or 1
+            gameweek_end = (
+                min(
+                    last_gameweek if last_gameweek is not None else max_gameweek,
+                    max_gameweek,
+                )
+                - horizon
+            )
+            if gameweek_end < gameweek_start:
                 msg = (
-                    f"Invalid gameweek window: start={start_gw}, end={end_gw}, "
-                    f"max_gw={max_gw}, horizon={horizon}"
+                    f"Invalid gameweek window: start={gameweek_start}, "
+                    f"end={gameweek_end}, "
+                    f"max_gameweek={max_gameweek}, horizon={horizon}"
                 )
                 raise ValueError(msg)
             total += backtest_player_model(
@@ -73,7 +80,7 @@ def evaluate_params(
                 ),
                 season=season,
                 dbsession=dbsession,
-                gameweeks=range(start_gw, end_gw + 1),
+                gameweeks=range(gameweek_start, gameweek_end + 1),
                 horizon=horizon,
             )
     return ParameterResult(epsilon=epsilon, n_goals_prior=n_goals_prior, score=total)
@@ -103,8 +110,8 @@ def main() -> None:
             n_goals_prior=n_goals_prior,
             seasons=args.seasons,
             horizon=args.horizon,
-            first_gw=args.first_gw,
-            last_gw=args.last_gw,
+            first_gameweek=args.first_gameweek,
+            last_gameweek=args.last_gameweek,
         )
         for epsilon, n_goals_prior in track(grid, desc="Parameters")
     ]

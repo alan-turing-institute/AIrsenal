@@ -2,8 +2,8 @@
 Loading player absences (injuries, suspensions) from the packaged CSV.
 
 The counterpart to `export/absences.py`. Each row gives a date range, which is
-resolved to a half-open range of gameweeks: `gw_from` is the first one the
-absence could have kept the player out of, and `gw_until` the one they were back
+resolved to a half-open range of gameweeks: `gameweek_from` is the first one the
+absence could have kept the player out of, and `gameweek_until` the one they were back
 for. The two are equal when the absence cost them no match at all.
 
 This is primarily for the scraped Transfermarkt data. The FPL API statuses are saved in
@@ -85,24 +85,24 @@ def load_absences(
             continue
 
         # first check approx gameweek to determine player's team at that time
-        gw_date = get_gameweek_by_date(
+        gameweek_date = get_gameweek_by_date(
             check_date=date_from, season=season, dbsession=dbsession
         )
-        if gw_date is None:
+        if gameweek_date is None:
             logger.warning(
                 "Couldn't find gameweek for %s from date %s", row["player"], date_from
             )
             continue
-        team_from = p.team(gw_date, season)
+        team_from = p.team(gameweek_date, season)
         # The first gameweek the absence could have stopped them playing, being
         # the first of their team's matches to kick off *after* it began - hence
         # the day after, rather than `date_from` itself.
-        gw_from = get_return_gameweek_by_date(
+        gameweek_from = get_return_gameweek_by_date(
             date_from + timedelta(days=1), team_from, season, dbsession=dbsession
         )
 
         date_until = None if row["until"] is pd.NaT else row["until"].date()
-        gw_until = (
+        gameweek_until = (
             None
             if date_until is None
             else gameweek_returned(date_until, p, season, dbsession=dbsession)
@@ -119,8 +119,8 @@ def load_absences(
             # These columns are VARCHAR, so write ISO-8601 text rather than date objects
             date_from=date_from.isoformat(),
             date_until=date_until.isoformat() if date_until is not None else None,
-            gw_from=gw_from,
-            gw_until=gw_until,
+            gameweek_from=gameweek_from,
+            gameweek_until=gameweek_until,
             url=url,
             timestamp=timestamp,
         )

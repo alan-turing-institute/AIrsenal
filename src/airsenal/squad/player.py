@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player
+from airsenal.db.queries.players import require_player
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.game.season import CURRENT_SEASON
 
@@ -50,11 +50,7 @@ class CandidatePlayer:
         if isinstance(player, Player):
             pdata = player
         else:
-            p = get_player(player, self.dbsession)
-            if p is None:
-                msg = f"Player {player} not found in database"
-                raise ValueError(msg)
-            pdata = p
+            pdata = require_player(player, self.dbsession)
         self.player_id = pdata.player_id
         self.name = pdata.name
         self.display_name = pdata.display_name

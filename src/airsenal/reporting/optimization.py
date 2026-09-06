@@ -174,22 +174,22 @@ def discord_payload(
     """The webhook body describing a plan."""
     fields: list[dict[str, Any]] = []
     for row in plan:
-        gw = row.gameweek
-        made = [t for t in transfers if t.gameweek == gw]
+        gameweek = row.gameweek
+        made = [t for t in transfers if t.gameweek == gameweek]
         fields.extend(
             [
                 {
-                    "name": f"GW{gw} chips:",
+                    "name": f"GW{gameweek} chips:",
                     "value": f"Chips played:  {row.chip}\n",
                     "inline": False,
                 },
                 {
-                    "name": f"GW{gw} transfers out:",
+                    "name": f"GW{gameweek} transfers out:",
                     "value": "\n".join(t.player_out for t in made),
                     "inline": True,
                 },
                 {
-                    "name": f"GW{gw} transfers in:",
+                    "name": f"GW{gameweek} transfers in:",
                     "value": "\n".join(t.player_in for t in made),
                     "inline": True,
                 },

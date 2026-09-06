@@ -108,7 +108,7 @@ class GameweekChips:
         if self.chip_to_play is not None and self.chips_allowed:
             msg = (
                 f"Cannot allow {[str(c) for c in self.chips_allowed]} in the same "
-                f"week as we play {self.chip_to_play}"
+                f"gameweek as we play {self.chip_to_play}"
             )
             raise ValueError(msg)
 
@@ -130,31 +130,31 @@ class ChipSchedule:
         return self.per_gameweek.get(gameweek, NO_CHIPS)
 
     @classmethod
-    def from_weeks(
+    def from_gameweeks(
         cls,
         gameweeks: Iterable[int],
-        chip_weeks: "ChipWeeks | Mapping[str | Chip, int]",
+        chip_gameweeks: "ChipGameweeks | Mapping[str | Chip, int]",
     ) -> "ChipSchedule":
         """
-        Build a schedule from the per-chip week numbers the CLI takes.
+        Build a schedule from the per-chip gameweek numbers the CLI takes.
 
-        `chip_weeks` maps a chip to -1 (never play it), 0 (consider it in any
+        `chip_gameweeks` maps a chip to -1 (never play it), 0 (consider it in any
         gameweek), or a gameweek number (definitely play it then).
         """
         gameweeks = list(gameweeks)
-        pairs = chip_weeks.items()
-        allowed = tuple(Chip(chip) for chip, week in pairs if int(week) == 0)
+        pairs = chip_gameweeks.items()
+        allowed = tuple(Chip(chip) for chip, gameweek in pairs if int(gameweek) == 0)
         schedule = dict.fromkeys(gameweeks, GameweekChips(chips_allowed=allowed))
 
-        for chip, week in pairs:
-            if int(week) <= 0 or int(week) not in gameweeks:
+        for chip, gameweek in pairs:
+            if int(gameweek) <= 0 or int(gameweek) not in gameweeks:
                 continue
-            existing = schedule[int(week)].chip_to_play
+            existing = schedule[int(gameweek)].chip_to_play
             if existing is not None:
-                msg = f"Cannot play {existing} and {Chip(chip)} in the same week"
+                msg = f"Cannot play {existing} and {Chip(chip)} in the same gameweek"
                 raise ValueError(msg)
             # A definite chip displaces the optional ones for that gameweek.
-            schedule[int(week)] = GameweekChips(chip_to_play=Chip(chip))
+            schedule[int(gameweek)] = GameweekChips(chip_to_play=Chip(chip))
 
         return cls(schedule)
 
@@ -188,11 +188,11 @@ def calc_free_transfers(
 
 
 @dataclass(frozen=True)
-class ChipWeeks:
+class ChipGameweeks:
     """
     Which gameweek to play each chip in, as the CLI takes it.
 
-    -1 never, 0 any week the search likes, n that week.
+    -1 never, 0 any gameweek the search likes, n that gameweek.
     """
 
     wildcard: int = -1
@@ -201,7 +201,7 @@ class ChipWeeks:
     bench_boost: int = -1
 
     def items(self) -> list[tuple[Chip, int]]:
-        """Each chip with the week it is wanted in."""
+        """Each chip with the gameweek it is wanted in."""
         return [
             (Chip.WILDCARD, self.wildcard),
             (Chip.FREE_HIT, self.free_hit),
@@ -211,4 +211,7 @@ class ChipWeeks:
 
     def chip_in(self, gameweek: int) -> Chip | None:
         """The chip pinned to this gameweek, if any."""
-        return next((chip for chip, week in self.items() if week == gameweek), None)
+        return next(
+            (chip for chip, chip_gameweek in self.items() if chip_gameweek == gameweek),
+            None,
+        )

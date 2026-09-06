@@ -78,15 +78,15 @@ class ReplayResult:
     @property
     def total_points(self) -> float:
         """Points scored across the replay, net of hits."""
-        return sum(gw.actual_points for gw in self.gameweeks)
+        return sum(outcome.actual_points for outcome in self.gameweeks)
 
     @property
     def total_points_hit(self) -> int:
-        return sum(gw.points_hit for gw in self.gameweeks)
+        return sum(outcome.points_hit for outcome in self.gameweeks)
 
     @property
     def total_expected_points(self) -> float:
-        return sum(gw.expected_points for gw in self.gameweeks)
+        return sum(outcome.expected_points for outcome in self.gameweeks)
 
     @property
     def mean_absolute_error(self) -> float:
@@ -99,7 +99,7 @@ class ReplayResult:
         """
         if not self.gameweeks:
             return 0.0
-        return sum(abs(gw.prediction_error) for gw in self.gameweeks) / len(
+        return sum(abs(outcome.prediction_error) for outcome in self.gameweeks) / len(
             self.gameweeks
         )
 
@@ -114,7 +114,7 @@ class ReplayResult:
             "total_expected_points": self.total_expected_points,
             "mean_absolute_error": self.mean_absolute_error,
             "elapsed": self.elapsed,
-            "gameweeks": [asdict(gw) for gw in self.gameweeks],
+            "gameweeks": [asdict(outcome) for outcome in self.gameweeks],
         }
 
     def write(self, directory: Path | None = None) -> Path:
@@ -249,10 +249,10 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
 
     outcomes: list[ReplayGameweek] = []
     replay_range = range(replay.gameweek_start, gameweek_end + 1)
-    for idx, gw in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
-        logger.info("GW%s (%s out of %s)...", gw, idx + 1, len(replay_range))
+    for idx, gameweek in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
+        logger.info("GW%s (%s out of %s)...", gameweek, idx + 1, len(replay_range))
         with session_scope() as session:
-            gameweeks = pipeline.gameweeks(session, gameweek_start=gw)
+            gameweeks = pipeline.gameweeks(session, gameweek_start=gameweek)
             tag = pipeline.predict(gameweeks, session, tag_prefix=tag_prefix)
 
         if not replay.transfers:
@@ -260,11 +260,11 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
 
         # only the first gameweek can start from nothing; after that there is a
         # squad in the database to transfer from
-        new_squad = gw == replay.gameweek_start and not replay.resume
+        new_squad = gameweek == replay.gameweek_start and not replay.resume
         squad, plan = pipeline.with_settings(new_squad=new_squad).optimize(
             gameweeks, tag, fpl_team_id, is_replay=True
         )
-        outcomes.append(_gameweek_outcome(tag, gw, squad, plan, season))
+        outcomes.append(_gameweek_outcome(tag, gameweek, squad, plan, season))
         logger.info("-" * 30)
 
     result = ReplayResult(

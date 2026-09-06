@@ -27,24 +27,25 @@ def make_optimum_single_transfer(
     squad: Squad,
     tag: str,
     gameweeks: list[int] | None = None,
-    root_gw: int | None = None,
+    root_gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     on_step: StepCounter | None = None,
-    bench_boost_gw: int | None = None,
-    triple_captain_gw: int | None = None,
+    bench_boost_gameweek: int | None = None,
+    triple_captain_gameweek: int | None = None,
     *,
     sub_weights: SubWeights,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     Try every single transfer in turn, which is affordable for just one.
 
-    Candidates are ordered by their total expected points over `gameweeks`.
+    Candidates are ordered by their total expected points over `gameweeks`, and
+    priced as at `root_gameweek`, which is what `TransferRequest.root_gameweek`
+    documents.
     """
     if not gameweeks:
         gameweeks = [next_gameweek()]
-        root_gw = next_gameweek()
-
-    transfer_gw = min(gameweeks)  # the week we're making the transfer
+    if root_gameweek is None:
+        root_gameweek = min(gameweeks)
 
     best_score = -1.0
     best_squad = None
@@ -64,20 +65,20 @@ def make_optimum_single_transfer(
         new_squad = fastcopy(squad)
         position = p_out.position
         logger.debug("Removing player %s", p_out)
-        new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
+        new_squad.remove_player(p_out.player_id, gameweek=root_gameweek)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
-            added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
+            added_ok = new_squad.add_player(p_in[0], gameweek=root_gameweek)
             if added_ok:
                 logger.debug("Added player %s", p_in[0])
                 total_points = get_discounted_squad_score(
                     new_squad,
                     gameweeks,
                     tag,
-                    root_gw=root_gw,
-                    bench_boost_gw=bench_boost_gw,
-                    triple_captain_gw=triple_captain_gw,
+                    root_gameweek=root_gameweek,
+                    bench_boost_gameweek=bench_boost_gameweek,
+                    triple_captain_gameweek=triple_captain_gameweek,
                     sub_weights=sub_weights,
                 )
                 if total_points > best_score:
@@ -108,11 +109,11 @@ class SingleTransferStrategy:
             request.squad,
             request.tag,
             request.gameweeks,
-            request.root_gw,
+            request.root_gameweek,
             request.season,
             on_step=request.progress,
-            bench_boost_gw=request.bench_boost_gw,
-            triple_captain_gw=request.triple_captain_gw,
+            bench_boost_gameweek=request.bench_boost_gameweek,
+            triple_captain_gameweek=request.triple_captain_gameweek,
             sub_weights=request.scoring.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

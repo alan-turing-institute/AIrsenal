@@ -113,7 +113,9 @@ def _stub_reporting(monkeypatch, posted, dbsession):
     monkeypatch.setattr(rt, "fill_suggestion_table", lambda *a, **k: None)
     monkeypatch.setattr(rt, "fill_transaction_table", lambda *a, **k: None)
     monkeypatch.setattr(rt, "transfer_rows", lambda *a, **k: [])
-    monkeypatch.setattr(rt, "squad_for_next_gw", lambda *a, **k: _squad(dbsession))
+    monkeypatch.setattr(
+        rt, "squad_for_next_gameweek", lambda *a, **k: _squad(dbsession)
+    )
     monkeypatch.setattr(rt, "formation_table", lambda *a, **k: "")
     monkeypatch.setattr(rt, "lineup_strings", lambda *a, **k: [])
     monkeypatch.setattr(rt, "discord_payload", lambda *a, **k: {})
@@ -148,3 +150,39 @@ def test_only_a_real_run_posts_to_discord(
         )
 
     assert len(posted) == n_posts
+
+
+class _RecordingSquad:
+    """A Squad stand-in that records the gameweek each move was priced at."""
+
+    def __init__(self):
+        self.removed_in = []
+        self.added_in = []
+
+    def remove_player(self, player_id, price=None, gameweek=None, **kwargs):  # noqa: ARG002
+        self.removed_in.append(gameweek)
+        return True
+
+    def add_player(self, player, price=None, gameweek=None, **kwargs):  # noqa: ARG002
+        self.added_in.append(gameweek)
+        return True
+
+
+def test_the_resulting_squad_is_priced_at_the_gameweek_of_the_move(monkeypatch):
+    """
+    Not at whatever gameweek the real season happens to be up to.
+
+    `Squad.add_player` and `Squad.remove_player` default their gameweek to
+    `next_gameweek()`, which is a gameweek of the *current* season. Left to
+    default, a replay of a past season read every player's club and price from
+    that gameweek number of the season being replayed instead of from the one
+    the transfer is made in.
+    """
+    recorder = _RecordingSquad()
+    monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: recorder)
+    plan = Plan(root_gameweek=7, outcomes=(_outcome(7, GameweekMove(1), (0,), (30,)),))
+
+    rt.squad_for_next_gameweek(plan, season="2223")
+
+    assert recorder.removed_in == [7]
+    assert recorder.added_in == [7]

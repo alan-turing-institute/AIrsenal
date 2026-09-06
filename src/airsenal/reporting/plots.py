@@ -17,12 +17,12 @@ def get_team_names(league_data: dict[str, Any]) -> list[str]:
 
 def get_team_history(team_data: dict[str, Any]) -> dict[str, Any]:
     output_dict: dict[str, Any] = {"history": {}}
-    for gw in team_data["current"]:
-        output_dict["history"][gw["event"]] = {
-            "points": gw["points"],
-            "total_points": gw["total_points"],
-            "ranking": gw["rank"],
-            "overall_ranking": gw["overall_rank"],
+    for entry in team_data["current"]:
+        output_dict["history"][entry["event"]] = {
+            "points": entry["points"],
+            "total_points": entry["total_points"],
+            "ranking": entry["rank"],
+            "overall_ranking": entry["overall_rank"],
         }
 
     return output_dict
@@ -48,7 +48,10 @@ def plot_standings(thing_to_plot: str) -> None:
     points = []
     for th in team_histories:
         points.append(
-            [th["history"][gw][thing_to_plot] for gw in sorted(th["history"].keys())]
+            [
+                th["history"][gameweek][thing_to_plot]
+                for gameweek in sorted(th["history"].keys())
+            ]
         )
         plt.plot(xvals, points[-1], label=th["name"])
     plt.legend(loc="best")

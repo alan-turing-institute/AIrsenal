@@ -268,15 +268,15 @@ def _write_absence_csv(path, date_from, date_until, player="Bob"):
 
 
 @pytest.mark.parametrize(
-    ("date_from", "expected_gw_from", "why"),
+    ("date_from", "expected_gameweek_from", "why"),
     [
         ("2025-08-22", 2, "the day before their team plays, so gameweek 2 is missed"),
         ("2025-08-23", 3, "their team's matchday, so they played it and miss from 3"),
         ("2025-08-24", 3, "the day after, so gameweek 2 was played and 3 is missed"),
     ],
 )
-def test_gw_from_is_the_first_gameweek_the_absence_could_have_stopped_them_playing(
-    dbsession, tmp_path, date_from, expected_gw_from, why
+def test_gameweek_from_is_the_first_gameweek_it_could_have_stopped_them_playing(
+    dbsession, tmp_path, date_from, expected_gameweek_from, why
 ):
     """
     An absence beginning on matchday did not stop the player playing that match.
@@ -294,7 +294,7 @@ def test_gw_from_is_the_first_gameweek_the_absence_could_have_stopped_them_playi
     load_absences(TEST_SEASON, dbsession, path)
 
     absence = dbsession.scalars(select(Absence)).one()
-    assert absence.gw_from == expected_gw_from, why
+    assert absence.gameweek_from == expected_gameweek_from, why
     # `date_from` itself is stored as given; only the gameweek is resolved
     assert absence.date_from == date_from
 
@@ -303,7 +303,7 @@ def test_an_absence_beginning_on_the_last_matchday_covers_nothing(dbsession, tmp
     """
     Nothing after it kicks off, so there is no gameweek it could have stopped.
 
-    The resolved `gw_from` lands past the end of the season, which the half-open
+    The resolved `gameweek_from` lands past the end of the season, which the half-open
     range then covers nothing of - rather than reaching back to the match the
     player did play.
     """
@@ -315,7 +315,7 @@ def test_an_absence_beginning_on_the_last_matchday_covers_nothing(dbsession, tmp
     load_absences(TEST_SEASON, dbsession, path)
 
     absence = dbsession.scalars(select(Absence)).one()
-    assert absence.gw_from > 4
+    assert absence.gameweek_from > 4
 
 
 def test_an_absence_ending_after_the_season_covers_the_rest_of_it(dbsession, tmp_path):
@@ -334,8 +334,8 @@ def test_an_absence_ending_after_the_season_covers_the_rest_of_it(dbsession, tmp
     load_absences(TEST_SEASON, dbsession, path)
 
     absence = dbsession.scalars(select(Absence)).one()
-    assert absence.gw_from == 2
-    assert absence.gw_until == 5
+    assert absence.gameweek_from == 2
+    assert absence.gameweek_until == 5
     assert absence.date_until == "2026-05-24"
 
 
@@ -356,8 +356,8 @@ def test_an_absence_with_no_end_date_is_left_unresolved(dbsession, tmp_path):
     load_absences(TEST_SEASON, dbsession, path)
 
     absence = dbsession.scalars(select(Absence)).one()
-    assert absence.gw_from == 2
-    assert absence.gw_until is None
+    assert absence.gameweek_from == 2
+    assert absence.gameweek_until is None
 
 
 def test_a_player_is_found_under_a_differently_spelled_name(dbsession, tmp_path):
@@ -392,14 +392,16 @@ def test_a_name_that_fits_two_players_is_not_guessed_at(dbsession, tmp_path):
 # ------------------------------------------------- reading absences back ---
 
 
-def _add_absence(dbsession, player_id, gw_from, gw_until, season=TEST_SEASON):
+def _add_absence(
+    dbsession, player_id, gameweek_from, gameweek_until, season=TEST_SEASON
+):
     absence = Absence()
     absence.player_id = player_id
     absence.season = season
     absence.reason = "injury"
     absence.date_from = "2025-08-16"
-    absence.gw_from = gw_from
-    absence.gw_until = gw_until
+    absence.gameweek_from = gameweek_from
+    absence.gameweek_until = gameweek_until
     absence.timestamp = "2025-08-16"
     dbsession.add(absence)
     dbsession.commit()
@@ -422,7 +424,7 @@ def absence_db(tmp_path):
 
 def test_a_player_is_absent_from_the_first_gameweek_they_miss(absence_db):
     """
-    `gw_from` is a gameweek the player missed, so it counts as an absence.
+    `gameweek_from` is a gameweek the player missed, so it counts as an absence.
 
     `load_absences` resolves it to the team's next match on or after the day the
     absence began, which is the first gameweek missed rather than the last one
@@ -430,14 +432,14 @@ def test_a_player_is_absent_from_the_first_gameweek_they_miss(absence_db):
     and that is the week the other guard cannot catch either, because the recent
     minutes it reads are all from before the absence.
     """
-    _add_absence(absence_db, 1, gw_from=1, gw_until=4)
+    _add_absence(absence_db, 1, gameweek_from=1, gameweek_until=4)
     player = absence_db.get(Player, 1)
 
-    assert was_historic_absence(player, 1, TEST_SEASON, dbsession=absence_db)
-    assert was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
-    assert was_historic_absence(player, 3, TEST_SEASON, dbsession=absence_db)
-    # gw_until is the gameweek they returned in, so they are available again
-    assert not was_historic_absence(player, 4, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 1, 1, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 2, 2, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 3, 3, TEST_SEASON, dbsession=absence_db)
+    # gameweek_until is the gameweek they returned in, so they are available again
+    assert not was_historic_absence(player, 4, 4, TEST_SEASON, dbsession=absence_db)
 
 
 def test_an_absence_ending_the_week_it_began_covers_nothing(absence_db):
@@ -446,33 +448,35 @@ def test_an_absence_ending_the_week_it_began_covers_nothing(absence_db):
 
     `load_absences` gives both ends the same gameweek when a player is flagged
     and back before their team plays again, so the range has to be able to be
-    empty even though `gw_from` itself now counts.
+    empty even though `gameweek_from` itself now counts.
     """
-    _add_absence(absence_db, 1, gw_from=2, gw_until=2)
+    _add_absence(absence_db, 1, gameweek_from=2, gameweek_until=2)
     player = absence_db.get(Player, 1)
 
-    assert not was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
+    assert not was_historic_absence(player, 2, 2, TEST_SEASON, dbsession=absence_db)
 
 
 def test_an_open_ended_absence_is_not_counted(absence_db):
     """
-    A NULL `gw_until` never satisfied the SQL comparison it replaced.
+    A NULL `gameweek_until` never satisfied the SQL comparison it replaced.
 
     Keeping that is deliberate: an absence with no recorded end would otherwise
     zero out the rest of the player's season.
     """
-    _add_absence(absence_db, 1, gw_from=1, gw_until=None)
+    _add_absence(absence_db, 1, gameweek_from=1, gameweek_until=None)
     player = absence_db.get(Player, 1)
 
-    assert not was_historic_absence(player, 2, TEST_SEASON, dbsession=absence_db)
+    assert not was_historic_absence(player, 2, 2, TEST_SEASON, dbsession=absence_db)
 
 
 def test_the_current_season_is_never_a_historic_absence(absence_db):
     """The Absence table only covers finished seasons; the API says who is out now."""
-    _add_absence(absence_db, 1, gw_from=1, gw_until=4, season=CURRENT_SEASON)
+    _add_absence(
+        absence_db, 1, gameweek_from=1, gameweek_until=4, season=CURRENT_SEASON
+    )
     player = absence_db.get(Player, 1)
 
-    assert not was_historic_absence(player, 2, CURRENT_SEASON, dbsession=absence_db)
+    assert not was_historic_absence(player, 2, 2, CURRENT_SEASON, dbsession=absence_db)
 
 
 def test_a_players_absences_are_read_once_per_season(absence_db):
@@ -483,7 +487,7 @@ def test_a_players_absences_are_read_once_per_season(absence_db):
     replay the per-fixture version was tens of thousands of queries for an
     answer that cannot change within a season.
     """
-    _add_absence(absence_db, 1, gw_from=1, gw_until=6)
+    _add_absence(absence_db, 1, gameweek_from=1, gameweek_until=6)
     player = absence_db.get(Player, 1)
 
     statements = []
@@ -493,6 +497,44 @@ def test_a_players_absences_are_read_once_per_season(absence_db):
         lambda *args: statements.append(args[2]),
     )
     for gameweek in range(1, 6):
-        was_historic_absence(player, gameweek, TEST_SEASON, dbsession=absence_db)
+        was_historic_absence(
+            player, gameweek, gameweek, TEST_SEASON, dbsession=absence_db
+        )
 
     assert sum("FROM absence" in s for s in statements) == 1
+
+
+def test_an_absence_that_has_not_begun_is_not_known_yet(absence_db):
+    """
+    A replay may not rule a player out of a fixture over an injury still to come.
+
+    The Absence table records a finished season, so it knows every absence of it
+    from the start. Asked only about the fixture's own gameweek it answered
+    "absent" for an injury picked up two gameweeks after the one being planned
+    from, which is knowledge the real run would not have had.
+    """
+    _add_absence(absence_db, 1, gameweek_from=3, gameweek_until=6)
+    player = absence_db.get(Player, 1)
+
+    # planning from gameweek 1: nothing has happened to them yet
+    assert not was_historic_absence(player, 1, 3, TEST_SEASON, dbsession=absence_db)
+    assert not was_historic_absence(player, 1, 5, TEST_SEASON, dbsession=absence_db)
+
+
+def test_an_absence_already_under_way_rules_out_the_gameweeks_it_covers(absence_db):
+    """As `Player.is_injured_or_suspended`: flagged now, and not back by then."""
+    _add_absence(absence_db, 1, gameweek_from=3, gameweek_until=6)
+    player = absence_db.get(Player, 1)
+
+    assert was_historic_absence(player, 3, 3, TEST_SEASON, dbsession=absence_db)
+    assert was_historic_absence(player, 3, 5, TEST_SEASON, dbsession=absence_db)
+    # gameweek_until is the gameweek they returned in
+    assert not was_historic_absence(player, 3, 6, TEST_SEASON, dbsession=absence_db)
+
+
+def test_an_absence_already_over_rules_out_nothing(absence_db):
+    """The player came back before the gameweek being planned from."""
+    _add_absence(absence_db, 1, gameweek_from=1, gameweek_until=3)
+    player = absence_db.get(Player, 1)
+
+    assert not was_historic_absence(player, 4, 4, TEST_SEASON, dbsession=absence_db)

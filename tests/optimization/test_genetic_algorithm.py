@@ -10,6 +10,7 @@ from airsenal.optimization.squad_optimizers.genetic_algorithm import (
     SquadOpt,
     make_new_squad,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import SubWeights
 from tests.conftest import past_data_session_scope
 
@@ -54,9 +55,8 @@ def arithmetic_squad_opt():
         yield SquadOpt(
             gameweeks=[1],
             tag="test_tag",
-            budget=1000,
             players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
-            sub_weights=SubWeights(),
+            scoring=SquadScoringConfig(budget=1000, sub_weights=SubWeights()),
         )
 
 
@@ -125,15 +125,14 @@ def test_deap_class():
             optimizer = SquadOpt(
                 gameweeks=[1, 2, 3],
                 tag="test_tag",
-                budget=1000,
                 players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
-                sub_weights=SubWeights(),
+                scoring=SquadScoringConfig(budget=1000, sub_weights=SubWeights()),
             )
 
             # Check basic properties
             assert optimizer.gameweeks == [1, 2, 3]
             assert optimizer.tag == "test_tag"
-            assert optimizer.budget == 1000
+            assert optimizer.scoring.budget == 1000
             assert optimizer.n_opt_players == 15
 
 
@@ -261,9 +260,11 @@ def test_deap_optimization_creates_valid_squad():
                 optimizer = SquadOpt(
                     gameweeks=[1, 2, 3],
                     tag="test_tag",
-                    budget=1000,  # £100.0m budget
                     players_per_position={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
-                    sub_weights=SubWeights(),
+                    scoring=SquadScoringConfig(
+                        budget=1000,  # £100.0m
+                        sub_weights=SubWeights(),
+                    ),
                 )
 
                 # Run optimization with small parameters for fast test
@@ -341,16 +342,51 @@ def test_a_search_that_finds_no_legal_squad_says_so():
         make_new_squad(
             [1],
             "dummy_tag",
-            budget=100,  # £10.0m for fifteen players
             season="1819",
             ga_config=GeneticAlgorithmConfig(
                 population_size=8, generations=2, random_state=1
             ),
             remove_zero=False,
-            sub_weights=SubWeights(),
+            scoring=SquadScoringConfig(
+                budget=100,  # £10.0m for fifteen players
+                sub_weights=SubWeights(),
+            ),
             dbsession=ts,
         )
 
     message = str(excinfo.value)
     assert "£10.0m" in message
     assert "of 15 players" in message
+
+
+@pytest.mark.parametrize(
+    ("root_gameweek", "expected"),
+    [
+        # a squad built from scratch has nothing earlier to be priced at
+        (None, 5),
+        # a wildcard part-way through a plan is priced at the plan's root
+        (1, 1),
+    ],
+)
+def test_the_root_gameweek_is_what_the_search_reads_prices_at(root_gameweek, expected):
+    """
+    `list_players` and every `add_player` go through it.
+
+    Which players exist, what club they are at and what they cost all have to
+    come from one gameweek, and it is the root of the search rather than the
+    window being scored - see `optimization.protocols.TransferRequest`.
+    """
+    with arithmetic_squad_opt() as optimizer:
+        rebuilt = SquadOpt(
+            gameweeks=[5, 6],
+            tag="test_tag",
+            root_gameweek=root_gameweek,
+            # the mocked predictions only cover gameweek 1, so keeping the
+            # zero-point filter would empty the pool
+            remove_zero=False,
+            players_per_position=optimizer.players_per_position,
+            scoring=optimizer.scoring,
+        )
+
+    assert rebuilt.root_gameweek == expected
+    assert rebuilt.gameweeks == [5, 6]

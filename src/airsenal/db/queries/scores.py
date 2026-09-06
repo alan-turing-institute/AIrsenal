@@ -108,7 +108,7 @@ def get_recent_playerscore_rows(
     player: Player,
     n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gw: int | None = None,
+    last_gameweek: int | None = None,
     exclude_unavailable: bool = False,
     current_team_only: bool = False,
     dbsession: Session | None = None,
@@ -123,12 +123,12 @@ def get_recent_playerscore_rows(
         # e.g. before this season has started
         return []
 
-    if last_gw is None and season != CURRENT_SEASON:
-        msg = "last_gw must be specified if running on previous seasons"
+    if last_gameweek is None and season != CURRENT_SEASON:
+        msg = "last_gameweek must be specified if running on previous seasons"
         raise ValueError(msg)
 
-    if last_gw is None or last_gw > last_available_gameweek:
-        last_gw = last_available_gameweek
+    if last_gameweek is None or last_gameweek > last_available_gameweek:
+        last_gameweek = last_available_gameweek
 
     # get the playerscore rows from the db
     query = (
@@ -137,7 +137,7 @@ def get_recent_playerscore_rows(
         .where(
             Fixture.season == season,
             PlayerScore.player_id == player.player_id,
-            Fixture.gameweek <= last_gw,
+            Fixture.gameweek <= last_gameweek,
         )
     )
     if exclude_unavailable:
@@ -151,7 +151,7 @@ def get_recent_playerscore_rows(
             )
         )
     if current_team_only:
-        team = player.team(last_gw, season)
+        team = player.team(last_gameweek, season)
         query = query.where(PlayerScore.player_team == team)
 
     return list(

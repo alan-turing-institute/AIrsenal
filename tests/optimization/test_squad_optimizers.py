@@ -27,8 +27,10 @@ class StubSquad:
 
     def __init__(self, player_ids=()):
         self.players = [SimpleNamespace(player_id=i) for i in player_ids]
+        self.valued_at = []
 
     def sale_value(self, gameweek, use_api=False):  # noqa: ARG002
+        self.valued_at.append(gameweek)
         return 1000
 
 
@@ -129,7 +131,7 @@ def _rebuild_request(squad_optimizer=None, num_iterations=100):
         squad=StubSquad([1, 2, 3]),  # type: ignore[arg-type]
         tag="t",
         gameweeks=[1, 2],
-        root_gw=1,
+        root_gameweek=1,
         season="2526",
         num_iterations=num_iterations,
         squad_optimizer=squad_optimizer,
@@ -185,3 +187,23 @@ def test_scoring_config_carries_the_budget_the_optimizer_must_respect():
     scoring = SquadScoringConfig(budget=825)
     request = SquadRequest(gameweeks=[1], tag="t", season="2526", scoring=scoring)
     assert request.budget == 825
+
+
+def test_a_rebuild_buys_at_the_prices_of_the_search_root():
+    """
+    A wildcard two gameweeks into a plan still buys at the root gameweek's prices.
+
+    The budget it gets is `Squad.sale_value` as at the root, so the squad it
+    spends that budget on has to be priced there too - otherwise the money and
+    the prices it buys at come from different gameweeks, and in a replay the
+    later of the two is the future.
+    """
+    stub = StubSquadOptimizer(squad=StubSquad([1, 2, 3]))
+    request = replace(_rebuild_request(stub), gameweeks=[3, 4], root_gameweek=1)
+
+    FullSquadStrategy().propose(request)
+
+    assert request.squad.valued_at == [1]
+    assert stub.requests[0].root_gameweek == 1
+    # the window it scores over is still the rest of the plan
+    assert stub.requests[0].gameweeks == [3, 4]

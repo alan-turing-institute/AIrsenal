@@ -55,6 +55,7 @@ def _add_transactions(
     gameweek: int,
     season: str,
     free_hit: int,
+    counts_as_transfer: int,
     fpl_team_id: int,
     time: str,
     dbsession: Session | None,
@@ -69,6 +70,7 @@ def _add_transactions(
             season=season,
             tag=tag,
             free_hit=free_hit,
+            counts_as_transfer=counts_as_transfer,
             fpl_team_id=fpl_team_id,
             time=time,
             dbsession=dbsession,
@@ -153,10 +155,13 @@ def fill_transaction_table(
         )
         raise ValueError(msg)
     outcome = best_plan.outcomes[0]
-    fill_gw = outcome.gameweek
+    fill_gameweek = outcome.gameweek
     if tag is None:
         tag = f"AIrsenal{season}"
     free_hit = int(outcome.chip is Chip.FREE_HIT)
+    # A wildcard or free hit replaces the squad without spending a free transfer,
+    # so the gameweek after must not be charged for the players it brought in.
+    counts_as_transfer = int(not outcome.move.rebuilds_squad)
     time = datetime.now().isoformat()
 
     sold = (
@@ -164,7 +169,7 @@ def fill_transaction_table(
             player_id,
             starting_squad.get_sell_price_for_player(
                 player_id,
-                gameweek=fill_gw,
+                gameweek=fill_gameweek,
                 dbsession=dbsession,
             ),
         )
@@ -172,15 +177,16 @@ def fill_transaction_table(
     )
     for priced_players, in_or_out in (
         (sold, -1),
-        (_buy_prices(outcome.players_in, fill_gw, season, dbsession), 1),
+        (_buy_prices(outcome.players_in, fill_gameweek, season, dbsession), 1),
     ):
         _add_transactions(
             priced_players,
             in_or_out,
-            gameweek=fill_gw,
+            gameweek=fill_gameweek,
             season=season,
             tag=tag,
             free_hit=free_hit,
+            counts_as_transfer=counts_as_transfer,
             fpl_team_id=fpl_team_id,
             time=time,
             dbsession=dbsession,
@@ -241,6 +247,8 @@ def fill_initial_transaction_table(
         season=season,
         tag=tag,
         free_hit=0,
+        # An opening squad is not fifteen transfers, so it costs none.
+        counts_as_transfer=0,
         fpl_team_id=fpl_team_id,
         time=datetime.now().isoformat(),
         dbsession=dbsession,

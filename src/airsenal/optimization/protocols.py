@@ -75,7 +75,13 @@ class TransferRequest:
     squad: Squad
     tag: str
     gameweeks: list[int]
-    root_gw: int
+    # The first gameweek of the whole search, which is not `gameweeks[0]` once the
+    # tree is more than one gameweek deep. Two things hang off it: how far ahead a
+    # gameweek is, and so how much its points are discounted; and the gameweek
+    # every price and club is read as at. Prices are fixed at the root because the
+    # later ones are not known - for the season being played they do not exist
+    # yet, and in a replay they are the future, which the search must not see.
+    root_gameweek: int
     season: str
     num_iterations: int = DEFAULT_NUM_ITERATIONS
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
@@ -92,12 +98,12 @@ class TransferRequest:
         return self.gameweeks[0]
 
     @property
-    def bench_boost_gw(self) -> int | None:
+    def bench_boost_gameweek(self) -> int | None:
         """The gameweek to score with a boosted bench, if any."""
         return self.transfer_gameweek if self.chip is Chip.BENCH_BOOST else None
 
     @property
-    def triple_captain_gw(self) -> int | None:
+    def triple_captain_gameweek(self) -> int | None:
         """The gameweek to score with a tripled captain, if any."""
         return self.transfer_gameweek if self.chip is Chip.TRIPLE_CAPTAIN else None
 
@@ -153,9 +159,15 @@ class SquadRequest:
     gameweeks: list[int]
     tag: str
     season: str
+    # As `TransferRequest.root_gameweek`: the gameweek every price and club is read
+    # as at, and the origin the discount decays from. None means the first gameweek
+    # of `gameweeks`, which is what a standalone squad build wants; a wildcard
+    # played in the third gameweek of a plan passes the plan's root instead, and so
+    # buys at the prices the rest of that search is working from.
+    root_gameweek: int | None = None
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
-    bench_boost_gw: int | None = None
-    triple_captain_gw: int | None = None
+    bench_boost_gameweek: int | None = None
+    triple_captain_gameweek: int | None = None
     remove_zero: bool = True
     # How hard to search, in whatever unit the optimizer sizes itself by. None
     # means "use your own configuration", which is what a standalone squad build

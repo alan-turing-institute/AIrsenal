@@ -23,6 +23,7 @@ from airsenal.optimization.squad_optimizers import GeneticAlgorithmConfig
 from airsenal.optimization.squad_optimizers.genetic_algorithm import (
     make_new_squad,
 )
+from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
 from airsenal.optimization.transfer_optimizers.tree_search import (
     _make_best_transfers,
@@ -113,9 +114,8 @@ def squad(seeded, prediction_tag):
     return make_new_squad(
         FUTURE_GAMEWEEKS,
         prediction_tag,
-        budget=BUDGET,
         season=SEASON,
-        sub_weights=SubWeights(),
+        scoring=SquadScoringConfig(budget=BUDGET, sub_weights=SubWeights()),
         ga_config=GeneticAlgorithmConfig(
             population_size=20, generations=5, random_state=0, verbose=False
         ),
@@ -165,7 +165,7 @@ def _request(move, squad, prediction_tag, num_iterations=100):
         squad=squad,
         tag=prediction_tag,
         gameweeks=FUTURE_GAMEWEEKS[:2],
-        root_gw=FUTURE_GAMEWEEKS[0],
+        root_gameweek=FUTURE_GAMEWEEKS[0],
         season=SEASON,
         num_iterations=num_iterations,
     )

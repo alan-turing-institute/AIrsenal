@@ -306,24 +306,24 @@ TagPrefix = Annotated[
 
 # ------------------------------------------------------------------ chips ----
 
-WildcardWeek = Annotated[
+WildcardGameweek = Annotated[
     int,
-    typer.Option(help="Wildcard week; 0 for any week, -1 for never."),
+    typer.Option(help="Wildcard gameweek; 0 for any gameweek, -1 for never."),
 ]
 
-FreeHitWeek = Annotated[
+FreeHitGameweek = Annotated[
     int,
-    typer.Option(help="Free hit week; 0 for any week, -1 for never."),
+    typer.Option(help="Free hit gameweek; 0 for any gameweek, -1 for never."),
 ]
 
-TripleCaptainWeek = Annotated[
+TripleCaptainGameweek = Annotated[
     int,
-    typer.Option(help="Triple captain week; 0 for any week, -1 for never."),
+    typer.Option(help="Triple captain gameweek; 0 for any gameweek, -1 for never."),
 ]
 
-BenchBoostWeek = Annotated[
+BenchBoostGameweek = Annotated[
     int,
-    typer.Option(help="Bench boost week; 0 for any week, -1 for never."),
+    typer.Option(help="Bench boost gameweek; 0 for any gameweek, -1 for never."),
 ]
 
 # ----------------------------------------------------------------- output ----

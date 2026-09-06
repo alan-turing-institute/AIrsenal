@@ -40,9 +40,9 @@ def make_player_details(season: str = CURRENT_SEASON) -> None:
     player_details: dict[str, list[dict[str, Any]]] = {}
     for player_id, player_meta in track(player_summary_data.items()):
         player_details[player_meta["opta_code"]] = []
-        for gw in gameweeks:
-            gw_details = fetcher.get_gameweek_data_for_player(player_id, gw)
-            for result in gw_details:
+        for gameweek in gameweeks:
+            gameweek_details = fetcher.get_gameweek_data_for_player(player_id, gameweek)
+            for result in gameweek_details:
                 played_for = get_played_for(result, fixture_teams)
                 result["played_for"] = team_id_to_name[played_for]
                 result["opponent_team"] = team_id_to_name[result["opponent_team"]]

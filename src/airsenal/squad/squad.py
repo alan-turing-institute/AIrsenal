@@ -80,7 +80,7 @@ class Squad:
         self.season = season
         self.num_position: dict[str, int] = dict.fromkeys(Position, 0)
         self.free_subs = 0
-        self.subs_this_week = 0
+        self.subs_this_gameweek = 0
         self.count_per_team: defaultdict[str, int] = defaultdict(int)
 
     def __repr__(self) -> str:
@@ -416,7 +416,10 @@ class Squad:
 
 
 def get_current_squad_from_api(
-    fpl_team_id: int, fetcher: FPLDataFetcher | None = None, next_gw: int | None = None
+    *,
+    gameweek: int | None = None,
+    fpl_team_id: int,
+    fetcher: FPLDataFetcher | None = None,
 ) -> Squad:
     """
     (player_id, purchase_price) for each of the entry's current picks.
@@ -424,7 +427,7 @@ def get_current_squad_from_api(
     Requires the data fetcher to be logged in.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
-    next_gw = next_gameweek() if next_gw is None else next_gw
+    gameweek = next_gameweek() if gameweek is None else gameweek
     picks = fetcher.get_current_picks(fpl_team_id)
 
     squad = Squad(season=CURRENT_SEASON)
@@ -435,7 +438,7 @@ def get_current_squad_from_api(
         squad.add_player(
             player,
             price=p["purchase_price"],
-            gameweek=next_gw,
+            gameweek=gameweek,
             check_budget=False,
             check_team=False,
         )

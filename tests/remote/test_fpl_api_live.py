@@ -81,7 +81,7 @@ def test_get_fpl_team_data_gw1():
     assert "picks" in data
     assert len(data["picks"]) == 15
     assert "element" in data["picks"][0]
-    # `free_hit_used_in_gameweek` reads this, and `.get`s it, so it may be absent
+    # `chip_used_in_gameweek` reads this, and `.get`s it, so it may be absent
     assert data.get("active_chip", None) != ""
 
 

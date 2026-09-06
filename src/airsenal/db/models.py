@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from airsenal.core.logging import get_logger
@@ -147,13 +147,13 @@ class Player(Base):
         if not isinstance(attr, tuple):
             return attr.price
         # interpolate price between nearest available gameweeks
-        gw_before = attr[0].gameweek
+        gameweek_before = attr[0].gameweek
         price_before = attr[0].price
-        gw_after = attr[1].gameweek
+        gameweek_after = attr[1].gameweek
         price_after = attr[1].price
 
-        gradient = (price_after - price_before) / (gw_after - gw_before)
-        intercept = price_before - gradient * gw_before
+        gradient = (price_after - price_before) / (gameweek_after - gameweek_before)
+        intercept = price_before - gradient * gameweek_before
         price = gradient * gameweek + intercept
         return round(price)
 
@@ -166,22 +166,24 @@ class Player(Base):
         return None
 
     def is_injured_or_suspended(
-        self, season: str, current_gw: int, fixture_gw: int
+        self, season: str, current_gameweek: int, fixture_gameweek: int
     ) -> bool:
         """
         Whether a player is injured or suspended (<=50% chance of playing).
 
-        The two gameweeks are different points in time: `current_gw` is when we
-        are asking, and `fixture_gw` is the future fixture we are asking about.
-        So this answers "as of `current_gw`, did we expect this player to still
-        be out by `fixture_gw`?".
+        The two gameweeks are different points in time: `current_gameweek` is when we
+        are asking, and `fixture_gameweek` is the future fixture we are asking about.
+        So this answers "as of `current_gameweek`, did we expect this player to still
+        be out by `fixture_gameweek`?".
         """
-        attr = self.get_gameweek_attributes(current_gw, season)
+        attr = self.get_gameweek_attributes(current_gameweek, season)
         if attr is not None and not isinstance(attr, tuple):
             return (
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
-            ) and (attr.return_gameweek is None or attr.return_gameweek > fixture_gw)
+            ) and (
+                attr.return_gameweek is None or attr.return_gameweek > fixture_gameweek
+            )
         return False
 
     def get_gameweek_attributes(
@@ -194,8 +196,8 @@ class Player(Base):
         With `before_and_after` True and no exact match, returns both the nearest
         gameweek before and the nearest after, as a tuple.
         """
-        gw_before = 0
-        gw_after = 100
+        gameweek_before = 0
+        gameweek_after = 100
         attr_before = None
         attr_after = None
 
@@ -208,13 +210,13 @@ class Player(Base):
                 return attr
             if attr.gameweek == gameweek:
                 return attr
-            if (attr.gameweek < gameweek) and (attr.gameweek > gw_before):
+            if (attr.gameweek < gameweek) and (attr.gameweek > gameweek_before):
                 # update last available attr before specified gameweek
-                gw_before = attr.gameweek
+                gameweek_before = attr.gameweek
                 attr_before = attr
-            elif (attr.gameweek > gameweek) and (attr.gameweek < gw_after):
+            elif (attr.gameweek > gameweek) and (attr.gameweek < gameweek_after):
                 # update next available attr after specified gameweek
-                gw_after = attr.gameweek
+                gameweek_after = attr.gameweek
                 attr_after = attr
 
         # ran through all attributes without finding exact gameweek and season match
@@ -228,7 +230,9 @@ class Player(Base):
         if before_and_after:
             return (attr_before, attr_after)
         # return attributes at gameweeek nearest to input gameweek
-        if gameweek is not None and (gw_after - gameweek) >= (gameweek - gw_before):
+        if gameweek is not None and (gameweek_after - gameweek) >= (
+            gameweek - gameweek_before
+        ):
             return attr_before
         return attr_after
 
@@ -300,10 +304,10 @@ class Absence(Base):
     # Half-open: the first gameweek missed, and the gameweek the player returned
     # in. Equal when a player was flagged and available again before their team
     # next played, so the range covers nothing. An absence running past the end
-    # of the season ends one gameweek past the last one; NULL `gw_until` is for a
-    # row whose source gave no end date at all, and readers skip those.
-    gw_from: Mapped[int]
-    gw_until: Mapped[int | None]
+    # of the season ends one gameweek past the last one; a NULL `gameweek_until`
+    # is for a row whose source gave no end date at all, and readers skip those.
+    gameweek_from: Mapped[int]
+    gameweek_until: Mapped[int | None]
     url: Mapped[str100_optional]
     timestamp: Mapped[str100]
 
@@ -317,8 +321,8 @@ class Absence(Base):
             f"  details='{self.details}',\n"
             f"  date_from='{self.date_from}',\n"
             f"  date_until='{self.date_until}',\n"
-            f"  gw_from='{self.gw_from}',\n"
-            f"  gw_until='{self.gw_until}',\n"
+            f"  gameweek_from='{self.gameweek_from}',\n"
+            f"  gameweek_until='{self.gameweek_until}',\n"
             f"  url='{self.url}',\n"
             f"  timestamp='{self.timestamp}'\n"
             ")"
@@ -419,6 +423,11 @@ class Transaction(Base):
     tag: Mapped[str100]
     price: Mapped[int]
     free_hit: Mapped[int]  # 1 if transfer on Free Hit, 0 otherwise
+    # 1 if this came out of the entry's free-transfer quota, 0 otherwise. A
+    # wildcard or free hit makes transfers unlimited, and the fifteen players an
+    # entry starts with were never transfers at all, so neither is charged for.
+    # Separate from free_hit, which says the change lasts a single gameweek.
+    counts_as_transfer: Mapped[int] = mapped_column(default=1, server_default=text("1"))
     fpl_team_id: Mapped[int]
 
     def __repr__(self) -> str:
@@ -429,6 +438,8 @@ class Transaction(Base):
             trans_str += f"sold player {self.player_id}"
         if self.free_hit:
             trans_str += " (FREE HIT)"
+        elif not self.counts_as_transfer:
+            trans_str += " (FREE)"
         return trans_str
 
 

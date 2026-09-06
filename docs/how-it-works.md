@@ -37,6 +37,11 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 
 - **Transaction** — every player bought and sold in your FPL team, with price and
   gameweek. This is what determines your starting squad and budget for an optimisation.
+  Two flags say how a row came about: `free_hit`, meaning the change lasted one
+  gameweek and is skipped when the squad is rebuilt, and `counts_as_transfer`, which is
+  0 for the fifteen you started with and for anything bought on a wildcard or free hit.
+  `get_free_transfers` reads the second to work out what each gameweek starts with, so
+  a wildcard costs nothing rather than fifteen transfers.
 - **PlayerPrediction** — predicted points per player per fixture from a prediction run.
 - **TransferSuggestion** — recommended transfers from an optimisation run.
 
@@ -93,7 +98,13 @@ predictions. Throughout, the probability of scoring, assisting or conceding is w
 the fraction of the match the player is assumed to play.
 
 A player marked in the API as having a 50% or lower chance of playing
-(`Player.is_injured_or_suspended()` in `airsenal.db.models`) is predicted 0 points.
+(`Player.is_injured_or_suspended()` in `airsenal.db.models`) is predicted 0 points. For a
+past season there are no API flags to read, so the Absence table stands in for them
+(`was_historic_absence` in `airsenal.db.queries.absences`). Both are asked the same
+question, and both take two gameweeks to ask it: the gameweek being predicted *from*,
+and the gameweek of the fixture. A player only scores 0 if they were already out by the
+first and not due back by the second — an absence that began later has not happened yet,
+and a replay must not act on it.
 
 Appearance points follow FPL's rule: 0 for not playing, 1 for under 60 minutes, 2 for 60
 or more (`get_appearance_points` in `airsenal.game.scoring`).

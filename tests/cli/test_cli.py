@@ -211,7 +211,7 @@ class TestSettingsWithNoFlag:
             # signature, so it could never be False
             (["predict"], "--no-def-con"),
             # the chip block was missing from replay entirely
-            (["replay"], "--wildcard-week"),
+            (["replay"], "--wildcard-gameweek"),
         ],
     )
     def test_option_is_offered(self, command, option):

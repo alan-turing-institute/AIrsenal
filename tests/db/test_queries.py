@@ -9,7 +9,14 @@ from airsenal.db.queries.gameweeks import (
     get_last_complete_gameweek_in_db,
     get_return_gameweek_by_date,
 )
-from airsenal.db.queries.players import get_player, get_player_id, get_player_name
+from airsenal.db.queries.players import (
+    get_player,
+    get_player_id,
+    get_player_name,
+    require_api_id,
+    require_player,
+    require_player_from_api_id,
+)
 from airsenal.db.queries.scores import (
     get_last_complete_gameweek_of_player_scores_in_db,
 )
@@ -34,6 +41,43 @@ def test_get_player(fill_players):
         p = get_player("Bob", tsession)
         assert isinstance(p, Player)
         assert p.player_id == 1
+
+
+def test_require_player_returns_the_same_player_as_get_player(fill_players):
+    with session_scope() as tsession:
+        assert require_player("Bob", tsession) == get_player("Bob", tsession)
+
+
+def test_require_player_raises_where_get_player_returns_none(fill_players):
+    """The callers assembling an FPL request have nothing to do with a None."""
+    with session_scope() as tsession, pytest.raises(ValueError, match="not found"):
+        require_player("Nobody", tsession)
+
+
+def test_require_player_from_api_id_finds_the_player(fill_players):
+    """The dummy database gives each player an fpl_api_id equal to its player_id."""
+    with session_scope() as tsession:
+        assert require_player_from_api_id(1, tsession).player_id == 1
+
+
+def test_require_player_from_api_id_raises_for_an_unknown_id(fill_players):
+    with session_scope() as tsession, pytest.raises(ValueError, match="not found"):
+        require_player_from_api_id(999999, tsession)
+
+
+def test_require_api_id_returns_the_api_id(fill_players):
+    with session_scope() as tsession:
+        assert require_api_id(require_player("Bob", tsession)) == 1
+
+
+def test_require_api_id_raises_for_a_player_the_api_never_listed(fill_players):
+    """A player seeded from historical data alone has no FPL API id."""
+    with session_scope() as tsession:
+        player = require_player("Bob", tsession)
+        player.fpl_api_id = None
+        with pytest.raises(ValueError, match="no FPL API ID"):
+            require_api_id(player)
+        tsession.rollback()
 
 
 def test_get_return_gameweek_by_date():

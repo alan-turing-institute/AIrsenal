@@ -49,9 +49,9 @@ def dump_api() -> None:
         json.dump(transfers, f)
 
     logger.info("Saving team data...")
-    gws = [get_fetcher().get_fpl_team_data(gw) for gw in range(1, 39)]
+    team_data = [get_fetcher().get_fpl_team_data(gameweek) for gameweek in range(1, 39)]
     with open(os.path.join(repo_home, f"airsenal_gw_{CURRENT_SEASON}.json"), "w") as f:
-        json.dump(gws, f)
+        json.dump(team_data, f)
 
     logger.info("Making player summary data file...")
     make_player_summary(CURRENT_SEASON)

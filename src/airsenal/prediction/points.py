@@ -11,7 +11,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, Player, PlayerPrediction
 from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.fixtures import get_fixtures_for_player
-from airsenal.db.queries.players import get_player
+from airsenal.db.queries.players import require_player
 from airsenal.db.session import get_session
 from airsenal.game.enums import Position
 from airsenal.game.scoring import (
@@ -79,7 +79,7 @@ def get_attacking_points(
             )
             scores = map(_get_partition_score, partitions)
             exp_score_inner = sum(
-                pi * si for pi, si in zip(probabilities, scores, strict=False)
+                pi * si for pi, si in zip(probabilities, scores, strict=True)
             )
             exp_points += exp_score_inner * score_n_prob
     return exp_points
@@ -163,18 +163,18 @@ def calc_predicted_points_for_player(
     """Calculate predicted total points for a single player across target gameweeks."""
     dbsession = dbsession if dbsession is not None else get_session()
     if isinstance(player, str | int):
-        p = get_player(player, dbsession=dbsession)
-        if p is None:
-            msg = f"Player {player} not found in database"
-            raise ValueError(msg)
-        player = p
+        player = require_player(player, dbsession=dbsession)
 
     if fixtures_behind is None:
         fixtures_behind = len(gameweeks)
 
     fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
-    team = player.team(gameweeks[0], season)
+    # The gameweek we are predicting *from*. Everything about the player is read
+    # as at this gameweek, whichever gameweek of the window the fixture is in.
+    root_gameweek = min(gameweeks)
+
+    team = player.team(root_gameweek, season)
     position = player.position(season)
     if position is None or team is None:
         msg = f"Player {player} has missing team or position for season {season}"
@@ -193,7 +193,7 @@ def calc_predicted_points_for_player(
         player,
         n_matches_to_use=fixtures_behind,
         season=season,
-        last_gw=min(gameweeks) - 1,
+        last_gameweek=root_gameweek - 1,
         dbsession=dbsession,
     )
     if len(recent_minutes) == 0:
@@ -217,10 +217,11 @@ def calc_predicted_points_for_player(
 
         if (
             sum(recent_minutes) == 0
-            or player.is_injured_or_suspended(season, gameweeks[0], gameweek)
+            or player.is_injured_or_suspended(season, root_gameweek, gameweek)
             or was_historic_absence(
                 player,
-                gameweek=gameweek,
+                current_gameweek=root_gameweek,
+                fixture_gameweek=gameweek,
                 season=season,
                 dbsession=dbsession,
             )

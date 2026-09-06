@@ -197,7 +197,7 @@ def fixture_probabilities(
             gameweeks=[gameweek], season=season, dbsession=dbsession
         )
     )
-    home_teams, away_teams = zip(*fixtures, strict=False)
+    home_teams, away_teams = zip(*fixtures, strict=True)
     probabilities = model.predict_outcome_proba(home_teams, away_teams)
     return pd.DataFrame(
         {
@@ -226,7 +226,7 @@ def get_goal_probabilities_for_fixtures(
             goals, f.away_team, f.home_team, home=False
         )
         probs[f.fixture_id] = {
-            f.home_team: dict(zip(goals, home_team_goal_prob, strict=False)),
-            f.away_team: dict(zip(goals, away_team_goal_prob, strict=False)),
+            f.home_team: dict(zip(goals, home_team_goal_prob, strict=True)),
+            f.away_team: dict(zip(goals, away_team_goal_prob, strict=True)),
         }
     return probs

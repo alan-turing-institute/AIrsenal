@@ -118,12 +118,12 @@ def fill_attributes_table_from_file(
 
 
 def fill_attributes_table_from_api(
-    season: str, gw_start: int = 1, dbsession: Session | None = None
+    season: str, gameweek_start: int = 1, dbsession: Session | None = None
 ) -> None:
     """Fill the attributes table for the current season, from the FPL API."""
     dbsession = dbsession if dbsession is not None else get_session()
     fetcher = get_fetcher()
-    next_gw = next_gameweek()
+    gameweek = next_gameweek()
 
     # needed for selected by calculation from percentage below
     n_players = fetcher.get_current_summary_data()["total_players"]
@@ -148,7 +148,7 @@ def fill_attributes_table_from_api(
         position = positions[p_summary["element_type"]]
 
         pa = get_player_attributes(
-            player.player_id, gameweek=next_gw, season=season, dbsession=dbsession
+            player.player_id, gameweek=gameweek, season=season, dbsession=dbsession
         )
 
         if pa:
@@ -162,7 +162,7 @@ def fill_attributes_table_from_api(
         pa.player = player
         pa.player_id = player.player_id
         pa.season = season
-        pa.gameweek = next_gw
+        pa.gameweek = gameweek
         pa.price = int(p_summary["now_cost"])
         team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
         if team is None:
@@ -198,13 +198,13 @@ def fill_attributes_table_from_api(
             dbsession.add(pa)
 
         # now get data for previous gameweeks
-        if next_gw > 1:
+        if gameweek > 1:
             player_data = fetcher.get_gameweek_data_for_player(player_api_id)
             if not player_data:
                 logger.warning("Failed to get data for %s", player)
                 continue
-            for gameweek, data in player_data.items():
-                if gameweek < gw_start:
+            for past_gameweek, data in player_data.items():
+                if past_gameweek < gameweek_start:
                     continue
 
                 for result in data:
@@ -212,7 +212,7 @@ def fill_attributes_table_from_api(
                     pa = get_player_attributes(
                         player.player_id,
                         season=season,
-                        gameweek=gameweek,
+                        gameweek=past_gameweek,
                         dbsession=dbsession,
                     )
                     if pa:
@@ -228,7 +228,7 @@ def fill_attributes_table_from_api(
                     fixture = find_fixture(
                         opponent_id,
                         was_home=not was_home,
-                        gameweek=gameweek,
+                        gameweek=past_gameweek,
                         season=season,
                         kickoff_time=kickoff_time,
                         dbsession=dbsession,
@@ -238,7 +238,7 @@ def fill_attributes_table_from_api(
                             "Couldn't find fixture for %s vs %s in gameweek %s",
                             player,
                             opponent_id,
-                            gameweek,
+                            past_gameweek,
                         )
                         continue
                     team = get_player_team_from_fixture(
@@ -252,7 +252,7 @@ def fill_attributes_table_from_api(
                     pa.player = player
                     pa.player_id = player.player_id
                     pa.season = season
-                    pa.gameweek = gameweek
+                    pa.gameweek = past_gameweek
                     pa.price = int(result["value"])
                     pa.team = team
                     pa.position = position  # does not change during season

@@ -68,7 +68,7 @@ def free_transfers_after(
     """
     How many free transfers are left the gameweek after `n_transfers` were made.
 
-    One is added per week, capped at `max_free_transfers`, and the result is never
+    One is added per gameweek, capped at `max_free_transfers`, and the result is never
     below 1.
 
     Args:

@@ -1,7 +1,7 @@
 """
 Which moves the tree search branches into, and how many plans that adds up to.
 
-`next_week_transfers` answers the first and `count_expected_outputs` the second.
+`next_gameweek_transfers` answers the first and `count_expected_outputs` the second.
 """
 
 from airsenal.game.enums import Chip
@@ -12,7 +12,7 @@ from airsenal.optimization.moves import (
 )
 from airsenal.optimization.transfer_optimizers.tree_search import (
     count_expected_outputs,
-    next_week_transfers,
+    next_gameweek_transfers,
 )
 
 
@@ -28,12 +28,12 @@ def as_labels(
     return [(move.label(), *rest) for move, *rest in results]
 
 
-def test_next_week_transfers_no_chips_no_constraints():
+def test_next_gameweek_transfers_no_chips_no_constraints():
     # First week (blank starting strat with 1 free transfer available)
     free_transfers, hit_so_far = 1, 0
     # No chips or constraints
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -46,12 +46,12 @@ def test_next_week_transfers_no_chips_no_constraints():
     assert actual == expected
 
 
-def test_next_week_transfers_no_free_transfers_available():
+def test_next_gameweek_transfers_no_free_transfers_available():
     # First week (blank starting strat with no free transfer available)
     free_transfers, hit_so_far = 0, 0
     # No chips or constraints
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -64,12 +64,12 @@ def test_next_week_transfers_no_free_transfers_available():
     assert actual == expected
 
 
-def test_next_week_transfers_with_hits_already_taken():
+def test_next_gameweek_transfers_with_hits_already_taken():
     # First week (blank starting strat with 4 points hits already taken)
     free_transfers, hit_so_far = 1, 4
     # No chips or constraints
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -82,12 +82,12 @@ def test_next_week_transfers_with_hits_already_taken():
     assert actual == expected
 
 
-def test_next_week_transfers_no_chips_no_constraints_max5():
+def test_next_gameweek_transfers_no_chips_no_constraints_max5():
     # First week (blank starting strat with 1 free transfer available)
     free_transfers, hit_so_far = 1, 0
     # No chips or constraints
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -107,11 +107,11 @@ def test_next_week_transfers_no_chips_no_constraints_max5():
     assert actual == expected
 
 
-def test_next_week_transfers_any_chip_no_constraints():
+def test_next_gameweek_transfers_any_chip_no_constraints():
     # All chips, no constraints
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -143,11 +143,11 @@ def test_next_week_transfers_any_chip_no_constraints():
     assert actual == expected
 
 
-def test_next_week_transfers_any_chip_no_constraints_max5():
+def test_next_gameweek_transfers_any_chip_no_constraints_max5():
     # All chips, no constraints
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -188,11 +188,11 @@ def test_next_week_transfers_any_chip_no_constraints_max5():
     assert actual == expected
 
 
-def test_next_week_transfers_no_chips_zero_hit():
+def test_next_gameweek_transfers_no_chips_zero_hit():
     # No points hits
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=0,
@@ -204,11 +204,11 @@ def test_next_week_transfers_no_chips_zero_hit():
     assert actual == expected
 
 
-def test_next_week_transfers_no_chips_zero_hit_max5():
+def test_next_gameweek_transfers_no_chips_zero_hit_max5():
     # No points hits
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=0,
@@ -220,11 +220,11 @@ def test_next_week_transfers_no_chips_zero_hit_max5():
     assert actual == expected
 
 
-def test_next_week_transfers_2ft_no_unused():
+def test_next_gameweek_transfers_2ft_no_unused():
     # 2 free transfers available, no wasted transfers
     free_transfers, hit_so_far = 2, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -237,11 +237,11 @@ def test_next_week_transfers_2ft_no_unused():
     assert actual == expected
 
 
-def test_next_week_transfers_5ft_no_unused_max5():
+def test_next_gameweek_transfers_5ft_no_unused_max5():
     # 2 free transfers available, no wasted transfers
     free_transfers, hit_so_far = 5, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -260,11 +260,11 @@ def test_next_week_transfers_5ft_no_unused_max5():
     assert actual == expected
 
 
-def test_next_week_transfers_3ft_no_hit_max5():
+def test_next_gameweek_transfers_3ft_no_hit_max5():
     # 2 free transfers available, no wasted transfers
     free_transfers, hit_so_far = 3, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=0,
@@ -277,7 +277,7 @@ def test_next_week_transfers_3ft_no_hit_max5():
     assert actual == expected
 
 
-def test_next_week_transfers_chips_already_used():
+def test_next_gameweek_transfers_chips_already_used():
     # Chips allowed but previously used
     free_transfers, hit_so_far = 1, 0
     chips_played = [
@@ -287,7 +287,7 @@ def test_next_week_transfers_chips_already_used():
         Chip.TRIPLE_CAPTAIN,
     ]
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             chips_played,
@@ -309,10 +309,10 @@ def test_next_week_transfers_chips_already_used():
     assert actual == expected
 
 
-def test_next_week_transfers_play_wildcard():
+def test_next_gameweek_transfers_play_wildcard():
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -325,10 +325,10 @@ def test_next_week_transfers_play_wildcard():
     assert actual == expected
 
 
-def test_next_week_transfers_2ft_allow_wildcard():
+def test_next_gameweek_transfers_2ft_allow_wildcard():
     free_transfers, hit_so_far = 2, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -342,10 +342,10 @@ def test_next_week_transfers_2ft_allow_wildcard():
     assert actual == expected
 
 
-def test_next_week_transfers_5ft_allow_wildcard():
+def test_next_gameweek_transfers_5ft_allow_wildcard():
     free_transfers, hit_so_far = 5, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -367,10 +367,10 @@ def test_next_week_transfers_5ft_allow_wildcard():
     assert actual == expected
 
 
-def test_next_week_transfers_2ft_allow_wildcard_no_unused():
+def test_next_gameweek_transfers_2ft_allow_wildcard_no_unused():
     free_transfers, hit_so_far = 2, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -384,10 +384,10 @@ def test_next_week_transfers_2ft_allow_wildcard_no_unused():
     assert actual == expected
 
 
-def test_next_week_transfers_2ft_play_wildcard():
+def test_next_gameweek_transfers_2ft_play_wildcard():
     free_transfers, hit_so_far = 2, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -400,10 +400,10 @@ def test_next_week_transfers_2ft_play_wildcard():
     assert actual == expected
 
 
-def test_next_week_transfers_2ft_play_bench_boost_no_unused():
+def test_next_gameweek_transfers_2ft_play_bench_boost_no_unused():
     free_transfers, hit_so_far = 2, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -417,10 +417,10 @@ def test_next_week_transfers_2ft_play_bench_boost_no_unused():
     assert actual == expected
 
 
-def test_next_week_transfers_play_triple_captain_max_transfers_3():
+def test_next_gameweek_transfers_play_triple_captain_max_transfers_3():
     free_transfers, hit_so_far = 1, 0
     actual = as_labels(
-        next_week_transfers(
+        next_gameweek_transfers(
             free_transfers,
             hit_so_far,
             max_total_hit=None,
@@ -440,7 +440,7 @@ def test_count_expected_outputs_no_chips_no_constraints():
         free_transfers=1,
         max_total_hit=None,
         allow_unused_transfers=True,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
         chip_schedule=ChipSchedule(),
     )
@@ -455,7 +455,7 @@ def test_count_expected_outputs_no_chips_no_constraints_max5():
         free_transfers=1,
         max_total_hit=None,
         allow_unused_transfers=True,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=5,
         chip_schedule=ChipSchedule(),
     )
@@ -477,7 +477,7 @@ def test_count_expected_outputs_no_chips_zero_hit():
         3,
         free_transfers=1,
         max_total_hit=0,
-        next_gw=1,
+        gameweek=1,
         allow_unused_transfers=True,
         max_opt_transfers=2,
         chip_schedule=ChipSchedule(),
@@ -496,7 +496,7 @@ def test_count_expected_outputs_no_chips_zero_hit_max5():
         3,
         free_transfers=1,
         max_total_hit=0,
-        next_gw=1,
+        gameweek=1,
         allow_unused_transfers=True,
         max_opt_transfers=5,
         chip_schedule=ChipSchedule(),
@@ -520,7 +520,7 @@ def test_count_expected_outputs_no_chips_2ft_no_unused():
         free_transfers=2,
         max_total_hit=None,
         allow_unused_transfers=False,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
         max_free_transfers=2,
     )
@@ -544,7 +544,7 @@ def test_count_expected_outputs_no_chips_5ft_no_unused_max5():
         free_transfers=5,
         max_total_hit=None,
         allow_unused_transfers=False,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=5,
         max_free_transfers=5,
     )
@@ -564,9 +564,9 @@ def test_count_expected_wildcard_allowed_no_constraints():
         free_transfers=1,
         max_total_hit=None,
         allow_unused_transfers=True,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
-        chip_schedule=ChipSchedule.from_weeks([1, 2, 3], {Chip.WILDCARD: 0}),
+        chip_schedule=ChipSchedule.from_gameweeks([1, 2, 3], {Chip.WILDCARD: 0}),
     )
     assert count == 15
 
@@ -586,9 +586,9 @@ def test_count_expected_bench_boost_allowed_no_constraints():
         free_transfers=1,
         max_total_hit=None,
         allow_unused_transfers=True,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
-        chip_schedule=ChipSchedule.from_weeks([1, 2, 3], {Chip.BENCH_BOOST: 0}),
+        chip_schedule=ChipSchedule.from_gameweeks([1, 2, 3], {Chip.BENCH_BOOST: 0}),
     )
     assert count == 27
 
@@ -607,9 +607,9 @@ def test_count_expected_play_wildcard_no_constraints():
         free_transfers=1,
         max_total_hit=None,
         allow_unused_transfers=True,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
-        chip_schedule=ChipSchedule.from_weeks([1, 2], {Chip.WILDCARD: 1}),
+        chip_schedule=ChipSchedule.from_gameweeks([1, 2], {Chip.WILDCARD: 1}),
     )
     assert (count, baseline_excluded) == (4, True)
 
@@ -625,14 +625,14 @@ def test_count_expected_play_free_hit_no_unused():
         free_transfers=2,
         max_total_hit=None,
         allow_unused_transfers=False,
-        next_gw=1,
+        gameweek=1,
         max_opt_transfers=2,
-        chip_schedule=ChipSchedule.from_weeks([1, 2], {Chip.FREE_HIT: 1}),
+        chip_schedule=ChipSchedule.from_gameweeks([1, 2], {Chip.FREE_HIT: 1}),
     )
     assert (count, baseline_excluded) == (4, True)
 
 
-def test_next_week_transfers_offers_nothing_when_no_move_is_legal():
+def test_next_gameweek_transfers_offers_nothing_when_no_move_is_legal():
     """
     A full bank plus --max-transfers 0 leaves no legal move.
 
@@ -641,7 +641,7 @@ def test_next_week_transfers_offers_nothing_when_no_move_is_legal():
     together rule out every count.
     """
     assert (
-        next_week_transfers(
+        next_gameweek_transfers(
             MAX_FREE_TRANSFERS,
             0,
             allow_unused_transfers=False,
@@ -662,7 +662,7 @@ def test_count_expected_outputs_with_no_legal_move_is_the_baseline_alone():
     count, baseline_excluded = count_expected_outputs(
         2,
         free_transfers=MAX_FREE_TRANSFERS,
-        next_gw=1,
+        gameweek=1,
         allow_unused_transfers=False,
         max_opt_transfers=0,
     )

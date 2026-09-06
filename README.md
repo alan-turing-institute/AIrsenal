@@ -208,7 +208,7 @@ Finally, we need to run the optimizer to pick the best transfer strategy over th
 airsenal optimize transfers --n-gameweeks 3
 ```
 
-This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with `--wildcard-week <GW>`, `--free-hit-week <GW>`, `--triple-captain-week <GW>` and `--bench-boost-week <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or `0` to try every gameweek).
+This will take a while, but should eventually provide a printout of the optimal transfer strategy, in addition to the teamsheet for the next match (including who to make captain, and the order of the substitutes). You can also optimise chip usage with `--wildcard-gameweek <GW>`, `--free-hit-gameweek <GW>`, `--triple-captain-gameweek <GW>` and `--bench-boost-gameweek <GW>`, replacing `<GW>` with the gameweek you want to play the chip (or `0` to try every gameweek).
 
 Note that `airsenal optimize transfers` should only be used for transfer suggestions after the season has started. If it's before the season has started and you want to generate a full squad for gameweek one you should instead use:
 

@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 # Default time weighting, calculated as best on average across 20/21 to 24/25,
 # assuming 3 seasons of history before the current season in the DB and
-# predicting 5 weeks ahead.
+# predicting 5 gameweeks ahead.
 DEFAULT_TEAM_EPSILON = 0.9
 # Rescale weights to sum to the number of matches in the training data (what they
 # would sum to with no time weighting). The epsilon above is optimal for True.

@@ -82,11 +82,18 @@ def add_transaction(
     price: int,
     season: str,
     free_hit: int,
+    counts_as_transfer: int,
     fpl_team_id: int,
     time: str,
     dbsession: Session | None = None,
 ) -> None:
-    """Record a buy (in_or_out=1) or a sell (in_or_out=-1)."""
+    """
+    Record a buy (in_or_out=1) or a sell (in_or_out=-1).
+
+    Args:
+        counts_as_transfer: 0 for a squad change the game did not charge a free
+            transfer for - a wildcard, a free hit, or the opening fifteen.
+    """
     dbsession = dbsession if dbsession is not None else get_session()
     t = Transaction(
         player_id=player_id,
@@ -96,6 +103,7 @@ def add_transaction(
         season=season,
         tag=tag,
         free_hit=free_hit,
+        counts_as_transfer=counts_as_transfer,
         fpl_team_id=fpl_team_id,
         time=time,
     )

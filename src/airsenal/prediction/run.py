@@ -43,9 +43,13 @@ def calc_all_predicted_points(
 ) -> None:
     """Predict every player's points for the given gameweeks, and write them out."""
     points = points if points is not None else PointsConfig()
+    # Every model here is fitted as at the first gameweek of the window - the one
+    # we are predicting *from* - so that nothing sees a match played later than
+    # that. It is also what decides which players there are to predict for.
+    root_gameweek = min(gameweeks)
     model_team = get_fitted_team_model(
         season=season,
-        gameweek=min(gameweeks),
+        gameweek=root_gameweek,
         dbsession=dbsession,
         model=team_model if team_model is not None else build_team_model(),
     )
@@ -56,15 +60,31 @@ def calc_all_predicted_points(
     )
 
     df_player = get_all_fitted_player_data(
-        gameweeks[0], season, model=player_model, dbsession=dbsession
+        root_gameweek, season, model=player_model, dbsession=dbsession
     )
 
-    df_bonus = fit_bonus_points(gameweeks[0], season) if points.bonus else None
-    df_saves = fit_save_points(gameweeks[0], season) if points.saves else None
-    df_cards = fit_card_points(gameweeks[0], season) if points.cards else None
-    df_def_con = fit_def_con(gameweeks[0], season) if points.def_con else None
+    df_bonus = (
+        fit_bonus_points(root_gameweek, season, dbsession=dbsession)
+        if points.bonus
+        else None
+    )
+    df_saves = (
+        fit_save_points(root_gameweek, season, dbsession=dbsession)
+        if points.saves
+        else None
+    )
+    df_cards = (
+        fit_card_points(root_gameweek, season, dbsession=dbsession)
+        if points.cards
+        else None
+    )
+    df_def_con = (
+        fit_def_con(root_gameweek, season, dbsession=dbsession)
+        if points.def_con
+        else None
+    )
 
-    players = list_players(season=season, gameweek=gameweeks[0], dbsession=dbsession)
+    players = list_players(season=season, gameweek=root_gameweek, dbsession=dbsession)
 
     for player in track(players, description="Predicting player points:"):
         predictions = calc_predicted_points_for_player(

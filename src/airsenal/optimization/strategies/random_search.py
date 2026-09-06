@@ -33,12 +33,12 @@ def make_random_transfers(
     tag: str,
     nsubs: int = 1,
     gameweeks: list[int] | None = None,
-    root_gw: int | None = None,
+    root_gameweek: int | None = None,
     num_iter: int = 1,
     on_step: StepCounter | None = None,
     season: str = CURRENT_SEASON,
-    bench_boost_gw: int | None = None,
-    triple_captain_gw: int | None = None,
+    bench_boost_gameweek: int | None = None,
+    triple_captain_gameweek: int | None = None,
     *,
     sub_weights: SubWeights,
 ) -> tuple[Squad, list[int], list[int]]:
@@ -48,7 +48,14 @@ def make_random_transfers(
     Each iteration drops `nsubs` players and fills their places from the
     candidates for those positions. Both draws use a triangular distribution
     with its mode at index 0, so the front of each list comes up most often.
+    Candidates are priced as at `root_gameweek`, which is what
+    `TransferRequest.root_gameweek` documents.
     """
+    if not gameweeks:
+        gameweeks = [next_gameweek()]
+    if root_gameweek is None:
+        root_gameweek = min(gameweeks)
+
     best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
@@ -59,11 +66,6 @@ def make_random_transfers(
 
         new_squad = fastcopy(squad)
 
-        if not gameweeks:
-            gameweeks = [next_gameweek()]
-            root_gw = next_gameweek()
-
-        transfer_gw = min(gameweeks)  # the week we're making the transfer
         # indices into player_list, which is sorted; not into squad.players
         players_to_remove: list[int] = []
         removed_players: list[int] = []  # this is the player_ids
@@ -85,7 +87,7 @@ def make_random_transfers(
             player_id = player_list[list_index][0]
             positions_needed.append(squad.get_player_from_id(player_id).position)
             removed_players.append(player_id)
-            new_squad.remove_player(player_id, gameweek=transfer_gw)
+            new_squad.remove_player(player_id, gameweek=root_gameweek)
         predicted_points = {
             pos: get_predicted_points(
                 position=pos, gameweeks=gameweeks, tag=tag, season=season
@@ -102,7 +104,7 @@ def make_random_transfers(
             for pos in positions_needed:
                 index = int(random.triangular(0, len(predicted_points[pos]), 0))
                 player_to_add = predicted_points[pos][index][0]
-                added_ok = new_squad.add_player(player_to_add, gameweek=transfer_gw)
+                added_ok = new_squad.add_player(player_to_add, gameweek=root_gameweek)
                 if added_ok:
                     added_players.append(player_to_add)
             complete_squad = new_squad.is_complete()
@@ -115,7 +117,7 @@ def make_random_transfers(
                 # take those players out again.
                 for ap in added_players:
                     removed_ok = new_squad.remove_player(
-                        ap.player_id, gameweek=transfer_gw
+                        ap.player_id, gameweek=root_gameweek
                     )
                     if not removed_ok:
                         logger.warning("Problem removing %s", ap)
@@ -126,9 +128,9 @@ def make_random_transfers(
             new_squad,
             gameweeks,
             tag,
-            root_gw=root_gw,
-            bench_boost_gw=bench_boost_gw,
-            triple_captain_gw=triple_captain_gw,
+            root_gameweek=root_gameweek,
+            bench_boost_gameweek=bench_boost_gameweek,
+            triple_captain_gameweek=triple_captain_gameweek,
             sub_weights=sub_weights,
         )
         if total_points > best_score:
@@ -157,12 +159,12 @@ class RandomTransferStrategy:
             request.tag,
             nsubs=request.move.n_transfers,
             gameweeks=request.gameweeks,
-            root_gw=request.root_gw,
+            root_gameweek=request.root_gameweek,
             num_iter=request.num_iterations,
             on_step=request.progress,
             season=request.season,
-            bench_boost_gw=request.bench_boost_gw,
-            triple_captain_gw=request.triple_captain_gw,
+            bench_boost_gameweek=request.bench_boost_gameweek,
+            triple_captain_gameweek=request.triple_captain_gameweek,
             sub_weights=request.scoring.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

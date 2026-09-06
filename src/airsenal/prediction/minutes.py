@@ -75,7 +75,7 @@ def get_recent_minutes_for_player(
     player: Player,
     n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gw: int | None = None,
+    last_gameweek: int | None = None,
     exclude_unavailable: bool = True,
     current_team_only: bool = True,
     dbsession: Session | None = None,
@@ -83,21 +83,21 @@ def get_recent_minutes_for_player(
     """
     Minutes played in each of the last `n_matches_to_use` matches.
 
-    `last_gw` is inclusive and defaults to the most recent finished gameweek.
+    `last_gameweek` is inclusive and defaults to the most recent finished gameweek.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    if last_gw is None:
+    if last_gameweek is None:
         if season != CURRENT_SEASON:
-            msg = "last_gw must be defined if running on previous seasons"
+            msg = "last_gameweek must be defined if running on previous seasons"
             raise ValueError(msg)
-        last_gw = next_gameweek()
+        last_gameweek = next_gameweek()
 
     playerscores = (
         get_recent_playerscore_rows(
             player,
             n_matches_to_use,
             season,
-            last_gw,
+            last_gameweek,
             exclude_unavailable,
             current_team_only,
             dbsession,
@@ -109,6 +109,6 @@ def get_recent_minutes_for_player(
 
     if len(minutes) < n_matches_to_use:
         minutes += estimate_minutes_from_prev_season(
-            player, gameweek=last_gw, season=season, dbsession=dbsession
+            player, gameweek=last_gameweek, season=season, dbsession=dbsession
         )
     return minutes or [0.0]

@@ -6,12 +6,13 @@ from sqlalchemy.orm import Session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.players import get_player_from_api_id
+from airsenal.db.queries.players import require_api_id, require_player_from_api_id
 from airsenal.db.queries.transactions import (
     add_transaction,
     transaction_exists,
 )
 from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.errors import RemoteError
 from airsenal.remote.fpl_api import (
@@ -21,7 +22,7 @@ from airsenal.remote.fpl_api import (
 )
 from airsenal.squad.squad import Squad, get_current_squad_from_api
 from airsenal.squad.state import (
-    free_hit_used_in_gameweek,
+    chip_used_in_gameweek,
     get_entry_start_gameweek,
     get_players_for_gameweek,
 )
@@ -51,9 +52,9 @@ def record_initial_squad_transactions(
         logger.info("Season hasn't started yet so nothing to add to the DB.")
         return
 
-    starting_gw = get_entry_start_gameweek(fpl_team_id)
-    logger.info("Got starting squad from gameweek %s.", starting_gw)
-    if starting_gw == next_gameweek():
+    starting_gameweek = get_entry_start_gameweek(fpl_team_id)
+    logger.info("Got starting squad from gameweek %s.", starting_gameweek)
+    if starting_gameweek == next_gameweek():
         logger.info(
             "This is team %s's first gameweek so nothing to add to the DB yet.",
             fpl_team_id,
@@ -62,19 +63,18 @@ def record_initial_squad_transactions(
 
     logger.info("Adding player data...")
 
-    init_players = get_players_for_gameweek(starting_gw, fpl_team_id)
-    free_hit = free_hit_used_in_gameweek(starting_gw, fpl_team_id)
-    time = get_fetcher().get_event_data()[starting_gw]["deadline"]
+    init_players = get_players_for_gameweek(starting_gameweek, fpl_team_id)
+    free_hit = int(
+        chip_used_in_gameweek(starting_gameweek, fpl_team_id) is Chip.FREE_HIT
+    )
+    time = get_fetcher().get_event_data()[starting_gameweek]["deadline"]
     for player in init_players:
-        player_api_id = player.fpl_api_id
-        if player_api_id is None:
-            msg = f"Player {player} has no FPL API ID"
-            raise ValueError(msg)
-        first_gw_data = get_fetcher().get_gameweek_data_for_player(
-            player_api_id, starting_gw
+        player_api_id = require_api_id(player)
+        first_gameweek_data = get_fetcher().get_gameweek_data_for_player(
+            player_api_id, starting_gameweek
         )
 
-        if len(first_gw_data) == 0:
+        if len(first_gameweek_data) == 0:
             # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
             # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
             # API using current price and total price change.
@@ -85,23 +85,25 @@ def record_initial_squad_transactions(
             pdata = get_fetcher().get_player_summary_data()[player_api_id]
             price = pdata["now_cost"] - pdata["cost_change_start"]
         else:
-            price = first_gw_data[0]["value"]
+            price = first_gameweek_data[0]["value"]
 
         logger.info(
-            "Adding player %s in GW%s for £%sm", player, starting_gw, price / 10
+            "Adding player %s in GW%s for £%sm", player, starting_gameweek, price / 10
         )
 
         add_transaction(
             player.player_id,
             tag,
-            starting_gw,
-            1,
-            price,
-            season,
-            free_hit,
-            fpl_team_id,
-            time,
-            dbsession,
+            starting_gameweek,
+            in_or_out=1,
+            price=price,
+            season=season,
+            free_hit=free_hit,
+            # The squad an entry is given to start with cost it no transfers.
+            counts_as_transfer=0,
+            fpl_team_id=fpl_team_id,
+            time=time,
+            dbsession=dbsession,
         )
 
 
@@ -137,18 +139,10 @@ def update_squad(
     for transfer in transfers:
         gameweek = transfer["event"]
         api_pid_out = transfer["element_out"]
-        player_out = get_player_from_api_id(api_pid_out, dbsession=dbsession)
-        if player_out is None:
-            msg = f"Player with API ID {api_pid_out} not found in database."
-            raise ValueError(msg)
-        pid_out = player_out.player_id
+        pid_out = require_player_from_api_id(api_pid_out, dbsession=dbsession).player_id
         price_out = transfer["element_out_cost"]
         api_pid_in = transfer["element_in"]
-        player_in = get_player_from_api_id(api_pid_in, dbsession=dbsession)
-        if player_in is None:
-            msg = f"Player with API ID {api_pid_in} not found in database."
-            raise ValueError(msg)
-        pid_in = player_in.player_id
+        pid_in = require_player_from_api_id(api_pid_in, dbsession=dbsession).player_id
         price_in = transfer["element_in_cost"]
         time = transfer["time"]
 
@@ -169,18 +163,22 @@ def update_squad(
                 pid_out,
                 price_out,
             )
-            free_hit = free_hit_used_in_gameweek(gameweek, fpl_team_id)
+            chip = chip_used_in_gameweek(gameweek, fpl_team_id)
+            free_hit = int(chip is Chip.FREE_HIT)
+            # A wildcard or free hit makes the gameweek's transfers unlimited.
+            counts_as_transfer = int(chip is None or not chip.rebuilds_squad)
             add_transaction(
                 pid_out,
                 tag,
                 gameweek,
-                -1,
-                price_out,
-                season,
-                free_hit,
-                fpl_team_id,
-                time,
-                dbsession,
+                in_or_out=-1,
+                price=price_out,
+                season=season,
+                free_hit=free_hit,
+                counts_as_transfer=counts_as_transfer,
+                fpl_team_id=fpl_team_id,
+                time=time,
+                dbsession=dbsession,
             )
 
             logger.debug(
@@ -193,18 +191,19 @@ def update_squad(
                 pid_in,
                 tag,
                 gameweek,
-                1,
-                price_in,
-                season,
-                free_hit,
-                fpl_team_id,
-                time,
-                dbsession,
+                in_or_out=1,
+                price=price_in,
+                season=season,
+                free_hit=free_hit,
+                counts_as_transfer=counts_as_transfer,
+                fpl_team_id=fpl_team_id,
+                time=time,
+                dbsession=dbsession,
             )
 
 
 def get_starting_squad(
-    next_gw: int | None = None,
+    gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     use_api: bool = False,
@@ -213,19 +212,19 @@ def get_starting_squad(
 ) -> Squad:
     """This entry's current squad, from the transactions table or the FPL API."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
-    next_gw = next_gameweek() if next_gw is None else next_gw
+    gameweek = next_gameweek() if gameweek is None else gameweek
     if use_api:
         if season != CURRENT_SEASON:
             msg = "Can only use API for current season and gameweek"
             raise RuntimeError(msg)
-        if season == CURRENT_SEASON and next_gw != next_gameweek():
+        if season == CURRENT_SEASON and gameweek != next_gameweek():
             msg = "Can only use API for current season and gameweek"
             raise RuntimeError(msg)
         if not fpl_team_id:
             msg = "Please specify fpl_team_id to get current squad from API"
             raise RuntimeError(msg)
         try:
-            return get_current_squad_from_api(fpl_team_id, fetcher=fetcher)
+            return get_current_squad_from_api(fpl_team_id=fpl_team_id, fetcher=fetcher)
 
         except RemoteError:
             logger.warning(
@@ -235,7 +234,7 @@ def get_starting_squad(
             )
 
     # otherwise, we use the Transaction table in the DB
-    return get_squad_from_transactions(next_gw, season, fpl_team_id, dbsession)
+    return get_squad_from_transactions(gameweek, season, fpl_team_id, dbsession)
 
 
 def get_squad_from_transactions(
@@ -248,7 +247,7 @@ def get_squad_from_transactions(
     Rebuild the squad as it stood *before* `gameweek`, by replaying transactions.
 
     Only transactions strictly earlier than `gameweek` are applied, and free hit
-    transfers are skipped entirely because they last a single week. Players are
+    transfers are skipped entirely because they last a single gameweek. Players are
     added at `gameweek` rather than at the gameweek they were bought in, so the
     squad reflects each player's current club. Budget and squad constraints are
     not checked between transfers - only the final squad has to obey them.
@@ -268,7 +267,7 @@ def get_squad_from_transactions(
         fpl_team_id = most_recent.fpl_team_id
     logger.debug("Getting starting squad for %s", fpl_team_id)
 
-    # Don't include free hit transfers as they only apply for the week the
+    # Don't include free hit transfers as they only apply for the gameweek the
     # chip is activated
     transactions = dbsession.scalars(
         select(Transaction)

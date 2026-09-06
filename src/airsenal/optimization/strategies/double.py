@@ -29,24 +29,26 @@ def make_optimum_double_transfer(
     squad: Squad,
     tag: str,
     gameweeks: list[int] | None = None,
-    root_gw: int | None = None,
+    root_gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     on_step: StepCounter | None = None,
-    bench_boost_gw: int | None = None,
-    triple_captain_gw: int | None = None,
+    bench_boost_gameweek: int | None = None,
+    triple_captain_gameweek: int | None = None,
     *,
     sub_weights: SubWeights,
 ) -> tuple[Squad, list[int], list[int]]:
     """
     Try every pair of transfers in turn, which is affordable for just two.
 
-    Candidates are ordered by their total expected points over `gameweeks`.
+    Candidates are ordered by their total expected points over `gameweeks`, and
+    priced as at `root_gameweek`, which is what `TransferRequest.root_gameweek`
+    documents.
     """
     if not gameweeks:
         gameweeks = [next_gameweek()]
-        root_gw = next_gameweek()
+    if root_gameweek is None:
+        root_gameweek = min(gameweeks)
 
-    transfer_gw = min(gameweeks)  # the week we're making the transfer
     best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
@@ -61,14 +63,14 @@ def make_optimum_double_transfer(
         pout_1 = squad.players[i]
 
         new_squad_remove_1 = fastcopy(squad)
-        new_squad_remove_1.remove_player(pout_1.player_id, gameweek=transfer_gw)
+        new_squad_remove_1.remove_player(pout_1.player_id, gameweek=root_gameweek)
         for j in range(i + 1, len(squad.players)):
             if on_step:
                 on_step()
 
             pout_2 = squad.players[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
-            new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
+            new_squad_remove_2.remove_player(pout_2.player_id, gameweek=root_gameweek)
             logger.debug("Removing players %s %s", i, j)
             # what positions do we need to fill?
             positions_needed = [pout_1.position, pout_2.position]
@@ -78,7 +80,9 @@ def make_optimum_double_transfer(
                 if pin_1[0].player_id in [pout_1.player_id, pout_2.player_id]:
                     continue  # no point in adding same player back in
                 new_squad_add_1 = fastcopy(new_squad_remove_2)
-                added_1_ok = new_squad_add_1.add_player(pin_1[0], gameweek=transfer_gw)
+                added_1_ok = new_squad_add_1.add_player(
+                    pin_1[0], gameweek=root_gameweek
+                )
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
@@ -90,7 +94,7 @@ def make_optimum_double_transfer(
                     ):
                         continue  # no point in adding same player back in
                     added_2_ok = new_squad_add_2.add_player(
-                        pin_2[0], gameweek=transfer_gw
+                        pin_2[0], gameweek=root_gameweek
                     )
                     if added_2_ok:
                         # calculate the score
@@ -98,9 +102,9 @@ def make_optimum_double_transfer(
                             new_squad_add_2,
                             gameweeks,
                             tag,
-                            root_gw=root_gw,
-                            bench_boost_gw=bench_boost_gw,
-                            triple_captain_gw=triple_captain_gw,
+                            root_gameweek=root_gameweek,
+                            bench_boost_gameweek=bench_boost_gameweek,
+                            triple_captain_gameweek=triple_captain_gameweek,
                             sub_weights=sub_weights,
                         )
                         if total_points > best_score:
@@ -128,11 +132,11 @@ class DoubleTransferStrategy:
             request.squad,
             request.tag,
             request.gameweeks,
-            request.root_gw,
+            request.root_gameweek,
             request.season,
             on_step=request.progress,
-            bench_boost_gw=request.bench_boost_gw,
-            triple_captain_gw=request.triple_captain_gw,
+            bench_boost_gameweek=request.bench_boost_gameweek,
+            triple_captain_gameweek=request.triple_captain_gameweek,
             sub_weights=request.scoring.sub_weights,
         )
         return Proposal(squad, players_in, players_out)

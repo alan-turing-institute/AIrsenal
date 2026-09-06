@@ -8,6 +8,8 @@ from airsenal.db.models import Player, Transaction
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player_from_api_id
 from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
+from airsenal.game.mappings import chips_by_api_name
 from airsenal.game.scoring import free_transfers_after
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.errors import (
@@ -53,9 +55,9 @@ def get_bank(
             return 0
 
         if gameweek and isinstance(gameweek, int):
-            for gw in data["current"]:
-                if gw["event"] == gameweek - 1:  # value after previous gameweek
-                    return int(gw["bank"])
+            for entry in data["current"]:
+                if entry["event"] == gameweek - 1:  # value after previous gameweek
+                    return int(entry["bank"])
         # otherwise, return the most recent value
         return int(data["current"][-1]["bank"])
 
@@ -65,14 +67,16 @@ def get_entry_start_gameweek(
 ) -> int:
     """The gameweek an entry joined, being the first the API has picks for."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
-    starting_gw = 1
-    while starting_gw < next_gameweek():
+    starting_gameweek = 1
+    while starting_gameweek < next_gameweek():
         try:
-            if get_players_for_gameweek(starting_gw, fpl_team_id, fetcher=fetcher):
-                return starting_gw
-            starting_gw += 1
+            if get_players_for_gameweek(
+                starting_gameweek, fpl_team_id, fetcher=fetcher
+            ):
+                return starting_gameweek
+            starting_gameweek += 1
         except RemoteHTTPError:
-            starting_gw += 1
+            starting_gameweek += 1
         except RemoteConnectionError:
             logger.warning(
                 "Failed to connect to the API. Assuming team %s"
@@ -124,16 +128,18 @@ def get_free_transfers(
             data = fetcher.get_fpl_team_history_data(fpl_team_id)
             num_free_transfers = 1
             if "current" in data and len(data["current"]) > 0:
-                starting_gw = get_entry_start_gameweek(fpl_team_id, fetcher=fetcher)
-                for gw in data["current"]:
-                    if gw["event"] <= starting_gw:
+                starting_gameweek = get_entry_start_gameweek(
+                    fpl_team_id, fetcher=fetcher
+                )
+                for entry in data["current"]:
+                    if entry["event"] <= starting_gameweek:
                         continue
                     num_free_transfers = free_transfers_after(
-                        gw["event_transfers"], num_free_transfers
+                        entry["event_transfers"], num_free_transfers
                     )
                     # if gameweek was specified, and we reached the previous one,
                     # break out of loop.
-                    if gameweek and gw["event"] == gameweek - 1:
+                    if gameweek and entry["event"] == gameweek - 1:
                         break
             return num_free_transfers
         except RemoteError:
@@ -146,25 +152,34 @@ def get_free_transfers(
     # historical/simulated data or API failed - fetch from database
     transactions = dbsession.scalars(
         select(Transaction)
-        .where(Transaction.fpl_team_id == fpl_team_id, Transaction.bought_or_sold == 1)
+        .where(
+            Transaction.fpl_team_id == fpl_team_id,
+            Transaction.season == season,
+            Transaction.bought_or_sold == 1,
+        )
         .order_by(Transaction.gameweek, Transaction.id)
     ).all()
     if len(transactions) == 0:
         return 1
-    starting_gw = transactions[0].gameweek
-    gw_transactions = {}
+    starting_gameweek = transactions[0].gameweek
+    gameweek_transactions: dict[int, int] = {}
     for t in transactions:
-        if t.gameweek not in gw_transactions:
-            gw_transactions[t.gameweek] = 0
-        gw_transactions[t.gameweek] += 1
+        # A wildcard, a free hit and the opening fifteen all put players in the
+        # squad without spending a free transfer, so counting rows would charge
+        # the following gameweek for fifteen transfers nobody made.
+        if not t.counts_as_transfer:
+            continue
+        if t.gameweek not in gameweek_transactions:
+            gameweek_transactions[t.gameweek] = 0
+        gameweek_transactions[t.gameweek] += 1
     num_free_transfers = 1
     if gameweek is None and (season != CURRENT_SEASON or is_replay):
         msg = "Gameweek must be specified for historical data"
         raise ValueError(msg)
     gameweek = gameweek or next_gameweek()
-    for prev_gw in range(starting_gw + 1, gameweek):
+    for previous_gameweek in range(starting_gameweek + 1, gameweek):
         num_free_transfers = free_transfers_after(
-            gw_transactions.get(prev_gw, 0), num_free_transfers
+            gameweek_transactions.get(previous_gameweek, 0), num_free_transfers
         )
 
     return num_free_transfers
@@ -193,12 +208,16 @@ def get_players_for_gameweek(
     return players
 
 
-def free_hit_used_in_gameweek(
+def chip_used_in_gameweek(
     gameweek: int, fpl_team_id: int | None = None, fetcher: FPLDataFetcher | None = None
-) -> int:
-    """Whether the entry played its free hit in a gameweek, as 0 or 1."""
+) -> Chip | None:
+    """The chip the entry played in a gameweek, or None if it played none."""
     fetcher = fetcher if fetcher is not None else get_fetcher(fpl_team_id)
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
     fpl_team_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)
-    return int(bool(fpl_team_data) and fpl_team_data.get("active_chip") == "freehit")
+    if not fpl_team_data:
+        return None
+    # The key is absent for a gameweek with no chip, and null for some of them.
+    active_chip = fpl_team_data.get("active_chip")
+    return chips_by_api_name.get(active_chip) if active_chip else None

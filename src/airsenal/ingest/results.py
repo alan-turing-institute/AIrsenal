@@ -62,7 +62,7 @@ def fill_results_from_csv(
 
 
 def fill_results_from_api(
-    gw_start: int, gw_end: int, season: str, dbsession: Session
+    gameweek_start: int, gameweek_end: int, season: str, dbsession: Session
 ) -> None:
     fetcher = get_fetcher()
     matches = fetcher.get_fixture_data()
@@ -70,7 +70,7 @@ def fill_results_from_api(
         if not m["finished"]:
             continue
         gameweek = m["event"]
-        if gameweek < gw_start or gameweek > gw_end:
+        if gameweek < gameweek_start or gameweek > gameweek_end:
             continue
         home_id = m["team_h"]
         away_id = m["team_a"]
@@ -133,7 +133,7 @@ def make_result_table(
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
-            gw_end = next_gameweek(fetcher=get_fetcher())
-            fill_results_from_api(1, gw_end, CURRENT_SEASON, dbsession)
+            gameweek_end = next_gameweek(fetcher=get_fetcher())
+            fill_results_from_api(1, gameweek_end, CURRENT_SEASON, dbsession)
         else:
             fill_results_from_csv(data_file(f"results_{season}.csv"), season, dbsession)

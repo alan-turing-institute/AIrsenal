@@ -28,13 +28,12 @@ class GeneticSquadOptimizer:
         return make_new_squad(
             request.gameweeks,
             tag=request.tag,
-            budget=request.scoring.budget,
+            root_gameweek=request.root_gameweek,
             season=request.season,
             remove_zero=request.remove_zero,
-            sub_weights=request.scoring.sub_weights,
-            dummy_sub_cost=request.scoring.dummy_sub_cost,
-            bench_boost_gw=request.bench_boost_gw,
-            triple_captain_gw=request.triple_captain_gw,
+            scoring=request.scoring,
+            bench_boost_gameweek=request.bench_boost_gameweek,
+            triple_captain_gameweek=request.triple_captain_gameweek,
             ga_config=config,
             on_generation=(
                 request.advance_progress if request.progress is not None else None

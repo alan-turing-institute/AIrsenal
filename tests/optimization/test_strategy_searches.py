@@ -280,7 +280,7 @@ def test_the_progress_steps_counted_match_the_number_promised():
             squad=squad,
             tag="DUMMY",
             gameweeks=[1],
-            root_gw=1,
+            root_gameweek=1,
             season="2526",
             num_iterations=7,
             progress=count_step,
@@ -292,3 +292,65 @@ def test_the_progress_steps_counted_match_the_number_promised():
             strategy.propose(request)
 
         assert steps == strategy.num_increments(request), move
+
+
+# --- what the candidates are priced at ---
+
+GAMEWEEK_OF_THE_MOVE = 3
+ROOT_GAMEWEEK = 1
+
+# Two spare candidates per position, so the pair search has something to pick.
+PRICING_CANDIDATES = {
+    "GK": {0: 2, 1: 2, 100: 3, 101: 3},
+    "DEF": {**dict.fromkeys(range(2, 7), 2), 102: 3, 103: 3},
+    "MID": {**dict.fromkeys(range(7, 12), 2), 104: 3, 105: 3},
+    "FWD": {**dict.fromkeys(range(12, 15), 2), 106: 3, 107: 3},
+}
+
+
+def _record_pricing_gameweeks(monkeypatch):
+    """Every gameweek a squad change was asked to read a price and club at."""
+    seen = []
+    add, remove = Squad.add_player, Squad.remove_player
+
+    def record_add(self, p, price=None, gameweek=None, **kwargs):
+        seen.append(gameweek)
+        return add(self, p, price=price, gameweek=gameweek, **kwargs)
+
+    def record_remove(self, player_id, price=None, gameweek=None, **kwargs):
+        seen.append(gameweek)
+        return remove(self, player_id, price=price, gameweek=gameweek, **kwargs)
+
+    monkeypatch.setattr(Squad, "add_player", record_add)
+    monkeypatch.setattr(Squad, "remove_player", record_remove)
+    return seen
+
+
+def test_a_transfer_is_priced_at_the_root_gameweek(monkeypatch):
+    """
+    Not at the gameweek the move is made in, which is later down the plan tree.
+
+    Nothing knows a later gameweek's prices: for the season being played they do
+    not exist yet, and in a replay of a finished one they are the future. Pricing
+    a third-gameweek move at its own gameweek let a replay buy and sell at prices
+    the real run could not have seen.
+    """
+    squad = generate_dummy_squad({i: {GAMEWEEK_OF_THE_MOVE: 2} for i in range(15)})
+    for module in ("single", "double"):
+        monkeypatch.setattr(
+            f"airsenal.optimization.strategies.{module}.get_predicted_points",
+            predicted_point_mock_generator(PRICING_CANDIDATES),
+        )
+    seen = _record_pricing_gameweeks(monkeypatch)
+
+    for search in (make_optimum_single_transfer, make_optimum_double_transfer):
+        search(
+            squad,
+            "DUMMY",
+            [GAMEWEEK_OF_THE_MOVE],
+            ROOT_GAMEWEEK,
+            sub_weights=SubWeights(),
+        )
+
+    assert seen
+    assert set(seen) == {ROOT_GAMEWEEK}

@@ -142,12 +142,12 @@ def get_player_history_df(
                 for ab in absences_by_player_season.get(
                     (player.player_id, row.fixture.season), []
                 )
-                if ab.gw_until is not None
+                if ab.gameweek_until is not None
                 and row.fixture.gameweek is not None
-                # Inclusive of gw_from, which is the first gameweek missed; see
+                # Inclusive of gameweek_from, which is the first gameweek missed; see
                 # `db.queries.absences.absence_gameweeks`
-                and ab.gw_from <= row.fixture.gameweek
-                and ab.gw_until > row.fixture.gameweek
+                and ab.gameweek_from <= row.fixture.gameweek
+                and ab.gameweek_until > row.fixture.gameweek
             ]
             # A single absence is recorded as a scalar rather than a 1-element list,
             # so the resulting dataframe column reads naturally.

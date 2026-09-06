@@ -41,9 +41,9 @@ def _return_gameweek_from_deadlines(
         return None
 
     gameweek = None
-    for gw, deadline in ordered_deadlines:
+    for deadline_gameweek, deadline in ordered_deadlines:
         if deadline >= return_date.date():
-            gameweek = gw - 1
+            gameweek = deadline_gameweek - 1
             break
     if gameweek is None:
         return None
@@ -74,12 +74,12 @@ def season_is_active(
         return False
 
     summary_data = fetcher.get_current_summary_data()
-    for gw in summary_data["events"]:
-        if gw["is_current"] and not gw["finished"]:
-            logger.info("Gameweek %s is currently active", gw["id"])
+    for event in summary_data["events"]:
+        if event["is_current"] and not event["finished"]:
+            logger.info("Gameweek %s is currently active", event["id"])
             return True
 
-    deadlines = [parse_date(gw["deadline_time"]) for gw in summary_data["events"]]
+    deadlines = [parse_date(event["deadline_time"]) for event in summary_data["events"]]
     future_deadlines = [d for d in deadlines if d >= now.date()]
     if not future_deadlines:
         logger.info("No future deadlines - season is over")
@@ -129,8 +129,8 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
 
     deadlines = sorted(
         [
-            (int(gw["id"]), parse_date(gw["deadline_time"]))
-            for gw in summary_data["events"]
+            (int(event["id"]), parse_date(event["deadline_time"]))
+            for event in summary_data["events"]
         ]
     )
     n_players = summary_data["total_players"]
@@ -138,15 +138,15 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
     fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
     for fixture in fetcher.get_fixture_data():
         if (
-            (gw := fixture["event"])
+            (gameweek := fixture["event"])
             and (kickoff_str := fixture["kickoff_time"])
             and (kickoff := parse_date(kickoff_str)) is not None
         ):
-            fixtures[gw].append(
+            fixtures[gameweek].append(
                 (kickoff, (teams[fixture["team_h"]], teams[fixture["team_a"]]))
             )
-    for gw, kickoffs in fixtures.items():
-        fixtures[gw] = sorted(kickoffs)
+    for gameweek, kickoffs in fixtures.items():
+        fixtures[gameweek] = sorted(kickoffs)
 
     input_data = fetcher.get_player_summary_data()
 

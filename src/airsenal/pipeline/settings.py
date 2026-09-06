@@ -8,7 +8,7 @@ from airsenal.game.season import (
     CURRENT_SEASON,
     get_past_seasons,
 )
-from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.moves import ChipGameweeks
 
 # How many gameweeks ahead to look when nothing says otherwise.
 DEFAULT_N_GAMEWEEKS = 3
@@ -52,7 +52,7 @@ class PipelineSettings:
     # Where it ends, inclusive, for a caller that names both ends rather than a
     # length. Only one of n_gameweeks and gameweek_end should be set.
     gameweek_end: int | None = None
-    chips: ChipWeeks = field(default_factory=ChipWeeks)
+    chips: ChipGameweeks = field(default_factory=ChipGameweeks)
     database: DatabaseSettings = field(default_factory=DatabaseSettings)
     # Whether to create and update the database before predicting.
     refresh_database: bool = True

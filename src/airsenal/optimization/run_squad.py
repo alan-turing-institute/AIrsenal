@@ -9,7 +9,7 @@ players the FPL entry was already given.
 from airsenal.core.console import console, progress_bar
 from airsenal.core.logging import get_logger
 from airsenal.game.enums import Chip
-from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.moves import ChipGameweeks
 from airsenal.optimization.persist import (
     fill_initial_suggestion_table,
     fill_initial_transaction_table,
@@ -36,7 +36,7 @@ from airsenal.squad.squad import Squad
 logger = get_logger(__name__)
 
 
-def _chip_label(chips: ChipWeeks, gameweek: int) -> str | None:
+def _chip_label(chips: ChipGameweeks, gameweek: int) -> str | None:
     """
     The chip this gameweek's row should show.
 
@@ -56,7 +56,7 @@ def build_new_squad(
     scoring: SquadScoringConfig | None = None,
     remove_zero: bool = True,
     is_replay: bool = False,  # for replaying seasons
-    chips: ChipWeeks | None = None,
+    chips: ChipGameweeks | None = None,
 ) -> Squad:
     if optimizer is None:
         optimizer = GeneticSquadOptimizer()
@@ -85,16 +85,16 @@ def build_new_squad(
             )
         )
 
-    gw_start = gameweeks[0]
+    gameweek_start = gameweeks[0]
     optimised_score = get_discounted_squad_score(
         best_squad,
         gameweeks,
         tag,
-        gw_start,
+        gameweek_start,
         sub_weights=sub_weights,
     )
 
-    chips = chips if chips is not None else ChipWeeks()
+    chips = chips if chips is not None else ChipGameweeks()
 
     print_result_panel(
         gameweeks=gameweeks,
@@ -104,19 +104,21 @@ def build_new_squad(
     print_plan_table(
         [
             GameweekRow(
-                gameweek=gw,
+                gameweek=gameweek,
                 # every player is new in the first gameweek, and kept after that
-                transfers=str(len(best_squad.players)) if gw == gw_start else "0",
-                chip=_chip_label(chips, gw),
+                transfers=(
+                    str(len(best_squad.players)) if gameweek == gameweek_start else "0"
+                ),
+                chip=_chip_label(chips, gameweek),
                 points_hit=0,
                 predicted_points=best_squad.get_expected_points(
                     tag,
-                    gw,
-                    bench_boost=chips.bench_boost == gw,
-                    triple_captain=chips.triple_captain == gw,
+                    gameweek,
+                    bench_boost=chips.bench_boost == gameweek,
+                    triple_captain=chips.triple_captain == gameweek,
                 ),
             )
-            for gw in gameweeks
+            for gameweek in gameweeks
         ]
     )
     print_squad_table(best_squad.players)
@@ -124,15 +126,15 @@ def build_new_squad(
         formation_table(
             best_squad,
             tag,
-            gw_start,
-            bench_boost=chips.bench_boost == gw_start,
-            triple_captain=chips.triple_captain == gw_start,
+            gameweek_start,
+            bench_boost=chips.bench_boost == gameweek_start,
+            triple_captain=chips.triple_captain == gameweek_start,
         )
     )
 
     fill_initial_suggestion_table(
         best_squad,
-        gameweek=gw_start,
+        gameweek=gameweek_start,
         tag=tag,
         season=season,
         fpl_team_id=fpl_team_id,
@@ -142,7 +144,7 @@ def build_new_squad(
         # to imitate applying transfers
         fill_initial_transaction_table(
             best_squad,
-            gameweek=gw_start,
+            gameweek=gameweek_start,
             tag=tag,
             season=season,
             fpl_team_id=fpl_team_id,

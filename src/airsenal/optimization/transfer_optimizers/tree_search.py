@@ -57,7 +57,7 @@ from airsenal.squad.squad import Squad
 logger = get_logger(__name__)
 
 # What the plan-tree queue carries: either a node still to expand, or the
-# shutdown sentinel. A node is (move, free_transfers, hit_so_far, hit_this_gw,
+# shutdown sentinel. A node is (move, free_transfers, hit_so_far, hit_this_gameweek,
 # squad, plan), where `plan` is None only for the root.
 PlanNode = tuple[GameweekMove, int, int, int, Squad, "Plan | None"]
 QueueItem = PlanNode | None
@@ -78,7 +78,7 @@ ProgressMessage = (
 # that adds up to.
 
 
-def next_week_transfers(
+def next_gameweek_transfers(
     free_transfers: int,
     hit_so_far: int,
     chips_played: Iterable[Chip | None] = (),
@@ -144,20 +144,20 @@ def next_week_transfers(
             if chips.allows(chip, chips_played):
                 moves += [GameweekMove(nt, chip) for nt in ft_choices]
 
-    hit_this_gw = [calc_points_hit(move, free_transfers) for move in moves]
-    total_points_hit = [hit_so_far + hit for hit in hit_this_gw]
+    hit_this_gameweek = [calc_points_hit(move, free_transfers) for move in moves]
+    total_points_hit = [hit_so_far + hit for hit in hit_this_gameweek]
     new_ft_available = [
         calc_free_transfers(move, free_transfers, max_free_transfers) for move in moves
     ]
 
     return list(
-        zip(moves, new_ft_available, total_points_hit, hit_this_gw, strict=True)
+        zip(moves, new_ft_available, total_points_hit, hit_this_gameweek, strict=True)
     )
 
 
 def count_expected_outputs(
     n_gameweeks: int,
-    next_gw: int | None = None,
+    gameweek: int | None = None,
     free_transfers: int = 1,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -182,7 +182,7 @@ def count_expected_outputs(
         `allow_unused_transfers=False` can cause. The count includes the
         baseline either way.
     """
-    next_gw = next_gameweek() if next_gw is None else next_gw
+    gameweek = next_gameweek() if gameweek is None else gameweek
     chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
 
     # (free transfers, points hit so far, moves made) - the moves are all that is
@@ -191,17 +191,17 @@ def count_expected_outputs(
         (free_transfers, 0, ())
     ]
 
-    for gw in range(next_gw, next_gw + n_gameweeks):
+    for window_gameweek in range(gameweek, gameweek + n_gameweeks):
         new_branches = []
         for ft, hit, moves in branches:
-            possibilities = next_week_transfers(
+            possibilities = next_gameweek_transfers(
                 ft,
                 hit,
                 [move.chip for move in moves],
                 max_total_hit=max_total_hit,
                 max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,
-                chips=chip_schedule.for_gameweek(gw),
+                chips=chip_schedule.for_gameweek(window_gameweek),
                 max_free_transfers=max_free_transfers,
             )
             new_branches += [
@@ -255,9 +255,9 @@ def _make_best_transfers(
         proposal.squad,
         [request.transfer_gameweek],
         request.tag,
-        root_gw=request.root_gw,
-        bench_boost_gw=request.bench_boost_gw,
-        triple_captain_gw=request.triple_captain_gw,
+        root_gameweek=request.root_gameweek,
+        bench_boost_gameweek=request.bench_boost_gameweek,
+        triple_captain_gameweek=request.triple_captain_gameweek,
         sub_weights=request.scoring.sub_weights,
     )
 
@@ -284,7 +284,7 @@ def optimize(
 
     Things on the queue will either be None (shutdown sentinel, sent once all
     plans have been processed), or a tuple:
-    (move, free_transfers, hit_so_far, hit_this_gw, squad, plan).
+    (move, free_transfers, hit_so_far, hit_this_gameweek, squad, plan).
 
     `plan` is None for the root node, which exists only to add children to
     the queue. Finished plans are put on the `results` queue.
@@ -326,7 +326,7 @@ def optimize(
             move,
             free_transfers,
             hit_so_far,
-            hit_this_gw,
+            hit_this_gameweek,
             squad,
             plan,
         ) = status
@@ -338,8 +338,8 @@ def optimize(
         else:
             # how far down the tree we are, and so which gameweeks are left
             remaining_gameweeks = gameweeks[len(plan) :]
-            gw = remaining_gameweeks[0]
-            root_gw = plan.root_gameweek
+            gameweek = remaining_gameweeks[0]
+            root_gameweek = plan.root_gameweek
 
             # One request, used both to size the worker's bar and to do the work
             transfer_request = TransferRequest(
@@ -347,7 +347,7 @@ def optimize(
                 squad=squad,
                 tag=prediction_tag,
                 gameweeks=remaining_gameweeks,
-                root_gw=root_gw,
+                root_gameweek=root_gameweek,
                 season=season,
                 num_iterations=num_iterations,
                 scoring=request.scoring,
@@ -369,14 +369,14 @@ def optimize(
                 transfer_request, strategy
             )
 
-            discount_factor = get_discount_factor(root_gw, gw)
+            discount_factor = get_discount_factor(root_gameweek, gameweek)
             plan = plan.extend(
                 GameweekOutcome(
-                    gameweek=gw,
+                    gameweek=gameweek,
                     move=move,
-                    points=points - hit_this_gw * discount_factor,
+                    points=points - hit_this_gameweek * discount_factor,
                     discount_factor=discount_factor,
-                    points_hit=hit_this_gw,
+                    points_hit=hit_this_gameweek,
                     free_transfers=free_transfers,
                     players_in=tuple(transfers["in"]),
                     players_out=tuple(transfers["out"]),
@@ -397,7 +397,7 @@ def optimize(
 
         else:
             # add children to the queue
-            branches = next_week_transfers(
+            branches = next_gameweek_transfers(
                 free_transfers,
                 hit_so_far,
                 plan.chips_played,
@@ -408,14 +408,14 @@ def optimize(
                 max_free_transfers=constraints.max_free_transfers,
             )
             for branch in branches:
-                move, free_transfers, hit_so_far, hit_this_gw = branch
+                move, free_transfers, hit_so_far, hit_this_gameweek = branch
 
                 queue.put(
                     (
                         move,
                         free_transfers,
                         hit_so_far,
-                        hit_this_gw,
+                        hit_this_gameweek,
                         new_squad,
                         plan,
                     )
@@ -478,7 +478,7 @@ def search_transfer_tree(
     n_gameweeks = len(gameweeks)
     num_expected_outputs, baseline_excluded = count_expected_outputs(
         n_gameweeks,
-        next_gw=gameweeks[0],
+        gameweek=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=constraints.max_total_hit,
         allow_unused_transfers=constraints.allow_unused_transfers,
@@ -551,7 +551,7 @@ def search_transfer_tree(
                 starting_squad,
                 gameweeks,
                 tag,
-                root_gw=gameweeks[0],
+                root_gameweek=gameweeks[0],
                 sub_weights=request.scoring.sub_weights,
             )
             progress.advance(total_task, 1)

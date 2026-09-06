@@ -71,11 +71,11 @@ def get_top_predicted_points(
         "fields": [],
     }
 
-    first_gw, last_gw = gameweeks[0], gameweeks[-1]
+    first_gameweek, last_gameweek = gameweeks[0], gameweeks[-1]
     gameweek_label = (
-        f"{first_gw}–{last_gw}"  # noqa: RUF001
-        if last_gw != first_gw
-        else f"{first_gw}"
+        f"{first_gameweek}–{last_gameweek}"  # noqa: RUF001
+        if last_gameweek != first_gameweek
+        else f"{first_gameweek}"
     )
     table_title = f"Top {n_players} Predicted Players for Gameweek(s) {gameweek_label}"
 
@@ -84,12 +84,12 @@ def get_top_predicted_points(
             "#", "Player", "Team", "Position", "Price", "Predicted Points", title=title
         )
         for rank, (player, predicted_points) in enumerate(predictions[:n_players], 1):
-            price = player.price(first_gw, season)
+            price = player.price(first_gameweek, season)
             price_string = f"£{price / 10}m" if price is not None else "Unknown"
             prediction_table.add_row(
                 str(rank),
                 str(player),
-                str(player.team(first_gw, season)),
+                str(player.team(first_gameweek, season)),
                 str(player.position(season)),
                 price_string,
                 f"{predicted_points:.2f}",
@@ -105,7 +105,7 @@ def get_top_predicted_points(
             season=season,
             dbsession=dbsession,
         )
-        pts = within_price(pts, max_price, first_gw, season)
+        pts = within_price(pts, max_price, first_gameweek, season)
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
 
         print_predictions(pts, table_title)
@@ -117,7 +117,7 @@ def get_top_predicted_points(
                 position=position,
                 pts=pts[: min(n_players, 8)],
                 season=season,
-                first_gw=first_gw,
+                first_gameweek=first_gameweek,
             ),
             discord_webhook,
         )
@@ -131,7 +131,7 @@ def get_top_predicted_points(
                 season=season,
                 dbsession=dbsession,
             )
-            pts = within_price(pts, max_price, first_gw, season)
+            pts = within_price(pts, max_price, first_gameweek, season)
             pts = sorted(pts, key=lambda x: x[1], reverse=True)
             title = f"{table_title}\n{each_position}" if i == 0 else str(each_position)
             print_predictions(pts, title)
@@ -144,7 +144,7 @@ def get_top_predicted_points(
                     position=each_position,
                     pts=pts[: min(n_players, 8)],
                     season=season,
-                    first_gw=first_gw,
+                    first_gameweek=first_gameweek,
                 ),
                 discord_webhook,
             )
@@ -155,7 +155,7 @@ def predicted_points_discord_payload(
     position: str,
     pts: list[tuple[Player, float]],
     season: str,
-    first_gw: int,
+    first_gameweek: int,
 ) -> dict[str, Any]:
     """The Discord webhook payload for a table of predicted points."""
     discord_embed["fields"].append(
@@ -166,7 +166,7 @@ def predicted_points_discord_payload(
         }
     )
     for i, p in enumerate(pts):
-        price = p[0].price(first_gw, season)
+        price = p[0].price(first_gameweek, season)
         price_str = str(price / 10) if price is not None else "UNKNOWN_PRICE"
         discord_embed["fields"].extend(
             [
@@ -184,7 +184,7 @@ def predicted_points_discord_payload(
                     "name": "Attributes",
                     "value": (
                         f"£{price_str}m, "
-                        f"{p[0].position(season)}, {p[0].team(first_gw, season)}"
+                        f"{p[0].position(season)}, {p[0].team(first_gameweek, season)}"
                     ),
                     "inline": True,
                 },

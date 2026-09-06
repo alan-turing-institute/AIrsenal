@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 
 from airsenal.cli import options
-from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.moves import ChipGameweeks
 from airsenal.optimization.protocols import (
     DEFAULT_MAX_OPT_TRANSFERS,
     DEFAULT_MAX_TOTAL_HIT,
@@ -61,10 +61,10 @@ def replay(
     max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     max_hit: options.MaxHit = DEFAULT_MAX_TOTAL_HIT,
     allow_unused: options.AllowUnused = False,
-    wildcard_week: options.WildcardWeek = -1,
-    free_hit_week: options.FreeHitWeek = -1,
-    triple_captain_week: options.TripleCaptainWeek = -1,
-    bench_boost_week: options.BenchBoostWeek = -1,
+    wildcard_gameweek: options.WildcardGameweek = -1,
+    free_hit_gameweek: options.FreeHitGameweek = -1,
+    triple_captain_gameweek: options.TripleCaptainGameweek = -1,
+    bench_boost_gameweek: options.BenchBoostGameweek = -1,
     subs: options.Subs = True,
     output_dir: options.OutputDir = None,
     tag_prefix: options.TagPrefix = "",
@@ -97,11 +97,11 @@ def replay(
                 n_gameweeks=n_gameweeks,
                 num_free_transfers=num_free_transfers,
                 season=season,
-                chips=ChipWeeks(
-                    wildcard=wildcard_week,
-                    free_hit=free_hit_week,
-                    triple_captain=triple_captain_week,
-                    bench_boost=bench_boost_week,
+                chips=ChipGameweeks(
+                    wildcard=wildcard_gameweek,
+                    free_hit=free_hit_gameweek,
+                    triple_captain=triple_captain_gameweek,
+                    bench_boost=bench_boost_gameweek,
                 ),
                 # replay never touches the real entry or the live API
                 refresh_database=False,

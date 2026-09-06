@@ -154,11 +154,13 @@ def get_status_from_attributes_history(
     ):
         for known_unavailability in ["international duty", "parent club"]:
             if known_unavailability in news.lower():
-                gw_fixtures = get_fixtures_for_gameweeks(
+                gameweek_fixtures = get_fixtures_for_gameweeks(
                     [fixture.gameweek], fixture.season, dbsession
                 )
-                gw_deadline = min(parse_date(f.date) for f in gw_fixtures)
-                return _get_availability_on_date(gw_deadline, player, player_attributes)
+                gameweek_deadline = min(parse_date(f.date) for f in gameweek_fixtures)
+                return _get_availability_on_date(
+                    gameweek_deadline, player, player_attributes
+                )
     return news, chance_of_playing
 
 
@@ -281,12 +283,14 @@ def fill_playerscores_from_json(
 
 def fill_playerscores_from_api(
     season: str,
-    gw_start: int = 1,
-    gw_end: int | None = None,
+    gameweek_start: int = 1,
+    gameweek_end: int | None = None,
     dbsession: Session | None = None,
 ) -> None:
     fetcher = get_fetcher()
-    gw_end = next_gameweek(fetcher=fetcher) if gw_end is None else gw_end
+    gameweek_end = (
+        next_gameweek(fetcher=fetcher) if gameweek_end is None else gameweek_end
+    )
     dbsession = dbsession if dbsession is not None else get_session()
     mapper = sqla_inspect(PlayerScore)
     extended_feats = [
@@ -329,7 +333,7 @@ def fill_playerscores_from_api(
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in
         for gameweek, results in player_data.items():
-            if gameweek not in range(gw_start, gw_end):
+            if gameweek not in range(gameweek_start, gameweek_end):
                 continue
             for result in results:
                 # try to find the match in the match table

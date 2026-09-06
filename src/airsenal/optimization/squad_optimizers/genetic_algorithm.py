@@ -16,10 +16,11 @@ from airsenal.game.enums import Position
 from airsenal.game.scoring import SQUAD_SIZE
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.squad_score import (
+    SquadScoringConfig,
     get_discounted_squad_score,
 )
 from airsenal.squad.player import DummyPlayer
-from airsenal.squad.squad import TOTAL_PER_POSITION, Squad, SubWeights
+from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
 
@@ -64,38 +65,42 @@ class SquadOpt:
     DEAP-based optimization of a fantasy football squad.
 
     Args:
-        budget: Total squad budget in tenths of a million, so 1000 is £100m.
+        scoring: The budget, the bench weighting and what a placeholder costs -
+            see `SquadScoringConfig`. Required rather than defaulted, so that a
+            squad is never scored with a bench weighting nobody chose.
         players_per_position: How many players to optimize in each position.
             Anything short of a full squad leaves the rest as dummies.
         remove_zero: If True, players with a predicted total of zero points are
             not considered at all.
-        sub_weights: How much a substitute's points are worth relative to a
-            starter's; see `airsenal.squad.squad`.
-        dummy_sub_cost: Price assumed for each player not being optimized, so
-            optimizing 12 of 15 leaves `budget - 3 * dummy_sub_cost` to spend.
+        root_gameweek: The gameweek every price and club is read as at, and the
+            origin the discount decays from. Defaults to the first of `gameweeks`,
+            which is right for a squad built from scratch; a wildcard part-way
+            through a transfer plan passes that plan's root instead. See
+            `optimization.protocols.TransferRequest.root_gameweek`.
     """
 
     def __init__(
         self,
         gameweeks: list[int],
         tag: str,
-        budget: int = 1000,
-        dummy_sub_cost: int = 45,
+        root_gameweek: int | None = None,
         season: str = CURRENT_SEASON,
-        bench_boost_gw: int | None = None,
-        triple_captain_gw: int | None = None,
+        bench_boost_gameweek: int | None = None,
+        triple_captain_gameweek: int | None = None,
         remove_zero: bool = True,
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
         *,
-        sub_weights: SubWeights,
+        scoring: SquadScoringConfig,
         dbsession: Session | None = None,
     ) -> None:
         self.dbsession = dbsession
         self.season = season
         self.gameweeks = gameweeks
-        self.start_gw = min(gameweeks)
-        self.bench_boost_gw = bench_boost_gw
-        self.triple_captain_gw = triple_captain_gw
+        self.root_gameweek = (
+            root_gameweek if root_gameweek is not None else min(gameweeks)
+        )
+        self.bench_boost_gameweek = bench_boost_gameweek
+        self.triple_captain_gameweek = triple_captain_gameweek
 
         self.tag = tag
         self.positions = list(Position.back_to_front())
@@ -103,9 +108,7 @@ class SquadOpt:
         self.n_opt_players = sum(self.players_per_position.values())
         # no. players each position that won't be optimised (just filled with dummies)
         self.dummy_per_position = self._get_dummy_per_position()
-        self.dummy_sub_cost = dummy_sub_cost
-        self.budget = budget
-        self.sub_weights = sub_weights
+        self.scoring = scoring
 
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
@@ -178,12 +181,12 @@ class SquadOpt:
         Over budget, too many players from one club, or a duplicated player all
         score zero rather than raising, which is how the GA discards them.
         """
-        squad = Squad(budget=self.budget, season=self.season)
+        squad = Squad(budget=self.scoring.budget, season=self.season)
 
         for idx in individual:
             add_ok = squad.add_player(
                 self.players[int(idx)].player_id,
-                gameweek=self.start_gw,
+                gameweek=self.root_gameweek,
                 dbsession=self.dbsession,
             )
             if not add_ok:
@@ -197,7 +200,7 @@ class SquadOpt:
                         self.gameweeks,
                         pos,
                         self.tag,
-                        purchase_price=self.dummy_sub_cost,
+                        purchase_price=self.scoring.dummy_sub_cost,
                     )
                     add_ok = squad.add_player(dp)
                     if not add_ok:
@@ -212,17 +215,17 @@ class SquadOpt:
             squad,
             self.gameweeks,
             self.tag,
-            self.gameweeks[0],
-            self.bench_boost_gw,
-            self.triple_captain_gw,
-            sub_weights=self.sub_weights,
+            self.root_gameweek,
+            self.bench_boost_gameweek,
+            self.triple_captain_gameweek,
+            sub_weights=self.scoring.sub_weights,
         )
 
         return (score,)
 
     def _get_player_list(self) -> tuple[list[Player], dict[Position, tuple[int, int]]]:
         """
-        The players active at the start of the window, and where each position sits.
+        The players active as at the root gameweek, and where each position sits.
 
         The list is grouped by position, so the second return value is the
         (first, last) index of each position's block within it.
@@ -234,7 +237,7 @@ class SquadOpt:
             players += list_players(
                 position=pos,
                 season=self.season,
-                gameweek=self.start_gw,
+                gameweek=self.root_gameweek,
                 dbsession=self.dbsession,
             )
             change_idx.append(len(players))
@@ -254,10 +257,14 @@ class SquadOpt:
         change_idx = [0]
         last_pos: str | None = self.positions[0]
         for p in self.players:
-            gw_pts = get_predicted_points_for_player(
+            gameweek_points = get_predicted_points_for_player(
                 p, self.tag, season=self.season, dbsession=self.dbsession
             )
-            total_pts = sum(pts for gw, pts in gw_pts.items() if gw in self.gameweeks)
+            total_pts = sum(
+                pts
+                for gameweek, pts in gameweek_points.items()
+                if gameweek in self.gameweeks
+            )
             if total_pts > 0:
                 if p.position(self.season) != last_pos:
                     change_idx.append(len(players))
@@ -375,15 +382,14 @@ class SquadOpt:
 def make_new_squad(
     gameweeks: list[int],
     tag: str,
-    budget: int = 1000,
     players_per_position: dict[str, int] = TOTAL_PER_POSITION,
+    root_gameweek: int | None = None,
     season: str = CURRENT_SEASON,
-    bench_boost_gw: int | None = None,
-    triple_captain_gw: int | None = None,
+    bench_boost_gameweek: int | None = None,
+    triple_captain_gameweek: int | None = None,
     remove_zero: bool = True,
     *,
-    sub_weights: SubWeights,
-    dummy_sub_cost: int = 45,
+    scoring: SquadScoringConfig,
     ga_config: GeneticAlgorithmConfig | None = None,
     on_generation: GenerationReporter | None = None,
     dbsession: Session | None = None,
@@ -391,8 +397,8 @@ def make_new_squad(
     """
     Optimize a full initial squad using the DEAP genetic algorithm.
 
-    Everything up to `dummy_sub_cost` is passed straight to `SquadOpt`, which
-    documents it. Beyond that:
+    Everything up to `scoring` is passed straight to `SquadOpt`, which documents
+    it. Beyond that:
 
     Args:
         ga_config: Population size, generations, operator probabilities and seed.
@@ -403,14 +409,13 @@ def make_new_squad(
     opt_squad = SquadOpt(
         gameweeks,
         tag,
-        budget=budget,
         players_per_position=players_per_position,
-        dummy_sub_cost=dummy_sub_cost,
+        root_gameweek=root_gameweek,
         season=season,
-        bench_boost_gw=bench_boost_gw,
-        triple_captain_gw=triple_captain_gw,
+        bench_boost_gameweek=bench_boost_gameweek,
+        triple_captain_gameweek=triple_captain_gameweek,
         remove_zero=remove_zero,
-        sub_weights=sub_weights,
+        scoring=scoring,
         dbsession=dbsession,
     )
 
@@ -420,20 +425,23 @@ def make_new_squad(
     logger.debug("Best score: %s pts", best_fitness)
 
     # Construct optimal squad
-    squad = Squad(budget=opt_squad.budget, season=season)
+    squad = Squad(budget=opt_squad.scoring.budget, season=season)
     for idx in best_individual:
         player = opt_squad.players[int(idx)]
-        price = player.price(1, season)
+        # As at the gameweek the squad was chosen for, which is what it was
+        # scored and costed at; a hardcoded gameweek 1 logged a different price
+        # from the one the search had actually spent.
+        price = player.price(opt_squad.root_gameweek, season)
         logger.debug(
             "%s %s %s %s",
             player.position(season),
             player,
-            player.team(1, season),
+            player.team(opt_squad.root_gameweek, season),
             price / 10 if price is not None else None,
         )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
-            gameweek=opt_squad.start_gw,
+            gameweek=opt_squad.root_gameweek,
             dbsession=dbsession,
         )
 
@@ -445,7 +453,7 @@ def make_new_squad(
                     opt_squad.gameweeks,
                     pos,
                     opt_squad.tag,
-                    purchase_price=opt_squad.dummy_sub_cost,
+                    purchase_price=opt_squad.scoring.dummy_sub_cost,
                 )
                 squad.add_player(dp)
                 logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
@@ -454,7 +462,8 @@ def make_new_squad(
 
     if not squad.is_complete():
         msg = (
-            f"The squad search found no legal squad within £{budget / 10}m: the "
+            f"The squad search found no legal squad within "
+            f"£{scoring.budget / 10}m: the "
             f"best of {ga_config.population_size} individuals over "
             f"{ga_config.generations} generations holds {len(squad.players)} of "
             f"{SQUAD_SIZE} players. Raise the budget, or widen the pool of "

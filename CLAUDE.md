@@ -116,7 +116,9 @@ Full versions in [CodingConventions.md](CodingConventions.md). The machine-check
 - **Positions and chips:** use the `Position` and `Chip` enums from `game/enums.py`, not
   bare strings (`"all"` is still a plain string where a position filter accepts it).
   Enforced by `tests/test_naming_conventions.py`.
-- **Gameweek naming:** `gameweek`, `gameweeks`, `n_gameweeks`. Same test.
+- **Gameweek naming:** `gameweek`, `gameweeks`, `n_gameweeks`, and the word is
+  always written out - `gameweek_start`, `bench_boost_gameweek`, never `gw` or
+  `week`. Same test, over every name a module introduces.
 - **Argument order:** four groups — what it is about (`player_id`/`player`, `position`,
   `team`), which run (`tag`), when (`gameweek`, `season`), what it talks to
   (`fpl_team_id`, `fetcher`, `dbsession`), then `verbose`. Anything unlisted goes first.

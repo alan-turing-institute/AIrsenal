@@ -67,8 +67,8 @@ def update_results(season: str, dbsession: Session) -> bool:
     when the database is already level with the last finished gameweek.
     """
     fetcher = get_fetcher()
-    next_gw = next_gameweek(fetcher=fetcher)
-    if next_gw == 1:
+    gameweek = next_gameweek(fetcher=fetcher)
+    if gameweek == 1:
         logger.info("Season hasn't starting - skipping result updates")
         return False
 
@@ -94,8 +94,8 @@ def update_results(season: str, dbsession: Session) -> bool:
     if last_results < last_finished:
         logger.info("Updating results table ...")
         fill_results_from_api(
-            gw_start=last_results + 1,
-            gw_end=next_gw,
+            gameweek_start=last_results + 1,
+            gameweek_end=gameweek,
             season=season,
             dbsession=dbsession,
         )
@@ -103,8 +103,8 @@ def update_results(season: str, dbsession: Session) -> bool:
         logger.info("Updating playerscores table ...")
         fill_playerscores_from_api(
             season=season,
-            gw_start=last_scores + 1,
-            gw_end=next_gw,
+            gameweek_start=last_scores + 1,
+            gameweek_end=gameweek,
             dbsession=dbsession,
         )
 
@@ -181,7 +181,7 @@ def update_attributes(season: str, dbsession: Session) -> None:
     logger.info("Updating attributes table ...")
     fill_attributes_table_from_api(
         season=season,
-        gw_start=last_in_db,
+        gameweek_start=last_in_db,
         dbsession=dbsession,
     )
 

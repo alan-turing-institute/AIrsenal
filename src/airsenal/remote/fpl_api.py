@@ -251,10 +251,10 @@ class FPLDataFetcher:
         """
         event_data = self.get_event_data()
         last_finished = 0
-        for gw in sorted(event_data.keys()):
-            if not event_data[gw]["is_finished"]:
+        for gameweek in sorted(event_data.keys()):
+            if not event_data[gameweek]["is_finished"]:
                 return last_finished
-            last_finished = gw
+            last_finished = gameweek
         return last_finished
 
     def get_player_summary_data(self) -> dict[int, dict[str, Any]]:
@@ -306,10 +306,10 @@ class FPLDataFetcher:
                     f"Error retrieving data for player {player_api_id}",
                 )
                 for game in player_detail["history"]:
-                    gw = game["round"]
-                    if gw not in self.player_gameweek_data[player_api_id]:
-                        self.player_gameweek_data[player_api_id][gw] = []
-                    self.player_gameweek_data[player_api_id][gw].append(game)
+                    played_in = game["round"]
+                    if played_in not in self.player_gameweek_data[player_api_id]:
+                        self.player_gameweek_data[player_api_id][played_in] = []
+                    self.player_gameweek_data[player_api_id][played_in].append(game)
         if not gameweek:
             return self.player_gameweek_data[player_api_id]
 

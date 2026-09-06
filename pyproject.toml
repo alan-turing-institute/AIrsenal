@@ -176,8 +176,8 @@ convention = "google"
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.
 [tool.ruff.lint.pylint]
-max-args = 13          # make_new_squad, calc_predicted_points_for_player
-max-positional-args = 13  # make_new_squad
+max-args = 13          # calc_predicted_points_for_player
+max-positional-args = 12  # run_optimization
 max-branches = 19      # find_fixture, FPLAuth._login_flow
 max-statements = 80    # fill_attributes_table_from_api
 max-returns = 12       # FPLAuth._login_flow
@@ -275,13 +275,13 @@ source = ["src/airsenal"]
 branch = true
 
 # A floor, not a target, and a ratchet like the complexity limits above: today's
-# figure is 58%, so this fails a change that makes coverage meaningfully worse
+# figure is 66%, so this fails a change that makes coverage meaningfully worse
 # while leaving room for the run-to-run variation in the dummy fixtures. Raise it
 # as coverage improves; never lower it. Without a number here the whole
 # measurement was decoration - CI reported coverage and nothing acted on it, so
 # deleting a test suite passed.
 [tool.coverage.report]
-fail_under = 57
+fail_under = 65
 
 [tool.importlinter]
 root_package = "airsenal"

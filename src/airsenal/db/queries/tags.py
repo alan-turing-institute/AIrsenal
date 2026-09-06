@@ -74,9 +74,9 @@ def check_tag_valid(
         .distinct()
     ).all()
     pred_seasons = [f[0] for f in fixtures]
-    pred_gws = [f[1] for f in fixtures]
+    prediction_gameweeks = [f[1] for f in fixtures]
 
     season_ok = all(s == season for s in pred_seasons)
-    gws_ok = all(gw in pred_gws for gw in gameweeks)
+    gameweeks_ok = all(gameweek in prediction_gameweeks for gameweek in gameweeks)
 
-    return season_ok and gws_ok
+    return season_ok and gameweeks_ok

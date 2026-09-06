@@ -16,8 +16,9 @@ def absence_gameweeks(
     """
     The (from, until) gameweek ranges a player was absent for in a past season.
 
-    Half-open: `gw_from` is the first gameweek missed and `gw_until` the gameweek
-    they returned in, so the two are equal when nothing was missed at all.
+    Half-open: `gameweek_from` is the first gameweek missed and `gameweek_until`
+    the gameweek they returned in, so the two are equal when nothing was missed
+    at all.
 
     One query per player per season rather than one per player per fixture: this
     is read from the innermost loop of the points prediction, and over a whole
@@ -31,26 +32,41 @@ def absence_gameweeks(
             Absence.player_id == player_id,
         )
     ).all()
-    return tuple((a.gw_from, a.gw_until) for a in absences if a.gw_until is not None)
+    return tuple(
+        (a.gameweek_from, a.gameweek_until)
+        for a in absences
+        if a.gameweek_until is not None
+    )
 
 
 def was_historic_absence(
-    player: Player, gameweek: int, season: str, dbsession: Session | None = None
+    player: Player,
+    current_gameweek: int,
+    fixture_gameweek: int,
+    season: str,
+    dbsession: Session | None = None,
 ) -> bool:
     """
-    Whether a player was injured or suspended in a past gameweek.
+    Whether a player was already absent, and still absent for a later fixture.
+
+    The two gameweeks are different points in time, as in
+    `Player.is_injured_or_suspended`, which this is the past-season counterpart of:
+    `current_gameweek` is when we are asking, `fixture_gameweek` the fixture we
+    are asking about. An absence beginning after `current_gameweek` has not
+    happened yet, so it does not count - a replay must not rule a player out of a
+    gameweek on the strength of an injury they had not picked up at the time.
 
     Always False for the current season - the Absence table only covers seasons
     that have finished, and the FPL API is what says who is out now.
     """
     if season == CURRENT_SEASON:
         return False
-    # `gw_from <=`, not `<`: ingest resolves it to the team's next match on or
+    # `gameweek_from <=`, not `<`: ingest resolves it to the team's next match on or
     # after the day the absence began, so it is the first gameweek missed rather
     # than the last one played.
     return any(
-        gw_from <= gameweek < gw_until
-        for gw_from, gw_until in absence_gameweeks(
+        gameweek_from <= current_gameweek and fixture_gameweek < gameweek_until
+        for gameweek_from, gameweek_until in absence_gameweeks(
             player.player_id, season, dbsession=dbsession
         )
     )

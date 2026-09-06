@@ -16,7 +16,7 @@ from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
 from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.optimization.moves import ChipSchedule, ChipWeeks
+from airsenal.optimization.moves import ChipGameweeks, ChipSchedule
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
 from airsenal.optimization.protocols import (
@@ -75,12 +75,20 @@ def transfer_rows(
     fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ) -> list[TransferRow]:
-    """Replay the plan's transfers to find the price each was made at."""
+    """
+    Replay the plan's transfers to find the price each was made at.
+
+    Every price is read as at the plan's root gameweek, because that is what the
+    search spent: see `optimization.protocols.TransferRequest.root_gameweek`.
+    """
     dbsession = dbsession if dbsession is not None else get_session()
     squad = starting_squad
+    # The gameweek the prices come from, as opposed to the gameweek each row is
+    # reported under, which is the one the transfer is made in.
+    priced_at = plan.root_gameweek
     rows = []
     for outcome in plan.outcomes:
-        gw = outcome.gameweek
+        gameweek = outcome.gameweek
         # A free hit is reverted after the gameweek it is played in, so the search
         # plans the next gameweek from the squad that went into this one. The walk
         # has to put it back the same way or it prices the following gameweek's
@@ -93,25 +101,25 @@ def transfer_rows(
             sale_price = squad.get_sell_price_for_player(
                 pid_out,
                 use_api=use_api,
-                gameweek=gw,
+                gameweek=priced_at,
                 dbsession=dbsession,
                 fetcher=fetcher,
             )
-            squad.remove_player(pid_out, price=sale_price, gameweek=gw)
+            squad.remove_player(pid_out, price=sale_price, gameweek=priced_at)
 
             in_player = get_player(pid_in, dbsession=dbsession)
-            purchase_price = in_player.price(gw, season) if in_player else None
+            purchase_price = in_player.price(priced_at, season) if in_player else None
             squad.add_player(
                 pid_in,
                 price=purchase_price,
-                gameweek=gw,
+                gameweek=priced_at,
                 check_budget=False,
                 check_team=False,
                 dbsession=dbsession,
             )
             rows.append(
                 TransferRow(
-                    gameweek=gw,
+                    gameweek=gameweek,
                     player_out=str(out_player),
                     position_out=out_player.position,
                     team_out=out_player.team,
@@ -122,7 +130,7 @@ def transfer_rows(
                         else str(get_player_name(pid_in) or pid_in)
                     ),
                     position_in=in_player.position(season) if in_player else None,
-                    team_in=in_player.team(gw, season) if in_player else None,
+                    team_in=in_player.team(priced_at, season) if in_player else None,
                     purchase_price=purchase_price,
                 )
             )
@@ -144,7 +152,7 @@ def plan_rows(plan: Plan) -> list[GameweekRow]:
     ]
 
 
-def squad_for_next_gw(
+def squad_for_next_gameweek(
     plan: Plan,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
@@ -152,16 +160,20 @@ def squad_for_next_gw(
 ) -> Squad:
     """The squad the plan's first gameweek leaves us with."""
     outcome = plan.outcomes[0]
+    gameweek = outcome.gameweek
     squad = get_starting_squad(
-        next_gw=outcome.gameweek,
+        gameweek=gameweek,
         season=season,
         fpl_team_id=fpl_team_id,
         use_api=use_api,
     )
+    # Every price and club here is read as at the gameweek the move is made in.
+    # Left to default these take the *current* season's next gameweek, which is
+    # not this plan's gameweek at all when replaying a past season.
     for pid_out in outcome.players_out:
-        squad.remove_player(pid_out)
+        squad.remove_player(pid_out, gameweek=gameweek)
     for pid_in in outcome.players_in:
-        squad.add_player(pid_in)
+        squad.add_player(pid_in, gameweek=gameweek)
     return squad
 
 
@@ -170,7 +182,7 @@ def new_squad_from_scratch(
     tag: str,
     season: str,
     fpl_team_id: int,
-    chips: ChipWeeks,
+    chips: ChipGameweeks,
     squad_optimizer: SquadOptimizer | None = None,
     scoring: SquadScoringConfig | None = None,
     is_replay: bool = False,
@@ -195,7 +207,7 @@ def run_optimization(
     tag: str,
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
-    chips: ChipWeeks | None = None,
+    chips: ChipGameweeks | None = None,
     num_free_transfers: int | None = None,
     constraints: TransferConstraints | None = None,
     optimizer: TransferOptimizer | None = None,
@@ -207,11 +219,11 @@ def run_optimization(
     """
     Search every move-and-gameweek combination for the best whole-window plan.
 
-    Each chip week is -1 not to play that chip at all, 0 to let the search
+    Each chip gameweek is -1 not to play that chip at all, 0 to let the search
     choose the gameweek, or the gameweek to play it in.
     """
     if chips is None:
-        chips = ChipWeeks()
+        chips = ChipGameweeks()
     if constraints is None:
         constraints = TransferConstraints()
     if optimizer is None:
@@ -226,14 +238,14 @@ def run_optimization(
         use_api = season == CURRENT_SEASON and not is_replay
         try:
             starting_squad = get_starting_squad(
-                next_gw=gameweeks[0],
+                gameweek=gameweeks[0],
                 season=season,
                 fpl_team_id=fpl_team_id,
                 use_api=use_api,
                 fetcher=fetcher,
             )
         except (ValueError, TypeError):
-            # first week for this squad?
+            # first gameweek for this squad?
             logger.warning(
                 "No existing squad or transfers found for team_id %s", fpl_team_id
             )
@@ -261,8 +273,8 @@ def run_optimization(
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
 
-        # Work out what chips we definitely or possibly will play in each gw
-        chip_schedule = ChipSchedule.from_weeks(gameweeks, chips)
+        # Work out what chips we definitely or possibly will play in each gameweek
+        chip_schedule = ChipSchedule.from_gameweeks(gameweeks, chips)
 
         result = optimizer.search(
             TransferSearchRequest(
@@ -317,7 +329,7 @@ def run_optimization(
     print_plan_table(plan)
     print_transfer_table(transfers)
 
-    best_squad = squad_for_next_gw(
+    best_squad = squad_for_next_gameweek(
         best_plan, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
     console.print(

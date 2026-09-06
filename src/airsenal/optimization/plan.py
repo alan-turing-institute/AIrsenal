@@ -139,7 +139,7 @@ def baseline_plan(
     squad: Squad,
     gameweeks: list[int],
     tag: str,
-    root_gw: int | None = None,
+    root_gameweek: int | None = None,
     *,
     sub_weights: SubWeights,
 ) -> Plan:
@@ -149,16 +149,20 @@ def baseline_plan(
     Scored with the same bench weighting as the plans it is compared against, or
     the comparison is between two different scoring functions.
     """
-    root_gw = root_gw if root_gw is not None else gameweeks[0]
+    root_gameweek = root_gameweek if root_gameweek is not None else gameweeks[0]
     outcomes = []
-    for gw in gameweeks:
-        discount_factor = get_discount_factor(root_gw, gw)
+    for gameweek in gameweeks:
+        discount_factor = get_discount_factor(root_gameweek, gameweek)
         outcomes.append(
             GameweekOutcome(
-                gameweek=gw,
+                gameweek=gameweek,
                 move=GameweekMove(),
                 points=get_discounted_squad_score(
-                    squad, [gw], tag, root_gw=root_gw, sub_weights=sub_weights
+                    squad,
+                    [gameweek],
+                    tag,
+                    root_gameweek=root_gameweek,
+                    sub_weights=sub_weights,
                 ),
                 discount_factor=discount_factor,
                 points_hit=0,
@@ -166,7 +170,7 @@ def baseline_plan(
                 bank=squad.budget,
             )
         )
-    return Plan(root_gameweek=root_gw, outcomes=tuple(outcomes))
+    return Plan(root_gameweek=root_gameweek, outcomes=tuple(outcomes))
 
 
 @dataclass(frozen=True)

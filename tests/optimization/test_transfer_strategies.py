@@ -94,7 +94,7 @@ def test_none_strategy_keeps_the_squad_and_advances_the_progress_bar():
         squad=squad,  # type: ignore[arg-type]
         tag="tag",
         gameweeks=[3, 4],
-        root_gw=3,
+        root_gameweek=3,
         season="2526",
         progress=count_step,
     )
@@ -118,13 +118,13 @@ def test_request_resolves_the_chip_gameweeks(chip, bench_boost, triple_captain):
         squad=object(),  # type: ignore[arg-type]
         tag="tag",
         gameweeks=[3, 4, 5],
-        root_gw=3,
+        root_gameweek=3,
         season="2526",
     )
     # chips apply to the gameweek being transferred for, not the whole window
     assert request.transfer_gameweek == 3
-    assert request.bench_boost_gw == bench_boost
-    assert request.triple_captain_gw == triple_captain
+    assert request.bench_boost_gameweek == bench_boost
+    assert request.triple_captain_gameweek == triple_captain
 
 
 @pytest.mark.parametrize(
@@ -152,7 +152,7 @@ def test_a_strategy_sizes_its_own_progress_bar(move, expected):
         squad=object(),  # type: ignore[arg-type]
         tag="tag",
         gameweeks=[3, 4],
-        root_gw=3,
+        root_gameweek=3,
         season="2526",
         num_iterations=100,
     )

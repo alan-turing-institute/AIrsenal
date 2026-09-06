@@ -99,8 +99,8 @@ def test_gameweek_chips_allows_only_unplayed_chips():
     assert chips.allows(Chip.BENCH_BOOST, []) is False
 
 
-def test_chip_schedule_from_weeks():
-    schedule = ChipSchedule.from_weeks(
+def test_chip_schedule_from_gameweeks():
+    schedule = ChipSchedule.from_gameweeks(
         [1, 2, 3],
         {
             Chip.WILDCARD: 0,  # any week
@@ -116,16 +116,16 @@ def test_chip_schedule_from_weeks():
 
 
 def test_chip_schedule_unknown_gameweek_allows_nothing():
-    schedule = ChipSchedule.from_weeks([1], {Chip.WILDCARD: 0})
+    schedule = ChipSchedule.from_gameweeks([1], {Chip.WILDCARD: 0})
     assert schedule.for_gameweek(7) == GameweekChips()
 
 
-def test_chip_schedule_rejects_two_chips_in_one_week():
-    with pytest.raises(ValueError, match="same week"):
-        ChipSchedule.from_weeks([1, 2], {Chip.WILDCARD: 1, Chip.FREE_HIT: 1})
+def test_chip_schedule_rejects_two_chips_in_one_gameweek():
+    with pytest.raises(ValueError, match="same gameweek"):
+        ChipSchedule.from_gameweeks([1, 2], {Chip.WILDCARD: 1, Chip.FREE_HIT: 1})
 
 
 def test_chip_schedule_accepts_chip_names_as_strings():
     # This is the shape the CLI hands over.
-    schedule = ChipSchedule.from_weeks([1, 2], {"wildcard": 2, "free_hit": -1})
+    schedule = ChipSchedule.from_gameweeks([1, 2], {"wildcard": 2, "free_hit": -1})
     assert schedule.for_gameweek(2) == GameweekChips(Chip.WILDCARD)

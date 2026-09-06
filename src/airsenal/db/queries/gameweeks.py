@@ -42,7 +42,7 @@ def get_max_gameweek(
     database gives a usable answer rather than an error.
     """
     dbsession = dbsession if dbsession is not None else get_session()
-    max_gw_fixture = dbsession.scalars(
+    max_gameweek_fixture = dbsession.scalars(
         select(Fixture)
         .where(Fixture.season == season, Fixture.gameweek.is_not(None))
         .order_by(Fixture.gameweek.desc())
@@ -50,8 +50,8 @@ def get_max_gameweek(
     ).first()
     return (
         38
-        if max_gw_fixture is None or max_gw_fixture.gameweek is None
-        else max_gw_fixture.gameweek
+        if max_gameweek_fixture is None or max_gameweek_fixture.gameweek is None
+        else max_gameweek_fixture.gameweek
     )
 
 
@@ -166,10 +166,10 @@ def get_return_gameweek_by_date(
     ).all()
 
     # default return if no fixture found after the date
-    end_season_gw = get_max_gameweek(season, dbsession=dbsession) + 1
+    end_season_gameweek = get_max_gameweek(season, dbsession=dbsession) + 1
 
     if len(fixtures) == 0:
-        return end_season_gw
+        return end_season_gameweek
 
     for fixture in fixtures:
         if fixture.date is None or fixture.gameweek is None:
@@ -179,7 +179,7 @@ def get_return_gameweek_by_date(
         if fixture_date >= return_date:
             return fixture.gameweek
 
-    return end_season_gw
+    return end_season_gameweek
 
 
 @cache_ignoring_session(maxsize=365)

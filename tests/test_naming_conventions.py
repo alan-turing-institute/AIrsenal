@@ -7,6 +7,7 @@ fail at runtime if broken, so they are asserted here instead.
 """
 
 import ast
+import re
 from pathlib import Path
 
 import pytest
@@ -23,11 +24,17 @@ POSITION_LITERALS = {"GK", "DEF", "MID", "FWD"}
 POSITION_LITERAL_EXEMPT = {"game/enums.py", "game/mappings.py"}
 
 # Chip is a StrEnum too, so the same argument applies. game/enums.py defines the
-# values. The other two exemptions are not chip references at all: the strings in
-# apply/transfers.py are the FPL API's own transfer-payload fields, and the ones
-# in export/db_dump.py are Transaction column names being written to a CSV header.
+# values. The rest are not chip references at all: game/mappings.py and
+# apply/transfers.py hold the FPL API's own spellings - the ones it puts in
+# `active_chip` and the fields its transfers endpoint takes - and the strings in
+# export/db_dump.py are Transaction column names being written to a CSV header.
 CHIP_LITERALS = {"wildcard", "free_hit", "bench_boost", "triple_captain"}
-CHIP_LITERAL_EXEMPT = {"game/enums.py", "apply/transfers.py", "export/db_dump.py"}
+CHIP_LITERAL_EXEMPT = {
+    "game/enums.py",
+    "game/mappings.py",
+    "apply/transfers.py",
+    "export/db_dump.py",
+}
 
 # old name -> what to use instead
 BANNED_PARAMETERS = {
@@ -87,6 +94,30 @@ def test_no_banned_parameter_names(path):
     assert not offenders, "\n".join(offenders)
 
 
+# A gameweek is spelled out, in every name and in every part of one: `gameweek`,
+# `gameweeks`, `n_gameweeks`, and where a qualifier is needed `gameweek_start` or
+# `bench_boost_gameweek`. `BANNED_PARAMETERS` above is a list of names; this is the
+# rule they were examples of, so a new abbreviation is caught the first time it is
+# written rather than after it has spread.
+#
+# `week` counts as an abbreviation too. The chip gameweeks reached the optimizer as
+# `bench_boost_week` and left it as `bench_boost_gw` - one value renamed halfway
+# down its own call chain, in a package where nothing measures a calendar week.
+GAMEWEEK_ABBREVIATIONS = {"gw", "gws", "week", "weeks"}
+
+
+def name_parts(name):
+    """The words in a name, whether it is snake_case, CamelCase or a --flag."""
+    parts = []
+    for chunk in re.split(r"[-_]", name.lstrip("-")):
+        parts += re.findall(r"[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+|\d+", chunk)
+    return [part.lower() for part in parts]
+
+
+def abbreviates_gameweek(name):
+    return any(part in GAMEWEEK_ABBREVIATIONS for part in name_parts(name))
+
+
 def named_nodes(tree):
     """Every name a module introduces, and the CLI flags it spells out."""
     for node in ast.walk(tree):
@@ -117,6 +148,31 @@ def test_no_banned_names_in_any_spelling(path):
         f"- use {BANNED_SPELLINGS[squashed(name)]}"
         for name, lineno in named_nodes(ast.parse(path.read_text()))
         if squashed(name) in BANNED_SPELLINGS
+    ]
+    assert not offenders, "\n".join(offenders)
+
+
+@pytest.mark.parametrize("path", source_files(), ids=lambda p: str(p.relative_to(SRC)))
+def test_a_gameweek_is_never_abbreviated(path):
+    """
+    Nothing is named `gw` or `week`, in any part of any name.
+
+    Both of the checks above and `tests/test_argument_order.py` match names
+    exactly, so a parameter spelled `next_gw` was invisible to all three: it is
+    not on any banned list, and it is not `gameweek`, so the argument order said
+    nothing about where it went either.
+    """
+    tree = ast.parse(path.read_text())
+    named = list(named_nodes(tree))
+    named += [
+        (arg.arg, arg.lineno)
+        for node in functions_in(path)
+        for arg in parameters_of(node)
+    ]
+    offenders = [
+        f"{path.relative_to(SRC)}:{lineno} {name} - a gameweek is spelled out"
+        for name, lineno in named
+        if abbreviates_gameweek(name)
     ]
     assert not offenders, "\n".join(offenders)
 

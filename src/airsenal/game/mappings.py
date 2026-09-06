@@ -1,6 +1,18 @@
 """Map between the naming conventions of the different data sources."""
 
+from airsenal.game.enums import Chip
+
 positions = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD", 5: "MNG"}
+
+# What an entry's `active_chip` says when each chip was played that gameweek.
+# The API's spellings, which are its own: no underscore in "freehit", and short
+# forms for the two lineup chips.
+chips_by_api_name = {
+    "wildcard": Chip.WILDCARD,
+    "freehit": Chip.FREE_HIT,
+    "bboost": Chip.BENCH_BOOST,
+    "3xc": Chip.TRIPLE_CAPTAIN,
+}
 
 alternative_team_names = {
     "ARS": ["1", "Arsenal", "Arsenal FC"],

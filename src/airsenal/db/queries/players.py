@@ -228,6 +228,45 @@ def get_player_from_api_id(
     return None
 
 
+# The `require_` lookups are for callers that have nothing to do with a missing
+# player - most of `apply/`, which is assembling a request for the FPL API and
+# cannot leave a hole in it. They wrap the `get_` lookups above rather than
+# replacing them: a caller that can carry on without the player still wants None.
+
+
+def require_player(
+    player_name_or_id: str | int, dbsession: Session | None = None
+) -> Player:
+    """As `get_player`, but a missing player raises rather than returning None."""
+    player = get_player(player_name_or_id, dbsession=dbsession)
+    if player is None:
+        msg = f"Player {player_name_or_id} not found in database"
+        raise ValueError(msg)
+    return player
+
+
+def require_player_from_api_id(api_id: int, dbsession: Session | None = None) -> Player:
+    """As `get_player_from_api_id`, but a missing player raises."""
+    player = get_player_from_api_id(api_id, dbsession=dbsession)
+    if player is None:
+        msg = f"Player with FPL API ID {api_id} not found in database"
+        raise ValueError(msg)
+    return player
+
+
+def require_api_id(player: Player) -> int:
+    """
+    A player's `fpl_api_id`, raising when the database does not have one.
+
+    Players seeded from historical data alone never had one, and the FPL API
+    cannot be told about a player it has no id for.
+    """
+    if player.fpl_api_id is None:
+        msg = f"Player {player} has no FPL API ID"
+        raise ValueError(msg)
+    return player.fpl_api_id
+
+
 def get_player_name(player_id: int, dbsession: Session | None = None) -> str | None:
     """Look a player's name up from their id, for human readability."""
     if p := get_player(player_id, dbsession):
@@ -279,19 +318,25 @@ def list_players(
         team != "all" and team not in teams_with_fixture
     ):
         # check neighbouring gameweeks to get all 20 teams/specified team
-        gws_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
-        max_gw = get_max_gameweek(season, dbsession=dbsession)
-        gws_to_try = [gw for gw in gws_to_try if gw > 0 and gw <= max_gw]
+        gameweeks_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
+        max_gameweek = get_max_gameweek(season, dbsession=dbsession)
+        gameweeks_to_try = [
+            neighbour
+            for neighbour in gameweeks_to_try
+            if neighbour > 0 and neighbour <= max_gameweek
+        ]
 
-        for gw in gws_to_try:
+        for neighbour in gameweeks_to_try:
             fixtures = get_fixture_teams(
-                get_fixtures_for_gameweeks([gw], season=season, dbsession=dbsession)
+                get_fixtures_for_gameweeks(
+                    [neighbour], season=season, dbsession=dbsession
+                )
             )
             new_teams = [t for fixture in fixtures for t in fixture]
 
             if team == "all" and any(t not in teams_with_fixture for t in new_teams):
                 # this gameweek has some teams we haven't seen before
-                gameweeks.append(gw)
+                gameweeks.append(neighbour)
                 for t in new_teams:
                     teams_with_fixture.add(t)
                 if len(teams_with_fixture) == 20:
@@ -299,7 +344,7 @@ def list_players(
 
             elif team != "all" and team in new_teams:
                 # this gameweek has the team we're looking for
-                gameweeks.append(gw)
+                gameweeks.append(neighbour)
                 break
 
     query = select(PlayerAttributes).where(
@@ -316,7 +361,7 @@ def list_players(
     if len(gameweeks) > 1:
         # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
-        _whens = {gw: i for i, gw in enumerate(gameweeks)}
+        _whens = {queried: i for i, queried in enumerate(gameweeks)}
         sort_order = case(_whens, value=PlayerAttributes.gameweek)
         query = query.order_by(sort_order)
     if order_by == "price":
@@ -338,7 +383,7 @@ def list_players(
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
         sort_players = sorted(
-            zip(prices, players, strict=False), reverse=True, key=lambda p: p[0]
+            zip(prices, players, strict=True), reverse=True, key=lambda p: p[0]
         )
         for price, player in sort_players:
             logger.debug("%s %s", player, price)

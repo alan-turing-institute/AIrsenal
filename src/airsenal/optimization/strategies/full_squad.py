@@ -36,11 +36,11 @@ class FullSquadStrategy:
     def propose(self, request: TransferRequest) -> Proposal:
         move = request.move
         players_out = [p.player_id for p in request.squad.players]
-        budget = request.squad.sale_value(request.root_gw, use_api=False)
+        budget = request.squad.sale_value(request.root_gameweek, use_api=False)
 
         gameweeks = request.gameweeks
         if not move.carry_forward:
-            # a free hit is reverted afterwards, so only this week's score matters
+            # a free hit is reverted afterwards, so only this gameweek's score counts
             gameweeks = [request.transfer_gameweek]
 
         new_squad = self._optimizer(request).optimize(
@@ -48,9 +48,10 @@ class FullSquadStrategy:
                 gameweeks=gameweeks,
                 tag=request.tag,
                 season=request.season,
+                root_gameweek=request.root_gameweek,
                 scoring=replace(request.scoring, budget=budget),
-                bench_boost_gw=request.bench_boost_gw,
-                triple_captain_gw=request.triple_captain_gw,
+                bench_boost_gameweek=request.bench_boost_gameweek,
+                triple_captain_gameweek=request.triple_captain_gameweek,
                 effort=request.num_iterations,
                 progress=lambda _best_score: request.advance_progress(),
             )

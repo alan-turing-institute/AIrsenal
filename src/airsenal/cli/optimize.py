@@ -8,7 +8,7 @@ from airsenal.cli import options
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.optimization.moves import ChipWeeks
+from airsenal.optimization.moves import ChipGameweeks
 from airsenal.optimization.protocols import (
     DEFAULT_MAX_OPT_TRANSFERS,
     DEFAULT_MAX_TOTAL_HIT,
@@ -44,10 +44,10 @@ def transfers(
     season: options.Season = CURRENT_SEASON,
     fpl_team_id: options.FplTeamId = None,
     # --- chips ---
-    wildcard_week: options.WildcardWeek = -1,
-    free_hit_week: options.FreeHitWeek = -1,
-    triple_captain_week: options.TripleCaptainWeek = -1,
-    bench_boost_week: options.BenchBoostWeek = -1,
+    wildcard_gameweek: options.WildcardGameweek = -1,
+    free_hit_gameweek: options.FreeHitGameweek = -1,
+    triple_captain_gameweek: options.TripleCaptainGameweek = -1,
+    bench_boost_gameweek: options.BenchBoostGameweek = -1,
     # --- optimisation ---
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
@@ -69,11 +69,11 @@ def transfers(
         gameweek_start=gameweek_start,
         gameweek_end=gameweek_end,
         tag=tag,
-        chips=ChipWeeks(
-            wildcard=wildcard_week,
-            free_hit=free_hit_week,
-            triple_captain=triple_captain_week,
-            bench_boost=bench_boost_week,
+        chips=ChipGameweeks(
+            wildcard=wildcard_gameweek,
+            free_hit=free_hit_gameweek,
+            triple_captain=triple_captain_gameweek,
+            bench_boost=bench_boost_gameweek,
         ),
         num_free_transfers=num_free_transfers,
         max_hit=max_hit,
@@ -158,7 +158,7 @@ def _run_transfer_optimization(
     gameweek_start: int | None,
     gameweek_end: int | None,
     tag: str | None,
-    chips: ChipWeeks,
+    chips: ChipGameweeks,
     num_free_transfers: int | None,
     max_hit: int,
     allow_unused: bool,

@@ -18,57 +18,59 @@ class SquadScoringConfig:
 
 
 def get_discount_factor(
-    next_gw: int, pred_gw: int, discount: float = DEFAULT_DISCOUNT
+    root_gameweek: int, gameweek: int, discount: float = DEFAULT_DISCOUNT
 ) -> float:
     """
-    How much a gameweek `pred_gw - next_gw` weeks out counts towards a score.
+    How much a gameweek counts towards a score, given how far ahead of the root it is.
 
     `discount ** n_ahead`, so the weight decays geometrically and never reaches
     zero.
     """
-    return discount ** (pred_gw - next_gw)
+    return discount ** (gameweek - root_gameweek)
 
 
 def get_discounted_squad_score(
     squad: Squad,
     gameweeks: list[int],
     tag: str,
-    root_gw: int | None = None,
-    bench_boost_gw: int | None = None,
-    triple_captain_gw: int | None = None,
+    root_gameweek: int | None = None,
+    bench_boost_gameweek: int | None = None,
+    triple_captain_gameweek: int | None = None,
     *,
     sub_weights: SubWeights,
 ) -> float:
     """
     Points a squad is expected to score across `gameweeks`, discounted.
 
-    Gameweeks further from `root_gw` count for less; see `get_discount_factor`.
-    `root_gw` defaults to the first gameweek in the list.
+    Gameweeks further from `root_gameweek` count for less; see `get_discount_factor`.
+    `root_gameweek` defaults to the first gameweek in the list.
 
     Args:
         sub_weights: How much the bench counts outside a bench-boost gameweek.
             `SubWeights.none()` to ignore it.
     """
-    if root_gw is None:
-        root_gw = gameweeks[0]
+    if root_gameweek is None:
+        root_gameweek = gameweeks[0]
     total_points = 0.0
-    for gw in gameweeks:
-        gw_weight = get_discount_factor(root_gw, gw)
-        if gw == bench_boost_gw:
+    for gameweek in gameweeks:
+        gameweek_weight = get_discount_factor(root_gameweek, gameweek)
+        if gameweek == bench_boost_gameweek:
             total_points += (
-                squad.get_expected_points(tag, gw, bench_boost=True) * gw_weight
+                squad.get_expected_points(tag, gameweek, bench_boost=True)
+                * gameweek_weight
             )
-        elif gw == triple_captain_gw:
+        elif gameweek == triple_captain_gameweek:
             total_points += (
-                squad.get_expected_points(tag, gw, triple_captain=True) * gw_weight
+                squad.get_expected_points(tag, gameweek, triple_captain=True)
+                * gameweek_weight
             )
         else:
-            total_points += squad.get_expected_points(tag, gw) * gw_weight
+            total_points += squad.get_expected_points(tag, gameweek) * gameweek_weight
 
-        if gw != bench_boost_gw:
-            total_points += gw_weight * squad.total_points_for_subs(
+        if gameweek != bench_boost_gameweek:
+            total_points += gameweek_weight * squad.total_points_for_subs(
                 tag,
-                gw,
+                gameweek,
                 sub_weights=sub_weights,
             )
 

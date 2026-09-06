@@ -116,6 +116,7 @@ def dump_db() -> None:
         "id",
         "fpl_team_id",
         "free_hit",
+        "counts_as_transfer",
         "time",
         "player_id",
         "gameweek",

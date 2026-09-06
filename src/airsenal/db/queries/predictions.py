@@ -81,10 +81,10 @@ def _predicted_points_for_player_id(
             ppdict[gameweek] = 0.0
         ppdict[gameweek] += prediction.predicted_points
     # we still need to fill in zero for gameweeks that they're not playing.
-    max_gw = get_max_gameweek(season, dbsession=dbsession)
-    for gw in range(1, max_gw + 1):
-        if gw not in ppdict:
-            ppdict[gw] = 0.0
+    max_gameweek = get_max_gameweek(season, dbsession=dbsession)
+    for season_gameweek in range(1, max_gameweek + 1):
+        if season_gameweek not in ppdict:
+            ppdict[season_gameweek] = 0.0
     return ppdict
 
 

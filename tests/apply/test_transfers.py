@@ -10,9 +10,9 @@ import pytest
 
 from airsenal.apply import transfers as transfers_module
 from airsenal.apply.transfers import (
+    bank_after_transfers,
     build_init_priced_transfers,
     build_transfer_payload,
-    deduct_transfer_price,
     price_transfers,
     remove_duplicates,
     separate_transfers_in_or_out,
@@ -41,22 +41,22 @@ def priced(element_out, selling_price, element_in, purchase_price):
 
 def test_selling_above_the_purchase_price_adds_to_the_bank():
     transfers = [priced(1, 75, 2, 70)]
-    assert deduct_transfer_price(10, transfers) == 15
+    assert bank_after_transfers(10, transfers) == 15
 
 
 def test_selling_below_the_purchase_price_takes_from_the_bank():
     transfers = [priced(1, 60, 2, 70)]
-    assert deduct_transfer_price(10, transfers) == 0
+    assert bank_after_transfers(10, transfers) == 0
 
 
 def test_the_bank_is_the_net_of_every_transfer():
     transfers = [priced(1, 75, 2, 70), priced(3, 50, 4, 65), priced(5, 100, 6, 90)]
     # +5, -15, +10
-    assert deduct_transfer_price(20, transfers) == 20
+    assert bank_after_transfers(20, transfers) == 20
 
 
 def test_no_transfers_leaves_the_bank_alone():
-    assert deduct_transfer_price(37, []) == 37
+    assert bank_after_transfers(37, []) == 37
 
 
 # -------------------------------------------------------------- duplicates ---
@@ -117,18 +117,18 @@ def test_the_halves_stay_in_step():
 
 def test_the_payload_is_not_confirmed():
     """`confirmed: False` is what makes the API treat this as a proposal."""
-    payload = build_transfer_payload([], 7, FakeFetcher(), None)
+    payload = build_transfer_payload([], None, 7, FakeFetcher())
     assert payload["confirmed"] is False
 
 
 def test_the_payload_names_the_entry_and_the_gameweek():
-    payload = build_transfer_payload([], 7, FakeFetcher(team_id=456), None)
+    payload = build_transfer_payload([], None, 7, FakeFetcher(team_id=456))
     assert payload["entry"] == 456
     assert payload["event"] == 7
 
 
 def test_no_chip_leaves_both_chip_flags_off():
-    payload = build_transfer_payload([], 7, FakeFetcher(), None)
+    payload = build_transfer_payload([], None, 7, FakeFetcher())
     assert payload["wildcard"] is False
     assert payload["freehit"] is False
 
@@ -138,7 +138,7 @@ def test_no_chip_leaves_both_chip_flags_off():
 )
 def test_a_chip_sets_its_own_flag(chip, field):
     """The API spells free_hit without the underscore; the payload has to match."""
-    payload = build_transfer_payload([], 7, FakeFetcher(), chip)
+    payload = build_transfer_payload([], chip, 7, FakeFetcher())
     assert payload[field] is True
 
 
@@ -151,7 +151,7 @@ def test_a_lineup_chip_adds_nothing_to_the_transfer_payload(chip):
     the suggestion carried, which posted a `benchboost` key the transfers endpoint
     does not define.
     """
-    payload = build_transfer_payload([], 7, FakeFetcher(), chip)
+    payload = build_transfer_payload([], chip, 7, FakeFetcher())
     assert payload["wildcard"] is False
     assert payload["freehit"] is False
     assert set(payload) == {
@@ -166,7 +166,7 @@ def test_a_lineup_chip_adds_nothing_to_the_transfer_payload(chip):
 
 def test_the_transfers_are_carried_through_untouched():
     transfers = [priced(1, 75, 2, 70)]
-    payload = build_transfer_payload(transfers, 7, FakeFetcher(), None)
+    payload = build_transfer_payload(transfers, None, 7, FakeFetcher())
     assert payload["transfers"] == transfers
 
 
@@ -194,14 +194,15 @@ class PricingFetcher(FakeFetcher):
 def priced_world(monkeypatch):
     """player_id N has FPL api id 100+N, and sells for 50+N."""
     monkeypatch.setattr(
-        transfers_module, "get_player", lambda pid: FakePlayer(pid, 100 + pid)
+        transfers_module, "require_player", lambda pid: FakePlayer(pid, 100 + pid)
     )
+    monkeypatch.setattr(transfers_module, "require_api_id", lambda p: p.fpl_api_id)
     monkeypatch.setattr(transfers_module, "get_sell_price", lambda _team, pid: 50 + pid)
     return PricingFetcher({102: 70, 103: 70, 104: 80})
 
 
 def test_price_transfers_pairs_each_player_out_with_a_player_in(priced_world):
-    result = price_transfers([[1, 3], [2, 4]], priced_world)
+    result = price_transfers([1, 3], [2, 4], priced_world)
     assert result == [
         {
             "element_out": 101,
@@ -224,7 +225,7 @@ def test_the_sale_price_is_not_the_current_price(priced_world):
 
     So a transfer must never be priced out with `now_cost`.
     """
-    (transfer,) = price_transfers([[1], [3]], priced_world)
+    (transfer,) = price_transfers([1], [3], priced_world)
     assert transfer["selling_price"] == 51
     assert transfer["purchase_price"] == 70
 
@@ -232,7 +233,7 @@ def test_the_sale_price_is_not_the_current_price(priced_world):
 def test_price_transfers_refuses_without_a_team_id(priced_world):
     priced_world.FPL_TEAM_ID = None
     with pytest.raises(RuntimeError, match="FPL team ID not set"):
-        price_transfers([[1], [3]], priced_world)
+        price_transfers([1], [3], priced_world)
 
 
 # --------------------------------------------------- the initial squad ---
@@ -272,7 +273,9 @@ def test_the_initial_squad_is_built_from_this_entrys_own_suggestions(
     monkeypatch.setattr(transfers_module, "get_session", lambda: None)
     # ordering has its own tests; it needs a database this one has no use for
     monkeypatch.setattr(
-        transfers_module, "sort_by_position", lambda transfers: transfers
+        transfers_module,
+        "pair_by_position",
+        lambda outs, ins: [{**o, **i} for o, i in zip(outs, ins, strict=True)],
     )
     fetcher = PicksFetcher({100 + i: 50 for i in range(15)})
 
