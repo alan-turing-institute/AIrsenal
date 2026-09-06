@@ -5,9 +5,8 @@ must be probabilistic, it must predict one particular quantity, and the way its
 prediction is turned into points is fixed. This is the plan for moving those
 seams, in phases that can be shipped and scored one at a time.
 
-Status: phases 0 to 3 are done, and phase 4's seam is in. What is left of
-phase 4 is the optional breakdown on `PointsPrediction` and the scorer that
-reads it; then phase 5, if it is worth doing at all.
+Status: phases 0 to 4 are done. Phase 5 is all that is left, and it is gated on
+having a consumer for the uncertainty it would carry.
 
 ## What is actually assumed
 
@@ -603,13 +602,43 @@ without one is named and left at that.
 **The gate held exactly**: MAE 0.905191, appeared 2.092136, RMSE 1.883554, rank
 0.815694.
 
-### Still to do: the breakdown
+### Done: the breakdown
 
-`PointsPrediction` carries `expected_points` and nothing else yet. The optional
-`expected_minutes`, `involvement` and `components` from "Scoring the parts"
-above, and `score_prediction_breakdown` reading whatever is present, are the
-second half of this phase - deliberately separate, because a field nothing reads
-is a contract nothing checks.
+`PointsPrediction` now carries optional `expected_minutes`, `involvement` (as
+rates) and `components`, and `score_prediction_breakdown` scores whatever is
+there. `backtest_breakdown` drives it over a season, scoring as it predicts
+rather than reading rows back, so unlike `backtest_points` it writes nothing.
+
+The four evaluations, from one call, on season 2526 GW5-30:
+
+| | | |
+|---|---|---|
+| 1 | minutes | 9.24 minutes MAE |
+| 2 | involvement | 0.174 goals, 0.173 assists, over 6014 matches the team scored in |
+| 3 | points | 0.905 MAE, 2.092 over appearances, 1.884 RMSE, 0.816 rank correlation |
+| 4 | components | attacking 0.411, defending 0.273, appearance 0.204, def_con 0.145, bonus 0.141, cards 0.084, saves 0.015 |
+
+Three things those numbers say:
+
+- **Attacking points carry the most error and appearance points the least**,
+  even though appearance points are 56% of everything awarded and attacking
+  only 22%. The biggest component is not the worst predicted one.
+- **The minutes error here is 9.24, against 13.32 from
+  `score_minutes_model`.** The difference is the injury and absence filter,
+  which the points model applies and the minutes model knows nothing about. Two
+  honest numbers measuring two different things: this one is what the points
+  calculation actually assumed, and phase 1's is the minutes model on its own.
+  Worth keeping both, and worth remembering which is which.
+- **The gate held through a second, independent path.** `backtest_breakdown`
+  computes the totals in memory where `backtest_points` reads them back from the
+  database, and the four figures agree exactly - MAE 0.905191, appeared
+  2.092136, RMSE 1.883554, rank 0.815694, unchanged since phase 0.
+
+A component's error is still conditional on the model's own minutes prediction,
+which is the coarse grade of evaluation (4). The sharp grade - re-asking each
+component at the minutes actually played - needs `FittedComponent` directly
+rather than a reported number, so it belongs to whoever wants it rather than to
+the generic scorer.
 
 ## Phase 5 - widen the database boundary (gated; probably defer)
 

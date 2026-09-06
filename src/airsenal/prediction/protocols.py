@@ -1,7 +1,7 @@
 """What a prediction model has to provide."""
 
 import math
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, NotRequired, Protocol, TypedDict
 
@@ -405,16 +405,35 @@ class PointsRequest:
 
 
 @dataclass(frozen=True)
+class InvolvementShare:
+    """One player's share of one of their team's goals, for a full match."""
+
+    prob_score: float
+    prob_assist: float
+
+
+@dataclass(frozen=True)
 class PointsPrediction:
     """
     What a points model expects a player to score in one fixture.
 
-    A number, and nothing a model has to justify: how it arrived at one is its
-    own business, which is what lets a model with no notion of minutes,
-    involvement or components satisfy this.
+    Only `expected_points` is required, and nothing a model has to justify: how
+    it arrived at one is its own business, which is what lets a model with no
+    notion of minutes, involvement or components satisfy this.
+
+    The rest is what a model *can* report about how it got there - not a
+    structure it must have. Whatever is filled in gets scored against what
+    actually happened; whatever is left as None is not held against it. A model
+    that reports minutes without owning a minutes model is welcome to.
     """
 
     expected_points: float
+    expected_minutes: float | None = None
+    # Rates rather than points, so a scorer can substitute the minutes actually
+    # played instead of the ones the model expected.
+    involvement: InvolvementShare | None = None
+    # Expected points per component name, summing to `expected_points`.
+    components: Mapping[str, float] | None = None
 
 
 class PointsModel(Protocol):

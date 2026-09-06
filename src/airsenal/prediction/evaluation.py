@@ -15,7 +15,7 @@ player predicted.
 """
 
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import lgamma
 
 import numpy as np
@@ -29,11 +29,15 @@ from airsenal.db.queries.predictions import get_predictions_for_gameweeks
 from airsenal.db.queries.scores import get_player_scores_for_gameweeks
 from airsenal.game.enums import Position
 from airsenal.game.scoring import MAX_GOALS, MIN_MINUTES_FULL
+from airsenal.prediction.point_components import actual_component_points
 from airsenal.prediction.protocols import (
     MinutesModel,
     MinutesRequest,
     PlayerModel,
+    PointsFitRequest,
     PointsModel,
+    PointsPrediction,
+    PointsRequest,
     ScorelineTeamModel,
 )
 
@@ -429,22 +433,33 @@ def score_involvement_error(
         if ps.player_id not in shares:
             total += InvolvementScore(n_skipped=1)
             continue
-        team_goals = team_goals_in(ps)
-        if team_goals <= 0 or not ps.minutes:
-            total += InvolvementScore(n_skipped=1)
-            continue
-        played = min(int(ps.minutes), 90) / 90.0
         prob_score, prob_assist = shares[ps.player_id]
-        total += InvolvementScore(
-            total_absolute_error_goals=abs(
-                played * prob_score * team_goals - int(ps.goals or 0)
-            ),
-            total_absolute_error_assists=abs(
-                played * prob_assist * team_goals - int(ps.assists or 0)
-            ),
-            n_observations=1,
-        )
+        total += involvement_error(prob_score, prob_assist, ps)
     return total
+
+
+def involvement_error(
+    prob_score: float, prob_assist: float, score: PlayerScore
+) -> InvolvementScore:
+    """
+    The error in one player's shares, given the minutes and goals that happened.
+
+    Skipped - and so weightless - when the team did not score or the player did
+    not appear, because a share of nothing says nothing about the model.
+    """
+    team_goals = team_goals_in(score)
+    if team_goals <= 0 or not score.minutes:
+        return InvolvementScore(n_skipped=1)
+    played = min(int(score.minutes), 90) / 90.0
+    return InvolvementScore(
+        total_absolute_error_goals=abs(
+            played * prob_score * team_goals - int(score.goals or 0)
+        ),
+        total_absolute_error_assists=abs(
+            played * prob_assist * team_goals - int(score.assists or 0)
+        ),
+        n_observations=1,
+    )
 
 
 def score_player_model(
@@ -807,3 +822,232 @@ def backtest_minutes_model(
             100 * score.impossible_fraction,
         )
     return score
+
+
+@dataclass(frozen=True)
+class ErrorScore:
+    """Mean absolute error over some number of observations. Lower is better."""
+
+    total_absolute_error: float = 0.0
+    n_observations: int = 0
+
+    @property
+    def mean_absolute_error(self) -> float:
+        if not self.n_observations:
+            return 0.0
+        return self.total_absolute_error / self.n_observations
+
+    def __add__(self, other: "ErrorScore") -> "ErrorScore":
+        return ErrorScore(
+            total_absolute_error=self.total_absolute_error + other.total_absolute_error,
+            n_observations=self.n_observations + other.n_observations,
+        )
+
+
+@dataclass(frozen=True)
+class BreakdownScore:
+    """
+    What could be scored about a set of predictions, part by part.
+
+    `points` is always there; the rest is whatever the model reported. A model
+    that only predicts a total is scored on the total alone rather than being
+    penalised for the parts it does not claim to have.
+    """
+
+    points: PointsScore = field(default_factory=PointsScore)
+    minutes: ErrorScore | None = None
+    involvement: InvolvementScore | None = None
+    components: dict[str, ErrorScore] | None = None
+
+    def __add__(self, other: "BreakdownScore") -> "BreakdownScore":
+        components: dict[str, ErrorScore] | None = None
+        if self.components is not None or other.components is not None:
+            components = dict(self.components or {})
+            for name, score in (other.components or {}).items():
+                components[name] = components.get(name, ErrorScore()) + score
+        return BreakdownScore(
+            points=self.points + other.points,
+            minutes=_add_optional(self.minutes, other.minutes),
+            involvement=_add_optional(self.involvement, other.involvement),
+            components=components,
+        )
+
+
+def _add_optional[ScoreT: (ErrorScore, InvolvementScore)](
+    left: ScoreT | None, right: ScoreT | None
+) -> ScoreT | None:
+    """Add two scores where either may be absent, and absent plus absent is absent."""
+    if left is None:
+        return right
+    if right is None:
+        return left
+    return left + right
+
+
+def score_prediction_breakdown(
+    model: PointsModel,
+    player_scores: Iterable[PlayerScore],
+    *,
+    root_gameweek: int,
+    season: str,
+    dbsession: Session,
+) -> BreakdownScore:
+    """
+    Score a fitted points model on every part of its prediction it will report.
+
+    The whole answer to "was it the minutes or the goals I got wrong?", for a
+    model that decomposes - and still an answer for one that does not, because
+    every optional part of a `PointsPrediction` is scored only if it is there.
+
+    The minutes error here is the model's own expected minutes, which includes
+    its view that an injured player will not play; `score_minutes_model` scores
+    a minutes model on its own, in bands and with a log probability, which needs
+    the distribution rather than its mean.
+
+    Args:
+        model: Already fitted, for a window with `root_gameweek` as its first
+            gameweek.
+        player_scores: The performances to score against, all within that
+            window.
+    """
+    total = BreakdownScore()
+    predicted_points: list[float] = []
+    actual_points: list[float] = []
+    for score in player_scores:
+        if score.fixture.gameweek is None:
+            total += BreakdownScore(points=PointsScore(n_skipped=1))
+            continue
+        prediction = model.predict(
+            PointsRequest(
+                player=score.player,
+                fixture=score.fixture,
+                root_gameweek=root_gameweek,
+                season=season,
+                dbsession=dbsession,
+            )
+        )
+        predicted_points.append(prediction.expected_points)
+        actual_points.append(float(score.points))
+        total += _score_one(prediction, score, season=season)
+
+    # One ranking over everything passed in, as `score_points_predictions` does:
+    # a ranking is a property of a set of players, not of one performance, so it
+    # cannot be accumulated a performance at a time like the errors above.
+    correlation = _rank_correlation(
+        np.asarray(predicted_points, dtype=float),
+        np.asarray(actual_points, dtype=float),
+    )
+    if correlation is None:
+        return total
+    return total + BreakdownScore(
+        points=PointsScore(total_rank_correlation=correlation, n_ranked=1)
+    )
+
+
+def _score_one(
+    prediction: PointsPrediction, score: PlayerScore, *, season: str
+) -> BreakdownScore:
+    """One prediction against one performance, part by part."""
+    error = abs(prediction.expected_points - float(score.points))
+    played = int(score.minutes) > 0
+    points = PointsScore(
+        total_absolute_error=error,
+        total_squared_error=error**2,
+        n_observations=1,
+        total_absolute_error_played=error if played else 0.0,
+        n_played=int(played),
+    )
+
+    minutes = None
+    if prediction.expected_minutes is not None:
+        minutes = ErrorScore(
+            total_absolute_error=abs(
+                prediction.expected_minutes - float(score.minutes)
+            ),
+            n_observations=1,
+        )
+
+    involvement = None
+    if prediction.involvement is not None:
+        involvement = involvement_error(
+            prediction.involvement.prob_score,
+            prediction.involvement.prob_assist,
+            score,
+        )
+
+    components = None
+    if prediction.components is not None:
+        position = score.player.position(season)
+        try:
+            actual = (
+                actual_component_points(score, position) if position is not None else {}
+            )
+        except ValueError:
+            # a position with no scoring rules, so nothing to compare against
+            actual = {}
+        components = {
+            name: ErrorScore(
+                total_absolute_error=abs(expected - actual[name]), n_observations=1
+            )
+            for name, expected in prediction.components.items()
+            if name in actual
+        }
+    return BreakdownScore(
+        points=points,
+        minutes=minutes,
+        involvement=involvement,
+        components=components,
+    )
+
+
+def backtest_breakdown(
+    build: Callable[[], PointsModel] | None = None,
+    *,
+    season: str,
+    dbsession: Session,
+    gameweeks: Sequence[int],
+    horizon: int = 1,
+) -> BreakdownScore:
+    """
+    Score every part of a points model on gameweeks it was not fitted to.
+
+    The same walk forward as `backtest_points`, reporting the parts as well as
+    the total - and without writing anything, because it scores the predictions
+    as they are made rather than reading them back from the database.
+
+    Args:
+        build: Called once per gameweek, because a model is fitted in place. The
+            package default points model when None.
+    """
+    # deferred slow import
+    from airsenal.prediction.points_models import build_points_model  # noqa: PLC0415
+
+    total = BreakdownScore()
+    for gameweek in gameweeks:
+        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
+        player_scores = get_player_scores_for_gameweeks(
+            evaluation_gameweeks, season=season, dbsession=dbsession
+        )
+        if not player_scores:
+            logger.info("No performances for %s GW%s, skipping", season, gameweek)
+            continue
+        model = build() if build is not None else build_points_model()
+        model = model.fit(
+            PointsFitRequest(
+                gameweeks=evaluation_gameweeks, season=season, dbsession=dbsession
+            )
+        )
+        total += score_prediction_breakdown(
+            model,
+            player_scores,
+            root_gameweek=gameweek,
+            season=season,
+            dbsession=dbsession,
+        )
+        logger.info(
+            "GW%s: mean absolute error %.4f points over %s performances",
+            gameweek,
+            total.points.mean_absolute_error,
+            total.points.n_observations,
+        )
+    return total

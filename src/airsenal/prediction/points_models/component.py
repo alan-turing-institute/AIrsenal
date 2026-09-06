@@ -1,5 +1,7 @@
 """Predicted points as a sum of components, from a team, player and minutes model."""
 
+from functools import partial
+
 import numpy as np
 import pandas as pd
 
@@ -13,6 +15,7 @@ from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
 from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.protocols import (
     ComponentRequest,
+    InvolvementShare,
     MinutesDistribution,
     MinutesModel,
     MinutesRequest,
@@ -201,30 +204,56 @@ class _FittedComponents:
                 dbsession=request.dbsession,
             )
         ):
-            return PointsPrediction(expected_points=0.0)
+            # Not a refusal to answer: a player who will not be on the pitch is
+            # predicted zero minutes and zero from every component, which is
+            # what the components themselves would say.
+            return PointsPrediction(
+                expected_points=0.0,
+                expected_minutes=0.0,
+                involvement=InvolvementShare(
+                    prob_score=float(involvement["prob_score"]),
+                    prob_assist=float(involvement["prob_assist"]),
+                ),
+                components={component.name: 0.0 for component in self.components},
+            )
 
         is_home = request.fixture.home_team == team
         opponent = request.fixture.away_team if is_home else request.fixture.home_team
         fixture_probabilities = self.goal_probabilities[request.fixture.fixture_id]
 
-        def points_for_minutes(mins: float) -> float:
-            """Every component of a score, for one number of minutes played."""
-            component_request = ComponentRequest(
-                player_id=player.player_id,
-                position=position,
-                minutes=mins,
-                team_score_probability=fixture_probabilities[team],
-                team_concede_probability=fixture_probabilities[opponent],
-                prob_score=float(involvement["prob_score"]),
-                prob_assist=float(involvement["prob_assist"]),
-            )
-            return sum(
-                component.expected_points(component_request)
-                for component in self.components
+        shares = InvolvementShare(
+            prob_score=float(involvement["prob_score"]),
+            prob_assist=float(involvement["prob_assist"]),
+        )
+
+        def points_from(component: PointComponent, mins: float) -> float:
+            """One component's points, for one number of minutes played."""
+            return component.expected_points(
+                ComponentRequest(
+                    player_id=player.player_id,
+                    position=position,
+                    minutes=mins,
+                    team_score_probability=fixture_probabilities[team],
+                    team_concede_probability=fixture_probabilities[opponent],
+                    prob_score=shares.prob_score,
+                    prob_assist=shares.prob_assist,
+                )
             )
 
-        points = minutes.expectation(points_for_minutes)
+        # Each component's own expectation over the possible minutes. They sum
+        # to the total, because an expectation of a sum is a sum of
+        # expectations - so the breakdown always adds up to what was predicted.
+        components = {
+            component.name: minutes.expectation(partial(points_from, component))
+            for component in self.components
+        }
+        points = sum(components.values())
         if np.isnan(points):
             msg = f"nan points for {player} {request.fixture}"
             raise ValueError(msg)
-        return PointsPrediction(expected_points=points)
+        return PointsPrediction(
+            expected_points=points,
+            expected_minutes=minutes.expected_minutes,
+            involvement=shares,
+            components=components,
+        )

@@ -216,6 +216,25 @@ scored over the same fixtures, which is why `ModelScore` carries the count.
 `backtest_player_model` is the same for player models, and `score_team_model` /
 `score_player_model` score an already-fitted model if you have one.
 
+`backtest_breakdown` is the one to reach for once a points model exists. It
+walks the season forward like the others, and scores every part of a prediction
+the model was willing to report:
+
+```python
+score = backtest_breakdown(season="2526", dbsession=session, gameweeks=range(5, 31))
+score.points.mean_absolute_error  # always
+score.minutes.mean_absolute_error  # if it reported expected minutes
+score.involvement  # if it reported goal shares
+score.components["attacking"]  # per component, if it reported them
+```
+
+Everything but `points` is `None` when a model did not report it, and nothing is
+held against a model for the parts it does not claim to have: an end-to-end
+regressor is scored on its total alone. Fill in what you can on the
+`PointsPrediction` you return and it gets scored - `involvement` in rates rather
+than points, so the scorer can substitute the minutes actually played rather
+than the ones you expected.
+
 `actual_component_points` breaks a realised score into the same components a
 run predicts, so each part has a ground truth to be scored against. It
 reconstructs `PlayerScore.points` exactly for every performance in 2425 and
