@@ -1,17 +1,25 @@
 # Adding a model or an algorithm
 
-Seven things are pluggable, and they compose into one object:
+Eight things are pluggable, and they compose into one object:
 
 ```python
 AIrsenalPipeline(
-    team_model=build_team_model("extended"),
-    player_model=build_player_model("conjugate"),
-    minutes_model=build_minutes_model("recent"),
+    points_model=ComponentPointsModel(
+        team_model=build_team_model("extended"),
+        player_model=build_player_model("conjugate"),
+        minutes_model=build_minutes_model("recent"),
+    ),
     transfer_optimizer=TreeSearchOptimizer(),
     squad_optimizer=GeneticSquadOptimizer(),
     settings=PipelineSettings(...),
 ).run()
 ```
+
+The pipeline itself takes three: a points model and the two optimizers. The team,
+player and minutes models and the components are what `ComponentPointsModel` is
+made of, not something every points model has - a model that regresses points
+directly from its own features has none of them and is a table entry all the
+same.
 
 Each kind is a package. Its `__init__.py` holds a table mapping a name to a
 factory, and a `build_*` function beside it turns a name plus the relevant CLI
@@ -19,6 +27,7 @@ flags into an object.
 
 | kind | protocol | table and builder | CLI flag |
 |---|---|---|---|
+| points model | `PointsModel` | `prediction/points_models/__init__.py`, `build_points_model` | `--points-model` |
 | player model | `PlayerModel` | `prediction/player_models/__init__.py`, `build_player_model` | `--player-model` |
 | team model | `TeamModel` | `prediction/team_models/__init__.py`, `build_team_model` | `--team-model` |
 | minutes model | `MinutesModel` | `prediction/minutes_models/__init__.py`, `build_minutes_model` | `--minutes-model` |
@@ -36,6 +45,11 @@ the four fitted ones off - `--no-bonus`, `--no-cards`, `--no-saves`,
 predicted, because without them there is no score to speak of. To predict with a
 component of your own, pass it to `make_predictedscore_table(components=[...])`;
 `tests/e2e/test_point_components.py` has a worked example.
+
+`--team-model`, `--player-model`, `--minutes-model` and `--epsilon` describe
+parts of the component model, so naming a different `--points-model` *and* one
+of them is refused rather than half-honoured - the same rule as `--epsilon` on a
+team model that does no time weighting.
 
 ## You do not have to register anything
 

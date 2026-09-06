@@ -29,11 +29,11 @@ from airsenal.db.queries.predictions import get_predictions_for_gameweeks
 from airsenal.db.queries.scores import get_player_scores_for_gameweeks
 from airsenal.game.enums import Position
 from airsenal.game.scoring import MAX_GOALS, MIN_MINUTES_FULL
-from airsenal.prediction.point_components import PointsConfig
 from airsenal.prediction.protocols import (
     MinutesModel,
     MinutesRequest,
     PlayerModel,
+    PointsModel,
     ScorelineTeamModel,
 )
 
@@ -665,14 +665,12 @@ def backtest_player_model(
 
 
 def backtest_points(
-    build_team: Callable[[], ScorelineTeamModel] | None = None,
-    build_player: Callable[[], PlayerModel] | None = None,
+    build: Callable[[], PointsModel] | None = None,
     *,
     season: str,
     dbsession: Session,
     gameweeks: Sequence[int],
     horizon: int = 1,
-    points: PointsConfig | None = None,
 ) -> PointsScore:
     """
     Score predicted points on gameweeks the models were not fitted to.
@@ -688,10 +686,8 @@ def backtest_points(
     prefixed `Backtest_<season>_GW<gameweek>_`, as a replay's are.
 
     Args:
-        build_team: Called once per gameweek, because a model is fitted in
-            place. The package default model when None.
-        build_player: The same, for the player model.
-        points: Which components of a score to predict, all of them when None.
+        build: Called once per gameweek, because a model is fitted in place. The
+            package default points model when None.
     """
     # deferred slow import
     from airsenal.prediction.run import make_predictedscore_table  # noqa: PLC0415
@@ -708,10 +704,8 @@ def backtest_points(
         tag = make_predictedscore_table(
             gameweeks=evaluation_gameweeks,
             season=season,
-            points=points,
             tag_prefix=f"Backtest_{season}_GW{gameweek}_",
-            player_model=build_player() if build_player is not None else None,
-            team_model=build_team() if build_team is not None else None,
+            points_model=build() if build is not None else None,
             dbsession=dbsession,
         )
         predictions = get_predictions_for_gameweeks(

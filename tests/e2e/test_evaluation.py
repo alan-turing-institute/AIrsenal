@@ -24,8 +24,9 @@ from airsenal.prediction.evaluation import (
     score_player_model,
     score_team_model,
 )
-from airsenal.prediction.player_models import PLAYER_MODELS
+from airsenal.prediction.player_models import PLAYER_MODELS, build_player_model
 from airsenal.prediction.player_models.fitting import fit_player_data
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.team_models import TEAM_MODELS, build_team_model
 from airsenal.prediction.team_models.fitting import get_fitted_team_model
 from tests.e2e.conftest import (
@@ -167,6 +168,14 @@ def test_more_goals_than_the_team_scored_is_not_scored():
     )
 
 
+def _constant_points_model():
+    """The quick stack, built fresh: `backtest_points` fits once per gameweek."""
+    return ComponentPointsModel(
+        team_model=build_team_model("constant"),
+        player_model=build_player_model("constant"),
+    )
+
+
 def test_backtest_points_scores_the_whole_calculation(pipeline_db):
     """
     The number that judges the points calculation rather than one model.
@@ -176,8 +185,7 @@ def test_backtest_points_scores_the_whole_calculation(pipeline_db):
     the models.
     """
     score = backtest_points(
-        TEAM_MODELS["constant"],
-        PLAYER_MODELS["constant"],
+        _constant_points_model,
         season=SEASON,
         dbsession=pipeline_db,
         gameweeks=[7],
@@ -196,8 +204,7 @@ def test_backtest_points_scores_the_whole_calculation(pipeline_db):
 def test_a_backtest_leaves_its_predictions_behind_under_a_named_tag(pipeline_db):
     """Unlike the other two backtests this one writes, so the rows are findable."""
     backtest_points(
-        TEAM_MODELS["constant"],
-        PLAYER_MODELS["constant"],
+        _constant_points_model,
         season=SEASON,
         dbsession=pipeline_db,
         gameweeks=[8],

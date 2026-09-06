@@ -1,100 +1,77 @@
 """Filling the player prediction table."""
 
-from collections.abc import Sequence
 from uuid import uuid4
 
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.console import console, track
 from airsenal.core.logging import get_logger
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
+from airsenal.db.models import Fixture, Player, PlayerPrediction
+from airsenal.db.queries.fixtures import get_fixtures_for_player
 from airsenal.db.queries.players import list_players
 from airsenal.db.session import get_session
-from airsenal.game.scoring import MAX_GOALS
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.prediction.minutes_models import build_minutes_model
-from airsenal.prediction.player_models.fitting import get_all_fitted_player_data
-from airsenal.prediction.point_components import PointsConfig
-from airsenal.prediction.points import calc_predicted_points_for_player
+from airsenal.prediction.points_models import build_points_model
 from airsenal.prediction.protocols import (
-    MinutesModel,
-    PlayerModel,
-    PointComponent,
-    ScorelineTeamModel,
-)
-from airsenal.prediction.team_models import (
-    build_team_model,
-)
-from airsenal.prediction.team_models.fitting import (
-    get_fitted_team_model,
-    get_goal_probabilities_for_fixtures,
+    PointsFitRequest,
+    PointsModel,
+    PointsRequest,
 )
 
 logger = get_logger(__name__)
 
 
+def make_prediction(
+    player: Player, fixture: Fixture, points: float, tag: str
+) -> PlayerPrediction:
+    """Instantiate and populate a PlayerPrediction schema object."""
+    pp = PlayerPrediction()
+    pp.predicted_points = points
+    pp.tag = tag
+    pp.player = player
+    pp.fixture = fixture
+    return pp
+
+
 def calc_all_predicted_points(
     gameweeks: list[int],
     *,
-    points: PointsConfig | None = None,
-    components: Sequence[PointComponent] | None = None,
     tag: str = "",
     season: str,
     dbsession: Session,
-    player_model: PlayerModel | None = None,
-    team_model: ScorelineTeamModel | None = None,
-    minutes_model: MinutesModel | None = None,
+    points_model: PointsModel | None = None,
 ) -> None:
     """Predict every player's points for the given gameweeks, and write them out."""
-    points = points if points is not None else PointsConfig()
-    minutes_model = (
-        minutes_model if minutes_model is not None else build_minutes_model()
-    )
-    # Every model here is fitted as at the first gameweek of the window - the one
-    # we are predicting *from* - so that nothing sees a match played later than
-    # that. It is also what decides which players there are to predict for.
+    model = points_model if points_model is not None else build_points_model()
+    # Everything is fitted as at the first gameweek of the window - the one we
+    # are predicting *from* - which is also what decides which players there are
+    # to predict for.
     root_gameweek = min(gameweeks)
-    model_team = get_fitted_team_model(
-        season=season,
-        gameweek=root_gameweek,
-        dbsession=dbsession,
-        model=team_model if team_model is not None else build_team_model(),
+    model = model.fit(
+        PointsFitRequest(gameweeks=gameweeks, season=season, dbsession=dbsession)
     )
-    logger.info("Calculating fixture score probabilities...")
-    fixtures = get_fixtures_for_gameweeks(gameweeks, season=season, dbsession=dbsession)
-    fixture_goal_probs = get_goal_probabilities_for_fixtures(
-        fixtures, model_team, max_goals=MAX_GOALS
-    )
-
-    df_player = get_all_fitted_player_data(
-        root_gameweek, season, model=player_model, dbsession=dbsession
-    )
-
-    # `components` is for a component no table knows about - one written in a
-    # notebook, say. `points` is how the command line asks for a subset of the
-    # ones that ship.
-    components = [
-        component.fit(root_gameweek, season, dbsession)
-        for component in (points.components() if components is None else components)
-    ]
-    logger.info("Predicting %s", ", ".join(component.name for component in components))
 
     players = list_players(season=season, gameweek=root_gameweek, dbsession=dbsession)
 
     for player in track(players, description="Predicting player points:"):
-        predictions = calc_predicted_points_for_player(
-            player,
-            fixture_goal_probs,
-            df_player,
-            components,
-            minutes_model=minutes_model,
-            gameweeks=gameweeks,
-            tag=tag,
-            season=season,
-            dbsession=dbsession,
-        )
-        for pred in predictions:
-            dbsession.add(pred)
+        for fixture in get_fixtures_for_player(
+            player, season, gameweeks=gameweeks, dbsession=dbsession
+        ):
+            if fixture.gameweek is None:
+                logger.warning("Skipping fixture %s with no gameweek", fixture)
+                continue
+            prediction = model.predict(
+                PointsRequest(
+                    player=player,
+                    fixture=fixture,
+                    root_gameweek=root_gameweek,
+                    season=season,
+                    dbsession=dbsession,
+                )
+            )
+            dbsession.add(
+                make_prediction(player, fixture, prediction.expected_points, tag)
+            )
     dbsession.commit()
     logger.info("Finished adding predictions to db")
 
@@ -102,12 +79,8 @@ def calc_all_predicted_points(
 def make_predictedscore_table(
     gameweeks: list[int],
     season: str = CURRENT_SEASON,
-    points: PointsConfig | None = None,
-    components: Sequence[PointComponent] | None = None,
     tag_prefix: str | None = None,
-    player_model: PlayerModel | None = None,
-    team_model: ScorelineTeamModel | None = None,
-    minutes_model: MinutesModel | None = None,
+    points_model: PointsModel | None = None,
     dbsession: Session | None = None,
 ) -> str:
     """Predict every player's points over `gameweeks`, and return the tag written."""
@@ -119,11 +92,7 @@ def make_predictedscore_table(
             gameweeks=gameweeks,
             season=season,
             dbsession=dbsession,
-            points=points,
-            components=components,
             tag=tag,
-            player_model=player_model,
-            team_model=team_model,
-            minutes_model=minutes_model,
+            points_model=points_model,
         )
     return tag

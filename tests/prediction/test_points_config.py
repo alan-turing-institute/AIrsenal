@@ -1,16 +1,17 @@
 """
 Which components of a score to predict, and that the answer reaches the code.
 
-A points flag passes through two layers before it reaches the function that
-branches on it, and a flag that is offered, accepted and then dropped fails
-silently. tests/test_cli.py checks the flags are still offered; these check they
-still arrive.
+A points flag passes through two layers before it reaches the model that acts
+on it, and a flag that is offered, accepted and then dropped fails silently.
+tests/test_cli.py checks the flags are still offered; these check they still
+arrive - now at the points model, which is what the pipeline carries.
 """
 
 import pytest
 
 from airsenal.pipeline import AIrsenalPipeline
 from airsenal.prediction.point_components import PointsConfig
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.run import make_predictedscore_table
 
 
@@ -46,16 +47,24 @@ def test_each_component_reaches_the_prediction(monkeypatch, component):
 
     monkeypatch.setattr("airsenal.pipeline.run.make_predictedscore_table", record)
 
-    pipeline = AIrsenalPipeline(points=PointsConfig(**{component: False}))
+    config = PointsConfig(**{component: False})
+    pipeline = AIrsenalPipeline(points_model=ComponentPointsModel(points=config))
     pipeline.predict([1, 2], dbsession=None)
 
-    assert getattr(seen["points"], component) is False
+    assert seen["points_model"].points is config
+    assert component not in config.component_names()
     # and the others are untouched
     assert all(
-        getattr(seen["points"], other) is True
+        other in config.component_names()
         for other in ("bonus", "cards", "saves", "def_con")
         if other != component
     )
+
+
+def test_a_config_and_a_list_of_components_are_not_both_accepted():
+    """A config that is silently ignored is worse than one that is refused."""
+    with pytest.raises(ValueError, match="not both"):
+        ComponentPointsModel(points=PointsConfig(), components=[])
 
 
 def test_a_window_must_be_given():

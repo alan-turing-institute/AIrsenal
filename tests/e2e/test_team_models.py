@@ -20,6 +20,7 @@ from airsenal.db.models import PlayerPrediction
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.prediction.evaluation import score_team_model
 from airsenal.prediction.player_models import build_player_model
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import TEAM_MODELS, build_team_model
 from airsenal.prediction.team_models.fitting import (
@@ -160,8 +161,10 @@ def test_a_mean_only_model_reaches_the_points_calculation(pipeline_db):
     tag = make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS[:1],
         season=SEASON,
-        player_model=build_player_model("constant"),
-        team_model=_wrapped_average_goals(),
+        points_model=ComponentPointsModel(
+            team_model=_wrapped_average_goals(),
+            player_model=build_player_model("constant"),
+        ),
         dbsession=pipeline_db,
     )
     points = pipeline_db.scalars(

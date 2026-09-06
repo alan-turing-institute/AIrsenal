@@ -31,6 +31,7 @@ from airsenal.optimization.transfer_optimizers.tree_search import (
 from airsenal.prediction.player_models import (
     build_player_model,
 )
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import (
     build_team_model,
@@ -65,8 +66,10 @@ def prediction_tag(seeded):
     return make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS,
         season=SEASON,
-        player_model=build_player_model("constant"),
-        team_model=build_team_model("constant"),
+        points_model=ComponentPointsModel(
+            team_model=build_team_model("constant"),
+            player_model=build_player_model("constant"),
+        ),
         dbsession=seeded,
     )
 

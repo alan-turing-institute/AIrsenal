@@ -8,7 +8,7 @@ from typing import Any, NotRequired, Protocol, TypedDict
 import numpy as np
 from sqlalchemy.orm import Session
 
-from airsenal.db.models import Player
+from airsenal.db.models import Fixture, Player
 
 
 class PlayerFitData(TypedDict):
@@ -373,4 +373,64 @@ class PointComponent(Protocol):
 
     def expected_points(self, request: ComponentRequest) -> float:
         """How many points this component expects, for one player and fixture."""
+        ...
+
+
+@dataclass(frozen=True, kw_only=True)
+class PointsFitRequest:
+    """
+    The window a points model is fitted for.
+
+    Everything is fitted as at `min(gameweeks)` - the gameweek being predicted
+    *from* - so that nothing sees a match played later than that, whichever
+    gameweek of the window a fixture is in.
+    """
+
+    gameweeks: list[int]
+    season: str
+    dbsession: Session
+
+
+@dataclass(frozen=True, kw_only=True)
+class PointsRequest:
+    """One player in one fixture, for a fitted points model to predict."""
+
+    player: Player
+    fixture: Fixture
+    # The gameweek being predicted from, which is `min(gameweeks)` of the window
+    # the model was fitted for and not the fixture's own gameweek.
+    root_gameweek: int
+    season: str
+    dbsession: Session
+
+
+@dataclass(frozen=True)
+class PointsPrediction:
+    """
+    What a points model expects a player to score in one fixture.
+
+    A number, and nothing a model has to justify: how it arrived at one is its
+    own business, which is what lets a model with no notion of minutes,
+    involvement or components satisfy this.
+    """
+
+    expected_points: float
+
+
+class PointsModel(Protocol):
+    """
+    Predicts how many points a player will score in a fixture.
+
+    The whole of prediction behind one seam. `ComponentPointsModel` is the
+    shipped one - a team model, a player model, a minutes model and a list of
+    components - but nothing here requires that shape: a model that regresses
+    points directly from whatever features it likes is a table entry beside it.
+    """
+
+    def fit(self, request: PointsFitRequest) -> "PointsModel":
+        """Fit to everything before the window, and return self."""
+        ...
+
+    def predict(self, request: PointsRequest) -> PointsPrediction:
+        """What this player is expected to score in this fixture."""
         ...

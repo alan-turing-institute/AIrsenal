@@ -20,6 +20,7 @@ from airsenal.prediction.point_components import (
     PointsConfig,
     build_point_component,
 )
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.protocols import ComponentRequest
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import build_team_model
@@ -96,9 +97,11 @@ def test_a_component_no_table_knows_about_can_be_predicted_with(pipeline_db):
     tag = make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS[:1],
         season=SEASON,
-        components=[component],
-        player_model=build_player_model("constant"),
-        team_model=build_team_model("constant"),
+        points_model=ComponentPointsModel(
+            team_model=build_team_model("constant"),
+            player_model=build_player_model("constant"),
+            components=[component],
+        ),
         dbsession=pipeline_db,
     )
     assert component.fitted_at == (FUTURE_GAMEWEEKS[0], SEASON)
@@ -126,9 +129,11 @@ def test_turning_a_component_off_leaves_it_out_of_the_total(pipeline_db):
         tags[label] = make_predictedscore_table(
             gameweeks=FUTURE_GAMEWEEKS[:1],
             season=SEASON,
-            points=config,
-            player_model=build_player_model("constant"),
-            team_model=build_team_model("constant"),
+            points_model=ComponentPointsModel(
+                team_model=build_team_model("constant"),
+                player_model=build_player_model("constant"),
+                points=config,
+            ),
             dbsession=pipeline_db,
         )
     totals = {

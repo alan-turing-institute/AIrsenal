@@ -5,7 +5,9 @@ must be probabilistic, it must predict one particular quantity, and the way its
 prediction is turned into points is fixed. This is the plan for moving those
 seams, in phases that can be shipped and scored one at a time.
 
-Status: phases 0 to 3 are done. Start at phase 4.
+Status: phases 0 to 3 are done, and phase 4's seam is in. What is left of
+phase 4 is the optional breakdown on `PointsPrediction` and the scorer that
+reads it; then phase 5, if it is worth doing at all.
 
 ## What is actually assumed
 
@@ -566,6 +568,48 @@ minutes models, so this is extraction and naming rather than new machinery.
   the same rule as `--epsilon` on a model that does no time weighting.
 - The pipeline still exposes four kinds, because team, player, minutes and
   components nest under the points model. ~2 commits.
+
+### Done: the seam
+
+`PointsModel` is `fit(PointsFitRequest)` and `predict(PointsRequest)`, returning
+a `PointsPrediction`. `ComponentPointsModel` is the shipped one and
+`prediction/points.py` is gone - its body is that model, and `make_prediction`
+moved to `prediction/run.py`, which now loops players and fixtures and asks the
+model.
+
+**`AIrsenalPipeline` went from four prediction fields to one.** `team_model`,
+`player_model`, `minutes_model` and `points` are replaced by `points_model`, as
+recommended. The alternative - keeping them *and* adding `points_model` - would
+have been two ways to say one thing, which is what `4e695f12` deleted
+`from_names` for.
+
+The flags all still work. `build_points_model(name, team_model=..., ...)` takes
+the names and builds the component model from them, and naming a different
+points model together with a part of the component one raises `ConfigError`
+rather than ignoring it - the `--epsilon` rule.
+
+**The team model is not a component.** It was worth asking: a component answers
+in points and a team model answers in goals, and two components read it rather
+than one, so it fills in the `ComponentRequest` instead of being an entry in the
+list. A base-plus-subclass split would add a layer without removing one - the
+base would be a points model that cannot predict attacking points, which is not
+a useful thing to have.
+
+`describe_pipeline` reads an optional `describe()` on the points model, the way
+`progress_total` reads `num_increments`, so a replay's `config` block still
+records which team, player and minutes models produced it. A points model
+without one is named and left at that.
+
+**The gate held exactly**: MAE 0.905191, appeared 2.092136, RMSE 1.883554, rank
+0.815694.
+
+### Still to do: the breakdown
+
+`PointsPrediction` carries `expected_points` and nothing else yet. The optional
+`expected_minutes`, `involvement` and `components` from "Scoring the parts"
+above, and `score_prediction_breakdown` reading whatever is present, are the
+second half of this phase - deliberately separate, because a field nothing reads
+is a contract nothing checks.
 
 ## Phase 5 - widen the database boundary (gated; probably defer)
 

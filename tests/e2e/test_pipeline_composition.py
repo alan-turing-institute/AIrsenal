@@ -24,6 +24,7 @@ from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
 from airsenal.prediction.player_models import (
     build_player_model,
 )
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.team_models import (
     build_team_model,
 )
@@ -65,8 +66,10 @@ class RecordingTransferOptimizer:
 
 def _pipeline(team_model="constant", player_model="constant", **settings):
     return AIrsenalPipeline(
-        team_model=build_team_model(team_model),
-        player_model=build_player_model(player_model),
+        points_model=ComponentPointsModel(
+            team_model=build_team_model(team_model),
+            player_model=build_player_model(player_model),
+        ),
         squad_optimizer=RecordingSquadOptimizer(),
         transfer_optimizer=RecordingTransferOptimizer(),
         settings=PipelineSettings(

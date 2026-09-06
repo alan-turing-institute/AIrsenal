@@ -23,6 +23,7 @@ from airsenal.optimization.transfer_optimizers import (
 from airsenal.pipeline.settings import StaleDatabase
 from airsenal.prediction.minutes_models import MINUTES_MODELS
 from airsenal.prediction.player_models import PLAYER_MODELS
+from airsenal.prediction.points_models import POINTS_MODELS
 from airsenal.prediction.team_models import TEAM_MODELS
 
 # Rich help panels, so commands can be grouped rather than listed as one flat block.
@@ -133,6 +134,17 @@ MinutesModel = Annotated[
     str,
     typer.Option(
         help=f"Minutes model: {_names(MINUTES_MODELS)}.", rich_help_panel=PREDICTION
+    ),
+]
+
+PointsModel = Annotated[
+    str,
+    typer.Option(
+        help=(
+            f"Points model: {_names(POINTS_MODELS)}. The team, player and "
+            "minutes models are parts of the component one."
+        ),
+        rich_help_panel=PREDICTION,
     ),
 ]
 

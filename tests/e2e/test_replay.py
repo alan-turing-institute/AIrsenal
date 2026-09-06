@@ -29,6 +29,7 @@ from airsenal.pipeline import (
 )
 from airsenal.pipeline.replay import _gameweek_outcome
 from airsenal.prediction.player_models import build_player_model
+from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.team_models import build_team_model
 from tests.e2e.conftest import GAMEWEEKS_PER_PAST_SEASON, PAST_SEASONS
 
@@ -72,8 +73,10 @@ def seeded(pipeline_db):
 
 def _pipeline(**settings):
     return AIrsenalPipeline(
-        team_model=build_team_model("constant"),
-        player_model=build_player_model("constant"),
+        points_model=ComponentPointsModel(
+            team_model=build_team_model("constant"),
+            player_model=build_player_model("constant"),
+        ),
         squad_optimizer=GeneticSquadOptimizer(
             GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
         ),

@@ -128,11 +128,22 @@ class ReplayResult:
 
 
 def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
-    """The components a replay ran with, by class name."""
+    """
+    The components a replay ran with, by class name.
+
+    A points model may be made of other models, and two replays are only worth
+    comparing if you can see which. It says so through the optional `describe`
+    method, read the way `progress_total` reads `num_increments`: a model that
+    does not have one is named and left at that.
+    """
+    describe = getattr(pipeline.points_model, "describe", None)
+    parts = (
+        dict(describe())
+        if callable(describe)
+        else {"points_model": type(pipeline.points_model).__name__}
+    )
     return {
-        "team_model": type(pipeline.team_model).__name__,
-        "player_model": type(pipeline.player_model).__name__,
-        "minutes_model": type(pipeline.minutes_model).__name__,
+        **parts,
         "transfer_optimizer": type(pipeline.transfer_optimizer).__name__,
         "squad_optimizer": type(pipeline.squad_optimizer).__name__,
     }
