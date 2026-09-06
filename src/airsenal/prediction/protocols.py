@@ -296,12 +296,15 @@ class MinutesRequest:
     """
     Everything a minutes model needs to predict one player's minutes.
 
-    Read as at `gameweek` - the gameweek being predicted *from* - so a model
-    must not look at a match played in it or later.
+    Read as at `root_gameweek` - the gameweek being predicted *from* - so a
+    model must not look at a match played in it or later. `fixture_gameweek` is
+    the one being predicted for, which is the same thing for a one-gameweek
+    window and later for the rest of a longer one.
     """
 
     player: Player
-    gameweek: int
+    root_gameweek: int
+    fixture_gameweek: int
     season: str
     # How many gameweeks the run covers. A model that reads recent appearances
     # has to decide how far back to look, and looking back as far as the run

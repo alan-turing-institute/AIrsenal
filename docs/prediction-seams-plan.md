@@ -344,12 +344,15 @@ bits.
 `RecentMinutesModel` over season 2526, gameweeks 5-30 - the number any new
 minutes model has to beat:
 
-| metric | value |
-|---|---|
-| mean absolute error | 13.3169 minutes |
-| band accuracy | 0.7357 |
-| mean log probability | -3.4714 |
-| given no chance at all | 0.1187 (2412 of 20318) |
+| metric | at phase 1 | with availability |
+|---|---|---|
+| mean absolute error | 13.3169 minutes | 9.2447 minutes |
+| band accuracy | 0.7357 | 0.8239 |
+| mean log probability | -3.4714 | -2.2553 |
+| given no chance at all | 0.1187 | 0.0761 |
+
+The second column is after availability moved into the model, at the end of
+phase 4 - see below. Compare against that one.
 
 The last row is the finding. A sample of recent appearances gives **zero**
 probability to any band it did not sample, so a player who started three times
@@ -623,12 +626,9 @@ Three things those numbers say:
 - **Attacking points carry the most error and appearance points the least**,
   even though appearance points are 56% of everything awarded and attacking
   only 22%. The biggest component is not the worst predicted one.
-- **The minutes error here is 9.24, against 13.32 from
-  `score_minutes_model`.** The difference is the injury and absence filter,
-  which the points model applies and the minutes model knows nothing about. Two
-  honest numbers measuring two different things: this one is what the points
-  calculation actually assumed, and phase 1's is the minutes model on its own.
-  Worth keeping both, and worth remembering which is which.
+- **The minutes error was 9.24 here against 13.32 from `score_minutes_model`**,
+  and that gap was the bug this phase found rather than a subtlety to be
+  documented. See below.
 - **The gate held through a second, independent path.** `backtest_breakdown`
   computes the totals in memory where `backtest_points` reads them back from the
   database, and the four figures agree exactly - MAE 0.905191, appeared
@@ -657,3 +657,37 @@ and worth doing early: it is the assumption that prompted this.
 
 Roughly eight commits plus the baseline, each shippable on its own, each with
 the numbers in its commit message.
+
+## Availability belongs to the minutes model
+
+Found by the breakdown, the moment there were two numbers for one thing: the
+points model reported 9.24 minutes MAE and `score_minutes_model` reported 13.32.
+The difference was the injury and absence check, which sat in the points model
+as a branch that zeroed a prediction the minutes model had already made.
+
+Which is the wrong place for it twice over. A minutes model was being scored on
+a prediction the run then overrode, so its number described something nobody
+ran; and a *new* minutes model would inherit a filter it could not see, or lose
+one it did not know to apply. An injured player plays no minutes - that is an
+answer about minutes, and it belongs to the model that answers about minutes.
+
+`is_absent` in `prediction/minutes.py` is the shared reading of it, next to the
+other minutes queries, and `RecentMinutesModel` returns a point mass at zero for
+a player it says is unavailable. `MinutesRequest` gained `fixture_gameweek`
+alongside `root_gameweek` - a player can be back from injury later in a window,
+so minutes are remembered per player per gameweek rather than per player. The
+points model keeps only `expected_minutes == 0.0`, which now covers absence
+without knowing what absence is.
+
+**Points predictions did not move**: MAE 0.905191, appeared 2.092136, RMSE
+1.883554, rank 0.815694. The filter moved; the arithmetic did not.
+
+**The minutes model's own score improved a lot**, because it is now scored on
+what the run actually uses: 13.32 to 9.24 minutes, band accuracy 0.7357 to
+0.8239, and the log probability -3.47 to -2.26. A third of the outcomes the
+model had called impossible were injured players it was confidently predicting
+minutes for.
+
+That the two numbers now agree exactly - the breakdown's minutes error and
+`score_minutes_model`'s - is the point. Where they disagree again, something is
+overriding a model's answer behind its back.

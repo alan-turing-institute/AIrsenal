@@ -19,7 +19,7 @@ from airsenal.prediction.minutes_models import (
     RecentMinutesModel,
     build_minutes_model,
 )
-from airsenal.prediction.protocols import MinutesDistribution
+from airsenal.prediction.protocols import MinutesDistribution, MinutesRequest
 
 
 def test_a_uniform_distribution_weights_every_value_equally():
@@ -120,3 +120,38 @@ def test_the_lookback_is_the_models_own_business():
         ).config.min_fixtures_behind
         == 8
     )
+
+
+class AbsentPlayer:
+    """A player the availability check says will not be playing."""
+
+    player_id = 1
+
+    def is_injured_or_suspended(self, season, root_gameweek, fixture_gameweek):
+        del season, root_gameweek, fixture_gameweek
+        return True
+
+
+def test_a_player_who_is_not_available_plays_no_minutes():
+    """
+    Availability belongs to the minutes model, not to the points calculation.
+
+    It used to be a branch in the points model, which meant a minutes model was
+    scored on a prediction the run then overrode - and a new minutes model
+    inherited a filter it could not see. Now the model that answers for minutes
+    answers for this too. `is_absent` is the shared reading of it.
+    """
+    distribution = RecentMinutesModel().predict(
+        MinutesRequest(
+            player=AbsentPlayer(),
+            root_gameweek=5,
+            fixture_gameweek=5,
+            season="2526",
+            n_gameweeks=1,
+            dbsession=None,
+        )
+    )
+    assert distribution.minutes == (0.0,)
+    assert distribution.expected_minutes == 0.0
+    # and so every component pays nothing, which
+    # tests/e2e/test_point_components.py checks for every component there is

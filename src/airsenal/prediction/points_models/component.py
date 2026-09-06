@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from airsenal.core.logging import get_logger
-from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.prediction.minutes_models import build_minutes_model
@@ -148,24 +147,28 @@ class _FittedComponents:
         self.involvement = involvement
         self.components = components
         self.n_gameweeks = n_gameweeks
-        # Minutes are read as at the root gameweek, so they are the same for
-        # every fixture of the window: asked once per player, not per fixture.
-        self._minutes: dict[int, MinutesDistribution] = {}
+        # Minutes are read as at the root gameweek but predicted for a
+        # particular one - a player can be back from injury later in the window
+        # - so they are remembered per player per gameweek rather than per
+        # player per fixture.
+        self._minutes: dict[tuple[int, int], MinutesDistribution] = {}
 
     def minutes_for(
-        self, request: PointsRequest, minutes_model: MinutesModel
+        self, request: PointsRequest, minutes_model: MinutesModel, gameweek: int
     ) -> MinutesDistribution:
-        if request.player.player_id not in self._minutes:
-            self._minutes[request.player.player_id] = minutes_model.predict(
+        key = (request.player.player_id, gameweek)
+        if key not in self._minutes:
+            self._minutes[key] = minutes_model.predict(
                 MinutesRequest(
                     player=request.player,
-                    gameweek=request.root_gameweek,
+                    root_gameweek=request.root_gameweek,
+                    fixture_gameweek=gameweek,
                     season=request.season,
                     n_gameweeks=self.n_gameweeks,
                     dbsession=request.dbsession,
                 )
             )
-        return self._minutes[request.player.player_id]
+        return self._minutes[key]
 
     def predict(
         self, request: PointsRequest, minutes_model: MinutesModel
@@ -190,23 +193,12 @@ class _FittedComponents:
             msg = f"involvement for {player} is not a Series, but {type(involvement)}"
             raise RuntimeError(msg)
 
-        minutes = self.minutes_for(request, minutes_model)
-        if (
-            minutes.expected_minutes == 0.0
-            or player.is_injured_or_suspended(
-                request.season, request.root_gameweek, gameweek
-            )
-            or was_historic_absence(
-                player,
-                current_gameweek=request.root_gameweek,
-                fixture_gameweek=gameweek,
-                season=request.season,
-                dbsession=request.dbsession,
-            )
-        ):
+        minutes = self.minutes_for(request, minutes_model, gameweek)
+        if minutes.expected_minutes == 0.0:
             # Not a refusal to answer: a player who will not be on the pitch is
-            # predicted zero minutes and zero from every component, which is
-            # what the components themselves would say.
+            # predicted zero from every component, which is what the components
+            # themselves would say. Whether an injured player will be on the
+            # pitch is the minutes model's business, not this one's.
             return PointsPrediction(
                 expected_points=0.0,
                 expected_minutes=0.0,

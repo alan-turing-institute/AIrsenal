@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from airsenal.prediction.minutes import get_recent_minutes_for_player
+from airsenal.prediction.minutes import get_recent_minutes_for_player, is_absent
 from airsenal.prediction.protocols import (
     MinutesDistribution,
     MinutesRequest,
@@ -31,12 +31,26 @@ class RecentMinutesModel:
     plausible as any other. Its weakness is rotation - at the end of a season
     when a team has nothing to play for, recent minutes overstate the next
     match.
+
+    A player known to be unavailable plays no minutes, whatever their recent
+    appearances say.
     """
 
     def __init__(self, config: RecentMinutesConfig | None = None):
         self.config = config or RecentMinutesConfig()
 
     def predict(self, request: MinutesRequest) -> MinutesDistribution:
+        if is_absent(
+            request.player,
+            request.root_gameweek,
+            request.fixture_gameweek,
+            request.season,
+            dbsession=request.dbsession,
+        ):
+            # No appearances to average: a player who is injured or suspended
+            # and not expected back plays no minutes, however much they have
+            # been playing.
+            return MinutesDistribution.uniform([0.0])
         fixtures_behind = max(request.n_gameweeks, self.config.min_fixtures_behind)
         return MinutesDistribution.uniform(
             get_recent_minutes_for_player(
@@ -45,7 +59,7 @@ class RecentMinutesModel:
                 season=request.season,
                 # everything is read as at the gameweek being predicted from,
                 # so the last gameweek this may see is the one before it
-                last_gameweek=request.gameweek - 1,
+                last_gameweek=request.root_gameweek - 1,
                 dbsession=request.dbsession,
             )
         )

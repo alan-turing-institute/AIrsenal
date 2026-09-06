@@ -4,6 +4,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.db.models import Fixture, Player, PlayerScore
+from airsenal.db.queries.absences import was_historic_absence
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.scores import get_recent_playerscore_rows
 from airsenal.db.session import get_session
@@ -112,3 +113,33 @@ def get_recent_minutes_for_player(
             player, gameweek=last_gameweek, season=season, dbsession=dbsession
         )
     return minutes or [0.0]
+
+
+def is_absent(
+    player: Player,
+    root_gameweek: int,
+    fixture_gameweek: int,
+    season: str,
+    dbsession: Session | None = None,
+) -> bool:
+    """
+    Whether this player is known to be unavailable for a gameweek.
+
+    Injured or suspended as at `root_gameweek` and not expected back by
+    `fixture_gameweek`, from the FPL API's flag for the current season and from
+    the recorded absences for a past one.
+
+    A minutes model is not obliged to use this - it is what a model *reads*
+    rather than something done to its answer - but a model that ignores it will
+    predict minutes for players who are not going to play.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    return player.is_injured_or_suspended(
+        season, root_gameweek, fixture_gameweek
+    ) or was_historic_absence(
+        player,
+        current_gameweek=root_gameweek,
+        fixture_gameweek=fixture_gameweek,
+        season=season,
+        dbsession=dbsession,
+    )

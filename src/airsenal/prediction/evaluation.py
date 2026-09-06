@@ -763,7 +763,8 @@ def score_minutes_model(
         distribution = model.predict(
             MinutesRequest(
                 player=score.player,
-                gameweek=gameweek,
+                root_gameweek=gameweek,
+                fixture_gameweek=gameweek,
                 season=season,
                 n_gameweeks=n_gameweeks,
                 dbsession=dbsession,
@@ -899,10 +900,9 @@ def score_prediction_breakdown(
     model that decomposes - and still an answer for one that does not, because
     every optional part of a `PointsPrediction` is scored only if it is there.
 
-    The minutes error here is the model's own expected minutes, which includes
-    its view that an injured player will not play; `score_minutes_model` scores
-    a minutes model on its own, in bands and with a log probability, which needs
-    the distribution rather than its mean.
+    The minutes part is the model's expected minutes against what was played;
+    `score_minutes_model` scores a minutes model on its own, in bands and with a
+    log probability, which needs the whole distribution rather than its mean.
 
     Args:
         model: Already fitted, for a window with `root_gameweek` as its first

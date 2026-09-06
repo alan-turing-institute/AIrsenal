@@ -34,7 +34,8 @@ def test_every_minutes_model_predicts_a_usable_distribution(pipeline_db, name):
     distribution = model.predict(
         MinutesRequest(
             player=player,
-            gameweek=PREDICT_FROM,
+            root_gameweek=PREDICT_FROM,
+            fixture_gameweek=PREDICT_FROM,
             season=SEASON,
             n_gameweeks=len(SCORE_GAMEWEEKS),
             dbsession=pipeline_db,
