@@ -88,13 +88,30 @@ def print_output(
     console.print()
 
 
-def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> int:
+def get_sell_price(
+    team_id: int,
+    player_id: int,
+    season: str = CURRENT_SEASON,
+    fetcher: FPLDataFetcher | None = None,
+) -> int:
+    """
+    What this entry can sell a player for, as the FPL API prices them.
+
+    The transfer endpoint is given this figure, so it is the API's own selling
+    price that is wanted rather than one worked out from the purchase price in
+    the transactions table. That estimate is still the fallback when the API
+    cannot say - it is only right while the database is in step with the entry.
+    """
+    fetcher = fetcher if fetcher is not None else get_fetcher(team_id)
     squad = get_starting_squad(
-        gameweek=next_gameweek(), season=season, fpl_team_id=team_id
+        gameweek=next_gameweek(),
+        season=season,
+        fpl_team_id=team_id,
+        fetcher=fetcher,
     )
     for p in squad.players:
         if p.player_id == player_id:
-            return squad.get_sell_price_for_player(p)
+            return squad.get_sell_price_for_player(p, use_api=True, fetcher=fetcher)
 
     msg = f"Player {player_id} not found in FPL team {team_id}"
     raise ValueError(msg)
@@ -166,7 +183,9 @@ def price_transfers(
         priced_transfers.append(
             {
                 "element_out": require_api_id(require_player(player_id_out)),
-                "selling_price": get_sell_price(fetcher.FPL_TEAM_ID, player_id_out),
+                "selling_price": get_sell_price(
+                    fetcher.FPL_TEAM_ID, player_id_out, fetcher=fetcher
+                ),
                 "element_in": api_id_in,
                 "purchase_price": int(now_cost[api_id_in]["now_cost"]),
             }

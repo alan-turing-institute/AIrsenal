@@ -25,6 +25,7 @@ from airsenal.db.queries.scores import (
 from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.ingest.fixtures import fill_fixtures_from_api
 from airsenal.ingest.player_attributes import fill_attributes_table_from_api
 from airsenal.ingest.player_mappings import add_mappings
@@ -189,6 +190,21 @@ def update_attributes(season: str, dbsession: Session) -> None:
 def update_db(
     season: str, do_attributes: bool, fpl_team_id: int, session: Session
 ) -> bool:
+    """
+    Update every table from the FPL API.
+
+    Raises:
+        ValueError: `season` is not the current one. Every read here is of the
+            live API, which serves the current season only, so a past season
+            would be filled with this season's prices, positions and fixtures.
+    """
+    if season != CURRENT_SEASON:
+        msg = (
+            f"Can only update from the FPL API for the current season "
+            f"({CURRENT_SEASON}), not {season}. Rebuild a past season with "
+            "`airsenal db create` instead."
+        )
+        raise ValueError(msg)
     with console.status("Updating the database..."):
         # see if any new players have been added
         num_new_players = update_players(season, session)

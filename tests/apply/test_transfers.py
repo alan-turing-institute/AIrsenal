@@ -197,7 +197,11 @@ def priced_world(monkeypatch):
         transfers_module, "require_player", lambda pid: FakePlayer(pid, 100 + pid)
     )
     monkeypatch.setattr(transfers_module, "require_api_id", lambda p: p.fpl_api_id)
-    monkeypatch.setattr(transfers_module, "get_sell_price", lambda _team, pid: 50 + pid)
+    monkeypatch.setattr(
+        transfers_module,
+        "get_sell_price",
+        lambda _team, pid, **_kwargs: 50 + pid,
+    )
     return PricingFetcher({102: 70, 103: 70, 104: 80})
 
 
@@ -282,3 +286,53 @@ def test_the_initial_squad_is_built_from_this_entrys_own_suggestions(
     build_init_priced_transfers(fpl_team_id=4321, fetcher=fetcher)
 
     assert asked == {"season": CURRENT_SEASON, "fpl_team_id": 4321}
+
+
+# ------------------------------------------ where a sale price comes from ---
+
+
+class RecordingSquad:
+    """A squad that records how its players were priced rather than pricing them."""
+
+    def __init__(self, player_id):
+        self.players = [FakePlayer(player_id, 100 + player_id)]
+        self.calls = []
+
+    def get_sell_price_for_player(self, player, **kwargs):
+        self.calls.append({"player": player.player_id, **kwargs})
+        return 55
+
+
+def test_a_sale_is_priced_as_the_api_prices_it(monkeypatch):
+    """
+    The transfer endpoint is handed this figure, so it has to be the API's own.
+
+    Working it out from the purchase price in the transactions table is only
+    right while the database is in step with the entry, and it is the fallback
+    inside `sell_price` for when the API cannot say - not the first choice here.
+    """
+    squad = RecordingSquad(player_id=7)
+    monkeypatch.setattr(transfers_module, "get_starting_squad", lambda **_k: squad)
+    monkeypatch.setattr(transfers_module, "next_gameweek", lambda *a, **k: 5)
+    fetcher = FakeFetcher(team_id=123)
+
+    assert transfers_module.get_sell_price(123, 7, fetcher=fetcher) == 55
+    assert squad.calls == [{"player": 7, "use_api": True, "fetcher": fetcher}]
+
+
+def test_pricing_a_sale_uses_this_entrys_own_client(monkeypatch):
+    """A selling price is per entry, so it must not be read through another's."""
+    seen = {}
+    squad = RecordingSquad(player_id=7)
+
+    def fake_starting_squad(**kwargs):
+        seen.update(kwargs)
+        return squad
+
+    monkeypatch.setattr(transfers_module, "get_starting_squad", fake_starting_squad)
+    monkeypatch.setattr(transfers_module, "next_gameweek", lambda *a, **k: 5)
+    fetcher = FakeFetcher(team_id=123)
+
+    transfers_module.get_sell_price(123, 7, fetcher=fetcher)
+    assert seen["fpl_team_id"] == 123
+    assert seen["fetcher"] is fetcher
