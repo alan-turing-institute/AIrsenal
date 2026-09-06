@@ -9,10 +9,13 @@ it against a real database as one of the table entries.
 import numpy as np
 import pytest
 
-from airsenal.core.lookup import ConfigError
 from airsenal.prediction.team_models import build_team_model
 from airsenal.prediction.team_models.scorelines import PoissonScorelines
-from airsenal.prediction.team_models.xg import XGTeamConfig, XGTeamModel
+from airsenal.prediction.team_models.xg import (
+    DEFAULT_XG_EPSILON,
+    XGTeamConfig,
+    XGTeamModel,
+)
 
 TEAMS = ["AAA", "BBB", "CCC", "DDD"]
 
@@ -158,6 +161,35 @@ def test_an_unfitted_model_says_so():
         XGTeamModel().predict_expected_goals("AAA", "BBB")
 
 
+def test_a_team_nobody_has_heard_of_is_predicted_as_a_promoted_one():
+    """The same assumption, for a name that never reached `add_new_team`."""
+    model = XGTeamModel(XGTeamConfig(promoted_like_bottom=2)).fit(
+        training_data(round_robin({t: 1.0 + i for i, t in enumerate(TEAMS)}))
+    )
+    assert model.predict_expected_goals("NEVER_SEEN", "AAA") == pytest.approx(
+        model.home_mean * model.promoted_attack * model.defence["AAA"]
+    )
+
+
+def test_by_default_a_team_with_no_record_is_an_average_one():
+    """
+    Which is not the likely story, but is the better prediction here.
+
+    Assuming a promoted team resembles the teams it replaced measured worse than
+    assuming it is average, across the two seasons that have promoted teams in
+    this database - so the plausible assumption is available and off. See
+    docs/prediction-seams-plan.md.
+    """
+    model = XGTeamModel().fit(
+        training_data(round_robin({t: 1.0 + i for i, t in enumerate(TEAMS)}))
+    )
+    assert model.config.promoted_like_bottom is None
+    assert model.promoted_attack == 1.0
+    assert model.promoted_defence == 1.0
+    model.add_new_team("NEW")
+    assert model.attack["NEW"] == 1.0
+
+
 def test_the_table_entry_wraps_it_so_it_has_scorelines():
     """It predicts a mean; the points calculation needs a distribution."""
     built = build_team_model("xg")
@@ -165,6 +197,56 @@ def test_the_table_entry_wraps_it_so_it_has_scorelines():
     assert isinstance(built.model, XGTeamModel)
 
 
-def test_the_table_entry_refuses_an_epsilon_it_cannot_use():
-    with pytest.raises(ConfigError, match="time weighting"):
-        build_team_model("xg", 0.5)
+def test_the_table_entry_passes_epsilon_to_the_model():
+    """`--epsilon` is time weighting, and this model does time-weight."""
+    assert build_team_model("xg").model.config.epsilon == DEFAULT_XG_EPSILON
+    assert build_team_model("xg", 0.25).model.config.epsilon == 0.25
+
+
+def test_time_weighting_prefers_what_happened_recently():
+    """
+    A team that has got worse is rated on the matches it has just played.
+
+    AAA was the best attack in the league a year ago and is ordinary now, while
+    everyone else has stayed the same. With no decay the model averages the two
+    halves; with decay it mostly believes the recent one.
+
+    Every team plays home and away, which matters: a team that only ever played
+    at home would have its attack confounded with the league's home advantage,
+    and the venue mean would absorb the whole change.
+    """
+    steady = {"BBB": 1.5, "CCC": 1.5, "DDD": 1.5}
+    old_matches = round_robin({"AAA": 3.0, **steady})
+    new_matches = round_robin({"AAA": 0.5, **steady})
+    data = training_data([*old_matches, *new_matches])
+    data["time_diff"] = np.array([1.0] * len(old_matches) + [0.0] * len(new_matches))
+
+    flat = XGTeamModel(XGTeamConfig(epsilon=0.0)).fit(data)
+    weighted = XGTeamModel(XGTeamConfig(epsilon=2.0)).fit(data)
+    assert weighted.attack["AAA"] < flat.attack["AAA"]
+    # and the teams that did not change are rated much the same either way
+    for team in steady:
+        assert weighted.attack[team] > flat.attack[team]
+
+
+def test_a_promoted_team_is_rated_like_the_teams_it_replaced():
+    """
+    Not like the league average, which is what it is not.
+
+    A side with no record in the window has just come up, so it is assumed to
+    resemble the worst teams that do have one.
+    """
+    strength = {"AAA": 3.0, "BBB": 2.0, "CCC": 1.0, "DDD": 0.5}
+    model = XGTeamModel(XGTeamConfig(promoted_like_bottom=2)).fit(
+        training_data(round_robin(strength))
+    )
+    model.add_new_team("NEW")
+    assert model.attack["NEW"] < 1.0
+    assert model.attack["NEW"] == pytest.approx(
+        (model.attack["CCC"] + model.attack["DDD"]) / 2
+    )
+    # and it is expected to create less than an average side would
+    assert (
+        model.predict_expected_goals("NEW", "AAA")
+        < model.home_mean * model.defence["AAA"]
+    )

@@ -50,12 +50,13 @@ def _xg(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.scorelines import (  # noqa: PLC0415
         PoissonScorelines,
     )
-    from airsenal.prediction.team_models.xg import XGTeamModel  # noqa: PLC0415
+    from airsenal.prediction.team_models.xg import (  # noqa: PLC0415
+        XGTeamConfig,
+        XGTeamModel,
+    )
 
-    if epsilon is not None:
-        msg = "the xG team model has no time weighting, so no epsilon"
-        raise ConfigError(msg)
-    return PoissonScorelines(XGTeamModel())
+    config = XGTeamConfig() if epsilon is None else XGTeamConfig(epsilon=epsilon)
+    return PoissonScorelines(XGTeamModel(config))
 
 
 def _constant(*, epsilon: float | None = None) -> ScorelineTeamModel:

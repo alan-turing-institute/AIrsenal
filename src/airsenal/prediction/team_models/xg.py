@@ -7,6 +7,12 @@ import numpy as np
 
 from airsenal.prediction.protocols import TeamFitData
 
+# Weight a match at exp(-epsilon * years ago), as the other models do. Swept
+# over 2425 and 2526 with tools/tune_team_time_weighting.py --model xg: this is
+# the best of them, and it is worth about a thousandth of a nat over no
+# weighting at all. Expected goals are steadier than goals are.
+DEFAULT_XG_EPSILON = 0.6
+
 
 @dataclass(frozen=True)
 class XGTeamConfig:
@@ -22,10 +28,21 @@ class XGTeamConfig:
             team is credited with before its own are counted. A team with three
             matches played is mostly the league average; one with thirty is
             mostly itself.
+        epsilon: Time-weighting decay, per year. A match a season old counts
+            `exp(-epsilon)` of one played yesterday. Zero weights every match in
+            the window equally.
+        promoted_like_bottom: How many of the worst teams a side with no record
+            is assumed to resemble, or None to assume it is an average one.
+            A team with nothing in the window has just come up, and promoted
+            teams are usually worse than the ones they replaced - but on this
+            database that assumption measures worse than the league average, so
+            it is off by default. See the plan document for the numbers.
     """
 
     n_iterations: int = 10
     prior_matches: float = 5.0
+    epsilon: float = DEFAULT_XG_EPSILON
+    promoted_like_bottom: int | None = None
 
 
 class XGTeamModel:
@@ -52,6 +69,10 @@ class XGTeamModel:
         # home advantage lives: it is the same for every team.
         self.home_mean = 0.0
         self.away_mean = 0.0
+        # What a team with no record in the window is assumed to be, taken from
+        # the worst teams that do have one.
+        self.promoted_attack = 1.0
+        self.promoted_defence = 1.0
 
     def fit(self, training_data: TeamFitData) -> "XGTeamModel":
         home_team = np.asarray(training_data["home_team"])
@@ -75,9 +96,10 @@ class XGTeamModel:
         home_team, away_team = home_team[played], away_team[played]
         home_xg, away_xg = home_xg[played], away_xg[played]
 
+        weights = self._weights(training_data, played)
         self.teams = sorted({*home_team.tolist(), *away_team.tolist()})
-        self.home_mean = float(home_xg.mean())
-        self.away_mean = float(away_xg.mean())
+        self.home_mean = float(np.average(home_xg, weights=weights))
+        self.away_mean = float(np.average(away_xg, weights=weights))
         self.attack = dict.fromkeys(self.teams, 1.0)
         self.defence = dict.fromkeys(self.teams, 1.0)
 
@@ -90,6 +112,7 @@ class XGTeamModel:
                 away_team,
                 home_xg,
                 away_xg,
+                weights,
                 self.defence,
                 prior,
                 scoring=True,
@@ -99,11 +122,41 @@ class XGTeamModel:
                 away_team,
                 home_xg,
                 away_xg,
+                weights,
                 self.attack,
                 prior,
                 scoring=False,
             )
+        self._rate_a_promoted_team()
         return self
+
+    def _weights(self, training_data: TeamFitData, played: np.ndarray) -> np.ndarray:
+        """How much each match counts, from how long ago it was played."""
+        if not self.config.epsilon:
+            return np.ones(int(played.sum()))
+        time_diff = np.asarray(training_data["time_diff"], dtype=float)[played]
+        return np.asarray(np.exp(-self.config.epsilon * time_diff), dtype=float)
+
+    def _rate_a_promoted_team(self) -> None:
+        """
+        What to assume about a team with no record in the window.
+
+        The league average by default, which is what an unrated team gets from
+        ratings that average one. `promoted_like_bottom` instead assumes it
+        resembles the worst teams that do have a record, which is the more
+        plausible story and the worse prediction on the seasons available - two
+        of them, disagreeing, over 29 fixtures.
+        """
+        assert self.teams is not None
+        if not self.teams or self.config.promoted_like_bottom is None:
+            return
+        # Ranked by what a team does to a match - creating more and conceding
+        # less is better - so the worst of them are the smallest ratios.
+        worst = sorted(
+            self.teams, key=lambda team: self.attack[team] / self.defence[team]
+        )[: max(1, self.config.promoted_like_bottom)]
+        self.promoted_attack = float(np.mean([self.attack[t] for t in worst]))
+        self.promoted_defence = float(np.mean([self.defence[t] for t in worst]))
 
     def _rate(
         self,
@@ -111,6 +164,7 @@ class XGTeamModel:
         away_team: np.ndarray,
         home_xg: np.ndarray,
         away_xg: np.ndarray,
+        weights: np.ndarray,
         against: dict[str, float],
         prior: float,
         *,
@@ -127,8 +181,8 @@ class XGTeamModel:
         assert self.teams is not None
         actual = dict.fromkeys(self.teams, prior)
         expected = dict.fromkeys(self.teams, prior)
-        for home, away, for_home, for_away in zip(
-            home_team, away_team, home_xg, away_xg, strict=True
+        for home, away, for_home, for_away, weight in zip(
+            home_team, away_team, home_xg, away_xg, weights, strict=True
         ):
             # (the team being rated, its opponent, what happened, the venue mean)
             sides = (
@@ -143,8 +197,10 @@ class XGTeamModel:
                 )
             )
             for team, opponent, xg, venue_mean in sides:
-                actual[team] += float(xg)
-                expected[team] += venue_mean * against.get(opponent, 1.0)
+                actual[team] += float(weight) * float(xg)
+                expected[team] += (
+                    float(weight) * venue_mean * against.get(opponent, 1.0)
+                )
         rated = {
             team: actual[team] / expected[team] if expected[team] else 1.0
             for team in self.teams
@@ -157,15 +213,15 @@ class XGTeamModel:
         )
 
     def add_new_team(self, team_name: str, **kwargs: Any) -> None:
-        """A team with no matches is the league average until it plays some."""
+        """A team with no matches is rated like the worst teams that have some."""
         del kwargs
         if self.teams is None:
             self.teams = []
         if team_name not in self.teams:
             self.teams.append(team_name)
             self.teams.sort()
-        self.attack.setdefault(team_name, 1.0)
-        self.defence.setdefault(team_name, 1.0)
+        self.attack.setdefault(team_name, self.promoted_attack)
+        self.defence.setdefault(team_name, self.promoted_defence)
 
     def predict_expected_goals(
         self, team: str, opponent: str, home: bool = True, **kwargs: Any
@@ -175,4 +231,8 @@ class XGTeamModel:
             msg = "The xG team model has not been fitted yet."
             raise RuntimeError(msg)
         venue_mean = self.home_mean if home else self.away_mean
-        return venue_mean * self.attack.get(team, 1.0) * self.defence.get(opponent, 1.0)
+        return (
+            venue_mean
+            * self.attack.get(team, self.promoted_attack)
+            * self.defence.get(opponent, self.promoted_defence)
+        )

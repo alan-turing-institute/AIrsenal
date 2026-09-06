@@ -739,3 +739,42 @@ through the defence.
 It is not the default. `--team-model xg` selects it, and changing
 `DEFAULT_TEAM_MODEL` would move every number in this document, so that is a
 decision to take deliberately rather than as a side effect.
+
+### Two obvious improvements, both nearly nothing
+
+**Time weighting** was missing. It is there now, `exp(-epsilon * years ago)` as
+the other models use, and `--epsilon` reaches it. Swept over 2425 and 2526 with
+`tools/tune_team_time_weighting.py --model xg`:
+
+| epsilon | 0.0 | 0.3 | 0.6 | 0.9 | 1.2 | 1.8 | 2.5 |
+|---|---|---|---|---|---|---|---|
+| avg log prob | -2.93330 | -2.93234 | **-2.93224** | -2.93285 | -2.93392 | -2.93674 | -2.94025 |
+
+The optimum is worth a thousandth of a nat over no weighting at all, and it is
+the default because it is the optimum, not because it matters. Expected goals
+are steadier than goals: Dixon-Coles wants 0.9 and gains from it, this barely
+notices. Against `extended` the margin is unchanged: +0.03552, +0.04092,
++0.02377 for 2324, 2425, 2526.
+
+**A promoted team is not an average team** - true, and it predicts worse.
+`promoted_like_bottom` rates a side with no record like the mean of the worst
+*n* that have one. Scored on only the fixtures a promoted team played in, over
+gameweeks 1-6:
+
+| season | promoted | fixtures | bottom 3 | bottom 6 | league average |
+|---|---|---|---|---|---|
+| 2425 | IPS, LEI, SOU | 17 | **-2.80676** | -2.81500 | -2.83265 |
+| 2526 | LEE, SUN | 12 | -2.94684 | -2.91454 | **-2.85005** |
+| pooled | | 29 | -2.865 | -2.856 | **-2.840** |
+
+The two seasons disagree and the pooled answer favours the assumption being
+wrong. Ipswich, Leicester and Southampton were all relegated straight back;
+Sunderland started 25/26 near the top of the table. Twenty-nine fixtures cannot
+settle it, and the story is still the more plausible one - so the mechanism
+ships and the default does not use it. If a season's data supports it,
+`XGTeamConfig(promoted_like_bottom=3)` is one argument away.
+
+Worth noting what the shrinkage does here anyway: `prior_matches` pulls a team
+with a thin record towards the league average, so by the time a promoted side
+has played five matches this setting barely matters. It only bites in the first
+few gameweeks, which is exactly where the sample is smallest.
