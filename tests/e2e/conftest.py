@@ -219,6 +219,11 @@ def _add_player_scores(
                 minutes=90 if player_id % 5 else 45,
                 goals=goals,
                 assists=assists,
+                # derived from the goals so the whole database stays
+                # reproducible, and so a model fitted to expected goals has
+                # something to fit to
+                expected_goals=0.1 + 0.4 * goals,
+                expected_assists=0.1 + 0.3 * assists,
                 conceded=conceded,
                 bonus=1 if goals else 0,
                 points=2 + 4 * goals + 3 * assists,

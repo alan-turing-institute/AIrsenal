@@ -8,7 +8,7 @@ keyword-only `epsilon`, the time-weighting decay rate.
 
 from collections.abc import Callable
 
-from airsenal.core.lookup import lookup
+from airsenal.core.lookup import ConfigError, lookup
 from airsenal.prediction.protocols import ScorelineTeamModel
 
 DEFAULT_TEAM_MODEL = "extended"
@@ -40,6 +40,24 @@ def _random(*, epsilon: float | None = None) -> ScorelineTeamModel:
     return RandomTeamModel(epsilon=epsilon)
 
 
+def _xg(*, epsilon: float | None = None) -> ScorelineTeamModel:
+    """
+    Expected goals, read as a Poisson over goal counts.
+
+    The one entry in the table that wraps: `XGTeamModel` predicts a mean and
+    `PoissonScorelines` gives it the distribution the points calculation needs.
+    """
+    from airsenal.prediction.team_models.scorelines import (  # noqa: PLC0415
+        PoissonScorelines,
+    )
+    from airsenal.prediction.team_models.xg import XGTeamModel  # noqa: PLC0415
+
+    if epsilon is not None:
+        msg = "the xG team model has no time weighting, so no epsilon"
+        raise ConfigError(msg)
+    return PoissonScorelines(XGTeamModel())
+
+
 def _constant(*, epsilon: float | None = None) -> ScorelineTeamModel:
     from airsenal.prediction.team_models.constant import (  # noqa: PLC0415
         ConstantTeamModel,
@@ -53,6 +71,7 @@ TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
     "extended": _extended,
     "neutral": _neutral,
     "random": _random,
+    "xg": _xg,
 }
 
 

@@ -25,7 +25,7 @@ def test_registered_player_models():
 
 
 def test_registered_team_models():
-    assert sorted(TEAM_MODELS) == ["constant", "extended", "neutral", "random"]
+    assert sorted(TEAM_MODELS) == ["constant", "extended", "neutral", "random", "xg"]
 
 
 def test_conjugate_is_the_default_player_model():

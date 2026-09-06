@@ -13,6 +13,7 @@ from airsenal.db.queries.fixtures import (
     get_fixtures_for_gameweeks,
 )
 from airsenal.db.queries.gameweeks import is_future_gameweek
+from airsenal.db.queries.scores import get_expected_goals_by_fixture
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
@@ -59,11 +60,30 @@ def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitDa
         ]
     ).min()
     time_diff = (end_date - result_dates) / pd.Timedelta(days=365)
+    expected_goals = get_expected_goals_by_fixture(dbsession)
+
+    def side_expected_goals(home: bool) -> np.ndarray:
+        """Expected goals for one side of every match, `nan` where unrecorded."""
+        return np.array(
+            [
+                expected_goals.get(
+                    (
+                        r.fixture.fixture_id,
+                        r.fixture.home_team if home else r.fixture.away_team,
+                    ),
+                    np.nan,
+                )
+                for r in results
+            ]
+        )
+
     return {
         "home_team": np.array([r.fixture.home_team for r in results]),
         "away_team": np.array([r.fixture.away_team for r in results]),
         "home_goals": np.array([r.home_score for r in results]),
         "away_goals": np.array([r.away_score for r in results]),
+        "home_expected_goals": side_expected_goals(home=True),
+        "away_expected_goals": side_expected_goals(home=False),
         "time_diff": time_diff,
         "neutral_venue": np.zeros(len(results)),
         "game_weights": np.ones(len(results)),

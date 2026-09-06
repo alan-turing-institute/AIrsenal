@@ -691,3 +691,51 @@ minutes for.
 That the two numbers now agree exactly - the breakdown's minutes error and
 `score_minutes_model`'s - is the point. Where they disagree again, something is
 overriding a model's answer behind its back.
+
+## The xG team model, which is what all of this was for
+
+`XGTeamModel` in `team_models/xg.py` is the first model the loosened protocols
+made possible: it predicts a mean and nothing else, and reaches the points
+calculation through `PoissonScorelines`, wrapped in its own table entry. It is
+an attack-and-defence rating fitted to the expected goals in past matches rather
+than to the goals, by an alternating fit that rates each attack against the
+defences it actually faced - which is what separates a good attack from an easy
+schedule.
+
+`TeamFitData` gained `home_expected_goals` and `away_expected_goals` as
+`NotRequired` keys, populated by `get_result_dict` from a new
+`get_expected_goals_by_fixture`. That is the extension point this plan pointed
+at for the player side, used for real on the team side: no other model changed,
+and one that assembles its own training data still type-checks.
+
+**It beats the incumbent, on every season in the database.** Held-out mean log
+probability over gameweeks 5-30, higher being better:
+
+| season | `xg` | `extended` | difference |
+|---|---|---|---|
+| 2324 | -3.07950 | -3.11516 | +0.03566 |
+| 2425 | -2.99039 | -3.02760 | +0.03721 |
+| 2526 | -2.85431 | -2.87858 | +0.02428 |
+
+End to end on predicted points, season 2526 GW5-30, it is a small gain
+everywhere - and the breakdown says where it comes from:
+
+| metric | `extended` | `xg` |
+|---|---|---|
+| points MAE | 0.905191 | 0.903423 |
+| points MAE, appeared | 2.092136 | 2.088024 |
+| points RMSE | 1.883554 | 1.881903 |
+| rank correlation | 0.815694 | 0.816195 |
+| attacking component MAE | 0.410864 | 0.415394 |
+| defending component MAE | 0.272859 | 0.265226 |
+
+**The whole gain is in defending, and attacking is slightly worse.** Which is
+the sort of thing this plan was built to be able to see: xG is a better read on
+how many a team concedes, and clean sheets and goals-conceded points follow
+directly from that, while who takes a team's goals is the player model's job and
+has not changed. A better team model on its own reaches predicted points mostly
+through the defence.
+
+It is not the default. `--team-model xg` selects it, and changing
+`DEFAULT_TEAM_MODEL` would move every number in this document, so that is a
+decision to take deliberately rather than as a side effect.

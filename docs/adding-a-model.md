@@ -91,9 +91,13 @@ continuous quantity has no natural distribution over goal *counts* - implement
 ```python
 TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
     ...
-    "xg": lambda **kwargs: PoissonScorelines(XGTeamModel(**kwargs)),
+    "xg": _xg,   # returns PoissonScorelines(XGTeamModel())
 }
 ```
+
+`team_models/xg.py` is exactly that, and the worked example to copy: an attack
+and defence rating fitted to expected goals, which has no distribution over goal
+*counts* of its own.
 
 `PoissonScorelines` reads the mean as a Poisson over counts, with the tail above
 `MAX_GOALS` piled onto the last one so the probabilities still sum to one. The

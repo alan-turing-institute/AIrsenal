@@ -56,6 +56,11 @@ class TeamFitData(TypedDict):
     # FIFA ratings per team name, absent when fitting without them. A promoted
     # team has no results, so its ratings are what `add_new_team` stands in with.
     team_covariates: NotRequired[dict[str, np.ndarray]]
+    # Expected goals for each side of each match, `nan` where none were
+    # recorded. Present whenever the training data came from the database; a
+    # model that wants them has to cope with a caller that assembled its own.
+    home_expected_goals: NotRequired[np.ndarray]
+    away_expected_goals: NotRequired[np.ndarray]
 
 
 @dataclass(frozen=True, eq=False)

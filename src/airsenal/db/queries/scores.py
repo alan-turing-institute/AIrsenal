@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from functools import partial
 
 import pandas as pd
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
@@ -102,6 +102,33 @@ def get_player_scores_for_gameweeks(
             .where(Fixture.season == season, Fixture.gameweek.in_(list(gameweeks)))
         ).all()
     )
+
+
+def get_expected_goals_by_fixture(
+    dbsession: Session | None = None,
+) -> dict[tuple[int, str], float]:
+    """
+    Each team's expected goals in each fixture, keyed by (fixture id, team).
+
+    Summed over the team's players, because FPL records expected goals per
+    player and a team model wants them per side. A fixture with no recorded
+    expected goals is absent rather than zero.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    rows = dbsession.execute(
+        select(
+            PlayerScore.fixture_id,
+            PlayerScore.player_team,
+            func.sum(PlayerScore.expected_goals),
+        )
+        .where(PlayerScore.expected_goals.isnot(None))
+        .group_by(PlayerScore.fixture_id, PlayerScore.player_team)
+    ).all()
+    return {
+        (int(fixture_id), str(team)): float(total)
+        for fixture_id, team, total in rows
+        if total is not None
+    }
 
 
 def get_recent_playerscore_rows(
