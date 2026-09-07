@@ -267,3 +267,40 @@ def test_a_promoted_team_is_rated_like_the_teams_it_replaced():
         model.predict_expected_goals("NEW", "AAA")
         < model.home_mean * model.defence["AAA"]
     )
+
+
+def test_the_ratings_do_not_depend_on_how_far_ahead_the_target_is():
+    """
+    `time_diff` is measured back from the gameweek being predicted.
+
+    Aiming further ahead multiplies every weight by the same factor, and the
+    shrinkage prior is in absolute units, so without rescaling the weights every
+    rating would creep towards the league average the further ahead you asked -
+    on identical training data. Two fits over the same matches, one aimed a
+    season further ahead, must agree.
+    """
+    strength = {"AAA": 3.0, "BBB": 2.0, "CCC": 1.0, "DDD": 0.5}
+    matches = round_robin(strength)
+    near = training_data(matches)
+    near["time_diff"] = np.linspace(0.0, 1.0, len(matches))
+    far = training_data(matches)
+    far["time_diff"] = near["time_diff"] + 1.0
+
+    fitted_near = XGTeamModel().fit(near)
+    fitted_far = XGTeamModel().fit(far)
+    for team in strength:
+        assert fitted_far.attack[team] == pytest.approx(fitted_near.attack[team])
+        assert fitted_far.defence[team] == pytest.approx(fitted_near.defence[team])
+
+
+def test_the_most_recent_match_in_the_window_counts_as_one():
+    """Which is what makes `prior_matches` a number of matches."""
+    matches = round_robin(dict.fromkeys(TEAMS, 1.5))
+    data = training_data(matches)
+    data["time_diff"] = np.linspace(2.0, 3.0, len(matches))
+    model = XGTeamModel()
+    played = np.ones(len(matches), dtype=bool)
+    weights = model._weights(data, played)
+    assert weights.max() == pytest.approx(1.0)
+    # and older matches still count for less, which is the point of weighting
+    assert weights.min() < 1.0
