@@ -843,13 +843,14 @@ cannot matter at gameweek 1 whichever way it is set.
 promoted teams were found sitting at a net 0.96 and 0.89 - almost exactly
 average, as the worry supposed.
 
-### Three things tried on the goal distribution and the ratings
+### Four things tried on the goal distribution and the ratings
 
 Following the gamma finding above: goals are narrower than Poisson given the
 model's own means, so the family to try is one that *can* be narrower. Alongside
-it, two questions about the ratings - whether goals belong in the fitting target
-next to expected goals, and whether each team should have its own home
-advantage. One of the three survived.
+it, three questions about bringing goals or a second model in - whether goals
+belong in the fitting target next to expected goals, whether mixing the two
+existing models' predictions beats either, and whether each team should have its
+own home advantage. One of the four survived.
 
 Everything below is held-out log probability per side of a match, over gameweeks
 5-38 of 2324, 2425 and 2526 - 1021 fixtures, 2042 observations. The paired
@@ -943,6 +944,32 @@ Six measurements, no consistent sign, mean about -0.16. A team that outscored
 its expected goals is, if anything, slightly *less* likely to do it next.
 Whatever a conversion factor would be fitted to is noise, so the code came back
 out.
+
+#### An ensemble of the two models: rejected
+
+The other reading of "ensemble": not blending the fitting *targets*, but mixing
+the two models' predicted distributions, `w * xg + (1 - w) * extended`. Worth
+testing separately, because `extended` is a different functional form fitted to
+goals by MCMC, and two models' errors can decorrelate even when one is worse.
+
+| w (weight on xg) | 2324 | 2425 | 2526 | pooled |
+|---|---|---|---|---|
+| 0.0 (`extended` alone) | -1.55972 | -1.50251 | -1.44491 | -1.50244 |
+| 0.5 | -1.54253 | -1.48859 | -1.43321 | -1.48816 |
+| 0.7 | **-1.54067** | -1.48518 | -1.43019 | -1.48540 |
+| 0.9 | -1.54206 | -1.48309 | -1.42817 | **-1.48449** |
+| 1.0 (`xg` alone) | -1.54420 | **-1.48257** | **-1.42755** | -1.48483 |
+
+The pooled optimum is a 0.9/0.1 mixture, worth +0.00034 nats over `xg` alone at
+t = 0.64 - and it is one season carrying it, 2324, while 2425 and 2526 both
+prefer pure `xg`. Held out properly, choosing `w` on two seasons and scoring the
+third, the mixture **loses**: -0.00076 nats. The two models' predicted means
+correlate at r = 0.850 and differ by 0.197 goals on average, so `extended`
+brings mostly the same information as `xg` plus its own error, and it is the
+worse model by 0.018 nats. There is nothing for a mixture to recover.
+
+Nothing was built for this one - it was measured from both models' stored
+distributions, so there is no code to take back out.
 
 #### A home advantage per team: rejected
 
