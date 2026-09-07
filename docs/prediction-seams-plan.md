@@ -842,3 +842,108 @@ cannot matter at gameweek 1 whichever way it is set.
 `tools/team_ratings.py` prints the fitted ratings, which is how the two newly
 promoted teams were found sitting at a net 0.96 and 0.89 - almost exactly
 average, as the worry supposed.
+
+### Three things tried on the goal distribution and the ratings
+
+Following the gamma finding above: goals are narrower than Poisson given the
+model's own means, so the family to try is one that *can* be narrower. Alongside
+it, two questions about the ratings - whether goals belong in the fitting target
+next to expected goals, and whether each team should have its own home
+advantage. One of the three survived.
+
+Everything below is held-out log probability per side of a match, over gameweeks
+5-38 of 2324, 2425 and 2526 - 1021 fixtures, 2042 observations. The paired
+standard error is over observations, which is why it can be quoted at all: the
+two variants see the same matches, so their difference is paired.
+
+#### Conway-Maxwell-Poisson: kept
+
+The Poisson asserts that a team's goals have a variance equal to their mean.
+Conway-Maxwell-Poisson lets that go - the pmf is proportional to
+`rate ** n / factorial(n) ** dispersion`, so one is exactly Poisson, above one
+is narrower. `ConwayMaxwellScorelines` is it, parameterised by the *mean* rather
+than the rate, so that changing the dispersion changes the shape and leaves the
+predicted number of goals where it was.
+
+The dispersion is swept, not fitted while the model is. Fitted in sample by
+maximum likelihood it comes out at 1.20, and that is biased: the ratings have
+already been fitted to the same matches, so the residuals look narrower than
+they are. Held out, every season's own optimum is above one but they disagree
+about how far:
+
+| dispersion | 2324 | 2425 | 2526 | pooled |
+|---|---|---|---|---|
+| 1.00 (Poisson) | -1.54446 | -1.48409 | -1.43324 | -1.48732 |
+| 1.10 | -1.54365 | -1.48260 | -1.42933 | -1.48525 |
+| 1.15 | -1.54395 | -1.48250 | -1.42798 | -1.48487 |
+| **1.17** | **-1.54420** | **-1.48257** | **-1.42755** | **-1.48483** |
+| 1.20 | -1.54470 | -1.48280 | -1.42702 | -1.48490 |
+| own optimum | 1.09 | 1.14 | 1.31 | **1.17** |
+
+`DEFAULT_GOAL_DISPERSION = 1.17` is the pooled held-out optimum, and it is also
+better than a Poisson in each season taken alone (+0.00026, +0.00152, +0.00569).
+Two decimal places rather than the 1.171 the sweep returns, because the surface
+is flat: everything from 1.15 to 1.20 is within a ten-thousandth of a nat of the
+peak, and the three seasons put their own optima 0.2 apart.
+
+The gain of +0.0025 against a Poisson is measured at the dispersion that was
+chosen on the same three seasons, so the honest figure is the
+leave-one-season-out one: choose the pooled optimum on two seasons, score the
+third, and it is **+0.0017 nats** a side. That is the same order as the time
+weighting already shipped, and the direction is unanimous - each of the three
+folds picks a dispersion above one (1.11, 1.19, 1.22).
+
+What it does downstream is reduce clean sheets: against a side expected to
+create 1.45 goals, P(clean sheet) goes from 0.2346 to 0.2151, about 8% relative,
+and more than that against the better attacks. `tools/tune_goal_dispersion.py`
+re-derives the whole table.
+
+#### Goals in the fitting target: rejected
+
+Ensembling xG with goals, as a `goals_weight` on the fitting target so that a
+team rated on both gets a shrunk conversion factor between them for free. Every
+amount of it was worse, monotonically:
+
+| goals weight | pooled gain vs xG alone | t |
+|---|---|---|
+| 0.25 | -0.00023 | -0.26 |
+| 0.50 | -0.00226 | -1.27 |
+| 1.00 | -0.01178 | -3.27 |
+
+Two other measurements say why. At league level there is no conversion factor to
+fit: over the three seasons the model predicts 1.5103 goals per side and 1.5064
+were scored, a ratio of 0.9974. And at team level it does not persist - split
+each season at gameweek 19 and correlate a team's goals-over-xG in the first
+half against the second:
+
+| season | finishing (for) | keeping (against) |
+|---|---|---|
+| 2324 | -0.218 | +0.233 |
+| 2425 | -0.185 | -0.422 |
+| 2526 | +0.107 | -0.478 |
+
+Six measurements, no consistent sign, mean about -0.16. A team that outscored
+its expected goals is, if anything, slightly *less* likely to do it next.
+Whatever a conversion factor would be fitted to is noise, so the code came back
+out.
+
+#### A home advantage per team: rejected
+
+`home_mean` and `away_mean` say home is worth the same to everyone. Giving each
+team its own multiplier - one number, tilting a match by multiplying what the
+home side creates and dividing what it concedes, solved for by the positive root
+of `created * x - conceded / x = 0` with shrinkage towards no tilt - looked
+mildly positive and is not:
+
+| prior matches at no advantage | pooled gain | t | 2324 | 2425 | 2526 |
+|---|---|---|---|---|---|
+| 5 | +0.00116 | +0.76 | +0.00304 | +0.00396 | -0.00353 |
+| 20 | +0.00102 | +1.51 | +0.00206 | +0.00255 | -0.00156 |
+| 50 | +0.00059 | +1.80 | +0.00109 | +0.00141 | -0.00073 |
+| 150 | +0.00024 | +1.97 | +0.00042 | +0.00056 | -0.00026 |
+
+The t statistic *rises* as the effect is shrunk towards nothing while the effect
+itself collapses to +0.0002 nats, and 2526 disagrees in sign at every level. Two
+seasons for and one against, at an effect size that vanishes under any
+shrinkage, is not a finding. An extra rating per team and a quadratic solve is
+not worth it, so this came back out too.

@@ -10,7 +10,10 @@ import numpy as np
 import pytest
 
 from airsenal.prediction.team_models import build_team_model
-from airsenal.prediction.team_models.scorelines import PoissonScorelines
+from airsenal.prediction.team_models.scorelines import (
+    DEFAULT_GOAL_DISPERSION,
+    ConwayMaxwellScorelines,
+)
 from airsenal.prediction.team_models.xg import (
     DEFAULT_XG_EPSILON,
     XGTeamConfig,
@@ -191,9 +194,15 @@ def test_by_default_a_team_with_no_record_is_an_average_one():
 
 
 def test_the_table_entry_wraps_it_so_it_has_scorelines():
-    """It predicts a mean; the points calculation needs a distribution."""
+    """
+    It predicts a mean; the points calculation needs a distribution.
+
+    Conway-Maxwell rather than Poisson, so the spread of that distribution is a
+    swept number instead of an assumption - see `DEFAULT_GOAL_DISPERSION`.
+    """
     built = build_team_model("xg")
-    assert isinstance(built, PoissonScorelines)
+    assert isinstance(built, ConwayMaxwellScorelines)
+    assert built.dispersion == DEFAULT_GOAL_DISPERSION
     assert isinstance(built.model, XGTeamModel)
 
 

@@ -10,9 +10,10 @@ TODO: Take into account different formations and sub (position) orders
 
 import numpy as np
 
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 
 logger = get_logger(__name__)
+configure_logging()
 
 # number of random trials
 n_samples = int(1e6)

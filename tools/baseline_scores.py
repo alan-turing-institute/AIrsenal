@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from airsenal.core.console import track
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.db.session import session_scope
 from airsenal.game.enums import Position
 from airsenal.game.season import CURRENT_SEASON
@@ -123,6 +123,7 @@ def score_points(
 
 
 def main() -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", default=CURRENT_SEASON)
     parser.add_argument("--first-gameweek", type=int, default=5)

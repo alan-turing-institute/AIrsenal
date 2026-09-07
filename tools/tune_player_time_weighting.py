@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 from airsenal.core.console import track
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import session_scope
 from airsenal.game.season import CURRENT_SEASON
@@ -87,6 +87,7 @@ def evaluate_params(
 
 
 def main() -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(description="Tune the conjugate player model")
     parser.add_argument("--seasons", nargs="+", default=[CURRENT_SEASON])
     parser.add_argument("--horizon", type=int, default=3)

@@ -1,7 +1,7 @@
 import pandas as pd
 
 from airsenal.core.data_files import data_file
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import get_fetcher
 
@@ -9,6 +9,7 @@ logger = get_logger(__name__)
 
 
 def main() -> None:
+    configure_logging()
     data = get_fetcher().get_current_summary_data()
     teams = pd.DataFrame(data["teams"])
 

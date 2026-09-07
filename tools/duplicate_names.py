@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.export.player_summary import SAVE_FILE as SUMMARY_FILE
 from airsenal.game.season import CURRENT_SEASON
 
@@ -24,4 +24,5 @@ def find_duplicate_names(season: str = CURRENT_SEASON) -> None:
 
 
 if __name__ == "__main__":
+    configure_logging()
     find_duplicate_names()

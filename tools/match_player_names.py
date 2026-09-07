@@ -9,7 +9,7 @@ from collections.abc import Callable
 
 from thefuzz import fuzz
 
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.remote.fpl_api import FPLDataFetcher
 
 logger = get_logger(__name__)
@@ -37,6 +37,7 @@ def find_best_match(
 
 
 if __name__ == "__main__":
+    configure_logging()
     # get the team names as used in FPL
     df = FPLDataFetcher()
     playerdict: dict[str, list[str]] = {}

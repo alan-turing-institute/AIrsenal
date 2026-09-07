@@ -8,7 +8,7 @@ better.
 
 import argparse
 
-from airsenal.core.logging import get_logger
+from airsenal.core.logging import configure_logging, get_logger
 from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.session import session_scope
 from airsenal.game.season import CURRENT_SEASON
@@ -19,6 +19,7 @@ logger = get_logger(__name__)
 
 
 def main() -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", default=CURRENT_SEASON)
     parser.add_argument("--gameweek", type=int, default=None)

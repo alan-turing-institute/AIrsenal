@@ -91,7 +91,7 @@ continuous quantity has no natural distribution over goal *counts* - implement
 ```python
 TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
     ...
-    "xg": _xg,   # returns PoissonScorelines(XGTeamModel())
+    "xg": _xg,   # returns ConwayMaxwellScorelines(XGTeamModel())
 }
 ```
 
@@ -99,10 +99,20 @@ TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
 and defence rating fitted to expected goals, which has no distribution over goal
 *counts* of its own.
 
-`PoissonScorelines` reads the mean as a Poisson over counts, with the tail above
-`MAX_GOALS` piled onto the last one so the probabilities still sum to one. The
-table still promises a `ScorelineTeamModel`, so nothing downstream has to ask
-which kind it was given, and mypy checks the wrapping on the line you add it on.
+There are two wrappers to choose from in `team_models/scorelines.py`, and they
+differ only in how widely goals are taken to scatter around the mean:
+
+- `PoissonScorelines` reads the mean as a Poisson, whose variance equals its
+  mean. The tail above `MAX_GOALS` is piled onto the last count so the
+  probabilities still sum to one.
+- `ConwayMaxwellScorelines` makes that spread a parameter instead of an
+  assumption, at `DEFAULT_GOAL_DISPERSION`; one is exactly Poisson and above one
+  is narrower. It is what `xg` uses, because Premier League goals measure as
+  narrower than Poisson. `tools/tune_goal_dispersion.py` re-derives the number.
+
+Either way the table still promises a `ScorelineTeamModel`, so nothing
+downstream has to ask which kind it was given, and mypy checks the wrapping on
+the line you add it on.
 `tests/e2e/test_team_models.py` has a worked example under
 "a model that predicts only a mean".
 
