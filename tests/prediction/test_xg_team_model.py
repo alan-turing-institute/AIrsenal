@@ -293,17 +293,25 @@ def test_the_ratings_do_not_depend_on_how_far_ahead_the_target_is():
         assert fitted_far.defence[team] == pytest.approx(fitted_near.defence[team])
 
 
-def test_the_most_recent_match_in_the_window_counts_as_one():
-    """Which is what makes `prior_matches` a number of matches."""
+def test_the_weights_sum_to_the_number_of_matches():
+    """
+    Which is what makes `prior_matches` a number of matches at any epsilon.
+
+    The convention bpl's models and `scale_goals_by_minutes` both use. Without
+    it the total weight falls as epsilon rises, so the shrinkage prior would
+    strengthen with the time weighting and a sweep over one would be sweeping
+    both.
+    """
     matches = round_robin(dict.fromkeys(TEAMS, 1.5))
     data = training_data(matches)
     data["time_diff"] = np.linspace(2.0, 3.0, len(matches))
-    model = XGTeamModel()
     played = np.ones(len(matches), dtype=bool)
-    weights = model._weights(data, played)
-    assert weights.max() == pytest.approx(1.0)
+    for epsilon in (0.0, 0.3, 0.6, 2.0):
+        weights = XGTeamModel(XGTeamConfig(epsilon=epsilon))._weights(data, played)
+        assert weights.sum() == pytest.approx(len(matches))
     # and older matches still count for less, which is the point of weighting
-    assert weights.min() < 1.0
+    weights = XGTeamModel()._weights(data, played)
+    assert weights.min() < weights.max()
 
 
 def test_the_fit_stops_when_the_ratings_stop_moving():

@@ -166,20 +166,24 @@ class XGTeamModel:
         """
         How much each match counts, from how long ago it was played.
 
-        Scaled so the most recent match in the window counts as one. `time_diff`
-        is measured back from the gameweek being predicted, so aiming further
-        ahead multiplies every weight by the same factor - and since `prior` is
-        in absolute units, that would quietly shrink every rating towards the
-        league average the further ahead you asked. Rescaling keeps
-        `prior_matches` meaning the number of matches it says, and leaves the
-        reduced effective sample size that time weighting is for.
+        Rescaled to sum to the number of matches, as bpl's models and
+        `scale_goals_by_minutes` both do. Two things need that. `time_diff` is
+        measured back from the gameweek being predicted, so aiming further ahead
+        multiplies every weight by the same factor, and `prior` is in absolute
+        units - unrescaled, asking further ahead would quietly shrink every
+        rating towards the league average. And the total weight would otherwise
+        fall as `epsilon` rises, so a sweep over `epsilon` would be sweeping the
+        shrinkage at the same time and could not say which it had chosen.
+
+        What time weighting is for survives it: the weights still say a recent
+        match counts for more than an old one, and only their total is pinned.
         """
         if not self.config.epsilon:
             return np.ones(int(played.sum()))
         time_diff = np.asarray(training_data["time_diff"], dtype=float)[played]
         weights = np.asarray(np.exp(-self.config.epsilon * time_diff), dtype=float)
-        largest = float(weights.max()) if weights.size else 0.0
-        return weights / largest if largest else weights
+        total = float(weights.sum())
+        return weights * (len(weights) / total) if total else weights
 
     def _rate_a_promoted_team(self) -> None:
         """

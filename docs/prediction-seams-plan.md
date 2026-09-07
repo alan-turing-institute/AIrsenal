@@ -1036,3 +1036,65 @@ and the fit stops when a pass moves no rating by more than `tolerance = 1e-12`.
 Real windows settle in seven to thirteen passes - 2324 GW5 wanted thirteen,
 which the old fixed ten never gave it - and the fitted ratings are unchanged to
 within 1e-12, so no measurement above is affected.
+
+#### The weights sum to the number of matches, as everything else here does
+
+`XGTeamModel._weights` returned `exp(-epsilon * time_diff)` unnormalised, which
+was the odd one out: bpl's two Dixon-Coles models and
+`scale_goals_by_minutes` all rescale to `n * weights / weights.sum()`, so the
+weights sum to the number of matches whatever the time weighting. The xG model
+now does the same. Two things were wrong without it.
+
+**The fit depended on how far ahead you aimed it.** `time_diff` is measured back
+from the gameweek being predicted, so aiming a season further ahead multiplies
+every weight by the same constant while `prior` stays in absolute units. On
+identical data (2627, 1160 matches) the weights summed to 496 aimed at GW38
+against 1160 aimed at GW3, so every rating crept towards the league average -
+ARS defence 0.595 rather than 0.573. This never touched `airsenal run`, which
+fits at `min(request.gameweeks)`, days after the last result; it is why
+`tools/team_ratings.py --gameweek 38` printed a flatter league than the model
+believes in.
+
+**A sweep over `epsilon` was sweeping the shrinkage too.** Total weight falls as
+epsilon rises - 496 of a possible 1160 at 0.6 - so `prior_matches = 5` was
+worth about 11.6 matches at this window, and more at a larger epsilon. The two
+parameters could not be chosen separately. Rescaled, they can be, so the grid
+is worth running again (held-out log probability per side, gameweeks 5-38 of
+three seasons, 1021 fixtures):
+
+| epsilon | prior 2 | prior 5 | prior 10 | prior 20 | prior 40 |
+|---|---|---|---|---|---|
+| 0.0 | -1.48469 | -1.48546 | -1.48820 | -1.49392 | -1.50284 |
+| 0.4 | -1.48415 | -1.48480 | -1.48731 | -1.49277 | -1.50157 |
+| 0.6 | **-1.48411** | -1.48471 | -1.48711 | -1.49242 | -1.50111 |
+| 0.9 | -1.48429 | -1.48482 | -1.48706 | -1.49214 | -1.50062 |
+| 1.2 | -1.48473 | -1.48519 | -1.48727 | -1.49210 | -1.50033 |
+| 1.8 | -1.48613 | -1.48642 | -1.48817 | -1.49250 | -1.50018 |
+
+`epsilon = 0.6` survives: it is the pooled optimum at both of the two smallest
+priors, so the choice made under the confounded weights was the right one
+anyway. `prior_matches` looks retunable - 2 is worth +0.00060 pooled over 5 -
+and is not. The seasons disagree about shrinkage more than about anything else
+tried here: 2324 wants 2, 2425 wants 10, 2526 wants 20. Choosing the prior on
+two seasons and scoring the third **loses 0.00158**, three times what choosing
+it in sample appears to gain, so both defaults stay where they are.
+
+The rescaling itself is worth nothing measurable, which is why it went
+unnoticed - a backtest fits at the gameweek it then predicts, so the pathology
+above cannot appear in one:
+
+| weights | 2324 | 2425 | 2526 | pooled |
+|---|---|---|---|---|
+| unrescaled (before) | -1.54420 | -1.48257 | -1.42755 | -1.48483 |
+| largest counts as one | -1.54410 | -1.48258 | -1.42756 | -1.48481 |
+| sum to the match count | -1.54347 | -1.48212 | -1.42836 | **-1.48471** |
+
+`DEFAULT_GOAL_DISPERSION` was re-swept on the new weights and 1.17 is still the
+pooled optimum, still positive in every season on its own (+0.00033, +0.00156,
++0.00561 against a Poisson), so nothing downstream moves.
+
+What does move is the ratings, by about 12% more spread - `prior_matches = 5`
+now means five matches rather than the window's 11.6 - so a team with a short
+record sits further from the league average than it did. ARS reads 1.252/0.547
+where it read 1.226/0.573, and a promoted side with two matches played gets 29%
+of its own record rather than 15%.
