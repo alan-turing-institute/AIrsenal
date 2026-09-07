@@ -5,7 +5,7 @@ Eight things are pluggable, and they compose into one object:
 ```python
 AIrsenalPipeline(
     points_model=ComponentPointsModel(
-        team_model=build_team_model("extended"),
+        team_model=build_team_model("xg"),
         player_model=build_player_model("conjugate"),
         minutes_model=build_minutes_model("recent"),
     ),

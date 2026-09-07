@@ -144,10 +144,18 @@ def test_training_data_without_expected_goals_is_refused():
 
 
 def test_training_data_where_nothing_was_recorded_is_refused():
+    """
+    And the refusal names the way out, because this is now the default model.
+
+    Expected goals only exist from season 2223, so anyone fitting an earlier one
+    hits this and needs to be told which model to ask for instead.
+    """
     data = training_data(round_robin(dict.fromkeys(TEAMS, 1.5)))
     data["home_expected_goals"] = np.full(len(data["home_team"]), np.nan)
-    with pytest.raises(ValueError, match=r"No match"):
+    with pytest.raises(ValueError, match=r"No match") as excinfo:
         XGTeamModel().fit(data)
+    assert "2223" in str(excinfo.value)
+    assert "extended" in str(excinfo.value)
 
 
 def test_matches_with_no_expected_goals_are_dropped_not_zeroed():

@@ -77,9 +77,13 @@ Predictions come from three components:
 For background on the modelling, see
 [the AIrsenal write-up](https://www.turing.ac.uk/news/airsenal).
 
-The team model comes from the [bpl](https://github.com/anguswilliams91/bpl-next) package.
-The player models live in `airsenal.prediction.player_models` — one module per model,
-behind the `PlayerModel` protocol.
+The default team model, `xg`, rates each team's attack and defence from the expected
+goals in past matches and reads the result as a Conway-Maxwell-Poisson over goal counts;
+`extended` and `neutral` are Dixon-Coles models from the
+[bpl](https://github.com/anguswilliams91/bpl-next) package, fitted to goals, and are what
+to ask for on a season before 2223, when the FPL API began recording expected goals.
+Both they and the player models in `airsenal.prediction.player_models` are one module
+per model, behind the `TeamModel` and `PlayerModel` protocols.
 
 ### How predicted points are calculated
 

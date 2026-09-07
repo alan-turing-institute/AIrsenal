@@ -91,7 +91,13 @@ class XGTeamModel:
 
         played = ~(np.isnan(home_xg) | np.isnan(away_xg))
         if not played.any():
-            msg = "No match in the training data has expected goals recorded"
+            msg = (
+                "No match in the training data has expected goals recorded, so "
+                "there is nothing to fit this model to. The FPL API has "
+                "recorded expected goals since season 2223; for a season "
+                "before that, ask for a model fitted to goals instead - "
+                "`--team-model extended`."
+            )
             raise ValueError(msg)
         home_team, away_team = home_team[played], away_team[played]
         home_xg, away_xg = home_xg[played], away_xg[played]

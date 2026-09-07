@@ -4,6 +4,10 @@ Team models: one module per way of predicting match scorelines.
 `TEAM_MODELS` maps a `--team-model` name to a factory. Unlike the other
 component tables its factories are not zero-argument: each takes an optional
 keyword-only `epsilon`, the time-weighting decay rate.
+
+The default is `xg`, which needs expected goals in the training data - the FPL
+API has recorded them since 2223. Fitting a season before that means asking for
+`extended`, which is fitted to goals.
 """
 
 from collections.abc import Callable
@@ -11,7 +15,9 @@ from collections.abc import Callable
 from airsenal.core.lookup import ConfigError, lookup
 from airsenal.prediction.protocols import ScorelineTeamModel
 
-DEFAULT_TEAM_MODEL = "extended"
+# Measured better than `extended` on held-out scorelines in every season with
+# expected goals, and on predicted points too. See docs/prediction-seams-plan.md.
+DEFAULT_TEAM_MODEL = "xg"
 
 
 # The Dixon-Coles entries are functions rather than the class itself so that bpl,

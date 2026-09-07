@@ -18,6 +18,7 @@ from airsenal.prediction.team_models import (
     TEAM_MODELS,
     build_team_model,
 )
+from airsenal.prediction.team_models.scorelines import ConwayMaxwellScorelines
 
 
 def test_registered_player_models():
@@ -53,7 +54,19 @@ def test_player_model_fit_takes_no_keyword_arguments():
         assert list(sig.parameters) == ["data"], name
 
 
-def test_a_team_model_holds_the_arguments_it_fits_with():
+def test_xg_is_the_default_team_model():
+    """
+    It measured better than `extended` on scorelines and on points alike.
+
+    Named rather than inferred, because the default is what `airsenal run` uses
+    and changing it changes everyone's predictions. See
+    docs/prediction-seams-plan.md for the numbers behind the switch.
+    """
+    assert DEFAULT_TEAM_MODEL == "xg"
+    assert isinstance(build_team_model(), ConwayMaxwellScorelines)
+
+
+def test_a_bpl_team_model_holds_the_arguments_it_fits_with():
     """
     The model object carries its own epsilon.
 
@@ -61,7 +74,7 @@ def test_a_team_model_holds_the_arguments_it_fits_with():
     this a caller building its own model - replay, say - fits with different
     time weighting than `airsenal run` does.
     """
-    model = build_team_model(DEFAULT_TEAM_MODEL)
+    model = build_team_model("extended")
     assert model.epsilon == 0.9
     assert model.rescale_weights is True
 
