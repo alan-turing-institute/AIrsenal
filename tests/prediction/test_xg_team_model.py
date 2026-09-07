@@ -304,3 +304,51 @@ def test_the_most_recent_match_in_the_window_counts_as_one():
     assert weights.max() == pytest.approx(1.0)
     # and older matches still count for less, which is the point of weighting
     assert weights.min() < 1.0
+
+
+def test_the_fit_stops_when_the_ratings_stop_moving():
+    """
+    A fixed point, not a fixed number of passes.
+
+    The alternating fit converges geometrically, and how fast depends on how
+    well the schedule connects the teams. Rather than trusting a count, it runs
+    until a pass changes nothing - so a well connected schedule costs a handful
+    of passes and a badly connected one is still fitted.
+    """
+    matches = round_robin({"AAA": 2.4, "BBB": 1.6, "CCC": 1.2, "DDD": 0.7})
+    settled = XGTeamModel().fit(training_data(matches))
+    plenty = XGTeamModel(XGTeamConfig(max_iterations=1000)).fit(training_data(matches))
+    for team in TEAMS:
+        assert settled.attack[team] == pytest.approx(plenty.attack[team], abs=1e-12)
+        assert settled.defence[team] == pytest.approx(plenty.defence[team], abs=1e-12)
+
+
+def test_a_badly_connected_schedule_still_reaches_its_fixed_point():
+    """
+    AAA plays only CCC and BBB only DDD, which converges an order slower.
+
+    Ten passes - what this used to do - leaves the ratings 1e-3 short here,
+    while a real schedule is at machine precision by then. The cap is what makes
+    that difference not matter.
+    """
+    matches = [
+        *[("AAA", "CCC", 2.0, 0.5) for _ in range(6)],
+        *[("CCC", "AAA", 3.0, 2.0) for _ in range(6)],
+        *[("BBB", "DDD", 2.0, 0.5) for _ in range(6)],
+        *[("DDD", "BBB", 0.3, 2.0) for _ in range(6)],
+        *[("CCC", "DDD", 3.0, 0.5) for _ in range(6)],
+        *[("DDD", "CCC", 0.3, 3.0) for _ in range(6)],
+    ]
+    short = XGTeamModel(XGTeamConfig(max_iterations=10)).fit(training_data(matches))
+    full = XGTeamModel().fit(training_data(matches))
+    plenty = XGTeamModel(XGTeamConfig(max_iterations=1000)).fit(training_data(matches))
+    assert abs(short.attack["AAA"] - plenty.attack["AAA"]) > 1e-5
+    assert full.attack["AAA"] == pytest.approx(plenty.attack["AAA"], abs=1e-12)
+
+
+def test_a_cap_of_one_pass_is_honoured():
+    """So the cap is a cap, and a fit cannot loop forever on data that wanders."""
+    matches = round_robin({"AAA": 2.4, "BBB": 1.6, "CCC": 1.2, "DDD": 0.7})
+    once = XGTeamModel(XGTeamConfig(max_iterations=1)).fit(training_data(matches))
+    settled = XGTeamModel().fit(training_data(matches))
+    assert once.attack["AAA"] != pytest.approx(settled.attack["AAA"], abs=1e-9)

@@ -995,3 +995,44 @@ itself collapses to +0.0002 nats, and 2526 disagrees in sign at every level. Two
 seasons for and one against, at an effect size that vanishes under any
 shrinkage, is not a finding. An extra rating per team and a quadratic solve is
 not worth it, so this came back out too.
+
+#### The alternating fit's iteration count: it was asserted, now it is measured
+
+`XGTeamConfig` fitted for a fixed ten passes, on a docstring claim that "it
+converges quickly; more than a handful buys nothing". That was never checked.
+Fitting the same data for `n` passes and comparing with the fixed point (2000
+passes) on 2627 GW3, 1160 matches:
+
+| passes | largest step | gap to the fixed point |
+|---|---|---|
+| 1 | - | 2.5e-02 |
+| 2 | 2.4e-02 | 1.1e-03 |
+| 3 | 1.0e-03 | 3.1e-05 |
+| 5 | 9.0e-07 | 3.7e-08 |
+| 10 | 2.6e-12 | 4.6e-15 |
+| 20 | 2.2e-16 | 0 |
+
+So it converges geometrically at roughly a factor of 30 a pass and ten was
+enough, with about five passes to spare - and the same holds in every window
+tried, including the sparsest (2324 GW5, 39 matches: 5e-11 at ten passes) and
+with the time weighting or the shrinkage prior turned off. Held-out scores over
+2526 GW5-38 agree that it never mattered:
+
+| passes | avg log prob per fixture |
+|---|---|
+| 1 | -2.85932412 |
+| 2 | -2.85925965 |
+| 3 | -2.85925779 |
+| 5, 10, 50 | -2.85925773 |
+
+These are `backtest_team_model`'s numbers, which are per fixture - both goal
+counts - where the tables above are per side; halve them to compare. An
+unconverged fit was costing 3.3e-5 nats a side at worst, a fiftieth of the
+dispersion effect. But how fast it converges depends on how well the schedule connects the
+teams, and ten is not a margin that can be reasoned about: a contrived
+four-team schedule where two teams only ever play each other is still 1.6e-3
+short after ten passes. So the count is now a **cap** (`max_iterations = 100`)
+and the fit stops when a pass moves no rating by more than `tolerance = 1e-12`.
+Real windows settle in seven to thirteen passes - 2324 GW5 wanted thirteen,
+which the old fixed ten never gave it - and the fitted ratings are unchanged to
+within 1e-12, so no measurement above is affected.

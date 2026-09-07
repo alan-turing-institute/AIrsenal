@@ -20,10 +20,15 @@ class XGTeamConfig:
     How the attack and defence ratings are fitted.
 
     Args:
-        n_iterations: Passes of the alternating fit. Each pass re-rates every
-            attack against the current defences and vice versa, which is what
-            separates a good attack from an easy schedule. It converges quickly;
-            more than a handful buys nothing.
+        max_iterations: Most passes of the alternating fit to make. Each pass
+            re-rates every attack against the current defences and vice versa,
+            which is what separates a good attack from an easy schedule. It
+            stops as soon as the ratings stop moving by `tolerance`, which
+            on a real schedule takes seven to thirteen passes, so this is only
+            a cap on a fit that will not settle.
+        tolerance: How still the ratings have to be to call the fit done - the
+            largest change in any rating over a pass. Small enough that
+            stopping there cannot move a prediction.
         prior_matches: How many matches of exactly average performance every
             team is credited with before its own are counted. A team with three
             matches played is mostly the league average; one with thirty is
@@ -39,7 +44,8 @@ class XGTeamConfig:
             it is off by default. See the plan document for the numbers.
     """
 
-    n_iterations: int = 10
+    max_iterations: int = 100
+    tolerance: float = 1e-12
     prior_matches: float = 5.0
     epsilon: float = DEFAULT_XG_EPSILON
     promoted_like_bottom: int | None = None
@@ -112,7 +118,8 @@ class XGTeamModel:
         # Alternating multiplicative fit: rate each attack against the defences
         # it actually faced, then each defence against the attacks it faced.
         prior = self.config.prior_matches * (self.home_mean + self.away_mean) / 2
-        for _ in range(self.config.n_iterations):
+        for _ in range(self.config.max_iterations):
+            before = (self.attack, self.defence)
             self.attack = self._rate(
                 home_team,
                 away_team,
@@ -133,8 +140,27 @@ class XGTeamModel:
                 prior,
                 scoring=False,
             )
+            if self._settled(before):
+                break
         self._rate_a_promoted_team()
         return self
+
+    def _settled(self, before: tuple[dict[str, float], dict[str, float]]) -> bool:
+        """
+        Whether the last pass left every rating where it found it.
+
+        A fixed point of the alternating fit, so more passes would change
+        nothing. How fast it gets there depends on how well connected the
+        schedule is: the windows this is fitted on take seven to thirteen
+        passes, while a contrived one where two teams only ever play each other
+        takes dozens.
+        """
+        was_attack, was_defence = before
+        return all(
+            abs(now[team] - was[team]) < self.config.tolerance
+            for now, was in ((self.attack, was_attack), (self.defence, was_defence))
+            for team in now
+        )
 
     def _weights(self, training_data: TeamFitData, played: np.ndarray) -> np.ndarray:
         """
