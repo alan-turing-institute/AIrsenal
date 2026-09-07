@@ -898,6 +898,23 @@ create 1.45 goals, P(clean sheet) goes from 0.2346 to 0.2151, about 8% relative,
 and more than that against the better attacks. `tools/tune_goal_dispersion.py`
 re-derives the whole table.
 
+That reaches the points, which is the number that decides it. `backtest_points`
+over gameweeks 5-30, with everything but the scoreline wrapper held fixed:
+
+| season | team model | MAE | appeared | RMSE | rank |
+|---|---|---|---|---|---|
+| 2425 | `extended` (the default) | 0.924965 | 1.956485 | 1.909224 | 0.774402 |
+| 2425 | xg + Poisson | 0.919409 | 1.945332 | 1.899200 | 0.776003 |
+| 2425 | xg + Conway-Maxwell | **0.915531** | **1.938111** | **1.898669** | **0.776307** |
+| 2526 | xg + Poisson | 0.903372 | 2.087629 | 1.881445 | 0.816007 |
+| 2526 | xg + Conway-Maxwell | **0.899828** | **2.080546** | **1.880465** | **0.816175** |
+
+All four measures improve in both seasons, which is more than the log
+probability promised - and the 2425 rows are also the clearest statement yet
+that `xg` beats `extended` on points and not only on scorelines. Deciding
+whether `xg` becomes `DEFAULT_TEAM_MODEL` is still open, and is now a decision
+with numbers behind it rather than a hunch.
+
 #### Goals in the fitting target: rejected
 
 Ensembling xG with goals, as a `goals_weight` on the fitting target so that a
