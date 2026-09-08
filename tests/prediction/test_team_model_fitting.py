@@ -41,20 +41,21 @@ def test_get_ratings_dict():
 @pytest.mark.slow
 def test_get_fitted_team_model():
     """
-    Fit every team model against two full seasons.
+    Fit the goals-based team models against two full seasons.
 
     22 seconds, and almost all of it is jax. The shape and coverage assertions
     are worth having on every run, so they are duplicated against the small e2e
     database in tests/e2e/test_team_models.py; this stays as the "does it still
     work on real data" check, and is marked `slow` so it runs in its own CI step.
+
+    Every model is named, the default one included: this database is 1718 and
+    1819, and the default model is fitted to expected goals, which the FPL API
+    has only recorded since 2223. That is
+    `test_the_default_model_needs_a_season_with_expected_goals` below.
     """
-    # extended model
+    # extended model, with the epsilon it defaults to
     with past_data_session_scope() as ts:
         model_team = get_fitted_team_model(10, "1819", ts, model=DixonColesTeamModel())
-        assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
-    # extended model with default epsilon
-    with past_data_session_scope() as ts:
-        model_team = get_fitted_team_model(10, "1819", ts)
         assert isinstance(model_team.model, ExtendedDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
     # extended model with epsilon = 0.5
@@ -83,6 +84,20 @@ def test_get_fitted_team_model():
 @pytest.mark.slow
 def test_fixture_probabilities():
     with past_data_session_scope() as ts:
-        df = fixture_probabilities(20, "1819", dbsession=ts)
+        df = fixture_probabilities(
+            20, "1819", model=DixonColesTeamModel(), dbsession=ts
+        )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 10
+
+
+def test_the_default_model_needs_a_season_with_expected_goals():
+    """
+    The reach the default model costs, against the seasons that pay it.
+
+    `XGTeamModel` refuses training data with no expected goals in it, which is
+    every season before 2223, so a backtest or a replay of one has to name a
+    model fitted to goals. Cheap because the refusal comes before any fitting.
+    """
+    with past_data_session_scope() as ts, pytest.raises(ValueError, match="No match"):
+        get_fitted_team_model(10, "1819", ts)

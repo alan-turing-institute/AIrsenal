@@ -204,7 +204,7 @@ def fixture_probabilities(
 
     One row per fixture, with columns home_team, away_team,
     home_win_probability, draw_probability and away_win_probability. Without a
-    model, a DixonColesTeamModel is fitted first.
+    model, the default one is built and fitted first.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
