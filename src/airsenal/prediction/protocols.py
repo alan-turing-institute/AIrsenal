@@ -20,6 +20,12 @@ class PlayerFitData(TypedDict):
     `minutes` are rectangular and `nplayer`/`nmatch` are their dimensions.
     """
 
+    # Which position's players these are. `process_player_data` is called once
+    # per position and every model here is fitted per position, so this is what
+    # the data is about rather than a feature of it - a hyperparameter that
+    # differs by position reads it. Absent only from training data a caller
+    # assembled itself.
+    position: NotRequired[str]
     # (n_players,) the players these rows are about, sorted
     player_ids: np.ndarray
     nplayer: int
@@ -36,6 +42,14 @@ class PlayerFitData(TypedDict):
     # (n_players, n_matches) years between the match and the gameweek being
     # predicted, for a model that weights recent matches more heavily
     time_diff: np.ndarray
+    # (n_players, n_matches) the expected goals and expected assists the player
+    # was credited with in that match, and the expected goals of their whole
+    # team, which is what a share of one is a share of. `nan` where none were
+    # recorded. Present whenever the training data came from the database; a
+    # model that wants them has to cope with a caller that assembled its own.
+    expected_goals: NotRequired[np.ndarray]
+    expected_assists: NotRequired[np.ndarray]
+    team_expected_goals: NotRequired[np.ndarray]
 
 
 class TeamFitData(TypedDict):

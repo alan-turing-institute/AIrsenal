@@ -6,7 +6,7 @@ Eight things are pluggable, and they compose into one object:
 AIrsenalPipeline(
     points_model=ComponentPointsModel(
         team_model=build_team_model("xg"),
-        player_model=build_player_model("conjugate"),
+        player_model=build_player_model("xg"),
         minutes_model=build_minutes_model("recent"),
     ),
     transfer_optimizer=TreeSearchOptimizer(),
@@ -151,6 +151,14 @@ or neither for one of their team's goals. A share, not necessarily a
 probability, so a model that reaches one without a posterior satisfies it too.
 The three shares must sum to one per player, and `PlayerInvolvement` checks
 that rather than trusting a docstring.
+
+What `fit` receives is `PlayerFitData`, and it carries more than the goals: the
+expected goals and assists of every (player, match), and the expected goals of
+the player's whole team in it, which is what a share of one is a share of. They
+are `NotRequired` keys, so a model that wants them must say so when they are
+absent rather than quietly fitting to something else - `player_models/xg.py` is
+the worked example, and is the conjugate model's Dirichlet update over that
+count instead of the realised one.
 
 ### 2. Add a factory and one line to the table
 

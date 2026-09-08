@@ -19,13 +19,18 @@ from airsenal.prediction.player_models.mcmc import (
     NumpyroPlayerConfig,
     NumpyroPlayerModel,
 )
+from airsenal.prediction.player_models.xg import (
+    XGPlayerConfig,
+    XGPlayerModel,
+)
 from airsenal.prediction.protocols import PlayerModel
 
-DEFAULT_PLAYER_MODEL = "conjugate"
+DEFAULT_PLAYER_MODEL = "xg"
 PLAYER_MODELS: dict[str, Callable[[], PlayerModel]] = {
     "conjugate": ConjugatePlayerModel,
     "constant": ConstantPlayerModel,
     "numpyro": NumpyroPlayerModel,
+    "xg": XGPlayerModel,
 }
 
 
@@ -43,5 +48,7 @@ __all__ = [
     "ConstantPlayerModel",
     "NumpyroPlayerConfig",
     "NumpyroPlayerModel",
+    "XGPlayerConfig",
+    "XGPlayerModel",
     "build_player_model",
 ]

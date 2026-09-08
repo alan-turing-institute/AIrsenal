@@ -30,8 +30,13 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 - **Player** — name and ID for every player who has been in the game in the last three
   seasons. For players active in the current season the ID matches the FPL player ID.
 - **PlayerAttributes** — per-gameweek attributes: FPL price, position, and team.
+  Managers are in here too, as position `MNG`, and nothing in AIrsenal models one:
+  `Position.is_modelled` is what every place that reads a position asks, and they are
+  left out of the data models are fitted to and skipped rather than predicted.
 - **PlayerScore** — per-match stats: points, goals, goals conceded, assists, bonus,
-  minutes and others. Limited to what the FPL API exposes, so no xG.
+  minutes and others, including the expected goals and assists the FPL API has recorded
+  since 2223. A team's expected goals are the sum of its players', which is where both
+  xG models get them.
 
 **Squad and AIrsenal data**
 
@@ -82,8 +87,11 @@ goals in past matches and reads the result as a Conway-Maxwell-Poisson over goal
 `extended` and `neutral` are Dixon-Coles models from the
 [bpl](https://github.com/anguswilliams91/bpl-next) package, fitted to goals, and are what
 to ask for on a season before 2223, when the FPL API began recording expected goals.
-Both they and the player models in `airsenal.prediction.player_models` are one module
-per model, behind the `TeamModel` and `PlayerModel` protocols.
+The player models in `airsenal.prediction.player_models` divide those goals up, and come
+in the same two kinds: `xg`, the default, is a Dirichlet fitted to who was *expected* to
+score and assist, and `conjugate` is the same update fitted to who actually did - which
+is what a season before 2223 needs, for the same reason `extended` is. All of them are
+one module per model, behind the `TeamModel` and `PlayerModel` protocols.
 
 ### How predicted points are calculated
 

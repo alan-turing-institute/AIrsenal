@@ -13,7 +13,9 @@ from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
 from airsenal.db.queries.players import get_max_matches_per_player, list_players
+from airsenal.db.queries.scores import get_expected_goals_by_fixture
 from airsenal.db.session import get_session
+from airsenal.game.enums import Position
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.player_models.scaling import get_empirical_bayes_estimates
 from airsenal.prediction.protocols import PlayerFitData
@@ -45,14 +47,19 @@ def get_player_history_df(
         "team_goals",
         "expected_goals",
         "expected_assists",
+        "team_expected_goals",
         "absence_reason",
         "absence_detail",
     ]
     player_data = []
 
     if all_players:
+        # All of them who play: a manager has attributes and performances like
+        # anyone else, and nothing here models one.
         q = dbsession.scalars(
-            select(PlayerAttributes).options(selectinload(PlayerAttributes.player))
+            select(PlayerAttributes)
+            .where(PlayerAttributes.position.in_([str(p) for p in Position]))
+            .options(selectinload(PlayerAttributes.player))
         )
         players = []
         seen_player_ids = set()
@@ -99,6 +106,10 @@ def get_player_history_df(
                     absence
                 )
 
+    # Per (fixture, team), because an xG involvement is a share of what the
+    # whole team was expected to score and this frame holds one position of it.
+    team_expected_goals = get_expected_goals_by_fixture(dbsession)
+
     max_matches_per_player = get_max_matches_per_player(
         position, gameweek=gameweek, season=season, dbsession=dbsession
     )
@@ -137,6 +148,9 @@ def get_player_history_df(
 
             expected_goals = row.expected_goals
             expected_assists = row.expected_assists
+            team_expected = team_expected_goals.get(
+                (row.fixture_id, row.player_team), float("nan")
+            )
             matching_absences = [
                 ab
                 for ab in absences_by_player_season.get(
@@ -173,6 +187,7 @@ def get_player_history_df(
                     team_goals,
                     expected_goals,
                     expected_assists,
+                    team_expected,
                     absence_reason,
                     absence_detail,
                 ]
@@ -183,6 +198,7 @@ def get_player_history_df(
             blank_row = [
                 player.player_id,
                 player.name,
+                0,
                 0,
                 0,
                 0,
@@ -228,29 +244,6 @@ def process_player_data(
     ]
     alpha = get_empirical_bayes_estimates(df)
 
-    y = (
-        df.sort_values("player_id")[["goals", "assists", "neither"]]
-        .to_numpy()
-        .reshape(
-            (
-                df["player_id"].nunique(),
-                df.groupby("player_id").count().iloc[0]["player_name"],
-                3,
-            )
-        )
-    )
-
-    minutes = (
-        df.sort_values("player_id")[["minutes"]]
-        .to_numpy()
-        .reshape(
-            (
-                df["player_id"].nunique(),
-                df.groupby("player_id").count().iloc[0]["player_name"],
-            )
-        )
-    )
-
     nplayer = df["player_id"].nunique()
     nmatch = df.groupby("player_id").count().iloc[0]["player_name"]
     player_ids = np.sort(df["player_id"].unique())
@@ -265,23 +258,30 @@ def process_player_data(
 
     match_date = df["date"].fillna(df["date"].min()).dt.date
     df["time_diff"] = (now_date - match_date) / pd.Timedelta(days=365)
-    time_diff = (
-        df.sort_values("player_id")[["time_diff"]]
-        .to_numpy()
-        .reshape(
-            (
-                df["player_id"].nunique(),
-                df.groupby("player_id").count().iloc[0]["player_name"],
-            )
+
+    # Sorted once and shared, so every array below is in the same order: two
+    # sorts of the same frame agree, but only by construction, and `y` lining up
+    # with `minutes` is what makes a row a player's match rather than a
+    # coincidence.
+    ordered = df.sort_values("player_id")
+
+    def per_match(*columns: str) -> np.ndarray:
+        """One column per (player, match), or several stacked on a last axis."""
+        shape = (
+            (nplayer, nmatch, len(columns)) if len(columns) > 1 else (nplayer, nmatch)
         )
-    )
+        return ordered[list(columns)].to_numpy().reshape(shape)
 
     return {
+        "position": prefix,
         "player_ids": player_ids,
         "nplayer": nplayer,
         "nmatch": nmatch,
-        "minutes": minutes.astype("int64"),
-        "y": y.astype("int64"),
+        "minutes": per_match("minutes").astype("int64"),
+        "y": per_match("goals", "assists", "neither").astype("int64"),
         "alpha": alpha,
-        "time_diff": time_diff,
+        "time_diff": per_match("time_diff"),
+        "expected_goals": per_match("expected_goals").astype("float64"),
+        "expected_assists": per_match("expected_assists").astype("float64"),
+        "team_expected_goals": per_match("team_expected_goals").astype("float64"),
     }

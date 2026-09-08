@@ -11,6 +11,8 @@ from airsenal.prediction.player_models import (
     ConjugatePlayerModel,
     NumpyroPlayerConfig,
     NumpyroPlayerModel,
+    XGPlayerConfig,
+    XGPlayerModel,
     build_player_model,
 )
 from airsenal.prediction.team_models import (
@@ -22,17 +24,26 @@ from airsenal.prediction.team_models.scorelines import ConwayMaxwellScorelines
 
 
 def test_registered_player_models():
-    assert sorted(PLAYER_MODELS) == ["conjugate", "constant", "numpyro"]
+    assert sorted(PLAYER_MODELS) == ["conjugate", "constant", "numpyro", "xg"]
 
 
 def test_registered_team_models():
     assert sorted(TEAM_MODELS) == ["constant", "extended", "neutral", "random", "xg"]
 
 
-def test_conjugate_is_the_default_player_model():
+def test_xg_is_the_default_player_model():
+    """
+    It beats the conjugate model on held-out log probability in every season.
+
+    The goals-fitted model is still `--player-model conjugate`, and is what a
+    season before 2223 needs: expected goals do not exist there, and this one
+    refuses to fit rather than quietly fitting to something else.
+    """
     model = build_player_model()
-    assert isinstance(model, ConjugatePlayerModel)
-    assert model.config == ConjugatePlayerConfig()
+    assert isinstance(model, XGPlayerModel)
+    assert model.config == XGPlayerConfig()
+    assert isinstance(build_player_model("conjugate"), ConjugatePlayerModel)
+    assert build_player_model("conjugate").config == ConjugatePlayerConfig()
 
 
 def test_numpyro_is_selected_by_name_not_a_boolean():

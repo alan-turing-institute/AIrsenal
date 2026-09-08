@@ -147,8 +147,10 @@ Held-out mean log probability, higher is better:
 | `player:numpyro` GK / DEF / MID / FWD | - / -0.44613 / -0.74992 / -0.92639 | - / 2092 / 2803 / 717 |
 | `player:constant` GK / DEF / MID / FWD | -0.36981 / -0.50942 / -0.77129 / -1.08494 | 402 / 2092 / 2803 / 717 |
 
-The whole points calculation with the default models, lower is better for the
-errors and higher for the correlation:
+The whole points calculation with the models that were the defaults then -
+`extended` for teams and `conjugate` for players, both since replaced by their
+xG-fitted counterparts. Lower is better for the errors and higher for the
+correlation:
 
 | metric | value |
 |---|---|
@@ -1098,3 +1100,314 @@ now means five matches rather than the window's 11.6 - so a team with a short
 record sits further from the league average than it did. ARS reads 1.252/0.547
 where it read 1.226/0.573, and a promoted side with two matches played gets 29%
 of its own record rather than 15%.
+
+## The xG player model, which is the same argument on the other side
+
+`XGTeamModel` asks how many goals a team will score from the chances it creates.
+`XGPlayerModel` in `player_models/xg.py` asks who those goals belong to, from
+the chances that player took: it is `ConjugatePlayerModel`'s Dirichlet update,
+its pooled prior, its minutes scaling and its time weighting, over a different
+count. Where the conjugate model counts what fraction of its team's goals a
+player scored, this counts what fraction of its team's *expected* goals the
+player was expected to score - not quite purely, because a sixth of what he
+actually did measures better than none of it, which is the one place this
+departs from the team model's answer.
+
+**It is `DEFAULT_PLAYER_MODEL`.** The rest of this section is why, and what it
+took: expected assists have to be calibrated to the assists FPL awards, and the
+shrinkage has to vary by position by two orders of magnitude.
+
+`PlayerFitData` gained `expected_goals`, `expected_assists` and
+`team_expected_goals` as `NotRequired` keys - the (player, match) values and the
+team total that a share of one is a share of - populated by `process_player_data`
+from `get_expected_goals_by_fixture`, the same query the team model uses. That
+is the extension point this plan pointed at for the player side, now used on it:
+no other model changed, and a caller that assembles its own training data still
+type-checks.
+
+### Why it should work, before any of it was built
+
+The same two measurements that justified the team model, asked of players.
+Season split at gameweek 19, players with over 450 minutes in both halves, rates
+per 90:
+
+| season | players | goals -> goals | xG -> goals | assists -> assists | xA -> assists |
+|---|---|---|---|---|---|
+| 2324 | 250 | 0.644 | **0.725** | 0.495 | **0.533** |
+| 2425 | 253 | 0.676 | **0.696** | 0.505 | **0.581** |
+| 2526 | 252 | 0.554 | **0.706** | 0.373 | **0.478** |
+
+What a player was expected to do in the first half of a season predicts what he
+actually does in the second half better than what he actually did does, in every
+season and for both goals and assists.
+
+What gets thrown away by fitting to the expectation is the over-performance, and
+correlating that across the halves says how much is being lost. Finishing -
+goals minus xG per 90 - gives +0.091, +0.074, -0.114: no consistent sign, the
+same answer team finishing gave. Creating - assists minus xA per 90 - gives
++0.255, +0.106, +0.076, which is small, always positive, and the one thing here
+that argues for keeping some of the realised numbers; `goal_weight` below is
+where that argument is measured.
+
+There is also simply more of it. A team is goalless in a fifth to a quarter of
+its matches - 157, 178 and 194 of the 760 sides a season - and
+`scale_goals_by_minutes` drops those from a goals fit, because a share of no
+goals is not evidence about anybody. Every match has expected goals in it, so
+every match counts.
+
+### Expected assists are not assists, and that has to be corrected
+
+Expected goals need no correction: the league scores what it is expected to,
+which is the same fact `XGTeamModel` found at team level.
+
+| season | goals | xG | goals/xG | assists | xA | assists/xA |
+|---|---|---|---|---|---|---|
+| 2324 | 1196 | 1199.1 | 0.997 | 1071 | 752.2 | **1.424** |
+| 2425 | 1076 | 1093.5 | 0.984 | 971 | 705.6 | **1.376** |
+| 2526 | 1005 | 1068.3 | 0.941 | 942 | 683.2 | **1.379** |
+
+Assists are a different matter: FPL awards about 40% more of them than xA
+credits anyone with, every season. It awards them by its own rules - the shot
+that rebounds in, the pass to a player who wins a penalty - and no
+chance-creating pass is measured for those. Fitted straight, the model would
+under-predict every assist by 30%.
+
+So `calibrate` scales both columns by what the window's own players converted
+them into, fitted from the same data as the rest of the model. It is fitted per
+position, because that is the unit a player model is fitted on, and the
+positions genuinely differ - at 2526 GW20 the factors were:
+
+| | GK | DEF | MID | FWD |
+|---|---|---|---|---|
+| expected goals -> goals | 0.00 | 0.87 | 1.03 | 0.99 |
+| expected assists -> assists | 4.73 | 1.24 | 1.39 | 2.27 |
+
+A forward's assists are twice his xA, where a midfielder's are 1.4 times: the
+FPL-only assists land disproportionately on players who are near the ball when
+it goes in rather than on the ones who passed it there. Goalkeepers score no
+goals at all, which is a zero rather than a division by zero, and the same
+answer the conjugate model gives them.
+
+### Every position wants a different amount of shrinkage
+
+`n_goals_prior` is how many goals' worth of the pooled squad a player is
+credited with before his own record counts, and it is the one hyperparameter
+here that measurably matters. One number for the whole league is the wrong
+shape for it: held-out mean log probability by position, gameweeks 5-30 of the
+three seasons at horizon 1, the best of each row in bold:
+
+| n_goals_prior | 2 | 6 | 10 | 15 | 25 | 60 | 100 | 250 | 700 |
+|---|---|---|---|---|---|---|---|---|---|
+| GK | -0.07414 | -0.07223 | -0.07130 | -0.07056 | -0.06963 | -0.06825 | -0.06765 | -0.06705 | **-0.06687** |
+| DEF | -0.43887 | -0.43536 | -0.43448 | **-0.43424** | -0.43455 | -0.43645 | -0.43806 | -0.44100 | -0.44338 |
+| MID | -0.76452 | **-0.76241** | -0.76294 | -0.76420 | -0.76681 | -0.77338 | -0.77781 | -0.78520 | -0.79089 |
+| FWD | -0.98311 | -0.97356 | -0.97009 | -0.96796 | -0.96612 | **-0.96493** | -0.96509 | -0.96616 | -0.96742 |
+
+Two orders of magnitude between the ends of that, and it is the same fact in
+four places: how much of a player's own record there is to fit. A midfielder is
+involved in enough of his team's goals to be told apart from his squad, a
+forward less reliably, and a goalkeeper never - so the best thing to tell the
+model about a goalkeeper is that he is like every other goalkeeper. Above about
+400 the goalkeeper row stops moving, which is that limit being reached.
+
+So `n_goals_prior` takes one number per position, and the default is
+
+| | GK | DEF | MID | FWD |
+|---|---|---|---|---|
+| `xg` | 700 | 15 | 6 | 60 |
+
+**Chosen held out, and worth it held out.** Choosing each position's prior on
+two seasons and scoring the third gives -0.62918, against -0.62854 for an
+oracle that knew the answer and -0.63015 for the best single number (10). So
+the per-position prior is worth +0.00097 over one number, honestly measured,
+which is more than the gap it had to clear. `ConjugatePlayerModel` gains from
+the same idea (-0.63517 held out against -0.63550 at its default 35, wanting
+GK 400, DEF 75, MID 25, FWD 150), which is a third as much and does not change
+the ordering; it is not implemented there, only measured.
+
+`PlayerFitData` gained a `position` for this. `process_player_data` is called
+once per position and every model here is fitted per position, so the position
+is what the data is *about*, and it was the one thing about it the models could
+not see. A caller who assembles their own training data and asks for a
+per-position prior is told what is missing rather than given a midfielder's
+shrinkage for a goalkeeper.
+
+**Time weighting is still worth nothing**, unlike everything else in this
+package that has been swept for it. At the final configuration:
+
+| epsilon | none | 0.0 | 0.1 | 0.2 | 0.4 | 0.6 | 1.2 |
+|---|---|---|---|---|---|---|---|
+| avg log prob | -0.62844 | -0.62844 | -0.62841 | -0.62839 | **-0.62837** | -0.62839 | -0.62866 |
+
+The whole useful range is a hundredth of what the prior is worth, and the
+nominal optimum moves between seasons. `DEFAULT_XG_PLAYER_EPSILON` is 0.2
+because that is what `ConjugatePlayerModel` uses and there is no reason to
+differ, not because it was chosen on this table.
+
+### What it scores
+
+Held-out mean log probability over gameweeks 5-30, horizon 1, every position,
+17984 performances. `xg` is the shipped configuration - per-position priors,
+`goal_weight = 0.15` - and `conjugate` is at 35, which is its default and its
+own pooled optimum:
+
+| season | `xg` | `conjugate` | difference |
+|---|---|---|---|
+| 2324 | -0.65492 | -0.66549 | +0.01057 |
+| 2425 | -0.61563 | -0.62248 | +0.00685 |
+| 2526 | -0.61456 | -0.61850 | +0.00394 |
+| pooled | **-0.62839** | -0.63551 | +0.00712 |
+
+Better in every season, and better at every position that touches a goal -
+which it was not before the prior was allowed to vary by position:
+
+| | GK | DEF | MID | FWD |
+|---|---|---|---|---|
+| performances | 1196 | 6091 | 8574 | 2123 |
+| `conjugate`, prior 35 | -0.06896 | -0.43944 | -0.77116 | -0.96932 |
+| `conjugate`, per-position priors | **-0.06649** | -0.43820 | -0.77074 | -0.96656 |
+| `xg`, shipped | -0.06678 | **-0.43390** | **-0.76158** | **-0.96484** |
+
+The middle row is the fair comparison rather than the flattering one: the same
+per-position idea helps the goals model too, by a third as much (-0.63439
+pooled, in sample; -0.63517 held out), and it is measured here rather than
+implemented there. `xg` is ahead of it by 0.0060 pooled, and behind it only for
+goalkeepers, by 0.0003 over 1196 performances - a position where neither model
+has anything to say and both are saying it.
+
+### End to end on points, where it is much closer
+
+`backtest_breakdown` over the same gameweeks, the shipped `xg` against
+`conjugate` at its default. The better of each pair is in bold:
+
+| | 2324 conj | 2324 `xg` | 2425 conj | 2425 `xg` | 2526 conj | 2526 `xg` |
+|---|---|---|---|---|---|---|
+| points MAE | 0.895196 | **0.891371** | **0.915482** | 0.915723 | **0.900089** | 0.901998 |
+| MAE, appeared | 2.018032 | **2.010102** | 1.937966 | **1.937758** | **2.081011** | 2.085379 |
+| points RMSE | 1.897641 | **1.891234** | 1.898298 | **1.894697** | 1.880745 | **1.880417** |
+| rank correlation | 0.746346 | **0.746605** | 0.776443 | **0.776573** | **0.816141** | 0.816032 |
+| attacking MAE | 0.441193 | **0.434552** | 0.451529 | **0.451118** | 0.411261 | **0.411106** |
+| involvement MAE, goals | 0.187840 | **0.183846** | 0.174456 | **0.173480** | 0.173716 | **0.172795** |
+| involvement MAE, assists | 0.189203 | **0.186902** | **0.178143** | 0.178370 | **0.172905** | 0.173281 |
+| performances | 19635 | | 18247 | | 20318 | |
+
+Fifteen of the twenty-one cells, against nine before the tuning above. The three
+measures that are only about who the goals belong to - the attacking component
+and the two involvement errors, apart from assists in the two seasons where they
+differ by 0.0004 - go to `xg` almost everywhere, and RMSE does in all three
+seasons. Points MAE goes to `conjugate` in two of the three, by 0.0002 and
+0.0019, which is the measure the section below is about. The defending, bonus,
+cards, saves and appearance components are identical to the last digit in every
+season, which is the check that the only thing that changed is who the goals
+belong to.
+
+**A player model can barely move predicted points at all**, and that is worth
+saying plainly. It reaches a score through the attacking component alone - 0.41
+of a total MAE of 0.90 - so two models that agree about most players to two
+decimal places of a share cannot differ by more than a few thousandths of a
+point. This is the wrong instrument for the question; the log probability of the
+shares is the right one, and it is not close.
+
+2425 is scoreable at all only because managers are now skipped: it is the one
+season with them in the database, and `score_prediction_breakdown` used to hand
+one to a points model that has never heard of the position and die on the
+`KeyError`.
+
+### The points error rewards under-prediction, and the calibration proves it
+
+Turn `calibrate` off and the points error *improves*, on 2526, by more than
+anything else here moves it: MAE 0.891645 against 0.901702, RMSE 1.876950
+against 1.880190, attacking component MAE 0.397604 against 0.411956 (measured
+at the pooled prior, before the tuning above). It is also the worst model in the
+file by held-out log probability - -0.63153 against -0.62839 for the same
+configuration calibrated, and worse in every season.
+
+The reason is that it predicts fewer attacking returns than happen. Summing each
+model's predicted goals and assists over every performance where the player
+appeared and their team scored - conditioned on the minutes actually played and
+the goals the team actually scored, so this is the level of the shares alone -
+over all three seasons:
+
+| | goals | of actual | assists | of actual |
+|---|---|---|---|---|
+| actually happened | 2235 | | 2038 | |
+| `conjugate` | 2270 | 1.016 | 2032 | **0.997** |
+| `xg`, shipped | 2289 | 1.024 | 2064 | **1.013** |
+| `xg`, `calibrate=False` | 2323 | 1.040 | 1563 | **0.767** |
+
+Uncalibrated, it predicts 23% fewer assists than are awarded - the gap between
+xA and FPL's assists - and predicting fewer of a thing that mostly does not
+happen lowers the mean error against it. Most performances score no
+attacking points, so the error-minimising prediction is below the mean, and both
+MAE and RMSE pay for the bias in the direction the truth is not. That is why
+`calibrate` defaults to on and why the log probability, which cannot be gamed
+this way, is the number to read for the shares.
+
+The same effect, smaller, is what makes `n_goals_prior = 2` look good on the
+involvement MAE and terrible on the log probability. Read the two together.
+
+### Blending the real goals back in, which the team model could not use
+
+`goal_weight` mixes the realised involvement into the fitting target, so zero is
+pure expected goals and one is the conjugate model reached the long way round.
+At the per-position priors above:
+
+| goal_weight | 0.0 | 0.05 | 0.10 | 0.15 | 0.20 | 0.25 | 0.30 | 0.40 | 0.60 |
+|---|---|---|---|---|---|---|---|---|---|
+| 2324 | -0.65509 | -0.65491 | **-0.65486** | -0.65492 | -0.65510 | -0.65539 | -0.65578 | -0.65689 | -0.66042 |
+| 2425 | -0.61661 | -0.61619 | -0.61586 | -0.61563 | -0.61547 | **-0.61540** | -0.61542 | -0.61571 | -0.61734 |
+| 2526 | -0.61501 | -0.61477 | -0.61463 | **-0.61456** | -0.61458 | -0.61468 | -0.61486 | -0.61545 | -0.61760 |
+| pooled | -0.62891 | -0.62864 | -0.62847 | **-0.62839** | -0.62840 | -0.62851 | -0.62870 | -0.62937 | -0.63181 |
+
+**Unlike the same idea at team level**, where blending goals into an xG fit was
+monotonically worse, every season prefers a blend and every position does too -
+DEF, MID and FWD all optimise between 0.15 and 0.20, and the goalkeepers move by
+0.0002 across the whole range and have no opinion. Held out, choosing the weight
+on two seasons and scoring the third gains +0.00047 over no blend, and two of
+the three splits choose 0.15.
+
+`DEFAULT_XG_GOAL_WEIGHT` is therefore 0.15. What it is recovering is what the
+persistence measurements said would be there: a player's realised goals carry
+penalties and the FPL-only assists, which calibration corrects for on average
+but not for the player who actually takes them. It is worth 0.0005, which is
+half of what the per-position prior is worth and five times what time weighting
+is - real, small, and measured the same way as the rest.
+
+### It is the default player model
+
+`DEFAULT_PLAYER_MODEL` is `xg`, on the same standard `xg` became
+`DEFAULT_TEAM_MODEL`: it wins the measure a player model is scored on in every
+season and at every position that touches a goal, by 0.0071 pooled - seven times
+what the per-position prior is worth and fifteen times the blend - and it does
+not lose end to end, where nothing measurably wins.
+
+Two things follow, and they are the same two the team model's default brought:
+
+- **The goals-fitted model has not gone anywhere.** `--player-model conjugate`
+  selects it, and a season before 2223 needs it: `XGPlayerModel` refuses to fit
+  where no match has expected goals rather than quietly fitting to something
+  else, exactly as `XGTeamModel` does. A default database - three past seasons -
+  is unaffected.
+- **Every number in this document above the xG sections was measured with the
+  old defaults**, `extended` and `conjugate`. They are the record of what those
+  models scored, not a claim about what a run does today.
+
+What is still not settled is whether it picks better squads. `airsenal replay`
+is the only measure that answers that, and one run per model does not: the
+squad optimizer is a genetic algorithm whose seed no flag exposes, so it needs
+enough repeats per season to see past its own randomness. The case for the
+default here is the shares, which is what the model is.
+
+### What was not done
+
+- **A per-position prior for `ConjugatePlayerModel`.** It gains from one -
+  -0.63517 held out against -0.63550 at its default, wanting GK 400, DEF 75,
+  MID 25, FWD 150 - which is a third of what `xg` gains and does not change the
+  ordering between them. `PlayerFitData` now carries the position, so it is a
+  few lines whenever it is wanted.
+- **A per-position `goal_weight`.** Measured, and there is nothing there:
+  defenders, midfielders and forwards all optimise between 0.15 and 0.20, and
+  goalkeepers move by 0.0002 across the whole range.
+- **A `--goal-weight` or `--n-goals-prior` flag.** The CLI takes the flags that
+  name a model, not the knobs inside one, which is the rule `build_*` functions
+  already follow. `XGPlayerConfig` is one import away in Python.
