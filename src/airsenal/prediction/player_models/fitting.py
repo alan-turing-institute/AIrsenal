@@ -8,7 +8,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.session import get_session
 from airsenal.game.enums import Position
 from airsenal.prediction.features import process_player_data
-from airsenal.prediction.player_models import ConjugatePlayerModel
+from airsenal.prediction.player_models import build_player_model
 from airsenal.prediction.protocols import PlayerModel
 
 logger = get_logger(__name__)
@@ -25,11 +25,13 @@ def fit_player_data(
     Fit the player model for a given position and return calculated probabilities.
 
     Hyperparameters live on the model, not here: pass a model constructed with
-    the config you want, e.g. `ConjugatePlayerModel(ConjugatePlayerConfig(...))`.
+    the config you want, e.g. `XGPlayerModel(XGPlayerConfig(...))`. `None` is
+    whatever `DEFAULT_PLAYER_MODEL` names, so that fitting without saying which
+    model cannot quietly disagree with what a run would have used.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:
-        model = ConjugatePlayerModel()
+        model = build_player_model()
 
     data = process_player_data(position, gameweek, season, dbsession)
     logger.info("Fitting player model for %s...", position)

@@ -10,7 +10,11 @@ import pandas as pd
 import pytest
 
 from airsenal.game.enums import Position
-from airsenal.prediction.player_models import PLAYER_MODELS
+from airsenal.prediction.player_models import (
+    PLAYER_MODELS,
+    ConjugatePlayerModel,
+    build_player_model,
+)
 from airsenal.prediction.player_models.fitting import (
     fit_player_data,
     get_all_fitted_player_data,
@@ -65,3 +69,32 @@ def test_every_position_is_fitted(pipeline_db, name):
     assert set(data) == {str(p) for p in Position}
     for position, df in data.items():
         assert len(df) > 0, f"no players fitted for {position}"
+
+
+def test_fitting_without_naming_a_model_uses_the_default_one(pipeline_db):
+    """
+    Otherwise a fit that names no model disagrees with what a run would do.
+
+    `fit_player_data` constructed `ConjugatePlayerModel` itself, which was the
+    default when it was written and silently stopped being one - so anything
+    asking for "the player model" got the wrong one, including the notebooks.
+    """
+    default = fit_player_data(
+        Position.FWD, FIT_GAMEWEEK, FIT_SEASON, dbsession=pipeline_db
+    )
+    named = fit_player_data(
+        Position.FWD,
+        FIT_GAMEWEEK,
+        FIT_SEASON,
+        model=build_player_model(),
+        dbsession=pipeline_db,
+    )
+    conjugate = fit_player_data(
+        Position.FWD,
+        FIT_GAMEWEEK,
+        FIT_SEASON,
+        model=ConjugatePlayerModel(),
+        dbsession=pipeline_db,
+    )
+    assert np.allclose(default[PROBABILITY_COLUMNS], named[PROBABILITY_COLUMNS])
+    assert not np.allclose(default[PROBABILITY_COLUMNS], conjugate[PROBABILITY_COLUMNS])
