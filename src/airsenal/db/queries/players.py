@@ -19,6 +19,7 @@ from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
 from airsenal.db.session import get_session
+from airsenal.game.enums import Position
 from airsenal.game.season import CURRENT_SEASON
 
 logger = get_logger(__name__)
@@ -356,8 +357,8 @@ def list_players(
     if position != "all":
         query = query.where(PlayerAttributes.position == position)
     else:
-        # exclude managers
-        query = query.where(PlayerAttributes.position != "MNG")
+        # "all" is all the positions AIrsenal models, which leaves out managers
+        query = query.where(PlayerAttributes.position.in_([str(p) for p in Position]))
     if len(gameweeks) > 1:
         # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.

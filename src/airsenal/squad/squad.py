@@ -118,11 +118,13 @@ class Squad:
 
         logger.debug("Adding player %s", p)
 
-        if player.position == "MNG":
+        if not Position.is_modelled(player.position):
             logger.warning(
-                "Skipped adding manager %s, assistant manager not implemented. "
-                "Reduced squad budget by %s.",
+                "Skipped adding %s: nothing here models the position %s - a "
+                "manager, in a squad that has no place for one. Reduced squad "
+                "budget by %s.",
                 player,
+                player.position,
                 player.purchase_price,
             )
             self.budget -= player.purchase_price

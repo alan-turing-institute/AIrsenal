@@ -56,3 +56,15 @@ def test_only_wildcard_and_free_hit_rebuild_the_squad():
     assert Chip.FREE_HIT.rebuilds_squad
     assert not Chip.BENCH_BOOST.rebuilds_squad
     assert not Chip.TRIPLE_CAPTAIN.rebuilds_squad
+
+
+def test_a_manager_is_not_a_position_anything_here_models():
+    """
+    FPL added managers in 2425 and the database records them like players.
+
+    Nothing here models one, so every place that reads a position off a player
+    asks this rather than testing for the string.
+    """
+    assert Position.is_modelled("MID")
+    assert not Position.is_modelled("MNG")
+    assert not Position.is_modelled(None)

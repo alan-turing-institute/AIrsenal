@@ -914,7 +914,12 @@ def score_prediction_breakdown(
     predicted_points: list[float] = []
     actual_points: list[float] = []
     for score in player_scores:
-        if score.fixture.gameweek is None:
+        if score.fixture.gameweek is None or not Position.is_modelled(
+            score.player.position(season)
+        ):
+            # A fixture with no gameweek, or a manager - who has performances
+            # and points in the database like anyone else, and no model here to
+            # be scored against.
             total += BreakdownScore(points=PointsScore(n_skipped=1))
             continue
         prediction = model.predict(

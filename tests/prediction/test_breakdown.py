@@ -201,3 +201,24 @@ def test_a_fixture_with_no_gameweek_is_skipped():
     result = score(PointsPrediction(expected_points=1.0), scores)
     assert result.points.n_observations == 0
     assert result.points.n_skipped == 1
+
+
+def test_a_manager_is_skipped_rather_than_predicted():
+    """
+    Managers have performances and points in the database like anyone else.
+
+    Nothing here models one - no involvement is fitted for the position, and no
+    squad can contain one - so a manager is not an observation, and asking the
+    model about one at all is the bug this guards against.
+    """
+    model = StubModel(PointsPrediction(expected_points=5.0))
+    result = score_prediction_breakdown(
+        model,
+        [performance(points=9, position="MNG"), performance(points=2)],
+        root_gameweek=1,
+        season=SEASON,
+        dbsession=None,
+    )
+    assert [request.player.position(SEASON) for request in model.asked] == ["MID"]
+    assert result.points.n_observations == 1
+    assert result.points.n_skipped == 1

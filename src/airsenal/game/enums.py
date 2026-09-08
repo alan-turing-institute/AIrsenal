@@ -4,12 +4,25 @@ from enum import StrEnum
 
 
 class Position(StrEnum):
-    """A player's position."""
+    """A position AIrsenal models a player in."""
 
     GK = "GK"
     DEF = "DEF"
     MID = "MID"
     FWD = "FWD"
+
+    @classmethod
+    def is_modelled(cls, position: str | None) -> bool:
+        """
+        Whether AIrsenal models a player in this position at all.
+
+        FPL added managers in season 2425 and records them as position "MNG".
+        They score from their team's result rather than from anything on the
+        pitch, no model here has anything to say about them, and no squad can
+        contain one - so they are left out of the data models are fitted to and
+        skipped rather than predicted.
+        """
+        return position in cls
 
     @classmethod
     def back_to_front(cls) -> tuple["Position", ...]:
