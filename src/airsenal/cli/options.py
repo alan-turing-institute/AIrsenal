@@ -152,8 +152,9 @@ Epsilon = Annotated[
     float | None,
     typer.Option(
         help=(
-            "Exponential time-weighting downweight factor. Defaults to the team "
-            "model's own value."
+            "Exponential time-weighting downweight factor for the team model. "
+            "Defaults to that model's own value; the player model's weighting "
+            "is separate and has no flag."
         ),
         rich_help_panel=PREDICTION,
     ),

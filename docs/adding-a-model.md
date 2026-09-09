@@ -116,6 +116,14 @@ the line you add it on.
 `tests/e2e/test_team_models.py` has a worked example under
 "a model that predicts only a mean".
 
+A wrapper would otherwise be a dead end, so both expose two things. `.model` is
+the model inside, which is how `tools/team_ratings.py` reads attack and defence
+ratings off a wrapped model without knowing its class. `describe_component()`
+names both, so a replay's `config` block records `ConwayMaxwellScorelines(
+XGTeamModel)` rather than only the wrapper - two replays are worth comparing
+only if you can see which model produced each, and the wrapper is the part they
+would usually share.
+
 `prediction/team_models/constant.py` is the smallest complete example. What
 `fit` receives is `TeamFitData` in `prediction/protocols.py`: a `TypedDict`, so
 your editor and `mypy` both know what is in it rather than you having to read the
@@ -167,22 +175,40 @@ is called as `factory(epsilon=...)`, because `--epsilon` sets the time-weighting
 decay rate. A model that does no time weighting should reject an epsilon it was
 given rather than ignore it.
 
+`--epsilon` reaches the *team* model only, and that is deliberate rather than an
+omission. A player model has a time-weighting decay of its own - `epsilon` on
+`ConjugatePlayerConfig` and `XGPlayerConfig` - but the two are tuned separately
+and measure to different values, so one flag setting both would be wrong for
+whichever it was not tuned for. `PLAYER_MODELS` is therefore name-only: a name
+gets you the model with its own measured defaults, and varying a hyperparameter
+means constructing the model in Python. `tools/tune_player_time_weighting.py`
+keeps its own small table of `(epsilon, n_goals_prior) -> model` for exactly
+that reason, and a new player model with hyperparameters worth sweeping should
+be added to it as well as to `PLAYER_MODELS`.
+
 ```python
-def _scoreline_average(*, epsilon: float | None = None) -> TeamModel:
+def _scoreline_average(*, epsilon: float | None = None) -> ScorelineTeamModel:
     if epsilon is not None:
         msg = "ScorelineAverageModel does not do time weighting"
         raise ValueError(msg)
     return ScorelineAverageModel()
 
 
-TEAM_MODELS: dict[str, Callable[..., TeamModel]] = {
+TEAM_MODELS: dict[str, Callable[..., ScorelineTeamModel]] = {
     "constant": _constant,
     "extended": _extended,
     "neutral": _neutral,
     "random": _random,
+    "xg": _xg,
     "scoreline_average": _scoreline_average,  # <- this
 }
 ```
+
+`ScorelineTeamModel` and not `TeamModel`: the table promises the kind that can
+be predicted with, and `TeamModel` names only what every team model has in
+common - fitting. A model that predicts a mean satisfies it through the wrapper
+its own entry applies, which is why the annotation does not have to loosen for
+`xg`.
 
 The table is annotated with its protocol, so `mypy` checks your class fits at the
 point you add it. Writing the entry as a small function rather than the class
