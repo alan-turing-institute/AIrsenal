@@ -63,6 +63,10 @@ class PoissonScorelines:
     The support is truncated at `max_goals`, with the whole tail above it piled
     onto the last count, so the probabilities still sum to one - a freak result
     is unlikely rather than impossible.
+
+    `model` is the wrapped model, and is public because a wrapper is otherwise
+    a dead end: `tools/team_ratings.py` reads the attack and defence ratings off
+    it, and `describe_component` names it.
     """
 
     def __init__(
@@ -74,6 +78,16 @@ class PoissonScorelines:
     @property
     def teams(self) -> list[str] | None:
         return self.model.teams
+
+    def describe_component(self) -> str:
+        """
+        This wrapper and the model inside it, for a run's record of its parts.
+
+        The wrapper's own class name says which distribution was put over the
+        goal counts and nothing about which model produced the mean, and the
+        mean is the part a comparison is usually about.
+        """
+        return f"{type(self).__name__}({type(self.model).__name__})"
 
     def fit(self, training_data: TeamFitData) -> "PoissonScorelines":
         self.model.fit(training_data)

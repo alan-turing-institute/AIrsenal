@@ -34,6 +34,20 @@ from airsenal.prediction.team_models.fitting import (
 logger = get_logger(__name__)
 
 
+def describe_component(component: object) -> str:
+    """
+    What to call one collaborator in a run's record of the parts that produced it.
+
+    A collaborator that wraps another says so through its own
+    `describe_component` - `PoissonScorelines` around an expected-goals model -
+    so the record names the model a prediction came from and not only the
+    wrapper around it. Read by name, the way `describe_pipeline` reads
+    `describe`: a component without one is named by its class and left at that.
+    """
+    describe = getattr(component, "describe_component", None)
+    return describe() if callable(describe) else type(component).__name__
+
+
 class ComponentPointsModel:
     """
     The way AIrsenal has always predicted points, behind the points-model seam.
@@ -78,9 +92,9 @@ class ComponentPointsModel:
         """The parts this was built from, for a replay's record of its run."""
         return {
             "points_model": type(self).__name__,
-            "team_model": type(self.team_model).__name__,
-            "player_model": type(self.player_model).__name__,
-            "minutes_model": type(self.minutes_model).__name__,
+            "team_model": describe_component(self.team_model),
+            "player_model": describe_component(self.player_model),
+            "minutes_model": describe_component(self.minutes_model),
         }
 
     def fit(self, request: PointsFitRequest) -> "ComponentPointsModel":

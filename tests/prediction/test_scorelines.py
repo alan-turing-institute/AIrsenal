@@ -277,3 +277,29 @@ class TestConwayMaxwellScorelines:
         total = outcomes["home_win"][0] + outcomes["draw"][0] + outcomes["away_win"][0]
         assert total == pytest.approx(1.0, abs=1e-6)
         assert outcomes["home_win"][0] > outcomes["away_win"][0]
+
+
+def test_a_wrapper_names_the_model_inside_it(wrapped):
+    """
+    A record of a run has to say which model produced the mean.
+
+    The wrapper's own class name says which distribution was put over the goal
+    counts and nothing about which model was wrapped, and the wrapper is the
+    part two runs being compared would usually share.
+    """
+    assert wrapped.describe_component() == "PoissonScorelines(FlatExpectedGoals)"
+    assert (
+        ConwayMaxwellScorelines(FlatExpectedGoals()).describe_component()
+        == "ConwayMaxwellScorelines(FlatExpectedGoals)"
+    )
+
+
+def test_the_wrapped_model_is_reachable(wrapped):
+    """
+    `.model` is the interface, not an implementation detail.
+
+    `tools/team_ratings.py` reads attack and defence ratings off it without
+    knowing what class it wrapped, so a wrapper that renamed it would break a
+    tool rather than fail to type-check.
+    """
+    assert isinstance(wrapped.model, FlatExpectedGoals)
