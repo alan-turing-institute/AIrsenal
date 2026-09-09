@@ -71,7 +71,7 @@ def test_xg_is_the_default_team_model():
 
     Named rather than inferred, because the default is what `airsenal run` uses
     and changing it changes everyone's predictions. See
-    docs/prediction-seams-plan.md for the numbers behind the switch.
+    docs/xg-models.md for the numbers behind the switch.
     """
     assert DEFAULT_TEAM_MODEL == "xg"
     assert isinstance(build_team_model(), ConwayMaxwellScorelines)

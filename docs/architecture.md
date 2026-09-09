@@ -3,7 +3,8 @@
 Where things live, and why they live there. For what the code *does* at runtime -
 the database schema and how points predictions are built - see
 [how-it-works.md](how-it-works.md). For how to add a model or an algorithm, see
-[adding-a-model.md](adding-a-model.md).
+[adding-a-model.md](adding-a-model.md), and for where every number in the two
+default models came from, [xg-models.md](xg-models.md).
 
 ## The dependency chain
 

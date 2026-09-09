@@ -17,10 +17,13 @@ than for an agent. Prefer it to anything restated below:
 
 - **[docs/architecture.md](docs/architecture.md)** — the package chain, what each package
   owns, which contracts enforce it, and a file-by-file map.
-- **[docs/adding-a-model.md](docs/adding-a-model.md)** — the five pluggable component
+- **[docs/adding-a-model.md](docs/adding-a-model.md)** — the eight pluggable component
   kinds, a worked example of adding one, and how to find out whether it is any better.
 - **[docs/how-it-works.md](docs/how-it-works.md)** — the database schema and how points
   predictions are built.
+- **[docs/xg-models.md](docs/xg-models.md)** — where every number in the two default
+  models came from, and which ideas measured worse. Read it before changing one of
+  them: most of the obvious improvements have been tried and rejected.
 - **[CodingConventions.md](CodingConventions.md)** — where code goes, branch naming,
   argument order, docstring style.
 

@@ -189,7 +189,7 @@ def test_by_default_a_team_with_no_record_is_an_average_one():
     Assuming a promoted team resembles the teams it replaced measured worse than
     assuming it is average, across the two seasons that have promoted teams in
     this database - so the plausible assumption is available and off. See
-    docs/prediction-seams-plan.md.
+    docs/xg-models.md.
     """
     model = XGTeamModel().fit(
         training_data(round_robin({t: 1.0 + i for i, t in enumerate(TEAMS)}))
