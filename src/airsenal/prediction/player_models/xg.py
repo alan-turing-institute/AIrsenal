@@ -1,4 +1,4 @@
-"""A player model fitted to expected goals and assists rather than to the real ones."""
+"""A player model fitted to expected goals and assists."""
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -20,18 +20,11 @@ from airsenal.prediction.protocols import (
 
 logger = get_logger(__name__)
 
-# Weight a match at exp(-epsilon * years ago), as every other model here does.
-# Swept with tools/tune_player_time_weighting.py --model xg over 2324, 2425 and
-# 2526: anything from none to 0.6 scores the same to four decimal places, so
-# this is the conjugate model's value rather than a finding of its own.
+# Weight a match at exp(-epsilon * years ago). Swept with
+# tools/tune_player_time_weighting.py over 2324, 2425 and 2526 but has almost no impact
 DEFAULT_XG_PLAYER_EPSILON = 0.2
 
-# How hard a player is pulled towards his position's pool, and the one
-# hyperparameter here that measurably matters. Every position wants a different
-# one - two orders of magnitude apart - and the reason is how much of a player's
-# own record there is to fit: a midfielder is involved in enough of his team's
-# goals to be told apart from his squad, a goalkeeper never is and is better off
-# being told he is like every other goalkeeper. Swept per position and chosen
+# How hard a player is pulled towards his position's mean. Swept per position and chosen
 # held out; see docs/xg-models.md.
 DEFAULT_XG_N_GOALS_PRIOR: Mapping[str, int] = {
     str(Position.GK): 700,
@@ -40,11 +33,9 @@ DEFAULT_XG_N_GOALS_PRIOR: Mapping[str, int] = {
     str(Position.FWD): 60,
 }
 
-# How much of the fitting target is what the player actually did. Not zero: a
-# player's own goals carry something his expected goals do not - penalties, and
-# the assists FPL awards that no chance-creating pass is measured for - and a
-# small weight on them beats none in every season, at every position, and held
-# out. Unlike the same idea on the team model, which was monotonically worse.
+# How much of the fitting target is actual goals scored rather than xG. A
+# small weight on them beats none in every season, at every position (but does not help
+# the team model)
 DEFAULT_XG_GOAL_WEIGHT = 0.15
 
 
@@ -56,13 +47,13 @@ class XGPlayerConfig:
     Args:
         epsilon: Time-weighting decay, per year, or None for no weighting at all.
             A match a season old counts `exp(-epsilon)` of one played yesterday.
-        n_goals_prior: How many goals' worth of the pooled squad every player is
+        n_goals_prior: How many goals' worth of the pooled average a player is
             credited with before their own are counted, which is what sets how
             hard a thin record is pulled towards the pool. One number for every
             position, or one per position - which is what the default is,
             because the four want very different amounts.
         rescale_weights: Rescale each player's time weights to sum to the number
-            of matches they count for, as everything else here does.
+            of matches they count for.
         calibrate: Scale expected goals and assists by what the same window's
             players actually converted them into. Expected goals need almost
             none of this - the league scores what it is expected to - but FPL
@@ -74,7 +65,6 @@ class XGPlayerConfig:
     """
 
     epsilon: float | None = DEFAULT_XG_PLAYER_EPSILON
-    # Copied rather than shared, so a config never aliases the default mapping.
     n_goals_prior: int | Mapping[str, int] = field(
         default_factory=lambda: dict(DEFAULT_XG_N_GOALS_PRIOR)
     )
@@ -126,27 +116,16 @@ class XGPlayerModel:
     prior, its minutes scaling and its time weighting - over a different count.
     Where that model asks what fraction of its team's goals a player scored,
     this one asks what fraction of its expected goals the player was expected to
-    score, on the usual argument that a chance says more about the next match
-    than whether it went in.
+    score.
 
     Not purely, though: `goal_weight` mixes a small fraction of what the player
     actually did back into the target - `DEFAULT_XG_GOAL_WEIGHT` of it - because
-    at player level, unlike team level, that measures better than either end
-    alone.
+    at player level, unlike team level, that measures better than either alone.
 
-    Two things follow from the change of target, and both matter more here than
-    they did for a team:
-
-    - **Every match counts.** A goalless match tells the goals model nothing
-      about who its team's scorers are, and `scale_goals_by_minutes` drops it. A
-      goalless match still has expected goals in it, so it is still evidence.
-      A fifth to a quarter of team-matches are goalless.
-    - **The sample is small.** A team plays 38 matches a season and a player
-      shares in maybe fifty goals; the noise a single conversion adds is a much
-      larger fraction of a player's record than of a team's. How much smaller
-      the sample is depends on the position, which is why the shrinkage does
-      too: a goalkeeper has nothing of his own to fit and is best told he is
-      like every other goalkeeper.
+    **Every match counts.** A goalless match tells the goals model nothing
+    about who its team's scorers are, and `scale_goals_by_minutes` drops it. A
+    goalless match still has expected goals in it, so it is still evidence.
+    A fifth to a quarter of team-matches are goalless.
     """
 
     def __init__(self, config: XGPlayerConfig | None = None):
@@ -202,8 +181,7 @@ class XGPlayerModel:
         A match with no expected goals recorded is zeroed, which is how
         `scale_goals_by_minutes` is already told a match carries nothing. The
         same test excludes a padding row, whose team expected goals are zero -
-        see `features.blank_player_row` - so an unrecorded match and a match
-        that never happened are refused by one condition rather than two.
+        see `features.blank_player_row`.
         Records the calibration it applied, which is part of what the fit found.
         """
         missing = [
@@ -252,14 +230,7 @@ class XGPlayerModel:
     def _calibration(
         self, data: PlayerFitData, recorded: np.ndarray
     ) -> tuple[float, float]:
-        """
-        What a unit of expected goals, and one of expected assists, was worth.
-
-        Fitted from the same window as the rest of the model, over the same
-        players, so it is a measurement rather than a constant that can go
-        stale. A position that neither scores nor is expected to leaves the
-        ratio undefined, and gets one.
-        """
+        """What a unit of expected goals, and one of expected assists, was worth."""
         if not self.config.calibrate:
             return 1.0, 1.0
         goals = np.asarray(data["y"], dtype=float)
