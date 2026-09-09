@@ -1,16 +1,17 @@
 """
 Every swappable component, checked the same way.
 
-There are seven kinds of pluggable component, and each keeps a plain dict of
-name to zero-argument factory in its own package's `__init__.py`. Adding an
-implementation means adding one entry, and that entry is covered here
-automatically: it must build with no arguments, provide the method its protocol
-names, and - for the five kinds a flag selects by name - be reachable by that
-name from the command line.
+There are eight kinds of pluggable component - `docs/adding-a-model.md` lists
+them - and each keeps a plain dict of name to factory in its own package's
+`__init__.py`. All eight are in `TABLES`, so adding an implementation means
+adding one entry and that entry is covered here automatically: it must build
+with no arguments, provide the method its protocol names, and - for the six
+kinds a flag selects by name - be reachable by that name from the command line.
 
-A point component has no flag of its own: `PointsConfig` turns the optional ones
-off rather than selecting one, so `POINT_COMPONENTS` is deliberately absent from
-`NAMING_FLAGS`.
+Two kinds have no flag of their own and are deliberately absent from
+`NAMING_FLAGS`. `PointsConfig` turns the optional point components off rather
+than selecting one, and which transfer strategy runs is decided by the move
+rather than by the user.
 """
 
 import pytest
@@ -29,11 +30,15 @@ from airsenal.prediction.player_models import (
 from airsenal.prediction.point_components import (
     POINT_COMPONENTS,
 )
+from airsenal.prediction.points_models import (
+    POINTS_MODELS,
+)
 from airsenal.prediction.team_models import (
     TEAM_MODELS,
 )
 
 TABLES = {
+    "points model": (POINTS_MODELS, ("fit", "predict")),
     "player model": (PLAYER_MODELS, ("fit", "predict_involvement")),
     "minutes model": (MINUTES_MODELS, ("predict",)),
     "point component": (POINT_COMPONENTS, ("fit", "expected_points")),
@@ -76,6 +81,7 @@ def test_every_entry_provides_its_protocol(kind, name):
 # strategy has no flag: which one runs is decided by the move, not by the user,
 # so `TRANSFER_STRATEGIES` is deliberately absent from this mapping.
 NAMING_FLAGS = {
+    "points model": ("predict", "--points-model"),
     "player model": ("predict", "--player-model"),
     "minutes model": ("predict", "--minutes-model"),
     "team model": ("predict", "--team-model"),

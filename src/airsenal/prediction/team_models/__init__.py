@@ -6,17 +6,18 @@ component tables its factories are not zero-argument: each takes an optional
 keyword-only `epsilon`, the time-weighting decay rate.
 
 The default is `xg`, which needs expected goals in the training data - the FPL
-API has recorded them since 2223. Fitting a season before that means asking for
-`extended`, which is fitted to goals.
+API has recorded them since `game.season.FIRST_SEASON_WITH_EXPECTED_GOALS`.
+Fitting a season before that means asking for `extended`, which is fitted to
+goals.
 """
 
 from collections.abc import Callable
 
-from airsenal.core.lookup import ConfigError, lookup
+from airsenal.core.lookup import lookup
 from airsenal.prediction.protocols import ScorelineTeamModel
 
 # Measured better than `extended` on held-out scorelines in every season with
-# expected goals, and on predicted points too. See docs/prediction-seams-plan.md.
+# expected goals, and on predicted points too. See docs/xg-models.md.
 DEFAULT_TEAM_MODEL = "xg"
 
 

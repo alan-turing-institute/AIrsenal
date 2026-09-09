@@ -163,8 +163,14 @@ max-statements = 80    # fill_attributes_table_from_api
 max-returns = 12       # FPLAuth._login_flow
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = [
-	"F401",  # allow unused imports in __init__.py files
+# Every other `__init__.py` declares `__all__`, which ruff honours as a
+# re-export, so F401 there catches a dead import rather than a deliberate one.
+# That matters: every pluggable component's table lives in an `__init__.py`.
+"src/airsenal/__init__.py" = [
+	"F401",  # the package's own re-exports, which have no __all__
+]
+"src/airsenal/cli/__init__.py" = [
+	"F401",
 ]
 "src/airsenal/cli/*.py" = [
 	# Ignore too many argument rules for CLI commands
