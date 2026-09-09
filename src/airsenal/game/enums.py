@@ -25,6 +25,16 @@ class Position(StrEnum):
         return position in cls
 
     @classmethod
+    def modelled(cls) -> tuple[str, ...]:
+        """
+        Every position AIrsenal models, for a query that has to list them.
+
+        The same rule as `is_modelled`, for a caller that cannot ask one
+        position at a time - a `WHERE position IN (...)` needs the set.
+        """
+        return tuple(str(position) for position in cls)
+
+    @classmethod
     def back_to_front(cls) -> tuple["Position", ...]:
         return (cls.GK, cls.DEF, cls.MID, cls.FWD)
 

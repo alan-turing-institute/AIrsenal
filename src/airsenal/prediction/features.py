@@ -1,6 +1,7 @@
 """Assembling the historical data the models are fitted to."""
 
 from collections import defaultdict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,6 +23,52 @@ from airsenal.prediction.protocols import PlayerFitData
 
 logger = get_logger(__name__)
 
+# The columns of the player history frame, in order, and the one place they are
+# named. A row is built as a dict rather than a positional list so that adding a
+# column - the xG work added three - is an edit here and an edit where the value
+# is read off the database, rather than three lists that have to stay in step by
+# position.
+PLAYER_HISTORY_COLUMNS = (
+    "player_id",
+    "player_name",
+    "match_id",
+    "date",
+    "season",
+    "gameweek",
+    "goals",
+    "assists",
+    "minutes",
+    "team_goals",
+    "expected_goals",
+    "expected_assists",
+    "team_expected_goals",
+    "absence_reason",
+    "absence_detail",
+)
+
+
+def blank_player_row(player_id: int, player_name: str) -> dict[str, Any]:
+    """
+    A padding row, so every player has the same number of matches.
+
+    The models are fitted to rectangular arrays - `process_player_data` reshapes
+    to `(nplayer, nmatch, ...)` - so a player with fewer matches than the most
+    anyone played is padded out to it. Zero in every column but the player's
+    identity and their absences, which is what makes a padding row recognisable:
+    `get_empirical_bayes_estimates` drops rows by `match_id == 0`, and a fitted
+    model excludes them by `minutes` or by `team_expected_goals` of zero, neither
+    of which a real performance has. Deriving the zeros from
+    `PLAYER_HISTORY_COLUMNS` means a new column is padded correctly without this
+    function being touched.
+    """
+    return {
+        **dict.fromkeys(PLAYER_HISTORY_COLUMNS, 0),
+        "player_id": player_id,
+        "player_name": player_name,
+        "absence_reason": None,
+        "absence_detail": None,
+    }
+
 
 def get_player_history_df(
     position: str = "all",
@@ -34,31 +81,15 @@ def get_player_history_df(
     """Fetch historical player performance data and build a structured DataFrame."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
-    col_names = [
-        "player_id",
-        "player_name",
-        "match_id",
-        "date",
-        "season",
-        "gameweek",
-        "goals",
-        "assists",
-        "minutes",
-        "team_goals",
-        "expected_goals",
-        "expected_assists",
-        "team_expected_goals",
-        "absence_reason",
-        "absence_detail",
-    ]
-    player_data = []
+    player_data: list[dict[str, Any]] = []
 
     if all_players:
         # All of them who play: a manager has attributes and performances like
-        # anyone else, and nothing here models one.
+        # anyone else, and nothing here models one - the same rule as
+        # `Position.is_modelled`, asked of the whole set at once.
         q = dbsession.scalars(
             select(PlayerAttributes)
-            .where(PlayerAttributes.position.in_([str(p) for p in Position]))
+            .where(PlayerAttributes.position.in_(Position.modelled()))
             .options(selectinload(PlayerAttributes.player))
         )
         players = []
@@ -174,49 +205,33 @@ def get_player_history_df(
                 absence_detail = details[0] if len(details) == 1 else details
 
             player_data.append(
-                [
-                    player.player_id,
-                    player.name,
-                    match_id,
-                    match_date,
-                    row.fixture.season,
-                    row.fixture.gameweek,
-                    goals,
-                    assists,
-                    minutes,
-                    team_goals,
-                    expected_goals,
-                    expected_assists,
-                    team_expected,
-                    absence_reason,
-                    absence_detail,
-                ]
+                {
+                    "player_id": player.player_id,
+                    "player_name": player.name,
+                    "match_id": match_id,
+                    "date": match_date,
+                    "season": row.fixture.season,
+                    "gameweek": row.fixture.gameweek,
+                    "goals": goals,
+                    "assists": assists,
+                    "minutes": minutes,
+                    "team_goals": team_goals,
+                    "expected_goals": expected_goals,
+                    "expected_assists": expected_assists,
+                    "team_expected_goals": team_expected,
+                    "absence_reason": absence_reason,
+                    "absence_detail": absence_detail,
+                }
             )
             row_count += 1
 
         if fill_blank and row_count < max_matches_per_player:
-            blank_row = [
-                player.player_id,
-                player.name,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                None,
-                None,
-            ]
             player_data.extend(
-                [list(blank_row) for _ in range(max_matches_per_player - row_count)]
+                blank_player_row(player.player_id, player.name)
+                for _ in range(max_matches_per_player - row_count)
             )
 
-    df = pd.DataFrame(player_data, columns=col_names)
+    df = pd.DataFrame(player_data, columns=list(PLAYER_HISTORY_COLUMNS))
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df.reset_index(drop=True, inplace=True)
 

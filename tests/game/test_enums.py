@@ -68,3 +68,16 @@ def test_a_manager_is_not_a_position_anything_here_models():
     assert Position.is_modelled("MID")
     assert not Position.is_modelled("MNG")
     assert not Position.is_modelled(None)
+
+
+def test_the_modelled_positions_are_the_rule_asked_of_the_whole_set():
+    """
+    A query cannot ask one position at a time, so it gets them all at once.
+
+    Both forms have to agree, or a `WHERE position IN (...)` would let through
+    a position `is_modelled` refuses - which is what two literals of "MNG" did
+    before either existed.
+    """
+    assert set(Position.modelled()) == {"GK", "DEF", "MID", "FWD"}
+    assert all(Position.is_modelled(position) for position in Position.modelled())
+    assert "MNG" not in Position.modelled()
