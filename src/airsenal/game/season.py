@@ -19,9 +19,23 @@ def get_current_season() -> str:
 CURRENT_SEASON = get_current_season()
 
 
+# The first season the FPL API reported expected goals and assists for. A model
+# fitted to them has nothing to fit to before this, which is a fact about what
+# FPL publishes rather than about any model - so it is here, and the two models
+# that need it say so in the same words.
+FIRST_SEASON_WITH_EXPECTED_GOALS = "2223"
+
+
 def season_str_to_year(season: str) -> int:
     """Convert a season in "1819" format to the year it started (2018)."""
     return int(f"20{season[:2]}")
+
+
+def has_expected_goals(season: str) -> bool:
+    """Whether the FPL API reported expected goals for this season."""
+    return season_str_to_year(season) >= season_str_to_year(
+        FIRST_SEASON_WITH_EXPECTED_GOALS
+    )
 
 
 def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:

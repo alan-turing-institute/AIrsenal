@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 
-from airsenal.prediction.protocols import TeamFitData
+from airsenal.prediction.protocols import TeamFitData, no_expected_goals_message
 
 # Weight a match at exp(-epsilon * years ago), as the other models do. Swept
 # over 2425 and 2526 with tools/tune_team_time_weighting.py --model xg: this is
@@ -41,7 +41,7 @@ class XGTeamConfig:
             A team with nothing in the window has just come up, and promoted
             teams are usually worse than the ones they replaced - but on this
             database that assumption measures worse than the league average, so
-            it is off by default. See the plan document for the numbers.
+            it is off by default. See docs/xg-models.md for the numbers.
     """
 
     max_iterations: int = 100
@@ -60,7 +60,8 @@ class XGTeamModel:
     about the next match than whether it happened to. It predicts a mean and
     nothing else - there is no distribution over goal *counts* to be had from a
     continuous quantity - so it is an `ExpectedGoalsTeamModel`, and reaches the
-    points calculation through `PoissonScorelines`.
+    points calculation through `ConwayMaxwellScorelines`, which is what its
+    `TEAM_MODELS` entry wraps it in.
 
     The ratings are multiplicative and average one: an attack of 1.2 creates a
     fifth more than the league does, against the same defence at the same venue.
@@ -97,12 +98,8 @@ class XGTeamModel:
 
         played = ~(np.isnan(home_xg) | np.isnan(away_xg))
         if not played.any():
-            msg = (
-                "No match in the training data has expected goals recorded, so "
-                "there is nothing to fit this model to. The FPL API has "
-                "recorded expected goals since season 2223; for a season "
-                "before that, ask for a model fitted to goals instead - "
-                "`--team-model extended`."
+            msg = no_expected_goals_message(
+                type(self).__name__, "--team-model extended"
             )
             raise ValueError(msg)
         home_team, away_team = home_team[played], away_team[played]

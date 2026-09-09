@@ -9,6 +9,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from airsenal.db.models import Fixture, Player
+from airsenal.game.season import FIRST_SEASON_WITH_EXPECTED_GOALS
 
 
 class PlayerFitData(TypedDict):
@@ -75,6 +76,27 @@ class TeamFitData(TypedDict):
     # model that wants them has to cope with a caller that assembled its own.
     home_expected_goals: NotRequired[np.ndarray]
     away_expected_goals: NotRequired[np.ndarray]
+
+
+def no_expected_goals_message(model: str, instead: str) -> str:
+    """
+    Why a model fitted to expected goals has none to fit to, and what to do.
+
+    Here because the expected-goals keys of both fit data types above are
+    `NotRequired`, so both a team and a player model can be handed a window
+    with nothing in them, and the two used to say so in their own words.
+
+    Args:
+        model: The class that cannot be fitted.
+        instead: The flag naming a model fitted to goals, which any season can
+            be fitted with.
+    """
+    return (
+        f"No match in the training data has expected goals recorded, so there "
+        f"is nothing to fit {model} to. The FPL API has recorded expected goals "
+        f"since season {FIRST_SEASON_WITH_EXPECTED_GOALS}; for a season before "
+        f"that, ask for a model fitted to goals instead - `{instead}`."
+    )
 
 
 @dataclass(frozen=True, eq=False)
@@ -224,9 +246,12 @@ class ExpectedGoalsTeamModel(TeamModel, Protocol):
     A team model that predicts only how many goals a team will score on average.
 
     Which is all some models have to say - an xG model fitted to a continuous
-    quantity has no natural distribution over goal *counts*. `PoissonScorelines`
-    turns one of these into a `ScorelineTeamModel` so it can be predicted with,
-    rather than every such model having to invent a distribution of its own.
+    quantity has no natural distribution over goal *counts*. The wrappers in
+    `team_models/scorelines.py` turn one of these into a `ScorelineTeamModel` so
+    it can be predicted with, rather than every such model having to invent a
+    distribution of its own: `PoissonScorelines` reads the mean as a Poisson,
+    and `ConwayMaxwellScorelines` makes the spread of the counts a measured
+    number instead of an assumption.
     """
 
     def predict_expected_goals(

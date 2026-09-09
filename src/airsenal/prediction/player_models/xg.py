@@ -12,7 +12,11 @@ from airsenal.prediction.player_models.scaling import (
     FloatArray,
     scale_goals_by_minutes,
 )
-from airsenal.prediction.protocols import PlayerFitData, PlayerInvolvement
+from airsenal.prediction.protocols import (
+    PlayerFitData,
+    PlayerInvolvement,
+    no_expected_goals_message,
+)
 
 logger = get_logger(__name__)
 
@@ -28,7 +32,7 @@ DEFAULT_XG_PLAYER_EPSILON = 0.2
 # own record there is to fit: a midfielder is involved in enough of his team's
 # goals to be told apart from his squad, a goalkeeper never is and is better off
 # being told he is like every other goalkeeper. Swept per position and chosen
-# held out; see docs/prediction-seams-plan.md.
+# held out; see docs/xg-models.md.
 DEFAULT_XG_N_GOALS_PRIOR: Mapping[str, int] = {
     str(Position.GK): 700,
     str(Position.DEF): 15,
@@ -125,9 +129,10 @@ class XGPlayerModel:
     score, on the usual argument that a chance says more about the next match
     than whether it went in.
 
-    Not purely, though: `goal_weight` mixes a sixth of what the player actually
-    did back into the target, because at player level - unlike team level - that
-    measures better than either end alone.
+    Not purely, though: `goal_weight` mixes a small fraction of what the player
+    actually did back into the target - `DEFAULT_XG_GOAL_WEIGHT` of it - because
+    at player level, unlike team level, that measures better than either end
+    alone.
 
     Two things follow from the change of target, and both matter more here than
     they did for a team:
@@ -195,8 +200,11 @@ class XGPlayerModel:
         player was expected to be involved in more than his team was.
 
         A match with no expected goals recorded is zeroed, which is how
-        `scale_goals_by_minutes` is already told a match carries nothing. Records
-        the calibration it applied, which is part of what the fit found.
+        `scale_goals_by_minutes` is already told a match carries nothing. The
+        same test excludes a padding row, whose team expected goals are zero -
+        see `features.blank_player_row` - so an unrecorded match and a match
+        that never happened are refused by one condition rather than two.
+        Records the calibration it applied, which is part of what the fit found.
         """
         missing = [
             key
@@ -222,12 +230,8 @@ class XGPlayerModel:
             & (team_expected > 0)
         )
         if not recorded.any():
-            msg = (
-                "No match in the training data has expected goals recorded, so "
-                "there is nothing to fit this model to. The FPL API has "
-                "recorded expected goals since season 2223; for a season "
-                "before that, ask for a model fitted to goals instead - "
-                "`--player-model conjugate`."
+            msg = no_expected_goals_message(
+                type(self).__name__, "--player-model conjugate"
             )
             raise ValueError(msg)
 
