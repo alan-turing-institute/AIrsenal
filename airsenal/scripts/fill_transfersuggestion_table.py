@@ -91,6 +91,7 @@ def is_finished(final_expected_num: int) -> bool:
 def optimize(
     queue: CustomQueue,
     pid: Process,
+    num_expected_outputs: int,
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
@@ -754,6 +755,7 @@ def run_optimization(
             args=(
                 squeue,
                 i,
+                num_expected_outputs,
                 gameweeks,
                 season,
                 tag,

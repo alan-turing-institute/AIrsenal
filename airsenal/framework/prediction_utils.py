@@ -203,6 +203,11 @@ def get_player_history_df(
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
+            # A PlayerScore whose fixture has been deleted (e.g. because the
+            # fixture table was refilled from a different source) shows up as
+            # row.fixture is None; skip rather than crash on the access below.
+            if row.fixture is None:
+                continue
             if is_future_gameweek(
                 row.fixture.season,
                 row.fixture.gameweek,

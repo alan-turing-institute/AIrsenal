@@ -111,6 +111,7 @@ def calc_all_predicted_points(
     use_availability: bool = True,
     xg_weight: float = DEFAULT_XG_WEIGHT,
     condition_bonus_on_fixture: bool = False,
+    num_thread: int = 1,
 ) -> None:
     """
     Do the full prediction for players.
@@ -239,6 +240,7 @@ def make_predictedscore_table(
     use_availability: bool = True,
     xg_weight: float = DEFAULT_XG_WEIGHT,
     condition_bonus_on_fixture: bool = False,
+    num_thread: int = 1,
 ) -> str:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -343,6 +345,16 @@ def main():
         default="extended",
     )
     parser.add_argument(
+        "--num_thread",
+        help=(
+            "number of prediction worker processes. macOS forks with live JAX "
+            "thread pools deadlock, so keep this at 1 there unless you know your "
+            "environment starts workers with spawn."
+        ),
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
         "--epsilon",
         help="how much to downweight games by in exponential time weighting",
         type=float,
@@ -387,6 +399,7 @@ def main():
             use_availability=not args.no_availability,
             xg_weight=args.xg_weight,
             condition_bonus_on_fixture=args.condition_bonus_on_fixture,
+            num_thread=args.num_thread,
         )
 
         # print players with top predicted points
