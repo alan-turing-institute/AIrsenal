@@ -13,7 +13,6 @@ from typing import TypeVar
 import dateparser
 import pandas as pd
 import regex as re
-from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 from curl_cffi import requests
 from dateutil.parser import isoparse
 from sqlalchemy import case, or_, select
@@ -1369,7 +1368,11 @@ def predicted_points_discord_payload(
     json formated discord webhook contentent.
     """
     discord_embed["fields"].append(
-        {"name": "Position", "value": str(position), "inline": False}
+        {
+            "name": "Position",
+            "value": str(position),
+            "inline": False,
+        }
     )
     for i, p in enumerate(pts):
         price = p[0].price(season, first_gw)
@@ -1912,23 +1915,3 @@ def fastcopy(obj: T) -> T:
     Faster replacement for copy.deepcopy().
     """
     return loads(dumps(obj, -1))
-
-
-def parse_team_model_from_str(
-    team_model: str,
-) -> (
-    RandomMatchPredictor
-    | ExtendedDixonColesMatchPredictor
-    | NeutralDixonColesMatchPredictor
-):
-    """
-    Returns the team model class corresponding to the given string.
-    """
-    if team_model == "random":
-        return RandomMatchPredictor()
-    if team_model == "extended":
-        return ExtendedDixonColesMatchPredictor()
-    if team_model == "neutral":
-        return NeutralDixonColesMatchPredictor()
-    msg = "Unknown team model"
-    raise ValueError(msg)

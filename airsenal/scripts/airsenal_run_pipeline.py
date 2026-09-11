@@ -8,7 +8,10 @@ from curl_cffi import requests
 from sqlalchemy.orm.session import Session
 from tqdm import TqdmWarning
 
-from airsenal.framework.bpl_interface import DEFAULT_TEAM_EPSILON
+from airsenal.framework.bpl_interface import (
+    DEFAULT_TEAM_EPSILON,
+    parse_team_model_from_str,
+)
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
 from airsenal.framework.optimization_utils import DEFAULT_DISCOUNT
 from airsenal.framework.random_team_model import RandomMatchPredictor
@@ -21,7 +24,6 @@ from airsenal.framework.utils import (
     get_gameweeks_array,
     get_latest_prediction_tag,
     get_past_seasons,
-    parse_team_model_from_str,
 )
 from airsenal.scripts.data_sanity_checks import run_all_checks
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
@@ -272,7 +274,6 @@ def run_pipeline(
 
         click.echo("Running prediction..")
         predict_ok = run_prediction(
-            num_thread=num_thread,
             gw_range=gw_range,
             dbsession=dbsession,
             team_model=team_model_class,
@@ -388,7 +389,6 @@ def update_database(fpl_team_id: int, attr: bool, dbsession: Session) -> bool:
 
 
 def run_prediction(
-    num_thread: int,
     gw_range: list[int],
     dbsession: Session,
     team_model: ExtendedDixonColesMatchPredictor
@@ -406,7 +406,6 @@ def run_prediction(
     tag = make_predictedscore_table(
         gw_range=gw_range,
         season=season,
-        num_thread=num_thread,
         include_bonus=True,
         include_cards=True,
         include_saves=True,

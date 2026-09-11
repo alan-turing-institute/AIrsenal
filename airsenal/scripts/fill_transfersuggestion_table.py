@@ -89,9 +89,8 @@ def is_finished(final_expected_num: int) -> bool:
 
 
 def optimize(
-    queue: Queue,
+    queue: CustomQueue,
     pid: Process,
-    num_expected_outputs: int,
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
@@ -117,7 +116,8 @@ def optimize(
 
     The rest of the parameters needed for prediction are from the queue.
 
-    Things on the queue will either be "FINISHED", or a tuple:
+    Things on the queue will either be None (shutdown sentinel, sent once all
+    strategies have been processed), or a tuple:
     (
      num_transfers,
      free_transfers,
@@ -385,6 +385,10 @@ def _optimize(
                         sid,
                     )
                 )
+
+        # mark this task as done only now that any children have been queued,
+        # so queue.join() can't return before the whole tree is processed.
+        queue.task_done()
 
 
 def takes_a_hit(strat: dict) -> bool:
@@ -723,13 +727,8 @@ def run_optimization(
     def update_progress(increment=1, index=None):
         if index is None:
             # outer progress bar
-            nfiles = len(os.listdir(OUTPUT_DIR))
-            total_progress.n = nfiles
+            total_progress.n = len(os.listdir(OUTPUT_DIR))
             total_progress.refresh()
-            if nfiles == num_expected_outputs:
-                total_progress.close()
-                for pb in progress_bars:
-                    pb.close()
         else:
             progress_bars[index].update(increment)
             progress_bars[index].refresh()
@@ -755,7 +754,6 @@ def run_optimization(
             args=(
                 squeue,
                 i,
-                num_expected_outputs,
                 gameweeks,
                 season,
                 tag,
@@ -785,6 +783,7 @@ def run_optimization(
         progress_bars[i] = None
 
     wait_for_processes(procs, abort, num_expected_outputs)
+    total_progress.close()
 
     # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag, min_hit_gain=min_hit_gain)
@@ -919,7 +918,7 @@ def construct_chip_dict(
                 if chip not in unavailable
             }
 
-    chip_dict: dict[int, dict[str, str | None | list[str]]] = {}
+    chip_dict: dict[int, dict[str, str | list[str] | None]] = {}
     # first fill in any allowed chips
     for gw in gameweeks:
         chip_to_play: str | None = None

@@ -10,7 +10,7 @@ https://stackoverflow.com/questions/41952413/get-length-of-queue-in-pythons-mult
 
 import multiprocessing
 import os
-from multiprocessing.queues import Queue
+from multiprocessing.queues import JoinableQueue
 
 
 def set_multiprocessing_start_method():
@@ -58,9 +58,9 @@ class SharedCounter:
         return self.count.value
 
 
-class CustomQueue(Queue):
+class CustomQueue(JoinableQueue):
     """
-    A portable implementation of multiprocessing.Queue.
+    A portable implementation of multiprocessing.JoinableQueue.
     Because of multithreading / multiprocessing semantics, Queue.qsize() may
     raise the NotImplementedError exception on Unix platforms like Mac OS X
     where sem_getvalue() is not implemented. This subclass addresses this
@@ -69,6 +69,13 @@ class CustomQueue(Queue):
     are called, respectively. This not only prevents NotImplementedError from
     being raised, but also allows us to implement a reliable version of both
     qsize() and empty().
+
+    Subclassing JoinableQueue (rather than plain Queue) also gives us
+    task_done()/join(), which track "unfinished tasks" via an internal
+    semaphore rather than sem_getvalue(), so they work correctly on Mac OS X
+    too. This lets callers detect when a dynamically-growing tree of tasks
+    (where processing one task can enqueue more) is fully drained, without
+    needing to independently know the expected total number of tasks.
     """
 
     def __init__(self):

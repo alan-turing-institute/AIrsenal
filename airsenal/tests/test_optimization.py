@@ -35,6 +35,7 @@ class DummyPlayer:
         self.player_id = player_id
         self.fpl_api_id = player_id
         self.name = f"player_{player_id}"
+        self.display_name = f"Dummy Player_{player_id}"
         self.position = position
         self.team = f"DUMMY_TEAM_{player_id}"
         self.purchase_price = 0

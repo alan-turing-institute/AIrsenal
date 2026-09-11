@@ -65,8 +65,8 @@ def test_get_last_complete_gameweek_in_db():
     """Runs a query against a relationship rather than a column, which is easy to
     get wrong - it raised NotImplementedError at the start of a new season."""
     with past_data_session_scope() as ts:
-        last_gw = get_last_complete_gameweek_in_db(TEST_PAST_SEASON, dbsession=ts)
-    assert last_gw is None or isinstance(last_gw, int)
+        gw = get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts)
+        assert gw == 5
 
 
 def test_get_last_complete_gameweek_with_no_results():

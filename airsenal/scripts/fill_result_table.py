@@ -11,7 +11,11 @@ from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.mappings import alternative_team_names
 from airsenal.framework.schema import Result, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
-from airsenal.framework.utils import NEXT_GAMEWEEK, find_fixture, get_past_seasons
+from airsenal.framework.utils import (
+    NEXT_GAMEWEEK,
+    find_fixture,
+    get_past_seasons,
+)
 
 
 def fill_results_from_csv(input_file: str, season: str, dbsession: Session) -> None:
