@@ -7,7 +7,6 @@ import os
 from cmath import nan
 from io import StringIO
 
-import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -118,7 +117,8 @@ def tidy_df(df: pd.DataFrame, days_name: str = "days") -> pd.DataFrame:
     with contextlib.suppress(AttributeError):
         # can fail with AttributeError if all values are missing
         df["season"] = df["season"].str.replace("/", "")
-    df = df.replace({"-": np.nan, f"? {days_name}": np.nan, "?": np.nan})
+    missing_values = {"-", f"? {days_name}", "?"}
+    df = df.mask(df.isin(missing_values))
     df["from"] = pd.to_datetime(df["from"], format="%d/%m/%Y", errors="coerce")
     df["until"] = pd.to_datetime(df["until"], format="%d/%m/%Y", errors="coerce")
 
