@@ -223,6 +223,20 @@ def filter_attributes_for_player(
     return player_attributes.loc[mask]
 
 
+def covers_date(date: datetime.date, player_attributes: pd.DataFrame) -> bool:
+    """
+    Whether the history has an answer for this player on this day.
+
+    Distinct from that answer being "nothing to report": a day the dump covers on
+    which a player is fine is a fact about them, where a day it does not cover is
+    the caller's cue to look somewhere else.
+    """
+    return (
+        date >= ATTRIBUTES_HISTORY_START
+        and (player_attributes["day"] == date).sum() == 1
+    )
+
+
 def get_availability_on_date(
     date: datetime.date, player: Player, player_attributes: pd.DataFrame
 ) -> tuple[str | None, int | None]:

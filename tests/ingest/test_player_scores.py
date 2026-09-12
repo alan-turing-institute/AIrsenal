@@ -16,8 +16,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.core.caching import clear_query_caches
-from airsenal.db.models import Base, Fixture, Player
-from airsenal.ingest.player_scores import get_status_from_attributes_history
+from airsenal.db.models import Base, Fixture, Player, PlayerAttributes
+from airsenal.ingest.player_scores import (
+    get_availability_for_fixture,
+    get_status_from_attributes_history,
+)
 
 SEASON = "2526"
 GAMEWEEK = 5
@@ -156,3 +159,86 @@ def test_a_match_before_the_daily_dump_started_has_no_status(dbsession):
     assert get_status_from_attributes_history(
         _player(), fixture, history, dbsession
     ) == (None, None)
+
+
+# ------------------------- falling back to the gameweek's attributes row ---
+
+
+def _attributes(dbsession, gameweek, news, chance, return_gameweek=None):
+    row = PlayerAttributes()
+    row.player_id = 1
+    row.season = SEASON
+    row.gameweek = gameweek
+    row.price = 50
+    row.team = "ARS"
+    row.position = "MID"
+    row.news = news
+    row.chance_of_playing_next_round = chance
+    row.return_gameweek = return_gameweek
+    dbsession.add(row)
+    dbsession.commit()
+
+
+def test_a_season_before_the_history_falls_back_to_the_attributes_row(dbsession):
+    """
+    Which is where the Transfermarkt scrape lands, for every season before 2526.
+
+    Without it every pre-2526 PlayerScore had a null chance of playing, and
+    `exclude_unavailable` treats null as available - so a match a player missed
+    injured counted towards their recent minutes like any other.
+    """
+    player = _player()
+    dbsession.add(player)
+    _attributes(dbsession, GAMEWEEK, "Knee injury", 0, 8)
+    history = _history([])
+    monday = _fixture_on(dbsession, KICKOFFS[2])
+
+    assert get_availability_for_fixture(player, monday, history, dbsession) == (
+        "Knee injury",
+        0,
+    )
+
+
+def test_the_history_wins_where_it_covers_the_day(dbsession):
+    """It is a match-day answer, where the attributes row is a deadline-day one."""
+    player = _player()
+    dbsession.add(player)
+    _attributes(dbsession, GAMEWEEK, "Scraped injury", 0, 8)
+    history = _history([(datetime.date(2025, 9, 22), None, 100)])
+    monday = _fixture_on(dbsession, KICKOFFS[2])
+
+    assert get_availability_for_fixture(player, monday, history, dbsession) == (
+        None,
+        100,
+    )
+
+
+def test_a_day_the_history_covers_but_has_nothing_to_say_is_still_an_answer(dbsession):
+    """
+    A covered day on which the API reported nothing means the player was fine.
+
+    That is not the same as the day being uncovered, and must not reach past it
+    for a scrape that says otherwise.
+    """
+    player = _player()
+    dbsession.add(player)
+    _attributes(dbsession, GAMEWEEK, "Scraped injury", 0, 8)
+    history = _history([(datetime.date(2025, 9, 22), None, None)])
+    monday = _fixture_on(dbsession, KICKOFFS[2])
+
+    assert get_availability_for_fixture(player, monday, history, dbsession) == (
+        None,
+        None,
+    )
+
+
+def test_no_attributes_row_for_the_gameweek_means_no_status(dbsession):
+    player = _player()
+    dbsession.add(player)
+    dbsession.commit()
+    monday = _fixture_on(dbsession, KICKOFFS[2])
+
+    assert get_availability_for_fixture(player, monday, _history([]), dbsession) == (
+        None,
+        None,
+    )

@@ -21,12 +21,17 @@ from airsenal.db.queries.fixtures import (
 from airsenal.db.queries.gameweeks import (
     next_gameweek,
 )
-from airsenal.db.queries.players import get_player, get_player_from_api_id
+from airsenal.db.queries.players import (
+    get_player,
+    get_player_attributes,
+    get_player_from_api_id,
+)
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.ingest.attributes_history import (
+    covers_date,
     filter_attributes_for_player,
     get_availability_on_date,
     load_attributes_history,
@@ -69,6 +74,45 @@ def get_status_from_attributes_history(
                     gameweek_deadline, player, player_attributes
                 )
     return news, chance_of_playing
+
+
+def get_availability_for_fixture(
+    player: Player,
+    fixture: Fixture,
+    player_attributes: pd.DataFrame | None,
+    dbsession: Session | None = None,
+) -> tuple[str | None, int | None]:
+    """
+    A player's news and chance of playing for one fixture.
+
+    The per-day history read at that fixture's own kickoff is the best answer,
+    being what the FPL API said on the morning of the match. Where it has no row
+    for that day - every season before 2526, and the gameweeks of 2526 before the
+    daily dump started - the gameweek's attributes row stands in, which for those
+    seasons is what the Transfermarkt scrape says about it. That is a gameweek's
+    status rather than a day's, which is as fine-grained as the scrape gets.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    if (
+        player_attributes is not None
+        and len(player_attributes) > 0
+        and covers_date(parse_date(fixture.date), player_attributes)
+    ):
+        return get_status_from_attributes_history(
+            player, fixture, player_attributes, dbsession
+        )
+
+    if fixture.gameweek is None:
+        return None, None
+    attributes = get_player_attributes(
+        player.player_id,
+        gameweek=fixture.gameweek,
+        season=fixture.season,
+        dbsession=dbsession,
+    )
+    if attributes is None:
+        return None, None
+    return attributes.news, attributes.chance_of_playing_next_round
 
 
 def fill_playerscores_from_json(
@@ -176,13 +220,10 @@ def fill_playerscores_from_json(
                 with contextlib.suppress(KeyError):
                     ps.__setattr__(feat, fixture_data[feat])
 
-            # get injury/suspension status from attributes history
-            if player_attributes is not None and len(player_attributes) > 0:
-                news, chance_of_playing = get_status_from_attributes_history(
-                    player, fixture, player_attributes, dbsession
-                )
-                ps.news = news
-                ps.chance_of_playing = chance_of_playing
+            # what was known about their availability for this match
+            ps.news, ps.chance_of_playing = get_availability_for_fixture(
+                player, fixture, player_attributes, dbsession
+            )
 
             dbsession.add(ps)
     dbsession.commit()
@@ -302,13 +343,10 @@ def fill_playerscores_from_api(
                     with contextlib.suppress(KeyError):
                         ps.__setattr__(feat, result[feat])
 
-                # get injury/suspension status from attributes history
-                if player_attributes is not None and len(player_attributes) > 0:
-                    news, chance_of_playing = get_status_from_attributes_history(
-                        player, fixture, player_attributes, dbsession
-                    )
-                    ps.news = news
-                    ps.chance_of_playing = chance_of_playing
+                # what was known about their availability for this match
+                ps.news, ps.chance_of_playing = get_availability_for_fixture(
+                    player, fixture, player_attributes, dbsession
+                )
 
                 if add:
                     dbsession.add(ps)
