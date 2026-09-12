@@ -81,7 +81,6 @@ def _pipeline(team_model="constant", player_model="constant", **settings):
                 "new_squad": True,
                 "refresh_database": False,
                 "apply_transfers": False,
-                "save_absences": False,
                 **settings,
             }
         ),

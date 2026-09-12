@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.console import track
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Absence, PlayerAttributes, PlayerScore
+from airsenal.db.models import PlayerAttributes, PlayerScore
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
 from airsenal.db.queries.players import get_max_matches_per_player, list_players
@@ -42,8 +42,6 @@ PLAYER_HISTORY_COLUMNS = (
     "expected_goals",
     "expected_assists",
     "team_expected_goals",
-    "absence_reason",
-    "absence_detail",
 )
 
 
@@ -54,7 +52,7 @@ def blank_player_row(player_id: int, player_name: str) -> dict[str, Any]:
     The models are fitted to rectangular arrays - `process_player_data` reshapes
     to `(nplayer, nmatch, ...)` - so a player with fewer matches than the most
     anyone played is padded out to it. Zero in every column but the player's
-    identity and their absences, which is what makes a padding row recognisable:
+    identity, which is what makes a padding row recognisable:
     `get_empirical_bayes_estimates` drops rows by `match_id == 0`, and a fitted
     model excludes them by `minutes` or by `team_expected_goals` of zero, neither
     of which a real performance has. Deriving the zeros from
@@ -65,8 +63,6 @@ def blank_player_row(player_id: int, player_name: str) -> dict[str, Any]:
         **dict.fromkeys(PLAYER_HISTORY_COLUMNS, 0),
         "player_id": player_id,
         "player_name": player_name,
-        "absence_reason": None,
-        "absence_detail": None,
     }
 
 
@@ -106,7 +102,6 @@ def get_player_history_df(
 
     player_ids = [p.player_id for p in players]
     scores_by_player = defaultdict(list)
-    absences_by_player_season = defaultdict(list)
 
     if player_ids:
         all_scores = dbsession.scalars(
@@ -119,23 +114,6 @@ def get_player_history_df(
         ).all()
         for score in all_scores:
             scores_by_player[score.player_id].append(score)
-
-        score_seasons = {score.fixture.season for score in all_scores}
-        if score_seasons:
-            absences = dbsession.scalars(
-                select(Absence)
-                .where(
-                    Absence.player_id.in_(player_ids),
-                    Absence.season.in_(score_seasons),
-                )
-                .order_by(Absence.id)
-            ).all()
-            for absence in absences:
-                if absence.player_id is None:
-                    continue
-                absences_by_player_season[(absence.player_id, absence.season)].append(
-                    absence
-                )
 
     # Per (fixture, team), because an xG involvement is a share of what the
     # whole team was expected to score and this frame holds one position of it.
@@ -182,28 +160,6 @@ def get_player_history_df(
             team_expected = team_expected_goals.get(
                 (row.fixture_id, row.player_team), float("nan")
             )
-            matching_absences = [
-                ab
-                for ab in absences_by_player_season.get(
-                    (player.player_id, row.fixture.season), []
-                )
-                if ab.gameweek_until is not None
-                and row.fixture.gameweek is not None
-                # Inclusive of gameweek_from, which is the first gameweek missed; see
-                # `db.queries.absences.absence_gameweeks`
-                and ab.gameweek_from <= row.fixture.gameweek
-                and ab.gameweek_until > row.fixture.gameweek
-            ]
-            # A single absence is recorded as a scalar rather than a 1-element list,
-            # so the resulting dataframe column reads naturally.
-            absence_reason: str | list[str] | None = None
-            absence_detail: str | list[str | None] | None = None
-            if matching_absences:
-                reasons = [ab.reason for ab in matching_absences]
-                details = [ab.details for ab in matching_absences]
-                absence_reason = reasons[0] if len(reasons) == 1 else reasons
-                absence_detail = details[0] if len(details) == 1 else details
-
             player_data.append(
                 {
                     "player_id": player.player_id,
@@ -219,8 +175,6 @@ def get_player_history_df(
                     "expected_goals": expected_goals,
                     "expected_assists": expected_assists,
                     "team_expected_goals": team_expected,
-                    "absence_reason": absence_reason,
-                    "absence_detail": absence_detail,
                 }
             )
             row_count += 1

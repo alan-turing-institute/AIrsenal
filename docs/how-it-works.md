@@ -29,7 +29,10 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 
 - **Player** — name and ID for every player who has been in the game in the last three
   seasons. For players active in the current season the ID matches the FPL player ID.
-- **PlayerAttributes** — per-gameweek attributes: FPL price, position, and team.
+- **PlayerAttributes** — per-gameweek attributes: FPL price, position, team, and
+  availability (`news`, `chance_of_playing_next_round`, `return_gameweek`) as it stood
+  in that gameweek. The availability columns are what every "is this player going to
+  play?" question reads, for a past season as well as this one.
   Managers are in here too, as position `MNG`, and nothing in AIrsenal models one:
   `Position.is_modelled` is what every place that reads a position asks, and they are
   left out of the data models are fitted to and skipped rather than predicted.
@@ -111,14 +114,21 @@ distinct value and then averaged — so a player who played 0, 70 and 90 minutes
 predictions. Throughout, the probability of scoring, assisting or conceding is weighted by
 the fraction of the match the player is assumed to play.
 
-A player marked in the API as having a 50% or lower chance of playing
-(`Player.is_injured_or_suspended()` in `airsenal.db.models`) is predicted 0 points. For a
-past season there are no API flags to read, so the Absence table stands in for them
-(`was_historic_absence` in `airsenal.db.queries.absences`). Both are asked the same
-question, and both take two gameweeks to ask it: the gameweek being predicted *from*,
-and the gameweek of the fixture. A player only scores 0 if they were already out by the
-first and not due back by the second — an absence that began later has not happened yet,
-and a replay must not act on it.
+A player marked as having a 50% or lower chance of playing
+(`Player.is_injured_or_suspended()` in `airsenal.db.models`) is predicted 0 points. That
+is the only availability check, for every season: `PlayerAttributes` carries the flags
+throughout. For the gameweek being predicted they come from the FPL API; for a gameweek
+already played they come from the per-day attributes history
+(`player_attributes_history_yyyy.csv`, read at the date of the gameweek's first match),
+falling back to the Transfermarkt-scraped `absences_yyyy.csv` for the seasons and
+gameweeks the history does not reach.
+
+The question takes two gameweeks to ask: the gameweek being predicted *from*, and the
+gameweek of the fixture. A player only scores 0 if they were already out by the first and
+not due back by the second — an absence that began later has not happened yet, and a
+replay must not act on it. The flag living on the row for the gameweek it was known in is
+what makes that hold. A row with a low chance and no return gameweek means out
+indefinitely, which is what the API means by it.
 
 Appearance points follow FPL's rule: 0 for not playing, 1 for under 60 minutes, 2 for 60
 or more (`get_appearance_points` in `airsenal.game.scoring`).

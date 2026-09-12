@@ -26,10 +26,5 @@ def data_file(*parts: str) -> Path:
 
 
 def absences_file(season: str) -> Path:
-    """
-    The absences CSV for a season.
-
-    Named here rather than in `ingest/absences.py` because `export/absences.py`
-    writes the same file.
-    """
+    """The absences CSV for a season, as scraped from Transfermarkt."""
     return data_file(f"absences_{season}.csv")

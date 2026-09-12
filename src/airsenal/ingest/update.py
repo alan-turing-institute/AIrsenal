@@ -27,7 +27,10 @@ from airsenal.db.queries.transactions import count_transactions
 from airsenal.db.session import session_scope
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.ingest.fixtures import fill_fixtures_from_api
-from airsenal.ingest.player_attributes import fill_attributes_table_from_api
+from airsenal.ingest.player_attributes import (
+    fill_attributes_table_from_api,
+    fill_availability_for_season,
+)
 from airsenal.ingest.player_mappings import add_mappings
 from airsenal.ingest.player_scores import fill_playerscores_from_api
 from airsenal.ingest.players import find_player_in_table
@@ -185,6 +188,11 @@ def update_attributes(season: str, dbsession: Session) -> None:
         gameweek_start=last_in_db,
         dbsession=dbsession,
     )
+    # The API answers for the gameweek being predicted and no other, so the
+    # gameweeks already played get their availability from the day each of their
+    # deadlines fell on - the same rule as a past season, and what lets this
+    # season be replayed.
+    fill_availability_for_season(season, dbsession)
 
 
 def update_db(

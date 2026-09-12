@@ -70,4 +70,3 @@ class PipelineSettings:
     apply_transfers: bool = False
     # Whether to apply without the interactive prompt, for an unattended run.
     skip_confirmation: bool = False
-    save_absences: bool = False

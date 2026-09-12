@@ -103,7 +103,6 @@ class Player(Base):
         order_by="(PlayerAttributes.season.desc(), PlayerAttributes.gameweek.desc())",
     )
 
-    absences: Mapped[list["Absence"]] = relationship(back_populates="player")
     predictions: Mapped[list["PlayerPrediction"]] = relationship(
         back_populates="player"
     )
@@ -287,45 +286,6 @@ class PlayerAttributes(Base):
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
-        )
-
-
-class Absence(Base):
-    __tablename__ = "absence"
-    __table_args__ = (Index("ix_absence_season_player", "season", "player_id"),)
-    id: Mapped[intpk] = mapped_column(autoincrement=True)
-    player: Mapped["Player"] = relationship(back_populates="absences")
-    player_id: Mapped[int | None] = mapped_column(ForeignKey("player.player_id"))
-    season: Mapped[str100]
-    reason: Mapped[str100]  # high-level, e.g. injury/suspension
-    details: Mapped[str100_optional]
-    date_from: Mapped[str100]
-    date_until: Mapped[str100_optional]
-    # Half-open: the first gameweek missed, and the gameweek the player returned
-    # in. Equal when a player was flagged and available again before their team
-    # next played, so the range covers nothing. An absence running past the end
-    # of the season ends one gameweek past the last one; a NULL `gameweek_until`
-    # is for a row whose source gave no end date at all, and readers skip those.
-    gameweek_from: Mapped[int]
-    gameweek_until: Mapped[int | None]
-    url: Mapped[str100_optional]
-    timestamp: Mapped[str100]
-
-    def __repr__(self) -> str:
-        return (
-            f"Absence(\n"
-            f"  player='{self.player}',\n"
-            f"  player_id='{self.player_id}',\n"
-            f"  season='{self.season}',\n"
-            f"  reason='{self.reason}',\n"
-            f"  details='{self.details}',\n"
-            f"  date_from='{self.date_from}',\n"
-            f"  date_until='{self.date_until}',\n"
-            f"  gameweek_from='{self.gameweek_from}',\n"
-            f"  gameweek_until='{self.gameweek_until}',\n"
-            f"  url='{self.url}',\n"
-            f"  timestamp='{self.timestamp}'\n"
-            ")"
         )
 
 

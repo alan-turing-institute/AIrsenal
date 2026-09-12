@@ -106,6 +106,45 @@ def get_fixtures_for_gameweeks(
     )
 
 
+def get_gameweek_start_dates(
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> dict[int, date]:
+    """
+    The date of the earliest fixture in each gameweek of a season.
+
+    Gameweeks with no scheduled fixtures are left out.
+    """
+    dbsession = dbsession if dbsession is not None else get_session()
+    rows = dbsession.execute(
+        select(Fixture.gameweek, Fixture.date).where(
+            Fixture.season == season,
+            Fixture.gameweek.is_not(None),
+            Fixture.date.is_not(None),
+        )
+    ).all()
+    start_dates: dict[int, date] = {}
+    for gameweek, fixture_date in rows:
+        if gameweek is None or fixture_date is None:
+            # filtered out by the query above, but invisible to the type checker
+            continue
+        parsed = parse_date(fixture_date)
+        if gameweek not in start_dates or parsed < start_dates[gameweek]:
+            start_dates[gameweek] = parsed
+    return start_dates
+
+
+def get_gameweek_start_date(
+    gameweek: int, season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> date | None:
+    """
+    Date of the earliest fixture in a gameweek.
+
+    Returns:
+        None if the gameweek has no scheduled fixtures.
+    """
+    return get_gameweek_start_dates(season, dbsession=dbsession).get(gameweek)
+
+
 def get_fixture_teams(fixtures: Iterable[Fixture]) -> list[tuple[str, str]]:
     """(home_team, away_team) for each of these fixtures."""
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]

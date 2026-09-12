@@ -75,7 +75,7 @@ def test_dump_help():
 
     assert result.exit_code == 0
     assert "transfermarkt" in result.stdout
-    assert "absences" in result.stdout
+    assert "attributes" in result.stdout
 
 
 def test_replay_help():

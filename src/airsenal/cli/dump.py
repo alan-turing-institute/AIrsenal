@@ -3,7 +3,6 @@
 import typer
 
 from airsenal.cli import options
-from airsenal.export.absences import save_expected_absences
 from airsenal.export.api_dump import dump_api
 from airsenal.export.attributes import save_attributes
 from airsenal.export.db_dump import dump_db
@@ -33,12 +32,6 @@ def transfermarkt(
 ) -> None:
     """Save Transfermarkt absence data."""
     scrape_transfermarkt([season])
-
-
-@app.command()
-def absences() -> None:
-    """Save expected player absences for the current season."""
-    save_expected_absences()
 
 
 @app.command()

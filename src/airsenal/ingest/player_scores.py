@@ -1,10 +1,7 @@
 """Fill the "player_score" table with historic results (player_details_xxyy.json)."""
 
 import contextlib
-import datetime
 import json
-import tempfile
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -18,11 +15,10 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.fixtures import (
     find_fixture,
-    get_fixtures_for_gameweeks,
+    get_gameweek_start_date,
     get_player_team_from_fixture,
 )
 from airsenal.db.queries.gameweeks import (
-    is_future_gameweek,
     next_gameweek,
 )
 from airsenal.db.queries.players import get_player, get_player_from_api_id
@@ -30,104 +26,14 @@ from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
-from airsenal.remote.download import download_with_resume
-from airsenal.remote.errors import RemoteError
+from airsenal.ingest.attributes_history import (
+    filter_attributes_for_player,
+    get_availability_on_date,
+    load_attributes_history,
+)
 from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
-
-# The first day the packaged per-day attributes history covers - the daily
-# `airsenal dump attributes` job started appending on this date.
-ATTRIBUTES_HISTORY_START = datetime.date(2025, 9, 12)
-
-
-# The packaged data lives at `src/airsenal/data` here and lived at
-# `airsenal/data` before the move to a src layout. This downloads from `main`,
-# which is on one side of that move or the other depending on whether the move
-# has landed there yet, so try both: pinning either one alone means the download
-# starts 404ing on the day the layout changes, and the caller turns that into a
-# warning and carries on without the history.
-_ATTRIBUTES_HISTORY_PATHS = ("src/airsenal/data", "airsenal/data")
-
-
-def _attributes_history_urls(season: str) -> list[str]:
-    """Where the attributes history for a season might be, best guess first."""
-    return [
-        "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
-        f"heads/main/{path}/player_attributes_history_{season}.csv"
-        for path in _ATTRIBUTES_HISTORY_PATHS
-    ]
-
-
-def load_attributes_history(season: str) -> pd.DataFrame | None:
-    if not is_future_gameweek(1, season, "2526", 0):
-        logger.info(
-            "Player attributes history not available before 2526 season, skipping"
-        )
-        return None
-
-    logger.info("Downloading player attributes history for season %s", season)
-
-    for url in _attributes_history_urls(season):
-        try:
-            with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
-                tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
-                download_with_resume(url=url, dest=tmp_csv)
-                df_attributes = pd.read_csv(tmp_csv)
-            df_attributes["day"] = pd.to_datetime(df_attributes["timestamp"]).dt.date
-            df_attributes["season"] = df_attributes["season"].astype(str)
-        except RemoteError:
-            logger.info("Not found at %s", url)
-            continue
-        else:
-            return df_attributes
-
-    logger.warning(
-        "Could not load player attributes history for season %s from any known "
-        "location",
-        season,
-    )
-    return None
-
-
-def _filter_attributes_for_player(
-    df_attributes: pd.DataFrame, player: Player
-) -> pd.DataFrame:
-
-    if (opta_code := player.opta_code) is not None:
-        mask = df_attributes["opta_code"] == opta_code
-    else:
-        logger.warning("Player %s has no opta_code", player)
-        mask = df_attributes["player"] == player.name
-    return df_attributes.loc[mask]
-
-
-def _get_availability_on_date(
-    date: datetime.date, player: Player, player_attributes: pd.DataFrame
-) -> tuple[str | None, int | None]:
-    """
-    A player's news and chance of playing on one day, or `(None, None)`.
-
-    Both are None when there is nothing to report rather than when something
-    went wrong: the packaged attributes history only starts on 12 September 2025,
-    and a day with no row - or more than one - is skipped with a warning.
-    """
-    if date < ATTRIBUTES_HISTORY_START:
-        return None, None
-    mask = player_attributes["day"] == date
-    if mask.sum() != 1:
-        logger.warning(
-            "Found %s attributes for %s on %s, expected 1 so skipping",
-            mask.sum(),
-            player,
-            date,
-        )
-        return None, None
-
-    idx = mask.argmax()
-    news = player_attributes.iloc[idx]["news"]
-    chance_of_playing = player_attributes.iloc[idx]["chance_of_playing_next_round"]
-    return news, chance_of_playing
 
 
 def get_status_from_attributes_history(
@@ -139,7 +45,7 @@ def get_status_from_attributes_history(
     """A player's news and chance_of_playing as of the morning of kickoff."""
     dbsession = dbsession if dbsession is not None else get_session()
     matchday = parse_date(fixture.date)
-    news, chance_of_playing = _get_availability_on_date(
+    news, chance_of_playing = get_availability_on_date(
         matchday, player, player_attributes
     )
 
@@ -154,11 +60,12 @@ def get_status_from_attributes_history(
     ):
         for known_unavailability in ["international duty", "parent club"]:
             if known_unavailability in news.lower():
-                gameweek_fixtures = get_fixtures_for_gameweeks(
-                    [fixture.gameweek], fixture.season, dbsession
+                gameweek_deadline = get_gameweek_start_date(
+                    fixture.gameweek, fixture.season, dbsession
                 )
-                gameweek_deadline = min(parse_date(f.date) for f in gameweek_fixtures)
-                return _get_availability_on_date(
+                if gameweek_deadline is None:
+                    break
+                return get_availability_on_date(
                     gameweek_deadline, player, player_attributes
                 )
     return news, chance_of_playing
@@ -211,7 +118,7 @@ def fill_playerscores_from_json(
             continue
 
         player_attributes = (
-            _filter_attributes_for_player(df_attributes, player)
+            filter_attributes_for_player(player, df_attributes)
             if df_attributes is not None
             else None
         )
@@ -325,7 +232,7 @@ def fill_playerscores_from_api(
             continue
 
         player_attributes = (
-            _filter_attributes_for_player(df_attributes, player)
+            filter_attributes_for_player(player, df_attributes)
             if df_attributes is not None
             else None
         )

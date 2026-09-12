@@ -88,7 +88,6 @@ def _pipeline(**settings):
                 "n_gameweeks": 2,
                 "refresh_database": False,
                 "apply_transfers": False,
-                "save_absences": False,
                 **settings,
             }
         ),
