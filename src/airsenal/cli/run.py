@@ -63,7 +63,6 @@ def run(
     # --- output ---
     apply_transfers: options.ApplyTransfers = False,
     yes: options.Yes = False,
-    save_absences: options.SaveAbsences = False,
 ) -> None:
     """Run the full AIrsenal pipeline."""
     AIrsenalPipeline(
@@ -105,6 +104,5 @@ def run(
             on_stale_database=on_stale,
             apply_transfers=apply_transfers,
             skip_confirmation=yes,
-            save_absences=save_absences,
         ),
     ).run()

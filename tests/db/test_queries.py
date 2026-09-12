@@ -1,8 +1,16 @@
 """The database query helpers: looking a player or a gameweek up."""
 
-import pytest
+from datetime import date
 
-from airsenal.db.models import Player
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from airsenal.db.models import Base, Fixture, Player
+from airsenal.db.queries.fixtures import (
+    get_gameweek_start_date,
+    get_gameweek_start_dates,
+)
 from airsenal.db.queries.gameweeks import (
     get_gameweek_by_date,
     get_gameweeks_array,
@@ -199,3 +207,40 @@ class TestGetGameweeksArrayIsToldTheWindow:
                 season=TEST_PAST_SEASON,
                 dbsession=ts,
             )
+
+
+def _fixture_session(dates):
+    """An in-memory database with one fixture on each of `dates`."""
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    dbsession = sessionmaker(bind=engine)()
+    for gameweek, kickoff in dates:
+        fixture = Fixture()
+        fixture.date = kickoff
+        fixture.gameweek = gameweek
+        fixture.home_team = "ARS"
+        fixture.away_team = "CHE"
+        fixture.season = "2425"
+        fixture.tag = "test"
+        dbsession.add(fixture)
+    dbsession.commit()
+    return dbsession
+
+
+def test_a_gameweek_starts_on_its_earliest_fixture():
+    """A gameweek is spread over several days; the first of them is what counts."""
+    dbsession = _fixture_session(
+        [(1, "2024-08-17T14:00:00Z"), (1, "2024-08-16T20:00:00Z")]
+    )
+
+    assert get_gameweek_start_dates("2425", dbsession=dbsession) == {
+        1: date(2024, 8, 16)
+    }
+    assert get_gameweek_start_date(1, "2425", dbsession) == date(2024, 8, 16)
+
+
+def test_a_gameweek_with_no_fixtures_has_no_start_date():
+    dbsession = _fixture_session([(1, "2024-08-17T14:00:00Z")])
+
+    assert get_gameweek_start_date(38, "2425", dbsession) is None
+    assert 38 not in get_gameweek_start_dates("2425", dbsession=dbsession)

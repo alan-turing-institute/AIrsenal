@@ -371,11 +371,6 @@ Profile = Annotated[
     typer.Option(help="Profile the search's execution time.", rich_help_panel=OUTPUT),
 ]
 
-SaveAbsences = Annotated[
-    bool,
-    typer.Option(help="Save expected absences to a CSV file.", rich_help_panel=OUTPUT),
-]
-
 SavePlans = Annotated[
     Path | None,
     typer.Option(

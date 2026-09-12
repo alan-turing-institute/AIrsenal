@@ -45,7 +45,6 @@ class RecentMinutesModel:
             request.root_gameweek,
             request.fixture_gameweek,
             request.season,
-            dbsession=request.dbsession,
         ):
             # No appearances to average: a player who is injured or suspended
             # and not expected back plays no minutes, however much they have

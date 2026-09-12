@@ -61,8 +61,6 @@ def test_a_padding_row_cannot_be_mistaken_for_a_performance():
     assert row["match_id"] == 0
     assert row["team_expected_goals"] == 0
     assert row["minutes"] == 0
-    assert row["absence_reason"] is None
-    assert row["absence_detail"] is None
 
 
 def test_the_frame_has_the_columns_it_says_it_has():

@@ -1,4 +1,7 @@
-from airsenal.db.models import Player, PlayerAttributes
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker
+
+from airsenal.db.models import Base, Player, PlayerAttributes
 
 
 def test_get_price():
@@ -151,3 +154,47 @@ def test_is_injured_or_suspended():
     assert player.is_injured_or_suspended(season, 1, 1) is False
     # gameweek after last available: return status as of last available
     assert player.is_injured_or_suspended(season, 6, 1) is True
+
+
+def test_availability_is_not_queried_once_per_fixture():
+    """
+    Asking about more gameweeks must not mean more queries.
+
+    This is read from the innermost loop of the points prediction, so over a
+    replay a per-fixture query is tens of thousands of them for an answer that
+    cannot change within a season. `Player.attributes` is a lazy relationship, so
+    the first access legitimately loads it and every later one must not.
+    """
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    dbsession = sessionmaker(bind=engine)()
+    season = "1920"
+
+    player = Player()
+    player.player_id = 1
+    player.name = "Absent"
+    dbsession.add(player)
+    for gameweek in range(1, 6):
+        pa = PlayerAttributes()
+        pa.player = player
+        pa.player_id = 1
+        pa.season = season
+        pa.gameweek = gameweek
+        pa.price = 50
+        pa.team = "ARS"
+        pa.position = "MID"
+        pa.chance_of_playing_next_round = 0
+        pa.return_gameweek = 6
+        dbsession.add(pa)
+    dbsession.commit()
+    dbsession.expire_all()
+
+    statements = []
+    event.listen(
+        engine, "before_cursor_execute", lambda *args: statements.append(args[2])
+    )
+    player = dbsession.get(Player, 1)
+    for gameweek in range(1, 6):
+        assert player.is_injured_or_suspended(season, gameweek, gameweek)
+
+    assert sum("player_attributes" in s for s in statements) == 1

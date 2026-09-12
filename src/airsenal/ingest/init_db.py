@@ -7,7 +7,6 @@ from airsenal.core.logging import get_logger
 from airsenal.db.queries.teams import database_is_empty
 from airsenal.db.session import clean_database, session_scope
 from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
-from airsenal.ingest.absences import make_absence_table
 from airsenal.ingest.fifa_ratings import make_fifa_ratings_table
 from airsenal.ingest.fixtures import make_fixture_table
 from airsenal.ingest.player_attributes import make_attributes_table
@@ -47,7 +46,6 @@ def make_init_db(
         make_player_table(seasons=seasons, dbsession=dbsession)
         make_attributes_table(seasons=seasons, dbsession=dbsession)
         make_playerscore_table(seasons=seasons, dbsession=dbsession)
-        make_absence_table(seasons=seasons, dbsession=dbsession)
 
         if CURRENT_SEASON in seasons:
             if fpl_team_id is None:

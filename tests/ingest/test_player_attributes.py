@@ -7,13 +7,21 @@ what these cover: the gameweek being filled has to survive the walk back through
 player's history, for that player and for the one after them.
 """
 
+from datetime import date
+
+import pandas as pd
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from airsenal.db.models import Base, Player, PlayerAttributes
+from airsenal.core.caching import clear_query_caches
+from airsenal.db.models import Base, Fixture, Player, PlayerAttributes
 from airsenal.ingest import player_attributes as attributes_module
-from airsenal.ingest.player_attributes import fill_attributes_table_from_api
+from airsenal.ingest.attributes_history import Availability
+from airsenal.ingest.player_attributes import (
+    fill_attributes_table_from_api,
+    fill_availability_for_season,
+)
 
 SEASON = "2425"
 GAMEWEEK_BEING_FILLED = 5
@@ -139,3 +147,120 @@ def test_nothing_is_written_for_a_gameweek_that_was_only_walked_over(dbsession, 
         )
     ).all()
     assert written == []
+
+
+# --------------------------------------- combining the two availability sources
+
+
+AVAILABILITY_SEASON = "2526"
+AVAILABILITY_GAMEWEEK_DATES = {
+    1: "2025-08-16T14:00:00Z",
+    2: "2025-08-23T14:00:00Z",
+}
+
+
+@pytest.fixture
+def availability_db(monkeypatch):
+    """One player with a row in each of two gameweeks, and a fixture for each."""
+    clear_query_caches()
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)()
+
+    player = Player()
+    player.player_id = 1
+    player.name = "Bob"
+    player.opta_code = "p1"
+    session.add(player)
+    for gameweek, kickoff in AVAILABILITY_GAMEWEEK_DATES.items():
+        fixture = Fixture()
+        fixture.date = kickoff
+        fixture.gameweek = gameweek
+        fixture.home_team = "ARS"
+        fixture.away_team = "CHE"
+        fixture.season = AVAILABILITY_SEASON
+        fixture.tag = "test"
+        session.add(fixture)
+
+        attributes = PlayerAttributes()
+        attributes.player = player
+        attributes.player_id = 1
+        attributes.season = AVAILABILITY_SEASON
+        attributes.gameweek = gameweek
+        attributes.price = 50
+        attributes.team = "ARS"
+        attributes.position = "MID"
+        session.add(attributes)
+    session.commit()
+    yield session
+    session.close()
+    clear_query_caches()
+
+
+def _fake_history(monkeypatch, rows):
+    frame = pd.DataFrame(
+        rows,
+        columns=[
+            "day",
+            "opta_code",
+            "player",
+            "news",
+            "chance_of_playing_next_round",
+            "return_gameweek",
+        ],
+    )
+    monkeypatch.setattr(
+        attributes_module, "load_attributes_history", lambda *a, **k: frame
+    )
+
+
+def _absences(monkeypatch, availability):
+    monkeypatch.setattr(
+        attributes_module,
+        "get_availability_from_absences",
+        lambda *a, **k: dict(availability),
+    )
+
+
+def test_the_history_wins_where_it_has_something_to_say(availability_db, monkeypatch):
+    """
+    The history is what the FPL API reported at the time.
+
+    The absences csv is a retrospective Transfermarkt scrape, so where the two
+    disagree about a gameweek the history is the better answer - including when
+    it says the player was fine and the scrape says they were not.
+    """
+    _absences(
+        monkeypatch,
+        {
+            (1, 1): Availability("Scraped injury", 0, 3),
+            (1, 2): Availability("Scraped injury", 0, 3),
+        },
+    )
+    _fake_history(monkeypatch, [(date(2025, 8, 16), "p1", "Bob", None, 100, None)])
+
+    fill_availability_for_season(AVAILABILITY_SEASON, availability_db)
+
+    rows = {
+        row.gameweek: row
+        for row in availability_db.scalars(select(PlayerAttributes)).all()
+    }
+    assert rows[1].chance_of_playing_next_round == 100
+    assert rows[1].news is None
+    # gameweek 2 is not in the history, so the scrape stands
+    assert rows[2].chance_of_playing_next_round == 0
+    assert rows[2].news == "Scraped injury"
+
+
+def test_the_absences_csv_fills_the_gameweeks_the_history_does_not_reach(
+    availability_db, monkeypatch
+):
+    """The daily dump started partway through 25/26, so its first gameweeks need it."""
+    _absences(monkeypatch, {(1, 1): Availability("Knee injury", 0, 2)})
+    _fake_history(monkeypatch, [])
+
+    fill_availability_for_season(AVAILABILITY_SEASON, availability_db)
+
+    player = availability_db.get(Player, 1)
+    assert player.is_injured_or_suspended(AVAILABILITY_SEASON, 1, 1)
+    assert not player.is_injured_or_suspended(AVAILABILITY_SEASON, 2, 2)
