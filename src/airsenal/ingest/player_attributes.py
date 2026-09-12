@@ -215,7 +215,14 @@ def fill_attributes_table_from_api(
                 logger.warning("Failed to get data for %s", player)
                 continue
             for past_gameweek, data in player_data.items():
-                if past_gameweek < gameweek_start:
+                if past_gameweek < gameweek_start or past_gameweek >= gameweek:
+                    # `gameweek` already has its row, from the summary data
+                    # above, and that is the better source for it: between a
+                    # deadline passing and the first match of the gameweek
+                    # kicking off, the API lists a history row for it as well,
+                    # holding the price and ownership as at the deadline and
+                    # none of the availability. Writing that one too is a second
+                    # row for the same player and gameweek.
                     continue
 
                 for result in data:
@@ -387,6 +394,9 @@ def fill_availability_for_season(
     availability = get_availability_from_absences(season, dbsession, path)
     n_absences = len(availability)
     from_history = get_availability_from_history(season, dbsession)
+    # Counted before the update, and before the current season drops the gameweek
+    # it is about to predict - otherwise the two are indistinguishable in the log.
+    n_overridden = len(availability.keys() & from_history.keys())
     availability.update(from_history)
     if season == CURRENT_SEASON:
         # The gameweek being predicted is the one the live API has just answered
@@ -396,11 +406,13 @@ def fill_availability_for_season(
             key: found for key, found in availability.items() if key[1] < gameweek
         }
     logger.info(
-        "AVAILABILITY %s: %s gameweeks from absences, %s from history (%s overridden)",
+        "AVAILABILITY %s: %s gameweeks from absences, %s from history "
+        "(%s overridden), %s to write",
         season,
         n_absences,
         len(from_history),
-        n_absences + len(from_history) - len(availability),
+        n_overridden,
+        len(availability),
     )
     set_availability(availability, season, dbsession)
 
