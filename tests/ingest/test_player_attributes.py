@@ -32,7 +32,10 @@ PLAYED_IN = [1, 2, 3, 4]
 def dbsession():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine)()
+    # `autoflush=False`, as `db.session.create_session` does. It is not a detail:
+    # with autoflush on, a query flushes whatever the ingest has just added and
+    # so always sees it, which is exactly the thing the real session does not do.
+    session = sessionmaker(bind=engine, autoflush=False)()
     for api_id in (101, 102):
         player = Player()
         player.player_id = api_id - 100
@@ -264,3 +267,86 @@ def test_the_absences_csv_fills_the_gameweeks_the_history_does_not_reach(
     player = availability_db.get(Player, 1)
     assert player.is_injured_or_suspended(AVAILABILITY_SEASON, 1, 1)
     assert not player.is_injured_or_suspended(AVAILABILITY_SEASON, 2, 2)
+
+
+# ------------- the window between a deadline passing and the first kickoff ---
+
+
+class DeadlinePassedFetcher(FakeFetcher):
+    """
+    The API once a deadline has passed but before the gameweek has kicked off.
+
+    It flips the gameweek to current and gives every player a history row for
+    it, carrying their price and ownership as at the deadline. `next_gameweek`
+    still answers with that gameweek, because none of its fixtures has started.
+    """
+
+    def get_gameweek_data_for_player(self, player_api_id, gameweek=None):  # noqa: ARG002
+        return {
+            played_in: [
+                {
+                    "round": played_in,
+                    "value": 50,
+                    "opponent_team": 2,
+                    "was_home": True,
+                    "kickoff_time": "2024-09-01T14:00:00Z",
+                    "transfers_balance": 0,
+                    "selected": 1,
+                    "transfers_in": 0,
+                    "transfers_out": 0,
+                }
+            ]
+            for played_in in [*PLAYED_IN, GAMEWEEK_BEING_FILLED]
+        }
+
+
+@pytest.fixture
+def api_mid_deadline(monkeypatch):
+    """As `api`, but the history reaches the gameweek being filled and writes."""
+    monkeypatch.setattr(
+        attributes_module, "get_fetcher", lambda: DeadlinePassedFetcher([101, 102])
+    )
+    monkeypatch.setattr(
+        attributes_module, "next_gameweek", lambda *a, **k: GAMEWEEK_BEING_FILLED
+    )
+    monkeypatch.setattr(attributes_module, "get_team_name", lambda *a, **k: "ARS")
+    monkeypatch.setattr(attributes_module, "find_fixture", lambda *a, **k: object())
+    monkeypatch.setattr(
+        attributes_module, "get_player_team_from_fixture", lambda *a, **k: "ARS"
+    )
+
+
+def test_the_gameweek_being_filled_gets_one_row_not_two(dbsession, api_mid_deadline):
+    """
+    A deadline that has passed puts that gameweek in the player's history too.
+
+    The session does not autoflush, so the history walk's lookup could not see
+    the row the summary data had just added and made a second one - which the
+    unique constraint on (player, season, gameweek) then refused, taking
+    `airsenal run --clean` down for the whole window between a deadline and its
+    first kickoff.
+    """
+    fill_attributes_table_from_api(SEASON, dbsession=dbsession)
+
+    rows = dbsession.scalars(
+        select(PlayerAttributes).where(
+            PlayerAttributes.gameweek == GAMEWEEK_BEING_FILLED
+        )
+    ).all()
+    assert sorted(row.player_id for row in rows) == [1, 2]
+
+
+def test_the_summary_data_wins_for_the_gameweek_being_filled(
+    dbsession, api_mid_deadline
+):
+    """
+    It is the live one: the history row holds the price as at the deadline.
+
+    It also holds no availability at all, so letting it through would drop the
+    news and chance of playing the summary data had just written.
+    """
+    fill_attributes_table_from_api(SEASON, dbsession=dbsession)
+
+    rows = current_rows(dbsession)
+    assert rows[1].price == 151
+    assert rows[2].price == 152
