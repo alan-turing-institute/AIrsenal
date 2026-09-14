@@ -1,5 +1,7 @@
-import argparse
 import sys
+
+from rich.panel import Panel
+from rich.text import Text
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import (
@@ -9,6 +11,7 @@ from airsenal.framework.optimization_utils import (
     fill_initial_transaction_table,
     get_discounted_squad_score,
 )
+from airsenal.framework.output import console, get_logger, price_str, table
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -17,6 +20,8 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_max_gameweek,
 )
+
+logger = get_logger(__name__)
 
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
@@ -38,23 +43,25 @@ def fill_initial_squad(
     tournament_size: int = 3,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
+    chip_gameweeks: dict[str, int] | None = None,
 ) -> Squad:
-    best_squad = make_new_squad(
-        gw_range,
-        tag,
-        budget=budget,
-        season=season,
-        remove_zero=remove_zero,
-        sub_weights=sub_weights,
-        population_size=population_size,
-        generations=num_generations,
-        crossover_prob=crossover_prob,
-        mutation_prob=mutation_prob,
-        crossover_indpb=crossover_indpb,
-        mutation_indpb=mutation_indpb,
-        tournament_size=tournament_size,
-        verbose=verbose,
-    )
+    with console.status("Optimising full squad..."):
+        best_squad = make_new_squad(
+            gw_range,
+            tag,
+            budget=budget,
+            season=season,
+            remove_zero=remove_zero,
+            sub_weights=sub_weights,
+            population_size=population_size,
+            generations=num_generations,
+            crossover_prob=crossover_prob,
+            mutation_prob=mutation_prob,
+            crossover_indpb=crossover_indpb,
+            mutation_indpb=mutation_indpb,
+            tournament_size=tournament_size,
+            verbose=verbose,
+        )
 
     if best_squad is None:
         msg = (
@@ -71,15 +78,76 @@ def fill_initial_squad(
         gw_start,
         sub_weights=sub_weights,
     )
-    next_points = best_squad.get_expected_points(gw_start, tag)
-    print("---------------------")
-    print(
-        "Optimised total score (gameweeks",
-        f"{min(gw_range)} to {max(gw_range)}): {optimised_score:.2f}",
+
+    chip_gameweeks = chip_gameweeks or {}
+
+    summary = Text()
+    summary.append(
+        f"Gameweeks: {min(gw_range)}-{max(gw_range)}\n"
+        if min(gw_range) != max(gw_range)
+        else f"Gameweek: {min(gw_range)}\n",
+        style="bold",
     )
-    print(f"Expected points for gameweek {gw_start}: {next_points:.2f}")
-    print("---------------------")
-    print(best_squad)
+    summary.append(f"Team ID: {fpl_team_id}\n")
+    summary.append(f"Optimised Score: {optimised_score:.1f}pts\n", style="bold green")
+    console.print(Panel(summary, title="Optimisation Result", expand=False))
+
+    strategy_table = table(
+        "Gameweek",
+        "Transfers",
+        "Chip",
+        "Points Hit",
+        "Predicted Score",
+        title="Strategy",
+    )
+    for gw in gw_range:
+        bench_boost = chip_gameweeks.get("bench_boost") == gw
+        triple_captain = chip_gameweeks.get("triple_captain") == gw
+        chip = (
+            "bench_boost"
+            if bench_boost
+            else "triple_captain"
+            if triple_captain
+            else "-"
+        )
+        pred_pts = best_squad.get_expected_points(
+            gw, tag, bench_boost=bench_boost, triple_captain=triple_captain
+        )
+        strategy_table.add_row(
+            str(gw),
+            str(len(best_squad.players)) if gw == gw_start else "0",
+            chip,
+            "0pts",
+            f"{pred_pts:.1f}pts",
+        )
+    console.print(strategy_table)
+
+    transfer_table = table(
+        "Player In",
+        "Pos",
+        "Team",
+        "Purchase Price",
+        title="Transfers",
+    )
+    for player in sorted(
+        best_squad.players, key=lambda player: positions.index(player.position)
+    ):
+        transfer_table.add_row(
+            str(player),
+            player.position,
+            player.team,
+            price_str(player.purchase_price),
+        )
+    console.print(transfer_table)
+
+    console.print(
+        best_squad.formation_table(
+            tag,
+            gw_start,
+            bench_boost=chip_gameweeks.get("bench_boost") == gw_start,
+            triple_captain=chip_gameweeks.get("triple_captain") == gw_start,
+        )
+    )
 
     fill_initial_suggestion_table(
         best_squad,
@@ -101,115 +169,51 @@ def fill_initial_squad(
     return best_squad
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Make a squad from scratch")
-    # General parameters
-    parser.add_argument(
-        "--budget", help="budget, in 0.1 millions", type=int, default=1000
-    )
-    parser.add_argument("--season", help="season, in format e.g. 1819")
-    parser.add_argument("--gameweek_start", help="gameweek to start from", type=int)
-    parser.add_argument(
-        "--num_gameweeks", help="how many gameweeks to consider", type=int, default=3
-    )
-    # parameters for deap optimization
-    parser.add_argument(
-        "--num_generations",
-        help="number of generations",
-        type=int,
-        default=100,
-    )
-    parser.add_argument(
-        "--population_size",
-        help="number of candidate solutions per generation",
-        type=int,
-        default=100,
-    )
-    # parameters for "deap" optimization
-    parser.add_argument(
-        "--crossover_prob",
-        help="crossover probability",
-        type=float,
-        default=0.7,
-    )
-    parser.add_argument(
-        "--mutation_prob",
-        help="mutation probability",
-        type=float,
-        default=0.3,
-    )
-    parser.add_argument(
-        "--crossover_indpb",
-        help="independent probability for each attribute to be exchanged in crossover",
-        type=float,
-        default=0.5,
-    )
-    parser.add_argument(
-        "--mutation_indpb",
-        help="independent probability for each attribute to be mutated",
-        type=float,
-        default=0.1,
-    )
-    parser.add_argument(
-        "--tournament_size",
-        help="size of tournament for tournament selection",
-        type=int,
-        default=3,
-    )
-    parser.add_argument(
-        "--no_subs",
-        help="Don't include points contribution from substitutes",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--include_zero",
-        help="Include players with zero predicted points",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--fpl_team_id",
-        help="ID for your FPL team",
-        type=int,
-    )
-    parser.add_argument(
-        "--is_replay",
-        help="Add suggested squad to the database (for replaying seasons)",
-        action="store_true",
-    )
-    args = parser.parse_args()
-    season = args.season or CURRENT_SEASON
-    budget = args.budget
-    if args.gameweek_start:
-        gameweek_start = args.gameweek_start
+def run_squad_optimization(
+    budget: int,
+    season: str | None,
+    gameweek_start: int | None,
+    num_gameweeks: int,
+    num_generations: int,
+    population_size: int,
+    crossover_prob: float,
+    mutation_prob: float,
+    crossover_indpb: float,
+    mutation_indpb: float,
+    tournament_size: int,
+    no_subs: bool,
+    include_zero: bool,
+    fpl_team_id: int | None,
+    is_replay: bool,
+) -> None:
+    """Generate an initial squad using prediction data."""
+    season = season or CURRENT_SEASON
+    if gameweek_start:
+        resolved_gameweek_start = gameweek_start
     elif season == CURRENT_SEASON:
-        gameweek_start = NEXT_GAMEWEEK
+        resolved_gameweek_start = NEXT_GAMEWEEK
     else:
-        gameweek_start = 1
+        resolved_gameweek_start = 1
     gw_range = list(
         range(
-            gameweek_start,
-            min(get_max_gameweek(season) + 1, gameweek_start + args.num_gameweeks),
+            resolved_gameweek_start,
+            min(
+                get_max_gameweek(season) + 1,
+                resolved_gameweek_start + num_gameweeks,
+            ),
         )
     )
     tag = get_latest_prediction_tag(season)
     if not check_tag_valid(tag, gw_range, season=season):
-        print(
-            "ERROR: Database does not contain predictions",
-            "for all the specified optimsation gameweeks.\n",
-            "Please run 'airsenal_run_prediction' first with the",
-            "same input gameweeks and season you specified here.",
+        logger.error(
+            "Database does not contain predictions for all the specified "
+            "optimsation gameweeks.\nPlease run 'airsenal_run_prediction' first "
+            "with the same input gameweeks and season you specified here."
         )
         sys.exit(1)
-    num_generations = args.num_generations
-    population_size = args.population_size
-    crossover_prob = args.crossover_prob
-    mutation_prob = args.mutation_prob
-    crossover_indpb = args.crossover_indpb
-    mutation_indpb = args.mutation_indpb
-    tournament_size = args.tournament_size
-    remove_zero = not args.include_zero
-    fpl_team_id = args.fpl_team_id or fetcher.FPL_TEAM_ID
-    if args.no_subs:
+    remove_zero = not include_zero
+    fpl_team_id = fpl_team_id or fetcher.FPL_TEAM_ID
+    if no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
         sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
@@ -230,5 +234,5 @@ def main():
         mutation_indpb=mutation_indpb,
         tournament_size=tournament_size,
         verbose=True,
-        is_replay=args.is_replay,
+        is_replay=is_replay,
     )

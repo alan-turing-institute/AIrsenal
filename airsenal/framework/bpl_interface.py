@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import FifaTeamRating, Fixture, Result, session
 from airsenal.framework.season import CURRENT_SEASON, get_teams_for_season
@@ -18,6 +19,8 @@ from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
     is_future_gameweek,
 )
+
+logger = get_logger(__name__)
 
 np.random.seed(42)
 
@@ -153,7 +156,7 @@ def create_and_fit_team_model(
         fit_args["epsilon"] = DEFAULT_TEAM_EPSILON
     if "rescale_weights" not in fit_args:
         fit_args["rescale_weights"] = DEFAULT_RESCALE_WEIGHTS
-    print(f"Using {type(model).__name__} model with args {fit_args}")
+    logger.info("Using %s model with args %s", type(model).__name__, fit_args)
     return model.fit(training_data=training_data, **fit_args)
 
 
@@ -177,11 +180,11 @@ def add_new_teams_to_model(
     for t in teams:
         if team_model.teams is None or t not in team_model.teams:
             if ratings:
-                print(f"Adding {t} to team model with covariates")
+                logger.info("Adding %s to team model with covariates", t)
                 covariates = get_ratings_dict(season, [t], dbsession)
                 team_model.add_new_team(t, team_covariates=covariates[t])
             else:
-                print(f"Adding {t} to team model without covariates")
+                logger.info("Adding %s to team model without covariates", t)
                 team_model.add_new_team(t)
     return team_model
 
@@ -206,7 +209,7 @@ def get_fitted_team_model(
     """
     if model is None:
         model = ExtendedDixonColesMatchPredictor()
-    print("Fitting team model...")
+    logger.info("Fitting team model...")
     training_data = get_training_data(
         season=season,
         gameweek=gameweek,

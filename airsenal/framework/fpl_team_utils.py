@@ -2,7 +2,10 @@
 Functions to get data on specified FPL teams and leagues
 """
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.utils import fetcher
+
+logger = get_logger(__name__)
 
 
 def get_overall_points(gameweek=None):
@@ -14,7 +17,7 @@ def get_overall_points(gameweek=None):
         return data["entry"]["summary_overall_points"]
     if isinstance(gameweek, int) and gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["points"]
-    print("Unknown gameweek")
+    logger.warning("Unknown gameweek")
     return 0
 
 
@@ -27,7 +30,7 @@ def get_overall_ranking(gameweek=None):
         return data["entry"]["summary_overall_rank"]
     if isinstance(gameweek, int) and gameweek <= len(data["history"]):
         return data["history"][gameweek - 1]["rank"]
-    print("Unknown gameweek")
+    logger.warning("Unknown gameweek")
     return 0
 
 

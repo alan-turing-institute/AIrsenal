@@ -10,6 +10,7 @@ from operator import itemgetter
 
 from airsenal.framework.optimization_squad import make_new_squad
 from airsenal.framework.optimization_utils import get_discounted_squad_score
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -18,6 +19,8 @@ from airsenal.framework.utils import (
     fastcopy,
     get_predicted_points,
 )
+
+logger = get_logger(__name__)
 
 
 def make_optimum_single_transfer(
@@ -29,7 +32,6 @@ def make_optimum_single_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    verbose=False,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -48,8 +50,7 @@ def make_optimum_single_transfer(
     best_squad = None
     best_pid_out, best_pid_in = [], []
 
-    if verbose:
-        print("Creating ordered player lists")
+    logger.debug("Creating ordered player lists")
     ordered_player_lists = {
         pos: get_predicted_points(
             gameweek=gameweek_range, position=pos, tag=tag, season=season
@@ -64,16 +65,14 @@ def make_optimum_single_transfer(
 
         new_squad = fastcopy(squad)
         position = p_out.position
-        if verbose:
-            print(f"Removing player {p_out}")
+        logger.debug("Removing player %s", p_out)
         new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
         for p_in in ordered_player_lists[position]:
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
             added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
             if added_ok:
-                if verbose:
-                    print(f"Added player {p_in[0]}")
+                logger.debug("Added player %s", p_in[0])
                 total_points = get_discounted_squad_score(
                     new_squad,
                     gameweek_range,
@@ -88,10 +87,9 @@ def make_optimum_single_transfer(
                     best_pid_in = [p_in[0].player_id]
                     best_squad = new_squad
                 break
-            if verbose:
-                print(f"Failed to add {p_in[0]}")
-        if not new_squad.is_complete() and verbose:
-            print(f"Failed to find a valid replacement for {p_out.player_id}")
+            logger.debug("Failed to add %s", p_in[0])
+        if not new_squad.is_complete():
+            logger.debug("Failed to find a valid replacement for %s", p_out.player_id)
 
     if best_squad is None:
         msg = "Failed to find valid single transfer for squad"
@@ -109,7 +107,6 @@ def make_optimum_double_transfer(
     update_func_and_args=None,
     bench_boost_gw=None,
     triple_captain_gw=None,
-    verbose=False,
 ):
     """
     If we want to just make two transfers, it's not infeasible to try all
@@ -148,8 +145,7 @@ def make_optimum_double_transfer(
             pout_2 = squad.players[j]
             new_squad_remove_2 = fastcopy(new_squad_remove_1)
             new_squad_remove_2.remove_player(pout_2.player_id, gameweek=transfer_gw)
-            if verbose:
-                print(f"Removing players {i} {j}")
+            logger.debug("Removing players %s %s", i, j)
             # what positions do we need to fill?
             positions_needed = [pout_1.position, pout_2.position]
 
@@ -281,7 +277,7 @@ def make_random_transfers(
                         ap.player_id, gameweek=transfer_gw
                     )
                     if not removed_ok:
-                        print(f"Problem removing {ap}")
+                        logger.warning("Problem removing %s", ap)
                 added_players = []
 
         # calculate the score

@@ -8,4 +8,4 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install .[dev,api]
 
-CMD ["airsenal_run_pipeline"]
+CMD ["airsenal", "run"]

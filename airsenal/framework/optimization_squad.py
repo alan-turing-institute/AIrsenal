@@ -13,6 +13,7 @@ from airsenal.framework.optimization_utils import (
     DEFAULT_SUB_WEIGHTS,
     get_discounted_squad_score,
 )
+from airsenal.framework.output import get_logger
 from airsenal.framework.player import DummyPlayer
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import TOTAL_PER_POSITION, Squad
@@ -21,6 +22,8 @@ from airsenal.framework.utils import (
     get_predicted_points_for_player,
     list_players,
 )
+
+logger = get_logger(__name__)
 
 
 class SquadOpt:
@@ -273,7 +276,8 @@ class SquadOpt:
         tournament_size : int
             Size of tournament for tournament selection
         verbose : bool
-            Whether to print progress
+            Whether DEAP's own `algorithms.eaSimple` should print its per-generation
+            progress to stdout
         random_state : int, optional
             Random seed for reproducibility
 
@@ -366,7 +370,8 @@ def make_new_squad(
     season : str
         Season to optimize for, by default airsenal.framework.utils.CURRENT_SEASON
     verbose : bool
-        Whether to print optimization progress, by default True
+        Whether the underlying DEAP genetic algorithm should print its own
+        per-generation progress to stdout, by default True
     bench_boost_gw : int
         Gameweek to play bench boost, by default None
     triple_captain_gw : int
@@ -432,20 +437,19 @@ def make_new_squad(
         random_state=random_state,
     )
 
-    if verbose:
-        print(f"Best score: {best_fitness} pts")
+    logger.debug("Best score: %s pts", best_fitness)
 
     # Construct optimal squad
     squad = Squad(budget=opt_squad.budget, season=season)
     for idx in best_individual:
-        if verbose:
-            player = opt_squad.players[int(idx)]
-            print(
-                player.position(season),
-                player,
-                player.team(season, 1),
-                player.price(season, 1) / 10,
-            )
+        player = opt_squad.players[int(idx)]
+        logger.debug(
+            "%s %s %s %s",
+            player.position(season),
+            player,
+            player.team(season, 1),
+            player.price(season, 1) / 10,
+        )
         squad.add_player(
             opt_squad.players[int(idx)].player_id,
             gameweek=opt_squad.start_gw,
@@ -462,10 +466,8 @@ def make_new_squad(
                     purchase_price=opt_squad.dummy_sub_cost,
                 )
                 squad.add_player(dp)
-                if verbose:
-                    print(dp.position, dp.name, dp.purchase_price / 10)
+                logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
 
-    if verbose:
-        print(f"£{squad.budget / 10}m in the bank")
+    logger.debug("£%sm in the bank", squad.budget / 10)
 
     return squad

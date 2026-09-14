@@ -7,6 +7,7 @@ import os
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.framework.output import track
 from airsenal.framework.schema import Team, session, session_scope
 from airsenal.framework.season import CURRENT_SEASON, sort_seasons
 from airsenal.framework.utils import get_past_seasons
@@ -16,7 +17,6 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
     """
     use csv file
     """
-    print(f"Filling Teams table from data in {filename}")
     with open(filename) as infile:
         first_line = True
         for line in infile.readlines():
@@ -25,7 +25,6 @@ def fill_team_table_from_file(filename: str, dbsession: Session = session) -> No
                 continue
             t = Team()
             t.name, t.full_name, t.season, team_id = line.strip().split(",")
-            print(t.name, t.full_name, t.season, team_id)
             t.team_id = int(team_id)
             dbsession.add(t)
     dbsession.commit()
@@ -43,7 +42,7 @@ def make_team_table(
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)
-    for season in sort_seasons(seasons):
+    for season in track(sort_seasons(seasons), description="TEAMS"):
         filename = os.path.join(
             os.path.join(os.path.dirname(__file__), "..", "data", f"teams_{season}.csv")
         )

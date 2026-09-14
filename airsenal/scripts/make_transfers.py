@@ -7,12 +7,9 @@ https://www.reddit.com/r/FantasyPL/comments/b4d6gv/fantasy_api_for_transfers/
 https://fpl.readthedocs.io/en/latest/_modules/fpl/models/user.html#User.transfer
 """
 
-import argparse
-
-from prettytable import PrettyTable
-
 from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.optimization_utils import get_starting_squad
+from airsenal.framework.output import console, get_logger, table
 from airsenal.framework.utils import (
     CURRENT_SEASON,
     NEXT_GAMEWEEK,
@@ -22,13 +19,14 @@ from airsenal.framework.utils import (
 )
 from airsenal.framework.utils import session as dbsession
 from airsenal.scripts.get_transfer_suggestions import get_transfer_suggestions
-from airsenal.scripts.set_lineup import set_lineup
 
 """
 TODO:
 - confirm points loss
 - write a test.
 """
+
+logger = get_logger(__name__)
 
 
 def check_proceed(num_transfers: int = 0) -> bool:
@@ -43,7 +41,7 @@ def check_proceed(num_transfers: int = 0) -> bool:
         )
         if proceed != "yes":
             return False
-    print("Applying Transfers...")
+    console.print("Applying Transfers...")
     return True
 
 
@@ -62,37 +60,33 @@ def print_output(
     pre_bank: float | None = None,
     post_bank: float | None = None,
 ) -> None:
-    print("\n")
+    console.print()
     header = f"Transfers to apply for fpl_team_id: {team_id} for gameweek: {current_gw}"
     line = "=" * len(header)
-    print(f"{header} \n {line} \n")
+    console.print(f"{header}\n{line}")
 
     if pre_bank is not None:
-        print(f"Bank Balance Before transfers is: £{pre_bank / 10}")
+        console.print(f"Bank Balance Before transfers is: £{pre_bank / 10}")
 
-    t = PrettyTable(["Status", "Name", "Price"])
+    transfer_table = table("Status", "Name", "Price")
     for transfer in priced_transfers:
-        t.add_row(
-            [
-                "OUT",
-                get_player_from_api_id(transfer["element_out"]),
-                f"£{transfer['selling_price'] / 10}",
-            ]
+        transfer_table.add_row(
+            "OUT",
+            str(get_player_from_api_id(transfer["element_out"])),
+            f"£{transfer['selling_price'] / 10}",
         )
-        t.add_row(
-            [
-                "IN",
-                get_player_from_api_id(transfer["element_in"]),
-                f"£{transfer['purchase_price'] / 10}",
-            ]
+        transfer_table.add_row(
+            "IN",
+            str(get_player_from_api_id(transfer["element_in"])),
+            f"£{transfer['purchase_price'] / 10}",
         )
 
-    print(t)
+    console.print(transfer_table)
 
     if post_bank is not None:
-        print(f"Bank Balance After transfers is: £{post_bank / 10}")
+        console.print(f"Bank Balance After transfers is: £{post_bank / 10}")
     # print(f"Points Cost of Transfers: {points_cost}")
-    print("\n")
+    console.print()
 
 
 def get_sell_price(team_id: int, player_id: int, season: str = CURRENT_SEASON) -> float:
@@ -119,9 +113,11 @@ def get_gw_transfer_suggestions(
         fpl_team_id=fpl_team_id,
     )
     if not rows:
-        print(
-            f"No transfer suggestions found for GW {NEXT_GAMEWEEK}, "
-            f"{CURRENT_SEASON} season, FPL team id {fpl_team_id}"
+        logger.warning(
+            "No transfer suggestions found for GW %s, %s season, FPL team id %s",
+            NEXT_GAMEWEEK,
+            CURRENT_SEASON,
+            fpl_team_id,
         )
         return None
 
@@ -312,7 +308,7 @@ def build_transfer_payload(
     if chip_played:
         transfer_payload[chip_played.replace("_", "")] = True
 
-    print(transfer_payload)
+    logger.debug("%s", transfer_payload)
     return transfer_payload
 
 
@@ -327,7 +323,7 @@ def make_transfers(
     fetcher = FPLDataFetcher(team_id)
     if len(transfer_player_ids[0]) == 0:
         # no players to remove in DB - initial team?
-        print("Making transfer list for starting team")
+        logger.info("Making transfer list for starting team")
         priced_transfers = build_init_priced_transfers(fetcher, team_id)
         pre_transfer_bank = None
         post_transfer_bank = None
@@ -358,29 +354,8 @@ def make_transfers(
         )
         fetcher.post_transfers(transfer_req)
     else:
-        print("Not applying transfers.  Can still choose starting 11 and captain.")
+        logger.info(
+            "Not applying transfers.  Can still choose starting 11 and captain."
+        )
         return False
     return True
-
-
-def main():
-    parser = argparse.ArgumentParser("Make transfers via the FPL API")
-    parser.add_argument("--fpl_team_id", help="FPL team ID", type=int)
-    parser.add_argument("--confirm", help="skip confirmation step", action="store_true")
-
-    args = parser.parse_args()
-    confirm = args.confirm or False
-    try:
-        make_transfers(args.fpl_team_id, confirm)
-        set_lineup(args.fpl_team_id, skip_check=confirm)
-    except Exception as e:
-        msg = (
-            "Something went wrong when making transfers. Check your team and make "
-            "transfers and lineup changes manually on the web-site. If the problem "
-            "persists, let us know on GitHub."
-        )
-        raise Exception(msg) from e
-
-
-if __name__ == "__main__":
-    main()

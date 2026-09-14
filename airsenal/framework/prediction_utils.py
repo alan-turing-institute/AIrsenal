@@ -2,7 +2,6 @@
 Use the BPL models to predict scores for upcoming fixtures.
 """
 
-import logging
 import os
 import uuid
 from collections import defaultdict
@@ -26,6 +25,7 @@ from airsenal.framework.FPL_scoring_rules import (
     points_for_yellow_card,
     saves_for_point,
 )
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.player_model import (
     DEFAULT_N_GOALS_PRIOR,
     DEFAULT_PLAYER_EPSILON,
@@ -58,7 +58,7 @@ from airsenal.framework.utils import (
     was_historic_absence,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 np.random.seed(42)
 
@@ -184,14 +184,9 @@ def get_player_history_df(
     max_matches_per_player = get_max_matches_per_player(
         position, season=season, gameweek=gameweek, dbsession=dbsession
     )
-
-    for counter, player in enumerate(players):
-        # Use logging and periodic updates instead of printing at every step
-        if counter % 50 == 0 or counter == len(players) - 1:
-            logger.info(
-                f"Filling history dataframe for {player}: {counter}/{len(players)} done"
-            )
-
+    for player in track(
+        players, description=f"Filling player history dataframe for {position}:"
+    ):
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
@@ -205,7 +200,7 @@ def get_player_history_df(
 
             match_id = row.result_id
             if not match_id:
-                logger.warning(f"Couldn't find result for {row.fixture}")
+                logger.warning("Couldn't find result for %s", row.fixture)
                 continue
 
             minutes = row.minutes
@@ -430,8 +425,6 @@ def calc_predicted_points_for_player(
             raise ValueError(msg)
         player = p
 
-    message = f"Points prediction for player {player}"
-
     if not gw_range:
         gw_range = list(range(NEXT_GAMEWEEK, min(NEXT_GAMEWEEK + 3, 38)))
 
@@ -472,13 +465,11 @@ def calc_predicted_points_for_player(
     for fixture in fixtures:
         gameweek = fixture.gameweek
         if gameweek is None:
-            logger.info(f"Skipping fixture {fixture} with no gameweek")
+            logger.warning("Skipping fixture %s with no gameweek", fixture)
             continue
 
         is_home = fixture.home_team == team
         opponent = fixture.away_team if is_home else fixture.home_team
-        home_or_away = "at home" if is_home else "away"
-        message += f"\ngameweek: {gameweek} vs {opponent}  {home_or_away}"
         team_score_prob = fixture_goal_probs[fixture.fixture_id][team]
         team_concede_prob = fixture_goal_probs[fixture.fixture_id][opponent]
 
@@ -528,9 +519,6 @@ def calc_predicted_points_for_player(
 
         predictions.append(make_prediction(player, fixture, points, tag))
         expected_points[gameweek] += points
-        message += f"\nExpected points: {points:.2f}"
-
-    logger.debug(message)
     return predictions
 
 
@@ -601,7 +589,7 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
         for k, v in summary_data.items():
             player = get_player_from_api_id(k)
             if player is None:
-                logger.warning(f"Player with API ID {k} not found in database")
+                logger.warning("Player with API ID %s not found in database", k)
                 continue
 
             player_id = player.player_id
@@ -714,8 +702,7 @@ def fit_player_data(
         model = ConjugatePlayerModel()
 
     data = process_player_data(position, season, gameweek, dbsession)
-    logger.info(f"Fitting player model for {position} ...")
-
+    logger.info("Fitting player model for %s...", position)
     model = fastcopy(model)
     fitted_model = model.fit(data, epsilon=epsilon, n_goals_prior=n_goals_prior)
     df = pd.DataFrame(fitted_model.get_probs())

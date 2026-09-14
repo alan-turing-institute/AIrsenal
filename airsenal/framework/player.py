@@ -4,6 +4,7 @@ Class for a player in FPL
 
 import uuid
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import Player
 from airsenal.framework.season import CURRENT_SEASON
 from airsenal.framework.utils import (
@@ -11,6 +12,8 @@ from airsenal.framework.utils import (
     get_player,
     get_predicted_points_for_player,
 )
+
+logger = get_logger(__name__)
 
 
 class CandidatePlayer:
@@ -84,7 +87,7 @@ class CandidatePlayer:
         if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
         if gameweek not in self.predicted_points[tag]:
-            print(f"No prediction available for {self} week {gameweek}")
+            logger.warning("No prediction available for %s week %s", self, gameweek)
             return 0.0
         return self.predicted_points[tag][gameweek]
 

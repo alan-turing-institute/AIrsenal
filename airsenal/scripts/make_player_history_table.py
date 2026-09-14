@@ -4,8 +4,11 @@ get values from player_score and match tables to use as input to Empirical Bayes
 
 from sqlalchemy import select
 
+from airsenal.framework.output import get_logger
 from airsenal.framework.schema import PlayerScore
 from airsenal.framework.utils import list_players, session
+
+logger = get_logger(__name__)
 
 
 def get_player_history_table(position: str = "all") -> None:
@@ -33,7 +36,7 @@ def get_player_history_table(position: str = "all") -> None:
                 elif player_score.fixture.away_team == player_score.opponent:
                     team_goals = player_score.result.home_score
                 else:
-                    print("Unknown opponent!")
+                    logger.warning("Unknown opponent!")
                     team_goals = -1
                 output_file.write(
                     f"{player.player_id},{player_name},{fixture_id},{goals},{assists},"

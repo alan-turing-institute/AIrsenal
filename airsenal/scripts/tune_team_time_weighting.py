@@ -21,14 +21,16 @@ from pathlib import Path
 import numpy as np
 from bpl import ExtendedDixonColesMatchPredictor
 from sqlalchemy.orm.session import Session
-from tqdm import tqdm
 
 from airsenal.framework.bpl_interface import get_fitted_team_model
+from airsenal.framework.output import get_logger, track
 from airsenal.framework.schema import Fixture, session_scope
 from airsenal.framework.utils import (
     get_fixtures_for_gameweek,
     get_max_gameweek,
 )
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -88,7 +90,7 @@ def evaluate_epsilon(
     total_logp = 0.0
     total_n = 0
 
-    for season in tqdm(seasons, desc="Season"):
+    for season in track(seasons, desc="Season"):
         max_gw = get_max_gameweek(season=season, dbsession=dbsession)
         start_gw = first_gw or 1
         # ensure we leave room for horizon weeks ahead
@@ -101,11 +103,13 @@ def evaluate_epsilon(
             )
             raise ValueError(msg)
 
-        for gw in tqdm(range(start_gw, end_gw + 1), desc="GW"):
-            print(f"\nFitting model for season {season} GW {gw}")
+        for gw in track(range(start_gw, end_gw + 1), desc="GW"):
+            logger.info("Fitting model for season %s GW %s", season, gw)
             # Fit the model using data strictly before (season, gw+horizon start)
             if not get_fixtures_for_gameweek(gw, season=season, dbsession=dbsession):
-                print(f"No fixtures found for season {season} GW {gw}, skipping")
+                logger.info(
+                    "No fixtures found for season %s GW %s, skipping", season, gw
+                )
                 continue
             fitted = get_fitted_team_model(
                 season=season,
@@ -124,8 +128,8 @@ def evaluate_epsilon(
             logp, n = _score_fixtures(fixtures, fitted)  # type: ignore[arg-type]
             total_logp += logp
             total_n += n
-            print(f"\nGW {gw}: logp={logp:.3f}, n={n}")
-            print("------")
+            logger.info("GW %s: logp=%.3f, n=%s", gw, logp, n)
+            logger.info("------")
 
     return EpsilonResult(
         epsilon=epsilon,
@@ -247,8 +251,8 @@ def main() -> None:
 
     with session_scope() as db:
         db.expire_on_commit = False
-        for rescale in tqdm(args.rescale_weights, desc="Rescale Bool"):
-            for eps in tqdm(eps_grid, desc="Epsilon"):
+        for rescale in track(args.rescale_weights, desc="Rescale Bool"):
+            for eps in track(eps_grid, desc="Epsilon"):
                 res = evaluate_epsilon(
                     epsilon=eps,
                     rescale_weights=rescale,
@@ -258,12 +262,14 @@ def main() -> None:
                     first_gw=args.first_gw,
                     last_gw=args.last_gw,
                 )
-                print("\n========================================\n")
-                print(
-                    f"epsilon={res.epsilon:.5f}, "
-                    f"rescale_weights={res.rescale_weights}, "
-                    f"total_log_prob={res.total_log_prob:.3f}  "
-                    f"fixtures={res.num_fixtures}"
+                logger.info("========================================")
+                logger.info(
+                    "epsilon=%.5f, rescale_weights=%s, total_log_prob=%.3f  "
+                    "fixtures=%s",
+                    res.epsilon,
+                    res.rescale_weights,
+                    res.total_log_prob,
+                    res.num_fixtures,
                 )
                 avg = (
                     res.total_log_prob / res.num_fixtures
@@ -282,7 +288,7 @@ def main() -> None:
                         ]
                     )
 
-                print("\n========================================")
+                logger.info("========================================")
                 results.append(res)
 
     if not results:
@@ -290,16 +296,15 @@ def main() -> None:
         raise RuntimeError(msg)
 
     best = max(results, key=lambda r: r.total_log_prob)
-    print()
-    print("=" * 60)
-    print(
-        "Best epsilon = "
-        f"{best.epsilon:.5f} with total log-probability "
-        f"{best.total_log_prob:.3f}"
+    logger.info("=" * 60)
+    logger.info(
+        "Best epsilon = %.5f with total log-probability %.3f",
+        best.epsilon,
+        best.total_log_prob,
     )
-    print("=" * 60)
+    logger.info("=" * 60)
 
-    print(f"Saved results to {out_path}")
+    logger.info("Saved results to %s", out_path)
 
 
 if __name__ == "__main__":

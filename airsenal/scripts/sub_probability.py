@@ -9,6 +9,10 @@ TODO: Take into account different formations and sub (position) orders
 
 import numpy as np
 
+from airsenal.framework.output import get_logger
+
+logger = get_logger(__name__)
+
 # number of random trials
 n_samples = int(1e6)
 
@@ -20,14 +24,14 @@ is_playing = np.random.uniform(size=(n_samples, 13)) < prob_play
 
 # 1st sub plays if at least 1 of first 10 players doesn't play
 p_sub_1 = (is_playing[:, :10].sum(axis=1) < 10).mean()
-print("Sub 1:", p_sub_1)
+logger.info("Sub 1: %s", p_sub_1)
 
 # 2nd sub plays if at least 2 of first 11 players
 # (starting 10 outfield + first sub) don't play
 p_sub_2 = (is_playing[:, :11].sum(axis=1) < 10).mean()
-print("Sub 2:", p_sub_2)
+logger.info("Sub 2: %s", p_sub_2)
 
 # 3rd sub plays if at least 3 of first 12 players
 # (starting 10 outfield + first 2 subs) don't play
 p_sub_3 = (is_playing[:, :12].sum(axis=1) < 10).mean()
-print("Sub 3:", p_sub_3)
+logger.info("Sub 3: %s", p_sub_3)
