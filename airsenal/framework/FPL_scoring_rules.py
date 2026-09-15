@@ -20,6 +20,9 @@ def_cons_required = {"GK": 999, "DEF": 10, "MID": 12, "FWD": 12}
 
 points_for_def_cons = 2
 
+# maximum number of free transfers that can be saved up (2 before 2024/25)
+MAX_FREE_TRANSFERS = 5
+
 
 def get_appearance_points(minutes):
     """

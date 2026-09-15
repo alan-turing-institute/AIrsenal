@@ -13,6 +13,7 @@ from airsenal.framework.bpl_interface import (
     parse_team_model_from_str,
 )
 from airsenal.framework.multiprocessing_utils import set_multiprocessing_start_method
+from airsenal.framework.optimization_utils import DEFAULT_DISCOUNT
 from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import session_scope
 from airsenal.framework.utils import (
@@ -24,12 +25,14 @@ from airsenal.framework.utils import (
     get_latest_prediction_tag,
     get_past_seasons,
 )
+from airsenal.scripts.data_sanity_checks import run_all_checks
 from airsenal.scripts.fill_db_init import check_clean_db, make_init_db
 from airsenal.scripts.fill_predictedscore_table import (
     get_top_predicted_points,
     make_predictedscore_table,
 )
 from airsenal.scripts.fill_transfersuggestion_table import run_optimization
+from airsenal.scripts.make_report import make_report
 from airsenal.scripts.make_transfers import make_transfers
 from airsenal.scripts.save_expected_absences import main as save_expected_absences
 from airsenal.scripts.set_lineup import set_lineup
@@ -136,6 +139,46 @@ from airsenal.scripts.update_db import update_db
     is_flag=True,
 )
 @click.option(
+    "--consider_available_chips",
+    help=(
+        "If set, consider playing any chip this team still has in any gameweek, "
+        "rather than only the chips named by the options above. Requires FPL login."
+    ),
+    is_flag=True,
+)
+@click.option(
+    "--seed",
+    help=(
+        "Random seed, so repeated runs on the same predictions give the same "
+        "suggestions. Omit for a different search each run."
+    ),
+    type=int,
+    default=None,
+)
+@click.option(
+    "--check_data",
+    help="If set, run the data sanity checks after updating the database",
+    is_flag=True,
+)
+@click.option(
+    "--min_hit_gain",
+    help=(
+        "How many points a strategy taking a hit must gain over the best strategy "
+        "that doesn't before it is preferred (defaults to 0, i.e. no check)."
+    ),
+    type=float,
+    default=0.0,
+)
+@click.option(
+    "--discount",
+    help=(
+        "How much less a point in a later gameweek is worth (per gameweek). "
+        "1.0 weights the whole window equally, lower favours the short term."
+    ),
+    type=float,
+    default=DEFAULT_DISCOUNT,
+)
+@click.option(
     "--save_absences",
     help="If set, save expected absences to 'absences_yyyy.csv' file",
     is_flag=True,
@@ -157,6 +200,11 @@ def run_pipeline(
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
+    consider_available_chips: bool,
+    seed: int | None,
+    check_data: bool,
+    min_hit_gain: float,
+    discount: float,
     save_absences: bool,
 ) -> None:
     """
@@ -213,6 +261,17 @@ def run_pipeline(
         else:
             click.echo("Database update complete..")
 
+        if check_data:
+            click.echo("Checking data..")
+            n_errors = run_all_checks()
+            if n_errors:
+                warnings.warn(
+                    f"Data sanity checks found {n_errors} errors. Predictions and "
+                    "suggestions below are built on that data - see the check "
+                    "output above before acting on them.",
+                    stacklevel=2,
+                )
+
         click.echo("Running prediction..")
         predict_ok = run_prediction(
             gw_range=gw_range,
@@ -248,6 +307,10 @@ def run_pipeline(
                 max_transfers=max_transfers,
                 max_hit=max_hit,
                 allow_unused=allow_unused,
+                consider_available_chips=consider_available_chips,
+                random_state=seed,
+                min_hit_gain=min_hit_gain,
+                discount=discount,
             )
             if not opt_ok:
                 msg = "Problem running optimization"
@@ -268,6 +331,20 @@ def run_pipeline(
         if save_absences:
             click.echo("Saving absences to csv...")
             save_expected_absences()
+
+        # everything above scrolls past during a run, so finish with a summary
+        try:
+            click.echo("")
+            click.echo(
+                make_report(
+                    fpl_team_id=fpl_team_id,
+                    gameweek=gw_range[0],
+                    dbsession=dbsession,
+                )
+            )
+        except Exception as e:  # a report problem must not fail the whole run
+            warnings.warn(f"Couldn't generate the summary report: {e}", stacklevel=2)
+
         click.echo("Pipeline finished OK!")
 
 
@@ -370,6 +447,10 @@ def run_optimize_squad(
     max_transfers: int,
     max_hit: int,
     allow_unused: bool,
+    consider_available_chips: bool = False,
+    random_state: int | None = None,
+    min_hit_gain: float = 0.0,
+    discount: float = DEFAULT_DISCOUNT,
 ) -> bool:
     """
     Build the initial squad
@@ -388,6 +469,10 @@ def run_optimize_squad(
             max_opt_transfers=max_transfers,
             max_total_hit=max_hit,
             allow_unused_transfers=allow_unused,
+            consider_available_chips=consider_available_chips,
+            random_state=random_state,
+            min_hit_gain=min_hit_gain,
+            discount=discount,
         )
     return True
 

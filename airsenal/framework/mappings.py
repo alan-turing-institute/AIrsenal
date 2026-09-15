@@ -17,7 +17,7 @@ alternative_team_names = {
         "Brighton & Hove Albion",
     ],
     "CHE": ["6", "Chelsea", "Chelsea FC"],
-    "COV": ["7", "Coventry City", "Coventry"],
+    "COV": ["7", "Coventry City", "Coventry", "Coventry City FC"],
     "CRY": ["8", "Crystal Palace", "Crystal Palace FC"],
     "EVE": ["9", "Everton", "Everton FC"],
     "FUL": ["10", "Fulham", "Fulham FC"],

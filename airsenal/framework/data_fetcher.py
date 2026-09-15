@@ -44,6 +44,19 @@ LOGIN_URLS = {
 CLIENT_ID = "bfcbaf69-aade-4c1b-8f00-c1cb8a193030"
 STANDARD_CONNECTION_ID = "867ed4363b2bc21c860085ad2baa817d"
 
+# the API's chip names to the ones used throughout AIrsenal. Chips AIrsenal cannot
+# optimise for (e.g. "manager") are deliberately absent and get filtered out.
+API_CHIP_NAMES = {
+    "wildcard": "wildcard",
+    "freehit": "free_hit",
+    "bboost": "bench_boost",
+    "3xc": "triple_captain",
+}
+
+# seconds to wait for the FPL API before giving up. Without this a stalled
+# connection hangs the pipeline indefinitely rather than failing.
+TIMEOUT = 30
+
 
 def generate_code_verifier():
     return secrets.token_urlsafe(64)[:128]
@@ -60,8 +73,9 @@ class FPLDataFetcher:
     or retrieve it if not already cached.
     """
 
-    def __init__(self, fpl_team_id: int | None = None, rsession=None):
+    def __init__(self, fpl_team_id: int | None = None, rsession=None, timeout=TIMEOUT):
         self.rsession = rsession or requests.Session(impersonate="chrome")
+        self.timeout = timeout
         self.headers: dict[str, str] = {}
         self.logged_in = False
         self.login_failed = False
@@ -168,7 +182,9 @@ class FPLDataFetcher:
             "code_challenge": code_challenge,
             "code_challenge_method": "S256",
         }
-        auth_response = self.rsession.get(LOGIN_URLS["auth"], params=params)
+        auth_response = self.rsession.get(
+            LOGIN_URLS["auth"], params=params, timeout=self.timeout
+        )
         login_html = auth_response.text
 
         if match := re.search(r'"accessToken":"([^"]+)"', login_html):
@@ -190,7 +206,9 @@ class FPLDataFetcher:
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
         }
-        response = self.rsession.post(LOGIN_URLS["start"], headers=headers)
+        response = self.rsession.post(
+            LOGIN_URLS["start"], headers=headers, timeout=self.timeout
+        )
         try:
             r_json = response.json()
             interaction_id = r_json["interactionId"]
@@ -216,6 +234,7 @@ class FPLDataFetcher:
                     "pollChallengeStatus": False,
                 },
             },
+            timeout=self.timeout,
         )
         try:
             response_id = response.json()["id"]
@@ -247,6 +266,7 @@ class FPLDataFetcher:
                 },
                 "eventName": "continue",
             },
+            timeout=self.timeout,
         )
         try:
             r_json = response.json()
@@ -277,6 +297,7 @@ class FPLDataFetcher:
                 },
                 "eventName": "continue",
             },
+            timeout=self.timeout,
         )
         try:
             dvResponse = response.json()["dvResponse"]
@@ -292,6 +313,7 @@ class FPLDataFetcher:
             LOGIN_URLS["resume"],
             data={"dvResponse": dvResponse, "state": new_state},
             allow_redirects=False,
+            timeout=self.timeout,
         )
         if (location := response.headers.get("Location")) and (
             match := re.search(r"[?&]code=([^&]+)", location)
@@ -311,6 +333,7 @@ class FPLDataFetcher:
                 "code_verifier": code_verifier,  # code_verifier generated at the start
                 "client_id": "bfcbaf69-aade-4c1b-8f00-c1cb8a193030",
             },
+            timeout=self.timeout,
         )
         try:
             access_token = response.json()["access_token"]
@@ -391,14 +414,16 @@ class FPLDataFetcher:
 
     def get_available_chips(self, fpl_team_id=None):
         """
-        Returns a list of chips that are available to be played in upcoming gameweek.
+        Returns a list of chips that are available to be played in upcoming gameweek,
+        using AIrsenal's chip names rather than the API's.
         Requires login
         """
         squad_data = self.get_current_squad_data(fpl_team_id)
         return [
-            chip["name"]
+            API_CHIP_NAMES[chip["name"]]
             for chip in squad_data["chips"]
             if chip["status_for_entry"] == "available"
+            and chip["name"] in API_CHIP_NAMES
         ]
 
     def get_current_summary_data(self):
@@ -630,16 +655,22 @@ class FPLDataFetcher:
         r = None
         while tries < attempts:
             try:
-                r = self.rsession.get(url, headers=self.headers, params=params)
+                r = self.rsession.get(
+                    url, headers=self.headers, params=params, timeout=self.timeout
+                )
                 break
-            except requests.exceptions.ConnectionError as e:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+            ) as e:
                 tries += 1
                 if tries == attempts:
                     msg = (
                         f"{err_msg}: Failed to connect to FPL API when requesting {url}"
                     )
                     raise requests.exceptions.ConnectionError(msg) from e
-                time.sleep(1)
+                # back off a little between attempts
+                time.sleep(tries)
 
         if r is None:
             msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
@@ -665,7 +696,7 @@ class FPLDataFetcher:
             "X-Requested-With": "XMLHttpRequest",
             **self.headers,
         }
-        resp = self.rsession.post(url, json=data, headers=headers)
+        resp = self.rsession.post(url, json=data, headers=headers, timeout=self.timeout)
         if "non_form_errors" in resp.text or "non_field_errors" in resp.text:
             msg = f"{resp.text}\n{err_msg}"
             raise requests.exceptions.RequestException(msg)

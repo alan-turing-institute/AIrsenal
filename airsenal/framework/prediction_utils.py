@@ -68,6 +68,15 @@ MIN_MINUTES_SHORT = 30
 MIN_MINUTES_FULL = 60
 MAX_MINUTES_MATCH = 90
 
+# how much to weight expected goals/assists against actual ones when fitting the
+# player model. 0 reproduces the original actuals-only behaviour; validate any
+# other value with airsenal_replay_season before trusting it.
+DEFAULT_XG_WEIGHT = 0.0
+
+# roughly the goals a Premier League team scores in an average match, used to judge
+# how favourable a fixture is when conditioning bonus points on it
+AVERAGE_TEAM_GOALS = 1.4
+
 
 def check_absence(
     player: Player,
@@ -83,8 +92,7 @@ def check_absence(
         select(Absence).where(
             Absence.season == season,
             Absence.player_id == player.player_id,
-            Absence.gw_from < gameweek,
-            Absence.gw_until > gameweek,
+            Absence.covers_gameweek_clause(gameweek),
         )
     ).all()
 
@@ -195,6 +203,11 @@ def get_player_history_df(
         results = scores_by_player.get(player.player_id, [])
         row_count = 0
         for row in results:
+            # A PlayerScore whose fixture has been deleted (e.g. because the
+            # fixture table was refilled from a different source) shows up as
+            # row.fixture is None; skip rather than crash on the access below.
+            if row.fixture is None:
+                continue
             if is_future_gameweek(
                 row.fixture.season,
                 row.fixture.gameweek,
@@ -229,9 +242,7 @@ def get_player_history_df(
                 for ab in absences_by_player_season.get(
                     (player.player_id, row.fixture.season), []
                 )
-                if ab.gw_until is not None
-                and ab.gw_from < row.fixture.gameweek
-                and ab.gw_until > row.fixture.gameweek
+                if ab.covers_gameweek(row.fixture.gameweek)
             ]
             absence_reason = (
                 [ab.reason for ab in matching_absences] if matching_absences else None
@@ -357,16 +368,52 @@ def get_defending_points(
     return defending_points
 
 
-def get_bonus_points(
-    player_id: int, minutes: int | float, df_bonus: tuple[pd.Series, pd.Series]
+def expected_goals_from_probs(score_prob: dict[int, float]) -> float:
+    """Expected number of goals from a {n_goals: probability} mapping."""
+    return sum(n * p for n, p in score_prob.items())
+
+
+def bonus_fixture_factor(
+    team_score_prob: dict[int, float],
+    average_team_goals: float = AVERAGE_TEAM_GOALS,
+    limits: tuple[float, float] = (0.5, 1.5),
 ) -> float:
     """
-    Calculate expected bonus points based on played minutes.
+    How much better or worse than usual this fixture is for earning bonus points.
+
+    Bonus is awarded on BPS, which is driven mostly by goals, assists and clean
+    sheets - all of which depend on the fixture. A player's average bonus is
+    measured across the fixtures they have already played, so scaling it by how
+    much this team is expected to score relative to a typical team makes an easy
+    fixture worth more than a hard one. Clipped, because this is a rough proxy and
+    should not swing the estimate wildly.
+    """
+    if average_team_goals <= 0:
+        return 1.0
+    factor = expected_goals_from_probs(team_score_prob) / average_team_goals
+    return max(limits[0], min(limits[1], factor))
+
+
+def get_bonus_points(
+    player_id: int,
+    minutes: int | float,
+    df_bonus: tuple[pd.Series, pd.Series],
+    fixture_factor: float = 1.0,
+) -> float:
+    """
+    Returns expected bonus points scored by player_id when playing minutes minutes.
+
+    df_bonus : Tuple containing df of average bonus pts scored when playing at least
+    MIN_MINUTES_FULL minutes in 1st index, and between MIN_MINUTES_SHORT and
+    MIN_MINUTES_FULL minutes in 2nd index (as calculated by fit_bonus_points()).
+
+    fixture_factor scales the player's average by how favourable this particular
+    fixture is (see bonus_fixture_factor); 1.0 leaves the average unconditioned.
     """
     if minutes >= MIN_MINUTES_FULL:
-        return float(df_bonus[0].get(player_id, 0.0))
+        return float(df_bonus[0].get(player_id, 0.0)) * fixture_factor
     if minutes >= MIN_MINUTES_SHORT:
-        return float(df_bonus[1].get(player_id, 0.0))
+        return float(df_bonus[1].get(player_id, 0.0)) * fixture_factor
     return 0.0
 
 
@@ -419,9 +466,17 @@ def calc_predicted_points_for_player(
     min_fixtures_behind: int = 3,
     tag: str = "",
     dbsession: Session = session,
+    use_availability: bool = True,
+    condition_bonus_on_fixture: bool = False,
 ) -> list[PlayerPrediction]:
     """
-    Calculate predicted total points for a single player across target gameweeks.
+    Use the team-level model to get the probs of scoring or conceding
+    N goals, and player-level model to get the chance of player scoring
+    or assisting given that their team scores.
+
+    use_availability scales a player's points by FPL's reported chance of playing.
+    Set False for the old behaviour of zeroing players at 50% or below and ignoring
+    the doubt otherwise.
     """
     if isinstance(player, str | int):
         p = get_player(player, dbsession=dbsession)
@@ -438,6 +493,11 @@ def calc_predicted_points_for_player(
     if fixtures_behind is None:
         fixtures_behind = len(gw_range)
 
+    # Averaging the points over each of the recent minutes values is already a
+    # Monte Carlo estimate of the mixture over starting, a cameo, and not playing,
+    # so the estimator is right - but with only three samples it is noisy. This is
+    # the main dial on that noise; tune it with airsenal_replay_season rather than
+    # by eye, as a longer window also means staler form.
     fixtures_behind = max(fixtures_behind, min_fixtures_behind)
 
     team = player.team(season, gw_range[0])
@@ -485,9 +545,23 @@ def calc_predicted_points_for_player(
         points = 0.0
         expected_points[gameweek] = points
 
+        # FPL's reported chance of playing, as a probability. A player who does not
+        # feature scores nothing, so this scales the points they would score if they
+        # did play. Zero for a player ruled out, one for a player with no doubt.
+        availability = (
+            player.availability(season, gw_range[0], gameweek)
+            if use_availability
+            else float(
+                not player.is_injured_or_suspended(season, gw_range[0], gameweek)
+            )
+        )
+        bonus_factor = (
+            bonus_fixture_factor(team_score_prob) if condition_bonus_on_fixture else 1.0
+        )
+
         if (
             sum(recent_minutes) == 0
-            or player.is_injured_or_suspended(season, gw_range[0], gameweek)
+            or availability == 0.0
             or was_historic_absence(
                 player,
                 gameweek=gameweek,
@@ -495,6 +569,8 @@ def calc_predicted_points_for_player(
                 dbsession=dbsession,
             )
         ):
+            # zero if the player has not featured recently, is unavailable per FPL,
+            # or was flagged as absent in historical data
             points = 0.0
         else:
             points = 0
@@ -510,7 +586,9 @@ def calc_predicted_points_for_player(
                     + get_defending_points(position, mins, team_concede_prob)
                 )
                 if df_bonus is not None:
-                    points += get_bonus_points(player.player_id, mins, df_bonus)
+                    points += get_bonus_points(
+                        player.player_id, mins, df_bonus, bonus_factor
+                    )
                 if df_cards is not None:
                     points += get_card_points(player.player_id, mins, df_cards)
                 if df_saves is not None:
@@ -521,6 +599,7 @@ def calc_predicted_points_for_player(
                     points += get_def_con_points(player.player_id, mins, df_def_con)
 
             points /= len(recent_minutes)
+            points *= availability
 
         if np.isnan(points):
             msg = f"nan points for {player} {fixture} {points} {tag}"
@@ -546,6 +625,8 @@ def calc_predicted_points_for_pos(
     tag: str,
     model: NumpyroPlayerModel | ConjugatePlayerModel | None = None,
     dbsession: Session = session,
+    use_availability: bool = True,
+    condition_bonus_on_fixture: bool = False,
 ) -> dict[int, list[PlayerPrediction]]:
     """
     Calculate predicted points for all players in a specific position.
@@ -564,6 +645,8 @@ def calc_predicted_points_for_pos(
             gw_range=gw_range,
             tag=tag,
             dbsession=dbsession,
+            use_availability=use_availability,
+            condition_bonus_on_fixture=condition_bonus_on_fixture,
         )
         for player in list_players(
             position=pos, season=season, gameweek=min(gw_range), dbsession=dbsession
@@ -585,7 +668,9 @@ def make_prediction(
     return pp
 
 
-def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
+def fill_ep(
+    csv_filename: str, season: str = CURRENT_SEASON, dbsession: Session = session
+) -> None:
     """
     Fetch predicted points from the API and write to CSV and database.
     """
@@ -606,15 +691,48 @@ def fill_ep(csv_filename: str, dbsession: Session = session) -> None:
 
             player_id = player.player_id
             outfile.write(f"{player_id},{gameweek},{v['ep_next']}\n")
-
-            pp = PlayerPrediction()
-            pp.player_id = player_id
-            pp.fixture.gameweek = gameweek
-            pp.predicted_points = v["ep_next"]
-            pp.tag = tag
-            dbsession.add(pp)
-
+            # A PlayerPrediction is per-fixture, but ep_next is per-gameweek, so
+            # split it evenly over the player's fixtures in the coming gameweek.
+            fixtures = get_fixtures_for_player(
+                player, season, gw_range=[gameweek], dbsession=dbsession
+            )
+            if not fixtures:
+                continue
+            points = float(v["ep_next"]) / len(fixtures)
+            for fixture in fixtures:
+                dbsession.add(make_prediction(player, fixture, points, tag))
     dbsession.commit()
+
+
+def blend_with_expected(
+    df: pd.DataFrame, xg_weight: float = DEFAULT_XG_WEIGHT
+) -> pd.DataFrame:
+    """
+    Mix actual goals and assists with FPL's expected goals and assists.
+
+    Over the 10-20 matches the player model is fitted on, actual goal involvements
+    are a noisy measure of a player's underlying scoring rate; xG and xA are less
+    so. xg_weight=0 uses actuals only (the original behaviour), 1 uses xG/xA only.
+
+    Rows with no xG - anything before FPL started publishing it in 2022/23, and the
+    zero-padding rows - keep their actual values.
+    """
+    if not 0 <= xg_weight <= 1:
+        msg = f"xg_weight must be between 0 and 1, got {xg_weight}"
+        raise ValueError(msg)
+    if xg_weight == 0:
+        return df
+
+    df = df.copy()
+    columns = [("goals", "expected_goals"), ("assists", "expected_assists")]
+    for actual, expected in columns:
+        if expected not in df.columns:
+            continue
+        xg = pd.to_numeric(df[expected], errors="coerce")
+        blended = (1 - xg_weight) * df[actual] + xg_weight * xg
+        # where there is no xG for this match, fall back to what actually happened
+        df[actual] = blended.where(xg.notna(), df[actual])
+    return df
 
 
 def process_player_data(
@@ -622,6 +740,7 @@ def process_player_data(
     season: str = CURRENT_SEASON,
     gameweek: int = NEXT_GAMEWEEK,
     dbsession: Session = session,
+    xg_weight: float = DEFAULT_XG_WEIGHT,
 ) -> dict:
     """
     Process and structure historical player data for model fitting.
@@ -629,6 +748,7 @@ def process_player_data(
     df = get_player_history_df(
         prefix, season=season, gameweek=gameweek, dbsession=dbsession
     )
+    df = blend_with_expected(df, xg_weight)
     df["neither"] = df["team_goals"] - df["goals"] - df["assists"]
     df.loc[(df["neither"] < 0), ["neither", "team_goals", "goals", "assists"]] = [
         0.0,
@@ -692,7 +812,11 @@ def process_player_data(
         "nplayer": nplayer,
         "nmatch": nmatch,
         "minutes": minutes.astype("int64"),
-        "y": y.astype("int64"),
+        # blended goal involvements are fractional, and casting them to int would
+        # floor every xG below 1 to zero. ConjugatePlayerModel sums them into
+        # Dirichlet parameters and doesn't need counts; NumpyroPlayerModel does,
+        # which fit_player_data checks for.
+        "y": y.astype("int64") if xg_weight == 0 else y.astype("float64"),
         "alpha": alpha,
         "time_diff": time_diff,
     }
@@ -706,14 +830,21 @@ def fit_player_data(
     dbsession: Session = session,
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
+    xg_weight: float = DEFAULT_XG_WEIGHT,
 ) -> pd.DataFrame:
     """
     Fit the player model for a given position and return calculated probabilities.
     """
     if model is None:
         model = ConjugatePlayerModel()
-
-    data = process_player_data(position, season, gameweek, dbsession)
+    if xg_weight > 0 and isinstance(model, NumpyroPlayerModel):
+        msg = (
+            "xg_weight > 0 gives fractional goal involvements, which "
+            "NumpyroPlayerModel cannot use - its likelihood is multinomial over "
+            "counts. Use ConjugatePlayerModel, or set xg_weight=0."
+        )
+        raise ValueError(msg)
+    data = process_player_data(position, season, gameweek, dbsession, xg_weight)
     logger.info(f"Fitting player model for {position} ...")
 
     model = fastcopy(model)
@@ -735,6 +866,7 @@ def get_all_fitted_player_data(
     dbsession: Session = session,
     epsilon=DEFAULT_PLAYER_EPSILON,
     n_goals_prior=DEFAULT_N_GOALS_PRIOR,
+    xg_weight: float = DEFAULT_XG_WEIGHT,
 ) -> dict[str, pd.DataFrame]:
     """
     Fit player models for all positions (GK, DEF, MID, FWD).
@@ -748,6 +880,7 @@ def get_all_fitted_player_data(
             dbsession,
             epsilon=epsilon,
             n_goals_prior=n_goals_prior,
+            xg_weight=xg_weight,
         )
         for pos in ["GK", "DEF", "MID", "FWD"]
     }

@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from airsenal.framework import env
 
@@ -69,6 +70,26 @@ def past_data_session_scope():
         raise
     finally:
         testsession.close()
+
+
+@pytest.fixture
+def isolated_session():
+    """A database of this test's own.
+
+    The dummy database is shared by the whole session, and fill_players skips its
+    work entirely if any player already exists - so a test that inserts a player
+    of its own silently empties the player list for every test that runs later.
+    """
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    testsession = sessionmaker(bind=engine)()
+    try:
+        yield testsession
+    finally:
+        testsession.close()
+        engine.dispose()
 
 
 def value_generator(index, position):

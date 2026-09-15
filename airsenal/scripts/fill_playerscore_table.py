@@ -236,13 +236,15 @@ def fill_playerscores_from_json(
             if not played_for:
                 continue
 
-            if "was_home" in fixture_data:
-                if fixture_data["was_home"] == "True":
-                    was_home = True
-                elif fixture_data["was_home"] == "False":
-                    was_home = False
-                else:
-                    was_home = None
+            # 2025-26 player_details JSON omits was_home on every entry; older
+            # seasons store it as the string "True"/"False". Fall back to None
+            # when the field is absent — find_fixture disambiguates by
+            # kickoff_time and opponent in that case.
+            was_home_raw = fixture_data.get("was_home")
+            if was_home_raw == "True" or was_home_raw is True:
+                was_home = True
+            elif was_home_raw == "False" or was_home_raw is False:
+                was_home = False
             else:
                 was_home = None
 
