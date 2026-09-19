@@ -7,9 +7,12 @@ get consistent sets of predictions from the database.
 """
 
 import argparse
+import multiprocessing
+from multiprocessing.queues import Queue
 from uuid import uuid4
 
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
+from pandas import Series
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.bpl_interface import (
@@ -19,6 +22,7 @@ from airsenal.framework.bpl_interface import (
 )
 from airsenal.framework.player_model import ConjugatePlayerModel, NumpyroPlayerModel
 from airsenal.framework.prediction_utils import (
+    DEFAULT_XG_WEIGHT,
     MAX_GOALS,
     calc_predicted_points_for_player,
     fit_bonus_points,
@@ -39,6 +43,55 @@ from airsenal.framework.utils import (
 )
 
 
+def allocate_predictions(
+    queue: Queue,
+    gw_range: list[int],
+    fixture_goal_probs: dict,
+    df_player: dict,
+    df_bonus: tuple,
+    df_saves: Series,
+    df_cards: Series,
+    df_def_con: tuple[Series, Series],
+    season: str,
+    tag: str,
+    min_fixtures_behind: int = 3,
+    use_availability: bool = True,
+    condition_bonus_on_fixture: bool = False,
+) -> None:
+    """
+    Take positions off the queue and call function to calculate predictions.
+
+    Each worker opens its own database session: a Session cannot be shared across
+    processes, and it is not picklable, so it cannot be passed in either.
+    """
+    with session_scope() as dbsession:
+        while True:
+            player = queue.get()
+            if player == "DONE":
+                print("Finished processing")
+                break
+
+            predictions = calc_predicted_points_for_player(
+                player,
+                fixture_goal_probs,
+                df_player,
+                df_bonus,
+                df_saves,
+                df_cards,
+                df_def_con,
+                season,
+                gw_range=gw_range,
+                tag=tag,
+                dbsession=dbsession,
+                min_fixtures_behind=min_fixtures_behind,
+                use_availability=use_availability,
+                condition_bonus_on_fixture=condition_bonus_on_fixture,
+            )
+            for p in predictions:
+                dbsession.add(p)
+            dbsession.commit()
+
+
 def calc_all_predicted_points(
     gw_range: list[int],
     season: str,
@@ -54,6 +107,11 @@ def calc_all_predicted_points(
     | RandomMatchPredictor
     | None = None,
     team_model_args: dict | None = None,
+    min_fixtures_behind: int = 3,
+    use_availability: bool = True,
+    xg_weight: float = DEFAULT_XG_WEIGHT,
+    condition_bonus_on_fixture: bool = False,
+    num_thread: int = 1,
 ) -> None:
     """
     Do the full prediction for players.
@@ -74,7 +132,11 @@ def calc_all_predicted_points(
     )
 
     df_player = get_all_fitted_player_data(
-        season, gw_range[0], model=player_model, dbsession=dbsession
+        season,
+        gw_range[0],
+        model=player_model,
+        dbsession=dbsession,
+        xg_weight=xg_weight,
     )
 
     if include_bonus:
@@ -96,24 +158,67 @@ def calc_all_predicted_points(
 
     players = list_players(season=season, gameweek=gw_range[0], dbsession=dbsession)
 
-    for player in players:
-        predictions = calc_predicted_points_for_player(
-            player,
-            fixture_goal_probs,
-            df_player,
-            df_bonus,
-            df_saves,
-            df_cards,
-            df_def_con,
-            season,
-            gw_range=gw_range,
-            tag=tag,
-            dbsession=dbsession,
-        )
-        for pred in predictions:
-            dbsession.add(pred)
-    dbsession.commit()
-    print("Finished adding predictions to db")
+    if num_thread > 1:
+        # spawn, not fork: the team and player models have already been fitted by
+        # the time we get here, and forking a process with live JAX thread pools
+        # leaves the children deadlocked on a mutex that no thread will release.
+        # The workers then sit at 0% CPU forever rather than failing.
+        ctx = multiprocessing.get_context("spawn")
+        queue: Queue = ctx.Queue()
+        procs = []
+        for _ in range(num_thread):
+            processor = ctx.Process(
+                target=allocate_predictions,
+                args=(
+                    queue,
+                    gw_range,
+                    fixture_goal_probs,
+                    df_player,
+                    df_bonus,
+                    df_saves,
+                    df_cards,
+                    df_def_con,
+                    season,
+                    tag,
+                    min_fixtures_behind,
+                    use_availability,
+                    condition_bonus_on_fixture,
+                ),
+            )
+            processor.daemon = True
+            processor.start()
+            procs.append(processor)
+
+        for p in players:
+            queue.put(p.player_id)
+        for _ in range(num_thread):
+            queue.put("DONE")
+
+        for _, pr in enumerate(procs):
+            pr.join()
+    else:
+        # single threaded
+        for player in players:
+            predictions = calc_predicted_points_for_player(
+                player,
+                fixture_goal_probs,
+                df_player,
+                df_bonus,
+                df_saves,
+                df_cards,
+                df_def_con,
+                season,
+                gw_range=gw_range,
+                tag=tag,
+                dbsession=dbsession,
+                min_fixtures_behind=min_fixtures_behind,
+                use_availability=use_availability,
+                condition_bonus_on_fixture=condition_bonus_on_fixture,
+            )
+            for pred in predictions:
+                dbsession.add(pred)
+        dbsession.commit()
+        print("Finished adding predictions to db")
 
 
 def make_predictedscore_table(
@@ -131,6 +236,11 @@ def make_predictedscore_table(
     | None = None,
     team_model_args: dict | None = None,
     dbsession: Session = session,
+    min_fixtures_behind: int = 3,
+    use_availability: bool = True,
+    xg_weight: float = DEFAULT_XG_WEIGHT,
+    condition_bonus_on_fixture: bool = False,
+    num_thread: int = 1,
 ) -> str:
     if team_model_args is None:
         team_model_args = {"epsilon": DEFAULT_TEAM_EPSILON}
@@ -146,10 +256,15 @@ def make_predictedscore_table(
         include_cards=include_cards,
         include_saves=include_saves,
         include_def_con=include_def_con,
+        min_fixtures_behind=min_fixtures_behind,
+        use_availability=use_availability,
+        num_thread=num_thread,
         tag=tag,
         player_model=player_model,
         team_model=team_model,
         team_model_args=team_model_args,
+        xg_weight=xg_weight,
+        condition_bonus_on_fixture=condition_bonus_on_fixture,
     )
     return tag
 
@@ -163,6 +278,42 @@ def main():
     parser.add_argument("--gameweek_start", help="first gameweek to look at", type=int)
     parser.add_argument("--gameweek_end", help="last gameweek to look at", type=int)
     parser.add_argument("--ep_filename", help="csv filename for FPL expected points")
+    parser.add_argument(
+        "--min_fixtures_behind",
+        help=(
+            "how many recent matches to estimate a player's minutes from. More "
+            "matches means a less noisy estimate but staler form - tune with "
+            "airsenal_replay_season rather than by eye."
+        ),
+        type=int,
+        default=3,
+    )
+    parser.add_argument(
+        "--no_availability",
+        help=(
+            "don't scale predicted points by FPL's reported chance of playing; "
+            "instead zero out players at 50%% or below and ignore any other doubt"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--condition_bonus_on_fixture",
+        help=(
+            "scale each player's average bonus points by how favourable the fixture "
+            "is, instead of using a flat per-player average"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--xg_weight",
+        help=(
+            "how much to weight expected goals/assists against actual ones when "
+            "fitting the player model (0 to 1). 0 uses actuals only. Validate any "
+            "other value with airsenal_replay_season first."
+        ),
+        type=float,
+        default=DEFAULT_XG_WEIGHT,
+    )
     parser.add_argument(
         "--season", help="season, in format e.g. '1819'", default=CURRENT_SEASON
     )
@@ -192,6 +343,16 @@ def main():
         type=str,
         choices=["extended", "neutral", "random"],
         default="extended",
+    )
+    parser.add_argument(
+        "--num_thread",
+        help=(
+            "number of prediction worker processes. macOS forks with live JAX "
+            "thread pools deadlock, so keep this at 1 there unless you know your "
+            "environment starts workers with spawn."
+        ),
+        type=int,
+        default=1,
     )
     parser.add_argument(
         "--epsilon",
@@ -234,6 +395,11 @@ def main():
             team_model=team_model,
             team_model_args={"epsilon": args.epsilon},
             dbsession=session,
+            min_fixtures_behind=args.min_fixtures_behind,
+            use_availability=not args.no_availability,
+            xg_weight=args.xg_weight,
+            condition_bonus_on_fixture=args.condition_bonus_on_fixture,
+            num_thread=args.num_thread,
         )
 
         # print players with top predicted points

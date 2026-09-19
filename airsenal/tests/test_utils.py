@@ -3,7 +3,7 @@ test some db access helper functions
 """
 
 from airsenal.conftest import TEST_PAST_SEASON, past_data_session_scope, session_scope
-from airsenal.framework.schema import Player
+from airsenal.framework.schema import Fixture, Player
 from airsenal.framework.utils import (
     get_gameweek_by_date,
     get_last_complete_gameweek_in_db,
@@ -62,6 +62,24 @@ def test_get_gameweek_by_date():
 
 
 def test_get_last_complete_gameweek_in_db():
+    """Runs a query against a relationship rather than a column, which is easy to
+    get wrong - it raised NotImplementedError at the start of a new season."""
     with past_data_session_scope() as ts:
         gw = get_last_complete_gameweek_in_db(season=TEST_PAST_SEASON, dbsession=ts)
         assert gw == 5
+
+
+def test_get_last_complete_gameweek_with_no_results():
+    """Fixtures scheduled but none played yet - where every new season starts.
+    No gameweek is complete, so the answer is the one before the first."""
+    with session_scope() as ts:
+        for gw in (1, 2):
+            fixture = Fixture()
+            fixture.gameweek = gw
+            fixture.season = "9999"
+            fixture.tag = "test"
+            fixture.home_team = "ARS"
+            fixture.away_team = "CHE"
+            ts.add(fixture)
+        ts.flush()
+        assert get_last_complete_gameweek_in_db("9999", dbsession=ts) == 0

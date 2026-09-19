@@ -20,6 +20,8 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.session import Session
 
 from airsenal.framework.data_fetcher import FPLDataFetcher
+from airsenal.framework.FPL_scoring_rules import MAX_FREE_TRANSFERS
+from airsenal.framework.random_team_model import RandomMatchPredictor
 from airsenal.framework.schema import (
     Absence,
     Fixture,
@@ -87,8 +89,21 @@ def get_next_gameweek(
                 earliest_future_gameweek += 1
     else:
         # got no fixtures from database, maybe we're filling it for the first
-        # time - get next gameweek from API instead
-        fixture_data = fetcher.get_fixture_data()
+        # time - get next gameweek from API instead.
+        # NEXT_GAMEWEEK is computed at import time, so this runs on every CLI
+        # invocation when the database has no fixtures for the current season -
+        # which is the normal state between seasons. Don't let an API problem stop
+        # the import: assume the season hasn't started and carry on.
+        try:
+            fixture_data = fetcher.get_fixture_data()
+        except (requests.exceptions.RequestException, RuntimeError) as e:
+            warnings.warn(
+                f"No fixtures in the database for {season} and couldn't reach the "
+                f"FPL API to ask:\n{e}\nAssuming gameweek 1. If the season is under "
+                "way, run airsenal_update_db before trusting any results.",
+                stacklevel=2,
+            )
+            return 1
 
         if len(fixture_data) == 0:
             # if no fixtures scheduled assume this is start of season before
@@ -437,10 +452,14 @@ def get_free_transfers(
                 for gw in data["current"]:
                     if gw["event"] <= starting_gw:
                         continue
-                    if gw["event_transfers"] == 0 and num_free_transfers < 2:
-                        num_free_transfers += 1
-                    elif gw["event_transfers"] >= 2:
-                        num_free_transfers = 1
+                    # one free transfer earned per gameweek, capped, minus those used
+                    num_free_transfers = max(
+                        1,
+                        min(
+                            MAX_FREE_TRANSFERS,
+                            num_free_transfers + 1 - gw["event_transfers"],
+                        ),
+                    )
                     # if gameweek was specified, and we reached the previous one,
                     # break out of loop.
                     if gameweek and gw["event"] == gameweek - 1:
@@ -473,10 +492,14 @@ def get_free_transfers(
         raise ValueError(msg)
     gameweek = gameweek or NEXT_GAMEWEEK
     for prev_gw in range(starting_gw + 1, gameweek):
-        if prev_gw not in gw_transactions:
-            num_free_transfers = 2
-        elif gw_transactions[prev_gw] >= 2:
-            num_free_transfers = 1
+        # one free transfer earned per gameweek, capped, minus those used
+        num_free_transfers = max(
+            1,
+            min(
+                MAX_FREE_TRANSFERS,
+                num_free_transfers + 1 - gw_transactions.get(prev_gw, 0),
+            ),
+        )
 
     return num_free_transfers
 
@@ -1658,8 +1681,7 @@ def was_historic_absence(
         .where(
             Absence.season == season,
             Absence.player_id == player.player_id,
-            Absence.gw_from < gameweek,
-            Absence.gw_until > gameweek,
+            Absence.covers_gameweek_clause(gameweek),
         )
         .limit(1)
     ).first()
@@ -1679,6 +1701,7 @@ def get_last_complete_gameweek_in_db(
         select(Fixture)
         .where(
             Fixture.season == season,
+            # result is a relationship, not a column - is_(None) raises
             ~Fixture.result.has(),
             Fixture.gameweek.is_not(None),
         )

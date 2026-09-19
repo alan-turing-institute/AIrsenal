@@ -16,6 +16,14 @@ stan_model/
 .idea/
 .DS_Store
 
+# stray clones/worktrees: a nested copy of the repo inside airsenal/ ends up on the
+# import path, so pytest collects its tests twice and ruff/mypy scan it
+/airsenal/AIrsenal/
+.claude/worktrees/
+
+# logs from other tools that share this workspace
+firebase-debug.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

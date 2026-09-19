@@ -38,6 +38,7 @@ def fill_initial_squad(
     tournament_size: int = 3,
     verbose: bool = True,
     is_replay: bool = False,  # for replaying seasons
+    random_state: int | None = None,
 ) -> Squad:
     best_squad = make_new_squad(
         gw_range,
@@ -54,6 +55,7 @@ def fill_initial_squad(
         mutation_indpb=mutation_indpb,
         tournament_size=tournament_size,
         verbose=verbose,
+        random_state=random_state,
     )
 
     if best_squad is None:
@@ -176,6 +178,11 @@ def main():
         help="Add suggested squad to the database (for replaying seasons)",
         action="store_true",
     )
+    parser.add_argument(
+        "--seed",
+        help="random seed, so the same squad comes out of repeated runs",
+        type=int,
+    )
     args = parser.parse_args()
     season = args.season or CURRENT_SEASON
     budget = args.budget
@@ -212,7 +219,10 @@ def main():
     if args.no_subs:
         sub_weights = {"GK": 0, "Outfield": (0, 0, 0)}
     else:
-        sub_weights = {"GK": 0.01, "Outfield": (0.4, 0.1, 0.02)}
+        # the same valuation of bench points the transfer optimiser uses - building
+        # the initial squad against a different one optimises for a season you then
+        # never play
+        sub_weights = DEFAULT_SUB_WEIGHTS
 
     fill_initial_squad(
         tag=tag,
@@ -231,4 +241,5 @@ def main():
         tournament_size=tournament_size,
         verbose=True,
         is_replay=args.is_replay,
+        random_state=args.seed,
     )
