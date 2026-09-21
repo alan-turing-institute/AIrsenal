@@ -6,9 +6,16 @@ bought or sold.
 
 import argparse
 
+from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 
-from airsenal.framework.schema import Player, database_is_empty, session_scope
+from airsenal.framework.schema import (
+    Player,
+    Team,
+    backup_db,
+    database_is_empty,
+    session_scope,
+)
 from airsenal.framework.transaction_utils import count_transactions, update_squad
 from airsenal.framework.utils import (
     CURRENT_SEASON,
@@ -24,6 +31,7 @@ from airsenal.scripts.fill_player_mappings_table import add_mappings
 from airsenal.scripts.fill_player_table import find_player_in_table
 from airsenal.scripts.fill_playerscore_table import fill_playerscores_from_api
 from airsenal.scripts.fill_result_table import fill_results_from_api
+from airsenal.scripts.fill_team_table import fill_team_table_from_api
 
 
 def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
@@ -91,6 +99,71 @@ def update_results(season: str, dbsession: Session) -> bool:
     return True
 
 
+def update_teams(season: str, dbsession: Session) -> int:
+    """
+    Make sure the team table has this season's teams. Three go down and three come
+    up every year, and the team_ids are reassigned alphabetically, so a season with
+    no teams in the table cannot have its fixtures filled either.
+    """
+    n_teams = dbsession.scalar(
+        select(func.count()).select_from(Team).where(Team.season == season)
+    )
+    if n_teams:
+        return 0
+    print(f"No teams in the database for {season} - filling from the API")
+    return fill_team_table_from_api(season, dbsession=dbsession)
+
+
+def sync_api_ids(dbsession: Session) -> int:
+    """
+    Make sure each FPL element id is held by exactly one player, the one the API
+    gives that id to now.
+
+    FPL reassigns element ids every season. Nothing released an id from the player
+    who held it last year, so after an update two players could share one - and
+    get_player_from_api_id returns the first match, which silently attached this
+    season's price, team and scores to a player who had left the league. That is
+    how Mohamed Salah ended up priced at 5.0m for a team he no longer plays for.
+
+    Returns the number of stale ids released.
+    """
+    api_data = fetcher.get_player_summary_data()
+    api_names = {
+        api_id: f"{d['first_name']} {d['second_name']}"
+        for api_id, d in api_data.items()
+    }
+
+    released = 0
+    holders: dict[int, list[Player]] = {}
+    for player in dbsession.scalars(
+        select(Player).where(Player.fpl_api_id.is_not(None))
+    ).all():
+        if player.fpl_api_id not in api_names:
+            # this id has left the game entirely, so it belongs to nobody
+            player.fpl_api_id = None
+            released += 1
+        else:
+            holders.setdefault(player.fpl_api_id, []).append(player)
+
+    # where an id is contested, it belongs to whoever the API calls by that name
+    for api_id, players in holders.items():
+        if len(players) < 2:
+            continue
+        by_name = [p for p in players if p.name == api_names[api_id]]
+        # falling back to the most recently added row, which is the one
+        # update_players created for this season
+        keep = by_name[0] if by_name else max(players, key=lambda p: p.player_id)
+        for player in players:
+            if player is not keep:
+                player.fpl_api_id = None
+                released += 1
+
+    if released:
+        print(f"Released {released} FPL ids that had been left on the wrong player")
+    dbsession.commit()
+    return released
+
+
 def update_players(season: str, dbsession: Session) -> int:
     """
     See if any new players have been added to FPL since we last filled the 'player'
@@ -139,10 +212,20 @@ def add_players_to_db(
             update = True
         else:
             update = True
+        # an id can only belong to one player, so take it off last season's holder
+        for previous in dbsession.scalars(
+            select(Player).where(Player.fpl_api_id == player_api_id)
+        ).all():
+            if previous is not p:
+                print(f"Releasing FPL id {player_api_id} from {previous.name}")
+                previous.fpl_api_id = None
         p.fpl_api_id = player_api_id
         p.name = name
         if not update:
             dbsession.add(p)
+            # the mappings reference player_id, which the database only assigns
+            # on flush - without this they are written with a null player_id
+            dbsession.flush()
             add_mappings(p, dbsession=dbsession)
 
     dbsession.commit()
@@ -168,8 +251,25 @@ def update_attributes(season: str, dbsession: Session) -> None:
 
 
 def update_db(
-    season: str, do_attributes: bool, fpl_team_id: int, session: Session
+    season: str,
+    do_attributes: bool,
+    fpl_team_id: int,
+    session: Session,
+    backup: bool = True,
 ) -> bool:
+    if backup:
+        backup_path = backup_db()
+        if backup_path is not None:
+            print(f"Backed up database to {backup_path}")
+
+    # teams change every season with promotion and relegation, and everything else
+    # is looked up by team_id, so this has to come first
+    update_teams(season, session)
+
+    # element ids are reassigned every season, so make sure last year's holders
+    # have let go of theirs before anything is looked up by api id
+    sync_api_ids(session)
+
     # see if any new players have been added
     num_new_players = update_players(season, session)
 

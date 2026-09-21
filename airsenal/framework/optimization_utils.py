@@ -9,6 +9,7 @@ from datetime import datetime
 from curl_cffi import requests
 from sqlalchemy import select
 
+from airsenal.framework.FPL_scoring_rules import MAX_FREE_TRANSFERS
 from airsenal.framework.schema import (
     Fixture,
     PlayerPrediction,
@@ -28,7 +29,13 @@ from airsenal.framework.utils import (
 positions = ["FWD", "MID", "DEF", "GK"]  # front-to-back
 
 DEFAULT_SUB_WEIGHTS = {"GK": 0.03, "Outfield": (0.65, 0.3, 0.1)}
-MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
+
+# How much less a point in a later gameweek is worth than one in the next gameweek.
+# This is the main dial between winning this week and building for the next month:
+# 1.0 weights every gameweek in the window equally, lower values favour the short
+# term. Exposed as --discount on the optimisation and pipeline commands.
+DEFAULT_DISCOUNT_TYPE = "exp"
+DEFAULT_DISCOUNT = 14 / 15
 
 
 def check_tag_valid(pred_tag, gameweek_range, season=CURRENT_SEASON, dbsession=session):
@@ -188,17 +195,23 @@ def get_discounted_squad_score(
     root_gw: int | None = None,
     bench_boost_gw: int | None = None,
     triple_captain_gw: int | None = None,
-    sub_weights: dict | None = None,
+    sub_weights: dict | None = DEFAULT_SUB_WEIGHTS,
+    discount: float = DEFAULT_DISCOUNT,
 ) -> float:
     """Get the number of points a squad is expected to score across a number of
     gameweeks, discounting the weight of gameweeks further into the future with respect
     to the root_gw.
+
+    sub_weights defaults to DEFAULT_SUB_WEIGHTS so that bench players carry some
+    value: with sub_weights=None the bench scores zero, and the optimisation cannot
+    tell a playing bench option from an injured one at the same price. Pass an
+    explicit dict of zeros to score the starting XI only.
     """
     if root_gw is None:
         root_gw = gameweeks[0]
     total_points = 0
     for gw in gameweeks:
-        gw_weight = get_discount_factor(root_gw, gw)
+        gw_weight = get_discount_factor(root_gw, gw, discount=discount)
         if gw == bench_boost_gw:
             total_points += (
                 squad.get_expected_points(gw, tag, bench_boost=True) * gw_weight
@@ -639,7 +652,12 @@ def count_expected_outputs(
     return len(strategies), baseline_excluded
 
 
-def get_discount_factor(next_gw, pred_gw, discount_type="exp", discount=14 / 15):
+def get_discount_factor(
+    next_gw,
+    pred_gw,
+    discount_type=DEFAULT_DISCOUNT_TYPE,
+    discount=DEFAULT_DISCOUNT,
+):
     """
     given the next gw and a predicted gw, retrieve discount factor. Either:
         - exp: discount**n_ahead (discount reduces each gameweek)

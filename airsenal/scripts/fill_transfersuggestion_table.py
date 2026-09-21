@@ -18,24 +18,35 @@ import argparse
 import cProfile
 import json
 import os
+import random
 import shutil
 import sys
+import time
+import traceback
 import warnings
 from collections.abc import Callable
-from multiprocessing import Process
+from multiprocessing import Event, Process, Queue
+from multiprocessing.synchronize import Event as EventType
 
+import numpy as np
 import regex as re
 import requests
+from curl_cffi import requests as curl_requests
 from prettytable import PrettyTable
 from tqdm import TqdmWarning, tqdm
 
+from airsenal.framework.data_fetcher import FPLDataFetcher
 from airsenal.framework.env import AIRSENAL_HOME
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
     set_multiprocessing_start_method,
 )
-from airsenal.framework.optimization_transfers import make_best_transfers
+from airsenal.framework.optimization_transfers import (
+    NUM_TRANSFER_CANDIDATES,
+    make_best_transfers,
+)
 from airsenal.framework.optimization_utils import (
+    DEFAULT_DISCOUNT,
     MAX_FREE_TRANSFERS,
     check_tag_valid,
     count_expected_outputs,
@@ -62,9 +73,25 @@ from airsenal.scripts.squad_builder import fill_initial_squad
 OUTPUT_DIR = os.path.join(AIRSENAL_HOME, "airsopt")
 
 
+def is_finished(final_expected_num: int) -> bool:
+    """
+    Count the number of json files in the output directory, and see if the number
+    matches the final expected number, which should be pre-calculated by the
+    count_expected_points function based on the number of weeks optimising for, chips
+    available and other constraints.
+    Return True if output files are all there, False otherwise.
+    """
+
+    # count the json files in the output dir
+    json_count = len(os.listdir(OUTPUT_DIR))
+    # >= rather than ==: if the count is ever over-shot, workers must still stop
+    return json_count >= final_expected_num
+
+
 def optimize(
     queue: CustomQueue,
     pid: Process,
+    num_expected_outputs: int,
     gameweek_range: list[int],
     season: str,
     pred_tag: str,
@@ -77,6 +104,10 @@ def optimize(
     resetter: Callable | None = None,
     profile: bool = False,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
+    abort: EventType | None = None,
+    random_state: int | None = None,
+    discount: float = DEFAULT_DISCOUNT,
+    num_candidates: int = NUM_TRANSFER_CANDIDATES,
 ) -> None:
     """
     Queue is the multiprocessing queue,
@@ -96,11 +127,120 @@ def optimize(
      strat_dict,
      strat_id
     )
+
+    If any worker raises, it sets the abort event so the others stop waiting for
+    output that is never going to arrive, rather than sleeping forever.
     """
+    try:
+        _optimize(
+            queue,
+            pid,
+            num_expected_outputs,
+            gameweek_range,
+            season,
+            pred_tag,
+            chips_gw_dict,
+            max_total_hit,
+            allow_unused_transfers,
+            max_transfers,
+            num_iterations,
+            updater,
+            resetter,
+            profile,
+            max_free_transfers,
+            abort,
+            random_state,
+            discount,
+            num_candidates,
+        )
+    except Exception:
+        if abort is not None:
+            abort.set()
+        print(f"Strategy worker {pid} failed:\n{traceback.format_exc()}")
+        raise
+
+
+def wait_for_processes(
+    procs: list[Process],
+    abort: EventType,
+    num_expected_outputs: int,
+    poll_seconds: float = 1.0,
+) -> None:
+    """
+    Wait for the strategy workers to finish, and give up if they can't.
+
+    The workers stop when the output directory holds every strategy file we expect,
+    so a worker that dies takes the whole run down with it: the count never reaches
+    the target and the survivors sleep forever. Watch for a worker exiting non-zero
+    and stop the rest instead of hanging.
+    """
+    while any(p.is_alive() for p in procs):
+        crashed = [p for p in procs if not p.is_alive() and p.exitcode not in (0, None)]
+        if crashed and not is_finished(num_expected_outputs):
+            abort.set()
+            for p in procs:
+                if p.is_alive():
+                    p.terminate()
+            for p in procs:
+                p.join(timeout=10)
+            msg = (
+                f"{len(crashed)} of {len(procs)} strategy workers failed before "
+                "producing all the expected results (see the traceback above). "
+                "Optimisation aborted."
+            )
+            raise RuntimeError(msg)
+        time.sleep(poll_seconds)
+
+    for p in procs:
+        p.join()
+
+    if not is_finished(num_expected_outputs):
+        msg = (
+            f"Strategy workers exited with only {len(os.listdir(OUTPUT_DIR))} of "
+            f"{num_expected_outputs} expected results. Optimisation aborted."
+        )
+        raise RuntimeError(msg)
+
+
+def _optimize(
+    queue: Queue,
+    pid: Process,
+    num_expected_outputs: int,
+    gameweek_range: list[int],
+    season: str,
+    pred_tag: str,
+    chips_gw_dict: dict,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = False,
+    max_transfers: int = 2,
+    num_iterations: int = 100,
+    updater: Callable | None = None,
+    resetter: Callable | None = None,
+    profile: bool = False,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+    abort: EventType | None = None,
+    random_state: int | None = None,
+    discount: float = DEFAULT_DISCOUNT,
+    num_candidates: int = NUM_TRANSFER_CANDIDATES,
+) -> None:
+    """The body of optimize(), see there for details."""
+    if random_state is not None:
+        # offset by worker so the workers explore differently, but the run as a
+        # whole repeats given the same seed
+        random.seed(random_state + pid)
+        np.random.seed(random_state + pid)
+
     while True:
-        status = queue.get()
-        if status is None:
-            break
+        if abort is not None and abort.is_set():
+            print(f"Strategy worker {pid} stopping: another worker failed")
+            return
+        if queue.qsize() > 0:
+            status = queue.get()
+        else:
+            if is_finished(num_expected_outputs):
+                break
+            time.sleep(5)
+            continue
 
         # now assume we have set of parameters to do an optimization
         # from the queue.
@@ -191,9 +331,12 @@ def optimize(
                 season,
                 num_iterations,
                 (updater, increment, pid) if updater is not None else None,
+                random_state=random_state,
+                num_candidates=num_candidates,
+                discount=discount,
             )
 
-            discount_factor = get_discount_factor(root_gw, gw)
+            discount_factor = get_discount_factor(root_gw, gw, discount=discount)
             points -= hit_this_gw * discount_factor
             strat_dict["total_score"] += points
             strat_dict["points_per_gw"][gw] = points
@@ -249,14 +392,28 @@ def optimize(
         queue.task_done()
 
 
-def find_best_strat_from_json(tag: str) -> dict | None:
+def takes_a_hit(strat: dict) -> bool:
+    """Whether a strategy spends points on extra transfers."""
+    return any(hit > 0 for hit in strat.get("points_hit", {}).values())
+
+
+def find_best_strat_from_json(tag: str, min_hit_gain: float = 0.0) -> dict | None:
     """
     Look through all the files in our tmp directory that
     contain the prediction tag in their filename.
     Load the json, and find the strategy with the best 'total_score'.
+
+    min_hit_gain is how far ahead a strategy that takes a points hit must be
+    before it is preferred to the best strategy that doesn't. Predicted points
+    carry several points of uncertainty, so a hit that wins by a fraction of a
+    point is not evidence it is actually better; requiring a margin avoids paying
+    4 points to chase noise. The scores here are already net of the hit.
     """
     best_score = 0
     best_strat = None
+    best_no_hit_score = 0
+    best_no_hit_strat = None
+
     file_list = os.listdir(OUTPUT_DIR)
     for filename in file_list:
         if f"strategy_{tag}_" not in filename:
@@ -267,6 +424,23 @@ def find_best_strat_from_json(tag: str) -> dict | None:
             if strat["total_score"] > best_score:
                 best_score = strat["total_score"]
                 best_strat = strat
+            if not takes_a_hit(strat) and strat["total_score"] > best_no_hit_score:
+                best_no_hit_score = strat["total_score"]
+                best_no_hit_strat = strat
+
+    if (
+        min_hit_gain > 0
+        and best_strat is not None
+        and takes_a_hit(best_strat)
+        and best_no_hit_strat is not None
+        and best_score - best_no_hit_score < min_hit_gain
+    ):
+        print(
+            f"Best strategy takes a hit but only gains "
+            f"{best_score - best_no_hit_score:.2f}pts over the best strategy that "
+            f"doesn't (threshold {min_hit_gain:.2f}). Using the latter."
+        )
+        return best_no_hit_strat
 
     return best_strat
 
@@ -414,6 +588,11 @@ def run_optimization(
     profile: bool = False,
     is_replay: bool = False,  # for replaying seasons
     max_free_transfers: int = MAX_FREE_TRANSFERS,
+    consider_available_chips: bool = False,
+    random_state: int | None = None,
+    min_hit_gain: float = 0.0,
+    discount: float = DEFAULT_DISCOUNT,
+    num_candidates: int = NUM_TRANSFER_CANDIDATES,
 ) -> tuple[Squad, dict[str, dict[str, int | list[int]]] | None]:
     """
     This is the actual main function that sets up the multiprocessing
@@ -422,6 +601,8 @@ def run_optimization(
     The chip-related variables e.g. wildcard_week are -1 if that chip
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
+    If consider_available_chips is True, every chip the API says this team still
+    has is considered in any gameweek, rather than only those asked for explicitly.
     """
     if chip_gameweeks is None:
         chip_gameweeks = {}
@@ -496,8 +677,14 @@ def run_optimization(
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
 
     # Get a dict of what chips we definitely or possibly will play
-    # in each gw
-    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
+    # in each gw. Check against the chips this team actually still has, so we can't
+    # build a strategy around a chip that has already been used.
+    available_chips = None if is_replay else get_available_chips(fpl_team_id)
+    if consider_available_chips and available_chips:
+        # consider any remaining chip in any gameweek, unless already asked for
+        chip_gameweeks = {**dict.fromkeys(available_chips, 0), **chip_gameweeks}
+        print(f"Considering available chips: {', '.join(sorted(available_chips))}")
+    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks, available_chips)
 
     # Specific fix (aka hack) for the 2022 World Cup, where everyone
     # gets a free wildcard
@@ -561,12 +748,14 @@ def run_optimization(
     #  total_score
     #  num_free_transfers
     #  budget
+    abort = Event()
     for i in range(num_thread):
         processor = Process(
             target=optimize,
             args=(
                 squeue,
                 i,
+                num_expected_outputs,
                 gameweeks,
                 season,
                 tag,
@@ -578,6 +767,11 @@ def run_optimization(
                 update_progress,
                 reset_progress,
                 profile,
+                max_free_transfers,
+                abort,
+                random_state,
+                discount,
+                num_candidates,
             ),
         )
         processor.daemon = True
@@ -586,24 +780,15 @@ def run_optimization(
     # add starting node to the queue
     squeue.put((0, num_free_transfers, 0, 0, starting_squad, {}, "starting"))
 
-    # block until every node in the (dynamically-grown) strategy tree has been
-    # processed - i.e. the queue is empty and no worker is still processing an
-    # item that could enqueue further children.
-    squeue.join()
+    for i in range(len(procs)):
+        progress_bars[i].close()
+        progress_bars[i] = None
 
-    update_progress()
+    wait_for_processes(procs, abort, num_expected_outputs)
     total_progress.close()
-    for pb in progress_bars:
-        pb.close()
-
-    # tell each worker to shut down, then wait for them to exit
-    for _ in procs:
-        squeue.put(None)
-    for p in procs:
-        p.join()
 
     # find the best from all the strategies tried
-    best_strategy = find_best_strat_from_json(tag)
+    best_strategy = find_best_strat_from_json(tag, min_hit_gain=min_hit_gain)
 
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
@@ -678,7 +863,33 @@ def run_optimization(
     return best_squad, best_strategy
 
 
-def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
+def get_available_chips(
+    fpl_team_id: int | None = None, apifetcher: FPLDataFetcher = fetcher
+) -> list[str] | None:
+    """
+    Ask the API which chips this team still has. Returns None if we couldn't find
+    out (not logged in, API down), which callers should treat as "no information"
+    rather than "no chips".
+    """
+    try:
+        return apifetcher.get_available_chips(fpl_team_id)
+    # the fetcher uses curl_cffi, whose exceptions are unrelated to those of the
+    # `requests` package used for the Discord webhook above
+    except (curl_requests.exceptions.RequestException, KeyError, TypeError) as e:
+        warnings.warn(
+            f"Couldn't get available chips from the API:\n{e}\nAny chips requested "
+            "on the command line will be considered without checking you still "
+            "have them.",
+            stacklevel=2,
+        )
+        return None
+
+
+def construct_chip_dict(
+    gameweeks: list[int],
+    chip_gameweeks: dict,
+    available_chips: list[str] | None = None,
+) -> dict:
     """
     Given a dict of form {<chip_name>: <chip_gw>,...}
     where <chip_name> is e.g. 'wildcard', and <chip_gw> is -1 if chip
@@ -686,7 +897,29 @@ def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
     if it is definitely to be played that gw, return a dict
     { <gw>: {"chip_to_play": [<chip_name>],
              "chips_allowed": [<chip_name>,...]},...}
+
+    If available_chips is given, chips not in that list are dropped, so we can't
+    suggest a strategy built on a chip that has already been used. Pass None to
+    skip the check.
     """
+    if available_chips is not None:
+        unavailable = {
+            chip
+            for chip, gw in chip_gameweeks.items()
+            if int(gw) >= 0 and chip not in available_chips
+        }
+        if unavailable:
+            warnings.warn(
+                f"Ignoring chips that are not available for this team: "
+                f"{', '.join(sorted(unavailable))}",
+                stacklevel=2,
+            )
+            chip_gameweeks = {
+                chip: gw
+                for chip, gw in chip_gameweeks.items()
+                if chip not in unavailable
+            }
+
     chip_dict: dict[int, dict[str, str | list[str] | None]] = {}
     # first fill in any allowed chips
     for gw in gameweeks:
@@ -767,6 +1000,52 @@ def main():
         help="play bench_boost in the specified week. Choose 0 for 'any week'.",
         type=int,
         default=-1,
+    )
+    parser.add_argument(
+        "--consider_available_chips",
+        help=(
+            "consider playing any chip this team still has in any gameweek, instead "
+            "of only the chips named above. Requires FPL login."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--seed",
+        help=(
+            "random seed, so repeated runs on the same predictions give the same "
+            "suggestions. Omit for a different search each run."
+        ),
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
+        "--min_hit_gain",
+        help=(
+            "how many points a strategy taking a hit must gain over the best "
+            "strategy that doesn't before it is preferred. Predictions carry "
+            "several points of uncertainty, so a hit winning by a fraction of a "
+            "point is not evidence it is better. 0 disables the check."
+        ),
+        type=float,
+        default=0.0,
+    )
+    parser.add_argument(
+        "--discount",
+        help=(
+            "how much less a point in a later gameweek is worth (per gameweek). "
+            "1.0 weights the whole window equally, lower favours the short term."
+        ),
+        type=float,
+        default=DEFAULT_DISCOUNT,
+    )
+    parser.add_argument(
+        "--num_candidates",
+        help=(
+            "how many affordable replacements to score for each player considered "
+            "for sale. 1 takes the first player we can afford, as before."
+        ),
+        type=int,
+        default=NUM_TRANSFER_CANDIDATES,
     )
     parser.add_argument(
         "--num_free_transfers", help="how many free transfers do we have", type=int
@@ -877,4 +1156,9 @@ def main():
             num_thread,
             profile,
             is_replay=args.is_replay,
+            consider_available_chips=args.consider_available_chips,
+            random_state=args.seed,
+            min_hit_gain=args.min_hit_gain,
+            discount=args.discount,
+            num_candidates=args.num_candidates,
         )

@@ -392,7 +392,9 @@ def fixture_num_conceded(
     return n_error
 
 
-def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
+def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> int:
+    """Run every data check. Returns the total number of errors found, so callers
+    (e.g. the pipeline) can decide whether to trust the data."""
     print("Running checks for seasons:", seasons)
     print(SEPARATOR)
 
@@ -424,6 +426,7 @@ def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
         f"\nOVERALL: Passed {n_passed} out of {n_tests} tests with "
         f"{n_total_errors} errors."
     )
+    return n_total_errors
 
 
 if __name__ == "__main__":

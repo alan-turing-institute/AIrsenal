@@ -2,100 +2,258 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What is AIrsenal
+## Project Overview
 
-AIrsenal is a machine learning package for optimizing Fantasy Premier League (FPL) team selection and transfer decisions. It uses Bayesian statistical models to predict player/team performance, a greedy/brute-force approach to optimize transfers, and a DEAP genetic algorithm for initial whole-squad selection — all under FPL constraints (budget, squad size, position limits, chips, etc.).
+AIrsenal is a machine learning package for optimizing Fantasy Premier League (FPL) team selections. It uses statistical models to predict player performance and suggests optimal transfers and squad formations.
 
-## Commands
+**Python Support:** 3.10+ (`.python-version` pins 3.14; jaxlib is no longer version-pinned)
 
-Always run Python with `uv run` or inside the virtual environment (`source .venv/bin/activate`).
+## Environment
 
-**Install (including dev tools):**
+This repo lives under `~/Documents/Claude/`, which is iCloud-synced. **The venv must live
+outside iCloud** — with `.venv` in-tree, iCloud materialises files lazily and `import
+pandas` alone can block for minutes, which looks like a hang rather than an error.
+
+Set this in your shell profile (already required for every command below):
 ```bash
-uv sync --extra dev
+export UV_PROJECT_ENVIRONMENT="$HOME/.venvs/airsenal"
 ```
 
-**Run tests:**
+## Common Commands
+
+All commands need `uv run --no-sync` (the `--no-sync` avoids a reinstall on every
+invocation, which is slow even with the venv outside iCloud).
+
+### Setup & Installation
 ```bash
-uv run pytest airsenal/tests
-# Single test file:
-uv run pytest airsenal/tests/test_utils.py
-# Single test:
-uv run pytest airsenal/tests/test_utils.py::test_function_name
+uv sync --all-extras       # Install everything; needed for the full test suite
+```
+`--all-extras` rather than `--extra dev`: `test_api_utils.py` imports Flask, which lives
+in the `api` extra, so a dev-only install fails at collection.
+
+### Testing
+```bash
+uv run --no-sync pytest airsenal/tests                # Run all tests (~60s)
+uv run --no-sync pytest airsenal/tests/test_squad.py  # Run single test file
+uv run --no-sync pytest airsenal/tests -k "test_name" # Run tests matching pattern
+```
+Without `uv run`, a bare `pytest` may resolve to the system Python and fail with a
+confusing `PackageNotFoundError: No package metadata was found for airsenal`.
+
+### Code Quality
+```bash
+ruff check --fix .         # Lint with automatic fixes
+ruff format .              # Format code
+pre-commit run --all-files # Run all pre-commit hooks
+pre-commit install --install-hooks  # Setup git hooks (first time)
 ```
 
-**Lint and format:**
+### AIrsenal Pipeline
 ```bash
-uv run ruff check --fix .
-uv run ruff format .
+airsenal_run_pipeline      # Run full pipeline (setup/update, predict, optimize)
+airsenal_setup_initial_db  # Initialize database with 3 seasons of data
+airsenal_update_db         # Fetch latest data from FPL API
+airsenal_run_prediction --weeks_ahead 3   # Generate player predictions
+airsenal_run_optimization --weeks_ahead 3 # Suggest transfers
+airsenal_report            # Summarise squad, XI, captain and transfers in one place
+airsenal_env get           # View configuration
+airsenal_env set -k KEY -v VALUE  # Set config value
 ```
 
-**Type checking:**
-```bash
-uv run mypy airsenal/framework airsenal/scripts
-```
+### Model and optimiser tuning
 
-**Pre-commit hooks:**
-```bash
-pre-commit install
-pre-commit run --all-files
-```
+These change the advice you get. **Three default to off because the right value is
+empirical — settle them with `airsenal_replay_season` on a finished season, not by
+eye.** Turning them on untested is a guess dressed up as a setting.
 
-**Run the full pipeline (typical usage):**
+| Flag | Command | Default | What it does |
+|---|---|---|---|
+| `--xg_weight` | prediction | 0 | Blend expected goals/assists into the player model (0-1) |
+| `--min_hit_gain` | optimisation | 0 | Points a hit must gain over the best no-hit strategy |
+| `--condition_bonus_on_fixture` | prediction | off | Scale bonus by how favourable the fixture is |
+| `--discount` | optimisation | 14/15 | Per-gameweek discount: the dial between this week and next month |
+| `--num_candidates` | optimisation | 5 | Affordable replacements scored per player considered for sale |
+| `--min_fixtures_behind` | prediction | 3 | Recent matches used to estimate minutes |
+| `--seed` | pipeline | none | Reproducible suggestions; without it the search varies run to run |
+| `--check_data` | pipeline | off | Run the sanity checks after the DB update |
+| `--consider_available_chips` | pipeline | off | Consider any chip the API says you still hold |
+| `--seed` | make_squad | none | Reproducible squad from the genetic algorithm |
+
+**The squad builder's answer is much less determinate than it looks.** On 2026/27
+gameweek 1 data, six seeds at the default 100 population x 100 generations agreed on
+only 3 of 15 players while scoring within 4 points of each other. Raising both to 200
+tightened the spread and lifted every score. Run several seeds and take the best
+rather than trusting one run:
 ```bash
-uv run airsenal_run_pipeline
+airsenal_make_squad --season 2627 --num_gameweeks 5 --seed 99 --population_size 200 --num_generations 200
 ```
 
 ## Architecture
 
-### Package layout
+### Directory Structure
+- `airsenal/framework/` - Core business logic (models, optimization, utilities)
+- `airsenal/scripts/` - CLI entry points that call framework functions
+- `airsenal/tests/` - Test suite with fixtures in `conftest.py`
+- `airsenal/data/` - Historical JSON data files
+- `notebooks/` - Jupyter notebooks for experimentation
 
-- **`airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
-- **`airsenal/scripts/`** — CLI entry points; ideally just parse args and call framework functions
-- **`airsenal/tests/`** — pytest tests for framework code
-- **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
-- **`airsenal/api/`** — optional Flask API (work in progress)
+### Key Modules
+| Module | Purpose |
+|--------|---------|
+| `framework/schema.py` | SQLAlchemy ORM models (Player, Fixture, PlayerPrediction, etc.) |
+| `framework/data_fetcher.py` | FPL API client using curl_cffi |
+| `framework/squad.py` | Squad validation and management |
+| `framework/optimization_squad.py` | Genetic algorithm for full squad building |
+| `framework/optimization_transfers.py` | Genetic algorithm for transfer strategy |
+| `framework/player_model.py` | ML models for player predictions (JAX-based) |
+| `framework/prediction_utils.py` | Points calculation logic |
+| `framework/utils.py` | Heavily-used utility functions |
+| `framework/env.py` | Cross-platform configuration management |
 
-### Data flow
+### Data Flow
+1. `data_fetcher.py` pulls data from FPL API
+2. Data stored in SQLite database (schema in `schema.py`)
+3. `player_model.py` + `bpl_interface.py` generate predictions
+4. `optimization_*.py` uses DEAP genetic algorithms to find optimal transfers
+5. Results stored as `TransferSuggestion` and `PlayerPrediction` in database
 
-1. **Database init** (`fill_db_init.py`) — loads historical season data from `airsenal/data/` into a local SQLite database
-2. **Database update** (`update_db.py`) — fetches current-season fixtures, results, and player attributes from the FPL API via `curl_cffi`
-3. **Prediction** (`fill_predictedscore_table.py`) — runs BPL (Bayesian Premier League) team models and player-level models to predict points; writes to `PlayerPrediction` table
-4. **Optimization** (`fill_transfersuggestion_table.py`) — uses a greedy/brute-force search to find optimal transfers; writes to `TransferSuggestion` table
-5. **Apply** (`make_transfers.py`, `set_lineup.py`) — optionally posts transfers and lineup to the FPL API. NEVER run `make_transfers.py` yourself whilst testing changes as this leads to irreversible changes to the actual AIrsenal FPL team entry.
+## Code Style
 
-`airsenal_run_pipeline` is the top-level orchestrator for steps 1–5.
+- **PEP-8** with 88 character line length (ruff)
+- **Docstrings:** NumPy format preferred
+- **Type hints:** Encouraged, see `player_model.py` for examples
+- **MyPy:** Runs on `airsenal/framework` and `airsenal/scripts` only
 
-### Key framework modules
+### Function Argument Order Convention
+When functions take many arguments, follow this order:
+1. Other args
+2. player/player_id
+3. position
+4. team
+5. tag
+6. gameweek/gameweek_range
+7. season
+8. fpl_team_id
+9. dbsession
+10. apifetcher
+11. verbose
 
-| File | Purpose |
-|------|---------|
-| `schema.py` | SQLAlchemy ORM models (`Player`, `Fixture`, `PlayerScore`, `PlayerPrediction`, `Squad`, etc.) |
-| `data_fetcher.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
-| `prediction_utils.py` | BPL team-level match score predictions |
-| `player_model.py` | Conjugate Bayesian and Numpyro player performance models |
-| `optimization_utils.py` | Transfer optimization logic (greedy/brute-force) |
-| `optimization_squad.py` | Initial whole-squad optimization (DEAP genetic algorithm) |
-| `squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
-| `transaction_utils.py` | Transfer transaction management |
-| `utils.py` | Shared utilities and default database session |
+## Git Workflow
 
-### Database
+**Remotes matter here.** `origin` is the upstream project
+(`alan-turing-institute/AIrsenal`); `barrytho` is this fork and is the one to pull and
+push. `git pull origin main` drags in upstream work this setup has not been tested
+against — a mistake already made once in the scheduled runner script.
 
-SQLite, default location: `$AIRSENAL_HOME/data.db` (configurable via `AIRSENAL_DB_FILE` env var). SQLAlchemy v2.0+ ORM. The `dbsession` argument (defaulting to the session created in `schema.py`) is threaded through most framework functions.
+- **main** - Always functional, user-facing. Topic branches are merged into it here.
+- Features: branch from `main` as `feature/<description>`
+- Bugfixes: branch from `main` as `bugfix/<description>`
+- Do NOT rebase or rewrite history
+- Never push without being asked
 
-### Configuration
+When several topic branches touch the same functions, expect conflicts that are
+mechanical (parameters added side by side, not competing logic) — keep both sides.
 
-Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal_env set` to persist these under `AIRSENAL_HOME`.
+## Environment Variables
 
-### Prediction is single-threaded by design
+- `FPL_TEAM_ID` (required) - Your FPL team ID
+- `FPL_LOGIN` / `FPL_PASSWORD` (recommended) - For API authentication
+- `FPL_LEAGUE_ID` (optional) - For league standings
+- `AIRSENAL_DB_FILE` (optional) - Custom database path
+- `AIRSENAL_HOME` (optional) - Override config directory
 
-`fill_predictedscore_table.py` used to parallelize player predictions with a thread/process pool; this was removed because jax deadlocks under multi-threading, and prediction is fast enough without it. Don't reintroduce multi-threading/multiprocessing there (or in code that calls jax-based models) unless the deadlock issue is independently resolved.
+## Testing Notes
 
-## Code conventions
+- Tests use temporary in-memory SQLite database (configured in `conftest.py`)
+- Test data available at `airsenal/tests/testdata/testdata_1718_1819.db`
+- Coverage configured with pytest-cov in `pyproject.toml`
+- The test data predates FPL publishing xG (2022/23), so anything touching
+  `expected_goals` must cope with the column being entirely null
 
-- **Branch naming:** `feature/<issue>-<description>` or `bugfix/<issue>-<description>`; all new branches should be made from `develop`, and all pull requests should be made to merge into `develop`
-- **Function argument order** (where applicable): other args → `player`/`player_id` → `position` → `team` → `tag` → `gameweek` → `season` → `fpl_team_id` → `dbsession` → `apifetcher` → `verbose`
-- **Season strings:** `"2122"` for the 2021/22 season
-- **Position strings:** `"GK"`, `"DEF"`, `"MID"`, `"FWD"`, or `"all"`
-- Docstrings should follow numpydoc convention; type hints are encouraged
+## Gotchas
+
+Each of these has cost real time at least once.
+
+**The database is the expensive artefact.** It lives at
+`~/Library/Application Support/airsenal/data.db` and is not in git. Rebuilding means
+re-ingesting several seasons, so `airsenal_update_db` now copies it first and keeps
+the last 3 backups alongside it. Don't run `--clean` casually.
+
+**Nothing is interactive-safe.** AIrsenal prompts on stdin when it has no FPL login,
+and again when a database update fails. With no terminal those raise `EOFError` and
+kill the run, so anything headless (cron, CI, cloud) must pipe input:
+`yes n | uv run airsenal_run_pipeline ...`.
+
+**Between seasons the code looks broken but isn't.** `CURRENT_SEASON` is derived from
+the date, so it flips in June. Until the new season's fixtures are in the database,
+`NEXT_GAMEWEEK` falls back to the FPL API at *import* time — so a slow or failing API
+shows up as a slow or failing import of `airsenal.framework.utils`, far from the
+apparent cause.
+
+**A stray clone inside `airsenal/` is poison.** One ended up at `airsenal/AIrsenal/`
+(233 MB): being on the import path, pytest collected its tests twice and the linters
+scanned 4,000 extra files. Both it and `.claude/worktrees/` are gitignored now.
+
+**FPL entry IDs must be checked, not assumed.** `entry/<id>/` returning 404 while other
+IDs return 200 means the ID is wrong or the team doesn't exist for this season. The
+configured `6321674` currently 404s. Squad, bank and transfer history are all public
+for a valid ID — only chips-remaining and applying transfers need a login.
+
+**FPL reassigns element IDs every season, and so `Player.fpl_api_id` is only ever
+about the current one.** In August 2026 this had silently corrupted the database:
+219 IDs were held by two players at once, and `get_player_from_api_id` returns the
+first match, so this season's price, team and position landed on whoever was found
+first — Salah showed up as a £5.0m Liverpool player after leaving the league, and
+206 players not in the game became selectable. `sync_api_ids` in `update_db.py`
+repairs this and now runs before every other fill step. If squad suggestions ever
+contain someone who obviously isn't playing, check for duplicate `fpl_api_id`
+first.
+
+**Don't fork after fitting a model.** Prediction workers use an explicit `spawn`
+context, and must keep doing so. The team and player models are fitted before the
+workers start, so the parent holds live JAX thread pools; forking that leaves each
+child deadlocked on a mutex with no owning thread. The failure mode is silent —
+workers at 0% CPU and a parent blocked in `waitpid`, so the run hangs rather than
+crashing. Anything passed to those workers must be picklable, which is why they
+open their own DB session instead of receiving one.
+
+**A new season needs three things the repo doesn't ship.** `teams_<season>.csv`,
+`fifa_team_ratings_<season>.csv` and player data are all hand-curated per season
+upstream. Teams are now filled from the API automatically, and missing ratings fall
+back to the most recent season that has them, printing a warning. Adding a real
+`fifa_team_ratings_<season>.csv` is still worth doing — it's the only prior a
+promoted team has.
+
+**Tests share one dummy database, and `fill_players` gives up if any player already
+exists.** So a test that inserts a `Player` of its own empties the player list for
+every test that runs after it — with failures appearing in an unrelated file
+(`test_api_utils.py`) that passes when run alone. Use the `isolated_session`
+fixture for anything that writes rows.
+
+**FPL team IDs get reshuffled between seasons too, and `alternative_team_names` is
+a museum of dead ones.** `id 3` was Burnley several seasons ago and is now
+Bournemouth, `id 20` was Wolves and is now Sunderland. Anywhere the code walks
+`alternative_team_names` looking for the current team_id — as
+`fill_fixtures_from_api` used to — the first old entry that lists the number
+wins, and every current-season fixture comes out labelled with a team that isn't
+in the league. Nothing downstream matches after that, and the visible failure is
+half the squad predicting 0 points. Use the `Team` table (populated live from
+the same bootstrap-static call) for id → short-name lookups.
+
+**A season's `player_details_<season>.json` may ship without a `was_home` field.**
+2025-26's does. `fill_playerscore_table` used to bomb out with `KeyError` mid-run
+of `airsenal_setup_initial_db --clean`; it now falls back to `None`, and
+`find_fixture` disambiguates by kickoff_time and opponent instead. Worth
+remembering if a new season's data appears in a shape nobody has seen before —
+the fix is a `.get`, not a data patch.
+
+## Scheduled cloud run
+
+A claude.ai routine runs this daily at 17:00 UTC against the `barrytho` fork:
+`https://claude.ai/code/routines/trig_018LGAAdmdu1VUr8R9GCaXjc`
+
+It exits immediately unless the next FPL deadline is 12-36 hours away — that window is
+24h wide and the job is daily, so exactly one run per gameweek proceeds. Cron can't
+express "24h before the deadline" directly because deadlines move between Friday,
+Saturday and Tuesday. It has no credentials by design and is read-only: it recommends,
+it never submits transfers.

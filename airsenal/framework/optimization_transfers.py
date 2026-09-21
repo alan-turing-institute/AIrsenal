@@ -9,7 +9,10 @@ from multiprocessing import Process
 from operator import itemgetter
 
 from airsenal.framework.optimization_squad import make_new_squad
-from airsenal.framework.optimization_utils import get_discounted_squad_score
+from airsenal.framework.optimization_utils import (
+    DEFAULT_DISCOUNT,
+    get_discounted_squad_score,
+)
 from airsenal.framework.schema import Player
 from airsenal.framework.squad import Squad
 from airsenal.framework.utils import (
@@ -18,6 +21,10 @@ from airsenal.framework.utils import (
     fastcopy,
     get_predicted_points,
 )
+
+# how many affordable replacements to score for each player considered for sale.
+# 1 reproduces the original behaviour of taking the first player we can afford.
+NUM_TRANSFER_CANDIDATES = 5
 
 
 def make_optimum_single_transfer(
@@ -30,6 +37,8 @@ def make_optimum_single_transfer(
     bench_boost_gw=None,
     triple_captain_gw=None,
     verbose=False,
+    num_candidates=NUM_TRANSFER_CANDIDATES,
+    discount=DEFAULT_DISCOUNT,
 ):
     """
     If we want to just make one transfer, it's not unfeasible to try all
@@ -37,6 +46,9 @@ def make_optimum_single_transfer(
 
     We will order the list of potential transfers via the sum of
     expected points over a specified range of gameweeks.
+
+    num_candidates is how many affordable replacements to score for each player
+    we consider selling.
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
@@ -62,35 +74,49 @@ def make_optimum_single_transfer(
             # this was passed as a tuple (func, increment, pid)
             update_func_and_args[0](update_func_and_args[1], update_func_and_args[2])
 
-        new_squad = fastcopy(squad)
+        squad_without_p_out = fastcopy(squad)
         position = p_out.position
         if verbose:
             print(f"Removing player {p_out}")
-        new_squad.remove_player(p_out.player_id, gameweek=transfer_gw)
+        squad_without_p_out.remove_player(p_out.player_id, gameweek=transfer_gw)
+
+        # Try the best few affordable replacements rather than stopping at the first.
+        # The candidate list is ordered by predicted points, so the first player we
+        # can afford scores highest on their own - but a slightly cheaper option can
+        # leave money in the bank that buys a better squad, and only comparing whole
+        # squads can see that.
+        n_tried = 0
         for p_in in ordered_player_lists[position]:
+            if n_tried >= num_candidates:
+                break
             if p_in[0].player_id == p_out.player_id:
                 continue  # no point in adding the same player back in
+            new_squad = fastcopy(squad_without_p_out)
             added_ok = new_squad.add_player(p_in[0], gameweek=transfer_gw)
-            if added_ok:
+            if not added_ok:
                 if verbose:
-                    print(f"Added player {p_in[0]}")
-                total_points = get_discounted_squad_score(
-                    new_squad,
-                    gameweek_range,
-                    tag,
-                    root_gw=root_gw,
-                    bench_boost_gw=bench_boost_gw,
-                    triple_captain_gw=triple_captain_gw,
-                )
-                if total_points > best_score:
-                    best_score = total_points
-                    best_pid_out = [p_out.player_id]
-                    best_pid_in = [p_in[0].player_id]
-                    best_squad = new_squad
-                break
+                    print(f"Failed to add {p_in[0]}")
+                continue
+
+            n_tried += 1
             if verbose:
-                print(f"Failed to add {p_in[0]}")
-        if not new_squad.is_complete() and verbose:
+                print(f"Added player {p_in[0]}")
+            total_points = get_discounted_squad_score(
+                new_squad,
+                gameweek_range,
+                tag,
+                root_gw=root_gw,
+                bench_boost_gw=bench_boost_gw,
+                triple_captain_gw=triple_captain_gw,
+                discount=discount,
+            )
+            if total_points > best_score:
+                best_score = total_points
+                best_pid_out = [p_out.player_id]
+                best_pid_in = [p_in[0].player_id]
+                best_squad = new_squad
+
+        if n_tried == 0 and verbose:
             print(f"Failed to find a valid replacement for {p_out.player_id}")
 
     if best_squad is None:
@@ -110,12 +136,17 @@ def make_optimum_double_transfer(
     bench_boost_gw=None,
     triple_captain_gw=None,
     verbose=False,
+    num_candidates=NUM_TRANSFER_CANDIDATES,
+    discount=DEFAULT_DISCOUNT,
 ):
     """
     If we want to just make two transfers, it's not infeasible to try all
     possibilities in turn.
     We will order the list of potential subs via the sum of expected points
     over a specified range of gameweeks.
+
+    num_candidates is how many affordable partners to score for each first
+    incoming player.
     """
     if not gameweek_range:
         gameweek_range = [NEXT_GAMEWEEK]
@@ -161,7 +192,12 @@ def make_optimum_double_transfer(
                 added_1_ok = new_squad_add_1.add_player(pin_1[0], gameweek=transfer_gw)
                 if not added_1_ok:
                     continue
+                # as in the single transfer case, score the best few affordable
+                # partners rather than only the first one that fits
+                n_tried = 0
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
+                    if n_tried >= num_candidates:
+                        break
                     new_squad_add_2 = fastcopy(new_squad_add_1)
                     if (
                         pin_2[0] == pin_1[0]
@@ -173,6 +209,7 @@ def make_optimum_double_transfer(
                         pin_2[0], gameweek=transfer_gw
                     )
                     if added_2_ok:
+                        n_tried += 1
                         # calculate the score
                         total_points = get_discounted_squad_score(
                             new_squad_add_2,
@@ -181,13 +218,13 @@ def make_optimum_double_transfer(
                             root_gw=root_gw,
                             bench_boost_gw=bench_boost_gw,
                             triple_captain_gw=triple_captain_gw,
+                            discount=discount,
                         )
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]
                             best_pid_in = [pin_1[0].player_id, pin_2[0].player_id]
                             best_squad = new_squad_add_2
-                        break
 
     if best_squad is None:
         msg = "Failed to find valid double transfer for squad"
@@ -207,6 +244,7 @@ def make_random_transfers(
     season=CURRENT_SEASON,
     bench_boost_gw=None,
     triple_captain_gw=None,
+    discount=DEFAULT_DISCOUNT,
 ):
     """
     choose nsubs random players to sub out, and then select players
@@ -292,6 +330,7 @@ def make_random_transfers(
             root_gw=root_gw,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
+            discount=discount,
         )
         if total_points > best_score:
             best_score = total_points
@@ -316,6 +355,9 @@ def make_best_transfers(
     season: str,
     num_iter: int = 100,
     update_func_and_args: tuple[Callable, float, Process] | None = None,
+    random_state: int | None = None,
+    num_candidates: int = NUM_TRANSFER_CANDIDATES,
+    discount: float = DEFAULT_DISCOUNT,
 ) -> tuple[Squad, dict[str, list[int]], float]:
     """
     Return a new squad and a dictionary {"in": [player_ids],
@@ -353,6 +395,8 @@ def make_best_transfers(
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args,
+            num_candidates=num_candidates,
+            discount=discount,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -367,6 +411,8 @@ def make_best_transfers(
             triple_captain_gw=triple_captain_gw,
             bench_boost_gw=bench_boost_gw,
             update_func_and_args=update_func_and_args,
+            num_candidates=num_candidates,
+            discount=discount,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -385,6 +431,7 @@ def make_best_transfers(
             triple_captain_gw=triple_captain_gw,
             population_size=num_iter,
             generations=num_iter,
+            random_state=random_state,
         )
         _in = [p.player_id for p in new_squad.players]
         players_in = [p for p in _in if p not in _out]  # remove duplicates
@@ -403,6 +450,7 @@ def make_best_transfers(
             season=season,
             bench_boost_gw=bench_boost_gw,
             triple_captain_gw=triple_captain_gw,
+            discount=discount,
         )
         transfer_dict = {"in": players_in, "out": players_out}
 
@@ -418,6 +466,7 @@ def make_best_transfers(
         root_gw=root_gw,
         bench_boost_gw=bench_boost_gw,
         triple_captain_gw=triple_captain_gw,
+        discount=discount,
     )
 
     if num_transfers == "F":

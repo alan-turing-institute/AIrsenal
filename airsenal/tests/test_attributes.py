@@ -163,3 +163,72 @@ def test_is_injured_or_suspended():
     assert player.is_injured_or_suspended(season, 1, 1) is False
     # gameweek after last available: return status as of last available
     assert player.is_injured_or_suspended(season, 6, 1) is True
+
+
+def make_player_with_availability():
+    """Player with a range of chance_of_playing values across gameweeks."""
+    player_id = 1
+    season = "1920"
+    # gw: (chance_of_playing_next_round, return_gameweek)
+    gw_dict = {
+        2: (100, None),
+        3: (75, None),
+        4: (50, 5),
+        5: (0, None),
+        6: (None, None),
+    }
+
+    player = Player()
+    player.player_id = player_id
+    player.name = "Test Player"
+    player.attributes = []
+
+    for gw, (chance, return_gw) in gw_dict.items():
+        pa = PlayerAttributes()
+        pa.season = season
+        pa.team = "ABC"
+        pa.gameweek = gw
+        pa.price = 50
+        pa.position = "MID"
+        pa.player_id = player_id
+        pa.chance_of_playing_next_round = chance
+        pa.return_gameweek = return_gw
+        player.attributes.append(pa)
+
+    return player, season
+
+
+def test_availability_is_a_probability_not_a_cliff_edge():
+    """A 75% doubt should discount the player, not be ignored - the old
+    is_injured_or_suspended treated 75% and 100% identically."""
+    player, season = make_player_with_availability()
+
+    assert player.availability(season, 2, 2) == 1.0
+    assert player.availability(season, 3, 3) == 0.75
+    assert player.availability(season, 5, 6) == 0.0
+
+
+def test_availability_none_means_no_doubt():
+    """FPL reports null when there is no injury news at all."""
+    player, season = make_player_with_availability()
+    assert player.availability(season, 6, 6) == 1.0
+
+
+def test_availability_expected_back_before_fixture():
+    """50% for the next round, but expected back by gw5, so gw5 is unaffected."""
+    player, season = make_player_with_availability()
+    assert player.availability(season, 4, 4) == 0.5
+    assert player.availability(season, 4, 5) == 1.0
+
+
+def test_availability_agrees_with_is_injured_or_suspended_at_the_extremes():
+    """Where the old cliff-edge said 'out', availability must be 0; where it said
+    'fine' and there is no doubt, availability must be 1."""
+    player, season = make_player_with_availability()
+    for current_gw, fixture_gw in [(2, 2), (3, 3), (4, 4), (4, 5), (5, 6), (6, 6)]:
+        ruled_out = player.is_injured_or_suspended(season, current_gw, fixture_gw)
+        avail = player.availability(season, current_gw, fixture_gw)
+        if ruled_out:
+            assert avail <= 0.5, (current_gw, fixture_gw)
+        else:
+            assert avail > 0.5, (current_gw, fixture_gw)
