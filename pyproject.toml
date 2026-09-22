@@ -52,7 +52,6 @@ dev = [
     "import-linter>=2.14",
 ]
 tools = [
-    "thefuzz>=0.22.1",
     "matplotlib>=3.8.3",
     "scipy>=1.15.3",
 ]
@@ -209,8 +208,6 @@ module = [
     "scipy.*",
     # only installed with the "plot" extra
     "matplotlib.*",
-    # only used from tools/, with the "tools" extra
-    "thefuzz.*",
 ]
 ignore_missing_imports = true
 
