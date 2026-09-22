@@ -1,7 +1,7 @@
 """
 The payload that decides which eleven, which captain and which bench order get posted.
 
-As `test_transfers.py`: only the pure parts, and nothing here reaches the network.
+Only the pure parts are tested, and nothing here reaches the network.
 `build_lineup_payload` turns a squad into the list the API wants, and
 `get_lineup_from_payload` reads one back; between them they are the whole of what
 `set_lineup` sends, so the numbering is asserted rather than assumed.

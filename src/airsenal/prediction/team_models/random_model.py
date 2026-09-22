@@ -2,8 +2,7 @@
 A team model whose predictions are random but well-formed.
 
 Used as a control in `airsenal replay`: a season played on random scorelines is
-the floor a real model has to clear. Standalone rather than a bpl subclass, so
-the parts it does not support are the parts it does not claim.
+the floor a real model has to clear.
 """
 
 from collections.abc import Iterable, Sequence
@@ -70,12 +69,7 @@ class RandomTeamModel:
         home: bool | None = True,
         **kwargs: Any,
     ) -> np.ndarray:
-        """
-        Probability that `team` scores each of `n` goals.
-
-        The opponent and home advantage are ignored: this model is deliberately
-        indifferent to who is playing.
-        """
+        """Probability that `team` scores each of `n` goals, whoever it plays."""
         del opponent, home, kwargs
         team_name = team if isinstance(team, str) else next(iter(team))
         probabilities = self._goal_probabilities.get(str(team_name))

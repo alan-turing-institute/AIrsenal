@@ -26,10 +26,9 @@ def get_last_complete_gameweek_of_player_scores_in_db(
     """
     The last gameweek every finished fixture has player scores for.
 
-    The counterpart to `get_last_complete_gameweek_in_db`, which answers the same
-    question for the result table. The two are separate because they are filled by
-    separate calls that commit separately: a failure between them leaves the player
-    scores behind the results.
+    The counterpart to `get_last_complete_gameweek_in_db` for the result table. The
+    two tables are filled by separate calls that commit separately, so a failure
+    between them leaves the player scores behind the results.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     scored = (
@@ -173,7 +172,7 @@ def get_recent_playerscore_rows(
             or_(
                 PlayerScore.minutes >= 60,
                 PlayerScore.chance_of_playing == 100,
-                # rows written before chance_of_playing was recorded
+                # no availability recorded for the match
                 PlayerScore.chance_of_playing.is_(None),
             )
         )

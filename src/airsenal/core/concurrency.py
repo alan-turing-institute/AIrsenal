@@ -42,14 +42,12 @@ def set_multiprocessing_start_method() -> None:
     """
     Force the `fork` start method on posix. No-op elsewhere.
 
-    macOS defaults to `spawn`, and the transfer search cannot run under it: it
-    hands its workers local progress callbacks, which pickle cannot serialise.
-    Under spawn it does not run slower, it fails.
+    macOS defaults to `spawn`, and the transfer search fails under it: it hands
+    its workers local progress callbacks, which pickle cannot serialise.
 
-    Idempotent and forcing, because `set_start_method` raises once a context has
-    been set - and two `AIrsenalPipeline.run()` calls, a replay loop, or merely
-    constructing a Queue first will each have set one. Better to force it here
-    than to raise after a full prediction stage has run.
+    Forcing, because `set_start_method` raises once a context has been set - and
+    a second `AIrsenalPipeline.run()`, a replay loop, or constructing a Queue
+    first will each have set one.
     """
     if os.name != "posix":
         return
@@ -97,11 +95,9 @@ class CustomQueue(JoinableQueue[T]):
     implement, so it raises NotImplementedError there. This keeps a
     `SharedCounter` instead, stepped on every `put()` and `get()`.
 
-    `JoinableQueue` rather than plain `Queue` for `task_done()`/`join()`, which
-    track unfinished tasks through a semaphore rather than `sem_getvalue()`. That
-    is what lets the search tell when a tree of tasks that grows as it is walked -
-    processing one node enqueues its children - has fully drained, without
-    knowing the total in advance.
+    `JoinableQueue` for `task_done()`/`join()`, which do not need
+    `sem_getvalue()` and let the search tell when a tree of tasks that grows as
+    it is walked has fully drained.
     """
 
     def __init__(self) -> None:
@@ -129,19 +125,14 @@ class StallWatchdog:
     """
     Write this process's stacks to a file if it stops making progress.
 
-    A worker that deadlocks - on a lock inherited across `fork`, say - stays
-    alive, so the parent cannot tell it apart from one doing slow work: the run
-    simply stops, with no error and no clue as to where. The watchdog notices
-    that a single task has taken implausibly long and dumps the worker's own
-    tracebacks, which is the only way to see where it stopped from the inside.
+    A worker deadlocked on a lock inherited across `fork` stays alive, so the
+    run stops with no error; the dumped tracebacks show where.
 
-    Nothing is logged from the watchdog thread on purpose. If the process is
-    wedged on the console lock, logging is exactly what would wedge the
-    watchdog too; the file is written first and stands on its own.
+    Nothing is logged from the watchdog thread: if the process is wedged on the
+    console lock, logging would wedge the watchdog too.
 
-    Only time spent *working* counts. A worker waiting on an empty queue has
-    not stalled - that is most of them, most of the way through a run, and
-    treating it as a stall would bury the one dump that matters.
+    Only time spent working counts. A worker waiting on an empty queue has not
+    stalled.
 
     Args:
         name: Used in the dump's filename, e.g. `worker-3`.

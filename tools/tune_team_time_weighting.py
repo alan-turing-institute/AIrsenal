@@ -50,7 +50,7 @@ def evaluate_epsilon(
 ) -> EpsilonResult:
     """Score one epsilon across every season, walking each one forward."""
     total = ModelScore()
-    for season in track(seasons, desc="Season"):
+    for season in track(seasons, description="Season"):
         with session_scope() as dbsession:
             max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
             gameweek_start = first_gameweek or 1
@@ -105,7 +105,7 @@ def main() -> None:
             first_gameweek=args.first_gameweek,
             last_gameweek=args.last_gameweek,
         )
-        for epsilon in track(grid, desc="Epsilon")
+        for epsilon in track(grid, description="Epsilon")
     ]
 
     best = max(results, key=lambda r: r.score.mean_log_probability)

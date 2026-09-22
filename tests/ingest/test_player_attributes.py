@@ -117,13 +117,7 @@ def current_rows(dbsession):
 
 
 def test_every_player_gets_a_row_for_the_gameweek_being_filled(dbsession, api):
-    """
-    Not for whichever gameweek the previous player's history happened to end on.
-
-    The walk back through a player's history used to run in a variable named for
-    the gameweek being filled, so after the first player every subsequent row was
-    written against the last gameweek that player had played.
-    """
+    """Not for whichever gameweek the previous player's history happened to end on."""
     fill_attributes_table_from_api(SEASON, dbsession=dbsession)
     assert sorted(current_rows(dbsession)) == [1, 2]
 
@@ -320,11 +314,10 @@ def test_the_gameweek_being_filled_gets_one_row_not_two(dbsession, api_mid_deadl
     """
     A deadline that has passed puts that gameweek in the player's history too.
 
-    The session does not autoflush, so the history walk's lookup could not see
-    the row the summary data had just added and made a second one - which the
-    unique constraint on (player, season, gameweek) then refused, taking
-    `airsenal run --clean` down for the whole window between a deadline and its
-    first kickoff.
+    The session does not autoflush, so a query in the history walk cannot see the
+    row the summary data has just added. A second row would break the unique
+    constraint on (player, season, gameweek) for the whole window between a
+    deadline and its first kickoff.
     """
     fill_attributes_table_from_api(SEASON, dbsession=dbsession)
 

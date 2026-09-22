@@ -90,11 +90,9 @@ def test_reporting_each_generation_does_not_change_the_search():
 
 def test_deap_class():
     """Basic test of DEAP optimization."""
-    # Mock the dependencies that require database access
     with patch(f"{MODULE}.list_players") as mock_list_players:
-        # Create simple mock players
         mock_players = []
-        for i in range(40):  # 40 total players
+        for i in range(40):
             player = Mock()
             player.player_id = f"player_{i}"
             player.name = f"Player {i}"
@@ -111,17 +109,14 @@ def test_deap_class():
             player.price.return_value = 50  # £5.0m
             mock_players.append(player)
 
-        # Return appropriate players per position
         def mock_list_players_side_effect(position=None, **kwargs):
             return [p for p in mock_players if p.position() == position]
 
         mock_list_players.side_effect = mock_list_players_side_effect
 
-        # Mock get_predicted_points_for_player
         with patch(f"{MODULE}.get_predicted_points_for_player") as mock_get_points:
-            mock_get_points.return_value = {1: 5.0, 2: 4.0, 3: 6.0}  # Some points
+            mock_get_points.return_value = {1: 5.0, 2: 4.0, 3: 6.0}
 
-            # Initialize optimizer
             optimizer = SquadOpt(
                 gameweeks=[1, 2, 3],
                 tag="test_tag",
@@ -129,7 +124,6 @@ def test_deap_class():
                 scoring=SquadScoringConfig(budget=1000, sub_weights=SubWeights()),
             )
 
-            # Check basic properties
             assert optimizer.gameweeks == [1, 2, 3]
             assert optimizer.tag == "test_tag"
             assert optimizer.scoring.budget == 1000
@@ -138,9 +132,8 @@ def test_deap_class():
 
 def test_deap_optimization_creates_valid_squad():
     """Test that DEAP optimization creates a valid squad that meets all constraints."""
-    # Mock the dependencies that require database access
     with patch(f"{MODULE}.list_players") as mock_list_players:
-        # Create mock players with varying prices and teams to test constraints
+        # varying prices and teams, so the constraints bite
         mock_players = []
         for i in range(60):  # More players to give algorithm choice
             player = Mock()
@@ -180,13 +173,11 @@ def test_deap_optimization_creates_valid_squad():
             player.price = make_price_func(price)
             mock_players.append(player)
 
-        # Return appropriate players per position
         def mock_list_players_side_effect(position=None, **kwargs):
             return [p for p in mock_players if p.position() == position]
 
         mock_list_players.side_effect = mock_list_players_side_effect
 
-        # Mock get_predicted_points_for_player with realistic variance
         with patch(f"{MODULE}.get_predicted_points_for_player") as mock_get_points:
             # Premium players get more points
             def mock_points_side_effect(player, tag, season=None, dbsession=None):
@@ -252,11 +243,9 @@ def test_deap_optimization_creates_valid_squad():
 
                 return (total_points,)
 
-            # Patch the _evaluate_individual method at the class level
             with patch.object(
                 SquadOpt, "_evaluate_individual", mock_evaluate_individual
             ):
-                # Initialize optimizer
                 optimizer = SquadOpt(
                     gameweeks=[1, 2, 3],
                     tag="test_tag",
@@ -330,10 +319,8 @@ def test_a_search_that_finds_no_legal_squad_says_so():
     """
     A budget no fifteen players fit into is reported where it is known.
 
-    Every `add_player` in `make_new_squad` returns a bool nobody read, so the
-    shortfall used to surface as "Squad is incomplete" from inside scoring -
-    several frames from the search, and naming neither the budget nor how many
-    players were found.
+    `make_new_squad` checks the squad it assembled is complete, and the error
+    names the budget and how many players were found.
     """
     with (
         past_data_session_scope() as ts,

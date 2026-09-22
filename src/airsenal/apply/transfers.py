@@ -97,10 +97,9 @@ def get_sell_price(
     """
     What this entry can sell a player for, as the FPL API prices them.
 
-    The transfer endpoint is given this figure, so it is the API's own selling
-    price that is wanted rather than one worked out from the purchase price in
-    the transactions table. That estimate is still the fallback when the API
-    cannot say - it is only right while the database is in step with the entry.
+    The transfer endpoint is given this figure. When the API cannot say, it is
+    estimated from the transactions table instead, which is only right while the
+    database is in step with the entry.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher(team_id)
     squad = get_starting_squad(
@@ -143,7 +142,7 @@ def get_suggested_transfers(
     )
     if not rows:
         logger.warning(
-            "No transfer suggestions found for GW %s, %s season, FPL team id %s",
+            "No transfer suggestions found for gameweek %s, %s season, FPL team id %s",
             next_gameweek(),
             CURRENT_SEASON,
             fpl_team_id,
@@ -313,7 +312,7 @@ def build_init_priced_transfers(
 
 
 # Only the two squad chips are part of a transfer. Bench boost and triple captain
-# are lineup chips
+# are lineup chips.
 TRANSFER_CHIP_FIELDS: dict[str, str] = {
     Chip.WILDCARD: "wildcard",
     Chip.FREE_HIT: "freehit",

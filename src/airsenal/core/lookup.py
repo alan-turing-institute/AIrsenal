@@ -14,10 +14,8 @@ class ConfigError(ValueError):
     """
     An unusable name or option came from the command line.
 
-    Distinct from a plain ValueError so the CLI can report it as a bad option
-    rather than as a crash (see `main_cli` in `cli/main.py`, which exits 2 on
-    one), without also swallowing genuine bugs. It is also what a team model
-    raises to reject an `--epsilon` it cannot honour.
+    `main_cli` in `cli/main.py` reports it as a bad option and exits 2, rather
+    than treating it as a crash.
     """
 
 

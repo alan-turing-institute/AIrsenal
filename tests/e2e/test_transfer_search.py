@@ -43,12 +43,7 @@ SEARCH_GAMEWEEKS = FUTURE_GAMEWEEKS[:2]
 
 
 @pytest.fixture(scope="module")
-def seeded(pipeline_db):
-    return pipeline_db
-
-
-@pytest.fixture(scope="module")
-def tag(seeded):
+def tag(pipeline_db):
     return make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS,
         season=SEASON,
@@ -56,25 +51,46 @@ def tag(seeded):
             team_model=build_team_model("constant"),
             player_model=build_player_model("constant"),
         ),
-        dbsession=seeded,
+        dbsession=pipeline_db,
     )
 
 
 @pytest.fixture(scope="module")
-def starting_squad(seeded, tag):
+def starting_squad(pipeline_db, tag):
     optimizer = GeneticSquadOptimizer(
         GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
     )
     return optimizer.optimize(
         SquadRequest(
-            gameweeks=SEARCH_GAMEWEEKS, tag=tag, season=SEASON, dbsession=seeded
+            gameweeks=SEARCH_GAMEWEEKS, tag=tag, season=SEASON, dbsession=pipeline_db
         )
     )
 
 
+def grow_tree(request, config):
+    """Grow the whole tree with one in-thread worker, and return its finished plans."""
+    work: CustomQueue = CustomQueue()
+    finished: queue_module.Queue = queue_module.Queue()
+    worker = threading.Thread(
+        target=optimize, args=(work, 0, finished, request, config), daemon=True
+    )
+    worker.start()
+    # the root node, which exists only to put this gameweek's moves on the queue
+    squad = request.starting_squad
+    work.put((GameweekMove(), request.num_free_transfers, 0, 0, squad, None))
+    work.join()
+    work.put(None)
+    worker.join(timeout=120)
+    assert not worker.is_alive(), "the worker did not shut down"
+
+    plans = []
+    while not finished.empty():
+        plans.append(finished.get())
+    return plans
+
+
 @pytest.fixture(scope="module")
-def result(seeded, tag, starting_squad):
-    """Grow the whole tree with one in-thread worker, then read the answer off it."""
+def result(tag, starting_squad):
     request = TransferSearchRequest(
         starting_squad=starting_squad,
         gameweeks=SEARCH_GAMEWEEKS,
@@ -85,24 +101,7 @@ def result(seeded, tag, starting_squad):
         constraints=TransferConstraints(max_opt_transfers=1),
     )
     config = TreeSearchConfig(num_thread=1, num_iterations=5)
-
-    work: CustomQueue = CustomQueue()
-    finished: queue_module.Queue = queue_module.Queue()
-    worker = threading.Thread(
-        target=optimize, args=(work, 0, finished, request, config), daemon=True
-    )
-    worker.start()
-    # the root node, which exists only to put this gameweek's moves on the queue
-    work.put((GameweekMove(), request.num_free_transfers, 0, 0, starting_squad, None))
-    work.join()
-    work.put(None)
-    worker.join(timeout=120)
-    assert not worker.is_alive(), "the worker did not shut down"
-
-    strategies = []
-    while not finished.empty():
-        strategies.append(finished.get())
-    return TransferSearchResult.from_plans(strategies)
+    return TransferSearchResult.from_plans(grow_tree(request, config))
 
 
 def test_the_tree_produces_finished_strategies(result):
@@ -166,7 +165,7 @@ class RecordingSquadOptimizer:
 
 
 def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
-    seeded, tag, starting_squad
+    tag, starting_squad
 ):
     """
     A wildcard rebuilds with the squad optimizer the caller passed.
@@ -191,18 +190,7 @@ def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
         squad_optimizer=optimizer,
     )
     config = TreeSearchConfig(num_thread=1, num_iterations=5)
-
-    work: CustomQueue = CustomQueue()
-    finished: queue_module.Queue = queue_module.Queue()
-    worker = threading.Thread(
-        target=optimize, args=(work, 0, finished, request, config), daemon=True
-    )
-    worker.start()
-    work.put((GameweekMove(), request.num_free_transfers, 0, 0, starting_squad, None))
-    work.join()
-    work.put(None)
-    worker.join(timeout=120)
-    assert not worker.is_alive(), "the worker did not shut down"
+    grow_tree(request, config)
 
     assert optimizer.requests, "the wildcard rebuild did not reach the given optimizer"
     # the search's --num-iterations arrives as the effort budget to size to
@@ -211,7 +199,7 @@ def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
 
 @pytest.mark.parametrize("chip", [None, Chip.WILDCARD])
 def test_the_bench_weighting_on_the_request_reaches_the_search(
-    seeded, tag, starting_squad, chip
+    tag, starting_squad, chip
 ):
     """
     The bench weighting reaches the transfer search, not just the squad builder.
@@ -234,21 +222,9 @@ def test_the_bench_weighting_on_the_request_reaches_the_search(
             scoring=scoring,
         )
         config = TreeSearchConfig(num_thread=1, num_iterations=5)
-        work: CustomQueue = CustomQueue()
-        finished: queue_module.Queue = queue_module.Queue()
-        worker = threading.Thread(
-            target=optimize, args=(work, 0, finished, request, config), daemon=True
-        )
-        worker.start()
-        work.put((GameweekMove(), 1, 0, 0, starting_squad, None))
-        work.join()
-        work.put(None)
-        worker.join(timeout=120)
-        assert not worker.is_alive(), "the worker did not shut down"
-        plans = []
-        while not finished.empty():
-            plans.append(finished.get())
-        return TransferSearchResult.from_plans(plans).best.total_score
+        return TransferSearchResult.from_plans(
+            grow_tree(request, config)
+        ).best.total_score
 
     with_bench = score(SquadScoringConfig())
     without_bench = score(SquadScoringConfig(sub_weights=SubWeights.none()))

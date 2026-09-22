@@ -48,12 +48,9 @@ class XGTeamModel:
     Expected goals from a team's attack, its opponent's defence, and the venue.
 
     Fitted to the expected goals in past matches rather than to the goals
-    themselves, on the usual argument that a shot's chance of going in says more
-    about the next match than whether it happened to. It predicts a mean and
-    nothing else - there is no distribution over goal *counts* to be had from a
-    continuous quantity - so it is an `ExpectedGoalsTeamModel`, and reaches the
-    points calculation through `ConwayMaxwellScorelines`, which is what its
-    `TEAM_MODELS` entry wraps it in.
+    themselves. It predicts a mean and nothing else, so it is an
+    `ExpectedGoalsTeamModel`, and its `TEAM_MODELS` entry wraps it in
+    `ConwayMaxwellScorelines`.
 
     The ratings are multiplicative and average one: an attack of 1.2 creates a
     fifth more than the league does, against the same defence at the same venue.
@@ -142,12 +139,7 @@ class XGTeamModel:
         )
 
     def _weights(self, training_data: TeamFitData, played: np.ndarray) -> np.ndarray:
-        """
-        How much each match counts, from how long ago it was played.
-
-        Rescaled to sum to the number of matches, as bpl's models and
-        `scale_goals_by_minutes` both do.
-        """
+        """How much each match counts, rescaled to sum to the number of matches."""
         if not self.config.epsilon:
             return np.ones(int(played.sum()))
         time_diff = np.asarray(training_data["time_diff"], dtype=float)[played]

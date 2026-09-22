@@ -147,9 +147,7 @@ def test_a_lineup_chip_adds_nothing_to_the_transfer_payload(chip):
     """
     Only the two squad chips belong in a transfer.
 
-    The payload used to be built by stripping the underscore out of whatever chip
-    the suggestion carried, which posted a `benchboost` key the transfers endpoint
-    does not define.
+    The transfers endpoint defines no key for a lineup chip, so none is sent.
     """
     payload = build_transfer_payload([], chip, 7, FakeFetcher())
     assert payload["wildcard"] is False
@@ -261,11 +259,10 @@ def test_the_initial_squad_is_built_from_this_entrys_own_suggestions(
     monkeypatch, priced_world
 ):
     """
-    A replay's from-scratch squad is not bought for the real entry.
+    The suggestions are read for this entry and the current season only.
 
-    The suggestions were read unfiltered, so the newest anywhere in the table
-    won - and a replay's squad build is fifteen "in" rows for a dummy entry in a
-    past season, exactly the shape that passes the count check below.
+    A replay's squad build is fifteen "in" rows for a dummy entry in a past season,
+    which would pass the count check if it were read instead.
     """
     asked = {}
 
@@ -307,9 +304,9 @@ def test_a_sale_is_priced_as_the_api_prices_it(monkeypatch):
     """
     The transfer endpoint is handed this figure, so it has to be the API's own.
 
-    Working it out from the purchase price in the transactions table is only
-    right while the database is in step with the entry, and it is the fallback
-    inside `sell_price` for when the API cannot say - not the first choice here.
+    Working it out from the transactions table is the fallback inside `sell_price`
+    for when the API cannot say, because it is only right while the database is in
+    step with the entry.
     """
     squad = RecordingSquad(player_id=7)
     monkeypatch.setattr(transfers_module, "get_starting_squad", lambda **_k: squad)

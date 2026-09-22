@@ -24,10 +24,9 @@ def fit_player_data(
     """
     Fit the player model for a given position and return calculated probabilities.
 
-    Hyperparameters live on the model, not here: pass a model constructed with
-    the config you want, e.g. `XGPlayerModel(XGPlayerConfig(...))`. `None` is
-    whatever `DEFAULT_PLAYER_MODEL` names, so that fitting without saying which
-    model cannot quietly disagree with what a run would have used.
+    Hyperparameters live on the model: pass one constructed with the config you
+    want, e.g. `XGPlayerModel(XGPlayerConfig(...))`. `None` means the model
+    `DEFAULT_PLAYER_MODEL` names.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if model is None:

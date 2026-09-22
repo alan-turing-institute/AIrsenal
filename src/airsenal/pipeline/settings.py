@@ -46,11 +46,9 @@ class PipelineSettings:
     fpl_team_id: int | None = None
     n_gameweeks: int = DEFAULT_N_GAMEWEEKS
     season: str = CURRENT_SEASON
-    # Where the window starts. None means the next gameweek (valid for current season
-    # only).
+    # Where the window starts. None means the next gameweek (current season only).
     gameweek_start: int | None = None
-    # Where it ends, inclusive, for a caller that names both ends rather than a
-    # length. Only one of n_gameweeks and gameweek_end should be set.
+    # Where it ends, inclusive. Overrides n_gameweeks when set.
     gameweek_end: int | None = None
     chips: ChipGameweeks = field(default_factory=ChipGameweeks)
     database: DatabaseSettings = field(default_factory=DatabaseSettings)
@@ -62,8 +60,8 @@ class PipelineSettings:
     new_squad: bool | None = None
     # How many free transfers to start from, or None to use the API's number.
     num_free_transfers: int | None = None
-    # Whether a from-scratch build may pick players predicted to score nothing (reduces
-    # the search space and is unlikely to impact the final result).
+    # Whether a from-scratch build leaves out players predicted to score nothing,
+    # which shrinks the search space.
     remove_zero_points_players: bool = True
     # Where to dump every plan the transfer search considered, for debugging.
     save_plans: Path | None = None

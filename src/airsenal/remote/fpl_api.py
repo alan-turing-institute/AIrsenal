@@ -1,8 +1,7 @@
 """
-Query the FPL API.
+The FPL API's endpoints, and a client that caches their responses.
 
-The login flow lives in `fpl_auth.py` and the request helpers in `fpl_http.py`;
-what is left here is the endpoints and the responses they cache.
+The login flow is in `fpl_auth.py` and the request helpers in `fpl_http.py`.
 
 Thanks to:
 - https://github.com/amosbastian/fpl/blob/master/fpl/utils.py for posting transfers and
@@ -23,7 +22,6 @@ from airsenal.remote.fpl_http import API_HOME, Session, get_json, post_json
 
 logger = get_logger(__name__)
 
-# The endpoints
 FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
 FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
 FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
@@ -49,10 +47,10 @@ class FPLDataFetcher:
         self.current_player_data: dict[int, dict[str, Any]] = {}  # by player api id
         self.current_team_data: dict[int, dict[str, Any]] = {}  # by team code
         self.current_squad_data: dict[int, dict[str, Any]] = {}  # by fpl_team_id
-        # by player api id, then gameweek - a player can have two in a double GW
+        # by player api id, then gameweek - a player can have two in a double gameweek
         self.player_gameweek_data: dict[int, dict[int, list[dict[str, Any]]]] = {}
         self.fpl_team_history_data: dict[str, Any] = {}
-        # transfer history data is a dict, keyed by fpl_team_id
+        # by fpl_team_id
         self.fpl_transfer_history_data: dict[int, list[dict[str, Any]]] = {}
         self.fpl_league_data: dict[str, Any] = {}
         self.fpl_team_data: dict[int, dict[str, Any]] = {}  # squad, by gameweek
@@ -198,13 +196,10 @@ class FPLDataFetcher:
                 msg = "Please specify FPL team ID"
                 raise RuntimeError(msg)
             fpl_team_id = self.FPL_TEAM_ID
-        # return cached value if we already retrieved it.
         if fpl_team_id in self.fpl_transfer_history_data:
             return self.fpl_transfer_history_data[fpl_team_id]
-        # or get it from the API.
         url = FPL_GET_TRANSFERS_URL.format(fpl_team_id)
-        # get transfer history from api and reverse order so that
-        # oldest transfers at start of list and newest at end.
+        # The API lists the newest transfer first; this keeps the oldest first.
         self.fpl_transfer_history_data[fpl_team_id] = list(
             reversed(
                 self._get(
@@ -298,24 +293,21 @@ class FPLDataFetcher:
         """
         if player_api_id not in self.player_gameweek_data:
             self.player_gameweek_data[player_api_id] = {}
-            if (not gameweek) or (
-                gameweek not in self.player_gameweek_data[player_api_id]
-            ):
-                player_detail = self._get(
-                    FPL_DETAIL_URL.format(player_api_id),
-                    f"Error retrieving data for player {player_api_id}",
-                )
-                for game in player_detail["history"]:
-                    played_in = game["round"]
-                    if played_in not in self.player_gameweek_data[player_api_id]:
-                        self.player_gameweek_data[player_api_id][played_in] = []
-                    self.player_gameweek_data[player_api_id][played_in].append(game)
+            player_detail = self._get(
+                FPL_DETAIL_URL.format(player_api_id),
+                f"Error retrieving data for player {player_api_id}",
+            )
+            for game in player_detail["history"]:
+                played_in = game["round"]
+                if played_in not in self.player_gameweek_data[player_api_id]:
+                    self.player_gameweek_data[player_api_id][played_in] = []
+                self.player_gameweek_data[player_api_id][played_in].append(game)
         if not gameweek:
             return self.player_gameweek_data[player_api_id]
 
         if gameweek not in self.player_gameweek_data[player_api_id]:
             logger.warning(
-                "Data not available for player %s week %s", player_api_id, gameweek
+                "Data not available for player %s gameweek %s", player_api_id, gameweek
             )
             return []
         return self.player_gameweek_data[player_api_id][gameweek]
@@ -377,14 +369,12 @@ def _fetcher_for(fpl_team_id: int | None) -> FPLDataFetcher:
 
 def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
     """
-    The shared FPL API client, created on first use.
+    The shared FPL API client for a team, created on first use.
 
-    Cached so that callers keep hitting the same instance and therefore the same
-    response cache.
+    Every caller gets the same instance, and so the same response cache.
     """
     if fpl_team_id == FPL_TEAM_ID:
-        # normalise to None so that the cache key is the same for all calls that
-        # want the configured team.
+        # One cache key for every call that wants the configured team.
         fpl_team_id = None
     return _fetcher_for(fpl_team_id)
 

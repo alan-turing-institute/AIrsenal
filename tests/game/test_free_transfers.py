@@ -36,12 +36,7 @@ def test_free_transfers_accrue_to_the_cap(n_transfers, previous, expected):
 
 
 def test_idle_weeks_reach_the_documented_maximum():
-    """
-    Four idle gameweeks from one free transfer reach MAX_FREE_TRANSFERS.
-
-    The estimate used to stop at 2, so the search was told it had 2 and then
-    charged a points hit for moves FPL would have given away.
-    """
+    """Four idle gameweeks from one free transfer reach MAX_FREE_TRANSFERS."""
     free_transfers = 1
     for _ in range(4):
         free_transfers = free_transfers_after(0, free_transfers)
@@ -50,7 +45,7 @@ def test_idle_weeks_reach_the_documented_maximum():
 
 @pytest.mark.parametrize("chip", [Chip.WILDCARD, Chip.FREE_HIT])
 def test_rebuilding_the_squad_leaves_the_count_alone(chip):
-    # Changed in 24/25: playing a wildcard or free hit no longer resets you to 1.
+    # Since 24/25, playing a wildcard or free hit does not reset the count to 1.
     assert free_transfers_after(15, 3, rebuilds_squad=True) == 3
     assert calc_free_transfers(GameweekMove(chip=chip), 3) == 3
 
@@ -135,12 +130,10 @@ def _free_transfers(dbsession, gameweek, season="2223"):
 
 def test_only_this_seasons_transfers_are_counted(transaction_db):
     """
-    Two replays of different seasons share a dummy fpl_team_id.
+    Another season's transactions under the same dummy fpl_team_id are not counted.
 
     `replay.get_dummy_id` picks the lowest unused id *within the season*, so
-    replaying 2223 and then 2324 files both under -1. Counting every row for the
-    id charged the second replay for the first one's transfers: it had made none
-    of its own by GW6 and should have banked the maximum.
+    replaying 2223 and then 2324 files both under -1.
     """
     _initial_squad(transaction_db, "2223")
     for gameweek in range(2, 6):
@@ -183,10 +176,8 @@ def test_a_wildcard_leaves_the_count_where_it_was(transaction_db):
     """
     Fifteen players in on a wildcard is not fifteen transfers, nor an idle week.
 
-    The search plans with `calc_free_transfers`, which freezes the count across a
-    chip that rebuilds the squad. Reading the plan back charged it for fifteen,
-    and then, once the rows were skipped, credited it with the accrual an idle
-    gameweek earns - so the read-back and the search disagreed either way.
+    The read-back freezes the count across a chip that rebuilds the squad, as
+    `calc_free_transfers` does when the search plans it.
     """
     _initial_squad(transaction_db, "2223")
     _rebuilt_squad(transaction_db, "2223", gameweek=3)
@@ -315,10 +306,9 @@ def test_the_logged_in_count_is_not_used_for_a_later_gameweek(
 
 def test_the_estimate_freezes_the_count_across_a_wildcard(live_season, transaction_db):
     """
-    A wildcard's transfers are not charged, and do not accrue either.
+    A wildcard's transfers are not charged, and the gameweek does not accrue.
 
-    Without the chip list the twelve transfers looked ordinary and collapsed the
-    count to one; skipping them alone would have credited an idle gameweek.
+    The chip list is what marks the twelve transfers as a wildcard's.
     """
     live_season(1)
     fetcher = StubFetcher(

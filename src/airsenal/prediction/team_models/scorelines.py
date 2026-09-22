@@ -54,19 +54,14 @@ class PoissonScorelines:
     """
     A team model that predicts only a mean, read as a Poisson over goal counts.
 
-    An expected-goals model has no natural distribution over *counts* - it is
-    fitted to a continuous quantity - so this supplies the standard one rather
-    than leaving every such model to invent it. Wrap the model in its
-    `TEAM_MODELS` entry, so the table still promises a `ScorelineTeamModel` and
-    nothing downstream has to ask which kind it was given.
+    Wrap an `ExpectedGoalsTeamModel` in its `TEAM_MODELS` entry, so the table
+    still holds only `ScorelineTeamModel`s.
 
     The support is truncated at `max_goals`, with the whole tail above it piled
-    onto the last count, so the probabilities still sum to one - a freak result
-    is unlikely rather than impossible.
+    onto the last count, so the probabilities still sum to one.
 
-    `model` is the wrapped model, and is public because a wrapper is otherwise
-    a dead end: `tools/team_ratings.py` reads the attack and defence ratings off
-    it, and `describe_component` names it.
+    `model` is public: `tools/team_ratings.py` reads the attack and defence
+    ratings off it, and `describe_component` names it.
     """
 
     def __init__(
@@ -80,13 +75,7 @@ class PoissonScorelines:
         return self.model.teams
 
     def describe_component(self) -> str:
-        """
-        This wrapper and the model inside it, for a run's record of its parts.
-
-        The wrapper's own class name says which distribution was put over the
-        goal counts and nothing about which model produced the mean, and the
-        mean is the part a comparison is usually about.
-        """
+        """This wrapper and the model inside it, for a run's record of its parts."""
         return f"{type(self).__name__}({type(self.model).__name__})"
 
     def fit(self, training_data: TeamFitData) -> "PoissonScorelines":
@@ -126,21 +115,13 @@ class PoissonScorelines:
         return outcome_proba_from_scores(self, home_team, away_team, self.max_goals)
 
 
-# A team model that predicts a mean needs a distribution over counts supplied,
-# and the Poisson is an assumption about how goals scatter around a rate, not a
-# measurement of it. Conway-Maxwell-Poisson is the Poisson with that assumption
-# let go: the pmf is proportional to `rate ** n / factorial(n) ** dispersion`,
-# so a dispersion of one is exactly a Poisson, above one is narrower and below
-# one is wider.
+# The Conway-Maxwell-Poisson pmf is proportional to
+# `rate ** n / factorial(n) ** dispersion`, so a dispersion of one is exactly a
+# Poisson, above one is narrower and below one is wider.
 POISSON_DISPERSION = 1.0
-# Premier League goals are narrower than Poisson given a good estimate of the
-# rate. This is the held-out optimum pooled over 2324, 2425 and 2526, swept with
-# tools/tune_goal_dispersion.py; each season's own optimum is also above one
-# (1.09, 1.14, 1.31), and every one of the three is better here than at a
-# Poisson. Two decimal places because the surface is flat: anything from 1.15 to
-# 1.20 is within a ten-thousandth of a nat of the peak. Choosing it this way is
-# worth +0.0017 nats a side with a season held out, and it makes a clean sheet
-# against an average side about 8% less likely than a Poisson would.
+# Premier League goals are narrower than Poisson. The held-out optimum pooled
+# over 2324, 2425 and 2526, swept with tools/tune_goal_dispersion.py; see
+# docs/xg-models.md.
 DEFAULT_GOAL_DISPERSION = 1.17
 # A mean of zero has no rate to speak of, and no side is ever predicted to
 # create nothing, so a mean is floored rather than special-cased.
@@ -153,10 +134,9 @@ def conway_maxwell_pmf(
     """
     Conway-Maxwell-Poisson probabilities of 0 to `max_goals` goals, per mean.
 
-    Parameterised by the mean and not by the rate, which is both what a team
-    model predicts and what makes a dispersion mean the same thing across
-    models: changing the dispersion changes the shape and leaves the mean where
-    it was. The rate that produces a given mean is solved for.
+    Parameterised by the mean rather than the rate, so changing the dispersion
+    changes the shape and leaves the mean where it was. The rate that produces a
+    given mean is solved for.
 
     The support is truncated at `max_goals` and renormalised, so `mean` is the
     mean of the truncated distribution. At league scoring rates that is a
@@ -197,14 +177,9 @@ class ConwayMaxwellScorelines(PoissonScorelines):
     """
     `PoissonScorelines` with the spread of the goal counts a measured number.
 
-    A Poisson says a team's goals have a variance equal to their mean. Measured
-    against what the xG model predicts, Premier League goals are narrower than
-    that, so a family that can be narrower has something to say. `dispersion` is
-    one number for the whole league, on the argument that how goals scatter
-    around a rate is a property of football rather than of a team, and it is
-    swept over held-out seasons rather than fitted while the model is: fitted in
-    sample it comes out too narrow, because the ratings have already been fitted
-    to the same matches.
+    `dispersion` is one number for the whole league, swept over held-out
+    seasons rather than fitted with the model: fitted in sample it comes out too
+    narrow, because the ratings have already been fitted to the same matches.
 
     `POISSON_DISPERSION` recovers the Poisson - up to the truncated support,
     which this parameterises by the mean and `PoissonScorelines` by the rate.

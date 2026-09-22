@@ -26,13 +26,8 @@ def get_predicted_points_for_player(
     """
     A player's predicted points for each gameweek, keyed by gameweek.
 
-    This is the inner loop of the transfer optimisation - it is called once per
-    candidate player per candidate squad - so the answer is cached. The cache is
-    keyed on the player id rather than on the Player object, and does not
-    include the session: see airsenal.core.caching for why.
-
-    An `int` is taken on trust as a player id and is not looked up first -
-    validating it would cost a database round trip per candidate player.
+    Cached on the player id, as the inner loop of the transfer search. An `int`
+    is taken on trust as a player id rather than costing a lookup per call.
     """
     if isinstance(player, int):
         player_id = player

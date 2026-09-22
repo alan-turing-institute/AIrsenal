@@ -34,8 +34,8 @@ bench boost), a side effect, or which exception escapes. Leave the rest out: a
 parameter list that restates the signature is what rots first, and every entry in it
 is one more thing to keep true.
 
-We use type hints, and `mypy` runs in strict mode over the whole of `src/airsenal` with
-no per-module exemptions from annotating (`uv run mypy`). The `[[tool.mypy.overrides]]`
+We use type hints, and `mypy` runs in strict mode over the whole of `src/airsenal` and
+`tools` with no per-module exemptions from annotating (`uv run mypy`). The `[[tool.mypy.overrides]]`
 blocks in `pyproject.toml` name the untyped third-party libraries and the handful of
 modules allowed to call into them directly; everything else reaches those through our own
 typed wrappers. Do not add a module to those blocks to make a new error go away.
@@ -77,7 +77,7 @@ game           the facts about FPL - it imports nothing at all
 ```
 
 A module may import from the rows below it, never from the rows above. That is what the
-import-linter contract in `pyproject.toml` enforces, and it is `exhaustive`, so a new
+first import-linter contract in `pyproject.toml` enforces, and it is `exhaustive`, so a new
 package has to be given a place in the chain rather than silently escaping it. The
 pre-commit hook checks it, but run `uv run lint-imports` yourself after moving code
 between packages: a wrong-direction import does not fail at runtime, so nothing else
@@ -136,7 +136,7 @@ talks to. Anything not listed goes first.
 **When**
 
 * *gameweek* (int - one gameweek), or *gameweeks* (list of ints). A count is *n_gameweeks*. `tests/test_naming_conventions.py` enforces those three names, and that a parameter called `gameweek` is not secretly a list.
-* The word is always written out. Never `gw`, and never `week`: a name that needs to say *which* gameweek qualifies it - `gameweek_start`, `gameweek_end`, `root_gameweek`, `bench_boost_gameweek` - rather than shortening it. The same test enforces this over every name a module introduces, parameters included, because an abbreviated name is invisible to the checks that match `gameweek` exactly: `bench_boost_week` went into the optimizer and came out as `bench_boost_gw`, and `get_starting_squad(next_gw, season, fpl_team_id)` sat outside the argument order below for as long as its gameweek was not called one. There are no exceptions, database columns included: the PlayerAttributes column for when a flagged player is due back is `return_gameweek`.
+* The word is always written out. Never `gw`, and never `week`: a name that needs to say *which* gameweek qualifies it - `gameweek_start`, `gameweek_end`, `root_gameweek`, `bench_boost_gameweek` - rather than shortening it. The same test enforces this over every name a module introduces, parameters included, because an abbreviated name is invisible to the checks that match `gameweek` exactly, including the argument-order check below. There are no exceptions, database columns included: the PlayerAttributes column for when a flagged player is due back is `return_gameweek`.
 * *season* (str, e.g. "2122" for the 2021/2022 season, often has a default value "CURRENT_SEASON")
 
 **What it talks to**
@@ -148,28 +148,18 @@ talks to. Anything not listed goes first.
 and *verbose* (boolean, if True, print out extra information) last of all.
 
 `tests/test_argument_order.py` enforces this for every function in the package,
-with no exemptions. It began as a ratchet over the 41 functions that predated the
-check; they have all been reordered, so a signature that does not follow the
-order now fails the test outright.
+with no exemptions.
 
-The groups are the point. An earlier version of this order put `tag` between
-`gameweek` and `season`, which fitted the existing signatures marginally better
-but split the two time arguments around an unrelated one, and a convention nobody
-can recite is not worth the test that enforces it.
+The groups are the point: keep the two time arguments together, and keep the order
+short enough to recite. `tag` sits above `gameweek` and `season` because it is
+usually required, while `season` usually defaults to `CURRENT_SEASON`, and a required
+argument cannot follow a defaulted one in a positional list.
 
-Within the groups, `tag` sits above `gameweek` and `season` rather than after
-them because it is a required argument in 83% of the signatures that take it,
-against 56% for `season`, which usually carries `= CURRENT_SEASON`. A required
-argument cannot follow a defaulted one in a positional list, so the other
-placement would have forced seven more signatures to go keyword-only.
-
-Ten signatures cannot be put in this order by reordering alone, for that same
-reason: an optional argument (`position`, `tag`, `gameweek`) ranks above a
-required one. Their tails are keyword-only from that point on - `def
-get_predicted_points(gameweeks, *, position="all", team="all", tag,
-season=CURRENT_SEASON, dbsession=None)` - which keeps every default and every
-requirement as it was. Reach for this when a reorder would otherwise force a
-default onto an argument that should not have one.
+Where an optional argument (`position`, `tag`, `gameweek`) ranks above a required
+one, make the tail keyword-only from that point rather than reordering or inventing
+a default - `def get_predicted_points(gameweeks, *, position="all", team="all", tag,
+season=CURRENT_SEASON, dbsession=None)`. That bare `*` is load-bearing: removing it
+is a `SyntaxError`.
 
 [link_google_docstrings]: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
 [link_pep8]: https://www.python.org/dev/peps/pep-0008/

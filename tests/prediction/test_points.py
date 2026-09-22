@@ -35,7 +35,6 @@ def request(player_id=1, position="MID", minutes=90):
 
 def test_defending_points_0_conceded():
     """Defenders and keepers get the clean-sheet bonus for a 0-0, if they played 60."""
-    # set chance of conceding n goals as {0: 1.0} .
     assert get_defending_points("FWD", 90, {0: 1.0}) == 0
     assert get_defending_points("MID", 90, {0: 1.0}) == 1
     assert get_defending_points("DEF", 90, {0: 1.0}) == 4
@@ -47,7 +46,6 @@ def test_defending_points_0_conceded():
 def test_defending_points_2_conceded():
     """Defenders and keepers lose a point for two goals conceded."""
     concede_probs = {0: 0.0, 1: 0.0, 2: 1.0}
-    # set chance of conceding n goals as {2: 1.0} .
     assert get_defending_points("FWD", 90, concede_probs) == 0
     assert get_defending_points("MID", 90, concede_probs) == 0
     assert get_defending_points("DEF", 90, concede_probs) == -1
@@ -58,7 +56,6 @@ def test_defending_points_2_conceded():
 
 def test_defending_points_4_conceded():
     """Defenders and keepers lose two points for four goals conceded."""
-    # set chance of conceding n goals as {4: 1.0} .
     concede_probs = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 1.0}
     assert get_defending_points("FWD", 90, concede_probs) == 0
     assert get_defending_points("MID", 90, concede_probs) == 0
@@ -167,9 +164,8 @@ def test_a_component_that_has_not_been_fitted_says_so():
     """
     Rather than returning zero, which would look like a clean prediction.
 
-    The fitted components used to be passed in as `None` when a run was
-    configured without them; now a run simply does not include them, so a
-    component that is present but unfitted is a bug.
+    A run configured without a component does not include it, so a component
+    that is present but unfitted is a bug.
     """
     for component in (BonusComponent(), CardComponent(), SaveComponent()):
         with pytest.raises(RuntimeError, match="not been fitted"):

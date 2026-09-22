@@ -1,13 +1,13 @@
 """
 Fast team-model checks against the small seeded database.
 
-The equivalents in test_score_predictions.py fit against two full seasons and
-dominate the suite's runtime. These assert the same things - does it fit, does it
-know every team, are the probabilities usable - on eight teams and 64 matches, so
-the answers arrive on the default run rather than only under `-m slow`.
+The equivalents in tests/prediction/test_team_model_fitting.py fit against two
+full seasons and are marked `slow`. These assert the same things - does it fit,
+does it know every team, are the probabilities usable - on eight teams and 64
+matches, so the answers arrive on the default run.
 
-Parametrized over `TEAM_MODELS`, so adding a model to the table is all it takes to have
-it fitted here. `SAMPLED_MODELS` below is the one place a model has to be named.
+Parametrized over `TEAM_MODELS`, so adding a model to the table is all it takes to
+have it fitted here. `SAMPLED_MODELS` below is the one place a model has to be named.
 """
 
 import math
@@ -103,10 +103,10 @@ def test_outcome_probabilities_sum_to_one(pipeline_db, name):
 
 # --- a model that predicts only a mean -----------------------------------------
 #
-# The seam phase 2 exists for: a model fitted to a continuous quantity has no
-# distribution over goal *counts*, so it implements `ExpectedGoalsTeamModel` and
-# reaches the points calculation wrapped in `PoissonScorelines`. This is what a
-# `TEAM_MODELS` entry for one would look like.
+# A model fitted to a continuous quantity has no distribution over goal *counts*,
+# so it implements `ExpectedGoalsTeamModel` and reaches the points calculation
+# wrapped in `PoissonScorelines`. This is what a `TEAM_MODELS` entry for one would
+# look like.
 
 
 class AverageGoalsModel:
@@ -153,7 +153,7 @@ def test_a_mean_only_model_can_be_fitted(pipeline_db):
 
 def test_a_mean_only_model_reaches_the_points_calculation(pipeline_db):
     """
-    The whole point of the phase: no distribution of its own, still predictable.
+    No distribution of its own, and still predictable.
 
     A model with only `predict_expected_goals` produces real predicted points,
     without the points calculation knowing anything had been adapted.

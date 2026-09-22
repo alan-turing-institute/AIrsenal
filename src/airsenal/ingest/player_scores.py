@@ -1,4 +1,4 @@
-"""Fill the "player_score" table with historic results (player_details_xxyy.json)."""
+"""Fill the "player_score" table from this season's FPL API and past seasons' files."""
 
 import contextlib
 import json
@@ -39,6 +39,36 @@ from airsenal.ingest.attributes_history import (
 from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
+
+
+# Set explicitly by the fill functions; every other column is copied by name.
+_CORE_COLUMNS = frozenset(
+    {
+        "id",
+        "player_team",
+        "opponent",
+        "goals",
+        "assists",
+        "bonus",
+        "points",
+        "conceded",
+        "minutes",
+        "player_id",
+        "result_id",
+        "fixture_id",
+        "news",
+        "chance_of_playing",
+    }
+)
+
+
+def _extended_features() -> list[str]:
+    """The PlayerScore columns copied straight from the source data by name."""
+    return [
+        col.key
+        for col in sqla_inspect(PlayerScore).columns
+        if col.key not in _CORE_COLUMNS
+    ]
 
 
 def get_status_from_attributes_history(
@@ -85,12 +115,9 @@ def get_availability_for_fixture(
     """
     A player's news and chance of playing for one fixture.
 
-    The per-day history read at that fixture's own kickoff is the best answer,
-    being what the FPL API said on the morning of the match. Where it has no row
-    for that day - every season before 2526, and the gameweeks of 2526 before the
-    daily dump started - the gameweek's attributes row stands in, which for those
-    seasons is what the Transfermarkt scrape says about it. That is a gameweek's
-    status rather than a day's, which is as fine-grained as the scrape gets.
+    What the per-day history says on the morning of the match, where it covers
+    that day. Otherwise the gameweek's attributes row, which before the history
+    starts is what the absences scrape says about the gameweek.
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if (
@@ -127,30 +154,8 @@ def fill_playerscores_from_json(
     appeared in. Rows are added rather than merged, so this is for filling an
     empty table - `fill_playerscores_from_api` is the one that can be re-run.
     """
-    # Get column metadata once for efficiency
     dbsession = dbsession if dbsession is not None else get_session()
-    mapper = sqla_inspect(PlayerScore)
-    extended_feats = [
-        col.key
-        for col in mapper.columns
-        if col.key
-        not in [
-            "id",
-            "player_team",
-            "opponent",
-            "goals",
-            "assists",
-            "bonus",
-            "points",
-            "conceded",
-            "minutes",
-            "player_id",
-            "result_id",
-            "fixture_id",
-            "news",
-            "chance_of_playing",
-        ]
-    ]
+    extended_feats = _extended_features()
     df_attributes = load_attributes_history(season)
 
     for player_name_or_id in track(detail_data, description=f"PLAYER SCORES {season}"):
@@ -214,8 +219,6 @@ def fill_playerscores_from_json(
             ps.result = fixture.result
             ps.fixture = fixture
 
-            # extended features
-            # get features excluding the core ones already populated above
             for feat in extended_feats:
                 with contextlib.suppress(KeyError):
                     ps.__setattr__(feat, fixture_data[feat])
@@ -240,28 +243,7 @@ def fill_playerscores_from_api(
         next_gameweek(fetcher=fetcher) if gameweek_end is None else gameweek_end
     )
     dbsession = dbsession if dbsession is not None else get_session()
-    mapper = sqla_inspect(PlayerScore)
-    extended_feats = [
-        col.key
-        for col in mapper.columns
-        if col.key
-        not in [
-            "id",
-            "player_team",
-            "opponent",
-            "goals",
-            "assists",
-            "bonus",
-            "points",
-            "conceded",
-            "minutes",
-            "player_id",
-            "result_id",
-            "fixture_id",
-            "news",
-            "chance_of_playing",
-        ]
-    ]
+    extended_feats = _extended_features()
     df_attributes = load_attributes_history(season)
     input_data = fetcher.get_player_summary_data()
     for player_api_id in track(input_data, description=f"PLAYER SCORES {season}"):
@@ -337,8 +319,6 @@ def fill_playerscores_from_api(
                 ps.fixture = fixture
                 ps.result = fixture.result
 
-                # extended features
-                # get features excluding the core ones already populated above
                 for feat in extended_feats:
                     with contextlib.suppress(KeyError):
                         ps.__setattr__(feat, result[feat])
@@ -358,8 +338,6 @@ def make_playerscore_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

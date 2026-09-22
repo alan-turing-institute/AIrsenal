@@ -1,7 +1,7 @@
 """
 Find the alternative names each FPL player goes by in the other data sources.
 
-Writes out {name_in_FPL: [short_name_in_FPL, other_name, ...]}.
+Writes one line per matched player: the FPL name, then its alternative names.
 """
 
 import json
@@ -38,7 +38,6 @@ def find_best_match(
 
 if __name__ == "__main__":
     configure_logging()
-    # get the team names as used in FPL
     df = FPLDataFetcher()
     playerdict: dict[str, list[str]] = {}
     playerdata = df.get_player_summary_data()

@@ -39,7 +39,9 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 - **PlayerScore** — per-match stats: points, goals, goals conceded, assists, bonus,
   minutes and others, including the expected goals and assists the FPL API has recorded
   since 2223. A team's expected goals are the sum of its players', which is where both
-  xG models get them.
+  xG models get them. `news` and `chance_of_playing` are the player's availability on
+  the morning of the match, which is how recent minutes leave out the matches a player
+  missed while unavailable.
 
 **Squad and AIrsenal data**
 
@@ -58,8 +60,8 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 ### Interacting with the FPL API
 
 `FPLDataFetcher` in `airsenal.remote.fpl_api` is the only way AIrsenal reads the FPL API.
-It's used for database setup and updates, and elsewhere — for example to check a player's
-current injury status during prediction.
+It's used for database setup and updates, to read the state of your own entry, and by
+`airsenal apply`. Prediction does not call it: availability comes from the database.
 
 ### Data sanity checks
 
@@ -75,12 +77,15 @@ current injury status during prediction.
 
 ## Player points predictions
 
-Predictions come from three components:
+`ComponentPointsModel` in `airsenal.prediction.points_models` is the default points
+model, and is built from:
 
-1. A team-level model predicting final score probabilities for each match.
-2. A player-level model predicting the probability a player scores or assists each goal
-   his team scores.
-3. Recent minutes played, and current injury or suspension status.
+1. A team model predicting the probability of each number of goals each team scores in
+   each match.
+2. A player model predicting each player's share of their team's goals: the chance they
+   score or assist any one of them.
+3. A minutes model predicting how long each player is on the pitch.
+4. The point components, which turn those into FPL points.
 
 For background on the modelling, see
 [the AIrsenal write-up](https://www.turing.ac.uk/news/airsenal).
@@ -93,35 +98,35 @@ to ask for on a season before 2223, when the FPL API began recording expected go
 The player models in `airsenal.prediction.player_models` divide those goals up, and come
 in the same two kinds: `xg`, the default, is a Dirichlet fitted to who was *expected* to
 score and assist, and `conjugate` is the same update fitted to who actually did - which
-is what a season before 2223 needs, for the same reason `extended` is. All of them are
-one module per model, behind the `TeamModel` and `PlayerModel` protocols.
+is what a season before 2223 needs, for the same reason `extended` is. Each kind is one
+module per model, behind the protocols in `airsenal.prediction.protocols`.
 
 ### How predicted points are calculated
 
-Before anything per-player:
+Before anything per-player, fit the team and player models and the fitted components,
+as at the first gameweek of the window, and predict the goal probabilities for every
+fixture in it.
 
-- Fit the team and player models.
-- Predict the probability of each number of goals scored and conceded by each team in
-  each fixture in the window.
-- Get each player's minutes in their last three fixtures, and their injury and suspension
-  status.
+**Minutes and availability**
 
-**Recent minutes and appearance points**
-
-`get_recent_minutes_for_player` in `airsenal.prediction.minutes` returns the minutes a
-player played in their last 3 matches (by default). Points are predicted once per
-distinct value and then averaged — so a player who played 0, 70 and 90 minutes gets three
-predictions. Throughout, the probability of scoring, assisting or conceding is weighted by
-the fraction of the match the player is assumed to play.
+The default minutes model, `RecentMinutesModel` in
+`airsenal.prediction.minutes_models`, takes the minutes a player played in their last
+few matches (as many as the window has gameweeks, and at least three) as equally likely
+outcomes. A player with fewer matches than that this season is topped up with their
+average from last season, for the team they are at now. Points are predicted at each
+of those values and averaged, so a player who played 0, 70 and 90 minutes gets three
+predictions. Throughout, the probability of scoring, assisting or conceding is weighted
+by the fraction of the match the player is assumed to play.
 
 A player marked as having a 50% or lower chance of playing
-(`Player.is_injured_or_suspended()` in `airsenal.db.models`) is predicted 0 points. That
-is the only availability check, for every season: `PlayerAttributes` carries the flags
-throughout. For the gameweek being predicted they come from the FPL API; for a gameweek
-already played they come from the per-day attributes history
-(`player_attributes_history_yyyy.csv`, read at the date of the gameweek's first match),
-falling back to the Transfermarkt-scraped `absences_yyyy.csv` for the seasons and
-gameweeks the history does not reach.
+(`Player.is_injured_or_suspended()` in `airsenal.db.models`, read through `is_absent` in
+`airsenal.prediction.minutes`) is predicted zero minutes, and a player predicted zero
+minutes is predicted 0 points. That is the only availability check, for every season:
+`PlayerAttributes` carries the flags throughout. For the gameweek being predicted they
+come from the FPL API; for a gameweek already played they come from the per-day
+attributes history (`player_attributes_history_yyyy.csv`, read at the date of the
+gameweek's first match), falling back to the Transfermarkt-scraped `absences_yyyy.csv`
+for the seasons and gameweeks the history does not reach.
 
 The question takes two gameweeks to ask: the gameweek being predicted *from*, and the
 gameweek of the fixture. A player only scores 0 if they were already out by the first and
@@ -130,19 +135,21 @@ replay must not act on it. The flag living on the row for the gameweek it was kn
 what makes that hold. A row with a low chance and no return gameweek means out
 indefinitely, which is what the API means by it.
 
-Appearance points follow FPL's rule: 0 for not playing, 1 for under 60 minutes, 2 for 60
-or more (`get_appearance_points` in `airsenal.game.scoring`).
+**Appearance points** follow FPL's rule: 0 for not playing, 1 for under 60 minutes, 2
+for 60 or more (`get_appearance_points` in `airsenal.game.scoring`).
 
-**Attacking points**, in `get_attacking_points()`:
+**Attacking points**, in `get_attacking_points()` in
+`airsenal.prediction.point_components.attacking`:
 
 - The probability the team scores each number of goals.
 - The possible splits of those goals into (player scores, player assists, neither).
-- The probability of each split, from the trinomial player model.
+- The probability of each split, from the player's shares.
 - The FPL points each split is worth, given the points for a goal and an assist in the
   player's position — including goalkeepers, who are worth 10 points a goal.
 - Multiply the probabilities by the points and sum.
 
-**Defending points**, in `get_defending_points()`:
+**Defending points**, in `get_defending_points()` in
+`airsenal.prediction.point_components.defending`:
 
 - Clean sheet points, only for players expected to play 60 minutes or more: 4 points ×
   P(team concedes zero) for goalkeepers and defenders, 1 point for midfielders.
@@ -150,20 +157,21 @@ or more (`get_appearance_points` in `airsenal.game.scoring`).
   conceded, scaled by the fraction of the match the player is expected to play.
 - Forwards score no defending points.
 
-**The other components**, each fitted as a small empirical model from past seasons and
-each switchable with a flag:
+**The other components** are each an average of what the player has scored from that
+part of the game before, shrunk towards the average for their position, and each can be
+switched off with a flag:
 
-| Component | Function | Flag |
+| Component | Module in `prediction/point_components/` | Flag |
 |---|---|---|
-| Bonus points | `get_bonus_points` | `--no-bonus` |
-| Yellow and red cards | `get_card_points` | `--no-cards` |
-| Goalkeeper saves | `get_save_points` | `--no-saves` |
-| Defensive contributions | `get_def_con_points` | `--no-def-con` |
+| Bonus points | `bonus.py` | `--no-bonus` |
+| Yellow and red cards | `cards.py` | `--no-cards` |
+| Goalkeeper saves | `saves.py` | `--no-saves` |
+| Defensive contributions | `def_con.py` | `--no-def-con` |
 
-Turning one off skips fitting it and leaves it out of the total. There are still no
-predictions for own goals or penalty misses and saves.
+Turning one off skips fitting it and leaves it out of the total. Own goals, penalties
+saved and penalties missed are not predicted.
 
-**The final prediction**, in `calc_predicted_points_for_player()`, is the sum of all the
-components above, averaged over the different numbers of minutes the player might play.
+**The final prediction**, in `ComponentPointsModel.predict()`, is the sum of all the
+components above, each averaged over the numbers of minutes the player might play.
 A player's predicted points for a *gameweek* is the sum over all their team's fixtures in
 it — two in a double gameweek, none in a blank.

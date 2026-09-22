@@ -418,7 +418,6 @@ def score_involvement_error(
     Args:
         probabilities: What `fit_player_data` returns - one row per player id,
             with prob_score, prob_assist and prob_neither.
-        player_scores: The performances to score against.
     """
     shares = {
         int(player_id): (float(row[0]), float(row[1]))
@@ -935,9 +934,8 @@ def score_prediction_breakdown(
         actual_points.append(float(score.points))
         total += _score_one(prediction, score, season=season)
 
-    # One ranking over everything passed in, as `score_points_predictions` does:
-    # a ranking is a property of a set of players, not of one performance, so it
-    # cannot be accumulated a performance at a time like the errors above.
+    # One ranking over everything passed in: a ranking is a property of a set of
+    # players, so it cannot be accumulated a performance at a time like the errors.
     correlation = _rank_correlation(
         np.asarray(predicted_points, dtype=float),
         np.asarray(actual_points, dtype=float),

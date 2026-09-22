@@ -1,4 +1,4 @@
-"""Fill the "result" table with historic results (results_xxyy_with_gw.csv)."""
+"""Fill the "result" table from this season's FPL API and past seasons' files."""
 
 from sqlalchemy.orm.session import Session
 
@@ -123,10 +123,8 @@ def fill_results_from_api(
 def make_result_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    """Fill a past season's results from its packaged CSV file."""
+    """Fill the result table: past seasons from CSV, this one from the API."""
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

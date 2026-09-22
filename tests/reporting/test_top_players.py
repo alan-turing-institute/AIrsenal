@@ -25,12 +25,7 @@ def test_no_cap_keeps_everyone():
 
 
 def test_consecutive_players_over_the_cap_are_all_dropped():
-    """
-    Removing while iterating skipped the player after each removal.
-
-    Two adjacent players over the cap meant the second survived into the table,
-    which is the whole point of asking for a cap.
-    """
+    """Two adjacent players over the cap are both dropped, not just the first."""
     kept = within_price(
         predictions(150, 160, 50), max_price=100, gameweek=1, season="2526"
     )

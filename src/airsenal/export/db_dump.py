@@ -102,7 +102,6 @@ def dump_db() -> None:
     )
 
     # Dump FifaTeamRating database
-    # Add season to the fieldnames once the table creation is updated
     fifa_team_rating_fieldnames = ["id", "season", "team", "att", "defn", "mid", "ovr"]
     save_table_fields(
         "fifa_team_ratings.csv",
@@ -197,11 +196,10 @@ def write_rows_to_csv(
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     logger.info("Writing table %s", dbclass)
-    for player in get_session().scalars(select(dbclass)).all():
-        player_dict = vars(player)
+    for record in get_session().scalars(select(dbclass)).all():
         row = {
             field: value
-            for field, value in player_dict.items()
+            for field, value in vars(record).items()
             if isinstance(value, str | int | float)
         }
 

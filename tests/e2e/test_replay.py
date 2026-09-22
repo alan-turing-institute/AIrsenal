@@ -2,9 +2,9 @@
 Replaying a past season.
 
 `airsenal replay` is the only command that scores a configuration over real
-results, so it is what an experiment is judged with - and it had no test at all.
-These run it over two gameweeks of the seeded database, with a tiny squad search
-and a stub transfer search, so the whole thing runs in seconds and forks nothing.
+results, so it is what an experiment is judged with. These run it over two
+gameweeks of the seeded database, with a tiny squad search and a stub transfer
+search, so the whole thing runs in seconds and forks nothing.
 """
 
 import json
@@ -53,22 +53,17 @@ class NoTransferOptimizer:
             root_gameweek=request.gameweeks[0],
             outcomes=tuple(
                 GameweekOutcome(
-                    gameweek=gw,
+                    gameweek=gameweek,
                     move=GameweekMove(),
                     points=0.0,
                     discount_factor=1.0,
                     points_hit=0,
                     free_transfers=request.num_free_transfers,
                 )
-                for gw in request.gameweeks
+                for gameweek in request.gameweeks
             ),
         )
         return TransferSearchResult(best=plan, baseline=plan)
-
-
-@pytest.fixture(scope="module")
-def seeded(pipeline_db):
-    return pipeline_db
 
 
 def _pipeline(**settings):
@@ -95,7 +90,7 @@ def _pipeline(**settings):
 
 
 @pytest.fixture(scope="module")
-def replayed(seeded, tmp_path_factory):
+def replayed(pipeline_db, tmp_path_factory):
     out = tmp_path_factory.mktemp("replay_out")
     result = replay_season(
         _pipeline(),
@@ -112,22 +107,29 @@ def replayed(seeded, tmp_path_factory):
 def test_replay_returns_a_result(replayed):
     result, _ = replayed
     assert result.season == REPLAY_SEASON
-    assert [gw.gameweek for gw in result.gameweeks] == [FIRST_GAMEWEEK, LAST_GAMEWEEK]
+    assert [gameweek.gameweek for gameweek in result.gameweeks] == [
+        FIRST_GAMEWEEK,
+        LAST_GAMEWEEK,
+    ]
 
 
 def test_every_gameweek_picks_a_full_team(replayed):
     result, _ = replayed
-    for gw in result.gameweeks:
-        assert len(gw.starting_11) == 11
-        assert len(gw.subs) == 4
-        assert gw.captain is not None
-        assert gw.vice_captain != gw.captain
+    for gameweek in result.gameweeks:
+        assert len(gameweek.starting_11) == 11
+        assert len(gameweek.subs) == 4
+        assert gameweek.captain is not None
+        assert gameweek.vice_captain != gameweek.captain
 
 
 def test_totals_agree_with_the_gameweeks(replayed):
     result, _ = replayed
-    assert result.total_points == sum(gw.actual_points for gw in result.gameweeks)
-    assert result.total_points_hit == sum(gw.points_hit for gw in result.gameweeks)
+    assert result.total_points == sum(
+        gameweek.actual_points for gameweek in result.gameweeks
+    )
+    assert result.total_points_hit == sum(
+        gameweek.points_hit for gameweek in result.gameweeks
+    )
     assert result.mean_absolute_error >= 0
 
 
@@ -162,7 +164,7 @@ def test_mean_absolute_error_is_zero_for_no_gameweeks():
     assert empty.total_points == 0
 
 
-def test_run_replays_returns_one_result_per_loop(seeded, tmp_path_factory):
+def test_run_replays_returns_one_result_per_loop(pipeline_db, tmp_path_factory):
     out = tmp_path_factory.mktemp("replay_loop")
     results = run_replays(
         _pipeline(),

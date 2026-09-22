@@ -51,7 +51,7 @@ def estimate_minutes_from_prev_season(
             or_(
                 PlayerScore.minutes >= 60,
                 PlayerScore.chance_of_playing == 100,
-                # rows written before chance_of_playing was recorded
+                # no chance_of_playing recorded
                 PlayerScore.chance_of_playing.is_(None),
             )
         )
@@ -66,8 +66,8 @@ def estimate_minutes_from_prev_season(
         # no FPL history / didn't play for current team last season
         return [0]
 
-    # Return average minutes. A weakness of this is increased rotation at the end of the
-    # season when teams don't have anything to play for.
+    # A weakness of the average is increased rotation at the end of the season, when
+    # teams don't have anything to play for.
     return [calc_average_minutes(player_scores)]
 
 
@@ -125,8 +125,7 @@ def is_absent(
     from the FPL API for the current one and from the per-day attributes history
     and the scraped absences for a past one.
 
-    A minutes model is not obliged to use this - it is what a model *reads*
-    rather than something done to its answer - but a model that ignores it will
-    predict minutes for players who are not going to play.
+    A minutes model that ignores this predicts minutes for players who are not
+    going to play.
     """
     return player.is_injured_or_suspended(season, root_gameweek, fixture_gameweek)

@@ -51,12 +51,8 @@ def predict(
     )
     with session_scope() as session:
         session.expire_on_commit = False
-        # the pipeline resolves the window, so a length and a pair of ends are
-        # reconciled in one place rather than once per command
         gameweeks = pipeline.gameweeks(session)
         tag = pipeline.predict(gameweeks, session)
-        # showing the answer is the command's job, not the prediction's: this was
-        # the only prediction -> reporting import in the package
         get_top_predicted_points(
             gameweeks=gameweeks,
             tag=tag,

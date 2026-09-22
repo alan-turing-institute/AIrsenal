@@ -114,8 +114,7 @@ def test_only_a_squad_chip_makes_a_gameweeks_transfers_free(
     `counts_as_transfer` is what stops a wildcard costing fifteen free transfers.
 
     `get_free_transfers` reads it back to work out what the following gameweek
-    starts with, so a wildcard recorded as fifteen transfers left the entry on
-    one free transfer for the rest of the season.
+    starts with.
     """
     history.update_squad(fpl_team_id=OTHER_ENTRY, dbsession=_Session())
 

@@ -42,15 +42,6 @@ class ConjugatePlayerModel:
         self.prior: FloatArray | None = None
         self.posterior: FloatArray | None = None
         self.mean_probabilities: FloatArray | None = None
-        self.time_diff: FloatArray | None = None
-
-    @property
-    def epsilon(self) -> float | None:
-        return self.config.epsilon
-
-    @property
-    def rescale_weights(self) -> bool:
-        return self.config.rescale_weights
 
     def fit(self, data: PlayerFitData) -> "ConjugatePlayerModel":
         logger.info(

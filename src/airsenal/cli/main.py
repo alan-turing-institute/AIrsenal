@@ -22,7 +22,7 @@ from airsenal.core.lookup import ConfigError
 app = typer.Typer(
     no_args_is_help=True,
     help=(
-        "AIrsenal: A package for using Machine learning to pick a Fantasy Premier "
+        "AIrsenal: A package for using machine learning to pick a Fantasy Premier "
         "League team.\n\nHomepage: https://github.com/alan-turing-institute/AIrsenal\n"
         f"Version: {airsenal.__version__}"
     ),

@@ -73,11 +73,9 @@ def test_every_position_is_fitted(pipeline_db, name):
 
 def test_fitting_without_naming_a_model_uses_the_default_one(pipeline_db):
     """
-    Otherwise a fit that names no model disagrees with what a run would do.
+    So a fit that names no model agrees with what a run would do.
 
-    `fit_player_data` constructed `ConjugatePlayerModel` itself, which was the
-    default when it was written and silently stopped being one - so anything
-    asking for "the player model" got the wrong one, including the notebooks.
+    The conjugate model is fitted alongside to show the default is not it.
     """
     default = fit_player_data(
         Position.FWD, FIT_GAMEWEEK, FIT_SEASON, dbsession=pipeline_db

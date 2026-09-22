@@ -93,11 +93,7 @@ class CandidatePlayer:
         return state
 
     def calc_predicted_points(self, tag: str) -> None:
-        """
-        This player's predicted points from the database.
-
-        A dict of dicts, keyed by tag and then by gameweek.
-        """
+        """Load this tag's predictions into `predicted_points`, keyed by gameweek."""
         if tag not in self.predicted_points:
             self.predicted_points[tag] = get_predicted_points_for_player(
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
@@ -108,7 +104,7 @@ class CandidatePlayer:
         if tag not in self.predicted_points:
             self.calc_predicted_points(tag)
         if gameweek not in self.predicted_points[tag]:
-            logger.warning("No prediction available for %s week %s", self, gameweek)
+            logger.warning("No prediction available for %s gameweek %s", self, gameweek)
             return 0.0
         return self.predicted_points[tag][gameweek]
 
@@ -128,7 +124,7 @@ class DummyPlayer:
         self.display_name = "DUMMY"
         self.position = position
         self.purchase_price = purchase_price
-        # set team to random string so we don't violate max players per team constraint
+        # a unique team, so a dummy never counts towards the three-per-club limit
         self.team = str(uuid.uuid4())
         self.pts = pts
         self.predicted_points: dict[str, dict[int, float]] = {
@@ -146,7 +142,7 @@ class DummyPlayer:
         """Nothing to look up: a dummy's points are fixed at construction."""
 
     def get_predicted_points(self, tag: str, gameweek: int) -> float:  # noqa: ARG002
-        """Always zero: a dummy scores nothing."""
+        """The points it was built with, whatever the gameweek."""
         return self.pts
 
 
@@ -157,7 +153,7 @@ def bench_position(player: SquadPlayer) -> int:
     """
     Where a benched player sits in the substitution order.
 
-    Set by Squad.order_substitutes.
+    Set by `order_substitutes`.
     """
     if player.sub_position is None:
         msg = f"{player} has no bench position - optimize the lineup first"

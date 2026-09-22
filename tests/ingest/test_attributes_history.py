@@ -93,8 +93,7 @@ def test_an_empty_news_and_chance_come_back_as_none():
     """
     A blank cell is a float nan, and an integer column with any blank is float64.
 
-    Both have to be narrowed before they reach a VARCHAR and an INTEGER column;
-    a raw nan used to be written into `PlayerScore.news` as a float.
+    Both are narrowed before they reach a VARCHAR and an INTEGER column.
     """
     frame = _history([(GAMEWEEK_DATES[1], "p1", "Bob", None, None, None)])
 

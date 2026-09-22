@@ -17,13 +17,7 @@ def test_sort_seasons():
 
 
 def test_expected_goals_start_in_2223():
-    """
-    Which season the FPL API started reporting expected goals for.
-
-    A fact about what FPL publishes, not about any model, so the two models
-    fitted to expected goals read it from here rather than each naming the
-    season in their own error message.
-    """
+    """Which season the FPL API started reporting expected goals for."""
     assert FIRST_SEASON_WITH_EXPECTED_GOALS == "2223"
     assert not has_expected_goals("2122")
     assert has_expected_goals("2223")

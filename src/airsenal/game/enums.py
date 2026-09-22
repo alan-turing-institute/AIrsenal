@@ -16,22 +16,15 @@ class Position(StrEnum):
         """
         Whether AIrsenal models a player in this position at all.
 
-        FPL added managers in season 2425 and records them as position "MNG".
-        They score from their team's result rather than from anything on the
-        pitch, no model here has anything to say about them, and no squad can
-        contain one - so they are left out of the data models are fitted to and
+        Managers (position "MNG", from season 2425) are not: no model predicts
+        them and no squad can contain one, so they are left out of fitting and
         skipped rather than predicted.
         """
         return position in cls
 
     @classmethod
     def modelled(cls) -> tuple[str, ...]:
-        """
-        Every position AIrsenal models, for a query that has to list them.
-
-        The same rule as `is_modelled`, for a caller that cannot ask one
-        position at a time - a `WHERE position IN (...)` needs the set.
-        """
+        """Every position `is_modelled` accepts, for a `WHERE position IN (...)`."""
         return tuple(str(position) for position in cls)
 
     @classmethod

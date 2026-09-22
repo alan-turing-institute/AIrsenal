@@ -183,9 +183,8 @@ def test_a_season_before_the_history_falls_back_to_the_attributes_row(dbsession)
     """
     Which is where the Transfermarkt scrape lands, for every season before 2526.
 
-    Without it every pre-2526 PlayerScore had a null chance of playing, and
-    `exclude_unavailable` treats null as available - so a match a player missed
-    injured counted towards their recent minutes like any other.
+    `exclude_unavailable` treats a null chance of playing as available, so without
+    it a match a player missed injured would count towards their recent minutes.
     """
     player = _player()
     dbsession.add(player)

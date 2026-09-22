@@ -6,9 +6,7 @@ A grid over (epsilon, n_goals_prior), scored by
 matches before it and score who actually scored and assisted in the next
 `--horizon` gameweeks.
 
-`--model` chooses which of the two hyperparameter-taking models is swept. The
-table in `player_models/__init__.py` maps a name to a model with its own
-defaults, which is the wrong thing here: the point is to vary them.
+`--model` chooses which of the two hyperparameter-taking models is swept.
 """
 
 import argparse
@@ -52,8 +50,7 @@ def _xg(epsilon: float, n_goals_prior: int | None) -> PlayerModel:
 
 
 # `n_goals_prior` of None means the model's own default, which for `xg` is one
-# value per position - so sweeping epsilon alone does not have to flatten it to
-# a single number first.
+# value per position.
 MODELS: dict[str, Callable[[float, int | None], PlayerModel]] = {
     "conjugate": _conjugate,
     "xg": _xg,
@@ -93,7 +90,7 @@ def evaluate_params(
 ) -> ParameterResult:
     """Score one parameter pair across every season, walking each one forward."""
     total = ModelScore()
-    for season in track(seasons, desc="Season"):
+    for season in track(seasons, description="Season"):
         with session_scope() as dbsession:
             max_gameweek = get_max_gameweek(season=season, dbsession=dbsession)
             gameweek_start = first_gameweek or 1
@@ -165,7 +162,7 @@ def main() -> None:
             first_gameweek=args.first_gameweek,
             last_gameweek=args.last_gameweek,
         )
-        for epsilon, n_goals_prior in track(grid, desc="Parameters")
+        for epsilon, n_goals_prior in track(grid, description="Parameters")
     ]
 
     best = max(results, key=lambda r: r.score.mean_log_probability)

@@ -53,13 +53,7 @@ logger = get_logger(__name__)
 
 
 def save_plan_dump(plans: list[Plan], directory: Path, tag: str) -> None:
-    """
-    Write every plan considered to one JSON file, for debugging.
-
-    The search itself keeps plans in memory; this exists only because
-    inspecting the whole tree is occasionally the fastest way to understand a
-    surprising suggestion.
-    """
+    """Write every plan considered to one JSON file, for debugging."""
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"plans_{tag}.json"
     with path.open("w") as f:
@@ -214,7 +208,7 @@ def run_optimization(
     squad_optimizer: SquadOptimizer | None = None,
     scoring: SquadScoringConfig | None = None,
     save_plans: Path | None = None,
-    is_replay: bool = False,  # for replaying seasons
+    is_replay: bool = False,
 ) -> tuple[Squad, Plan | None]:
     """
     Search every move-and-gameweek combination for the best whole-window plan.
@@ -260,9 +254,7 @@ def run_optimization(
                 scoring,
                 is_replay=is_replay,
             ), None
-        # if we got to here, we can assume we are optimizing an existing squad.
 
-        # How many free transfers are we starting with?
         if num_free_transfers is None:
             num_free_transfers = get_free_transfers(
                 gameweeks[0],
@@ -273,7 +265,6 @@ def run_optimization(
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
 
-        # Work out what chips we definitely or possibly will play in each gameweek
         chip_schedule = ChipSchedule.from_gameweeks(gameweeks, chips)
 
         result = optimizer.search(
@@ -298,8 +289,7 @@ def run_optimization(
         baseline_score = result.baseline_score
         fill_suggestion_table(baseline_score, best_plan, season, fpl_team_id)
         if is_replay:
-            # simulating a previous season, so imitate applying transfers by adding
-            # the suggestions to the Transaction table
+            # a replay imitates applying the suggestions by recording transactions
             fill_transaction_table(
                 starting_squad,
                 best_plan,

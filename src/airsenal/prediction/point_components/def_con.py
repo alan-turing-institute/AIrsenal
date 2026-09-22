@@ -1,4 +1,4 @@
-"""Points for defensive contributions, new in the 25/26 season."""
+"""Points for defensive contributions, awarded from the 25/26 season."""
 
 import pandas as pd
 from sqlalchemy.orm import Session

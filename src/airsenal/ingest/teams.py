@@ -37,8 +37,6 @@ def make_team_table(
 ) -> None:
     """Fill the team table with the league's teams for every season."""
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

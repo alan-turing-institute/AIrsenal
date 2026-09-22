@@ -8,7 +8,6 @@ transfer, the best pair, and how many candidate squads each candidate will consi
 from operator import itemgetter
 from unittest import mock
 
-from airsenal.core.console import console
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferRequest
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
@@ -175,7 +174,7 @@ def test_single_transfer():
         new_squad, _pid_out, pid_in = make_optimum_single_transfer(
             t, "DUMMY", [1], sub_weights=SubWeights()
         )
-        # we should expect - player 115 to be transfered in, and to be captain.
+        # player 115 is transferred in, and made captain
     assert pid_in[0] == 115
     for p in new_squad.players:
         if p.player_id == 115:
@@ -235,11 +234,9 @@ def test_double_transfer():
         new_squad, _pid_out, pid_in = make_optimum_double_transfer(
             t, "DUMMY", [1], sub_weights=SubWeights()
         )
-        # we should expect 201 and 115 to be transferred in, and 1,15 to
-        # be transferred out.   115 should be captain
+        # 201 and 115 are transferred in, and 115 is made captain
         assert 201 in pid_in
         assert 115 in pid_in
-        console.print(new_squad)
         for p in new_squad.players:
             if p.player_id == 115:
                 assert p.is_captain is True
@@ -332,8 +329,8 @@ def test_a_transfer_is_priced_at_the_root_gameweek(monkeypatch):
 
     Nothing knows a later gameweek's prices: for the season being played they do
     not exist yet, and in a replay of a finished one they are the future. Pricing
-    a third-gameweek move at its own gameweek let a replay buy and sell at prices
-    the real run could not have seen.
+    a third-gameweek move at its own gameweek would let a replay buy and sell at
+    prices the real run could not have seen.
     """
     squad = generate_dummy_squad({i: {GAMEWEEK_OF_THE_MOVE: 2} for i in range(15)})
     for module in ("single", "double"):

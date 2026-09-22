@@ -1,10 +1,9 @@
 """
-Record what every model scores now, so a refactor can be shown not to change it.
+Score every team and player model, to compare before and after a prediction change.
 
-The baseline for the phases in `docs/prediction-seams-plan.md`. Every team and
-player model in the tables is scored by held-out log probability, and with
-`--points` the whole points calculation is scored by the error in the points it
-predicts. Written as JSON so two runs can be diffed.
+Every team and player model in the tables is scored by held-out log probability,
+and with `--points` the whole points calculation is scored by the error in the
+points it predicts. Written as JSON so two runs can be diffed.
 
 `--points` writes predictions to the database, one tag per gameweek, so point it
 at a copy rather than the database you run with.
@@ -40,11 +39,10 @@ def score_models(
     """
     Every team and player model in the tables, by held-out log probability.
 
-    Player models are scored one position at a time, which is how they are
-    fitted, and because not every model can be fitted for every position: a
-    goalkeeper who scored no goals in the window leaves the Dirichlet prior
-    improper, so `numpyro` cannot be fitted there at all. A model that raises is
-    recorded with its error rather than left out silently.
+    Player models are scored one position at a time, because not every model can
+    be fitted for every position: goalkeepers who scored no goals in the window
+    leave the Dirichlet prior improper, so `numpyro` cannot be fitted there. A
+    model that raises is recorded with its error rather than left out.
     """
     scores: dict[str, dict[str, Any]] = {}
     for name in track(sorted(TEAM_MODELS), description="Team models:"):

@@ -123,7 +123,6 @@ def make_random_transfers(
                         logger.warning("Problem removing %s", ap)
                 added_players = []
 
-        # calculate the score
         total_points = get_discounted_squad_score(
             new_squad,
             gameweeks,
@@ -138,7 +137,6 @@ def make_random_transfers(
             best_pid_out = removed_players
             best_pid_in = [ap.player_id for ap in added_players]
             best_squad = new_squad
-            # end of loop over n_iter
 
     if best_squad is None:
         msg = "Failed to find valid random transfers for squad"

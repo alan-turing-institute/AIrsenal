@@ -8,8 +8,8 @@ The contracts the optimisation algorithms have to satisfy.
 Each declares only the method that does the work; see `progress_total` for the
 optional method a component can add to size its own progress bar.
 
-What they produce lives in `optimization/plan.py`: a `Proposal` for one gameweek,
-a `Plan` for a whole window.
+What they produce: a `Proposal` (below) for one gameweek, a `Plan`
+(`optimization/plan.py`) for a whole window.
 """
 
 from collections.abc import Callable
@@ -25,8 +25,8 @@ from airsenal.optimization.plan import TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
-# Defaults for `TransferRequest` and `TransferConstraints` below, and the tree search's
-# own signatures.
+# Defaults for `TransferRequest` and `TransferConstraints` below, and for the tree
+# search's own signatures.
 DEFAULT_NUM_ITERATIONS = 100
 DEFAULT_MAX_OPT_TRANSFERS = 2
 DEFAULT_MAX_TOTAL_HIT = 8
@@ -48,7 +48,7 @@ class ProgressUpdater(Protocol):
 # say, and that worker's bar runs indeterminate.
 type ProgressResetter = Callable[[int, str, int | None], None]
 
-# Called once per candidate squad a strategy considers to handle overall progress.
+# Called once per candidate squad a strategy considers.
 type StepCounter = Callable[[], None]
 
 
@@ -122,7 +122,7 @@ class Proposal:
     players_out: list[int]
 
     def as_transfer_dict(self) -> dict[str, list[int]]:
-        """The {"in": [...], "out": [...]} shape the suggestion table stores."""
+        """The transfers as {"in": [player_ids], "out": [player_ids]}."""
         return {"in": self.players_in, "out": self.players_out}
 
 
@@ -177,7 +177,7 @@ class SquadRequest:
     progress: SquadProgress | None = None
     # Only ever set by a caller in the parent process. A Session cannot cross a
     # process boundary, so a request built inside a search worker leaves this None
-    # and a request must never be put on a queue - see tests/test_pickling.py.
+    # and a request must never be put on a queue - see tests/squad/test_pickling.py.
     dbsession: Session | None = None
 
     @property
@@ -197,9 +197,8 @@ class SquadOptimizer(Protocol):
         """
         The best squad this optimizer can find for the request.
 
-        Returns the squad alone: neither caller uses a score, and requiring one in
-        `get_discounted_squad_score` units is not something every kind of optimizer
-        could honestly report.
+        Returns the squad alone, since not every kind of optimizer can report a
+        score in `get_discounted_squad_score` units.
         """
         ...
 
@@ -232,10 +231,6 @@ class TransferSearchRequest:
     # handles wildcards and free hits needs one. None means the default whole-squad
     # optimizer; `FullSquadStrategy` is the single place that resolves it.
     squad_optimizer: "SquadOptimizer | None" = None
-
-    @property
-    def n_gameweeks(self) -> int:
-        return len(self.gameweeks)
 
 
 class TransferOptimizer(Protocol):

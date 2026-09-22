@@ -79,7 +79,7 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
             if found_home and found_away:
                 break
 
-        if not found_home and found_away:
+        if not found_home and not found_away:
             msg = f"Can't find team(s) with id(s): {home_id}, {away_id}."
             raise ValueError(msg)
         if not found_home:
@@ -96,10 +96,7 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
 def make_fixture_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    # fill the fixture table for past seasons
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

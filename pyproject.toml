@@ -156,9 +156,9 @@ convention = "google"
 # A ratchet, not a target: each number is today's worst offender, so nothing can
 # get worse while the rest are split up. Lower them as that happens; never raise.
 [tool.ruff.lint.pylint]
-max-args = 13          # calc_predicted_points_for_player
+max-args = 12          # run_optimization, make_new_squad
 max-positional-args = 12  # run_optimization
-max-branches = 19      # find_fixture, FPLAuth._login_flow
+max-branches = 19      # find_fixture, list_players, FPLAuth._login_flow
 max-statements = 80    # fill_attributes_table_from_api
 max-returns = 12       # FPLAuth._login_flow
 

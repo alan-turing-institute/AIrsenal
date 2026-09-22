@@ -2,9 +2,9 @@
 Every point component, against a real database, and one nobody registered.
 
 Parametrized over `POINT_COMPONENTS`, so adding a component to the table gets it
-fitted here for free. The last two tests are the point of the phase: a component
-written outside the package reaches a real prediction run, and turning one off
-changes the answer.
+fitted here for free. The last two tests check that a component written outside
+the package reaches a real prediction run, and that turning one off changes the
+answer.
 """
 
 import math
@@ -115,7 +115,7 @@ def test_a_component_no_table_knows_about_can_be_predicted_with(pipeline_db):
 
 
 def test_turning_a_component_off_leaves_it_out_of_the_total(pipeline_db):
-    """`PointsConfig` still decides what a run predicts, now by naming components."""
+    """`PointsConfig` decides what a run predicts by naming its components."""
     assert PointsConfig().component_names() == list(POINT_COMPONENTS)
     without = PointsConfig(bonus=False).component_names()
     assert "bonus" not in without

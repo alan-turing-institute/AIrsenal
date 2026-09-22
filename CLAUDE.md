@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What is AIrsenal
 
 AIrsenal is a machine learning package for optimizing Fantasy Premier League (FPL) team
-selection and transfer decisions. It uses Bayesian statistical models to predict
-player/team performance, a greedy/brute-force approach to optimize transfers, and a DEAP
+selection and transfer decisions. It uses statistical models to predict player/team
+performance, a tree search over each gameweek's transfers to optimize them, and a DEAP
 genetic algorithm for initial whole-squad selection — all under FPL constraints (budget,
 squad size, position limits, chips, etc.).
 
@@ -86,8 +86,9 @@ uv run airsenal run
    `src/airsenal/data/` into a local SQLite database
 2. **Database update** (`ingest/update.py`) — fetches current-season fixtures, results,
    and player attributes from the FPL API via `curl_cffi`
-3. **Prediction** (`prediction/run.py`) — runs BPL team models and player-level models to
-   predict points; writes to `PlayerPrediction` table
+3. **Prediction** (`prediction/run.py`) — fits the points model (by default a team,
+   player and minutes model plus point components) and predicts points; writes to the
+   `PlayerPrediction` table
 4. **Optimization** (`optimization/run_transfers.py`) — searches for optimal transfers;
    writes to `TransferSuggestion` table
 5. **Apply** (`apply/transfers.py`, `apply/lineup.py`) — optionally posts transfers and

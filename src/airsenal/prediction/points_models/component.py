@@ -50,17 +50,15 @@ def describe_component(component: object) -> str:
 
 class ComponentPointsModel:
     """
-    The way AIrsenal has always predicted points, behind the points-model seam.
+    Predicted points as a sum of components, the default points model.
 
     Four collaborators, each a pluggable kind of its own: a team model for how
     many goals a fixture produces, a player model for the share of them this
     player takes, a minutes model for how long they are on the pitch, and the
     components that turn all of that into points.
 
-    The team model is not one of the components. A component answers in points
-    and this answers in goals, and two components read it rather than one - so
-    it is a collaborator that fills in the `ComponentRequest`, not an entry in
-    the list.
+    The team model is not one of the components: it answers in goals, not
+    points, and fills in the `ComponentRequest` that two components read.
     """
 
     def __init__(
@@ -85,7 +83,7 @@ class ComponentPointsModel:
             minutes_model if minutes_model is not None else build_minutes_model()
         )
         self.points = points if points is not None else PointsConfig()
-        self.components = components if components is not None else None
+        self.components = components
         self.fitted: _FittedComponents | None = None
 
     def describe(self) -> dict[str, str]:
@@ -209,10 +207,9 @@ class _FittedComponents:
 
         minutes = self.minutes_for(request, minutes_model, gameweek)
         if minutes.expected_minutes == 0.0:
-            # Not a refusal to answer: a player who will not be on the pitch is
-            # predicted zero from every component, which is what the components
-            # themselves would say. Whether an injured player will be on the
-            # pitch is the minutes model's business, not this one's.
+            # A player who will not be on the pitch scores zero from every
+            # component. Whether an injured player plays is the minutes model's
+            # business.
             return PointsPrediction(
                 expected_points=0.0,
                 expected_minutes=0.0,

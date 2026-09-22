@@ -74,15 +74,14 @@ def test_a_result_without_player_scores_is_reported_not_raised(dbsession):
     A fixture whose result landed before its player scores does not end the run.
 
     That is exactly the state an interrupted update leaves behind, and the state
-    this check exists to find - so an empty `max()` over the 90-minute players
-    turned the check into a ValueError instead of a warning.
+    this check exists to find, so it is counted and logged rather than raised.
     """
     add_fixture(dbsession, home_score=1, away_score=0)
     dbsession.commit()
 
     # one per team: neither has a 90-minute player to read a conceded figure off
     assert fixture_num_conceded([SEASON], dbsession) == 2
-    # the sibling check over the same fixture already logged and carried on
+    # the sibling check over the same fixture logs and carries on too
     assert fixture_num_goals([SEASON], dbsession) == 1
 
 

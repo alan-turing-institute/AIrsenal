@@ -33,11 +33,6 @@ from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 TEAM_ID = -1
 
 
-@pytest.fixture(scope="module")
-def seeded(pipeline_db):
-    return pipeline_db
-
-
 class RecordingSquadOptimizer:
     """Satisfies SquadOptimizer, records what it was asked, builds a real squad."""
 
@@ -88,7 +83,7 @@ def _pipeline(team_model="constant", player_model="constant", **settings):
 
 
 @pytest.fixture(scope="module")
-def completed(seeded):
+def completed(pipeline_db):
     pipeline = _pipeline()
     pipeline.run()
     return pipeline
@@ -106,7 +101,9 @@ def test_the_optimizer_is_asked_for_the_gameweeks_the_run_covers(completed):
     assert completed.squad_optimizer.requests[0].gameweeks == FUTURE_GAMEWEEKS
 
 
-def test_the_optimizer_is_handed_the_tag_prediction_actually_wrote(completed, seeded):
+def test_the_optimizer_is_handed_the_tag_prediction_actually_wrote(
+    completed, pipeline_db
+):
     """
     The tag is threaded through rather than looked up again afterwards.
 
@@ -114,9 +111,9 @@ def test_the_optimizer_is_handed_the_tag_prediction_actually_wrote(completed, se
     e2e modules, so it holds their tags too.
     """
     tag = completed.squad_optimizer.requests[0].tag
-    written = set(seeded.scalars(select(PlayerPrediction.tag)).all())
+    written = set(pipeline_db.scalars(select(PlayerPrediction.tag)).all())
     assert tag in written
-    predictions = seeded.scalars(
+    predictions = pipeline_db.scalars(
         select(PlayerPrediction).where(PlayerPrediction.tag == tag)
     ).all()
     assert predictions
@@ -126,7 +123,7 @@ def test_the_optimizer_is_told_which_season(completed):
     assert completed.squad_optimizer.requests[0].season == SEASON
 
 
-def test_swapping_the_team_model_changes_the_predictions(seeded):
+def test_swapping_the_team_model_changes_the_predictions(pipeline_db):
     """
     Proves the component object is used, not a name resolved somewhere downstream.
 
@@ -148,7 +145,7 @@ def test_swapping_the_team_model_changes_the_predictions(seeded):
         {
             player.player_id: score
             for player, score in get_predicted_points(
-                FUTURE_GAMEWEEKS, tag=tag, season=SEASON, dbsession=seeded
+                FUTURE_GAMEWEEKS, tag=tag, season=SEASON, dbsession=pipeline_db
             )
         }
         for tag in tags
@@ -181,7 +178,7 @@ def test_a_component_the_tables_do_not_know_about_still_works():
     assert not any(optimizer is entry for entry in SQUAD_OPTIMIZERS.values())
 
 
-@pytest.mark.usefixtures("seeded")
+@pytest.mark.usefixtures("pipeline_db")
 class TestOptimizeRefusesPredictionsItCannotUse:
     """
     A tag covering none of the requested gameweeks is refused.
@@ -209,7 +206,7 @@ class TestOptimizeRefusesPredictionsItCannotUse:
         assert pipeline.squad_optimizer.requests == []
 
 
-@pytest.mark.usefixtures("seeded")
+@pytest.mark.usefixtures("pipeline_db")
 class TestOneWindowResolver:
     """
     One resolver for the gameweek window.
@@ -237,7 +234,7 @@ class TestOneWindowResolver:
         assert len(pipeline.gameweeks()) < 500
 
 
-@pytest.mark.usefixtures("seeded")
+@pytest.mark.usefixtures("pipeline_db")
 class TestOneNewSquadDecision:
     """
     Whether to build a squad or transfer into one is decided in one place.

@@ -124,7 +124,7 @@ def test_a_player_id_is_not_looked_up_before_the_cache(monkeypatch):
 
     The optimiser calls this once per candidate player per candidate squad, so
     validating the id with `get_player` first roughly doubles the time of a
-    transfer optimisation. Nothing fails if it comes back - it just gets slow.
+    transfer optimisation, and nothing else would fail.
     """
 
     def fail(*args, **kwargs):

@@ -65,11 +65,7 @@ def test_dumps_again_only_after_the_next_task(tmp_path) -> None:
 
 
 def test_waiting_for_work_is_not_a_stall(tmp_path) -> None:
-    """Most workers are idle at the tail of a run; that is not a hang.
-
-    Counting it as one buried the single dump that mattered under nine that
-    did not.
-    """
+    """A worker idle at the tail of a run is not hung, and is not dumped."""
     directory = tmp_path / "stalls"
     watchdog = StallWatchdog("worker-4", seconds=0, directory=directory)
     watchdog.idle()

@@ -3,8 +3,7 @@ What we can do in a single gameweek, and which chips are available when.
 
 `GameweekMove` carries how many transfers and which chip as fields. Moves are
 also written in a compact string form (``int | "W" | "F" | "T0".."T2" |
-"B0".."B2"``) for display and for the database; parsing it happens once, here, on
-the way in.
+"B0".."B2"``) for display and in plan and replay JSON.
 """
 
 from collections.abc import Iterable, Mapping
@@ -66,7 +65,7 @@ class GameweekMove:
         return self.chip is not Chip.FREE_HIT
 
     def label(self) -> str:
-        """The short form used in strategy ids and in the suggestion table."""
+        """The short form used in plan labels, tables and JSON output."""
         if self.chip is None:
             return str(self.n_transfers)
         if self.chip in _SQUAD_CHIP_LABELS:
@@ -75,12 +74,7 @@ class GameweekMove:
 
     @classmethod
     def parse(cls, label: str | int) -> "GameweekMove":
-        """
-        Read back a `label()`.
-
-        Only needed for tests and for suggestion rows read back out of the
-        database - the search itself passes `GameweekMove` objects around.
-        """
+        """Read back a `label()`."""
         if isinstance(label, int):
             return cls(label)
         if label in _LABEL_TO_SQUAD_CHIP:

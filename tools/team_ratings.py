@@ -6,11 +6,9 @@ Sorted by what a team does to a match: creating more and conceding less is
 better.
 
 The ratings are fitted to every result before `--gameweek`, which defaults to
-the next one without a result - so with no arguments this is what the model
-currently believes. That window reaches back through earlier seasons, so teams
-that have since been relegated are rated too; they are marked as not being in
-the league this season rather than left out, because they are still what the
-current teams' records were built against.
+the next one without a result. That window reaches back through earlier
+seasons, so relegated teams are rated too, and are listed unranked unless
+`--in-league-only` leaves them out.
 """
 
 import argparse
@@ -63,8 +61,6 @@ def main() -> None:
         )
 
     # The ratings live on the model the table entry wrapped, if it wrapped one.
-    # Read by name rather than by type: a model that has them need not be any
-    # particular class, and one that has none is told so.
     model = getattr(fitted, "model", fitted)
     attack: dict[str, float] | None = getattr(model, "attack", None)
     defence: dict[str, float] | None = getattr(model, "defence", None)
@@ -89,9 +85,7 @@ def main() -> None:
     )
     position = 0
     for team in teams:
-        # Only rank the teams that are actually playing this season; the rest
-        # are here as the opposition the others were rated against, and must not
-        # take up a place in the table.
+        # only teams in this season's league take a place in the ranking
         in_it = team in in_league
         position += in_it
         rank = f"{position:2}." if in_it else "  -"

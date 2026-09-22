@@ -189,9 +189,8 @@ def test_an_absence_ending_after_the_season_covers_the_rest_of_it(dbsession, tmp
     """
     An end date past the last fixture means they never came back that season.
 
-    The half-open range therefore ends one past the last gameweek. Leaving it
-    unresolved instead made readers skip the absence, which wrote off every long
-    injury and every mid-season transfer out of the league.
+    The half-open range therefore ends one past the last gameweek, so a long
+    injury or a mid-season transfer out of the league covers the rest of the season.
     """
     player = _add_player(dbsession, 1, "Bob")
     dbsession.commit()
@@ -212,10 +211,7 @@ def test_an_absence_with_no_end_date_lasts_the_rest_of_the_season(dbsession, tmp
     A blank end date means the player did not come back.
 
     Every packaged file is a scrape of a season that has finished, so a blank
-    `until` is a season they did not return in. It used to be left unresolved and
-    skipped by every reader, on the grounds that the FPL-derived rows meant
-    something else by it - but nothing ever wrote one of those, and ignoring the
-    row entirely counted the player as available throughout.
+    `until` is a season they did not return in.
     """
     player = _add_player(dbsession, 1, "Bob")
     dbsession.commit()
@@ -327,9 +323,8 @@ def test_a_player_is_absent_from_the_first_gameweek_they_miss(absence_db):
     """
     The first gameweek missed counts as an absence, not the last one played.
 
-    Excluding it treated the opening week of every absence as available - and
-    that is the week the other guard cannot catch either, because the recent
-    minutes it reads are all from before the absence.
+    The recent-minutes guard cannot catch the opening week of an absence, because
+    the minutes it reads are all from before the absence.
     """
     _set_absent(absence_db, 1, gameweek_from=1, gameweek_until=4)
     player = absence_db.get(Player, 1)
@@ -347,7 +342,7 @@ def test_an_absence_ending_the_week_it_began_covers_nothing(absence_db):
 
     Both ends get the same gameweek when a player is flagged and back before
     their team plays again, so the range has to be able to be empty even though
-    the first gameweek itself now counts.
+    the first gameweek itself counts.
     """
     _set_absent(absence_db, 1, gameweek_from=2, gameweek_until=2)
     player = absence_db.get(Player, 1)
@@ -360,10 +355,8 @@ def test_an_absence_that_has_not_begun_is_not_known_yet(absence_db):
     A replay may not rule a player out of a fixture over an injury still to come.
 
     The flag lives on the gameweek's own attributes row, so planning from an
-    earlier gameweek reads a row that knows nothing about it. Asked only about
-    the fixture's own gameweek, the old Absence table answered "absent" for an
-    injury picked up two gameweeks after the one being planned from, which is
-    knowledge the real run would not have had.
+    earlier gameweek reads a row that knows nothing about it, as the real run
+    would not have known either.
     """
     _set_absent(absence_db, 1, gameweek_from=3, gameweek_until=4)
     player = absence_db.get(Player, 1)

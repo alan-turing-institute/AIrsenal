@@ -13,10 +13,8 @@ from airsenal.db.engine import get_connection_string
 from airsenal.db.models import Base
 
 
-# Engine and default session are created on first use, not at import, so that
-# importing an airsenal module never opens a database or reaches the network.
 class _DatabaseState:
-    """Lazily-created engine and default session for the process."""
+    """The process's engine and default session, created on first use, not at import."""
 
     def __init__(self) -> None:
         self.connection_string: str | None = None
@@ -39,17 +37,11 @@ _db = _DatabaseState()
 def _reset_engine_after_fork() -> None:
     """Stop a forked child from sharing the parent's database connection.
 
-    `fork` copies the engine's pool, so parent and children end up issuing
-    statements down one inherited connection - literally the same
-    `sqlite3.Connection`, on the same file descriptor. SQLAlchemy's answer is
-    `dispose(close=False)`: abandon the inherited connections (the parent still
-    needs them, so do not close them) and let the child open its own on next
-    use.
+    `dispose(close=False)` abandons the inherited pool without closing the
+    connections the parent still uses; the child opens its own on next use.
 
-    The cached queries are deliberately left alone. They hold plain values
-    rather than ORM objects, so they describe the database rather than the
-    connection, and dropping them would make every worker re-read what the
-    parent had already looked up.
+    The query caches are kept: they hold plain values, not ORM objects, so they
+    are still valid in the child.
     """
     if _db.engine is not None:
         _db.engine.dispose(close=False)

@@ -22,10 +22,11 @@ def sell_price(
     fetcher: FPLDataFetcher | None = None,
     dbsession: Session | None = None,
 ) -> int:
-    """Get sale price for a player in the squad, for the given gameweek.
+    """
+    What a player in the squad would sell for in a gameweek.
 
-    FPL gives back half of any rise in a player's price since we bought them,
-    rounded down, which is the arithmetic at the end.
+    FPL gives back half of any rise in a player's price since they were bought,
+    rounded down.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     gameweek = next_gameweek() if gameweek is None else gameweek
@@ -57,10 +58,9 @@ def sell_price(
                 exc_info=True,
             )
 
-    # retrieve how much we originally bought the player for from db
     price_bought = player.purchase_price
 
-    # get player's current price from db if the API wasn't used
+    # the database's current price, if the API gave none
     if not price_now and player_db:
         price_now = player_db.price(gameweek, season)
 

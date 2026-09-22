@@ -58,18 +58,55 @@ dropped straight in:
 
 ```python
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
+from airsenal.prediction.points_models import ComponentPointsModel
 
 
 # fit, teams, add_new_team, predict_score_n_proba, predict_outcome_proba
 class MyTeamModel: ...
 
 
-AIrsenalPipeline(team_model=MyTeamModel(), settings=PipelineSettings(season="2425"))
+AIrsenalPipeline(
+    points_model=ComponentPointsModel(team_model=MyTeamModel()),
+    settings=PipelineSettings(season="2425"),
+)
 ```
 
 The table is only how a *name on the command line* reaches an implementation.
 `tests/e2e/test_pipeline_composition.py` pins this: a component no table knows
 about works.
+
+## Rules the protocols follow
+
+Read these before changing the shape of a protocol:
+
+- **Protocols are not `runtime_checkable`.** `isinstance` against a protocol
+  checks only that the method names exist. Conformance is checked by mypy,
+  where a table entry or a pipeline field is annotated with the protocol.
+- **No optional method fetched with `getattr` at a call site.** Where models
+  differ in what they can do, decide it in the table factory (the `xg` entry
+  wraps a mean-only model), give them a shared helper to call
+  (`outcome_proba_from_scores`), or read it in one named accessor with a
+  documented fallback (`progress_total`, `describe_pipeline`).
+- **Fit data is a shared `TypedDict`** - `PlayerFitData`, `TeamFitData` - so
+  mypy checks both the code that assembles it and the model that reads it.
+  Feature assembly stays in one place rather than in each model; a model that
+  needs more adds a `NotRequired` key and says so when it is absent.
+- **A protocol method takes one frozen request object**, like `TransferRequest`,
+  `MinutesRequest` or `PointsRequest`, which also settles the argument order.
+- **There is no function that builds a whole pipeline from flags.** Each CLI
+  command builds its `AIrsenalPipeline` by hand, so a new field means editing
+  each of them.
+- **Configuration finer than a flag is done in Python**: construct the
+  component and pass the object, rather than adding string knobs to the CLI.
+- **A component named other than the default starts from its own settings**,
+  rather than being handed knobs it never asked for - which is why a team model
+  that does no time weighting rejects `--epsilon` instead of ignoring it.
+- **Whether a player plays is the minutes model's answer.** A player who is
+  unavailable (`is_absent` in `prediction/minutes.py`) is a point mass at zero
+  minutes, and the points model checks only `expected_minutes == 0`. A minutes
+  model that ignores `is_absent` predicts minutes for injured players, and a
+  points model that filtered them again would be scored on minutes it
+  overrode.
 
 ## Worked example: a new team model
 
@@ -228,9 +265,8 @@ Adding that line gets you:
 - a scoring check, from `tests/e2e/test_evaluation.py`
 
 If your model needs a setting no flag exposes, construct it in Python and pass
-the object. `build_*` functions deliberately take only the flags that describe
-their own kind, and a component named other than the default starts from its own
-configuration rather than being handed knobs it never asked for.
+the object. `build_*` functions take only the flags that describe their own
+kind.
 
 ## Is it any better?
 
@@ -297,10 +333,39 @@ alone with no minutes prediction mixed in.
 Those two score one model by how much probability it put on what happened.
 `backtest_points` scores the whole points calculation instead, by the error in
 the points it predicted - which is the only number a model that is not
-probabilistic can be judged by. `backtest_minutes_model` does the same for a
-minutes model, in minutes and in the bands the scoring rules use. See
-[prediction-seams-plan.md](prediction-seams-plan.md) for what each one can and
-cannot tell you.
+probabilistic can be judged by. Unlike the others it writes to the database,
+under a tag prefixed `Backtest_<season>_GW<gameweek>_`, so point it at a copy.
+`backtest_minutes_model` scores a minutes model, in minutes and in the bands the
+scoring rules use.
+
+What each one can and cannot tell you:
+
+- **A log probability judges one model on its own quantity**, and is the number
+  to read for a team or player model. It is comparable only between models
+  scored over the same observations.
+- **A points error cannot judge a player model.** A player model reaches the
+  points through the attacking component alone, so it barely moves them; and
+  because most performances score no attacking points, a model that
+  under-predicts goals and assists has a *lower* points error. Read the log
+  probability of the shares instead - [xg-models.md](xg-models.md) has the
+  measurement.
+- **Read `mean_absolute_error_played` next to `mean_absolute_error`.** Most
+  observations are non-appearances predicted at exactly zero, which dilute the
+  mean without being any evidence about the players a squad is picked from.
+- **A component's error is conditional on the model's own minutes**, so it
+  mixes in the minutes error. `involvement` is scored at the minutes actually
+  played, which is why it is reported as rates.
+- **A minutes model built from a sample of appearances gives no probability to
+  a band it did not sample**, and each such performance costs the log score
+  about 27. Read `impossible_fraction` next to `mean_log_probability`.
+- **A non-zero `n_skipped`** means predictions and performances stopped covering
+  each other: something was not predicted, or not scored.
+
+Only `expected_points` reaches the database. `PlayerPrediction.predicted_points`
+is one number per player per fixture, and the optimizer
+(`optimization/squad_score.py`, the tree search) reads nothing else, so a model's
+uncertainty has nowhere to go until something there would use it - captaincy and
+bench order are the obvious candidates.
 
 `tools/tune_team_time_weighting.py` and `tools/tune_player_time_weighting.py` are
 grid sweeps built on exactly these functions, and are worth reading as longer

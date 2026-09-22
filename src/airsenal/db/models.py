@@ -228,7 +228,7 @@ class Player(Base):
             return attr_after
         if before_and_after:
             return (attr_before, attr_after)
-        # return attributes at gameweeek nearest to input gameweek
+        # return attributes at gameweek nearest to input gameweek
         if gameweek is not None and (gameweek_after - gameweek) >= (
             gameweek - gameweek_before
         ):
@@ -342,7 +342,7 @@ class PlayerScore(Base):
     tackles: Mapped[int | None]
     recoveries: Mapped[int | None]
 
-    # populated from PlayerAttributes history from the morning of the match
+    # what was known about the player's availability for this match
     chance_of_playing: Mapped[int | None]
     news: Mapped[str100_optional]
 

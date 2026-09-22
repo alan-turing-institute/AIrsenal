@@ -10,11 +10,7 @@ from dataclasses import dataclass, field
 
 from airsenal.core.lookup import lookup
 from airsenal.optimization.moves import GameweekMove
-from airsenal.optimization.protocols import (
-    Proposal,
-    TransferRequest,
-    TransferStrategy,
-)
+from airsenal.optimization.protocols import TransferStrategy
 from airsenal.optimization.strategies.double import DoubleTransferStrategy
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
 from airsenal.optimization.strategies.none import NoTransfersStrategy
@@ -70,8 +66,6 @@ DEFAULT_STRATEGIES = StrategySet()
 __all__ = [
     "DEFAULT_STRATEGIES",
     "TRANSFER_STRATEGIES",
-    "Proposal",
     "StrategySet",
-    "TransferRequest",
     "TransferStrategy",
 ]

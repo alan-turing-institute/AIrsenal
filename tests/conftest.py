@@ -45,8 +45,7 @@ from airsenal.game.season import CURRENT_SEASON  # noqa: E402
 
 # The whole unit suite is written as though it were gameweek 1. `next_gameweek()`
 # works that out from the default database, which is otherwise empty here, so give
-# it a season of fixtures that are all still to be played. Data rather than a pin:
-# nothing in the package exists to override it, and nothing reaches the FPL API.
+# it a season of fixtures that are all still to be played.
 SUITE_GAMEWEEK = 1
 MAX_GAMEWEEK = 38
 
@@ -150,7 +149,6 @@ def fill_players():
                 ts.add(p)
             except Exception:
                 logger.exception("Error adding %d %s", i, n)
-            # now fill player_attributes
             if i % 15 < 2:
                 pos = "GK"
             elif i % 15 < 7:

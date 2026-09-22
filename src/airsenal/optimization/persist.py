@@ -146,9 +146,6 @@ def fill_transaction_table(
     """
     dbsession = dbsession if dbsession is not None else get_session()
     if not best_plan.outcomes:
-        # A plan with no gameweeks in it is a bug in whatever produced it, and
-        # indexing straight into an empty tuple names neither the plan nor the
-        # optimizer that returned it.
         msg = (
             "Cannot record transfers for an empty plan: a transfer optimizer must "
             "return one outcome per gameweek it was asked about."
@@ -202,11 +199,7 @@ def fill_initial_suggestion_table(
     fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
-    """
-    Record a from-scratch squad as fifteen "in" suggestions for `gameweek`.
-
-    `gameweek` defaults to the next one.
-    """
+    """Record a from-scratch squad as fifteen "in" suggestions for `gameweek`."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     _add_suggestions(

@@ -177,11 +177,10 @@ class TestGetGameweeksArrayIsToldTheWindow:
 
     def test_a_length_and_the_same_window_named_by_its_ends_agree(self):
         """
-        The invariant the exclusive end broke.
+        Three gameweeks from gameweek 1 are the same whichever way they are named.
 
-        `--gameweek-end` says "Last gameweek to cover" and `airsenal replay`
-        takes it that way, so three gameweeks from gameweek 1 has to mean the
-        same thing whichever way a command names it.
+        `--gameweek-end` is the last gameweek to cover, and `airsenal replay`
+        takes it that way.
         """
         with past_data_session_scope() as ts:
             by_length = get_gameweeks_array(

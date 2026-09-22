@@ -1,10 +1,8 @@
 """
-The minutes distribution, and the model that reproduces the old behaviour.
+The minutes distribution, and the default model that builds one from recent minutes.
 
-What used to be a list of recent appearances averaged inside the points
-calculation is now a distribution that owns its weights. These check the
-distribution's arithmetic and its invariants; `tests/e2e/test_minutes_models.py`
-fits the models against a real database.
+These check the distribution's arithmetic and its invariants;
+`tests/e2e/test_minutes_models.py` fits the models against a real database.
 """
 
 import math
@@ -38,13 +36,8 @@ def test_the_expectation_is_the_weighted_average():
     ) == pytest.approx(1.5)
 
 
-def test_a_uniform_expectation_is_the_old_average_over_recent_minutes():
-    """
-    The behaviour phase 1 had to preserve.
-
-    The points calculation used to sum over recent appearances and divide by
-    how many there were; a uniform distribution says the same thing.
-    """
+def test_a_uniform_expectation_is_the_average_over_recent_minutes():
+    """Uniform weights give the plain average of a quantity over recent appearances."""
     recent = [90.0, 62.0, 13.0]
     distribution = MinutesDistribution.uniform(recent)
 
@@ -70,8 +63,7 @@ def test_an_impossible_distribution_is_refused(minutes, weights):
     """
     A model that returns nonsense fails where it is returned, not later.
 
-    An empty distribution used to be checked for in the points calculation; the
-    invariant belongs to the type, so every model gets it.
+    The invariant belongs to the type, so every model gets it.
     """
     with pytest.raises(ValueError, match=r"minutes|weight|one"):
         MinutesDistribution(minutes=minutes, weights=weights)
@@ -107,12 +99,7 @@ def test_the_table_builds_the_default_model():
 
 
 def test_the_lookback_is_the_models_own_business():
-    """
-    How far back to look is configuration, not a caller's problem.
-
-    `fixtures_behind` and `min_fixtures_behind` used to be arguments of the
-    points calculation that no caller ever passed.
-    """
+    """How far back to look is the model's configuration, not a caller's argument."""
     assert RecentMinutesConfig().min_fixtures_behind == 3
     assert (
         RecentMinutesModel(
@@ -136,10 +123,8 @@ def test_a_player_who_is_not_available_plays_no_minutes():
     """
     Availability belongs to the minutes model, not to the points calculation.
 
-    It used to be a branch in the points model, which meant a minutes model was
-    scored on a prediction the run then overrode - and a new minutes model
-    inherited a filter it could not see. Now the model that answers for minutes
-    answers for this too. `is_absent` is the shared reading of it.
+    So a minutes model is scored on the prediction the run uses. `is_absent` is
+    the shared reading of it.
     """
     distribution = RecentMinutesModel().predict(
         MinutesRequest(

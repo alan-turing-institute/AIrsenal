@@ -47,7 +47,7 @@ def test_xg_is_the_default_player_model():
 
 
 def test_numpyro_is_selected_by_name_not_a_boolean():
-    """--sampling could only ever express two models; a name can express any."""
+    """The sampled model is one entry in the table like any other."""
     assert isinstance(build_player_model("numpyro"), NumpyroPlayerModel)
 
 

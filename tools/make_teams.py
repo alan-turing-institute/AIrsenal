@@ -1,3 +1,5 @@
+"""Write the current season's teams CSV from the FPL API."""
+
 import pandas as pd
 
 from airsenal.core.data_files import data_file

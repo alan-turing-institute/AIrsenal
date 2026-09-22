@@ -51,11 +51,8 @@ def _xg(*, epsilon: float | None = None) -> ScorelineTeamModel:
     """
     Expected goals, read as a Conway-Maxwell-Poisson over goal counts.
 
-    The one entry in the table that wraps: `XGTeamModel` predicts a mean and the
-    wrapper gives it the distribution over counts the points calculation needs.
-    Conway-Maxwell rather than Poisson because the spread of that distribution
-    is then a swept number instead of an assumption, and the measured spread is
-    not the Poisson's - see `DEFAULT_GOAL_DISPERSION`.
+    `XGTeamModel` predicts only a mean, so the wrapper supplies the distribution
+    over counts the points calculation needs; see `DEFAULT_GOAL_DISPERSION`.
     """
     from airsenal.prediction.team_models.scorelines import (  # noqa: PLC0415
         ConwayMaxwellScorelines,

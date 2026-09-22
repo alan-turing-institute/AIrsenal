@@ -16,7 +16,7 @@ from typing import Literal
 
 from airsenal.core.concurrency import CustomQueue, StallWatchdog
 from airsenal.core.console import progress_bar
-from airsenal.core.logging import get_logger, relay_child_logs
+from airsenal.core.logging import relay_child_logs
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.game.enums import Chip
 from airsenal.game.scoring import MAX_FREE_TRANSFERS
@@ -54,8 +54,6 @@ from airsenal.optimization.strategies import (
 )
 from airsenal.squad.squad import Squad
 
-logger = get_logger(__name__)
-
 # What the plan-tree queue carries: either a node still to expand, or the
 # shutdown sentinel. A node is (move, free_transfers, hit_so_far, hit_this_gameweek,
 # squad, plan), where `plan` is None only for the root.
@@ -91,8 +89,6 @@ def next_gameweek_transfers(
     """
     The moves - transfers, and any chip played - a strategy may make next gameweek.
 
-    One node of the tree expanded into its children.
-
     Args:
         free_transfers: Available going into the gameweek.
         hit_so_far: Points hit this strategy has taken up to but not including
@@ -102,8 +98,6 @@ def next_gameweek_transfers(
         allow_unused_transfers: If False and a free transfer would otherwise be
             lost, making none is not offered - which can exclude the baseline
             strategy, so a caller that needs it re-adds it.
-        max_free_transfers: The most free transfers the game rules let a manager
-            bank.
 
     Returns:
         Per move: the move, the free transfers it leaves for the gameweek after,
@@ -113,9 +107,7 @@ def next_gameweek_transfers(
     chips_played = list(chips_played)
 
     if not allow_unused_transfers and free_transfers == max_free_transfers:
-        # Force at least 1 free transfer if a free transfer will be lost otherwise.
-        # NOTE: This can cause the baseline strategy to be excluded. Re-add it outside
-        # this function in that case.
+        # Force at least one transfer if a free transfer would otherwise be lost.
         ft_choices = list(range(1, max_opt_transfers + 1))
     else:
         ft_choices = list(range(max_opt_transfers + 1))
@@ -168,13 +160,11 @@ def count_expected_outputs(
     """
     Count the strategies a search over `n_gameweeks` gameweeks will visit.
 
-    This is what sizes the progress bar before the tree is built.
-
     Args:
         max_total_hit: Points that may be spent on transfers across the whole
             window; None for no limit.
         allow_unused_transfers: If False, strategies that leave a free transfer
-            unused - making none while two are available - are not counted.
+            unused - making none with a full bank of free transfers - are not counted.
 
     Returns:
         How many strategies will be computed, and whether the baseline strategy
@@ -210,13 +200,10 @@ def count_expected_outputs(
             ]
         branches = new_branches
 
-    # if allow_unused_transfers is False the baseline of no transfers can be removed
-    # above. Check whether the 1st strategy is the baseline and if not add it back in.
-    #
-    # `not branches` is the case where the constraints admit no move at all -
-    # --max-transfers 0 with unused transfers disallowed and a full bank of free
-    # transfers, which the search reaches by forcing at least one transfer and then
-    # being allowed none.
+    # allow_unused_transfers=False can remove the baseline above, so add it back if
+    # the first strategy is not it. `branches` is empty when the constraints admit
+    # no move at all: --max-transfers 0, unused transfers disallowed and a full bank
+    # of free transfers forces at least one transfer and then allows none.
     baseline_moves = (GameweekMove(),) * n_gameweeks
     baseline_excluded = not branches or branches[0][2] != baseline_moves
     if baseline_excluded:
@@ -227,12 +214,7 @@ def count_expected_outputs(
 
 @dataclass(frozen=True)
 class TreeSearchConfig:
-    """
-    Settings for the tree search itself, as opposed to the problem it is solving.
-
-    How the algorithm works rather than what it is asked to do, which is why
-    these are here and not on `TransferSearchRequest`.
-    """
+    """Settings for the tree search itself, as opposed to the problem it is solving."""
 
     num_thread: int = 4
     num_iterations: int = DEFAULT_NUM_ITERATIONS
@@ -277,17 +259,10 @@ def optimize(
     resetter: ProgressResetter | None = None,
 ) -> None:
     """
-    Expand nodes of the plan tree until the queue is drained.
+    Expand nodes of the plan tree until the shutdown sentinel arrives.
 
-    `queue` is the multiprocessing queue and `pid` identifies the Process running
-    this. The problem and the settings arrive as two frozen dataclasses.
-
-    Things on the queue will either be None (shutdown sentinel, sent once all
-    plans have been processed), or a tuple:
-    (move, free_transfers, hit_so_far, hit_this_gameweek, squad, plan).
-
-    `plan` is None for the root node, which exists only to add children to
-    the queue. Finished plans are put on the `results` queue.
+    `pid` is this worker's index. Each node is a `PlanNode`; finished plans are
+    put on `results`.
     """
     # A worker that wedges - on a lock inherited across fork, say - stays alive,
     # so the parent cannot distinguish it from one doing slow work and the run
@@ -312,10 +287,6 @@ def optimize(
         if status is None:
             break
 
-        # now assume we have set of parameters to do an optimization
-        # from the queue.
-
-        # turn on the profiler if requested
         if profile:
             profiler = cProfile.Profile()
             profiler.enable()
@@ -341,7 +312,7 @@ def optimize(
             gameweek = remaining_gameweeks[0]
             root_gameweek = plan.root_gameweek
 
-            # One request, used both to size the worker's bar and to do the work
+            # One request, used both to size the worker's bar and to do the work.
             transfer_request = TransferRequest(
                 move=move,
                 squad=squad,
@@ -363,8 +334,7 @@ def optimize(
                     strategy_total(strategy, transfer_request),
                 )
 
-            # calculate best transfers to make this gameweek (to maximise points across
-            # remaining gameweeks)
+            # the best move this gameweek, scored across the remaining gameweeks
             new_squad, transfers, points = _make_best_transfers(
                 transfer_request, strategy
             )
@@ -386,7 +356,6 @@ def optimize(
 
         if len(plan) >= len(gameweeks):
             results.put(plan)
-            # call function to update the main progress bar
             if updater is not None:
                 updater()
 
@@ -467,17 +436,12 @@ def search_transfer_tree(
     num_free_transfers = request.num_free_transfers
     constraints = request.constraints
     num_thread = config.num_thread
-    # create a queue that we will add nodes to, and some processes to take
-    # things off it
     squeue: CustomQueue[QueueItem] = CustomQueue()
     # workers put finished plans here for the parent to compare
     result_queue: Queue[Plan | None] = Queue()
     procs = []
-    # number of nodes in tree will be something like 3^n_gameweeks unless we allow
-    # a "chip" such as wildcard or free hit, in which case it gets complicated
-    n_gameweeks = len(gameweeks)
     num_expected_outputs, baseline_excluded = count_expected_outputs(
-        n_gameweeks,
+        len(gameweeks),
         gameweek=gameweeks[0],
         free_transfers=num_free_transfers,
         max_total_hit=constraints.max_total_hit,
@@ -545,8 +509,7 @@ def search_transfer_tree(
         result_thread.start()
 
         if baseline_excluded:
-            # if we are excluding unused transfers the tree may not include the
-            # baseline plan, so compute it here instead.
+            # the tree does not include the baseline plan, so compute it here
             baseline = baseline_plan(
                 starting_squad,
                 gameweeks,
@@ -577,7 +540,7 @@ def search_transfer_tree(
             processor.daemon = True
             processor.start()
             procs.append(processor)
-        # add starting node to the queue
+        # the root node
         squeue.put(
             (
                 GameweekMove(),
@@ -589,14 +552,9 @@ def search_transfer_tree(
             )
         )
 
-        # Block until every node in the (dynamically-grown) plan tree has
-        # been processed - i.e. the queue is empty and no worker is still
-        # processing an item that could enqueue further children.
-        #
-        # A bare squeue.join() waits forever if a worker dies mid-task, because
-        # the task it had taken is never marked done. That turns any worker
-        # crash into a silent hang with the progress bar stopped part-way, and
-        # no indication of what went wrong. Watch the workers while waiting.
+        # Block until every node in the tree has been processed: the queue is
+        # empty and no worker is still processing an item that could enqueue
+        # more. Not a bare squeue.join(), which hangs if a worker dies mid-task.
         _wait_for_queue(squeue, procs)
 
         # Shut the workers down before the progress consumer, not after. A

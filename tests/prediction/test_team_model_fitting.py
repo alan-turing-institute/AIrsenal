@@ -43,10 +43,9 @@ def test_get_fitted_team_model():
     """
     Fit the goals-based team models against two full seasons.
 
-    22 seconds, and almost all of it is jax. The shape and coverage assertions
-    are worth having on every run, so they are duplicated against the small e2e
-    database in tests/e2e/test_team_models.py; this stays as the "does it still
-    work on real data" check, and is marked `slow` so it runs in its own CI step.
+    The "does it still work on real data" check, marked `slow` so it runs in its
+    own CI step. tests/e2e/test_team_models.py asserts the shape and coverage
+    against the small e2e database on every run.
 
     Every model is named, the default one included: this database is 1718 and
     1819, and the default model is fitted to expected goals, which the FPL API
@@ -93,7 +92,7 @@ def test_fixture_probabilities():
 
 def test_the_default_model_needs_a_season_with_expected_goals():
     """
-    The reach the default model costs, against the seasons that pay it.
+    The default model refuses a season with no expected goals.
 
     `XGTeamModel` refuses training data with no expected goals in it, which is
     every season before 2223, so a backtest or a replay of one has to name a

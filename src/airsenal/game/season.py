@@ -15,14 +15,10 @@ def get_current_season() -> str:
     return f"{str(start_year)[2:]}{str(end_year)[2:]}"
 
 
-# make this a global variable in this module, import into other modules
 CURRENT_SEASON = get_current_season()
 
 
-# The first season the FPL API reported expected goals and assists for. A model
-# fitted to them has nothing to fit to before this, which is a fact about what
-# FPL publishes rather than about any model - so it is here, and the two models
-# that need it say so in the same words.
+# The first season the FPL API reported expected goals and assists for.
 FIRST_SEASON_WITH_EXPECTED_GOALS = "2223"
 
 
@@ -39,12 +35,7 @@ def has_expected_goals(season: str) -> bool:
 
 
 def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
-    """
-    Sort season strings in "1819" format chronologically.
-
-    Args:
-        desc: If True, the default, most recent season first.
-    """
+    """Sort season strings chronologically, most recent first unless `desc` is False."""
     return sorted(seasons, key=season_str_to_year, reverse=desc)
 
 

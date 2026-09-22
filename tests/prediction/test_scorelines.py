@@ -125,7 +125,7 @@ def test_outcome_probabilities_are_derived_not_required(wrapped):
     A mean-only model gets win/draw/loss for free once it has a distribution.
 
     Which is why `predict_outcome_proba` is on the protocol rather than fetched
-    with getattr - see the reasoning in commit 877cc945.
+    with getattr.
     """
     outcomes = wrapped.predict_outcome_proba([TEAMS[0]], [TEAMS[1]])
     total = outcomes["home_win"][0] + outcomes["draw"][0] + outcomes["away_win"][0]

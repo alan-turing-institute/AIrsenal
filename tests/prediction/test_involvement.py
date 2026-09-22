@@ -1,10 +1,8 @@
 """
 The typed involvement a player model returns, and the error form of scoring it.
 
-`predict_involvement` replaced a `dict[str, np.ndarray]` whose keys and
-invariants lived only in a docstring. These check the invariants are now the
-type's, and that the shares can be scored by error as well as by log
-probability - which is what a model that is not probabilistic needs.
+The type enforces its own invariants, and the shares can be scored by error as
+well as by log probability, which is what a model that is not probabilistic needs.
 """
 
 import numpy as np
@@ -30,7 +28,7 @@ def involvement(prob_score=0.2, prob_assist=0.3, player_ids=(1,)):
 
 
 def test_the_shares_have_to_sum_to_one():
-    """The invariant the old docstring only claimed."""
+    """Score, assist and neither are the whole of a player's involvement."""
     with pytest.raises(ValueError, match="sum to"):
         PlayerInvolvement(
             player_ids=np.array([7]),

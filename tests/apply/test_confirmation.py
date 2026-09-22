@@ -2,8 +2,8 @@
 Nothing reaches the FPL API without an explicit yes, or a flag saying so.
 
 `apply/` is irreversible, so the confirmation is a safety feature and is tested
-like one. It goes through `core.console.confirm` rather than a bare `input()`
-precisely so these can be written.
+like one. It goes through `core.console.confirm` rather than a bare `input()` so
+that it can be tested.
 """
 
 import pytest
@@ -68,11 +68,7 @@ def test_the_lineup_is_not_applied_without_a_yes(monkeypatch):
 
 
 def test_a_library_function_does_not_read_stdin_for_a_team_id():
-    """
-    It used to prompt, which made it uncallable from anything but a terminal.
-
-    Raising names the fix instead.
-    """
+    """Without a team ID it raises, rather than prompting for one on stdin."""
 
     class NoTeamId:
         FPL_TEAM_ID = None

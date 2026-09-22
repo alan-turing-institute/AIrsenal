@@ -89,7 +89,7 @@ def test_get_fpl_team_data_gw1_different_fpl_team_ids():
     """Two other entries' picks for gameweek 1."""
     fetcher = FPLDataFetcher()
     # assume that fpl_team_ids < 100 will all have squads for
-    # gameweek 1, and that they will be different..
+    # gameweek 1, and that they will be different
     team_id_1 = random.randint(1, 50)
     team_id_2 = random.randint(51, 100)
     data_1 = fetcher.get_fpl_team_data(1, fpl_team_id=team_id_1)

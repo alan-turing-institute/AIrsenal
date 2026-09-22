@@ -196,8 +196,8 @@ class TestFlagSpelling:
             assert "--is-replay" not in text
 
 
-class TestSettingsWithNoFlag:
-    """Settings whose docstrings describe them as things people want."""
+class TestUserFacingSettings:
+    """Settings a user chooses between each have a flag."""
 
     @pytest.mark.parametrize(
         ("command", "option"),
@@ -207,10 +207,7 @@ class TestSettingsWithNoFlag:
             # the mode that exists for an unattended run
             (["run"], "--on-stale"),
             (["run"], "--gameweek-start"),
-            # threaded through two layers but absent from run_prediction's
-            # signature, so it could never be False
             (["predict"], "--no-def-con"),
-            # the chip block was missing from replay entirely
             (["replay"], "--wildcard-gameweek"),
         ],
     )

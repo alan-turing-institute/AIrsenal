@@ -42,10 +42,8 @@ class FakeResponse:
 @pytest.fixture
 def session(monkeypatch):
     """Hand `download_with_resume` a session we control."""
-    holder = {}
 
     def install(s):
-        holder["session"] = s
         monkeypatch.setattr(requests, "Session", lambda *a, **k: s)
         return s
 
@@ -53,13 +51,7 @@ def session(monkeypatch):
 
 
 def test_a_connection_failure_is_retried_not_raised(tmp_path, session):
-    """
-    The request itself is inside the retry loop.
-
-    It used to sit outside the `try`, so a refused connection escaped as a raw
-    curl_cffi error on the first attempt - unretried, and past the
-    `except RemoteError` every caller uses to fall back.
-    """
+    """A refused connection is retried like any other failed attempt."""
     s = session(ExplodingSession(failures=2))
     dest = tmp_path / "file.csv"
 

@@ -2,9 +2,9 @@
 Every points model, against a real database.
 
 Parametrized over `POINTS_MODELS`, so a new entry gets a real fit, a real
-prediction and a real score without a test being written for it. The breakdown
-checks are what phase 4 is for: whatever a model reports about how it got to its
-number is scored, and whatever it does not report is not held against it.
+prediction and a real score without a test being written for it. Whatever a
+model reports about how it got to its number is scored, and whatever it does not
+report is not held against it.
 """
 
 import math

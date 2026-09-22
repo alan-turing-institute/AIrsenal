@@ -45,23 +45,17 @@ MAX_PER_TEAM = 3
 FORMATION = {Position.GK: 2, Position.DEF: 5, Position.MID: 5, Position.FWD: 3}
 
 
-@pytest.fixture(scope="module")
-def seeded(pipeline_db):
-    """The database, under the name the tests in this module use for it."""
-    return pipeline_db
-
-
-def test_database_is_populated(seeded):
-    assert len(seeded.scalars(select(Player)).all()) == sum(SQUAD_SHAPE.values())
-    fixtures = seeded.scalars(select(Fixture)).all()
+def test_database_is_populated(pipeline_db):
+    assert len(pipeline_db.scalars(select(Player)).all()) == sum(SQUAD_SHAPE.values())
+    fixtures = pipeline_db.scalars(select(Fixture)).all()
     # 4 fixtures per gameweek, over two past seasons and the current one
     assert len(fixtures) == 4 * (8 + 8 + len(FUTURE_GAMEWEEKS))
     # only the past seasons have been played
-    assert len(seeded.scalars(select(Result)).all()) == 4 * 16
+    assert len(pipeline_db.scalars(select(Result)).all()) == 4 * 16
 
 
 @pytest.fixture(scope="module")
-def prediction_tag(seeded):
+def prediction_tag(pipeline_db):
     """Run the prediction stage once, and hand its tag to the tests below."""
     return make_predictedscore_table(
         gameweeks=FUTURE_GAMEWEEKS,
@@ -70,11 +64,11 @@ def prediction_tag(seeded):
             team_model=build_team_model("constant"),
             player_model=build_player_model("constant"),
         ),
-        dbsession=seeded,
+        dbsession=pipeline_db,
     )
 
 
-def test_prediction_writes_one_tag(seeded, prediction_tag):
+def test_prediction_writes_one_tag(pipeline_db, prediction_tag):
     """
     One run of the stage writes one tag, not one per gameweek or per position.
 
@@ -83,7 +77,7 @@ def test_prediction_writes_one_tag(seeded, prediction_tag):
     gameweek of a past season.
     """
     tags = set(
-        seeded.scalars(
+        pipeline_db.scalars(
             select(PlayerPrediction.tag)
             .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
             .where(Fixture.season == SEASON)
@@ -92,8 +86,8 @@ def test_prediction_writes_one_tag(seeded, prediction_tag):
     assert tags == {prediction_tag}
 
 
-def test_predictions_cover_every_player_and_gameweek(seeded, prediction_tag):
-    predictions = seeded.scalars(
+def test_predictions_cover_every_player_and_gameweek(pipeline_db, prediction_tag):
+    predictions = pipeline_db.scalars(
         select(PlayerPrediction).where(PlayerPrediction.tag == prediction_tag)
     ).all()
     assert predictions
@@ -102,10 +96,10 @@ def test_predictions_cover_every_player_and_gameweek(seeded, prediction_tag):
     assert gameweeks == set(FUTURE_GAMEWEEKS)
 
 
-def test_predicted_points_are_finite_and_non_negative(seeded, prediction_tag):
+def test_predicted_points_are_finite_and_non_negative(pipeline_db, prediction_tag):
     # A NaN here propagates silently all the way into the optimiser's argmax,
     # where it wins every comparison.
-    points = seeded.scalars(
+    points = pipeline_db.scalars(
         select(PlayerPrediction.predicted_points).where(
             PlayerPrediction.tag == prediction_tag
         )
@@ -114,18 +108,18 @@ def test_predicted_points_are_finite_and_non_negative(seeded, prediction_tag):
     assert all(p >= 0 for p in points)
 
 
-def test_predictions_are_readable_by_the_optimiser(seeded, prediction_tag):
+def test_predictions_are_readable_by_the_optimiser(pipeline_db, prediction_tag):
     # The optimiser reads predictions back through a different query than the
     # one that wrote them; this is the join between the two stages.
     points = get_predicted_points(
-        FUTURE_GAMEWEEKS, tag=prediction_tag, season=SEASON, dbsession=seeded
+        FUTURE_GAMEWEEKS, tag=prediction_tag, season=SEASON, dbsession=pipeline_db
     )
     assert points
     assert all(math.isfinite(p) for _, p in points)
 
 
 @pytest.fixture(scope="module")
-def squad(seeded, prediction_tag):
+def squad(pipeline_db, prediction_tag):
     """Build a squad from the predictions, with a deliberately tiny search."""
     return make_new_squad(
         FUTURE_GAMEWEEKS,
@@ -135,7 +129,7 @@ def squad(seeded, prediction_tag):
         ga_config=GeneticAlgorithmConfig(
             population_size=20, generations=5, random_state=0, verbose=False
         ),
-        dbsession=seeded,
+        dbsession=pipeline_db,
     )
 
 
@@ -170,9 +164,10 @@ def test_squad_has_no_duplicates(squad):
 
 # --- transfers ---------------------------------------------------------------
 #
-# The multiprocessing tree itself is covered by tests/optimization/; what is
-# checked here is the decision path a worker runs: pick a strategy for the move,
-# search it against the predictions written above, and hand back a legal squad.
+# The multiprocessing tree itself is covered by tests/optimization/ and
+# test_transfer_search.py; what is checked here is the decision path a worker
+# runs: pick a strategy for the move, search it against the predictions written
+# above, and hand back a legal squad.
 
 
 def _request(move, squad, prediction_tag, num_iterations=100):
@@ -188,13 +183,12 @@ def _request(move, squad, prediction_tag, num_iterations=100):
 
 
 def _best_transfers(request):
-    # one node of the tree, reached directly: the tree itself is covered by
-    # test_transfer_search.py, and what is checked here is the decision it makes
+    """One node of the tree, reached directly."""
     return _make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
 
 
 @pytest.fixture(scope="module")
-def transfer_result(seeded, prediction_tag, squad):
+def transfer_result(pipeline_db, prediction_tag, squad):
     return _best_transfers(_request(GameweekMove(1), squad, prediction_tag, 5))
 
 
@@ -223,7 +217,7 @@ def test_transfer_score_is_finite_and_positive(transfer_result):
     assert points > 0
 
 
-def test_a_transfer_is_not_worse_than_doing_nothing(seeded, prediction_tag, squad):
+def test_a_transfer_is_not_worse_than_doing_nothing(pipeline_db, prediction_tag, squad):
     """
     A single-transfer search can never beat itself by doing nothing.
 

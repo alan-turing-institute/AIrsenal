@@ -21,21 +21,11 @@ from airsenal.cli.main import app
 from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
 from airsenal.optimization.strategies import TRANSFER_STRATEGIES
 from airsenal.optimization.transfer_optimizers import TRANSFER_OPTIMIZERS
-from airsenal.prediction.minutes_models import (
-    MINUTES_MODELS,
-)
-from airsenal.prediction.player_models import (
-    PLAYER_MODELS,
-)
-from airsenal.prediction.point_components import (
-    POINT_COMPONENTS,
-)
-from airsenal.prediction.points_models import (
-    POINTS_MODELS,
-)
-from airsenal.prediction.team_models import (
-    TEAM_MODELS,
-)
+from airsenal.prediction.minutes_models import MINUTES_MODELS
+from airsenal.prediction.player_models import PLAYER_MODELS
+from airsenal.prediction.point_components import POINT_COMPONENTS
+from airsenal.prediction.points_models import POINTS_MODELS
+from airsenal.prediction.team_models import TEAM_MODELS
 
 TABLES = {
     "points model": (POINTS_MODELS, ("fit", "predict")),
@@ -77,9 +67,8 @@ def test_every_entry_provides_its_protocol(kind, name):
         assert callable(getattr(component, method)), f"{name} has no {method}()"
 
 
-# The command whose --help must list every name in the table. A transfer
-# strategy has no flag: which one runs is decided by the move, not by the user,
-# so `TRANSFER_STRATEGIES` is deliberately absent from this mapping.
+# The command whose --help must list every name in the table. Point components and
+# transfer strategies have no flag (see the module docstring).
 NAMING_FLAGS = {
     "points model": ("predict", "--points-model"),
     "player model": ("predict", "--player-model"),
@@ -94,12 +83,7 @@ NAMING_FLAGS = {
     ("kind", "command", "flag"), [(k, c, f) for k, (c, f) in NAMING_FLAGS.items()]
 )
 def test_every_name_is_reachable_from_the_command_line(kind, command, flag):
-    """
-    A table only earns its keep if a name on it reaches an implementation.
-
-    Without this the tables could be read by nothing but this file, which is not
-    what CLAUDE.md says they are for.
-    """
+    """Every name in a table can be selected by its command-line flag."""
     table, _methods = TABLES[kind]
     # a narrow terminal wraps a long option name mid-word, so ask for a wide one
     result = CliRunner(env={"COLUMNS": "200"}).invoke(app, [*command.split(), "--help"])

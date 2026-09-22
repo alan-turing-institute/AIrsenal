@@ -45,13 +45,7 @@ def add_run(
 
 
 def test_a_second_entrys_run_does_not_hide_the_first(dbsession):
-    """
-    Each entry gets its own latest run.
-
-    Optimising two entries in turn wrote two runs a second apart. Picking the
-    newest row in the whole table and only then filtering by fpl_team_id left the
-    entry that was optimised first with nothing to apply.
-    """
+    """Each entry gets its own latest run, even when another entry's is newer."""
     add_run(dbsession, "2026-08-31 10:00:00.000000", fpl_team_id=111, player_ids=(1,))
     add_run(dbsession, "2026-08-31 10:00:01.000000", fpl_team_id=222, player_ids=(2,))
 

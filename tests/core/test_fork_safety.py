@@ -170,12 +170,13 @@ def _run_stdout_lock_probe(*, fix: bool) -> str:
 
 
 def test_forked_child_can_write_while_stdout_is_being_written_to() -> None:
-    """The lock below Rich's: CPython's own, which fork does not sanitise.
+    """
+    A child forked while stdout's own lock is held can still write.
 
-    Rich holds `console._lock` across the write to the terminal, and that write
-    takes `sys.stdout`'s BufferedWriter lock. A child forked in that window
-    inherits a locked buffer whose owner thread it does not have, and wedges on
-    its first line of output.
+    Fork does not sanitise CPython's locks. Rich holds `console._lock` across the
+    write to the terminal, and that write takes `sys.stdout`'s BufferedWriter lock.
+    A child forked in that window inherits a locked buffer whose owner thread it
+    does not have, and wedges on its first line of output.
     """
     assert _run_stdout_lock_probe(fix=True).endswith("wrote")
 

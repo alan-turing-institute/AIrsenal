@@ -145,7 +145,7 @@ def test_training_data_without_expected_goals_is_refused():
 
 def test_training_data_where_nothing_was_recorded_is_refused():
     """
-    And the refusal names the way out, because this is now the default model.
+    And the refusal names the way out, because this is the default model.
 
     Expected goals only exist from season 2223, so anyone fitting an earlier one
     hits this and needs to be told which model to ask for instead.
@@ -241,7 +241,7 @@ def test_time_weighting_prefers_what_happened_recently():
     flat = XGTeamModel(XGTeamConfig(epsilon=0.0)).fit(data)
     weighted = XGTeamModel(XGTeamConfig(epsilon=2.0)).fit(data)
     assert weighted.attack["AAA"] < flat.attack["AAA"]
-    # and the teams that did not change are rated much the same either way
+    # and since the ratings average one, the teams that did not change make up for it
     for team in steady:
         assert weighted.attack[team] > flat.attack[team]
 
@@ -335,9 +335,8 @@ def test_a_badly_connected_schedule_still_reaches_its_fixed_point():
     """
     AAA plays only CCC and BBB only DDD, which converges an order slower.
 
-    Ten passes - what this used to do - leaves the ratings 1e-3 short here,
-    while a real schedule is at machine precision by then. The cap is what makes
-    that difference not matter.
+    Ten passes leave the ratings 1e-3 short here, while a real schedule is at
+    machine precision by then; the default cap is high enough for both.
     """
     matches = [
         *[("AAA", "CCC", 2.0, 0.5) for _ in range(6)],

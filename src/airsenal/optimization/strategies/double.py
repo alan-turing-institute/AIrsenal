@@ -59,7 +59,6 @@ def make_optimum_double_transfer(
         for pos in list(Position.back_to_front())
     }
     for i in range(len(squad.players) - 1):
-        positions_needed = []
         pout_1 = squad.players[i]
 
         new_squad_remove_1 = fastcopy(squad)
@@ -97,7 +96,6 @@ def make_optimum_double_transfer(
                         pin_2[0], gameweek=root_gameweek
                     )
                     if added_2_ok:
-                        # calculate the score
                         total_points = get_discounted_squad_score(
                             new_squad_add_2,
                             gameweeks,

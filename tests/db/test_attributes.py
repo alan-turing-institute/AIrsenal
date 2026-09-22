@@ -10,7 +10,7 @@ def test_get_price():
     season = "1920"
     team = "TST"
     position = "MID"
-    price_dict = {2: 50, 4: 150}  # gw: price
+    price_dict = {2: 50, 4: 150}  # gameweek: price
 
     player = Player()
     player.player_id = player_id
@@ -35,7 +35,7 @@ def test_get_price():
     assert player.price(5, season) == price_dict[4]
     # gameweek between two available values: interpolate
     assert player.price(3, season) == (price_dict[2] + price_dict[4]) / 2
-    # no gameweek available for seaaon: return None
+    # no gameweek available for season: return None
     assert player.price(1, "1011") is None
 
 
@@ -45,7 +45,7 @@ def test_get_team():
     season = "1920"
     price = 50
     position = "MID"
-    team_dict = {2: "ABC", 5: "XYZ"}  # gw: team
+    team_dict = {2: "ABC", 5: "XYZ"}  # gameweek: team
 
     player = Player()
     player.player_id = player_id
@@ -71,7 +71,7 @@ def test_get_team():
     # gameweek between two available values: return nearest
     assert player.team(3, season) == team_dict[2]
     assert player.team(4, season) == team_dict[5]
-    # no gameweek available for seaaon: return None
+    # no gameweek available for season: return None
     assert player.team(1, "1011") is None
 
 
@@ -112,7 +112,7 @@ def test_is_injured_or_suspended():
     price = 50
     position = "MID"
     team = "ABC"
-    # gw: (chance_of_playing_next_round, return_gameweek)
+    # gameweek: (chance_of_playing_next_round, return_gameweek)
     team_dict = {
         2: (100, None),
         3: (75, None),
@@ -144,10 +144,10 @@ def test_is_injured_or_suspended():
     # not injured, 75% available
     assert player.is_injured_or_suspended(season, 3, 3) is False
     assert player.is_injured_or_suspended(season, 3, 5) is False
-    # 50% available, expected back gw 5
+    # 50% available, expected back gameweek 5
     assert player.is_injured_or_suspended(season, 4, 4) is True
     assert player.is_injured_or_suspended(season, 4, 5) is False
-    # 100% unavailable, mo return gameweek
+    # 100% unavailable, no return gameweek
     assert player.is_injured_or_suspended(season, 5, 6) is True
     assert player.is_injured_or_suspended(season, 5, 7) is True
     # gameweek before earliest available: return status as of first available

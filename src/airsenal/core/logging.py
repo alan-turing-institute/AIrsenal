@@ -24,12 +24,7 @@ _relay_queues: "list[Queue[logging.LogRecord | None]]" = []
 
 
 def configure_logging(level: int | str = logging.INFO) -> None:
-    """Configure the AIrsenal logger to write through Rich.
-
-    Designed for a CLI user reading a terminal, not an operator reading a log
-    file: no timestamps, logger names, or file paths - just the message,
-    colour-coded by level, with Rich markup in the message rendered.
-    """
+    """Configure the AIrsenal logger to write bare, coloured messages through Rich."""
     handler = RichHandler(
         console=console,
         show_time=False,
@@ -68,19 +63,12 @@ if hasattr(os, "register_at_fork"):  # pragma: no branch - posix only
 def relay_child_logs() -> Generator[None]:
     """Have children forked in this block log through the parent, not directly.
 
-    A child that writes to the terminal itself lands in the middle of whatever
-    live display the parent is running - the transfer search's progress bars,
-    say. The child knows nothing about that display, so the frame its message
-    displaces is never erased: it stays on screen, and the parent redraws the
-    bars below it. One warning per worker is enough to litter the terminal with
-    frozen copies of the whole display.
+    A child writing to the terminal itself leaves frozen copies of the parent's
+    live display (the transfer search's progress bars) on screen. Relayed
+    records are emitted by the parent above the display instead, and identical
+    messages only once.
 
-    Records put on the queue are emitted here instead, through the handler that
-    knows how to print above a live display. Identical messages are emitted
-    once.
-
-    Only children forked *inside* the block are redirected, and only on
-    platforms that fork - which is how the search starts its workers.
+    Only children forked inside the block are redirected.
     """
     queue: Queue[logging.LogRecord | None] = Queue()
     seen: set[tuple[int, str]] = set()

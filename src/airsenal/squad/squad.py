@@ -79,8 +79,6 @@ class Squad:
         self.budget = budget
         self.season = season
         self.num_position: dict[str, int] = dict.fromkeys(Position, 0)
-        self.free_subs = 0
-        self.subs_this_gameweek = 0
         self.count_per_team: defaultdict[str, int] = defaultdict(int)
 
     def __repr__(self) -> str:
@@ -204,7 +202,7 @@ class Squad:
     ) -> int:
         """What one of this squad's players would sell for, this gameweek."""
         if isinstance(player, int):
-            player = self.get_player_from_id(player)  # get CandidatePlayer from squad
+            player = self.get_player_from_id(player)
         return sell_price(
             player,
             use_api=use_api,
@@ -360,10 +358,8 @@ class Squad:
                     for score in scores:
                         total_points += score.points
                         if p.is_captain:
-                            # double their score!
                             total_points += score.points
                             if triple_captain:
-                                # TREBLE their score!
                                 total_points += score.points
                         elif p.is_vice_captain:
                             vice_captain_points += score.points
@@ -380,9 +376,9 @@ class Squad:
 
         # now take account of possibility that captain didn't play
         if need_vice_captain:
-            total_points += vice_captain_points  # double them
+            total_points += vice_captain_points
             if triple_captain:
-                total_points += vice_captain_points  # TREBLE them!
+                total_points += vice_captain_points
         # now take account of subs.
         # UNLESS bench_boost (in which case we've already counted subs points)
         if need_sub and not bench_boost:
@@ -424,7 +420,7 @@ def get_current_squad_from_api(
     fetcher: FPLDataFetcher | None = None,
 ) -> Squad:
     """
-    (player_id, purchase_price) for each of the entry's current picks.
+    The entry's current squad and bank, from the FPL API.
 
     Requires the data fetcher to be logged in.
     """

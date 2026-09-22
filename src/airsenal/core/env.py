@@ -7,8 +7,7 @@ from typing import Concatenate
 
 from platformdirs import user_data_dir
 
-# Cross-platform data directory. Resolved at import (it cannot change within a
-# process) but *not* created: Call `airsenal_home()` when you are about to write.
+# Resolved at import but not created: call `airsenal_home()` before writing.
 if "AIRSENAL_HOME" in os.environ:
     AIRSENAL_HOME = Path(os.environ["AIRSENAL_HOME"])
 else:
@@ -33,8 +32,7 @@ AIRSENAL_ENV_KEYS = [
     "DISCORD_WEBHOOK",
 ]
 
-# The subset of the above that is a credential rather than a setting. `airsenal env
-# get` with no argument dumps every configured value but redacts these
+# Credentials, which `airsenal env get` with no argument redacts.
 SECRET_ENV_KEYS = frozenset(
     {
         "FPL_PASSWORD",
@@ -99,9 +97,9 @@ except ValueError as e:
 
 FPL_LOGIN = get_env("FPL_LOGIN", str)
 FPL_PASSWORD = get_env("FPL_PASSWORD", str)
-# Resolved once here for the callers that only read them at start-up. Anything
-# that has to see an `airsenal env set` made in the same process - the database
-# connection string, the Discord webhook - calls `get_env` instead.
+# Resolved once, at import; `db/engine.py` reads them as attributes of this module.
+# Anything that has to see an `airsenal env set` made in the same process - the
+# Discord webhook - calls `get_env` instead.
 AIRSENAL_DB_FILE = get_env("AIRSENAL_DB_FILE", str)
 AIRSENAL_DB_URI = get_env("AIRSENAL_DB_URI", str)
 AIRSENAL_DB_USER = get_env("AIRSENAL_DB_USER", str)

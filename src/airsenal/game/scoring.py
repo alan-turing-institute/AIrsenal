@@ -61,7 +61,7 @@ MAX_MINUTES_MATCH = 90
 
 # Squad and transfer rules.
 SQUAD_SIZE = 15
-MAX_FREE_TRANSFERS = 5  # changed in 24/25 season (not accounted for in replay season)
+MAX_FREE_TRANSFERS = 5  # from 2425; a replay of an earlier season still uses 5
 POINTS_HIT_COST = 4  # points lost per transfer beyond the free ones
 
 

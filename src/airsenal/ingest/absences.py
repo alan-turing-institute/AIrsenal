@@ -70,9 +70,8 @@ def resolve_absence_gameweeks(
     Returns:
         None if the row names nobody we know, or has no usable start date.
     """
-    # Two thirds of the names the exact lookup misses are academy players
-    # who never reach the FPL game at all; the rest are spelled differently
-    # by whoever the row came from.
+    # Most names the exact lookup misses are academy players who never reach
+    # the FPL game; the rest are spelled differently.
     player = get_player(row["player"], dbsession=dbsession)
     if player is None:
         player = get_player_by_similar_name(row["player"], dbsession=dbsession)

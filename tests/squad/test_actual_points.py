@@ -63,9 +63,8 @@ def test_a_substitution_cannot_leave_an_illegal_formation(fill_players, scores):
     """
     Each substitution is judged against the formation the last one left.
 
-    Judging every one against the original lineup let a third substitution
-    through that took a 5-4-1 down to two defenders - a lineup FPL would never
-    have fielded, scored as though it had.
+    So a third substitution cannot take a 5-4-1 down to two defenders, a lineup
+    FPL would never field.
     """
     starting = [GKS[0], *DEFS, *MIDS[:4], FWDS[0]]  # 5-4-1
     # the reserve keeper sits on the bench too, and can never make a legal
@@ -88,12 +87,7 @@ def test_a_substitution_cannot_leave_an_illegal_formation(fill_players, scores):
 
 
 def test_the_vice_captain_is_doubled_across_a_double_gameweek(fill_players, scores):
-    """
-    FPL doubles the vice-captain's whole gameweek, not their last fixture.
-
-    The running total used to be assigned rather than added to, so only the
-    second fixture of a double was doubled.
-    """
+    """FPL doubles the vice-captain's whole gameweek, not their last fixture."""
     starting = [GKS[0], *DEFS, *MIDS[:4], FWDS[0]]
     # the reserve keeper sits on the bench too, and can never make a legal
     # outfield substitution, so he goes last

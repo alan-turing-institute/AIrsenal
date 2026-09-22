@@ -8,30 +8,27 @@ comments point at: `DEFAULT_XG_EPSILON`, `DEFAULT_GOAL_DISPERSION`,
 `promoted_like_bottom` are all decided here rather than in the code that holds
 them.
 
-Both models exist because of the seam-moving described in
-[prediction-seams-plan.md](prediction-seams-plan.md): before it, a team model had
-to predict a distribution over goal counts, and neither of these does. For how
-to add a model of your own and score it the same way, see
+For how to add a model of your own and score it the same way, see
 [adding-a-model.md](adding-a-model.md).
 
-## The xG team model, the first model the loosened protocols allowed
+## The xG team model
 
-`XGTeamModel` in `team_models/xg.py` is the first model the loosened protocols
-made possible: it predicts a mean and nothing else, and reaches the points
-calculation through a wrapper from `scorelines.py` applied in its own table
-entry - `PoissonScorelines` when it was written, and `ConwayMaxwellScorelines`
-since the dispersion was measured below. It is an attack-and-defence rating
-fitted to the expected goals in past matches rather than to the goals, by an
-alternating fit that rates each attack against the defences it actually faced -
-which is what separates a good attack from an easy schedule.
+`XGTeamModel` in `team_models/xg.py` predicts a mean and nothing else, and
+reaches the points calculation through `ConwayMaxwellScorelines` from
+`scorelines.py`, applied in its own table entry. It is an attack-and-defence
+rating fitted to the expected goals in past matches rather than to the goals, by
+an alternating fit that rates each attack against the defences it actually
+faced - which is what separates a good attack from an easy schedule.
 
-`TeamFitData` gained `home_expected_goals` and `away_expected_goals` as
-`NotRequired` keys, populated by `get_result_dict` from a new
-`get_expected_goals_by_fixture`. That is the extension point the seams plan
-pointed at for the player side, used first on the team side: no other model
-changed, and one that assembles its own training data still type-checks.
+Its expected goals arrive as `home_expected_goals` and `away_expected_goals`,
+`NotRequired` keys on `TeamFitData` populated by `get_result_dict` from
+`get_expected_goals_by_fixture`.
 
-**It beats the incumbent, on every season in the database.** Held-out mean log
+The measurements in this section were taken with `conjugate` as the player
+model, and up to the Conway-Maxwell-Poisson section with `PoissonScorelines` as
+the wrapper.
+
+**It beats `extended` on every season in the database.** Held-out mean log
 probability over gameweeks 5-30, higher being better:
 
 | season | `xg` | `extended` | difference |
@@ -52,21 +49,16 @@ everywhere - and the breakdown says where it comes from:
 | attacking component MAE | 0.410864 | 0.415394 |
 | defending component MAE | 0.272859 | 0.265226 |
 
-**The whole gain is in defending, and attacking is slightly worse.** Which is
-the sort of thing this plan was built to be able to see: xG is a better read on
-how many a team concedes, and clean sheets and goals-conceded points follow
+**The whole gain is in defending, and attacking is slightly worse.** xG is a
+better read on how many a team concedes, and clean sheets and goals-conceded points follow
 directly from that, while who takes a team's goals is the player model's job and
 has not changed. A better team model on its own reaches predicted points mostly
 through the defence.
 
-It is not the default. `--team-model xg` selects it, and changing
-`DEFAULT_TEAM_MODEL` would move every number in this document, so that is a
-decision to take deliberately rather than as a side effect.
-
 ### Two obvious improvements, both nearly nothing
 
-**Time weighting** was missing. It is there now, `exp(-epsilon * years ago)` as
-the other models use, and `--epsilon` reaches it. Swept over 2425 and 2526 with
+**Time weighting** is `exp(-epsilon * years ago)`, and `--epsilon` reaches it.
+Swept over 2425 and 2526 with
 `tools/tune_team_time_weighting.py --model xg`:
 
 | epsilon | 0.0 | 0.3 | 0.6 | 0.9 | 1.2 | 1.8 | 2.5 |
@@ -110,7 +102,7 @@ for the match, and letting the rate be gamma-distributed about it instead gives
 a negative binomial over goal counts - same mean, fatter tails, so a 5-0 is
 unlikely rather than incredible.
 
-Built it, measured it, took it back out. The held-out log probability was
+Built, measured and rejected. The held-out log probability was
 *bit-identical* to the Poisson in all three seasons, because the fitted gamma
 shape pinned at its ceiling every time: the mixture found no excess dispersion
 to explain. Goal counts, given the model's own predictions for them, are if
@@ -123,11 +115,9 @@ anything narrower than Poisson:
 | 2526 | 2260 | 1.4514 | 1.3419 | 0.925 |
 
 A ratio of one is exactly Poisson. A mixture can only *add* variance, so with
-the residual scatter already 6-8% below the mean there is nothing for it to do -
-which is why two names for one model was all it produced. The interesting
-direction is the opposite one: a family that can be narrower than Poisson
-(Conway-Maxwell-Poisson, or a binomial) might buy something. That is a modelling
-change with no seam problem in the way, and it is not done.
+the residual scatter already 6-8% below the mean there is nothing for it to do.
+The useful direction is the opposite one, a family that can be narrower than
+Poisson - which is the Conway-Maxwell-Poisson below.
 
 ### Promoted teams: the real problem is elsewhere
 
@@ -159,8 +149,8 @@ Sunderland's start to 25/26 was invisible to it. Fixing that is a decision about
 what a player with no history should be assumed to play (their team's typical
 minutes for the position, the FPL API's `chance_of_playing`, or their price as a
 signal of whether they were bought to start), and it belongs to the minutes
-model, which now owns availability. Until it is fixed, `promoted_like_bottom`
-cannot matter at gameweek 1 whichever way it is set.
+model. Until then, `promoted_like_bottom` cannot matter at gameweek 1 whichever
+way it is set.
 
 `tools/team_ratings.py` prints the fitted ratings, which is how the two newly
 promoted teams were found sitting at a net 0.96 and 0.89 - almost exactly
@@ -214,7 +204,7 @@ The gain of +0.0025 against a Poisson is measured at the dispersion that was
 chosen on the same three seasons, so the honest figure is the
 leave-one-season-out one: choose the pooled optimum on two seasons, score the
 third, and it is **+0.0017 nats** a side. That is the same order as the time
-weighting already shipped, and the direction is unanimous - each of the three
+weighting, and the direction is unanimous - each of the three
 folds picks a dispersion above one (1.11, 1.19, 1.22).
 
 What it does downstream is reduce clean sheets: against a side expected to
@@ -227,18 +217,17 @@ over gameweeks 5-30, with everything but the scoreline wrapper held fixed:
 
 | season | team model | MAE | appeared | RMSE | rank |
 |---|---|---|---|---|---|
-| 2425 | `extended` (the previous default) | 0.924965 | 1.956485 | 1.909224 | 0.774402 |
+| 2425 | `extended` | 0.924965 | 1.956485 | 1.909224 | 0.774402 |
 | 2425 | xg + Poisson | 0.919409 | 1.945332 | 1.899200 | 0.776003 |
 | 2425 | xg + Conway-Maxwell | **0.915531** | **1.938111** | **1.898669** | **0.776307** |
 | 2526 | xg + Poisson | 0.903372 | 2.087629 | 1.881445 | 0.816007 |
 | 2526 | xg + Conway-Maxwell | **0.899828** | **2.080546** | **1.880465** | **0.816175** |
 
 All four measures improve in both seasons, which is more than the log
-probability promised - and the 2425 rows are also the clearest statement yet
-that `xg` beats `extended` on points and not only on scorelines.
+probability promised - and the 2425 rows also show `xg` beating `extended` on
+points and not only on scorelines.
 
-**That settled the default.** `DEFAULT_TEAM_MODEL` is now `xg`, so this is what
-`airsenal run` fits unless told otherwise. The one thing it gives up is reach:
+**This is why `DEFAULT_TEAM_MODEL` is `xg`.** The one thing it gives up is reach:
 `XGTeamModel` cannot be fitted where there are no expected goals to fit it to,
 and the FPL API has only recorded them since 2223, so a replay or backtest of an
 earlier season has to ask for `--team-model extended`. The error says so.
@@ -269,8 +258,7 @@ half against the second:
 
 Six measurements, no consistent sign, mean about -0.16. A team that outscored
 its expected goals is, if anything, slightly *less* likely to do it next.
-Whatever a conversion factor would be fitted to is noise, so the code came back
-out.
+Whatever a conversion factor would be fitted to is noise.
 
 #### An ensemble of the two models: rejected
 
@@ -295,8 +283,7 @@ correlate at r = 0.850 and differ by 0.197 goals on average, so `extended`
 brings mostly the same information as `xg` plus its own error, and it is the
 worse model by 0.018 nats. There is nothing for a mixture to recover.
 
-Nothing was built for this one - it was measured from both models' stored
-distributions, so there is no code to take back out.
+This was measured from both models' stored distributions, not built.
 
 #### A home advantage per team: rejected
 
@@ -316,15 +303,14 @@ mildly positive and is not:
 The t statistic *rises* as the effect is shrunk towards nothing while the effect
 itself collapses to +0.0002 nats, and 2526 disagrees in sign at every level. Two
 seasons for and one against, at an effect size that vanishes under any
-shrinkage, is not a finding. An extra rating per team and a quadratic solve is
-not worth it, so this came back out too.
+shrinkage, is not a finding, and not worth an extra rating per team and a
+quadratic solve.
 
-#### The alternating fit's iteration count: it was asserted, now it is measured
+#### The alternating fit's iteration count
 
-`XGTeamConfig` fitted for a fixed ten passes, on a docstring claim that "it
-converges quickly; more than a handful buys nothing". That was never checked.
-Fitting the same data for `n` passes and comparing with the fixed point (2000
-passes) on 2627 GW3, 1160 matches:
+The fit stops when a pass moves no rating by more than `tolerance = 1e-12`,
+capped at `max_iterations = 100` passes. Fitting the same data for `n` passes
+and comparing with the fixed point (2000 passes) on 2627 GW3, 1160 matches:
 
 | passes | largest step | gap to the fixed point |
 |---|---|---|
@@ -335,11 +321,10 @@ passes) on 2627 GW3, 1160 matches:
 | 10 | 2.6e-12 | 4.6e-15 |
 | 20 | 2.2e-16 | 0 |
 
-So it converges geometrically at roughly a factor of 30 a pass and ten was
-enough, with about five passes to spare - and the same holds in every window
-tried, including the sparsest (2324 GW5, 39 matches: 5e-11 at ten passes) and
-with the time weighting or the shrinkage prior turned off. Held-out scores over
-2526 GW5-38 agree that it never mattered:
+So it converges geometrically at roughly a factor of 30 a pass, and the same
+holds in every window tried, including the sparsest (2324 GW5, 39 matches: 5e-11
+at ten passes) and with the time weighting or the shrinkage prior turned off.
+Held-out scores over 2526 GW5-38 barely notice the pass count:
 
 | passes | avg log prob per fixture |
 |---|---|
@@ -350,40 +335,34 @@ with the time weighting or the shrinkage prior turned off. Held-out scores over
 
 These are `backtest_team_model`'s numbers, which are per fixture - both goal
 counts - where the tables above are per side; halve them to compare. An
-unconverged fit was costing 3.3e-5 nats a side at worst, a fiftieth of the
-dispersion effect. But how fast it converges depends on how well the schedule connects the
-teams, and ten is not a margin that can be reasoned about: a contrived
-four-team schedule where two teams only ever play each other is still 1.6e-3
-short after ten passes. So the count is now a **cap** (`max_iterations = 100`)
-and the fit stops when a pass moves no rating by more than `tolerance = 1e-12`.
-Real windows settle in seven to thirteen passes - 2324 GW5 wanted thirteen,
-which the old fixed ten never gave it - and the fitted ratings are unchanged to
-within 1e-12, so no measurement above is affected.
+unconverged fit costs 3.3e-5 nats a side at worst, a fiftieth of the dispersion
+effect. The count is a tolerance with a cap rather than a fixed number because
+how fast the fit converges depends on how well the schedule connects the teams:
+a contrived four-team schedule where two teams only ever play each other is
+still 1.6e-3 short after ten passes. Real windows settle in seven to thirteen
+passes.
 
-#### The weights sum to the number of matches, as everything else here does
+#### The weights sum to the number of matches
 
-`XGTeamModel._weights` returned `exp(-epsilon * time_diff)` unnormalised, which
-was the odd one out: bpl's two Dixon-Coles models and
-`scale_goals_by_minutes` all rescale to `n * weights / weights.sum()`, so the
-weights sum to the number of matches whatever the time weighting. The xG model
-now does the same. Two things were wrong without it.
+`XGTeamModel._weights` rescales `exp(-epsilon * time_diff)` to
+`n * weights / weights.sum()`, as bpl's two Dixon-Coles models and
+`scale_goals_by_minutes` do, so the weights sum to the number of matches
+whatever the time weighting. Unnormalised weights go wrong in two ways.
 
-**The fit depended on how far ahead you aimed it.** `time_diff` is measured back
-from the gameweek being predicted, so aiming a season further ahead multiplies
-every weight by the same constant while `prior` stays in absolute units. On
-identical data (2627, 1160 matches) the weights summed to 496 aimed at GW38
-against 1160 aimed at GW3, so every rating crept towards the league average -
-ARS defence 0.595 rather than 0.573. This never touched `airsenal run`, which
-fits at `min(request.gameweeks)`, days after the last result; it is why
-`tools/team_ratings.py --gameweek 38` printed a flatter league than the model
-believes in.
+**The fit would depend on how far ahead you aimed it.** `time_diff` is measured
+back from the gameweek being predicted, so aiming a season further ahead
+multiplies every weight by the same constant while `prior_matches` stays in
+absolute units. On identical data (2627, 1160 matches) unnormalised weights sum
+to 496 aimed at GW38 against 1160 aimed at GW3, so every rating creeps towards
+the league average - ARS defence 0.595 rather than 0.573. `airsenal run` fits at
+`min(request.gameweeks)`, days after the last result, so this shows most in
+`tools/team_ratings.py --gameweek 38`.
 
-**A sweep over `epsilon` was sweeping the shrinkage too.** Total weight falls as
-epsilon rises - 496 of a possible 1160 at 0.6 - so `prior_matches = 5` was
-worth about 11.6 matches at this window, and more at a larger epsilon. The two
-parameters could not be chosen separately. Rescaled, they can be, so the grid
-is worth running again (held-out log probability per side, gameweeks 5-38 of
-three seasons, 1021 fixtures):
+**A sweep over `epsilon` would sweep the shrinkage too.** Unnormalised, total
+weight falls as epsilon rises - 496 of a possible 1160 at 0.6 - so
+`prior_matches = 5` is worth about 11.6 matches at this window, and more at a
+larger epsilon. Rescaled, the two can be chosen separately (held-out log
+probability per side, gameweeks 5-38 of three seasons, 1021 fixtures):
 
 | epsilon | prior 2 | prior 5 | prior 10 | prior 20 | prior 40 |
 |---|---|---|---|---|---|
@@ -394,35 +373,34 @@ three seasons, 1021 fixtures):
 | 1.2 | -1.48473 | -1.48519 | -1.48727 | -1.49210 | -1.50033 |
 | 1.8 | -1.48613 | -1.48642 | -1.48817 | -1.49250 | -1.50018 |
 
-`epsilon = 0.6` survives: it is the pooled optimum at both of the two smallest
-priors, so the choice made under the confounded weights was the right one
-anyway. `prior_matches` looks retunable - 2 is worth +0.00060 pooled over 5 -
+`epsilon = 0.6` is the pooled optimum at both of the two smallest priors.
+`prior_matches` looks retunable - 2 is worth +0.00060 pooled over 5 -
 and is not. The seasons disagree about shrinkage more than about anything else
 tried here: 2324 wants 2, 2425 wants 10, 2526 wants 20. Choosing the prior on
 two seasons and scoring the third **loses 0.00158**, three times what choosing
 it in sample appears to gain, so both defaults stay where they are.
 
-The rescaling itself is worth nothing measurable, which is why it went
-unnoticed - a backtest fits at the gameweek it then predicts, so the pathology
-above cannot appear in one:
+The rescaling itself is worth nothing measurable on held-out scores - a
+backtest fits at the gameweek it then predicts, so the first problem cannot
+appear in one:
 
 | weights | 2324 | 2425 | 2526 | pooled |
 |---|---|---|---|---|
-| unrescaled (before) | -1.54420 | -1.48257 | -1.42755 | -1.48483 |
+| unrescaled | -1.54420 | -1.48257 | -1.42755 | -1.48483 |
 | largest counts as one | -1.54410 | -1.48258 | -1.42756 | -1.48481 |
 | sum to the match count | -1.54347 | -1.48212 | -1.42836 | **-1.48471** |
 
-`DEFAULT_GOAL_DISPERSION` was re-swept on the new weights and 1.17 is still the
-pooled optimum, still positive in every season on its own (+0.00033, +0.00156,
-+0.00561 against a Poisson), so nothing downstream moves.
+The dispersion sweep above used unrescaled weights. Re-swept on rescaled ones,
+1.17 is still the pooled optimum, and positive in every season on its own
+(+0.00033, +0.00156, +0.00561 against a Poisson).
 
-What does move is the ratings, by about 12% more spread - `prior_matches = 5`
-now means five matches rather than the window's 11.6 - so a team with a short
-record sits further from the league average than it did. ARS reads 1.252/0.547
-where it read 1.226/0.573, and a promoted side with two matches played gets 29%
-of its own record rather than 15%.
+What rescaling does change is the ratings, by about 12% more spread -
+`prior_matches = 5` means five matches rather than the window's 11.6 - so a team
+with a short record sits further from the league average. ARS reads 1.252/0.547
+rescaled against 1.226/0.573 unrescaled, and a promoted side with two matches
+played gets 29% of its own record rather than 15%.
 
-## The xG player model, which is the same argument on the other side
+## The xG player model
 
 `XGTeamModel` asks how many goals a team will score from the chances it creates.
 `XGPlayerModel` in `player_models/xg.py` asks who those goals belong to, from
@@ -438,15 +416,13 @@ departs from the team model's answer.
 took: expected assists have to be calibrated to the assists FPL awards, and the
 shrinkage has to vary by position by two orders of magnitude.
 
-`PlayerFitData` gained `expected_goals`, `expected_assists` and
-`team_expected_goals` as `NotRequired` keys - the (player, match) values and the
-team total that a share of one is a share of - populated by `process_player_data`
-from `get_expected_goals_by_fixture`, the same query the team model uses. That
-is the extension point this plan pointed at for the player side, now used on it:
-no other model changed, and a caller that assembles its own training data still
-type-checks.
+Its expected goals and assists arrive as `expected_goals`, `expected_assists`
+and `team_expected_goals`, `NotRequired` keys on `PlayerFitData` - the (player,
+match) values and the team total that a share of one is a share of - populated
+by `process_player_data` from `get_expected_goals_by_fixture`, the same query
+the team model uses.
 
-### Why it should work, before any of it was built
+### Why it should work
 
 The same two measurements that justified the team model, asked of players.
 Season split at gameweek 19, players with over 450 minutes in both halves, rates
@@ -546,14 +522,12 @@ the same idea (-0.63517 held out against -0.63550 at its default 35, wanting
 GK 400, DEF 75, MID 25, FWD 150), which is a third as much and does not change
 the ordering; it is not implemented there, only measured.
 
-`PlayerFitData` gained a `position` for this. `process_player_data` is called
-once per position and every model here is fitted per position, so the position
-is what the data is *about*, and it was the one thing about it the models could
-not see. A caller who assembles their own training data and asks for a
-per-position prior is told what is missing rather than given a midfielder's
-shrinkage for a goalkeeper.
+`PlayerFitData` carries a `position` for this: `process_player_data` is
+called once per position and every model here is fitted per position. A caller
+who assembles their own training data and asks for a per-position prior is told
+what is missing rather than given a midfielder's shrinkage for a goalkeeper.
 
-**Time weighting is still worth nothing**, unlike everything else in this
+**Time weighting is worth nothing here**, unlike everywhere else in this
 package that has been swept for it. At the final configuration:
 
 | epsilon | none | 0.0 | 0.1 | 0.2 | 0.4 | 0.6 | 1.2 |
@@ -579,8 +553,7 @@ own pooled optimum:
 | 2526 | -0.61456 | -0.61850 | +0.00394 |
 | pooled | **-0.62839** | -0.63551 | +0.00712 |
 
-Better in every season, and better at every position that touches a goal -
-which it was not before the prior was allowed to vary by position:
+Better in every season, and better at every position that touches a goal:
 
 | | GK | DEF | MID | FWD |
 |---|---|---|---|---|
@@ -612,7 +585,7 @@ has anything to say and both are saying it.
 | involvement MAE, assists | 0.189203 | **0.186902** | **0.178143** | 0.178370 | **0.172905** | 0.173281 |
 | performances | 19635 | | 18247 | | 20318 | |
 
-Fifteen of the twenty-one cells, against nine before the tuning above. The three
+`xg` wins fifteen of the twenty-one cells. The three
 measures that are only about who the goals belong to - the attacking component
 and the two involvement errors, apart from assists in the two seasons where they
 differ by 0.0004 - go to `xg` almost everywhere, and RMSE does in all three
@@ -629,17 +602,15 @@ decimal places of a share cannot differ by more than a few thousandths of a
 point. This is the wrong instrument for the question; the log probability of the
 shares is the right one, and it is not close.
 
-2425 is scoreable at all only because managers are now skipped: it is the one
-season with them in the database, and `score_prediction_breakdown` used to hand
-one to a points model that has never heard of the position and die on the
-`KeyError`.
+2425 is the one season with managers in the database, and
+`score_prediction_breakdown` skips them: no points model predicts the position.
 
 ### The points error rewards under-prediction, and the calibration proves it
 
 Turn `calibrate` off and the points error *improves*, on 2526, by more than
 anything else here moves it: MAE 0.891645 against 0.901702, RMSE 1.876950
 against 1.880190, attacking component MAE 0.397604 against 0.411956 (measured
-at the pooled prior, before the tuning above). It is also the worst model in the
+at a single pooled prior rather than the per-position ones). It is also the worst model in the
 file by held-out log probability - -0.63153 against -0.62839 for the same
 configuration calibrated, and worse in every season.
 
@@ -702,16 +673,16 @@ season and at every position that touches a goal, by 0.0071 pooled - seven times
 what the per-position prior is worth and fifteen times the blend - and it does
 not lose end to end, where nothing measurably wins.
 
-Two things follow, and they are the same two the team model's default brought:
+Two things follow:
 
 - **The goals-fitted model has not gone anywhere.** `--player-model conjugate`
   selects it, and a season before 2223 needs it: `XGPlayerModel` refuses to fit
   where no match has expected goals rather than quietly fitting to something
   else, exactly as `XGTeamModel` does. A default database - three past seasons -
   is unaffected.
-- **Every number in this document above the xG sections was measured with the
-  old defaults**, `extended` and `conjugate`. They are the record of what those
-  models scored, not a claim about what a run does today.
+- **The team model's measurements were taken with `conjugate` as the player
+  model.** They are the record of what that configuration scored, not a claim
+  about what a default run scores.
 
 What is still not settled is whether it picks better squads. `airsenal replay`
 is the only measure that answers that, and one run per model does not: the
@@ -724,11 +695,11 @@ default here is the shares, which is what the model is.
 - **A per-position prior for `ConjugatePlayerModel`.** It gains from one -
   -0.63517 held out against -0.63550 at its default, wanting GK 400, DEF 75,
   MID 25, FWD 150 - which is a third of what `xg` gains and does not change the
-  ordering between them. `PlayerFitData` now carries the position, so it is a
-  few lines whenever it is wanted.
+  ordering between them. `PlayerFitData` carries the position, so it is a few
+  lines whenever it is wanted.
 - **A per-position `goal_weight`.** Measured, and there is nothing there:
   defenders, midfielders and forwards all optimise between 0.15 and 0.20, and
   goalkeepers move by 0.0002 across the whole range.
 - **A `--goal-weight` or `--n-goals-prior` flag.** The CLI takes the flags that
   name a model, not the knobs inside one, which is the rule `build_*` functions
-  already follow. `XGPlayerConfig` is one import away in Python.
+  follow. `XGPlayerConfig` is one import away in Python.

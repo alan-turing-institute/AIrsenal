@@ -67,13 +67,13 @@ def update_results(season: str, dbsession: Session) -> bool:
     """
     Fill in the gameweeks that have finished since the database was last updated.
 
-    Updates the results, playerscore and, optionally, attributes tables. A no-op
-    when the database is already level with the last finished gameweek.
+    Updates the result and player_score tables. A no-op when both are already
+    level with the last finished gameweek.
     """
     fetcher = get_fetcher()
     gameweek = next_gameweek(fetcher=fetcher)
     if gameweek == 1:
-        logger.info("Season hasn't starting - skipping result updates")
+        logger.info("Season hasn't started - skipping result updates")
         return False
 
     last_finished = fetcher.get_last_finished_gameweek()
@@ -188,10 +188,8 @@ def update_attributes(season: str, dbsession: Session) -> None:
         gameweek_start=last_in_db,
         dbsession=dbsession,
     )
-    # The API answers for the gameweek being predicted and no other, so the
-    # gameweeks already played get their availability from the day each of their
-    # deadlines fell on - the same rule as a past season, and what lets this
-    # season be replayed.
+    # The API answers for the next gameweek only, so the gameweeks already played
+    # get their availability the way a past season's do.
     fill_availability_for_season(season, dbsession)
 
 
@@ -214,7 +212,6 @@ def update_db(
         )
         raise ValueError(msg)
     with console.status("Updating the database..."):
-        # see if any new players have been added
         num_new_players = update_players(season, session)
 
         # update player attributes (if requested)
@@ -230,9 +227,7 @@ def update_db(
         # fixtures may have moved between gameweeks, so any cached gameweek
         # a lookup from earlier in this process would be stale
         clear_query_caches()
-        # update results and playerscores
         update_results(season, session)
-        # update our squad
         update_transactions(season, fpl_team_id, session)
     return True
 

@@ -60,15 +60,12 @@ def next_gameweek(fetcher: "FPLDataFetcher | None" = None) -> int:
     """
     Use the current time to figure out which gameweek we are currently in.
 
-    Only the current season has a next gameweek: a replay of a past one is told
-    which gameweek it is up to. The answer is worked out once and then held for the
-    lifetime of the process, so that a run gets one throughout. Worked out from
-    the default database, and dropped by `clear_query_caches` when something writes
-    what it reads or points the package at another database.
+    Current season only: a replay of a past one is told which gameweek it is up
+    to. Read from the default database and cached for the process, so a run sees
+    one answer throughout; `clear_query_caches` drops it.
 
     Args:
-        fetcher: Only consulted when the database holds no fixtures, which happens
-            when the database has not been populated yet.
+        fetcher: Only consulted when the database holds no fixtures.
 
     Raises:
         NoFixtureDataError: The database has no fixtures and no fetcher was given,
@@ -189,7 +186,6 @@ def get_gameweek_by_date(
     dbsession: Session | None = None,
 ) -> int | None:
     """Gameweek of the next fixture on or after the specified date."""
-    # convert date to a datetime object if it isn't already one.
     dbsession = dbsession if dbsession is not None else get_session()
     check_date = parse_date(check_date)
 
@@ -260,7 +256,6 @@ def get_gameweeks_array(
     Raises:
         ValueError: None of them are still to be played.
     """
-    # Check arguments are valid
     dbsession = dbsession if dbsession is not None else get_session()
     if gameweek_end is not None and n_gameweeks is not None:
         msg = "Only one of gameweek_end and n_gameweeks should be defined"

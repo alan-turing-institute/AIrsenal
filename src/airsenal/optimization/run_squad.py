@@ -7,7 +7,6 @@ players the FPL entry was already given.
 """
 
 from airsenal.core.console import console, progress_bar
-from airsenal.core.logging import get_logger
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import ChipGameweeks
 from airsenal.optimization.persist import (
@@ -33,8 +32,6 @@ from airsenal.reporting.optimization import (
 from airsenal.reporting.squad_view import formation_table
 from airsenal.squad.squad import Squad
 
-logger = get_logger(__name__)
-
 
 def _chip_label(chips: ChipGameweeks, gameweek: int) -> str | None:
     """
@@ -55,7 +52,7 @@ def build_new_squad(
     optimizer: SquadOptimizer | None = None,
     scoring: SquadScoringConfig | None = None,
     remove_zero: bool = True,
-    is_replay: bool = False,  # for replaying seasons
+    is_replay: bool = False,
     chips: ChipGameweeks | None = None,
 ) -> Squad:
     if optimizer is None:
@@ -140,8 +137,7 @@ def build_new_squad(
         fpl_team_id=fpl_team_id,
     )
     if is_replay:
-        # if simulating a previous season also add suggestions to transaction table
-        # to imitate applying transfers
+        # a replay imitates applying the suggestions by recording them as transactions
         fill_initial_transaction_table(
             best_squad,
             gameweek=gameweek_start,

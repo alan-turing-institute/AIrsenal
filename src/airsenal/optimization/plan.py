@@ -179,7 +179,7 @@ class TransferSearchResult:
 
     best: Plan
     baseline: Plan | None = None
-    # Every plan evaluated, for --save-plans and debugging (empty otherwise)
+    # Every plan evaluated, for --save-plans; an optimizer may leave it empty.
     considered: tuple[Plan, ...] = ()
 
     @property

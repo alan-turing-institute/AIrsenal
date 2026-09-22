@@ -52,7 +52,6 @@ class NumpyroPlayerModel:
         # one sample from the prior per player
         with numpyro.plate("nplayer", nplayer):
             dprobs = numpyro.sample("probs", theta)
-            # now it's all about how to broadcast in the right dimensions.....
         if not isinstance(dprobs, jnp.ndarray):
             dprobs = jnp.array(dprobs)
         # Floored away from zero. A match the player did not appear in gives
@@ -98,9 +97,7 @@ class NumpyroPlayerModel:
             num_chains=self.config.num_chains,
             progress_bar=True,
         )
-        rng_key, _rng_key_predict = random.split(
-            random.PRNGKey(self.config.random_state)
-        )
+        rng_key, _ = random.split(random.PRNGKey(self.config.random_state))
         mcmc.run(
             rng_key,
             data["nplayer"],

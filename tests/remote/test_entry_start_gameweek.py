@@ -1,4 +1,4 @@
-"""That `get_entry_start_gameweek` still branches on *which* remote failure happened."""
+"""`get_entry_start_gameweek` branches on *which* remote failure happened."""
 
 from airsenal.remote.errors import RemoteConnectionError, RemoteHTTPError
 from airsenal.squad import state

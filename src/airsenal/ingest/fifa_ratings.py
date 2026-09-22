@@ -1,4 +1,4 @@
-"""Fill the "fifa_ratings" table from the fifa_team_ratings CSV files."""
+"""Fill the "fifa_rating" table from the fifa_team_ratings CSV files."""
 
 from sqlalchemy.orm.session import Session
 
@@ -17,8 +17,6 @@ def make_fifa_ratings_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

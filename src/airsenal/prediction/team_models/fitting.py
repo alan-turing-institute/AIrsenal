@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 
 
 def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitData:
-    """Past results as a data frame, in the shape the team model is fitted to."""
+    """Every result before a gameweek, in the shape a team model is fitted to."""
     results = [
         s
         for s in dbsession.scalars(
@@ -93,7 +93,7 @@ def get_result_dict(gameweek: int, season: str, dbsession: Session) -> TeamFitDa
 def get_ratings_dict(
     season: str, teams: list[str], dbsession: Session
 ) -> dict[str, np.ndarray]:
-    """The FIFA team ratings, as a data frame."""
+    """The FIFA ratings (attack, midfield, defence, overall) of each team."""
     ratings = dbsession.scalars(
         select(FifaTeamRating).where(FifaTeamRating.season == season)
     ).all()
@@ -173,9 +173,6 @@ def get_fitted_team_model(
     Fit a team model to past results and FIFA ratings, and return it.
 
     Fits `model` in place if one is given; otherwise builds the default one.
-    Takes a `ScorelineTeamModel` because that is all `TEAM_MODELS` holds: a
-    model that predicts only a mean arrives here already wrapped in
-    `PoissonScorelines`, so nothing downstream has to ask which kind it has.
     """
     if model is None:
         model = build_team_model()
@@ -210,7 +207,6 @@ def fixture_probabilities(
     if model is None:
         model = build_team_model()
     if model.teams is None:
-        # model is not fit yet, so will need to fit
         model = get_fitted_team_model(
             season=season,
             gameweek=gameweek,

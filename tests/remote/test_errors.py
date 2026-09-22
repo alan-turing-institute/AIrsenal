@@ -21,14 +21,13 @@ from airsenal.remote.fpl_http import get_json
 
 
 def test_every_remote_error_is_catchable_as_one():
-    # The five "any failure -> fall back to the DB" sites catch only the base.
+    # The "any failure -> fall back to the DB" sites catch only the base.
     assert issubclass(RemoteConnectionError, RemoteError)
     assert issubclass(RemoteHTTPError, RemoteError)
 
 
 def test_remote_error_is_a_runtime_error():
-    # Matches ConfigError/NoFixtureDataError, and means a bare `except RuntimeError`
-    # upstream keeps working.
+    # As NoFixtureDataError is, so a bare `except RuntimeError` upstream catches it.
     assert issubclass(RemoteError, RuntimeError)
 
 

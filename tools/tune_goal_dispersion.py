@@ -6,10 +6,9 @@ scored by `prediction.evaluation.backtest_team_model`: for each gameweek, fit on
 the matches before it and score the scorelines of the next `--horizon`
 gameweeks. One is exactly a Poisson, above one is narrower than a Poisson.
 
-The dispersion is swept here rather than fitted inside the model because a
-dispersion fitted to the same matches the ratings were fitted to comes out too
-narrow. Report every season, not just the pooled number: the pooled optimum has
-been outside the range that improves each season on its own.
+The dispersion is swept rather than fitted inside the model because one fitted
+to the same matches as the ratings comes out too narrow. Each season is reported
+as well as the pooled score, since their optima differ.
 """
 
 import argparse

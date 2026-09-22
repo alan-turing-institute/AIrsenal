@@ -1,7 +1,8 @@
 """
 Resolving which database to talk to.
 
-The settings are read through the `env` module.
+The settings are read as attributes of the `env` module, so replacing them there
+is enough to redirect it.
 """
 
 from airsenal.core import env

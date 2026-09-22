@@ -7,7 +7,6 @@ than enumerating swaps.
 
 from dataclasses import replace
 
-from airsenal.core.logging import get_logger
 from airsenal.optimization.protocols import (
     Proposal,
     SquadOptimizer,
@@ -16,8 +15,6 @@ from airsenal.optimization.protocols import (
     progress_total,
 )
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
-
-logger = get_logger(__name__)
 
 
 class FullSquadStrategy:

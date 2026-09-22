@@ -105,8 +105,8 @@ def test_an_effort_budget_keeps_the_settings_it_does_not_size():
     assert sized.random_state == 1
 
 
-def test_a_request_defaults_to_todays_scoring():
-    """The seam must not quietly change how a squad is scored."""
+def test_a_request_defaults_to_the_standard_scoring():
+    """A request that names no scoring gets the usual budget and bench weights."""
     request = SquadRequest(gameweeks=[1], tag="t", season="2526")
 
     assert request.budget == 1000
@@ -146,10 +146,9 @@ def test_the_registered_full_squad_strategy_defaults_to_genetic():
 
 def test_full_squad_sizes_the_default_optimizer_from_the_iteration_count():
     """
-    The asymmetry this seam exists to remove.
+    The wildcard and free-hit rebuild is sized by the search's iteration count.
 
-    `optimize squad` could tune the genetic algorithm, but the wildcard and free
-    hit path built its strategy with defaults and no caller could reach it.
+    So it is tunable from the transfer search, as `optimize squad` is directly.
     """
     strategy = TRANSFER_STRATEGIES["full_squad"]()
     assert strategy.num_increments(_rebuild_request(num_iterations=9)) == 9

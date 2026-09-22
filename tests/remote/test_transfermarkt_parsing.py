@@ -101,12 +101,10 @@ def test_injuries_are_read_with_their_dates_and_games_missed(recorded):
 
 def test_suspensions_and_other_absences_are_read(recorded):
     """
-    The regression that emptied `absences_2425.csv` and `absences_2526.csv`.
+    Suspensions and other absences are read, with their duration.
 
     Transfermarkt writes this table's duration in the same language as the rest
-    of the page - "8 days" - where it used to write "8 Tage". Stripping the
-    German unit left "8 days" to be read as a number, which raised, which the
-    scrape caught and skipped, per player, for every player.
+    of the page - "8 days" on the English site.
     """
     absences = get_player_suspensions(PLAYER)
 
@@ -151,11 +149,10 @@ def test_a_page_with_no_absence_table_is_empty_rather_than_an_error(monkeypatch)
 
 def test_transfers_are_read_from_the_endpoint_the_page_calls(recorded):
     """
-    The transfer table is no longer in the HTML.
+    The transfer table is not in the HTML.
 
     `/kyle-walker/transfers/spieler/95424` renders a `<tm-player-transfer-history>`
-    element that fetches the data, so the grid classes the old scrape looked for
-    are not there and every player raised.
+    element that fetches the data from `/ceapi/transferHistory/`.
     """
     transfers = get_player_transfers(PLAYER)
 
@@ -171,7 +168,7 @@ def test_transfers_are_read_from_the_endpoint_the_page_calls(recorded):
 
 
 def test_the_most_recent_transfer_is_included(recorded):
-    """The old scrape skipped index 0, which was a header row it no longer has."""
+    """Every completed transfer is kept, the newest included."""
     transfers = get_player_transfers(PLAYER)
 
     assert transfers.iloc[-1]["new"] == "Burnley"
@@ -212,7 +209,7 @@ def test_a_club_is_matched_by_id_not_by_name():
 
 @pytest.mark.parametrize("duration", ["8 days", "8 Tage", "8"])
 def test_a_duration_is_read_whatever_unit_it_is_written_in(duration):
-    """The unit has changed under us once; reading past it means it cannot again."""
+    """The number is read whether the unit is English, German or missing."""
     df = tidy_df(
         pd.DataFrame(
             {
@@ -255,8 +252,7 @@ def test_all_three_kinds_of_absence_end_up_in_one_season(monkeypatch):
     A season's file should hold injuries, suspensions and transfers.
 
     The three are scraped from three different places, and losing one of them is
-    invisible in the result: `absences_2425.csv` looks like a well formed file
-    with 380 rows in it, none of which are suspensions.
+    invisible in the result: the file is still well formed, just short of a kind.
     """
     monkeypatch.setattr(
         transfermarkt,
@@ -303,11 +299,11 @@ def test_all_three_kinds_of_absence_end_up_in_one_season(monkeypatch):
 
 def test_a_page_that_cannot_be_parsed_is_reported(monkeypatch, caplog):
     """
-    The failure mode that hid the two breakages this module was fixed for.
+    A page that fails to parse is counted and logged, per kind of absence.
 
     Each kind is scraped in a try/except so one bad page does not stop a scrape
-    of 600 players - which means the count has to be logged, or a page that stops
-    parsing for every player is silent.
+    of 600 players, so without the count a page that stops parsing for every
+    player would be silent.
     """
     monkeypatch.setattr(
         transfermarkt,
@@ -374,8 +370,7 @@ def test_a_season_with_nothing_at_all_is_an_error(monkeypatch):
         ("0708", "0708"),
         ("2425", "2425"),
         # Last century. "9899" reads as 2098/99, and stepping forwards from it
-        # runs 99 into "100": Gündoğan (98/99) and Heaton (97/98) both crashed
-        # the walk with "year must be in 1..9999, not 20100".
+        # runs 99 into "100", which is not a season.
         ("9899", "0001"),
         ("9700", "0001"),
         # Nothing usable at all.
@@ -387,12 +382,12 @@ def test_where_a_team_history_starts(first_transfer_season, expected):
     assert first_season_to_walk(first_transfer_season, "2526") == expected
 
 
-def test_a_career_that_began_last_century_is_walked_rather_than_crashing():
+def test_a_career_that_began_last_century_is_walked():
     """
-    Two of 781 players lost their transfer data to this on the last scrape.
+    A first transfer before 2000 still gives a team history.
 
-    The walk is bounded by `end_season` now, so a first transfer decades earlier
-    costs a few wasted iterations rather than an unrepresentable season.
+    The walk is bounded by `end_season`, so a first transfer decades earlier costs
+    a few wasted iterations rather than an unrepresentable season.
     """
     transfers = pd.DataFrame(
         {
@@ -446,9 +441,7 @@ def test_a_national_team_call_up_is_kept(recorded):
     Transfermarkt tags a call-up with the player's club, not a competition.
 
     That cell carries a club crest where a suspension carries a competition
-    logo, so filtering on "Premier League" alone threw away every Africa Cup of
-    Nations absence - 44 players in 25/26, of which the FPL API caught all 44 and
-    Transfermarkt appeared to catch 3.
+    logo, so a call-up is kept when the club is in the Premier League that season.
     """
     teams = get_teams_for_season(2025)
     kept = premier_league_absences(

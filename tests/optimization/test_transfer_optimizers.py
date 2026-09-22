@@ -74,7 +74,7 @@ def test_a_strategy_set_survives_a_pickle():
 # --------------------------- constraints ---------------------------
 
 
-def test_constraints_default_to_todays_behaviour():
+def test_the_constraint_defaults():
     constraints = TransferConstraints()
 
     assert constraints.max_total_hit == 8

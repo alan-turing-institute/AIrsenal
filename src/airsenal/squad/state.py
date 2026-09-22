@@ -88,8 +88,8 @@ def get_entry_start_gameweek(
             )
             return 1
 
-    # if we failed to find picks in any gameweek, or we're before the start of the
-    # season, assume this team ID was entered in NEXT_GAMEWEEK
+    # No picks in any gameweek, or the season has not started: assume the entry
+    # joins in the next gameweek.
     return next_gameweek()
 
 
@@ -98,7 +98,7 @@ def rebuilt_gameweeks_from_history(data: dict[str, Any]) -> set[int]:
     The gameweeks an entry played a wildcard or free hit in, from its history.
 
     Args:
-        data: an `get_fpl_team_history_data` payload, whose "chips" entries name
+        data: A `get_fpl_team_history_data` payload, whose "chips" entries name
             a chip in the API's spelling and the gameweek it was played in.
     """
     return {
@@ -154,11 +154,8 @@ def get_free_transfers(
                 )
                 rebuilt_in_history = rebuilt_gameweeks_from_history(data)
                 # Every gameweek strictly between the one the entry joined and
-                # the one being asked about. Stopping on `gameweek - 1` instead
-                # missed whenever that gameweek was not in the list - asking
-                # about the gameweek after the entry joined ran to the end of
-                # the season's history and answered about the wrong gameweek.
-                # Accrual is a fold, so the order has to be the played order.
+                # the one being asked about, in the order they were played:
+                # accrual is a fold.
                 for entry in sorted(data["current"], key=lambda e: e["event"]):
                     if entry["event"] <= starting_gameweek:
                         continue
@@ -228,7 +225,6 @@ def get_players_for_gameweek(
     """The players an entry had in a gameweek, from the FPL API."""
     fetcher = fetcher if fetcher is not None else get_fetcher()
     if not fpl_team_id:
-        # See get_bank: the id has to come from the client being used.
         fpl_team_id = fetcher.FPL_TEAM_ID
 
     player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]

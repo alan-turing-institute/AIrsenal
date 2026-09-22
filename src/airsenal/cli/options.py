@@ -1,9 +1,9 @@
 """
-The options more than one command takes.
+Command-line options that mean the same thing wherever they appear.
 
 A command signature should reach for a name from this module before writing a
-fresh `typer.Option`. Command-specific options stay in their own command: this
-module is for the ones that mean the same thing everywhere.
+fresh `typer.Option`. An option only one command could take stays in that
+command.
 
 Types only: an option's default belongs to whatever the option configures, so a
 command imports it from there rather than from here.

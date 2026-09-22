@@ -130,7 +130,6 @@ def get_teams_for_season(season: int) -> list[Team]:
     """
     logger.debug("getting teams for %s/%s season", str(season)[2:], str(season + 1)[2:])
 
-    # get list of teams
     url_season = (
         f"{TRANSFERMARKT_URL}/premier-league/startseite/wettbewerb/GB1/plus/"
         f"?saison_id={season}"
@@ -308,8 +307,8 @@ def get_players_for_season(season: int) -> list[tuple[str, str]]:
     """
     teams = get_teams_for_season(season)
     players = set()
-    for _, team_url, __, ___ in track(teams):
-        players.update(get_team_players(team_url))
+    for team in track(teams):
+        players.update(get_team_players(team.url))
 
     return list(players)
 

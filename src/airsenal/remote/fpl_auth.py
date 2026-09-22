@@ -1,9 +1,9 @@
 """
-Logging in to the FPL account service.
+Logging in to the FPL account service, by OAuth/PKCE.
 
-OAuth/PKCE against the FPL account service. This module owns the session every
-request goes out on, the credentials, the bearer header a successful login
-produces, and whether the attempt has already been made and failed.
+This module owns the session every request goes out on, the credentials, the
+bearer header a successful login produces, and whether an attempt has already
+been made and failed.
 
 Thanks to @Moose on the FPLDev Discord for the authentication implementation.
 """
@@ -64,12 +64,7 @@ class FPLAuth:
         self.FPL_PASSWORD = FPL_PASSWORD
 
     def get_fpl_credentials(self) -> None:
-        """
-        Prompt for the credentials that were not found.
-
-        FPL_LOGIN and FPL_PASSWORD are read from files in AIRSENAL_HOME or from
-        the environment; this covers whichever of them was missing.
-        """
+        """Prompt for FPL_LOGIN and FPL_PASSWORD, and offer to save them."""
         logger.info(
             "Accessing the most up-to-date data on your squad, or automatic "
             "transfers, requires the login (email address) and password for your "
@@ -132,11 +127,9 @@ class FPLAuth:
                 self._set_login_failed(msg="Credentials not provided.")
                 return
 
-        code_verifier = generate_code_verifier()  # code_verifier for PKCE
-        code_challenge = generate_code_challenge(
-            code_verifier
-        )  # code_challenge from the code_verifier
-        initial_state = uuid.uuid4().hex  # random initial state for the OAuth flow
+        code_verifier = generate_code_verifier()
+        code_challenge = generate_code_challenge(code_verifier)
+        initial_state = uuid.uuid4().hex
 
         # Step 1: Request authorization page
         params = {
@@ -287,8 +280,8 @@ class FPLAuth:
             data={
                 "grant_type": "authorization_code",
                 "redirect_uri": "https://fantasy.premierleague.com/",
-                "code": auth_code,  # from the parsed redirect URL
-                "code_verifier": code_verifier,  # code_verifier generated at the start
+                "code": auth_code,
+                "code_verifier": code_verifier,
                 "client_id": CLIENT_ID,
             },
         )
@@ -306,7 +299,6 @@ class FPLAuth:
             self._set_login_failed(
                 msg="All login steps succeeded but team data retrieval failed."
             )
-            return
 
     def _set_login_failed(
         self, exception: Exception | None = None, msg: str = ""

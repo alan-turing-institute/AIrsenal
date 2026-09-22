@@ -90,9 +90,7 @@ def set_lineup(
     dry_run: bool = False,
 ) -> None:
     """
-    Retrieve the latest lineup and apply the latest prediction to it.
-
-    Note that this assumes that the prediction has been ran recently.
+    Re-pick the entry's lineup and captain from the latest prediction, and post it.
 
     Args:
         skip_check: Post without asking. Ignored under `dry_run`.

@@ -75,9 +75,9 @@ def record_initial_squad_transactions(
         )
 
         if len(first_gameweek_data) == 0:
-            # Edge case where API doesn't have player data for gameweek 1, e.g. in 20/21
-            # season where 4 teams didn't play gameweek 1. Calculate GW1 price from
-            # API using current price and total price change.
+            # The API has no data for a player whose team did not play the
+            # starting gameweek (four teams missed gameweek 1 in 20/21), so the
+            # price is worked back from the current price and the change since.
             logger.warning(
                 "Using current data to determine starting price for player %s",
                 player_api_id,
@@ -130,11 +130,9 @@ def update_squad(
         )
     ).all()
     if len(existing_transfers) == 0:
-        # need to put the initial squad into the db
         record_initial_squad_transactions(
             season=season, tag=tag, fpl_team_id=fpl_team_id, dbsession=dbsession
         )
-    # now update with transfers
     transfers = get_fetcher().get_fpl_transfer_data(fpl_team_id)
     for transfer in transfers:
         gameweek = transfer["event"]
@@ -214,10 +212,7 @@ def get_starting_squad(
     fetcher = fetcher if fetcher is not None else get_fetcher()
     gameweek = next_gameweek() if gameweek is None else gameweek
     if use_api:
-        if season != CURRENT_SEASON:
-            msg = "Can only use API for current season and gameweek"
-            raise RuntimeError(msg)
-        if season == CURRENT_SEASON and gameweek != next_gameweek():
+        if season != CURRENT_SEASON or gameweek != next_gameweek():
             msg = "Can only use API for current season and gameweek"
             raise RuntimeError(msg)
         if not fpl_team_id:
@@ -233,7 +228,6 @@ def get_starting_squad(
                 exc_info=True,
             )
 
-    # otherwise, we use the Transaction table in the DB
     return get_squad_from_transactions(gameweek, season, fpl_team_id, dbsession)
 
 
@@ -267,8 +261,6 @@ def get_squad_from_transactions(
         fpl_team_id = most_recent.fpl_team_id
     logger.debug("Getting starting squad for %s", fpl_team_id)
 
-    # Don't include free hit transfers as they only apply for the gameweek the
-    # chip is activated
     transactions = dbsession.scalars(
         select(Transaction)
         .where(
@@ -288,8 +280,6 @@ def get_squad_from_transactions(
         if trans.bought_or_sold == -1:
             s.remove_player(trans.player_id, price=trans.price)
         else:
-            # within an individual transfer we can violate the budget and squad
-            # constraints, as long as the final squad for that gameweek obeys them
             s.add_player(
                 trans.player_id,
                 price=trans.price,

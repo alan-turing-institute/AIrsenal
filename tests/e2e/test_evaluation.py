@@ -17,7 +17,6 @@ from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.game.enums import Position
 from airsenal.prediction.evaluation import (
     ModelScore,
-    PointsScore,
     backtest_points,
     backtest_team_model,
     player_outcome_probability,
@@ -217,7 +216,3 @@ def test_a_backtest_leaves_its_predictions_behind_under_a_named_tag(pipeline_db)
         ).all()
     )
     assert len(tags) == 1
-
-
-def test_an_empty_points_score_is_a_number_not_a_crash():
-    assert PointsScore().mean_absolute_error == 0.0

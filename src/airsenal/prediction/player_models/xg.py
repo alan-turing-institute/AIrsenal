@@ -84,10 +84,9 @@ class XGPlayerConfig:
         """
         The shrinkage to fit this position's players with.
 
-        A per-position prior needs the training data to say which position it
-        is about, and `PlayerFitData` only carries that when it came from
-        `process_player_data` - so a caller who assembled their own is told
-        what is missing rather than quietly given somebody else's shrinkage.
+        Raises:
+            ValueError: `n_goals_prior` is per position and `position` is None
+                or not one of them.
         """
         if isinstance(self.n_goals_prior, int):
             return self.n_goals_prior
@@ -139,10 +138,6 @@ class XGPlayerModel:
         self.finishing = 1.0
         self.creation = 1.0
 
-    @property
-    def epsilon(self) -> float | None:
-        return self.config.epsilon
-
     def fit(self, data: PlayerFitData) -> "XGPlayerModel":
         n_goals_prior = self.config.prior_for(data.get("position"))
         logger.info(
@@ -182,7 +177,8 @@ class XGPlayerModel:
         `scale_goals_by_minutes` is already told a match carries nothing. The
         same test excludes a padding row, whose team expected goals are zero -
         see `features.blank_player_row`.
-        Records the calibration it applied, which is part of what the fit found.
+
+        Records the calibration it applied on `finishing` and `creation`.
         """
         missing = [
             key

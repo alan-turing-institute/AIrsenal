@@ -24,10 +24,8 @@ from airsenal.prediction.protocols import PlayerFitData
 logger = get_logger(__name__)
 
 # The columns of the player history frame, in order, and the one place they are
-# named. A row is built as a dict rather than a positional list so that adding a
-# column - the xG work added three - is an edit here and an edit where the value
-# is read off the database, rather than three lists that have to stay in step by
-# position.
+# named. Adding one is an edit here and an edit where the value is read off the
+# database.
 PLAYER_HISTORY_COLUMNS = (
     "player_id",
     "player_name",
@@ -55,9 +53,7 @@ def blank_player_row(player_id: int, player_name: str) -> dict[str, Any]:
     identity, which is what makes a padding row recognisable:
     `get_empirical_bayes_estimates` drops rows by `match_id == 0`, and a fitted
     model excludes them by `minutes` or by `team_expected_goals` of zero, neither
-    of which a real performance has. Deriving the zeros from
-    `PLAYER_HISTORY_COLUMNS` means a new column is padded correctly without this
-    function being touched.
+    of which a real performance has.
     """
     return {
         **dict.fromkeys(PLAYER_HISTORY_COLUMNS, 0),
@@ -80,9 +76,8 @@ def get_player_history_df(
     player_data: list[dict[str, Any]] = []
 
     if all_players:
-        # All of them who play: a manager has attributes and performances like
-        # anyone else, and nothing here models one - the same rule as
-        # `Position.is_modelled`, asked of the whole set at once.
+        # Every player in a modelled position: a manager has attributes and
+        # performances like anyone else, and nothing here models one.
         q = dbsession.scalars(
             select(PlayerAttributes)
             .where(PlayerAttributes.position.in_(Position.modelled()))
@@ -228,10 +223,8 @@ def process_player_data(
     match_date = df["date"].fillna(df["date"].min()).dt.date
     df["time_diff"] = (now_date - match_date) / pd.Timedelta(days=365)
 
-    # Sorted once and shared, so every array below is in the same order: two
-    # sorts of the same frame agree, but only by construction, and `y` lining up
-    # with `minutes` is what makes a row a player's match rather than a
-    # coincidence.
+    # Sorted once and shared, so every array below lines up player by player and
+    # match by match.
     ordered = df.sort_values("player_id")
 
     def per_match(*columns: str) -> np.ndarray:

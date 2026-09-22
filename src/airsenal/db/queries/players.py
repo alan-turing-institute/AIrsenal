@@ -25,10 +25,8 @@ from airsenal.game.season import CURRENT_SEASON
 logger = get_logger(__name__)
 
 
-# list_players is called once per candidate player per strategy, so an unguarded
-# warning here fires ~90 times in a single `optimize transfers` run and buries
-# everything else. The condition is a property of the database, not of the call, so
-# say it once.
+# list_players is called once per candidate player per strategy, so this warning
+# is given once per condition rather than once per call.
 _warned_incomplete: set[tuple[str, int, int]] = set()
 
 
@@ -229,10 +227,8 @@ def get_player_from_api_id(
     return None
 
 
-# The `require_` lookups are for callers that have nothing to do with a missing
-# player - most of `apply/`, which is assembling a request for the FPL API and
-# cannot leave a hole in it. They wrap the `get_` lookups above rather than
-# replacing them: a caller that can carry on without the player still wants None.
+# The `require_` lookups are for callers that cannot carry on without the player,
+# such as `apply/` building a request for the FPL API.
 
 
 def require_player(
@@ -291,7 +287,7 @@ def list_players(
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[Player]:
-    """Print a list of players, and return their player_ids."""
+    """The players in a position and team at a gameweek."""
     gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = dbsession if dbsession is not None else get_session()
     # if trying to get players from after DB has filled, return most recent players

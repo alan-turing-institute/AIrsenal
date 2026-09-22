@@ -46,9 +46,6 @@ class RecentMinutesModel:
             request.fixture_gameweek,
             request.season,
         ):
-            # No appearances to average: a player who is injured or suspended
-            # and not expected back plays no minutes, however much they have
-            # been playing.
             return MinutesDistribution.uniform([0.0])
         fixtures_behind = max(request.n_gameweeks, self.config.min_fixtures_behind)
         return MinutesDistribution.uniform(

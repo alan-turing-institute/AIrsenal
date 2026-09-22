@@ -238,7 +238,7 @@ def test_next_gameweek_transfers_2ft_no_unused():
 
 
 def test_next_gameweek_transfers_5ft_no_unused_max5():
-    # 2 free transfers available, no wasted transfers
+    # 5 free transfers available, no wasted transfers
     free_transfers, hit_so_far = 5, 0
     actual = as_labels(
         next_gameweek_transfers(
@@ -261,7 +261,7 @@ def test_next_gameweek_transfers_5ft_no_unused_max5():
 
 
 def test_next_gameweek_transfers_3ft_no_hit_max5():
-    # 2 free transfers available, no wasted transfers
+    # 3 free transfers available, no hits, no wasted transfers
     free_transfers, hit_so_far = 3, 0
     actual = as_labels(
         next_gameweek_transfers(
@@ -656,8 +656,7 @@ def test_count_expected_outputs_with_no_legal_move_is_the_baseline_alone():
     Doing nothing is still a plan, so the count is one, not an IndexError.
 
     `airsenal run --max-transfers 0` reaches this for an entry with a full bank of
-    free transfers, and used to fail inside the progress-bar sizing with a bare
-    "list index out of range".
+    free transfers, and the progress bar is sized from the count.
     """
     count, baseline_excluded = count_expected_outputs(
         2,

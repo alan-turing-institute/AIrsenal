@@ -131,10 +131,8 @@ def describe_pipeline(pipeline: AIrsenalPipeline) -> dict[str, str]:
     """
     The components a replay ran with, by class name.
 
-    A points model may be made of other models, and two replays are only worth
-    comparing if you can see which. It says so through the optional `describe`
-    method, read the way `progress_total` reads `num_increments`: a model that
-    does not have one is named and left at that.
+    A points model with the optional `describe` method names its own parts; one
+    without is named by its class alone.
     """
     describe = getattr(pipeline.points_model, "describe", None)
     parts = (
@@ -261,7 +259,7 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
 
     outcomes: list[ReplayGameweek] = []
     replay_range = range(replay.gameweek_start, gameweek_end + 1)
-    for idx, gameweek in enumerate(track(replay_range, desc="REPLAY PROGRESS")):
+    for idx, gameweek in enumerate(track(replay_range, description="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gameweek, idx + 1, len(replay_range))
         with session_scope() as session:
             gameweeks = pipeline.gameweeks(session, gameweek_start=gameweek)

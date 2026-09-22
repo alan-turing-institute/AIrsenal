@@ -31,7 +31,6 @@ def redact_db_password(conn_str: str) -> str:
     Other connection strings are left unchanged and may contain secrets.
     """
     if conn_str.startswith("postgresql://"):
-        # Format: postgresql://user:password@host/dbname
         prefix = "postgresql://"
         rest = conn_str[len(prefix) :]
         if "@" in rest:

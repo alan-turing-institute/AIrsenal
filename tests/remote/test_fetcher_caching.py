@@ -20,7 +20,7 @@ class CountingFetcher(FPLDataFetcher):
 
 
 def test_our_own_team_data_is_fetched_once_per_gameweek():
-    """The read side could never hit, because the write side never ran."""
+    """A second request for the same gameweek is answered from the cache."""
     fetcher = CountingFetcher(fpl_team_id=OWN_TEAM)
 
     first = fetcher.get_fpl_team_data(3)
@@ -42,11 +42,7 @@ def test_another_teams_data_is_never_cached_as_our_own():
 
 
 def test_history_for_another_team_does_not_poison_our_own():
-    """
-    Asking about someone else used to overwrite our own cached history.
-
-    The next call with no team id then handed back whoever was asked about last.
-    """
+    """Asking about another team leaves our own cached history as it was."""
     fetcher = CountingFetcher(fpl_team_id=OWN_TEAM)
 
     other = fetcher.get_fpl_team_history_data(OTHER_TEAM)

@@ -28,9 +28,6 @@ if __name__ == "__main__":
     df = FPLDataFetcher()
     teamdata = df.get_current_team_data()
     teamdict = {teamdata[k]["name"]: [teamdata[k]["short_name"]] for k in teamdata}
-
-    #    teamdicts = [{teamdata[k]['name']:[teamdata[k]['short_name']]} \
-    #                for k in teamdata.keys()]
     fpl_teams = list(teamdict.keys())
     # get the team names from the results csv
     missing = set()
@@ -52,7 +49,7 @@ if __name__ == "__main__":
             if score == 100:
                 teamdict[t].append(team)
                 matched.add(team)
-            # ugh, ok, do the last few by hand
+            # names partial_ratio cannot match
             elif team == "Manchester United":
                 teamdict["Man Utd"].append(team)
                 matched.add(team)
@@ -64,11 +61,8 @@ if __name__ == "__main__":
                 matched.add(team)
             else:
                 missing.add(team)
-    # matched teams should be all except promoted ones that haven't
-    # been in the prem recently
     logger.info("Num matched: %s", len(matched))
-
-    # print missing teams (should be the relegated ones
+    # teams in the historical results that have no current FPL name
     logger.warning("Teams not in this seasons FPL: %s", missing)
 
     with open("../data/alternative_team_names.json", "w") as outfile:

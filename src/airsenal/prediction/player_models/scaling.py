@@ -1,9 +1,4 @@
-"""
-Turning raw goal involvements into the counts a player model is fitted to.
-
-Shared by more than one model, and by `features.py` when it assembles the
-training data, so it lives beside the models rather than inside one of them.
-"""
+"""Turning raw goal involvements into the counts a player model is fitted to."""
 
 import numpy as np
 import numpy.typing as npt
@@ -26,8 +21,7 @@ def get_empirical_bayes_estimates(
             of alphas.
         prior_goals: If given, the alphas are normalised to sum to this.
     """
-    # for compatibility with models we zero pad data so all players have
-    # the same number of rows (matches). Remove the dummy matches:
+    # drop the padding rows that give every player the same number of matches
     df = df_emp.copy()
     df = df[df["match_id"] != 0]
 

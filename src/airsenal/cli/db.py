@@ -36,8 +36,7 @@ def update(
     fpl_team_id: options.FplTeamId = None,
 ) -> None:
     """Update the AIrsenal database from current FPL data."""
-    # No --season: the FPL API only serves the current one, so it was an option
-    # whose every other value silently filed this season's data under another.
+    # No --season: the FPL API only serves the current one.
     update_database(
         season=CURRENT_SEASON, attributes=attributes, fpl_team_id=fpl_team_id
     )

@@ -39,8 +39,7 @@ def test_a_player_in_no_goalless_match_scales_to_nothing():
     """
     A player who was never on the pitch for a goal contributes no counts.
 
-    Otherwise their zero-match average would be a division by zero. Only the real
-    two-season fit used to reach this, so it is asserted directly here.
+    Otherwise their zero-match average would be a division by zero.
     """
     goals = np.zeros((2, 2, 3))
     goals[0, :, :] = np.array([[1, 0, 0], [0, 1, 0]])  # involved in two goals
@@ -95,19 +94,16 @@ def test_get_fitted_player_model(model):
     """
     Fit a player model against two full seasons.
 
-    As `test_get_fitted_team_model` below: the shape and coverage assertions are
-    worth having on every run, so they are duplicated against the small e2e
-    database in tests/e2e/test_player_models.py, which asserts more of them and
-    over every entry of the table. This stays as the "does it still work on real
-    data" check, and is marked `slow` so it runs in its own CI step.
+    The "does it still work on real data" check, marked `slow` so it runs in its
+    own CI step. tests/e2e/test_player_models.py asserts more against the small
+    e2e database, over every entry of the table.
     """
     with past_data_session_scope() as ts:
         fitted = fit_player_data("FWD", 12, "1819", model=model, dbsession=ts)
         assert isinstance(fitted, pd.DataFrame)
         assert len(fitted) > 0
         # The three outcomes partition a goal, so they must sum to one per player.
-        # Fitting at all is not enough: numpyro spent a release returning nothing
-        # because it could not initialise.
+        # A model can fit without error and still return nothing.
         probabilities = fitted[["prob_score", "prob_assist", "prob_neither"]]
         assert np.allclose(probabilities.sum(axis=1), 1.0, atol=1e-5)
         assert (probabilities >= 0).all().all()

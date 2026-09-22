@@ -81,7 +81,7 @@ def test_a_player_who_always_plays_the_same_minutes_is_predicted_exactly(pipelin
     """
     The seeded players are deterministic, so a perfect score is reachable.
 
-    If this drifts, the model is no longer reading the appearances it is given.
+    If this fails, the model is not reading the appearances it is given.
     """
     always_90 = pipeline_db.scalars(
         select(Player).where(Player.player_id % 5 != 0)

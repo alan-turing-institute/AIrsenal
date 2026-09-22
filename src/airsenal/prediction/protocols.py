@@ -21,11 +21,8 @@ class PlayerFitData(TypedDict):
     `minutes` are rectangular and `nplayer`/`nmatch` are their dimensions.
     """
 
-    # Which position's players these are. `process_player_data` is called once
-    # per position and every model here is fitted per position, so this is what
-    # the data is about rather than a feature of it - a hyperparameter that
-    # differs by position reads it. Absent only from training data a caller
-    # assembled itself.
+    # Which position's players these are, for a hyperparameter that differs by
+    # position. Absent only from training data a caller assembled itself.
     position: NotRequired[str]
     # (n_players,) the players these rows are about, sorted
     player_ids: np.ndarray
@@ -82,10 +79,6 @@ def no_expected_goals_message(model: str, instead: str) -> str:
     """
     Why a model fitted to expected goals has none to fit to, and what to do.
 
-    Here because the expected-goals keys of both fit data types above are
-    `NotRequired`, so both a team and a player model can be handed a window
-    with nothing in them, and the two used to say so in their own words.
-
     Args:
         model: The class that cannot be fitted.
         instead: The flag naming a model fitted to goals, which any season can
@@ -105,9 +98,7 @@ class PlayerInvolvement:
     How each player shares in one of their team's goals.
 
     Per goal and for a full match, so the points calculation scales by the
-    fraction of the match played. The three shares sum to one per player, which
-    is checked here rather than described in prose: it used to be a
-    `dict[str, np.ndarray]` whose keys and invariants only a docstring knew.
+    fraction of the match played. The three shares sum to one per player.
 
     Not comparable with `==` - the fields are arrays - hence `eq=False`.
     """
@@ -173,11 +164,9 @@ class TeamModel(Protocol):
     """
     A model of how teams perform, that can be fitted to past results.
 
-    What it predicts is not here, because there is more than one useful answer:
-    `ScorelineTeamModel` gives a distribution over goal counts, and
-    `ExpectedGoalsTeamModel` only a mean. This is what they have in common, and
-    what `get_fitted_team_model` needs - which is why fitting a model does not
-    require knowing which kind it is.
+    What it predicts is not here: `ScorelineTeamModel` gives a distribution over
+    goal counts, and `ExpectedGoalsTeamModel` only a mean. This is what they have
+    in common, and what `get_fitted_team_model` needs.
     """
 
     @property
@@ -189,9 +178,8 @@ class TeamModel(Protocol):
         """
         Fit to the data, using the settings given at construction.
 
-        Like `PlayerModel.fit`, this takes no `**kwargs`. bpl wants its
-        time-weighting arguments at fit time, so `DixonColesTeamModel` holds
-        them and passes them on itself.
+        Takes no `**kwargs`: bpl wants its time-weighting arguments at fit time,
+        so `DixonColesTeamModel` holds them and passes them on itself.
         """
         ...
 
@@ -233,10 +221,8 @@ class ScorelineTeamModel(TeamModel, Protocol):
         """
         Win, draw and loss probabilities for each fixture.
 
-        Keyed "home_win", "draw" and "away_win". Here rather than fetched with
-        `getattr` at the one call site: a model that cannot answer should fail to
-        type-check, not fail at run time. `outcome_proba_from_scores` implements
-        it for a model whose two goal counts are independent.
+        Keyed "home_win", "draw" and "away_win". `outcome_proba_from_scores`
+        implements it for a model whose two goal counts are independent.
         """
         ...
 
@@ -245,13 +231,10 @@ class ExpectedGoalsTeamModel(TeamModel, Protocol):
     """
     A team model that predicts only how many goals a team will score on average.
 
-    Which is all some models have to say - an xG model fitted to a continuous
-    quantity has no natural distribution over goal *counts*. The wrappers in
-    `team_models/scorelines.py` turn one of these into a `ScorelineTeamModel` so
-    it can be predicted with, rather than every such model having to invent a
-    distribution of its own: `PoissonScorelines` reads the mean as a Poisson,
-    and `ConwayMaxwellScorelines` makes the spread of the counts a measured
-    number instead of an assumption.
+    An xG model fitted to a continuous quantity has no natural distribution over
+    goal *counts*. The wrappers in `team_models/scorelines.py` turn one of these
+    into a `ScorelineTeamModel`: `PoissonScorelines` reads the mean as a Poisson,
+    and `ConwayMaxwellScorelines` gives the spread of the counts a measured value.
     """
 
     def predict_expected_goals(
@@ -272,9 +255,7 @@ class MinutesDistribution:
 
     `weights` line up with `minutes` and sum to one. A model with nothing but a
     sample of recent appearances weights them equally; one that can say a start
-    is likelier than a substitute appearance says so here instead of leaving the
-    points calculation to average over the sample as though it were a
-    distribution.
+    is likelier than a substitute appearance weights it more.
     """
 
     minutes: tuple[float, ...]
@@ -315,12 +296,7 @@ class MinutesDistribution:
         return self.expectation(lambda minutes: minutes)
 
     def expectation(self, quantity: Callable[[float], float]) -> float:
-        """
-        The weighted average of `quantity` over the possible minutes.
-
-        The one operation the points calculation performs on a distribution, so
-        the weighting lives here rather than in the caller.
-        """
+        """The weighted average of `quantity` over the possible minutes."""
         return sum(
             weight * quantity(minutes)
             for minutes, weight in zip(self.minutes, self.weights, strict=True)

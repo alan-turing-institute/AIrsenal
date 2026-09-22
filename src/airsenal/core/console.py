@@ -24,12 +24,7 @@ console = Console()
 
 
 def _fresh_stream(stream: TextIO) -> TextIO:
-    """A new writer onto the same destination, with its own lock and buffer.
-
-    `os.dup` gives a second descriptor for the same open file, so output still
-    lands on the same terminal; what is *not* shared is the Python-level
-    `BufferedWriter` and the lock inside it.
-    """
+    """A new writer onto the same destination, with its own lock and buffer."""
     return io.TextIOWrapper(
         io.FileIO(os.dup(stream.fileno()), "w", closefd=True),
         encoding=stream.encoding,
@@ -41,28 +36,17 @@ def _fresh_stream(stream: TextIO) -> TextIO:
 def _reset_console_after_fork() -> None:
     """Give a forked child its own console, and its own way of writing.
 
-    Two locks are inherited by a child that forks while the terminal is being
-    written to, and either one wedges it permanently, because the thread that
-    held the lock does not exist on the other side of the fork:
+    A child that forks while the terminal is being written to inherits two
+    locks held by a thread that does not exist on its side of the fork, and
+    either wedges it silently:
 
-    1. `console._lock`, held by a Rich `Live` display (a progress bar, or
-       `console.status`) for the whole of a refresh.
-    2. The lock inside `sys.stdout`'s `BufferedWriter`, held for the actual
-       write - which Rich performs while holding the lock above, and which is
-       slow, because it is a write to a terminal. CPython has never sanitised
-       its io locks across fork (python/cpython#50970), so this one is the
-       wider window of the two by far.
+    1. `console._lock`, held by a Rich `Live` display for a whole refresh.
+    2. The lock inside `sys.stdout`'s `BufferedWriter`, held for the write
+       itself. CPython does not reset io locks across fork
+       (python/cpython#50970).
 
-    Both are silent: the worker stays alive, so nothing raises, and the run
-    stops with the progress bar frozen part-way. `logging` reinitialises its
-    own handler locks at fork for exactly this reason; nothing reinitialises
-    these, so do it here.
-
-    The live stack and render hooks are dropped too: they describe a display
-    the parent owns, and a child that tried to redraw it would garble the
-    shared terminal. Discarding the inherited output buffer is deliberate for
-    the same reason - it holds bytes the parent has not written yet, and the
-    parent will write them itself.
+    The live stack, render hooks and output buffer are dropped too: they belong
+    to the parent's display, and the parent writes the buffered bytes itself.
     """
     console._lock = threading.RLock()
     console._record_buffer_lock = threading.RLock()
@@ -103,11 +87,8 @@ def price_str(price: int | None) -> str:
 def _new_progress(*, transient: bool = False) -> Progress:
     """Build a Progress instance with AIrsenal's standard styling.
 
-    Explicitly bound to our shared `console` rather than Rich's own global
-    default - otherwise this Progress's Live display and any other Live
-    display elsewhere in AIrsenal (e.g. `console.status(...)`) end up on two
-    separate, uncoordinated Live stacks that both try to control the
-    terminal at once, which shows up as flickering between the two.
+    Bound to the shared `console`, not Rich's global default: two consoles give
+    two uncoordinated Live stacks, which flicker against each other.
     """
     return Progress(
         TextColumn("[progress.description]{task.description}"),
@@ -126,23 +107,15 @@ def track(
     *,
     description: str = "Working...",
     total: float | None = None,
-    desc: str | None = None,
 ) -> Iterator[Any]:
     """Iterate over a sequence with a Rich progress bar."""
-    if desc is not None:
-        description = desc
     with _new_progress() as progress:
         yield from progress.track(sequence, total=total, description=description)
 
 
 @contextmanager
 def progress_bar(*, transient: bool = False) -> Generator[Progress]:
-    """Yield an AIrsenal-styled Rich Progress for manual multi-task tracking.
-
-    Use this instead of instantiating `rich.progress.Progress` directly when
-    the work being tracked isn't a simple iteration over a sequence, e.g.
-    several concurrently-running tasks that each need their own bar.
-    """
+    """Yield an AIrsenal-styled Rich Progress for tracking several tasks by hand."""
     with _new_progress(transient=transient) as progress:
         yield progress
 

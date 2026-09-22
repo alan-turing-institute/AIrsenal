@@ -40,9 +40,8 @@ def test_a_padding_row_covers_every_column():
     """
     The frame is built from dicts, so a row that misses a column becomes `nan`.
 
-    `blank_player_row` derives its zeros from `PLAYER_HISTORY_COLUMNS`, which is
-    what makes adding a column safe: the three parallel positional lists this
-    replaced had to be kept in step by hand, and the xG work extended all three.
+    `blank_player_row` derives its zeros from `PLAYER_HISTORY_COLUMNS`, so a new
+    column is added in one place.
     """
     row = blank_player_row(player_id=7, player_name="A Player")
     assert set(row) == set(PLAYER_HISTORY_COLUMNS)

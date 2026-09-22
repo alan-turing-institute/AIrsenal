@@ -50,9 +50,7 @@ def _ensure_deap_types() -> None:
     """
     Register the DEAP fitness and individual classes, once per process.
 
-    creator.create writes into module-level state, so calling it per SquadOpt
-    instance made DEAP warn about overwriting an existing class on every
-    instantiation.
+    `creator.create` writes module-level state, and warns if a class is created twice.
     """
     if not hasattr(creator, "AirsenalFitnessMax"):
         creator.create("AirsenalFitnessMax", base.Fitness, weights=(1.0,))
@@ -73,10 +71,8 @@ class SquadOpt:
         remove_zero: If True, players with a predicted total of zero points are
             not considered at all.
         root_gameweek: The gameweek every price and club is read as at, and the
-            origin the discount decays from. Defaults to the first of `gameweeks`,
-            which is right for a squad built from scratch; a wildcard part-way
-            through a transfer plan passes that plan's root instead. See
-            `optimization.protocols.TransferRequest.root_gameweek`.
+            origin the discount decays from. Defaults to the first of `gameweeks`;
+            see `optimization.protocols.SquadRequest.root_gameweek`.
     """
 
     def __init__(
@@ -139,13 +135,9 @@ class SquadOpt:
         valid even before the budget is checked.
         """
         individual = []
-
-        # For each position, select the required number of players
         for pos in self.positions:
             pos_min, pos_max = self.position_idx[pos]
             n_players = self.players_per_position[pos]
-
-            # Randomly select players for this position
             selected_players = random.sample(
                 range(pos_min, pos_max + 1), min(n_players, pos_max - pos_min + 1)
             )
@@ -162,13 +154,9 @@ class SquadOpt:
         """
         low_bounds = []
         up_bounds = []
-
-        # For each position, add bounds for each player slot
         for pos in self.positions:
             pos_min, pos_max = self.position_idx[pos]
             n_players = self.players_per_position[pos]
-
-            # Add bounds for each player in this position
             low_bounds.extend([pos_min] * n_players)
             up_bounds.extend([pos_max] * n_players)
 
@@ -190,9 +178,9 @@ class SquadOpt:
                 dbsession=self.dbsession,
             )
             if not add_ok:
-                return (0.0,)  # Invalid squad
+                return (0.0,)
 
-        # Fill empty slots with dummy players (if chosen not to optimise full squad)
+        # Positions not being optimised are filled with dummies
         for pos in self.positions:
             if self.dummy_per_position[pos] > 0:
                 for _ in range(self.dummy_per_position[pos]):
@@ -204,13 +192,11 @@ class SquadOpt:
                     )
                     add_ok = squad.add_player(dp)
                     if not add_ok:
-                        return (0.0,)  # Invalid squad
+                        return (0.0,)
 
-        # Check squad is valid, if not return fitness of zero
         if not squad.is_complete():
             return (0.0,)
 
-        # Calculate expected points for all gameweeks
         score = get_discounted_squad_score(
             squad,
             self.gameweeks,
@@ -293,22 +279,18 @@ class SquadOpt:
         on_generation: GenerationReporter | None = None,
     ) -> tuple[list[int], float]:
         """
-        Run the genetic algorithm.
+        Run the genetic algorithm, returning the best individual and its fitness.
 
         Args:
             on_generation: Called after each generation with the best fitness so
                 far. Given one, the search is run a generation at a time so that
                 it can report.
-
-        Returns:
-            The best individual found, and its fitness.
         """
         config = config if config is not None else GeneticAlgorithmConfig()
         if config.random_state is not None:
             random.seed(config.random_state)
             np.random.seed(config.random_state)
 
-        # Register genetic operators with configurable parameters
         self.toolbox.register("mate", tools.cxUniform, indpb=config.crossover_indpb)
         self.toolbox.register(
             "mutate",
@@ -323,14 +305,12 @@ class SquadOpt:
 
         population = self.toolbox.population(n=config.population_size)
 
-        # Statistics tracking
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
         stats.register("std", np.std)
         stats.register("min", np.min)
         stats.register("max", np.max)
 
-        # Hall of fame to track best individuals
         hall_of_fame = tools.HallOfFame(1)
 
         if on_generation is None:
@@ -401,7 +381,6 @@ def make_new_squad(
     it. Beyond that:
 
     Args:
-        ga_config: Population size, generations, operator probabilities and seed.
         on_generation: Called after each generation with the best score so far,
             for a caller that wants to show progress. An alternative to the
             config's `verbose`, which prints DEAP's own logbook instead.
@@ -424,13 +403,10 @@ def make_new_squad(
 
     logger.debug("Best score: %s pts", best_fitness)
 
-    # Construct optimal squad
     squad = Squad(budget=opt_squad.scoring.budget, season=season)
     for idx in best_individual:
         player = opt_squad.players[int(idx)]
-        # As at the gameweek the squad was chosen for, which is what it was
-        # scored and costed at; a hardcoded gameweek 1 logged a different price
-        # from the one the search had actually spent.
+        # as at the gameweek the squad was scored and costed at
         price = player.price(opt_squad.root_gameweek, season)
         logger.debug(
             "%s %s %s %s",
@@ -445,7 +421,7 @@ def make_new_squad(
             dbsession=dbsession,
         )
 
-    # Fill empty slots with dummy players (if chosen not to optimise full squad)
+    # Positions not being optimised are filled with dummies
     for pos in opt_squad.positions:
         if opt_squad.dummy_per_position[pos] > 0:
             for _ in range(opt_squad.dummy_per_position[pos]):

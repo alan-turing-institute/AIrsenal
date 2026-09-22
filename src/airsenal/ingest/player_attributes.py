@@ -61,7 +61,7 @@ def get_return_gameweek_from_news(
     # create a date in the future from the day and month string
     return_date = dateparser.parse(return_str, settings={"PREFER_DATES_FROM": "future"})
     if not return_date:
-        msg = f"Failed to parse date from string '{return_date}'"
+        msg = f"Failed to parse date from string '{return_str}'"
         raise ValueError(msg)
 
     return get_return_gameweek_by_date(
@@ -217,12 +217,9 @@ def fill_attributes_table_from_api(
             for past_gameweek, data in player_data.items():
                 if past_gameweek < gameweek_start or past_gameweek >= gameweek:
                     # `gameweek` already has its row, from the summary data
-                    # above, and that is the better source for it: between a
-                    # deadline passing and the first match of the gameweek
-                    # kicking off, the API lists a history row for it as well,
-                    # holding the price and ownership as at the deadline and
-                    # none of the availability. Writing that one too is a second
-                    # row for the same player and gameweek.
+                    # above. Once its deadline has passed the API also lists a
+                    # history row for it, without availability; writing that
+                    # too would give the player two rows for one gameweek.
                     continue
 
                 for result in data:
@@ -422,8 +419,6 @@ def make_attributes_table(
 ) -> None:
     """Fill the attributes table: past seasons from JSON, this one from the API."""
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

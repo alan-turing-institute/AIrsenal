@@ -85,7 +85,7 @@ rule, along with the naming and argument-order conventions.
 | `db/models.py` | every table in the database |
 | `db/queries/` | reading and writing them, one module per subject |
 | `db/session.py` | the lazily-created engine and the default session |
-| `prediction/protocols.py` | `PlayerModel`, the three `TeamModel` kinds, `MinutesModel`, and the typed data each is given |
+| `prediction/protocols.py` | `PointsModel`, `PlayerModel`, the three `TeamModel` kinds, `MinutesModel`, `PointComponent`, and the typed data and requests each is given |
 | `prediction/features.py` | assembling the historical data the models are fitted to |
 | `prediction/player_models/` | one module per player model, plus shared fitting and scaling |
 | `prediction/minutes_models/` | one module per way of predicting how long a player plays |
@@ -102,7 +102,8 @@ rule, along with the naming and argument-order conventions.
 | `optimization/transfer_optimizers/` | one module per whole-window search |
 | `optimization/strategies/` | one module per way of choosing a gameweek's transfers |
 | `optimization/squad_optimizers/` | one module per whole-squad builder |
-| `pipeline/run.py` | `AIrsenalPipeline`: the swappable components and the run settings |
+| `pipeline/run.py` | `AIrsenalPipeline`: the swappable components and the stages that use them |
+| `pipeline/settings.py` | `PipelineSettings`: what a run does, as opposed to what it does it with |
 | `pipeline/replay.py` | replaying a past season, and the `ReplayResult` it scores |
 | `cli/options.py` | the option aliases shared across commands |
 

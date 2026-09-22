@@ -37,8 +37,8 @@ def test_every_strategy_can_size_its_own_progress_bar(name):
     """
     `num_increments` is beyond what the protocol requires, so it is checked here.
 
-    `propose` is not: tests/test_component_tables.py asserts the protocol method
-    of every entry of all five tables, this one included.
+    `propose` is not: tests/test_component_tables.py asserts the protocol methods
+    of every entry of every table, this one included.
     """
     assert callable(TRANSFER_STRATEGIES[name]().num_increments)
 

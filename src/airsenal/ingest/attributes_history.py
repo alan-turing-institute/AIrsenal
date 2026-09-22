@@ -45,12 +45,8 @@ ATTRIBUTES_HISTORY_COLUMNS = (
     "return_gameweek",
 )
 
-# The packaged data lives at `src/airsenal/data` here and lived at
-# `airsenal/data` before the move to a src layout. This downloads from `main`,
-# which is on one side of that move or the other depending on whether the move
-# has landed there yet, so try both: pinning either one alone means the download
-# starts 404ing on the day the layout changes, and the caller turns that into a
-# warning and carries on without the history.
+# `main` has the packaged data at `airsenal/data` until the src layout is merged
+# there, and at `src/airsenal/data` after, so try both.
 _ATTRIBUTES_HISTORY_PATHS = ("src/airsenal/data", "airsenal/data")
 
 

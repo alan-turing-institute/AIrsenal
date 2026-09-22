@@ -160,12 +160,11 @@ def test_too_few_players_to_rank_are_still_scored_for_error():
 
 def test_scoring_needs_only_a_number_per_player_and_fixture():
     """
-    The guardrail for the phases that follow.
+    Scoring asks nothing of a model beyond its predicted points.
 
     Whatever produced these predictions need not be probabilistic, need not
     predict a share of team goals, and need not decompose a score into
-    components - so a model that does none of those things can still be scored.
-    See docs/prediction-seams-plan.md.
+    components. See docs/adding-a-model.md.
     """
     predictions = [prediction(i, 1, float(4 - i)) for i in range(1, 4)]
     performances = [performance(i, 1, i) for i in range(1, 4)]

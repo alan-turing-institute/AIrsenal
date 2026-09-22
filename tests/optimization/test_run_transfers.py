@@ -132,9 +132,8 @@ def test_only_a_real_run_posts_to_discord(
     """
     A replay does not announce its transfers to the Discord channel.
 
-    It optimises every gameweek of a past season, so posting from the shared exit
-    of run_optimization sent a season's worth of transfers - times `--loop` - for
-    a season nobody is playing.
+    It optimises every gameweek of a past season, so posting would send a
+    season's worth of transfers - times `--loop` - for a season nobody is playing.
     """
     plan = Plan(root_gameweek=1, outcomes=(_outcome(1, GameweekMove(1), (0,), (30,)),))
     posted: list[bool] = []
@@ -174,9 +173,9 @@ def test_the_resulting_squad_is_priced_at_the_gameweek_of_the_move(monkeypatch):
 
     `Squad.add_player` and `Squad.remove_player` default their gameweek to
     `next_gameweek()`, which is a gameweek of the *current* season. Left to
-    default, a replay of a past season read every player's club and price from
-    that gameweek number of the season being replayed instead of from the one
-    the transfer is made in.
+    default, a replay of a past season would read every player's club and price
+    from that gameweek number of the season being replayed instead of from the
+    one the transfer is made in.
     """
     recorder = _RecordingSquad()
     monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: recorder)

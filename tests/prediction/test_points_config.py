@@ -3,8 +3,8 @@ Which components of a score to predict, and that the answer reaches the code.
 
 A points flag passes through two layers before it reaches the model that acts
 on it, and a flag that is offered, accepted and then dropped fails silently.
-tests/test_cli.py checks the flags are still offered; these check they still
-arrive - now at the points model, which is what the pipeline carries.
+tests/cli/test_cli.py checks the flags are offered; these check they arrive at
+the points model, which is what the pipeline carries.
 """
 
 import pytest
@@ -37,7 +37,7 @@ def test_each_component_reaches_the_prediction(monkeypatch, component):
     Every flag has to survive the hop from the pipeline to the table filler.
 
     Patched at the seam so nothing is actually fitted: what is under test is the
-    plumbing, which is what broke last time.
+    plumbing.
     """
     seen = {}
 

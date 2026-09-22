@@ -134,7 +134,7 @@ def test_order_substitutes():
     for player, sub_position in zip(players, expected_sub_positions, strict=False):
         assert player.sub_position == sub_position
 
-    # test the logic that's use in __repr__ as well
+    # test the logic that's used in __repr__ as well
     subs = [p for p in t.players if not p.is_starting]
     subs.sort(key=lambda p: p.sub_position)
     expected_names = ["a", "b", "c"]
@@ -247,7 +247,8 @@ def test_selling_price_comes_from_the_picks_for_a_player_we_own(squad_logs):
 
 
 def test_a_player_we_do_not_own_has_no_selling_price_and_is_not_a_failure(squad_logs):
-    """The optimizer prices squads that do not exist: a wildcard's, say.
+    """
+    The optimizer prices squads that do not exist: a wildcard's, say.
 
     Those players are not in the entry's picks and never will be, so asking the
     API for a sale price they cannot have is an ordinary miss: None, and no

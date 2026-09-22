@@ -82,11 +82,7 @@ class AIrsenalPipeline:
     def predict(
         self, gameweeks: list[int], dbsession: Session, tag_prefix: str = ""
     ) -> str:
-        """
-        Predict points for every player.
-
-        Returns the tag they were written under in the database.
-        """
+        """Predict points for every player, and return the tag they are stored under."""
         return make_predictedscore_table(
             gameweeks=gameweeks,
             season=self.settings.season,
@@ -105,9 +101,8 @@ class AIrsenalPipeline:
         """
         Choose a squad: build one from scratch, or transfer into the current one.
 
-        Returns the squad and the plan that produced it. The plan is None when
-        the squad was built from scratch: there was nothing to transfer from, so
-        there is no sequence of moves to describe.
+        Returns the squad and the plan that produced it, or None for the plan when
+        the squad was built from scratch.
         """
         self._require_predictions(gameweeks, tag)
         set_multiprocessing_start_method()

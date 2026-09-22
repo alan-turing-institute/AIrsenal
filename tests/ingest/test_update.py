@@ -30,8 +30,8 @@ def test_the_message_says_how_to_rebuild_a_past_season_instead():
         update_db("2223", True, 123, None)
 
 
-def test_db_update_no_longer_offers_a_season():
-    """The flag's every value but one was a way to corrupt a season."""
+def test_db_update_does_not_offer_a_season():
+    """Any season but the current one would be filed with the current one's data."""
     result = CliRunner().invoke(app, ["db", "update", "--help"])
 
     assert result.exit_code == 0

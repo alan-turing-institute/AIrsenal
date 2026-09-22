@@ -112,9 +112,7 @@ def make_remaining_player_table(
 ) -> None:
     """Add players from older seasons who are not in the most recent one already."""
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
-    for season in seasons:
+    for season in seasons or []:
         fill_player_table_from_file(
             data_file(f"player_summary_{season}.json"), season, dbsession
         )
@@ -124,8 +122,6 @@ def make_player_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     dbsession = dbsession if dbsession is not None else get_session()
-    if seasons is None:
-        seasons = []
     if not seasons:
         seasons = [CURRENT_SEASON]
         seasons += get_past_seasons(3)

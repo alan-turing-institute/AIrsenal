@@ -244,9 +244,9 @@ def pipeline_db(tmp_path_factory):
     """
     A complete, tiny database, built once for the whole e2e module.
 
-    The package default session is pointed here too, so that code which has not
-    (yet) had a dbsession threaded through it reads this database rather than
-    whatever conftest set up for the unit tests.
+    The package default session is pointed here too, so that code which falls
+    back to it reads this database rather than whatever conftest set up for the
+    unit tests.
     """
     path = tmp_path_factory.mktemp("e2e") / "pipeline.db"
     connection_string = f"sqlite:///{path}"

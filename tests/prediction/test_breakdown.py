@@ -1,9 +1,8 @@
 """
 Scoring whatever part of a prediction a model is willing to report.
 
-The answer to "was it the minutes or the shares I got wrong?" - and still an
-answer for a model that decomposes into nothing at all, which is the property
-the whole seam exists to allow.
+Each reported part - minutes, shares, components - is scored on its own, and a
+model that reports only a total is scored only on the total.
 """
 
 import pytest
@@ -74,9 +73,6 @@ class Performance:
         self.result = type("R", (), {"away_score": team_goals, "home_score": 0})()
 
 
-performance = Performance
-
-
 class StubModel:
     """A points model that returns whatever prediction the test hands it."""
 
@@ -105,12 +101,11 @@ def score(prediction, performances):
 
 def test_a_model_that_reports_only_a_total_is_scored_only_on_it():
     """
-    The property the seam exists for.
+    An end-to-end regressor is not penalised for parts it does not claim to have.
 
-    An end-to-end regressor has no minutes, no shares and no components, and is
-    not penalised for the parts it does not claim to have.
+    It has no minutes, no shares and no components.
     """
-    result = score(PointsPrediction(expected_points=5.0), [performance(points=2)])
+    result = score(PointsPrediction(expected_points=5.0), [Performance(points=2)])
     assert result.points.n_observations == 1
     assert result.points.mean_absolute_error == pytest.approx(3.0)
     assert result.minutes is None
@@ -121,7 +116,7 @@ def test_a_model_that_reports_only_a_total_is_scored_only_on_it():
 def test_reported_minutes_are_scored_against_what_was_played():
     result = score(
         PointsPrediction(expected_points=2.0, expected_minutes=70.0),
-        [performance(minutes=45)],
+        [Performance(minutes=45)],
     )
     assert result.minutes is not None
     assert result.minutes.mean_absolute_error == pytest.approx(25.0)
@@ -141,7 +136,7 @@ def test_reported_shares_are_scored_at_the_minutes_actually_played():
             expected_minutes=90.0,
             involvement=InvolvementShare(prob_score=1.0, prob_assist=0.0),
         ),
-        [performance(minutes=45, goals=1, team_goals=2)],
+        [Performance(minutes=45, goals=1, team_goals=2)],
     )
     assert result.involvement is not None
     assert result.involvement.mean_absolute_error_goals == pytest.approx(0.0)
@@ -154,7 +149,7 @@ def test_each_reported_component_is_scored_against_its_own_outcome():
             expected_points=5.0,
             components={"appearance": 3.0, "attacking": 2.0},
         ),
-        [performance(points=2, goals=0, conceded=1)],
+        [Performance(points=2, goals=0, conceded=1)],
     )
     assert result.components is not None
     assert result.components["appearance"].mean_absolute_error == pytest.approx(1.0)
@@ -166,7 +161,7 @@ def test_a_component_the_outcome_has_no_view_on_is_left_alone():
     """`def_con` was not recorded before 25/26, so there is nothing to compare."""
     result = score(
         PointsPrediction(expected_points=2.0, components={"def_con": 1.0}),
-        [performance(points=2, conceded=1)],
+        [Performance(points=2, conceded=1)],
     )
     assert result.components == {}
 
@@ -174,7 +169,7 @@ def test_a_component_the_outcome_has_no_view_on_is_left_alone():
 def test_scores_add_across_performances():
     result = score(
         PointsPrediction(expected_points=4.0, expected_minutes=90.0),
-        [performance(points=2, conceded=1), performance(points=6, conceded=1)],
+        [Performance(points=2, conceded=1), Performance(points=6, conceded=1)],
     )
     assert result.points.n_observations == 2
     assert result.points.mean_absolute_error == pytest.approx(2.0)
@@ -196,7 +191,7 @@ def test_an_empty_error_score_is_a_number_not_a_crash():
 
 
 def test_a_fixture_with_no_gameweek_is_skipped():
-    scores = [performance()]
+    scores = [Performance()]
     scores[0].fixture.gameweek = None
     result = score(PointsPrediction(expected_points=1.0), scores)
     assert result.points.n_observations == 0
@@ -208,13 +203,13 @@ def test_a_manager_is_skipped_rather_than_predicted():
     Managers have performances and points in the database like anyone else.
 
     Nothing here models one - no involvement is fitted for the position, and no
-    squad can contain one - so a manager is not an observation, and asking the
-    model about one at all is the bug this guards against.
+    squad can contain one - so a manager is not an observation, and the model is
+    never asked about one.
     """
     model = StubModel(PointsPrediction(expected_points=5.0))
     result = score_prediction_breakdown(
         model,
-        [performance(points=9, position="MNG"), performance(points=2)],
+        [Performance(points=9, position="MNG"), Performance(points=2)],
         root_gameweek=1,
         season=SEASON,
         dbsession=None,
