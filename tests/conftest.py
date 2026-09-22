@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import pytest
+from curl_cffi import requests as curl_requests
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
@@ -115,6 +116,26 @@ def past_data_session_scope():
         raise
     finally:
         testsession.close()
+
+
+@pytest.fixture(autouse=True)
+def no_curl_requests(request, monkeypatch):
+    """
+    Fail any test that sends a request through curl_cffi, unless it is `live`.
+
+    `--disable-socket` cannot see these: libcurl opens its own connections,
+    below Python's `socket` module. Every curl_cffi request, the module-level
+    `requests.get`/`post` included, goes through `Session.request`.
+    `pytest.fail` raises a `BaseException`, so no `except Exception` on the way
+    back up can turn it into a quiet fallback.
+    """
+    if request.node.get_closest_marker("live"):
+        return
+
+    def refuse(self, method, url, *args, **kwargs):
+        pytest.fail(f"A test tried to reach the network: {method} {url}")
+
+    monkeypatch.setattr(curl_requests.Session, "request", refuse)
 
 
 def value_generator(index, position):

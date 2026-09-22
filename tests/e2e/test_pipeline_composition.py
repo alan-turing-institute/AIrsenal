@@ -28,6 +28,7 @@ from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.team_models import (
     build_team_model,
 )
+from airsenal.remote.errors import RemoteConnectionError
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
 
 TEAM_ID = -1
@@ -57,6 +58,15 @@ class RecordingTransferOptimizer:
         self.requests.append(request)
         msg = "the transfer optimizer should not have been reached"
         raise AssertionError(msg)
+
+
+class LoggedOutFetcher:
+    """An FPL API client whose login fails, so the entry's squad is unavailable."""
+
+    def get_current_picks(self, fpl_team_id=None):
+        del fpl_team_id
+        msg = "Failed to log in to the FPL API"
+        raise RemoteConnectionError(msg)
 
 
 def _pipeline(team_model="constant", player_model="constant", **settings):
@@ -244,6 +254,18 @@ class TestOneNewSquadDecision:
     reaching it builds a squad, records no transactions for it, and leaves the
     next gameweek with nothing to transfer from.
     """
+
+    @pytest.fixture(autouse=True)
+    def offline_fetcher(self, monkeypatch):
+        """A run for the current season asks the API for the squad; refuse it."""
+
+        def get_fetcher(fpl_team_id=None):
+            del fpl_team_id
+            return LoggedOutFetcher()
+
+        monkeypatch.setattr(
+            "airsenal.optimization.run_transfers.get_fetcher", get_fetcher
+        )
 
     def _optimize(self, *, new_squad, is_replay):
         pipeline = _pipeline(new_squad=new_squad)

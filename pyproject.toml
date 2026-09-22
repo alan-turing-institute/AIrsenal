@@ -84,7 +84,8 @@ testpaths = ["tests"]
 #
 # --disable-socket makes "the suite runs offline" enforced rather than
 # aspirational; unix sockets stay allowed because SQLite and multiprocessing
-# need them.
+# need them. It cannot see curl_cffi, which connects from libcurl, so the
+# `no_curl_requests` fixture in tests/conftest.py refuses those instead.
 addopts = """
 --strict-markers
 --strict-config
