@@ -1,8 +1,8 @@
 """
 Consistency checks over the ingested database.
 
-Run by `airsenal db check`. Each check covers `CHECK_SEASONS` - the current
-season plus the three before it.
+Run by `airsenal db check`. By default the checks cover `default_seasons()` - the
+current season plus the three before it.
 """
 
 from sqlalchemy import select
@@ -14,11 +14,9 @@ from airsenal.db.queries.fixtures import get_fixtures_for_season
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import get_session
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons
+from airsenal.game.season import default_seasons
 
 logger = get_logger(__name__)
-
-CHECK_SEASONS = [CURRENT_SEASON, *get_past_seasons(3)]
 
 
 def result_string(n_error: int) -> str:
@@ -28,11 +26,9 @@ def result_string(n_error: int) -> str:
     return f"FAIL! {n_error} errors."
 
 
-def season_num_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def season_num_teams(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check whether each season has 20 teams."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking seasons have 20 teams...")
     n_error = 0
     for season in seasons:
@@ -47,11 +43,9 @@ def season_num_teams(
     return n_error
 
 
-def season_num_new_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def season_num_new_teams(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check each season has 3 new teams."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking seasons have 3 new teams...")
     n_error = 0
 
@@ -71,11 +65,9 @@ def season_num_new_teams(
     return n_error
 
 
-def season_num_fixtures(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def season_num_fixtures(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check each season has 380 fixtures."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking seasons have 380 fixtures...")
     n_error = 0
 
@@ -93,11 +85,9 @@ def season_num_fixtures(
     return n_error
 
 
-def fixture_player_teams(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def fixture_player_teams(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check every player in a match is labelled with one of the two teams playing."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking player teams match fixture teams...")
     n_error = 0
 
@@ -110,8 +100,6 @@ def fixture_player_teams(
                 if player_scores is None:
                     logger.warning("Fixture %s has no player scores", fixture)
                     continue
-                if isinstance(player_scores, PlayerScore):
-                    player_scores = [player_scores]
 
                 for score in player_scores:
                     if score.player_team not in [
@@ -129,9 +117,7 @@ def fixture_player_teams(
     return n_error
 
 
-def fixture_num_players(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def fixture_num_players(seasons: list[str], dbsession: Session | None = None) -> int:
     """
     Check each fixture has 11 to 16 players with at least a minute played.
 
@@ -140,7 +126,7 @@ def fixture_num_players(
     11 to 16 players is expected. Concussion subs are allowed from 2020/21, which may
     cause false errors (more than 14/16 players).
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info(
         "Checking 11 to 16 players play per team in each fixture...\n"
         "Note:\n"
@@ -206,11 +192,9 @@ def fixture_num_players(
     return n_error
 
 
-def fixture_num_goals(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def fixture_num_goals(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check individual player goals sum to match result for each fixture."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking sum of player goals equals match results...")
     n_error = 0
 
@@ -263,15 +247,13 @@ def fixture_num_goals(
     return n_error
 
 
-def fixture_num_assists(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def fixture_num_assists(seasons: list[str], dbsession: Session | None = None) -> int:
     """
     Check each team's assists in a fixture do not exceed its goals.
 
     Fewer is normal - not every goal is credited with an assist.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking no. assists less than or equal to no. goals...")
     n_error = 0
 
@@ -318,9 +300,7 @@ def fixture_num_assists(
     return n_error
 
 
-def fixture_num_conceded(
-    seasons: list[str] = CHECK_SEASONS, dbsession: Session | None = None
-) -> int:
+def fixture_num_conceded(seasons: list[str], dbsession: Session | None = None) -> int:
     """
     Check goals conceded match the opposition's goals scored.
 
@@ -328,7 +308,7 @@ def fixture_num_conceded(
     substitutes and goals in stoppage time. A team with nobody recorded as playing
     the full 90 has no figure to compare, and is reported rather than checked.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     logger.info("Checking no. goals conceded matches goals scored by opponent...")
     n_error = 0
 
@@ -381,7 +361,8 @@ def fixture_num_conceded(
     return n_error
 
 
-def run_all_checks(seasons: list[str] = CHECK_SEASONS) -> None:
+def run_all_checks(seasons: list[str] | None = None) -> None:
+    seasons = seasons or default_seasons()
     logger.info("Running checks for seasons: %s", seasons)
 
     functions = {

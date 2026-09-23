@@ -134,6 +134,6 @@ def test_a_player_id_is_not_looked_up_before_the_cache(monkeypatch):
     def stub(player_id, tag, season, dbsession=None):
         return {1: float(player_id)}
 
-    monkeypatch.setattr(predictions, "get_player", fail)
+    monkeypatch.setattr("airsenal.db.queries.players.get_player", fail)
     monkeypatch.setattr(predictions, "_predicted_points_for_player_id", stub)
     assert predictions.get_predicted_points_for_player(7, "tag") == {1: 7.0}

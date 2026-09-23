@@ -14,7 +14,7 @@ def count_transactions(
     season: str, fpl_team_id: int, dbsession: Session | None = None
 ) -> int:
     """How many transactions the database holds for a team in a season."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     return (
         dbsession.scalar(
             select(func.count(Transaction.id)).where(
@@ -38,7 +38,7 @@ def transaction_exists(
     dbsession: Session | None = None,
 ) -> bool:
     """Whether both halves of this transfer are already recorded."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     transaction_count = (
         dbsession.scalar(
             select(func.count(Transaction.id)).where(
@@ -94,7 +94,7 @@ def add_transaction(
         counts_as_transfer: 0 for a squad change the game did not charge a free
             transfer for - a wildcard, a free hit, or the opening fifteen.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     t = Transaction(
         player_id=player_id,
         gameweek=gameweek,

@@ -19,7 +19,6 @@ from airsenal.db.queries.gameweeks import (
 )
 from airsenal.db.queries.players import (
     get_player,
-    get_player_id,
     get_player_name,
     require_api_id,
     require_player,
@@ -35,12 +34,6 @@ def test_get_player_name(fill_players):
     """A player can be looked up by id."""
     with session_scope() as tsession:
         assert get_player_name(1, tsession) == "Bob"
-
-
-def test_get_player_id(fill_players):
-    """A player can be looked up by name."""
-    with session_scope() as tsession:
-        assert get_player_id("Bob", tsession) == 1
 
 
 def test_get_player(fill_players):

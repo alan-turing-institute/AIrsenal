@@ -75,7 +75,7 @@ def transfer_rows(
     Every price is read as at the plan's root gameweek, because that is what the
     search spent: see `optimization.protocols.TransferRequest.root_gameweek`.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     squad = starting_squad
     # The gameweek the prices come from, as opposed to the gameweek each row is
     # reported under, which is the one the transfer is made in.

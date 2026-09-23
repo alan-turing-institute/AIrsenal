@@ -8,7 +8,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import FifaTeamRating
 from airsenal.db.session import get_session
 from airsenal.game.mappings import alternative_team_names
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import default_seasons, sort_seasons
 
 logger = get_logger(__name__)
 
@@ -16,10 +16,9 @@ logger = get_logger(__name__)
 def make_fifa_ratings_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in track(sort_seasons(seasons), description="FIFA RATINGS"):
         input_path = data_file(f"fifa_team_ratings_{season}.csv")
         if not input_path.exists():

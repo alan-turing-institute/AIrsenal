@@ -11,7 +11,7 @@ from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session
 from airsenal.game.mappings import alternative_team_names
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.remote.fpl_api import get_fetcher
 
 
@@ -19,7 +19,7 @@ def fill_fixtures_from_file(
     filename: FilePath, season: str, dbsession: Session | None = None
 ) -> None:
     """A season's matches, read from its results CSV file."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     with open(filename) as infile:
         for line in track(infile.readlines()[1:], description=f"FIXTURES {season}"):
             fields = line.strip().split(",")
@@ -41,7 +41,7 @@ def fill_fixtures_from_file(
 
 def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> None:
     """A season's fixtures, from the FPL API."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     tag = str(uuid.uuid4())
     fetcher = get_fetcher()
     fixtures = fetcher.get_fixture_data()
@@ -96,10 +96,9 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
 def make_fixture_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API

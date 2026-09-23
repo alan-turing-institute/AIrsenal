@@ -123,7 +123,7 @@ def get_free_transfers(
     `gameweek` defaults to the most recent, and `fpl_team_id` to `$FPL_TEAM_ID`.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     fpl_team_id = fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
     if season == CURRENT_SEASON and not is_replay:
         # we will use the API to estimate num transfers

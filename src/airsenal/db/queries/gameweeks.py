@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime
 from functools import cache
 from typing import TYPE_CHECKING
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.core.caching import cache_ignoring_session, register_cache
@@ -41,18 +41,11 @@ def get_max_gameweek(
     back to 38 if the season has no fixtures with a gameweek, so an empty
     database gives a usable answer rather than an error.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
-    max_gameweek_fixture = dbsession.scalars(
-        select(Fixture)
-        .where(Fixture.season == season, Fixture.gameweek.is_not(None))
-        .order_by(Fixture.gameweek.desc())
-        .limit(1)
-    ).first()
-    return (
-        38
-        if max_gameweek_fixture is None or max_gameweek_fixture.gameweek is None
-        else max_gameweek_fixture.gameweek
+    dbsession = get_session(dbsession)
+    max_gameweek = dbsession.scalar(
+        select(func.max(Fixture.gameweek)).where(Fixture.season == season)
     )
+    return 38 if max_gameweek is None else max_gameweek
 
 
 @cache
@@ -149,7 +142,7 @@ def get_return_gameweek_by_date(
     A placeholder gameweek past the end of the season if the team has no match
     left, so that callers ordering by gameweek sort it last rather than crashing.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     return_date = parse_date(return_date)
 
     fixtures = dbsession.scalars(
@@ -164,9 +157,6 @@ def get_return_gameweek_by_date(
 
     # default return if no fixture found after the date
     end_season_gameweek = get_max_gameweek(season, dbsession=dbsession) + 1
-
-    if len(fixtures) == 0:
-        return end_season_gameweek
 
     for fixture in fixtures:
         if fixture.date is None or fixture.gameweek is None:
@@ -186,7 +176,7 @@ def get_gameweek_by_date(
     dbsession: Session | None = None,
 ) -> int | None:
     """Gameweek of the next fixture on or after the specified date."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     check_date = parse_date(check_date)
 
     fixtures = dbsession.scalars(
@@ -209,7 +199,7 @@ def get_last_complete_gameweek_in_db(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> int | None:
     """The last gameweek the result table has data for."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     first_missing = dbsession.scalars(
         select(Fixture)
         .where(
@@ -256,7 +246,7 @@ def get_gameweeks_array(
     Raises:
         ValueError: None of them are still to be played.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if gameweek_end is not None and n_gameweeks is not None:
         msg = "Only one of gameweek_end and n_gameweeks should be defined"
         raise RuntimeError(msg)

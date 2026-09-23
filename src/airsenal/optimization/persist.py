@@ -106,7 +106,7 @@ def fill_suggestion_table(
     dbsession: Session | None = None,
 ) -> None:
     """Write an optimised plan's suggested transfers into the database."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     timestamp = str(datetime.now())
     points_gain = best_plan.total_score - baseline_score
 
@@ -144,7 +144,7 @@ def fill_transaction_table(
     For simulating a season only: when playing the real one, the transactions
     table is kept up to date from the FPL API instead.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not best_plan.outcomes:
         msg = (
             "Cannot record transfers for an empty plan: a transfer optimizer must "
@@ -201,7 +201,7 @@ def fill_initial_suggestion_table(
 ) -> None:
     """Record a from-scratch squad as fifteen "in" suggestions for `gameweek`."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     _add_suggestions(
         [player.player_id for player in squad.players],
         in_or_out=1,
@@ -232,7 +232,7 @@ def fill_initial_transaction_table(
     table is kept up to date from the FPL API instead.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     _add_transactions(
         [(player.player_id, player.purchase_price) for player in squad.players],
         in_or_out=1,

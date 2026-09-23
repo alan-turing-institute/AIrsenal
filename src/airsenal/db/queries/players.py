@@ -54,18 +54,15 @@ def get_player(
     An integer is this database's primary key, *not* the player's FPL API id.
     Use `get_player_from_api_id` for that.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     # ID field match
     if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
         player_name_or_id = int(player_name_or_id)
 
     if isinstance(player_name_or_id, int):
-        if p := dbsession.scalars(
+        return dbsession.scalars(
             select(Player).where(Player.player_id == player_name_or_id).limit(1)
-        ).first():
-            return p
-        # failed to find player by ID
-        return None
+        ).first()
 
     # Name or Opta code match
     if p := dbsession.scalars(
@@ -90,13 +87,9 @@ def get_player(
             select(Player).where(Player.player_id == mapping.player_id).limit(1)
         ).first()
 
-    if p := dbsession.scalars(
+    return dbsession.scalars(
         select(Player).where(Player.display_name == player_name_or_id).limit(1)
-    ).first():
-        return p
-
-    # No match found
-    return None
+    ).first()
 
 
 # Letters NFKD leaves whole, so a folded comparison has to spell them out.
@@ -147,7 +140,7 @@ def _name_tokens_by_player(
     `clear_query_caches`. Ids rather than Players: a cached answer outlives the
     session that produced it.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     names = [
         (player.player_id, name_tokens(name))
         for player in dbsession.scalars(select(Player))
@@ -182,7 +175,7 @@ def get_player_by_similar_name(
     Returns:
         None if nothing matches, or if the closest match is a tie.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     wanted = name_tokens(player_name)
     if not wanted:
         return None
@@ -218,7 +211,7 @@ def get_player_from_api_id(
     A missing player is a warning and None, not an error - the FPL API lists
     players before they reach a database that was seeded earlier.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if p := dbsession.scalars(
         select(Player).where(Player.fpl_api_id == api_id).limit(1)
     ).first():
@@ -272,77 +265,81 @@ def get_player_name(player_id: int, dbsession: Session | None = None) -> str | N
     return None
 
 
-def get_player_id(player_name: str, dbsession: Session | None = None) -> int | None:
-    if p := get_player(player_name, dbsession):
-        return p.player_id
-    logger.warning("Unknown player_name %s", player_name)
-    return None
+def _latest_filled_gameweek(gameweek: int, season: str, dbsession: Session) -> int:
+    """
+    `gameweek`, or the latest gameweek with attributes if it is after that.
+
+    Current season only: a past season is complete.
+    """
+    if season != CURRENT_SEASON:
+        return gameweek
+    last_pa = dbsession.scalars(
+        select(PlayerAttributes)
+        .where(PlayerAttributes.season == season)
+        .order_by(PlayerAttributes.gameweek.desc())
+        .limit(1)
+    ).first()
+    if last_pa is None or gameweek <= last_pa.gameweek:
+        return gameweek
+    if gameweek < next_gameweek():
+        _warn_incomplete_data(gameweek, season, last_pa.gameweek)
+    return last_pa.gameweek
+
+
+def _teams_playing(gameweek: int, season: str, dbsession: Session) -> set[str]:
+    fixtures = get_fixtures_for_gameweeks(
+        [gameweek], season=season, dbsession=dbsession
+    )
+    return {t for fixture in get_fixture_teams(fixtures) for t in fixture}
+
+
+def _gameweeks_covering(
+    team: str, gameweek: int, season: str, dbsession: Session
+) -> list[int]:
+    """
+    `gameweek`, then the neighbouring gameweeks needed for `team` to have a fixture.
+
+    A team without a fixture in a gameweek may have no attributes for it, so the
+    gameweeks up to two either side fill in for it. `team` may be "all", which
+    needs all 20 teams.
+    """
+    gameweeks = [gameweek]
+    teams_with_fixture = _teams_playing(gameweek, season, dbsession)
+    if (team == "all" and len(teams_with_fixture) >= 20) or (
+        team != "all" and team in teams_with_fixture
+    ):
+        return gameweeks
+
+    max_gameweek = get_max_gameweek(season, dbsession=dbsession)
+    for neighbour in [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]:
+        if neighbour <= 0 or neighbour > max_gameweek:
+            continue
+        new_teams = _teams_playing(neighbour, season, dbsession)
+        if team == "all" and not new_teams <= teams_with_fixture:
+            # this gameweek has some teams we haven't seen before
+            gameweeks.append(neighbour)
+            teams_with_fixture.update(new_teams)
+            if len(teams_with_fixture) == 20:
+                break
+        elif team != "all" and team in new_teams:
+            gameweeks.append(neighbour)
+            break
+    return gameweeks
 
 
 def list_players(
     position: str = "all",
     team: str = "all",
-    order_by: str = "price",
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> list[Player]:
-    """The players in a position and team at a gameweek."""
+    """The players in a position and team at a gameweek, most expensive first."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     # if trying to get players from after DB has filled, return most recent players
-    if season == CURRENT_SEASON:
-        last_pa = dbsession.scalars(
-            select(PlayerAttributes)
-            .where(PlayerAttributes.season == season)
-            .order_by(PlayerAttributes.gameweek.desc())
-            .limit(1)
-        ).first()
-        if last_pa and gameweek > last_pa.gameweek:
-            if gameweek < next_gameweek():
-                _warn_incomplete_data(gameweek, season, last_pa.gameweek)
-            gameweek = last_pa.gameweek
-
-    gameweeks = [gameweek]
-    # check if the team (or all teams) play in the specified gameweek, if not
-    # attributes might be missing
-    fixtures = get_fixture_teams(
-        get_fixtures_for_gameweeks([gameweek], season=season, dbsession=dbsession)
-    )
-    teams_with_fixture = {t for fixture in fixtures for t in fixture}
-
-    if (team == "all" and len(teams_with_fixture) < 20) or (
-        team != "all" and team not in teams_with_fixture
-    ):
-        # check neighbouring gameweeks to get all 20 teams/specified team
-        gameweeks_to_try = [gameweek - 1, gameweek + 1, gameweek - 2, gameweek + 2]
-        max_gameweek = get_max_gameweek(season, dbsession=dbsession)
-        gameweeks_to_try = [
-            neighbour
-            for neighbour in gameweeks_to_try
-            if neighbour > 0 and neighbour <= max_gameweek
-        ]
-
-        for neighbour in gameweeks_to_try:
-            fixtures = get_fixture_teams(
-                get_fixtures_for_gameweeks(
-                    [neighbour], season=season, dbsession=dbsession
-                )
-            )
-            new_teams = [t for fixture in fixtures for t in fixture]
-
-            if team == "all" and any(t not in teams_with_fixture for t in new_teams):
-                # this gameweek has some teams we haven't seen before
-                gameweeks.append(neighbour)
-                for t in new_teams:
-                    teams_with_fixture.add(t)
-                if len(teams_with_fixture) == 20:
-                    break
-
-            elif team != "all" and team in new_teams:
-                # this gameweek has the team we're looking for
-                gameweeks.append(neighbour)
-                break
+    gameweek = _latest_filled_gameweek(gameweek, season, dbsession)
+    gameweeks = _gameweeks_covering(team, gameweek, season, dbsession)
 
     query = select(PlayerAttributes).where(
         PlayerAttributes.season == season,
@@ -354,15 +351,14 @@ def list_players(
         query = query.where(PlayerAttributes.position == position)
     else:
         # "all" is all the positions AIrsenal models, which leaves out managers
-        query = query.where(PlayerAttributes.position.in_([str(p) for p in Position]))
+        query = query.where(PlayerAttributes.position.in_(Position.modelled()))
     if len(gameweeks) > 1:
         # Sort query results by order of gameweeks - i.e. make sure the input
         # query gameweek comes first.
         _whens = {queried: i for i, queried in enumerate(gameweeks)}
         sort_order = case(_whens, value=PlayerAttributes.gameweek)
         query = query.order_by(sort_order)
-    if order_by == "price":
-        query = query.order_by(PlayerAttributes.price.desc())
+    query = query.order_by(PlayerAttributes.price.desc())
     players = []
     prices = []
     seen_player_ids = set()
@@ -374,9 +370,9 @@ def list_players(
         seen_player_ids.add(pa.player_id)
         players.append(pa.player)
         prices.append(pa.price)
-        if len(gameweeks) == 1 or order_by != "price":
+        if len(gameweeks) == 1:
             logger.debug("%s %s %s %s", pa.player, pa.team, pa.position, pa.price)
-    if len(gameweeks) > 1 and order_by == "price":
+    if len(gameweeks) > 1:
         # Query sorted by gameweek first, so need to do a final sort here to
         # get final price order if more than one gameweek queried.
         sort_players = sorted(
@@ -389,30 +385,14 @@ def list_players(
 
 
 def get_player_attributes(
-    player_name_or_id: str | int,
+    player_id: int,
     gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     dbsession: Session | None = None,
 ) -> PlayerAttributes | None:
-    """
-    A player's attributes for one gameweek, or None if there are none.
-
-    `player_name_or_id` may be a `Player`, a player id, or a name - including a
-    name that is all digits, which is read as an id. `gameweek` defaults to the
-    next one.
-    """
+    """A player's attributes for one gameweek, by default the next one, or None."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
-    if isinstance(player_name_or_id, str) and player_name_or_id.isdigit():
-        player_id = int(player_name_or_id)
-    elif isinstance(player_name_or_id, int):
-        player_id = player_name_or_id
-    elif isinstance(player_name_or_id, str):
-        player = get_player(player_name_or_id)
-        if player:
-            player_id = player.player_id
-        else:
-            return None
+    dbsession = get_session(dbsession)
     return dbsession.scalars(
         select(PlayerAttributes)
         .where(
@@ -437,7 +417,7 @@ def get_max_matches_per_player(
     rectangular rather than ragged.
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     players = list_players(
         position=position, season=season, gameweek=gameweek, dbsession=dbsession
     )

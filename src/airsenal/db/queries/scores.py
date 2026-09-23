@@ -2,9 +2,10 @@
 
 from collections.abc import Sequence
 from functools import partial
+from typing import overload
 
 import pandas as pd
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
@@ -30,7 +31,7 @@ def get_last_complete_gameweek_of_player_scores_in_db(
     two tables are filled by separate calls that commit separately, so a failure
     between them leaves the player scores behind the results.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     scored = (
         select(PlayerScore.id)
         .where(PlayerScore.fixture_id == Fixture.fixture_id)
@@ -53,6 +54,24 @@ def get_last_complete_gameweek_of_player_scores_in_db(
     return get_last_complete_gameweek_in_db(season=season, dbsession=dbsession)
 
 
+@overload
+def get_player_scores(
+    fixture: Fixture, player: Player, dbsession: Session | None = None
+) -> PlayerScore | None: ...
+
+
+@overload
+def get_player_scores(
+    fixture: Fixture, player: None = None, dbsession: Session | None = None
+) -> list[PlayerScore] | None: ...
+
+
+@overload
+def get_player_scores(
+    fixture: None = None, *, player: Player, dbsession: Session | None = None
+) -> list[PlayerScore] | None: ...
+
+
 def get_player_scores(
     fixture: Fixture | None = None,
     player: Player | None = None,
@@ -66,7 +85,7 @@ def get_player_scores(
     database holds more than one), either alone returns a list, and no matching
     rows returns None rather than an empty list.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if fixture is None and player is None:
         msg = "At least one of fixture and player must be defined"
         raise ValueError(msg)
@@ -93,7 +112,7 @@ def get_player_scores_for_gameweeks(
     gameweeks: Sequence[int], season: str, dbsession: Session | None = None
 ) -> list[PlayerScore]:
     """Every recorded performance in the given gameweeks of a season."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     return list(
         dbsession.scalars(
             select(PlayerScore)
@@ -113,7 +132,7 @@ def get_expected_goals_by_fixture(
     player and a team model wants them per side. A fixture with no recorded
     expected goals is absent rather than zero.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     rows = dbsession.execute(
         select(
             PlayerScore.fixture_id,
@@ -130,17 +149,31 @@ def get_expected_goals_by_fixture(
     }
 
 
+def was_available() -> ColumnElement[bool]:
+    """
+    Whether a score is from a match the player was available for.
+
+    Played at least 60 minutes, or was not flagged: a 100% chance of playing, or
+    no availability recorded for the match.
+    """
+    return or_(
+        PlayerScore.minutes >= 60,
+        PlayerScore.chance_of_playing == 100,
+        PlayerScore.chance_of_playing.is_(None),
+    )
+
+
 def get_recent_playerscore_rows(
     player: Player,
-    n_matches_to_use: int = 3,
-    season: str = CURRENT_SEASON,
-    last_gameweek: int | None = None,
+    n_matches_to_use: int,
+    season: str,
+    last_gameweek: int,
     exclude_unavailable: bool = False,
     current_team_only: bool = False,
     dbsession: Session | None = None,
 ) -> list[PlayerScore]:
     """This player's last `n_matches_to_use` scores, most recent first."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     # If asking for gameweeks without results in DB, revert to most recent results.
     last_available_gameweek = get_last_complete_gameweek_in_db(
         season=season, dbsession=dbsession
@@ -149,12 +182,7 @@ def get_recent_playerscore_rows(
         # e.g. before this season has started
         return []
 
-    if last_gameweek is None and season != CURRENT_SEASON:
-        msg = "last_gameweek must be specified if running on previous seasons"
-        raise ValueError(msg)
-
-    if last_gameweek is None or last_gameweek > last_available_gameweek:
-        last_gameweek = last_available_gameweek
+    last_gameweek = min(last_gameweek, last_available_gameweek)
 
     # get the playerscore rows from the db
     query = (
@@ -167,15 +195,7 @@ def get_recent_playerscore_rows(
         )
     )
     if exclude_unavailable:
-        # minutes at least 60 or no flag status (100% chance of playing)
-        query = query.where(
-            or_(
-                PlayerScore.minutes >= 60,
-                PlayerScore.chance_of_playing == 100,
-                # no availability recorded for the match
-                PlayerScore.chance_of_playing.is_(None),
-            )
-        )
+        query = query.where(was_available())
     if current_team_only:
         team = player.team(last_gameweek, season)
         query = query.where(PlayerScore.player_team == team)
@@ -194,7 +214,7 @@ def get_playerscores_for_player_gameweek(
     dbsession: Session | None = None,
 ) -> list[PlayerScore]:
     """This player's scores in a gameweek - more than one if it is a double."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     return list(
         dbsession.scalars(
             select(PlayerScore)
@@ -218,7 +238,7 @@ def get_player_scores_df(
     dbsession: Session | None = None,
 ) -> pd.DataFrame:
     """Player scores, filtered by minutes played and position."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     query = (
         select(PlayerScore, Fixture.season, Fixture.gameweek, PlayerAttributes.position)
         .where(PlayerScore.minutes >= min_minutes)

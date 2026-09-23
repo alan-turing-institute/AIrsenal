@@ -30,7 +30,7 @@ def sell_price(
     """
     fetcher = fetcher if fetcher is not None else get_fetcher()
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     player_id = player.player_id
 
     price_now = None

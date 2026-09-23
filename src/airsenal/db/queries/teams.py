@@ -20,7 +20,7 @@ def get_team_name(
     The ids run in alphabetical order within a season, so the same id means
     different teams in different seasons.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     team = dbsession.scalars(
         select(Team).where(Team.season == season, Team.team_id == team_id).limit(1)
     ).first()

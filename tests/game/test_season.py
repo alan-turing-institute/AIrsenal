@@ -1,6 +1,7 @@
 from airsenal.game.season import (
-    FIRST_SEASON_WITH_EXPECTED_GOALS,
-    has_expected_goals,
+    CURRENT_SEASON,
+    default_seasons,
+    get_next_season,
     season_str_to_year,
     sort_seasons,
 )
@@ -16,9 +17,13 @@ def test_sort_seasons():
     assert sort_seasons(seasons, desc=False) == ["1819", "1920", "2021", "2122"]
 
 
-def test_expected_goals_start_in_2223():
-    """Which season the FPL API started reporting expected goals for."""
-    assert FIRST_SEASON_WITH_EXPECTED_GOALS == "2223"
-    assert not has_expected_goals("2122")
-    assert has_expected_goals("2223")
-    assert has_expected_goals("2526")
+def test_get_next_season_keeps_two_digits_per_year():
+    assert get_next_season("1819") == "1920"
+    assert get_next_season("0809") == "0910"
+
+
+def test_default_seasons_are_this_one_and_the_three_before():
+    seasons = default_seasons()
+    assert seasons[0] == CURRENT_SEASON
+    assert seasons == sort_seasons(seasons)
+    assert len(seasons) == 4

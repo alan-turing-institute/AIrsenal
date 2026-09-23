@@ -29,7 +29,7 @@ from airsenal.db.queries.players import (
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
 from airsenal.game.mappings import positions
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.ingest.absences import get_availability_from_absences
 from airsenal.ingest.attributes_history import (
     Availability,
@@ -49,7 +49,7 @@ def get_return_gameweek_from_news(
 
     None if the news carries no parseable return date.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
     search_results = re.search(rd_rex, news)
     if not search_results:
@@ -73,7 +73,7 @@ def fill_attributes_table_from_file(
     detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
     """Fill the attributes table for a past season, from its player detail JSON."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     for player_name_or_id, player_data in track(
         detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
     ):
@@ -132,7 +132,7 @@ def fill_attributes_table_from_api(
     season: str, gameweek_start: int = 1, dbsession: Session | None = None
 ) -> None:
     """Fill the attributes table for the current season, from the FPL API."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     fetcher = get_fetcher()
     gameweek = next_gameweek()
 
@@ -418,10 +418,9 @@ def make_attributes_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """Fill the attributes table: past seasons from JSON, this one from the API."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API

@@ -27,13 +27,6 @@ def season_str_to_year(season: str) -> int:
     return int(f"20{season[:2]}")
 
 
-def has_expected_goals(season: str) -> bool:
-    """Whether the FPL API reported expected goals for this season."""
-    return season_str_to_year(season) >= season_str_to_year(
-        FIRST_SEASON_WITH_EXPECTED_GOALS
-    )
-
-
 def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
     """Sort season strings chronologically, most recent first unless `desc` is False."""
     return sorted(seasons, key=season_str_to_year, reverse=desc)
@@ -41,13 +34,7 @@ def sort_seasons(seasons: list[str], desc: bool = True) -> list[str]:
 
 def get_next_season(season: str) -> str:
     """The season after this one: '1819' becomes '1920'."""
-    start_year = int(season[:2])
-    end_year = int(season[2:])
-    next_start_year = (
-        f"0{start_year + 1}" if start_year + 1 < 10 else str(start_year + 1)
-    )
-    next_end_year = f"0{end_year + 1}" if end_year + 1 < 10 else str(end_year + 1)
-    return f"{next_start_year}{next_end_year}"
+    return f"{int(season[:2]) + 1:02d}{int(season[2:]) + 1:02d}"
 
 
 def get_previous_season(season: str) -> str:
@@ -67,3 +54,8 @@ def get_past_seasons(num_seasons: int) -> list[str]:
         season = get_previous_season(season)
         seasons.append(season)
     return seasons
+
+
+def default_seasons() -> list[str]:
+    """The current season and the three before it, most recent first."""
+    return [CURRENT_SEASON, *get_past_seasons(3)]

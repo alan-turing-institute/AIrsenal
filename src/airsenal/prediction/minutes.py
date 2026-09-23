@@ -1,11 +1,11 @@
 """Estimating how many minutes a player will play."""
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.db.models import Fixture, Player, PlayerScore
 from airsenal.db.queries.gameweeks import next_gameweek
-from airsenal.db.queries.scores import get_recent_playerscore_rows
+from airsenal.db.queries.scores import get_recent_playerscore_rows, was_available
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_previous_season
 
@@ -29,7 +29,7 @@ def estimate_minutes_from_prev_season(
 ) -> list[float]:
     """Mean minutes in the previous season, or [0] if we have none."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     previous_season = get_previous_season(season)
 
     query = (
@@ -47,14 +47,7 @@ def estimate_minutes_from_prev_season(
         query = query.where(PlayerScore.player_team == current_team)
 
     if exclude_unavailable:
-        query = query.where(
-            or_(
-                PlayerScore.minutes >= 60,
-                PlayerScore.chance_of_playing == 100,
-                # no chance_of_playing recorded
-                PlayerScore.chance_of_playing.is_(None),
-            )
-        )
+        query = query.where(was_available())
 
     player_scores = list(
         dbsession.scalars(
@@ -85,7 +78,7 @@ def get_recent_minutes_for_player(
 
     `last_gameweek` is inclusive and defaults to the most recent finished gameweek.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if last_gameweek is None:
         if season != CURRENT_SEASON:
             msg = "last_gameweek must be defined if running on previous seasons"

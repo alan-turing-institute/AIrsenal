@@ -167,7 +167,7 @@ class Squad:
         if `use_api` is False or the API cannot be reached.
         """
         gameweek = next_gameweek() if gameweek is None else gameweek
-        dbsession = dbsession if dbsession is not None else get_session()
+        dbsession = get_session(dbsession)
         for p in self.players:
             if p.player_id == player_id:
                 if price:

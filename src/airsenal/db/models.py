@@ -114,8 +114,8 @@ class Player(Base):
 
         None, with a warning, if there are no attributes at all for `season`.
         """
-        attr = self.get_gameweek_attributes(gameweek, season)
-        if attr is not None and not isinstance(attr, tuple):
+        attr = self._nearest_attributes(gameweek, season)
+        if attr is not None:
             return attr.team
         logger.warning("No team found for %s in %s season.", self, season)
         return None
@@ -158,8 +158,8 @@ class Player(Base):
 
     def position(self, season: str) -> str | None:
         """This player's position in `season`, or None if we have no attributes."""
-        attr = self.get_gameweek_attributes(None, season)
-        if attr is not None and not isinstance(attr, tuple):
+        attr = self._nearest_attributes(None, season)
+        if attr is not None:
             return attr.position
         logger.warning("No position found for %s in %s season.", self, season)
         return None
@@ -175,8 +175,8 @@ class Player(Base):
         So this answers "as of `current_gameweek`, did we expect this player to still
         be out by `fixture_gameweek`?".
         """
-        attr = self.get_gameweek_attributes(current_gameweek, season)
-        if attr is not None and not isinstance(attr, tuple):
+        attr = self._nearest_attributes(current_gameweek, season)
+        if attr is not None:
             return (
                 attr.chance_of_playing_next_round is not None
                 and attr.chance_of_playing_next_round <= 50
@@ -184,6 +184,14 @@ class Player(Base):
                 attr.return_gameweek is None or attr.return_gameweek > fixture_gameweek
             )
         return False
+
+    def _nearest_attributes(
+        self, gameweek: int | None, season: str
+    ) -> "PlayerAttributes | None":
+        """As `get_gameweek_attributes`, for the one gameweek nearest `gameweek`."""
+        attr = self.get_gameweek_attributes(gameweek, season)
+        # a pair only comes back with before_and_after, so this never sees one
+        return None if isinstance(attr, tuple) else attr
 
     def get_gameweek_attributes(
         self, gameweek: int | None, season: str, before_and_after: bool = False

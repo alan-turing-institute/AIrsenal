@@ -68,11 +68,8 @@ def save_env(key: str, value: str) -> None:
 
 @check_valid_key
 def delete_env(key: str) -> None:
-    if os.path.exists(AIRSENAL_HOME / key):
-        os.remove(AIRSENAL_HOME / key)
-    if key in os.environ:
-        os.unsetenv(key)
-        os.environ.pop(key)
+    (AIRSENAL_HOME / key).unlink(missing_ok=True)
+    os.environ.pop(key, None)
 
 
 @check_valid_key

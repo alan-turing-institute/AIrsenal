@@ -28,7 +28,7 @@ def fit_player_data(
     want, e.g. `XGPlayerModel(XGPlayerConfig(...))`. `None` means the model
     `DEFAULT_PLAYER_MODEL` names.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if model is None:
         model = build_player_model()
 
@@ -53,7 +53,7 @@ def get_all_fitted_player_data(
     dbsession: Session | None = None,
 ) -> dict[str, pd.DataFrame]:
     """Fit player models for all positions (GK, DEF, MID, FWD)."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     return {
         pos: fit_player_data(pos, gameweek, season, model, dbsession)
         for pos in list(Position.back_to_front())

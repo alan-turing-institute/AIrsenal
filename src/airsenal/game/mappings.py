@@ -71,3 +71,13 @@ alternative_team_names = {
     "SOU": ["Southampton", "Southampton FC"],
     "BUR": ["Burnley", "Burnley FC"],
 }
+
+
+def canonical_team_name(name: str) -> str | None:
+    """A team's three-letter code, from the code or any alias; None if unknown."""
+    if name in alternative_team_names:
+        return name
+    for code, aliases in alternative_team_names.items():
+        if name in aliases:
+            return code
+    return None

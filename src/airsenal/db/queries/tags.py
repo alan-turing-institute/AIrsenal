@@ -20,7 +20,7 @@ def get_latest_prediction_tag(
         RuntimeError: There are no predictions for the season, so nothing
             downstream of `airsenal predict` can run.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     query = select(PlayerPrediction).where(
         PlayerPrediction.fixture.has(Fixture.season == season)
     )
@@ -45,7 +45,7 @@ def get_latest_fixture_tag(
     season: str = CURRENT_SEASON, dbsession: Session | None = None
 ) -> str:
     """The tag of the most recently added fixture for a season."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     latest_fixture = dbsession.scalars(
         select(Fixture)
         .where(Fixture.season == season)
@@ -66,7 +66,7 @@ def check_tag_valid(
 ) -> bool:
     """Check a prediction tag contains predictions for all the specified gameweeks."""
     # get unique gameweek and season values associated with prediction_tag
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     fixtures = dbsession.execute(
         select(Fixture.season, Fixture.gameweek)
         .join(PlayerPrediction)

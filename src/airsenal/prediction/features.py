@@ -72,7 +72,7 @@ def get_player_history_df(
 ) -> pd.DataFrame:
     """Fetch historical player performance data and build a structured DataFrame."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     player_data: list[dict[str, Any]] = []
 
     if all_players:
@@ -195,7 +195,7 @@ def process_player_data(
 ) -> PlayerFitData:
     """Process and structure historical player data for model fitting."""
     gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     df = get_player_history_df(
         prefix, gameweek=gameweek, season=season, dbsession=dbsession
     )

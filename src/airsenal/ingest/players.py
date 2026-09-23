@@ -9,7 +9,7 @@ from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, data_file
 from airsenal.db.models import Player, PlayerMapping
 from airsenal.db.session import get_session
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.ingest.player_mappings import (
     add_mappings,
     make_player_mappings_table,
@@ -97,7 +97,7 @@ def make_init_player_table(season: str, dbsession: Session | None = None) -> Non
     Done on its own, before the older seasons, so that a player's canonical row
     is the one with their current name and the rest map onto it.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if season == CURRENT_SEASON:
         # current season - use API
         fill_player_table_from_api(CURRENT_SEASON, dbsession)
@@ -111,7 +111,7 @@ def make_remaining_player_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """Add players from older seasons who are not in the most recent one already."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     for season in seasons or []:
         fill_player_table_from_file(
             data_file(f"player_summary_{season}.json"), season, dbsession
@@ -121,10 +121,9 @@ def make_remaining_player_table(
 def make_player_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     seasons = sort_seasons(seasons)
     make_init_player_table(season=seasons[0], dbsession=dbsession)
     make_player_mappings_table(dbsession=dbsession)

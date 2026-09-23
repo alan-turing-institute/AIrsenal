@@ -70,14 +70,16 @@ def create_session() -> Session:
     return sessionmaker(bind=get_engine(), autoflush=False)()
 
 
-def get_session() -> Session:
+def get_session(dbsession: Session | None = None) -> Session:
     """
-    The default session used throughout the package, created on first use.
+    `dbsession` if one is given, else the package's default session.
 
-    Prefer accepting a `dbsession` argument over calling this; it exists so that the
-    `dbsession: Session | None = None` default can be resolved at call time rather
+    The default session is created on first use. This is how a
+    `dbsession: Session | None = None` default is resolved at call time rather
     than at import time.
     """
+    if dbsession is not None:
+        return dbsession
     if _db.default_session is None:
         _db.default_session = create_session()
     return _db.default_session

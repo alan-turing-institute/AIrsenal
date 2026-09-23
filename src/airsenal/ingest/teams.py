@@ -11,14 +11,14 @@ from airsenal.core.console import track
 from airsenal.core.data_files import FilePath, data_file
 from airsenal.db.models import Team
 from airsenal.db.session import get_session
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import default_seasons, sort_seasons
 
 
 def fill_team_table_from_file(
     filename: FilePath, dbsession: Session | None = None
 ) -> None:
     """Read the teams for a season from its packaged CSV file."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     with open(filename) as infile:
         first_line = True
         for line in infile.readlines():
@@ -36,9 +36,8 @@ def make_team_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """Fill the team table with the league's teams for every season."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in track(sort_seasons(seasons), description="TEAMS"):
         fill_team_table_from_file(data_file(f"teams_{season}.csv"), dbsession=dbsession)

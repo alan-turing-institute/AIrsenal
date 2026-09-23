@@ -55,7 +55,7 @@ def calc_all_predicted_points(
 
     for player in track(players, description="Predicting player points:"):
         for fixture in get_fixtures_for_player(
-            player, season, gameweeks=gameweeks, dbsession=dbsession
+            player, gameweeks, season=season, dbsession=dbsession
         ):
             if fixture.gameweek is None:
                 logger.warning("Skipping fixture %s with no gameweek", fixture)
@@ -84,7 +84,7 @@ def make_predictedscore_table(
     dbsession: Session | None = None,
 ) -> str:
     """Predict every player's points over `gameweeks`, and return the tag written."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     tag = tag_prefix or ""
     tag += str(uuid4())
     with console.status("Predicting points..."):

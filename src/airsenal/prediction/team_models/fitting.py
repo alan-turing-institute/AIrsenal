@@ -203,7 +203,7 @@ def fixture_probabilities(
     home_win_probability, draw_probability and away_win_probability. Without a
     model, the default one is built and fitted first.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if model is None:
         model = build_team_model()
     if model.teams is None:

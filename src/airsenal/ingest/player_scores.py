@@ -29,7 +29,7 @@ from airsenal.db.queries.players import (
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_team_name
 from airsenal.db.session import get_session
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.ingest.attributes_history import (
     covers_date,
     filter_attributes_for_player,
@@ -78,7 +78,7 @@ def get_status_from_attributes_history(
     dbsession: Session | None = None,
 ) -> tuple[str | None, int | None]:
     """A player's news and chance_of_playing as of the morning of kickoff."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     matchday = parse_date(fixture.date)
     news, chance_of_playing = get_availability_on_date(
         matchday, player, player_attributes
@@ -119,7 +119,7 @@ def get_availability_for_fixture(
     that day. Otherwise the gameweek's attributes row, which before the history
     starts is what the absences scrape says about the gameweek.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if (
         player_attributes is not None
         and len(player_attributes) > 0
@@ -154,7 +154,7 @@ def fill_playerscores_from_json(
     appeared in. Rows are added rather than merged, so this is for filling an
     empty table - `fill_playerscores_from_api` is the one that can be re-run.
     """
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     extended_feats = _extended_features()
     df_attributes = load_attributes_history(season)
 
@@ -242,7 +242,7 @@ def fill_playerscores_from_api(
     gameweek_end = (
         next_gameweek(fetcher=fetcher) if gameweek_end is None else gameweek_end
     )
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     extended_feats = _extended_features()
     df_attributes = load_attributes_history(season)
     input_data = fetcher.get_player_summary_data()
@@ -302,9 +302,6 @@ def fill_playerscores_from_api(
                 if ps is None:
                     ps = PlayerScore()
                     add = True
-                elif isinstance(ps, list):
-                    msg = f"Multiple player scores found for {player} in {fixture}"
-                    raise ValueError(msg)
                 else:
                     add = False
                 ps.player_team = played_for
@@ -337,10 +334,9 @@ def fill_playerscores_from_api(
 def make_playerscore_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API

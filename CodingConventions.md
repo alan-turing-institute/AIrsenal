@@ -143,7 +143,7 @@ talks to. Anything not listed goes first.
 
 * *fpl_team_id* (str, the ID of the squad in the FPL API - can be seen on the FPL website by looking at the URL after clicking on "View gameweek history").
 * *fetcher* (instance of FPLDataFetcher - usually defaulting to None and resolved with `get_fetcher()` from `remote/fpl_api.py`)
-* *dbsession* (database session - usually defaulting to None and resolved with `get_session()` from `db/session.py`)
+* *dbsession* (database session - usually defaulting to None and resolved with `dbsession = get_session(dbsession)` from `db/session.py`)
 
 and *verbose* (boolean, if True, print out extra information) last of all.
 

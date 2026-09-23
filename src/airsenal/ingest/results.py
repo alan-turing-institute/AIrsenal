@@ -12,7 +12,7 @@ from airsenal.db.queries.gameweeks import (
 )
 from airsenal.db.session import get_session
 from airsenal.game.mappings import alternative_team_names
-from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.remote.fpl_api import get_fetcher
 
 logger = get_logger(__name__)
@@ -124,10 +124,9 @@ def make_result_table(
     seasons: list[str] | None = None, dbsession: Session | None = None
 ) -> None:
     """Fill the result table: past seasons from CSV, this one from the API."""
-    dbsession = dbsession if dbsession is not None else get_session()
+    dbsession = get_session(dbsession)
     if not seasons:
-        seasons = [CURRENT_SEASON]
-        seasons += get_past_seasons(3)
+        seasons = default_seasons()
     for season in sort_seasons(seasons):
         if season == CURRENT_SEASON:
             # current season - use API
