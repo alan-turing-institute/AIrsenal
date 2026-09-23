@@ -12,7 +12,7 @@ matches before it and score who actually scored and assisted in the next
 import argparse
 import csv
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -35,25 +35,23 @@ from airsenal.prediction.protocols import PlayerModel
 logger = get_logger(__name__)
 
 
-def _conjugate(epsilon: float, n_goals_prior: int | None) -> PlayerModel:
-    config = ConjugatePlayerConfig(epsilon=epsilon)
-    if n_goals_prior is not None:
-        config = replace(config, n_goals_prior=n_goals_prior)
-    return ConjugatePlayerModel(config)
+def _factory[C](
+    model_class: Callable[[C], PlayerModel], config_class: Callable[..., C]
+) -> Callable[[float, int | None], PlayerModel]:
+    """A builder of `model_class`, configured with an epsilon and a goals prior."""
 
+    def build(epsilon: float, n_goals_prior: int | None) -> PlayerModel:
+        prior = {} if n_goals_prior is None else {"n_goals_prior": n_goals_prior}
+        return model_class(config_class(epsilon=epsilon, **prior))
 
-def _xg(epsilon: float, n_goals_prior: int | None) -> PlayerModel:
-    config = XGPlayerConfig(epsilon=epsilon)
-    if n_goals_prior is not None:
-        config = replace(config, n_goals_prior=n_goals_prior)
-    return XGPlayerModel(config)
+    return build
 
 
 # `n_goals_prior` of None means the model's own default, which for `xg` is one
 # value per position.
 MODELS: dict[str, Callable[[float, int | None], PlayerModel]] = {
-    "conjugate": _conjugate,
-    "xg": _xg,
+    "conjugate": _factory(ConjugatePlayerModel, ConjugatePlayerConfig),
+    "xg": _factory(XGPlayerModel, XGPlayerConfig),
 }
 
 
@@ -148,9 +146,7 @@ def main() -> None:
     epsilons = args.epsilons or list(
         np.linspace(args.epsilon_start, args.epsilon_stop, args.epsilon_num)
     )
-    priors: list[int | None] = (
-        [int(n) for n in args.n_goals_priors] if args.n_goals_priors else [None]
-    )
+    priors: list[int | None] = args.n_goals_priors or [None]
     grid = [(float(e), n) for e in epsilons for n in priors]
     results = [
         evaluate_params(

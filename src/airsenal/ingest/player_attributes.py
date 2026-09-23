@@ -1,6 +1,7 @@
 """Fill the "player_attributes" table from this season's API and past seasons' files."""
 
 import json
+from datetime import datetime
 from typing import Any
 
 import dateparser
@@ -41,17 +42,16 @@ from airsenal.remote.fpl_api import get_fetcher
 logger = get_logger(__name__)
 
 
-def get_return_gameweek_from_news(
-    news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
-) -> int | None:
+def parse_return_date(news: str) -> datetime | None:
     """
-    The gameweek a player flagged in the FPL API's news text is due back for.
+    The date a player's FPL API news text says they are due back, if it gives one.
 
-    None if the news carries no parseable return date.
+    Raises:
+        ValueError: The news gives a date that cannot be parsed.
     """
-    dbsession = get_session(dbsession)
-    rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
-    search_results = re.search(rd_rex, news)
+    search_results = re.search(
+        "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})", news
+    )
     if not search_results:
         return None
 
@@ -63,7 +63,21 @@ def get_return_gameweek_from_news(
     if not return_date:
         msg = f"Failed to parse date from string '{return_str}'"
         raise ValueError(msg)
+    return return_date
 
+
+def get_return_gameweek_from_news(
+    news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> int | None:
+    """
+    The gameweek a player flagged in the FPL API's news text is due back for.
+
+    None if the news carries no parseable return date.
+    """
+    dbsession = get_session(dbsession)
+    return_date = parse_return_date(news)
+    if return_date is None:
+        return None
     return get_return_gameweek_by_date(
         return_date.date(), team=team, season=season, dbsession=dbsession
     )

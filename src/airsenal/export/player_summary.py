@@ -4,7 +4,6 @@ import json
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
-from airsenal.db.queries.gameweeks import is_future_gameweek
 
 logger = get_logger(__name__)
 
@@ -38,6 +37,8 @@ def make_player_summary(season: str) -> None:
     teams = {team["id"]: team["short_name"] for team in data["teams"]}
     positions = {et["id"]: et["singular_name_short"] for et in data["element_types"]}
 
+    # opta code only introduced from 24/25 season
+    has_opta_code = int(season) > 2324
     player_summaries = []
 
     for player in data["elements"]:
@@ -45,10 +46,7 @@ def make_player_summary(season: str) -> None:
         logger.debug("%s %s", player["first_name"], player["second_name"])
         player_dict = {"name": name}
         for input_key, output_key in keys_to_extract.items():
-            if input_key == "opta_code" and not is_future_gameweek(
-                1, season, "2324", 38
-            ):
-                # opta code only introduced from 24/25 season
+            if input_key == "opta_code" and not has_opta_code:
                 continue
             player_dict[output_key] = player[input_key]
 

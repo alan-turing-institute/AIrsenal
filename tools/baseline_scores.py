@@ -20,6 +20,7 @@ from airsenal.db.session import session_scope
 from airsenal.game.enums import Position
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.evaluation import (
+    ModelScore,
     backtest_player_model,
     backtest_points,
     backtest_team_model,
@@ -28,6 +29,14 @@ from airsenal.prediction.player_models import PLAYER_MODELS
 from airsenal.prediction.team_models import TEAM_MODELS
 
 logger = get_logger(__name__)
+
+
+def _as_dict(score: ModelScore) -> dict[str, float | int]:
+    return {
+        "mean_log_probability": score.mean_log_probability,
+        "n_observations": score.n_observations,
+        "n_skipped": score.n_skipped,
+    }
 
 
 def score_models(
@@ -54,11 +63,7 @@ def score_models(
                 gameweeks=gameweeks,
                 horizon=horizon,
             )
-        scores[f"team:{name}"] = {
-            "mean_log_probability": score.mean_log_probability,
-            "n_observations": score.n_observations,
-            "n_skipped": score.n_skipped,
-        }
+        scores[f"team:{name}"] = _as_dict(score)
         logger.info("team:%s %.5f", name, score.mean_log_probability)
 
     entries = [
@@ -80,11 +85,7 @@ def score_models(
             scores[key] = {"error": str(error)}
             logger.warning("%s could not be fitted: %s", key, error)
             continue
-        scores[key] = {
-            "mean_log_probability": score.mean_log_probability,
-            "n_observations": score.n_observations,
-            "n_skipped": score.n_skipped,
-        }
+        scores[key] = _as_dict(score)
         logger.info("%s %.5f", key, score.mean_log_probability)
     return scores
 

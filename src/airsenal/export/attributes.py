@@ -7,11 +7,9 @@ so the repo accumulates a per-day price and availability history.
 """
 
 import csv
-import re
 from collections import defaultdict
+from contextlib import suppress
 from datetime import date, datetime
-
-import dateparser
 
 from airsenal.core.data_files import data_file
 from airsenal.core.dates import parse_date
@@ -19,6 +17,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.game.mappings import positions
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.ingest.player_attributes import parse_return_date
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 
 logger = get_logger(__name__)
@@ -165,26 +164,17 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
             transfers_balance = transfers_in - transfers_out
             news = player_data["news"]
             chance_of_playing_next_round = player_data["chance_of_playing_next_round"]
+            return_gameweek = None
             if (
                 chance_of_playing_next_round is not None
                 and chance_of_playing_next_round <= 50
             ):
-                rd_rex = "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})"
-                search_results = re.search(rd_rex, news)
-                if search_results:
-                    return_str = search_results.groups()[1]
-                    # return_str should be a day and month string (without year)
-                    # create a date in the future from the day and month string
-                    return_date = dateparser.parse(
-                        return_str, settings={"PREFER_DATES_FROM": "future"}
-                    )
-                    return_gameweek = _return_gameweek_from_deadlines(
-                        return_date, team, deadlines, fixtures
-                    )
-                else:
-                    return_gameweek = None
-            else:
-                return_gameweek = None
+                return_date = None
+                with suppress(ValueError):
+                    return_date = parse_return_date(news)
+                return_gameweek = _return_gameweek_from_deadlines(
+                    return_date, team, deadlines, fixtures
+                )
 
             writer.writerow(
                 [

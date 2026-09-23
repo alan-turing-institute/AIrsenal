@@ -1,21 +1,24 @@
 """Commands for replaying historical seasons."""
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from airsenal.cli import options
-from airsenal.optimization.moves import ChipGameweeks
+from airsenal.cli._components import (
+    chip_gameweeks,
+    squad_scoring,
+    transfer_constraints,
+)
 from airsenal.optimization.protocols import (
     DEFAULT_MAX_OPT_TRANSFERS,
     DEFAULT_MAX_TOTAL_HIT,
-    TransferConstraints,
 )
 from airsenal.optimization.squad_optimizers import (
     DEFAULT_SQUAD_OPTIMIZER,
     build_squad_optimizer,
 )
-from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     DEFAULT_TRANSFER_OPTIMIZER,
     build_transfer_optimizer,
@@ -34,11 +37,26 @@ from airsenal.prediction.points_models import (
     build_points_model,
 )
 from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL
-from airsenal.squad.squad import SubWeights
+
+OutputDir = Annotated[
+    Path | None,
+    typer.Option(
+        help="Directory to write results to. Defaults to the current directory.",
+        rich_help_panel=options.OUTPUT,
+    ),
+]
+
+TagPrefix = Annotated[
+    str,
+    typer.Option(
+        help="Prefix for the result tag and filename. Defaults to a timestamped one.",
+        rich_help_panel=options.OUTPUT,
+    ),
+]
 
 
 def replay(
-    season: Annotated[str, typer.Option(help="Season in the form 2526.")],
+    season: options.Season,
     gameweek_start: Annotated[
         int, typer.Option(min=1, help="First gameweek to replay.")
     ] = 1,
@@ -73,8 +91,8 @@ def replay(
     triple_captain_gameweek: options.TripleCaptainGameweek = -1,
     bench_boost_gameweek: options.BenchBoostGameweek = -1,
     subs: options.Subs = True,
-    output_dir: options.OutputDir = None,
-    tag_prefix: options.TagPrefix = "",
+    output_dir: OutputDir = None,
+    tag_prefix: TagPrefix = "",
 ) -> None:
     """Replay a historical FPL season."""
     run_replays(
@@ -96,24 +114,18 @@ def replay(
                 num_generations=num_generations,
                 population_size=population_size,
             ),
-            constraints=TransferConstraints(
-                max_total_hit=max_hit,
-                allow_unused_transfers=allow_unused,
-                max_opt_transfers=max_transfers,
-            ),
-            scoring=SquadScoringConfig(
-                sub_weights=SubWeights() if subs else SubWeights.none()
-            ),
+            constraints=transfer_constraints(max_hit, allow_unused, max_transfers),
+            scoring=squad_scoring(subs),
             settings=PipelineSettings(
                 fpl_team_id=fpl_team_id,
                 n_gameweeks=n_gameweeks,
                 num_free_transfers=num_free_transfers,
                 season=season,
-                chips=ChipGameweeks(
-                    wildcard=wildcard_gameweek,
-                    free_hit=free_hit_gameweek,
-                    triple_captain=triple_captain_gameweek,
-                    bench_boost=bench_boost_gameweek,
+                chips=chip_gameweeks(
+                    wildcard_gameweek,
+                    free_hit_gameweek,
+                    triple_captain_gameweek,
+                    bench_boost_gameweek,
                 ),
                 # replay never touches the real entry or the live API
                 refresh_database=False,

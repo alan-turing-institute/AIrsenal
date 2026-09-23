@@ -96,10 +96,11 @@ def get_top_predicted_points(
             )
         console.print(prediction_table)
 
-    if not per_position:
+    positions = list(Position.back_to_front()) if per_position else [position]
+    for i, each_position in enumerate(positions):
         pts = get_predicted_points(
             gameweeks,
-            position=position,
+            position=each_position,
             team=team,
             tag=tag,
             season=season,
@@ -107,47 +108,23 @@ def get_top_predicted_points(
         )
         pts = within_price(pts, max_price, first_gameweek, season)
         pts = sorted(pts, key=lambda x: x[1], reverse=True)
+        heading = [table_title] if i == 0 else []
+        if per_position:
+            heading.append(str(each_position))
+        print_predictions(pts, "\n".join(heading))
 
-        print_predictions(pts, table_title)
-
+        discord_embed["fields"] = []
         # Maximum fields on a discord embed is 25, so limit this to n_players=8
         post_webhook(
             predicted_points_discord_payload(
                 discord_embed=discord_embed,
-                position=position,
+                position=each_position,
                 pts=pts[: min(n_players, 8)],
                 season=season,
                 first_gameweek=first_gameweek,
             ),
             discord_webhook,
         )
-    else:
-        for i, each_position in enumerate(list(Position.back_to_front())):
-            pts = get_predicted_points(
-                gameweeks,
-                position=each_position,
-                team=team,
-                tag=tag,
-                season=season,
-                dbsession=dbsession,
-            )
-            pts = within_price(pts, max_price, first_gameweek, season)
-            pts = sorted(pts, key=lambda x: x[1], reverse=True)
-            title = f"{table_title}\n{each_position}" if i == 0 else str(each_position)
-            print_predictions(pts, title)
-
-            discord_embed["fields"] = []
-            # Maximum fields on a discord embed is 25, so limit this to n_players=8
-            post_webhook(
-                predicted_points_discord_payload(
-                    discord_embed=discord_embed,
-                    position=each_position,
-                    pts=pts[: min(n_players, 8)],
-                    season=season,
-                    first_gameweek=first_gameweek,
-                ),
-                discord_webhook,
-            )
 
 
 def predicted_points_discord_payload(

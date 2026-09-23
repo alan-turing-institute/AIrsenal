@@ -1,7 +1,6 @@
 """Dumping the database contents to CSV, one file per table."""
 
 import csv
-from pathlib import Path
 from typing import TextIO
 
 from sqlalchemy import select
@@ -26,16 +25,9 @@ logger = get_logger(__name__)
 
 def dump_db() -> None:
     """Write every table out to its own CSV in the packaged data directory."""
-    # Dump Player database
     player_fieldnames = ["player_id", "fpl_api_id", "name", "opta_code"]
-    save_table_fields(
-        "players.csv",
-        player_fieldnames,
-        Player,
-        " ==== dumped Player database === ",
-    )
+    save_table_fields("players.csv", player_fieldnames, Player)
 
-    # Dump PlayerAttributes database
     player_attributes_fieldnames = [
         "id",
         "player_id",
@@ -53,13 +45,9 @@ def dump_db() -> None:
         "transfers_out",
     ]
     save_table_fields(
-        "player_attributes.csv",
-        player_attributes_fieldnames,
-        PlayerAttributes,
-        " ==== dumped PlayerAttributes database === ",
+        "player_attributes.csv", player_attributes_fieldnames, PlayerAttributes
     )
 
-    # Dump Fixture database
     fixture_fieldnames = [
         "fixture_id",
         "date",
@@ -70,14 +58,8 @@ def dump_db() -> None:
         "tag",
         "player_id",
     ]
-    save_table_fields(
-        "fixtures.csv",
-        fixture_fieldnames,
-        Fixture,
-        " ==== dumped Fixture database === ",
-    )
+    save_table_fields("fixtures.csv", fixture_fieldnames, Fixture)
 
-    # Dump Result database
     result_fieldnames = [
         "result_id",
         "fixture_id",
@@ -85,32 +67,16 @@ def dump_db() -> None:
         "away_score",
         "player_id",
     ]
-    save_table_fields(
-        "results.csv",
-        result_fieldnames,
-        Result,
-        " ==== dumped Result database === ",
-    )
+    save_table_fields("results.csv", result_fieldnames, Result)
 
-    # Dump Team database
     team_fieldnames = ["id", "name", "full_name", "season", "team_id"]
-    save_table_fields(
-        "teams.csv",
-        team_fieldnames,
-        Team,
-        " ==== dumped Team database === ",
-    )
+    save_table_fields("teams.csv", team_fieldnames, Team)
 
-    # Dump FifaTeamRating database
     fifa_team_rating_fieldnames = ["id", "season", "team", "att", "defn", "mid", "ovr"]
     save_table_fields(
-        "fifa_team_ratings.csv",
-        fifa_team_rating_fieldnames,
-        FifaTeamRating,
-        " ==== dumped FifaTeamRating database === ",
+        "fifa_team_ratings.csv", fifa_team_rating_fieldnames, FifaTeamRating
     )
 
-    # Dump Transaction database
     transaction_fieldnames = [
         "id",
         "fpl_team_id",
@@ -124,14 +90,8 @@ def dump_db() -> None:
         "tag",
         "price",
     ]
-    save_table_fields(
-        "transactions.csv",
-        transaction_fieldnames,
-        Transaction,
-        " ==== dumped Transaction database === ",
-    )
+    save_table_fields("transactions.csv", transaction_fieldnames, Transaction)
 
-    # Dump PlayerScore database
     player_score_fieldnames = [
         "id",
         "player_team",
@@ -171,23 +131,13 @@ def dump_db() -> None:
         "recoveries",
         "tackles",
     ]
-    save_table_fields(
-        "player_scores.csv",
-        player_score_fieldnames,
-        PlayerScore,
-        " ==== dumped PlayerScore database === ",
-    )
+    save_table_fields("player_scores.csv", player_score_fieldnames, PlayerScore)
 
 
-def save_table_fields(
-    filename: str, fields: list[str], dbclass: type[Base], msg: str
-) -> Path:
-    result = data_file(filename)
-    with result.open("w") as csvfile:
+def save_table_fields(filename: str, fields: list[str], dbclass: type[Base]) -> None:
+    with data_file(filename).open("w") as csvfile:
         write_rows_to_csv(csvfile, fields, dbclass)
-    logger.info(msg)
-
-    return result
+    logger.info(" ==== dumped %s database === ", dbclass.__name__)
 
 
 def write_rows_to_csv(

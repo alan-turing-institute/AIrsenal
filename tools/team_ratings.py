@@ -21,7 +21,7 @@ from airsenal.db.queries.gameweeks import (
 from airsenal.db.queries.teams import get_teams_for_season
 from airsenal.db.session import session_scope
 from airsenal.game.season import CURRENT_SEASON
-from airsenal.prediction.team_models import build_team_model
+from airsenal.prediction.team_models import DEFAULT_TEAM_MODEL, build_team_model
 from airsenal.prediction.team_models.fitting import get_fitted_team_model
 
 logger = get_logger(__name__)
@@ -55,9 +55,7 @@ def main() -> None:
             gameweek,
             args.season,
             dbsession,
-            model=build_team_model(args.model, args.epsilon)
-            if args.model
-            else build_team_model(epsilon=args.epsilon),
+            model=build_team_model(args.model or DEFAULT_TEAM_MODEL, args.epsilon),
         )
 
     # The ratings live on the model the table entry wrapped, if it wrapped one.

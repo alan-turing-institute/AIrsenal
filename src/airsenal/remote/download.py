@@ -43,11 +43,8 @@ def download_with_resume(
             )
             resp.raise_for_status()
 
-            # If server ignored Range (status 200), restart file from scratch.
-            if existing > 0 and resp.status_code == 200:
-                mode = "wb"
-            else:
-                mode = "ab" if existing > 0 else "wb"
+            # A server that ignored Range answers 200, so the file restarts.
+            mode = "ab" if existing > 0 and resp.status_code != 200 else "wb"
 
             with open(dest, mode) as f:
                 for chunk in resp.iter_content(chunk_size=chunk_size):

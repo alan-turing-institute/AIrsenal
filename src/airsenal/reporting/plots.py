@@ -7,14 +7,6 @@ import matplotlib.pyplot as plt
 from airsenal.remote.fpl_api import get_fetcher
 
 
-def get_team_ids(league_data: dict[str, Any]) -> list[int]:
-    return [team["entry"] for team in league_data["standings"]["results"]]
-
-
-def get_team_names(league_data: dict[str, Any]) -> list[str]:
-    return [team["entry_name"] for team in league_data["standings"]["results"]]
-
-
 def get_team_history(team_data: dict[str, Any]) -> dict[str, Any]:
     output_dict: dict[str, Any] = {"history": {}}
     for entry in team_data["current"]:
@@ -35,13 +27,12 @@ def plot_standings(thing_to_plot: str) -> None:
     if league_data is None:
         msg = "Could not retrieve league data from the FPL API"
         raise RuntimeError(msg)
-    team_ids = get_team_ids(league_data)
-    team_names = get_team_names(league_data)
     team_histories = []
-    for i, team_id in enumerate(team_ids):
-        team_data = fetcher.get_fpl_team_history_data(team_id)
-        history_dict = get_team_history(team_data)
-        history_dict["name"] = team_names[i]
+    for team in league_data["standings"]["results"]:
+        history_dict = get_team_history(
+            fetcher.get_fpl_team_history_data(team["entry"])
+        )
+        history_dict["name"] = team["entry_name"]
         team_histories.append(history_dict)
 
     xvals = sorted(team_histories[0]["history"].keys())

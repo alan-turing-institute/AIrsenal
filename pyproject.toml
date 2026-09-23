@@ -158,9 +158,9 @@ convention = "google"
 [tool.ruff.lint.pylint]
 max-args = 12          # run_optimization, make_new_squad
 max-positional-args = 12  # run_optimization
-max-branches = 19      # FPLAuth._login_flow
+max-branches = 18      # Squad.get_actual_points
 max-statements = 76    # test_deap_optimization_creates_valid_squad
-max-returns = 12       # FPLAuth._login_flow
+max-returns = 8        # Player.get_gameweek_attributes
 
 [tool.ruff.lint.per-file-ignores]
 # Every other `__init__.py` declares `__all__`, which ruff honours as a

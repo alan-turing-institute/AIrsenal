@@ -18,7 +18,7 @@ from airsenal.core.env import (
 from airsenal.core.logging import get_logger
 from airsenal.remote.errors import RemoteError
 from airsenal.remote.fpl_auth import FPLAuth
-from airsenal.remote.fpl_http import API_HOME, Session, get_json, post_json
+from airsenal.remote.fpl_http import API_HOME, get_json, post_json
 
 logger = get_logger(__name__)
 
@@ -38,10 +38,9 @@ class FPLDataFetcher:
     def __init__(
         self,
         fpl_team_id: int | None = None,
-        rsession: Session | None = None,
         auth: FPLAuth | None = None,
     ) -> None:
-        self.auth = auth if auth is not None else FPLAuth(rsession)
+        self.auth = auth if auth is not None else FPLAuth()
         self.current_summary_data: dict[str, Any] = {}
         self.current_event_data: dict[int, dict[str, Any]] = {}  # by gameweek
         self.current_player_data: dict[int, dict[str, Any]] = {}  # by player api id
@@ -67,13 +66,18 @@ class FPLDataFetcher:
     def logged_in(self) -> bool:
         return self.auth.logged_in
 
-    @property
-    def rsession(self) -> Session:
-        return self.auth.session
-
     def login(self) -> None:
         """Log in, if the credentials to do so are available."""
         self.auth.login()
+
+    def _team_id(self, fpl_team_id: int | None) -> int:
+        """`fpl_team_id`, or our own entry's if that is None."""
+        if fpl_team_id is not None:
+            return fpl_team_id
+        if self.FPL_TEAM_ID is None:
+            msg = "Please specify FPL team ID"
+            raise RuntimeError(msg)
+        return self.FPL_TEAM_ID
 
     def _get(
         self, url: str, err_msg: str = "Unable to access FPL API", **params: Any
@@ -92,12 +96,7 @@ class FPLDataFetcher:
 
     def get_current_squad_data(self, fpl_team_id: int | None = None) -> dict[str, Any]:
         """The current squad: picks, bank, and free transfers. Requires login."""
-        if fpl_team_id is None:
-            if self.FPL_TEAM_ID is None:
-                msg = "Please specify FPL team ID"
-                raise RuntimeError(msg)
-            fpl_team_id = self.FPL_TEAM_ID
-
+        fpl_team_id = self._team_id(fpl_team_id)
         if fpl_team_id in self.current_squad_data:
             return self.current_squad_data[fpl_team_id]
 
@@ -191,11 +190,7 @@ class FPLDataFetcher:
         self, fpl_team_id: int | None = None
     ) -> list[dict[str, Any]]:
         """Our entry's transfer history from the FPL API."""
-        if fpl_team_id is None:
-            if self.FPL_TEAM_ID is None:
-                msg = "Please specify FPL team ID"
-                raise RuntimeError(msg)
-            fpl_team_id = self.FPL_TEAM_ID
+        fpl_team_id = self._team_id(fpl_team_id)
         if fpl_team_id in self.fpl_transfer_history_data:
             return self.fpl_transfer_history_data[fpl_team_id]
         url = FPL_GET_TRANSFERS_URL.format(fpl_team_id)
@@ -230,13 +225,13 @@ class FPLDataFetcher:
         """Each gameweek's transfer deadline, and whether it has finished."""
         if self.current_event_data:
             return self.current_event_data
-        self.current_event_data = {}
-        all_data = self.get_current_summary_data()
-        for event in all_data["events"]:
-            self.current_event_data[event["id"]] = {
+        self.current_event_data = {
+            event["id"]: {
                 "deadline": event["deadline_time"],
                 "is_finished": event["finished"],
             }
+            for event in self.get_current_summary_data()["events"]
+        }
         return self.current_event_data
 
     def get_last_finished_gameweek(self) -> int:
@@ -256,20 +251,19 @@ class FPLDataFetcher:
         """The summary data's players, keyed by player_api_id."""
         if self.current_player_data:
             return self.current_player_data
-        self.current_player_data = {}
-        all_data = self.get_current_summary_data()
-        for player in all_data["elements"]:
-            self.current_player_data[player["id"]] = player
+        self.current_player_data = {
+            player["id"]: player
+            for player in self.get_current_summary_data()["elements"]
+        }
         return self.current_player_data
 
     def get_current_team_data(self) -> dict[int, dict[str, Any]]:
         """The summary data's teams, keyed by team code."""
         if self.current_team_data:
             return self.current_team_data
-        self.current_team_data = {}
-        all_data = self.get_current_summary_data()
-        for team in all_data["teams"]:
-            self.current_team_data[team["code"]] = team
+        self.current_team_data = {
+            team["code"]: team for team in self.get_current_summary_data()["teams"]
+        }
         return self.current_team_data
 
     @overload
@@ -298,10 +292,9 @@ class FPLDataFetcher:
                 f"Error retrieving data for player {player_api_id}",
             )
             for game in player_detail["history"]:
-                played_in = game["round"]
-                if played_in not in self.player_gameweek_data[player_api_id]:
-                    self.player_gameweek_data[player_api_id][played_in] = []
-                self.player_gameweek_data[player_api_id][played_in].append(game)
+                self.player_gameweek_data[player_api_id].setdefault(
+                    game["round"], []
+                ).append(game)
         if not gameweek:
             return self.player_gameweek_data[player_api_id]
 

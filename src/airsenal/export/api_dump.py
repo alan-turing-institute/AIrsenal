@@ -6,7 +6,7 @@ Writes the season's player details, summaries, results and Transfermarkt data in
 """
 
 import json
-import os
+from typing import Any
 
 from airsenal.core.data_files import data_dir
 from airsenal.core.logging import get_logger
@@ -20,38 +20,36 @@ from airsenal.remote.transfermarkt import scrape_transfermarkt
 logger = get_logger(__name__)
 
 
+def _dump(data: Any, filename: str) -> None:
+    with (data_dir() / filename).open("w") as f:
+        json.dump(data, f)
+
+
 def dump_api() -> None:
     """Save everything from the FPL API and other sources."""
-    repo_home = data_dir()
-
     logger.info("Saving summary data...")
-    sdata = get_fetcher().get_current_summary_data()
-    with open(os.path.join(repo_home, f"FPL_{CURRENT_SEASON}.json"), "w") as f:
-        json.dump(sdata, f)
+    _dump(get_fetcher().get_current_summary_data(), f"FPL_{CURRENT_SEASON}.json")
 
     logger.info("Saving fixture data...")
-    fixtures = get_fetcher().get_fixture_data()
-    with open(os.path.join(repo_home, f"fixture_data_{CURRENT_SEASON}.json"), "w") as f:
-        json.dump(fixtures, f)
+    _dump(get_fetcher().get_fixture_data(), f"fixture_data_{CURRENT_SEASON}.json")
 
     logger.info("Saving team history data...")
-    history = get_fetcher().get_fpl_team_history_data()
-    with open(
-        os.path.join(repo_home, f"airsenal_history_{CURRENT_SEASON}.json"), "w"
-    ) as f:
-        json.dump(history, f)
+    _dump(
+        get_fetcher().get_fpl_team_history_data(),
+        f"airsenal_history_{CURRENT_SEASON}.json",
+    )
 
     logger.info("Saving transfer data...")
-    transfers = get_fetcher().get_fpl_transfer_data()
-    with open(
-        os.path.join(repo_home, f"airsenal_transfer_{CURRENT_SEASON}.json"), "w"
-    ) as f:
-        json.dump(transfers, f)
+    _dump(
+        get_fetcher().get_fpl_transfer_data(),
+        f"airsenal_transfer_{CURRENT_SEASON}.json",
+    )
 
     logger.info("Saving team data...")
-    team_data = [get_fetcher().get_fpl_team_data(gameweek) for gameweek in range(1, 39)]
-    with open(os.path.join(repo_home, f"airsenal_gw_{CURRENT_SEASON}.json"), "w") as f:
-        json.dump(team_data, f)
+    _dump(
+        [get_fetcher().get_fpl_team_data(gameweek) for gameweek in range(1, 39)],
+        f"airsenal_gw_{CURRENT_SEASON}.json",
+    )
 
     logger.info("Making player summary data file...")
     make_player_summary(CURRENT_SEASON)

@@ -9,8 +9,7 @@ Types only: an option's default belongs to whatever the option configures, so a
 command imports it from there rather than from here.
 """
 
-from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -20,7 +19,6 @@ from airsenal.optimization.squad_optimizers import (
 from airsenal.optimization.transfer_optimizers import (
     TRANSFER_OPTIMIZERS,
 )
-from airsenal.pipeline.settings import StaleDatabase
 from airsenal.prediction.minutes_models import MINUTES_MODELS
 from airsenal.prediction.player_models import PLAYER_MODELS
 from airsenal.prediction.points_models import POINTS_MODELS
@@ -33,8 +31,17 @@ OPTIMISATION = "Optimisation"
 OUTPUT = "Output"
 
 
+_SEASON_HELP = "Season in the form 2526."
+_N_GAMEWEEKS_HELP = "Number of gameweeks to look ahead."
+
+
 def _names(table: dict[str, object]) -> str:
     return ", ".join(sorted(table))
+
+
+def _chip_option(chip: str) -> Any:
+    """The option naming the gameweek to play `chip` in."""
+    return typer.Option(help=f"{chip} gameweek; 0 for any gameweek, -1 for never.")
 
 
 # --------------------------------------------------------------- identity ----
@@ -44,8 +51,8 @@ FplTeamId = Annotated[
     typer.Option(help="FPL team ID. Defaults to $FPL_TEAM_ID."),
 ]
 
-Season = Annotated[str, typer.Option(help="Season in the form 2526.")]
-OptionalSeason = Annotated[str | None, typer.Option(help="Season in the form 2526.")]
+Season = Annotated[str, typer.Option(help=_SEASON_HELP)]
+OptionalSeason = Annotated[str | None, typer.Option(help=_SEASON_HELP)]
 
 Tag = Annotated[
     str | None,
@@ -56,12 +63,12 @@ Tag = Annotated[
 
 NGameweeks = Annotated[
     int,
-    typer.Option("--n-gameweeks", min=1, help="Number of gameweeks to look ahead."),
+    typer.Option("--n-gameweeks", min=1, help=_N_GAMEWEEKS_HELP),
 ]
 
 OptionalNGameweeks = Annotated[
     int | None,
-    typer.Option("--n-gameweeks", min=1, help="Number of gameweeks to look ahead."),
+    typer.Option("--n-gameweeks", min=1, help=_N_GAMEWEEKS_HELP),
 ]
 
 GameweekStart = Annotated[int | None, typer.Option(help="First gameweek to cover.")]
@@ -88,28 +95,6 @@ CurrentSeason = Annotated[
     bool,
     typer.Option(
         help="Include the current season in a fresh database.",
-        rich_help_panel=DATABASE,
-    ),
-]
-
-RefreshDatabase = Annotated[
-    bool,
-    typer.Option(
-        help=(
-            "Fetch new data before predicting. Off, the run works from what the "
-            "database already holds - re-optimise without re-fetching."
-        ),
-        rich_help_panel=DATABASE,
-    ),
-]
-
-OnStale = Annotated[
-    StaleDatabase,
-    typer.Option(
-        help=(
-            "What to do if the database could not be brought up to date. "
-            "'abort' is the one for an unattended run."
-        ),
         rich_help_panel=DATABASE,
     ),
 ]
@@ -255,13 +240,6 @@ NumFreeTransfers = Annotated[
     ),
 ]
 
-Budget = Annotated[
-    int,
-    typer.Option(
-        min=0, help="Budget in 0.1 million units.", rich_help_panel=OPTIMISATION
-    ),
-]
-
 NumGenerations = Annotated[
     int | None,
     typer.Option(
@@ -276,14 +254,6 @@ PopulationSize = Annotated[
     typer.Option(
         min=1,
         help="Candidate squads per generation.",
-        rich_help_panel=OPTIMISATION,
-    ),
-]
-
-ZeroPointsPlayers = Annotated[
-    bool,
-    typer.Option(
-        help="Consider players predicted to score nothing.",
         rich_help_panel=OPTIMISATION,
     ),
 ]
@@ -308,44 +278,12 @@ DryRun = Annotated[
     ),
 ]
 
-OutputDir = Annotated[
-    Path | None,
-    typer.Option(
-        help="Directory to write results to. Defaults to the current directory.",
-        rich_help_panel=OUTPUT,
-    ),
-]
-
-TagPrefix = Annotated[
-    str,
-    typer.Option(
-        help="Prefix for the result tag and filename. Defaults to a timestamped one.",
-        rich_help_panel=OUTPUT,
-    ),
-]
-
-
 # ------------------------------------------------------------------ chips ----
 
-WildcardGameweek = Annotated[
-    int,
-    typer.Option(help="Wildcard gameweek; 0 for any gameweek, -1 for never."),
-]
-
-FreeHitGameweek = Annotated[
-    int,
-    typer.Option(help="Free hit gameweek; 0 for any gameweek, -1 for never."),
-]
-
-TripleCaptainGameweek = Annotated[
-    int,
-    typer.Option(help="Triple captain gameweek; 0 for any gameweek, -1 for never."),
-]
-
-BenchBoostGameweek = Annotated[
-    int,
-    typer.Option(help="Bench boost gameweek; 0 for any gameweek, -1 for never."),
-]
+WildcardGameweek = Annotated[int, _chip_option("Wildcard")]
+FreeHitGameweek = Annotated[int, _chip_option("Free hit")]
+TripleCaptainGameweek = Annotated[int, _chip_option("Triple captain")]
+BenchBoostGameweek = Annotated[int, _chip_option("Bench boost")]
 
 # ----------------------------------------------------------------- output ----
 
@@ -356,32 +294,4 @@ Yes = Annotated[
         "-y",
         help="Do not ask for confirmation before applying anything.",
     ),
-]
-
-ApplyTransfers = Annotated[
-    bool,
-    typer.Option(
-        help="Apply the suggested transfers and lineup through the FPL API.",
-        rich_help_panel=OUTPUT,
-    ),
-]
-
-Profile = Annotated[
-    bool,
-    typer.Option(help="Profile the search's execution time.", rich_help_panel=OUTPUT),
-]
-
-SavePlans = Annotated[
-    Path | None,
-    typer.Option(
-        help="Directory to write every plan considered to, as JSON.",
-        rich_help_panel=OUTPUT,
-    ),
-]
-
-# An internal persistence mode, not a user concept: `replay` sets it, and a
-# person running `optimize` has no reason to.
-IsReplay = Annotated[
-    bool,
-    typer.Option(help="Store suggestions as replay transactions.", hidden=True),
 ]

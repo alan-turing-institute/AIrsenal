@@ -35,21 +35,16 @@ def get_json(
     API could not be reached, `RemoteHTTPError` (carrying the status code) for a
     non-200 response.
     """
-    tries = 0
-    r = None
-    while tries < attempts:
+    msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
+    for attempt in range(1, attempts + 1):
         try:
             r = session.get(url, headers=headers or {}, params=params)
             break
         except requests.exceptions.ConnectionError as e:
-            tries += 1
-            if tries == attempts:
-                msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
+            if attempt == attempts:
                 raise RemoteConnectionError(msg) from e
             time.sleep(1)
-
-    if r is None:
-        msg = f"{err_msg}: Failed to connect to FPL API when requesting {url}"
+    else:
         raise RemoteConnectionError(msg)
 
     if r.status_code == 200:
