@@ -262,6 +262,8 @@ uv run pytest tests
 
 Then:
 
+- [docs/where-to-look.md](docs/where-to-look.md) — where to start for a command, a task
+  or a log line.
 - [docs/architecture.md](docs/architecture.md) — how the package is laid out and where
   new code goes.
 - [docs/adding-a-model.md](docs/adding-a-model.md) — how to plug in your own prediction

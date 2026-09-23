@@ -1,7 +1,8 @@
 # How AIrsenal is put together
 
-Where things live, and why they live there. For what the code *does* at runtime -
-the database schema and how points predictions are built - see
+Where things live, and why they live there. To start from a command or a task
+instead, see [where-to-look.md](where-to-look.md). For what the code *does* at
+runtime - the database schema and how points predictions are built - see
 [how-it-works.md](how-it-works.md). For how to add a model or an algorithm, see
 [adding-a-model.md](adding-a-model.md), and for where every number in the two
 default models came from, [xg-models.md](xg-models.md).
@@ -71,22 +72,40 @@ rule, along with the naming and argument-order conventions.
 
 ## The map
 
+Every module, in the order of the chain from the bottom up. To start from a task
+or a command instead, see [where-to-look.md](where-to-look.md).
+`tests/test_navigation_docs.py` fails when a module is missing from this table
+or a row names one that does not exist.
+
 | file | what is in it |
 |---|---|
 | `game/enums.py` | `Position` and `Chip` |
-| `game/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `MAX_FREE_TRANSFERS` |
+| `game/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `POINTS_HIT_COST`, free transfer accrual |
 | `game/season.py` | which season it is, and how a season is written |
-| `game/mappings.py` | what other data sources call clubs and positions |
-| `core/lookup.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
+| `game/mappings.py` | what other data sources call clubs, positions and chips |
+| `core/caching.py` | the query caches, and `clear_query_caches()` |
 | `core/concurrency.py` | the fork the transfer search needs, and the handlers that make it safe |
 | `core/console.py` | Rich console, tables, progress bars, and `confirm()` |
-| `remote/fpl_api.py` | the FPL API client |
+| `core/copy.py` | fast deep copies for the optimiser's inner loop |
+| `core/data_files.py` | locating the packaged data in `src/airsenal/data/` |
+| `core/dates.py` | date and datetime parsing |
+| `core/env.py` | AIrsenal's settings (`FPL_TEAM_ID`, `FPL_LOGIN`, the database) and where they are stored |
+| `core/logging.py` | logger setup, and relaying a forked worker's logs through its parent |
+| `core/lookup.py` | `lookup()` and `ConfigError`: turning a name into an implementation |
+| `remote/fpl_api.py` | `FPLDataFetcher`, the FPL API client, and `get_fetcher()` |
+| `remote/fpl_http.py` | where the FPL API lives and how a request to it is made |
+| `remote/fpl_auth.py` | logging in to the FPL account |
 | `remote/errors.py` | `RemoteError` and friends, so callers need not know the HTTP library |
+| `remote/transfermarkt.py` | scraping injuries and suspensions from Transfermarkt |
+| `remote/discord.py` | posting to a Discord webhook |
+| `remote/download.py` | resumable file downloads |
 | `db/models.py` | every table in the database |
 | `db/queries/` | reading and writing them, one module per subject |
 | `db/session.py` | the lazily-created engine and the default session |
+| `db/engine.py` | which database to talk to: SQLite, or postgres from `AIRSENAL_DB_URI` |
 | `prediction/protocols.py` | `PointsModel`, `PlayerModel`, the three `TeamModel` kinds, `MinutesModel`, `PointComponent`, and the typed data and requests each is given |
 | `prediction/features.py` | assembling the historical data the models are fitted to |
+| `prediction/minutes.py` | recent minutes, and whether a player is absent, for the minutes models |
 | `prediction/player_models/` | one module per player model, plus shared fitting and scaling |
 | `prediction/minutes_models/` | one module per way of predicting how long a player plays |
 | `prediction/team_models/` | one module per team model, plus shared fitting, and `scorelines.py` for adapting between what a model predicts and what prediction needs |
@@ -95,17 +114,52 @@ rule, along with the naming and argument-order conventions.
 | `prediction/evaluation.py` | scoring a model, or a whole run's points, against what happened |
 | `prediction/run.py` | filling the prediction table, and the tag that groups a run's rows |
 | `squad/squad.py` | `Squad`: fifteen players and the rules they obey |
-| `squad/state.py` | the state of the user's own entry, from the database and the API |
+| `squad/player.py` | `CandidatePlayer` and `DummyPlayer`: a player as the squad sees them |
+| `squad/lineup.py` | choosing the starting eleven, bench order and captain |
+| `squad/pricing.py` | what a player would sell for |
+| `squad/state.py` | the state of the user's own entry: bank, free transfers, players and chips by gameweek |
+| `squad/history.py` | the user's transaction history, rebuilt from the FPL API |
+| `reporting/top_players.py` | the top predicted players, as tables and Discord posts |
+| `reporting/optimization.py` | printing what a search decided, and its Discord post |
+| `reporting/squad_view.py` | drawing a squad in the terminal |
+| `reporting/plots.py` | a mini-league's standings by gameweek |
+| `ingest/init_db.py` | `airsenal db create`: building the database from scratch |
+| `ingest/update.py` | `airsenal db update`: bringing it up to date with the FPL API |
+| `ingest/checks.py` | `airsenal db check`: consistency checks over the result |
+| `ingest/teams.py` | filling `team` |
+| `ingest/players.py` | filling `player` |
+| `ingest/player_mappings.py` | filling `player_mapping`, the other names a player goes by |
+| `ingest/player_attributes.py` | filling `player_attributes`: price, team, position and availability per gameweek |
+| `ingest/attributes_history.py` | reading the daily player attributes snapshots |
+| `ingest/absences.py` | reading the packaged absences CSVs |
+| `ingest/fixtures.py` | filling `fixture` |
+| `ingest/results.py` | filling `result` |
+| `ingest/player_scores.py` | filling `player_score` |
+| `ingest/fifa_ratings.py` | filling `fifa_rating` |
+| `export/db_dump.py` | `airsenal dump db`: every table to CSV |
+| `export/api_dump.py` | `airsenal dump api`: saving what the API returns to the packaged data |
+| `export/attributes.py` | `airsenal dump attributes`: today's attributes appended to the season history |
+| `export/player_details.py` | every player's gameweek scores this season, for the packaged data |
+| `export/player_summary.py` | the player summary files, for the packaged data |
+| `export/results.py` | the results CSVs, for the packaged data |
 | `optimization/protocols.py` | `SquadOptimizer`, `TransferStrategy`, `TransferOptimizer` and their requests |
+| `optimization/moves.py` | what can be done in one gameweek: transfers, chips, hits and free transfers |
 | `optimization/plan.py` | `Plan` and `TransferSearchResult`: what a search produces |
 | `optimization/squad_score.py` | what a squad is worth over a window, and `SquadScoringConfig` |
+| `optimization/run_transfers.py` | running a transfer search: everything around the algorithm |
+| `optimization/run_squad.py` | running a from-scratch squad build |
+| `optimization/persist.py` | writing a plan to the `transfer_suggestion` and `transaction` tables |
 | `optimization/transfer_optimizers/` | one module per whole-window search |
 | `optimization/strategies/` | one module per way of choosing a gameweek's transfers |
 | `optimization/squad_optimizers/` | one module per whole-squad builder |
+| `apply/transfers.py` | posting the suggested transfers, and `build_transfer_payload` for checking them without posting |
+| `apply/lineup.py` | posting the starting eleven, captain and bench order |
 | `pipeline/run.py` | `AIrsenalPipeline`: the swappable components and the stages that use them |
 | `pipeline/settings.py` | `PipelineSettings`: what a run does, as opposed to what it does it with |
 | `pipeline/replay.py` | replaying a past season, and the `ReplayResult` it scores |
+| `cli/` | one module per command or command group; the table in [where-to-look.md](where-to-look.md) says which |
 | `cli/options.py` | the option aliases shared across commands |
+| `cli/_components.py` | the settings several commands build from the same flags |
 
 Outside the package: `tests/` mirrors it where there is enough to mirror,
 `tools/` holds dev one-offs (installed with the `tools` extra, and type-checked),

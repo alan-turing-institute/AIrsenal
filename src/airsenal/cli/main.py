@@ -32,7 +32,12 @@ app = typer.Typer(
 @app.callback()
 def main(
     verbose: Annotated[
-        bool, typer.Option("--verbose", "-v", help="Show debug-level output.")
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Show debug output, each line tagged with the module that logged it.",
+        ),
     ] = False,
     quiet: Annotated[
         bool, typer.Option("--quiet", "-q", help="Only show warnings and errors.")

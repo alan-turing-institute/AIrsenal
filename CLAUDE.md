@@ -15,6 +15,8 @@ squad size, position limits, chips, etc.).
 The durable documentation is in the repository, written for anyone working here rather
 than for an agent. Prefer it to anything restated below:
 
+- **[docs/where-to-look.md](docs/where-to-look.md)** — where to start from a command, a
+  task, a log line or a failing guardrail test.
 - **[docs/architecture.md](docs/architecture.md)** — the package chain, what each package
   owns, which contracts enforce it, and a file-by-file map.
 - **[docs/adding-a-model.md](docs/adding-a-model.md)** — the eight pluggable component

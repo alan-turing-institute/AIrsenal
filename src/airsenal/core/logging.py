@@ -24,7 +24,14 @@ _relay_queues: "list[Queue[logging.LogRecord | None]]" = []
 
 
 def configure_logging(level: int | str = logging.INFO) -> None:
-    """Configure the AIrsenal logger to write bare, coloured messages through Rich."""
+    """Configure the AIrsenal logger to write coloured messages through Rich.
+
+    At debug level each message is prefixed with the module and line that logged
+    it, e.g. ``airsenal.prediction.run:112``.
+    """
+    logger = logging.getLogger(_LOGGER_NAME)
+    logger.setLevel(level)
+
     handler = RichHandler(
         console=console,
         show_time=False,
@@ -33,11 +40,11 @@ def configure_logging(level: int | str = logging.INFO) -> None:
         markup=True,
         rich_tracebacks=True,
     )
-    handler.setFormatter(logging.Formatter("%(message)s"))
+    debug = logger.getEffectiveLevel() <= logging.DEBUG
+    fmt = "[dim]%(name)s:%(lineno)d[/dim]  %(message)s" if debug else "%(message)s"
+    handler.setFormatter(logging.Formatter(fmt))
 
-    logger = logging.getLogger(_LOGGER_NAME)
     logger.handlers = [handler]
-    logger.setLevel(level)
     logger.propagate = False
 
 
