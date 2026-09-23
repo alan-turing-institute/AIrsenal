@@ -5,11 +5,8 @@ from operator import itemgetter
 
 import numpy as np
 
-from airsenal.core.logging import get_logger
 from airsenal.game.enums import Position
 from airsenal.squad.player import SquadPlayer
-
-logger = get_logger(__name__)
 
 FORMATION_POSITIONS = (Position.DEF, Position.MID, Position.FWD)
 
@@ -67,7 +64,6 @@ def choose_starting_eleven(
         if score >= best_score:
             best_score = score
             best_formation = f
-    logger.debug("Best formation is %s", best_formation)
     if best_formation is None:
         msg = "No valid formation found for squad"
         raise RuntimeError(msg)

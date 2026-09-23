@@ -100,6 +100,7 @@ class Squad:
         Add a player, by name or by player_id.
 
         Without a `price`, the player's current price in the database is used.
+        Returns False, adding nothing, if the player would break a squad rule.
         """
         gameweek = next_gameweek() if gameweek is None else gameweek
         if isinstance(p, int | str | Player):
@@ -111,8 +112,6 @@ class Squad:
             player.season = self.season
             if price is not None:
                 player.purchase_price = price
-
-        logger.debug("Adding player %s", p)
 
         if not Position.is_modelled(player.position):
             logger.warning(
@@ -127,21 +126,12 @@ class Squad:
             return True
 
         # check if constraints are met
-        if not self.check_no_duplicate_player(player):
-            logger.debug("Already have %s in team", player)
-            return False
-        if not self.check_num_in_position(player):
-            logger.debug(
-                "Unable to add player %s - too many %s", player, player.position
-            )
-            return False
-        if check_budget and not self.check_cost(player):
-            logger.debug("Cannot afford player %s", player)
-            return False
-        if check_team and not self.check_num_per_team(player):
-            logger.debug(
-                "Cannot add %s - too many players from %s", player, player.team
-            )
+        if (
+            not self.check_no_duplicate_player(player)
+            or not self.check_num_in_position(player)
+            or (check_budget and not self.check_cost(player))
+            or (check_team and not self.check_num_per_team(player))
+        ):
             return False
         self.players.append(player)
         self.count_per_team[player.team] += 1

@@ -10,17 +10,41 @@ import os
 import threading
 from collections.abc import Generator
 from contextlib import contextmanager
-from multiprocessing import Queue
+from multiprocessing import Queue, Value
+from queue import Full
+from typing import TYPE_CHECKING
 
 from rich.logging import RichHandler
 
 from airsenal.core.console import console
 
+if TYPE_CHECKING:
+    from multiprocessing.sharedctypes import Synchronized
+
 _LOGGER_NAME = "airsenal"
 
-# Where a forked child should send its log records, while this process owns a
-# live display. Empty means "write them yourself", which is the normal case.
-_relay_queues: "list[Queue[logging.LogRecord | None]]" = []
+
+class _RelayHandler(logging.handlers.QueueHandler):
+    """Send records to the parent, dropping and counting them when it falls behind."""
+
+    def __init__(
+        self, queue: "Queue[logging.LogRecord | None]", dropped: "Synchronized[int]"
+    ) -> None:
+        super().__init__(queue)
+        self.dropped = dropped
+
+    def enqueue(self, record: logging.LogRecord) -> None:
+        try:
+            self.queue.put_nowait(record)
+        except Full:
+            with self.dropped.get_lock():
+                self.dropped.value += 1
+
+
+# Where a forked child should send its log records, and the count of those it
+# had to drop, while this process owns a live display. Empty means "write them
+# yourself", which is the normal case.
+_relays: "list[tuple[Queue[logging.LogRecord | None], Synchronized[int]]]" = []
 
 
 def configure_logging(level: int | str = logging.INFO) -> None:
@@ -55,10 +79,10 @@ def get_logger(name: str) -> logging.Logger:
 
 def _send_records_to_parent() -> None:
     """In a forked child, log to the relay queue instead of the terminal."""
-    if not _relay_queues:
+    if not _relays:
         return
     logger = logging.getLogger(_LOGGER_NAME)
-    logger.handlers = [logging.handlers.QueueHandler(_relay_queues[-1])]
+    logger.handlers = [_RelayHandler(*_relays[-1])]
     logger.propagate = False
 
 
@@ -75,9 +99,12 @@ def relay_child_logs() -> Generator[None]:
     records are emitted by the parent above the display instead, and identical
     messages only once.
 
-    Only children forked inside the block are redirected.
+    Only children forked inside the block are redirected. The queue is bounded
+    (32767 records on macOS), so a child logging faster than the terminal can
+    show drops records rather than blocking, and the parent says how many.
     """
     queue: Queue[logging.LogRecord | None] = Queue()
+    dropped: Synchronized[int] = Value("i", 0)
     seen: set[tuple[int, str]] = set()
 
     def relay() -> None:
@@ -93,10 +120,17 @@ def relay_child_logs() -> Generator[None]:
 
     thread = threading.Thread(target=relay, daemon=True)
     thread.start()
-    _relay_queues.append(queue)
+    this_relay = (queue, dropped)
+    _relays.append(this_relay)
     try:
         yield
     finally:
-        _relay_queues.remove(queue)
+        _relays.remove(this_relay)
         queue.put(None)
         thread.join()
+        if dropped.value:
+            logging.getLogger(__name__).warning(
+                "Dropped %s log messages from worker processes: they arrived "
+                "faster than the terminal could show them.",
+                dropped.value,
+            )

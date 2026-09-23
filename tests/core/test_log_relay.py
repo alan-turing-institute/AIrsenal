@@ -14,7 +14,12 @@ from collections.abc import Iterator
 
 import pytest
 
-from airsenal.core.logging import configure_logging, get_logger, relay_child_logs
+from airsenal.core.logging import (
+    _RelayHandler,
+    configure_logging,
+    get_logger,
+    relay_child_logs,
+)
 
 pytestmark = [
     pytest.mark.skipif(not hasattr(os, "fork"), reason="fork is posix-only"),
@@ -80,7 +85,7 @@ def test_the_child_does_not_write_the_record_itself() -> None:
 
     with relay_child_logs():
         _fork_and_wait(_report_handlers, queue)
-        assert queue.get(timeout=30) == ["QueueHandler"]
+        assert queue.get(timeout=30) == ["_RelayHandler"]
 
 
 def test_a_child_forked_outside_the_block_keeps_its_own_handler() -> None:
@@ -104,3 +109,19 @@ def test_the_same_message_from_several_workers_is_emitted_once(
         "incomplete data in the db",
         "something else",
     ]
+
+
+def test_a_full_relay_queue_drops_and_counts_rather_than_raising(capsys) -> None:
+    queue = multiprocessing.get_context("fork").Queue(maxsize=1)
+    dropped = multiprocessing.Value("i", 0)
+    logger = logging.getLogger("airsenal.tests.full_relay")
+    logger.handlers = [_RelayHandler(queue, dropped)]
+    logger.propagate = False
+    try:
+        for i in range(3):
+            logger.warning("message %s", i)
+    finally:
+        logger.handlers = []
+
+    assert dropped.value == 2
+    assert "Logging error" not in capsys.readouterr().err
