@@ -5,11 +5,13 @@ Run by `airsenal db check`. By default the checks cover `default_seasons()` - th
 current season plus the three before it.
 """
 
-from sqlalchemy import select
+from collections.abc import Iterator, Sequence
+
+from sqlalchemy import ColumnElement, select
 from sqlalchemy.orm.session import Session
 
 from airsenal.core.logging import get_logger
-from airsenal.db.models import PlayerScore
+from airsenal.db.models import Fixture, PlayerScore, Result
 from airsenal.db.queries.fixtures import get_fixtures_for_season
 from airsenal.db.queries.scores import get_player_scores
 from airsenal.db.queries.teams import get_teams_for_season
@@ -85,33 +87,55 @@ def season_num_fixtures(seasons: list[str], dbsession: Session | None = None) ->
     return n_error
 
 
+def _fixtures_with_results(
+    seasons: list[str], dbsession: Session
+) -> Iterator[tuple[Fixture, Result]]:
+    """Every fixture of the seasons that has a result, with that result."""
+    for season in seasons:
+        for fixture in get_fixtures_for_season(season=season, dbsession=dbsession):
+            if fixture.result:
+                yield fixture, fixture.result
+
+
+def _team_scores(
+    fixture: Fixture,
+    team: str,
+    dbsession: Session,
+    *conditions: ColumnElement[bool],
+) -> Sequence[PlayerScore]:
+    """The scores of one team's players in a fixture, filtered by `conditions`."""
+    return dbsession.scalars(
+        select(PlayerScore).where(
+            PlayerScore.fixture_id == fixture.fixture_id,
+            PlayerScore.player_team == team,
+            *conditions,
+        )
+    ).all()
+
+
 def fixture_player_teams(seasons: list[str], dbsession: Session | None = None) -> int:
     """Check every player in a match is labelled with one of the two teams playing."""
     dbsession = get_session(dbsession)
     logger.info("Checking player teams match fixture teams...")
     n_error = 0
 
-    for season in seasons:
-        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
+    for fixture, _result in _fixtures_with_results(seasons, dbsession):
+        player_scores = get_player_scores(fixture=fixture, dbsession=dbsession)
+        if player_scores is None:
+            logger.warning("Fixture %s has no player scores", fixture)
+            continue
 
-        for fixture in fixtures:
-            if fixture.result:
-                player_scores = get_player_scores(fixture=fixture, dbsession=dbsession)
-                if player_scores is None:
-                    logger.warning("Fixture %s has no player scores", fixture)
-                    continue
-
-                for score in player_scores:
-                    if score.player_team not in [
-                        fixture.home_team,
-                        fixture.away_team,
-                    ]:
-                        n_error += 1
-                        msg = (
-                            f"{fixture}: {score.player} in player_scores but labelled "
-                            f"as playing for {score.player_team}."
-                        )
-                        logger.warning(msg)
+        for score in player_scores:
+            if score.player_team not in [
+                fixture.home_team,
+                fixture.away_team,
+            ]:
+                n_error += 1
+                msg = (
+                    f"{fixture}: {score.player} in player_scores but labelled "
+                    f"as playing for {score.player_team}."
+                )
+                logger.warning(msg)
 
     logger.info(result_string(n_error))
     return n_error
@@ -136,57 +160,32 @@ def fixture_num_players(seasons: list[str], dbsession: Session | None = None) ->
     )
     n_error = 0
 
-    for season in seasons:
-        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
+    for fixture, result in _fixtures_with_results(seasons, dbsession):
+        home_scores = _team_scores(
+            fixture, fixture.home_team, dbsession, PlayerScore.minutes > 0
+        )
+        away_scores = _team_scores(
+            fixture, fixture.away_team, dbsession, PlayerScore.minutes > 0
+        )
 
-        for fixture in fixtures:
-            result = fixture.result
+        # No. subs changes during Covid and later rule changes
+        if (
+            fixture.season == "1920"
+            and (fixture.gameweek is not None and fixture.gameweek >= 39)
+        ) or (int(fixture.season[:2]) >= 22):
+            upper_team_limit = 16
+        else:
+            upper_team_limit = 14
 
-            if result:
-                home_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.home_team,
-                        PlayerScore.minutes > 0,
-                    )
-                ).all()
-
-                away_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.away_team,
-                        PlayerScore.minutes > 0,
-                    )
-                ).all()
-
-                # No. subs changes during Covid and later rule changes
-                if (
-                    fixture.season == "1920"
-                    and (fixture.gameweek is not None and fixture.gameweek >= 39)
-                ) or (int(fixture.season[:2]) >= 22):
-                    upper_team_limit = 16
-                else:
-                    upper_team_limit = 14
-
-                if not (
-                    (len(home_scores) > 10) and (len(home_scores) <= upper_team_limit)
-                ):
-                    n_error += 1
-                    logger.warning(
-                        "%s: %s players with minutes > 0 for home team.",
-                        result,
-                        len(home_scores),
-                    )
-
-                if not (
-                    (len(away_scores) > 10) and (len(away_scores) <= upper_team_limit)
-                ):
-                    n_error += 1
-                    logger.warning(
-                        "%s: %s players with minutes > 0 for away team.",
-                        result,
-                        len(away_scores),
-                    )
+        for scores, side in ((home_scores, "home"), (away_scores, "away")):
+            if not ((len(scores) > 10) and (len(scores) <= upper_team_limit)):
+                n_error += 1
+                logger.warning(
+                    "%s: %s players with minutes > 0 for %s team.",
+                    result,
+                    len(scores),
+                    side,
+                )
 
     logger.info(result_string(n_error))
     return n_error
@@ -198,50 +197,33 @@ def fixture_num_goals(seasons: list[str], dbsession: Session | None = None) -> i
     logger.info("Checking sum of player goals equals match results...")
     n_error = 0
 
-    for season in seasons:
-        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
+    for fixture, result in _fixtures_with_results(seasons, dbsession):
+        home_scores = _team_scores(fixture, fixture.home_team, dbsession)
+        away_scores = _team_scores(fixture, fixture.away_team, dbsession)
 
-        for fixture in fixtures:
-            result = fixture.result
+        home_goals = sum(score.goals for score in home_scores) + sum(
+            score.own_goals or 0 for score in away_scores
+        )
 
-            if result:
-                home_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.home_team,
-                    )
-                ).all()
+        away_goals = sum(score.goals for score in away_scores) + sum(
+            score.own_goals or 0 for score in home_scores
+        )
 
-                away_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.away_team,
-                    )
-                ).all()
+        if home_goals != result.home_score:
+            n_error += 1
+            msg = (
+                f"{result}: Player scores sum to {home_goals} "
+                f"but {result.home_score} goals in result for home team"
+            )
+            logger.warning(msg)
 
-                home_goals = sum(score.goals for score in home_scores) + sum(
-                    score.own_goals or 0 for score in away_scores
-                )
-
-                away_goals = sum(score.goals for score in away_scores) + sum(
-                    score.own_goals or 0 for score in home_scores
-                )
-
-                if home_goals != result.home_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player scores sum to {home_goals} "
-                        f"but {result.home_score} goals in result for home team"
-                    )
-                    logger.warning(msg)
-
-                if away_goals != result.away_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player scores sum to {away_goals} but "
-                        f"{result.away_score} goals in result for away team"
-                    )
-                    logger.warning(msg)
+        if away_goals != result.away_score:
+            n_error += 1
+            msg = (
+                f"{result}: Player scores sum to {away_goals} but "
+                f"{result.away_score} goals in result for away team"
+            )
+            logger.warning(msg)
 
     logger.info(result_string(n_error))
     return n_error
@@ -257,44 +239,28 @@ def fixture_num_assists(seasons: list[str], dbsession: Session | None = None) ->
     logger.info("Checking no. assists less than or equal to no. goals...")
     n_error = 0
 
-    for season in seasons:
-        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
+    for fixture, result in _fixtures_with_results(seasons, dbsession):
+        home_scores = _team_scores(fixture, fixture.home_team, dbsession)
+        away_scores = _team_scores(fixture, fixture.away_team, dbsession)
 
-        for fixture in fixtures:
-            result = fixture.result
-            if result:
-                home_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.home_team,
-                    )
-                ).all()
+        home_assists = sum(score.assists for score in home_scores)
+        away_assists = sum(score.assists for score in away_scores)
 
-                away_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.away_team,
-                    )
-                ).all()
+        if home_assists > result.home_score:
+            n_error += 1
+            msg = (
+                f"{result}: Player assists sum to {home_assists} but "
+                f"{result.home_score} goals in result for home team"
+            )
+            logger.warning(msg)
 
-                home_assists = sum(score.assists for score in home_scores)
-                away_assists = sum(score.assists for score in away_scores)
-
-                if home_assists > result.home_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player assists sum to {home_assists} but "
-                        f"{result.home_score} goals in result for home team"
-                    )
-                    logger.warning(msg)
-
-                if away_assists > result.away_score:
-                    n_error += 1
-                    msg = (
-                        f"{result}: Player assists sum to {away_assists} but "
-                        f"{result.away_score} goals in result for away team"
-                    )
-                    logger.warning(msg)
+        if away_assists > result.away_score:
+            n_error += 1
+            msg = (
+                f"{result}: Player assists sum to {away_assists} but "
+                f"{result.away_score} goals in result for away team"
+            )
+            logger.warning(msg)
 
     logger.info(result_string(n_error))
     return n_error
@@ -312,50 +278,36 @@ def fixture_num_conceded(seasons: list[str], dbsession: Session | None = None) -
     logger.info("Checking no. goals conceded matches goals scored by opponent...")
     n_error = 0
 
-    for season in seasons:
-        fixtures = get_fixtures_for_season(season=season, dbsession=dbsession)
+    for fixture, result in _fixtures_with_results(seasons, dbsession):
+        home_scores = _team_scores(
+            fixture, fixture.home_team, dbsession, PlayerScore.minutes == 90
+        )
+        away_scores = _team_scores(
+            fixture, fixture.away_team, dbsession, PlayerScore.minutes == 90
+        )
 
-        for fixture in fixtures:
-            result = fixture.result
-            if result:
-                home_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.home_team,
-                        PlayerScore.minutes == 90,
-                    )
-                ).all()
-
-                away_scores = dbsession.scalars(
-                    select(PlayerScore).where(
-                        PlayerScore.fixture_id == fixture.fixture_id,
-                        PlayerScore.player_team == fixture.away_team,
-                        PlayerScore.minutes == 90,
-                    )
-                ).all()
-
-                for scores, conceded_by_opponent, side in (
-                    (home_scores, result.away_score, "home"),
-                    (away_scores, result.home_score, "away"),
-                ):
-                    conceded = max((score.conceded for score in scores), default=None)
-                    if conceded is None:
-                        n_error += 1
-                        logger.warning(
-                            "%s: no %s players recorded as playing 90 minutes, "
-                            "so goals conceded cannot be checked",
-                            result,
-                            side,
-                        )
-                    elif conceded != conceded_by_opponent:
-                        n_error += 1
-                        logger.warning(
-                            "%s: Player conceded %s but %s goals in result for %s team",
-                            result,
-                            conceded,
-                            conceded_by_opponent,
-                            side,
-                        )
+        for scores, conceded_by_opponent, side in (
+            (home_scores, result.away_score, "home"),
+            (away_scores, result.home_score, "away"),
+        ):
+            conceded = max((score.conceded for score in scores), default=None)
+            if conceded is None:
+                n_error += 1
+                logger.warning(
+                    "%s: no %s players recorded as playing 90 minutes, "
+                    "so goals conceded cannot be checked",
+                    result,
+                    side,
+                )
+            elif conceded != conceded_by_opponent:
+                n_error += 1
+                logger.warning(
+                    "%s: Player conceded %s but %s goals in result for %s team",
+                    result,
+                    conceded,
+                    conceded_by_opponent,
+                    side,
+                )
 
     logger.info(result_string(n_error))
     return n_error

@@ -41,7 +41,7 @@ from airsenal.squad.history import update_squad
 logger = get_logger(__name__)
 
 
-def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bool:
+def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> None:
     """Bring the transactions table up to date with the FPL API."""
     if next_gameweek(fetcher=get_fetcher()) != 1:
         logger.info("Checking team")
@@ -60,10 +60,9 @@ def update_transactions(season: str, fpl_team_id: int, dbsession: Session) -> bo
             logger.info("Team is up-to-date")
     else:
         logger.info("No transactions as season hasn't started")
-    return True
 
 
-def update_results(season: str, dbsession: Session) -> bool:
+def update_results(season: str, dbsession: Session) -> None:
     """
     Fill in the gameweeks that have finished since the database was last updated.
 
@@ -74,12 +73,12 @@ def update_results(season: str, dbsession: Session) -> bool:
     gameweek = next_gameweek(fetcher=fetcher)
     if gameweek == 1:
         logger.info("Season hasn't started - skipping result updates")
-        return False
+        return
 
     last_finished = fetcher.get_last_finished_gameweek()
     if last_finished == 0:
         logger.info("No complete gameweeks - skipping result updates")
-        return False
+        return
 
     # The two tables are filled by separate calls that commit separately, so they
     # can be at different gameweeks.
@@ -90,7 +89,7 @@ def update_results(season: str, dbsession: Session) -> bool:
     )
     if last_results == last_finished and last_scores == last_finished:
         logger.info("Match results up-to-date, skipping result updates")
-        return False
+        return
     if last_results > last_finished:
         msg = "Something strange has happened - DB has more recent results than API"
         raise RuntimeError(msg)
@@ -112,8 +111,6 @@ def update_results(season: str, dbsession: Session) -> bool:
             dbsession=dbsession,
         )
 
-    return True
-
 
 def update_players(season: str, dbsession: Session) -> int:
     """Add any players the FPL API has that the player table does not."""
@@ -121,29 +118,25 @@ def update_players(season: str, dbsession: Session) -> int:
         position="all", team="all", season=season, dbsession=dbsession
     )
     player_data_from_api = get_fetcher().get_player_summary_data()
-    players_from_api = list(player_data_from_api.keys())
 
-    if len(players_from_db) == len(players_from_api):
+    if len(players_from_db) == len(player_data_from_api):
         logger.info("Player table already up-to-date.")
         return 0
-    if len(players_from_db) > len(players_from_api):
+    if len(players_from_db) > len(player_data_from_api):
         msg = "Something strange has happened - more players in DB than API"
         raise RuntimeError(msg)
-    return add_players_to_db(
-        players_from_db, players_from_api, player_data_from_api, dbsession
-    )
+    return add_players_to_db(players_from_db, player_data_from_api, dbsession)
 
 
 def add_players_to_db(
     players_from_db: list[Player],
-    players_from_api: list[int],
     player_data_from_api: dict[int, dict[str, Any]],
     dbsession: Session,
 ) -> int:
     logger.info("Updating player table...")
     # find the new player(s) from the API
     api_ids_from_db = [p.fpl_api_id for p in players_from_db]
-    new_players = [p for p in players_from_api if p not in api_ids_from_db]
+    new_players = [p for p in player_data_from_api if p not in api_ids_from_db]
     for player_api_id in new_players:
         first_name = player_data_from_api[player_api_id]["first_name"]
         second_name = player_data_from_api[player_api_id]["second_name"]
@@ -151,18 +144,15 @@ def add_players_to_db(
         # check whether we already have this player in the database -
         # if yes update that player's data, if no create a new player
         p = find_player_in_table(name, dbsession=dbsession)
+        is_new = p is None
         if p is None:
             logger.info("Adding player %s", name)
             p = Player()
-            update = False
         elif p.fpl_api_id is None:
             logger.info("Updating player %s", name)
-            update = True
-        else:
-            update = True
         p.fpl_api_id = player_api_id
         p.name = name
-        if not update:
+        if is_new:
             dbsession.add(p)
             add_mappings(p, dbsession=dbsession)
 
@@ -177,10 +167,8 @@ def update_attributes(season: str, dbsession: Session) -> None:
     That gameweek is included rather than skipped: prices and availability can
     change after its matches finish but before the next deadline.
     """
-    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession)
-    if not last_in_db:
-        # no results in database for this season yet
-        last_in_db = 0
+    # 0 when there are no results in the database for this season yet
+    last_in_db = get_last_complete_gameweek_in_db(season, dbsession=dbsession) or 0
 
     logger.info("Updating attributes table ...")
     fill_attributes_table_from_api(
@@ -195,7 +183,7 @@ def update_attributes(season: str, dbsession: Session) -> None:
 
 def update_db(
     season: str, do_attributes: bool, fpl_team_id: int, session: Session
-) -> bool:
+) -> None:
     """
     Update every table from the FPL API.
 
@@ -229,7 +217,6 @@ def update_db(
         clear_query_caches()
         update_results(season, session)
         update_transactions(season, fpl_team_id, session)
-    return True
 
 
 def update_database(season: str, attributes: bool, fpl_team_id: int | None) -> None:

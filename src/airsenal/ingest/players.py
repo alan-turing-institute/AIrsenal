@@ -54,16 +54,13 @@ def fill_player_table_from_file(
     with open(filename) as f:
         jplayers = json.load(f)
     for jp in track(jplayers, description=f"PLAYERS {season}"):
-        new_entry = False
         name = jp["name"]
         opta_code = jp.get("opta_code")
         p = find_player_in_table(name, dbsession, opta_code=opta_code)
         if not p:
-            new_entry = True
             p = Player()
             p.name = name
             p.opta_code = opta_code
-        if new_entry:
             dbsession.add(p)
             dbsession.commit()
             add_mappings(p, dbsession=dbsession)

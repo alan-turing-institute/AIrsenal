@@ -7,11 +7,9 @@ from airsenal.core.data_files import FilePath, data_file
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Result
 from airsenal.db.queries.fixtures import find_fixture
-from airsenal.db.queries.gameweeks import (
-    next_gameweek,
-)
+from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.session import get_session
-from airsenal.game.mappings import alternative_team_names
+from airsenal.game.mappings import canonical_team_name
 from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.remote.fpl_api import get_fetcher
 
@@ -32,11 +30,8 @@ def fill_results_from_csv(
             away_score,
             _gameweek,
         ) = line.strip().split(",")
-        for k, v in alternative_team_names.items():
-            if home_team in v:
-                home_team = k
-            elif away_team in v:
-                away_team = k
+        home_team = canonical_team_name(home_team) or home_team
+        away_team = canonical_team_name(away_team) or away_team
         # query database to find corresponding fixture
         fixture = find_fixture(
             home_team,
@@ -74,13 +69,8 @@ def fill_results_from_api(
             continue
         home_id = m["team_h"]
         away_id = m["team_a"]
-        home_team = None
-        away_team = None
-        for k, v in alternative_team_names.items():
-            if str(home_id) in v:
-                home_team = k
-            elif str(away_id) in v:
-                away_team = k
+        home_team = canonical_team_name(str(home_id))
+        away_team = canonical_team_name(str(away_id))
         if not home_team:
             msg = f"Unable to find team with id {home_id}"
             raise ValueError(msg)
@@ -106,17 +96,11 @@ def fill_results_from_api(
                 gameweek,
             )
             continue
-        if f.result is None:
-            res = Result()
-            add = True
-        else:
-            res = f.result
-            add = False
+        res = f.result or Result()
         res.fixture = f
         res.home_score = int(home_score)
         res.away_score = int(away_score)
-        if add:
-            dbsession.add(res)
+        dbsession.add(res)
     dbsession.commit()
 
 

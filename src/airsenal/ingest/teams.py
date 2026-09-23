@@ -20,11 +20,7 @@ def fill_team_table_from_file(
     """Read the teams for a season from its packaged CSV file."""
     dbsession = get_session(dbsession)
     with open(filename) as infile:
-        first_line = True
-        for line in infile.readlines():
-            if first_line:
-                first_line = False
-                continue
+        for line in infile.readlines()[1:]:
             t = Team()
             t.name, t.full_name, t.season, team_id = line.strip().split(",")
             t.team_id = int(team_id)

@@ -220,12 +220,10 @@ class AIrsenalPipeline:
         self, fpl_team_id: int, attributes: bool, dbsession: Session
     ) -> None:
         try:
-            updated = update_db(CURRENT_SEASON, attributes, fpl_team_id, dbsession)
+            update_db(CURRENT_SEASON, attributes, fpl_team_id, dbsession)
         except RemoteError:
             logger.warning("Database update failed.", exc_info=True)
-            updated = False
-
-        if updated:
+        else:
             logger.info("[green]Database update complete![/green]")
             return
 

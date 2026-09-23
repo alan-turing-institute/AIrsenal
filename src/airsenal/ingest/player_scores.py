@@ -12,15 +12,13 @@ from airsenal.core.console import track
 from airsenal.core.data_files import data_file
 from airsenal.core.dates import parse_date
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Fixture, Player, PlayerScore
+from airsenal.db.models import Fixture, Player, PlayerScore, Result
 from airsenal.db.queries.fixtures import (
     find_fixture,
     get_gameweek_start_date,
     get_player_team_from_fixture,
 )
-from airsenal.db.queries.gameweeks import (
-    next_gameweek,
-)
+from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import (
     get_player,
     get_player_attributes,
@@ -69,6 +67,69 @@ def _extended_features() -> list[str]:
         for col in sqla_inspect(PlayerScore).columns
         if col.key not in _CORE_COLUMNS
     ]
+
+
+# Each PlayerScore column, and the key that holds it in that source's match data.
+_JSON_STATS = {
+    "goals": "goals",
+    "assists": "assists",
+    "bonus": "bonus",
+    "points": "points",
+    "conceded": "conceded",
+    "minutes": "minutes",
+}
+_API_STATS = {
+    "goals": "goals_scored",
+    "assists": "assists",
+    "bonus": "bonus",
+    "points": "total_points",
+    "conceded": "goals_conceded",
+    "minutes": "minutes",
+}
+
+_WAS_HOME = {"True": True, "False": False}
+
+
+def _attributes_for_player(
+    player: Player, df_attributes: pd.DataFrame | None
+) -> pd.DataFrame | None:
+    """The player's rows of the attributes history, or None if there is none."""
+    if df_attributes is None:
+        return None
+    return filter_attributes_for_player(player, df_attributes)
+
+
+def _fill_score(
+    score: PlayerScore,
+    data: dict[str, Any],
+    stats: dict[str, str],
+    extended_feats: list[str],
+    player_attributes: pd.DataFrame | None,
+    fixture: Fixture,
+    result: Result,
+    opponent: str,
+    player: Player,
+    team: str,
+    dbsession: Session,
+) -> None:
+    """Set a score's columns from one match's source data, and add it to the session."""
+    score.player_team = team
+    score.opponent = opponent
+    for column, key in stats.items():
+        setattr(score, column, data[key])
+    score.player = player
+    score.fixture = fixture
+    score.result = result
+
+    for feat in extended_feats:
+        with contextlib.suppress(KeyError):
+            setattr(score, feat, data[feat])
+
+    # what was known about their availability for this match
+    score.news, score.chance_of_playing = get_availability_for_fixture(
+        player, fixture, player_attributes, dbsession
+    )
+    dbsession.add(score)
 
 
 def get_status_from_attributes_history(
@@ -166,11 +227,7 @@ def fill_playerscores_from_json(
             logger.warning("Couldn't find player %s", player_name_or_id)
             continue
 
-        player_attributes = (
-            filter_attributes_for_player(player, df_attributes)
-            if df_attributes is not None
-            else None
-        )
+        player_attributes = _attributes_for_player(player, df_attributes)
 
         # now loop through all the fixtures that player played in
         for fixture_data in detail_data[player_name_or_id]:
@@ -183,19 +240,9 @@ def fill_playerscores_from_json(
             if not played_for:
                 continue
 
-            if "was_home" in fixture_data:
-                if fixture_data["was_home"] == "True":
-                    was_home = True
-                elif fixture_data["was_home"] == "False":
-                    was_home = False
-                else:
-                    was_home = None
-            else:
-                was_home = None
-
             fixture = find_fixture(
                 played_for,
-                was_home=was_home,
+                was_home=_WAS_HOME.get(fixture_data.get("was_home", "")),
                 other_team=fixture_data["opponent"],
                 gameweek=gameweek,
                 season=season,
@@ -206,29 +253,19 @@ def fill_playerscores_from_json(
             if not fixture or not fixture.result:
                 logger.warning("Couldn't find result for %s in gw %s", player, gameweek)
                 continue
-            ps = PlayerScore()
-            ps.player_team = played_for
-            ps.opponent = fixture_data["opponent"]
-            ps.goals = fixture_data["goals"]
-            ps.assists = fixture_data["assists"]
-            ps.bonus = fixture_data["bonus"]
-            ps.points = fixture_data["points"]
-            ps.conceded = fixture_data["conceded"]
-            ps.minutes = fixture_data["minutes"]
-            ps.player = player
-            ps.result = fixture.result
-            ps.fixture = fixture
-
-            for feat in extended_feats:
-                with contextlib.suppress(KeyError):
-                    ps.__setattr__(feat, fixture_data[feat])
-
-            # what was known about their availability for this match
-            ps.news, ps.chance_of_playing = get_availability_for_fixture(
-                player, fixture, player_attributes, dbsession
+            _fill_score(
+                PlayerScore(),
+                fixture_data,
+                _JSON_STATS,
+                extended_feats,
+                player_attributes,
+                fixture,
+                fixture.result,
+                fixture_data["opponent"],
+                player,
+                played_for,
+                dbsession,
             )
-
-            dbsession.add(ps)
     dbsession.commit()
 
 
@@ -254,11 +291,7 @@ def fill_playerscores_from_api(
             logger.error("No player with API id %s. Skipped.", player_api_id)
             continue
 
-        player_attributes = (
-            filter_attributes_for_player(player, df_attributes)
-            if df_attributes is not None
-            else None
-        )
+        player_attributes = _attributes_for_player(player, df_attributes)
 
         player_data = fetcher.get_gameweek_data_for_player(player_api_id)
         # now loop through all the matches that player played in
@@ -296,37 +329,25 @@ def fill_playerscores_from_api(
                     dbsession=dbsession,
                 )
 
-                ps = get_player_scores(
-                    fixture=fixture, player=player, dbsession=dbsession
+                ps = (
+                    get_player_scores(
+                        fixture=fixture, player=player, dbsession=dbsession
+                    )
+                    or PlayerScore()
                 )
-                if ps is None:
-                    ps = PlayerScore()
-                    add = True
-                else:
-                    add = False
-                ps.player_team = played_for
-                ps.opponent = opponent
-                ps.goals = result["goals_scored"]
-                ps.assists = result["assists"]
-                ps.bonus = result["bonus"]
-                ps.points = result["total_points"]
-                ps.conceded = result["goals_conceded"]
-                ps.minutes = result["minutes"]
-                ps.player = player
-                ps.fixture = fixture
-                ps.result = fixture.result
-
-                for feat in extended_feats:
-                    with contextlib.suppress(KeyError):
-                        ps.__setattr__(feat, result[feat])
-
-                # what was known about their availability for this match
-                ps.news, ps.chance_of_playing = get_availability_for_fixture(
-                    player, fixture, player_attributes, dbsession
+                _fill_score(
+                    ps,
+                    result,
+                    _API_STATS,
+                    extended_feats,
+                    player_attributes,
+                    fixture,
+                    fixture.result,
+                    opponent,
+                    player,
+                    played_for,
+                    dbsession,
                 )
-
-                if add:
-                    dbsession.add(ps)
                 logger.debug(ps)
     dbsession.commit()
 

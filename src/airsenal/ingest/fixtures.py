@@ -10,7 +10,7 @@ from airsenal.core.data_files import FilePath, data_file
 from airsenal.db.models import Fixture
 from airsenal.db.queries.fixtures import find_fixture
 from airsenal.db.session import get_session
-from airsenal.game.mappings import alternative_team_names
+from airsenal.game.mappings import canonical_team_name
 from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
 from airsenal.remote.fpl_api import get_fetcher
 
@@ -26,13 +26,11 @@ def fill_fixtures_from_file(
             f = Fixture()
             f.date = fields[0]
             f.gameweek = int(fields[5])
-            home_team = fields[1]
-            away_team = fields[2]
-            for k, v in alternative_team_names.items():
-                if home_team in v:
-                    f.home_team = k
-                elif away_team in v:
-                    f.away_team = k
+            # an unknown team is left unset
+            if (home_team := canonical_team_name(fields[1])) is not None:
+                f.home_team = home_team
+            if (away_team := canonical_team_name(fields[2])) is not None:
+                f.away_team = away_team
             f.season = season
             f.tag = "latest"  # not really needed for past seasons
             dbsession.add(f)
@@ -56,9 +54,6 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
         )
         if f is None:
             f = Fixture()
-            update = False
-        else:
-            update = True
 
         f.date = fixture["kickoff_time"]
         f.gameweek = fixture["event"]
@@ -67,29 +62,20 @@ def fill_fixtures_from_api(season: str, dbsession: Session | None = None) -> Non
 
         home_id = fixture["team_h"]
         away_id = fixture["team_a"]
-        found_home = False
-        found_away = False
-        for k, v in alternative_team_names.items():
-            if str(home_id) in v:
-                f.home_team = k
-                found_home = True
-            elif str(away_id) in v:
-                f.away_team = k
-                found_away = True
-            if found_home and found_away:
-                break
-
-        if not found_home and not found_away:
+        home_team = canonical_team_name(str(home_id))
+        away_team = canonical_team_name(str(away_id))
+        if home_team is None and away_team is None:
             msg = f"Can't find team(s) with id(s): {home_id}, {away_id}."
             raise ValueError(msg)
-        if not found_home:
+        if home_team is None:
             msg = f"Can't find team(s) with id(s): {home_id}"
             raise ValueError(msg)
-        if not found_away:
+        if away_team is None:
             msg = f"Can't find team(s) with id(s): {away_id}"
             raise ValueError(msg)
-        if not update:
-            dbsession.add(f)
+        f.home_team = home_team
+        f.away_team = away_team
+        dbsession.add(f)
     dbsession.commit()
 
 

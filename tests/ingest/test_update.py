@@ -61,5 +61,5 @@ def test_the_current_season_runs(monkeypatch):
             lambda *a, _name=name, _result=result, **k: ran.append(_name) or _result,
         )
 
-    assert update_db(CURRENT_SEASON, True, 123, None) is True
+    update_db(CURRENT_SEASON, True, 123, None)
     assert "update_results" in ran

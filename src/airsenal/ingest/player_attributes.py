@@ -69,6 +69,12 @@ def get_return_gameweek_from_news(
     )
 
 
+def _optional_int(data: dict[str, Any], key: str) -> int | None:
+    """The value under `key` as an int, or None if it is missing or null."""
+    value = data.get(key)
+    return int(value) if value is not None else None
+
+
 def fill_attributes_table_from_file(
     detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
@@ -104,28 +110,87 @@ def fill_attributes_table_from_file(
             pa.price = int(fixture_data.get("value", 0))
             pa.team = fixture_data.get("played_for", "")
             pa.position = fixture_data.get("position", "")
-            pa.transfers_balance = (
-                int(fixture_data.get("transfers_balance"))
-                if fixture_data.get("transfers_balance") is not None
-                else None
-            )
-            pa.selected = (
-                int(fixture_data.get("selected"))
-                if fixture_data.get("selected") is not None
-                else None
-            )
-            pa.transfers_in = (
-                int(fixture_data.get("transfers_in"))
-                if fixture_data.get("transfers_in") is not None
-                else None
-            )
-            pa.transfers_out = (
-                int(fixture_data.get("transfers_out"))
-                if fixture_data.get("transfers_out") is not None
-                else None
-            )
+            pa.transfers_balance = _optional_int(fixture_data, "transfers_balance")
+            pa.selected = _optional_int(fixture_data, "selected")
+            pa.transfers_in = _optional_int(fixture_data, "transfers_in")
+            pa.transfers_out = _optional_int(fixture_data, "transfers_out")
             dbsession.add(pa)
     dbsession.commit()
+
+
+def _attributes_row(
+    player: Player, gameweek: int, season: str, dbsession: Session
+) -> PlayerAttributes:
+    """A player's attributes row for a gameweek: the existing one, else a new one."""
+    pa = get_player_attributes(
+        player.player_id, gameweek=gameweek, season=season, dbsession=dbsession
+    )
+    return pa if pa is not None else PlayerAttributes()
+
+
+def _fill_past_gameweeks(
+    player_data: dict[int, list[dict[str, Any]]],
+    player: Player,
+    position: str,
+    gameweek_start: int,
+    gameweek: int,
+    season: str,
+    dbsession: Session,
+) -> None:
+    """Fill a player's rows for the gameweeks before `gameweek`, from their history."""
+    for past_gameweek, data in player_data.items():
+        if past_gameweek < gameweek_start or past_gameweek >= gameweek:
+            # `gameweek` already has its row, from the summary data. Once its
+            # deadline has passed the API also lists a history row for it, without
+            # availability; writing that too would give the player two rows for
+            # one gameweek.
+            continue
+
+        for result in data:
+            pa = _attributes_row(player, past_gameweek, season, dbsession)
+
+            # determine the team the player played for in this fixture
+            opponent_id = result["opponent_team"]
+            was_home = result["was_home"]
+            kickoff_time = result["kickoff_time"]
+            fixture = find_fixture(
+                opponent_id,
+                was_home=not was_home,
+                gameweek=past_gameweek,
+                season=season,
+                kickoff_time=kickoff_time,
+                dbsession=dbsession,
+            )
+            if fixture is None:
+                logger.warning(
+                    "Couldn't find fixture for %s vs %s in gameweek %s",
+                    player,
+                    opponent_id,
+                    past_gameweek,
+                )
+                continue
+            team = get_player_team_from_fixture(
+                fixture,
+                opponent_id,
+                player_at_home=was_home,
+                season=season,
+                dbsession=dbsession,
+            )
+
+            pa.player = player
+            pa.player_id = player.player_id
+            pa.season = season
+            pa.gameweek = past_gameweek
+            pa.price = int(result["value"])
+            pa.team = team
+            pa.position = position  # does not change during season
+            pa.transfers_balance = int(result["transfers_balance"])
+            pa.selected = int(result["selected"])
+            pa.transfers_in = int(result["transfers_in"])
+            pa.transfers_out = int(result["transfers_out"])
+            dbsession.add(pa)
+
+            break  # done this gameweek now
 
 
 def fill_attributes_table_from_api(
@@ -158,18 +223,7 @@ def fill_attributes_table_from_api(
 
         position = positions[p_summary["element_type"]]
 
-        pa = get_player_attributes(
-            player.player_id, gameweek=gameweek, season=season, dbsession=dbsession
-        )
-
-        if pa:
-            # found pre-existing attributes for this gameweek
-            update = True
-        else:
-            # no attributes for this gameweek for this player yet
-            pa = PlayerAttributes()
-            update = False
-
+        pa = _attributes_row(player, gameweek, season, dbsession)
         pa.player = player
         pa.player_id = player.player_id
         pa.season = season
@@ -182,7 +236,7 @@ def fill_attributes_table_from_api(
             )
             continue
         pa.team = team
-        pa.position = positions[p_summary["element_type"]]
+        pa.position = position
         pa.selected = int(float(p_summary["selected_by_percent"]) * n_players / 100)
         transfers_in = int(p_summary["transfers_in"])
         transfers_out = int(p_summary["transfers_out"])
@@ -202,11 +256,7 @@ def fill_attributes_table_from_api(
                 season=season,
                 dbsession=dbsession,
             )
-
-        if not update:
-            # only need to add to the dbsession for new entries, if we're doing
-            # an update the final dbsession.commit() is enough
-            dbsession.add(pa)
+        dbsession.add(pa)
 
         # now get data for previous gameweeks
         if gameweek > 1:
@@ -214,73 +264,15 @@ def fill_attributes_table_from_api(
             if not player_data:
                 logger.warning("Failed to get data for %s", player)
                 continue
-            for past_gameweek, data in player_data.items():
-                if past_gameweek < gameweek_start or past_gameweek >= gameweek:
-                    # `gameweek` already has its row, from the summary data
-                    # above. Once its deadline has passed the API also lists a
-                    # history row for it, without availability; writing that
-                    # too would give the player two rows for one gameweek.
-                    continue
-
-                for result in data:
-                    # check whether there are pre-existing attributes to update
-                    pa = get_player_attributes(
-                        player.player_id,
-                        season=season,
-                        gameweek=past_gameweek,
-                        dbsession=dbsession,
-                    )
-                    if pa:
-                        update = True
-                    else:
-                        pa = PlayerAttributes()
-                        update = False
-
-                    # determine the team the player played for in this fixture
-                    opponent_id = result["opponent_team"]
-                    was_home = result["was_home"]
-                    kickoff_time = result["kickoff_time"]
-                    fixture = find_fixture(
-                        opponent_id,
-                        was_home=not was_home,
-                        gameweek=past_gameweek,
-                        season=season,
-                        kickoff_time=kickoff_time,
-                        dbsession=dbsession,
-                    )
-                    if fixture is None:
-                        logger.warning(
-                            "Couldn't find fixture for %s vs %s in gameweek %s",
-                            player,
-                            opponent_id,
-                            past_gameweek,
-                        )
-                        continue
-                    team = get_player_team_from_fixture(
-                        fixture,
-                        opponent_id,
-                        player_at_home=was_home,
-                        season=season,
-                        dbsession=dbsession,
-                    )
-
-                    pa.player = player
-                    pa.player_id = player.player_id
-                    pa.season = season
-                    pa.gameweek = past_gameweek
-                    pa.price = int(result["value"])
-                    pa.team = team
-                    pa.position = position  # does not change during season
-                    pa.transfers_balance = int(result["transfers_balance"])
-                    pa.selected = int(result["selected"])
-                    pa.transfers_in = int(result["transfers_in"])
-                    pa.transfers_out = int(result["transfers_out"])
-
-                    if not update:
-                        # don't need to add to dbsession if updating pre-existing row
-                        dbsession.add(pa)
-
-                    break  # done this gameweek now
+            _fill_past_gameweeks(
+                player_data,
+                player,
+                position,
+                gameweek_start,
+                gameweek,
+                season,
+                dbsession,
+            )
     dbsession.commit()
 
 
@@ -425,7 +417,6 @@ def make_attributes_table(
         if season == CURRENT_SEASON:
             # current season - use API
             fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
-            fill_availability_for_season(CURRENT_SEASON, dbsession=dbsession)
         else:
             with data_file(f"player_details_{season}.json").open() as f:
                 input_data = json.load(f)
@@ -433,5 +424,5 @@ def make_attributes_table(
             fill_attributes_table_from_file(
                 detail_data=input_data, season=season, dbsession=dbsession
             )
-            fill_availability_for_season(season, dbsession=dbsession)
+        fill_availability_for_season(season, dbsession=dbsession)
     dbsession.commit()
