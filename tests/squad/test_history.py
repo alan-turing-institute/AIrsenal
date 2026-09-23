@@ -71,8 +71,8 @@ class _Session:
     def scalars(self, *args, **kwargs):
         return self
 
-    def all(self):
-        return ["an existing transaction"]
+    def first(self):
+        return "an existing transaction"
 
 
 @pytest.fixture

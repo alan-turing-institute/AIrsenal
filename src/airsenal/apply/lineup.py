@@ -38,15 +38,12 @@ def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
             "is_vice_captain": player.is_vice_captain,
         }
 
-    payload: list[dict[str, Any]] = []
-    # payload for starting lineup
-    lineup = [p for p in squad.players if p.is_starting]
-    position_integer = 1
-    for position_category in list(Position.back_to_front()):
-        for p in lineup:
-            if p.position == position_category:
-                payload.append(to_dict(p, position_integer))
-                position_integer += 1
+    # the starting eleven, goalkeeper first and forwards last
+    lineup = sorted(
+        (p for p in squad.players if p.is_starting),
+        key=lambda p: Position.back_to_front().index(Position(p.position)),
+    )
+    payload = [to_dict(p, i) for i, p in enumerate(lineup, start=1)]
 
     sub_gk = next(
         p for p in squad.players if not p.is_starting and p.position == Position.GK

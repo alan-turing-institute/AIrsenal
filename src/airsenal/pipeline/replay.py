@@ -1,6 +1,7 @@
 """Replay all or part of a past season, to compare models and algorithms."""
 
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +18,9 @@ from airsenal.db.queries.gameweeks import get_max_gameweek
 from airsenal.db.queries.players import get_player_name
 from airsenal.db.session import session_scope
 from airsenal.game.enums import Chip
+from airsenal.optimization.plan import Plan
 from airsenal.pipeline.run import AIrsenalPipeline
+from airsenal.squad.squad import Squad
 
 logger = get_logger(__name__)
 
@@ -182,7 +185,7 @@ def print_replay_params(
     logger.info("=" * 30)
 
 
-def _names(player_ids: list[int]) -> list[str]:
+def _names(player_ids: Iterable[int]) -> list[str]:
     """Player names for a transfer list, falling back to the id."""
     return [get_player_name(pid) or f"player_{pid}" for pid in player_ids]
 
@@ -190,17 +193,29 @@ def _names(player_ids: list[int]) -> list[str]:
 def _gameweek_outcome(
     tag: str,
     gameweek: int,
-    squad: Any,
-    plan: Any,
+    squad: Squad,
+    plan: Plan | None,
     season: str,
 ) -> ReplayGameweek:
     """One gameweek's row, from the squad and plan the pipeline produced."""
-    # A squad built from scratch has no plan: there was nothing to transfer from,
-    # and unlimited transfers means no points hit.
-    outcome = plan.outcome(gameweek) if plan is not None else None
-    points_hit = outcome.points_hit if outcome else 0
+    if plan is None:
+        # A squad built from scratch has no plan: there was nothing to transfer
+        # from, and unlimited transfers means no points hit.
+        chip = None
+        points_hit = 0
+        free_transfers = 0
+        num_transfers = "0"
+        players_in: list[str] = []
+        players_out: list[str] = []
+    else:
+        outcome = plan.outcome(gameweek)
+        chip = outcome.chip
+        points_hit = outcome.points_hit
+        free_transfers = outcome.free_transfers
+        num_transfers = outcome.move.label()
+        players_in = _names(outcome.players_in)
+        players_out = _names(outcome.players_out)
 
-    chip = outcome.chip if outcome else None
     bench_boost = chip is Chip.BENCH_BOOST
     triple_captain = chip is Chip.TRIPLE_CAPTAIN
     return ReplayGameweek(
@@ -210,11 +225,11 @@ def _gameweek_outcome(
         subs=[p.name for p in squad.players if not p.is_starting],
         captain=next((p.name for p in squad.players if p.is_captain), None),
         vice_captain=next((p.name for p in squad.players if p.is_vice_captain), None),
-        free_transfers=outcome.free_transfers if outcome else 0,
-        num_transfers=outcome.move.label() if outcome else "0",
+        free_transfers=free_transfers,
+        num_transfers=num_transfers,
         points_hit=points_hit,
-        players_in=_names(outcome.players_in) if outcome else [],
-        players_out=_names(outcome.players_out) if outcome else [],
+        players_in=players_in,
+        players_out=players_out,
         expected_points=squad.get_expected_points(
             tag, gameweek, bench_boost=bench_boost, triple_captain=triple_captain
         ),

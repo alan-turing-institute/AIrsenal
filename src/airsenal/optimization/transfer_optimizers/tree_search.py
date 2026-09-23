@@ -39,6 +39,7 @@ from airsenal.optimization.protocols import (
     DEFAULT_NUM_ITERATIONS,
     ProgressResetter,
     ProgressUpdater,
+    Proposal,
     TransferRequest,
     TransferSearchRequest,
     strategy_total,
@@ -224,12 +225,12 @@ class TreeSearchConfig:
 
 def _make_best_transfers(
     request: TransferRequest, strategy: TransferStrategy
-) -> tuple[Squad, dict[str, list[int]], float]:
+) -> tuple[Squad, Proposal, float]:
     """
     Make this gameweek's move and score the squad it leaves. One node of the tree.
 
-    Returns the squad, the transfers as {"in": [player_ids], "out":
-    [player_ids]}, and the points it is expected to score next gameweek.
+    Returns the squad that carries on to the next gameweek, the strategy's
+    proposal, and the points the proposed squad is expected to score next gameweek.
     """
     proposal = strategy.propose(request)
 
@@ -246,7 +247,7 @@ def _make_best_transfers(
     # A free hit is reverted after the gameweek it is played in, so the squad
     # that carries on to the next gameweek is the one we started with.
     resulting_squad = proposal.squad if request.move.carry_forward else request.squad
-    return resulting_squad, proposal.as_transfer_dict(), points
+    return resulting_squad, proposal, points
 
 
 def optimize(
@@ -335,7 +336,7 @@ def optimize(
                 )
 
             # the best move this gameweek, scored across the remaining gameweeks
-            new_squad, transfers, points = _make_best_transfers(
+            new_squad, proposal, points = _make_best_transfers(
                 transfer_request, strategy
             )
 
@@ -348,8 +349,8 @@ def optimize(
                     discount_factor=discount_factor,
                     points_hit=hit_this_gameweek,
                     free_transfers=free_transfers,
-                    players_in=tuple(transfers["in"]),
-                    players_out=tuple(transfers["out"]),
+                    players_in=tuple(proposal.players_in),
+                    players_out=tuple(proposal.players_out),
                     bank=new_squad.budget,
                 )
             )
@@ -359,7 +360,7 @@ def optimize(
             if updater is not None:
                 updater()
 
-            if profile and profiler is not None:
+            if profiler is not None:
                 profiler.dump_stats(
                     f"process_plan_{prediction_tag}_{plan.label()}.pstat"
                 )
@@ -514,7 +515,6 @@ def search_transfer_tree(
                 starting_squad,
                 gameweeks,
                 tag,
-                root_gameweek=gameweeks[0],
                 sub_weights=request.scoring.sub_weights,
             )
             progress.advance(total_task, 1)

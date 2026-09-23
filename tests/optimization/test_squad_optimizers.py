@@ -109,7 +109,7 @@ def test_a_request_defaults_to_the_standard_scoring():
     """A request that names no scoring gets the usual budget and bench weights."""
     request = SquadRequest(gameweeks=[1], tag="t", season="2526")
 
-    assert request.budget == 1000
+    assert request.scoring.budget == 1000
     assert request.scoring.dummy_sub_cost == 45
     assert request.scoring.sub_weights == SubWeights(gk=0.03, outfield=(0.65, 0.3, 0.1))
 
@@ -185,7 +185,7 @@ def test_the_optimizer_on_the_request_is_the_one_that_rebuilds_the_squad():
 def test_scoring_config_carries_the_budget_the_optimizer_must_respect():
     scoring = SquadScoringConfig(budget=825)
     request = SquadRequest(gameweeks=[1], tag="t", season="2526", scoring=scoring)
-    assert request.budget == 825
+    assert request.scoring.budget == 825
 
 
 def test_a_rebuild_buys_at_the_prices_of_the_search_root():

@@ -12,14 +12,11 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import require_player
 from airsenal.db.queries.predictions import get_predicted_points_for_player
 from airsenal.game.season import CURRENT_SEASON
-
-logger = get_logger(__name__)
 
 
 class CandidatePlayer:
@@ -99,15 +96,6 @@ class CandidatePlayer:
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
 
-    def get_predicted_points(self, tag: str, gameweek: int) -> float:
-        """This player's predicted points for one gameweek."""
-        if tag not in self.predicted_points:
-            self.calc_predicted_points(tag)
-        if gameweek not in self.predicted_points[tag]:
-            logger.warning("No prediction available for %s gameweek %s", self, gameweek)
-            return 0.0
-        return self.predicted_points[tag][gameweek]
-
 
 class DummyPlayer:
     """A placeholder that fills a squad slot the optimizer is not choosing."""
@@ -140,10 +128,6 @@ class DummyPlayer:
 
     def calc_predicted_points(self, tag: str) -> None:
         """Nothing to look up: a dummy's points are fixed at construction."""
-
-    def get_predicted_points(self, tag: str, gameweek: int) -> float:  # noqa: ARG002
-        """The points it was built with, whatever the gameweek."""
-        return self.pts
 
 
 type SquadPlayer = CandidatePlayer | DummyPlayer

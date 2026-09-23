@@ -43,7 +43,7 @@ def choose_starting_eleven(
     tag: str,
     gameweek: int,
     score_starting_eleven: Callable[[], float],
-) -> float:
+) -> None:
     """Pick the best legal starting eleven, and order the bench behind it."""
     by_position: PlayersByPosition = {position: [] for position in Position}
     for p in players:
@@ -73,8 +73,6 @@ def choose_starting_eleven(
         raise RuntimeError(msg)
     apply_formation(by_position, best_formation)
     order_substitutes(players, tag, gameweek)
-
-    return best_score
 
 
 def order_substitutes(players: list[SquadPlayer], tag: str, gameweek: int) -> None:

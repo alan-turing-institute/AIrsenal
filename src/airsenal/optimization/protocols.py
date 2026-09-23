@@ -52,6 +52,15 @@ type ProgressResetter = Callable[[int, str, int | None], None]
 type StepCounter = Callable[[], None]
 
 
+def _num_increments(component: object, *args: object) -> int | None:
+    """What `component.num_increments(*args)` returns, if it has that method."""
+    num_increments = getattr(component, "num_increments", None)
+    if not callable(num_increments):
+        return None
+    total = num_increments(*args)
+    return int(total) if total is not None else None
+
+
 def progress_total(optimizer: object, effort: int | None = None) -> int | None:
     """
     How many steps `optimizer` will take, if it is able to say.
@@ -60,11 +69,9 @@ def progress_total(optimizer: object, effort: int | None = None) -> int | None:
     progress bar. If a component has no way of knowing how many steps it will take,
     the bar runs indeterminate.
     """
-    num_increments = getattr(optimizer, "num_increments", None)
-    if not callable(num_increments):
-        return None
-    total = num_increments(effort) if effort is not None else num_increments()
-    return int(total) if total is not None else None
+    if effort is None:
+        return _num_increments(optimizer)
+    return _num_increments(optimizer, effort)
 
 
 @dataclass(frozen=True)
@@ -121,10 +128,6 @@ class Proposal:
     players_in: list[int]
     players_out: list[int]
 
-    def as_transfer_dict(self) -> dict[str, list[int]]:
-        """The transfers as {"in": [player_ids], "out": [player_ids]}."""
-        return {"in": self.players_in, "out": self.players_out}
-
 
 class TransferStrategy(Protocol):
     """One way of choosing a gameweek's transfers."""
@@ -140,11 +143,7 @@ def strategy_total(strategy: TransferStrategy, request: TransferRequest) -> int 
     so its `num_increments` takes the same request `propose` does. `propose`
     advances the bar once per candidate.
     """
-    num_increments = getattr(strategy, "num_increments", None)
-    if not callable(num_increments):
-        return None
-    total = num_increments(request)
-    return int(total) if total is not None else None
+    return _num_increments(strategy, request)
 
 
 # Called once per step of a whole-squad search, with the best score so far. What a
@@ -179,10 +178,6 @@ class SquadRequest:
     # process boundary, so a request built inside a search worker leaves this None
     # and a request must never be put on a queue - see tests/squad/test_pickling.py.
     dbsession: Session | None = None
-
-    @property
-    def budget(self) -> int:
-        return self.scoring.budget
 
     def advance_progress(self, best_score: float) -> None:
         """Report one step of the search, if anything is watching."""

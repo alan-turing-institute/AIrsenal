@@ -193,13 +193,13 @@ def transfer_result(pipeline_db, prediction_tag, squad):
 
 
 def test_transfers_are_balanced(transfer_result):
-    _, transfers, _ = transfer_result
-    assert len(transfers["in"]) == len(transfers["out"]) == 1
+    _, proposal, _ = transfer_result
+    assert len(proposal.players_in) == len(proposal.players_out) == 1
 
 
 def test_no_player_is_transferred_both_in_and_out(transfer_result):
-    _, transfers, _ = transfer_result
-    assert not set(transfers["in"]) & set(transfers["out"])
+    _, proposal, _ = transfer_result
+    assert not set(proposal.players_in) & set(proposal.players_out)
 
 
 def test_resulting_squad_is_still_legal(transfer_result):

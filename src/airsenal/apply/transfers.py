@@ -24,6 +24,7 @@ from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
 from airsenal.squad.history import get_starting_squad
+from airsenal.squad.squad import Squad
 from airsenal.squad.state import get_bank
 
 logger = get_logger(__name__)
@@ -88,11 +89,23 @@ def print_output(
     console.print()
 
 
+def _entry_squad(team_id: int, season: str, fetcher: FPLDataFetcher) -> Squad:
+    """The squad this entry holds going into the next gameweek."""
+    return get_starting_squad(
+        gameweek=next_gameweek(),
+        season=season,
+        fpl_team_id=team_id,
+        fetcher=fetcher,
+    )
+
+
 def get_sell_price(
     team_id: int,
     player_id: int,
     season: str = CURRENT_SEASON,
     fetcher: FPLDataFetcher | None = None,
+    *,
+    squad: Squad | None = None,
 ) -> int:
     """
     What this entry can sell a player for, as the FPL API prices them.
@@ -100,14 +113,13 @@ def get_sell_price(
     The transfer endpoint is given this figure. When the API cannot say, it is
     estimated from the transactions table instead, which is only right while the
     database is in step with the entry.
+
+    Args:
+        squad: The entry's squad, if the caller already has it.
     """
     fetcher = fetcher if fetcher is not None else get_fetcher(team_id)
-    squad = get_starting_squad(
-        gameweek=next_gameweek(),
-        season=season,
-        fpl_team_id=team_id,
-        fetcher=fetcher,
-    )
+    if squad is None:
+        squad = _entry_squad(team_id, season, fetcher)
     for p in squad.players:
         if p.player_id == player_id:
             return squad.get_sell_price_for_player(p, use_api=True, fetcher=fetcher)
@@ -134,8 +146,9 @@ def get_suggested_transfers(
 
     Without an `fpl_team_id`, the suggestions belong to whichever entry ran last.
     """
+    gameweek = next_gameweek()
     rows = get_transfer_suggestions(
-        gameweek=next_gameweek(),
+        gameweek=gameweek,
         season=CURRENT_SEASON,
         fpl_team_id=fpl_team_id,
         dbsession=get_session(),
@@ -143,7 +156,7 @@ def get_suggested_transfers(
     if not rows:
         logger.warning(
             "No transfer suggestions found for gameweek %s, %s season, FPL team id %s",
-            next_gameweek(),
+            gameweek,
             CURRENT_SEASON,
             fpl_team_id,
         )
@@ -151,15 +164,14 @@ def get_suggested_transfers(
 
     if fpl_team_id is None:
         fpl_team_id = rows[0].fpl_team_id
-    gameweek, chip = rows[0].gameweek, rows[0].chip_played
+    chip = rows[0].chip_played
     players_out, players_in = [], []
 
     for row in rows:
-        if row.gameweek == gameweek:
-            if row.in_or_out < 0:
-                players_out.append(row.player_id)
-            else:
-                players_in.append(row.player_id)
+        if row.in_or_out < 0:
+            players_out.append(row.player_id)
+        else:
+            players_in.append(row.player_id)
     return SuggestedTransfers(players_out, players_in, fpl_team_id, gameweek, chip)
 
 
@@ -176,6 +188,7 @@ def price_transfers(
         msg = "FPL team ID not set. Cannot price transfers."
         raise RuntimeError(msg)
     now_cost = fetcher.get_player_summary_data()
+    squad = _entry_squad(fetcher.FPL_TEAM_ID, CURRENT_SEASON, fetcher)
     priced_transfers = []
     for player_id_out, player_id_in in zip(players_out, players_in, strict=True):
         api_id_in = require_api_id(require_player(player_id_in))
@@ -183,7 +196,7 @@ def price_transfers(
             {
                 "element_out": require_api_id(require_player(player_id_out)),
                 "selling_price": get_sell_price(
-                    fetcher.FPL_TEAM_ID, player_id_out, fetcher=fetcher
+                    fetcher.FPL_TEAM_ID, player_id_out, fetcher=fetcher, squad=squad
                 ),
                 "element_in": api_id_in,
                 "purchase_price": int(now_cost[api_id_in]["now_cost"]),
@@ -261,7 +274,7 @@ def remove_duplicates(
     """
     t_in = [t["element_in"] for t in transfers_in]
     t_out = [t["element_out"] for t in transfers_out]
-    dupes = list(set(t_in) & set(t_out))
+    dupes = set(t_in) & set(t_out)
     transfers_in = [t for t in transfers_in if t["element_in"] not in dupes]
     transfers_out = [t for t in transfers_out if t["element_out"] not in dupes]
     return transfers_in, transfers_out

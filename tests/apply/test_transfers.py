@@ -200,6 +200,7 @@ def priced_world(monkeypatch):
         "get_sell_price",
         lambda _team, pid, **_kwargs: 50 + pid,
     )
+    monkeypatch.setattr(transfers_module, "get_starting_squad", lambda **_k: None)
     return PricingFetcher({102: 70, 103: 70, 104: 80})
 
 

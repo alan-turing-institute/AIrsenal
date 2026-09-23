@@ -1,5 +1,6 @@
 """The state of the user's own squad, combining the database and the FPL API."""
 
+from collections import Counter
 from typing import Any
 
 from sqlalchemy import select
@@ -187,7 +188,7 @@ def get_free_transfers(
     if len(transactions) == 0:
         return 1
     starting_gameweek = transactions[0].gameweek
-    gameweek_transactions: dict[int, int] = {}
+    gameweek_transactions: Counter[int] = Counter()
     rebuilt_gameweeks: set[int] = set()
     for t in transactions:
         # A wildcard, a free hit and the opening fifteen all put players in the
@@ -199,8 +200,6 @@ def get_free_transfers(
             if t.gameweek != starting_gameweek:
                 rebuilt_gameweeks.add(t.gameweek)
             continue
-        if t.gameweek not in gameweek_transactions:
-            gameweek_transactions[t.gameweek] = 0
         gameweek_transactions[t.gameweek] += 1
     num_free_transfers = 1
     if gameweek is None and (season != CURRENT_SEASON or is_replay):
@@ -209,7 +208,7 @@ def get_free_transfers(
     gameweek = gameweek or next_gameweek()
     for previous_gameweek in range(starting_gameweek + 1, gameweek):
         num_free_transfers = free_transfers_after(
-            gameweek_transactions.get(previous_gameweek, 0),
+            gameweek_transactions[previous_gameweek],
             num_free_transfers,
             rebuilds_squad=previous_gameweek in rebuilt_gameweeks,
         )

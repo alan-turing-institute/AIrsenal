@@ -13,7 +13,6 @@ from airsenal.game.enums import Chip
 from airsenal.game.scoring import (
     MAX_FREE_TRANSFERS,
     POINTS_HIT_COST,
-    SQUAD_SIZE,
     free_transfers_after,
 )
 
@@ -49,11 +48,6 @@ class GameweekMove:
     def rebuilds_squad(self) -> bool:
         """Whether this move replaces the squad rather than transferring players."""
         return self.chip is not None and self.chip.rebuilds_squad
-
-    @property
-    def n_players_in(self) -> int:
-        """How many players come in - the whole squad for a wildcard or free hit."""
-        return SQUAD_SIZE if self.rebuilds_squad else self.n_transfers
 
     @property
     def carry_forward(self) -> bool:

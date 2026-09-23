@@ -57,18 +57,17 @@ def test_transfers_alongside_a_squad_chip_rejected():
 
 
 @pytest.mark.parametrize(
-    ("move", "rebuilds", "n_in", "carry_forward"),
+    ("move", "rebuilds", "carry_forward"),
     [
-        (GameweekMove(2), False, 2, True),
-        (GameweekMove(chip=Chip.WILDCARD), True, 15, True),
-        (GameweekMove(chip=Chip.FREE_HIT), True, 15, False),
-        (GameweekMove(1, Chip.BENCH_BOOST), False, 1, True),
-        (GameweekMove(1, Chip.TRIPLE_CAPTAIN), False, 1, True),
+        (GameweekMove(2), False, True),
+        (GameweekMove(chip=Chip.WILDCARD), True, True),
+        (GameweekMove(chip=Chip.FREE_HIT), True, False),
+        (GameweekMove(1, Chip.BENCH_BOOST), False, True),
+        (GameweekMove(1, Chip.TRIPLE_CAPTAIN), False, True),
     ],
 )
-def test_move_properties(move, rebuilds, n_in, carry_forward):
+def test_move_properties(move, rebuilds, carry_forward):
     assert move.rebuilds_squad is rebuilds
-    assert move.n_players_in == n_in
     assert move.carry_forward is carry_forward
 
 

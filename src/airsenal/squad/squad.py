@@ -7,7 +7,6 @@ checked here.
 
 from collections import defaultdict
 from dataclasses import dataclass
-from operator import itemgetter
 
 from sqlalchemy.orm import Session
 
@@ -26,7 +25,6 @@ from airsenal.squad.lineup import (
     formation_after,
     formation_of,
     is_formation_legal,
-    order_substitutes,
     pick_captains,
 )
 from airsenal.squad.player import (
@@ -232,15 +230,6 @@ class Squad:
         """Whether the squad can afford this player."""
         return player.purchase_price <= self.budget
 
-    def _calc_expected_points(self, tag: str) -> None:
-        """Expected points for all squad players and gameweeks for the given tag."""
-        for p in self.players:
-            p.calc_predicted_points(tag)
-
-    def order_substitutes(self, tag: str, gameweek: int) -> None:
-        """Number the bench by predicted points, best first."""
-        order_substitutes(self.players, tag, gameweek)
-
     def total_points_for_starting_11(
         self,
         tag: str,
@@ -298,7 +287,8 @@ class Squad:
             msg = "Squad is incomplete"
             raise RuntimeError(msg)
 
-        self._calc_expected_points(tag)
+        for p in self.players:
+            p.calc_predicted_points(tag)
         choose_starting_eleven(
             self.players,
             tag,
@@ -345,8 +335,7 @@ class Squad:
         need_vice_captain = False
         vice_captain_points = 0
 
-        # this will be used to make an ordered list of subs
-        subs: list[tuple[int, SquadPlayer]] = []
+        subs: list[SquadPlayer] = []
         need_sub = []
         for p in self.players:
             if p.is_starting or bench_boost:
@@ -369,10 +358,9 @@ class Squad:
                         need_vice_captain = True
 
             else:  # player not in our initial starting 11
-                # put the subs in order
-                subs.append((bench_position(p), p))
+                subs.append(p)
 
-        ordered_subs = [s[1] for s in sorted(subs, key=itemgetter(0))]
+        ordered_subs = sorted(subs, key=bench_position)
 
         # now take account of possibility that captain didn't play
         if need_vice_captain:

@@ -1,7 +1,7 @@
 """The DEAP genetic algorithm itself: pick a whole squad, generation by generation."""
 
 import random
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -180,19 +180,9 @@ class SquadOpt:
             if not add_ok:
                 return (0.0,)
 
-        # Positions not being optimised are filled with dummies
-        for pos in self.positions:
-            if self.dummy_per_position[pos] > 0:
-                for _ in range(self.dummy_per_position[pos]):
-                    dp = DummyPlayer(
-                        self.gameweeks,
-                        pos,
-                        self.tag,
-                        purchase_price=self.scoring.dummy_sub_cost,
-                    )
-                    add_ok = squad.add_player(dp)
-                    if not add_ok:
-                        return (0.0,)
+        for dp in self.dummies():
+            if not squad.add_player(dp):
+                return (0.0,)
 
         if not squad.is_complete():
             return (0.0,)
@@ -227,13 +217,7 @@ class SquadOpt:
                 dbsession=self.dbsession,
             )
             change_idx.append(len(players))
-
-        # min and max idx of players for each position
-        position_idx = {
-            self.positions[i - 1]: (change_idx[i - 1], change_idx[i] - 1)
-            for i in range(1, len(change_idx))
-        }
-        return players, position_idx
+        return players, self._position_blocks(change_idx)
 
     def _remove_zero_pts(self) -> None:
         """Exclude players with zero predicted points."""
@@ -258,13 +242,17 @@ class SquadOpt:
                 players.append(p)
         change_idx.append(len(players))
 
-        position_idx = {
+        self.players = players
+        self.position_idx = self._position_blocks(change_idx)
+
+    def _position_blocks(
+        self, change_idx: list[int]
+    ) -> dict[Position, tuple[int, int]]:
+        """The (first, last) index of each position's block, from where blocks start."""
+        return {
             self.positions[i - 1]: (change_idx[i - 1], change_idx[i] - 1)
             for i in range(1, len(change_idx))
         }
-
-        self.players = players
-        self.position_idx = position_idx
 
     def _get_dummy_per_position(self) -> dict[Position, int]:
         """How many dummies each position needs to bring the squad up to full size."""
@@ -272,6 +260,17 @@ class SquadOpt:
             pos: (TOTAL_PER_POSITION[pos] - self.players_per_position[pos])
             for pos in self.positions
         }
+
+    def dummies(self) -> Iterator[DummyPlayer]:
+        """Fresh placeholders for every squad slot that is not being optimised."""
+        for pos in self.positions:
+            for _ in range(self.dummy_per_position[pos]):
+                yield DummyPlayer(
+                    self.gameweeks,
+                    pos,
+                    self.tag,
+                    purchase_price=self.scoring.dummy_sub_cost,
+                )
 
     def optimize(
         self,
@@ -416,23 +415,14 @@ def make_new_squad(
             price / 10 if price is not None else None,
         )
         squad.add_player(
-            opt_squad.players[int(idx)].player_id,
+            player.player_id,
             gameweek=opt_squad.root_gameweek,
             dbsession=dbsession,
         )
 
-    # Positions not being optimised are filled with dummies
-    for pos in opt_squad.positions:
-        if opt_squad.dummy_per_position[pos] > 0:
-            for _ in range(opt_squad.dummy_per_position[pos]):
-                dp = DummyPlayer(
-                    opt_squad.gameweeks,
-                    pos,
-                    opt_squad.tag,
-                    purchase_price=opt_squad.scoring.dummy_sub_cost,
-                )
-                squad.add_player(dp)
-                logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
+    for dp in opt_squad.dummies():
+        squad.add_player(dp)
+        logger.debug("%s %s %s", dp.position, dp.name, dp.purchase_price / 10)
 
     logger.debug("£%sm in the bank", squad.budget / 10)
 

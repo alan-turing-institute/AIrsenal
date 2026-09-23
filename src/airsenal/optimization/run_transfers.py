@@ -26,9 +26,6 @@ from airsenal.optimization.protocols import (
     TransferSearchRequest,
 )
 from airsenal.optimization.run_squad import build_new_squad
-from airsenal.optimization.squad_optimizers import (
-    GeneticSquadOptimizer,
-)
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
     TreeSearchOptimizer,
@@ -171,31 +168,6 @@ def squad_for_next_gameweek(
     return squad
 
 
-def new_squad_from_scratch(
-    gameweeks: list[int],
-    tag: str,
-    season: str,
-    fpl_team_id: int,
-    chips: ChipGameweeks,
-    squad_optimizer: SquadOptimizer | None = None,
-    scoring: SquadScoringConfig | None = None,
-    is_replay: bool = False,
-) -> Squad:
-    """Build a squad from nothing, there being nothing to transfer from."""
-    if squad_optimizer is None:
-        squad_optimizer = GeneticSquadOptimizer()
-    return build_new_squad(
-        tag=tag,
-        gameweeks=gameweeks,
-        season=season,
-        fpl_team_id=fpl_team_id,
-        optimizer=squad_optimizer,
-        scoring=scoring,
-        chips=chips,
-        is_replay=is_replay,
-    )
-
-
 def run_optimization(
     gameweeks: list[int],
     tag: str,
@@ -244,15 +216,15 @@ def run_optimization(
                 "No existing squad or transfers found for team_id %s", fpl_team_id
             )
             logger.info("Will suggest a new starting squad:")
-            return new_squad_from_scratch(
-                gameweeks,
-                tag,
-                season,
-                fpl_team_id,
-                chips,
-                squad_optimizer,
-                scoring,
+            return build_new_squad(
+                tag=tag,
+                gameweeks=gameweeks,
+                season=season,
+                fpl_team_id=fpl_team_id,
+                optimizer=squad_optimizer,
+                scoring=scoring,
                 is_replay=is_replay,
+                chips=chips,
             ), None
 
         if num_free_transfers is None:

@@ -5,6 +5,7 @@ import logging
 import pytest
 
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.squad.lineup import order_substitutes
 from airsenal.squad.pricing import selling_price_from_api
 from airsenal.squad.squad import Squad
 from tests.conftest import session_scope
@@ -128,7 +129,7 @@ def test_order_substitutes():
     ]
 
     t.players = players
-    t.order_substitutes(0, 0)
+    order_substitutes(t.players, 0, 0)
 
     expected_sub_positions = [0, 1, 2, None]
     for player, sub_position in zip(players, expected_sub_positions, strict=False):

@@ -1,10 +1,10 @@
 """Replace two players, trying every pair in turn."""
 
+from functools import partial
 from typing import TYPE_CHECKING
 
 from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
-from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.predictions import get_predicted_points
 from airsenal.game.enums import Position
 from airsenal.game.season import CURRENT_SEASON
@@ -28,7 +28,7 @@ NUM_PAIRS = 105
 def make_optimum_double_transfer(
     squad: Squad,
     tag: str,
-    gameweeks: list[int] | None = None,
+    gameweeks: list[int],
     root_gameweek: int | None = None,
     season: str = CURRENT_SEASON,
     on_step: StepCounter | None = None,
@@ -44,11 +44,18 @@ def make_optimum_double_transfer(
     priced as at `root_gameweek`, which is what `TransferRequest.root_gameweek`
     documents.
     """
-    if not gameweeks:
-        gameweeks = [next_gameweek()]
     if root_gameweek is None:
         root_gameweek = min(gameweeks)
 
+    score = partial(
+        get_discounted_squad_score,
+        gameweeks=gameweeks,
+        tag=tag,
+        root_gameweek=root_gameweek,
+        bench_boost_gameweek=bench_boost_gameweek,
+        triple_captain_gameweek=triple_captain_gameweek,
+        sub_weights=sub_weights,
+    )
     best_score = -1.0
     best_squad = None
     best_pid_out, best_pid_in = [], []
@@ -85,26 +92,18 @@ def make_optimum_double_transfer(
                 if not added_1_ok:
                     continue
                 for pin_2 in ordered_player_lists[positions_needed[1]]:
-                    new_squad_add_2 = fastcopy(new_squad_add_1)
-                    if (
-                        pin_2[0] == pin_1[0]
-                        or pin_2[0].player_id == pout_1.player_id
-                        or pin_2[0].player_id == pout_2.player_id
-                    ):
+                    if pin_2[0].player_id in [
+                        pin_1[0].player_id,
+                        pout_1.player_id,
+                        pout_2.player_id,
+                    ]:
                         continue  # no point in adding same player back in
+                    new_squad_add_2 = fastcopy(new_squad_add_1)
                     added_2_ok = new_squad_add_2.add_player(
                         pin_2[0], gameweek=root_gameweek
                     )
                     if added_2_ok:
-                        total_points = get_discounted_squad_score(
-                            new_squad_add_2,
-                            gameweeks,
-                            tag,
-                            root_gameweek=root_gameweek,
-                            bench_boost_gameweek=bench_boost_gameweek,
-                            triple_captain_gameweek=triple_captain_gameweek,
-                            sub_weights=sub_weights,
-                        )
+                        total_points = score(new_squad_add_2)
                         if total_points > best_score:
                             best_score = total_points
                             best_pid_out = [pout_1.player_id, pout_2.player_id]

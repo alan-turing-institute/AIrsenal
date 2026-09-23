@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from airsenal.core.logging import get_logger
 from airsenal.db.models import TransferSuggestion
-from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.players import get_player
 from airsenal.db.queries.transactions import add_transaction
 from airsenal.db.session import get_session
@@ -133,7 +132,7 @@ def fill_transaction_table(
     starting_squad: Squad,
     best_plan: Plan,
     *,
-    tag: str | None = None,
+    tag: str,
     season: str,
     fpl_team_id: int,
     dbsession: Session | None = None,
@@ -153,8 +152,6 @@ def fill_transaction_table(
         raise ValueError(msg)
     outcome = best_plan.outcomes[0]
     fill_gameweek = outcome.gameweek
-    if tag is None:
-        tag = f"AIrsenal{season}"
     free_hit = int(outcome.chip is Chip.FREE_HIT)
     # A wildcard or free hit replaces the squad without spending a free transfer,
     # so the gameweek after must not be charged for the players it brought in.
@@ -194,13 +191,12 @@ def fill_initial_suggestion_table(
     squad: Squad,
     *,
     tag: str,
-    gameweek: int | None = None,
+    gameweek: int,
     season: str = CURRENT_SEASON,
     fpl_team_id: int,
     dbsession: Session | None = None,
 ) -> None:
     """Record a from-scratch squad as fifteen "in" suggestions for `gameweek`."""
-    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = get_session(dbsession)
     _add_suggestions(
         [player.player_id for player in squad.players],
@@ -220,7 +216,7 @@ def fill_initial_transaction_table(
     squad: Squad,
     *,
     tag: str,
-    gameweek: int | None = None,
+    gameweek: int,
     season: str = CURRENT_SEASON,
     fpl_team_id: int,
     dbsession: Session | None = None,
@@ -231,7 +227,6 @@ def fill_initial_transaction_table(
     For simulating a season only: when playing the real one, the transactions
     table is kept up to date from the FPL API instead.
     """
-    gameweek = next_gameweek() if gameweek is None else gameweek
     dbsession = get_session(dbsession)
     _add_transactions(
         [(player.player_id, player.purchase_price) for player in squad.players],
