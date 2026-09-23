@@ -11,7 +11,6 @@ from airsenal.cli._components import (
     squad_scoring,
     transfer_constraints,
 )
-from airsenal.core.logging import get_logger
 from airsenal.db.queries.tags import get_latest_prediction_tag
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.protocols import (
@@ -29,8 +28,6 @@ from airsenal.optimization.transfer_optimizers import (
 from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
 from airsenal.pipeline.settings import DEFAULT_N_GAMEWEEKS
 from airsenal.remote.fpl_api import require_fpl_team_id
-
-logger = get_logger(__name__)
 
 app = typer.Typer(
     no_args_is_help=True, help="Optimize transfers or full squads for your FPL team."

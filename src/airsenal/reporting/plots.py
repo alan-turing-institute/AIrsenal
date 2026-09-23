@@ -36,15 +36,12 @@ def plot_standings(thing_to_plot: str) -> None:
         team_histories.append(history_dict)
 
     xvals = sorted(team_histories[0]["history"].keys())
-    points = []
     for th in team_histories:
-        points.append(
-            [
-                th["history"][gameweek][thing_to_plot]
-                for gameweek in sorted(th["history"].keys())
-            ]
-        )
-        plt.plot(xvals, points[-1], label=th["name"])
+        values = [
+            th["history"][gameweek][thing_to_plot]
+            for gameweek in sorted(th["history"].keys())
+        ]
+        plt.plot(xvals, values, label=th["name"])
     plt.legend(loc="best")
     plt.xlabel("gameweek")
     plt.ylabel(thing_to_plot)
