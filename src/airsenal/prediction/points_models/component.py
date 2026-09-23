@@ -205,6 +205,11 @@ class _FittedComponents:
             msg = f"involvement for {player} is not a Series, but {type(involvement)}"
             raise RuntimeError(msg)
 
+        shares = InvolvementShare(
+            prob_score=float(involvement["prob_score"]),
+            prob_assist=float(involvement["prob_assist"]),
+        )
+
         minutes = self.minutes_for(request, minutes_model, gameweek)
         if minutes.expected_minutes == 0.0:
             # A player who will not be on the pitch scores zero from every
@@ -213,21 +218,13 @@ class _FittedComponents:
             return PointsPrediction(
                 expected_points=0.0,
                 expected_minutes=0.0,
-                involvement=InvolvementShare(
-                    prob_score=float(involvement["prob_score"]),
-                    prob_assist=float(involvement["prob_assist"]),
-                ),
+                involvement=shares,
                 components={component.name: 0.0 for component in self.components},
             )
 
         is_home = request.fixture.home_team == team
         opponent = request.fixture.away_team if is_home else request.fixture.home_team
         fixture_probabilities = self.goal_probabilities[request.fixture.fixture_id]
-
-        shares = InvolvementShare(
-            prob_score=float(involvement["prob_score"]),
-            prob_assist=float(involvement["prob_assist"]),
-        )
 
         def points_from(component: PointComponent, mins: float) -> float:
             """One component's points, for one number of minutes played."""

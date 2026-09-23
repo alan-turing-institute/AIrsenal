@@ -17,16 +17,13 @@ import pytest
 from sqlalchemy import select
 
 from airsenal.db.models import PlayerPrediction
-from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
+from airsenal.db.queries.fixtures import get_fixture_teams, get_fixtures_for_gameweeks
 from airsenal.prediction.evaluation import score_team_model
 from airsenal.prediction.player_models import build_player_model
 from airsenal.prediction.points_models import ComponentPointsModel
 from airsenal.prediction.run import make_predictedscore_table
 from airsenal.prediction.team_models import TEAM_MODELS, build_team_model
-from airsenal.prediction.team_models.fitting import (
-    fixture_probabilities,
-    get_fitted_team_model,
-)
+from airsenal.prediction.team_models.fitting import get_fitted_team_model
 from airsenal.prediction.team_models.scorelines import PoissonScorelines
 from tests.e2e.conftest import FUTURE_GAMEWEEKS, PAST_SEASONS, SEASON, TEAMS
 
@@ -68,17 +65,25 @@ def test_score_probabilities_are_usable(fitted):
         assert all(0.0 <= float(p) <= 1.0 for p in probabilities)
 
 
+def _outcome_probabilities(model, dbsession):
+    """Win, draw and loss probabilities for one gameweek of seeded fixtures."""
+    fixtures = get_fixture_teams(
+        get_fixtures_for_gameweeks(
+            [FUTURE_GAMEWEEKS[0]], season=PAST_SEASONS[-1], dbsession=dbsession
+        )
+    )
+    home_teams, away_teams = zip(*fixtures, strict=True)
+    return model.predict_outcome_proba(home_teams, away_teams)
+
+
 # `predict_outcome_proba` is part of the TeamModel protocol, so every model in
 # the table answers it - the null models included.
-@pytest.mark.parametrize("name", sorted(TEAM_MODELS))
-def test_fixture_probabilities_covers_every_fixture(pipeline_db, name):
-    model = build_team_model(name)
-    df = fixture_probabilities(
-        FUTURE_GAMEWEEKS[0], PAST_SEASONS[-1], dbsession=pipeline_db, model=model
-    )
+def test_outcome_probabilities_cover_every_fixture(fitted, pipeline_db):
+    _name, model = fitted
+    probabilities = _outcome_probabilities(model, pipeline_db)
     # four fixtures per gameweek in the seeded database
-    assert len(df) == 4
-    assert set(df.columns) >= {"home_team", "away_team"}
+    assert set(probabilities) == {"home_win", "draw", "away_win"}
+    assert all(len(p) == 4 for p in probabilities.values())
 
 
 @pytest.mark.parametrize("name", ["constant", "random"])
@@ -89,14 +94,12 @@ def test_outcome_probabilities_sum_to_one(pipeline_db, name):
     Named rather than taken from the table: this is a property of those two
     models, not of every team model.
     """
-    df = fixture_probabilities(
-        FUTURE_GAMEWEEKS[0],
-        PAST_SEASONS[-1],
-        dbsession=pipeline_db,
-        model=build_team_model(name),
+    model = get_fitted_team_model(
+        FIT_GAMEWEEK, FIT_SEASON, pipeline_db, model=build_team_model(name)
     )
+    probabilities = _outcome_probabilities(model, pipeline_db)
     totals = (
-        df["home_win_probability"] + df["draw_probability"] + df["away_win_probability"]
+        probabilities["home_win"] + probabilities["draw"] + probabilities["away_win"]
     )
     assert np.allclose(totals, 1.0)
 

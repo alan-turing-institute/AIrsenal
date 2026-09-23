@@ -39,11 +39,7 @@ def fit_player_data(
     df = pd.DataFrame(fitted_model.predict_involvement().as_dict())
 
     df["pos"] = position
-    return (
-        df.rename(columns={"index": "player_id"})
-        .sort_values("player_id")
-        .set_index("player_id")
-    )
+    return df.sort_values("player_id").set_index("player_id")
 
 
 def get_all_fitted_player_data(
@@ -56,5 +52,5 @@ def get_all_fitted_player_data(
     dbsession = get_session(dbsession)
     return {
         pos: fit_player_data(pos, gameweek, season, model, dbsession)
-        for pos in list(Position.back_to_front())
+        for pos in Position.back_to_front()
     }

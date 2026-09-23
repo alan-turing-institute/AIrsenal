@@ -18,6 +18,21 @@ from airsenal.prediction.team_models.scorelines import (
 )
 
 
+def teams_in(training_data: TeamFitData) -> list[str]:
+    """Every team in the training data, home or away, sorted."""
+    home = training_data.get("home_team", [])
+    away = training_data.get("away_team", [])
+    return sorted({str(t) for t in [*home, *away]})
+
+
+def with_team(teams: list[str] | None, team_name: str) -> list[str]:
+    """`teams`, or a new list, with `team_name` appended if it was not there."""
+    teams = [] if teams is None else teams
+    if team_name not in teams:
+        teams.append(team_name)
+    return teams
+
+
 class ConstantTeamModel:
     """Every scoreline equally likely, whoever is playing."""
 
@@ -31,17 +46,12 @@ class ConstantTeamModel:
         self.teams: list[str] | None = None
 
     def fit(self, training_data: TeamFitData) -> "ConstantTeamModel":
-        home = training_data.get("home_team", [])
-        away = training_data.get("away_team", [])
-        self.teams = sorted({str(t) for t in [*home, *away]})
+        self.teams = teams_in(training_data)
         return self
 
     def add_new_team(self, team_name: str, **kwargs: Any) -> None:
         del kwargs
-        if self.teams is None:
-            self.teams = []
-        if team_name not in self.teams:
-            self.teams.append(team_name)
+        self.teams = with_team(self.teams, team_name)
 
     def predict_score_n_proba(
         self,

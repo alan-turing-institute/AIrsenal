@@ -9,15 +9,12 @@ from sqlalchemy.orm.session import Session
 from airsenal.core.logging import get_logger
 from airsenal.db.models import FifaTeamRating, Fixture, Result
 from airsenal.db.queries.fixtures import (
-    get_fixture_teams,
     get_fixtures_for_gameweeks,
 )
 from airsenal.db.queries.gameweeks import is_future_gameweek
 from airsenal.db.queries.scores import get_expected_goals_by_fixture
 from airsenal.db.queries.teams import get_teams_for_season
-from airsenal.db.session import get_session
 from airsenal.game.scoring import MAX_GOALS
-from airsenal.game.season import CURRENT_SEASON
 from airsenal.prediction.protocols import (
     ScorelineTeamModel,
     TeamFitData,
@@ -186,50 +183,6 @@ def get_fitted_team_model(
     model.fit(training_data)
     return add_new_teams_to_model(
         team_model=model, season=season, dbsession=dbsession, ratings=ratings
-    )
-
-
-def fixture_probabilities(
-    gameweek: int,
-    season: str = CURRENT_SEASON,
-    model: ScorelineTeamModel | None = None,
-    dbsession: Session | None = None,
-    ratings: bool = True,
-) -> pd.DataFrame:
-    """
-    Win, draw and loss probabilities for every fixture in a gameweek.
-
-    One row per fixture, with columns home_team, away_team,
-    home_win_probability, draw_probability and away_win_probability. Without a
-    model, the default one is built and fitted first.
-    """
-    dbsession = get_session(dbsession)
-    if model is None:
-        model = build_team_model()
-    if model.teams is None:
-        model = get_fitted_team_model(
-            season=season,
-            gameweek=gameweek,
-            dbsession=dbsession,
-            ratings=ratings,
-            model=model,
-        )
-
-    fixtures = get_fixture_teams(
-        get_fixtures_for_gameweeks(
-            gameweeks=[gameweek], season=season, dbsession=dbsession
-        )
-    )
-    home_teams, away_teams = zip(*fixtures, strict=True)
-    probabilities = model.predict_outcome_proba(home_teams, away_teams)
-    return pd.DataFrame(
-        {
-            "home_team": home_teams,
-            "away_team": away_teams,
-            "home_win_probability": probabilities["home_win"],
-            "draw_probability": probabilities["draw"],
-            "away_win_probability": probabilities["away_win"],
-        }
     )
 
 

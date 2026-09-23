@@ -13,6 +13,7 @@ import numpy as np
 from airsenal.core.lookup import ConfigError
 from airsenal.game.scoring import MAX_GOALS
 from airsenal.prediction.protocols import TeamFitData
+from airsenal.prediction.team_models.constant import teams_in, with_team
 from airsenal.prediction.team_models.scorelines import (
     outcome_proba_from_scores,
 )
@@ -43,9 +44,7 @@ class RandomTeamModel:
         return weights / weights.sum()
 
     def fit(self, training_data: TeamFitData) -> "RandomTeamModel":
-        home = training_data.get("home_team", [])
-        away = training_data.get("away_team", [])
-        self.teams = sorted({str(t) for t in [*home, *away]})
+        self.teams = teams_in(training_data)
         if not self.teams:
             msg = "No teams found in training data."
             raise ValueError(msg)
@@ -54,11 +53,9 @@ class RandomTeamModel:
 
     def add_new_team(self, team_name: str, **kwargs: Any) -> None:
         del kwargs
-        if self.teams is None:
-            self.teams = []
-        if team_name in self.teams:
+        if self.teams is not None and team_name in self.teams:
             return
-        self.teams.append(team_name)
+        self.teams = with_team(self.teams, team_name)
         self._goal_probabilities[team_name] = self._draw()
 
     def predict_score_n_proba(

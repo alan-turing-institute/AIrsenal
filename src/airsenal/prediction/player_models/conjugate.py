@@ -63,13 +63,9 @@ class ConjugatePlayerModel:
             epsilon=self.config.epsilon,
             rescale_weights=self.config.rescale_weights,
         )
-        self.prior = self.get_prior(
-            scaled_goals, n_goals_prior=self.config.n_goals_prior
+        self.prior, self.posterior, self.mean_probabilities = dirichlet_update(
+            scaled_goals, self.config.n_goals_prior
         )
-        posterior = self.get_posterior(self.prior, scaled_goals)
-        self.posterior = posterior
-        self.mean_probabilities = self.posterior / self.posterior.sum(axis=1)[:, None]
-
         return self
 
     @staticmethod
@@ -78,18 +74,43 @@ class ConjugatePlayerModel:
         alpha = scaled_goals.sum(axis=0)
         return n_goals_prior * alpha / alpha.sum()
 
-    @staticmethod
-    def get_posterior(prior_alpha: FloatArray, scaled_goals: FloatArray) -> FloatArray:
-        """The Dirichlet posterior: the prior plus the scaled goal involvements."""
-        return prior_alpha + scaled_goals
-
     def predict_involvement(self) -> PlayerInvolvement:
-        if self.player_ids is None or self.mean_probabilities is None:
-            msg = "Model player_ids or mean_probabilities have not been set yet."
-            raise RuntimeError(msg)
-        return PlayerInvolvement(
-            player_ids=self.player_ids,
-            prob_score=self.mean_probabilities[:, 0],
-            prob_assist=self.mean_probabilities[:, 1],
-            prob_neither=self.mean_probabilities[:, 2],
+        return involvement_from_mean(
+            self.player_ids,
+            self.mean_probabilities,
+            "Model player_ids or mean_probabilities have not been set yet.",
         )
+
+
+def dirichlet_update(
+    scaled_goals: FloatArray, n_goals_prior: int
+) -> tuple[FloatArray, FloatArray, FloatArray]:
+    """
+    The pooled prior, the posterior, and the posterior mean per player.
+
+    The posterior is the prior plus each player's scaled goal involvements.
+    """
+    prior = ConjugatePlayerModel.get_prior(scaled_goals, n_goals_prior=n_goals_prior)
+    posterior = prior + scaled_goals
+    return prior, posterior, posterior / posterior.sum(axis=1)[:, None]
+
+
+def involvement_from_mean(
+    player_ids: FloatArray | None,
+    mean_probabilities: FloatArray | None,
+    not_fitted: str,
+) -> PlayerInvolvement:
+    """
+    The involvement a fitted Dirichlet mean gives each player.
+
+    Raises:
+        RuntimeError: With `not_fitted` as its message, if either is None.
+    """
+    if player_ids is None or mean_probabilities is None:
+        raise RuntimeError(not_fitted)
+    return PlayerInvolvement(
+        player_ids=player_ids,
+        prob_score=mean_probabilities[:, 0],
+        prob_assist=mean_probabilities[:, 1],
+        prob_neither=mean_probabilities[:, 2],
+    )

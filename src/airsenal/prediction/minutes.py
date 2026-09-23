@@ -4,7 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from airsenal.db.models import Fixture, Player, PlayerScore
-from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.db.queries.scores import get_recent_playerscore_rows, was_available
 from airsenal.db.session import get_session
 from airsenal.game.season import CURRENT_SEASON, get_previous_season
@@ -20,35 +19,28 @@ def calc_average_minutes(player_scores: list[PlayerScore]) -> float:
 
 def estimate_minutes_from_prev_season(
     player: Player,
-    gameweek: int | None = None,
+    gameweek: int,
     season: str = CURRENT_SEASON,
     n_matches_to_use: int = 10,
-    exclude_unavailable: bool = True,
-    current_team_only: bool = True,
     dbsession: Session | None = None,
 ) -> list[float]:
-    """Mean minutes in the previous season, or [0] if we have none."""
-    gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = get_session(dbsession)
-    previous_season = get_previous_season(season)
+    """
+    Mean minutes in the previous season, or [0] if we have none.
 
+    Only the matches the player was available for, and played for the team they
+    are at now.
+    """
+    dbsession = get_session(dbsession)
     query = (
         select(PlayerScore)
         .join(Fixture, PlayerScore.fixture)
         .where(
             PlayerScore.player_id == player.player_id,
-            Fixture.season == previous_season,
+            Fixture.season == get_previous_season(season),
+            PlayerScore.player_team == player.team(gameweek, season),
+            was_available(),
         )
     )
-
-    if current_team_only:
-        # Only the minutes the player played for the team they are at now
-        current_team = player.team(gameweek, season)
-        query = query.where(PlayerScore.player_team == current_team)
-
-    if exclude_unavailable:
-        query = query.where(was_available())
-
     player_scores = list(
         dbsession.scalars(
             query.order_by(Fixture.gameweek.desc()).limit(n_matches_to_use)
@@ -68,36 +60,26 @@ def get_recent_minutes_for_player(
     player: Player,
     n_matches_to_use: int = 3,
     season: str = CURRENT_SEASON,
-    last_gameweek: int | None = None,
-    exclude_unavailable: bool = True,
-    current_team_only: bool = True,
+    *,
+    last_gameweek: int,
     dbsession: Session | None = None,
 ) -> list[float]:
     """
     Minutes played in each of the last `n_matches_to_use` matches.
 
-    `last_gameweek` is inclusive and defaults to the most recent finished gameweek.
+    Only the matches the player was available for, for the team they are at now.
+    `last_gameweek` is inclusive.
     """
     dbsession = get_session(dbsession)
-    if last_gameweek is None:
-        if season != CURRENT_SEASON:
-            msg = "last_gameweek must be defined if running on previous seasons"
-            raise ValueError(msg)
-        last_gameweek = next_gameweek()
-
-    playerscores = (
-        get_recent_playerscore_rows(
-            player,
-            n_matches_to_use,
-            season,
-            last_gameweek,
-            exclude_unavailable,
-            current_team_only,
-            dbsession,
-        )
-        or []
+    playerscores = get_recent_playerscore_rows(
+        player,
+        n_matches_to_use,
+        season,
+        last_gameweek,
+        exclude_unavailable=True,
+        current_team_only=True,
+        dbsession=dbsession,
     )
-
     minutes = [float(r.minutes) for r in playerscores]
 
     if len(minutes) < n_matches_to_use:

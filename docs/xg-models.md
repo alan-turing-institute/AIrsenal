@@ -138,7 +138,7 @@ because every one of them is predicted zero points:
 At gameweek 1 there are no current-season matches, so
 `get_recent_minutes_for_player` falls back to
 `estimate_minutes_from_prev_season`, which reads the previous *Premier League*
-season and filters on `current_team_only`. A promoted-team player has no such
+season for the team the player is at now. A promoted-team player has no such
 history, so it returns `[0]`, the minutes are zero, and the points model
 short-circuits. The same applies to every summer signing, which is part of why
 only 44% of the rest are above zero either.

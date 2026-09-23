@@ -8,14 +8,13 @@ from sqlalchemy.orm import Session, selectinload
 
 from airsenal.core.caching import cache_ignoring_session
 from airsenal.core.logging import get_logger
-from airsenal.db.models import Player, PlayerAttributes, PlayerMapping, PlayerScore
+from airsenal.db.models import Player, PlayerAttributes, PlayerMapping
 from airsenal.db.queries.fixtures import (
     get_fixture_teams,
     get_fixtures_for_gameweeks,
 )
 from airsenal.db.queries.gameweeks import (
     get_max_gameweek,
-    is_future_gameweek,
     next_gameweek,
 )
 from airsenal.db.session import get_session
@@ -402,43 +401,3 @@ def get_player_attributes(
         )
         .limit(1)
     ).first()
-
-
-def get_max_matches_per_player(
-    position: str = "all",
-    gameweek: int | None = None,
-    season: str = CURRENT_SEASON,
-    dbsession: Session | None = None,
-) -> int:
-    """
-    The most matches any player in the season played.
-
-    Callers building a per-player, per-match array pad to this so the result is
-    rectangular rather than ragged.
-    """
-    gameweek = next_gameweek() if gameweek is None else gameweek
-    dbsession = get_session(dbsession)
-    players = list_players(
-        position=position, season=season, gameweek=gameweek, dbsession=dbsession
-    )
-    player_ids = [p.player_id for p in players]
-    if not player_ids:
-        return 0
-
-    scores = dbsession.scalars(
-        select(PlayerScore)
-        .options(selectinload(PlayerScore.fixture))
-        .where(PlayerScore.player_id.in_(player_ids))
-    ).all()
-
-    matches_per_player = dict.fromkeys(player_ids, 0)
-    for score in scores:
-        if not is_future_gameweek(
-            score.fixture.gameweek,
-            score.fixture.season,
-            current_season=season,
-            current_gameweek=gameweek,
-        ):
-            matches_per_player[score.player_id] += 1
-
-    return max(matches_per_player.values(), default=0)

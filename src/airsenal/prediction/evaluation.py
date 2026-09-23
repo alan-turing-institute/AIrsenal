@@ -14,9 +14,10 @@ again: the error for the squad the optimizer chose, rather than over every
 player predicted.
 """
 
-from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from dataclasses import dataclass, field, fields, replace
 from math import lgamma
+from typing import Self
 
 import numpy as np
 import pandas as pd
@@ -67,7 +68,21 @@ def _log(probability: float) -> float:
 
 
 @dataclass(frozen=True)
-class ModelScore:
+class _Summable:
+    """A score that adds field by field, so two scores sum to the score over both."""
+
+    def __add__(self, other: Self) -> Self:
+        return replace(
+            self,
+            **{
+                f.name: getattr(self, f.name) + getattr(other, f.name)
+                for f in fields(self)
+            },
+        )
+
+
+@dataclass(frozen=True)
+class ModelScore(_Summable):
     """
     How much probability a model put on what actually happened.
 
@@ -88,17 +103,9 @@ class ModelScore:
             return 0.0
         return self.total_log_probability / self.n_observations
 
-    def __add__(self, other: "ModelScore") -> "ModelScore":
-        return ModelScore(
-            total_log_probability=self.total_log_probability
-            + other.total_log_probability,
-            n_observations=self.n_observations + other.n_observations,
-            n_skipped=self.n_skipped + other.n_skipped,
-        )
-
 
 @dataclass(frozen=True)
-class PointsScore:
+class PointsScore(_Summable):
     """
     How close predicted points came to what players actually scored.
 
@@ -172,23 +179,9 @@ class PointsScore:
             return 0.0
         return self.total_rank_correlation / self.n_ranked
 
-    def __add__(self, other: "PointsScore") -> "PointsScore":
-        return PointsScore(
-            total_absolute_error=self.total_absolute_error + other.total_absolute_error,
-            total_squared_error=self.total_squared_error + other.total_squared_error,
-            n_observations=self.n_observations + other.n_observations,
-            total_absolute_error_played=self.total_absolute_error_played
-            + other.total_absolute_error_played,
-            n_played=self.n_played + other.n_played,
-            n_skipped=self.n_skipped + other.n_skipped,
-            total_rank_correlation=self.total_rank_correlation
-            + other.total_rank_correlation,
-            n_ranked=self.n_ranked + other.n_ranked,
-        )
-
 
 @dataclass(frozen=True)
-class MinutesScore:
+class MinutesScore(_Summable):
     """
     How well a minutes model predicted how long players were on the pitch.
 
@@ -244,17 +237,6 @@ class MinutesScore:
         if not self.n_observations:
             return 0.0
         return self.total_log_probability / self.n_observations
-
-    def __add__(self, other: "MinutesScore") -> "MinutesScore":
-        return MinutesScore(
-            total_absolute_error=self.total_absolute_error + other.total_absolute_error,
-            n_observations=self.n_observations + other.n_observations,
-            n_correct_band=self.n_correct_band + other.n_correct_band,
-            total_log_probability=self.total_log_probability
-            + other.total_log_probability,
-            n_impossible=self.n_impossible + other.n_impossible,
-            n_skipped=self.n_skipped + other.n_skipped,
-        )
 
 
 def minutes_band(minutes: float) -> int:
@@ -362,7 +344,7 @@ def team_goals_in(score: PlayerScore) -> int:
 
 
 @dataclass(frozen=True)
-class InvolvementScore:
+class InvolvementScore(_Summable):
     """
     How close a player model's goal shares came to what the players actually did.
 
@@ -398,15 +380,19 @@ class InvolvementScore:
             return 0.0
         return self.total_absolute_error_assists / self.n_observations
 
-    def __add__(self, other: "InvolvementScore") -> "InvolvementScore":
-        return InvolvementScore(
-            total_absolute_error_goals=self.total_absolute_error_goals
-            + other.total_absolute_error_goals,
-            total_absolute_error_assists=self.total_absolute_error_assists
-            + other.total_absolute_error_assists,
-            n_observations=self.n_observations + other.n_observations,
-            n_skipped=self.n_skipped + other.n_skipped,
+
+def _probabilities_by_player(
+    probabilities: pd.DataFrame, columns: Sequence[str]
+) -> dict[int, list[float]]:
+    """The named columns of a fitted player frame, keyed by player id."""
+    return {
+        int(player_id): [float(value) for value in row]
+        for player_id, row in zip(
+            probabilities.index,
+            np.asarray(probabilities[list(columns)], dtype=float),
+            strict=True,
         )
+    }
 
 
 def score_involvement_error(
@@ -419,14 +405,7 @@ def score_involvement_error(
         probabilities: What `fit_player_data` returns - one row per player id,
             with prob_score, prob_assist and prob_neither.
     """
-    shares = {
-        int(player_id): (float(row[0]), float(row[1]))
-        for player_id, row in zip(
-            probabilities.index,
-            np.asarray(probabilities[["prob_score", "prob_assist"]], dtype=float),
-            strict=True,
-        )
-    }
+    shares = _probabilities_by_player(probabilities, ["prob_score", "prob_assist"])
     total = InvolvementScore()
     for ps in player_scores:
         if ps.player_id not in shares:
@@ -475,15 +454,9 @@ def score_player_model(
             matches in which the player's team did not score or the player did
             not appear.
     """
-    columns = ["prob_score", "prob_assist", "prob_neither"]
-    by_player: dict[int, list[float]] = {
-        int(player_id): [float(value) for value in row]
-        for player_id, row in zip(
-            probabilities.index,
-            np.asarray(probabilities[columns], dtype=float),
-            strict=True,
-        )
-    }
+    by_player = _probabilities_by_player(
+        probabilities, ["prob_score", "prob_assist", "prob_neither"]
+    )
 
     total = 0.0
     scored = 0
@@ -590,6 +563,25 @@ def score_points_predictions(
     )
 
 
+def _windows_with_performances(
+    horizon: int, gameweeks: Sequence[int], season: str, dbsession: Session
+) -> Iterator[tuple[int, list[int], list[PlayerScore]]]:
+    """
+    Each gameweek, the `horizon` gameweeks from it, and their performances.
+
+    A gameweek whose window has no performances is logged and skipped.
+    """
+    for gameweek in gameweeks:
+        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
+        player_scores = get_player_scores_for_gameweeks(
+            evaluation_gameweeks, season=season, dbsession=dbsession
+        )
+        if not player_scores:
+            logger.info("No performances for %s GW%s, skipping", season, gameweek)
+            continue
+        yield gameweek, evaluation_gameweeks, player_scores
+
+
 def backtest_team_model(
     build: Callable[[], ScorelineTeamModel],
     season: str,
@@ -652,14 +644,9 @@ def backtest_player_model(
 
     positions = list(positions) if positions is not None else list(Position)
     score = ModelScore()
-    for gameweek in gameweeks:
-        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
-        player_scores = get_player_scores_for_gameweeks(
-            evaluation_gameweeks, season=season, dbsession=dbsession
-        )
-        if not player_scores:
-            logger.info("No performances for %s GW%s, skipping", season, gameweek)
-            continue
+    for gameweek, _, player_scores in _windows_with_performances(
+        horizon, gameweeks, season, dbsession
+    ):
         probabilities = pd.concat(
             [
                 fit_player_data(
@@ -707,14 +694,9 @@ def backtest_points(
     from airsenal.prediction.run import make_predictedscore_table  # noqa: PLC0415
 
     score = PointsScore()
-    for gameweek in gameweeks:
-        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
-        player_scores = get_player_scores_for_gameweeks(
-            evaluation_gameweeks, season=season, dbsession=dbsession
-        )
-        if not player_scores:
-            logger.info("No performances for %s GW%s, skipping", season, gameweek)
-            continue
+    for gameweek, evaluation_gameweeks, player_scores in _windows_with_performances(
+        horizon, gameweeks, season, dbsession
+    ):
         tag = make_predictedscore_table(
             gameweeks=evaluation_gameweeks,
             season=season,
@@ -797,14 +779,9 @@ def backtest_minutes_model(
     `build` is called once per gameweek only to keep the three backtests alike.
     """
     score = MinutesScore()
-    for gameweek in gameweeks:
-        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
-        player_scores = get_player_scores_for_gameweeks(
-            evaluation_gameweeks, season=season, dbsession=dbsession
-        )
-        if not player_scores:
-            logger.info("No performances for %s GW%s, skipping", season, gameweek)
-            continue
+    for gameweek, _, player_scores in _windows_with_performances(
+        horizon, gameweeks, season, dbsession
+    ):
         score += score_minutes_model(
             build(),
             player_scores,
@@ -825,7 +802,7 @@ def backtest_minutes_model(
 
 
 @dataclass(frozen=True)
-class ErrorScore:
+class ErrorScore(_Summable):
     """Mean absolute error over some number of observations. Lower is better."""
 
     total_absolute_error: float = 0.0
@@ -836,12 +813,6 @@ class ErrorScore:
         if not self.n_observations:
             return 0.0
         return self.total_absolute_error / self.n_observations
-
-    def __add__(self, other: "ErrorScore") -> "ErrorScore":
-        return ErrorScore(
-            total_absolute_error=self.total_absolute_error + other.total_absolute_error,
-            n_observations=self.n_observations + other.n_observations,
-        )
 
 
 @dataclass(frozen=True)
@@ -913,8 +884,11 @@ def score_prediction_breakdown(
     predicted_points: list[float] = []
     actual_points: list[float] = []
     for score in player_scores:
-        if score.fixture.gameweek is None or not Position.is_modelled(
-            score.player.position(season)
+        position = score.player.position(season)
+        if (
+            score.fixture.gameweek is None
+            or position is None
+            or not Position.is_modelled(position)
         ):
             # A fixture with no gameweek, or a manager - who has performances
             # and points in the database like anyone else, and no model here to
@@ -932,7 +906,7 @@ def score_prediction_breakdown(
         )
         predicted_points.append(prediction.expected_points)
         actual_points.append(float(score.points))
-        total += _score_one(prediction, score, season=season)
+        total += _score_one(prediction, score, position)
 
     # One ranking over everything passed in: a ranking is a property of a set of
     # players, so it cannot be accumulated a performance at a time like the errors.
@@ -948,7 +922,7 @@ def score_prediction_breakdown(
 
 
 def _score_one(
-    prediction: PointsPrediction, score: PlayerScore, *, season: str
+    prediction: PointsPrediction, score: PlayerScore, position: str
 ) -> BreakdownScore:
     """One prediction against one performance, part by part."""
     error = abs(prediction.expected_points - float(score.points))
@@ -980,14 +954,7 @@ def _score_one(
 
     components = None
     if prediction.components is not None:
-        position = score.player.position(season)
-        try:
-            actual = (
-                actual_component_points(score, position) if position is not None else {}
-            )
-        except ValueError:
-            # a position with no scoring rules, so nothing to compare against
-            actual = {}
+        actual = actual_component_points(score, position)
         components = {
             name: ErrorScore(
                 total_absolute_error=abs(expected - actual[name]), n_observations=1
@@ -1026,14 +993,9 @@ def backtest_breakdown(
     from airsenal.prediction.points_models import build_points_model  # noqa: PLC0415
 
     total = BreakdownScore()
-    for gameweek in gameweeks:
-        evaluation_gameweeks = list(range(gameweek, gameweek + horizon))
-        player_scores = get_player_scores_for_gameweeks(
-            evaluation_gameweeks, season=season, dbsession=dbsession
-        )
-        if not player_scores:
-            logger.info("No performances for %s GW%s, skipping", season, gameweek)
-            continue
+    for gameweek, evaluation_gameweeks, player_scores in _windows_with_performances(
+        horizon, gameweeks, season, dbsession
+    ):
         model = build() if build is not None else build_points_model()
         model = model.fit(
             PointsFitRequest(

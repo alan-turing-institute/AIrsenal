@@ -12,7 +12,10 @@ from airsenal.game.scoring import (
     def_cons_required,
     points_for_def_cons,
 )
-from airsenal.prediction.point_components.empirical_bayes import mean_group_prior
+from airsenal.prediction.point_components.empirical_bayes import (
+    mean_group_prior,
+    points_by_appearance_length,
+)
 from airsenal.prediction.protocols import ComponentRequest
 
 
@@ -78,8 +81,6 @@ class DefConComponent:
         if self.fitted is None:
             msg = "The defensive contribution component has not been fitted yet."
             raise RuntimeError(msg)
-        if request.minutes >= MIN_MINUTES_FULL:
-            return float(self.fitted[0].get(request.player_id, 0.0))
-        if request.minutes >= MIN_MINUTES_SHORT:
-            return float(self.fitted[1].get(request.player_id, 0.0))
-        return 0.0
+        return points_by_appearance_length(
+            self.fitted, request.player_id, request.minutes
+        )

@@ -7,9 +7,7 @@ import pandas as pd
 type FloatArray = npt.NDArray[np.float64]
 
 
-def get_empirical_bayes_estimates(
-    df_emp: pd.DataFrame, prior_goals: float | None = None
-) -> FloatArray:
+def get_empirical_bayes_estimates(df_emp: pd.DataFrame) -> FloatArray:
     """
     Dirichlet prior alphas: goals, assists, and neither.
 
@@ -19,11 +17,9 @@ def get_empirical_bayes_estimates(
     Args:
         df_emp: One player, or several - several are averaged into a single set
             of alphas.
-        prior_goals: If given, the alphas are normalised to sum to this.
     """
     # drop the padding rows that give every player the same number of matches
-    df = df_emp.copy()
-    df = df[df["match_id"] != 0]
+    df = df_emp[df_emp["match_id"] != 0]
 
     player_goals = df["goals"].sum()
     player_assists = df["assists"].sum()
@@ -45,10 +41,7 @@ def get_empirical_bayes_estimates(
         )
         * (total_minutes / player_minutes)
     )
-    alpha = np.array([a0, a1, a2])
-    if prior_goals is not None:
-        alpha = prior_goals * (alpha / alpha.sum())
-    return alpha
+    return np.array([a0, a1, a2])
 
 
 def scale_goals_by_minutes(
@@ -73,20 +66,19 @@ def scale_goals_by_minutes(
         rescale_weights: If True, rescale each player's weights to sum to the
             number of matches they appeared in where a goal was scored.
     """
-    if epsilon is not None and time_diff is None:
+    if epsilon is None:
+        weights = np.ones_like(minutes)
+    elif time_diff is None:
         msg = "time_diff must be provided if using time weighting."
         raise ValueError(msg)
-    if time_diff is not None and epsilon is not None:
-        weights = np.exp(-epsilon * time_diff)
     else:
-        weights = np.ones_like(minutes)
+        weights = np.exp(-epsilon * time_diff)
     select_matches = (goals.sum(axis=2) > 0) & (minutes > 0)
     n_players, _, _ = goals.shape
     scaled_goals = np.zeros((n_players, 3))
     for p in range(n_players):
         if select_matches[p, :].sum() == 0:
-            # player not involved in any matches with goals
-            scaled_goals[p, :] = [0, 0, 0]
+            # player not involved in any matches with goals, so stays at zero
             continue
 
         match_weights = weights[p, select_matches[p, :]]

@@ -7,7 +7,10 @@ import numpy as np
 
 from airsenal.core.logging import get_logger
 from airsenal.game.enums import Position
-from airsenal.prediction.player_models.conjugate import ConjugatePlayerModel
+from airsenal.prediction.player_models.conjugate import (
+    dirichlet_update,
+    involvement_from_mean,
+)
 from airsenal.prediction.player_models.scaling import (
     FloatArray,
     scale_goals_by_minutes,
@@ -157,9 +160,9 @@ class XGPlayerModel:
             epsilon=self.config.epsilon,
             rescale_weights=self.config.rescale_weights,
         )
-        self.prior = ConjugatePlayerModel.get_prior(scaled, n_goals_prior=n_goals_prior)
-        self.posterior = ConjugatePlayerModel.get_posterior(self.prior, scaled)
-        self.mean_probabilities = self.posterior / self.posterior.sum(axis=1)[:, None]
+        self.prior, self.posterior, self.mean_probabilities = dirichlet_update(
+            scaled, n_goals_prior
+        )
         return self
 
     def _involvement_counts(self, data: PlayerFitData) -> FloatArray:
@@ -241,12 +244,8 @@ class XGPlayerModel:
         )
 
     def predict_involvement(self) -> PlayerInvolvement:
-        if self.player_ids is None or self.mean_probabilities is None:
-            msg = "The xG player model has not been fitted yet."
-            raise RuntimeError(msg)
-        return PlayerInvolvement(
-            player_ids=self.player_ids,
-            prob_score=self.mean_probabilities[:, 0],
-            prob_assist=self.mean_probabilities[:, 1],
-            prob_neither=self.mean_probabilities[:, 2],
+        return involvement_from_mean(
+            self.player_ids,
+            self.mean_probabilities,
+            "The xG player model has not been fitted yet.",
         )

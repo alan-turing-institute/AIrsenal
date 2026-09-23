@@ -13,7 +13,7 @@ from airsenal.core.logging import get_logger
 from airsenal.db.models import PlayerAttributes, PlayerScore
 from airsenal.db.queries.fixtures import get_fixtures_for_gameweeks
 from airsenal.db.queries.gameweeks import is_future_gameweek, next_gameweek
-from airsenal.db.queries.players import get_max_matches_per_player, list_players
+from airsenal.db.queries.players import list_players
 from airsenal.db.queries.scores import get_expected_goals_by_fixture
 from airsenal.db.session import get_session
 from airsenal.game.enums import Position
@@ -96,8 +96,7 @@ def get_player_history_df(
         )
 
     player_ids = [p.player_id for p in players]
-    scores_by_player = defaultdict(list)
-
+    past_scores: defaultdict[int, list[PlayerScore]] = defaultdict(list)
     if player_ids:
         all_scores = dbsession.scalars(
             select(PlayerScore)
@@ -108,68 +107,68 @@ def get_player_history_df(
             .where(PlayerScore.player_id.in_(player_ids))
         ).all()
         for score in all_scores:
-            scores_by_player[score.player_id].append(score)
+            if not is_future_gameweek(
+                score.fixture.gameweek,
+                score.fixture.season,
+                current_season=season,
+                current_gameweek=gameweek,
+            ):
+                past_scores[score.player_id].append(score)
+
+    # Padded to the most matches any player in the position played, counting a
+    # performance with no result, which is left out of the frame.
+    if all_players:
+        padded_player_ids = [
+            p.player_id
+            for p in list_players(
+                position=position, season=season, gameweek=gameweek, dbsession=dbsession
+            )
+        ]
+    else:
+        padded_player_ids = player_ids
+    max_matches_per_player = max(
+        (len(past_scores.get(player_id, [])) for player_id in padded_player_ids),
+        default=0,
+    )
 
     # Per (fixture, team), because an xG involvement is a share of what the
     # whole team was expected to score and this frame holds one position of it.
     team_expected_goals = get_expected_goals_by_fixture(dbsession)
 
-    max_matches_per_player = get_max_matches_per_player(
-        position, gameweek=gameweek, season=season, dbsession=dbsession
-    )
     for player in track(
         players, description=f"Filling player history dataframe for {position}:"
     ):
-        results = scores_by_player.get(player.player_id, [])
         row_count = 0
-        for row in results:
-            if is_future_gameweek(
-                row.fixture.gameweek,
-                row.fixture.season,
-                current_season=season,
-                current_gameweek=gameweek,
-            ):
-                continue
-
-            match_id = row.result_id
-            if not match_id:
+        for row in past_scores.get(player.player_id, []):
+            if not row.result_id:
                 logger.warning("Couldn't find result for %s", row.fixture)
                 continue
 
-            minutes = row.minutes
-            goals = row.goals
-            assists = row.assists
-            match_result = row.result
-            match_date = row.fixture.date
-
             if row.fixture.home_team == row.opponent:
-                team_goals = match_result.away_score
+                team_goals = row.result.away_score
             elif row.fixture.away_team == row.opponent:
-                team_goals = match_result.home_score
+                team_goals = row.result.home_score
             else:
                 logger.warning("Unknown opponent!")
                 team_goals = -1
 
-            expected_goals = row.expected_goals
-            expected_assists = row.expected_assists
-            team_expected = team_expected_goals.get(
-                (row.fixture_id, row.player_team), float("nan")
-            )
             player_data.append(
                 {
                     "player_id": player.player_id,
                     "player_name": player.name,
-                    "match_id": match_id,
-                    "date": match_date,
+                    "match_id": row.result_id,
+                    "date": row.fixture.date,
                     "season": row.fixture.season,
                     "gameweek": row.fixture.gameweek,
-                    "goals": goals,
-                    "assists": assists,
-                    "minutes": minutes,
+                    "goals": row.goals,
+                    "assists": row.assists,
+                    "minutes": row.minutes,
                     "team_goals": team_goals,
-                    "expected_goals": expected_goals,
-                    "expected_assists": expected_assists,
-                    "team_expected_goals": team_expected,
+                    "expected_goals": row.expected_goals,
+                    "expected_assists": row.expected_assists,
+                    "team_expected_goals": team_expected_goals.get(
+                        (row.fixture_id, row.player_team), float("nan")
+                    ),
                 }
             )
             row_count += 1
@@ -182,8 +181,6 @@ def get_player_history_df(
 
     df = pd.DataFrame(player_data, columns=list(PLAYER_HISTORY_COLUMNS))
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df.reset_index(drop=True, inplace=True)
-
     return df
 
 

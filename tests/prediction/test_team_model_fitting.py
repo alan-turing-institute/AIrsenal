@@ -5,7 +5,6 @@ As test_player_model_fitting.py: the table is in test_models.py and every entry
 is fitted against the small seeded database in tests/e2e/test_team_models.py.
 """
 
-import pandas as pd
 import pytest
 from bpl import ExtendedDixonColesMatchPredictor, NeutralDixonColesMatchPredictor
 
@@ -14,7 +13,6 @@ from airsenal.prediction.team_models.dixon_coles import (
     DixonColesTeamModel,
 )
 from airsenal.prediction.team_models.fitting import (
-    fixture_probabilities,
     get_fitted_team_model,
     get_ratings_dict,
     get_result_dict,
@@ -78,16 +76,6 @@ def test_get_fitted_team_model():
         )
         assert isinstance(model_team.model, NeutralDixonColesMatchPredictor)
         assert model_team.epsilon == DEFAULT_TEAM_EPSILON
-
-
-@pytest.mark.slow
-def test_fixture_probabilities():
-    with past_data_session_scope() as ts:
-        df = fixture_probabilities(
-            20, "1819", model=DixonColesTeamModel(), dbsession=ts
-        )
-        assert isinstance(df, pd.DataFrame)
-        assert len(df) == 10
 
 
 def test_the_default_model_needs_a_season_with_expected_goals():
