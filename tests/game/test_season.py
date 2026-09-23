@@ -2,6 +2,7 @@ from airsenal.game.season import (
     CURRENT_SEASON,
     default_seasons,
     get_next_season,
+    get_previous_season,
     season_str_to_year,
     sort_seasons,
 )
@@ -20,6 +21,13 @@ def test_sort_seasons():
 def test_get_next_season_keeps_two_digits_per_year():
     assert get_next_season("1819") == "1920"
     assert get_next_season("0809") == "0910"
+
+
+def test_get_previous_season_keeps_two_digits_per_year():
+    """Each year stays two digits, as in every season string."""
+    assert get_previous_season("1920") == "1819"
+    assert get_previous_season("1011") == "0910"
+    assert get_previous_season(get_next_season("0809")) == "0809"
 
 
 def test_default_seasons_are_this_one_and_the_three_before():

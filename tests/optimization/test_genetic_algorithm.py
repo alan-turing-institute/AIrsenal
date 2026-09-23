@@ -368,8 +368,8 @@ def test_the_root_gameweek_is_what_the_search_reads_prices_at(root_gameweek, exp
             gameweeks=[5, 6],
             tag="test_tag",
             root_gameweek=root_gameweek,
-            # the mocked predictions only cover gameweek 1, so keeping the
-            # zero-point filter would empty the pool
+            # the mocked predictions only cover gameweek 1, so the zero-point
+            # filter has nothing to go on
             remove_zero=False,
             players_per_position=optimizer.players_per_position,
             scoring=optimizer.scoring,
@@ -377,3 +377,84 @@ def test_the_root_gameweek_is_what_the_search_reads_prices_at(root_gameweek, exp
 
     assert rebuilt.root_gameweek == expected
     assert rebuilt.gameweeks == [5, 6]
+
+
+def _players_with_points(points_by_position):
+    """Mock players, 20 per position, each predicted `points_by_position[pos]`."""
+    players = []
+    for pos, points in points_by_position.items():
+        for i in range(20):
+            player = Mock()
+            player.player_id = f"{pos}_{i}"
+            player.position = lambda season=None, pos=pos: pos  # noqa: ARG005
+            player.points = points
+            players.append(player)
+    return players
+
+
+@pytest.mark.parametrize(
+    "points_by_position",
+    [
+        {"GK": 5.0, "DEF": 0.0, "MID": 5.0, "FWD": 5.0},
+        {"GK": 0.0, "DEF": 5.0, "MID": 0.0, "FWD": 5.0},
+        {"GK": 5.0, "DEF": 5.0, "MID": 5.0, "FWD": 0.0},
+    ],
+)
+def test_each_position_keeps_its_own_players_when_another_has_no_points(
+    points_by_position,
+):
+    """A position with no predicted points still fills its slots from its own."""
+    players = _players_with_points(points_by_position)
+    with (
+        patch(
+            f"{MODULE}.list_players",
+            side_effect=lambda position=None, **kwargs: [
+                p for p in players if p.position() == position
+            ],
+        ),
+        patch(
+            f"{MODULE}.get_predicted_points_for_player",
+            side_effect=lambda player, *_args, **_kwargs: {1: player.points},
+        ),
+    ):
+        optimizer = SquadOpt(
+            gameweeks=[1],
+            tag="test_tag",
+            scoring=SquadScoringConfig(budget=1000, sub_weights=SubWeights()),
+        )
+
+    for pos in optimizer.positions:
+        first, last = optimizer.position_idx[pos]
+        block = optimizer.players[first : last + 1]
+        assert len(block) == 20
+        assert {p.position() for p in block} == {pos}
+
+
+def test_players_with_no_points_are_dropped_where_enough_remain():
+    """Only the players predicted to score are searched over."""
+    players = _players_with_points({"GK": 5.0, "DEF": 5.0, "MID": 5.0, "FWD": 5.0})
+    for player in players[::2]:
+        player.points = 0.0
+    with (
+        patch(
+            f"{MODULE}.list_players",
+            side_effect=lambda position=None, **kwargs: [
+                p for p in players if p.position() == position
+            ],
+        ),
+        patch(
+            f"{MODULE}.get_predicted_points_for_player",
+            side_effect=lambda player, *_args, **_kwargs: {1: player.points},
+        ),
+    ):
+        optimizer = SquadOpt(
+            gameweeks=[1],
+            tag="test_tag",
+            scoring=SquadScoringConfig(budget=1000, sub_weights=SubWeights()),
+        )
+
+    assert len(optimizer.players) == 40
+    assert all(p.points > 0 for p in optimizer.players)
+    for pos in optimizer.positions:
+        first, last = optimizer.position_idx[pos]
+        assert {p.position() for p in optimizer.players[first : last + 1]} == {pos}

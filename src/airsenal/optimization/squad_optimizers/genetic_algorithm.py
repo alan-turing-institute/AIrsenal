@@ -220,30 +220,42 @@ class SquadOpt:
         return players, self._position_blocks(change_idx)
 
     def _remove_zero_pts(self) -> None:
-        """Exclude players with zero predicted points."""
+        """
+        Exclude players with zero predicted points.
+
+        A position left with fewer players than it needs keeps all of them, so
+        every position can still fill its slots.
+        """
         players: list[Player] = []
-        # change_idx stores the indices of where the player positions change in the new
-        # player list
         change_idx = [0]
-        last_pos: str | None = self.positions[0]
-        for p in self.players:
-            gameweek_points = get_predicted_points_for_player(
-                p, self.tag, season=self.season, dbsession=self.dbsession
-            )
-            total_pts = sum(
-                pts
-                for gameweek, pts in gameweek_points.items()
-                if gameweek in self.gameweeks
-            )
-            if total_pts > 0:
-                if p.position(self.season) != last_pos:
-                    change_idx.append(len(players))
-                    last_pos = p.position(self.season)
-                players.append(p)
-        change_idx.append(len(players))
+        for pos in self.positions:
+            first, last = self.position_idx[pos]
+            candidates = self.players[first : last + 1]
+            scoring = [p for p in candidates if self._total_points(p) > 0]
+            if len(scoring) < self.players_per_position[pos]:
+                logger.warning(
+                    "Only %d %s players have predicted points; considering all %d.",
+                    len(scoring),
+                    pos,
+                    len(candidates),
+                )
+                scoring = candidates
+            players += scoring
+            change_idx.append(len(players))
 
         self.players = players
         self.position_idx = self._position_blocks(change_idx)
+
+    def _total_points(self, player: Player) -> float:
+        """A player's predicted points summed over the gameweeks being optimised."""
+        gameweek_points = get_predicted_points_for_player(
+            player, self.tag, season=self.season, dbsession=self.dbsession
+        )
+        return sum(
+            pts
+            for gameweek, pts in gameweek_points.items()
+            if gameweek in self.gameweeks
+        )
 
     def _position_blocks(
         self, change_idx: list[int]

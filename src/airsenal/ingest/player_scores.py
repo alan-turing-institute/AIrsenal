@@ -300,7 +300,9 @@ def fill_playerscores_from_api(
                 continue
             for result in results:
                 # try to find the match in the match table
-                opponent = get_team_name(result["opponent_team"])
+                opponent = get_team_name(
+                    result["opponent_team"], season=season, dbsession=dbsession
+                )
                 if opponent is None:
                     logger.warning("Couldn't find team %s", result["opponent_team"])
                     continue

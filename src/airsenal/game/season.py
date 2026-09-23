@@ -39,11 +39,7 @@ def get_next_season(season: str) -> str:
 
 def get_previous_season(season: str) -> str:
     """The season before this one: '1819' becomes '1718'."""
-    start_year = int(season[:2])
-    end_year = int(season[2:])
-    prev_start_year = start_year - 1
-    prev_end_year = end_year - 1
-    return f"{prev_start_year}{prev_end_year}"
+    return f"{int(season[:2]) - 1:02d}{int(season[2:]) - 1:02d}"
 
 
 def get_past_seasons(num_seasons: int) -> list[str]:

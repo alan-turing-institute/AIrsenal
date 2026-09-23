@@ -106,6 +106,7 @@ def make_random_transfers(
                 attempt += 1
                 if attempt > max_tries:
                     new_squad = fastcopy(squad)
+                    removed_players, added_players = [], []
                     break
                 # take those players out again.
                 for ap in added_players:

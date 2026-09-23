@@ -35,8 +35,8 @@ def make_results(season: str) -> None:
     fixtures_df.rename(columns=keys_to_extract, inplace=True)
     fixtures_df = fixtures_df[keys_to_extract.values()]
 
-    fixtures_df["home_team"].replace(teams, inplace=True)
-    fixtures_df["away_team"].replace(teams, inplace=True)
+    fixtures_df["home_team"] = fixtures_df["home_team"].replace(teams)
+    fixtures_df["away_team"] = fixtures_df["away_team"].replace(teams)
 
     fixtures_df.to_csv(RESULTS_FILE.format(season), index=False)
     logger.info("Made results file for %s season!", season)

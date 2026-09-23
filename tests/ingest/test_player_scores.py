@@ -17,7 +17,9 @@ from sqlalchemy.orm import sessionmaker
 
 from airsenal.core.caching import clear_query_caches
 from airsenal.db.models import Base, Fixture, Player, PlayerAttributes
+from airsenal.ingest import player_scores
 from airsenal.ingest.player_scores import (
+    fill_playerscores_from_api,
     get_availability_for_fixture,
     get_status_from_attributes_history,
 )
@@ -241,3 +243,36 @@ def test_no_attributes_row_for_the_gameweek_means_no_status(dbsession):
         None,
         None,
     )
+
+
+def test_an_opponent_from_the_api_is_named_from_that_season(monkeypatch, dbsession):
+    """Team ids are per season, so the opponent is looked up in the season filled."""
+    past_season = "2425"
+
+    class Fetcher:
+        def get_player_summary_data(self):
+            return {1: {}}
+
+        def get_gameweek_data_for_player(self, _player_api_id):
+            return {GAMEWEEK: [{"opponent_team": 3}]}
+
+    lookups = []
+
+    def record_team_name(team_id, season="unset", dbsession="unset"):
+        lookups.append((team_id, season, dbsession))
+
+    monkeypatch.setattr(player_scores, "get_fetcher", Fetcher)
+    monkeypatch.setattr(player_scores, "load_attributes_history", lambda _season: None)
+    monkeypatch.setattr(
+        player_scores, "get_player_from_api_id", lambda _api_id, **_kwargs: _player()
+    )
+    monkeypatch.setattr(
+        player_scores, "_attributes_for_player", lambda _p, _attributes: None
+    )
+    monkeypatch.setattr(player_scores, "get_team_name", record_team_name)
+
+    fill_playerscores_from_api(
+        past_season, gameweek_end=GAMEWEEK + 1, dbsession=dbsession
+    )
+
+    assert lookups == [(3, past_season, dbsession)]

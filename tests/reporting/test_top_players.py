@@ -1,6 +1,7 @@
 """Filtering the top-predicted-points table."""
 
-from airsenal.reporting.top_players import within_price
+from airsenal.reporting import top_players
+from airsenal.reporting.top_players import get_top_predicted_points, within_price
 
 
 class FakePlayer:
@@ -45,3 +46,22 @@ def test_a_player_with_no_price_is_kept():
     """None means unknown, not free - dropping them would hide a real player."""
     kept = within_price(predictions(None, 150), 100, 1, "2526")
     assert [p.name for p, _ in kept] == ["p0"]
+
+
+def test_the_latest_predictions_are_those_for_the_season_asked_for(monkeypatch):
+    """Without a tag, the latest one is looked up in the season being shown."""
+    dbsession = object()
+    lookups = []
+
+    def record_latest_tag(season="unset", tag_prefix="", dbsession="unset"):
+        lookups.append((season, dbsession))
+        return "latest"
+
+    monkeypatch.setattr(top_players, "get_latest_prediction_tag", record_latest_tag)
+    monkeypatch.setattr(top_players, "get_webhook_url", lambda: None)
+    monkeypatch.setattr(top_players, "post_webhook", lambda _payload, _url: None)
+    monkeypatch.setattr(top_players, "get_predicted_points", lambda *a, **k: [])
+
+    get_top_predicted_points(gameweeks=[1], season="2425", dbsession=dbsession)
+
+    assert lookups == [("2425", dbsession)]

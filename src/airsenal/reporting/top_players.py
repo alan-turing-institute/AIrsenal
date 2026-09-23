@@ -59,7 +59,7 @@ def get_top_predicted_points(
     dbsession = get_session(dbsession)
     discord_webhook = get_webhook_url()
     if not tag:
-        tag = get_latest_prediction_tag()
+        tag = get_latest_prediction_tag(season=season, dbsession=dbsession)
     gameweeks = list(gameweeks) if gameweeks else [next_gameweek()]
 
     discord_embed = {

@@ -351,3 +351,28 @@ def test_a_transfer_is_priced_at_the_root_gameweek(monkeypatch):
 
     assert seen
     assert set(seen) == {ROOT_GAMEWEEK}
+
+
+def test_a_random_search_that_cannot_complete_a_squad_reports_no_transfers():
+    """When no sampled set of transfers completes the squad, none are reported."""
+    squad = generate_dummy_squad()
+    # One candidate for every position, so a second transfer in always fails.
+    points = {position: {200: 5} for position in ("GK", "DEF", "MID", "FWD")}
+    request = TransferRequest(
+        move=GameweekMove(3),
+        squad=squad,
+        tag="DUMMY",
+        gameweeks=[1],
+        root_gameweek=1,
+        season="2526",
+        num_iterations=1,
+    )
+    with mock.patch(
+        "airsenal.optimization.strategies.random_search.get_predicted_points",
+        side_effect=predicted_point_mock_generator(points),
+    ):
+        proposal = DEFAULT_STRATEGIES.create(GameweekMove(3)).propose(request)
+
+    assert proposal.players_in == []
+    assert proposal.players_out == []
+    assert {p.player_id for p in proposal.squad.players} == set(range(15))
