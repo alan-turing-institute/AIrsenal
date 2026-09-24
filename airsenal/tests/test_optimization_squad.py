@@ -4,6 +4,8 @@ Tests for the DEAP-based optimization implementation.
 
 from unittest.mock import Mock, patch
 
+from deap import creator, tools
+
 from airsenal.framework.optimization_squad import SquadOpt
 
 
@@ -248,3 +250,109 @@ def test_deap_optimization_creates_valid_squad():
                 assert best_fitness > 0, (
                     "Optimization should find a solution with positive fitness"
                 )
+
+
+def test_deap_optimization_from_base_squad_never_returns_invalid_individual():
+    """With a base_squad, optimize() must always seed the initial population with
+    the unmodified base squad (0 transfers), which is always a valid individual.
+
+    Regression test for a crash where, if every randomly-generated/mutated
+    individual across every generation happened to be invalid (e.g. an unlucky
+    population never landing on a budget-feasible combination), optimize() would
+    hand back hall_of_fame[0] with fitness 0.0 - an individual that then blew up
+    much later and more confusingly inside decode_individual.
+    """
+    with patch(
+        "airsenal.framework.optimization_squad.list_players"
+    ) as mock_list_players:
+        mock_players = []
+        for i in range(40):
+            player = Mock()
+            player.player_id = f"player_{i}"
+            if i < 10:
+                position = "GK"
+            elif i < 20:
+                position = "DEF"
+            elif i < 30:
+                position = "MID"
+            else:
+                position = "FWD"
+            player.position = Mock(return_value=position)
+            mock_players.append(player)
+
+        def mock_list_players_side_effect(position=None, **kwargs):
+            return [p for p in mock_players if p.position() == position]
+
+        mock_list_players.side_effect = mock_list_players_side_effect
+
+        base_squad = Mock()
+        base_squad_players = []
+        for pos, ids in [
+            ("GK", ["player_0"]),
+            ("DEF", ["player_10", "player_11"]),
+            ("MID", ["player_20", "player_21"]),
+            ("FWD", ["player_30"]),
+        ]:
+            for pid in ids:
+                p = Mock()
+                p.player_id = pid
+                p.position = pos
+                base_squad_players.append(p)
+        base_squad.players = base_squad_players
+        base_squad.get_sell_price_for_player = Mock(return_value=50)
+
+        optimizer = SquadOpt(
+            gw_range=[1, 2, 3],
+            tag="test_tag",
+            players_per_position={"GK": 1, "DEF": 2, "MID": 2, "FWD": 1},
+            base_squad=base_squad,
+            bank=0,
+            max_transfers=2,
+            remove_zero=False,
+        )
+
+        # Only the untouched base squad (the individual optimize() must force into
+        # the initial population) is deemed valid.
+        def mock_evaluate_individual(self, individual):
+            if list(individual) == list(self._seed_indices):
+                return (1.0,)
+            return (0.0,)
+
+        # Every individual the GA could independently produce or mutate into is
+        # forced to differ from the seed in its first gene (still within that
+        # gene's valid bounds), so a passing test can only be explained by
+        # optimize()'s forced population[0] injection - not by chance.
+        other_individual = list(optimizer._seed_indices)
+        other_individual[0] = (other_individual[0] + 1) % 10  # still a valid GK index
+
+        def mock_create_seeded_individual(self):
+            return creator.Individual(other_individual)
+
+        with (
+            patch.object(SquadOpt, "_evaluate_individual", mock_evaluate_individual),
+            patch.object(
+                SquadOpt, "_create_seeded_individual", mock_create_seeded_individual
+            ),
+        ):
+            # toolbox.register bound to the unpatched methods at __init__ time -
+            # re-register now the patches are active.
+            optimizer.toolbox.register("evaluate", optimizer._evaluate_individual)
+            optimizer.toolbox.register(
+                "individual", optimizer._create_seeded_individual
+            )
+            optimizer.toolbox.register(
+                "population", tools.initRepeat, list, optimizer.toolbox.individual
+            )
+            best_individual, best_fitness = optimizer.optimize(
+                population_size=5,
+                generations=2,
+                # no crossover/mutation either, so nothing but the forced
+                # population[0] injection can ever produce the valid seed
+                crossover_prob=0.0,
+                mutation_prob=0.0,
+                verbose=False,
+                random_state=42,
+            )
+
+        assert best_fitness > 0
+        assert list(best_individual) == list(optimizer._seed_indices)

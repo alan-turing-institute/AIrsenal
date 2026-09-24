@@ -8,7 +8,7 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from operator import itemgetter
 from pickle import dumps, loads
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import dateparser
 import pandas as pd
@@ -33,6 +33,16 @@ from airsenal.framework.schema import (
     session,
 )
 from airsenal.framework.season import CURRENT_SEASON
+
+if TYPE_CHECKING:
+    # bpl (and airsenal.framework.random_team_model, which imports from it) pulls in
+    # jax as soon as it's imported - keep that out of the module-level import graph
+    # so processes that only need to read already-computed predictions (e.g. the
+    # transfer optimizer) never load jax, and don't hit its fork-safety warning when
+    # they later use multiprocessing. Only parse_team_model_from_str actually needs
+    # these, imported lazily there instead.
+
+    pass
 
 fetcher = FPLDataFetcher()  # in global scope so it can keep cached data
 

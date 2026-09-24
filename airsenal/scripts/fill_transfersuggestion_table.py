@@ -22,14 +22,20 @@ import shutil
 import sys
 import warnings
 from collections.abc import Callable
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 import regex as re
 import requests
 from prettytable import PrettyTable
 from tqdm import TqdmWarning, tqdm
 
+from airsenal.framework.chip_heuristics import suggest_chip_gameweeks
 from airsenal.framework.env import AIRSENAL_HOME
+from airsenal.framework.mcts_optimization import (
+    DEFAULT_EXPLORATION_CONSTANT,
+    extract_best_trajectory,
+    run_mcts_tree,
+)
 from airsenal.framework.multiprocessing_utils import (
     CustomQueue,
     set_multiprocessing_start_method,
@@ -223,6 +229,7 @@ def optimize(
             # add children to the queue
             strategies = next_week_transfers(
                 (free_transfers, hit_so_far, strat_dict),
+                gw + 1,
                 max_total_hit=max_total_hit,
                 allow_unused_transfers=allow_unused_transfers,
                 max_opt_transfers=max_transfers,
@@ -387,9 +394,19 @@ def print_team_for_next_gw(
         next_gw=next_gw, season=season, fpl_team_id=fpl_team_id, use_api=use_api
     )
     for pidout in strat["players_out"][str(next_gw)]:
-        t.remove_player(pidout)
+        t.remove_player(pidout, gameweek=next_gw, use_api=use_api)
     for pidin in strat["players_in"][str(next_gw)]:
-        t.add_player(pidin)
+        # not silently ignoring a failed add: without this, a stale sell price
+        # (see below) can leave the squad short of budget partway through a
+        # wildcard/free hit's full 15-player rebuild, and the resulting
+        # incomplete squad only surfaces much later as a confusing crash in
+        # Squad.optimize_lineup rather than here, at the actual point of failure.
+        if not t.add_player(pidin, gameweek=next_gw):
+            msg = (
+                f"Failed to add player {pidin} to the GW{next_gw} squad - "
+                "possibly an incorrect sell price left the squad short of budget."
+            )
+            raise RuntimeError(msg)
     tag = get_latest_prediction_tag(season=season)
     t.get_expected_points(next_gw, tag)
     print("\n--------------------------------")
@@ -405,6 +422,8 @@ def run_optimization(
     season: str = CURRENT_SEASON,
     fpl_team_id: int | None = None,
     chip_gameweeks: dict | None = None,
+    use_chip_heuristic: bool = False,
+    chips_played_history: dict[int, str] | None = None,
     num_free_transfers: int | None = None,
     max_total_hit: int | None = None,
     allow_unused_transfers: bool = False,
@@ -422,9 +441,13 @@ def run_optimization(
     The chip-related variables e.g. wildcard_week are -1 if that chip
     is not to be played, 0 for 'play it any week', or the gw in which
     it should be played.
+
+    use_chip_heuristic - if True, ignore `chip_gameweeks` and instead compute it
+    via airsenal.framework.chip_heuristics.suggest_chip_gameweeks() once the
+    starting squad is known. `chips_played_history` (gameweek -> chip name, from
+    calls prior to this one - e.g. earlier gameweeks in a replay_season.py run) is
+    passed through so a chip already played isn't suggested again.
     """
-    if chip_gameweeks is None:
-        chip_gameweeks = {}
     discord_webhook = fetcher.DISCORD_WEBHOOK
     if fpl_team_id is None:
         fpl_team_id = fetcher.FPL_TEAM_ID
@@ -494,6 +517,17 @@ def run_optimization(
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     # first get a baseline prediction
     # baseline_score, baseline_dict = get_baseline_prediction(num_weeks_ahead, tag)
+
+    if use_chip_heuristic:
+        chip_gameweeks = suggest_chip_gameweeks(
+            starting_squad,
+            gameweeks,
+            tag,
+            season,
+            chips_played=chips_played_history,
+        )
+    elif chip_gameweeks is None:
+        chip_gameweeks = {}
 
     # Get a dict of what chips we definitely or possibly will play
     # in each gw
@@ -604,16 +638,49 @@ def run_optimization(
 
     # find the best from all the strategies tried
     best_strategy = find_best_strat_from_json(tag)
-
     baseline_score = find_baseline_score_from_json(tag, num_weeks)
+
+    for _ in range(len(procs)):
+        print("\n")
+
+    best_squad, best_strategy = _report_and_save_strategy(
+        starting_squad,
+        best_strategy,
+        baseline_score,
+        season,
+        fpl_team_id,
+        tag,
+        is_replay,
+        use_api,
+        discord_webhook,
+    )
+
+    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+    return best_squad, best_strategy
+
+
+def _report_and_save_strategy(
+    starting_squad: Squad,
+    best_strategy: dict | None,
+    baseline_score: float,
+    season: str,
+    fpl_team_id: int,
+    tag: str,
+    is_replay: bool,
+    use_api: bool,
+    discord_webhook: str | None,
+) -> tuple[Squad, dict]:
+    """Shared tail for run_optimization/run_mcts_optimization: save the chosen
+    strategy to the database, print it, and optionally post it to Discord. Both
+    searches produce a `best_strategy` dict in the same shape (see MCTSNode's
+    docstring in airsenal.framework.mcts_optimization), so this needs no changes
+    to work with either.
+    """
     fill_suggestion_table(baseline_score, best_strategy, season, fpl_team_id)
     if is_replay:
         # simulating a previous season, so imitate applying transfers by adding
         # the suggestions to the Transaction table
         fill_transaction_table(starting_squad, best_strategy, season, fpl_team_id, tag)
-
-    for _ in range(len(procs)):
-        print("\n")
 
     if best_strategy is None:
         msg = "Failed to find a strategy!"
@@ -674,8 +741,289 @@ def run_optimization(
         else:
             print("Warning: Discord webhook url is malformed!\n", discord_webhook)
 
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     return best_squad, best_strategy
+
+
+def _mcts_worker(
+    result_queue: Queue,
+    progress_bar: tqdm,
+    starting_squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    season: str,
+    chip_gw_dict: dict,
+    num_free_transfers: int,
+    mcts_iterations: int,
+    max_total_hit: int | None,
+    allow_unused_transfers: bool,
+    max_free_transfers: int,
+    num_iterations: int,
+    exploration_constant: float,
+    seed: int,
+) -> None:
+    """Run one independent, self-contained MCTS search (root parallelization - see
+    airsenal.framework.mcts_optimization), updating its own progress bar once per
+    search iteration, and put its best trajectory onto result_queue.
+    """
+
+    def progress_callback() -> None:
+        progress_bar.update(1)
+        progress_bar.refresh()
+
+    root = run_mcts_tree(
+        starting_squad,
+        gameweeks,
+        tag,
+        season,
+        chip_gw_dict,
+        num_free_transfers,
+        mcts_iterations,
+        max_total_hit=max_total_hit,
+        allow_unused_transfers=allow_unused_transfers,
+        max_free_transfers=max_free_transfers,
+        num_iterations=num_iterations,
+        exploration_constant=exploration_constant,
+        random_state=seed,
+        progress_callback=progress_callback,
+    )
+    trajectory = extract_best_trajectory(
+        root,
+        tag,
+        season,
+        chip_gw_dict,
+        max_total_hit,
+        allow_unused_transfers,
+        max_free_transfers,
+        num_iterations,
+    )
+    progress_bar.close()
+    result_queue.put(trajectory)
+
+
+# FPL API chip name -> AIrsenal's internal chip name. Confirmed against a real live
+# get_current_squad_data() response ("bboost"/"3xc" seen directly; "wildcard"/
+# "freehit" already used elsewhere in this codebase, e.g. transaction_utils.py's
+# active_chip check). If get_available_chips ever returns a name not in this mapping
+# (e.g. FPL renames a chip), _detect_available_chip_gameweeks raises rather than
+# silently under-offering chips.
+_FPL_API_CHIP_NAMES = {
+    "wildcard": "wildcard",
+    "freehit": "free_hit",
+    "bboost": "bench_boost",
+    "3xc": "triple_captain",
+}
+
+
+def _detect_available_chip_gameweeks(fpl_team_id: int, use_api: bool) -> dict[str, int]:
+    """Build a chip_gameweeks dict (see construct_chip_dict) reflecting which chips
+    are genuinely still available, for run_mcts_optimization's auto_detect_chips=True
+    - MCTS (unlike the exhaustive tree) can afford to consider any available chip at
+    any gameweek, so this replaces the need to manually specify --wildcard_week 0 etc.
+
+    Live current season (use_api=True): asks the FPL API directly
+    (FPLDataFetcher.get_available_chips), which already reflects real usage history
+    including FPL's one-chip-per-half-of-season rule - no need to model that here.
+
+    Replay/past season (use_api=False): no live API access and no DB record of
+    historical chip usage exists (Transaction only tracks a free_hit flag), so this
+    assumes a fresh, fully unused allocation as of the start of the search window -
+    relying on next_week_transfers' half-aware reuse check (chip_half in
+    optimization_utils.py) to correctly cap each chip at one use per half as the
+    search crosses gameweek 19/20 on its own.
+    """
+    if not use_api:
+        return dict.fromkeys(_FPL_API_CHIP_NAMES.values(), 0)
+
+    available = fetcher.get_available_chips(fpl_team_id)
+    unknown = set(available) - set(_FPL_API_CHIP_NAMES)
+    if unknown:
+        msg = (
+            f"get_available_chips returned unrecognised chip name(s) {unknown} - "
+            "the FPL API -> AIrsenal chip name mapping in _FPL_API_CHIP_NAMES needs "
+            "updating."
+        )
+        raise RuntimeError(msg)
+    return {
+        internal_name: (0 if api_name in available else -1)
+        for api_name, internal_name in _FPL_API_CHIP_NAMES.items()
+    }
+
+
+def run_mcts_optimization(
+    gameweeks: list[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    chip_gameweeks: dict | None = None,
+    auto_detect_chips: bool = False,
+    use_chip_heuristic: bool = False,
+    chips_played_history: dict[int, str] | None = None,
+    num_free_transfers: int | None = None,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = False,
+    mcts_iterations: int = 500,
+    num_iterations: int = 100,
+    num_thread: int = 4,
+    exploration_constant: float = DEFAULT_EXPLORATION_CONSTANT,
+    is_replay: bool = False,  # for replaying seasons
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+) -> tuple[Squad, dict[str, dict[str, int | list[int]]] | None]:
+    """
+    Alternative to run_optimization() using Monte Carlo Tree Search (see
+    airsenal.framework.mcts_optimization) instead of exhaustively enumerating every
+    transfer-count/chip branch. Root-parallelized: each of num_thread workers runs
+    its own independent MCTS search of mcts_iterations iterations from the same
+    starting squad, and the best trajectory found across all of them is used. Same
+    setup and output contract as run_optimization, so it's a drop-in alternative.
+
+    auto_detect_chips - if True, ignore `chip_gameweeks` and instead consider every
+    still-available chip at any gameweek in the window (see
+    _detect_available_chip_gameweeks) - MCTS (unlike the exhaustive tree) can afford
+    this rather than needing chips manually restricted to specific gameweeks.
+
+    use_chip_heuristic - if True, ignore `chip_gameweeks` and instead compute it via
+    airsenal.framework.chip_heuristics.suggest_chip_gameweeks() once the starting
+    squad is known - mutually exclusive with auto_detect_chips (they're different
+    strategies for producing the same chip_gameweeks output, not composable as
+    written). `chips_played_history` (gameweek -> chip name, from calls prior to
+    this one) is passed through so a chip already played isn't suggested again.
+    """
+    if auto_detect_chips and use_chip_heuristic:
+        msg = "auto_detect_chips and use_chip_heuristic are mutually exclusive"
+        raise RuntimeError(msg)
+
+    discord_webhook = fetcher.DISCORD_WEBHOOK
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    if fpl_team_id is None:  # still None after trying env vars
+        msg = (
+            "fpl_team_id must be set as argument, environment variables or config file."
+        )
+        raise ValueError(msg)
+
+    if gameweeks[0] == 1 or gameweeks[0] == get_entry_start_gameweek(
+        fpl_team_id, apifetcher=fetcher
+    ):
+        print(
+            "This is the start of the season or a new team - will make a squad "
+            "from scratch"
+        )
+        squad = fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_generations=num_iterations,
+            population_size=num_iterations,
+        )
+        return squad, None
+
+    print(f"Running MCTS optimization with fpl_team_id {fpl_team_id}")
+    use_api = season == CURRENT_SEASON and not is_replay
+    try:
+        starting_squad = get_starting_squad(
+            next_gw=gameweeks[0],
+            season=season,
+            fpl_team_id=fpl_team_id,
+            use_api=use_api,
+            apifetcher=fetcher,
+        )
+    except (ValueError, TypeError):
+        print(f"No existing squad or transfers found for team_id {fpl_team_id}")
+        print("Will suggest a new starting squad:")
+        squad = fill_initial_squad(
+            tag=tag,
+            gw_range=gameweeks,
+            season=season,
+            fpl_team_id=fpl_team_id,
+            num_generations=num_iterations,
+            population_size=num_iterations,
+        )
+        return squad, None
+
+    if num_free_transfers is None:
+        num_free_transfers = get_free_transfers(
+            fpl_team_id,
+            gameweeks[0],
+            season=season,
+            apifetcher=fetcher,
+            is_replay=is_replay,
+        )
+    print(f"Starting with {num_free_transfers} free transfers")
+
+    if auto_detect_chips:
+        chip_gameweeks = _detect_available_chip_gameweeks(fpl_team_id, use_api)
+    elif use_chip_heuristic:
+        chip_gameweeks = suggest_chip_gameweeks(
+            starting_squad,
+            gameweeks,
+            tag,
+            season,
+            chips_played=chips_played_history,
+        )
+    elif chip_gameweeks is None:
+        chip_gameweeks = {}
+    chip_gw_dict = construct_chip_dict(gameweeks, chip_gameweeks)
+
+    # Specific fix (aka hack) for the 2022 World Cup, where everyone
+    # gets a free wildcard
+    if season == "2223" and gameweeks[0] == 17:
+        chip_gw_dict[gameweeks[0]]["chip_to_play"] = "wildcard"
+        num_free_transfers = 1
+
+    # one progress bar per worker, showing its own iteration count - rather than a
+    # single bar counting workers finished (which stays empty until a worker
+    # completes its whole search, then jumps)
+    progress_bars = [
+        tqdm(total=mcts_iterations, desc=f"MCTS worker {i}") for i in range(num_thread)
+    ]
+    result_queue: Queue = Queue()
+    procs = []
+    for i in range(num_thread):
+        processor = Process(
+            target=_mcts_worker,
+            args=(
+                result_queue,
+                progress_bars[i],
+                starting_squad,
+                gameweeks,
+                tag,
+                season,
+                chip_gw_dict,
+                num_free_transfers,
+                mcts_iterations,
+                max_total_hit,
+                allow_unused_transfers,
+                max_free_transfers,
+                num_iterations,
+                exploration_constant,
+                i,
+            ),
+        )
+        processor.daemon = True
+        processor.start()
+        procs.append(processor)
+
+    trajectories = [result_queue.get() for _ in range(num_thread)]
+    for p in procs:
+        p.join()
+
+    best_strategy = max(trajectories, key=lambda strat: strat["total_score"])
+    baseline_score = get_baseline_strat(
+        starting_squad, gameweeks, tag, root_gw=gameweeks[0]
+    )["total_score"]
+
+    return _report_and_save_strategy(
+        starting_squad,
+        best_strategy,
+        baseline_score,
+        season,
+        fpl_team_id,
+        tag,
+        is_replay,
+        use_api,
+        discord_webhook,
+    )
 
 
 def construct_chip_dict(gameweeks: list[int], chip_gameweeks: dict) -> dict:
@@ -729,6 +1077,12 @@ def sanity_check_args(args: argparse.Namespace) -> bool:
         raise RuntimeError(msg)
     if args.num_free_transfers and args.num_free_transfers not in range(6):
         msg = "Number of free transfers must be 0 to 5"
+        raise RuntimeError(msg)
+    if args.auto_chips and args.search_method != "mcts":
+        msg = "--auto_chips is only supported with --search_method mcts"
+        raise RuntimeError(msg)
+    if args.auto_chips and args.use_chip_heuristic:
+        msg = "--auto_chips and --use_chip_heuristic are mutually exclusive"
         raise RuntimeError(msg)
     return True
 
@@ -822,6 +1176,42 @@ def main():
         help="Add suggested squad to the database (for replaying seasons)",
         action="store_true",
     )
+    parser.add_argument(
+        "--search_method",
+        help=(
+            "'tree' (default) exhaustively enumerates transfer-count/chip "
+            "combinations; 'mcts' uses Monte Carlo Tree Search instead, which "
+            "scales better once chips and higher transfer counts are both allowed"
+        ),
+        type=str,
+        choices=["tree", "mcts"],
+        default="tree",
+    )
+    parser.add_argument(
+        "--mcts_iterations",
+        help="[mcts only] number of search iterations per worker",
+        type=int,
+        default=500,
+    )
+    parser.add_argument(
+        "--auto_chips",
+        help=(
+            "[mcts only] ignore --wildcard_week etc. and instead consider any "
+            "still-available chip at any gameweek - see "
+            "_detect_available_chip_gameweeks in this file"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--use_chip_heuristic",
+        help=(
+            "ignore --wildcard_week etc. and instead force chip gameweeks decided "
+            "by the rule-based baseline in airsenal.framework.chip_heuristics "
+            "(see chip_timing_heuristic.svg/.pdf) - mutually exclusive with "
+            "--auto_chips. Works with either --search_method."
+        ),
+        action="store_true",
+    )
     args = parser.parse_args()
 
     fpl_team_id = args.fpl_team_id or None
@@ -863,18 +1253,37 @@ def main():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", TqdmWarning)
-        run_optimization(
-            gameweeks,
-            tag,
-            season,
-            fpl_team_id,
-            chip_gameweeks,
-            num_free_transfers,
-            max_total_hit,
-            allow_unused_transfers,
-            args.max_transfers,
-            num_iterations,
-            num_thread,
-            profile,
-            is_replay=args.is_replay,
-        )
+        if args.search_method == "mcts":
+            run_mcts_optimization(
+                gameweeks,
+                tag,
+                season,
+                fpl_team_id,
+                chip_gameweeks,
+                num_free_transfers=num_free_transfers,
+                max_total_hit=max_total_hit,
+                allow_unused_transfers=allow_unused_transfers,
+                mcts_iterations=args.mcts_iterations,
+                num_iterations=num_iterations,
+                num_thread=num_thread,
+                auto_detect_chips=args.auto_chips,
+                use_chip_heuristic=args.use_chip_heuristic,
+                is_replay=args.is_replay,
+            )
+        else:
+            run_optimization(
+                gameweeks,
+                tag,
+                season,
+                fpl_team_id,
+                chip_gameweeks,
+                num_free_transfers=num_free_transfers,
+                max_total_hit=max_total_hit,
+                allow_unused_transfers=allow_unused_transfers,
+                max_opt_transfers=args.max_transfers,
+                num_iterations=num_iterations,
+                num_thread=num_thread,
+                profile=profile,
+                use_chip_heuristic=args.use_chip_heuristic,
+                is_replay=args.is_replay,
+            )
