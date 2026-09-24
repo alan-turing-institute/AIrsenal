@@ -92,8 +92,13 @@ def _optional_int(data: dict[str, Any], key: str) -> int | None:
 def fill_attributes_table_from_file(
     detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
-    """Fill the attributes table for a past season, from its player detail JSON."""
+    """
+    Fill the attributes table for a past season, from its player detail JSON.
+
+    A player the file has under two names is filled from the first of them.
+    """
     dbsession = get_session(dbsession)
+    filled: dict[int, str] = {}
     for player_name_or_id, player_data in track(
         detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
     ):
@@ -103,6 +108,12 @@ def fill_attributes_table_from_file(
         if not player:
             logger.warning("Couldn't find player %s", player_name_or_id)
             continue
+        if player.player_id in filled:
+            logger.warning(
+                "%s is %s again, skipping", player_name_or_id, filled[player.player_id]
+            )
+            continue
+        filled[player.player_id] = player_name_or_id
 
         # now loop through all the fixtures that player played in
         # Only one attributes row per gameweek - create list of gameweeks

@@ -214,11 +214,13 @@ def fill_playerscores_from_json(
     Keyed by player name, each holding one entry per fixture that player
     appeared in. Rows are added rather than merged, so this is for filling an
     empty table - `fill_playerscores_from_api` is the one that can be re-run.
+    A player the file has under two names is filled from the first of them.
     """
     dbsession = get_session(dbsession)
     extended_feats = _extended_features()
     df_attributes = load_attributes_history(season)
 
+    filled: dict[int, str] = {}
     for player_name_or_id in track(detail_data, description=f"PLAYER SCORES {season}"):
         # find the player id in the player table.  If they're not
         # there, then we don't care (probably not a current player).
@@ -226,6 +228,12 @@ def fill_playerscores_from_json(
         if not player:
             logger.warning("Couldn't find player %s", player_name_or_id)
             continue
+        if player.player_id in filled:
+            logger.warning(
+                "%s is %s again, skipping", player_name_or_id, filled[player.player_id]
+            )
+            continue
+        filled[player.player_id] = player_name_or_id
 
         player_attributes = _attributes_for_player(player, df_attributes)
 

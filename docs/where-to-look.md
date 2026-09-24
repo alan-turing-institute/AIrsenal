@@ -66,6 +66,7 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | use a new field from the FPL API | a method on `FPLDataFetcher` in `remote/fpl_api.py`, then the `ingest/` module that stores it |
 | debug `db update` failing or missing data | `update_database` in `ingest/update.py`; `airsenal db check` runs the consistency checks in `ingest/checks.py` |
 | fix a player whose name is not matched | `get_player` and `get_player_by_similar_name` in `db/queries/players.py`. Genuine spelling variants go in `data/alternative_player_names.csv`, read by `ingest/player_mappings.py` |
+| fix one person split into two player rows | `fill_player_table_from_file` in `ingest/players.py` joins a past season's player to an existing row by opta code (`find_player_in_table`), and records that season's name as an alternative. Seasons before 24/25 get their opta code from `opta_code` in `export/player_summary.py` |
 | change how injuries and suspensions are read | `is_injured_or_suspended` on `Player` in `db/models.py`, filled by `fill_availability_for_season` in `ingest/player_attributes.py` |
 | add a new season's packaged data | `src/airsenal/data/`, one file per kind per season (`teams_2627.csv`); `core/data_files.py` finds them, `export/` writes most of them |
 | point AIrsenal at a different database | `db/engine.py`, configured through `core/env.py` |

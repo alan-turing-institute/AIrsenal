@@ -25,7 +25,9 @@ SEASON = "2425"
 def dbsession():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine)()
+    # `autoflush=False`, as `db.session.create_session` does, so a query does not
+    # see what the ingest has added and not yet committed.
+    session = sessionmaker(bind=engine, autoflush=False)()
     yield session
     session.close()
 
@@ -69,7 +71,7 @@ def test_the_opta_code_is_kept(dbsession, players_file):
 
 
 def test_a_player_without_an_opta_code_is_still_added(dbsession, players_file):
-    """Older seasons predate the opta codes, so the key is optional."""
+    """The key is optional: 15/16 and 16/17 have no dump to build one from."""
     fill_player_table_from_file(players_file, SEASON, dbsession)
     player = dbsession.scalars(
         select(Player).where(Player.name == "No Opta Code")
@@ -98,6 +100,49 @@ def test_a_renamed_player_matches_on_opta_code(dbsession, tmp_path):
     fill_player_table_from_file(first, SEASON, dbsession)
     fill_player_table_from_file(second, SEASON, dbsession)
     assert len(dbsession.scalars(select(Player)).all()) == 1
+
+
+def test_a_renamed_player_keeps_the_other_name(dbsession, tmp_path):
+    """The season's other files name the player the way its summary does."""
+    first = tmp_path / "a.json"
+    first.write_text(json.dumps([{"name": "Mitoma Kaoru", "opta_code": "p1"}]))
+    second = tmp_path / "b.json"
+    second.write_text(json.dumps([{"name": "Kaoru Mitoma", "opta_code": "p1"}]))
+
+    fill_player_table_from_file(first, SEASON, dbsession)
+    fill_player_table_from_file(second, SEASON, dbsession)
+    fill_player_table_from_file(second, SEASON, dbsession)
+    player = dbsession.scalars(select(Player)).one()
+    assert find_player_in_table("Kaoru Mitoma", dbsession) is player
+    assert len(dbsession.scalars(select(PlayerMapping)).all()) == 1
+
+
+def test_two_people_with_one_name_stay_apart(dbsession, tmp_path):
+    first = tmp_path / "a.json"
+    first.write_text(json.dumps([{"name": "Ben Davies", "opta_code": "p1"}]))
+    second = tmp_path / "b.json"
+    second.write_text(json.dumps([{"name": "Ben Davies", "opta_code": "p2"}]))
+
+    fill_player_table_from_file(first, SEASON, dbsession)
+    fill_player_table_from_file(second, SEASON, dbsession)
+    codes = {p.opta_code for p in dbsession.scalars(select(Player)).all()}
+    assert codes == {"p1", "p2"}
+
+
+def test_an_alternative_name_does_not_join_two_opta_codes(dbsession):
+    player = Player()
+    player.name = "Josh King"
+    player.opta_code = "p1"
+    dbsession.add(player)
+    dbsession.commit()
+    mapping = PlayerMapping()
+    mapping.player_id = player.player_id
+    mapping.alt_name = "Joshua King"
+    dbsession.add(mapping)
+    dbsession.commit()
+
+    assert find_player_in_table("Joshua King", dbsession, opta_code="p2") is None
+    assert find_player_in_table("Joshua King", dbsession, opta_code="p1") is player
 
 
 def test_find_player_in_table_matches_an_alternative_name(dbsession):
@@ -130,3 +175,10 @@ def test_the_packaged_file_still_has_the_keys_the_parser_reads():
     assert packaged, "packaged season file is empty"
     assert all("name" in entry for entry in packaged)
     assert any(entry.get("opta_code") for entry in packaged)
+
+
+@pytest.mark.parametrize("season", ["2324", "2425", "2526"])
+def test_every_player_in_a_default_season_has_an_opta_code(season):
+    """Without one, a renamed player becomes a second row. See `opta_code`."""
+    packaged = json.loads(data_file(f"player_summary_{season}.json").read_text())
+    assert all(entry.get("opta_code") for entry in packaged)

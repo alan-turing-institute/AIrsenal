@@ -1,6 +1,7 @@
 """Build the player summary files from the saved FPL season data JSON."""
 
 import json
+from typing import Any
 
 from airsenal.core.data_files import data_file
 from airsenal.core.logging import get_logger
@@ -26,8 +27,18 @@ keys_to_extract = {
     "team": "team",  # need to convert index to string
     "element_type": "position",  # need to convert index to string
     "now_cost": "cost",
-    "opta_code": "opta_code",  # only from 24/25 season
 }
+
+
+def opta_code(player: dict[str, Any]) -> str:
+    """
+    The player's opta code, the key that identifies them across seasons.
+
+    The FPL API has sent `opta_code` only since 24/25. For a player it is always
+    "p" followed by their `code`, which every season has, so an older season's
+    code is built from that.
+    """
+    return player.get("opta_code") or f"p{player['code']}"
 
 
 def make_player_summary(season: str) -> None:
@@ -37,8 +48,6 @@ def make_player_summary(season: str) -> None:
     teams = {team["id"]: team["short_name"] for team in data["teams"]}
     positions = {et["id"]: et["singular_name_short"] for et in data["element_types"]}
 
-    # opta code only introduced from 24/25 season
-    has_opta_code = int(season) > 2324
     player_summaries = []
 
     for player in data["elements"]:
@@ -46,9 +55,8 @@ def make_player_summary(season: str) -> None:
         logger.debug("%s %s", player["first_name"], player["second_name"])
         player_dict = {"name": name}
         for input_key, output_key in keys_to_extract.items():
-            if input_key == "opta_code" and not has_opta_code:
-                continue
             player_dict[output_key] = player[input_key]
+        player_dict["opta_code"] = opta_code(player)
 
         player_dict["team"] = teams[player_dict["team"]]
         player_dict["position"] = positions[player_dict["position"]]
