@@ -15,11 +15,12 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.core.caching import clear_query_caches
-from airsenal.db.models import Base, Fixture, Player, PlayerAttributes
+from airsenal.db.models import Base, Fixture, Player, PlayerAttributes, PlayerMapping
 from airsenal.ingest import player_attributes as attributes_module
 from airsenal.ingest.attributes_history import Availability
 from airsenal.ingest.player_attributes import (
     fill_attributes_table_from_api,
+    fill_attributes_table_from_file,
     fill_availability_for_season,
 )
 
@@ -45,6 +46,21 @@ def dbsession():
     session.commit()
     yield session
     session.close()
+
+
+def test_a_player_under_two_names_is_filled_once(dbsession):
+    """A past season's file can list one person under an old spelling as well."""
+    rows = [{"gameweek": "1", "value": "45", "played_for": "BRE", "position": "MID"}]
+    mapping = PlayerMapping()
+    mapping.player_id = 1
+    mapping.alt_name = "Old Spelling"
+    dbsession.add(mapping)
+    dbsession.commit()
+
+    fill_attributes_table_from_file(
+        {"Player 101": rows, "Old Spelling": rows}, season=SEASON, dbsession=dbsession
+    )
+    assert len(dbsession.scalars(select(PlayerAttributes)).all()) == 1
 
 
 class FakeFetcher:

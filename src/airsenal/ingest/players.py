@@ -20,7 +20,13 @@ from airsenal.remote.fpl_api import get_fetcher
 def find_player_in_table(
     name: str, dbsession: Session, opta_code: str | None = None
 ) -> Player | None:
-    """Find a player already in the table by opta code, name, or a known alias."""
+    """
+    Find a player already in the table by opta code, name, or a known alias.
+
+    A name or alias match is refused when both players have an opta code and the
+    codes differ: that is two people with the same name, such as the two Ben
+    Davies who played in 20/21.
+    """
     # look for an opta code match
     if opta_code and (
         player := dbsession.scalars(
@@ -30,34 +36,61 @@ def find_player_in_table(
         return player
 
     # look for an exact name match
-    if player := dbsession.scalars(
+    player = dbsession.scalars(
         select(Player).where(Player.name == name).limit(1)
-    ).first():
-        return player
+    ).first()
 
     # look for an alternative name
-    mapping = dbsession.scalars(
-        select(PlayerMapping).where(PlayerMapping.alt_name == name).limit(1)
-    ).first()
-    if mapping:
-        return dbsession.scalars(
+    if player is None and (
+        mapping := dbsession.scalars(
+            select(PlayerMapping).where(PlayerMapping.alt_name == name).limit(1)
+        ).first()
+    ):
+        player = dbsession.scalars(
             select(Player).where(Player.player_id == mapping.player_id).limit(1)
         ).first()
 
-    return None
+    if player and opta_code and player.opta_code and player.opta_code != opta_code:
+        return None
+    return player
+
+
+def add_alternative_name(player: Player, name: str, dbsession: Session) -> None:
+    """Record `name` as another name for `player`, unless it is already known."""
+    if name == player.name:
+        return
+    known = dbsession.scalars(
+        select(PlayerMapping).where(
+            PlayerMapping.player_id == player.player_id,
+            PlayerMapping.alt_name == name,
+        )
+    ).first()
+    if known is None:
+        mapping = PlayerMapping()
+        mapping.player_id = player.player_id
+        mapping.alt_name = name
+        dbsession.add(mapping)
+        dbsession.commit()
 
 
 def fill_player_table_from_file(
     filename: FilePath, season: str, dbsession: Session
 ) -> None:
-    """Add a season's players from its packaged JSON file."""
+    """
+    Add a season's players from its packaged JSON file.
+
+    A player already in the table under another name gets this season's name as
+    an alternative, because the season's other files name them that way.
+    """
     with open(filename) as f:
         jplayers = json.load(f)
     for jp in track(jplayers, description=f"PLAYERS {season}"):
         name = jp["name"]
         opta_code = jp.get("opta_code")
         p = find_player_in_table(name, dbsession, opta_code=opta_code)
-        if not p:
+        if p:
+            add_alternative_name(p, name, dbsession)
+        else:
             p = Player()
             p.name = name
             p.opta_code = opta_code
