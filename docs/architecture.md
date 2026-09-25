@@ -82,6 +82,7 @@ or a row names one that does not exist.
 | `game/enums.py` | `Position` and `Chip` |
 | `game/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `POINTS_HIT_COST`, free transfer accrual |
 | `game/season.py` | which season it is, and how a season is written |
+| `game/chips.py` | how many of each chip a season gives, and which are used up by a gameweek |
 | `game/mappings.py` | what other data sources call clubs, positions and chips |
 | `core/caching.py` | the query caches, and `clear_query_caches()` |
 | `core/concurrency.py` | the fork the transfer search needs, and the handlers that make it safe |

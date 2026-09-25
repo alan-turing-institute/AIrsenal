@@ -91,6 +91,11 @@ class Plan:
     def chips_played(self) -> tuple[Chip | None, ...]:
         return tuple(outcome.chip for outcome in self.outcomes)
 
+    @property
+    def chips_by_gameweek(self) -> tuple[tuple[int, Chip | None], ...]:
+        """(gameweek, chip) for each gameweek, None where the plan plays none."""
+        return tuple((outcome.gameweek, outcome.chip) for outcome in self.outcomes)
+
     def __len__(self) -> int:
         return len(self.outcomes)
 

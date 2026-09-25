@@ -9,8 +9,10 @@ makes one and scores it, and `count_expected_outputs` sizes the whole tree.
 from collections.abc import Iterable
 
 from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.game.chips import chips_used_up
 from airsenal.game.enums import Chip
 from airsenal.game.scoring import MAX_FREE_TRANSFERS
+from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization.moves import (
     NO_CHIPS,
     ChipSchedule,
@@ -71,8 +73,8 @@ def next_gameweek_transfers(
         free_transfers: Available going into the gameweek.
         hit_so_far: Points hit this strategy has taken up to but not including
             this gameweek.
-        chips_played: Chips this strategy has already used, so they are not
-            offered again.
+        chips_played: Chips this strategy has none of left to play this
+            gameweek, so they are not offered; see `game.chips.chips_used_up`.
         allow_unused_transfers: If False and a free transfer would otherwise be
             lost, making none is not offered - which can exclude the baseline
             strategy, so a caller that needs it re-adds it.
@@ -143,6 +145,7 @@ def count_expected_outputs(
     chip_schedule: ChipSchedule | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
     *,
+    season: str = CURRENT_SEASON,
     every_transfer_count: bool = True,
 ) -> tuple[int, bool]:
     """
@@ -175,7 +178,15 @@ def count_expected_outputs(
             possibilities = next_gameweek_transfers(
                 ft,
                 hit,
-                [move.chip for move in moves],
+                chips_used_up(
+                    zip(
+                        range(gameweek, window_gameweek),
+                        [move.chip for move in moves],
+                        strict=True,
+                    ),
+                    window_gameweek,
+                    season,
+                ),
                 max_total_hit=max_total_hit,
                 max_opt_transfers=max_opt_transfers,
                 allow_unused_transfers=allow_unused_transfers,

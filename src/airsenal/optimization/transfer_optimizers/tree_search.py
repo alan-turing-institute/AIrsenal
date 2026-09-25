@@ -16,6 +16,7 @@ from typing import Literal
 from airsenal.core.concurrency import CustomQueue, StallWatchdog
 from airsenal.core.console import progress_bar
 from airsenal.core.logging import relay_child_logs
+from airsenal.game.chips import chips_used_up
 from airsenal.optimization.moves import (
     GameweekMove,
 )
@@ -197,7 +198,11 @@ def optimize(
             branches = next_gameweek_transfers(
                 free_transfers,
                 hit_so_far,
-                plan.chips_played,
+                chips_used_up(
+                    plan.chips_by_gameweek,
+                    gameweeks[len(plan)],
+                    season,
+                ),
                 max_total_hit=constraints.max_total_hit,
                 allow_unused_transfers=constraints.allow_unused_transfers,
                 max_opt_transfers=constraints.max_opt_transfers,
@@ -278,6 +283,7 @@ def search_transfer_tree(
         max_opt_transfers=constraints.max_opt_transfers,
         chip_schedule=request.chip_schedule,
         max_free_transfers=constraints.max_free_transfers,
+        season=request.season,
         every_transfer_count=config.every_transfer_count,
     )
 

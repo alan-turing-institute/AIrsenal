@@ -19,6 +19,7 @@ import random
 from dataclasses import dataclass, field
 
 from airsenal.core.console import progress_bar
+from airsenal.game.chips import chips_used_up
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.plan import (
     GameweekOutcome,
@@ -118,7 +119,11 @@ class _Search:
         return next_gameweek_transfers(
             node.free_transfers,
             node.hit_so_far,
-            node.plan.chips_played,
+            chips_used_up(
+                node.plan.chips_by_gameweek,
+                gameweek,
+                self.request.season,
+            ),
             max_total_hit=constraints.max_total_hit,
             allow_unused_transfers=constraints.allow_unused_transfers,
             max_opt_transfers=constraints.max_opt_transfers,
