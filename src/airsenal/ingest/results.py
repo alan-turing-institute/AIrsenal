@@ -1,0 +1,120 @@
+"""Fill the "result" table from this season's FPL API and past seasons' files."""
+
+from sqlalchemy.orm.session import Session
+
+from airsenal.core.console import track
+from airsenal.core.data_files import FilePath, data_file
+from airsenal.core.logging import get_logger
+from airsenal.db.models import Result
+from airsenal.db.queries.fixtures import find_fixture
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.session import get_session
+from airsenal.game.mappings import canonical_team_name
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
+from airsenal.remote.fpl_api import get_fetcher
+
+logger = get_logger(__name__)
+
+
+def fill_results_from_csv(
+    input_file: FilePath, season: str, dbsession: Session
+) -> None:
+    with open(input_file) as f:
+        lines = f.readlines()
+    for line in track(lines[1:], description=f"RESULTS {season}"):
+        (
+            _date,
+            home_team,
+            away_team,
+            home_score,
+            away_score,
+            _gameweek,
+        ) = line.strip().split(",")
+        home_team = canonical_team_name(home_team) or home_team
+        away_team = canonical_team_name(away_team) or away_team
+        # query database to find corresponding fixture
+        fixture = find_fixture(
+            home_team,
+            was_home=True,
+            other_team=away_team,
+            season=season,
+            dbsession=dbsession,
+        )
+        if fixture is None:
+            logger.warning(
+                "Unable to find fixture for %s vs %s in %s",
+                home_team,
+                away_team,
+                season,
+            )
+            continue
+        res = Result()
+        res.fixture = fixture
+        res.home_score = int(home_score)
+        res.away_score = int(away_score)
+        dbsession.add(res)
+    dbsession.commit()
+
+
+def fill_results_from_api(
+    gameweek_start: int, gameweek_end: int, season: str, dbsession: Session
+) -> None:
+    fetcher = get_fetcher()
+    matches = fetcher.get_fixture_data()
+    for m in track(matches, description=f"RESULTS {season}"):
+        if not m["finished"]:
+            continue
+        gameweek = m["event"]
+        if gameweek < gameweek_start or gameweek > gameweek_end:
+            continue
+        home_id = m["team_h"]
+        away_id = m["team_a"]
+        home_team = canonical_team_name(str(home_id))
+        away_team = canonical_team_name(str(away_id))
+        if not home_team:
+            msg = f"Unable to find team with id {home_id}"
+            raise ValueError(msg)
+        if not away_team:
+            msg = f"Unable to find team with id {away_id}"
+            raise ValueError(msg)
+        home_score = m["team_h_score"]
+        away_score = m["team_a_score"]
+        f = find_fixture(
+            home_team,
+            was_home=True,
+            other_team=away_team,
+            gameweek=gameweek,
+            season=season,
+            dbsession=dbsession,
+        )
+        if f is None:
+            logger.warning(
+                "Unable to find fixture for %s vs %s in %s gameweek %s",
+                home_team,
+                away_team,
+                season,
+                gameweek,
+            )
+            continue
+        res = f.result or Result()
+        res.fixture = f
+        res.home_score = int(home_score)
+        res.away_score = int(away_score)
+        dbsession.add(res)
+    dbsession.commit()
+
+
+def make_result_table(
+    seasons: list[str] | None = None, dbsession: Session | None = None
+) -> None:
+    """Fill the result table: past seasons from CSV, this one from the API."""
+    dbsession = get_session(dbsession)
+    if not seasons:
+        seasons = default_seasons()
+    for season in sort_seasons(seasons):
+        if season == CURRENT_SEASON:
+            # current season - use API
+            gameweek_end = next_gameweek(fetcher=get_fetcher())
+            fill_results_from_api(1, gameweek_end, CURRENT_SEASON, dbsession)
+        else:
+            fill_results_from_csv(data_file(f"results_{season}.csv"), season, dbsession)

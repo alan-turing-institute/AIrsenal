@@ -17,39 +17,23 @@ Don't let trying to be perfect get in the way of being good - exciting ideas are
   - [2. Fork the AIrsenal repository to your profile](#2-fork-the-airsenal-repository-to-your-profile)
   - [3. Make the changes you've discussed](#3-make-the-changes-youve-discussed)
   - [4. Submit a pull request](#4-submit-a-pull-request)
-- [Style guide](#style-guide)
+- [Coding conventions](#coding-conventions)
 
 ## Where to start: issues
 
-* **Issues** are individual pieces of work that need to be completed to move the project forwards.
-A general guideline: if you find yourself tempted to write a great big issue that
-is difficult to describe as one unit of work, please consider splitting it into two or more issues.
+**Issues** are individual pieces of work that need to be completed to move the project forwards.
+If you find yourself tempted to write a great big issue that is difficult to describe as one unit of work, please consider splitting it into two or more.
 
-Before you open a new issue, please check if any of our [open issues](https://github.com/alan-turing-institute/AIrsenal/issues) covers your idea already.
+Before you open a new issue, please check whether one of our [open issues](https://github.com/alan-turing-institute/AIrsenal/issues) covers your idea already.
 
-The list of labels for current issues includes:
+We use these labels:
 
-- [![help-wanted](https://img.shields.io/badge/-help%20wanted-159818.svg)][labels-helpwanted] _These issues contain a task that a member of the team has determined we need additional help with._
-
-  If you feel that you can contribute to one of these issues, we especially encourage you to do so!
-
-- [![question](https://img.shields.io/badge/-question-cc317c.svg)][labels-question] _These issues contain a question that you'd like to have answered._
-
-  Opening an issue is a great way to start a conversation and get your answer.
-
-- [![good-first-issue](https://img.shields.io/badge/-good%20first%20issue-1b3487.svg)][labels-firstissue] _These issues are particularly appropriate if it is your first contribution to AIrsenal, or to GitHub overall._
-
-- [![Enhancement](https://img.shields.io/badge/-enhancement-84b6eb.svg)][labels-enhancement] _These issues are suggesting new features that can be added to the project._
-
-  If you want to ask for something new, please try to make sure that your request is distinct from any others that are already in the queue (or part of AIrsenal).
-  If you find one that's similar but there are subtle differences please reference the other enhancement in your issue.
-
-- [![Bug](https://img.shields.io/badge/-bug-d73a4a.svg)][labels-bug] _These issues are reporting a problem or a mistake in the project._
-
-  The more details you can provide the better!
-  If you know how to fix the bug, please open an issue first and then submit a pull request.
-
-- [![project-management](https://img.shields.io/badge/-project%20management-bfd86c.svg)][labels-project-management] _We like to model best practice, so AIrsenal itself is managed through these issues.
+- [help wanted][labels-helpwanted] - a task we'd particularly welcome help with.
+- [good first issue][labels-firstissue] - a good place to start if it's your first contribution to AIrsenal, or to GitHub.
+- [question][labels-question] - something you'd like answered. Opening one is a great way to start a conversation.
+- [enhancement][labels-enhancement] - a suggested new feature. Please check it's distinct from anything already in the queue, and reference any similar issue you find.
+- [bug][labels-bug] - a problem or mistake in the project. The more detail the better; if you know the fix, open the issue first and then a pull request.
+- [project management][labels-project-management] - _we like to model best practice, so AIrsenal itself is managed through these issues._
 
 ## Making a change with a pull request
 
@@ -71,9 +55,11 @@ This allows other members of the AIrsenal team to confirm that you aren't overla
 This is now your own unique copy of AIrsenal.
 Changes here won't affect anyone else's work, so it's a safe space to explore edits to the code!
 
-Make sure to [keep your fork up to date][github-syncfork] with the master repository, otherwise you can end up with lots of dreaded [merge conflicts][github-mergeconflicts].
+Make sure to [keep your fork up to date][github-syncfork] with the main repository, otherwise you can end up with lots of dreaded [merge conflicts][github-mergeconflicts].
 
 ### 3. Make the changes you've discussed
+
+Branch off `develop` and name your branch `feature/<issue-number>-<description>` or `bugfix/<issue-number>-<description>`.
 
 Try to keep the changes focused.
 If you submit a large amount of work all in one go it will be much more work for whomever is reviewing your pull request.
@@ -83,14 +69,14 @@ While making your changes, commit often and write good, detailed commit messages
 It is also perfectly fine to have a lot of commits - including ones that break code.
 A good rule of thumb is to push up to GitHub when you _do_ have passing tests then the continuous integration (CI) has a good chance of passing everything.
 
-If you feel tempted to "branch out" then please make a [new branch][github-branches] and a [new issue][AIrsenal-issues] to go with it. [This blog](https://nvie.com/posts/a-successful-git-branching-model/) details the different Git branching models.
+If you feel tempted to "branch out" then please make a [new branch][github-branches] and a [new issue][AIrsenal-issues] to go with it.
 
 Please do not re-write history!
 That is, please do not use the [rebase](https://help.github.com/en/articles/about-git-rebase) command to edit previous commit messages, combine multiple commits into one, or delete or revert commits that are no longer necessary.
 
 ### 4. Submit a [pull request][github-pullrequest]
 
-We encourage you to open a pull request as early in your contributing process as possible.
+Open your pull request against `develop`, and open it as early in your contributing process as possible.
 This allows everyone to see what is currently being worked on.
 It also provides you, the contributor, feedback in real time from both the community and the continuous integration as you make commits (which will help prevent stuff from breaking).
 
@@ -99,8 +85,7 @@ When you are ready to submit a pull request, make sure the contents of the pull 
 - List changes proposed in the pull request.
 - Describe what the reviewer should concentrate their feedback on.
 
-If you have opened the pull request early and know that its contents are not ready for review or to be merged, add "[WIP]" at the start of the pull request title, which stands for "Work in Progress".
-When you are happy with it and are happy for it to be merged into the main repository, change the "[WIP]" in the title of the pull request to "[Ready for review]".
+If it isn't ready for review yet, open it as a [draft pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-stage-of-a-pull-request) and mark it ready for review when it is.
 
 A member of the AIrsenal team will then review your changes to confirm that they can be merged into the main repository.
 A [review][github-review] will probably consist of a few questions to help clarify the work you've done.
@@ -113,16 +98,13 @@ You can also submit pull requests to other contributors' branches!
 Do you see an [open pull request](https://github.com/alan-turing-institute/AIrsenal/pulls) that you find interesting and want to contribute to?
 Simply make your edits on their files and open a pull request to their branch!
 
-What happens if the continuous integration (CI) fails (for example, if the pull request notifies you that "Some checks were not successful")?
-The CI could fail for a number of reasons.
-At the bottom of the pull request, where it says whether your build passed or failed, you can click “Details” next to the test, which takes you to the Travis page.
-You can view the log or rerun the checks if you have write access to the repo by clicking the “Restart build” button in the top right (you must be logged in to Travis CI with your GitHub account see the “Restart build” button).
+CI runs on GitHub Actions. If a check fails, click "Details" next to it on the pull request to see the log; pushing a new commit reruns everything. Most failures are the pre-commit hooks, which you can run locally first with `pre-commit run --all-files`.
 
 GitHub has a [nice introduction][github-flow] to the pull request workflow, but please get in touch if you have any questions.
 
-## Coding Conventions and Style Guide
+## Coding conventions
 
-We have attempted to summarize some guidelines and helpful tips for keeping the code readable and consistent in [this document](CodingConventions.md).
+Guidelines for keeping the code readable and consistent are in [CodingConventions.md](CodingConventions.md).
 
 ---
 
@@ -130,8 +112,6 @@ _These Contributing Guidelines have been adapted from the [Contributing Guidelin
 
 [AIrsenal-repo]: https://github.com/alan-turing-institute/AIrsenal/
 [AIrsenal-issues]: https://github.com/alan-turing-institute/AIrsenal/issues
-[git]: https://git-scm.com
-[github]: https://github.com
 [github-branches]: https://help.github.com/articles/creating-and-deleting-branches-within-your-repository
 [github-fork]: https://help.github.com/articles/fork-a-repo
 [github-flow]: https://guides.github.com/introduction/flow

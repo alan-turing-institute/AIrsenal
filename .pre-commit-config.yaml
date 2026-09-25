@@ -16,26 +16,33 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
+        # exclude test data from test naming conventions
+        exclude: ^tests/dummy_data\.py$
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.16"
+    rev: "v0.16.5"
     hooks:
-      # Run the linter.
       - id: ruff-check
         types_or: [ python, pyi, jupyter, pyproject ]
         args: [ "--fix", "--show-fixes" ]
-      # Run the formatter.
+      # Run the formatter. `markdown` is here because ruff formats fenced Python
+      # in Markdown
       - id: ruff-format
-        types_or: [ python, pyi, jupyter ]
+        types_or: [ python, pyi, jupyter, markdown ]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v2.1.0"
+  - repo: local
     hooks:
       - id: mypy
-        files: "airsenal/framework|airsenal/scripts"
-        additional_dependencies:
-          - pytest
-          - types-dateparser
-          - types-requests
-          - types-python-dateutil
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types_or: [ python, pyi ]
+        files: ^(src/airsenal|tools)/
+        pass_filenames: false
+
+  - repo: https://github.com/seddonym/import-linter
+    rev: v2.14
+    hooks:
+      - id: import-linter
+        entry: uv run lint-imports

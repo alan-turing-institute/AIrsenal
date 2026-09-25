@@ -1,0 +1,82 @@
+"""Prediction and fixture tags, which group a run's rows together."""
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from airsenal.db.models import Fixture, PlayerPrediction
+from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
+
+
+def get_latest_prediction_tag(
+    season: str = CURRENT_SEASON,
+    tag_prefix: str = "",
+    dbsession: Session | None = None,
+) -> str:
+    """
+    The tag of the most recent prediction run for a season.
+
+    Raises:
+        RuntimeError: There are no predictions for the season, so nothing
+            downstream of `airsenal predict` can run.
+    """
+    dbsession = get_session(dbsession)
+    query = select(PlayerPrediction).where(
+        PlayerPrediction.fixture.has(Fixture.season == season)
+    )
+    if tag_prefix:
+        query = query.where(PlayerPrediction.tag.startswith(tag_prefix))
+
+    latest_prediction = dbsession.scalars(
+        query.order_by(PlayerPrediction.id.desc()).limit(1)
+    ).first()
+    if latest_prediction is None:
+        msg = (
+            "No predicted points in database - has the database been filled?\n"
+            "To calculate points predictions (and fill the database) use "
+            "'airsenal predict'. This should be done before using "
+            "'airsenal optimize squad' or 'airsenal optimize transfers'."
+        )
+        raise RuntimeError(msg)
+    return latest_prediction.tag
+
+
+def get_latest_fixture_tag(
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> str:
+    """The tag of the most recently added fixture for a season."""
+    dbsession = get_session(dbsession)
+    latest_fixture = dbsession.scalars(
+        select(Fixture)
+        .where(Fixture.season == season)
+        .order_by(Fixture.fixture_id.desc())
+        .limit(1)
+    ).first()
+    if latest_fixture is None:
+        msg = f"No fixtures found in database for season {season}"
+        raise RuntimeError(msg)
+    return latest_fixture.tag
+
+
+def check_tag_valid(
+    prediction_tag: str,
+    gameweeks: list[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> bool:
+    """Check a prediction tag contains predictions for all the specified gameweeks."""
+    # get unique gameweek and season values associated with prediction_tag
+    dbsession = get_session(dbsession)
+    fixtures = dbsession.execute(
+        select(Fixture.season, Fixture.gameweek)
+        .join(PlayerPrediction)
+        .where(PlayerPrediction.tag == prediction_tag)
+        .distinct()
+    ).all()
+    pred_seasons = [f[0] for f in fixtures]
+    prediction_gameweeks = [f[1] for f in fixtures]
+
+    season_ok = all(s == season for s in pred_seasons)
+    gameweeks_ok = all(gameweek in prediction_gameweeks for gameweek in gameweeks)
+
+    return season_ok and gameweeks_ok

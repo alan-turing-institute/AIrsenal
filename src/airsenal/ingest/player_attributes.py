@@ -1,0 +1,453 @@
+"""Fill the "player_attributes" table from this season's API and past seasons' files."""
+
+import json
+from datetime import datetime
+from typing import Any
+
+import dateparser
+import regex as re
+from sqlalchemy import select
+from sqlalchemy.orm.session import Session
+
+from airsenal.core.console import track
+from airsenal.core.data_files import FilePath, data_file
+from airsenal.core.logging import get_logger
+from airsenal.db.models import Player, PlayerAttributes
+from airsenal.db.queries.fixtures import (
+    find_fixture,
+    get_gameweek_start_dates,
+    get_player_team_from_fixture,
+)
+from airsenal.db.queries.gameweeks import (
+    get_return_gameweek_by_date,
+    next_gameweek,
+)
+from airsenal.db.queries.players import (
+    get_player,
+    get_player_attributes,
+    get_player_from_api_id,
+)
+from airsenal.db.queries.teams import get_team_name
+from airsenal.db.session import get_session
+from airsenal.game.mappings import positions
+from airsenal.game.season import CURRENT_SEASON, default_seasons, sort_seasons
+from airsenal.ingest.absences import get_availability_from_absences
+from airsenal.ingest.attributes_history import (
+    Availability,
+    get_availability_by_gameweek,
+    load_attributes_history,
+)
+from airsenal.remote.fpl_api import get_fetcher
+
+logger = get_logger(__name__)
+
+
+def parse_return_date(news: str) -> datetime | None:
+    """
+    The date a player's FPL API news text says they are due back, if it gives one.
+
+    Raises:
+        ValueError: The news gives a date that cannot be parsed.
+    """
+    search_results = re.search(
+        "(Expected back|Suspended until)[\\s]+([\\d]+[\\s][\\w]{3})", news
+    )
+    if not search_results:
+        return None
+
+    return_str = search_results.groups()[1]
+    # return_str should be a day and month string (without year)
+
+    # create a date in the future from the day and month string
+    return_date = dateparser.parse(return_str, settings={"PREFER_DATES_FROM": "future"})
+    if not return_date:
+        msg = f"Failed to parse date from string '{return_str}'"
+        raise ValueError(msg)
+    return return_date
+
+
+def get_return_gameweek_from_news(
+    news: str, team: str, season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> int | None:
+    """
+    The gameweek a player flagged in the FPL API's news text is due back for.
+
+    None if the news carries no parseable return date.
+    """
+    dbsession = get_session(dbsession)
+    return_date = parse_return_date(news)
+    if return_date is None:
+        return None
+    return get_return_gameweek_by_date(
+        return_date.date(), team=team, season=season, dbsession=dbsession
+    )
+
+
+def _optional_int(data: dict[str, Any], key: str) -> int | None:
+    """The value under `key` as an int, or None if it is missing or null."""
+    value = data.get(key)
+    return int(value) if value is not None else None
+
+
+def fill_attributes_table_from_file(
+    detail_data: dict[str, Any], season: str, dbsession: Session | None = None
+) -> None:
+    """
+    Fill the attributes table for a past season, from its player detail JSON.
+
+    A player the file has under two names is filled from the first of them.
+    """
+    dbsession = get_session(dbsession)
+    filled: dict[int, str] = {}
+    for player_name_or_id, player_data in track(
+        detail_data.items(), description=f"PLAYER ATTRIBUTES {season}"
+    ):
+        # find the player id in the player table.  If they're not
+        # there, then we don't care (probably not a current player).
+        player = get_player(player_name_or_id, dbsession=dbsession)
+        if not player:
+            logger.warning("Couldn't find player %s", player_name_or_id)
+            continue
+        if player.player_id in filled:
+            logger.warning(
+                "%s is %s again, skipping", player_name_or_id, filled[player.player_id]
+            )
+            continue
+        filled[player.player_id] = player_name_or_id
+
+        # now loop through all the fixtures that player played in
+        # Only one attributes row per gameweek - create list of gameweeks
+        # encountered so can ignore duplicates (e.g. from double gameweeks).
+        previous_gameweeks = []
+        for fixture_data in player_data:
+            gameweek = int(fixture_data["gameweek"])
+            if gameweek in previous_gameweeks:
+                # already done this gameweek
+                continue
+            previous_gameweeks.append(gameweek)
+
+            pa = PlayerAttributes()
+            pa.player = player
+            pa.player_id = player.player_id
+            pa.season = season
+            pa.gameweek = gameweek
+            # obtain attributes if available, otherwise set to None or default value
+            pa.price = int(fixture_data.get("value", 0))
+            pa.team = fixture_data.get("played_for", "")
+            pa.position = fixture_data.get("position", "")
+            pa.transfers_balance = _optional_int(fixture_data, "transfers_balance")
+            pa.selected = _optional_int(fixture_data, "selected")
+            pa.transfers_in = _optional_int(fixture_data, "transfers_in")
+            pa.transfers_out = _optional_int(fixture_data, "transfers_out")
+            dbsession.add(pa)
+    dbsession.commit()
+
+
+def _attributes_row(
+    player: Player, gameweek: int, season: str, dbsession: Session
+) -> PlayerAttributes:
+    """A player's attributes row for a gameweek: the existing one, else a new one."""
+    pa = get_player_attributes(
+        player.player_id, gameweek=gameweek, season=season, dbsession=dbsession
+    )
+    return pa if pa is not None else PlayerAttributes()
+
+
+def _fill_past_gameweeks(
+    player_data: dict[int, list[dict[str, Any]]],
+    player: Player,
+    position: str,
+    gameweek_start: int,
+    gameweek: int,
+    season: str,
+    dbsession: Session,
+) -> None:
+    """Fill a player's rows for the gameweeks before `gameweek`, from their history."""
+    for past_gameweek, data in player_data.items():
+        if past_gameweek < gameweek_start or past_gameweek >= gameweek:
+            # `gameweek` already has its row, from the summary data. Once its
+            # deadline has passed the API also lists a history row for it, without
+            # availability; writing that too would give the player two rows for
+            # one gameweek.
+            continue
+
+        for result in data:
+            pa = _attributes_row(player, past_gameweek, season, dbsession)
+
+            # determine the team the player played for in this fixture
+            opponent_id = result["opponent_team"]
+            was_home = result["was_home"]
+            kickoff_time = result["kickoff_time"]
+            fixture = find_fixture(
+                opponent_id,
+                was_home=not was_home,
+                gameweek=past_gameweek,
+                season=season,
+                kickoff_time=kickoff_time,
+                dbsession=dbsession,
+            )
+            if fixture is None:
+                logger.warning(
+                    "Couldn't find fixture for %s vs %s in gameweek %s",
+                    player,
+                    opponent_id,
+                    past_gameweek,
+                )
+                continue
+            team = get_player_team_from_fixture(
+                fixture,
+                opponent_id,
+                player_at_home=was_home,
+                season=season,
+                dbsession=dbsession,
+            )
+
+            pa.player = player
+            pa.player_id = player.player_id
+            pa.season = season
+            pa.gameweek = past_gameweek
+            pa.price = int(result["value"])
+            pa.team = team
+            pa.position = position  # does not change during season
+            pa.transfers_balance = int(result["transfers_balance"])
+            pa.selected = int(result["selected"])
+            pa.transfers_in = int(result["transfers_in"])
+            pa.transfers_out = int(result["transfers_out"])
+            dbsession.add(pa)
+
+            break  # done this gameweek now
+
+
+def fill_attributes_table_from_api(
+    season: str, gameweek_start: int = 1, dbsession: Session | None = None
+) -> None:
+    """Fill the attributes table for the current season, from the FPL API."""
+    dbsession = get_session(dbsession)
+    fetcher = get_fetcher()
+    gameweek = next_gameweek()
+
+    # needed for selected by calculation from percentage below
+    n_players = fetcher.get_current_summary_data()["total_players"]
+
+    input_data = fetcher.get_player_summary_data()
+
+    for player_api_id in track(input_data, description=f"PLAYER ATTRIBUTES {season}"):
+        # find the player in the player table
+        player = get_player_from_api_id(player_api_id, dbsession=dbsession)
+        if not player:
+            logger.warning(
+                "ATTRIBUTES %s No player found with id %s", season, player_api_id
+            )
+            continue
+
+        # First update the current gameweek using the summary data
+        p_summary = input_data[player_api_id]
+
+        if player.opta_code is None and "opta_code" in p_summary:
+            player.opta_code = p_summary["opta_code"]
+
+        position = positions[p_summary["element_type"]]
+
+        pa = _attributes_row(player, gameweek, season, dbsession)
+        pa.player = player
+        pa.player_id = player.player_id
+        pa.season = season
+        pa.gameweek = gameweek
+        pa.price = int(p_summary["now_cost"])
+        team = get_team_name(p_summary["team"], season=season, dbsession=dbsession)
+        if team is None:
+            logger.warning(
+                "Couldn't find team %s for player %s", p_summary["team"], player
+            )
+            continue
+        pa.team = team
+        pa.position = position
+        pa.selected = int(float(p_summary["selected_by_percent"]) * n_players / 100)
+        transfers_in = int(p_summary["transfers_in"])
+        transfers_out = int(p_summary["transfers_out"])
+        pa.transfers_in = transfers_in
+        pa.transfers_out = transfers_out
+        pa.transfers_balance = transfers_in - transfers_out
+        pa.news = p_summary["news"]
+        chance_of_playing_next_round = p_summary["chance_of_playing_next_round"]
+        pa.chance_of_playing_next_round = chance_of_playing_next_round
+        if (
+            chance_of_playing_next_round is not None
+            and chance_of_playing_next_round <= 50
+        ):
+            pa.return_gameweek = get_return_gameweek_from_news(
+                p_summary["news"],
+                team=team,
+                season=season,
+                dbsession=dbsession,
+            )
+        dbsession.add(pa)
+
+        # now get data for previous gameweeks
+        if gameweek > 1:
+            player_data = fetcher.get_gameweek_data_for_player(player_api_id)
+            if not player_data:
+                logger.warning("Failed to get data for %s", player)
+                continue
+            _fill_past_gameweeks(
+                player_data,
+                player,
+                position,
+                gameweek_start,
+                gameweek,
+                season,
+                dbsession,
+            )
+    dbsession.commit()
+
+
+def get_availability_from_history(
+    season: str, dbsession: Session
+) -> dict[tuple[int, int], Availability]:
+    """
+    Availability per (player id, gameweek), from the per-day attributes history.
+
+    A key only exists where the history has a row for that player on that gameweek's
+    first matchday. Healthy players get one too: a row saying the API thought they
+    were fine is how the history overrides a Transfermarkt claim that they were not.
+    """
+    player_attributes = load_attributes_history(season)
+    if player_attributes is None:
+        return {}
+    gameweek_dates = get_gameweek_start_dates(season, dbsession=dbsession)
+    index = get_availability_by_gameweek(player_attributes, gameweek_dates)
+
+    availability = {}
+    for player in dbsession.scalars(select(Player)).all():
+        for gameweek in gameweek_dates:
+            found = index.get(player, gameweek)
+            if found is not None:
+                availability[(player.player_id, gameweek)] = found
+    return availability
+
+
+def _nearest_attributes(
+    attributes: list[PlayerAttributes], gameweek: int
+) -> PlayerAttributes:
+    """The row closest to a gameweek, for the price, team and position to copy."""
+    return min(attributes, key=lambda pa: abs(pa.gameweek - gameweek))
+
+
+def set_availability(
+    availability: dict[tuple[int, int], Availability],
+    season: str,
+    dbsession: Session,
+) -> None:
+    """
+    Write news, chance of playing and return gameweek onto a season's attributes rows.
+
+    A gameweek with no row of its own gets one, carrying price, team and position
+    from the player's nearest gameweek, so that an absence that begins while a
+    player is out of the league still has somewhere to land. Only the first such
+    gameweek of a run: `Player.get_gameweek_attributes` falls back to the nearest
+    row it has, so one row covers the gameweeks either side of it.
+    """
+    rows = dbsession.scalars(
+        select(PlayerAttributes).where(PlayerAttributes.season == season)
+    ).all()
+    by_key = {(existing.player_id, existing.gameweek): existing for existing in rows}
+    by_player: dict[int, list[PlayerAttributes]] = {}
+    for existing in rows:
+        by_player.setdefault(existing.player_id, []).append(existing)
+
+    n_set = 0
+    n_added = 0
+    n_dropped = 0
+    for (player_id, gameweek), found in sorted(availability.items()):
+        row = by_key.get((player_id, gameweek))
+        if row is None:
+            continues_a_run = (player_id, gameweek - 1) in availability
+            if continues_a_run or not by_player.get(player_id):
+                # Not the first gameweek of this absence, or a player with no
+                # attributes at all this season and so nothing to copy.
+                n_dropped += 1
+                continue
+            nearest = _nearest_attributes(by_player[player_id], gameweek)
+            row = PlayerAttributes(
+                player_id=player_id,
+                season=season,
+                gameweek=gameweek,
+                price=nearest.price,
+                team=nearest.team,
+                position=nearest.position,
+            )
+            dbsession.add(row)
+            by_key[(player_id, gameweek)] = row
+            n_added += 1
+        row.news = found.news
+        row.chance_of_playing_next_round = found.chance_of_playing_next_round
+        row.return_gameweek = found.return_gameweek
+        n_set += 1
+    dbsession.commit()
+    logger.info(
+        "AVAILABILITY %s: set %s, added %s rows, dropped %s with nowhere to go",
+        season,
+        n_set,
+        n_added,
+        n_dropped,
+    )
+
+
+def fill_availability_for_season(
+    season: str, dbsession: Session, path: FilePath | None = None
+) -> None:
+    """
+    Fill a season's availability columns, from the attributes history and absences.
+
+    The absences csv is laid down first and the per-day history overwrites it
+    wherever it has something to say, because the history is what the FPL API
+    reported at the time and the csv is a retrospective scrape. For the current
+    season only the gameweeks already played are filled - the next one belongs to
+    `fill_attributes_table_from_api`, which has just read the live flags for it.
+    """
+    availability = get_availability_from_absences(season, dbsession, path)
+    n_absences = len(availability)
+    from_history = get_availability_from_history(season, dbsession)
+    # Counted before the update, and before the current season drops the gameweek
+    # it is about to predict - otherwise the two are indistinguishable in the log.
+    n_overridden = len(availability.keys() & from_history.keys())
+    availability.update(from_history)
+    if season == CURRENT_SEASON:
+        # The gameweek being predicted is the one the live API has just answered
+        # for, and it is fresher than any snapshot of it.
+        gameweek = next_gameweek()
+        availability = {
+            key: found for key, found in availability.items() if key[1] < gameweek
+        }
+    logger.info(
+        "AVAILABILITY %s: %s gameweeks from absences, %s from history "
+        "(%s overridden), %s to write",
+        season,
+        n_absences,
+        len(from_history),
+        n_overridden,
+        len(availability),
+    )
+    set_availability(availability, season, dbsession)
+
+
+def make_attributes_table(
+    seasons: list[str] | None = None, dbsession: Session | None = None
+) -> None:
+    """Fill the attributes table: past seasons from JSON, this one from the API."""
+    dbsession = get_session(dbsession)
+    if not seasons:
+        seasons = default_seasons()
+    for season in sort_seasons(seasons):
+        if season == CURRENT_SEASON:
+            # current season - use API
+            fill_attributes_table_from_api(season=CURRENT_SEASON, dbsession=dbsession)
+        else:
+            with data_file(f"player_details_{season}.json").open() as f:
+                input_data = json.load(f)
+
+            fill_attributes_table_from_file(
+                detail_data=input_data, season=season, dbsession=dbsession
+            )
+        fill_availability_for_season(season, dbsession=dbsession)
+    dbsession.commit()

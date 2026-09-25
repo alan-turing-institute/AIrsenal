@@ -1,0 +1,269 @@
+"""Fixture lookups."""
+
+from collections.abc import Iterable, Sequence
+from datetime import date, datetime
+from typing import Any
+
+from sqlalchemy import Select, or_, select
+from sqlalchemy.orm import Session
+
+from airsenal.core.dates import parse_date
+from airsenal.core.logging import get_logger
+from airsenal.db.models import Fixture, Player
+from airsenal.db.queries.tags import get_latest_fixture_tag
+from airsenal.db.queries.teams import get_team_name
+from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
+
+logger = get_logger(__name__)
+
+
+def get_fixtures_for_player(
+    player: Player,
+    gameweeks: list[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> list[Fixture]:
+    """A player's fixtures in these gameweeks, for their team in the first of them."""
+    dbsession = get_session(dbsession)
+    team = player.team(gameweeks[0], season)  # same team for whole gameweeks
+    tag = get_latest_fixture_tag(season, dbsession)
+    return list(
+        dbsession.scalars(
+            select(Fixture)
+            .where(
+                Fixture.season == season,
+                Fixture.tag == tag,
+                or_(Fixture.home_team == team, Fixture.away_team == team),
+                Fixture.gameweek.in_(gameweeks),
+            )
+            .order_by(Fixture.gameweek)
+        ).all()
+    )
+
+
+def get_fixtures_for_season(
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> list[Fixture]:
+    """Every fixture in a season."""
+    dbsession = get_session(dbsession)
+    return list(
+        dbsession.scalars(select(Fixture).where(Fixture.season == season)).all()
+    )
+
+
+def get_fixtures_for_gameweeks(
+    gameweeks: Iterable[int],
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> list[Fixture]:
+    """
+    Get a list of fixtures for the specified gameweeks.
+
+    Callers with a single gameweek pass `[gameweek]`.
+    """
+    dbsession = get_session(dbsession)
+    return list(
+        dbsession.scalars(
+            select(Fixture).where(
+                Fixture.season == season, Fixture.gameweek.in_(list(gameweeks))
+            )
+        ).all()
+    )
+
+
+def get_gameweek_start_dates(
+    season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> dict[int, date]:
+    """
+    The date of the earliest fixture in each gameweek of a season.
+
+    Gameweeks with no scheduled fixtures are left out.
+    """
+    dbsession = get_session(dbsession)
+    rows = dbsession.execute(
+        select(Fixture.gameweek, Fixture.date).where(
+            Fixture.season == season,
+            Fixture.gameweek.is_not(None),
+            Fixture.date.is_not(None),
+        )
+    ).all()
+    start_dates: dict[int, date] = {}
+    for gameweek, fixture_date in rows:
+        if gameweek is None or fixture_date is None:
+            # filtered out by the query above, but invisible to the type checker
+            continue
+        parsed = parse_date(fixture_date)
+        if gameweek not in start_dates or parsed < start_dates[gameweek]:
+            start_dates[gameweek] = parsed
+    return start_dates
+
+
+def get_gameweek_start_date(
+    gameweek: int, season: str = CURRENT_SEASON, dbsession: Session | None = None
+) -> date | None:
+    """
+    Date of the earliest fixture in a gameweek.
+
+    Returns:
+        None if the gameweek has no scheduled fixtures.
+    """
+    return get_gameweek_start_dates(season, dbsession=dbsession).get(gameweek)
+
+
+def get_fixture_teams(fixtures: Iterable[Fixture]) -> list[tuple[str, str]]:
+    """(home_team, away_team) for each of these fixtures."""
+    return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
+
+
+def _filter_teams[SelectT: Select[Any]](
+    query: SelectT,
+    team_name: str,
+    was_home: bool | None,
+    other_team_name: str | None,
+) -> SelectT:
+    """Narrow `query` to fixtures with these teams, on either side unless `was_home`."""
+    if was_home is True:
+        query = query.where(Fixture.home_team == team_name)
+    elif was_home is False:
+        query = query.where(Fixture.away_team == team_name)
+    else:
+        query = query.where(
+            or_(Fixture.away_team == team_name, Fixture.home_team == team_name)
+        )
+
+    if other_team_name:
+        if was_home is True:
+            query = query.where(Fixture.away_team == other_team_name)
+        elif was_home is False:
+            query = query.where(Fixture.home_team == other_team_name)
+        else:
+            query = query.where(
+                or_(
+                    Fixture.away_team == other_team_name,
+                    Fixture.home_team == other_team_name,
+                )
+            )
+    return query
+
+
+def _pick_by_kickoff(
+    fixtures: Sequence[Fixture], kickoff_time: date | datetime | str | None
+) -> Fixture | None:
+    """The only fixture, or the one on `kickoff_time`'s date, or None."""
+    if len(fixtures) == 1:
+        return fixtures[0]
+    if kickoff_time:
+        # team played multiple games in the gameweek, determine the
+        # fixture of interest using the kickoff time,
+        kickoff_date = parse_date(kickoff_time)
+        for f in fixtures:
+            if parse_date(f.date) == kickoff_date:
+                return f
+    return None
+
+
+def find_fixture(
+    team: str | int,
+    was_home: bool | None = None,
+    other_team: str | int | None = None,
+    gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
+    kickoff_time: date | datetime | str | None = None,
+    dbsession: Session | None = None,
+    verbose: bool = True,
+) -> Fixture | None:
+    """
+    The one fixture matching a team and any of the other filters given.
+
+    Returns:
+        None if the filters match no fixture, or match several and `kickoff_time`
+        does not pick one of them out. Both are warned about rather than raised:
+        every caller is filling a table from data the FPL API gave it and carries
+        on to the next row.
+
+    Raises:
+        ValueError: `team` or `other_team` is an id no team in the season has.
+    """
+    dbsession = get_session(dbsession)
+    if not isinstance(team, str):
+        team_name = get_team_name(team, season=season, dbsession=dbsession)
+    else:
+        team_name = team
+
+    if not team_name:
+        msg = f"No team with id {team} in {season} season"
+        raise ValueError(msg)
+
+    if isinstance(other_team, int):
+        other_team_name = get_team_name(other_team, season=season, dbsession=dbsession)
+    else:
+        other_team_name = other_team
+
+    query = select(Fixture).where(Fixture.season == season)
+    if gameweek:
+        query = query.where(Fixture.gameweek == gameweek)
+    query = _filter_teams(query, team_name, was_home, other_team_name)
+    fixtures = dbsession.scalars(query).all()
+
+    if not fixtures:
+        if verbose:
+            logger.warning(
+                "No fixture with season=%s, gw=%s, team_name=%s, was_home=%s, "
+                "other_team_name=%s, kickoff_time=%s",
+                season,
+                gameweek,
+                team_name,
+                was_home,
+                other_team_name,
+                kickoff_time,
+            )
+        return None
+
+    if fixture := _pick_by_kickoff(fixtures, kickoff_time):
+        return fixture
+    logger.warning(
+        "No unique fixture with season=%s, gw=%s, team_name=%s, was_home=%s, "
+        "kickoff_time=%s",
+        season,
+        gameweek,
+        team_name,
+        was_home,
+        kickoff_time,
+    )
+    return None
+
+
+def get_player_team_from_fixture(
+    fixture: Fixture,
+    opponent: str | int | None = None,
+    player_at_home: bool | None = None,
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> str:
+    """
+    The team a player turned out for, identified by opponent or by venue.
+
+    One of `opponent` or `player_at_home` must be specified. If both are given, they
+    must be consistent with the fixture.
+    """
+    dbsession = get_session(dbsession)
+    if opponent is None and player_at_home is None:
+        msg = "Either opponent or player_at_home must be specified"
+        raise ValueError(msg)
+
+    if player_at_home is not None:
+        return fixture.home_team if player_at_home else fixture.away_team
+
+    if isinstance(opponent, int):
+        opponent_name = get_team_name(opponent, season=season, dbsession=dbsession)
+    else:
+        opponent_name = opponent
+
+    if fixture.home_team == opponent_name:
+        return fixture.away_team
+    if fixture.away_team == opponent_name:
+        return fixture.home_team
+
+    msg = f"Opponent {opponent_name} not in fixture"
+    raise ValueError(msg)

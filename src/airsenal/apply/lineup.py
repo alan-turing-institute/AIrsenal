@@ -1,0 +1,117 @@
+"""Posting AIrsenal's recommended starting eleven, captain and bench order to FPL."""
+
+from typing import Any
+
+from airsenal.core.console import confirm, console
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import (
+    require_api_id,
+    require_player,
+    require_player_from_api_id,
+)
+from airsenal.db.queries.tags import get_latest_prediction_tag
+from airsenal.game.enums import Position
+from airsenal.remote.fpl_api import get_fetcher
+from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.player import SquadPlayer, bench_position
+from airsenal.squad.squad import Squad
+
+logger = get_logger(__name__)
+
+
+def check_proceed(squad: Squad, tag: str, gameweek: int) -> bool:
+    """Show the lineup and ask before posting it."""
+    console.print(formation_table(squad, tag, gameweek))
+    if not confirm("Apply changes to lineup?", default=False):
+        return False
+    logger.info("Applying Changes...")
+    return True
+
+
+def build_lineup_payload(squad: Squad) -> list[dict[str, Any]]:
+    def to_dict(player: SquadPlayer, pos_int: int) -> dict[str, Any]:
+        return {
+            "element": require_api_id(require_player(player.player_id)),
+            "position": pos_int,
+            "is_captain": player.is_captain,
+            "is_vice_captain": player.is_vice_captain,
+        }
+
+    # the starting eleven, goalkeeper first and forwards last
+    lineup = sorted(
+        (p for p in squad.players if p.is_starting),
+        key=lambda p: Position.back_to_front().index(Position(p.position)),
+    )
+    payload = [to_dict(p, i) for i, p in enumerate(lineup, start=1)]
+
+    sub_gk = next(
+        p for p in squad.players if not p.is_starting and p.position == Position.GK
+    )
+    payload.append(to_dict(sub_gk, 12))
+
+    available_sub_positions = list(range(4))
+    available_sub_positions.remove(bench_position(sub_gk))
+    subs_outfield = [
+        p for p in squad.players if not p.is_starting and p.position != Position.GK
+    ]
+    for s in subs_outfield:
+        payload.append(
+            to_dict(s, 13 + available_sub_positions.index(bench_position(s)))
+        )
+
+    return payload
+
+
+def get_lineup_from_payload(lineup: dict[str, Any]) -> Squad:
+    """
+    Build a Squad from a `get_lineup` response - the inverse of `build_lineup_payload`.
+
+    `lineup["picks"]` holds one dict per player, of the form
+    `{"element": 353, "position": 1, "selling_price": 55, "multiplier": 1,
+    "purchase_price": 55, "is_captain": false, "is_vice_captain": false}`.
+    """
+    s = Squad()
+    for p in lineup["picks"]:
+        s.add_player(require_player_from_api_id(p["element"]), check_budget=False)
+
+    if s.is_complete():
+        return s
+    msg = "Squad incomplete"
+    raise RuntimeError(msg)
+
+
+def set_lineup(
+    fpl_team_id: int | None = None,
+    skip_check: bool = False,
+    dry_run: bool = False,
+) -> None:
+    """
+    Re-pick the entry's lineup and captain from the latest prediction, and post it.
+
+    Args:
+        skip_check: Post without asking. Ignored under `dry_run`.
+        dry_run: Show the payload that would be posted, and post nothing.
+    """
+    fetcher = get_fetcher(fpl_team_id)
+    logger.info("fpl_team_id is %s", fetcher.FPL_TEAM_ID)
+    picks = fetcher.get_lineup()
+    logger.debug("Got picks %s", picks)
+    squad = get_lineup_from_payload(picks)
+    logger.debug("got squad: %s", squad)
+
+    tag = get_latest_prediction_tag()
+    squad.optimize_lineup(tag, next_gameweek())
+
+    payload = build_lineup_payload(squad)
+    if dry_run:
+        console.print(formation_table(squad, tag, next_gameweek()))
+        console.print("[bold]Dry run: this is what would be posted[/bold]")
+        console.print(payload)
+        return
+
+    if not skip_check and not check_proceed(squad, tag, next_gameweek()):
+        logger.info("Not proceeding with lineup update")
+        return
+
+    fetcher.post_lineup(payload)

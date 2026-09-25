@@ -1,0 +1,95 @@
+"""
+Every swappable component, checked the same way.
+
+There are eight kinds of pluggable component - `docs/adding-a-model.md` lists
+them - and each keeps a plain dict of name to factory in its own package's
+`__init__.py`. All eight are in `TABLES`, so adding an implementation means
+adding one entry and that entry is covered here automatically: it must build
+with no arguments, provide the method its protocol names, and - for the six
+kinds a flag selects by name - be reachable by that name from the command line.
+
+Two kinds have no flag of their own and are deliberately absent from
+`NAMING_FLAGS`. `PointsConfig` turns the optional point components off rather
+than selecting one, and which transfer strategy runs is decided by the move
+rather than by the user.
+"""
+
+import pytest
+from typer.testing import CliRunner
+
+from airsenal.cli.main import app
+from airsenal.optimization.squad_optimizers import SQUAD_OPTIMIZERS
+from airsenal.optimization.strategies import TRANSFER_STRATEGIES
+from airsenal.optimization.transfer_optimizers import TRANSFER_OPTIMIZERS
+from airsenal.prediction.minutes_models import MINUTES_MODELS
+from airsenal.prediction.player_models import PLAYER_MODELS
+from airsenal.prediction.point_components import POINT_COMPONENTS
+from airsenal.prediction.points_models import POINTS_MODELS
+from airsenal.prediction.team_models import TEAM_MODELS
+
+TABLES = {
+    "points model": (POINTS_MODELS, ("fit", "predict")),
+    "player model": (PLAYER_MODELS, ("fit", "predict_involvement")),
+    "minutes model": (MINUTES_MODELS, ("predict",)),
+    "point component": (POINT_COMPONENTS, ("fit", "expected_points")),
+    "team model": (
+        TEAM_MODELS,
+        ("fit", "add_new_team", "predict_score_n_proba", "predict_outcome_proba"),
+    ),
+    "transfer strategy": (TRANSFER_STRATEGIES, ("propose",)),
+    "squad optimizer": (SQUAD_OPTIMIZERS, ("optimize",)),
+    "transfer optimizer": (TRANSFER_OPTIMIZERS, ("search",)),
+}
+
+ENTRIES = [(kind, name) for kind, (table, _) in TABLES.items() for name in table]
+
+
+@pytest.mark.parametrize(("kind", "name"), ENTRIES)
+def test_every_entry_builds_with_no_arguments(kind, name):
+    """The tables promise zero-argument factories; a config must default itself."""
+    table, _methods = TABLES[kind]
+    assert table[name]() is not None
+
+
+@pytest.mark.parametrize(("kind", "name"), ENTRIES)
+def test_every_entry_provides_its_protocol(kind, name):
+    """
+    Every entry has the method its protocol names, and it is callable.
+
+    The protocols are deliberately not runtime_checkable: isinstance against one
+    only checks the names exist. This checks the callables; mypy checks the
+    shapes, because each table is annotated with its protocol where it is
+    defined.
+    """
+    table, methods = TABLES[kind]
+    component = table[name]()
+    for method in methods:
+        assert callable(getattr(component, method)), f"{name} has no {method}()"
+
+
+# The command whose --help must list every name in the table. Point components and
+# transfer strategies have no flag (see the module docstring).
+NAMING_FLAGS = {
+    "points model": ("predict", "--points-model"),
+    "player model": ("predict", "--player-model"),
+    "minutes model": ("predict", "--minutes-model"),
+    "team model": ("predict", "--team-model"),
+    "squad optimizer": ("optimize squad", "--squad-optimizer"),
+    "transfer optimizer": ("optimize transfers", "--transfer-optimizer"),
+}
+
+
+@pytest.mark.parametrize(
+    ("kind", "command", "flag"), [(k, c, f) for k, (c, f) in NAMING_FLAGS.items()]
+)
+def test_every_name_is_reachable_from_the_command_line(kind, command, flag):
+    """Every name in a table can be selected by its command-line flag."""
+    table, _methods = TABLES[kind]
+    # a narrow terminal wraps a long option name mid-word, so ask for a wide one
+    result = CliRunner(env={"COLUMNS": "200"}).invoke(app, [*command.split(), "--help"])
+    assert result.exit_code == 0, result.output
+    # Rich wraps help text, so compare on whitespace-collapsed output
+    help_text = " ".join(result.output.split())
+    assert flag in help_text
+    for name in table:
+        assert name in help_text, f"{flag} does not list {name}"

@@ -1,0 +1,186 @@
+"""Reading predicted points back out of the database."""
+
+from collections.abc import Iterable, Sequence
+from operator import itemgetter
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
+
+from airsenal.core.caching import cache_ignoring_session
+from airsenal.core.logging import get_logger
+from airsenal.db.models import Fixture, Player, PlayerPrediction, TransferSuggestion
+from airsenal.db.queries.gameweeks import get_max_gameweek
+from airsenal.db.queries.players import list_players
+from airsenal.db.session import get_session
+from airsenal.game.season import CURRENT_SEASON
+
+logger = get_logger(__name__)
+
+
+def get_predicted_points_for_player(
+    player: Player | int,
+    tag: str,
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> dict[int, float]:
+    """
+    A player's predicted points for each gameweek, keyed by gameweek.
+
+    Cached on the player id, as the inner loop of the transfer search. An `int`
+    is taken on trust as a player id rather than costing a lookup per call.
+    """
+    player_id = player if isinstance(player, int) else player.player_id
+    return _predicted_points_for_player_id(player_id, tag, season, dbsession=dbsession)
+
+
+@cache_ignoring_session(maxsize=4096)
+def _predicted_points_for_player_id(
+    player_id: int,
+    tag: str,
+    season: str,
+    dbsession: Session | None = None,
+) -> dict[int, float]:
+    dbsession = get_session(dbsession)
+    pps = dbsession.scalars(
+        select(PlayerPrediction)
+        .options(selectinload(PlayerPrediction.fixture))
+        .where(
+            PlayerPrediction.fixture.has(Fixture.season == season),
+            PlayerPrediction.player_id == player_id,
+            PlayerPrediction.tag == tag,
+        )
+    ).all()
+    ppdict: dict[int, float] = {}
+    for prediction in pps:
+        # there is one prediction per fixture.
+        # for double gameweeks, we need to add the two together
+        gameweek = prediction.fixture.gameweek
+        if gameweek is None:
+            logger.warning(
+                "Player %s has no gameweek for fixture %s",
+                player_id,
+                prediction.fixture,
+            )
+            continue
+        ppdict[gameweek] = ppdict.get(gameweek, 0.0) + prediction.predicted_points
+    # we still need to fill in zero for gameweeks that they're not playing.
+    max_gameweek = get_max_gameweek(season, dbsession=dbsession)
+    for season_gameweek in range(1, max_gameweek + 1):
+        ppdict.setdefault(season_gameweek, 0.0)
+    return ppdict
+
+
+def get_predicted_points(
+    gameweeks: Iterable[int],
+    *,
+    position: str = "all",
+    team: str = "all",
+    tag: str,
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> list[tuple[Player, float]]:
+    """
+    (player, predicted_points) pairs, best first.
+
+    Points are summed over the gameweeks given; callers wanting one gameweek
+    pass `[gameweek]`.
+    """
+    dbsession = get_session(dbsession)
+    gameweeks = list(gameweeks)
+    players = list_players(
+        position,
+        team,
+        season=season,
+        gameweek=gameweeks[0],
+        dbsession=dbsession,
+    )
+    player_ids = [p.player_id for p in players]
+    points_by_player = dict.fromkeys(player_ids, 0.0)
+
+    if player_ids:
+        rows = dbsession.execute(
+            select(
+                PlayerPrediction.player_id,
+                Fixture.gameweek,
+                PlayerPrediction.predicted_points,
+            )
+            .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
+            .where(
+                PlayerPrediction.player_id.in_(player_ids),
+                PlayerPrediction.tag == tag,
+                Fixture.season == season,
+                Fixture.gameweek.in_(gameweeks),
+            )
+        ).all()
+        for row in rows:
+            points_by_player[row.player_id] += row.predicted_points
+
+    output_list = [(p, points_by_player[p.player_id]) for p in players]
+    output_list.sort(key=itemgetter(1), reverse=True)
+    return output_list
+
+
+def get_predictions_for_gameweeks(
+    gameweeks: Sequence[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    dbsession: Session | None = None,
+) -> list[PlayerPrediction]:
+    """
+    Every prediction written under `tag` for the given gameweeks of a season.
+
+    One row per player per fixture, unaggregated - a double gameweek yields two
+    rows for the same player, which is what scoring a prediction against a
+    single performance needs.
+    """
+    dbsession = get_session(dbsession)
+    return list(
+        dbsession.scalars(
+            select(PlayerPrediction)
+            .join(Fixture, PlayerPrediction.fixture_id == Fixture.fixture_id)
+            .where(
+                PlayerPrediction.tag == tag,
+                Fixture.season == season,
+                Fixture.gameweek.in_(list(gameweeks)),
+            )
+        ).all()
+    )
+
+
+def get_transfer_suggestions(
+    *,
+    gameweek: int | None = None,
+    season: str | None = None,
+    fpl_team_id: int | None = None,
+    dbsession: Session,
+) -> Sequence[TransferSuggestion]:
+    """
+    The rows of the most recent transfer suggestion, optionally filtered.
+
+    One row per player in-or-out per gameweek; rows belonging to the same
+    suggested plan share a timestamp, which is how the latest one is picked out.
+
+    `season` and `fpl_team_id` say whose run to look for, so they narrow the
+    search for that timestamp. `gameweek` selects within the run that is found.
+    """
+    # Which run: everything but the gameweek, which selects within it.
+    run = []
+    if season:
+        run.append(TransferSuggestion.season == season)
+    if fpl_team_id:
+        run.append(TransferSuggestion.fpl_team_id == fpl_team_id)
+
+    last_timestamp = dbsession.scalars(
+        select(TransferSuggestion.timestamp)
+        .where(*run)
+        .order_by(TransferSuggestion.timestamp.desc())
+    ).first()
+    if last_timestamp is None:
+        return []
+    query = select(TransferSuggestion).where(
+        TransferSuggestion.timestamp == last_timestamp, *run
+    )
+    if gameweek:
+        query = query.where(TransferSuggestion.gameweek == gameweek)
+
+    return dbsession.scalars(query.order_by(TransferSuggestion.gameweek)).all()

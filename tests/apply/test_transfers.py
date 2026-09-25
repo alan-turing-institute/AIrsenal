@@ -1,0 +1,336 @@
+"""
+The arithmetic and payload building behind applying transfers.
+
+These cover the parts that are pure - the money, the de-duplication, the ordering and
+the payload. Nothing here reaches the network: the payload is built and asserted on,
+never posted.
+"""
+
+import pytest
+
+from airsenal.apply import transfers as transfers_module
+from airsenal.apply.transfers import (
+    bank_after_transfers,
+    build_init_priced_transfers,
+    build_transfer_payload,
+    price_transfers,
+    remove_duplicates,
+    separate_transfers_in_or_out,
+)
+from airsenal.game.season import CURRENT_SEASON
+
+
+class FakeFetcher:
+    """Enough of FPLDataFetcher to build a payload. Posts nothing."""
+
+    def __init__(self, team_id=123):
+        self.FPL_TEAM_ID = team_id
+
+
+def priced(element_out, selling_price, element_in, purchase_price):
+    return {
+        "element_out": element_out,
+        "selling_price": selling_price,
+        "element_in": element_in,
+        "purchase_price": purchase_price,
+    }
+
+
+# ------------------------------------------------------------------- money ---
+
+
+def test_selling_above_the_purchase_price_adds_to_the_bank():
+    transfers = [priced(1, 75, 2, 70)]
+    assert bank_after_transfers(10, transfers) == 15
+
+
+def test_selling_below_the_purchase_price_takes_from_the_bank():
+    transfers = [priced(1, 60, 2, 70)]
+    assert bank_after_transfers(10, transfers) == 0
+
+
+def test_the_bank_is_the_net_of_every_transfer():
+    transfers = [priced(1, 75, 2, 70), priced(3, 50, 4, 65), priced(5, 100, 6, 90)]
+    # +5, -15, +10
+    assert bank_after_transfers(20, transfers) == 20
+
+
+def test_no_transfers_leaves_the_bank_alone():
+    assert bank_after_transfers(37, []) == 37
+
+
+# -------------------------------------------------------------- duplicates ---
+
+
+def test_a_player_on_both_sides_is_dropped_from_both():
+    """Otherwise the request asks the API to buy a player it is also selling."""
+    transfers_in = [{"element_in": 1}, {"element_in": 2}]
+    transfers_out = [{"element_out": 2}, {"element_out": 3}]
+    result_in, result_out = remove_duplicates(transfers_in, transfers_out)
+    assert result_in == [{"element_in": 1}]
+    assert result_out == [{"element_out": 3}]
+
+
+def test_nothing_is_dropped_when_the_sides_are_disjoint():
+    transfers_in = [{"element_in": 1}]
+    transfers_out = [{"element_out": 2}]
+    assert remove_duplicates(transfers_in, transfers_out) == (
+        transfers_in,
+        transfers_out,
+    )
+
+
+def test_every_player_on_both_sides_leaves_nothing():
+    same = [{"element_in": 1}, {"element_in": 2}]
+    out = [{"element_out": 1}, {"element_out": 2}]
+    assert remove_duplicates(same, out) == ([], [])
+
+
+# ------------------------------------------------------------------ halves ---
+
+
+def test_the_two_halves_keep_their_own_prices():
+    transfers = [priced(1, 75, 2, 70), priced(3, 50, 4, 65)]
+    outs, ins = separate_transfers_in_or_out(transfers)
+    assert outs == [
+        {"element_out": 1, "selling_price": 75},
+        {"element_out": 3, "selling_price": 50},
+    ]
+    assert ins == [
+        {"element_in": 2, "purchase_price": 70},
+        {"element_in": 4, "purchase_price": 65},
+    ]
+
+
+def test_the_halves_stay_in_step():
+    """The API pairs them positionally, so the two lists must stay aligned."""
+    transfers = [priced(i, 50 + i, 100 + i, 40 + i) for i in range(5)]
+    outs, ins = separate_transfers_in_or_out(transfers)
+    assert len(outs) == len(ins) == len(transfers)
+    for out, in_, original in zip(outs, ins, transfers, strict=True):
+        assert out["element_out"] == original["element_out"]
+        assert in_["element_in"] == original["element_in"]
+
+
+# ----------------------------------------------------------------- payload ---
+
+
+def test_the_payload_is_not_confirmed():
+    """`confirmed: False` is what makes the API treat this as a proposal."""
+    payload = build_transfer_payload([], None, 7, FakeFetcher())
+    assert payload["confirmed"] is False
+
+
+def test_the_payload_names_the_entry_and_the_gameweek():
+    payload = build_transfer_payload([], None, 7, FakeFetcher(team_id=456))
+    assert payload["entry"] == 456
+    assert payload["event"] == 7
+
+
+def test_no_chip_leaves_both_chip_flags_off():
+    payload = build_transfer_payload([], None, 7, FakeFetcher())
+    assert payload["wildcard"] is False
+    assert payload["freehit"] is False
+
+
+@pytest.mark.parametrize(
+    ("chip", "field"), [("wildcard", "wildcard"), ("free_hit", "freehit")]
+)
+def test_a_chip_sets_its_own_flag(chip, field):
+    """The API spells free_hit without the underscore; the payload has to match."""
+    payload = build_transfer_payload([], chip, 7, FakeFetcher())
+    assert payload[field] is True
+
+
+@pytest.mark.parametrize("chip", ["bench_boost", "triple_captain"])
+def test_a_lineup_chip_adds_nothing_to_the_transfer_payload(chip):
+    """
+    Only the two squad chips belong in a transfer.
+
+    The transfers endpoint defines no key for a lineup chip, so none is sent.
+    """
+    payload = build_transfer_payload([], chip, 7, FakeFetcher())
+    assert payload["wildcard"] is False
+    assert payload["freehit"] is False
+    assert set(payload) == {
+        "confirmed",
+        "entry",
+        "event",
+        "transfers",
+        "wildcard",
+        "freehit",
+    }
+
+
+def test_the_transfers_are_carried_through_untouched():
+    transfers = [priced(1, 75, 2, 70)]
+    payload = build_transfer_payload(transfers, None, 7, FakeFetcher())
+    assert payload["transfers"] == transfers
+
+
+# ----------------------------------------------------------------- pricing ---
+
+
+class FakePlayer:
+    def __init__(self, player_id, fpl_api_id):
+        self.player_id = player_id
+        self.fpl_api_id = fpl_api_id
+
+
+class PricingFetcher(FakeFetcher):
+    """A fetcher whose summary data prices the players being bought."""
+
+    def __init__(self, now_costs):
+        super().__init__()
+        self._now_costs = now_costs
+
+    def get_player_summary_data(self):
+        return {api_id: {"now_cost": cost} for api_id, cost in self._now_costs.items()}
+
+
+@pytest.fixture
+def priced_world(monkeypatch):
+    """player_id N has FPL api id 100+N, and sells for 50+N."""
+    monkeypatch.setattr(
+        transfers_module, "require_player", lambda pid: FakePlayer(pid, 100 + pid)
+    )
+    monkeypatch.setattr(transfers_module, "require_api_id", lambda p: p.fpl_api_id)
+    monkeypatch.setattr(
+        transfers_module,
+        "get_sell_price",
+        lambda _team, pid, **_kwargs: 50 + pid,
+    )
+    monkeypatch.setattr(transfers_module, "get_starting_squad", lambda **_k: None)
+    return PricingFetcher({102: 70, 103: 70, 104: 80})
+
+
+def test_price_transfers_pairs_each_player_out_with_a_player_in(priced_world):
+    result = price_transfers([1, 3], [2, 4], priced_world)
+    assert result == [
+        {
+            "element_out": 101,
+            "selling_price": 51,
+            "element_in": 102,
+            "purchase_price": 70,
+        },
+        {
+            "element_out": 103,
+            "selling_price": 53,
+            "element_in": 104,
+            "purchase_price": 80,
+        },
+    ]
+
+
+def test_the_sale_price_is_not_the_current_price(priced_world):
+    """
+    FPL sells at the purchase price plus half the rise, not at the market price.
+
+    So a transfer must never be priced out with `now_cost`.
+    """
+    (transfer,) = price_transfers([1], [3], priced_world)
+    assert transfer["selling_price"] == 51
+    assert transfer["purchase_price"] == 70
+
+
+def test_price_transfers_refuses_without_a_team_id(priced_world):
+    priced_world.FPL_TEAM_ID = None
+    with pytest.raises(RuntimeError, match="FPL team ID not set"):
+        price_transfers([1], [3], priced_world)
+
+
+# --------------------------------------------------- the initial squad ---
+
+
+class PicksFetcher(PricingFetcher):
+    """A fetcher that also reports the entry's current fifteen picks."""
+
+    def __init__(self, now_costs, n_picks=15):
+        super().__init__(now_costs)
+        self._n_picks = n_picks
+
+    def get_current_picks(self, fpl_team_id=None):  # noqa: ARG002
+        return {
+            200 + i: {"element": 200 + i, "selling_price": 50}
+            for i in range(self._n_picks)
+        }
+
+
+def test_the_initial_squad_is_built_from_this_entrys_own_suggestions(
+    monkeypatch, priced_world
+):
+    """
+    The suggestions are read for this entry and the current season only.
+
+    A replay's squad build is fifteen "in" rows for a dummy entry in a past season,
+    which would pass the count check if it were read instead.
+    """
+    asked = {}
+
+    def fake_suggestions(*, season=None, fpl_team_id=None, **kwargs):
+        asked.update(season=season, fpl_team_id=fpl_team_id)
+        return [FakePlayer(i, 100 + i) for i in range(15)]
+
+    monkeypatch.setattr(transfers_module, "get_transfer_suggestions", fake_suggestions)
+    monkeypatch.setattr(transfers_module, "get_session", lambda: None)
+    # ordering has its own tests; it needs a database this one has no use for
+    monkeypatch.setattr(
+        transfers_module,
+        "pair_by_position",
+        lambda outs, ins: [{**o, **i} for o, i in zip(outs, ins, strict=True)],
+    )
+    fetcher = PicksFetcher({100 + i: 50 for i in range(15)})
+
+    build_init_priced_transfers(fpl_team_id=4321, fetcher=fetcher)
+
+    assert asked == {"season": CURRENT_SEASON, "fpl_team_id": 4321}
+
+
+# ------------------------------------------ where a sale price comes from ---
+
+
+class RecordingSquad:
+    """A squad that records how its players were priced rather than pricing them."""
+
+    def __init__(self, player_id):
+        self.players = [FakePlayer(player_id, 100 + player_id)]
+        self.calls = []
+
+    def get_sell_price_for_player(self, player, **kwargs):
+        self.calls.append({"player": player.player_id, **kwargs})
+        return 55
+
+
+def test_a_sale_is_priced_as_the_api_prices_it(monkeypatch):
+    """
+    The transfer endpoint is handed this figure, so it has to be the API's own.
+
+    Working it out from the transactions table is the fallback inside `sell_price`
+    for when the API cannot say, because it is only right while the database is in
+    step with the entry.
+    """
+    squad = RecordingSquad(player_id=7)
+    monkeypatch.setattr(transfers_module, "get_starting_squad", lambda **_k: squad)
+    monkeypatch.setattr(transfers_module, "next_gameweek", lambda *a, **k: 5)
+    fetcher = FakeFetcher(team_id=123)
+
+    assert transfers_module.get_sell_price(123, 7, fetcher=fetcher) == 55
+    assert squad.calls == [{"player": 7, "use_api": True, "fetcher": fetcher}]
+
+
+def test_pricing_a_sale_uses_this_entrys_own_client(monkeypatch):
+    """A selling price is per entry, so it must not be read through another's."""
+    seen = {}
+    squad = RecordingSquad(player_id=7)
+
+    def fake_starting_squad(**kwargs):
+        seen.update(kwargs)
+        return squad
+
+    monkeypatch.setattr(transfers_module, "get_starting_squad", fake_starting_squad)
+    monkeypatch.setattr(transfers_module, "next_gameweek", lambda *a, **k: 5)
+    fetcher = FakeFetcher(team_id=123)
+
+    transfers_module.get_sell_price(123, 7, fetcher=fetcher)
+    assert seen["fpl_team_id"] == 123
+    assert seen["fetcher"] is fetcher

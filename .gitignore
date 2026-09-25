@@ -118,6 +118,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.import_linter_cache/
 
 # editor config
 .vscode
+
+# replay_season writes its results to the current working directory
+Replay_*.json

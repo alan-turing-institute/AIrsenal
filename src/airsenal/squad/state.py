@@ -1,0 +1,253 @@
+"""The state of the user's own squad, combining the database and the FPL API."""
+
+from collections import Counter
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from airsenal.core.logging import get_logger
+from airsenal.db.models import Player, Transaction
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import get_player_from_api_id
+from airsenal.db.session import get_session
+from airsenal.game.enums import Chip
+from airsenal.game.mappings import chips_by_api_name
+from airsenal.game.scoring import free_transfers_after
+from airsenal.game.season import CURRENT_SEASON
+from airsenal.remote.errors import (
+    RemoteConnectionError,
+    RemoteError,
+    RemoteHTTPError,
+)
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
+
+logger = get_logger(__name__)
+
+
+def get_bank(
+    gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> int:
+    """
+    How much this entry had in the bank before a gameweek.
+
+    `gameweek` defaults to the most recent, and `fpl_team_id` to `$FPL_TEAM_ID`.
+    """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    if season != CURRENT_SEASON:
+        msg = "Calculating the bank for past seasons not yet implemented"
+        raise RuntimeError(msg)
+
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    # check if we're logged in, which will let us get the most up-to-date info
+    try:
+        return fetcher.get_current_bank(fpl_team_id)
+    except RemoteError:
+        logger.warning(
+            "Failed to get actual bank from a logged in API. "
+            "Will try to estimate it from the API without logging in, which will "
+            "not include any transfers made in the current gameweek.",
+            exc_info=True,
+        )
+        data = fetcher.get_fpl_team_history_data(fpl_team_id)
+        if "current" not in data or len(data["current"]) <= 0:
+            return 0
+
+        if gameweek and isinstance(gameweek, int):
+            for entry in data["current"]:
+                if entry["event"] == gameweek - 1:  # value after previous gameweek
+                    return int(entry["bank"])
+        # otherwise, return the most recent value
+        return int(data["current"][-1]["bank"])
+
+
+def get_entry_start_gameweek(
+    fpl_team_id: int, fetcher: FPLDataFetcher | None = None
+) -> int:
+    """The gameweek an entry joined, being the first the API has picks for."""
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    starting_gameweek = 1
+    while starting_gameweek < next_gameweek():
+        try:
+            if get_players_for_gameweek(
+                starting_gameweek, fpl_team_id, fetcher=fetcher
+            ):
+                return starting_gameweek
+            starting_gameweek += 1
+        except RemoteHTTPError:
+            starting_gameweek += 1
+        except RemoteConnectionError:
+            logger.warning(
+                "Failed to connect to the API. Assuming team %s"
+                " was entered in GW1 which may be incorrect.",
+                fpl_team_id,
+                exc_info=True,
+            )
+            return 1
+
+    # No picks in any gameweek, or the season has not started: assume the entry
+    # joins in the next gameweek.
+    return next_gameweek()
+
+
+def rebuilt_gameweeks_from_history(data: dict[str, Any]) -> set[int]:
+    """
+    The gameweeks an entry played a wildcard or free hit in, from its history.
+
+    Args:
+        data: A `get_fpl_team_history_data` payload, whose "chips" entries name
+            a chip in the API's spelling and the gameweek it was played in.
+    """
+    return {
+        chip["event"]
+        for chip in data.get("chips", [])
+        if (played := chips_by_api_name.get(chip["name"])) is not None
+        and played.rebuilds_squad
+    }
+
+
+def get_free_transfers(
+    gameweek: int | None = None,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+    dbsession: Session | None = None,
+    is_replay: bool = False,
+) -> int:
+    """
+    How many free transfers this entry had before a gameweek.
+
+    `gameweek` defaults to the most recent, and `fpl_team_id` to `$FPL_TEAM_ID`.
+    """
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    dbsession = get_session(dbsession)
+    fpl_team_id = fpl_team_id if fpl_team_id is not None else fetcher.FPL_TEAM_ID
+    if season == CURRENT_SEASON and not is_replay:
+        # we will use the API to estimate num transfers
+        if fpl_team_id is None:
+            msg = "FPL team ID is required to estimate free transfers from the API"
+            raise RuntimeError(msg)
+
+        # The logged in count is what the game itself says, so it is preferred
+        # over any estimate - but it is the count for the gameweek being played,
+        # and says nothing about one further ahead.
+        if gameweek is None or gameweek == next_gameweek():
+            try:
+                return fetcher.get_num_free_transfers(fpl_team_id)
+            except RemoteError:
+                logger.warning(
+                    "Failed to get actual free transfers from a logged in API. "
+                    "Will try to estimate it from the API without logging in, which "
+                    "will not include any transfers used in the current gameweek.",
+                    exc_info=True,
+                )
+        # try to calculate free transfers based on previous transfer history in API
+        try:
+            data = fetcher.get_fpl_team_history_data(fpl_team_id)
+            num_free_transfers = 1
+            if "current" in data and len(data["current"]) > 0:
+                starting_gameweek = get_entry_start_gameweek(
+                    fpl_team_id, fetcher=fetcher
+                )
+                rebuilt_in_history = rebuilt_gameweeks_from_history(data)
+                # Every gameweek strictly between the one the entry joined and
+                # the one being asked about, in the order they were played:
+                # accrual is a fold.
+                for entry in sorted(data["current"], key=lambda e: e["event"]):
+                    if entry["event"] <= starting_gameweek:
+                        continue
+                    if gameweek is not None and entry["event"] >= gameweek:
+                        break
+                    num_free_transfers = free_transfers_after(
+                        entry["event_transfers"],
+                        num_free_transfers,
+                        rebuilds_squad=entry["event"] in rebuilt_in_history,
+                    )
+            return num_free_transfers
+        except RemoteError:
+            logger.warning(
+                "Failed to estimate free transfers from the API. "
+                "Will estimate from the DB instead, which may be out of date.",
+                exc_info=True,
+            )
+
+    # historical/simulated data or API failed - fetch from database
+    transactions = dbsession.scalars(
+        select(Transaction)
+        .where(
+            Transaction.fpl_team_id == fpl_team_id,
+            Transaction.season == season,
+            Transaction.bought_or_sold == 1,
+        )
+        .order_by(Transaction.gameweek, Transaction.id)
+    ).all()
+    if len(transactions) == 0:
+        return 1
+    starting_gameweek = transactions[0].gameweek
+    gameweek_transactions: Counter[int] = Counter()
+    rebuilt_gameweeks: set[int] = set()
+    for t in transactions:
+        # A wildcard, a free hit and the opening fifteen all put players in the
+        # squad without spending a free transfer, so counting rows would charge
+        # the following gameweek for fifteen transfers nobody made. The two are
+        # not the same afterwards, though: the accrual below starts the gameweek
+        # after the opening fifteen, whereas a chip freezes the count.
+        if not t.counts_as_transfer:
+            if t.gameweek != starting_gameweek:
+                rebuilt_gameweeks.add(t.gameweek)
+            continue
+        gameweek_transactions[t.gameweek] += 1
+    num_free_transfers = 1
+    if gameweek is None and (season != CURRENT_SEASON or is_replay):
+        msg = "Gameweek must be specified for historical data"
+        raise ValueError(msg)
+    gameweek = gameweek or next_gameweek()
+    for previous_gameweek in range(starting_gameweek + 1, gameweek):
+        num_free_transfers = free_transfers_after(
+            gameweek_transactions[previous_gameweek],
+            num_free_transfers,
+            rebuilds_squad=previous_gameweek in rebuilt_gameweeks,
+        )
+
+    return num_free_transfers
+
+
+def get_players_for_gameweek(
+    gameweek: int,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> list[Player]:
+    """The players an entry had in a gameweek, from the FPL API."""
+    fetcher = fetcher if fetcher is not None else get_fetcher()
+    if not fpl_team_id:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+
+    player_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)["picks"]
+    player_api_id_list = [p["element"] for p in player_data]
+    players: list[Player] = []
+    for api_id in player_api_id_list:
+        player = get_player_from_api_id(api_id)
+        if player is None:
+            logger.warning("Unable to find player with fpl_api_id %s", api_id)
+            continue
+        players.append(player)
+    return players
+
+
+def chip_used_in_gameweek(
+    gameweek: int, fpl_team_id: int | None = None, fetcher: FPLDataFetcher | None = None
+) -> Chip | None:
+    """The chip the entry played in a gameweek, or None if it played none."""
+    fetcher = fetcher if fetcher is not None else get_fetcher(fpl_team_id)
+    if fpl_team_id is None:
+        fpl_team_id = fetcher.FPL_TEAM_ID
+    fpl_team_data = fetcher.get_fpl_team_data(gameweek, fpl_team_id)
+    if not fpl_team_data:
+        return None
+    # The key is absent for a gameweek with no chip, and null for some of them.
+    active_chip = fpl_team_data.get("active_chip")
+    return chips_by_api_name.get(active_chip) if active_chip else None

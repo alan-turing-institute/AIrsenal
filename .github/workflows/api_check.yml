@@ -1,0 +1,36 @@
+name: API check
+
+# The `live` tests are the only ones that talk to the real FPL API. They are
+# deselected everywhere else, so this job is the "did the API change shape?"
+# signal.
+
+on:
+  schedule:
+    # Run at 05:17 every Monday, except June, July (off-season)
+    - cron: "17 5 * 1,2,3,4,5,8,9,10,11,12 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Live FPL API tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # uv installs the interpreter named by .python-version.
+      - uses: astral-sh/setup-uv@v10.0.1
+
+      - name: Install package
+        run: uv sync --locked
+
+      - name: Run the live tests
+        env:
+          FPL_TEAM_ID: 742663
+        # --allow-hosts, not --disable-socket: these tests are supposed to reach
+        # the network, and only these.
+        run: >-
+          uv run pytest -ra -m live --durations=20
+          -p no:cacheprovider --force-enable-socket
