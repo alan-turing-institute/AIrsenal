@@ -225,6 +225,10 @@ To apply the transfers recommended by AIrsenal to your team on the FPL website r
 
 You can also use `airsenal apply lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
 
+### Command Migration
+
+The former `airsenal_*` executables have been replaced by subcommands of `airsenal`. See [docs/old-to-new.md](docs/old-to-new.md) for the replacement for each old command, and for where every old function and class now lives.
+
 ## Issues and New Features
 
 AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
