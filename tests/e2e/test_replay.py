@@ -8,12 +8,13 @@ search, so the whole thing runs in seconds and forks nothing.
 """
 
 import json
+from dataclasses import replace
 from typing import ClassVar
 
 import pytest
 
 from airsenal.game.enums import Chip
-from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.moves import ChipGameweeks, GameweekMove
 from airsenal.optimization.plan import GameweekOutcome, Plan, TransferSearchResult
 from airsenal.optimization.squad_optimizers import (
     GeneticAlgorithmConfig,
@@ -252,3 +253,65 @@ def test_a_gameweek_with_no_plan_is_scored_without_chips():
 
     assert squad.actual_calls == [(False, False)]
     assert row.chip_played is None
+
+
+class WildcardWheneverAllowed:
+    """Plays a wildcard in the first gameweek of every window that allows one."""
+
+    def __init__(self):
+        self.requests = []
+
+    def search(self, request):
+        self.requests.append(request)
+        gameweek = request.gameweeks[0]
+        spent = request.chips_used_up(Plan(root_gameweek=gameweek), gameweek)
+        allowed = request.chip_schedule.for_gameweek(gameweek).allows(
+            Chip.WILDCARD, spent
+        )
+        plan = Plan(
+            root_gameweek=gameweek,
+            outcomes=tuple(
+                GameweekOutcome(
+                    gameweek=window_gameweek,
+                    move=GameweekMove(
+                        chip=Chip.WILDCARD
+                        if allowed and window_gameweek == gameweek
+                        else None
+                    ),
+                    points=0.0,
+                    discount_factor=1.0,
+                    points_hit=0,
+                    free_transfers=request.num_free_transfers,
+                )
+                for window_gameweek in request.gameweeks
+            ),
+        )
+        return TransferSearchResult(best=plan, baseline=plan)
+
+
+def test_a_chip_the_replay_played_is_not_offered_again(pipeline_db, tmp_path):
+    """
+    Each gameweek's search is told which chips earlier gameweeks spent.
+
+    Otherwise every weekly search starts with every chip unplayed, and a
+    replay allowed a wildcard in any gameweek plays one every week.
+    """
+    optimizer = WildcardWheneverAllowed()
+    pipeline = replace(
+        _pipeline(chips=ChipGameweeks(wildcard=0)), transfer_optimizer=optimizer
+    )
+
+    result = replay_season(
+        pipeline,
+        ReplaySettings(
+            gameweek_start=FIRST_GAMEWEEK,
+            gameweek_end=FIRST_GAMEWEEK + 2,
+            tag_prefix="test_replay_chips",
+            output_dir=tmp_path,
+        ),
+    )
+
+    chips = [gameweek.chip_played for gameweek in result.gameweeks]
+    # the first gameweek builds a squad from scratch; the second wildcards
+    assert chips == [None, "wildcard", None]
+    assert optimizer.requests[-1].chips_played == ((2, Chip.WILDCARD),)

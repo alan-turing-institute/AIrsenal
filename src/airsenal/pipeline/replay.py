@@ -290,6 +290,12 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
             gameweeks, tag, fpl_team_id, is_replay=True
         )
         outcomes.append(_gameweek_outcome(tag, gameweek, squad, plan, season))
+        chip = plan.outcomes[0].chip if plan is not None else None
+        if chip is not None:
+            # so the searches for the gameweeks after this one know it is spent
+            pipeline = pipeline.with_settings(
+                chips=pipeline.settings.chips.after_playing(chip, gameweek)
+            )
         logger.info("-" * 30)
 
     result = ReplayResult(

@@ -195,6 +195,7 @@ def run_optimization(
 
     Each chip gameweek is -1 not to play that chip at all, 0 to let the search
     choose the gameweek, or the gameweek to play it in.
+    `chips.played` are the chips already spent before `gameweeks`.
     """
     if chips is None:
         chips = ChipGameweeks()
@@ -258,6 +259,7 @@ def run_optimization(
                 constraints=constraints,
                 scoring=scoring,
                 squad_optimizer=squad_optimizer,
+                chips_played=chips.played,
             )
         )
 

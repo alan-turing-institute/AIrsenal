@@ -792,3 +792,28 @@ def test_within_one_half_a_chip_is_played_once():
     )
     # (0, 0), (0, W), (W, 0)
     assert count == 3
+
+
+@pytest.mark.parametrize(
+    ("played_in", "window_start", "expected"),
+    [
+        # spent earlier in the same half: no wildcard in the window
+        (5, 6, 1),
+        # spent in the first half: the second half's wildcard is there
+        (18, 20, 2),
+    ],
+)
+def test_a_chip_played_before_the_window_counts(played_in, window_start, expected):
+    """(0) alone, or (0) and (W): --max-transfers 0 over one gameweek."""
+    count, _ = count_expected_outputs(
+        1,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=window_start,
+        max_opt_transfers=0,
+        chip_schedule=ChipSchedule.from_gameweeks([window_start], {Chip.WILDCARD: 0}),
+        season="2526",
+        chips_played=[(played_in, Chip.WILDCARD)],
+    )
+    assert count == expected

@@ -146,6 +146,7 @@ def count_expected_outputs(
     max_free_transfers: int = MAX_FREE_TRANSFERS,
     *,
     season: str = CURRENT_SEASON,
+    chips_played: Iterable[tuple[int, Chip]] = (),
     every_transfer_count: bool = True,
 ) -> tuple[int, bool]:
     """
@@ -156,6 +157,7 @@ def count_expected_outputs(
             window; None for no limit.
         allow_unused_transfers: If False, strategies that leave a free transfer
             unused - making none with a full bank of free transfers - are not counted.
+        chips_played: (gameweek, chip) for each chip played before the window.
 
     Returns:
         How many strategies will be computed, and whether the baseline strategy
@@ -165,6 +167,7 @@ def count_expected_outputs(
     """
     gameweek = next_gameweek() if gameweek is None else gameweek
     chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
+    chips_played = tuple(chips_played)
 
     # (free transfers, points hit so far, moves made) - the moves are all that is
     # needed to count branches and to spot the do-nothing baseline among them
@@ -179,10 +182,13 @@ def count_expected_outputs(
                 ft,
                 hit,
                 chips_used_up(
-                    zip(
-                        range(gameweek, window_gameweek),
-                        [move.chip for move in moves],
-                        strict=True,
+                    (
+                        *chips_played,
+                        *zip(
+                            range(gameweek, window_gameweek),
+                            [move.chip for move in moves],
+                            strict=True,
+                        ),
                     ),
                     window_gameweek,
                     season,
