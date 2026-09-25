@@ -6,7 +6,9 @@
 
 ## Background and News
 
-For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
+### 25th September 2026: AIrsenal v2 Released
+
+We have refactored AIrsenal, including the command-line interface. If you have a pre-existing AIrsenal v1 database you will need to re-create it using `uv run airsenal run --clean`. See below for the new commands, or the files in [docs/](docs/) for more details.
 
 ### AIrsenal Details for 2026/27 season
 
@@ -15,6 +17,10 @@ The code to join is: **bancts**.
 Hope to see your AI team there!! :)
 
 Our own AIrsenal team's ID for the 2026/27 season is **[1598585](https://fantasy.premierleague.com/entry/1598585/history)**.
+
+### Background
+
+For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
 
 ## Installation
 

@@ -17,12 +17,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # uv installs the interpreter named by .python-version.
       - uses: astral-sh/setup-uv@v10.0.1
 
-      # uv installs the project itself editable, which is what this job needs:
-      # the packaged data directory the command appends to has to be the one in
-      # this checkout rather than a copy in site-packages. No dev tooling here.
       - name: Install package
         run: uv sync --locked --no-dev
 

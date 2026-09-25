@@ -1,8 +1,5 @@
 name: Docker build
 
-# Only that the image builds and the CLI runs inside it. Lint and tests belong to
-# main.yml; running them here too would say nothing it has not already said.
-
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1

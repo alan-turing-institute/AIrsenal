@@ -19,14 +19,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # No setup-python: uv installs the interpreter named by .python-version,
-      # and caching is on by default on GitHub-hosted runners. Both pre-commit
-      # itself and the local mypy hook (`uv run mypy`) come out of
-      # the project environment, so uv is all this job has to install.
       - uses: astral-sh/setup-uv@v10.0.1
 
-      # The hook environments pre-commit builds for the non-local hooks; uv's
-      # own cache does not cover these.
       - name: Cache the pre-commit hook environments
         uses: actions/cache@v4
         with:
@@ -46,27 +40,23 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.14"]  # test oldest and latest supported versions
-        runs-on: [ubuntu-latest, macos-latest]  # can be extended to other OSes, e.g. [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # python-version overrides .python-version for the matrix entry.
       - uses: astral-sh/setup-uv@v10.0.1
         with:
           python-version: ${{ matrix.python-version }}
 
       # --locked so a stale uv.lock is a CI failure rather than a silent
-      # re-resolve. The dev dependency group, which uv syncs by default, carries
-      # pytest-socket - and the --disable-socket in addopts does not exist
-      # without it.
+      # re-resolve.
       - name: Install package
         run: uv sync --locked
 
-      # The default selection: offline, and without the tests marked `slow`,
-      # which the step below runs. Coverage is opt-in, and scoped to src/.
+      # Coverage and default tests (offline, and without the tests marked `slow`)
       - name: Test package
         env:
           FPL_TEAM_ID: 742663
@@ -79,8 +69,6 @@ jobs:
           FPL_TEAM_ID: 742663
         run: uv run pytest -ra -m slow --durations=20
 
-      # A failed upload does not fail the job: coverage is reporting, and the
-      # test result above is the thing the job is actually gating on.
       - name: Upload coverage report
         uses: codecov/codecov-action@v5
         with:
