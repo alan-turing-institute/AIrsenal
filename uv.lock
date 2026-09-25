@@ -18,7 +18,7 @@ resolution-markers = [
 
 [[package]]
 name = "airsenal"
-version = "1.18.0"
+version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -44,82 +44,81 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-dev = [
-    { name = "import-linter" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-sugar" },
-    { name = "ruff" },
-    { name = "types-dateparser" },
-    { name = "types-python-dateutil" },
-    { name = "types-requests" },
-]
 notebook = [
     { name = "jupyterlab" },
+    { name = "matplotlib" },
+    { name = "seaborn" },
 ]
 plot = [
     { name = "matplotlib" },
     { name = "seaborn" },
 ]
-tools = [
-    { name = "matplotlib" },
-    { name = "scipy" },
-]
 
 [package.dev-dependencies]
 dev = [
+    { name = "airsenal", extra = ["plot"] },
+    { name = "import-linter" },
+    { name = "mypy" },
     { name = "pandas-stubs" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
     { name = "pytest-socket" },
+    { name = "pytest-sugar" },
+    { name = "ruff" },
+    { name = "scipy-stubs" },
+    { name = "types-dateparser" },
+    { name = "types-python-dateutil" },
     { name = "types-regex" },
+    { name = "types-requests" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "airsenal", extras = ["plot"], marker = "extra == 'notebook'" },
     { name = "beautifulsoup4", specifier = ">=4.13.5" },
     { name = "bpl-next", specifier = ">=0.5.0" },
     { name = "curl-cffi", specifier = ">=0.13.0" },
     { name = "dateparser", specifier = ">=1.2.2" },
     { name = "deap", specifier = ">=1.4.3" },
     { name = "html5lib", specifier = ">=1.1" },
-    { name = "import-linter", marker = "extra == 'dev'", specifier = ">=2.14" },
     { name = "jax", specifier = ">=0.6.2" },
     { name = "jaxlib", specifier = ">=0.6.2" },
     { name = "jupyterlab", marker = "extra == 'notebook'", specifier = ">=4.1.2" },
     { name = "lxml", specifier = ">=6.0.1" },
     { name = "matplotlib", marker = "extra == 'plot'", specifier = ">=3.8.3" },
-    { name = "matplotlib", marker = "extra == 'tools'", specifier = ">=3.8.3" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.3.1" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "numpyro", specifier = ">=0.19.0" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "platformdirs", specifier = ">=4.4.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.3.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-sugar", marker = "extra == 'dev'", specifier = ">=1.1.1" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },
     { name = "regex", specifier = ">=2024.11.6" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "rich", specifier = ">=13.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.5" },
     { name = "scipy", specifier = ">=1.15.3" },
-    { name = "scipy", marker = "extra == 'tools'", specifier = ">=1.15.3" },
     { name = "seaborn", marker = "extra == 'plot'", specifier = ">=0.13.2" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "typer", specifier = ">=0.16.0" },
-    { name = "types-dateparser", marker = "extra == 'dev'", specifier = ">=1.2.2.20250809" },
-    { name = "types-python-dateutil", marker = "extra == 'dev'", specifier = ">=2.9.0.20250822" },
-    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.4.20250913" },
 ]
-provides-extras = ["notebook", "plot", "dev", "tools"]
+provides-extras = ["plot", "notebook"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "airsenal", extras = ["plot"] },
+    { name = "import-linter", specifier = ">=2.14" },
+    { name = "mypy", specifier = ">=2.3.1" },
     { name = "pandas-stubs", specifier = ">=2.3.3.260113" },
+    { name = "pre-commit", specifier = ">=4.3.0" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-socket", specifier = ">=0.8.1" },
+    { name = "pytest-sugar", specifier = ">=1.1.1" },
+    { name = "ruff", specifier = ">=0.16.5" },
+    { name = "scipy-stubs", specifier = ">=1.18.1.1" },
+    { name = "types-dateparser", specifier = ">=1.2.2.20250809" },
+    { name = "types-python-dateutil", specifier = ">=2.9.0.20250822" },
     { name = "types-regex", specifier = ">=2026.7.19.20260720" },
+    { name = "types-requests", specifier = ">=2.32.4.20250913" },
 ]
 
 [[package]]
@@ -2316,6 +2315,18 @@ wheels = [
 ]
 
 [[package]]
+name = "numpy-typing-compat"
+version = "20260602.2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/db/5cd1d99caea4bf39fd477686ded4b9b70dff3c7673b5d84ef2d96a4f5aab/numpy_typing_compat-20260602.2.5.tar.gz", hash = "sha256:1885a678e9a24564839ed5d1711c0031735fb7de7f0b5ed88d550e5d45a8d4f9", size = 4593, upload-time = "2026-06-02T15:52:39.331Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/a4/9376b38b7387a0296b1f626b966e5503578625c9673777db1b45bf70acb0/numpy_typing_compat-20260602.2.5-py3-none-any.whl", hash = "sha256:21ba7757c8924d359a9ed3ab2163c282a70983ae64498fdba6d1892a6641c8b1", size = 5881, upload-time = "2026-06-02T15:52:34.167Z" },
+]
+
+[[package]]
 name = "numpyro"
 version = "0.21.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2338,6 +2349,24 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8c/b9/2ac072041e899a52f20cf9510850ff58295003aa75525e58343591b0cbfb/opt_einsum-3.4.0.tar.gz", hash = "sha256:96ca72f1b886d148241348783498194c577fa30a8faac108586b14f1ba4473ac", size = 63004, upload-time = "2024-09-26T14:33:24.483Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/23/cd/066e86230ae37ed0be70aae89aabf03ca8d9f39c8aea0dec8029455b5540/opt_einsum-3.4.0-py3-none-any.whl", hash = "sha256:69bb92469f86a1565195ece4ac0323943e83477171b91d24c35afe028a90d7cd", size = 71932, upload-time = "2024-09-26T14:33:23.039Z" },
+]
+
+[[package]]
+name = "optype"
+version = "0.18.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/99/51/51dc9b1009e020f44703933d4d1ee3429c647c026ce7806b37ee2b257998/optype-0.18.0.tar.gz", hash = "sha256:ea10dee61b15ca299ed0d97025d362585c4dfc5481159bb999a1d0d414bbcb04", size = 59967, upload-time = "2026-06-07T22:13:17.534Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/91/2b064a117cb2593bc3eb04ee994134ca2a6bf2162c92961769947e3258cc/optype-0.18.0-py3-none-any.whl", hash = "sha256:91822ed8516e7a4f225ba53d30f291776c35f31553fb952d7cda98286679c5a6", size = 73410, upload-time = "2026-06-07T22:13:16.324Z" },
+]
+
+[package.optional-dependencies]
+numpy = [
+    { name = "numpy" },
+    { name = "numpy-typing-compat" },
 ]
 
 [[package]]
@@ -3216,6 +3245,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/d9/135be205d9de8783193aff9cc3bf483a03a38e4b29432c954e8cb66ac14e/scipy-1.18.1-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:179ce34a8d0fe273d8883ba59e17e052247d08973dfcb743ca52bb1cce2d60b0", size = 37521946, upload-time = "2026-08-21T23:28:35.245Z" },
     { url = "https://files.pythonhosted.org/packages/5c/a2/5b7d5270621ab7cfa3f7766067bf95dc360b5efb6394694e8143b4156e2b/scipy-1.18.1-cp315-cp315t-win_amd64.whl", hash = "sha256:5632e3ae3d09197c446310cd5187de63e28448ce22f0f67b2b93d97503c0c230", size = 37408295, upload-time = "2026-08-21T23:28:40.724Z" },
     { url = "https://files.pythonhosted.org/packages/63/ad/741c19fcb66755ff953daf9243af8480e4bf3d7fbe57583c178c7d2b6b51/scipy-1.18.1-cp315-cp315t-win_arm64.whl", hash = "sha256:eda632a7981f69730d6281f451db9c1c370993a2c0d7ddb43e2a809a2862b83a", size = 25319710, upload-time = "2026-08-21T23:28:45.713Z" },
+]
+
+[[package]]
+name = "scipy-stubs"
+version = "1.18.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "optype", extra = ["numpy"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dc/76/13f1b922b32ec866389b6f359cf6c29bdb74726df130f0a23a95c72486c1/scipy_stubs-1.18.1.1.tar.gz", hash = "sha256:87995ba945f04a3c3fb9cdb5c06d093cf3637ca1271ae6799eb8030b63fb2263", size = 460131, upload-time = "2026-09-20T22:37:38.617Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/53/9b6dff8225ef3dbc203b1c2329d9efb2b66dfd51d5c2bf048c0676f47731/scipy_stubs-1.18.1.1-py3-none-any.whl", hash = "sha256:1a48be1702cad1ae9aa850c62ed157c988d990305880511d0e38994d502664f4", size = 665244, upload-time = "2026-09-20T22:37:37.029Z" },
 ]
 
 [[package]]

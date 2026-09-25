@@ -1,6 +1,6 @@
 [project]
 name = "airsenal"
-version = "1.18.0"
+version = "2.0.0"
 description = "AI manager for Fantasy Premier League"
 authors = [
     {name = "Angus Williams", email = "anguswilliams91@gmail.com"},
@@ -37,24 +37,8 @@ dependencies = [
 allow-direct-references = true
 
 [project.optional-dependencies]
-notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
-dev = [
-    "pytest>=8.4.2",
-    "ruff>=0.16.5",
-    "pre-commit>=4.3.0",
-    "mypy>=2.3.1",
-    "pytest-cov>=7.0.0",
-    "pytest-sugar>=1.1.1",
-    "types-dateparser>=1.2.2.20250809",
-    "types-requests>=2.32.4.20250913",
-    "types-python-dateutil>=2.9.0.20250822",
-    "import-linter>=2.14",
-]
-tools = [
-    "matplotlib>=3.8.3",
-    "scipy>=1.15.3",
-]
+notebook = ["airsenal[plot]", "jupyterlab>=4.1.2"]
 
 [project.scripts]
 airsenal = "airsenal.cli.main:main_cli"
@@ -65,9 +49,21 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "airsenal[plot]",
+    "import-linter>=2.14",
+    "mypy>=2.3.1",
     "pandas-stubs>=2.3.3.260113",
+    "pre-commit>=4.3.0",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
     "pytest-socket>=0.8.1",
+    "pytest-sugar>=1.1.1",
+    "ruff>=0.16.5",
+    "scipy-stubs>=1.18.1.1",
+    "types-dateparser>=1.2.2.20250809",
+    "types-python-dateutil>=2.9.0.20250822",
     "types-regex>=2026.7.19.20260720",
+    "types-requests>=2.32.4.20250913",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -153,8 +149,7 @@ flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwa
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-# A ratchet, not a target: each number is today's worst offender, so nothing can
-# get worse while the rest are split up. Lower them as that happens; never raise.
+# Each value is the current worst offender. Lower them as improvements are made.
 [tool.ruff.lint.pylint]
 max-args = 12          # run_optimization, make_new_squad
 max-positional-args = 12  # run_optimization
@@ -163,15 +158,6 @@ max-statements = 76    # test_deap_optimization_creates_valid_squad
 max-returns = 8        # Player.get_gameweek_attributes
 
 [tool.ruff.lint.per-file-ignores]
-# Every other `__init__.py` declares `__all__`, which ruff honours as a
-# re-export, so F401 there catches a dead import rather than a deliberate one.
-# That matters: every pluggable component's table lives in an `__init__.py`.
-"src/airsenal/__init__.py" = [
-	"F401",  # the package's own re-exports, which have no __all__
-]
-"src/airsenal/cli/__init__.py" = [
-	"F401",
-]
 "src/airsenal/cli/*.py" = [
 	# Ignore too many argument rules for CLI commands
 	"PLR0913",
@@ -195,23 +181,17 @@ enable_error_code = [
     "possibly-undefined",
 ]
 
-# Named rather than a blanket ignore_missing_imports, so a *new* untyped
+# Named rather than a blanket ignore_missing_imports, so a new untyped
 # dependency is a decision rather than something that slips in unnoticed.
 [[tool.mypy.overrides]]
 module = [
     "bpl.*",
     "deap.*",
     "numpyro.*",
-    "jax.*",
-    "curl_cffi.*",
-    "dateparser.*",
-    "scipy.*",
-    # only installed with the "plot" extra
-    "matplotlib.*",
 ]
 ignore_missing_imports = true
 
-# The only modules allowed to call into those untyped libraries. Everything else
+# Modules allowed to call into untyped libraries above. Everything else
 # reaches them through our own typed wrappers.
 [[tool.mypy.overrides]]
 module = [
@@ -223,14 +203,9 @@ disallow_untyped_calls = false
 warn_return_any = false
 
 # curl_cffi ships py.typed but leaves Response.json(), raise_for_status(),
-# iter_content() and close() unannotated, so calling them is a "call to untyped
-# function". These are the only modules that hold a curl_cffi Session.
-# All four sit inside `airsenal.remote`.
+# iter_content() and close() unannotated
 [[tool.mypy.overrides]]
 module = [
-    "airsenal.remote.fpl_api",
-    "airsenal.remote.fpl_auth",
-    "airsenal.remote.fpl_http",
     "airsenal.remote.download",
 ]
 disallow_untyped_calls = false

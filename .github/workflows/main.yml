@@ -21,7 +21,7 @@ jobs:
 
       # No setup-python: uv installs the interpreter named by .python-version,
       # and caching is on by default on GitHub-hosted runners. Both pre-commit
-      # itself and the local mypy hook (`uv run --extra dev mypy`) come out of
+      # itself and the local mypy hook (`uv run mypy`) come out of
       # the project environment, so uv is all this job has to install.
       - uses: astral-sh/setup-uv@v10.0.1
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Run pre-commit
         run: >-
-          uv run --extra dev pre-commit run
+          uv run pre-commit run
           --hook-stage manual --all-files --show-diff-on-failure
 
   checks:
@@ -59,11 +59,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # --locked so a stale uv.lock is a CI failure rather than a silent
-      # re-resolve. The dev *extra* carries pytest and friends; the dev
-      # dependency group, which uv syncs by default, carries pytest-socket -
-      # and the --disable-socket in addopts does not exist without it.
+      # re-resolve. The dev dependency group, which uv syncs by default, carries
+      # pytest-socket - and the --disable-socket in addopts does not exist
+      # without it.
       - name: Install package
-        run: uv sync --locked --extra dev
+        run: uv sync --locked
 
       # The default selection: offline, and without the tests marked `slow`,
       # which the step below runs. Coverage is opt-in, and scoped to src/.
@@ -71,13 +71,13 @@ jobs:
         env:
           FPL_TEAM_ID: 742663
         run: >-
-          uv run --extra dev pytest -ra --cov --cov-report=xml --cov-report=term
+          uv run pytest -ra --cov --cov-report=xml --cov-report=term
           --durations=20
 
       - name: Run the slow tests
         env:
           FPL_TEAM_ID: 742663
-        run: uv run --extra dev pytest -ra -m slow --durations=20
+        run: uv run pytest -ra -m slow --durations=20
 
       # A failed upload does not fail the job: coverage is reporting, and the
       # test result above is the thing the job is actually gating on.

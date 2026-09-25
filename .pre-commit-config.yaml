@@ -35,7 +35,7 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run --extra dev mypy
+        entry: uv run mypy
         language: system
         types_or: [ python, pyi ]
         files: ^(src/airsenal|tools)/
@@ -45,4 +45,4 @@ repos:
     rev: v2.14
     hooks:
       - id: import-linter
-        entry: uv run --extra dev lint-imports
+        entry: uv run lint-imports

@@ -35,7 +35,7 @@ Always run Python with `uv run` or inside the virtual environment (`source .venv
 
 **Install (including dev tools):**
 ```bash
-uv sync --extra dev
+uv sync
 ```
 
 **Run tests:**

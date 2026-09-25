@@ -108,9 +108,11 @@ The PyPI release provides the same `airsenal` command described in [Getting Star
 
 <details>
 
-  AIrsenal has optional dependencies for plotting (`plot`), running notebooks (`notebook`), the dev toolchain (`dev`) and the one-off scripts in `tools/` (`tools`). To install them all:
+  AIrsenal has optional dependencies for plotting (`plot`) and running notebooks (`notebook`). To install them all:
   - With uv: `uv sync --all-extras`
-  - Without uv: `pip install ".[notebook,plot,dev,tools]"`
+  - Without uv: `pip install ".[notebook,plot]"`
+
+  The dev toolchain is in the `dev` dependency group, which `uv sync` installs by default.
 
 </details>
 
@@ -254,7 +256,7 @@ Install the dev toolchain and the pre-commit hooks, which run formatting, lintin
 checking and the package layering contracts on every commit:
 
 ```shell
-uv sync --extra dev
+uv sync
 pre-commit install --install-hooks
 ```
 

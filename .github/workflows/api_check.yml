@@ -28,7 +28,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.0.1
 
       - name: Install package
-        run: uv sync --locked --extra dev
+        run: uv sync --locked
 
       - name: Run the live tests
         env:
@@ -36,5 +36,5 @@ jobs:
         # --allow-hosts, not --disable-socket: these tests are supposed to reach
         # the network, and only these.
         run: >-
-          uv run --extra dev pytest -ra -m live --durations=20
+          uv run pytest -ra -m live --durations=20
           -p no:cacheprovider --force-enable-socket
