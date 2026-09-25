@@ -1,0 +1,231 @@
+"""
+The strategy-tree expansion, run for real on the small database.
+
+The worker is run in a thread rather than a forked process. What is checked is
+everything the worker does - pick a strategy for each move, score the resulting squad,
+extend the strategy, and put the children back on the queue for the next gameweek.
+"""
+
+import math
+import queue as queue_module
+import threading
+
+import pytest
+
+from airsenal.core.concurrency import CustomQueue
+from airsenal.game.enums import Chip
+from airsenal.optimization.moves import ChipSchedule, GameweekMove
+from airsenal.optimization.plan import Plan, TransferSearchResult
+from airsenal.optimization.protocols import (
+    SquadRequest,
+    TransferConstraints,
+    TransferSearchRequest,
+)
+from airsenal.optimization.squad_optimizers import (
+    GeneticAlgorithmConfig,
+    GeneticSquadOptimizer,
+)
+from airsenal.optimization.squad_score import SquadScoringConfig
+from airsenal.optimization.transfer_optimizers import TreeSearchConfig
+from airsenal.optimization.transfer_optimizers.tree_search import optimize
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
+from airsenal.prediction.points_models import ComponentPointsModel
+from airsenal.prediction.run import make_predictedscore_table
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
+from airsenal.squad.squad import SubWeights
+from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
+
+SEARCH_GAMEWEEKS = FUTURE_GAMEWEEKS[:2]
+
+
+@pytest.fixture(scope="module")
+def tag(pipeline_db):
+    return make_predictedscore_table(
+        gameweeks=FUTURE_GAMEWEEKS,
+        season=SEASON,
+        points_model=ComponentPointsModel(
+            team_model=build_team_model("constant"),
+            player_model=build_player_model("constant"),
+        ),
+        dbsession=pipeline_db,
+    )
+
+
+@pytest.fixture(scope="module")
+def starting_squad(pipeline_db, tag):
+    optimizer = GeneticSquadOptimizer(
+        GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
+    )
+    return optimizer.optimize(
+        SquadRequest(
+            gameweeks=SEARCH_GAMEWEEKS, tag=tag, season=SEASON, dbsession=pipeline_db
+        )
+    )
+
+
+def grow_tree(request, config):
+    """Grow the whole tree with one in-thread worker, and return its finished plans."""
+    work: CustomQueue = CustomQueue()
+    finished: queue_module.Queue = queue_module.Queue()
+    worker = threading.Thread(
+        target=optimize, args=(work, 0, finished, request, config), daemon=True
+    )
+    worker.start()
+    # the root node, which exists only to put this gameweek's moves on the queue
+    squad = request.starting_squad
+    work.put((GameweekMove(), request.num_free_transfers, 0, 0, squad, None))
+    work.join()
+    work.put(None)
+    worker.join(timeout=120)
+    assert not worker.is_alive(), "the worker did not shut down"
+
+    plans = []
+    while not finished.empty():
+        plans.append(finished.get())
+    return plans
+
+
+@pytest.fixture(scope="module")
+def result(tag, starting_squad):
+    request = TransferSearchRequest(
+        starting_squad=starting_squad,
+        gameweeks=SEARCH_GAMEWEEKS,
+        tag=tag,
+        season=SEASON,
+        chip_schedule=ChipSchedule.from_gameweeks(SEARCH_GAMEWEEKS, {}),
+        num_free_transfers=1,
+        constraints=TransferConstraints(max_opt_transfers=1),
+    )
+    config = TreeSearchConfig(num_thread=1, num_iterations=5)
+    return TransferSearchResult.from_plans(grow_tree(request, config))
+
+
+def test_the_tree_produces_finished_strategies(result):
+    assert isinstance(result.best, Plan)
+    assert len(result.best) == len(SEARCH_GAMEWEEKS)
+
+
+def test_the_tree_branches(result):
+    # one node per legal move per gameweek; a single result means it did not expand
+    assert len(result.considered) > 1
+
+
+def test_every_strategy_covers_every_gameweek(result):
+    for strategy in result.considered:
+        assert [o.gameweek for o in strategy.outcomes] == SEARCH_GAMEWEEKS
+
+
+def test_the_baseline_is_among_them(result):
+    assert result.baseline is not None
+    assert result.baseline.is_baseline
+
+
+def test_the_best_is_the_best_considered(result):
+    assert result.best.total_score == max(s.total_score for s in result.considered)
+
+
+def test_the_best_is_at_least_as_good_as_doing_nothing(result):
+    assert result.best.total_score >= result.baseline_score
+
+
+def test_scores_are_finite(result):
+    assert all(math.isfinite(s.total_score) for s in result.considered)
+
+
+def test_the_constraint_on_transfers_per_gameweek_is_respected(result):
+    for strategy in result.considered:
+        for outcome in strategy.outcomes:
+            assert outcome.move.n_transfers <= 1
+
+
+def test_no_strategy_goes_into_the_red(result):
+    for strategy in result.considered:
+        assert all(outcome.bank >= 0 for outcome in strategy.outcomes)
+
+
+class RecordingSquadOptimizer:
+    """Satisfies SquadOptimizer, records what it was asked, builds a real squad."""
+
+    def __init__(self):
+        self.requests = []
+        self._real = GeneticSquadOptimizer(
+            GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
+        )
+
+    def num_increments(self, effort=None):
+        return self._real.num_increments(effort)
+
+    def optimize(self, request):
+        self.requests.append(request)
+        return self._real.optimize(request)
+
+
+def test_the_squad_optimizer_on_the_request_rebuilds_a_wildcard_squad(
+    tag, starting_squad
+):
+    """
+    A wildcard rebuilds with the squad optimizer the caller passed.
+
+    `StrategySet` carries strategy *names*, so `FullSquadStrategy` is built with
+    no arguments and a constructor argument could never reach it. The optimizer
+    travels on the request instead, and this checks that end to end.
+    """
+    optimizer = RecordingSquadOptimizer()
+    gameweeks = SEARCH_GAMEWEEKS[:1]
+    request = TransferSearchRequest(
+        starting_squad=starting_squad,
+        gameweeks=gameweeks,
+        tag=tag,
+        season=SEASON,
+        # forced, so every node of this one-gameweek tree plays it
+        chip_schedule=ChipSchedule.from_gameweeks(
+            gameweeks, {Chip.WILDCARD: gameweeks[0]}
+        ),
+        num_free_transfers=1,
+        constraints=TransferConstraints(max_opt_transfers=1),
+        squad_optimizer=optimizer,
+    )
+    config = TreeSearchConfig(num_thread=1, num_iterations=5)
+    grow_tree(request, config)
+
+    assert optimizer.requests, "the wildcard rebuild did not reach the given optimizer"
+    # the search's --num-iterations arrives as the effort budget to size to
+    assert all(r.effort == config.num_iterations for r in optimizer.requests)
+
+
+@pytest.mark.parametrize("chip", [None, Chip.WILDCARD])
+def test_the_bench_weighting_on_the_request_reaches_the_search(
+    tag, starting_squad, chip
+):
+    """
+    The bench weighting reaches the transfer search, not just the squad builder.
+
+    Otherwise the two score benches differently, so scoring the same window with
+    and without the bench must not agree.
+    """
+    gameweeks = SEARCH_GAMEWEEKS[:1]
+    chips = {chip: gameweeks[0]} if chip is not None else {}
+
+    def score(scoring):
+        request = TransferSearchRequest(
+            starting_squad=starting_squad,
+            gameweeks=gameweeks,
+            tag=tag,
+            season=SEASON,
+            chip_schedule=ChipSchedule.from_gameweeks(gameweeks, chips),
+            num_free_transfers=1,
+            constraints=TransferConstraints(max_opt_transfers=1),
+            scoring=scoring,
+        )
+        config = TreeSearchConfig(num_thread=1, num_iterations=5)
+        return TransferSearchResult.from_plans(
+            grow_tree(request, config)
+        ).best.total_score
+
+    with_bench = score(SquadScoringConfig())
+    without_bench = score(SquadScoringConfig(sub_weights=SubWeights.none()))
+    assert with_bench != without_bench

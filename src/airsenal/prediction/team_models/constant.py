@@ -1,0 +1,75 @@
+"""
+A team model that gives every scoreline the same probability.
+
+A null baseline for `airsenal replay`. Also a fast path when debugging something
+downstream of prediction, since fitting it costs nothing.
+"""
+
+from collections.abc import Iterable, Sequence
+from typing import Any
+
+import numpy as np
+
+from airsenal.core.lookup import ConfigError
+from airsenal.game.scoring import MAX_GOALS
+from airsenal.prediction.protocols import TeamFitData
+from airsenal.prediction.team_models.scorelines import (
+    outcome_proba_from_scores,
+)
+
+
+def teams_in(training_data: TeamFitData) -> list[str]:
+    """Every team in the training data, home or away, sorted."""
+    home = training_data.get("home_team", [])
+    away = training_data.get("away_team", [])
+    return sorted({str(t) for t in [*home, *away]})
+
+
+def with_team(teams: list[str] | None, team_name: str) -> list[str]:
+    """`teams`, or a new list, with `team_name` appended if it was not there."""
+    teams = [] if teams is None else teams
+    if team_name not in teams:
+        teams.append(team_name)
+    return teams
+
+
+class ConstantTeamModel:
+    """Every scoreline equally likely, whoever is playing."""
+
+    def __init__(
+        self, max_goals: int = MAX_GOALS, *, epsilon: float | None = None
+    ) -> None:
+        if epsilon is not None:
+            msg = "the constant team model has no time weighting, so no epsilon"
+            raise ConfigError(msg)
+        self.max_goals = max_goals
+        self.teams: list[str] | None = None
+
+    def fit(self, training_data: TeamFitData) -> "ConstantTeamModel":
+        self.teams = teams_in(training_data)
+        return self
+
+    def add_new_team(self, team_name: str, **kwargs: Any) -> None:
+        del kwargs
+        self.teams = with_team(self.teams, team_name)
+
+    def predict_score_n_proba(
+        self,
+        n: int | Iterable[int],
+        team: str | Iterable[str],
+        opponent: str | Iterable[str] = "",
+        home: bool | None = True,
+        **kwargs: Any,
+    ) -> np.ndarray:
+        del team, opponent, home, kwargs
+        goals = np.atleast_1d(np.asarray(n))
+        # uniform over 0..max_goals, and zero for anything outside that
+        probability = np.where(
+            (goals >= 0) & (goals <= self.max_goals), 1.0 / (self.max_goals + 1), 0.0
+        )
+        return probability.astype(float)
+
+    def predict_outcome_proba(
+        self, home_team: Sequence[str], away_team: Sequence[str]
+    ) -> dict[str, np.ndarray]:
+        return outcome_proba_from_scores(self, home_team, away_team, self.max_goals)

@@ -9,7 +9,7 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.10,<4"
+requires-python = ">=3.12,<4"
 dependencies = [
   "beautifulsoup4>=4.13.5",
   "bpl-next>=0.5.0",
@@ -17,18 +17,18 @@ dependencies = [
   "dateparser>=1.2.2",
   "deap>=1.4.3",
   "html5lib>=1.1",
-  "identify>=2.6.19",
   "jax>=0.6.2",
   "jaxlib>=0.6.2",
   "lxml>=6.0.1",
   "numpy>=2.2.6",
+  "numpyro>=0.19.0",
   "pandas>=2.3.2",
   "platformdirs>=4.4.0",
-  "pytest>=9.1.1",
-  "pytest-cov>=7.1.0",
   "python-dateutil>=2.9.0.post0",
+  "regex>=2024.11.6",
   "rich>=13.0.0",
   "requests>=2.32.5",
+  "scipy>=1.15.3",
   "sqlalchemy>=2.0.43",
   "typer>=0.16.0",
 ]
@@ -37,37 +37,71 @@ dependencies = [
 allow-direct-references = true
 
 [project.optional-dependencies]
-api = ["Flask>=3.0.2"]
 notebook = ["jupyterlab>=4.1.2"]
 plot = ["matplotlib>=3.8.3", "seaborn>=0.13.2"]
 dev = [
     "pytest>=8.4.2",
-    "ruff>=0.15.16",
+    "ruff>=0.16.5",
     "pre-commit>=4.3.0",
-    "mypy>=2.1.0",
+    "mypy>=2.3.1",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "types-dateparser>=1.2.2.20250809",
     "types-requests>=2.32.4.20250913",
     "types-python-dateutil>=2.9.0.20250822",
+    "import-linter>=2.14",
+]
+tools = [
+    "matplotlib>=3.8.3",
+    "scipy>=1.15.3",
 ]
 
 [project.scripts]
-airsenal = "airsenal.cli.main:app"
+airsenal = "airsenal.cli.main:main_cli"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "pandas-stubs>=2.3.3.260113",
+    "pytest-socket>=0.8.1",
+    "types-regex>=2026.7.19.20260720",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/airsenal"]
+exclude = ["**/Replay_*.json", "**/__pycache__", "**/*.pyc"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/airsenal", "tests", "pyproject.toml", "README.md", "LICENSE"]
+
 [tool.pytest.ini_options]
+testpaths = ["tests"]
+# Coverage is deliberately not here, so it does not run on every local
+# invocation. Ask for it with --cov.
+#
+# --disable-socket makes "the suite runs offline" enforced rather than
+# aspirational; unix sockets stay allowed because SQLite and multiprocessing
+# need them. It cannot see curl_cffi, which connects from libcurl, so the
+# `no_curl_requests` fixture in tests/conftest.py refuses those instead.
 addopts = """
---cov=airsenal
---cov-report=xml
---pdbcls=IPython.terminal.debugger:TerminalPdb
+--strict-markers
+--strict-config
+--disable-socket
+--allow-unix-socket
+-m 'not live and not slow'
 """
+xfail_strict = true
+markers = [
+  "live: makes real requests to the FPL API; deselected by default, run with -m live",
+  "slow: takes more than a couple of seconds; deselected by default, run with -m slow",
+]
 
 [tool.ruff]
 line-length = 88
+exclude = ["notebooks"]
 
 [tool.ruff.format]
 docstring-code-format = true  # code snippets in docstrings will be formatted
@@ -93,29 +127,184 @@ select = [
   "UP",          # pyupgrade
   "YTT",         # flake8-2020
   "EXE",         # flake8-executable
+  "TC",          # flake8-type-checking
+  "N",           # pep8-naming
+  "TID251",      # flake8-tidy-imports: banned-api (see below)
+  # pydocstyle: the rules that pin Google-style sections, and the ones that keep
+  # a docstring's first line a summary. Not the whole D family - D1xx would
+  # require a docstring on everything and D417 every parameter documented once
+  # any are, both of which push towards docstrings that restate the signature.
+  "D200", "D202", "D205", "D209", "D403", "D415",
+  "D405", "D410", "D411", "D412", "D414", "D416", "D418",
 ]
 ignore = [
-  "PLR",    # Design related pylint codes
+  # Ignored is design advice about magic values and comparison style.
+  # flake8-annotations (ANN) is deliberately not enabled: mypy's strict mode
+  # already requires annotations.
+  "PLR2004", "PLR0402", "PLR1702", "PLR5501", "PLR6301",
   "ISC001", # Conflicts with formatter
   "G004",   # f-strings with logger
 ]
 flake8-unused-arguments.ignore-variadic-names = true  # allow unused *args/**kwargs
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"__future__.annotations".msg = "Quote the annotation, or import the name at runtime."
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# A ratchet, not a target: each number is today's worst offender, so nothing can
+# get worse while the rest are split up. Lower them as that happens; never raise.
+[tool.ruff.lint.pylint]
+max-args = 12          # run_optimization, make_new_squad
+max-positional-args = 12  # run_optimization
+max-branches = 18      # Squad.get_actual_points
+max-statements = 76    # test_deap_optimization_creates_valid_squad
+max-returns = 8        # Player.get_gameweek_attributes
+
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = [
-	"F401",  # allow unused imports in __init__.py files
+# Every other `__init__.py` declares `__all__`, which ruff honours as a
+# re-export, so F401 there catches a dead import rather than a deliberate one.
+# That matters: every pluggable component's table lives in an `__init__.py`.
+"src/airsenal/__init__.py" = [
+	"F401",  # the package's own re-exports, which have no __all__
 ]
-"*/tests/*" = [
+"src/airsenal/cli/__init__.py" = [
+	"F401",
+]
+"src/airsenal/cli/*.py" = [
+	# Ignore too many argument rules for CLI commands
+	"PLR0913",
+	"PLR0917",
+]
+"tests/**" = [
 	"B011",  # allow using assert statements in tests
 	"ARG001"  # allow unused arguments in tests, e.g. for pytest fixtures
 ]
 
 [tool.mypy]
-files = ["airsenal/framework", "airsenal/scripts"]
+files = ["src/airsenal", "tools"]
+strict = true
 show_error_codes = true
 warn_unreachable = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-check_untyped_defs = true
-strict = false
+warn_unused_configs = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+    "possibly-undefined",
+]
+
+# Named rather than a blanket ignore_missing_imports, so a *new* untyped
+# dependency is a decision rather than something that slips in unnoticed.
+[[tool.mypy.overrides]]
+module = [
+    "bpl.*",
+    "deap.*",
+    "numpyro.*",
+    "jax.*",
+    "curl_cffi.*",
+    "html5lib.*",
+    "dateparser.*",
+    "scipy.*",
+    # only installed with the "plot" extra
+    "matplotlib.*",
+]
 ignore_missing_imports = true
+
+# The only modules allowed to call into those untyped libraries. Everything else
+# reaches them through our own typed wrappers.
+[[tool.mypy.overrides]]
+module = [
+    "airsenal.prediction.team_models.dixon_coles",
+    "airsenal.prediction.player_models.mcmc",
+    "airsenal.optimization.squad_optimizers.genetic_algorithm",
+]
+disallow_untyped_calls = false
+warn_return_any = false
+
+# curl_cffi ships py.typed but leaves Response.json(), raise_for_status(),
+# iter_content() and close() unannotated, so calling them is a "call to untyped
+# function". These are the only modules that hold a curl_cffi Session.
+# All four sit inside `airsenal.remote`.
+[[tool.mypy.overrides]]
+module = [
+    "airsenal.remote.fpl_api",
+    "airsenal.remote.fpl_auth",
+    "airsenal.remote.fpl_http",
+    "airsenal.remote.download",
+]
+disallow_untyped_calls = false
+
+[tool.coverage.run]
+source = ["src/airsenal"]
+branch = true
+
+# A floor, not a target, raise it as coverage improves.
+[tool.coverage.report]
+fail_under = 65
+
+[tool.importlinter]
+root_package = "airsenal"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Stage packages form a one-way dependency chain"
+type = "layers"
+containers = ["airsenal"]
+layers = [
+    "cli",
+    "pipeline",
+    "apply",
+    "optimization",
+    "export",
+    "ingest",
+    "reporting",
+    "squad",
+    "prediction",
+    "db",
+    "remote",
+    "core",
+    "game",
+]
+exhaustive = true
+exhaustive_ignores = ["data"]
+ignore_imports = [
+    # Annotation only, under TYPE_CHECKING: a caller passes a fetcher when the
+    # database has no fixtures to work the gameweek out from.
+    "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
+]
+
+[[tool.importlinter.contracts]]
+name = "The database layer does not reach for the FPL API"
+type = "forbidden"
+source_modules = ["airsenal.db"]
+forbidden_modules = ["airsenal.remote.fpl_api", "airsenal.remote.fpl_auth"]
+ignore_imports = [
+    # Annotation only, under TYPE_CHECKING
+    "airsenal.db.queries.gameweeks -> airsenal.remote.fpl_api",
+]
+
+[[tool.importlinter.contracts]]
+name = "The database layer neither renders nor talks to the network"
+type = "forbidden"
+source_modules = ["airsenal.db"]
+forbidden_modules = [
+    "airsenal.core.console",
+    "airsenal.reporting",
+    "curl_cffi",
+    "matplotlib",
+    "requests",
+    "rich",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only the remote package talks to the network"
+type = "protected"  # direct imports only
+protected_modules = [
+    "bs4",
+    "curl_cffi",
+    "requests",
+]
+allowed_importers = ["airsenal.remote"]

@@ -1,0 +1,28 @@
+"""Find players sharing a name within a season, from the player summary data."""
+
+import pandas as pd
+
+from airsenal.core.logging import configure_logging, get_logger
+from airsenal.export.player_summary import SAVE_FILE as SUMMARY_FILE
+from airsenal.game.season import CURRENT_SEASON
+
+logger = get_logger(__name__)
+
+
+def find_duplicate_names(season: str = CURRENT_SEASON) -> None:
+    df = pd.read_json(SUMMARY_FILE.format(season))
+    name_groups = df.groupby("name")
+    name_counts = name_groups["opta_code"].nunique()
+    dup = name_counts > 1
+
+    if dup.sum() > 0:
+        logger.info("Duplicated player names (and their Opta IDs):")
+        codes = name_groups["opta_code"].unique()
+        logger.info(codes[dup])
+    else:
+        logger.info("No duplicated player names found in %s season.", season)
+
+
+if __name__ == "__main__":
+    configure_logging()
+    find_duplicate_names()

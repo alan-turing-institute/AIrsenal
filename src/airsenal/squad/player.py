@@ -1,0 +1,145 @@
+"""
+How a player is represented inside a squad.
+
+`CandidatePlayer` is a real player, with a price and predicted points.
+`DummyPlayer` fills a slot the search has not decided yet. `SquadPlayer` is
+either - it is what a `Squad` holds fifteen of.
+"""
+
+import uuid
+from collections.abc import Iterable
+from typing import Any
+
+from sqlalchemy.orm import Session
+
+from airsenal.db.models import Player
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.db.queries.players import require_player
+from airsenal.db.queries.predictions import get_predicted_points_for_player
+from airsenal.game.season import CURRENT_SEASON
+
+
+class CandidatePlayer:
+    """
+    A real player the optimizer can buy, hold or sell.
+
+    Wraps the database `Player` with what a search needs and the row does not
+    have: a purchase price, predicted points per gameweek, and where in the
+    lineup it has been placed.
+    """
+
+    def __init__(
+        self,
+        player: Player | str | int,
+        gameweek: int | None = None,
+        season: str = CURRENT_SEASON,
+        purchase_price: int | None = None,
+        dbsession: Session | None = None,
+    ) -> None:
+        """
+        Initialize from a `Player`, a name or a player ID.
+
+        Team, position and price are read from the player's attributes for
+        `season` and `gameweek`.
+        """
+        gameweek = next_gameweek() if gameweek is None else gameweek
+        self.dbsession = dbsession
+        if isinstance(player, Player):
+            pdata = player
+        else:
+            pdata = require_player(player, self.dbsession)
+        self.player_id = pdata.player_id
+        self.name = pdata.name
+        self.display_name = pdata.display_name
+        self.season = season
+        team = pdata.team(gameweek, season)
+        if team is None:
+            msg = f"Player {self} has no team for season {season}, gameweek {gameweek}"
+            raise ValueError(msg)
+        self.team = team
+        position = pdata.position(season)
+        if position is None:
+            msg = f"Player {self} has no position for season {season}"
+            raise ValueError(msg)
+        self.position = position
+        if purchase_price is None:
+            purchase_price = pdata.price(gameweek, season)
+            if purchase_price is None:
+                msg = f"{self} has no price for season {season}, gameweek {gameweek}"
+                raise ValueError(msg)
+        self.purchase_price = purchase_price
+        self.is_starting = True
+        self.is_captain = False
+        self.is_vice_captain = False
+        self.predicted_points: dict[str, dict[int, float]] = {}
+        self.sub_position: int | None = None
+
+    def __str__(self) -> str:
+        return self.display_name or self.name
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Drop the database session when pickling.
+
+        A Session is bound to a connection and cannot be pickled, but Squad - which
+        holds CandidatePlayers - is pickled onto the transfer optimiser's
+        multiprocessing queue and by fastcopy.
+        """
+        state = self.__dict__.copy()
+        state["dbsession"] = None
+        return state
+
+    def calc_predicted_points(self, tag: str) -> None:
+        """Load this tag's predictions into `predicted_points`, keyed by gameweek."""
+        if tag not in self.predicted_points:
+            self.predicted_points[tag] = get_predicted_points_for_player(
+                self.player_id, tag, season=self.season, dbsession=self.dbsession
+            )
+
+
+class DummyPlayer:
+    """A placeholder that fills a squad slot the optimizer is not choosing."""
+
+    def __init__(
+        self,
+        gameweeks: Iterable[int],
+        position: str,
+        tag: str,
+        purchase_price: int = 45,
+        pts: float = 0,
+    ) -> None:
+        self.name = "DUMMY"
+        self.display_name = "DUMMY"
+        self.position = position
+        self.purchase_price = purchase_price
+        # a unique team, so a dummy never counts towards the three-per-club limit
+        self.team = str(uuid.uuid4())
+        self.pts = pts
+        self.predicted_points: dict[str, dict[int, float]] = {
+            tag: dict.fromkeys(gameweeks, self.pts)
+        }
+        # negative so it can never collide with a real (positive) player id
+        self.player_id = -(uuid.uuid4().int % (2**31))
+        self.is_starting = False
+        self.is_captain = False
+        self.is_vice_captain = False
+        self.sub_position: int | None = None
+        self.season = "DUMMY"
+
+    def calc_predicted_points(self, tag: str) -> None:
+        """Nothing to look up: a dummy's points are fixed at construction."""
+
+
+type SquadPlayer = CandidatePlayer | DummyPlayer
+
+
+def bench_position(player: SquadPlayer) -> int:
+    """
+    Where a benched player sits in the substitution order.
+
+    Set by `order_substitutes`.
+    """
+    if player.sub_position is None:
+        msg = f"{player} has no bench position - optimize the lineup first"
+        raise RuntimeError(msg)
+    return player.sub_position

@@ -1,0 +1,108 @@
+"""The prediction model tables."""
+
+import inspect
+
+import pytest
+
+from airsenal.core.lookup import ConfigError
+from airsenal.prediction.player_models import (
+    PLAYER_MODELS,
+    ConjugatePlayerConfig,
+    ConjugatePlayerModel,
+    NumpyroPlayerConfig,
+    NumpyroPlayerModel,
+    XGPlayerConfig,
+    XGPlayerModel,
+    build_player_model,
+)
+from airsenal.prediction.team_models import (
+    DEFAULT_TEAM_MODEL,
+    TEAM_MODELS,
+    build_team_model,
+)
+from airsenal.prediction.team_models.scorelines import ConwayMaxwellScorelines
+
+
+def test_registered_player_models():
+    assert sorted(PLAYER_MODELS) == ["conjugate", "constant", "numpyro", "xg"]
+
+
+def test_registered_team_models():
+    assert sorted(TEAM_MODELS) == ["constant", "extended", "neutral", "random", "xg"]
+
+
+def test_xg_is_the_default_player_model():
+    """
+    It beats the conjugate model on held-out log probability in every season.
+
+    The goals-fitted model is still `--player-model conjugate`, and is what a
+    season before 2223 needs: expected goals do not exist there, and this one
+    refuses to fit rather than quietly fitting to something else.
+    """
+    model = build_player_model()
+    assert isinstance(model, XGPlayerModel)
+    assert model.config == XGPlayerConfig()
+    assert isinstance(build_player_model("conjugate"), ConjugatePlayerModel)
+    assert build_player_model("conjugate").config == ConjugatePlayerConfig()
+
+
+def test_numpyro_is_selected_by_name_not_a_boolean():
+    """The sampled model is one entry in the table like any other."""
+    assert isinstance(build_player_model("numpyro"), NumpyroPlayerModel)
+
+
+def test_numpyro_config_has_no_time_weighting_fields():
+    assert not hasattr(NumpyroPlayerConfig(), "epsilon")
+    assert not hasattr(NumpyroPlayerConfig(), "n_goals_prior")
+
+
+def test_player_model_fit_takes_no_keyword_arguments():
+    """Hyperparameters belong to the model, so fit() has nowhere to drop them."""
+    for name in PLAYER_MODELS:
+        sig = inspect.signature(build_player_model(name).fit)
+        kinds = {p.kind for p in sig.parameters.values()}
+        assert inspect.Parameter.VAR_KEYWORD not in kinds, name
+        assert list(sig.parameters) == ["data"], name
+
+
+def test_xg_is_the_default_team_model():
+    """
+    It measured better than `extended` on scorelines and on points alike.
+
+    Named rather than inferred, because the default is what `airsenal run` uses
+    and changing it changes everyone's predictions. See
+    docs/xg-models.md for the numbers behind the switch.
+    """
+    assert DEFAULT_TEAM_MODEL == "xg"
+    assert isinstance(build_team_model(), ConwayMaxwellScorelines)
+
+
+def test_a_bpl_team_model_holds_the_arguments_it_fits_with():
+    """
+    The model object carries its own epsilon.
+
+    Bpl takes epsilon when fitting rather than when constructing, so without
+    this a caller building its own model - replay, say - fits with different
+    time weighting than `airsenal run` does.
+    """
+    model = build_team_model("extended")
+    assert model.epsilon == 0.9
+    assert model.rescale_weights is True
+
+
+def test_build_team_model_forwards_a_first_class_epsilon():
+    assert build_team_model("extended", epsilon=0.5).epsilon == 0.5
+    assert build_team_model("neutral", epsilon=0.5).epsilon == 0.5
+
+
+def test_neutral_and_extended_are_different_bpl_models():
+    assert build_team_model("extended").neutral is False
+    assert build_team_model("neutral").neutral is True
+
+
+@pytest.mark.parametrize("name", ["random", "constant"])
+def test_a_model_without_time_weighting_rejects_epsilon(name):
+    """A model that cannot honour epsilon rejects it rather than ignoring it."""
+    build_team_model(name)  # fine without one
+    with pytest.raises(ConfigError, match="no time weighting"):
+        build_team_model(name, epsilon=0.5)

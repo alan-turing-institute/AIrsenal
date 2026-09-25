@@ -4,7 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is AIrsenal
 
-AIrsenal is a machine learning package for optimizing Fantasy Premier League (FPL) team selection and transfer decisions. It uses Bayesian statistical models to predict player/team performance, a greedy/brute-force approach to optimize transfers, and a DEAP genetic algorithm for initial whole-squad selection — all under FPL constraints (budget, squad size, position limits, chips, etc.).
+AIrsenal is a machine learning package for optimizing Fantasy Premier League (FPL) team
+selection and transfer decisions. It uses statistical models to predict player/team
+performance, a tree search over each gameweek's transfers to optimize them, and a DEAP
+genetic algorithm for initial whole-squad selection — all under FPL constraints (budget,
+squad size, position limits, chips, etc.).
+
+## Read these first
+
+The durable documentation is in the repository, written for anyone working here rather
+than for an agent. Prefer it to anything restated below:
+
+- **[docs/where-to-look.md](docs/where-to-look.md)** — where to start from a command, a
+  task, a log line or a failing guardrail test.
+- **[docs/architecture.md](docs/architecture.md)** — the package chain, what each package
+  owns, which contracts enforce it, and a file-by-file map.
+- **[docs/adding-a-model.md](docs/adding-a-model.md)** — the eight pluggable component
+  kinds, a worked example of adding one, and how to find out whether it is any better.
+- **[docs/how-it-works.md](docs/how-it-works.md)** — the database schema and how points
+  predictions are built.
+- **[docs/xg-models.md](docs/xg-models.md)** — where every number in the two default
+  models came from, and which ideas measured worse. Read it before changing one of
+  them: most of the obvious improvements have been tried and rejected.
+- **[CodingConventions.md](CodingConventions.md)** — where code goes, branch naming,
+  argument order, docstring style.
 
 ## Commands
 
@@ -17,12 +40,15 @@ uv sync --extra dev
 
 **Run tests:**
 ```bash
-uv run pytest airsenal/tests
+uv run pytest tests
 # Single test file:
-uv run pytest airsenal/tests/test_utils.py
+uv run pytest tests/db/test_queries.py
 # Single test:
-uv run pytest airsenal/tests/test_utils.py::test_function_name
+uv run pytest tests/db/test_queries.py::test_function_name
 ```
+
+Offline is enforced (`--disable-socket`), and `slow` and `live` tests are deselected by
+default. Coverage has a floor: see `[tool.coverage.report]` in `pyproject.toml`.
 
 **Lint and format:**
 ```bash
@@ -32,8 +58,18 @@ uv run ruff format .
 
 **Type checking:**
 ```bash
-uv run mypy airsenal/framework airsenal/scripts
+uv run mypy
 ```
+
+**Check the package layering:**
+```bash
+uv run lint-imports
+```
+
+All of these also run as pre-commit hooks, so this is mostly for running them directly.
+`mypy` checks `src/airsenal` and `tools`; `lint-imports` always checks the whole package,
+because a layering violation is an edge between two modules and there is nothing to
+narrow to.
 
 **Pre-commit hooks:**
 ```bash
@@ -46,57 +82,62 @@ pre-commit run --all-files
 uv run airsenal run
 ```
 
-## Architecture
+## Data flow
 
-### Package layout
+1. **Database init** (`ingest/init_db.py`) — loads historical season data from
+   `src/airsenal/data/` into a local SQLite database
+2. **Database update** (`ingest/update.py`) — fetches current-season fixtures, results,
+   and player attributes from the FPL API via `curl_cffi`
+3. **Prediction** (`prediction/run.py`) — fits the points model (by default a team,
+   player and minutes model plus point components) and predicts points; writes to the
+   `PlayerPrediction` table
+4. **Optimization** (`optimization/run_transfers.py`) — searches for optimal transfers;
+   writes to `TransferSuggestion` table
+5. **Apply** (`apply/transfers.py`, `apply/lineup.py`) — optionally posts transfers and
+   lineup to the FPL API
 
-- **`airsenal/framework/`** — all core logic; statistical models, database schema, optimization, squad/player classes, data fetching
-- **`airsenal/cli/`** — Typer command definitions and CLI-only argument handling
-- **`airsenal/scripts/`** — operational workflow implementations used by the CLI
-- **`airsenal/tests/`** — pytest tests for framework code
-- **`airsenal/data/`** — static historical FPL data (multiple seasons, used to seed the database)
-- **`airsenal/api/`** — optional Flask API (work in progress)
+`airsenal run` is the top-level orchestrator for steps 1-5.
 
-### Data flow
+## Rules for working here
 
-1. **Database init** (`fill_db_init.py`) — loads historical season data from `airsenal/data/` into a local SQLite database
-2. **Database update** (`update_db.py`) — fetches current-season fixtures, results, and player attributes from the FPL API via `curl_cffi`
-3. **Prediction** (`fill_predictedscore_table.py`) — runs BPL (Bayesian Premier League) team models and player-level models to predict points; writes to `PlayerPrediction` table
-4. **Optimization** (`fill_transfersuggestion_table.py`) — uses a greedy/brute-force search to find optimal transfers; writes to `TransferSuggestion` table
-5. **Apply** (`make_transfers.py`, `set_lineup.py`) — optionally posts transfers and lineup to the FPL API. NEVER run `make_transfers.py` yourself whilst testing changes as this leads to irreversible changes to the actual AIrsenal FPL team entry.
+**Never run `airsenal apply`, `make_transfers` or `set_lineup` while testing changes.**
+They write irreversibly to the real AIrsenal FPL entry. Use `--dry-run`, which builds the
+payload and posts nothing, or assert on what `build_transfer_payload` returns.
 
-`airsenal run` is the top-level orchestrator for steps 1–5.
+**Prediction is single-threaded by design.** Don't add multi-threading or multiprocessing
+to `prediction/run.py`, or to any code that calls a jax-based model: jax deadlocks under
+multi-threading. Prediction is fast enough without it.
 
-### Key framework modules
+**The transfer search must fork,** and can only fork before jax has been initialised — see
+`core/concurrency.py`.
 
-| File | Purpose |
-|------|---------|
-| `schema.py` | SQLAlchemy ORM models (`Player`, `Fixture`, `PlayerScore`, `PlayerPrediction`, `Squad`, etc.) |
-| `data_fetcher.py` | FPL API client (uses `curl_cffi`); handles auth and data fetching |
-| `prediction_utils.py` | BPL team-level match score predictions |
-| `player_model.py` | Conjugate Bayesian and Numpyro player performance models |
-| `optimization_utils.py` | Transfer optimization logic (greedy/brute-force) |
-| `optimization_squad.py` | Initial whole-squad optimization (DEAP genetic algorithm) |
-| `squad.py` | `Squad` class: 15 players, formation/budget constraint checking |
-| `transaction_utils.py` | Transfer transaction management |
-| `utils.py` | Shared utilities and default database session |
+**Adding a model is a table entry, not a special case.** If adding one seems to need
+edits anywhere but the class and its table line, the seam is in the wrong place. See
+[docs/adding-a-model.md](docs/adding-a-model.md).
 
-### Database
+## Conventions worth knowing before you edit
 
-SQLite, default location: `$AIRSENAL_HOME/data.db` (configurable via `AIRSENAL_DB_FILE` env var). SQLAlchemy v2.0+ ORM. The `dbsession` argument (defaulting to the session created in `schema.py`) is threaded through most framework functions.
+Full versions in [CodingConventions.md](CodingConventions.md). The machine-checked ones:
 
-### Configuration
-
-Required env var: `FPL_TEAM_ID`. Optional: `FPL_LOGIN`, `FPL_PASSWORD`, `FPL_LEAGUE_ID`, `AIRSENAL_DB_FILE`. Use `airsenal env set` to persist these under `AIRSENAL_HOME`.
-
-### Prediction is single-threaded by design
-
-`fill_predictedscore_table.py` used to parallelize player predictions with a thread/process pool; this was removed because jax deadlocks under multi-threading, and prediction is fast enough without it. Don't reintroduce multi-threading/multiprocessing there (or in code that calls jax-based models) unless the deadlock issue is independently resolved.
-
-## Code conventions
-
-- **Branch naming:** `feature/<issue>-<description>` or `bugfix/<issue>-<description>`; all new branches should be made from `develop`, and all pull requests should be made to merge into `develop`
-- **Function argument order** (where applicable): other args → `player`/`player_id` → `position` → `team` → `tag` → `gameweek` → `season` → `fpl_team_id` → `dbsession` → `apifetcher` → `verbose`
-- **Season strings:** `"2122"` for the 2021/22 season
-- **Position strings:** `"GK"`, `"DEF"`, `"MID"`, `"FWD"`, or `"all"`
-- Docstrings should follow numpydoc convention; type hints are encouraged
+- **Positions and chips:** use the `Position` and `Chip` enums from `game/enums.py`, not
+  bare strings (`"all"` is still a plain string where a position filter accepts it).
+  Enforced by `tests/test_naming_conventions.py`.
+- **Gameweek naming:** `gameweek`, `gameweeks`, `n_gameweeks`, and the word is
+  always written out - `gameweek_start`, `bench_boost_gameweek`, never `gw` or
+  `week`. Same test, over every name a module introduces.
+- **Argument order:** four groups — what it is about (`player_id`/`player`, `position`,
+  `team`), which run (`tag`), when (`gameweek`, `season`), what it talks to
+  (`fpl_team_id`, `fetcher`, `dbsession`), then `verbose`. Anything unlisted goes first.
+  `tests/test_argument_order.py` enforces it for every function, with no exemptions.
+  Where an optional argument ranks above a required one, the tail is keyword-only from
+  that point rather than reordered.
+- **Notebook imports** must resolve against the package: `tests/test_notebooks.py`.
+- **Docstrings:** [Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings),
+  usually one line, and the first line is a summary and only that. An
+  `Args:`/`Returns:`/`Raises:` section is for what the signature does not already say — a
+  unit, a sentinel value's meaning, a side effect — not a restatement of it.
+- Document what the code does now. Rationale belongs in a docstring only when it
+  constrains future work; why the code changed belongs in the commit message.
+- **Season strings:** `"2122"` for the 2021/22 season.
+- **Branch naming:** `feature/<issue>-<description>` or `bugfix/<issue>-<description>`,
+  from `develop`, and pull requests merge into `develop`.

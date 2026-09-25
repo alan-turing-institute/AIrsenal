@@ -1,0 +1,299 @@
+"""
+Swapping a component, which is what the pipeline object exists to allow.
+
+These run `AIrsenalPipeline.run()` itself - nothing else does - with the
+optimizers replaced by recorders that satisfy the protocols but are unknown to
+any registry.
+
+`refresh_database=False` and `new_squad=True` let `run()` execute with no network call.
+"""
+
+import pytest
+from sqlalchemy import select
+
+from airsenal.core.lookup import ConfigError
+from airsenal.db.models import PlayerPrediction, Transaction
+from airsenal.db.queries.predictions import get_predicted_points
+from airsenal.db.session import session_scope
+from airsenal.optimization.squad_optimizers import (
+    SQUAD_OPTIMIZERS,
+    GeneticAlgorithmConfig,
+    GeneticSquadOptimizer,
+)
+from airsenal.pipeline import AIrsenalPipeline, PipelineSettings
+from airsenal.prediction.player_models import (
+    build_player_model,
+)
+from airsenal.prediction.points_models import ComponentPointsModel
+from airsenal.prediction.team_models import (
+    build_team_model,
+)
+from airsenal.remote.errors import RemoteConnectionError
+from tests.e2e.conftest import FUTURE_GAMEWEEKS, SEASON
+
+TEAM_ID = -1
+
+
+class RecordingSquadOptimizer:
+    """Satisfies SquadOptimizer, records what it was asked, builds a real squad."""
+
+    def __init__(self):
+        self.requests = []
+        self._real = GeneticSquadOptimizer(
+            GeneticAlgorithmConfig(population_size=20, generations=5, random_state=0)
+        )
+
+    def optimize(self, request):
+        self.requests.append(request)
+        return self._real.optimize(request)
+
+
+class RecordingTransferOptimizer:
+    """Satisfies TransferOptimizer. Never expected to be called in these tests."""
+
+    def __init__(self):
+        self.requests = []
+
+    def search(self, request):
+        self.requests.append(request)
+        msg = "the transfer optimizer should not have been reached"
+        raise AssertionError(msg)
+
+
+class LoggedOutFetcher:
+    """An FPL API client whose login fails, so the entry's squad is unavailable."""
+
+    def get_current_picks(self, fpl_team_id=None):
+        del fpl_team_id
+        msg = "Failed to log in to the FPL API"
+        raise RemoteConnectionError(msg)
+
+
+def _pipeline(team_model="constant", player_model="constant", **settings):
+    return AIrsenalPipeline(
+        points_model=ComponentPointsModel(
+            team_model=build_team_model(team_model),
+            player_model=build_player_model(player_model),
+        ),
+        squad_optimizer=RecordingSquadOptimizer(),
+        transfer_optimizer=RecordingTransferOptimizer(),
+        settings=PipelineSettings(
+            **{
+                "fpl_team_id": TEAM_ID,
+                "season": SEASON,
+                "n_gameweeks": len(FUTURE_GAMEWEEKS),
+                "gameweek_start": FUTURE_GAMEWEEKS[0],
+                "new_squad": True,
+                "refresh_database": False,
+                "apply_transfers": False,
+                **settings,
+            }
+        ),
+    )
+
+
+@pytest.fixture(scope="module")
+def completed(pipeline_db):
+    pipeline = _pipeline()
+    pipeline.run()
+    return pipeline
+
+
+def test_run_reaches_the_squad_optimizer_it_was_given(completed):
+    assert len(completed.squad_optimizer.requests) == 1
+
+
+def test_run_does_not_reach_the_transfer_optimizer_for_a_new_squad(completed):
+    assert completed.transfer_optimizer.requests == []
+
+
+def test_the_optimizer_is_asked_for_the_gameweeks_the_run_covers(completed):
+    assert completed.squad_optimizer.requests[0].gameweeks == FUTURE_GAMEWEEKS
+
+
+def test_the_optimizer_is_handed_the_tag_prediction_actually_wrote(
+    completed, pipeline_db
+):
+    """
+    The tag is threaded through rather than looked up again afterwards.
+
+    Checked by membership, not equality: the database is shared with the other
+    e2e modules, so it holds their tags too.
+    """
+    tag = completed.squad_optimizer.requests[0].tag
+    written = set(pipeline_db.scalars(select(PlayerPrediction.tag)).all())
+    assert tag in written
+    predictions = pipeline_db.scalars(
+        select(PlayerPrediction).where(PlayerPrediction.tag == tag)
+    ).all()
+    assert predictions
+
+
+def test_the_optimizer_is_told_which_season(completed):
+    assert completed.squad_optimizer.requests[0].season == SEASON
+
+
+def test_swapping_the_team_model_changes_the_predictions(pipeline_db):
+    """
+    Proves the component object is used, not a name resolved somewhere downstream.
+
+    Two runs differing only in their team model must not produce identical
+    predicted points.
+    """
+    constant = _pipeline(team_model="constant")
+    constant.run()
+    random_model = _pipeline(team_model="random")
+    random_model.run()
+
+    tags = [
+        constant.squad_optimizer.requests[0].tag,
+        random_model.squad_optimizer.requests[0].tag,
+    ]
+    assert tags[0] != tags[1]
+
+    points = [
+        {
+            player.player_id: score
+            for player, score in get_predicted_points(
+                FUTURE_GAMEWEEKS, tag=tag, season=SEASON, dbsession=pipeline_db
+            )
+        }
+        for tag in tags
+    ]
+    assert points[0]
+    assert points[1]
+    assert points[0] != points[1]
+
+
+def test_a_pipeline_can_be_rebuilt_with_different_settings():
+    pipeline = _pipeline()
+    changed = pipeline.with_settings(n_gameweeks=9)
+
+    assert changed.settings.n_gameweeks == 9
+    assert pipeline.settings.n_gameweeks == len(FUTURE_GAMEWEEKS)
+    # the components come along unchanged
+    assert changed.squad_optimizer is pipeline.squad_optimizer
+
+
+def test_a_component_the_tables_do_not_know_about_still_works():
+    """
+    A component the tables have never heard of is still a first-class one.
+
+    This squad optimizer is defined in this file and registered nowhere.
+    """
+    optimizer = RecordingSquadOptimizer()
+    pipeline = AIrsenalPipeline(squad_optimizer=optimizer)
+
+    assert pipeline.squad_optimizer is optimizer
+    assert not any(optimizer is entry for entry in SQUAD_OPTIMIZERS.values())
+
+
+@pytest.mark.usefixtures("pipeline_db")
+class TestOptimizeRefusesPredictionsItCannotUse:
+    """
+    A tag covering none of the requested gameweeks is refused.
+
+    The guard is on `AIrsenalPipeline.optimize` rather than on the CLI, so a
+    notebook and `run()` itself get the error too instead of wrong answers.
+    """
+
+    def test_a_tag_that_does_not_exist_is_refused(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError) as excinfo:
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert "no-such-tag" in str(excinfo.value)
+
+    def test_the_error_says_how_to_get_predictions(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError) as excinfo:
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert "airsenal predict" in str(excinfo.value)
+
+    def test_the_optimizer_is_not_reached(self):
+        pipeline = _pipeline()
+        with pytest.raises(ConfigError):
+            pipeline.optimize(list(FUTURE_GAMEWEEKS), "no-such-tag", TEAM_ID)
+        assert pipeline.squad_optimizer.requests == []
+
+
+@pytest.mark.usefixtures("pipeline_db")
+class TestOneWindowResolver:
+    """
+    One resolver for the gameweek window.
+
+    Every command goes through `get_gameweeks_array`, so they all clamp to the
+    end of the season the same way.
+    """
+
+    def test_a_window_given_as_a_length(self):
+        pipeline = _pipeline()
+        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS)
+
+    def test_a_window_given_as_both_ends(self):
+        pipeline = _pipeline(
+            gameweek_end=FUTURE_GAMEWEEKS[0] + 2,
+            n_gameweeks=99,
+        )
+        # gameweek_end is inclusive, so this covers three gameweeks, and an
+        # explicit end still wins over a length
+        assert pipeline.gameweeks() == list(FUTURE_GAMEWEEKS[:3])
+
+    def test_a_window_running_past_the_end_of_the_season_is_clamped(self):
+        pipeline = _pipeline(n_gameweeks=500)
+        assert pipeline.gameweeks()[0] == FUTURE_GAMEWEEKS[0]
+        assert len(pipeline.gameweeks()) < 500
+
+
+@pytest.mark.usefixtures("pipeline_db")
+class TestOneNewSquadDecision:
+    """
+    Whether to build a squad or transfer into one is decided in one place.
+
+    Nothing downstream may ask again and route to a from-scratch build after the
+    pipeline has decided otherwise: that path drops `is_replay`, so a replay
+    reaching it builds a squad, records no transactions for it, and leaves the
+    next gameweek with nothing to transfer from.
+    """
+
+    @pytest.fixture(autouse=True)
+    def offline_fetcher(self, monkeypatch):
+        """A run for the current season asks the API for the squad; refuse it."""
+
+        def get_fetcher(fpl_team_id=None):
+            del fpl_team_id
+            return LoggedOutFetcher()
+
+        monkeypatch.setattr(
+            "airsenal.optimization.run_transfers.get_fetcher", get_fetcher
+        )
+
+    def _optimize(self, *, new_squad, is_replay):
+        pipeline = _pipeline(new_squad=new_squad)
+        with session_scope() as session:
+            tag = pipeline.predict(list(FUTURE_GAMEWEEKS), session)
+        pipeline.optimize(list(FUTURE_GAMEWEEKS), tag, TEAM_ID, is_replay=is_replay)
+        return pipeline
+
+    def _transaction_count(self):
+        with session_scope() as session:
+            return len(
+                session.scalars(
+                    select(Transaction).where(Transaction.fpl_team_id == TEAM_ID)
+                ).all()
+            )
+
+    def test_a_replay_records_the_squad_it_built(self):
+        """
+        `is_replay` has to reach the from-scratch build by every route.
+
+        It is what writes the transactions the next gameweek transfers from.
+        """
+        before = self._transaction_count()
+        self._optimize(new_squad=False, is_replay=True)
+        assert self._transaction_count() > before
+
+    def test_a_run_that_is_not_a_replay_records_nothing(self):
+        """The real FPL entry's transactions come from the API, not from here."""
+        before = self._transaction_count()
+        self._optimize(new_squad=False, is_replay=False)
+        assert self._transaction_count() == before

@@ -1,0 +1,210 @@
+"""
+Appending today's player attributes to the packaged season CSV.
+
+The counterpart to `ingest/player_attributes.py`, which reads that file back in.
+Run daily by the `attributes` GitHub Actions workflow while a season is active,
+so the repo accumulates a per-day price and availability history.
+"""
+
+import csv
+from collections import defaultdict
+from contextlib import suppress
+from datetime import date, datetime
+
+from airsenal.core.data_files import data_file
+from airsenal.core.dates import parse_date
+from airsenal.core.logging import get_logger
+from airsenal.db.queries.gameweeks import next_gameweek
+from airsenal.game.mappings import positions
+from airsenal.game.season import CURRENT_SEASON
+from airsenal.ingest.player_attributes import parse_return_date
+from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher
+
+logger = get_logger(__name__)
+
+
+def _return_gameweek_from_deadlines(
+    return_date: datetime | None,
+    team: str,
+    ordered_deadlines: list[tuple[int, date]],
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]],
+) -> int | None:
+    """
+    Which gameweek a date falls in, from deadlines already loaded.
+
+    The database-backed answer is `db.queries.gameweeks.get_return_gameweek_by_date`.
+    This one is for the export loop, which walks every player and cannot afford a
+    query each time; None when the date is past the last deadline this run knows about.
+    """
+    if return_date is None:
+        return None
+
+    gameweek = None
+    for deadline_gameweek, deadline in ordered_deadlines:
+        if deadline >= return_date.date():
+            gameweek = deadline_gameweek - 1
+            break
+    if gameweek is None:
+        return None
+    if gameweek == 0:
+        return 1
+
+    for kickoff, teams in fixtures[gameweek]:
+        if team in teams:
+            if return_date.date() <= kickoff:
+                return gameweek
+            return gameweek + 1
+
+    return None
+
+
+def season_is_active(
+    now: datetime, fetcher: FPLDataFetcher, max_days_until_deadline: int = 14
+) -> bool:
+    """
+    Whether it is worth recording today's attributes.
+
+    True while a gameweek is in progress, or while the next deadline is within
+    `max_days_until_deadline`. False in June and July, once there are no future
+    deadlines left, and during a long gap between gameweeks.
+    """
+    if now.month in [6, 7]:
+        logger.info("It's the off-season (June or July)")
+        return False
+
+    summary_data = fetcher.get_current_summary_data()
+    for event in summary_data["events"]:
+        if event["is_current"] and not event["finished"]:
+            logger.info("Gameweek %s is currently active", event["id"])
+            return True
+
+    deadlines = [parse_date(event["deadline_time"]) for event in summary_data["events"]]
+    future_deadlines = [d for d in deadlines if d >= now.date()]
+    if not future_deadlines:
+        logger.info("No future deadlines - season is over")
+        return False
+
+    next_deadline = min(future_deadlines)
+    if (next_deadline - now.date()).days > max_days_until_deadline:
+        logger.info(
+            "Next deadline %s is more than %s days away",
+            next_deadline,
+            max_days_until_deadline,
+        )
+        return False
+
+    return True
+
+
+def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
+    """Append the current season's player attributes from the API to their CSV."""
+    timestamp = datetime.isoformat(now)
+    summary_data = fetcher.get_current_summary_data()
+
+    file_path = data_file(f"player_attributes_history_{CURRENT_SEASON}.csv")
+    if not file_path.is_file():
+        with open(file_path, "w") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(
+                [
+                    "timestamp",
+                    "season",
+                    "gameweek",
+                    "team",
+                    "position",
+                    "player_id",
+                    "opta_code",
+                    "player",
+                    "price",
+                    "selected",
+                    "transfers_in",
+                    "transfers_out",
+                    "transfers_balance",
+                    "news",
+                    "chance_of_playing_next_round",
+                    "return_gameweek",
+                ]
+            )
+
+    deadlines = sorted(
+        [
+            (int(event["id"]), parse_date(event["deadline_time"]))
+            for event in summary_data["events"]
+        ]
+    )
+    n_players = summary_data["total_players"]
+    teams = {team["id"]: team["short_name"] for team in summary_data["teams"]}
+    fixtures: dict[int, list[tuple[date, tuple[str, str]]]] = defaultdict(list)
+    for fixture in fetcher.get_fixture_data():
+        if (
+            (gameweek := fixture["event"])
+            and (kickoff_str := fixture["kickoff_time"])
+            and (kickoff := parse_date(kickoff_str)) is not None
+        ):
+            fixtures[gameweek].append(
+                (kickoff, (teams[fixture["team_h"]], teams[fixture["team_a"]]))
+            )
+    for gameweek, kickoffs in fixtures.items():
+        fixtures[gameweek] = sorted(kickoffs)
+
+    input_data = fetcher.get_player_summary_data()
+
+    with open(file_path, "a") as f:
+        writer = csv.writer(f, delimiter=",")
+        for player_api_id, player_data in input_data.items():
+            name = f"{player_data['first_name']} {player_data['second_name']}"
+            logger.debug("%s", name)
+            opta_code = player_data["opta_code"]
+            position = positions[player_data["element_type"]]
+            price = int(player_data["now_cost"])
+            team = teams[player_data["team"]]
+            selected = int(float(player_data["selected_by_percent"]) * n_players / 100)
+            transfers_in = int(player_data["transfers_in"])
+            transfers_out = int(player_data["transfers_out"])
+            transfers_balance = transfers_in - transfers_out
+            news = player_data["news"]
+            chance_of_playing_next_round = player_data["chance_of_playing_next_round"]
+            return_gameweek = None
+            if (
+                chance_of_playing_next_round is not None
+                and chance_of_playing_next_round <= 50
+            ):
+                return_date = None
+                with suppress(ValueError):
+                    return_date = parse_return_date(news)
+                return_gameweek = _return_gameweek_from_deadlines(
+                    return_date, team, deadlines, fixtures
+                )
+
+            writer.writerow(
+                [
+                    timestamp,
+                    CURRENT_SEASON,
+                    next_gameweek(),
+                    team,
+                    position,
+                    player_api_id,
+                    opta_code,
+                    name,
+                    price,
+                    selected,
+                    transfers_in,
+                    transfers_out,
+                    transfers_balance,
+                    news,
+                    chance_of_playing_next_round,
+                    return_gameweek,
+                ]
+            )
+
+
+def save_attributes() -> None:
+    """Append today's player attributes to the packaged season CSV."""
+    now = datetime.now()
+    fetcher = get_fetcher()
+
+    if not season_is_active(now, fetcher):
+        logger.info("Season is not active - not saving attributes")
+        return
+
+    save_attributes_from_api(now, fetcher)

@@ -1,0 +1,148 @@
+"""
+Running a from-scratch squad build.
+
+`build_new_squad` chooses fifteen players and reports what it chose. Not to be
+confused with `fill_initial_squad` in `squad.history`, which records fifteen
+players the FPL entry was already given.
+"""
+
+from airsenal.core.console import console, progress_bar
+from airsenal.game.enums import Chip
+from airsenal.optimization.moves import ChipGameweeks
+from airsenal.optimization.persist import (
+    fill_initial_suggestion_table,
+    fill_initial_transaction_table,
+)
+from airsenal.optimization.protocols import (
+    SquadOptimizer,
+    SquadRequest,
+    progress_total,
+)
+from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
+from airsenal.optimization.squad_score import (
+    SquadScoringConfig,
+    get_discounted_squad_score,
+)
+from airsenal.reporting.optimization import (
+    GameweekRow,
+    print_plan_table,
+    print_result_panel,
+    print_squad_table,
+)
+from airsenal.reporting.squad_view import formation_table
+from airsenal.squad.squad import Squad
+
+
+def _chip_label(chips: ChipGameweeks, gameweek: int) -> str | None:
+    """
+    The chip this gameweek's row should show.
+
+    Only the two that leave the squad alone: a wildcard or free hit is what a
+    from-scratch build already is, so naming it in the table says nothing.
+    """
+    chip = chips.chip_in(gameweek)
+    return str(chip) if chip in (Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN) else None
+
+
+def build_new_squad(
+    tag: str,
+    gameweeks: list[int],
+    season: str,
+    fpl_team_id: int,
+    optimizer: SquadOptimizer | None = None,
+    scoring: SquadScoringConfig | None = None,
+    remove_zero: bool = True,
+    is_replay: bool = False,
+    chips: ChipGameweeks | None = None,
+) -> Squad:
+    if optimizer is None:
+        optimizer = GeneticSquadOptimizer()
+    scoring = scoring if scoring is not None else SquadScoringConfig()
+    sub_weights = scoring.sub_weights
+    with progress_bar(transient=True) as progress:
+        task = progress.add_task(
+            "Optimising full squad", total=progress_total(optimizer)
+        )
+
+        def report_generation(best_score: float) -> None:
+            progress.update(
+                task,
+                advance=1,
+                description=f"Optimising full squad (best {best_score:.1f}pts)",
+            )
+
+        best_squad = optimizer.optimize(
+            SquadRequest(
+                gameweeks=gameweeks,
+                tag=tag,
+                season=season,
+                scoring=scoring,
+                remove_zero=remove_zero,
+                progress=report_generation,
+            )
+        )
+
+    gameweek_start = gameweeks[0]
+    optimised_score = get_discounted_squad_score(
+        best_squad,
+        gameweeks,
+        tag,
+        gameweek_start,
+        sub_weights=sub_weights,
+    )
+
+    chips = chips if chips is not None else ChipGameweeks()
+
+    print_result_panel(
+        gameweeks=gameweeks,
+        fpl_team_id=fpl_team_id,
+        optimised_score=optimised_score,
+    )
+    print_plan_table(
+        [
+            GameweekRow(
+                gameweek=gameweek,
+                # every player is new in the first gameweek, and kept after that
+                transfers=(
+                    str(len(best_squad.players)) if gameweek == gameweek_start else "0"
+                ),
+                chip=_chip_label(chips, gameweek),
+                points_hit=0,
+                predicted_points=best_squad.get_expected_points(
+                    tag,
+                    gameweek,
+                    bench_boost=chips.bench_boost == gameweek,
+                    triple_captain=chips.triple_captain == gameweek,
+                ),
+            )
+            for gameweek in gameweeks
+        ]
+    )
+    print_squad_table(best_squad.players)
+    console.print(
+        formation_table(
+            best_squad,
+            tag,
+            gameweek_start,
+            bench_boost=chips.bench_boost == gameweek_start,
+            triple_captain=chips.triple_captain == gameweek_start,
+        )
+    )
+
+    fill_initial_suggestion_table(
+        best_squad,
+        gameweek=gameweek_start,
+        tag=tag,
+        season=season,
+        fpl_team_id=fpl_team_id,
+    )
+    if is_replay:
+        # a replay imitates applying the suggestions by recording them as transactions
+        fill_initial_transaction_table(
+            best_squad,
+            gameweek=gameweek_start,
+            tag=tag,
+            season=season,
+            fpl_team_id=fpl_team_id,
+        )
+    return best_squad

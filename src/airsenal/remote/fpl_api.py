@@ -1,0 +1,384 @@
+"""
+The FPL API's endpoints, and a client that caches their responses.
+
+The login flow is in `fpl_auth.py` and the request helpers in `fpl_http.py`.
+
+Thanks to:
+- https://github.com/amosbastian/fpl/blob/master/fpl/utils.py for posting transfers and
+  lineups.
+"""
+
+from functools import cache
+from typing import Any, overload
+
+from airsenal.core.env import (
+    FPL_LEAGUE_ID,
+    FPL_TEAM_ID,
+)
+from airsenal.core.logging import get_logger
+from airsenal.remote.errors import RemoteError
+from airsenal.remote.fpl_auth import FPLAuth
+from airsenal.remote.fpl_http import API_HOME, get_json, post_json
+
+logger = get_logger(__name__)
+
+FPL_SUMMARY_API_URL = f"{API_HOME}/bootstrap-static/"
+FPL_DETAIL_URL = API_HOME + "/element-summary/{}/"
+FPL_HISTORY_URL = API_HOME + "/entry/{}/history/"
+FPL_TEAM_URL = API_HOME + "/entry/{}/event/{}/picks/"
+FPL_GET_TRANSFERS_URL = API_HOME + "/entry/{}/transfers/"
+FPL_SET_TRANSFERS_URL = API_HOME + "/transfers/"
+FPL_FIXTURE_URL = f"{API_HOME}/fixtures/"
+FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
+
+
+class FPLDataFetcher:
+    """Current and historic FPL data, held in memory and fetched on first use."""
+
+    def __init__(
+        self,
+        fpl_team_id: int | None = None,
+        auth: FPLAuth | None = None,
+    ) -> None:
+        self.auth = auth if auth is not None else FPLAuth()
+        self.current_summary_data: dict[str, Any] = {}
+        self.current_event_data: dict[int, dict[str, Any]] = {}  # by gameweek
+        self.current_player_data: dict[int, dict[str, Any]] = {}  # by player api id
+        self.current_team_data: dict[int, dict[str, Any]] = {}  # by team code
+        self.current_squad_data: dict[int, dict[str, Any]] = {}  # by fpl_team_id
+        # by player api id, then gameweek - a player can have two in a double gameweek
+        self.player_gameweek_data: dict[int, dict[int, list[dict[str, Any]]]] = {}
+        self.fpl_team_history_data: dict[str, Any] = {}
+        # by fpl_team_id
+        self.fpl_transfer_history_data: dict[int, list[dict[str, Any]]] = {}
+        self.fpl_league_data: dict[str, Any] = {}
+        self.fpl_team_data: dict[int, dict[str, Any]] = {}  # squad, by gameweek
+        self.fixture_data: list[dict[str, Any]] = []
+
+        self.FPL_TEAM_ID = FPL_TEAM_ID if fpl_team_id is None else fpl_team_id
+        self.FPL_LEAGUE_ID = FPL_LEAGUE_ID
+        self.FPL_LEAGUE_URL = (
+            f"{API_HOME}/leagues-classic/{self.FPL_LEAGUE_ID}"
+            "/standings/?page_new_entries=1&page_standings=1"
+        )
+
+    @property
+    def logged_in(self) -> bool:
+        return self.auth.logged_in
+
+    def login(self) -> None:
+        """Log in, if the credentials to do so are available."""
+        self.auth.login()
+
+    def _team_id(self, fpl_team_id: int | None) -> int:
+        """`fpl_team_id`, or our own entry's if that is None."""
+        if fpl_team_id is not None:
+            return fpl_team_id
+        if self.FPL_TEAM_ID is None:
+            msg = "Please specify FPL team ID"
+            raise RuntimeError(msg)
+        return self.FPL_TEAM_ID
+
+    def _get(
+        self, url: str, err_msg: str = "Unable to access FPL API", **params: Any
+    ) -> Any:
+        """A GET on this fetcher's session, with whatever header login produced."""
+        return get_json(
+            self.auth.session, url, headers=self.auth.headers, err_msg=err_msg, **params
+        )
+
+    def _post(
+        self, url: str, data: Any, err_msg: str = "Failed to post data to FPL API"
+    ) -> None:
+        post_json(
+            self.auth.session, url, data, headers=self.auth.headers, err_msg=err_msg
+        )
+
+    def get_current_squad_data(self, fpl_team_id: int | None = None) -> dict[str, Any]:
+        """The current squad: picks, bank, and free transfers. Requires login."""
+        fpl_team_id = self._team_id(fpl_team_id)
+        if fpl_team_id in self.current_squad_data:
+            return self.current_squad_data[fpl_team_id]
+
+        self.login()
+        url = FPL_MYTEAM_URL.format(fpl_team_id)
+        self.current_squad_data[fpl_team_id] = self._get(url)
+        return self.current_squad_data[fpl_team_id]
+
+    def get_current_picks(
+        self, fpl_team_id: int | None = None
+    ) -> dict[int, dict[str, Any]]:
+        """
+        The players picked for the upcoming gameweek. Requires login.
+
+        Each carries its purchase and selling price and whether it is a sub.
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return {pick["element"]: pick for pick in squad_data["picks"]}
+
+    def get_num_free_transfers(self, fpl_team_id: int | None = None) -> int:
+        """Free transfers available for the upcoming gameweek. Requires login."""
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return max(
+            0,
+            int(squad_data["transfers"]["limit"])
+            - int(squad_data["transfers"]["made"]),
+        )
+
+    def get_current_bank(self, fpl_team_id: int | None = None) -> int:
+        """Money in the bank for the upcoming gameweek, in tenths of a million.
+
+        Requires login.
+        """
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return int(squad_data["transfers"]["bank"])
+
+    def get_available_chips(self, fpl_team_id: int | None = None) -> list[str]:
+        """Chips still available to play in the upcoming gameweek. Requires login."""
+        squad_data = self.get_current_squad_data(fpl_team_id)
+        return [
+            chip["name"]
+            for chip in squad_data["chips"]
+            if chip["status_for_entry"] == "available"
+        ]
+
+    def get_current_summary_data(self) -> dict[str, Any]:
+        """The summary data, from the cache if it is there and the API if not."""
+        if self.current_summary_data:
+            return self.current_summary_data
+        self.current_summary_data = self._get(FPL_SUMMARY_API_URL)
+        return self.current_summary_data
+
+    def get_fpl_team_data(
+        self, gameweek: int, fpl_team_id: int | None = None
+    ) -> dict[str, Any]:
+        """
+        An entry's team data from the FPL API.
+
+        Without an `fpl_team_id` this is our own team, `$FPL_TEAM_ID`, and the
+        result is cached.
+        """
+        is_own_team = not fpl_team_id
+        if is_own_team and gameweek in self.fpl_team_data:
+            return self.fpl_team_data[gameweek]
+        if not fpl_team_id:
+            fpl_team_id = self.FPL_TEAM_ID
+        url = FPL_TEAM_URL.format(fpl_team_id, gameweek)
+        fpl_team_data: dict[str, Any] = self._get(
+            url, err_msg=f"Unable to access FPL team API {url}"
+        )
+        if is_own_team:
+            self.fpl_team_data[gameweek] = fpl_team_data
+        return fpl_team_data
+
+    def get_fpl_team_history_data(self, team_id: int | None = None) -> dict[str, Any]:
+        """An entry's season history from the FPL API."""
+        is_own_team = not team_id
+        if is_own_team and self.fpl_team_history_data:
+            return self.fpl_team_history_data
+        if not team_id:
+            team_id = self.FPL_TEAM_ID
+        url = FPL_HISTORY_URL.format(team_id)
+        history: dict[str, Any] = self._get(
+            url, err_msg="Unable to access FPL team history API"
+        )
+        if is_own_team:
+            self.fpl_team_history_data = history
+        return history
+
+    def get_fpl_transfer_data(
+        self, fpl_team_id: int | None = None
+    ) -> list[dict[str, Any]]:
+        """Our entry's transfer history from the FPL API."""
+        fpl_team_id = self._team_id(fpl_team_id)
+        if fpl_team_id in self.fpl_transfer_history_data:
+            return self.fpl_transfer_history_data[fpl_team_id]
+        url = FPL_GET_TRANSFERS_URL.format(fpl_team_id)
+        # The API lists the newest transfer first; this keeps the oldest first.
+        self.fpl_transfer_history_data[fpl_team_id] = list(
+            reversed(
+                self._get(
+                    url,
+                    (
+                        "Unable to access FPL transfer history API for "
+                        f"team_id {fpl_team_id}"
+                    ),
+                )
+            )
+        )
+        return self.fpl_transfer_history_data[fpl_team_id]
+
+    def get_fpl_league_data(self) -> dict[str, Any] | None:
+        """Our league's standings from the FPL API."""
+        if self.fpl_league_data:
+            return self.fpl_league_data
+
+        self.login()
+        try:
+            self.fpl_league_data = self._get(self.FPL_LEAGUE_URL)
+        except RemoteError:
+            logger.warning("Unable to access FPL league API")
+            return None
+        return self.fpl_league_data
+
+    def get_event_data(self) -> dict[int, dict[str, Any]]:
+        """Each gameweek's transfer deadline, and whether it has finished."""
+        if self.current_event_data:
+            return self.current_event_data
+        self.current_event_data = {
+            event["id"]: {
+                "deadline": event["deadline_time"],
+                "is_finished": event["finished"],
+            }
+            for event in self.get_current_summary_data()["events"]
+        }
+        return self.current_event_data
+
+    def get_last_finished_gameweek(self) -> int:
+        """The last gameweek the API has marked as finished.
+
+        0 before the season starts.
+        """
+        event_data = self.get_event_data()
+        last_finished = 0
+        for gameweek in sorted(event_data.keys()):
+            if not event_data[gameweek]["is_finished"]:
+                return last_finished
+            last_finished = gameweek
+        return last_finished
+
+    def get_player_summary_data(self) -> dict[int, dict[str, Any]]:
+        """The summary data's players, keyed by player_api_id."""
+        if self.current_player_data:
+            return self.current_player_data
+        self.current_player_data = {
+            player["id"]: player
+            for player in self.get_current_summary_data()["elements"]
+        }
+        return self.current_player_data
+
+    def get_current_team_data(self) -> dict[int, dict[str, Any]]:
+        """The summary data's teams, keyed by team code."""
+        if self.current_team_data:
+            return self.current_team_data
+        self.current_team_data = {
+            team["code"]: team for team in self.get_current_summary_data()["teams"]
+        }
+        return self.current_team_data
+
+    @overload
+    def get_gameweek_data_for_player(
+        self, player_api_id: int, gameweek: None = None
+    ) -> dict[int, list[dict[str, Any]]]: ...
+
+    @overload
+    def get_gameweek_data_for_player(
+        self, player_api_id: int, gameweek: int
+    ) -> list[dict[str, Any]]: ...
+
+    def get_gameweek_data_for_player(
+        self, player_api_id: int, gameweek: int | None = None
+    ) -> dict[int, list[dict[str, Any]]] | list[dict[str, Any]]:
+        """
+        A player's data for a gameweek, from the cache or the API.
+
+        A list, because a player can play more than one match in a double
+        gameweek.
+        """
+        if player_api_id not in self.player_gameweek_data:
+            self.player_gameweek_data[player_api_id] = {}
+            player_detail = self._get(
+                FPL_DETAIL_URL.format(player_api_id),
+                f"Error retrieving data for player {player_api_id}",
+            )
+            for game in player_detail["history"]:
+                self.player_gameweek_data[player_api_id].setdefault(
+                    game["round"], []
+                ).append(game)
+        if not gameweek:
+            return self.player_gameweek_data[player_api_id]
+
+        if gameweek not in self.player_gameweek_data[player_api_id]:
+            logger.warning(
+                "Data not available for player %s gameweek %s", player_api_id, gameweek
+            )
+            return []
+        return self.player_gameweek_data[player_api_id][gameweek]
+
+    def get_fixture_data(self) -> list[dict[str, Any]]:
+        """The fixture list from the FPL API."""
+        if not self.fixture_data:
+            self.fixture_data = self._get(FPL_FIXTURE_URL)
+        return self.fixture_data
+
+    def get_lineup(self) -> dict[str, Any]:
+        """The entry's current lineup. Requires login."""
+        self.login()
+        team_url = FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+        lineup: dict[str, Any] = self._get(team_url)
+        return lineup
+
+    def post_lineup(self, payload: list[dict[str, Any]]) -> None:
+        """Post a new lineup for an entry. Requires login."""
+        self.login()
+        body = {"chip": None, "picks": payload}
+        team_url = FPL_MYTEAM_URL.format(self.FPL_TEAM_ID)
+        self._post(
+            team_url,
+            body,
+            err_msg=(
+                "Failed to set lineup. Make the changes manually on the web-site if "
+                "needed"
+            ),
+        )
+        logger.info("Lineup set!")
+
+    def post_transfers(self, transfer_payload: dict[str, Any]) -> None:
+        """Make transfers via the API.
+
+        WARNING: This can't be undone and may incur points hits. The payload can
+        activate a wildcard or a free hit, which are part of a transfer; the bench
+        boost and triple captain are lineup chips and have to be played on the
+        website.
+        """
+        self.login()
+        err_msg = (
+            "Failed to set transfers. Make the changes manually on the web-site if "
+            "needed."
+        )
+        self._post(
+            FPL_SET_TRANSFERS_URL,
+            data=transfer_payload,
+            err_msg=err_msg,
+        )
+        logger.info("Transfers made!")
+
+
+@cache
+def _fetcher_for(fpl_team_id: int | None) -> FPLDataFetcher:
+    """One client per team, keyed on a single normalised id."""
+    return FPLDataFetcher(fpl_team_id)
+
+
+def get_fetcher(fpl_team_id: int | None = None) -> FPLDataFetcher:
+    """
+    The shared FPL API client for a team, created on first use.
+
+    Every caller gets the same instance, and so the same response cache.
+    """
+    if fpl_team_id == FPL_TEAM_ID:
+        # One cache key for every call that wants the configured team.
+        fpl_team_id = None
+    return _fetcher_for(fpl_team_id)
+
+
+def require_fpl_team_id(fpl_team_id: int | None = None) -> int:
+    """The FPL team id to act for, or a clear error saying how to set one."""
+    resolved = fpl_team_id if fpl_team_id is not None else get_fetcher().FPL_TEAM_ID
+    if resolved is None:
+        msg = (
+            "fpl_team_id must be set as an argument, an environment variable, or "
+            "in the config file (see `airsenal env set FPL_TEAM_ID`)."
+        )
+        raise ValueError(msg)
+    return resolved
