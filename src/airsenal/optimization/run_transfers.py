@@ -162,9 +162,17 @@ def squad_for_next_gameweek(
     # Left to default these take the *current* season's next gameweek, which is
     # not this plan's gameweek at all when replaying a past season.
     for pid_out in outcome.players_out:
-        squad.remove_player(pid_out, gameweek=gameweek)
+        squad.remove_player(pid_out, gameweek=gameweek, use_api=use_api)
     for pid_in in outcome.players_in:
-        squad.add_player(pid_in, gameweek=gameweek)
+        # A wildcard or free hit adds fifteen players one at a time, so a wrong
+        # sale price surfaces here as a squad that cannot afford the last few.
+        if not squad.add_player(pid_in, gameweek=gameweek):
+            msg = (
+                f"Could not add player {pid_in} to the gameweek {gameweek} squad, "
+                f"which has {squad.budget} in the bank: the plan's transfers do "
+                "not fit the squad they are applied to."
+            )
+            raise RuntimeError(msg)
     return squad
 
 

@@ -185,3 +185,41 @@ def test_the_resulting_squad_is_priced_at_the_gameweek_of_the_move(monkeypatch):
 
     assert recorder.removed_in == [7]
     assert recorder.added_in == [7]
+
+
+def test_the_resulting_squad_sells_at_the_live_price_when_using_the_api(monkeypatch):
+    """A live squad's sale prices come from the API, as the search's did."""
+    sold_with_api = []
+
+    class _Squad(_RecordingSquad):
+        def remove_player(self, player_id, price=None, gameweek=None, **kwargs):
+            sold_with_api.append(kwargs.get("use_api"))
+            return super().remove_player(player_id, price, gameweek)
+
+    monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: _Squad())
+    plan = Plan(root_gameweek=7, outcomes=(_outcome(7, GameweekMove(1), (0,), (30,)),))
+
+    rt.squad_for_next_gameweek(plan, use_api=True)
+
+    assert sold_with_api == [True]
+
+
+def test_a_player_the_squad_cannot_take_fails_loudly(monkeypatch):
+    """
+    Not an incomplete squad that fails later, somewhere unrelated.
+
+    A wrong sale price leaves a wildcard's rebuild short of money partway
+    through, and the squad used to be returned a player short.
+    """
+
+    class _FullSquad(_RecordingSquad):
+        budget = 0
+
+        def add_player(self, player, price=None, gameweek=None, **kwargs):  # noqa: ARG002
+            return False
+
+    monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: _FullSquad())
+    plan = Plan(root_gameweek=7, outcomes=(_outcome(7, GameweekMove(1), (0,), (30,)),))
+
+    with pytest.raises(RuntimeError, match="Could not add player 30"):
+        rt.squad_for_next_gameweek(plan, season="2223")
